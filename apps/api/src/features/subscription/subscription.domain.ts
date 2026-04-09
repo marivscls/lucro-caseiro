@@ -38,7 +38,7 @@ export function buildFreemiumLimits(
   };
 }
 
-type ResourceType = "sales" | "clients" | "recipes" | "packaging";
+export type ResourceType = "sales" | "clients" | "recipes" | "packaging";
 
 export function isLimitExceeded(
   resourceType: ResourceType,
