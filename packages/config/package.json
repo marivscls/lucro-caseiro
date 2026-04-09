@@ -1,0 +1,11 @@
+{
+  "name": "@lucro-caseiro/config",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    "./eslint/base": "./eslint/base.mjs",
+    "./tsconfig/base": "./tsconfig/base.json",
+    "./tsconfig/library": "./tsconfig/library.json",
+    "./tsconfig/expo": "./tsconfig/expo.json"
+  }
+}

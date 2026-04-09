@@ -1,0 +1,8 @@
+{
+  "extends": "@lucro-caseiro/config/tsconfig/library",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist"
+  },
+  "include": ["src"]
+}
