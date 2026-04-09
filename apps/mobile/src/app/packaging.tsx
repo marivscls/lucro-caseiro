@@ -1,8 +1,17 @@
-import { Badge, Card, EmptyState, Typography, useTheme } from "@lucro-caseiro/ui";
-import React from "react";
-import { ActivityIndicator, FlatList, View } from "react-native";
+import {
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  Typography,
+  useTheme,
+  spacing,
+} from "@lucro-caseiro/ui";
+import React, { useState } from "react";
+import { ActivityIndicator, FlatList, Modal, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { CreatePackagingForm } from "../features/packaging/components/create-packaging-form";
 import { usePackagingList } from "../features/packaging/hooks";
 
 function formatCurrency(value: number): string {
@@ -12,12 +21,13 @@ function formatCurrency(value: number): string {
 export default function PackagingScreen() {
   const { theme } = useTheme();
   const { data, isLoading, error } = usePackagingList();
+  const [showCreate, setShowCreate] = useState(false);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       {isLoading && (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color={theme.colors.success} />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
       )}
       {!isLoading && error && (
@@ -30,6 +40,9 @@ export default function PackagingScreen() {
         <EmptyState
           title="Nenhuma embalagem ainda"
           description="Cadastre suas embalagens para facilitar a precificacao"
+          action={
+            <Button title="Cadastrar embalagem" onPress={() => setShowCreate(true)} />
+          }
         />
       )}
       {!isLoading && !error && !!data?.items.length && (
@@ -66,6 +79,48 @@ export default function PackagingScreen() {
           )}
         />
       )}
+
+      {/* FAB */}
+      <View style={{ position: "absolute", bottom: 100, right: 20 }}>
+        <Button
+          title="+ Nova embalagem"
+          onPress={() => setShowCreate(true)}
+          size="md"
+          style={{
+            borderRadius: 28,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.15,
+            shadowRadius: 8,
+            elevation: 6,
+          }}
+        />
+      </View>
+
+      {/* Modal - Criar embalagem */}
+      <Modal
+        visible={showCreate}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowCreate(false)}
+      >
+        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "flex-end",
+              padding: spacing.lg,
+            }}
+          >
+            <Pressable onPress={() => setShowCreate(false)}>
+              <Typography variant="bodyBold" color={theme.colors.primary}>
+                Fechar
+              </Typography>
+            </Pressable>
+          </View>
+          <CreatePackagingForm onSuccess={() => setShowCreate(false)} />
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }

@@ -88,14 +88,14 @@ export function CreateLabelForm({
         <View style={{ flexDirection: "row", gap: 12 }}>
           <Input
             label="Fabricacao"
-            placeholder="DD/MM/AAAA"
+            placeholder="AAAA-MM-DD"
             value={labelData.manufacturingDate ?? ""}
             onChangeText={(v) => updateField("manufacturingDate", v)}
             containerStyle={{ flex: 1 }}
           />
           <Input
             label="Validade"
-            placeholder="DD/MM/AAAA"
+            placeholder="AAAA-MM-DD"
             value={labelData.expirationDate ?? ""}
             onChangeText={(v) => updateField("expirationDate", v)}
             containerStyle={{ flex: 1 }}
