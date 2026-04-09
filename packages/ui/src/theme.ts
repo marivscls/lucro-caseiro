@@ -5,8 +5,8 @@ export const colors = {
   primaryDark: "#A85A67",
 
   // Surfaces - Light
-  background: "#FFF5F0",
-  surface: "#F5E1DB",
+  background: "#FFFAF8",
+  surface: "#F7EDE9",
   surfaceElevated: "#FFFFFF",
 
   // Surfaces - Dark
