@@ -1,0 +1,48 @@
+{
+  "name": "@lucro-caseiro/mobile",
+  "version": "0.0.1",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "dev": "expo start",
+    "dev:web": "expo start --web",
+    "build": "expo export --platform web",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
+  },
+  "dependencies": {
+    "@expo/vector-icons": "~15.1.1",
+    "@lucro-caseiro/contracts": "workspace:*",
+    "@lucro-caseiro/ui": "workspace:*",
+    "@react-native-community/netinfo": "^12.0.1",
+    "@supabase/supabase-js": "^2.49.0",
+    "@tanstack/react-query": "^5.60.0",
+    "expo": "~54.0.0",
+    "expo-constants": "~18.0.13",
+    "expo-file-system": "^55.0.15",
+    "expo-linking": "~8.0.11",
+    "expo-notifications": "^55.0.17",
+    "expo-router": "~6.0.23",
+    "expo-secure-store": "~15.0.8",
+    "expo-sharing": "^55.0.17",
+    "expo-status-bar": "~3.0.9",
+    "expo-web-browser": "^15.0.10",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-screens": "~4.16.0",
+    "react-native-web": "^0.21.0",
+    "zustand": "^5.0.0"
+  },
+  "devDependencies": {
+    "@lucro-caseiro/config": "workspace:*",
+    "@types/react": "~19.1.10",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.0"
+  }
+}

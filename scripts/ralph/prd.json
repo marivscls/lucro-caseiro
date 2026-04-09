@@ -1,0 +1,191 @@
+{
+  "project": "Lucro Caseiro",
+  "branchName": "ralph/ui-fixes-and-improvements",
+  "description": "Correcoes de UI e Melhorias de Usabilidade (Mobile) — corrigir botoes sem acao, dados hardcoded, labels trocadas, cores hardcoded e componentes inconsistentes",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Corrigir labels invertidas dos filtros de vendas",
+      "description": "Como usuario, quero filtrar vendas por status correto, para nao confundir vendas pendentes com concluidas.",
+      "acceptanceCriteria": [
+        "FILTER_TABS corrigido: { key: 'pending', label: 'Pendentes' } e { key: 'paid', label: 'Concluidas' }",
+        "Ao selecionar 'Pendentes', a API recebe status: 'pending'",
+        "Ao selecionar 'Concluidas', a API recebe status: 'paid'",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Corrigir botao 'Nova Venda' no estado vazio de vendas",
+      "description": "Como usuario, quero que o botao 'Nova Venda' na tela de lista vazia me leve para o wizard de nova venda.",
+      "acceptanceCriteria": [
+        "onPress do botao 'Nova Venda' no EmptyState navega para /tabs/new-sale via useRouter",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Conectar acoes de Produtos (criar e ver detalhe)",
+      "description": "Como usuario, quero criar novos produtos e ver o detalhe de um produto existente.",
+      "acceptanceCriteria": [
+        "Botao 'Novo produto' (FAB) e onAddPress abrem um Modal com CreateProductForm",
+        "Apos criar produto com sucesso, o modal fecha e a lista atualiza",
+        "onProductPress abre um modal de detalhe simples (pode ser 'Em breve' mas nao pode ficar silencioso)",
+        "products.tsx usa theme.colors.background no lugar de '#F9FAFB' hardcoded",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Conectar acoes de Receitas (criar e ver detalhe)",
+      "description": "Como usuario, quero criar novas receitas e navegar ao detalhe de uma receita.",
+      "acceptanceCriteria": [
+        "recipes.tsx passa onAddPress e onRecipePress para <RecipeList>",
+        "onAddPress abre um Modal com CreateRecipeForm (ja existe em features/recipes/components/)",
+        "Apos criar receita com sucesso, o modal fecha e a lista atualiza (invalidar query)",
+        "onRecipePress abre RecipeDetail em modal (ja existe em features/recipes/components/)",
+        "O duplo-fetch de useRecipes() em recipes.tsx e removido",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "Corrigir botao 'Editar cliente' sempre visivel e funcional",
+      "description": "Como usuario, quero editar os dados de qualquer cliente, independente de ele ter telefone cadastrado.",
+      "acceptanceCriteria": [
+        "Botao 'Editar cliente' em ClientDetail e renderizado sempre, independente de client.phone",
+        "onEditPress em clients.tsx abre o CreateClientForm (em modo edicao) ou um modal equivalente com os dados preenchidos",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Adicionar botao de nova entrada no Financeiro",
+      "description": "Como usuario, quero adicionar entradas e saidas financeiras diretamente na tela de financeiro.",
+      "acceptanceCriteria": [
+        "finance.tsx passa onAddPress para FinanceDashboard que abre um Modal com CreateFinanceEntry",
+        "finance.tsx passa onEntryPress para FinanceDashboard que abre detalhe da entrada (modal simples)",
+        "Apos criar entrada, o modal fecha e summary/lista atualizam (invalidar queries)",
+        "Um FAB com icone + e visivel na tela de financeiro quando a lista esta populada",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "Adicionar criacao de embalagens na tela de Packaging",
+      "description": "Como usuario, quero cadastrar novas embalagens diretamente na tela de Embalagens.",
+      "acceptanceCriteria": [
+        "FAB com icone + (Ionicons 'add') adicionado na posicao bottom: 24, right: 20",
+        "FAB abre um Modal com formulario de criacao de embalagem (campos: nome, custo, tipo)",
+        "Apos criar com sucesso, modal fecha e lista atualiza",
+        "packaging.tsx usa theme.colors.background no lugar de '#F9FAFB' hardcoded",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "Corrigir dados hardcoded e badge errado em Configuracoes",
+      "description": "Como usuario, quero ver meus dados reais (nome, negocio, plano) na tela de Configuracoes.",
+      "acceptanceCriteria": [
+        "useProfile() e usado para preencher nome, negocio, tipo de negocio e status do plano",
+        "Badge do plano mostra 'FREE' quando isPremium === false e 'PREMIUM' quando true",
+        "Card de plano no modo Free mostra 'Plano Gratuito' com os limites em vez de 'Valido ate [data]'",
+        "Botao 'Editar' no card de perfil abre um Alert com 'Em breve'",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "Corrigir toggle de tema e switch de notificacoes em Configuracoes",
+      "description": "Como usuario, quero alternar entre os temas Claro, Escuro e Auto, e ligar/desligar notificacoes.",
+      "acceptanceCriteria": [
+        "Opcao 'Auto' chama toggleTheme() ou fica desabilitada visivelmente (opacity: 0.4) com Alert 'Em breve' se a API nao suportar",
+        "Switch de notificacoes usa useState(true) e alterna corretamente entre ligado/desligado",
+        "Variavel isActive removida se nao utilizada",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-010",
+      "title": "Padronizar icones de navegacao (voltar/fechar)",
+      "description": "Como usuario, quero ver icones de navegacao consistentes em todas as telas.",
+      "acceptanceCriteria": [
+        "clients.tsx substitui '< Voltar' por Ionicons name='arrow-back' + label 'Voltar' ao lado",
+        "new-sale.tsx substitui '<' por Ionicons name='arrow-back' no header do wizard",
+        "sales.tsx modal de detalhe usa Ionicons name='close' com hitSlop adequado",
+        "Todos os botoes de navegacao tem hitSlop={12} para area de toque minima",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-011",
+      "title": "Substituir cores e espacamentos hardcoded por tokens do design system",
+      "description": "Como desenvolvedor, quero que todas as telas usem exclusivamente tokens do design system.",
+      "acceptanceCriteria": [
+        "packaging.tsx: '#F9FAFB' → theme.colors.background; '#22C55E' → theme.colors.primary",
+        "products.tsx: '#F9FAFB' → theme.colors.background",
+        "product-list.tsx: '#22C55E' → theme.colors.primary",
+        "more.tsx: padding: 20 → padding: spacing.xl; gap: 12 → gap: spacing.md; gap: 14 → gap: spacing.md",
+        "finance-dashboard.tsx: heading fixo 'Hoje' substituido por 'Lancamentos'",
+        "Nenhum valor de cor hexadecimal ou numero de spacing solto remanescente nos arquivos listados",
+        "Typecheck passes"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-012",
+      "title": "Substituir TouchableOpacity por Pressable",
+      "description": "Como desenvolvedor, quero componentes de interacao consistentes em todo o codebase mobile.",
+      "acceptanceCriteria": [
+        "Todos os TouchableOpacity substituidos por Pressable em recipe-list.tsx (filtros de categoria)",
+        "Todos os TouchableOpacity substituidos por Pressable em finance-dashboard.tsx (botoes de mes)",
+        "Comportamento visual identico (sem regressao)",
+        "Typecheck passes"
+      ],
+      "priority": 12,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

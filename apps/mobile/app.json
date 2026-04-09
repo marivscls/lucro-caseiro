@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "Lucro Caseiro",
+    "slug": "lucro-caseiro",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "scheme": "lucrocaseiro",
+    "splash": {
+      "backgroundColor": "#22C55E"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.lucrocaseiro.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#22C55E"
+      },
+      "package": "com.lucrocaseiro.app"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": ["expo-router"]
+  }
+}

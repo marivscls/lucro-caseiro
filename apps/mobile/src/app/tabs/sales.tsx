@@ -1,21 +1,17 @@
 import type { Sale } from "@lucro-caseiro/contracts";
+import { useRouter } from "expo-router";
 import {
   Button,
   EmptyState,
+  Input,
   Typography,
   useTheme,
   spacing,
   radii,
 } from "@lucro-caseiro/ui";
+import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  Modal,
-  Pressable,
-  ScrollView,
-  View,
-} from "react-native";
+import { ActivityIndicator, FlatList, Modal, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { SaleCard } from "../../features/sales/components/sale-card";
@@ -142,8 +138,10 @@ function SalesContent({
 
 export default function SalesScreen() {
   const { theme } = useTheme();
+  const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<FilterTab>("all");
   const [selectedSaleId, setSelectedSaleId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const statusParam = activeFilter === "all" ? undefined : activeFilter;
   const { data, isLoading, error, refetch } = useSales({ status: statusParam });
@@ -154,7 +152,17 @@ export default function SalesScreen() {
     void refetch();
   }
 
-  const groups = data?.items ? groupSalesByDate(data.items) : [];
+  const filteredItems = data?.items?.filter((sale) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    const matchProduct = sale.items?.some((i) =>
+      i.productName?.toLowerCase().includes(q),
+    );
+    const matchClient = sale.clientName?.toLowerCase().includes(q);
+    return matchProduct || matchClient;
+  });
+
+  const groups = filteredItems ? groupSalesByDate(filteredItems) : [];
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -170,12 +178,11 @@ export default function SalesScreen() {
       </View>
 
       {/* Filter pills */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{
+      <View
+        style={{
+          flexDirection: "row",
           paddingHorizontal: spacing.xl,
-          paddingVertical: spacing.sm,
+          paddingVertical: spacing.md,
           gap: spacing.sm,
         }}
       >
@@ -201,17 +208,33 @@ export default function SalesScreen() {
             </Pressable>
           );
         })}
-      </ScrollView>
+      </View>
+
+      {/* Search */}
+      <View style={{ paddingHorizontal: spacing.xl, paddingBottom: spacing.sm }}>
+        <Input
+          placeholder="Buscar por produto ou cliente..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          icon={
+            <Ionicons
+              name="search-outline"
+              size={18}
+              color={theme.colors.textSecondary}
+            />
+          }
+        />
+      </View>
 
       <SalesContent
         isLoading={isLoading}
         error={error}
-        hasItems={!!data?.items.length}
+        hasItems={!!filteredItems?.length}
         activeFilter={activeFilter}
         groups={groups}
         primaryColor={theme.colors.primary}
         onSalePress={setSelectedSaleId}
-        onNewSalePress={() => {}}
+        onNewSalePress={() => router.push("/tabs/new-sale")}
       />
 
       {/* Sale detail modal */}

@@ -1,0 +1,35 @@
+{
+  "name": "@lucro-caseiro/api",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file=.env src/main.ts",
+    "build": "tsc",
+    "start": "node --import tsx src/main.ts",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@lucro-caseiro/contracts": "workspace:*",
+    "@lucro-caseiro/database": "workspace:*",
+    "@supabase/supabase-js": "^2.49.0",
+    "cors": "^2.8.5",
+    "drizzle-orm": "^0.38.0",
+    "exceljs": "^4.4.0",
+    "express": "^5.0.0",
+    "pdfkit": "^0.18.0",
+    "postgres": "^3.4.5",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@lucro-caseiro/config": "workspace:*",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.0"
+  }
+}
