@@ -1,17 +1,16 @@
 import { router } from "expo-router";
 import type { NotificationResponse } from "expo-notifications";
 
-export const NOTIFICATION_TYPES = {
+const NOTIFICATION_TYPES = {
   PENDING_SALES: "PENDING_SALES",
   CLIENT_BIRTHDAY: "CLIENT_BIRTHDAY",
   LOW_STOCK: "LOW_STOCK",
 } as const;
 
-export type NotificationType =
-  (typeof NOTIFICATION_TYPES)[keyof typeof NOTIFICATION_TYPES];
+type _NotificationType = (typeof NOTIFICATION_TYPES)[keyof typeof NOTIFICATION_TYPES];
 
 /** Dados extras que acompanham cada tipo de notificacao */
-export type NotificationData =
+type NotificationData =
   | { type: typeof NOTIFICATION_TYPES.PENDING_SALES; saleId?: string }
   | { type: typeof NOTIFICATION_TYPES.CLIENT_BIRTHDAY; clientId?: string }
   | { type: typeof NOTIFICATION_TYPES.LOW_STOCK; productId?: string };

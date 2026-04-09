@@ -8,7 +8,7 @@ import { apiClient } from "../../shared/utils/api-client";
 
 const BASE = "/api/v1/packaging";
 
-export interface PaginatedPackaging {
+interface PaginatedPackaging {
   items: Packaging[];
   total: number;
   page: number;

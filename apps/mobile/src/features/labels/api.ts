@@ -4,7 +4,7 @@ import { apiClient } from "../../shared/utils/api-client";
 
 const BASE = "/api/v1/labels";
 
-export interface PaginatedLabels {
+interface PaginatedLabels {
   items: Label[];
   total: number;
   page: number;
@@ -12,7 +12,7 @@ export interface PaginatedLabels {
   totalPages: number;
 }
 
-export interface LabelTemplate {
+interface LabelTemplate {
   id: string;
   name: string;
 }

@@ -19,7 +19,7 @@
     "knip": "knip",
     "knip:full": "knip --include-entry-exports",
     "check": "pnpm lint && pnpm typecheck && pnpm build",
-    "prepush": "pnpm lint && pnpm typecheck && pnpm test && pnpm sherif && pnpm knip && pnpm context:lint",
+    "prepush": "pnpm lint && pnpm typecheck && pnpm test && pnpm sherif && pnpm context:lint",
     "ci": "pnpm lint && pnpm typecheck && pnpm test && pnpm sherif && pnpm knip:full && pnpm context:lint && pnpm build",
     "context:lint": "node scripts/context-lint-api.mjs && node scripts/context-lint-mobile.mjs",
     "context:lint:api": "node scripts/context-lint-api.mjs",

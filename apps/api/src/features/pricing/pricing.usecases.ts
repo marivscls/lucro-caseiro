@@ -9,7 +9,7 @@ import {
 } from "./pricing.domain";
 import type { FindAllOpts, IPricingRepo } from "./pricing.types";
 
-export interface CalculateInput {
+interface CalculateInput {
   productId?: string;
   ingredientCost: number;
   packagingCost: number;

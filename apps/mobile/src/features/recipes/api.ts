@@ -10,7 +10,7 @@ import { apiClient } from "../../shared/utils/api-client";
 const RECIPES_BASE = "/api/v1/recipes";
 const INGREDIENTS_BASE = "/api/v1/ingredients";
 
-export interface PaginatedRecipes {
+interface PaginatedRecipes {
   items: Recipe[];
   total: number;
   page: number;
@@ -18,7 +18,7 @@ export interface PaginatedRecipes {
   totalPages: number;
 }
 
-export interface PaginatedIngredients {
+interface PaginatedIngredients {
   items: Ingredient[];
   total: number;
   page: number;

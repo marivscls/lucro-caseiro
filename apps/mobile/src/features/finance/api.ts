@@ -9,7 +9,7 @@ import { apiClient } from "../../shared/utils/api-client";
 
 const BASE = "/api/v1/finance";
 
-export interface PaginatedFinance {
+interface PaginatedFinance {
   items: FinanceEntry[];
   total: number;
   page: number;

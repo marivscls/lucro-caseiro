@@ -4,7 +4,7 @@ import { apiClient } from "../../shared/utils/api-client";
 
 const BASE = "/api/v1/sales";
 
-export interface PaginatedSales {
+interface PaginatedSales {
   items: Sale[];
   total: number;
   page: number;
@@ -12,7 +12,7 @@ export interface PaginatedSales {
   totalPages: number;
 }
 
-export interface DaySummary {
+interface DaySummary {
   totalSales: number;
   totalAmount: number;
   averageTicket: number;

@@ -21,7 +21,7 @@ export function calculateProfitPerUnit(
   return suggestedPrice - totalCost;
 }
 
-export interface PricingInput {
+interface PricingInput {
   ingredientCost: number;
   packagingCost: number;
   laborCost: number;

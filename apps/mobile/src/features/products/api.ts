@@ -4,7 +4,7 @@ import { apiClient } from "../../shared/utils/api-client";
 
 const BASE = "/api/v1/products";
 
-export interface PaginatedProducts {
+interface PaginatedProducts {
   items: Product[];
   total: number;
   page: number;
