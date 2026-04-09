@@ -28,6 +28,16 @@ export function CreateLabelForm({
     setLabelData((prev) => ({ ...prev, [key]: value }));
   }
 
+  function toIsoDate(ddmmyyyy: string): string | undefined {
+    if (!ddmmyyyy.trim()) return undefined;
+    const parts = ddmmyyyy.split("/");
+    if (parts.length === 3) {
+      const [dd, mm, yyyy] = parts;
+      return `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
+    }
+    return ddmmyyyy;
+  }
+
   async function handleSubmit() {
     if (!name.trim()) {
       Alert.alert("Opa!", "De um nome para o rotulo");
@@ -43,7 +53,11 @@ export function CreateLabelForm({
         name: name.trim(),
         templateId,
         productId,
-        data: labelData,
+        data: {
+          ...labelData,
+          manufacturingDate: toIsoDate(labelData.manufacturingDate ?? ""),
+          expirationDate: toIsoDate(labelData.expirationDate ?? ""),
+        },
       });
       Alert.alert("Rotulo criado!", "Seu rotulo esta pronto para imprimir");
       onSuccess?.();
@@ -88,14 +102,14 @@ export function CreateLabelForm({
         <View style={{ flexDirection: "row", gap: 12 }}>
           <Input
             label="Fabricacao"
-            placeholder="AAAA-MM-DD"
+            placeholder="DD/MM/AAAA"
             value={labelData.manufacturingDate ?? ""}
             onChangeText={(v) => updateField("manufacturingDate", v)}
             containerStyle={{ flex: 1 }}
           />
           <Input
             label="Validade"
-            placeholder="AAAA-MM-DD"
+            placeholder="DD/MM/AAAA"
             value={labelData.expirationDate ?? ""}
             onChangeText={(v) => updateField("expirationDate", v)}
             containerStyle={{ flex: 1 }}
