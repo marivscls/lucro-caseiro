@@ -1,7 +1,8 @@
 import { Button, Card, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
-import { ActivityIndicator, ScrollView, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useBirthdays } from "../../features/clients/hooks";
@@ -179,30 +180,84 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Tip card */}
-        <Card variant="surface" padding="xl">
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-            <View
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: radii.full,
-                backgroundColor: theme.colors.surfaceElevated,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Typography variant="caption" color={theme.colors.primary}>
-                i
-              </Typography>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Typography variant="body">
-                Registre suas vendas todo dia pra ter o controle real do seu lucro.
-              </Typography>
-            </View>
+        {/* Quick access grid */}
+        <View style={{ gap: spacing.sm }}>
+          <Typography variant="label">ACESSO RAPIDO</Typography>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+            {[
+              {
+                icon: "wallet-outline" as const,
+                label: "Financeiro",
+                route: "/finance" as const,
+              },
+              {
+                icon: "cube-outline" as const,
+                label: "Produtos",
+                route: "/products" as const,
+              },
+              {
+                icon: "document-text-outline" as const,
+                label: "Receitas",
+                route: "/recipes" as const,
+              },
+              {
+                icon: "calculator-outline" as const,
+                label: "Precificacao",
+                route: "/pricing" as const,
+              },
+              {
+                icon: "gift-outline" as const,
+                label: "Embalagens",
+                route: "/packaging" as const,
+              },
+              {
+                icon: "pricetag-outline" as const,
+                label: "Rotulos",
+                route: "/labels" as const,
+              },
+              {
+                icon: "diamond-outline" as const,
+                label: "Planos",
+                route: "/plans" as const,
+              },
+              {
+                icon: "settings-outline" as const,
+                label: "Config",
+                route: "/settings" as const,
+              },
+            ].map((item) => (
+              <Pressable
+                key={item.label}
+                onPress={() => router.push(item.route)}
+                style={{
+                  width: "23%",
+                  alignItems: "center",
+                  paddingVertical: spacing.md,
+                  gap: spacing.xs,
+                }}
+              >
+                <View
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    backgroundColor: theme.colors.surface,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Ionicons name={item.icon} size={22} color={theme.colors.primary} />
+                </View>
+                <Typography
+                  variant="caption"
+                  style={{ textAlign: "center", fontSize: 11 }}
+                >
+                  {item.label}
+                </Typography>
+              </Pressable>
+            ))}
           </View>
-        </Card>
+        </View>
 
         {isLoading ? (
           <ActivityIndicator
