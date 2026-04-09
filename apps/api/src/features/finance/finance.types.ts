@@ -20,9 +20,18 @@ export interface IFinanceRepo {
   ): Promise<Omit<FinanceSummary, "period">>;
 }
 
+export type FinanceCategory =
+  | "sale"
+  | "material"
+  | "packaging"
+  | "transport"
+  | "fee"
+  | "utility"
+  | "other";
+
 export interface CreateFinanceEntryData {
   type: "income" | "expense";
-  category: string;
+  category: FinanceCategory;
   amount: number;
   description: string;
   date: string;
@@ -33,7 +42,7 @@ export interface FindAllOpts {
   page: number;
   limit: number;
   type?: "income" | "expense";
-  category?: string;
+  category?: FinanceCategory;
   startDate?: string;
   endDate?: string;
 }

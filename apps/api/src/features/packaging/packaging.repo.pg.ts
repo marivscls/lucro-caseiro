@@ -1,12 +1,11 @@
 import type { Packaging } from "@lucro-caseiro/contracts";
 import { packaging, productPackaging } from "@lucro-caseiro/database/schema";
 import { and, count, eq, ilike, sql } from "drizzle-orm";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-
+import type { AppDatabase } from "../../shared/db";
 import type { CreatePackagingData, FindAllOpts, IPackagingRepo } from "./packaging.types";
 
 export class PackagingRepoPg implements IPackagingRepo {
-  constructor(private db: PostgresJsDatabase) {}
+  constructor(private db: AppDatabase) {}
 
   async create(userId: string, data: CreatePackagingData): Promise<Packaging> {
     const [row] = await this.db

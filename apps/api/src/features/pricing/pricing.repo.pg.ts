@@ -1,12 +1,11 @@
 import type { Pricing } from "@lucro-caseiro/contracts";
 import { pricingCalculations } from "@lucro-caseiro/database/schema";
 import { and, count, eq, sql } from "drizzle-orm";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-
+import type { AppDatabase } from "../../shared/db";
 import type { CreatePricingData, FindAllOpts, IPricingRepo } from "./pricing.types";
 
 export class PricingRepoPg implements IPricingRepo {
-  constructor(private db: PostgresJsDatabase) {}
+  constructor(private db: AppDatabase) {}
 
   async create(userId: string, data: CreatePricingData): Promise<Pricing> {
     const [row] = await this.db

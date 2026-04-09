@@ -1,12 +1,11 @@
 import type { Label, LabelData } from "@lucro-caseiro/contracts";
 import { labels } from "@lucro-caseiro/database/schema";
 import { and, count, eq, sql } from "drizzle-orm";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-
+import type { AppDatabase } from "../../shared/db";
 import type { CreateLabelData, FindAllOpts, ILabelsRepo } from "./labels.types";
 
 export class LabelsRepoPg implements ILabelsRepo {
-  constructor(private db: PostgresJsDatabase) {}
+  constructor(private db: AppDatabase) {}
 
   async create(userId: string, data: CreateLabelData): Promise<Label> {
     const [row] = await this.db

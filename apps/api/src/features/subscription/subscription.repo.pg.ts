@@ -7,8 +7,7 @@ import {
   users,
 } from "@lucro-caseiro/database/schema";
 import { and, count, eq, gte } from "drizzle-orm";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-
+import type { AppDatabase } from "../../shared/db";
 import type {
   ISubscriptionRepo,
   ResourceCounts,
@@ -16,7 +15,7 @@ import type {
 } from "./subscription.types";
 
 export class SubscriptionRepoPg implements ISubscriptionRepo {
-  constructor(private db: PostgresJsDatabase) {}
+  constructor(private db: AppDatabase) {}
 
   async getProfile(userId: string): Promise<UserProfile | null> {
     const [row] = await this.db.select().from(users).where(eq(users.id, userId));

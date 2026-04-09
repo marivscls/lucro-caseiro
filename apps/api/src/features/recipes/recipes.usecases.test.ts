@@ -41,7 +41,7 @@ function makeRepo(overrides: Partial<IRecipesRepo> = {}): IRecipesRepo {
     findById: () => Promise.resolve(makeRecipe()),
     findAll: () => Promise.resolve({ items: [makeRecipe()], total: 1 }),
     update: (_userId: string, _id: string, data: Partial<CreateRecipeData>) =>
-      Promise.resolve(makeRecipe({ ...data })),
+      Promise.resolve(makeRecipe({ ...data, ingredients: undefined })),
     delete: () => Promise.resolve(true),
     countByUser: () => Promise.resolve(1),
     ...overrides,

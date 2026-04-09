@@ -8,8 +8,11 @@ import { getDb } from "../db";
 
 const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey);
 
-export interface AuthenticatedRequest extends Request {
-  userId: string;
+export type AuthenticatedRequest = Request & { userId: string };
+
+/** Extract userId from a request that has passed through authMiddleware */
+export function getUserId(req: Request): string {
+  return (req as AuthenticatedRequest).userId;
 }
 
 export async function authMiddleware(req: Request, res: Response, next: NextFunction) {

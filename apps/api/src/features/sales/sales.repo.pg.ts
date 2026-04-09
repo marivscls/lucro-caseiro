@@ -1,8 +1,7 @@
 import type { Sale, SaleStatus } from "@lucro-caseiro/contracts";
 import { clients, products, saleItems, sales } from "@lucro-caseiro/database/schema";
 import { and, between, count, eq, sql, sum } from "drizzle-orm";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-
+import type { AppDatabase } from "../../shared/db";
 import type {
   CreateSaleData,
   DaySummary,
@@ -14,7 +13,7 @@ import type {
 type PaymentMethodColumn = "pix" | "cash" | "card" | "credit" | "transfer";
 
 export class SalesRepoPg implements ISalesRepo {
-  constructor(private db: PostgresJsDatabase) {}
+  constructor(private db: AppDatabase) {}
 
   async create(userId: string, data: CreateSaleData, total: number): Promise<Sale> {
     const [saleRow] = await this.db

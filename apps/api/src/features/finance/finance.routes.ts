@@ -5,18 +5,17 @@ import {
 } from "@lucro-caseiro/contracts";
 import { Router } from "express";
 
-import type { AuthenticatedRequest } from "../../shared/middleware/auth";
-import { authMiddleware } from "../../shared/middleware/auth";
+import { authMiddleware, getUserId } from "../../shared/middleware/auth";
 import { generateFinanceExcel, generateFinancePdf } from "./finance.export";
 import type { FinanceUseCases } from "./finance.usecases";
 
-export function createFinanceRouter(useCases: FinanceUseCases) {
+export function createFinanceRouter(useCases: FinanceUseCases): Router {
   const router = Router();
   router.use(authMiddleware);
 
   router.post("/", async (req, res, next) => {
     try {
-      const { userId } = req as AuthenticatedRequest;
+      const userId = getUserId(req);
       const data = CreateFinanceEntryDto.parse(req.body);
       const entry = await useCases.create(userId, data);
       res.status(201).json(entry);
@@ -27,10 +26,18 @@ export function createFinanceRouter(useCases: FinanceUseCases) {
 
   router.get("/", async (req, res, next) => {
     try {
-      const { userId } = req as AuthenticatedRequest;
+      const userId = getUserId(req);
       const { page, limit } = PaginationDto.parse(req.query);
       const type = req.query.type as "income" | "expense" | undefined;
-      const category = req.query.category as string | undefined;
+      const category = req.query.category as
+        | "sale"
+        | "material"
+        | "packaging"
+        | "transport"
+        | "fee"
+        | "utility"
+        | "other"
+        | undefined;
       const startDate = req.query.startDate as string | undefined;
       const endDate = req.query.endDate as string | undefined;
 
@@ -51,7 +58,7 @@ export function createFinanceRouter(useCases: FinanceUseCases) {
 
   router.get("/summary", async (req, res, next) => {
     try {
-      const { userId } = req as AuthenticatedRequest;
+      const userId = getUserId(req);
       const now = new Date();
       const month = req.query.month ? Number(req.query.month) : now.getMonth() + 1;
       const year = req.query.year ? Number(req.query.year) : now.getFullYear();
@@ -65,7 +72,7 @@ export function createFinanceRouter(useCases: FinanceUseCases) {
 
   router.get("/export/pdf", async (req, res, next) => {
     try {
-      const { userId } = req as AuthenticatedRequest;
+      const userId = getUserId(req);
       const monthParam = req.query.month as string | undefined;
 
       const now = new Date();
@@ -109,7 +116,7 @@ export function createFinanceRouter(useCases: FinanceUseCases) {
 
   router.get("/export/xlsx", async (req, res, next) => {
     try {
-      const { userId } = req as AuthenticatedRequest;
+      const userId = getUserId(req);
       const monthParam = req.query.month as string | undefined;
 
       const now = new Date();
@@ -155,7 +162,7 @@ export function createFinanceRouter(useCases: FinanceUseCases) {
 
   router.get("/:id", async (req, res, next) => {
     try {
-      const { userId } = req as AuthenticatedRequest;
+      const userId = getUserId(req);
       const entry = await useCases.getById(userId, req.params.id);
       res.json(entry);
     } catch (err) {
@@ -165,7 +172,7 @@ export function createFinanceRouter(useCases: FinanceUseCases) {
 
   router.patch("/:id", async (req, res, next) => {
     try {
-      const { userId } = req as AuthenticatedRequest;
+      const userId = getUserId(req);
       const data = UpdateFinanceEntryDto.parse(req.body);
       const entry = await useCases.update(userId, req.params.id, data);
       res.json(entry);
@@ -176,7 +183,7 @@ export function createFinanceRouter(useCases: FinanceUseCases) {
 
   router.delete("/:id", async (req, res, next) => {
     try {
-      const { userId } = req as AuthenticatedRequest;
+      const userId = getUserId(req);
       await useCases.remove(userId, req.params.id);
       res.status(204).send();
     } catch (err) {

@@ -1,12 +1,11 @@
 import type { Client } from "@lucro-caseiro/contracts";
 import { clients } from "@lucro-caseiro/database/schema";
 import { and, count, eq, ilike, or, sql } from "drizzle-orm";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-
+import type { AppDatabase } from "../../shared/db";
 import type { CreateClientData, FindAllOpts, IClientsRepo } from "./clients.types";
 
 export class ClientsRepoPg implements IClientsRepo {
-  constructor(private db: PostgresJsDatabase) {}
+  constructor(private db: AppDatabase) {}
 
   async create(userId: string, data: CreateClientData): Promise<Client> {
     const [row] = await this.db

@@ -1,12 +1,11 @@
 import type { Product } from "@lucro-caseiro/contracts";
 import { products } from "@lucro-caseiro/database/schema";
 import { and, count, eq, ilike, sql } from "drizzle-orm";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-
+import type { AppDatabase } from "../../shared/db";
 import type { CreateProductData, FindAllOpts, IProductsRepo } from "./products.types";
 
 export class ProductsRepoPg implements IProductsRepo {
-  constructor(private db: PostgresJsDatabase) {}
+  constructor(private db: AppDatabase) {}
 
   async create(userId: string, data: CreateProductData): Promise<Product> {
     const [row] = await this.db

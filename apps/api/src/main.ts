@@ -1,5 +1,5 @@
 import cors from "cors";
-import express from "express";
+import express, { type Express } from "express";
 
 import { config } from "./config";
 import { createClientsRouter } from "./features/clients/clients.routes";
@@ -66,7 +66,7 @@ const pricingUseCases = new PricingUseCases(pricingRepo);
 const subscriptionUseCases = new SubscriptionUseCases(subscriptionRepo);
 
 // App
-const app = express();
+const app: Express = express();
 app.disable("x-powered-by");
 
 app.use(cors({ origin: config.corsOrigin }));

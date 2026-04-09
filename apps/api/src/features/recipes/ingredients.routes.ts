@@ -5,17 +5,16 @@ import {
 } from "@lucro-caseiro/contracts";
 import { Router } from "express";
 
-import type { AuthenticatedRequest } from "../../shared/middleware/auth";
-import { authMiddleware } from "../../shared/middleware/auth";
+import { authMiddleware, getUserId } from "../../shared/middleware/auth";
 import type { IngredientsUseCases } from "./ingredients.usecases";
 
-export function createIngredientsRouter(useCases: IngredientsUseCases) {
+export function createIngredientsRouter(useCases: IngredientsUseCases): Router {
   const router = Router();
   router.use(authMiddleware);
 
   router.post("/", async (req, res, next) => {
     try {
-      const { userId } = req as AuthenticatedRequest;
+      const userId = getUserId(req);
       const data = CreateIngredientDto.parse(req.body);
       const ingredient = await useCases.create(userId, data);
       res.status(201).json(ingredient);
@@ -26,7 +25,7 @@ export function createIngredientsRouter(useCases: IngredientsUseCases) {
 
   router.get("/", async (req, res, next) => {
     try {
-      const { userId } = req as AuthenticatedRequest;
+      const userId = getUserId(req);
       const { page, limit } = PaginationDto.parse(req.query);
       const search = req.query.search as string | undefined;
 
@@ -44,7 +43,7 @@ export function createIngredientsRouter(useCases: IngredientsUseCases) {
 
   router.get("/:id", async (req, res, next) => {
     try {
-      const { userId } = req as AuthenticatedRequest;
+      const userId = getUserId(req);
       const ingredient = await useCases.getById(userId, req.params.id);
       res.json(ingredient);
     } catch (err) {
@@ -54,7 +53,7 @@ export function createIngredientsRouter(useCases: IngredientsUseCases) {
 
   router.patch("/:id", async (req, res, next) => {
     try {
-      const { userId } = req as AuthenticatedRequest;
+      const userId = getUserId(req);
       const data = UpdateIngredientDto.parse(req.body);
       const ingredient = await useCases.update(userId, req.params.id, data);
       res.json(ingredient);
@@ -65,7 +64,7 @@ export function createIngredientsRouter(useCases: IngredientsUseCases) {
 
   router.delete("/:id", async (req, res, next) => {
     try {
-      const { userId } = req as AuthenticatedRequest;
+      const userId = getUserId(req);
       await useCases.remove(userId, req.params.id);
       res.status(204).send();
     } catch (err) {

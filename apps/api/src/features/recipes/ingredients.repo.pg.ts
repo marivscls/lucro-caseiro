@@ -1,8 +1,7 @@
 import type { Ingredient } from "@lucro-caseiro/contracts";
 import { ingredients } from "@lucro-caseiro/database/schema";
 import { and, count, eq, ilike, sql } from "drizzle-orm";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-
+import type { AppDatabase } from "../../shared/db";
 import type {
   CreateIngredientData,
   FindAllOpts,
@@ -10,7 +9,7 @@ import type {
 } from "./ingredients.types";
 
 export class IngredientsRepoPg implements IIngredientsRepo {
-  constructor(private db: PostgresJsDatabase) {}
+  constructor(private db: AppDatabase) {}
 
   async create(userId: string, data: CreateIngredientData): Promise<Ingredient> {
     const [row] = await this.db

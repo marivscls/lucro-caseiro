@@ -2,12 +2,11 @@ import type { Recipe } from "@lucro-caseiro/contracts";
 import { ingredients } from "@lucro-caseiro/database/schema";
 import { recipeIngredients, recipes } from "@lucro-caseiro/database/schema";
 import { and, count, eq, ilike, sql } from "drizzle-orm";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-
+import type { AppDatabase } from "../../shared/db";
 import type { CreateRecipeData, FindAllOpts, IRecipesRepo } from "./recipes.types";
 
 export class RecipesRepoPg implements IRecipesRepo {
-  constructor(private db: PostgresJsDatabase) {}
+  constructor(private db: AppDatabase) {}
 
   async create(userId: string, data: CreateRecipeData): Promise<Recipe> {
     const [recipeRow] = await this.db

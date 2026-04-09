@@ -1,12 +1,11 @@
 import type { FinanceEntry, FinanceSummary } from "@lucro-caseiro/contracts";
 import { financeEntries } from "@lucro-caseiro/database/schema";
 import { and, count, eq, gte, lte, sql, sum } from "drizzle-orm";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-
+import type { AppDatabase } from "../../shared/db";
 import type { CreateFinanceEntryData, FindAllOpts, IFinanceRepo } from "./finance.types";
 
 export class FinanceRepoPg implements IFinanceRepo {
-  constructor(private db: PostgresJsDatabase) {}
+  constructor(private db: AppDatabase) {}
 
   async create(userId: string, data: CreateFinanceEntryData): Promise<FinanceEntry> {
     const [row] = await this.db

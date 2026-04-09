@@ -1,12 +1,15 @@
+import type * as schema from "@lucro-caseiro/database/schema";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
-let _db: PostgresJsDatabase | null = null;
+export type AppDatabase = PostgresJsDatabase<typeof schema>;
 
-export function setDb(db: PostgresJsDatabase) {
+let _db: AppDatabase | null = null;
+
+export function setDb(db: AppDatabase) {
   _db = db;
 }
 
-export function getDb(): PostgresJsDatabase {
+export function getDb(): AppDatabase {
   if (!_db) throw new Error("Database not initialized");
   return _db;
 }

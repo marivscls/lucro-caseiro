@@ -1,17 +1,16 @@
 import { CreateLabelDto, PaginationDto, UpdateLabelDto } from "@lucro-caseiro/contracts";
 import { Router } from "express";
 
-import type { AuthenticatedRequest } from "../../shared/middleware/auth";
-import { authMiddleware } from "../../shared/middleware/auth";
+import { authMiddleware, getUserId } from "../../shared/middleware/auth";
 import type { LabelsUseCases } from "./labels.usecases";
 
-export function createLabelsRouter(useCases: LabelsUseCases) {
+export function createLabelsRouter(useCases: LabelsUseCases): Router {
   const router = Router();
   router.use(authMiddleware);
 
   router.post("/", async (req, res, next) => {
     try {
-      const { userId } = req as AuthenticatedRequest;
+      const userId = getUserId(req);
       const data = CreateLabelDto.parse(req.body);
       const label = await useCases.create(userId, data);
       res.status(201).json(label);
@@ -22,7 +21,7 @@ export function createLabelsRouter(useCases: LabelsUseCases) {
 
   router.get("/", async (req, res, next) => {
     try {
-      const { userId } = req as AuthenticatedRequest;
+      const userId = getUserId(req);
       const { page, limit } = PaginationDto.parse(req.query);
       const productId = req.query.productId as string | undefined;
 
@@ -49,7 +48,7 @@ export function createLabelsRouter(useCases: LabelsUseCases) {
 
   router.get("/:id", async (req, res, next) => {
     try {
-      const { userId } = req as AuthenticatedRequest;
+      const userId = getUserId(req);
       const label = await useCases.getById(userId, req.params.id);
       res.json(label);
     } catch (err) {
@@ -59,7 +58,7 @@ export function createLabelsRouter(useCases: LabelsUseCases) {
 
   router.patch("/:id", async (req, res, next) => {
     try {
-      const { userId } = req as AuthenticatedRequest;
+      const userId = getUserId(req);
       const data = UpdateLabelDto.parse(req.body);
       const label = await useCases.update(userId, req.params.id, data);
       res.json(label);
@@ -70,7 +69,7 @@ export function createLabelsRouter(useCases: LabelsUseCases) {
 
   router.delete("/:id", async (req, res, next) => {
     try {
-      const { userId } = req as AuthenticatedRequest;
+      const userId = getUserId(req);
       await useCases.remove(userId, req.params.id);
       res.status(204).send();
     } catch (err) {
