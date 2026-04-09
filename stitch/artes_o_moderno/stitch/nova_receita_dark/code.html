@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Nova Receita - Lucro Caseiro</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&amp;family=Quicksand:wght@400;500;600;700&amp;family=Poppins:wght@600&amp;family=Noto+Serif:wght@700&amp;family=Plus+Jakarta+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-tint": "#924755",
+              "error": "#ba1a1a",
+              "on-primary-fixed": "#3d0414",
+              "inverse-primary": "#ffb2bd",
+              "tertiary": "#7d540c",
+              "on-primary-container": "#fffbff",
+              "secondary-container": "#feb6c1",
+              "on-tertiary": "#ffffff",
+              "primary": "#C4707E",
+              "on-tertiary-fixed-variant": "#624000",
+              "on-primary-fixed-variant": "#75303e",
+              "on-tertiary-fixed": "#291800",
+              "on-secondary-fixed-variant": "#6b3741",
+              "on-surface-variant": "#D8C1C3",
+              "inverse-on-surface": "#f9efea",
+              "inverse-surface": "#342f2c",
+              "error-container": "#ffdad6",
+              "surface-bright": "#2C2420",
+              "primary-fixed": "#ffd9dd",
+              "on-background": "#F5E1DB",
+              "surface-container": "#2C2420",
+              "surface-container-high": "#362D28",
+              "on-primary": "#ffffff",
+              "on-secondary-fixed": "#360d17",
+              "surface-variant": "#342f2c",
+              "on-error": "#ffffff",
+              "on-secondary-container": "#F5E1DB",
+              "on-surface": "#F5E1DB",
+              "on-error-container": "#93000a",
+              "secondary-fixed-dim": "#fbb3bf",
+              "surface-container-low": "#251D19",
+              "surface-dim": "#1E1814",
+              "secondary-fixed": "#ffd9de",
+              "outline-variant": "#4A3228",
+              "surface": "#1E1814",
+              "secondary": "#D4919C",
+              "surface-container-lowest": "#181310",
+              "tertiary-container": "#996c25",
+              "on-tertiary-container": "#fffbff",
+              "primary-container": "#8f4552",
+              "tertiary-fixed": "#ffddb2",
+              "tertiary-fixed-dim": "#f4bd6e",
+              "on-secondary": "#ffffff",
+              "primary-fixed-dim": "#ffb2bd",
+              "outline": "#8B7355",
+              "surface-container-highest": "#3d342f",
+              "background": "#1E1814"
+            },
+            fontFamily: {
+              "headline": ["Playfair Display", "serif"],
+              "body": ["Quicksand", "sans-serif"],
+              "label": ["Quicksand", "sans-serif"],
+              "data": ["Poppins", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "20px", "xl": "24px", "2xl": "32px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Quicksand', sans-serif; }
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .font-data { font-family: 'Poppins', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .bg-blur { backdrop-filter: blur(12px); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#1E1814]/70 backdrop-blur-md flex justify-between items-center px-6 py-4 w-full">
+<button class="text-[#D4919C] hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+<h1 class="font-serif italic text-[#F5E1DB] text-2xl">Nova Receita</h1>
+<div class="w-10 h-10 rounded-full bg-surface-container overflow-hidden">
+<img alt="Foto de perfil" class="w-full h-full object-cover" data-alt="Close-up portrait of a professional female pastry chef in a dark kitchen setting, warm atmospheric lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAU2uhHqKH74BfUBDorLbvPZS19FC0FfANNmqz9HRlIeamkydci2C04Dwemif6hDsvcBCiIMrBISl4Ae2lFkf1pir8UV8UqN3DVOUwn2cfX52b3nYOAftkk6geYbizeiMl31uIgOsUWTiM6zl5PNc3Pq7pVPkhYbz2jL4tDm1HlKAA0rL4RJK5_KV7B9pxxl3V6I7hL3eW4jwERo15JPvAnUx2KEHfKt1DMfXGkv8ieeZZNs0GOoIED_YMdYfFLTlKTnJvoiqYgQ3c"/>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-2xl mx-auto">
+<!-- Hero Section Asymmetry -->
+<div class="relative mb-12">
+<div class="absolute -right-4 -top-6 w-32 h-32 opacity-20 pointer-events-none">
+<span class="material-symbols-outlined text-8xl text-secondary" style="font-variation-settings: 'wght' 100;">bakery_dining</span>
+</div>
+<h2 class="font-serif text-4xl text-on-surface tracking-tight mb-2">Crie sua obra-prima</h2>
+<p class="text-outline font-medium">Preencha os detalhes para calcular seu lucro.</p>
+</div>
+<form class="space-y-8">
+<!-- Basic Info Card -->
+<section class="bg-surface-container p-6 rounded-xl space-y-6">
+<div class="space-y-2">
+<label class="text-sm font-semibold text-secondary ml-1">Nome da Receita</label>
+<input class="w-full bg-surface-container-lowest border-none rounded-lg p-4 text-on-surface placeholder:text-outline focus:ring-1 focus:ring-primary/30 transition-all" placeholder="Ex: Bolo de Chocolate Artesanal" type="text"/>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-2">
+<label class="text-sm font-semibold text-secondary ml-1">Rendimento</label>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border-none rounded-lg p-4 text-on-surface placeholder:text-outline focus:ring-1 focus:ring-primary/30 transition-all pr-12" placeholder="12" type="number"/>
+<span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-outline uppercase">Unid</span>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-sm font-semibold text-secondary ml-1">Tempo de Prep.</label>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border-none rounded-lg p-4 text-on-surface placeholder:text-outline focus:ring-1 focus:ring-primary/30 transition-all pr-12" placeholder="45" type="number"/>
+<span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-outline uppercase">Min</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Ingredients Bento Style -->
+<section class="space-y-4">
+<div class="flex justify-between items-end px-2">
+<h3 class="font-serif text-2xl text-on-surface">Ingredientes</h3>
+<button class="text-primary font-bold text-sm flex items-center gap-1 hover:opacity-80 transition-opacity" type="button">
+<span class="material-symbols-outlined text-sm" data-icon="add_circle">add_circle</span>
+                        Adicionar
+                    </button>
+</div>
+<div class="space-y-3">
+<!-- Ingredient Item 1 -->
+<div class="bg-surface-container-high p-4 rounded-lg flex items-center justify-between group">
+<div class="flex flex-col">
+<span class="text-on-surface font-semibold">Farinha de Trigo Premium</span>
+<span class="text-outline text-xs">500g • R$ 4,50</span>
+</div>
+<button class="opacity-0 group-hover:opacity-100 transition-opacity text-error/60">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+<!-- Ingredient Item 2 -->
+<div class="bg-surface-container-high p-4 rounded-lg flex items-center justify-between group">
+<div class="flex flex-col">
+<span class="text-on-surface font-semibold">Cacau em Pó 70%</span>
+<span class="text-outline text-xs">100g • R$ 12,90</span>
+</div>
+<button class="opacity-0 group-hover:opacity-100 transition-opacity text-error/60">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+<!-- Placeholder Empty State Style -->
+<div class="border-2 border-dashed border-outline/10 rounded-lg p-8 flex flex-col items-center justify-center text-outline/40">
+<span class="material-symbols-outlined text-4xl mb-2" data-icon="skillet">skillet</span>
+<p class="text-sm italic">O aroma começa aqui...</p>
+</div>
+</div>
+</section>
+<!-- Cost Analysis Glassmorphism Card -->
+<section class="bg-[#F5E1DB]/5 backdrop-blur-sm border border-white/5 p-6 rounded-2xl relative overflow-hidden">
+<div class="absolute -bottom-4 -right-4 w-24 h-24 opacity-10 rotate-12">
+<span class="material-symbols-outlined text-8xl" data-icon="payments">payments</span>
+</div>
+<h3 class="text-secondary font-bold text-sm uppercase tracking-widest mb-4">Estimativa de Custos</h3>
+<div class="flex items-baseline gap-2 mb-6">
+<span class="text-outline text-lg">R$</span>
+<span class="text-5xl font-data font-semibold text-on-surface">17,40</span>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between text-sm">
+<span class="text-outline">Custo por Unidade</span>
+<span class="text-on-surface font-data">R$ 1,45</span>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-outline">Sugestão de Venda (+300%)</span>
+<span class="text-primary font-data font-bold">R$ 5,80</span>
+</div>
+</div>
+</section>
+<!-- Actions -->
+<div class="pt-4 flex flex-col gap-4">
+<button class="w-full bg-[#C4707E] text-white font-bold py-5 rounded-xl hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2" type="submit">
+<span class="material-symbols-outlined" data-icon="auto_awesome" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                    Salvar Receita
+                </button>
+<button class="w-full py-4 text-outline font-semibold hover:text-on-surface transition-colors" type="button">
+                    Descartar Rascunho
+                </button>
+</div>
+</form>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-2 bg-[#1E1814]/80 backdrop-blur-xl z-50 rounded-t-[32px]">
+<div class="flex flex-col items-center justify-center text-[#C4707E] bg-[#2C2420] rounded-2xl px-5 py-2">
+<span class="material-symbols-outlined" data-icon="receipt_long" style="font-variation-settings: 'FILL' 1;">receipt_long</span>
+<span class="font-sans text-[11px] font-medium mt-1">Receitas</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#8B7355] opacity-60">
+<span class="material-symbols-outlined" data-icon="local_mall">local_mall</span>
+<span class="font-sans text-[11px] font-medium mt-1">Vendas</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#8B7355] opacity-60">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-sans text-[11px] font-medium mt-1">Custos</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#8B7355] opacity-60">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-sans text-[11px] font-medium mt-1">Perfil</span>
+</div>
+</nav>
+</body></html>

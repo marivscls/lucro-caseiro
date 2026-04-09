@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Lucro Caseiro - Escolha seu Nicho</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&amp;family=Quicksand:wght@300;400;500;600;700&amp;family=Poppins:wght@600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-primary-fixed": "#3d0414",
+                        "surface-container-low": "#fcf2ed",
+                        "on-primary-fixed-variant": "#75303e",
+                        "on-background": "#1f1b18",
+                        "on-tertiary-fixed-variant": "#624000",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed-dim": "#fbb3bf",
+                        "on-tertiary-container": "#fffbff",
+                        "on-secondary-container": "#7a444e",
+                        "surface-variant": "#eae1dc",
+                        "tertiary": "#7d540c",
+                        "tertiary-container": "#996c25",
+                        "surface-container-highest": "#eae1dc",
+                        "on-tertiary-fixed": "#291800",
+                        "tertiary-fixed-dim": "#f4bd6e",
+                        "surface-dim": "#e1d8d3",
+                        "outline-variant": "#d8c1c3",
+                        "inverse-primary": "#ffb2bd",
+                        "error-container": "#ffdad6",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed": "#ffd9de",
+                        "surface-tint": "#924755",
+                        "primary-fixed-dim": "#ffb2bd",
+                        "inverse-on-surface": "#f9efea",
+                        "tertiary-fixed": "#ffddb2",
+                        "surface-bright": "#fff8f5",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#6b3741",
+                        "secondary": "#864e58",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed": "#360d17",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "on-primary-container": "#fffbff",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#feb6c1",
+                        "primary": "#8f4552",
+                        "primary-fixed": "#ffd9dd",
+                        "outline": "#867274",
+                        "on-surface-variant": "#534345",
+                        "surface-container": "#f6ece7",
+                        "background": "#1E1814",
+                        "surface": "#2C2420",
+                        "on-surface": "#F5E1DB",
+                        "primary-brand": "#C4707E"
+                    },
+                    fontFamily: {
+                        "headline": ["Playfair Display", "serif"],
+                        "body": ["Quicksand", "sans-serif"],
+                        "label": ["Quicksand", "sans-serif"],
+                        "data": ["Poppins", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "20px",
+                        "xl": "24px",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #1E1814;
+            color: #F5E1DB;
+            font-family: 'Quicksand', sans-serif;
+        }
+        .editorial-title {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+        }
+        .asymmetric-blob {
+            border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#1E1814] flex justify-between items-center px-6 py-4">
+<button class="flex items-center justify-center w-10 h-10 rounded-full transition-colors hover:bg-[#2C2420]/50 active:scale-95">
+<span class="material-symbols-outlined text-[#D4919C]">arrow_back</span>
+</button>
+<h1 class="font-serif italic text-2xl text-[#F5E1DB]">Lucro Caseiro</h1>
+<div class="w-10"></div> <!-- Spacer for center alignment -->
+</header>
+<main class="flex-grow pt-24 pb-32 px-6 max-w-2xl mx-auto w-full">
+<!-- Hero Section -->
+<section class="mb-12">
+<h2 class="editorial-title text-4xl md:text-5xl text-[#F5E1DB] leading-tight mb-4">
+                Qual o sabor do seu <br/>sucesso hoje?
+            </h2>
+<p class="text-[#8B7355] text-lg font-medium">Selecione seu nicho para personalizarmos sua experiência no ateliê.</p>
+</section>
+<!-- Bento Grid of Niches -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Niche Card: Confeitaria (Selected State) -->
+<div class="relative group cursor-pointer bg-[#3D332D] p-6 rounded-lg transition-all duration-300 border-2 border-[#C4707E]">
+<div class="flex flex-col h-full justify-between">
+<div>
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-[#C4707E] text-3xl" style="font-variation-settings: 'FILL' 1;">cake</span>
+<div class="bg-[#C4707E] text-white rounded-full p-1 flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+</div>
+<h3 class="text-xl font-bold text-[#F5E1DB] mb-2 tracking-wide">Confeitaria</h3>
+<p class="text-[#8B7355] text-sm leading-relaxed">Bolos artísticos, doces finos e sobremesas que encantam os olhos.</p>
+</div>
+<div class="mt-6 flex justify-end">
+<div class="w-20 h-20 opacity-40 group-hover:opacity-60 transition-opacity">
+<img class="w-full h-full object-contain" data-alt="minimalist organic illustration of a stylized multi-tiered cake with soft floral accents in warm earthy tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWT6lTptkoDVX4DOJYqSZVpWM0kGcVW_1NdxSk_1wWrH6ifv9HJpyXt9F04JkDt3v0EU_pk-M6y5LqwhofzJIAxJTR_iCduiNtPd6xNIc-3rb844IRUhwSmWN0mlCIrzTviXRUVXpvXhyerdrrwyhVTlGyBxXvvsZvbwjvMhqQg7md9xMXaMAQl8SKlrj_EnNN1ZHgT_BbAV0cOHtH3Cq3UqBCysKkPPrmwSQMfTEABB2d8LO92_T1xyl3G784hTzFp69yCyBIEqw"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Niche Card: Padaria -->
+<div class="relative group cursor-pointer bg-[#2C2420] p-6 rounded-lg transition-all duration-300 hover:bg-[#3D332D]">
+<div class="flex flex-col h-full justify-between">
+<div>
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-[#8B7355] text-3xl">bakery_dining</span>
+</div>
+<h3 class="text-xl font-bold text-[#F5E1DB] mb-2 tracking-wide">Panificação</h3>
+<p class="text-[#8B7355] text-sm leading-relaxed">Pães artesanais, fermentação natural e o calor do forno a lenha.</p>
+</div>
+<div class="mt-6 flex justify-end">
+<div class="w-20 h-20 opacity-30 group-hover:opacity-50 transition-opacity">
+<img class="w-full h-full object-contain" data-alt="organic line drawing of a rustic sourdough bread loaf with botanical wheat sprigs in muted brown tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbklaum2ccFSyFyAsHZacacTMAU_u3I8HwDP51r8WNhgiG6r6rb4p8xVnb_h9_j3TGAdbMHAzrZAW21p3l31wmUxP00v2EplV3XRS0BWd7e4JgDrZDierFaddDQ9cigs9I75oP0SfhfHyyGpK-swQFXwNrR_6OMve_Zq_GsCJPMeu0LT-DhgD2wjZNN1lDAzJgBoLdPpQL5X16YpBGCjhhAGfgj7HokYaqi9CrMKScT-hJ06bxDelCRFHHHXd528MjFbtJk2VZfiY"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Niche Card: Salgados -->
+<div class="relative group cursor-pointer bg-[#2C2420] p-6 rounded-lg transition-all duration-300 hover:bg-[#3D332D]">
+<div class="flex flex-col h-full justify-between">
+<div>
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-[#8B7355] text-3xl">restaurant</span>
+</div>
+<h3 class="text-xl font-bold text-[#F5E1DB] mb-2 tracking-wide">Salgados</h3>
+<p class="text-[#8B7355] text-sm leading-relaxed">Buffet, petiscos e as receitas de família que todo mundo ama.</p>
+</div>
+<div class="mt-6 flex justify-end">
+<div class="w-20 h-20 opacity-30 group-hover:opacity-50 transition-opacity">
+<img class="w-full h-full object-contain" data-alt="abstract organic shape representing a plate of artisanal appetizers with herb garnishes in warm chocolate colors" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXSRuP8VjFw_oai3IJ7mZVYJQITHsMpY6oAx1EsEsnh6V-3RAtnKEZyeAzeCzvhidBOlinvGRjBYnLYN1A_eYo-hGThxzpzft6XkFoH-8w57jsxdO5zHK1nTitAaZ1ujh1sZ-8DC1nlTSm5LmmVUThO340EqGmEeeazhGl8KBCDmj-6v5R2lI0GdKI6QhOEsdCVSdT0NCVCpykOLlk7iqTfnyF1-2X5UXS27DrZr1Q0uOXCRD_F9DZykX5C7k7G5tBOxgtH-EoJ9s"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Niche Card: Bebidas -->
+<div class="relative group cursor-pointer bg-[#2C2420] p-6 rounded-lg transition-all duration-300 hover:bg-[#3D332D]">
+<div class="flex flex-col h-full justify-between">
+<div>
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-[#8B7355] text-3xl">local_cafe</span>
+</div>
+<h3 class="text-xl font-bold text-[#F5E1DB] mb-2 tracking-wide">Bebidas</h3>
+<p class="text-[#8B7355] text-sm leading-relaxed">Cafés especiais, chás blendados e sucos naturais artesanais.</p>
+</div>
+<div class="mt-6 flex justify-end">
+<div class="w-20 h-20 opacity-30 group-hover:opacity-50 transition-opacity">
+<img class="w-full h-full object-contain" data-alt="elegant minimalist drawing of a steaming ceramic coffee cup with organic liquid swirls in roasted cocoa shades" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxla_LI6gW18Vy7tQNVonNjRj-ufN0w-hT_ZGZh9NoJz0InRCH9jh0r5IdkUqNbniD90p_FmjDR0Jifh8FsuypLp-6_vp4eCSCkVZx-Z3X-47D30JEEOgUPYX2986EC8M07d5eSCZdzLUuEMucr1sqvW25qoJc_89qp7UABFoh1dYoASLeFHzNgWXNUVl5dKiO242iKOGqsVsKCatbMocJhtZYb01NcSMr7jJWafBDvyZBDhGU23t96gOX7rQDlVvF_K8UF5swEvw"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Call to Action -->
+<div class="mt-12 flex flex-col items-center">
+<button class="w-full md:w-auto px-12 py-5 bg-[#C4707E] text-white font-bold rounded-lg transition-all active:scale-95 flex items-center justify-center gap-3">
+<span class="font-label">Próximo</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<p class="mt-4 text-[#8B7355] text-sm">Você poderá alterar isso depois nas configurações.</p>
+</div>
+</main>
+<!-- BottomNavBar (Suppressed for focused selection screen as per UX goal, but following JSON structure for visual presence if needed) -->
+<!-- Note: Following "Linear/Transactional" suppression rule, but since it's a primary setup flow, we might keep it or hide it. 
+         The prompt specifically asks for the "Niche" screen which is usually linear. We'll stick to a clean footer. -->
+<footer class="fixed bottom-0 w-full bg-[#1E1814]/70 backdrop-blur-xl px-4 pb-6 pt-2 flex justify-around items-center rounded-t-[24px] md:hidden">
+<div class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 opacity-50">
+<span class="material-symbols-outlined">home_app_logo</span>
+<span class="text-xs font-sans tracking-wide">Início</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#2C2420] text-[#C4707E] rounded-2xl px-5 py-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="text-xs font-sans tracking-wide">Ateliê</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 opacity-50">
+<span class="material-symbols-outlined">payments</span>
+<span class="text-xs font-sans tracking-wide">Vendas</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 opacity-50">
+<span class="material-symbols-outlined">person</span>
+<span class="text-xs font-sans tracking-wide">Perfil</span>
+</div>
+</footer>
+</body></html>

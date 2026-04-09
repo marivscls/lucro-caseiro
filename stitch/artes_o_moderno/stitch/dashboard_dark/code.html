@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Poppins:wght@600;700&amp;family=Playfair+Display:wght@700;800&amp;family=Quicksand:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-container-highest": "#eae1dc",
+              "surface": "#fff8f5",
+              "primary-fixed-dim": "#ffb2bd",
+              "on-surface-variant": "#534345",
+              "on-tertiary-fixed-variant": "#624000",
+              "on-tertiary": "#ffffff",
+              "on-secondary-container": "#7a444e",
+              "secondary-container": "#feb6c1",
+              "secondary": "#864e58",
+              "on-primary-container": "#fffbff",
+              "on-primary-fixed-variant": "#75303e",
+              "surface-container-low": "#fcf2ed",
+              "secondary-fixed": "#ffd9de",
+              "on-error-container": "#93000a",
+              "surface-dim": "#e1d8d3",
+              "on-secondary": "#ffffff",
+              "on-error": "#ffffff",
+              "background": "#1E1814",
+              "outline": "#867274",
+              "on-primary-fixed": "#3d0414",
+              "error-container": "#ffdad6",
+              "error": "#ba1a1a",
+              "tertiary-fixed-dim": "#f4bd6e",
+              "surface-bright": "#fff8f5",
+              "on-surface": "#F5E1DB",
+              "surface-variant": "#2C2420",
+              "surface-container-lowest": "#ffffff",
+              "on-primary": "#ffffff",
+              "primary-fixed": "#ffd9dd",
+              "surface-container-high": "#f0e6e1",
+              "primary": "#C4707E",
+              "surface-container": "#2C2420",
+              "outline-variant": "#d8c1c3",
+              "tertiary-container": "#996c25",
+              "on-tertiary-fixed": "#291800",
+              "inverse-surface": "#342f2c",
+              "inverse-primary": "#ffb2bd",
+              "inverse-on-surface": "#f9efea",
+              "tertiary": "#7d540c",
+              "surface-tint": "#924755",
+              "on-secondary-fixed-variant": "#6b3741",
+              "on-tertiary-container": "#fffbff",
+              "on-secondary-fixed": "#360d17",
+              "secondary-fixed-dim": "#fbb3bf",
+              "primary-container": "#ac5d6a",
+              "tertiary-fixed": "#ffddb2",
+              "on-background": "#F5E1DB",
+              "success-mint": "#6BBF96",
+              "alert-coral": "#E07272"
+            },
+            fontFamily: {
+              "headline": ["Playfair Display", "serif"],
+              "body": ["Quicksand", "sans-serif"],
+              "label": ["Quicksand", "sans-serif"],
+              "numeric": ["Poppins", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "20px", "xl": "24px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Quicksand', sans-serif; background-color: #1E1814; color: #F5E1DB; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .font-numeric { font-family: 'Poppins', sans-serif; }
+        .font-serif-header { font-family: 'Playfair Display', serif; }
+        /* Removal of all borders as per design system "No-Line" rule */
+        * { border-style: none !important; }
+        .custom-outline { outline: 1px solid rgba(216, 193, 195, 0.15); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-6 w-full sticky top-0 z-50 bg-[#1E1814]/80 backdrop-blur-md pt-4 pb-2">
+<div class="flex flex-col">
+<h1 class="font-serif-header text-3xl tracking-tight text-[#F5E1DB] font-bold">Hoje</h1>
+<span class="font-body text-xs text-[#8B7355] uppercase tracking-widest">25 de março</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-[#F5E1DB] flex items-center justify-center overflow-hidden transition-all duration-300 hover:opacity-80 active:scale-95">
+<img alt="Profile" class="w-full h-full object-cover" data-alt="minimalist organic illustration of a woman baker profile in soft pastel tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBD-cLvzHwPKnfyV4EwnDMzovSqHoZjmjCEGUa2_gXn1NEf9M2dgytpRCFQ7gsVKWUvK8LTG1MHg8d0hvCT_Rb9KdnLBh7C0mGQlvMTVGchR89WVCkgPRAfGLfK2tRmN0lFIheIKIhVOEnqU7-vSkDee7A6KV66K1GGMLA3XvBg9linqbPETOv8HDAjmD8xlk0_bnXO2rPaoQUcaaeSu48G3ITgTbp-oaPVz9zSAXkyLPc3f2pV5D4RAFvhxlDw0c5D_cQCJSd_Uk"/>
+</div>
+</header>
+<main class="px-6 mt-8 max-w-2xl mx-auto space-y-10">
+<!-- Welcome Actions Section (Asymmetric) -->
+<section class="flex flex-col gap-4">
+<button class="w-full bg-[#C4707E] text-white py-5 rounded-xl font-bold text-lg transition-transform duration-200 active:scale-95 shadow-none">
+                Nova venda
+            </button>
+<button class="w-full bg-[#2C2420] text-[#C4707E] py-4 rounded-xl font-semibold transition-transform duration-200 active:scale-95 shadow-none custom-outline">
+                Novo cliente
+            </button>
+</section>
+<!-- Card Dica: Floating Glass/Tonal -->
+<section class="bg-[#2C2420] p-6 rounded-xl flex items-start gap-4">
+<span class="material-symbols-outlined text-[#C4707E] text-2xl">lightbulb</span>
+<p class="font-body text-[#F5E1DB] text-sm leading-relaxed">
+                Registre suas vendas todo dia pra ter o controle real do seu lucro.
+            </p>
+</section>
+<!-- Bento Grid Layout for Stats -->
+<div class="grid grid-cols-1 gap-6">
+<!-- Card Vendas de Hoje -->
+<div class="bg-[#2C2420] rounded-xl p-8 relative overflow-hidden h-48 flex flex-col justify-between">
+<div>
+<h3 class="font-body text-[#8B7355] text-sm uppercase tracking-widest font-semibold">Vendas de Hoje</h3>
+<p class="font-numeric text-4xl text-[#6BBF96] mt-2">R$ 245,00</p>
+</div>
+<!-- Integrated Illustration -->
+<div class="absolute -bottom-4 -right-4 opacity-40 w-32 h-32">
+<span class="material-symbols-outlined text-8xl text-[#6BBF96]" style="font-variation-settings: 'FILL' 1;">shopping_basket</span>
+</div>
+</div>
+<!-- Card Financeiro do Mês -->
+<div class="bg-[#2C2420] rounded-xl p-8 relative overflow-hidden min-h-[280px]">
+<div class="flex justify-between items-start mb-8">
+<h3 class="font-serif-header text-2xl text-[#F5E1DB]">Março</h3>
+<span class="bg-[#C4707E]/20 text-[#C4707E] px-3 py-1 rounded-full text-xs font-bold uppercase tracking-tighter">Financeiro</span>
+</div>
+<div class="space-y-6 relative z-10">
+<div class="flex justify-between items-center">
+<span class="font-body text-[#8B7355]">Entradas</span>
+<span class="font-numeric text-lg text-[#6BBF96]">+ R$ 4.250,00</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-body text-[#8B7355]">Saídas</span>
+<span class="font-numeric text-lg text-[#E07272]">- R$ 1.890,00</span>
+</div>
+<!-- Visual gap as separator per design system -->
+<div class="pt-6">
+<div class="flex justify-between items-center">
+<span class="font-body font-bold text-[#F5E1DB]">Lucro</span>
+<span class="font-numeric text-3xl text-[#6BBF96] font-bold">R$ 2.360,00</span>
+</div>
+</div>
+</div>
+<!-- Piggy Bank Illustration Integrated into Corner -->
+<div class="absolute -bottom-6 -right-6 opacity-20 transform -rotate-12">
+<span class="material-symbols-outlined text-[140px] text-[#D4A054]" style="font-variation-settings: 'FILL' 1;">savings</span>
+</div>
+</div>
+</div>
+<!-- Secondary Insights / Subtle organic section -->
+<section class="py-4">
+<h4 class="font-serif-header text-xl text-[#F5E1DB] mb-6">Pedidos Recentes</h4>
+<div class="space-y-4">
+<div class="bg-[#2C2420] p-5 rounded-xl flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-[#FFF5F0]/5 flex items-center justify-center">
+<span class="material-symbols-outlined text-[#C4707E]">cake</span>
+</div>
+<div>
+<p class="font-body font-semibold text-[#F5E1DB]">Bolo de Cenoura</p>
+<p class="text-xs text-[#8B7355]">Há 2 horas • Marina Silva</p>
+</div>
+</div>
+<span class="font-numeric text-[#F5E1DB]">R$ 45,00</span>
+</div>
+<div class="bg-[#2C2420] p-5 rounded-xl flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-[#FFF5F0]/5 flex items-center justify-center">
+<span class="material-symbols-outlined text-[#C4707E]">cookie</span>
+</div>
+<div>
+<p class="font-body font-semibold text-[#F5E1DB]">Cookies Artesanais</p>
+<p class="text-xs text-[#8B7355]">Há 5 horas • João Pedro</p>
+</div>
+</div>
+<span class="font-numeric text-[#F5E1DB]">R$ 32,00</span>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 bg-[#2C2420]/90 backdrop-blur-lg rounded-t-[24px]">
+<a class="flex flex-col items-center text-[#C4707E] font-bold scale-110 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-sans text-[11px] font-semibold uppercase tracking-wider mt-1">Início</span>
+</a>
+<a class="flex flex-col items-center text-[#8B7355] opacity-60 hover:bg-[#1E1814]/20 rounded-xl transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="shopping_basket">shopping_basket</span>
+<span class="font-sans text-[11px] font-semibold uppercase tracking-wider mt-1">Vendas</span>
+</a>
+<a class="flex flex-col items-center text-[#C4707E] active:scale-90 transition-all duration-200 -mt-8" href="#">
+<div class="bg-[#C4707E] text-white p-4 rounded-full shadow-lg">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">add</span>
+</div>
+</a>
+<a class="flex flex-col items-center text-[#8B7355] opacity-60 hover:bg-[#1E1814]/20 rounded-xl transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-sans text-[11px] font-semibold uppercase tracking-wider mt-1">Financeiro</span>
+</a>
+<a class="flex flex-col items-center text-[#8B7355] opacity-60 hover:bg-[#1E1814]/20 rounded-xl transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-sans text-[11px] font-semibold uppercase tracking-wider mt-1">Ajustes</span>
+</a>
+</nav>
+</body></html>

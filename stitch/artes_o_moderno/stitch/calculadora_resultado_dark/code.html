@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Quicksand:wght@400;500;600;700&amp;family=Poppins:wght@700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-container": "#fffbff",
+              "tertiary": "#7d540c",
+              "on-primary-fixed": "#3d0414",
+              "error-container": "#ffdad6",
+              "outline": "#867274",
+              "secondary": "#864e58",
+              "on-background": "#1f1b18",
+              "primary-container": "#ac5d6a",
+              "on-secondary-container": "#7a444e",
+              "surface-tint": "#924755",
+              "surface-dim": "#e1d8d3",
+              "on-surface-variant": "#534345",
+              "tertiary-fixed-dim": "#f4bd6e",
+              "surface-container-lowest": "#ffffff",
+              "secondary-fixed": "#ffd9de",
+              "on-tertiary": "#ffffff",
+              "surface-container-low": "#fcf2ed",
+              "primary": "#8f4552",
+              "on-secondary": "#ffffff",
+              "inverse-surface": "#342f2c",
+              "surface": "#fff8f5",
+              "outline-variant": "#d8c1c3",
+              "secondary-container": "#feb6c1",
+              "on-tertiary-fixed": "#291800",
+              "on-error-container": "#93000a",
+              "background": "#fff8f5",
+              "primary-fixed-dim": "#ffb2bd",
+              "tertiary-fixed": "#ffddb2",
+              "on-surface": "#1f1b18",
+              "surface-bright": "#fff8f5",
+              "surface-container": "#f6ece7",
+              "primary-fixed": "#ffd9dd",
+              "surface-container-highest": "#eae1dc",
+              "error": "#ba1a1a",
+              "on-tertiary-fixed-variant": "#624000",
+              "inverse-primary": "#ffb2bd",
+              "on-secondary-fixed": "#360d17",
+              "on-primary-fixed-variant": "#75303e",
+              "surface-container-high": "#f0e6e1",
+              "secondary-fixed-dim": "#fbb3bf",
+              "on-primary": "#ffffff",
+              "on-secondary-fixed-variant": "#6b3741",
+              "surface-variant": "#eae1dc",
+              "on-primary-container": "#fffbff",
+              "on-error": "#ffffff",
+              "inverse-on-surface": "#f9efea",
+              "tertiary-container": "#996c25"
+            },
+            fontFamily: {
+              "headline": ["Noto Serif"],
+              "body": ["Quicksand"],
+              "label": ["Quicksand"],
+              "data": ["Poppins"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "3xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        background-color: #1E1814;
+        color: #F5E1DB;
+        font-family: 'Quicksand', sans-serif;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen pb-28">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#1E1814] border-none">
+<div class="flex justify-between items-center px-6 py-4 w-full max-w-4xl mx-auto">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#D4919C] text-2xl cursor-pointer hover:opacity-80 transition-opacity" data-icon="menu">menu</span>
+<h1 class="font-headline italic text-2xl text-[#D4919C]">Atelier de Preços</h1>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-[#D4919C]/20">
+<img class="w-full h-full object-cover" data-alt="professional pastry chef portrait in warm kitchen lighting with apron" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBh5ELXWc2_OYXL8ScJ4z1dsNeP-l0IXXQpMUX2six5qYciz6lGF9WxX7c2qCyM-FiOtBWW3aI2jQnBtCoFSY99b_J3Kqmq7QB_c-Ig-hDob_VNR99DcRNQ30OAopVlAPTRZXt74A_h7ytzvvaMlZPeW4fqXwhkMbQ5DxOrhRChQw5SP2x0EfnD5yskJBthesXTqxeykyjV3FhOZVFT-Yic-6ZbUEDOMvEsAcghnRQmwUjMD43y5e3bDzRN7QO_H_pVJYaDzQYpTPo"/>
+</div>
+</div>
+<div class="bg-[#2C2420] h-px w-full opacity-20"></div>
+</header>
+<main class="pt-24 px-6 max-w-4xl mx-auto space-y-8">
+<!-- Section Header -->
+<div class="space-y-1">
+<h2 class="font-headline text-3xl text-[#F5E1DB]">Resultado do Cálculo</h2>
+<p class="text-[#8B7355] text-sm">Baseado nos custos informados para: <span class="text-[#D4919C]">Bolo de Pote Chocolate</span></p>
+</div>
+<!-- HERO Card: Preço Sugerido -->
+<section class="bg-[#2C2420] rounded-[24px] p-8 relative overflow-hidden group border-none">
+<div class="relative z-10">
+<p class="text-[#F5E1DB] font-semibold text-lg mb-2">Preço sugerido</p>
+<div class="flex items-baseline gap-2">
+<span class="font-data text-5xl text-[#6BBF96]">R$ 8,50</span>
+<span class="text-[#8B7355] text-sm">/ unidade</span>
+</div>
+</div>
+<!-- Organic Illustration -->
+<div class="absolute -bottom-4 -right-4 opacity-20 group-hover:opacity-40 transition-opacity">
+<span class="material-symbols-outlined text-9xl text-[#C4707E]" data-icon="sell" style="font-variation-settings: 'FILL' 1;">sell</span>
+</div>
+</section>
+<!-- Bento Grid for Details -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Composição de Custos -->
+<div class="bg-[#2C2420] rounded-[24px] p-6 space-y-6">
+<h3 class="font-headline text-xl text-[#F5E1DB]">Composição</h3>
+<div class="space-y-4">
+<div class="flex justify-between text-sm">
+<span class="text-[#8B7355]">Ingredientes</span>
+<span class="font-data text-[#F5E1DB]">R$ 4,20 (49%)</span>
+</div>
+<!-- Horizontal Bar -->
+<div class="h-3 w-full bg-[#1E1814] rounded-full overflow-hidden flex">
+<div class="h-full bg-[#C4707E]" style="width: 49%"></div>
+<div class="h-full bg-[#D4A054]" style="width: 25%"></div>
+<div class="h-full bg-[#89A5B5]" style="width: 26%"></div>
+</div>
+<div class="grid grid-cols-3 gap-2 pt-2">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-[#C4707E]"></div>
+<span class="text-[10px] text-[#8B7355] uppercase font-bold tracking-tighter">Matéria</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-[#D4A054]"></div>
+<span class="text-[10px] text-[#8B7355] uppercase font-bold tracking-tighter">Mão de Obra</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-[#89A5B5]"></div>
+<span class="text-[10px] text-[#8B7355] uppercase font-bold tracking-tighter">Fixo</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Lucro Card -->
+<div class="bg-[#2C2420] rounded-[24px] p-6 flex flex-col justify-between border-l-4 border-[#6BBF96]">
+<div>
+<h3 class="font-headline text-xl text-[#F5E1DB] mb-1">Margem de Lucro</h3>
+<p class="text-[#8B7355] text-xs">Considerando impostos e taxas</p>
+</div>
+<div class="mt-8">
+<p class="text-[#6BBF96] text-sm font-bold uppercase tracking-widest">Lucro por unidade</p>
+<span class="font-data text-4xl text-[#6BBF96]">R$ 3,20</span>
+</div>
+</div>
+<!-- Projeção Card -->
+<div class="md:col-span-2 bg-[#7d540c]/20 rounded-[24px] p-6 border-none flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
+<div class="relative z-10 flex-1">
+<h3 class="font-headline text-2xl text-[#D4A054] mb-2">Projeção Mensal</h3>
+<p class="text-[#F5E1DB]/70 text-sm leading-relaxed max-w-md">
+                        Vendendo apenas 50 unidades por semana, seu faturamento será de <span class="text-[#D4A054] font-bold">R$ 1.700,00</span> com um lucro líquido de <span class="text-[#6BBF96] font-bold">R$ 640,00</span>.
+                    </p>
+</div>
+<div class="relative z-10 flex gap-4">
+<div class="bg-[#1E1814] p-4 rounded-2xl flex flex-col items-center min-w-[100px]">
+<span class="text-[10px] text-[#8B7355] uppercase font-bold">Vendas</span>
+<span class="font-data text-xl text-[#D4A054]">200</span>
+</div>
+<div class="bg-[#1E1814] p-4 rounded-2xl flex flex-col items-center min-w-[100px]">
+<span class="text-[10px] text-[#8B7355] uppercase font-bold">Retorno</span>
+<span class="font-data text-xl text-[#6BBF96]">37%</span>
+</div>
+</div>
+<!-- Graphic Element -->
+<div class="absolute right-0 top-0 h-full w-1/3 opacity-10 pointer-events-none">
+<span class="material-symbols-outlined text-[120px] text-[#D4A054]" data-icon="trending_up">trending_up</span>
+</div>
+</div>
+</div>
+<!-- Action Button -->
+<div class="flex flex-col gap-4 items-center pt-8">
+<button class="bg-[#C4707E] text-white px-12 py-4 rounded-[16px] font-bold text-lg w-full md:w-auto hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-3">
+<span class="material-symbols-outlined" data-icon="save">save</span>
+                Salvar cálculo
+            </button>
+<button class="text-[#8B7355] font-semibold text-sm flex items-center gap-2 hover:text-[#D4919C] transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="share">share</span>
+                Compartilhar Relatório
+            </button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-[#1E1814]/70 backdrop-blur-md rounded-t-[24px] z-50">
+<div class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/50 opacity-70 transition-colors hover:text-[#C4707E]">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider mt-1">Início</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#2C2420] text-[#C4707E] rounded-2xl px-3 py-1.5 transition-transform duration-200 active:scale-90">
+<span class="material-symbols-outlined" data-icon="calculate" style="font-variation-settings: 'FILL' 1;">calculate</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider mt-1">Cálculos</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/50 opacity-70 transition-colors hover:text-[#C4707E]">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider mt-1">Histórico</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/50 opacity-70 transition-colors hover:text-[#C4707E]">
+<span class="material-symbols-outlined" data-icon="lightbulb">lightbulb</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider mt-1">Dicas</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/50 opacity-70 transition-colors hover:text-[#C4707E]">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider mt-1">Perfil</span>
+</div>
+</nav>
+</body></html>

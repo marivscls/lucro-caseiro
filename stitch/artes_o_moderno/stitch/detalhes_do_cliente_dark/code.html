@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Detalhes do Cliente - Lucro Caseiro</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&amp;family=Quicksand:wght@300;400;500;600;700&amp;family=Poppins:wght@600;700&amp;family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary": "#7d540c",
+              "inverse-on-surface": "#f9efea",
+              "error": "#ba1a1a",
+              "on-surface-variant": "#534345",
+              "tertiary-fixed": "#ffddb2",
+              "surface-dim": "#e1d8d3",
+              "on-secondary": "#ffffff",
+              "surface-variant": "#eae1dc",
+              "on-tertiary": "#ffffff",
+              "on-secondary-fixed-variant": "#6b3741",
+              "on-primary-fixed": "#3d0414",
+              "secondary-fixed-dim": "#fbb3bf",
+              "surface-tint": "#924755",
+              "tertiary-container": "#996c25",
+              "outline": "#867274",
+              "on-secondary-fixed": "#360d17",
+              "surface-container": "#f6ece7",
+              "inverse-surface": "#342f2c",
+              "surface": "#fff8f5",
+              "secondary-container": "#feb6c1",
+              "primary": "#8f4552",
+              "on-primary": "#ffffff",
+              "inverse-primary": "#ffb2bd",
+              "surface-bright": "#fff8f5",
+              "on-error": "#ffffff",
+              "on-error-container": "#93000a",
+              "secondary-fixed": "#ffd9de",
+              "on-tertiary-fixed-variant": "#624000",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-low": "#fcf2ed",
+              "background": "#fff8f5",
+              "surface-container-highest": "#eae1dc",
+              "on-primary-fixed-variant": "#75303e",
+              "on-background": "#1f1b18",
+              "surface-container-high": "#f0e6e1",
+              "tertiary-fixed-dim": "#f4bd6e",
+              "on-tertiary-container": "#fffbff",
+              "secondary": "#864e58",
+              "primary-fixed-dim": "#ffb2bd",
+              "error-container": "#ffdad6",
+              "on-surface": "#1f1b18",
+              "primary-fixed": "#ffd9dd",
+              "primary-container": "#ac5d6a",
+              "on-tertiary-fixed": "#291800",
+              "outline-variant": "#d8c1c3",
+              "on-secondary-container": "#7a444e",
+              "on-primary-container": "#fffbff"
+            },
+            fontFamily: {
+              "headline": ["Noto Serif"],
+              "body": ["Plus Jakarta Sans"],
+              "label": ["Plus Jakarta Sans"],
+              "serif": ["Playfair Display"],
+              "sans": ["Quicksand"],
+              "mono": ["Poppins"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1.25rem", "3xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #1E1814;
+            color: #F5E1DB;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-sans antialiased min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-6 py-4 w-full bg-[#1E1814] transition-colors">
+<button class="text-[#D4919C] hover:bg-[#2C2420]/50 p-2 rounded-full transition-all active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<span class="font-serif text-2xl italic text-[#F5E1DB]">Lucro Caseiro</span>
+<div class="w-10 h-10 rounded-full bg-[#2C2420] flex items-center justify-center border border-[#D4919C]/20">
+<span class="material-symbols-outlined text-[#D4919C]" data-icon="person">person</span>
+</div>
+</header>
+<main class="px-6 pt-8 max-w-2xl mx-auto space-y-10">
+<!-- Header: Client Identity -->
+<section class="flex flex-col items-center space-y-4 text-center">
+<div class="w-28 h-28 rounded-full bg-[#C4707E] flex items-center justify-center text-[#FFF5F0] text-5xl font-serif shadow-xl">
+                M
+            </div>
+<div class="space-y-1">
+<h1 class="font-serif text-4xl text-[#F5E1DB] tracking-tight">Mariana Silveira</h1>
+<p class="font-sans text-[#8B7355] text-sm uppercase tracking-widest">Cliente desde Jan 2023</p>
+</div>
+</section>
+<!-- Main Action: Edit -->
+<div class="flex justify-center">
+<button class="bg-[#C4707E] text-[#FFF5F0] px-8 py-3 rounded-2xl font-sans font-semibold flex items-center gap-2 transition-all active:scale-95 hover:opacity-90">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+                Editar cliente
+            </button>
+</div>
+<!-- Bento Grid Info Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Contato Card -->
+<div class="bg-[#2C2420] p-6 rounded-[20px] flex flex-col justify-between space-y-6 relative overflow-hidden group">
+<div class="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-9xl" data-icon="chat">chat</span>
+</div>
+<div>
+<h3 class="font-sans text-[#8B7355] text-xs uppercase tracking-widest mb-4">Contato</h3>
+<p class="text-[#F5E1DB] font-medium text-lg tracking-tight">(11) 98765-4321</p>
+<p class="text-[#8B7355] text-sm">mari.silveira@email.com</p>
+</div>
+<button class="bg-[#6BBF96] text-[#1E1814] w-full py-3 rounded-xl flex items-center justify-center gap-2 font-bold transition-all hover:brightness-110 active:scale-[0.98]">
+<span class="material-symbols-outlined" data-icon="chat">chat</span>
+                    WhatsApp
+                </button>
+</div>
+<!-- Compras Card -->
+<div class="bg-[#2C2420] p-6 rounded-[20px] flex flex-col justify-between border-l-4 border-[#6BBF96]">
+<h3 class="font-sans text-[#8B7355] text-xs uppercase tracking-widest mb-4">Compras</h3>
+<div class="space-y-1">
+<p class="text-[#8B7355] text-sm">Total investido</p>
+<p class="font-mono text-3xl text-[#6BBF96] font-bold">R$ 1.240,50</p>
+</div>
+<div class="mt-4 pt-4 border-t border-[#8B7355]/10 flex justify-between items-center">
+<span class="text-xs text-[#8B7355]">12 Pedidos realizados</span>
+<span class="material-symbols-outlined text-[#D4919C]" data-icon="receipt_long">receipt_long</span>
+</div>
+</div>
+<!-- Detalhes Card (Full Width in Grid) -->
+<div class="bg-[#2C2420] p-6 rounded-[20px] md:col-span-2 space-y-6">
+<h3 class="font-sans text-[#8B7355] text-xs uppercase tracking-widest">Detalhes</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="flex items-start gap-4">
+<div class="bg-[#1E1814] p-3 rounded-2xl">
+<span class="material-symbols-outlined text-[#D4919C]" data-icon="cake">cake</span>
+</div>
+<div>
+<p class="text-[#8B7355] text-xs uppercase tracking-tighter">Aniversário</p>
+<p class="text-[#F5E1DB] font-medium">15 de Setembro</p>
+</div>
+</div>
+<div class="flex items-start gap-4">
+<div class="bg-[#1E1814] p-3 rounded-2xl">
+<span class="material-symbols-outlined text-[#D4919C]" data-icon="location_on">location_on</span>
+</div>
+<div>
+<p class="text-[#8B7355] text-xs uppercase tracking-tighter">Endereço</p>
+<p class="text-[#F5E1DB] font-medium">Rua das Amendoeiras, 452, Apto 12</p>
+<p class="text-[#8B7355] text-xs">Jardim das Flores, São Paulo - SP</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Preferences Section -->
+<section class="bg-[#2C2420] p-6 rounded-[20px]">
+<h3 class="font-sans text-[#8B7355] text-xs uppercase tracking-widest mb-6">Preferências de Pedido</h3>
+<div class="flex flex-wrap gap-2">
+<span class="bg-[#1E1814] text-[#D4919C] px-4 py-2 rounded-full text-sm font-medium border border-[#D4919C]/20">Sem Lactose</span>
+<span class="bg-[#1E1814] text-[#D4919C] px-4 py-2 rounded-full text-sm font-medium border border-[#D4919C]/20">Bolos Caseiros</span>
+<span class="bg-[#1E1814] text-[#D4919C] px-4 py-2 rounded-full text-sm font-medium border border-[#D4919C]/20">Entrega Manhã</span>
+</div>
+<div class="mt-6 p-4 bg-[#1E1814] rounded-xl">
+<p class="text-[#8B7355] text-xs uppercase mb-2">Observações Internas</p>
+<p class="text-[#F5E1DB] text-sm italic">"Prefere embalagens ecológicas e sempre pede velas de aniversário douradas."</p>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-2 bg-[#1E1814]/70 backdrop-blur-md rounded-t-[24px]">
+<a class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-sans text-[10px] uppercase tracking-widest mt-1">Início</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#2C2420] text-[#D4919C] rounded-2xl px-5 py-2 transition-transform active:subtle scale-98" href="#">
+<span class="material-symbols-outlined" data-icon="group" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-sans text-[10px] uppercase tracking-widest mt-1">Clientes</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-sans text-[10px] uppercase tracking-widest mt-1">Vendas</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-sans text-[10px] uppercase tracking-widest mt-1">Ajustes</span>
+</a>
+</nav>
+</body></html>

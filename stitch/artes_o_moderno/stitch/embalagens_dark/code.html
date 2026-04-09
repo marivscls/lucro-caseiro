@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;family=Quicksand:wght@300..700&amp;family=Poppins:wght@400;600;700&amp;family=Noto+Serif:wght@400;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "tertiary-fixed-dim": "#f4bd6e",
+                        "surface-dim": "#e1d8d3",
+                        "primary-fixed-dim": "#ffb2bd",
+                        "on-primary-fixed-variant": "#75303e",
+                        "error-container": "#ffdad6",
+                        "secondary": "#864e58",
+                        "inverse-on-surface": "#f9efea",
+                        "on-secondary": "#ffffff",
+                        "on-surface": "#1f1b18",
+                        "surface": "#fff8f5",
+                        "on-secondary-fixed": "#360d17",
+                        "on-primary-container": "#fffbff",
+                        "primary": "#8f4552",
+                        "on-tertiary-container": "#fffbff",
+                        "on-primary-fixed": "#3d0414",
+                        "on-error": "#ffffff",
+                        "tertiary": "#7d540c",
+                        "primary-container": "#ac5d6a",
+                        "on-secondary-fixed-variant": "#6b3741",
+                        "error": "#ba1a1a",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#f6ece7",
+                        "on-tertiary": "#ffffff",
+                        "surface-bright": "#fff8f5",
+                        "on-tertiary-fixed-variant": "#624000",
+                        "surface-container-highest": "#eae1dc",
+                        "on-primary": "#ffffff",
+                        "outline-variant": "#d8c1c3",
+                        "surface-container-high": "#f0e6e1",
+                        "primary-fixed": "#ffd9dd",
+                        "outline": "#867274",
+                        "on-tertiary-fixed": "#291800",
+                        "surface-container-low": "#fcf2ed",
+                        "tertiary-container": "#996c25",
+                        "tertiary-fixed": "#ffddb2",
+                        "on-background": "#1f1b18",
+                        "on-surface-variant": "#534345",
+                        "secondary-container": "#feb6c1",
+                        "inverse-surface": "#342f2c",
+                        "secondary-fixed": "#ffd9de",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#ffb2bd",
+                        "surface-variant": "#eae1dc",
+                        "surface-tint": "#924755",
+                        "background": "#fff8f5",
+                        "on-secondary-container": "#7a444e",
+                        "secondary-fixed-dim": "#fbb3bf"
+                    },
+                    fontFamily: {
+                        "headline": ["Noto Serif", "serif"],
+                        "body": ["Quicksand", "sans-serif"],
+                        "label": ["Plus Jakarta Sans", "sans-serif"],
+                        "serif": ["Playfair Display", "serif"],
+                        "poppins": ["Poppins", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1.25rem", "3xl": "2rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #1E1814;
+            color: #F5E1DB;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-nav {
+            background: rgba(30, 24, 20, 0.7);
+            backdrop-filter: blur(20px);
+        }
+        .packaging-card {
+            background-color: #2C2420;
+            overflow: hidden;
+            position: relative;
+        }
+        .illustration-peek {
+            position: absolute;
+            right: -20px;
+            bottom: -10px;
+            width: 100px;
+            height: 100px;
+            opacity: 0.8;
+            filter: grayscale(0.2) contrast(1.1);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body min-h-screen pb-32">
+<!-- Top App Bar -->
+<header class="flex justify-between items-center px-6 py-4 w-full top-0 z-50 bg-[#1E1814]">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#D4919C]">menu</span>
+<h1 class="font-serif italic text-2xl text-[#D4919C]">Lucro Caseiro</h1>
+</div>
+<div class="w-10 h-10 rounded-full bg-[#2C2420] border border-[#D4919C]/20 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="close-up portrait of a smiling woman with warm lighting and a soft artisanal bakery background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrbCqb8kny2dLIU4q0v8PSMRafUCY6K_stkPthSOrfKqe73xamtVpDT8YG68KvwM3Kp74wkI5RF6BSKQvrIHY7AD-uPMIhTH84uA-2-Q8N_e0QjJRINEmQ4iX8Rn7K6cSqwnBC4LBeyc18CIAkMbWyGvhORVQyt6mYOVhpcJHGepYqwcrnAYo-BJ8nl5CRVuUgaJFqIjBTjCDVyb3z3ijGr7e3ow63gIRVfq6JF8ky-ZLHtYJPoPY7O7uWAODEkVUJmQjxy67GyNw"/>
+</div>
+</header>
+<!-- Main Content -->
+<main class="px-6 pt-4">
+<!-- Section Header -->
+<div class="mb-8">
+<h2 class="font-serif text-4xl font-bold tracking-tight text-[#F5E1DB]">Embalagens</h2>
+<p class="text-[#8B7355] mt-2 font-medium">Gerencie seus custos de apresentação</p>
+</div>
+<!-- Packaging Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Card 1: Caixa -->
+<div class="packaging-card p-6 rounded-2xl flex flex-col justify-between min-h-[160px]">
+<div class="space-y-3 relative z-10">
+<div class="flex justify-between items-start">
+<h3 class="font-label font-bold text-xl text-[#F5E1DB]">Caixa Gourmet P</h3>
+<span class="bg-[#B8A9D4]/20 text-[#B8A9D4] text-[10px] font-bold px-3 py-1 rounded-lg uppercase tracking-wider">Caixa</span>
+</div>
+<div class="space-y-1">
+<p class="font-poppins text-lg font-bold text-[#F5E1DB]">R$ 1,20<span class="text-sm font-normal text-[#8B7355]">/un</span></p>
+<p class="text-xs text-[#8B7355]">Estoque: 45 unidades</p>
+</div>
+</div>
+<div class="illustration-peek">
+<img class="w-full h-full object-contain" data-alt="flat minimal illustration of a small craft paper gift box on a solid dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqBzznazJu640mmUhH-aNeOPFWRMVbQPRrm2zht5WToeDeHkPsyJS0RXLExVWNDnUe-K6FdFJe8SXshP8q5cJXHSemhyVQSvgQBR--ydGvXgip3B9cc86id7_1TVfeewaT-xJ1AC6P1JHyAXlmRhNWLnLjGbkEvRfhyeLLRq1MbxAL9ow3GEshkV_AcPu319oZO9TQOloYqId_YRLgYHyG5a_ZqLELUSV_UvXCE3eb-j7GuzC-msOu0SWHHUFlSd593cylknreA-g"/>
+</div>
+</div>
+<!-- Card 2: Saco -->
+<div class="packaging-card p-6 rounded-2xl flex flex-col justify-between min-h-[160px]">
+<div class="space-y-3 relative z-10">
+<div class="flex justify-between items-start">
+<h3 class="font-label font-bold text-xl text-[#F5E1DB]">Saco Kraft Médio</h3>
+<span class="bg-[#89A5B5]/20 text-[#89A5B5] text-[10px] font-bold px-3 py-1 rounded-lg uppercase tracking-wider">Saco</span>
+</div>
+<div class="space-y-1">
+<p class="font-poppins text-lg font-bold text-[#F5E1DB]">R$ 0,45<span class="text-sm font-normal text-[#8B7355]">/un</span></p>
+<p class="text-xs text-[#8B7355]">Estoque: 120 unidades</p>
+</div>
+</div>
+<div class="illustration-peek">
+<img class="w-full h-full object-contain" data-alt="stylized flat design of a brown paper bag with organic soft edges" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAh3Xs-2IrKBktDtwnQ2XXd-oLwJE0tV51pAqQiVmBSzIc02BR7znzW8As8aQDmbHIJ4yd_gcmOCo_-H4X14r58AzZHxCWXYaKgYrZ0rFXVh6qwh2z16now5AAU7Y3UJlVkellkgsK8BqCz_spVfyDdX_7EIKOrVHWkaKgj3dWgLspZraGV6xaAg1v1QzGLO2uh7EBf_h87y-_Off8kHQkLZ3lQk-BCNxhuKrr_tN4BlxkvP1sPmgJTPMeZdrVDIGYxSizebIWndUs"/>
+</div>
+</div>
+<!-- Card 3: Pote -->
+<div class="packaging-card p-6 rounded-2xl flex flex-col justify-between min-h-[160px]">
+<div class="space-y-3 relative z-10">
+<div class="flex justify-between items-start">
+<h3 class="font-label font-bold text-xl text-[#F5E1DB]">Pote Plástico 250ml</h3>
+<span class="bg-[#6BBF96]/20 text-[#6BBF96] text-[10px] font-bold px-3 py-1 rounded-lg uppercase tracking-wider">Pote</span>
+</div>
+<div class="space-y-1">
+<p class="font-poppins text-lg font-bold text-[#F5E1DB]">R$ 0,85<span class="text-sm font-normal text-[#8B7355]">/un</span></p>
+<p class="text-xs text-[#8B7355]">Estoque: 28 unidades</p>
+</div>
+</div>
+<div class="illustration-peek">
+<img class="w-full h-full object-contain" data-alt="minimalist organic illustration of a clear kitchen container jar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDiFM0dqIDJQSH3eSx5zeG5Nff2rnw8Kr0KoO9aO5MegLjkXWgHQyNnXL_6V9m8hh-SKyICps-VCCZdHZhWv5G-sXQt4-fTCi0uNhWggolxvRgQsy3XwrI-iyYKju65VYPYG_O7K4SRhb5Xn_dYC_WfI4b7rzlXUVdym5axsrlPyGJWcUtoPRlI6xHEsxisYflcGnetllfpMb-_dZ0bRaWPMZ1gDG1y8d8-9thA2CuYslineSEA1ZJq4sQu25-33yCGAMN0cjkP-oQ"/>
+</div>
+</div>
+<!-- Card 4: Filme -->
+<div class="packaging-card p-6 rounded-2xl flex flex-col justify-between min-h-[160px]">
+<div class="space-y-3 relative z-10">
+<div class="flex justify-between items-start">
+<h3 class="font-label font-bold text-xl text-[#F5E1DB]">Filme PVC Rolo</h3>
+<span class="bg-[#D4A054]/20 text-[#D4A054] text-[10px] font-bold px-3 py-1 rounded-lg uppercase tracking-wider">Filme</span>
+</div>
+<div class="space-y-1">
+<p class="font-poppins text-lg font-bold text-[#F5E1DB]">R$ 0,12<span class="text-sm font-normal text-[#8B7355]">/un</span></p>
+<p class="text-xs text-[#8B7355]">Estoque: 15 rolos</p>
+</div>
+</div>
+<div class="illustration-peek">
+<img class="w-full h-full object-contain" data-alt="flat vector graphic of a roll of transparent kitchen wrap film" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9wLAR3CGh3fTaCL52Dux3Vi59Eij0WD5g9HGvZf-3qKY_LdXky6iFVUgr4GrXqYY6EV91bxQTAM4ShluZA1bqvNiHLDFpIxDKjTS8fQTzN765TT23Igg0pQQXOsIHrMxDXDvUTYtj0yt65qPQRtpQZe_hyEIIHSrjg9Ls5Px1Nv2Qw_nFdwHKUOTTXGCiMq30Dk4lO-Wii_ExasGZfcm0NNbX6hzPCadAPzcG3_m9gcq6l_pv1HmaIGgAi17cnahQGxgBFK-82Co"/>
+</div>
+</div>
+</div>
+</main>
+<!-- FAB -->
+<button class="fixed bottom-28 right-6 w-16 h-16 bg-[#C4707E] text-white rounded-full flex items-center justify-center shadow-2xl active:scale-95 transition-transform z-[60]">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 glass-nav rounded-t-[32px]">
+<div class="flex flex-col items-center justify-center bg-[#2C2420] text-[#D4919C] rounded-[20px] px-5 py-2">
+<span class="material-symbols-outlined" data-icon="inventory_2" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+<span class="font-sans text-[11px] font-medium tracking-wide uppercase mt-1">Estoque</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#F5E1DB]/50 px-5 py-2 hover:text-[#D4919C] transition-colors">
+<span class="material-symbols-outlined" data-icon="label">label</span>
+<span class="font-sans text-[11px] font-medium tracking-wide uppercase mt-1">Editor</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#F5E1DB]/50 px-5 py-2 hover:text-[#D4919C] transition-colors">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-sans text-[11px] font-medium tracking-wide uppercase mt-1">Lucros</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#F5E1DB]/50 px-5 py-2 hover:text-[#D4919C] transition-colors">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-sans text-[11px] font-medium tracking-wide uppercase mt-1">Ajustes</span>
+</div>
+</nav>
+</body></html>

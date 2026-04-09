@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&amp;family=Quicksand:wght@400;500;600;700&amp;family=Poppins:wght@600;700&amp;family=Noto+Serif:wght@400;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-container": "#fffbff",
+              "tertiary": "#7d540c",
+              "on-primary-fixed": "#3d0414",
+              "error-container": "#ffdad6",
+              "outline": "#867274",
+              "secondary": "#864e58",
+              "on-background": "#f9efea",
+              "primary-container": "#ac5d6a",
+              "on-secondary-container": "#7a444e",
+              "surface-tint": "#924755",
+              "surface-dim": "#2C2420",
+              "on-surface-variant": "#d8c1c3",
+              "tertiary-fixed-dim": "#f4bd6e",
+              "surface-container-lowest": "#1E1814",
+              "secondary-fixed": "#ffd9de",
+              "on-tertiary": "#ffffff",
+              "surface-container-low": "#251e1a",
+              "primary": "#C4707E",
+              "on-secondary": "#ffffff",
+              "inverse-surface": "#f9efea",
+              "surface": "#2C2420",
+              "outline-variant": "#4A3228",
+              "secondary-container": "#feb6c1",
+              "on-tertiary-fixed": "#291800",
+              "on-error-container": "#93000a",
+              "background": "#1E1814",
+              "primary-fixed-dim": "#ffb2bd",
+              "tertiary-fixed": "#ffddb2",
+              "on-surface": "#F5E1DB",
+              "surface-bright": "#342f2c",
+              "surface-container": "#2C2420",
+              "primary-fixed": "#ffd9dd",
+              "surface-container-highest": "#3d342f",
+              "error": "#ba1a1a",
+              "on-tertiary-fixed-variant": "#624000",
+              "inverse-primary": "#ffb2bd",
+              "on-secondary-fixed": "#360d17",
+              "on-primary-fixed-variant": "#75303e",
+              "surface-container-high": "#342f2c",
+              "secondary-fixed-dim": "#fbb3bf",
+              "on-primary": "#ffffff",
+              "on-secondary-fixed-variant": "#6b3741",
+              "surface-variant": "#433935",
+              "on-primary-container": "#fffbff",
+              "on-error": "#ffffff",
+              "inverse-on-surface": "#1E1814",
+              "tertiary-container": "#996c25"
+            },
+            fontFamily: {
+              "headline": ["Playfair Display", "serif"],
+              "body": ["Quicksand", "sans-serif"],
+              "label": ["Quicksand", "sans-serif"],
+              "data": ["Poppins", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "1.5rem", "2xl": "2rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #1E1814;
+            color: #F5E1DB;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body selection:bg-primary/30 min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#1E1814] transition-opacity">
+<div class="flex justify-between items-center px-6 py-4 w-full max-w-4xl mx-auto">
+<div class="flex items-center gap-4">
+<button class="hover:opacity-80 transition-opacity text-[#D4919C] active:scale-95 duration-150">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="font-headline italic text-2xl text-[#D4919C]">Atelier de Preços</h1>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-[#D4919C]/20 active:scale-95 duration-150 cursor-pointer">
+<img alt="Foto de perfil do empreendedor" class="w-full h-full object-cover" data-alt="portrait of a professional pastry chef in a dark artisanal kitchen setting with warm lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYvXBS_QYhCFgCekXDkez-ZwTcIzbgXfxHKssSyhrLjey978Yi7Hh5fCH9OUNFuVUft8iTEwdOnoE0nwRF3tv2witJpkcUEnY3_KONL3bqaHv9U2fq3j2sGMz51wfIw5bQQHVTeB46fvlEV7522ZDz_AqLU9f2bihd_mp-h-1EqruuFw_6H5EoOW7tjMwox_nXAq8phOHwasxwir92gCc8cINeZxsLA_kpQLmG-eCe5QyAp1kkMuRAQqKLEsdcoPsxqjS9fmVIdkY"/>
+</div>
+</div>
+<div class="bg-[#2C2420] h-px w-full opacity-20"></div>
+</header>
+<main class="flex-grow pt-24 pb-32 px-6 max-w-lg mx-auto w-full">
+<!-- Progress Stepper -->
+<div class="flex justify-center gap-3 mb-12">
+<div class="w-2.5 h-2.5 rounded-full bg-[#8B7355] opacity-40"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#C4707E]"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#8B7355] opacity-20"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#8B7355] opacity-20"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#8B7355] opacity-20"></div>
+</div>
+<!-- Section Header -->
+<div class="text-center mb-10">
+<h2 class="font-headline text-4xl text-[#F5E1DB] mb-2">Embalagem</h2>
+<p class="text-[#8B7355] font-medium">Caixa, saco, pote, fita...</p>
+</div>
+<!-- Illustration Area (Organic/Asymmetric) -->
+<div class="relative w-full aspect-square max-w-[240px] mx-auto mb-10 group">
+<div class="absolute inset-0 bg-[#C4707E]/5 rounded-full scale-110 blur-2xl group-hover:bg-[#C4707E]/10 transition-all duration-700"></div>
+<div class="relative z-10 w-full h-full bg-[#2C2420] rounded-[3rem] overflow-hidden flex items-center justify-center p-8">
+<img alt="Ilustracao flat caixa com laco" class="w-full h-full object-contain mix-blend-screen opacity-90 transition-transform duration-500 group-hover:scale-105" data-alt="minimalist flat illustration style gift box with a delicate silk ribbon bow on a dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsVsk_DrNwKFrmnML84CZWRdKJIdvTPdMIJFJnb-9aUr75fshEf9Gy3-LHBmKu-eccAnBP_3ZJRlKDZMTOnD383ozyTLrAcEIfaRA5smIhPwjqLDNPnf-ni3Iz5wnhMXtMNscr9SO_mPxV52iuE-a3yREgE3kRnO8ROHJgwr662KmMXGS0byATIkDoHAQ5i_2TYxr1oxm0tGbPJnshRFWbdmSPvr1FbqESwa9kmyY1j9EbfuK2KGXGiOl4O_-jj9UuP7kU1vOP9XY"/>
+</div>
+<!-- Decorative organic element peeking -->
+<div class="absolute -bottom-4 -right-4 w-20 h-20 bg-[#C4707E]/10 rounded-full blur-xl"></div>
+</div>
+<!-- Input Field -->
+<div class="space-y-6">
+<div class="bg-[#2C2420] p-6 rounded-2xl flex flex-col gap-2">
+<label class="text-[#8B7355] text-xs font-semibold uppercase tracking-widest pl-1">Custo Total da Embalagem</label>
+<div class="flex items-center gap-3">
+<span class="font-data text-2xl text-[#C4707E]">R$</span>
+<input class="bg-transparent border-none focus:ring-0 p-0 font-data text-4xl text-[#F5E1DB] placeholder:text-[#4A3228] w-full" inputmode="decimal" placeholder="0,00" type="text"/>
+</div>
+</div>
+<!-- Hint Card -->
+<div class="p-5 rounded-2xl bg-surface-container-low/50 border border-outline-variant/10 flex gap-4 items-start">
+<span class="material-symbols-outlined text-[#D4A054]">lightbulb</span>
+<p class="text-sm text-[#8B7355] leading-relaxed">
+                    Não esqueça de incluir o valor da etiqueta, do adesivo e até do papel de seda utilizado!
+                </p>
+</div>
+</div>
+<!-- Primary Action -->
+<div class="mt-12 flex flex-col gap-4">
+<button class="w-full bg-[#C4707E] text-white py-5 rounded-xl font-semibold text-lg hover:opacity-90 active:scale-[0.98] transition-all flex justify-center items-center gap-2">
+                Próximo
+                <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<button class="w-full py-4 rounded-xl font-medium text-[#8B7355] hover:text-[#F5E1DB] transition-colors text-sm">
+                Voltar para ingredientes
+            </button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-[#1E1814]/70 backdrop-blur-md rounded-t-[24px] z-50">
+<a class="flex flex-col items-center justify-center text-[#8B7355] opacity-70 hover:text-[#C4707E] transition-colors" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider mt-1">Início</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#2C2420] text-[#C4707E] rounded-2xl px-3 py-1.5 active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">calculate</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider mt-1">Cálculos</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] opacity-70 hover:text-[#C4707E] transition-colors" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider mt-1">Histórico</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] opacity-70 hover:text-[#C4707E] transition-colors" href="#">
+<span class="material-symbols-outlined">lightbulb</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider mt-1">Dicas</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] opacity-70 hover:text-[#C4707E] transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider mt-1">Perfil</span>
+</a>
+</nav>
+</body></html>

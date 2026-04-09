@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&amp;family=Quicksand:wght@300;400;500;600;700&amp;family=Poppins:wght@600;700&amp;family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-tint": "#924755",
+              "error": "#ba1a1a",
+              "on-primary-fixed": "#3d0414",
+              "inverse-primary": "#ffb2bd",
+              "tertiary": "#7d540c",
+              "on-primary-container": "#fffbff",
+              "secondary-container": "#feb6c1",
+              "on-tertiary": "#ffffff",
+              "primary": "#C4707E",
+              "on-tertiary-fixed-variant": "#624000",
+              "on-primary-fixed-variant": "#75303e",
+              "on-tertiary-fixed": "#291800",
+              "on-secondary-fixed-variant": "#6b3741",
+              "on-surface-variant": "#534345",
+              "inverse-on-surface": "#f9efea",
+              "inverse-surface": "#342f2c",
+              "error-container": "#ffdad6",
+              "surface-bright": "#fff8f5",
+              "primary-fixed": "#ffd9dd",
+              "on-background": "#F5E1DB",
+              "surface-container": "#2C2420",
+              "surface-container-high": "#342f2c",
+              "on-primary": "#ffffff",
+              "on-secondary-fixed": "#360d17",
+              "surface-variant": "#eae1dc",
+              "on-error": "#ffffff",
+              "on-secondary-container": "#7a444e",
+              "on-surface": "#F5E1DB",
+              "on-error-container": "#93000a",
+              "secondary-fixed-dim": "#fbb3bf",
+              "surface-container-low": "#1E1814",
+              "surface-dim": "#e1d8d3",
+              "secondary-fixed": "#ffd9de",
+              "outline-variant": "#d8c1c3",
+              "surface": "#1E1814",
+              "secondary": "#D4919C",
+              "surface-container-lowest": "#000000",
+              "tertiary-container": "#996c25",
+              "on-tertiary-container": "#fffbff",
+              "primary-container": "#ac5d6a",
+              "tertiary-fixed": "#ffddb2",
+              "tertiary-fixed-dim": "#f4bd6e",
+              "on-secondary": "#ffffff",
+              "primary-fixed-dim": "#ffb2bd",
+              "outline": "#867274",
+              "surface-container-highest": "#eae1dc",
+              "background": "#1E1814"
+            },
+            fontFamily: {
+              "headline": ["Playfair Display", "Noto Serif", "serif"],
+              "body": ["Quicksand", "Plus Jakarta Sans", "sans-serif"],
+              "label": ["Quicksand", "Plus Jakarta Sans", "sans-serif"],
+              "data": ["Poppins", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "20px", "xl": "24px", "2xl": "32px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        input[type="range"] {
+            -webkit-appearance: none;
+            background: #4A3228;
+            height: 4px;
+            border-radius: 2px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #C4707E;
+            cursor: pointer;
+            border: 2px solid #F5E1DB;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#1E1814] text-[#F5E1DB] font-body selection:bg-primary/30 min-h-screen">
+<!-- Top Navigation Shell -->
+<header class="fixed top-0 w-full z-50 bg-[#1E1814]/70 backdrop-blur-md flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="hover:opacity-80 transition-opacity scale-95 duration-200">
+<span class="material-symbols-outlined text-[#C4707E] text-2xl" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="font-headline italic text-[#F5E1DB] text-2xl tracking-tight">Lucro Caseiro</h1>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center overflow-hidden border border-outline-variant/15">
+<img class="w-full h-full object-cover" data-alt="close-up portrait of a smiling woman in a baker apron in a warm kitchen setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsKPzog-Ti9ZvVGeFCHuzUEett5boMUenSWi8f0dGrlZ4-mYZsq7Y76Vn1iYZD2H7dx5b5WYk5l73Aoqs3EJxqixOLEw7xvEYrJkigGRZBlMZbCGitVRXk9UZzF_07BkAH6AsmjBOxxpyX8mGKhpTKDvwHiQdfxHGRSSCwTEp2bflQeN3Mxo2XiSObDQxuVhhTIcqW27Ac9qUYi8F6lT8s16ZwJXYN3_vx2LPybBGwRCQ2LKsnoyUZSqagfsesHsD2sumEK7Mf-zQ"/>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-4xl mx-auto">
+<!-- Hero Section -->
+<section class="relative mb-12">
+<div class="rounded-[32px] overflow-hidden aspect-[16/10] relative group">
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="premium dark chocolate brigadeiro gourmet truffles arranged on a slate plate with cocoa powder sprinkles and gold leaf detail" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCB-NrkhEpsQXP7AideGFKMYMVdfbwx5ENE-w3MtsPd5SkuWGZYxfAyhv0QE75uim3isXzaZRNGvu6i1WPmgSp4Ma2Sk_awi0iSWt42DqK36me_76zmBZ-V_KNGmISlzR9b1Qq_xOViNaX3cC4oY9tXpG23QHejazf7WlvwXNLXSUACVFdtZ2Ey--3uphXt9XXT_nfrFAdC3GeBadrjllzHr93SNto8YVdNmd99TV0Dl3hEibDB92h3tuM99DncYqUOBbZ_R3aAQdw"/>
+<div class="absolute inset-0 bg-gradient-to-t from-[#1E1814] via-transparent to-transparent opacity-80"></div>
+<div class="absolute bottom-6 left-8 right-8">
+<span class="bg-[#C4707E] text-white px-3 py-1 rounded-full text-xs font-bold tracking-widest uppercase mb-3 inline-block">Best Seller</span>
+<h2 class="font-headline text-5xl md:text-6xl text-[#F5E1DB] leading-tight">Brigadeiro Gourmet</h2>
+</div>
+</div>
+</section>
+<!-- Bento Grid Stats -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+<div class="bg-[#2C2420] p-6 rounded-lg flex flex-col justify-between aspect-square md:aspect-auto">
+<span class="material-symbols-outlined text-[#C4707E]" data-icon="payments">payments</span>
+<div>
+<p class="text-[#8B7355] text-xs font-medium uppercase tracking-tighter">Custo Total</p>
+<p class="font-data text-2xl text-[#6BBF96]">R$ 42,50</p>
+</div>
+</div>
+<div class="bg-[#2C2420] p-6 rounded-lg flex flex-col justify-between aspect-square md:aspect-auto">
+<span class="material-symbols-outlined text-[#D4919C]" data-icon="restaurant">restaurant</span>
+<div>
+<p class="text-[#8B7355] text-xs font-medium uppercase tracking-tighter">Rendimento</p>
+<p class="font-data text-2xl text-[#F5E1DB]">50 un</p>
+</div>
+</div>
+<div class="bg-[#2C2420] p-6 rounded-lg flex flex-col justify-between aspect-square md:aspect-auto">
+<span class="material-symbols-outlined text-[#D4A054]" data-icon="trending_up">trending_up</span>
+<div>
+<p class="text-[#8B7355] text-xs font-medium uppercase tracking-tighter">Margem Sugerida</p>
+<p class="font-data text-2xl text-[#6BBF96]">180%</p>
+</div>
+</div>
+<div class="bg-[#2C2420] p-6 rounded-lg flex flex-col justify-between aspect-square md:aspect-auto">
+<span class="material-symbols-outlined text-[#B8A9D4]" data-icon="schedule">schedule</span>
+<div>
+<p class="text-[#8B7355] text-xs font-medium uppercase tracking-tighter">Preparo</p>
+<p class="font-data text-2xl text-[#F5E1DB]">45 min</p>
+</div>
+</div>
+</div>
+<!-- Recipe Content Sections -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Left Column: Ingredients -->
+<div class="md:col-span-2 space-y-8">
+<div class="bg-[#2C2420] rounded-lg p-8 relative overflow-hidden">
+<div class="absolute top-[-20px] right-[-20px] opacity-10">
+<span class="material-symbols-outlined text-8xl" data-icon="liquor">liquor</span>
+</div>
+<h3 class="font-headline text-2xl mb-6 text-[#D4919C] italic">Ingredientes</h3>
+<ul class="space-y-6">
+<li class="flex justify-between items-center border-b border-[#F5E1DB]/5 pb-2">
+<span class="font-body text-lg">Leite Condensado (Moça)</span>
+<span class="font-data text-[#F5E1DB]">2 latas</span>
+</li>
+<li class="flex justify-between items-center border-b border-[#F5E1DB]/5 pb-2">
+<span class="font-body text-lg">Creme de Leite 35% gordura</span>
+<span class="font-data text-[#F5E1DB]">200g</span>
+</li>
+<li class="flex justify-between items-center border-b border-[#F5E1DB]/5 pb-2">
+<span class="font-body text-lg">Chocolate Belga 54% Callebaut</span>
+<span class="font-data text-[#F5E1DB]">150g</span>
+</li>
+<li class="flex justify-between items-center border-b border-[#F5E1DB]/5 pb-2">
+<span class="font-body text-lg">Manteiga sem sal (President)</span>
+<span class="font-data text-[#F5E1DB]">30g</span>
+</li>
+<li class="flex justify-between items-center border-b border-[#F5E1DB]/5 pb-2">
+<span class="font-body text-lg">Glucose de milho</span>
+<span class="font-data text-[#F5E1DB]">15g</span>
+</li>
+</ul>
+</div>
+<div class="bg-[#2C2420] rounded-lg p-8">
+<h3 class="font-headline text-2xl mb-6 text-[#D4919C] italic">Modo de Preparo</h3>
+<div class="space-y-8">
+<div class="flex gap-6">
+<span class="font-headline text-4xl text-[#C4707E]/30 shrink-0">01</span>
+<p class="font-body text-lg leading-relaxed">Misture o leite condensado, creme de leite e a glucose em uma panela de fundo grosso. Leve ao fogo médio e mexa até homogeneizar.</p>
+</div>
+<div class="flex gap-6">
+<span class="font-headline text-4xl text-[#C4707E]/30 shrink-0">02</span>
+<p class="font-body text-lg leading-relaxed">Adicione o chocolate belga picado e a manteiga. Continue mexendo em movimentos circulares e em "oito" para não queimar o fundo.</p>
+</div>
+<div class="flex gap-6">
+<span class="font-headline text-4xl text-[#C4707E]/30 shrink-0">03</span>
+<p class="font-body text-lg leading-relaxed">Cozinhe até o ponto de bloco (quando a massa cai da espátula em pedaços e não se mistura imediatamente ao restante).</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Controls and Pricing -->
+<div class="space-y-6">
+<!-- Multiplier Slider -->
+<div class="bg-[#2C2420] rounded-lg p-6">
+<h4 class="text-[#8B7355] text-xs font-bold uppercase tracking-widest mb-6">Escalar Receita</h4>
+<div class="flex justify-between mb-4">
+<span class="text-sm font-medium">Porções</span>
+<span class="font-data text-primary">x2 (100 un)</span>
+</div>
+<input class="w-full mb-4" max="10" min="1" type="range" value="2"/>
+<p class="text-xs text-[#8B7355] italic leading-relaxed">Os custos e ingredientes serão atualizados automaticamente conforme a escala.</p>
+</div>
+<!-- Price Summary Card -->
+<div class="bg-[#C4707E] rounded-lg p-6 text-white overflow-hidden relative">
+<div class="absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4 opacity-20">
+<span class="material-symbols-outlined text-[120px]" data-icon="sell">sell</span>
+</div>
+<h4 class="text-white/70 text-xs font-bold uppercase tracking-widest mb-4">Preço de Venda</h4>
+<div class="mb-6">
+<p class="text-4xl font-data mb-1">R$ 4,50</p>
+<p class="text-sm text-white/80">por unidade</p>
+</div>
+<div class="space-y-3 pt-4 border-t border-white/20">
+<div class="flex justify-between text-sm">
+<span class="opacity-80">Lucro Bruto (Cento)</span>
+<span class="font-data">R$ 365,00</span>
+</div>
+<div class="flex justify-between text-sm">
+<span class="opacity-80">Tempo de Retorno</span>
+<span class="font-data">Imediato</span>
+</div>
+</div>
+</div>
+<!-- Quick Actions -->
+<button class="w-full bg-[#2C2420] text-[#F5E1DB] py-4 rounded-lg font-bold flex items-center justify-center gap-3 hover:bg-[#342f2c] transition-colors">
+<span class="material-symbols-outlined" data-icon="share">share</span>
+                    Compartilhar Ficha
+                </button>
+<button class="w-full bg-transparent border border-[#C4707E]/30 text-[#C4707E] py-4 rounded-lg font-bold flex items-center justify-center gap-3 hover:bg-[#C4707E]/5 transition-colors">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+                    Editar Custos
+                </button>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Shell -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-8 pt-2 bg-[#1E1814]/80 backdrop-blur-xl z-50 rounded-t-[32px]">
+<a class="flex flex-col items-center justify-center text-[#C4707E] bg-[#2C2420] rounded-2xl px-5 py-2 scale-90 transition-transform duration-300" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="receipt_long" style="font-variation-settings: 'FILL' 1;">receipt_long</span>
+<span class="font-sans text-[11px] font-medium tracking-tight">Receitas</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] opacity-60 hover:bg-[#2C2420]/50 transition-colors px-5 py-2" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="local_mall">local_mall</span>
+<span class="font-sans text-[11px] font-medium tracking-tight">Vendas</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] opacity-60 hover:bg-[#2C2420]/50 transition-colors px-5 py-2" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="payments">payments</span>
+<span class="font-sans text-[11px] font-medium tracking-tight">Custos</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] opacity-60 hover:bg-[#2C2420]/50 transition-colors px-5 py-2" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="person">person</span>
+<span class="font-sans text-[11px] font-medium tracking-tight">Perfil</span>
+</a>
+</nav>
+</body></html>

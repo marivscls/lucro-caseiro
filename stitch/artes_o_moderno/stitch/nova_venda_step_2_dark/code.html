@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&amp;family=Quicksand:wght@400;500;600;700&amp;family=Poppins:wght@600&amp;family=Noto+Serif:wght@700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-dim": "#e1d8d3",
+              "surface-container-lowest": "#ffffff",
+              "secondary": "#864e58",
+              "on-primary-container": "#fffbff",
+              "surface": "#fff8f5",
+              "on-primary-fixed-variant": "#75303e",
+              "on-error": "#ffffff",
+              "surface-bright": "#fff8f5",
+              "surface-container-highest": "#eae1dc",
+              "on-tertiary-fixed": "#291800",
+              "surface-container-low": "#fcf2ed",
+              "primary": "#8f4552",
+              "background": "#fff8f5",
+              "on-tertiary-fixed-variant": "#624000",
+              "on-secondary": "#ffffff",
+              "primary-container": "#ac5d6a",
+              "inverse-surface": "#342f2c",
+              "inverse-primary": "#ffb2bd",
+              "inverse-on-surface": "#f9efea",
+              "on-primary": "#ffffff",
+              "on-error-container": "#93000a",
+              "secondary-fixed-dim": "#fbb3bf",
+              "outline": "#867274",
+              "primary-fixed": "#ffd9dd",
+              "on-tertiary-container": "#fffbff",
+              "on-surface-variant": "#534345",
+              "on-secondary-fixed": "#360d17",
+              "on-primary-fixed": "#3d0414",
+              "on-surface": "#1f1b18",
+              "error": "#ba1a1a",
+              "secondary-container": "#feb6c1",
+              "on-secondary-container": "#7a444e",
+              "primary-fixed-dim": "#ffb2bd",
+              "on-background": "#1f1b18",
+              "outline-variant": "#d8c1c3",
+              "on-tertiary": "#ffffff",
+              "surface-container": "#f6ece7",
+              "tertiary": "#7d540c",
+              "surface-container-high": "#f0e6e1",
+              "on-secondary-fixed-variant": "#6b3741",
+              "tertiary-container": "#996c25",
+              "secondary-fixed": "#ffd9de",
+              "error-container": "#ffdad6",
+              "tertiary-fixed": "#ffddb2",
+              "surface-variant": "#eae1dc",
+              "tertiary-fixed-dim": "#f4bd6e",
+              "surface-tint": "#924755"
+            },
+            fontFamily: {
+              "headline": ["Playfair Display"],
+              "body": ["Quicksand"],
+              "label": ["Quicksand"],
+              "numeric": ["Poppins"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #1E1814;
+            color: #F5E1DB;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body min-h-screen flex flex-col">
+<!-- Top Navigation Header -->
+<header class="flex items-center justify-between w-full px-6 py-4 bg-[#1E1814]">
+<button class="text-[#D4919C] hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+<span class="font-headline text-2xl font-bold tracking-tight text-[#D4919C]">Nova Venda</span>
+<div class="w-6"></div> <!-- Spacer for centering -->
+</header>
+<!-- Progress Indicator -->
+<div class="flex justify-center items-center gap-3 py-6">
+<div class="w-2.5 h-2.5 rounded-full bg-[#2C2420]"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#C4707E]"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#2C2420]"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#2C2420]"></div>
+</div>
+<main class="flex-1 px-6 pb-32">
+<!-- Title Section -->
+<h1 class="font-headline text-3xl text-[#F5E1DB] mt-4 mb-8 leading-tight">
+            Pra quem é essa venda?
+        </h1>
+<!-- Anonymous Customer Card (Quick Action) -->
+<div class="bg-[#2C2420] rounded-[20px] p-6 mb-10 flex items-center justify-between transition-transform active:scale-95 duration-200">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-[#3D322C] flex items-center justify-center">
+<span class="material-symbols-outlined text-[#D4919C]" data-icon="person">person</span>
+</div>
+<div>
+<h2 class="font-bold text-lg text-[#F5E1DB]">Sem cliente (avulso)</h2>
+<p class="text-[#8B7355] text-sm">Pular</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-[#8B7355]" data-icon="chevron_right">chevron_right</span>
+</div>
+<!-- Section Label -->
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-semibold text-[#8B7355] tracking-wide uppercase text-xs">Seus Clientes</h3>
+<button class="text-[#C4707E] font-bold text-sm">Novo Cliente</button>
+</div>
+<!-- Customer List -->
+<div class="space-y-4">
+<!-- Selected Client -->
+<div class="bg-[#3D322C] rounded-[20px] p-5 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-[#C4707E] flex items-center justify-center text-[#F5E1DB] font-bold text-xl">
+                        M
+                    </div>
+<div>
+<h4 class="font-bold text-[#F5E1DB]">Maria Luiza</h4>
+<p class="text-[#8B7355] text-sm font-numeric">(11) 98765-4321</p>
+</div>
+</div>
+<div class="w-7 h-7 bg-[#C4707E] rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-lg" data-icon="check">check</span>
+</div>
+</div>
+<!-- Client 2 -->
+<div class="bg-[#2C2420] rounded-[20px] p-5 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-[#4A3228] flex items-center justify-center text-[#8B7355] font-bold text-xl">
+                        J
+                    </div>
+<div>
+<h4 class="font-bold text-[#F5E1DB]">Joao Paulo</h4>
+<p class="text-[#8B7355] text-sm font-numeric">(11) 91234-5678</p>
+</div>
+</div>
+</div>
+<!-- Client 3 (Placeholder for visual depth) -->
+<div class="bg-[#2C2420] rounded-[20px] p-5 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-[#4A3228] flex items-center justify-center text-[#8B7355] font-bold text-xl">
+                        A
+                    </div>
+<div>
+<h4 class="font-bold text-[#F5E1DB]">Ana Clara</h4>
+<p class="text-[#8B7355] text-sm font-numeric">(11) 97777-6666</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Illustration Peek -->
+<div class="fixed bottom-24 right-0 pointer-events-none opacity-20">
+<img class="w-32 h-32 transform rotate-12 translate-x-10" data-alt="organic soft flat illustration of a cupcake with cream swirl peeking from the side of the screen in warm tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzlgyn_VRkJHo38schJw23_SgklvZe0-iNqu_X3FE-8yY-b2HJfoWZYjXGGid_V_mYIjgeQEt1BhtBZeNYbQtX_9RM9rm0GwsVU3Pc5kSGIEeR2BlTwFUbIJJhfst8FjNak0p8yf1t97oXfMHZPQzxJO7ePRhYUpHSJjujBou9ZPQqrpHwReoQmoaL_3eq1KdzB2G_q2JTwwdWXxwwFNBXbwxOrZY4w8a_-6A6oX6V5YeleWpxuh2udAVjD0mZ7pkx8okoVifAJ9I"/>
+</div>
+</main>
+<!-- Sticky Bottom Action -->
+<div class="fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-[#1E1814] via-[#1E1814] to-transparent">
+<button class="w-full bg-[#C4707E] text-[#FFFFFF] py-4 rounded-[16px] font-bold text-lg flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all">
+            Próximo
+            <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<!-- Bottom Navigation Bar (Inactive state as per "Task Focused" suppression rule, but keeping structure for layout context) -->
+<nav class="hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-2 bg-[#2C2420]/70 backdrop-blur-md rounded-t-[24px]">
+<div class="flex flex-col items-center justify-center text-[#8B7355]">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-['Quicksand'] text-[10px] font-semibold">Início</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#C4707E] font-bold">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="font-['Quicksand'] text-[10px] font-semibold">Vendas</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#8B7355]">
+<span class="material-symbols-outlined text-3xl" data-icon="add_circle">add_circle</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#8B7355]">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-['Quicksand'] text-[10px] font-semibold">Estoque</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#8B7355]">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Quicksand'] text-[10px] font-semibold">Perfil</span>
+</div>
+</nav>
+</body></html>

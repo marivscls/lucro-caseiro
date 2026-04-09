@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Nova Venda - Lucro Caseiro</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&amp;family=Quicksand:wght@400;500;600;700&amp;family=Poppins:wght@700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#C4707E",
+                        "secondary": "#D4919C",
+                        "background": "#FFF5F0",
+                        "surface": "#F5E1DB",
+                        "on-surface": "#4A3228",
+                        "subtext": "#8B7355",
+                        "success": "#6BBF96",
+                        "surface-bright": "#FFFFFF"
+                    },
+                    fontFamily: {
+                        "headline": ["Playfair Display", "serif"],
+                        "body": ["Quicksand", "sans-serif"],
+                        "data": ["Poppins", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "lg": "12px",
+                        "xl": "16px",
+                        "2xl": "24px"
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+        body {
+            background-color: #FFF5F0;
+            color: #4A3228;
+            font-family: 'Quicksand', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen pb-32">
+<!-- TopAppBar from JSON -->
+<header class="bg-[#FFF5F0] dark:bg-[#1E1814] flex items-center justify-between w-full px-6 py-4 docked full-width top-0 sticky z-50">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#C4707E] dark:text-[#D4919C] hover:opacity-80 transition-opacity cursor-pointer scale-95 duration-200">close</span>
+<h1 class="font-['Playfair_Display'] text-2xl font-bold tracking-tight text-[#4A3228] dark:text-[#F5E1DB]">Nova Venda</h1>
+</div>
+<div class="hidden md:flex gap-6">
+<!-- Navigation logic for desktop would go here -->
+</div>
+</header>
+<!-- Progress Indicator -->
+<div class="px-6 flex justify-center gap-2 py-4">
+<div class="w-2.5 h-2.5 rounded-full bg-primary"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-surface"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-surface"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-surface"></div>
+</div>
+<!-- Main Content -->
+<main class="px-6 mt-4">
+<header class="mb-8">
+<h2 class="font-headline text-3xl text-on-surface leading-tight">O que você vai vender?</h2>
+</header>
+<!-- Search Input -->
+<div class="relative mb-10">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-subtext">search</span>
+<input class="w-full bg-surface border-none rounded-lg py-4 pl-12 pr-4 text-on-surface focus:ring-2 focus:ring-primary/20 placeholder:text-subtext/60 font-medium" placeholder="Buscar produto..." type="text"/>
+</div>
+<!-- Product Grid -->
+<div class="grid grid-cols-2 gap-4">
+<!-- Card 1: Selected -->
+<div class="bg-surface-bright rounded-2xl p-4 relative overflow-hidden flex flex-col items-start transition-all border-2 border-primary/10">
+<div class="w-10 h-10 rounded-full bg-surface flex items-center justify-center mb-3">
+<span class="font-data font-bold text-on-surface">C</span>
+</div>
+<p class="font-bold text-on-surface text-sm mb-1 leading-tight">Cupcake Rosa</p>
+<p class="font-data text-success text-sm">R$ 3,50</p>
+<!-- Floating Illustration -->
+<div class="absolute -bottom-2 -right-2 opacity-40">
+<img alt="" class="w-16 h-16 transform rotate-12" data-alt="flat vector illustration of a pink frosted cupcake with sprinkles on a cream background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCctAKhEE79ZGJZYcdbC83z01ztUrb25NY66KObEXWjNMHUWxdD_tpTGmJucUV4b6VWDZJx7O7dSwQCLKCLbQfzvjXRrKhtTvtZWocIfe6bN4pAnBSRh7a0OCQq5XmYaFtst-SjVBI0vuq4vZB4zQTUNjgH0PoIsdf9f8CzsEFFbRtlxVR7Mor3dyb4cfZtKwg0izPC8sFi52l32PfFkkXvBFY-sOFRUvxPx21BoxiaP-IhgA50tRuT9lR8pdp0Oi-7gPX9ZF8SBTU"/>
+</div>
+<!-- Selection Overlays -->
+<div class="absolute top-3 right-3 flex flex-col items-end gap-2">
+<div class="bg-primary text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">2</div>
+<span class="material-symbols-outlined filled-icon text-primary text-xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface rounded-2xl p-4 relative overflow-hidden flex flex-col items-start transition-all hover:bg-surface/80">
+<div class="w-10 h-10 rounded-full bg-surface-bright flex items-center justify-center mb-3">
+<span class="font-data font-bold text-on-surface">B</span>
+</div>
+<p class="font-bold text-on-surface text-sm mb-1 leading-tight">Bolo de Cenoura</p>
+<p class="font-data text-subtext text-sm">R$ 15,00</p>
+<div class="absolute -bottom-3 -right-3 opacity-30">
+<img alt="" class="w-20 h-20 transform -rotate-12" data-alt="flat organic illustration of a slice of carrot cake with chocolate topping" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-WNjpNuFjXmi7MeRRqsT8eeHsM7uk-i8xDrJV1h-2cB_Gl9c0LzhosE5RfZ1VXIcxzBPXzKdczNz_DmbAT6_hLgTVHQukGXU1_puLZV84Q8NQAvyQZ3tEfPcx-wPQlVuRAzJNVY7xcPYFKRAsCOPrWSDRtd_J_i6MP0AXbORG6GzQwmhuJsHTIxbFgCaqtrvuE7-AuyUaqzKCKpyN0l0kCwSBk0yIpNlde46RG-dZObGzZuLM4nb6Ezhr3YFS3w3gjX2XRVY-XGQ"/>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface rounded-2xl p-4 relative overflow-hidden flex flex-col items-start transition-all hover:bg-surface/80">
+<div class="w-10 h-10 rounded-full bg-surface-bright flex items-center justify-center mb-3">
+<span class="font-data font-bold text-on-surface">P</span>
+</div>
+<p class="font-bold text-on-surface text-sm mb-1 leading-tight">Pão Caseiro</p>
+<p class="font-data text-subtext text-sm">R$ 10,00</p>
+<div class="absolute -bottom-2 -right-2 opacity-30">
+<img alt="" class="w-16 h-16" data-alt="flat organic illustration of a rustic loaf of artisan bread" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7puFwqtMN2s8TrFJu1o8JdtGHahGws0TfFqAxDZVgx9X_UMGP4PioaAET99IjICwJ0RA2ne7qxE-HaxWTuCxOSdZKTGPk_ofCF0SVSs94EGItVIhAMUBPJjLNDeOoGErb9lP5LmuVRFfZD2mW5vfhmSIGaKqStQgvInVLVxGqIjoowJC5nGpiFZoE2TpkV9o3HAYXIFVwAORWLp2rk13GCIhy7WqS2qFFx6E33HefrTX1XHX-lXYtbDmlnmbsnn4AOk_pB7637rw"/>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface rounded-2xl p-4 relative overflow-hidden flex flex-col items-start transition-all hover:bg-surface/80">
+<div class="w-10 h-10 rounded-full bg-surface-bright flex items-center justify-center mb-3">
+<span class="font-data font-bold text-on-surface">B</span>
+</div>
+<p class="font-bold text-on-surface text-sm mb-1 leading-tight">Brownie</p>
+<p class="font-data text-subtext text-sm">R$ 5,00</p>
+<div class="absolute -bottom-1 -right-1 opacity-30">
+<img alt="" class="w-14 h-14 transform rotate-45" data-alt="flat minimalist illustration of a square chocolate brownie" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOse3g4g5La6HeLY_i0dTJd4ryxKApaLkKwukkZW2gA4xaLB6WMziB5XvLvZPqpOIaeUlOOVYR63iGJSubWNPNIMp2VMVAIxLt0mX5hWlJ4A2OiktL0OVf568FoH2Puk2yFCPGNLXZqSc8a0ZBdrvVHA8gFNaldF2rB0Mk2eqnb4v_1kOdyGNCrBnVFdbilIcurQVsdYYZUUjxURJZOO5XIfHgjqWfuyFDOUyo84QXXagboIp49joNMWeesqnCbNYy2Vtn8bBS4Ow"/>
+</div>
+</div>
+</div>
+</main>
+<!-- Fixed Footer Navigation -->
+<footer class="fixed bottom-0 left-0 w-full bg-background/80 backdrop-blur-md z-50 px-6 py-6 flex items-center justify-between">
+<div class="flex flex-col">
+<span class="text-subtext text-xs font-semibold uppercase tracking-wider mb-1">Total Selecionado</span>
+<span class="font-data text-2xl text-success leading-none">R$ 35,00</span>
+</div>
+<button class="bg-primary text-white px-10 py-4 rounded-xl font-bold transition-all active:scale-95 shadow-lg shadow-primary/10">
+            Próximo
+        </button>
+</footer>
+<!-- Suppressed BottomNavBar as this is a focused transactional journey -->
+</body></html>

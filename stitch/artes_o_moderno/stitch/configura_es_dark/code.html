@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Poppins:wght@600;700&amp;family=Playfair+Display:wght@700&amp;family=Quicksand:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-dim": "#e1d8d3",
+              "surface-container-high": "#f0e6e1",
+              "tertiary": "#7d540c",
+              "on-secondary": "#ffffff",
+              "primary-container": "#ac5d6a",
+              "outline-variant": "#d8c1c3",
+              "primary": "#8f4552",
+              "on-primary": "#ffffff",
+              "secondary-fixed": "#ffd9de",
+              "secondary": "#864e58",
+              "on-surface-variant": "#534345",
+              "error-container": "#ffdad6",
+              "primary-fixed": "#ffd9dd",
+              "background": "#fff8f5",
+              "tertiary-fixed": "#ffddb2",
+              "surface-container-highest": "#eae1dc",
+              "outline": "#867274",
+              "surface-bright": "#fff8f5",
+              "tertiary-fixed-dim": "#f4bd6e",
+              "on-error-container": "#93000a",
+              "tertiary-container": "#996c25",
+              "secondary-container": "#feb6c1",
+              "primary-fixed-dim": "#ffb2bd",
+              "surface": "#fff8f5",
+              "on-primary-fixed-variant": "#75303e",
+              "on-primary-container": "#fffbff",
+              "surface-tint": "#924755",
+              "surface-container-low": "#fcf2ed",
+              "surface-variant": "#eae1dc",
+              "surface-container-lowest": "#ffffff",
+              "surface-container": "#f6ece7",
+              "on-primary-fixed": "#3d0414",
+              "on-secondary-fixed": "#360d17",
+              "inverse-on-surface": "#f9efea",
+              "on-secondary-fixed-variant": "#6b3741",
+              "on-tertiary": "#ffffff",
+              "secondary-fixed-dim": "#fbb3bf",
+              "on-tertiary-fixed": "#291800",
+              "inverse-surface": "#342f2c",
+              "on-tertiary-fixed-variant": "#624000",
+              "inverse-primary": "#ffb2bd",
+              "on-secondary-container": "#7a444e",
+              "on-tertiary-container": "#fffbff",
+              "on-error": "#ffffff",
+              "on-background": "#1f1b18",
+              "on-surface": "#1f1b18",
+              "error": "#ba1a1a"
+            },
+            fontFamily: {
+              "headline": ["Noto Serif", "serif"],
+              "body": ["Plus Jakarta Sans", "sans-serif"],
+              "label": ["Plus Jakarta Sans", "sans-serif"],
+              "serif": ["Playfair Display", "serif"],
+              "sans": ["Quicksand", "sans-serif"],
+              "numbers": ["Poppins", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1.25rem", "3xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { background-color: #1E1814; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body text-[#F5E1DB] selection:bg-[#C4707E]/30 min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#2C2420] transition-colors duration-300">
+<div class="flex items-center justify-between px-6 py-4 max-w-screen-xl mx-auto">
+<div class="flex items-center gap-4">
+<button class="text-[#C4707E] hover:opacity-80 transition-opacity active:scale-95 duration-150">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="font-serif text-3xl font-bold tracking-tight text-[#F5E1DB]">Configurações</h1>
+</div>
+<div class="hidden md:flex gap-8">
+<a class="text-[#D4919C] font-sans font-medium hover:opacity-80 transition-opacity" href="#">Início</a>
+<a class="text-[#D4919C] font-sans font-medium hover:opacity-80 transition-opacity" href="#">Vendas</a>
+<a class="text-[#D4919C] font-sans font-medium hover:opacity-80 transition-opacity" href="#">Receitas</a>
+<a class="text-[#C4707E] font-sans font-bold hover:opacity-80 transition-opacity" href="#">Perfil</a>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-2xl mx-auto space-y-8">
+<!-- Profile Card -->
+<section class="bg-[#2C2420] rounded-[20px] p-6 flex flex-col gap-6 relative overflow-hidden">
+<div class="flex items-center gap-5">
+<div class="w-20 h-20 bg-[#F5E1DB] rounded-full flex items-center justify-center border-4 border-[#C4707E]/20">
+<span class="font-serif text-4xl font-bold text-[#4A3228]">M</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<h2 class="font-sans text-xl font-bold text-[#F5E1DB]">Maria Silva</h2>
+<span class="bg-[#D4919C]/20 text-[#D4919C] text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full">Confeitaria</span>
+</div>
+<p class="font-sans text-[#8B7355] text-sm">Doces da Maria</p>
+</div>
+<button class="border border-[#D4919C] text-[#D4919C] px-5 py-2 rounded-xl font-sans font-semibold text-sm hover:bg-[#D4919C]/10 transition-colors active:scale-95">
+                    Editar
+                </button>
+</div>
+<!-- Organic Illustration Bleed -->
+<div class="absolute -right-4 -bottom-4 opacity-10 pointer-events-none">
+<span class="material-symbols-outlined text-8xl" data-icon="bakery_dining">bakery_dining</span>
+</div>
+</section>
+<!-- Subscription Card -->
+<section class="bg-[#2C2420] rounded-[20px] p-6 space-y-4">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-3">
+<div class="bg-[#D4A054] text-[#1E1814] p-2 rounded-lg">
+<span class="material-symbols-outlined" data-icon="workspace_premium" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+</div>
+<div>
+<h3 class="font-sans font-bold text-[#F5E1DB]">Plano Lucro Caseiro</h3>
+<p class="font-sans text-[#6BBF96] text-xs font-semibold">Válido até 25/04/2026</p>
+</div>
+</div>
+<span class="bg-[#D4A054]/20 text-[#D4A054] font-sans text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full">Premium</span>
+</div>
+</section>
+<!-- Preferences Card -->
+<section class="bg-[#2C2420] rounded-[20px] p-6 space-y-8">
+<div class="space-y-4">
+<h3 class="font-sans font-bold text-[#F5E1DB] text-sm tracking-wide flex items-center gap-2">
+<span class="material-symbols-outlined text-lg" data-icon="palette">palette</span>
+                    Preferências
+                </h3>
+<div class="flex items-center justify-between">
+<span class="font-sans text-[#D4919C]">Tema</span>
+<div class="flex bg-[#1E1814] p-1 rounded-[14px]">
+<button class="px-4 py-1.5 rounded-xl text-xs font-bold font-sans text-[#8B7355] hover:text-[#F5E1DB] transition-colors">Claro</button>
+<button class="px-4 py-1.5 rounded-xl text-xs font-bold font-sans bg-[#F5E1DB] text-[#C4707E]">Escuro</button>
+<button class="px-4 py-1.5 rounded-xl text-xs font-bold font-sans text-[#8B7355] hover:text-[#F5E1DB] transition-colors">Auto</button>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-sans text-[#D4919C]">Notificações</span>
+<button class="w-12 h-6 bg-[#C4707E] rounded-full relative transition-colors">
+<div class="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
+</button>
+</div>
+</div>
+</section>
+<!-- Account Actions Card -->
+<section class="bg-[#2C2420] rounded-[20px] p-4 space-y-4">
+<button class="w-full flex items-center justify-between px-2 py-3 text-[#E07272] hover:bg-[#E07272]/5 rounded-xl transition-colors">
+<span class="font-sans font-bold">Sair da conta</span>
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+</button>
+<div class="pt-4 pb-2 text-center">
+<p class="font-sans text-[#8B7355] text-xs font-medium tracking-widest">v1.0.0</p>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 rounded-t-[32px] bg-white/5 backdrop-blur-xl border-t border-white/5">
+<div class="flex justify-around items-center px-4 pb-6 pt-3">
+<div class="flex flex-col items-center justify-center text-[#D4919C] px-5 py-2 hover:bg-[#1E1814]/50 rounded-2xl transition-all active:scale-95">
+<span class="material-symbols-outlined mb-1" data-icon="home">home</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider">Início</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#D4919C] px-5 py-2 hover:bg-[#1E1814]/50 rounded-2xl transition-all active:scale-95">
+<span class="material-symbols-outlined mb-1" data-icon="payments">payments</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider">Vendas</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#D4919C] px-5 py-2 hover:bg-[#1E1814]/50 rounded-2xl transition-all active:scale-95">
+<span class="material-symbols-outlined mb-1" data-icon="menu_book">menu_book</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider">Receitas</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#1E1814] text-[#C4707E] rounded-2xl px-5 py-2 active:scale-95">
+<span class="material-symbols-outlined mb-1" data-icon="person" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider">Perfil</span>
+</div>
+</div>
+</nav>
+<!-- Aesthetic Decorative Element -->
+<div class="fixed top-20 -left-20 w-64 h-64 bg-[#C4707E] rounded-full blur-[120px] opacity-10 pointer-events-none"></div>
+<div class="fixed bottom-20 -right-20 w-80 h-80 bg-[#D4A054] rounded-full blur-[150px] opacity-10 pointer-events-none"></div>
+</body></html>

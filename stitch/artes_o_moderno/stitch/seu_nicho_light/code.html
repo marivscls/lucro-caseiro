@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;family=Quicksand:wght@300..700&amp;family=Poppins:wght@400;700&amp;family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary-fixed": "#3d0414",
+              "surface-container-low": "#fcf2ed",
+              "on-primary-fixed-variant": "#75303e",
+              "on-background": "#1f1b18",
+              "on-tertiary-fixed-variant": "#624000",
+              "on-primary": "#ffffff",
+              "secondary-fixed-dim": "#fbb3bf",
+              "on-tertiary-container": "#fffbff",
+              "on-secondary-container": "#7a444e",
+              "surface-variant": "#eae1dc",
+              "tertiary": "#7d540c",
+              "tertiary-container": "#996c25",
+              "surface-container-highest": "#eae1dc",
+              "on-tertiary-fixed": "#291800",
+              "tertiary-fixed-dim": "#f4bd6e",
+              "surface-dim": "#e1d8d3",
+              "outline-variant": "#d8c1c3",
+              "inverse-primary": "#ffb2bd",
+              "error-container": "#ffdad6",
+              "on-tertiary": "#ffffff",
+              "secondary-fixed": "#ffd9de",
+              "surface-tint": "#924755",
+              "primary-fixed-dim": "#ffb2bd",
+              "inverse-on-surface": "#f9efea",
+              "tertiary-fixed": "#ffddb2",
+              "surface-bright": "#fff8f5",
+              "surface-container-lowest": "#ffffff",
+              "on-secondary-fixed-variant": "#6b3741",
+              "secondary": "#864e58",
+              "error": "#ba1a1a",
+              "on-secondary-fixed": "#360d17",
+              "on-secondary": "#ffffff",
+              "on-error-container": "#93000a",
+              "on-primary-container": "#fffbff",
+              "on-error": "#ffffff",
+              "secondary-container": "#feb6c1",
+              "primary-container": "#ac5d6a",
+              "background": "#fff8f5",
+              "on-surface": "#1f1b18",
+              "surface-container-high": "#f0e6e1",
+              "inverse-surface": "#342f2c",
+              "surface": "#fff8f5",
+              "primary": "#8f4552",
+              "primary-fixed": "#ffd9dd",
+              "outline": "#867274",
+              "on-surface-variant": "#534345",
+              "surface-container": "#f6ece7"
+            },
+            fontFamily: {
+              "headline": ["Playfair Display", "serif"],
+              "body": ["Quicksand", "sans-serif"],
+              "label": ["Quicksand", "sans-serif"],
+              "data": ["Poppins", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "1.25rem", "2xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #FFF5F0;
+        }
+        .editorial-shadow {
+            box-shadow: 0 10px 40px -10px rgba(74, 50, 40, 0.08);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body text-[#4A3228] selection:bg-[#C4707E]/20">
+<!-- Top Navigation Anchor (As specified in JSON) -->
+<header class="flex justify-between items-center px-6 py-4 w-full bg-[#FFF5F0] dark:bg-[#1E1814] docked full-width top-0 z-50">
+<div class="flex items-center gap-4">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-[#F5E1DB]/50 transition-colors scale-95 active:scale-90">
+<span class="material-symbols-outlined text-[#C4707E] dark:text-[#D4919C]" data-icon="arrow_back">arrow_back</span>
+</button>
+</div>
+<h1 class="font-headline italic text-2xl text-[#4A3228] dark:text-[#F5E1DB]">Lucro Caseiro</h1>
+<div class="w-10"></div> <!-- Spacer for center alignment -->
+</header>
+<main class="max-w-2xl mx-auto px-6 pt-12 pb-32">
+<!-- Header Section -->
+<header class="mb-12 text-center md:text-left">
+<h2 class="font-headline italic text-4xl md:text-5xl text-[#4A3228] mb-3 tracking-tight">Qual é o seu nicho?</h2>
+<p class="font-body text-[#8B7355] text-lg">Pra gente personalizar sua experiência</p>
+</header>
+<!-- Bento-inspired Grid for Niches -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Confeitaria (Selected State Example) -->
+<div class="relative group cursor-pointer bg-white rounded-[24px] p-6 editorial-shadow transition-all hover:scale-[1.02] border-none flex flex-col justify-between h-48 overflow-hidden">
+<div class="flex justify-between items-start z-10">
+<div class="bg-[#C4707E] text-white rounded-full w-8 h-8 flex items-center justify-center">
+<span class="material-symbols-outlined text-lg" data-icon="check" style="font-variation-settings: 'FILL' 0, 'wght' 600;">check</span>
+</div>
+</div>
+<div class="z-10 mt-auto">
+<h3 class="font-headline italic text-2xl text-[#4A3228]">Confeitaria</h3>
+<p class="font-body text-[#8B7355] text-sm">Doces, bolos e salgados</p>
+</div>
+<!-- Organic Illustration Placement -->
+<div class="absolute -right-4 -bottom-4 w-32 h-32 opacity-90 group-hover:rotate-12 transition-transform duration-500">
+<img alt="Delicious pink frosted cake" class="w-full h-full object-contain" data-alt="Close-up of a minimalist pink frosted artisan cake with delicate edible petals on a soft cream background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA26BTTu6AjYCw1jpuiDr_cZzPAMYsMF3Rh0sy0__052GM1DTTHZW-E3v7dDK2QCh26FEmEubxhcQ1zWVnrsy7oWBoVmCsbIb0t4jMCxno3VV70YOO5REBKgTL_kOpcp6dDPV7XYzgxeSbp4tke9Nr98sAOPe_a-WyYqSneIPIOCuIilPfrJKBwxmptP0MI31xwIPShiDSP4g4yb4WHSiAOEiIvznUPH5SXpEV4wpQHXLSK_RE7g6D8GqY6m-6c6lJBIFtzURkgBEI"/>
+</div>
+</div>
+<!-- Manicure -->
+<div class="relative group cursor-pointer bg-[#F5E1DB] rounded-[24px] p-6 transition-all hover:scale-[1.02] border-none flex flex-col justify-between h-48 overflow-hidden">
+<div class="flex justify-between items-start z-10">
+<div class="w-8 h-8 opacity-0"></div>
+</div>
+<div class="z-10 mt-auto">
+<h3 class="font-headline italic text-2xl text-[#4A3228]">Manicure</h3>
+<p class="font-body text-[#8B7355] text-sm">Estética e cuidados</p>
+</div>
+<div class="absolute -right-6 -top-4 w-36 h-36 opacity-80 group-hover:-translate-y-2 transition-transform">
+<img alt="Coral nail polish" class="w-full h-full object-contain" data-alt="An open bottle of vibrant coral nail polish with a brush dripping glossy lacquer against a neutral warm background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKChgbVKujfmTjWrmCRH79iwZZ_ZNw7b7-vzEdJgq9s9H-b0lUzbVPUumsc6AlaQiv6LXgUXXk3b-pQ68Tb-vJefYKeQlTmmixuEYXcWr8QyekhiRQJO3bxy3FP9ua7XsU-l00k_PRHCsNJENy6c2WJSPK8XI-bLBV7dBcFkrCWQhGXLPc5by8U7oaUs5-YxjXE_QK0lXw31QX0HUfsgQqqMNfJYwogdUk5Mknn69NQRvvH19XorOHvaQ-SXy9gYcalCfYExtMDTE"/>
+</div>
+</div>
+<!-- Artesanato -->
+<div class="relative group cursor-pointer bg-[#F5E1DB] rounded-[24px] p-6 transition-all hover:scale-[1.02] border-none flex flex-col justify-between h-48 overflow-hidden">
+<div class="flex justify-between items-start z-10">
+<div class="w-8 h-8 opacity-0"></div>
+</div>
+<div class="z-10 mt-auto">
+<h3 class="font-headline italic text-2xl text-[#4A3228]">Artesanato</h3>
+<p class="font-body text-[#8B7355] text-sm">Feito à mão com carinho</p>
+</div>
+<div class="absolute -right-8 -bottom-8 w-40 h-40 opacity-80 group-hover:scale-110 transition-transform">
+<img alt="Lavender yarn ball" class="w-full h-full object-contain" data-alt="Soft lavender purple wool yarn ball with natural texture on a clean surface with soft directional lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPF7U_-DG8rSOuu1g4jdTdPjnXEmbrzc13D14NG9D4FTunoyBrhXWcU-chZuGegbWqiLprlyFm9JEXUvHUBsCrSulEsqoHbTOoqPTzSqzq4nKRHnPJg8TZQt5C9sxHNeGnpk6IU2E213oFl7hHEI0djgRm3JECWcZdyVFqf25GXF3JtBMtB0bgm7j3nm-a5_U-Y9OGio8ppfBxOiY5i__6SztZlAjBvK4jUwaGVoD0rpf7XMFSnNKFz_argdTfR4qJbP7mGyhlGxs"/>
+</div>
+</div>
+<!-- Refeições -->
+<div class="relative group cursor-pointer bg-[#F5E1DB] rounded-[24px] p-6 transition-all hover:scale-[1.02] border-none flex flex-col justify-between h-48 overflow-hidden">
+<div class="flex justify-between items-start z-10">
+<div class="w-8 h-8 opacity-0"></div>
+</div>
+<div class="z-10 mt-auto">
+<h3 class="font-headline italic text-2xl text-[#4A3228]">Refeições</h3>
+<p class="font-body text-[#8B7355] text-sm">Marmitas e gastronomia</p>
+</div>
+<div class="absolute -right-4 top-1/2 -translate-y-1/2 w-32 h-32 opacity-80 group-hover:rotate-6 transition-transform">
+<img alt="Mint green pot" class="w-full h-full object-contain" data-alt="Elegant ceramic mint green cooking pot with wooden handles sitting on a white surface in a sunlit kitchen" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVZtq3lbAlwFa89n-0ddA0WENXWv8tE0tQcNU20T0TfF91U5yx-73W6TkQHyZVaB_fWhY0JIlKVijIf9Zdl10gnAdzrqHv1EZAiBk1BQggNFPtvekGjtCzRAxmGIxhVuKf0hvxpqFeJgwgfkkjKAp4O2yogpaH7daje_e6NxO2L1qReqW1jeL-QLq2KAp6TGyZTG2jTWw27oLVnxghz0QpTsV_MCAyo1GcONJd-EWsKQ7ktaWgzAokA3O_FN1OYWkBnUnQBhKvWMA"/>
+</div>
+</div>
+<!-- Outros (Full Width on mobile, span 2 on md if needed) -->
+<div class="md:col-span-2 relative group cursor-pointer bg-[#F5E1DB] rounded-[24px] p-6 transition-all hover:scale-[1.01] border-none flex items-center h-32 overflow-hidden">
+<div class="z-10 flex-1">
+<h3 class="font-headline italic text-2xl text-[#4A3228]">Outros</h3>
+<p class="font-body text-[#8B7355] text-sm">Serviços e novos talentos</p>
+</div>
+<div class="z-10 mr-8">
+<span class="material-symbols-outlined text-[#D4A054] text-5xl" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<!-- Decorative element -->
+<div class="absolute -right-10 top-0 bottom-0 w-48 bg-gradient-to-l from-[#C4707E]/10 to-transparent"></div>
+</div>
+</div>
+<!-- Action Section -->
+<div class="mt-16 flex flex-col items-center gap-6">
+<button class="w-full md:w-64 bg-[#C4707E] text-white py-4 px-8 rounded-2xl font-body font-bold text-lg flex items-center justify-center gap-3 transition-all active:scale-[0.98] hover:opacity-90">
+                Próximo
+                <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<p class="text-xs font-body text-[#8B7355]/60 tracking-widest uppercase">Passo 2 de 4</p>
+</div>
+</main>
+<!-- Bottom Navigation (As specified in JSON) -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-2 bg-[#FFF5F0]/70 dark:bg-[#1E1814]/70 backdrop-blur-xl rounded-t-[24px]">
+<a class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/60 px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="home_app_logo">home_app_logo</span>
+<span class="text-xs font-sans tracking-wide">Início</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/60 px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="auto_awesome">auto_awesome</span>
+<span class="text-xs font-sans tracking-wide">Ateliê</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/60 px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="payments">payments</span>
+<span class="text-xs font-sans tracking-wide">Vendas</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#F5E1DB] dark:bg-[#2C2420] text-[#C4707E] rounded-2xl px-5 py-2 scale 0.98x transition-all" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="person" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="text-xs font-sans tracking-wide">Perfil</span>
+</a>
+</nav>
+</body></html>

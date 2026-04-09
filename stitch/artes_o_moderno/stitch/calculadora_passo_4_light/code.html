@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&amp;family=Quicksand:wght@400;500;600;700&amp;family=Poppins:wght@600;700&amp;family=Noto+Serif:wght@400;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-container": "#fffbff",
+              "tertiary": "#7d540c",
+              "on-primary-fixed": "#3d0414",
+              "error-container": "#ffdad6",
+              "outline": "#867274",
+              "secondary": "#864e58",
+              "on-background": "#1f1b18",
+              "primary-container": "#ac5d6a",
+              "on-secondary-container": "#7a444e",
+              "surface-tint": "#924755",
+              "surface-dim": "#e1d8d3",
+              "on-surface-variant": "#534345",
+              "tertiary-fixed-dim": "#f4bd6e",
+              "surface-container-lowest": "#ffffff",
+              "secondary-fixed": "#ffd9de",
+              "on-tertiary": "#ffffff",
+              "surface-container-low": "#fcf2ed",
+              "primary": "#8f4552",
+              "on-secondary": "#ffffff",
+              "inverse-surface": "#342f2c",
+              "surface": "#fff8f5",
+              "outline-variant": "#d8c1c3",
+              "secondary-container": "#feb6c1",
+              "on-tertiary-fixed": "#291800",
+              "on-error-container": "#93000a",
+              "background": "#fff8f5",
+              "primary-fixed-dim": "#ffb2bd",
+              "tertiary-fixed": "#ffddb2",
+              "on-surface": "#1f1b18",
+              "surface-bright": "#fff8f5",
+              "surface-container": "#f6ece7",
+              "primary-fixed": "#ffd9dd",
+              "surface-container-highest": "#eae1dc",
+              "error": "#ba1a1a",
+              "on-tertiary-fixed-variant": "#624000",
+              "inverse-primary": "#ffb2bd",
+              "on-secondary-fixed": "#360d17",
+              "on-primary-fixed-variant": "#75303e",
+              "surface-container-high": "#f0e6e1",
+              "secondary-fixed-dim": "#fbb3bf",
+              "on-primary": "#ffffff",
+              "on-secondary-fixed-variant": "#6b3741",
+              "surface-variant": "#eae1dc",
+              "on-primary-container": "#fffbff",
+              "on-error": "#ffffff",
+              "inverse-on-surface": "#f9efea",
+              "tertiary-container": "#996c25"
+            },
+            fontFamily: {
+              "headline": ["Noto Serif", "serif"],
+              "body": ["Plus Jakarta Sans", "sans-serif"],
+              "label": ["Plus Jakarta Sans", "sans-serif"],
+              "serif": ["Playfair Display", "serif"],
+              "sans": ["Quicksand", "sans-serif"],
+              "data": ["Poppins", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "3xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        background-color: #FFF5F0; /* Creme Rosado specified in requirements */
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-sans text-[#4A3228] selection:bg-[#D4919C]/30">
+<!-- Top Navigation Anchor -->
+<header class="fixed top-0 w-full z-50 bg-[#FFF5F0] dark:bg-[#1E1814]">
+<div class="flex justify-between items-center px-6 py-4 w-full max-w-4xl mx-auto">
+<button class="hover:opacity-80 transition-opacity flex items-center justify-center p-2 rounded-full">
+<span class="material-symbols-outlined text-[#C4707E] dark:text-[#D4919C]">menu</span>
+</button>
+<h1 class="font-serif italic text-2xl text-[#C4707E] dark:text-[#D4919C]">Atelier de Preços</h1>
+<div class="w-10 h-10 rounded-full overflow-hidden bg-[#F5E1DB]">
+<img alt="Foto de perfil do empreendedor" class="w-full h-full object-cover" data-alt="portrait of a creative female entrepreneur in a bright studio workspace, warm natural lighting, soft artisanal aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8lozf4hVKopI7ZwvQT3AVQzpsWczbu6xHeTo3Izc3iQY8Edc-QrVALJQDqkLpppxIBbZW2yV_rSo9uXNftGzPDhMsNWOR6Yvd5BPEtH5PVNjtNBTyIOnmJS642QcoPbFaq90boFFx_TKyu8kUYVNvmYAiJhuHu2cHMfetn9n9EC3LhKYEwJ0AMkCpG931r7Zywjd0E8kGb0HNXSGx11BIH8PquSH88l_zjfIPt7i6F_X-O1i0Fid4n_HfTktQLhVD84UgBQ0fdTw"/>
+</div>
+</div>
+<div class="bg-[#F5E1DB] dark:bg-[#2C2420] h-px w-full opacity-20"></div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-lg mx-auto min-h-screen flex flex-col">
+<!-- Progress Dots Indicator -->
+<div class="flex justify-center gap-3 mb-12">
+<div class="w-2.5 h-2.5 rounded-full bg-[#D4919C]/30"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#D4919C]/30"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#D4919C]/30"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#C4707E] ring-4 ring-[#C4707E]/10"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#D4919C]/30"></div>
+</div>
+<!-- Section Title -->
+<header class="mb-10 text-center relative">
+<h2 class="font-serif text-4xl text-[#4A3228] dark:text-[#F5E1DB] tracking-tight">Custos fixos</h2>
+<p class="font-sans text-sm text-[#8B7355] mt-2">Valores que não mudam com a produção</p>
+</header>
+<!-- Main Content Canvas -->
+<div class="space-y-8 flex-grow">
+<!-- Input Container -->
+<div class="space-y-2">
+<label class="font-sans font-semibold text-xs uppercase tracking-widest text-[#8B7355] ml-1">Valor Total Mensal</label>
+<div class="relative group">
+<input class="w-full bg-[#F5E1DB] border-none rounded-2xl py-6 px-6 text-3xl font-data text-[#4A3228] focus:ring-2 focus:ring-[#C4707E]/20 transition-all outline-none" placeholder="R$ 0,00" type="text" value="R$ 0,00"/>
+<div class="absolute right-6 top-1/2 -translate-y-1/2 text-[#C4707E]">
+<span class="material-symbols-outlined text-3xl">payments</span>
+</div>
+</div>
+</div>
+<!-- Tip Card & Illustration Asymmetric Layout -->
+<div class="relative pt-6">
+<!-- Tip Card -->
+<div class="bg-[#F5E1DB] rounded-3xl p-6 flex items-start gap-4 z-10 relative">
+<div class="bg-[#FFF5F0] p-2 rounded-xl">
+<span class="material-symbols-outlined text-[#C4707E]" data-icon="lightbulb">lightbulb</span>
+</div>
+<p class="font-sans text-sm leading-relaxed text-[#8B7355]">
+                        Divida seus custos fixos mensais pelo numero de unidades que você consegue produzir no mês.
+                    </p>
+</div>
+<!-- Flat Illustration: Casinha com conta de luz -->
+<div class="absolute -bottom-12 -right-4 w-40 h-40 pointer-events-none opacity-90">
+<div class="relative w-full h-full">
+<!-- House Structure Representation -->
+<div class="absolute inset-0 bg-no-repeat bg-contain bg-center" data-alt="stylized flat vector illustration of a small cozy cottage with a soft pink chimney and a simple light bill icon floating next to it" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBYLTfmrtX_iXnoL4V9nLqr2kDCC7_VW4XqgHBeZZcHOK8f_DdV66yUH_hGJAUybbYfFjW5hb_pIrPa4572VjGQRW6XAYJLr92EokBU4N3RTj33MDr5v1Ihe9cudoHGd2UxSbEvT6PkinpGMwCIRu37-3utAKHpXvLP75jWxd0Lfz836YP8GNPL9ewToCbgpdrvzQg9OUCxE1s7NLt0JjBMium9DaUcdsVbCD0nqPuEg8N4t7yn0ayI3ralu1Qm_MWRwQDsYrZCOnc'); mask-image: linear-gradient(to bottom right, black 50%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom right, black 50%, transparent 100%);">
+</div>
+<!-- Stylized "Light Bill" Icon Overlay -->
+<div class="absolute top-4 right-4 bg-white p-2 rounded-lg shadow-sm rotate-12 flex flex-col items-center">
+<span class="material-symbols-outlined text-[#D4A054] text-xl" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<div class="h-1 w-4 bg-[#F5E1DB] rounded-full mt-1"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Area -->
+<footer class="mt-auto pt-16">
+<button class="w-full bg-[#C4707E] text-white font-sans font-bold py-5 rounded-2xl flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all duration-150 shadow-lg shadow-[#C4707E]/10">
+                Próximo
+                <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</footer>
+</main>
+<!-- Bottom Navigation Anchor -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-[#FFF5F0]/70 dark:bg-[#1E1814]/70 backdrop-blur-md rounded-t-[24px] z-50">
+<a class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/50 opacity-70 hover:text-[#C4707E] transition-colors group" href="#">
+<span class="material-symbols-outlined mb-1">home</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider">Início</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#F5E1DB] dark:bg-[#2C2420] text-[#C4707E] rounded-2xl px-3 py-1.5 transition-transform duration-200 active:scale-90" href="#">
+<span class="material-symbols-outlined mb-1">calculate</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider">Cálculos</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/50 opacity-70 hover:text-[#C4707E] transition-colors group" href="#">
+<span class="material-symbols-outlined mb-1">history</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider">Histórico</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/50 opacity-70 hover:text-[#C4707E] transition-colors group" href="#">
+<span class="material-symbols-outlined mb-1">lightbulb</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider">Dicas</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/50 opacity-70 hover:text-[#C4707E] transition-colors group" href="#">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider">Perfil</span>
+</a>
+</nav>
+</body></html>

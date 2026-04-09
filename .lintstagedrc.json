@@ -1,0 +1,12 @@
+{
+  "apps/mobile/src/**/*.{ts,tsx}": [
+    "eslint --fix --config apps/mobile/eslint.config.mjs",
+    "prettier --write"
+  ],
+  "apps/api/src/**/*.ts": [
+    "eslint --fix --config apps/api/eslint.config.mjs",
+    "prettier --write"
+  ],
+  "packages/*/src/**/*.ts": ["prettier --write"],
+  "*.{json,md,css}": ["prettier --write"]
+}

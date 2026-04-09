@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Poppins:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-container": "#fffbff",
+              "tertiary": "#7d540c",
+              "on-primary-fixed": "#3d0414",
+              "error-container": "#ffdad6",
+              "outline": "#867274",
+              "secondary": "#864e58",
+              "on-background": "#4A3228",
+              "primary-container": "#ac5d6a",
+              "on-secondary-container": "#7a444e",
+              "surface-tint": "#924755",
+              "surface-dim": "#e1d8d3",
+              "on-surface-variant": "#534345",
+              "tertiary-fixed-dim": "#f4bd6e",
+              "surface-container-lowest": "#ffffff",
+              "secondary-fixed": "#ffd9de",
+              "on-tertiary": "#ffffff",
+              "surface-container-low": "#FFF5F0",
+              "primary": "#C4707E",
+              "on-secondary": "#ffffff",
+              "inverse-surface": "#342f2c",
+              "surface": "#FFF5F0",
+              "outline-variant": "#d8c1c3",
+              "secondary-container": "#feb6c1",
+              "on-tertiary-fixed": "#291800",
+              "on-error-container": "#93000a",
+              "background": "#FFF5F0",
+              "primary-fixed-dim": "#ffb2bd",
+              "tertiary-fixed": "#ffddb2",
+              "on-surface": "#4A3228",
+              "surface-bright": "#FFF5F0",
+              "surface-container": "#F5E1DB",
+              "primary-fixed": "#ffd9dd",
+              "surface-container-highest": "#eae1dc",
+              "error": "#ba1a1a",
+              "on-tertiary-fixed-variant": "#624000",
+              "inverse-primary": "#ffb2bd",
+              "on-secondary-fixed": "#360d17",
+              "on-primary-fixed-variant": "#75303e",
+              "surface-container-high": "#f0e6e1",
+              "secondary-fixed-dim": "#fbb3bf",
+              "on-primary": "#ffffff",
+              "on-secondary-fixed-variant": "#6b3741",
+              "surface-variant": "#eae1dc",
+              "on-primary-container": "#fffbff",
+              "on-error": "#ffffff",
+              "inverse-on-surface": "#f9efea",
+              "tertiary-container": "#996c25",
+              "success-mint": "#6BBF96",
+              "marrom-claro": "#8B7355"
+            },
+            fontFamily: {
+              "headline": ["Noto Serif", "serif"],
+              "body": ["Plus Jakarta Sans", "sans-serif"],
+              "label": ["Plus Jakarta Sans", "sans-serif"],
+              "data": ["Poppins", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "16px", "2xl": "24px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #FFF5F0;
+            color: #4A3228;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .font-serif { font-family: 'Noto Serif', serif; }
+        .font-sans { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .font-poppins { font-family: 'Poppins', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#FFF5F0] dark:bg-[#1E1814]">
+<div class="flex justify-between items-center px-6 py-4 w-full max-w-4xl mx-auto">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#C4707E] cursor-pointer hover:opacity-80 transition-opacity">menu</span>
+<h1 class="font-serif italic text-2xl text-[#C4707E] dark:text-[#D4919C]">Atelier de Preços</h1>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container">
+<img alt="Foto de perfil do empreendedor" class="w-full h-full object-cover" data-alt="Close-up portrait of a smiling artisan woman in a cozy kitchen studio with warm natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhJgETKY9cBLH6Fbf_ZhEJWkQBl6j1ibEMnDeeGhsNclHOm-2pNRQTeV_F7vJQcLoAvxHtkyLfKXbGhR5Q6KucFZcYX-wVU6KFD-S7YcIA0-ANVorZPtC5Airy-3_d5EWJCUVartZdFuX--zmKS1CTqJhXxCr89wCGHc3IbbE7NEBmmgpxEpKgY_m38pmLE3x_GariYCFaOUUsJP8YOoSPsD-y8d77gFCOA4w547Tvk2T9o4aDXdhVWPH3HPdR-nRmzgje0wRKmkg"/>
+</div>
+</div>
+<div class="bg-[#F5E1DB] dark:bg-[#2C2420] h-px w-full opacity-20"></div>
+</header>
+<main class="pt-24 px-6 max-w-xl mx-auto">
+<!-- Progress Dots -->
+<div class="flex justify-center gap-3 mb-12">
+<div class="w-2.5 h-2.5 rounded-full bg-surface-container-highest"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-surface-container-highest"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-primary ring-4 ring-primary/10"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-surface-container-highest"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-surface-container-highest"></div>
+</div>
+<!-- Section Title -->
+<div class="mb-10 text-center">
+<h2 class="font-serif text-4xl text-on-background mb-2">Mão de obra</h2>
+<p class="text-marrom-claro text-sm font-sans">Defina o tempo e o valor do seu esforço</p>
+</div>
+<!-- Input Grid -->
+<div class="grid grid-cols-2 gap-4 mb-8">
+<div class="flex flex-col gap-2">
+<label class="text-xs font-semibold uppercase tracking-wider text-marrom-claro ml-1">Tempo (min)</label>
+<input class="w-full h-14 bg-white border-none rounded-xl px-4 text-on-background focus:ring-2 focus:ring-primary/20 font-poppins text-lg" placeholder="0" type="number"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-xs font-semibold uppercase tracking-wider text-marrom-claro ml-1">Valor/hora R$</label>
+<input class="w-full h-14 bg-white border-none rounded-xl px-4 text-on-background focus:ring-2 focus:ring-primary/20 font-poppins text-lg" placeholder="0,00" type="number"/>
+</div>
+</div>
+<!-- Result Card -->
+<div class="relative bg-surface-container rounded-2xl p-8 mb-12 overflow-hidden">
+<div class="relative z-10">
+<p class="text-marrom-claro text-xs font-semibold uppercase tracking-widest mb-2">Custo da Mão de Obra</p>
+<p class="font-poppins text-4xl font-bold text-success-mint">= R$ 5,00</p>
+</div>
+<!-- Organic Illustration Decoration -->
+<div class="absolute -bottom-4 -right-4 opacity-20 pointer-events-none">
+<span class="material-symbols-outlined text-marrom-claro !text-8xl" style="font-variation-settings: 'FILL' 1;">settings_backup_restore</span>
+</div>
+<div class="absolute top-4 right-4 opacity-10">
+<span class="material-symbols-outlined text-[#C4707E] !text-4xl">schedule</span>
+</div>
+</div>
+<!-- Action Button -->
+<div class="flex justify-center">
+<button class="w-full max-w-xs h-14 bg-primary text-white font-bold rounded-xl text-lg hover:opacity-90 active:scale-95 transition-all">
+                Próximo
+            </button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full bg-[#FFF5F0]/70 dark:bg-[#1E1814]/70 backdrop-blur-md z-50 rounded-t-[24px]">
+<div class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3">
+<a class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/50 opacity-70 hover:text-[#C4707E] transition-colors" href="#">
+<span class="material-symbols-outlined mb-1">home</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider">Início</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#F5E1DB] dark:bg-[#2C2420] text-[#C4707E] rounded-2xl px-3 py-1.5 active:scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">calculate</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider">Cálculos</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/50 opacity-70 hover:text-[#C4707E] transition-colors" href="#">
+<span class="material-symbols-outlined mb-1">history</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider">Histórico</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/50 opacity-70 hover:text-[#C4707E] transition-colors" href="#">
+<span class="material-symbols-outlined mb-1">lightbulb</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider">Dicas</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/50 opacity-70 hover:text-[#C4707E] transition-colors" href="#">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider">Perfil</span>
+</a>
+</div>
+</nav>
+</body></html>

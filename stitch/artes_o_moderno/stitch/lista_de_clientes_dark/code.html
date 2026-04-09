@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Lucro Caseiro - Clientes</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&amp;family=Quicksand:wght@300;400;500;600;700&amp;family=Poppins:wght@600;700&amp;family=Noto+Serif:wght@400;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "tertiary": "#7d540c",
+                "inverse-on-surface": "#f9efea",
+                "error": "#ba1a1a",
+                "on-surface-variant": "#534345",
+                "tertiary-fixed": "#ffddb2",
+                "surface-dim": "#e1d8d3",
+                "on-secondary": "#ffffff",
+                "surface-variant": "#eae1dc",
+                "on-tertiary": "#ffffff",
+                "on-secondary-fixed-variant": "#6b3741",
+                "on-primary-fixed": "#3d0414",
+                "secondary-fixed-dim": "#fbb3bf",
+                "surface-tint": "#924755",
+                "tertiary-container": "#996c25",
+                "outline": "#867274",
+                "on-secondary-fixed": "#360d17",
+                "surface-container": "#f6ece7",
+                "inverse-surface": "#342f2c",
+                "surface": "#fff8f5",
+                "secondary-container": "#feb6c1",
+                "primary": "#8f4552",
+                "on-primary": "#ffffff",
+                "inverse-primary": "#ffb2bd",
+                "surface-bright": "#fff8f5",
+                "on-error": "#ffffff",
+                "on-error-container": "#93000a",
+                "secondary-fixed": "#ffd9de",
+                "on-tertiary-fixed-variant": "#624000",
+                "surface-container-lowest": "#ffffff",
+                "surface-container-low": "#fcf2ed",
+                "background": "#fff8f5",
+                "surface-container-highest": "#eae1dc",
+                "on-primary-fixed-variant": "#75303e",
+                "on-background": "#1f1b18",
+                "surface-container-high": "#f0e6e1",
+                "tertiary-fixed-dim": "#f4bd6e",
+                "on-tertiary-container": "#fffbff",
+                "secondary": "#864e58",
+                "primary-fixed-dim": "#ffb2bd",
+                "error-container": "#ffdad6",
+                "on-surface": "#1f1b18",
+                "primary-fixed": "#ffd9dd",
+                "primary-container": "#ac5d6a",
+                "on-tertiary-fixed": "#291800",
+                "outline-variant": "#d8c1c3",
+                "on-secondary-container": "#7a444e",
+                "on-primary-container": "#fffbff"
+              },
+              fontFamily: {
+                "headline": ["Noto Serif"],
+                "body": ["Plus Jakarta Sans"],
+                "label": ["Plus Jakarta Sans"],
+                "serif": ["Playfair Display", "serif"],
+                "sans": ["Quicksand", "sans-serif"],
+                "data": ["Poppins", "sans-serif"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1.25rem", "3xl": "1.5rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #1E1814;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-sans text-[#F5E1DB] selection:bg-[#C4707E]/30 min-h-screen pb-32">
+<!-- Top App Bar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 py-4 bg-[#1E1814] transition-colors">
+<div class="flex items-center gap-4">
+<button class="text-[#D4919C] hover:bg-[#2C2420]/50 p-2 rounded-full transition-all active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-serif text-2xl italic text-[#F5E1DB]">Lucro Caseiro</h1>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden bg-[#2C2420] flex items-center justify-center">
+<img alt="Profile Avatar" class="w-full h-full object-cover" data-alt="close-up portrait of a woman with a warm smile, soft natural lighting, editorial photography style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5fhmROo8Ify_yzuecIxuTr5dF17YmriV8AYGmrjXfk4LseGSYh54KKGa5Ejpy3TSmdhOmcGDkb96VV_C_d3MhdW5QYarmMzemY97TJJtAZ8dR1dsLex0xauHVR3MVQMbuGMaCZbYrZPdj8WmIHCaqMTcVzocrPTov-9Xho5e2ahveKbyQtJ3id0p7AnYuGzPyCQaGRYjfG2sdU_qjV7heg6dbONsNCGUctlAmMXRUl1daZI9OM7aBdR7V9iGkG-10YRmHUrOopFA"/>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-2xl mx-auto">
+<!-- Header Section -->
+<section class="mb-8">
+<h2 class="font-serif text-4xl font-bold tracking-tight text-[#F5E1DB] mb-1">Clientes</h2>
+<p class="font-sans text-sm text-[#8B7355] uppercase tracking-widest">12 clientes cadastrados</p>
+</section>
+<!-- Search Section -->
+<section class="mb-10">
+<div class="relative group">
+<div class="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[#8B7355]">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</div>
+<input class="w-full bg-[#2C2420] border-none rounded-[12px] py-4 pl-12 pr-4 text-[#F5E1DB] placeholder-[#8B7355] focus:ring-1 focus:ring-[#C4707E] transition-all outline-none" placeholder="Buscar por nome ou telefone..." type="text"/>
+</div>
+</section>
+<!-- Clients List (Grouped) -->
+<div class="space-y-12">
+<!-- Group A -->
+<section>
+<h3 class="font-serif text-2xl text-[#D4919C] mb-6 pl-2">A</h3>
+<div class="space-y-4">
+<!-- Client Card -->
+<div class="bg-[#2C2420] rounded-[24px] p-5 flex items-center justify-between group hover:opacity-90 transition-opacity">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-full bg-[#F5E1DB] flex items-center justify-center text-[#4A3228] font-serif text-xl font-bold">
+                                A
+                            </div>
+<div>
+<h4 class="font-sans font-semibold text-[#F5E1DB] text-lg">Alice Monteiro</h4>
+<p class="font-sans text-sm text-[#8B7355]">Último pedido: Ontem</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-data text-[#6BBF96] text-lg font-bold">R$ 450,90</p>
+<p class="font-sans text-[10px] uppercase tracking-tighter text-[#8B7355]">Total Investido</p>
+</div>
+</div>
+<!-- Client Card -->
+<div class="bg-[#2C2420] rounded-[24px] p-5 flex items-center justify-between group hover:opacity-90 transition-opacity">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-full bg-[#C4707E] flex items-center justify-center text-white font-serif text-xl font-bold">
+                                A
+                            </div>
+<div>
+<h4 class="font-sans font-semibold text-[#F5E1DB] text-lg">Artur Silveira</h4>
+<p class="font-sans text-sm text-[#8B7355]">Sem pedidos pendentes</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-data text-[#6BBF96] text-lg font-bold">R$ 128,00</p>
+<p class="font-sans text-[10px] uppercase tracking-tighter text-[#8B7355]">Total Investido</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Group B -->
+<section>
+<h3 class="font-serif text-2xl text-[#D4919C] mb-6 pl-2">B</h3>
+<div class="space-y-4">
+<!-- Client Card -->
+<div class="bg-[#2C2420] rounded-[24px] p-5 flex items-center justify-between group hover:opacity-90 transition-opacity">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-full bg-[#8B7355] flex items-center justify-center text-[#1E1814] font-serif text-xl font-bold">
+                                B
+                            </div>
+<div>
+<h4 class="font-sans font-semibold text-[#F5E1DB] text-lg">Beatriz Fonseca</h4>
+<p class="font-sans text-sm text-[#8B7355]">Aniversário em 2 dias</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-data text-[#6BBF96] text-lg font-bold">R$ 892,50</p>
+<p class="font-sans text-[10px] uppercase tracking-tighter text-[#8B7355]">Total Investido</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Group C -->
+<section>
+<h3 class="font-serif text-2xl text-[#D4919C] mb-6 pl-2">C</h3>
+<div class="space-y-4">
+<!-- Client Card -->
+<div class="bg-[#2C2420] rounded-[24px] p-5 flex items-center justify-between group hover:opacity-90 transition-opacity relative overflow-hidden">
+<!-- Decorative Illustration Mask -->
+<div class="absolute -bottom-4 -right-4 opacity-10 pointer-events-none">
+<span class="material-symbols-outlined text-8xl" data-icon="bakery_dining">bakery_dining</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-full bg-[#D4919C] flex items-center justify-center text-[#1E1814] font-serif text-xl font-bold">
+                                C
+                            </div>
+<div>
+<h4 class="font-sans font-semibold text-[#F5E1DB] text-lg">Carla Mendes</h4>
+<p class="font-sans text-sm text-[#8B7355]">Novo cliente</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-data text-[#6BBF96] text-lg font-bold">R$ 45,00</p>
+<p class="font-sans text-[10px] uppercase tracking-tighter text-[#8B7355]">Total Investido</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Floating Action Button -->
+<button class="fixed bottom-28 right-6 w-16 h-16 bg-[#C4707E] text-white rounded-full flex items-center justify-center shadow-2xl active:scale-95 transition-transform z-40">
+<span class="material-symbols-outlined text-3xl" data-icon="add">add</span>
+</button>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-[#1E1814]/70 backdrop-blur-md px-4 pb-6 pt-2 flex justify-around items-center rounded-t-[24px]">
+<a class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-sans text-xs uppercase tracking-widest mt-1">Início</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#2C2420] text-[#D4919C] rounded-2xl px-5 py-2 subtle scale-98 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="group" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-sans text-xs uppercase tracking-widest mt-1 font-bold">Clientes</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-sans text-xs uppercase tracking-widest mt-1">Vendas</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-sans text-xs uppercase tracking-widest mt-1">Ajustes</span>
+</a>
+</nav>
+</body></html>

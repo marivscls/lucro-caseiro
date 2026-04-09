@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Lucro Caseiro - Vendas</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Poppins:wght@600;700&amp;family=Playfair+Display:wght@700;800&amp;family=Quicksand:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#C4707E",
+                        "secondary": "#D4919C",
+                        "background": "#FFF5F0",
+                        "surface": "#F5E1DB",
+                        "text-main": "#4A3228",
+                        "text-sub": "#8B7355",
+                        "success": "#6BBF96",
+                        "alert": "#E07272",
+                        "pending": "#E8C555",
+                        "outline-variant": "rgba(134, 114, 116, 0.15)",
+                    },
+                    fontFamily: {
+                        "serif": ["Playfair Display", "Noto Serif", "serif"],
+                        "sans": ["Quicksand", "Plus Jakarta Sans", "sans-serif"],
+                        "numbers": ["Poppins", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "lg": "20px",
+                        "xl": "24px",
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+        body {
+            background-color: #FFF5F0;
+            color: #4A3228;
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-sans pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#F5E1DB] transition-colors duration-300">
+<div class="flex justify-between items-center px-6 py-4 w-full">
+<button class="text-[#C4707E] hover:bg-[#F5E1DB]/50 p-2 rounded-full transition-transform active:scale-95">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="text-2xl font-serif text-[#4A3228] font-bold">Vendas</h1>
+<button class="text-[#C4707E] hover:bg-[#F5E1DB]/50 p-2 rounded-full transition-transform active:scale-95">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+</div>
+</header>
+<main class="mt-20 px-6 max-w-2xl mx-auto">
+<!-- Hero Title -->
+<div class="py-8">
+<h2 class="font-serif text-[3.5rem] leading-none tracking-tight text-text-main">Vendas</h2>
+</div>
+<!-- Filter Pills -->
+<div class="flex gap-3 overflow-x-auto pb-6 no-scrollbar">
+<button class="whitespace-nowrap px-6 py-2 rounded-[12px] bg-primary text-background font-semibold transition-all">Todas</button>
+<button class="whitespace-nowrap px-6 py-2 rounded-[12px] bg-surface text-text-main font-semibold hover:opacity-80 transition-all">Pagas</button>
+<button class="whitespace-nowrap px-6 py-2 rounded-[12px] bg-surface text-text-main font-semibold hover:opacity-80 transition-all">Fiado</button>
+<button class="whitespace-nowrap px-6 py-2 rounded-[12px] bg-surface text-text-main font-semibold hover:opacity-80 transition-all">Canceladas</button>
+</div>
+<!-- Sales Content -->
+<section class="space-y-8">
+<!-- Date Group 1 -->
+<div>
+<h3 class="font-serif text-2xl text-text-main mb-4">Hoje</h3>
+<div class="space-y-4">
+<!-- Paid Card -->
+<div class="relative bg-surface rounded-lg p-5 flex items-center gap-4 overflow-hidden group">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-white text-xl font-bold filled-icon">check</span>
+</div>
+<div class="flex-1 z-10">
+<div class="flex justify-between items-start">
+<p class="font-bold text-lg text-text-main">Brigadeiro 50un</p>
+<p class="font-numbers font-bold text-text-main text-lg">R$ 175,00</p>
+</div>
+<p class="text-text-sub text-sm">Maria Silva • Pix</p>
+</div>
+<!-- Organic Illustration Mask -->
+<div class="absolute -right-2 -bottom-2 opacity-20 transform rotate-12 transition-transform group-hover:scale-110">
+<span class="material-symbols-outlined text-7xl text-text-main filled-icon">shopping_bag</span>
+</div>
+</div>
+<!-- Pending Card -->
+<div class="relative bg-surface rounded-lg p-5 flex items-center gap-4 overflow-hidden group">
+<div class="w-10 h-10 rounded-full bg-[#E8C555] flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-white text-xl font-bold filled-icon">schedule</span>
+</div>
+<div class="flex-1 z-10">
+<div class="flex justify-between items-start">
+<p class="font-bold text-lg text-text-main">Bolo de Pote 10un</p>
+<p class="font-numbers font-bold text-text-main text-lg">R$ 120,00</p>
+</div>
+<p class="text-text-sub text-sm">João Oliveira • Fiado</p>
+</div>
+<div class="absolute -right-2 -bottom-2 opacity-20 transform rotate-12">
+<span class="material-symbols-outlined text-7xl text-text-main filled-icon">payments</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Date Group 2 -->
+<div>
+<h3 class="font-serif text-2xl text-text-main mb-4">24 de março</h3>
+<div class="space-y-4">
+<!-- Canceled Card -->
+<div class="relative bg-surface rounded-lg p-5 flex items-center gap-4 overflow-hidden group">
+<div class="w-10 h-10 rounded-full bg-alert flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-white text-xl font-bold">close</span>
+</div>
+<div class="flex-1 z-10">
+<div class="flex justify-between items-start">
+<p class="font-bold text-lg text-text-main">Combo Festas</p>
+<p class="font-numbers font-bold text-text-main text-lg">R$ 450,00</p>
+</div>
+<p class="text-text-sub text-sm text-alert">Ana Souza • Cancelada</p>
+</div>
+<div class="absolute -right-2 -bottom-2 opacity-20 transform -rotate-12">
+<span class="material-symbols-outlined text-7xl text-text-main">block</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Empty State Card -->
+<div class="mt-12 bg-surface rounded-lg p-10 flex flex-col items-center text-center space-y-6 relative overflow-hidden">
+<div class="w-24 h-24 bg-background rounded-full flex items-center justify-center text-primary z-10">
+<span class="material-symbols-outlined text-5xl filled-icon">point_of_sale</span>
+<span class="absolute top-8 right-1/3 material-symbols-outlined text-primary filled-icon animate-pulse text-2xl">favorite</span>
+</div>
+<div class="z-10">
+<h4 class="font-serif text-2xl text-text-main">Nenhuma venda ainda</h4>
+<p class="font-sans text-text-sub mt-2">Registre a primeira!</p>
+</div>
+<button class="bg-primary text-white font-bold px-10 py-4 rounded-xl transition-all active:scale-95 z-10">
+                    Nova Venda
+                </button>
+<!-- Decorative element -->
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16"></div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-2 bg-[#FFF5F0]/70 backdrop-blur-md z-50 rounded-t-[24px]">
+<a class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-sans font-medium text-xs tracking-wide">Início</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#F5E1DB] text-[#C4707E] rounded-[16px] px-5 py-2 scale-95 transition-all" href="#">
+<span class="material-symbols-outlined filled-icon" data-icon="payments">payments</span>
+<span class="font-sans font-medium text-xs tracking-wide">Vendas</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="bakery_dining">bakery_dining</span>
+<span class="font-sans font-medium text-xs tracking-wide">Produtos</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-sans font-medium text-xs tracking-wide">Perfil</span>
+</a>
+</nav>
+</body></html>

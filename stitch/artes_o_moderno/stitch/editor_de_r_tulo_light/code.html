@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Plus+Jakarta Sans:wght@400;500;600;700&amp;family=Playfair+Display:ital,wght@0,700;0,900;1,700&amp;family=Quicksand:wght@400;500;600;700&amp;family=Poppins:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-fixed-dim": "#f4bd6e",
+              "surface-dim": "#e1d8d3",
+              "primary-fixed-dim": "#ffb2bd",
+              "on-primary-fixed-variant": "#75303e",
+              "error-container": "#ffdad6",
+              "secondary": "#864e58",
+              "inverse-on-surface": "#f9efea",
+              "on-secondary": "#ffffff",
+              "on-surface": "#1f1b18",
+              "surface": "#fff8f5",
+              "on-secondary-fixed": "#360d17",
+              "on-primary-container": "#fffbff",
+              "primary": "#8f4552",
+              "on-tertiary-container": "#fffbff",
+              "on-primary-fixed": "#3d0414",
+              "on-error": "#ffffff",
+              "tertiary": "#7d540c",
+              "primary-container": "#ac5d6a",
+              "on-secondary-fixed-variant": "#6b3741",
+              "error": "#ba1a1a",
+              "surface-container-lowest": "#ffffff",
+              "surface-container": "#f6ece7",
+              "on-tertiary": "#ffffff",
+              "surface-bright": "#fff8f5",
+              "on-tertiary-fixed-variant": "#624000",
+              "surface-container-highest": "#eae1dc",
+              "on-primary": "#ffffff",
+              "outline-variant": "#d8c1c3",
+              "surface-container-high": "#f0e6e1",
+              "primary-fixed": "#ffd9dd",
+              "outline": "#867274",
+              "on-tertiary-fixed": "#291800",
+              "surface-container-low": "#fcf2ed",
+              "tertiary-container": "#996c25",
+              "tertiary-fixed": "#ffddb2",
+              "on-background": "#1f1b18",
+              "on-surface-variant": "#534345",
+              "secondary-container": "#feb6c1",
+              "inverse-surface": "#342f2c",
+              "secondary-fixed": "#ffd9de",
+              "on-error-container": "#93000a",
+              "inverse-primary": "#ffb2bd",
+              "surface-variant": "#eae1dc",
+              "surface-tint": "#924755",
+              "background": "#fff8f5",
+              "on-secondary-container": "#7a444e",
+              "secondary-fixed-dim": "#fbb3bf",
+              "artisanal-bg": "#FFF5F0",
+              "artisanal-surface": "#F5E1DB",
+              "artisanal-text": "#4A3228",
+              "artisanal-subtext": "#8B7355",
+              "artisanal-primary": "#C4707E"
+            },
+            fontFamily: {
+              "headline": ["Playfair Display", "serif"],
+              "body": ["Quicksand", "sans-serif"],
+              "label": ["Quicksand", "sans-serif"],
+              "serif": ["Noto Serif", "serif"],
+              "numeric": ["Poppins", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "1rem", "2xl": "1.5rem", "3xl": "2rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .glass-nav {
+            background-color: rgba(255, 245, 240, 0.7);
+            backdrop-filter: blur(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#FFF5F0] text-[#4A3228] font-body min-h-screen pb-32">
+<!-- TopAppBar Shell -->
+<header class="bg-[#FFF5F0] text-[#C4707E] font-serif text-2xl tracking-tight flex justify-between items-center px-6 py-4 w-full top-0 z-50">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-2xl cursor-pointer">menu</span>
+<span class="font-serif italic text-2xl text-[#C4707E]">Lucro Caseiro</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-[#F5E1DB] flex items-center justify-center overflow-hidden border-2 border-[#C4707E]/20">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="Close-up portrait of a smiling woman in a warm sunlit kitchen wearing a linen apron" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBy2ZWxmf4FniKutf8vpvt_UDXnsJTYqIgVqwFMbJmZzDA9LjEREQwJKQ0yJTEYsj3AKMsPflT5cHnSfMAA4_Wh0DnSosinBIifyjcOEmgtd2xuuF9xtmW8jjIDGv1VRy-byYtr70W7hiVnv31WLRWY_God0yIt1bmOwu2ls5-Ix2w_h9QbC-No5Cpi6tuC8JZ6vH5FzLvjC8c98HjPTcuYuEFxD7jZx-DmOZr1_BKhLh7-JrQ-ebe_1j3q6lVx3-EmK7VbapSxO3Y"/>
+</div>
+</header>
+<main class="max-w-4xl mx-auto px-6 py-8">
+<h1 class="font-headline text-4xl mb-8 text-[#4A3228]">Novo rotulo</h1>
+<!-- Template Selector Section -->
+<section class="mb-12">
+<h2 class="font-serif text-lg mb-4 text-[#8B7355]">Escolha um Template</h2>
+<div class="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
+<!-- Template Card: Classico (Selected) -->
+<div class="flex-shrink-0 w-[100px] h-[130px] bg-[#F5E1DB] rounded-xl flex flex-col items-center justify-center border-2 border-[#C4707E] scale-105 transition-transform cursor-pointer relative">
+<div class="w-16 h-20 bg-[#FFF8F5] border border-[#D4A054] rounded-sm p-1 flex flex-col items-center justify-center">
+<div class="w-10 border-t border-[#D4A054] mb-1"></div>
+<span class="text-[6px] font-serif text-[#4A3228] leading-tight text-center">CLASSIC STYLE</span>
+<div class="w-10 border-b border-[#D4A054] mt-1"></div>
+</div>
+<span class="text-[10px] mt-2 font-medium text-[#C4707E]">Classico</span>
+<div class="absolute -top-2 -right-2 bg-[#C4707E] text-white rounded-full p-1">
+<span class="material-symbols-outlined text-xs">check</span>
+</div>
+</div>
+<!-- Template Card: Moderno -->
+<div class="flex-shrink-0 w-[100px] h-[130px] bg-[#F5E1DB] rounded-xl flex flex-col items-center justify-center border border-transparent hover:border-[#C4707E]/30 transition-all cursor-pointer">
+<div class="w-16 h-20 bg-white border-l-4 border-blue-400 p-2 flex flex-col justify-end">
+<span class="text-[8px] font-bold font-sans text-slate-800 leading-none">BOLD<br/>TYPE</span>
+</div>
+<span class="text-[10px] mt-2 font-medium text-[#8B7355]">Moderno</span>
+</div>
+<!-- Template Card: Minimalista -->
+<div class="flex-shrink-0 w-[100px] h-[130px] bg-[#F5E1DB] rounded-xl flex flex-col items-center justify-center border border-transparent hover:border-[#C4707E]/30 transition-all cursor-pointer">
+<div class="w-16 h-20 bg-white p-2 flex items-center justify-center">
+<span class="text-[7px] font-light text-black tracking-[0.2em]">MINIMAL</span>
+</div>
+<span class="text-[10px] mt-2 font-medium text-[#8B7355]">Minimalista</span>
+</div>
+<!-- Template Card: Artesanal -->
+<div class="flex-shrink-0 w-[100px] h-[130px] bg-[#F5E1DB] rounded-xl flex flex-col items-center justify-center border border-transparent hover:border-[#C4707E]/30 transition-all cursor-pointer">
+<div class="w-16 h-20 bg-[#B8A9D4]/20 border border-[#B8A9D4]/40 rounded-lg p-1 relative overflow-hidden">
+<div class="absolute -bottom-2 -right-2 text-[#B8A9D4]">
+<span class="material-symbols-outlined text-lg">local_florist</span>
+</div>
+<span class="text-[7px] font-medium text-[#4A3228]">Handmade</span>
+</div>
+<span class="text-[10px] mt-2 font-medium text-[#8B7355]">Artesanal</span>
+</div>
+<!-- Template Card: Gourmet -->
+<div class="flex-shrink-0 w-[100px] h-[130px] bg-[#F5E1DB] rounded-xl flex flex-col items-center justify-center border border-transparent hover:border-[#C4707E]/30 transition-all cursor-pointer">
+<div class="w-16 h-20 bg-[#D4A054]/10 border border-[#D4A054] rounded p-2 flex flex-col items-center">
+<div class="w-4 h-4 bg-[#D4A054] rounded-full mb-1 flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px] text-white" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<span class="text-[6px] font-serif italic text-[#D4A054]">Premium Quality</span>
+</div>
+<span class="text-[10px] mt-2 font-medium text-[#8B7355]">Gourmet</span>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+<!-- Form Section -->
+<div class="space-y-6">
+<div>
+<label class="block font-serif text-[#8B7355] text-sm mb-2">Nome produto</label>
+<input class="w-full bg-white border-none rounded-xl p-4 focus:ring-2 focus:ring-[#C4707E]/20 text-[#4A3228] placeholder-[#8B7355]/40 transition-shadow shadow-sm" placeholder="Ex: Bolo de Fubá Caseiro" type="text"/>
+</div>
+<div>
+<label class="block font-serif text-[#8B7355] text-sm mb-2">Ingredientes</label>
+<textarea class="w-full bg-white border-none rounded-xl p-4 focus:ring-2 focus:ring-[#C4707E]/20 text-[#4A3228] placeholder-[#8B7355]/40 transition-shadow shadow-sm resize-none" placeholder="Farinha de trigo, ovos, leite..." rows="4"></textarea>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label class="block font-serif text-[#8B7355] text-sm mb-2">Fabricacao</label>
+<input class="w-full bg-white border-none rounded-xl p-4 focus:ring-2 focus:ring-[#C4707E]/20 text-[#4A3228] placeholder-[#8B7355]/40 transition-shadow shadow-sm" placeholder="00/00/00" type="text"/>
+</div>
+<div>
+<label class="block font-serif text-[#8B7355] text-sm mb-2">Validade</label>
+<input class="w-full bg-white border-none rounded-xl p-4 focus:ring-2 focus:ring-[#C4707E]/20 text-[#4A3228] placeholder-[#8B7355]/40 transition-shadow shadow-sm" placeholder="30 dias" type="text"/>
+</div>
+</div>
+<div>
+<label class="block font-serif text-[#8B7355] text-sm mb-2">Produtor</label>
+<input class="w-full bg-white border-none rounded-xl p-4 focus:ring-2 focus:ring-[#C4707E]/20 text-[#4A3228] placeholder-[#8B7355]/40 transition-shadow shadow-sm" placeholder="Sua Marca ou Nome" type="text"/>
+</div>
+<div>
+<label class="block font-serif text-[#8B7355] text-sm mb-2">Telefone</label>
+<input class="w-full bg-white border-none rounded-xl p-4 focus:ring-2 focus:ring-[#C4707E]/20 text-[#4A3228] placeholder-[#8B7355]/40 transition-shadow shadow-sm" placeholder="(00) 00000-0000" type="tel"/>
+</div>
+<button class="w-full bg-[#C4707E] text-white font-semibold py-4 rounded-2xl active:scale-95 transition-all shadow-md">
+                    Criar rotulo
+                </button>
+</div>
+<!-- Preview Section -->
+<div class="sticky top-24">
+<h2 class="font-serif text-lg mb-4 text-[#8B7355] text-center">Visualização do Rótulo</h2>
+<div class="bg-white rounded-2xl p-10 shadow-[0_10px_40px_-15px_rgba(74,50,40,0.15)] min-h-[450px] flex flex-col items-center justify-between border-2 border-[#F5E1DB] relative overflow-hidden">
+<!-- Label Content Stylized as Classico Template -->
+<div class="absolute inset-4 border border-[#D4A054] pointer-events-none opacity-40"></div>
+<div class="absolute inset-6 border-2 border-[#D4A054] pointer-events-none opacity-60"></div>
+<div class="w-full text-center z-10 space-y-4">
+<p class="text-[10px] tracking-[0.3em] uppercase text-[#D4A054] font-semibold">Produto Artesanal</p>
+<h3 class="font-headline text-4xl text-[#4A3228]">Bolo de Fubá</h3>
+<div class="w-24 h-[1px] bg-[#D4A054] mx-auto"></div>
+</div>
+<div class="w-full z-10 px-4 space-y-4">
+<div class="text-center">
+<p class="text-[8px] uppercase tracking-widest text-[#8B7355] mb-1">Ingredientes</p>
+<p class="text-[10px] leading-relaxed italic text-[#4A3228]">Farinha de milho orgânica, ovos caipiras, leite integral, açúcar demerara, erva-doce e muito amor.</p>
+</div>
+<div class="grid grid-cols-2 gap-4 text-center border-y border-[#F5E1DB] py-3">
+<div>
+<p class="text-[7px] uppercase tracking-tighter text-[#8B7355]">Fabricação</p>
+<p class="text-[11px] font-numeric text-[#4A3228]">12/05/2024</p>
+</div>
+<div>
+<p class="text-[7px] uppercase tracking-tighter text-[#8B7355]">Validade</p>
+<p class="text-[11px] font-numeric text-[#4A3228]">12/06/2024</p>
+</div>
+</div>
+</div>
+<div class="w-full text-center z-10 pt-4">
+<p class="font-serif italic text-lg text-[#C4707E]">Cozinha da Maria</p>
+<p class="text-[9px] text-[#8B7355] mt-1">(11) 98765-4321</p>
+</div>
+<!-- Decorative Illustration Bleed -->
+<div class="absolute -bottom-8 -right-8 opacity-10 pointer-events-none">
+<span class="material-symbols-outlined text-9xl text-[#C4707E]">bakery_dining</span>
+</div>
+</div>
+<p class="text-center text-xs text-[#8B7355] mt-4 italic">Esta é uma prévia realista de como seu rótulo será impresso.</p>
+</div>
+</div>
+</main>
+<!-- BottomNavBar Shell -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#FFF5F0]/70 backdrop-blur-xl">
+<div class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 hover:text-[#C4707E] transition-colors cursor-pointer">
+<span class="material-symbols-outlined mb-1">inventory_2</span>
+<span class="font-sans text-[11px] font-medium tracking-wide uppercase">Estoque</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#F5E1DB] text-[#C4707E] rounded-[20px] px-5 py-2 cursor-pointer active:scale-90 duration-150">
+<span class="material-symbols-outlined mb-1">label</span>
+<span class="font-sans text-[11px] font-medium tracking-wide uppercase font-bold">Editor</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 hover:text-[#C4707E] transition-colors cursor-pointer">
+<span class="material-symbols-outlined mb-1">payments</span>
+<span class="font-sans text-[11px] font-medium tracking-wide uppercase">Lucros</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 hover:text-[#C4707E] transition-colors cursor-pointer">
+<span class="material-symbols-outlined mb-1">settings</span>
+<span class="font-sans text-[11px] font-medium tracking-wide uppercase">Ajustes</span>
+</div>
+</nav>
+</body></html>

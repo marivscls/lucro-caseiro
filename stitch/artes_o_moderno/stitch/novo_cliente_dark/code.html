@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&amp;family=Quicksand:wght@300;400;500;600;700&amp;family=Poppins:wght@400;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary": "#7d540c",
+              "inverse-on-surface": "#f9efea",
+              "error": "#ba1a1a",
+              "on-surface-variant": "#534345",
+              "tertiary-fixed": "#ffddb2",
+              "surface-dim": "#e1d8d3",
+              "on-secondary": "#ffffff",
+              "surface-variant": "#eae1dc",
+              "on-tertiary": "#ffffff",
+              "on-secondary-fixed-variant": "#6b3741",
+              "on-primary-fixed": "#3d0414",
+              "secondary-fixed-dim": "#fbb3bf",
+              "surface-tint": "#924755",
+              "tertiary-container": "#996c25",
+              "outline": "#867274",
+              "on-secondary-fixed": "#360d17",
+              "surface-container": "#f6ece7",
+              "inverse-surface": "#342f2c",
+              "surface": "#fff8f5",
+              "secondary-container": "#feb6c1",
+              "primary": "#8f4552",
+              "on-primary": "#ffffff",
+              "inverse-primary": "#ffb2bd",
+              "surface-bright": "#fff8f5",
+              "on-error": "#ffffff",
+              "on-error-container": "#93000a",
+              "secondary-fixed": "#ffd9de",
+              "on-tertiary-fixed-variant": "#624000",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-low": "#fcf2ed",
+              "background": "#fff8f5",
+              "surface-container-highest": "#eae1dc",
+              "on-primary-fixed-variant": "#75303e",
+              "on-background": "#1f1b18",
+              "surface-container-high": "#f0e6e1",
+              "tertiary-fixed-dim": "#f4bd6e",
+              "on-tertiary-container": "#fffbff",
+              "secondary": "#864e58",
+              "primary-fixed-dim": "#ffb2bd",
+              "error-container": "#ffdad6",
+              "on-surface": "#1f1b18",
+              "primary-fixed": "#ffd9dd",
+              "primary-container": "#ac5d6a",
+              "on-tertiary-fixed": "#291800",
+              "outline-variant": "#d8c1c3",
+              "on-secondary-container": "#7a444e",
+              "on-primary-container": "#fffbff"
+            },
+            fontFamily: {
+              "headline": ["Playfair Display", "serif"],
+              "body": ["Quicksand", "sans-serif"],
+              "label": ["Quicksand", "sans-serif"],
+              "data": ["Poppins", "sans-serif"]
+            },
+            borderRadius: {
+              "DEFAULT": "0.25rem",
+              "lg": "0.5rem",
+              "xl": "1.25rem",
+              "2xl": "1.5rem",
+              "full": "9999px"
+            },
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #1E1814;
+            color: #F5E1DB;
+            font-family: 'Quicksand', sans-serif;
+        }
+        .serif-text {
+            font-family: 'Playfair Display', serif;
+        }
+        .form-input-custom {
+            background-color: #2C2420;
+            border: none;
+            border-radius: 12px;
+            color: #F5E1DB;
+            padding: 1rem;
+        }
+        .form-input-custom:focus {
+            ring: 2px;
+            ring-color: #C4707E;
+            outline: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="bg-[#1E1814] transition-colors flex justify-between items-center px-6 py-4 w-full fixed top-0 z-50">
+<div class="flex items-center gap-4">
+<button class="text-[#D4919C] hover:bg-[#2C2420]/50 transition-all p-2 rounded-full Active: scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-serif text-2xl italic text-[#F5E1DB]">Lucro Caseiro</h1>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-[#D4919C]/20">
+<img alt="Profile Avatar" class="w-full h-full object-cover" data-alt="Close-up portrait of a smiling woman in a warm lit rustic kitchen setting, professional photography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbZ8TP7DW0OkbUMsK4TYoGc_xq0jUlPk9T3sDuDNeMWInUsZ1fzawPhb4qqCzhgMYgcczNMdLHMOvSIQnHB3Qs_wcTRB4n2zA5_9ZMVQoEmaHmPAqTiGs_InK3_dLWbWW2faWkFiy0apOumOkGkF-asI127gN9r0jNw7ILMsJRIO8bsilHtvioKRsJlcjNy3l1JcpqkeeGX8tCNidpaa6DZZSPoS0cSFM6gyEWi1JmcLqgvZkbS1YE4q68W3DPA-K6PKzgXx2TIOk"/>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 mt-20 mb-32 px-6 max-w-2xl mx-auto w-full">
+<header class="mb-10 text-center relative overflow-hidden py-8">
+<h2 class="font-serif text-4xl tracking-tight text-[#F5E1DB] mb-2">Novo cliente</h2>
+<p class="text-[#8B7355] font-medium text-sm">Adicione um novo contato à sua confeitaria</p>
+<!-- Organic Decoration -->
+<div class="absolute -right-4 -top-4 opacity-10 pointer-events-none">
+<span class="material-symbols-outlined text-8xl" style="font-variation-settings: 'FILL' 1;">bakery_dining</span>
+</div>
+</header>
+<section class="space-y-8">
+<div class="bg-[#2C2420]/40 rounded-2xl p-8 backdrop-blur-sm">
+<form class="grid grid-cols-1 gap-6">
+<!-- Personal Info Section -->
+<div class="space-y-4">
+<div class="flex flex-col gap-2">
+<label class="font-serif text-[#8B7355] text-lg">Nome completo</label>
+<input class="form-input-custom w-full focus:ring-1 focus:ring-[#C4707E]" placeholder="Ex: Maria Oliveira" type="text"/>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="flex flex-col gap-2">
+<label class="font-serif text-[#8B7355] text-lg">Telefone</label>
+<input class="form-input-custom w-full" placeholder="(00) 00000-0000" type="tel"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-serif text-[#8B7355] text-lg">E-mail</label>
+<input class="form-input-custom w-full" placeholder="maria@email.com" type="email"/>
+</div>
+</div>
+</div>
+<!-- Divider -->
+<div class="h-px bg-[#8B7355]/10 my-2"></div>
+<!-- Address Section -->
+<div class="space-y-4">
+<div class="flex flex-col gap-2">
+<label class="font-serif text-[#8B7355] text-lg">Endereço de entrega</label>
+<input class="form-input-custom w-full" placeholder="Rua, número, bairro" type="text"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-serif text-[#8B7355] text-lg">Observações</label>
+<textarea class="form-input-custom w-full resize-none" placeholder="Preferências, restrições alimentares..." rows="3"></textarea>
+</div>
+</div>
+<!-- Action Button -->
+<div class="pt-6">
+<button class="w-full py-4 px-6 bg-[#C4707E] text-white font-bold rounded-2xl text-lg hover:bg-[#C4707E]/90 transition-all active:scale-95 duration-200" type="submit">
+                            Cadastrar Cliente
+                        </button>
+</div>
+</form>
+</div>
+<!-- Bento-style Tips Card -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="bg-[#F5E1DB] p-6 rounded-2xl flex flex-col justify-between min-h-[160px] relative overflow-hidden">
+<div>
+<span class="material-symbols-outlined text-[#C4707E] mb-2" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<h3 class="text-[#4A3228] font-bold text-lg leading-tight">Cliente VIP?</h3>
+<p class="text-[#8B7355] text-sm mt-1">Marque clientes recorrentes para oferecer descontos especiais.</p>
+</div>
+<!-- Illustration bleed -->
+<div class="absolute -bottom-2 -right-2 opacity-20">
+<span class="material-symbols-outlined text-7xl text-[#4A3228]">cake</span>
+</div>
+</div>
+<div class="bg-[#2C2420] p-6 rounded-2xl flex flex-col justify-between min-h-[160px] border border-[#8B7355]/10">
+<div>
+<span class="material-symbols-outlined text-[#D4919C] mb-2" data-icon="history">history</span>
+<h3 class="text-[#F5E1DB] font-bold text-lg leading-tight">Histórico</h3>
+<p class="text-[#8B7355] text-sm mt-1">Vendas anteriores aparecerão automaticamente aqui.</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-2 bg-[#1E1814]/70 backdrop-blur-md rounded-t-[24px]">
+<a class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-sans text-xs uppercase tracking-widest mt-1">Início</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#2C2420] text-[#D4919C] rounded-2xl px-5 py-2 subtle scale-98 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="group" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-sans text-xs uppercase tracking-widest mt-1">Clientes</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-sans text-xs uppercase tracking-widest mt-1">Vendas</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-sans text-xs uppercase tracking-widest mt-1">Ajustes</span>
+</a>
+</nav>
+</body></html>

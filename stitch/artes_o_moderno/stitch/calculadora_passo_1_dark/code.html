@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Poppins:wght@700&amp;family=Playfair+Display:ital,wght@0,400;0,700;1,400&amp;family=Quicksand:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-container": "#fffbff",
+              "tertiary": "#7d540c",
+              "on-primary-fixed": "#3d0414",
+              "error-container": "#ffdad6",
+              "outline": "#867274",
+              "secondary": "#864e58",
+              "on-background": "#1f1b18",
+              "primary-container": "#ac5d6a",
+              "on-secondary-container": "#7a444e",
+              "surface-tint": "#924755",
+              "surface-dim": "#e1d8d3",
+              "on-surface-variant": "#534345",
+              "tertiary-fixed-dim": "#f4bd6e",
+              "surface-container-lowest": "#ffffff",
+              "secondary-fixed": "#ffd9de",
+              "on-tertiary": "#ffffff",
+              "surface-container-low": "#fcf2ed",
+              "primary": "#8f4552",
+              "on-secondary": "#ffffff",
+              "inverse-surface": "#342f2c",
+              "surface": "#fff8f5",
+              "outline-variant": "#d8c1c3",
+              "secondary-container": "#feb6c1",
+              "on-tertiary-fixed": "#291800",
+              "on-error-container": "#93000a",
+              "background": "#fff8f5",
+              "primary-fixed-dim": "#ffb2bd",
+              "tertiary-fixed": "#ffddb2",
+              "on-surface": "#1f1b18",
+              "surface-bright": "#fff8f5",
+              "surface-container": "#f6ece7",
+              "primary-fixed": "#ffd9dd",
+              "surface-container-highest": "#eae1dc",
+              "error": "#ba1a1a",
+              "on-tertiary-fixed-variant": "#624000",
+              "inverse-primary": "#ffb2bd",
+              "on-secondary-fixed": "#360d17",
+              "on-primary-fixed-variant": "#75303e",
+              "surface-container-high": "#f0e6e1",
+              "secondary-fixed-dim": "#fbb3bf",
+              "on-primary": "#ffffff",
+              "on-secondary-fixed-variant": "#6b3741",
+              "surface-variant": "#eae1dc",
+              "on-primary-container": "#fffbff",
+              "on-error": "#ffffff",
+              "inverse-on-surface": "#f9efea",
+              "tertiary-container": "#996c25"
+            },
+            fontFamily: {
+              "headline": ["Noto Serif"],
+              "body": ["Plus Jakarta Sans"],
+              "label": ["Plus Jakarta Sans"],
+              "serif": ["Playfair Display", "serif"],
+              "sans": ["Quicksand", "sans-serif"],
+              "poppins": ["Poppins", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "3xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #1E1814;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#1E1814] text-[#F5E1DB] font-sans min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#1E1814] px-6 py-4 flex justify-between items-center max-w-4xl mx-auto left-0 right-0">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#D4919C] text-2xl hover:opacity-80 transition-opacity cursor-pointer">menu</span>
+<h1 class="font-serif italic text-2xl text-[#D4919C]">Atelier de Preços</h1>
+</div>
+<div class="w-10 h-10 rounded-full bg-[#2C2420] flex items-center justify-center overflow-hidden border border-[#D4919C]/20">
+<img alt="Foto de perfil do empreendedor" class="w-full h-full object-cover" data-alt="Close-up profile of a professional pastry chef wearing a white uniform in a warm lit kitchen" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnCZimjjF9zx7uRp4mpYGJNfIeegDStEEApeCf21dy2SG-t3l0nGO31Hk2HYtm4FvPWwtzFToXC7VoDjHlGpYcNVyF-HyF3eN6HbbaL-QUwCmt2I_vDe82ZJeGU3MrPHlxIoBOswLX3dKn3DwJDHxMO9wQbHJmGqaRq3-QUIcFFFKi1c3xURGQaRTS45yKl2uyvfiVmayYkfCZkt3qtW8dWWweZwwUwEX3QNH6UYYsxX-1XSSgUoDzfnLP0Gw-2V8QQLDgg6R6Dro"/>
+</div>
+</header>
+<main class="flex-grow pt-24 pb-32 px-6 max-w-md mx-auto w-full flex flex-col items-center justify-center relative overflow-hidden">
+<!-- Progress Dots -->
+<div class="flex gap-3 mb-12">
+<div class="w-2.5 h-2.5 rounded-full bg-[#C4707E]"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#8B7355]"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#8B7355]"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#8B7355]"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#8B7355]"></div>
+</div>
+<!-- Content Section -->
+<div class="text-center mb-10 w-full">
+<h2 class="font-serif text-4xl text-[#F5E1DB] mb-3">Ingredientes</h2>
+<p class="font-sans text-[#8B7355] text-lg">Quanto você gasta de material?</p>
+</div>
+<!-- Input Section -->
+<div class="w-full bg-[#2C2420] rounded-[24px] p-8 flex flex-col items-center justify-center border border-[#F5E1DB]/5 relative z-10">
+<label class="sr-only" for="cost-input">Custo dos Ingredientes</label>
+<div class="flex items-center gap-2">
+<span class="font-poppins font-bold text-3xl text-[#F5E1DB]">R$</span>
+<input class="bg-transparent border-none focus:ring-0 font-poppins font-bold text-5xl text-[#F5E1DB] w-full text-center placeholder-[#F5E1DB]/30" id="cost-input" placeholder="0,00" type="text" value="0,00"/>
+</div>
+<div class="mt-6 w-12 h-1 bg-[#C4707E]/30 rounded-full"></div>
+</div>
+<!-- Bottom Actions -->
+<div class="mt-12 w-full flex flex-col items-center gap-6 relative z-10">
+<button class="w-full py-5 bg-[#C4707E] text-white rounded-[16px] font-sans font-bold text-lg hover:opacity-90 active:scale-95 transition-all duration-150">
+                Próximo
+            </button>
+<button class="text-[#8B7355] font-sans text-sm font-semibold uppercase tracking-widest hover:text-[#C4707E] transition-colors">
+                Voltar
+            </button>
+</div>
+<!-- Decorative Illustration -->
+<div class="absolute bottom-0 right-0 w-48 h-48 opacity-20 pointer-events-none translate-x-4 translate-y-4">
+<img alt="Illustration of ingredients" class="w-full h-full object-contain" data-alt="Flat minimalist organic illustration of ceramic jars with flour, eggs, and a wooden spoon in warm brown and cream tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwPLDDvqlJ-BHgXoBKZ4wEklJcqq2a2ZhP8xXdappQFBm4kOZcRv3cIdPKf6PKRXvvrwlH-FMQaEjy1BKjC8n-qRuN1Hy937VvB4zupM1RdyRsaYdgYRuClYyO-AGo5D-Dte6oY6pAy8_Ih5E7IAQZZVkN9jHvWSKldx4gkZ4n956zWbHI6irTlLHtOrcmlGNQmgiK43Huq_wcbrI4ixBDbAxiSSqH0bCJ5yj98Xzf91T8O2aUKxuLHTBERSO80b6Ylyple--_JX4"/>
+</div>
+<div class="absolute top-1/4 left-0 w-32 h-32 opacity-10 pointer-events-none -translate-x-8">
+<img alt="Whisk decoration" class="w-full h-full object-contain" data-alt="Organic line drawing of a metal whisk with soft warm aesthetic against dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDP0jbpyAi5vvOcm1eUvljnyWIqJm17a1ThiRw3L3Vww7iDFli02T9ZGqqrEGP6vN929RqZjg7hxW1og-VesWWFm1JedUaGgtpQPQKLosnMA3pmFg5RcQriXq6N743eQYKCexU29iP50USyuthWQ-SMJgv4TybwIv-RHB6jbTjOJ_zstODcy0260iwQXvLigLD3LryBwrTchRN2EDvQKSshGcNKue0kT-5KMFini72sIlJuoKrUAG5Ms7p3z5Vn5Ho2CrhlK7UYIbE"/>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-[#1E1814]/70 backdrop-blur-md rounded-t-[24px] z-50">
+<a class="flex flex-col items-center justify-center text-[#8B7355] opacity-70 hover:text-[#C4707E] transition-colors" href="#">
+<span class="material-symbols-outlined mb-1">home</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider">Início</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#2C2420] text-[#C4707E] rounded-2xl px-4 py-2 scale-90 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined mb-1">calculate</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider">Cálculos</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] opacity-70 hover:text-[#C4707E] transition-colors" href="#">
+<span class="material-symbols-outlined mb-1">history</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider">Histórico</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] opacity-70 hover:text-[#C4707E] transition-colors" href="#">
+<span class="material-symbols-outlined mb-1">lightbulb</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider">Dicas</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] opacity-70 hover:text-[#C4707E] transition-colors" href="#">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider">Perfil</span>
+</a>
+</nav>
+</body></html>

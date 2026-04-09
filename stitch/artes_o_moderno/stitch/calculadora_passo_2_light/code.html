@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&amp;family=Quicksand:wght@400;500;600;700&amp;family=Poppins:wght@600;700&amp;family=Noto+Serif:wght@400;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-container": "#fffbff",
+              "tertiary": "#7d540c",
+              "on-primary-fixed": "#3d0414",
+              "error-container": "#ffdad6",
+              "outline": "#867274",
+              "secondary": "#864e58",
+              "on-background": "#1f1b18",
+              "primary-container": "#ac5d6a",
+              "on-secondary-container": "#7a444e",
+              "surface-tint": "#924755",
+              "surface-dim": "#e1d8d3",
+              "on-surface-variant": "#534345",
+              "tertiary-fixed-dim": "#f4bd6e",
+              "surface-container-lowest": "#ffffff",
+              "secondary-fixed": "#ffd9de",
+              "on-tertiary": "#ffffff",
+              "surface-container-low": "#fcf2ed",
+              "primary": "#8f4552",
+              "on-secondary": "#ffffff",
+              "inverse-surface": "#342f2c",
+              "surface": "#fff8f5",
+              "outline-variant": "#d8c1c3",
+              "secondary-container": "#feb6c1",
+              "on-tertiary-fixed": "#291800",
+              "on-error-container": "#93000a",
+              "background": "#fff8f5",
+              "primary-fixed-dim": "#ffb2bd",
+              "tertiary-fixed": "#ffddb2",
+              "on-surface": "#1f1b18",
+              "surface-bright": "#fff8f5",
+              "surface-container": "#f6ece7",
+              "primary-fixed": "#ffd9dd",
+              "surface-container-highest": "#eae1dc",
+              "error": "#ba1a1a",
+              "on-tertiary-fixed-variant": "#624000",
+              "inverse-primary": "#ffb2bd",
+              "on-secondary-fixed": "#360d17",
+              "on-primary-fixed-variant": "#75303e",
+              "surface-container-high": "#f0e6e1",
+              "secondary-fixed-dim": "#fbb3bf",
+              "on-primary": "#ffffff",
+              "on-secondary-fixed-variant": "#6b3741",
+              "surface-variant": "#eae1dc",
+              "on-primary-container": "#fffbff",
+              "on-error": "#ffffff",
+              "inverse-on-surface": "#f9efea",
+              "tertiary-container": "#996c25"
+            },
+            fontFamily: {
+              "headline": ["Noto Serif"],
+              "body": ["Plus Jakarta Sans"],
+              "label": ["Plus Jakarta Sans"],
+              "serif": ["Playfair Display"],
+              "sans": ["Quicksand"],
+              "data": ["Poppins"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .organic-shape {
+            border-radius: 63% 37% 54% 46% / 55% 48% 52% 45%;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#FFF5F0] text-[#4A3228] font-sans min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="bg-[#FFF5F0] dark:bg-[#1E1814] fixed top-0 w-full z-50">
+<div class="flex justify-between items-center px-6 py-4 w-full max-w-4xl mx-auto">
+<button class="hover:opacity-80 transition-opacity scale-95 duration-150 text-[#C4707E] dark:text-[#D4919C]">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-serif italic text-2xl text-[#C4707E] dark:text-[#D4919C]">Atelier de Preços</h1>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-[#F5E1DB]">
+<img alt="Foto de perfil do empreendedor" data-alt="Close-up portrait of a smiling woman in a professional baker uniform with a warm, soft-focus kitchen background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGQooiVCWxnOfY-VmOozhdzr80uIcgJDBcaJ1UGpsv8KzLJoPKVhDYGdOpayojfRTljQUfxzh2ORG8tIhvWzzfp5xFcdoVv0m0s114W2o0P8U_E9AEOowy7ae6oGVPsxSzIlwjbpmdHIaOGfS-qRWfAFFoKX50Q9GFb-a2O30204PaeeKQbogXvCz1kpruN_Q-VFQYeH9pcGfAJ5hME1Kb3B8Y_Vqtxz5hr4r1B1CMMgjpARclnukfV7pqcMsaL_29kbdfAOt31Jk"/>
+</div>
+</div>
+<div class="bg-[#F5E1DB] dark:bg-[#2C2420] h-px w-full opacity-20"></div>
+</header>
+<main class="flex-grow pt-24 pb-32 px-6 max-w-md mx-auto w-full">
+<!-- Progress Dots -->
+<div class="flex justify-center gap-3 mb-12">
+<div class="w-2.5 h-2.5 rounded-full bg-[#D4919C]/30"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#C4707E]"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#D4919C]/30"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#D4919C]/30"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#D4919C]/30"></div>
+</div>
+<!-- Main Content Card -->
+<section class="relative bg-white rounded-[24px] p-8 overflow-hidden shadow-sm">
+<!-- Decorative Illustration -->
+<div class="absolute -bottom-4 -right-4 opacity-15 w-32 h-32 transform rotate-12">
+<img alt="Flat illustration of a gift box" class="w-full h-full object-contain" data-alt="Minimalist flat design illustration of a charming gift box with a delicate silk ribbon bow on a soft pastel background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBPUn8cncDstyE71z29GE7evmmU6FgFdBc1WwCN1qCG8VBIE8jzppF0BXMtJBAOo1_7cSn8h04aMnTHll29Jm9Rnx_KkywiVovjlBsink1AoGTMQ7rMpr7ZV2apJISQLlTxaCrsmB126GE1ZFno5hqw0aIKGsy2uBDSb8Yvv-YQ4k9Ae47IIkn0YSvL3ObEOTmbFpJ0S-Cf6KBhYgrbE8UOsEJ9tXG2VcWHsxibiniKVMYTukOk8ALp5HX2mdEFeFNf8Albg3zTxCA"/>
+</div>
+<header class="mb-8">
+<h2 class="font-serif text-4xl text-[#4A3228] mb-2">Embalagem</h2>
+<p class="font-sans text-sm text-[#8B7355]">Caixa, saco, pote, fita...</p>
+</header>
+<div class="space-y-6 relative z-10">
+<div class="group">
+<label class="block text-xs font-semibold uppercase tracking-wider text-[#8B7355] mb-2 ml-1">Custo Total da Embalagem</label>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 font-data text-[#4A3228] opacity-50">R$</span>
+<input class="w-full bg-[#F5E1DB] border-none rounded-[16px] py-4 pl-12 pr-4 font-data text-xl text-[#4A3228] focus:ring-2 focus:ring-[#C4707E]/20 transition-all outline-none" placeholder="0,00" type="text" value="0,00"/>
+</div>
+</div>
+<div class="pt-4">
+<p class="text-[13px] text-[#8B7355] leading-relaxed italic">
+                        Lembre-se de incluir todos os itens que compõem a apresentação final do seu produto artesanal.
+                    </p>
+</div>
+</div>
+</section>
+<!-- Primary Action -->
+<div class="mt-10">
+<button class="w-full bg-[#C4707E] text-white font-sans font-bold py-4 rounded-[16px] hover:opacity-90 transition-opacity active:scale-[0.98] duration-150 text-lg shadow-sm">
+                Próximo
+            </button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-[#FFF5F0]/70 dark:bg-[#1E1814]/70 backdrop-blur-md rounded-t-[24px] z-50">
+<a class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/50 opacity-70 hover:text-[#C4707E] transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider mt-1">Início</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#F5E1DB] dark:bg-[#2C2420] text-[#C4707E] rounded-2xl px-3 py-1.5 transition-transform duration-200 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="calculate">calculate</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider mt-1">Cálculos</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/50 opacity-70 hover:text-[#C4707E] transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider mt-1">Histórico</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/50 opacity-70 hover:text-[#C4707E] transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="lightbulb">lightbulb</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider mt-1">Dicas</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/50 opacity-70 hover:text-[#C4707E] transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider mt-1">Perfil</span>
+</a>
+</nav>
+</body></html>

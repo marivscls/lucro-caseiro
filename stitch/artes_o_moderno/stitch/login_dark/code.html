@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Lucro Caseiro - Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&amp;family=Quicksand:wght@300;400;500;600;700&amp;family=Poppins:wght@700&amp;family=Noto+Serif:wght@400;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "inverse-on-surface": "#f9efea",
+              "on-tertiary-fixed-variant": "#624000",
+              "secondary": "#864e58",
+              "on-primary-fixed": "#3d0414",
+              "surface-dim": "#e1d8d3",
+              "surface-container": "#f6ece7",
+              "on-primary-fixed-variant": "#75303e",
+              "secondary-fixed": "#ffd9de",
+              "surface-container-highest": "#eae1dc",
+              "on-tertiary-container": "#fffbff",
+              "error": "#ba1a1a",
+              "tertiary-container": "#996c25",
+              "on-surface-variant": "#534345",
+              "surface-tint": "#924755",
+              "on-background": "#1f1b18",
+              "surface-bright": "#fff8f5",
+              "on-secondary": "#ffffff",
+              "primary": "#8f4552",
+              "surface-variant": "#eae1dc",
+              "on-error-container": "#93000a",
+              "on-surface": "#1f1b18",
+              "on-secondary-fixed": "#360d17",
+              "tertiary-fixed-dim": "#f4bd6e",
+              "outline": "#867274",
+              "primary-container": "#ac5d6a",
+              "on-primary-container": "#fffbff",
+              "inverse-surface": "#342f2c",
+              "surface-container-low": "#fcf2ed",
+              "on-primary": "#ffffff",
+              "secondary-fixed-dim": "#fbb3bf",
+              "error-container": "#ffdad6",
+              "surface-container-high": "#f0e6e1",
+              "primary-fixed-dim": "#ffb2bd",
+              "on-secondary-fixed-variant": "#6b3741",
+              "secondary-container": "#feb6c1",
+              "background": "#fff8f5",
+              "surface": "#fff8f5",
+              "outline-variant": "#d8c1c3",
+              "on-error": "#ffffff",
+              "tertiary-fixed": "#ffddb2",
+              "surface-container-lowest": "#ffffff",
+              "primary-fixed": "#ffd9dd",
+              "on-tertiary-fixed": "#291800",
+              "tertiary": "#7d540c",
+              "inverse-primary": "#ffb2bd",
+              "on-primary-container": "#fffbff",
+              "on-tertiary": "#ffffff",
+              // Custom Project Colors for Dark Mode Accuracy
+              "brand-dark-bg": "#1E1814",
+              "brand-dark-surface": "#2C2420",
+              "brand-rosa-neve": "#F5E1DB",
+              "brand-marrom-claro": "#8B7355",
+              "brand-rosa-suave": "#D4919C",
+              "brand-rosa-cha": "#C4707E",
+              "brand-creme": "#FFF5F0"
+            },
+            fontFamily: {
+              "headline": ["Playfair Display", "Noto Serif", "serif"],
+              "body": ["Quicksand", "Plus Jakarta Sans", "sans-serif"],
+              "label": ["Quicksand", "Plus Jakarta Sans", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1.25rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #1E1814;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body text-brand-rosa-neve min-h-screen flex flex-col items-center overflow-x-hidden">
+<!-- Header / Brand Anchor -->
+<header class="w-full flex justify-center items-center px-6 py-12">
+<div class="flex items-center gap-3 group">
+<div class="w-12 h-12 rounded-full bg-brand-rosa-cha/10 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+<span class="material-symbols-outlined text-brand-rosa-cha text-3xl" data-icon="home" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="absolute material-symbols-outlined text-brand-rosa-neve text-[10px] translate-y-[-2px]" data-icon="favorite" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+<h1 class="font-headline font-bold text-2xl tracking-tight text-brand-rosa-neve">Lucro Caseiro</h1>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="w-full max-w-md px-6 flex-grow flex flex-col items-center">
+<!-- Welcome Title -->
+<h2 class="font-headline text-4xl mb-8 text-center text-brand-rosa-neve">Que bom te ver!</h2>
+<!-- Login Card -->
+<section class="w-full bg-brand-dark-surface rounded-[20px] p-8 shadow-2xl relative overflow-hidden">
+<!-- Decorative Organic Element -->
+<div class="absolute -bottom-6 -right-6 opacity-10 pointer-events-none">
+<img alt="Decoração Orgânica" class="w-32 h-32 rotate-12" data-alt="minimalist organic line drawing of a rolling pin and whisk in a soft cream color on dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPbCWrcf1Bd9sqCP1sIJdJ4mdQMYO_hDFwvr7---V89F9r6EvtqGWOFIG6ABgLl9GS6E6LOv3QY-trnHrY3adSkcHJ-_VKgd4cfoJww2ktD4IEYDYnsHBH4akT7FuVDaxcQqXqGxo9ECb1JMCTS5VmaZguLCYDesT5c5c--h4Sqwz9kapinL4wtR2Moy02NeBhZf6bpN1QZG0bclF8r9q4m7pWiya-SvEK-lJOAvThh9Ih_Zz1RwiuOPWqZ8FgZMl2IrRZ2OhIm-0"/>
+</div>
+<div class="space-y-6 relative z-10">
+<!-- Google Social Login -->
+<button class="w-full h-14 bg-brand-dark-bg border border-brand-marrom-claro/10 rounded-xl flex items-center justify-center gap-3 text-brand-rosa-neve font-medium hover:bg-brand-dark-bg/80 transition-all active:scale-[0.98]">
+<svg class="w-5 h-5" viewbox="0 0 24 24">
+<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+<path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path>
+<path d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
+</svg>
+                    Entrar com Google
+                </button>
+<!-- Divider -->
+<div class="relative flex items-center py-2">
+<div class="flex-grow border-t border-brand-marrom-claro/30"></div>
+<span class="flex-shrink mx-4 w-8 h-8 rounded-full bg-brand-dark-surface border border-brand-marrom-claro/30 flex items-center justify-center text-xs font-medium text-brand-marrom-claro">ou</span>
+<div class="flex-grow border-t border-brand-marrom-claro/30"></div>
+</div>
+<!-- Inputs Form -->
+<div class="space-y-5">
+<!-- Email Input -->
+<div class="space-y-2">
+<label class="font-headline text-sm text-brand-marrom-claro ml-1">E-mail</label>
+<input class="w-full h-14 bg-brand-dark-bg border-none rounded-xl px-4 text-brand-rosa-neve placeholder:text-brand-marrom-claro/50 focus:ring-2 focus:ring-brand-rosa-cha/50 transition-all outline-none" placeholder="seu@email.com" type="email"/>
+</div>
+<!-- Password Input -->
+<div class="space-y-2">
+<label class="font-headline text-sm text-brand-marrom-claro ml-1">Senha</label>
+<div class="relative">
+<input class="w-full h-14 bg-brand-dark-bg border-none rounded-xl px-4 text-brand-rosa-neve placeholder:text-brand-marrom-claro/50 focus:ring-2 focus:ring-brand-rosa-cha/50 transition-all outline-none" placeholder="••••••••" type="password"/>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-brand-marrom-claro/50 hover:text-brand-rosa-neve transition-colors">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+</div>
+</div>
+<!-- Forgot Password Link -->
+<div class="text-right">
+<a class="text-sm text-brand-rosa-suave hover:text-brand-rosa-neve transition-colors" href="#">Esqueci minha senha</a>
+</div>
+</div>
+<!-- Primary Action -->
+<button class="w-full h-14 bg-brand-rosa-cha text-brand-creme font-bold text-lg rounded-[16px] shadow-lg hover:brightness-110 active:scale-[0.97] transition-all">
+                    Entrar
+                </button>
+</div>
+</section>
+<!-- Footer / Redirect -->
+<footer class="mt-12 mb-8 text-center text-sm">
+<span class="text-brand-marrom-claro">Primeira vez? </span>
+<a class="text-brand-rosa-cha font-bold hover:underline transition-all" href="#">Criar conta</a>
+</footer>
+</main>
+<!-- Visual Polish: Soft Ambient Glow -->
+<div class="fixed top-0 left-0 w-full h-full pointer-events-none z-[-1] opacity-20 overflow-hidden">
+<div class="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-brand-rosa-cha blur-[120px] rounded-full"></div>
+<div class="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-brand-rosa-suave blur-[120px] rounded-full"></div>
+</div>
+</body></html>

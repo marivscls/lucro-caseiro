@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Poppins:wght@700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "error-container": "#ffdad6",
+              "surface-bright": "#fff8f5",
+              "inverse-on-surface": "#f9efea",
+              "surface": "#fff8f5",
+              "secondary": "#864e58",
+              "outline": "#867274",
+              "surface-variant": "#eae1dc",
+              "inverse-surface": "#342f2c",
+              "on-primary-container": "#fffbff",
+              "background": "#1E1814",
+              "secondary-fixed-dim": "#fbb3bf",
+              "primary": "#C4707E",
+              "surface-container": "#2C2420",
+              "tertiary": "#7d540c",
+              "primary-fixed-dim": "#ffb2bd",
+              "on-tertiary": "#ffffff",
+              "surface-dim": "#e1d8d3",
+              "tertiary-fixed-dim": "#f4bd6e",
+              "tertiary-container": "#996c25",
+              "on-error": "#ffffff",
+              "on-tertiary-fixed": "#291800",
+              "on-primary-fixed": "#3d0414",
+              "surface-tint": "#924755",
+              "on-error-container": "#93000a",
+              "on-primary": "#ffffff",
+              "outline-variant": "#d8c1c3",
+              "on-background": "#F5E1DB",
+              "tertiary-fixed": "#ffddb2",
+              "on-tertiary-fixed-variant": "#624000",
+              "surface-container-low": "#1E1814",
+              "on-surface-variant": "#F5E1DB",
+              "surface-container-high": "#2C2420",
+              "on-secondary": "#ffffff",
+              "error": "#E07272",
+              "secondary-fixed": "#ffd9de",
+              "on-primary-fixed-variant": "#75303e",
+              "inverse-primary": "#ffb2bd",
+              "surface-container-highest": "#2C2420",
+              "on-secondary-fixed-variant": "#6b3741",
+              "on-secondary-fixed": "#360d17",
+              "surface-container-lowest": "#120e0c",
+              "on-tertiary-container": "#fffbff",
+              "primary-fixed": "#ffd9dd",
+              "primary-container": "#ac5d6a",
+              "on-secondary-container": "#7a444e",
+              "secondary-container": "#feb6c1",
+              "on-surface": "#F5E1DB"
+            },
+            fontFamily: {
+              "headline": ["Noto Serif", "serif"],
+              "body": ["Plus Jakarta Sans", "sans-serif"],
+              "label": ["Plus Jakarta Sans", "sans-serif"],
+              "numeric": ["Poppins", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .serif-display { font-family: 'Noto Serif', serif; }
+        .sans-rounded { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .poppins-bold { font-family: 'Poppins', sans-serif; font-weight: 700; }
+        body { background-color: #1E1814; color: #F5E1DB; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body selection:bg-primary/30">
+<!-- TopAppBar Shell -->
+<header class="fixed top-0 w-full z-50 bg-[#1E1814]/70 backdrop-blur-md transition-colors duration-300">
+<div class="flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#D4919C]" data-icon="menu">menu</span>
+<h1 class="text-2xl font-headline font-bold text-[#F5E1DB]">Vendas</h1>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#F5E1DB]/60" data-icon="search">search</span>
+<div class="w-8 h-8 rounded-full bg-surface-container-high border border-outline-variant/15 overflow-hidden">
+<img alt="Profile" class="w-full h-full object-cover" data-alt="close-up portrait of a smiling female baker wearing a clean brown apron in a warm kitchen environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBU1Fir4AaOvWw44uD8_3kZ4E13vN4j3IMLrZdzXxH6BGIWOHh-OU42EpkSo2YYbEbrDO0xp72cPBg4GuuAu6lDOiXORkSFcBwq_pIwwXa2EkOU5xJPU2b4rGaSWOvv5tMzkTfKX-ZxJ0IUOG9HRT_eAVY97fQ3OQGDBDzNvclcVxqpr15x3cqlEwgsMmdStWSjE7pnuRPg8VRognMI6Ler9pQbrS5e-2U_Zp8gIVykrG5oyDresEo2VUjmeqMbtzJR7eWMGKBJiiU"/>
+</div>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-2xl mx-auto space-y-10">
+<!-- Filter Pills Section -->
+<section class="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+<button class="px-5 py-2.5 rounded-[12px] bg-primary text-white text-sm font-medium whitespace-nowrap transition-transform active:scale-95">
+                Todas
+            </button>
+<button class="px-5 py-2.5 rounded-[12px] bg-surface-container text-[#F5E1DB]/80 text-sm font-medium whitespace-nowrap hover:bg-surface-container-high transition-all">
+                Pendentes
+            </button>
+<button class="px-5 py-2.5 rounded-[12px] bg-surface-container text-[#F5E1DB]/80 text-sm font-medium whitespace-nowrap hover:bg-surface-container-high transition-all">
+                Concluídas
+            </button>
+<button class="px-5 py-2.5 rounded-[12px] bg-surface-container text-[#F5E1DB]/80 text-sm font-medium whitespace-nowrap hover:bg-surface-container-high transition-all">
+                Pix
+            </button>
+</section>
+<!-- Sales Content Organized by Date -->
+<div class="space-y-8">
+<!-- Group: Hoje -->
+<section class="space-y-4">
+<h2 class="font-headline text-2xl text-[#F5E1DB]/90 px-1">Hoje</h2>
+<div class="space-y-4">
+<!-- Sale Card 1 -->
+<div class="relative group bg-surface-container rounded-[20px] p-5 overflow-hidden transition-all hover:bg-surface-container-high">
+<div class="flex items-start gap-4 relative z-10">
+<div class="mt-1 flex-shrink-0">
+<span class="material-symbols-outlined text-success bg-success/10 p-2 rounded-full" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<h3 class="font-body font-bold text-lg text-[#F5E1DB]">Brigadeiro 50un</h3>
+<span class="font-numeric text-lg text-[#F5E1DB]">R$ 175,00</span>
+</div>
+<p class="text-[#8B7355] text-sm mt-1">Maria Silva • Pix</p>
+</div>
+</div>
+<!-- Integrated Illustration Masked -->
+<div class="absolute -right-4 -bottom-4 w-24 h-24 opacity-20 pointer-events-none group-hover:opacity-30 transition-opacity">
+<img alt="Cake Decoration" class="w-full h-full object-contain" data-alt="flat organic illustration of a small chocolate cupcake with a swirl of frosting and decorative sprinkles" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDOW8XE4HSTgsQeYwmp7S1iK3lKfbBG7EoaBmws1UzHkp1u0tPRiYJDq4sASPHT0B9q2c2oIWcWCHCSkNubhyC5RkgYRThjyla-Xm1Tz25QOgUiqFA1k98n5cfKCu-sTfrhNfA05uLDH88n7ixuKlJ0wD767cz_X5DaPjnIttooV3N8NyQsGaY8ftUa2yw906v4OueaMsIXzoAuN9shUttZriwa549p2mupX4ajOKrUROc9HxEg2MCXynL_nGLZxKIRljxf9RLcNw"/>
+</div>
+</div>
+<!-- Sale Card 2 -->
+<div class="relative group bg-surface-container rounded-[20px] p-5 overflow-hidden transition-all hover:bg-surface-container-high">
+<div class="flex items-start gap-4 relative z-10">
+<div class="mt-1 flex-shrink-0">
+<span class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-full" data-icon="schedule" style="font-variation-settings: 'FILL' 1;">schedule</span>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<h3 class="font-body font-bold text-lg text-[#F5E1DB]">Bolo de Cenoura</h3>
+<span class="font-numeric text-lg text-[#F5E1DB]">R$ 45,00</span>
+</div>
+<p class="text-[#8B7355] text-sm mt-1">João Oliveira • Dinheiro</p>
+</div>
+</div>
+<div class="absolute -right-4 -bottom-4 w-24 h-24 opacity-20 pointer-events-none">
+<img alt="Whisk" class="w-full h-full object-contain" data-alt="minimalist flat organic illustration of a wooden whisk used for baking" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBq0PhiGffSzY8_ICZNZdiAGg-OMxirp0fKIOfnk7WrpOchXzXuLazbk_-JPv1SWiCyyjWJUYxFwc0742ohkZHp87o1lKoM9oQ5esgu3bzYkzVzEedxZwCvvTsdFggd8aiFAbWv-PbMZfbAJoUH2hdbX1hFwTJJMOMAweZSllL9_HfDhrwA0MpP-o5_RYtdtLWdUA-AN90R-BMudX-ecAoC7JEEfVMmbwZrxekIfwFXr7GTETTHuARv0GYPw0w_cgsaHsd1ONMVXEA"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Group: 24 de março -->
+<section class="space-y-4">
+<h2 class="font-headline text-2xl text-[#F5E1DB]/90 px-1">24 de março</h2>
+<div class="space-y-4">
+<!-- Sale Card 3 -->
+<div class="relative group bg-surface-container rounded-[20px] p-5 overflow-hidden transition-all hover:bg-surface-container-high">
+<div class="flex items-start gap-4 relative z-10">
+<div class="mt-1 flex-shrink-0">
+<span class="material-symbols-outlined text-success bg-success/10 p-2 rounded-full" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start">
+<h3 class="font-body font-bold text-lg text-[#F5E1DB]">Combo Festinha</h3>
+<span class="font-numeric text-lg text-[#F5E1DB]">R$ 320,00</span>
+</div>
+<p class="text-[#8B7355] text-sm mt-1">Ana Costa • Cartão</p>
+</div>
+</div>
+<div class="absolute -right-4 -bottom-4 w-24 h-24 opacity-20 pointer-events-none">
+<img alt="Rolling Pin" class="w-full h-full object-contain" data-alt="soft flat organic illustration of a wooden rolling pin in a warm artisanal style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCk-NmB5tcaeYpV1qqyR9hmTiNmSD6oxEnWkiX9kLjrYCvJO-wd5bdpwpDLXNpbWUAiQKsG-JuziFHLmZs7QgFvwZ6So2fQfazCyamUmV9Ko2QO2S7DlkE8VQ16L8UikyWm1g0BYaizkk_eEvOOC5a4HBghLJ5o9WkJ4aJXOxdMWwFDK9hdV8ePVUjOqD3s8VP75oKV5ER_9pFXbg45hzKudsiSn1mGTydUANQu_KANUuUn4CUATxjFHLZMks12wOndSsjymzexY6U"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Empty State for Visual Variety (Hidden by default or shown if no sales) -->
+<section class="bg-surface-container rounded-[20px] p-10 flex flex-col items-center text-center space-y-6 mt-12">
+<div class="w-32 h-32 opacity-80">
+<img alt="Cash Register" class="w-full h-full object-contain" data-alt="artisan style illustration of an antique cash register with warm wood tones and brass details" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDfdfR47Vb-XVBi9wRCAd6bLPjSl-1YOjusXb2RieV0sFOpcqgTGOkXSQlIupZZczAaKZU9qDaw3A5hbvdjtEP6kEYNpNAOwH2ZLkzGNyd89NIduzWuTNWPWbdlP_8HHdQ1IQNYC5FBm7K3c53t56fEQ4UvQLe3tZlfz6fDMpXMgE7gx1TAGpLrIRaqYQy4YxiJVck-FvVCrrKgS590MQCn6T-zE5E6y6-af4YUH6XlInH2Nl64p8e2knxHPyj-NT1r0HzN846jr28"/>
+</div>
+<div>
+<h3 class="font-headline text-2xl text-[#F5E1DB]">Tudo calmo por aqui</h3>
+<p class="text-[#8B7355] mt-2 max-w-xs">Que tal registrar uma nova venda manual para manter suas contas em dia?</p>
+</div>
+<button class="bg-primary text-white px-8 py-3 rounded-[16px] font-medium transition-transform active:scale-95">
+                    Nova Venda
+                </button>
+</section>
+</div>
+</main>
+<!-- BottomNavBar Shell -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-[#1E1814]/70 backdrop-blur-md rounded-t-[24px]">
+<div class="flex justify-around items-center px-4 pb-6 pt-2 w-full">
+<a class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-body font-medium text-xs tracking-wide mt-1">Início</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#2C2420] text-[#C4707E] rounded-[16px] px-5 py-2 scale-95 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="payments" style="font-variation-settings: 'FILL' 1;">payments</span>
+<span class="font-body font-medium text-xs tracking-wide mt-1">Vendas</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="bakery_dining">bakery_dining</span>
+<span class="font-body font-medium text-xs tracking-wide mt-1">Produtos</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-body font-medium text-xs tracking-wide mt-1">Perfil</span>
+</a>
+</div>
+</nav>
+</body></html>

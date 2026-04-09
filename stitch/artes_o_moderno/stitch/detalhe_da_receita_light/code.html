@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Brigadeiro Gourmet - Lucro Caseiro</title>
+<!-- Fonts: Playfair Display (Serif), Quicksand (Sans/Body), Poppins (Numbers), Noto Serif (Headline) -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&amp;family=Quicksand:wght@400;500;600;700&amp;family=Poppins:wght@600;700&amp;family=Noto+Serif:wght@400;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-tint": "#924755",
+              "error": "#ba1a1a",
+              "on-primary-fixed": "#3d0414",
+              "inverse-primary": "#ffb2bd",
+              "tertiary": "#7d540c",
+              "on-primary-container": "#fffbff",
+              "secondary-container": "#feb6c1",
+              "on-tertiary": "#ffffff",
+              "primary": "#8f4552",
+              "on-tertiary-fixed-variant": "#624000",
+              "on-primary-fixed-variant": "#75303e",
+              "on-tertiary-fixed": "#291800",
+              "on-secondary-fixed-variant": "#6b3741",
+              "on-surface-variant": "#534345",
+              "inverse-on-surface": "#f9efea",
+              "inverse-surface": "#342f2c",
+              "error-container": "#ffdad6",
+              "surface-bright": "#fff8f5",
+              "primary-fixed": "#ffd9dd",
+              "on-background": "#1f1b18",
+              "surface-container": "#f6ece7",
+              "surface-container-high": "#f0e6e1",
+              "on-primary": "#ffffff",
+              "on-secondary-fixed": "#360d17",
+              "surface-variant": "#eae1dc",
+              "on-error": "#ffffff",
+              "on-secondary-container": "#7a444e",
+              "on-surface": "#1f1b18",
+              "on-error-container": "#93000a",
+              "secondary-fixed-dim": "#fbb3bf",
+              "surface-container-low": "#fcf2ed",
+              "surface-dim": "#e1d8d3",
+              "secondary-fixed": "#ffd9de",
+              "outline-variant": "#d8c1c3",
+              "surface": "#fff8f5",
+              "secondary": "#864e58",
+              "surface-container-lowest": "#ffffff",
+              "tertiary-container": "#996c25",
+              "on-tertiary-container": "#fffbff",
+              "primary-container": "#ac5d6a",
+              "tertiary-fixed": "#ffddb2",
+              "tertiary-fixed-dim": "#f4bd6e",
+              "on-secondary": "#ffffff",
+              "primary-fixed-dim": "#ffb2bd",
+              "outline": "#867274",
+              "surface-container-highest": "#eae1dc",
+              "background": "#fff8f5",
+              "brand-pink": "#C4707E",
+              "brand-cream": "#FFF5F0",
+              "brand-surface": "#F5E1DB",
+              "brand-brown": "#4A3228",
+              "brand-subtext": "#8B7355",
+              "brand-success": "#6BBF96",
+              "brand-lavender": "#B8A9D4"
+            },
+            fontFamily: {
+              "headline": ["Noto Serif", "serif"],
+              "serif": ["Playfair Display", "serif"],
+              "sans": ["Quicksand", "sans-serif"],
+              "numbers": ["Poppins", "sans-serif"],
+              "body": ["Plus Jakarta Sans", "sans-serif"],
+              "label": ["Plus Jakarta Sans", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "20px", "3xl": "32px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .custom-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 24px;
+        height: 24px;
+        background: #C4707E;
+        cursor: pointer;
+        border-radius: 50%;
+        border: 4px solid #FFF5F0;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-brand-cream text-brand-brown font-sans min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#FFF5F0]/70 backdrop-blur-md flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-brand-pink text-2xl cursor-pointer">arrow_back</span>
+<span class="font-serif italic text-brand-brown text-2xl">Lucro Caseiro</span>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden bg-brand-surface border-2 border-brand-pink/20">
+<img alt="Avatar" data-alt="Portrait of a smiling Brazilian pastry chef in a clean white kitchen with soft natural sunlight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCa-ihq6vh6A6SdlX4L1FpTd3rpwqx5PxR4OxGK1VIQRxxc8ff9aadnUInh7nbzUfNr3bZdnrM0LCemUTcD37F2gKhMN0gq2k7zzTGru4DEBjdjNWQi8RnRJjhU3-21RRdZd2B9MdIYlAgEkDFxcWpfMzqe53mcvpKMeW5g-l06My_Zfn-qQajPRAqaxwkxdyk8ZSo2bcyszjgR4f-rPCZ71pBb2ogZ49nVsNLkOtgXgZP7l6gDYnaRAPc9ViCJuYwmErqmcQis2ew"/>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-2xl mx-auto space-y-8">
+<!-- Hero Section -->
+<section class="space-y-4">
+<div class="flex flex-col gap-2">
+<span class="inline-flex items-center px-3 py-1 rounded-full bg-brand-surface text-brand-pink text-xs font-semibold tracking-wide w-fit">
+                    Doces
+                </span>
+<h1 class="font-serif text-5xl font-bold tracking-tight text-brand-brown">Brigadeiro Gourmet</h1>
+</div>
+<div class="relative w-full h-64 rounded-3xl overflow-hidden group">
+<img alt="Brigadeiro Gourmet" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Close-up of premium dark chocolate brigadeiros with high-quality chocolate sprinkles on a marble surface with warm lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdI5xVSLT1RIZjsHLj-Hesv7fDC1RYLdWmYXMEZW2d2p43UJcDO8sHasYJuZazxhVuDUYMKehHMi_HnckI8SFRUoCF-qcs70d2dhpwiTlskNGAajV6EL2-IgFhdYOOeTTJONHwI596rHsXKI5SOy6jCnV9HS5iAbV219V8e0BJKUM2E9oolJyzyQh7tlz8cdcQVQ6t_35PhuyDnHrZVTb3zy9zMRzkScwFDMw1plLa3Z19Ts8HwtCHhLB4VQ_4LnBrXMkaTcoChwg"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+</div>
+</section>
+<!-- Bento Grid Layering -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Card Custo -->
+<div class="bg-brand-surface rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between min-h-[180px]">
+<div class="relative z-10">
+<h2 class="font-serif text-xl mb-1 text-brand-brown">Custo por unidade</h2>
+<p class="font-numbers text-4xl font-bold text-brand-success leading-tight tracking-tight">R$ 1,20</p>
+<p class="text-brand-success font-sans font-medium mt-2">Total: R$ 60,00</p>
+</div>
+<!-- Flat Illustration placeholder with organic feel -->
+<div class="absolute -bottom-2 -right-2 opacity-20 pointer-events-none">
+<span class="material-symbols-outlined text-[100px] text-brand-brown" style="font-variation-settings: 'FILL' 1;">payments</span>
+</div>
+</div>
+<!-- Card Rendimento/Escala -->
+<div class="bg-brand-surface rounded-2xl p-6 flex flex-col gap-6">
+<div>
+<h2 class="font-serif text-xl mb-4 text-brand-brown">Rendimento</h2>
+<div class="relative pt-6 pb-2">
+<input class="w-full h-2 bg-brand-cream rounded-full appearance-none cursor-pointer custom-slider" max="5" min="0.5" step="0.5" type="range" value="1"/>
+<div class="flex justify-between mt-4 text-[10px] font-bold text-brand-subtext tracking-widest uppercase">
+<span>0.5x</span>
+<span>1x</span>
+<span>2x</span>
+<span>3x</span>
+<span>5x</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 bg-brand-cream/50 p-3 rounded-xl border border-brand-brown/5">
+<span class="material-symbols-outlined text-brand-pink">restaurant</span>
+<span class="text-sm font-medium">Rende 50 unidades</span>
+</div>
+</div>
+<!-- Card Ingredientes (Full Width on Mobile) -->
+<div class="md:col-span-2 bg-brand-surface rounded-2xl p-8 space-y-6">
+<div class="flex justify-between items-center border-b border-brand-brown/5 pb-4">
+<h2 class="font-serif text-2xl text-brand-brown">Ingredientes</h2>
+<span class="material-symbols-outlined text-brand-pink cursor-pointer">edit</span>
+</div>
+<ul class="space-y-4">
+<li class="flex items-center justify-between group">
+<div class="flex items-center gap-4">
+<div class="w-6 h-6 rounded-full border-2 border-brand-pink flex items-center justify-center bg-brand-pink text-white">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'wght' 700;">check</span>
+</div>
+<span class="font-sans text-brand-brown">Leite condensado (1 lata)</span>
+</div>
+<span class="font-numbers font-semibold text-brand-subtext">R$ 6,50</span>
+</li>
+<li class="flex items-center justify-between group">
+<div class="flex items-center gap-4">
+<div class="w-6 h-6 rounded-full border-2 border-brand-pink flex items-center justify-center bg-brand-pink text-white">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'wght' 700;">check</span>
+</div>
+<span class="font-sans text-brand-brown">Chocolate em pó (200g)</span>
+</div>
+<span class="font-numbers font-semibold text-brand-subtext">R$ 4,20</span>
+</li>
+<li class="flex items-center justify-between group">
+<div class="flex items-center gap-4">
+<div class="w-6 h-6 rounded-full border-2 border-brand-pink flex items-center justify-center bg-brand-pink text-white">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'wght' 700;">check</span>
+</div>
+<span class="font-sans text-brand-brown">Manteiga sem sal (1 colher)</span>
+</div>
+<span class="font-numbers font-semibold text-brand-subtext">R$ 1,80</span>
+</li>
+</ul>
+<div class="pt-6 mt-4 border-t border-brand-brown/10 flex justify-between items-center">
+<span class="font-serif text-lg">Total em Ingredientes</span>
+<span class="font-numbers text-xl font-bold text-brand-brown">R$ 60,00</span>
+</div>
+</div>
+<!-- Card Preparo -->
+<div class="md:col-span-2 bg-brand-surface rounded-2xl p-8 space-y-4 relative overflow-hidden">
+<h2 class="font-serif text-2xl text-brand-brown">Modo de Preparo</h2>
+<div class="bg-white/40 p-6 rounded-2xl backdrop-blur-sm border border-white/20">
+<p class="font-sans text-brand-brown leading-relaxed text-lg">
+                        Misture tudo em fogo baixo até desgrudar do fundo da panela. Deixe esfriar em um prato untado antes de enrolar. Utilize confeitos de alta qualidade para garantir o aspecto gourmet.
+                    </p>
+</div>
+<div class="absolute top-4 right-8 opacity-10 pointer-events-none">
+<span class="material-symbols-outlined text-7xl">skillet</span>
+</div>
+</div>
+</div>
+<!-- Action Button -->
+<div class="pt-4">
+<button class="w-full bg-brand-lavender text-white font-sans font-bold py-5 rounded-2xl shadow-sm hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-3 group">
+<span class="material-symbols-outlined group-hover:rotate-12 transition-transform">content_copy</span>
+                Duplicar receita
+            </button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-2 bg-[#FFF5F0]/80 backdrop-blur-xl z-50 rounded-t-[32px]">
+<div class="flex flex-col items-center justify-center text-brand-pink bg-brand-surface rounded-2xl px-5 py-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">receipt_long</span>
+<span class="font-sans text-[11px] font-medium mt-1">Receitas</span>
+</div>
+<div class="flex flex-col items-center justify-center text-brand-subtext opacity-60">
+<span class="material-symbols-outlined">local_mall</span>
+<span class="font-sans text-[11px] font-medium mt-1">Vendas</span>
+</div>
+<div class="flex flex-col items-center justify-center text-brand-subtext opacity-60">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-sans text-[11px] font-medium mt-1">Custos</span>
+</div>
+<div class="flex flex-col items-center justify-center text-brand-subtext opacity-60">
+<span class="material-symbols-outlined">person</span>
+<span class="font-sans text-[11px] font-medium mt-1">Perfil</span>
+</div>
+</nav>
+</body></html>

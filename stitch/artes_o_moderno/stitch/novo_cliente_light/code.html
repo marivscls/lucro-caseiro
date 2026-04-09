@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Novo Cliente - Lucro Caseiro</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&amp;family=Quicksand:wght@400;500;600&amp;family=Poppins:wght@600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600&amp;family=Noto+Serif:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "tertiary": "#7d540c",
+                        "inverse-on-surface": "#f9efea",
+                        "error": "#ba1a1a",
+                        "on-surface-variant": "#534345",
+                        "tertiary-fixed": "#ffddb2",
+                        "surface-dim": "#e1d8d3",
+                        "on-secondary": "#ffffff",
+                        "surface-variant": "#eae1dc",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#6b3741",
+                        "on-primary-fixed": "#3d0414",
+                        "secondary-fixed-dim": "#fbb3bf",
+                        "surface-tint": "#924755",
+                        "tertiary-container": "#996c25",
+                        "outline": "#867274",
+                        "on-secondary-fixed": "#360d17",
+                        "surface-container": "#f6ece7",
+                        "inverse-surface": "#342f2c",
+                        "surface": "#fff8f5",
+                        "secondary-container": "#feb6c1",
+                        "primary": "#8f4552",
+                        "on-primary": "#ffffff",
+                        "inverse-primary": "#ffb2bd",
+                        "surface-bright": "#fff8f5",
+                        "on-error": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed": "#ffd9de",
+                        "on-tertiary-fixed-variant": "#624000",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-low": "#fcf2ed",
+                        "background": "#fff8f5",
+                        "surface-container-highest": "#eae1dc",
+                        "on-primary-fixed-variant": "#75303e",
+                        "on-background": "#1f1b18",
+                        "surface-container-high": "#f0e6e1",
+                        "tertiary-fixed-dim": "#f4bd6e",
+                        "on-tertiary-container": "#fffbff",
+                        "secondary": "#864e58",
+                        "primary-fixed-dim": "#ffb2bd",
+                        "error-container": "#ffdad6",
+                        "on-surface": "#1f1b18",
+                        "primary-fixed": "#ffd9dd",
+                        "primary-container": "#ac5d6a",
+                        "on-tertiary-fixed": "#291800",
+                        "outline-variant": "#d8c1c3",
+                        "on-secondary-container": "#7a444e",
+                        "on-primary-container": "#fffbff",
+                        "brand-primary": "#C4707E",
+                        "brand-bg": "#FFF5F0",
+                        "brand-surface": "#F5E1DB",
+                        "brand-text": "#4A3228",
+                        "brand-subtext": "#8B7355"
+                    },
+                    fontFamily: {
+                        "headline": ["Noto Serif"],
+                        "serif": ["Playfair Display"],
+                        "body": ["Quicksand"],
+                        "label": ["Quicksand"],
+                        "precision": ["Poppins"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "3xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #FFF5F0;
+            color: #4A3228;
+            font-family: 'Quicksand', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen flex flex-col items-center overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="bg-[#FFF5F0] dark:bg-[#1E1814] flex justify-between items-center px-6 py-4 w-full sticky top-0 z-40">
+<div class="flex items-center gap-4">
+<button class="hover:bg-[#F5E1DB]/50 dark:hover:bg-[#2C2420]/50 transition-all p-2 rounded-full Active: scale-95 duration-200">
+<span class="material-symbols-outlined text-[#C4707E] dark:text-[#D4919C]">arrow_back</span>
+</button>
+<span class="font-serif text-2xl italic text-[#4A3228] dark:text-[#F5E1DB]">Lucro Caseiro</span>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-[#F5E1DB]">
+<img alt="Profile Avatar" class="w-full h-full object-cover" data-alt="close-up portrait of a friendly artisan woman in a neutral linen apron smiling softly in a sunlit kitchen studio" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsSzvnn11pMfOS3P8bsFFhkIo-Ey9IBM_vMR7ODVGTPH4yakMmA0L4tmUDT0Ryv4M5BpzzJg8Kynm1mypgc0nQQxylv1a07WHA-HxhezoYDAzZJYb9mSum0bSp4EGCZ6vpYwE5nQFXoz0TdeDnk454wRlU1qrvz0RlH0JAvAeYt83HLWPAErawqzbfJOtvO8IDpQQ3AyvJ-nZStU3rDpjlcwiDMw__OwWiKrIrrM_RQVfoR6etd5D0qjH3OOX0RZxt73pMBGEO0Xk"/>
+</div>
+</header>
+<main class="w-full max-w-2xl px-6 pt-8 pb-32 flex flex-col gap-10">
+<!-- Hero Section -->
+<div class="flex flex-col gap-2">
+<h1 class="font-serif text-4xl font-bold tracking-tight text-[#4A3228] dark:text-[#F5E1DB]">Novo cliente</h1>
+<p class="text-[#8B7355] font-medium max-w-md">Adicione um novo contato à sua rede de clientes para gerenciar encomendas e vendas.</p>
+</div>
+<!-- Form Section with Organic Layout -->
+<section class="relative">
+<!-- Decorative Organic Element -->
+<div class="absolute -right-16 -top-12 w-48 h-48 opacity-20 pointer-events-none">
+<img alt="decoration" class="w-full h-full object-contain rotate-12" data-alt="minimalist organic line drawing of a blooming botanical branch with soft leaves in earthy terracotta tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8ko9NS-5dqoo7GHfrCVx_qicP0YydcgWqAslYwIpC4BamvIFgkQyHsYgdcaVqEjzKziitNcWjxvPEEyuaAsGnryUAJXPd11OU_jAkksU4ZJ2FqOt8IVD1FQtN4q6BO5f4HhcFYgS42Hji2tE7JvNuMXBm_ftigtvFGa99stxboX5ndOxF4ZRtrvGTVg9LCZ8sdWRnpdZHOM5KLg12ZmrQTcd2JCQQVhq8AZ75mFJRZ8nOMPR3fYMw1DVeWWqztdOtt9xwFjfpsVY"/>
+</div>
+<form class="flex flex-col gap-8 relative z-10">
+<!-- Main Form Group -->
+<div class="bg-[#F5E1DB] p-8 rounded-3xl flex flex-col gap-6">
+<!-- Nome -->
+<div class="flex flex-col gap-2">
+<label class="font-serif text-lg text-[#8B7355] pl-1">Nome</label>
+<input class="w-full bg-white border-none rounded-[12px] px-5 py-4 text-[#4A3228] placeholder-[#8B7355]/50 focus:ring-2 focus:ring-[#C4707E]/20 transition-all font-medium" placeholder="Nome completo do cliente" type="text"/>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Telefone -->
+<div class="flex flex-col gap-2">
+<label class="font-serif text-lg text-[#8B7355] pl-1">Telefone</label>
+<input class="w-full bg-white border-none rounded-[12px] px-5 py-4 text-[#4A3228] placeholder-[#8B7355]/50 focus:ring-2 focus:ring-[#C4707E]/20 transition-all font-medium" placeholder="(00) 00000-0000" type="tel"/>
+</div>
+<!-- Aniversário -->
+<div class="flex flex-col gap-2">
+<label class="font-serif text-lg text-[#8B7355] pl-1">Aniversário</label>
+<input class="w-full bg-white border-none rounded-[12px] px-5 py-4 text-[#4A3228] focus:ring-2 focus:ring-[#C4707E]/20 transition-all font-medium" type="date"/>
+</div>
+</div>
+<!-- Endereço -->
+<div class="flex flex-col gap-2">
+<label class="font-serif text-lg text-[#8B7355] pl-1">Endereço</label>
+<input class="w-full bg-white border-none rounded-[12px] px-5 py-4 text-[#4A3228] placeholder-[#8B7355]/50 focus:ring-2 focus:ring-[#C4707E]/20 transition-all font-medium" placeholder="Rua, número, bairro e cidade" type="text"/>
+</div>
+<!-- Observações -->
+<div class="flex flex-col gap-2">
+<label class="font-serif text-lg text-[#8B7355] pl-1">Observações</label>
+<textarea class="w-full bg-white border-none rounded-[12px] px-5 py-4 text-[#4A3228] placeholder-[#8B7355]/50 focus:ring-2 focus:ring-[#C4707E]/20 transition-all font-medium resize-none" placeholder="Preferências, restrições alimentares ou notas importantes..." rows="4"></textarea>
+</div>
+</div>
+<!-- Action Section -->
+<div class="flex flex-col gap-4 mt-2">
+<button class="w-full bg-[#C4707E] text-white font-semibold py-5 rounded-[16px] text-lg hover:bg-[#C4707E]/90 active:scale-[0.98] transition-all flex justify-center items-center gap-2" type="submit">
+<span>Cadastrar</span>
+</button>
+<button class="w-full text-[#8B7355] font-medium py-2 hover:text-[#4A3228] transition-colors" type="button">
+                        Cancelar e voltar
+                    </button>
+</div>
+</form>
+</section>
+<!-- Decorative Footer Element -->
+<div class="flex justify-center opacity-40">
+<img alt="footer graphic" class="w-32 h-auto" data-alt="a simple hand-drawn illustration of a rolling pin and a whisk crossed together in soft sepia lines" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqbHO92QgTdSR9Aj0PH7DxPASLLg5CLszuFiMWX9iM3Deir_vp1APw2Y5hGu_TWVwBRtx2B_JCNvP0jVftuWpSkp6hGXffNtKKrE7ZZXRr_u1A4pHgqU88SDyX5M0LOrMWl5NDb-znClm8U1LZbwCu9rElY-pD957T2ndbIRLF2WFyFK3wRlpi3EPsqux2VKl_PjTUlrXxgIPlKPjJs62IC9oEEGw6OqdUKM2ZcTR3odXkoAUXJaUobzCt_Kt0JrzXSiaZUVNqeac"/>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-2 bg-[#FFF5F0]/70 dark:bg-[#1E1814]/70 backdrop-blur-md rounded-t-[24px]">
+<a class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#8B7355] px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined mb-1">home</span>
+<span class="font-sans text-xs uppercase tracking-widest">Início</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#F5E1DB] dark:bg-[#2C2420] text-[#C4707E] dark:text-[#D4919C] rounded-2xl px-5 py-2 subtle scale-98 transition-transform" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-sans text-xs uppercase tracking-widest font-bold">Clientes</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#8B7355] px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined mb-1">payments</span>
+<span class="font-sans text-xs uppercase tracking-widest">Vendas</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#8B7355] px-5 py-2 hover:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined mb-1">settings</span>
+<span class="font-sans text-xs uppercase tracking-widest">Ajustes</span>
+</a>
+</nav>
+</body></html>

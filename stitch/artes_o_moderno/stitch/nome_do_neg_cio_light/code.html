@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&amp;family=Quicksand:wght@400;500;600;700&amp;family=Poppins:wght@600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600&amp;family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-primary-fixed": "#3d0414",
+                        "surface-container-low": "#fcf2ed",
+                        "on-primary-fixed-variant": "#75303e",
+                        "on-background": "#1f1b18",
+                        "on-tertiary-fixed-variant": "#624000",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed-dim": "#fbb3bf",
+                        "on-tertiary-container": "#fffbff",
+                        "on-secondary-container": "#7a444e",
+                        "surface-variant": "#eae1dc",
+                        "tertiary": "#7d540c",
+                        "tertiary-container": "#996c25",
+                        "surface-container-highest": "#eae1dc",
+                        "on-tertiary-fixed": "#291800",
+                        "tertiary-fixed-dim": "#f4bd6e",
+                        "surface-dim": "#e1d8d3",
+                        "outline-variant": "#d8c1c3",
+                        "inverse-primary": "#ffb2bd",
+                        "error-container": "#ffdad6",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed": "#ffd9de",
+                        "surface-tint": "#924755",
+                        "primary-fixed-dim": "#ffb2bd",
+                        "inverse-on-surface": "#f9efea",
+                        "tertiary-fixed": "#ffddb2",
+                        "surface-bright": "#fff8f5",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed-variant": "#6b3741",
+                        "secondary": "#864e58",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed": "#360d17",
+                        "on-secondary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "on-primary-container": "#fffbff",
+                        "on-error": "#ffffff",
+                        "secondary-container": "#feb6c1",
+                        "primary-container": "#ac5d6a",
+                        "background": "#fff8f5",
+                        "on-surface": "#1f1b18",
+                        "surface-container-high": "#f0e6e1",
+                        "inverse-surface": "#342f2c",
+                        "surface": "#fff8f5",
+                        "primary": "#8f4552",
+                        "primary-fixed": "#ffd9dd",
+                        "outline": "#867274",
+                        "on-surface-variant": "#534345",
+                        "surface-container": "#f6ece7"
+                    },
+                    fontFamily: {
+                        "headline": ["Noto Serif", "serif"],
+                        "body": ["Plus Jakarta Sans", "sans-serif"],
+                        "label": ["Plus Jakarta Sans", "sans-serif"],
+                        "serif": ["Playfair Display", "serif"],
+                        "sans": ["Quicksand", "sans-serif"],
+                        "poppins": ["Poppins", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "3xl": "1.5rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #FFF5F0;
+            color: #4A3228;
+            font-family: 'Quicksand', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen flex flex-col items-center justify-start overflow-x-hidden">
+<!-- TopAppBar Mockup (Transactional/Onboarding context - back arrow only as per prompt structure) -->
+<header class="flex justify-between items-center px-6 py-6 w-full max-w-md">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#F5E1DB]/50 transition-colors active:scale-95">
+<span class="material-symbols-outlined text-[#C4707E]">arrow_back</span>
+</button>
+<div class="flex-1"></div>
+</header>
+<main class="flex-1 w-full max-w-md px-8 pt-4 pb-12 flex flex-col items-center text-center relative">
+<!-- Organic Illustration Section -->
+<div class="relative w-full h-48 mb-8 flex justify-center items-end">
+<!-- Asymmetric Illustration Placement -->
+<div class="absolute -top-4 -right-4 w-32 h-32 bg-[#F5E1DB] rounded-full blur-3xl opacity-60 -z-10"></div>
+<img alt="Cute shop illustration" class="w-56 h-auto object-contain z-10" data-alt="Minimalist flat illustration of a charming small boutique storefront with a soft pink awning and a warm brown wooden door on a cream background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyWw46YDU_DObNzWb8F_ICgU7BxvJo0NRkZ9jJktZw7NjLoAY7KmLXrNEdX5A0vt2knju1nQicl3-xOpb6eitaGas377Cz4UK_NA7OOMLF7A9dV3Remboj4YvrH9kI0MZmcHcEmZB38o5f7OZnUInLzwzM7jitxd9XzjwE2FSRftR2ugltH-5GGxkRNbouqk6bO1eXGcIHH5FEdPCkQtngWyDN9vWAP12m_3YtNrZXR18ritEndS-DQXfZqjJDVyE55rVzOloz8To"/>
+</div>
+<!-- Hero Typography -->
+<div class="space-y-3 mb-12">
+<h1 class="text-4xl font-serif italic font-bold text-[#4A3228] tracking-tight leading-tight">
+                Como se chama seu negocio?
+            </h1>
+<p class="text-lg font-sans font-medium text-[#8B7355]">
+                Relaxa, da pra mudar depois
+            </p>
+</div>
+<!-- Input Section -->
+<div class="w-full space-y-8">
+<div class="text-left">
+<label class="block font-serif italic text-lg text-[#8B7355] mb-2 px-1" for="business_name">
+                    Nome da marca
+                </label>
+<div class="relative">
+<input class="w-full bg-white border-none rounded-[12px] px-5 py-4 text-[#4A3228] placeholder-[#8B7355]/50 focus:ring-2 focus:ring-[#C4707E]/20 transition-all outline-none text-lg font-sans shadow-sm" id="business_name" placeholder="Ex: Doces da Maria" type="text"/>
+<!-- Tactile visual feedback: subtle surface shift -->
+<div class="absolute inset-0 rounded-[12px] pointer-events-none border border-[#F5E1DB]/50"></div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="space-y-6 pt-4">
+<button class="w-full bg-[#C4707E] text-white font-sans font-bold text-lg py-4 rounded-[16px] transition-all active:scale-95 hover:brightness-95">
+                    Continuar
+                </button>
+<a class="block text-[#8B7355] font-sans font-medium hover:text-[#4A3228] transition-colors" href="#">
+                    Pular por enquanto
+                </a>
+</div>
+</div>
+<!-- Decorative Element: Bleeding Illustration -->
+<div class="absolute bottom-4 -left-12 opacity-20 pointer-events-none">
+<img alt="Decorative cupcake" class="w-24 h-24 transform -rotate-12" data-alt="Soft hand-drawn organic illustration of a single cupcake with pink frosting in a minimal flat style with earthy tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoYF-ULx-gLCoLsAVtA0Xbz2Jq5tMQVdYsdWnZXy__3DG3Y64uzPaV71WGXSsPREYaiLFQS2on27Nb6mzgc3EvPjEEmPcIY1J70aMde4xyQTYTOpLjDkxVchZcKioy9PKpnYLhzz2Noo44JmKjlMJheKzV1Hd9hzZoiB-XmNt55dRkS9GWfqWU9E5M3srwpBuUw7vP3XsN8JXIjxQ1YwNxjFfAH5BvCBE2CvKi3hWa9y3B1zkbO7FrlQluRtzJDa6GBBcxzoaIUmA"/>
+</div>
+</main>
+<!-- Bottom spacing for mobile keyboard comfort -->
+<div class="h-8"></div>
+</body></html>

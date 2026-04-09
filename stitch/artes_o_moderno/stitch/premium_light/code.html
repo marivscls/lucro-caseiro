@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Lucro Caseiro - Premium</title>
+<!-- Google Fonts: Playfair Display (Headline), Quicksand (Body), Poppins (Numeric) -->
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&amp;family=Quicksand:wght@400;500;600&amp;family=Poppins:wght@700&amp;family=Noto+Serif:wght@700&amp;family=Plus+Jakarta+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-container": "#f6ece7",
+              "primary-fixed": "#ffd9dd",
+              "surface-container-highest": "#eae1dc",
+              "error": "#ba1a1a",
+              "on-tertiary-fixed-variant": "#624000",
+              "inverse-primary": "#ffb2bd",
+              "on-secondary-fixed": "#360d17",
+              "on-primary-fixed-variant": "#75303e",
+              "surface-container-high": "#f0e6e1",
+              "secondary-fixed-dim": "#fbb3bf",
+              "on-primary": "#ffffff",
+              "on-secondary-fixed-variant": "#6b3741",
+              "surface-variant": "#eae1dc",
+              "on-primary-container": "#fffbff",
+              "on-error": "#ffffff",
+              "inverse-on-surface": "#f9efea",
+              "tertiary-container": "#996c25",
+              "on-tertiary-container": "#fffbff",
+              "tertiary": "#7d540c",
+              "on-primary-fixed": "#3d0414",
+              "error-container": "#ffdad6",
+              "outline": "#867274",
+              "secondary": "#864e58",
+              "on-background": "#1f1b18",
+              "primary-container": "#ac5d6a",
+              "on-secondary-container": "#7a444e",
+              "surface-tint": "#924755",
+              "surface-dim": "#e1d8d3",
+              "on-surface-variant": "#534345",
+              "tertiary-fixed-dim": "#f4bd6e",
+              "surface-container-lowest": "#ffffff",
+              "secondary-fixed": "#ffd9de",
+              "on-tertiary": "#ffffff",
+              "surface-container-low": "#fcf2ed",
+              "primary": "#8f4552",
+              "on-secondary": "#ffffff",
+              "inverse-surface": "#342f2c",
+              "surface": "#fff8f5",
+              "outline-variant": "#d8c1c3",
+              "secondary-container": "#feb6c1",
+              "on-tertiary-fixed": "#291800",
+              "on-error-container": "#93000a",
+              "background": "#fff8f5",
+              "primary-fixed-dim": "#ffb2bd",
+              "tertiary-fixed": "#ffddb2",
+              "on-surface": "#1f1b18",
+              "surface-bright": "#fff8f5"
+            },
+            fontFamily: {
+              "headline": ["Playfair Display", "Noto Serif", "serif"],
+              "body": ["Quicksand", "Plus Jakarta Sans", "sans-serif"],
+              "label": ["Quicksand", "Plus Jakarta Sans", "sans-serif"],
+              "numeric": ["Poppins", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .font-playfair { font-family: 'Playfair Display', serif; }
+        .font-quicksand { font-family: 'Quicksand', sans-serif; }
+        .font-poppins { font-family: 'Poppins', sans-serif; }
+        
+        /* Custom Scrollbar for organic feel */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #FFF5F0; }
+        ::-webkit-scrollbar-thumb { background: #D4919C; border-radius: 10px; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-[#FFF5F0] text-[#4A3228] font-body min-h-screen pb-24">
+<!-- Top Navigation Anchor (Shared Component) -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-[#F5E1DB] transition-colors duration-300">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#C4707E]">menu</span>
+<span class="text-2xl font-playfair font-bold text-[#C4707E]">Lucro Caseiro</span>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden bg-white/20">
+<img alt="Profile" class="w-full h-full object-cover" data-alt="portrait of a professional pastry chef smiling in a bright kitchen setting, soft natural lighting, warm tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXY81oXu2vIUKFcHEIQg-vvJy-T9PWjXBDIkIv1v9Q8zkRqjjTZj0a8q7mxEqiMnlgbKXBsnFs72W6XNbyelbMcsdjTvEDOrO-hsbUaqdFuC7y1DdiIVBjv6TxYhn5oRuoqnDg-ckkdCc38PrzFKHHTE9e93p4qfzh7OjGUjqMfbRp5rvGtlsw2H4c4xoaks2NZYcCtmAsiOb08_KNsu-e62Ol67Gf0aRp0A08Clr1oM8NmXFUzHMfMohB1L8G2sDT9MhS_Ai2bWA"/>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-lg mx-auto space-y-8">
+<!-- Header Section with Illustration -->
+<section class="text-center space-y-4 relative pt-6">
+<div class="flex justify-center mb-2">
+<div class="relative">
+<span class="material-symbols-outlined text-6xl text-[#D4A054]" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+<!-- Decorative Star Cluster -->
+<span class="material-symbols-outlined absolute -top-2 -right-2 text-[#D4A054] text-xl">auto_awesome</span>
+<span class="material-symbols-outlined absolute top-4 -left-6 text-[#D4A054] text-sm">colors_spark</span>
+</div>
+</div>
+<h1 class="text-3xl font-playfair font-bold text-[#4A3228] tracking-tight">Seu negócio merece mais!</h1>
+<p class="text-[#8B7355] font-medium">Você usou <span class="text-[#4A3228] font-bold">28 de 30</span> vendas este mês</p>
+</section>
+<!-- Usage Limit Banners (Asymmetric Layout) -->
+<section class="space-y-4">
+<!-- Warning Banner -->
+<div class="bg-[#FFF9C4] p-5 rounded-2xl flex items-center gap-4 border-none transition-all hover:scale-[1.02]">
+<div class="bg-white/50 p-2 rounded-full">
+<span class="material-symbols-outlined text-[#D4A054]">priority_high</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold text-[#4A3228]">Quase no limite!</p>
+<div class="w-full bg-white/40 h-2 rounded-full mt-2 overflow-hidden">
+<div class="bg-[#D4A054] h-full w-[93%] rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Critical Banner -->
+<div class="bg-[#E07272]/20 p-5 rounded-2xl flex items-center gap-4 border-none transition-all hover:scale-[1.02]">
+<div class="bg-[#E07272] p-2 rounded-full">
+<span class="material-symbols-outlined text-white">block</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold text-[#4A3228]">Limite atingido!</p>
+<p class="text-xs text-[#4A3228]/70">Atualize para continuar registrando pedidos.</p>
+</div>
+</div>
+</section>
+<!-- Main Premium Benefits Card -->
+<div class="bg-[#F5E1DB] rounded-2xl p-8 relative overflow-hidden group">
+<!-- Organic Illustration Peek -->
+<div class="absolute -bottom-6 -right-6 opacity-10 group-hover:rotate-12 transition-transform duration-500">
+<span class="material-symbols-outlined text-9xl text-[#4A3228]">bakery_dining</span>
+</div>
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-[#D4A054]" style="font-variation-settings: 'FILL' 1;">stars</span>
+<h2 class="text-xl font-playfair font-bold text-[#D4A054]">Premium</h2>
+</div>
+<ul class="grid grid-cols-1 gap-y-4 relative z-10">
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#6BBF96] text-xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-[#4A3228] font-medium">Vendas ilimitadas</span>
+</li>
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#6BBF96] text-xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-[#4A3228] font-medium">Clientes ilimitados</span>
+</li>
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#6BBF96] text-xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-[#4A3228] font-medium">Receitas ilimitadas</span>
+</li>
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#B8A9D4] text-xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-[#4A3228] font-medium">Embalagens e rótulos ilimitados</span>
+</li>
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#89A5B5] text-xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-[#4A3228] font-medium">Relatórios com gráficos</span>
+</li>
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#89A5B5] text-xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-[#4A3228] font-medium">Exportar PDF e Excel</span>
+</li>
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#D4A054] text-xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-[#4A3228] font-medium">Templates premium</span>
+</li>
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#D4A054] text-xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-[#4A3228] font-medium">Suporte prioritário</span>
+</li>
+</ul>
+</div>
+<!-- Pricing Section -->
+<section class="space-y-6 text-center">
+<div class="bg-[#FFFBEA] p-8 rounded-2xl relative">
+<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#6BBF96] text-white px-4 py-1 rounded-full text-xs font-bold whitespace-nowrap">
+                    RECOMENDADO
+                </div>
+<div class="flex flex-col items-center">
+<div class="flex items-baseline gap-1">
+<span class="text-4xl font-poppins font-bold text-[#4A3228]">R$ 14,90</span>
+<span class="text-[#8B7355] text-sm">/mês</span>
+</div>
+<div class="mt-4 flex flex-col items-center gap-1">
+<span class="text-[#6BBF96] font-bold">ou R$ 119,90/ano</span>
+<span class="bg-[#FFF5F0] text-[#6BBF96] px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">economize 33%</span>
+</div>
+</div>
+</div>
+<div class="space-y-4 px-4">
+<button class="w-full bg-[#D4A054] text-white font-bold py-4 rounded-2xl active:scale-95 transition-all shadow-lg shadow-[#D4A054]/20">
+                    Assinar Premium
+                </button>
+<button class="w-full text-[#8B7355] font-medium text-sm py-2 hover:text-[#4A3228] transition-colors">
+                    Agora não
+                </button>
+</div>
+</section>
+<p class="text-center text-[10px] text-[#8B7355]/60 px-8">
+            A assinatura é renovada automaticamente. Cancele a qualquer momento nas configurações da sua conta.
+        </p>
+</main>
+<!-- Bottom Navigation Shell (Shared Component) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-4 pt-2 bg-[#FFF5F0]/70 backdrop-blur-lg rounded-t-[24px]">
+<div class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-quicksand text-[10px] font-medium">Início</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined" data-icon="menu_book">menu_book</span>
+<span class="font-quicksand text-[10px] font-medium">Receitas</span>
+</div>
+<!-- Active State for Premium -->
+<div class="flex flex-col items-center justify-center bg-[#F5E1DB] text-[#C4707E] rounded-[16px] px-5 py-2 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="workspace_premium" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+<span class="font-quicksand text-[10px] font-bold">Premium</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-quicksand text-[10px] font-medium">Perfil</span>
+</div>
+</nav>
+</body></html>

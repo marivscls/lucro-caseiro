@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Editor de Rótulo - Lucro Caseiro</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Playfair+Display:ital,wght@0,700;0,900;1,700&amp;family=Quicksand:wght@400;500;600;700&amp;family=Poppins:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-fixed-dim": "#f4bd6e",
+              "surface-dim": "#e1d8d3",
+              "primary-fixed-dim": "#ffb2bd",
+              "on-primary-fixed-variant": "#75303e",
+              "error-container": "#ffdad6",
+              "secondary": "#864e58",
+              "inverse-on-surface": "#f9efea",
+              "on-secondary": "#ffffff",
+              "on-surface": "#1f1b18",
+              "surface": "#fff8f5",
+              "on-secondary-fixed": "#360d17",
+              "on-primary-container": "#fffbff",
+              "primary": "#8f4552",
+              "on-tertiary-container": "#fffbff",
+              "on-primary-fixed": "#3d0414",
+              "on-error": "#ffffff",
+              "tertiary": "#7d540c",
+              "primary-container": "#ac5d6a",
+              "on-secondary-fixed-variant": "#6b3741",
+              "error": "#ba1a1a",
+              "surface-container-lowest": "#ffffff",
+              "surface-container": "#f6ece7",
+              "on-tertiary": "#ffffff",
+              "surface-bright": "#fff8f5",
+              "on-tertiary-fixed-variant": "#624000",
+              "surface-container-highest": "#eae1dc",
+              "on-primary": "#ffffff",
+              "outline-variant": "#d8c1c3",
+              "surface-container-high": "#f0e6e1",
+              "primary-fixed": "#ffd9dd",
+              "outline": "#867274",
+              "on-tertiary-fixed": "#291800",
+              "surface-container-low": "#fcf2ed",
+              "tertiary-container": "#996c25",
+              "tertiary-fixed": "#ffddb2",
+              "on-background": "#1f1b18",
+              "on-surface-variant": "#534345",
+              "secondary-container": "#feb6c1",
+              "inverse-surface": "#342f2c",
+              "secondary-fixed": "#ffd9de",
+              "on-error-container": "#93000a",
+              "inverse-primary": "#ffb2bd",
+              "surface-variant": "#eae1dc",
+              "surface-tint": "#924755",
+              "background": "#fff8f5",
+              "on-secondary-container": "#7a444e",
+              "secondary-fixed-dim": "#fbb3bf",
+              "custom-dark-bg": "#1E1814",
+              "custom-dark-surface": "#2C2420",
+              "custom-brand-pink": "#C4707E"
+            },
+            fontFamily: {
+              "headline": ["Noto Serif"],
+              "body": ["Plus Jakarta Sans"],
+              "label": ["Plus Jakarta Sans"],
+              "serif": ["Playfair Display"],
+              "sans": ["Quicksand"],
+              "numeric": ["Poppins"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #1E1814;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body text-surface-container-low selection:bg-primary-container selection:text-white">
+<!-- Top Navigation Bar (Shared Component Strategy) -->
+<header class="flex justify-between items-center px-6 py-4 w-full top-0 z-50 bg-[#1E1814]">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#D4919C] text-2xl">menu</span>
+<h1 class="font-serif italic text-2xl text-[#D4919C]">Lucro Caseiro</h1>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-[#D4919C]/30">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="close up portrait of a smiling female artisan baker in a dimly lit rustic kitchen" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWfTSwahxfXweJpX1b57bLm2RRrDZi9yq_GSrpjO3HBoTYKKjxcSIGkuQ8uD3VmnDq6hS4exrDrPGzebsZwHgKP-38RpMgUwCSjGzaeIOQ4oFPRQPcuMhzms3wxf78rAoizrsmMnhy2xbOBaHXzppszmz-Cy-OK1QN-QjfKXr58nAWqzdduR0wDIKvb5H9BtmKaUv69RwFsZyhfw7qYTKiyVAzirD0Lu1XYOPZeXvMBS78tGi0UQSHz6yS1Pf_940s1LWXs5PI81A"/>
+</div>
+</header>
+<main class="pb-32 px-6 pt-4 max-w-5xl mx-auto">
+<!-- Title Section -->
+<section class="mb-8">
+<h2 class="font-serif text-4xl text-[#F5E1DB] tracking-tight">Novo rótulo</h2>
+<p class="font-sans text-[#8B7355] mt-1">Personalize sua marca artesanal</p>
+</section>
+<!-- Template Selector -->
+<section class="mb-10 overflow-hidden">
+<h3 class="font-serif text-lg text-[#F5E1DB] mb-4">Escolha um estilo</h3>
+<div class="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
+<!-- Card 1 (Active) -->
+<div class="flex-shrink-0 w-[100px] h-[130px] bg-[#2C2420] rounded-[16px] p-2 border-2 border-[#C4707E] flex flex-col items-center justify-between cursor-pointer group">
+<div class="w-full h-16 bg-white/10 rounded-lg overflow-hidden relative">
+<div class="absolute inset-2 border border-white/20 rounded"></div>
+<div class="absolute bottom-2 left-2 right-2 h-1 bg-white/20"></div>
+</div>
+<span class="font-sans text-[10px] text-[#F5E1DB] uppercase tracking-widest text-center">Minimal</span>
+</div>
+<!-- Card 2 -->
+<div class="flex-shrink-0 w-[100px] h-[130px] bg-[#2C2420] rounded-[16px] p-2 flex flex-col items-center justify-between cursor-pointer hover:bg-[#362D28] transition-colors">
+<div class="w-full h-16 bg-white/5 rounded-lg overflow-hidden relative">
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full border border-white/10"></div>
+</div>
+<span class="font-sans text-[10px] text-[#8B7355] uppercase tracking-widest text-center">Botânico</span>
+</div>
+<!-- Card 3 -->
+<div class="flex-shrink-0 w-[100px] h-[130px] bg-[#2C2420] rounded-[16px] p-2 flex flex-col items-center justify-between cursor-pointer hover:bg-[#362D28] transition-colors">
+<div class="w-full h-16 bg-white/5 rounded-lg overflow-hidden relative flex items-center justify-center">
+<div class="w-10 h-10 border-2 border-dashed border-white/10"></div>
+</div>
+<span class="font-sans text-[10px] text-[#8B7355] uppercase tracking-widest text-center">Rústico</span>
+</div>
+<!-- Card 4 -->
+<div class="flex-shrink-0 w-[100px] h-[130px] bg-[#2C2420] rounded-[16px] p-2 flex flex-col items-center justify-between cursor-pointer hover:bg-[#362D28] transition-colors">
+<div class="w-full h-16 bg-white/5 rounded-lg overflow-hidden relative">
+<div class="absolute inset-y-0 left-2 w-1 bg-white/10"></div>
+</div>
+<span class="font-sans text-[10px] text-[#8B7355] uppercase tracking-widest text-center">Moderno</span>
+</div>
+<!-- Card 5 -->
+<div class="flex-shrink-0 w-[100px] h-[130px] bg-[#2C2420] rounded-[16px] p-2 flex flex-col items-center justify-between cursor-pointer hover:bg-[#362D28] transition-colors">
+<div class="w-full h-16 bg-white/5 rounded-lg overflow-hidden relative">
+<div class="absolute inset-2 rounded-full border border-white/10"></div>
+</div>
+<span class="font-sans text-[10px] text-[#8B7355] uppercase tracking-widest text-center">Clássico</span>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+<!-- Form Section -->
+<section class="space-y-6">
+<div class="space-y-2">
+<label class="font-serif text-[#F5E1DB] block ml-1">Nome do produto</label>
+<input class="w-full bg-[#2C2420] border-none rounded-[12px] p-4 text-[#F5E1DB] placeholder-[#8B7355] focus:ring-2 focus:ring-[#C4707E] transition-all" placeholder="Ex: Geleia de Morango Silvestre" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="font-serif text-[#F5E1DB] block ml-1">Ingredientes</label>
+<textarea class="w-full bg-[#2C2420] border-none rounded-[12px] p-4 text-[#F5E1DB] placeholder-[#8B7355] focus:ring-2 focus:ring-[#C4707E] transition-all resize-none" placeholder="Liste os ingredientes detalhadamente..." rows="4"></textarea>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-2">
+<label class="font-serif text-[#F5E1DB] block ml-1">Fabricação</label>
+<input class="w-full bg-[#2C2420] border-none rounded-[12px] p-4 text-[#F5E1DB] placeholder-[#8B7355] focus:ring-2 focus:ring-[#C4707E] transition-all" placeholder="DD/MM/AAAA" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="font-serif text-[#F5E1DB] block ml-1">Validade</label>
+<input class="w-full bg-[#2C2420] border-none rounded-[12px] p-4 text-[#F5E1DB] placeholder-[#8B7355] focus:ring-2 focus:ring-[#C4707E] transition-all" placeholder="DD/MM/AAAA" type="text"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="font-serif text-[#F5E1DB] block ml-1">Produtor</label>
+<input class="w-full bg-[#2C2420] border-none rounded-[12px] p-4 text-[#F5E1DB] placeholder-[#8B7355] focus:ring-2 focus:ring-[#C4707E] transition-all" placeholder="Seu nome ou nome da empresa" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="font-serif text-[#F5E1DB] block ml-1">Telefone de contato</label>
+<input class="w-full bg-[#2C2420] border-none rounded-[12px] p-4 text-[#F5E1DB] placeholder-[#8B7355] focus:ring-2 focus:ring-[#C4707E] transition-all" placeholder="(00) 00000-0000" type="tel"/>
+</div>
+</section>
+<!-- Preview Section -->
+<section class="lg:sticky lg:top-24">
+<div class="mb-4 flex justify-between items-end">
+<h3 class="font-serif text-lg text-[#F5E1DB]">Visualização</h3>
+<span class="font-sans text-[11px] uppercase tracking-widest text-[#8B7355]">Escala Real 1:1</span>
+</div>
+<!-- Main Label Preview Card -->
+<div class="w-full aspect-[3/4] bg-white rounded-[24px] shadow-2xl overflow-hidden relative flex flex-col items-center p-8 text-[#4A3228]">
+<!-- Decorative Element -->
+<div class="absolute top-0 right-0 w-32 h-32 opacity-10 pointer-events-none">
+<img class="w-full h-full object-contain rotate-12" data-alt="hand drawn botanical illustration of strawberry leaves and fruit in soft sepia tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXNORuGma7MOKFNni8VBYn1Fv72d-JQB-Qxzp44dBS0KCY8koSq678B9JPL74f4A_Qg1TMZQAtaaktL1xrbTgiFsU4BjGLHK4DzL9sCotV95-jBCnqDnsNfDLUoH3-GxsFZueoJEfPL424PoBJdn7ZVCHvEJ_1VthjDOpVJftU5l7msnqm7x_SKEvQbPVls-04qlRepspn5P3hTuic5CgWEOqtCn8JrLnbbmZEoDtg4ZpmfGGHpmdqR4nLXtmde6o6Cf6YR2jftF4"/>
+</div>
+<!-- Label Header -->
+<div class="mt-8 text-center border-b-2 border-[#4A3228]/10 pb-4 w-full">
+<p class="font-serif italic text-sm text-[#C4707E] mb-1">Feito com carinho por</p>
+<p class="font-serif text-xl tracking-tighter uppercase font-bold">Atelier de Sabores</p>
+</div>
+<!-- Product Name -->
+<div class="flex-grow flex flex-col justify-center text-center">
+<h4 class="font-serif text-4xl leading-tight mb-4">Geleia de Morango Silvestre</h4>
+<div class="inline-block px-4 py-1 border border-[#4A3228] rounded-full font-sans text-[10px] uppercase tracking-[0.2em]">Produto Artesanal</div>
+</div>
+<!-- Label Footer Data -->
+<div class="w-full grid grid-cols-2 gap-4 text-[10px] font-sans border-t-2 border-[#4A3228]/10 pt-4">
+<div class="space-y-1">
+<p class="uppercase tracking-wider font-bold">Ingredientes</p>
+<p class="leading-relaxed opacity-70">Morangos selecionados, açúcar demerara orgânico, suco de limão siciliano, pectina natural.</p>
+</div>
+<div class="space-y-2 text-right">
+<div>
+<p class="uppercase tracking-wider font-bold">Fabricado em</p>
+<p class="opacity-70 font-numeric">15/05/2024</p>
+</div>
+<div>
+<p class="uppercase tracking-wider font-bold">Contato</p>
+<p class="opacity-70 font-numeric">(11) 98765-4321</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Button -->
+<button class="w-full mt-8 bg-[#C4707E] text-white font-sans font-bold py-5 rounded-[16px] text-lg hover:opacity-90 active:scale-95 transition-all shadow-lg">
+                    Criar rótulo
+                </button>
+</section>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Shared Component Strategy) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#1E1814]/70 backdrop-blur-xl">
+<div class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 hover:text-[#C4707E] transition-colors active:scale-90 duration-150">
+<span class="material-symbols-outlined mb-1">inventory_2</span>
+<span class="font-sans text-[11px] font-medium tracking-wide uppercase">Estoque</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#2C2420] text-[#C4707E] rounded-[20px] px-5 py-2 active:scale-90 duration-150">
+<span class="material-symbols-outlined mb-1">label</span>
+<span class="font-sans text-[11px] font-medium tracking-wide uppercase">Editor</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 hover:text-[#C4707E] transition-colors active:scale-90 duration-150">
+<span class="material-symbols-outlined mb-1">payments</span>
+<span class="font-sans text-[11px] font-medium tracking-wide uppercase">Lucros</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#8B7355] px-5 py-2 hover:text-[#C4707E] transition-colors active:scale-90 duration-150">
+<span class="material-symbols-outlined mb-1">settings</span>
+<span class="font-sans text-[11px] font-medium tracking-wide uppercase">Ajustes</span>
+</div>
+</nav>
+</body></html>

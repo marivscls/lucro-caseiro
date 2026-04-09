@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&amp;family=Quicksand:wght@300;400;500;600;700&amp;family=Poppins:wght@600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-tint": "#924755",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#3d0414",
+                        "inverse-primary": "#ffb2bd",
+                        "tertiary": "#7d540c",
+                        "on-primary-container": "#fffbff",
+                        "secondary-container": "#feb6c1",
+                        "on-tertiary": "#ffffff",
+                        "primary": "#C4707E",
+                        "on-tertiary-fixed-variant": "#624000",
+                        "on-primary-fixed-variant": "#75303e",
+                        "on-tertiary-fixed": "#291800",
+                        "on-secondary-fixed-variant": "#6b3741",
+                        "on-surface-variant": "#F5E1DB",
+                        "inverse-on-surface": "#f9efea",
+                        "inverse-surface": "#342f2c",
+                        "error-container": "#ffdad6",
+                        "surface-bright": "#2C2420",
+                        "primary-fixed": "#ffd9dd",
+                        "on-background": "#F5E1DB",
+                        "surface-container": "#2C2420",
+                        "surface-container-high": "#342f2c",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed": "#360d17",
+                        "surface-variant": "#2C2420",
+                        "on-error": "#ffffff",
+                        "on-secondary-container": "#7a444e",
+                        "on-surface": "#F5E1DB",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed-dim": "#fbb3bf",
+                        "surface-container-low": "#1E1814",
+                        "surface-dim": "#1E1814",
+                        "secondary-fixed": "#ffd9de",
+                        "outline-variant": "rgba(216, 193, 195, 0.15)",
+                        "surface": "#1E1814",
+                        "secondary": "#D4919C",
+                        "surface-container-lowest": "#120e0c",
+                        "tertiary-container": "#996c25",
+                        "on-tertiary-container": "#fffbff",
+                        "primary-container": "#ac5d6a",
+                        "tertiary-fixed": "#ffddb2",
+                        "tertiary-fixed-dim": "#f4bd6e",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed-dim": "#ffb2bd",
+                        "outline": "#8B7355",
+                        "surface-container-highest": "#3d342f",
+                        "background": "#1E1814"
+                    },
+                    fontFamily: {
+                        "serif": ["Playfair Display", "serif"],
+                        "sans": ["Quicksand", "sans-serif"],
+                        "data": ["Poppins", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "1.4rem",
+                        "2xl": "1.25rem",
+                        "3xl": "2rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #1E1814;
+            color: #F5E1DB;
+            font-family: 'Quicksand', sans-serif;
+        }
+        .recipe-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .editorial-header {
+            letter-spacing: -0.02em;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen pb-32">
+<!-- TopAppBar Shell -->
+<header class="fixed top-0 w-full z-50 bg-[#1E1814]/70 backdrop-blur-md flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#D4919C]">menu</span>
+<h1 class="font-serif italic text-[#F5E1DB] text-2xl">Lucro Caseiro</h1>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container-high border-2 border-primary/20 overflow-hidden">
+<img alt="Foto de perfil do empreendedor" class="w-full h-full object-cover" data-alt="portrait of a smiling woman in a warm kitchen with soft lighting and professional chef attire" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEY8tJlrTz5vgCQjpDryLs6d-n0WzNudn6yVYwOYVk_frkHFeqpiDPr_OfINfYeueg3tX0QLfq3PZ_kZQ6ze8FknSg5_N8sHbho5tJ4Phu172ahvk8QOIXtMSYkIVBFoHYfeKeyyar7c2EuYNNlGSehFmfpmfqaDxK6kR6v1qH1LFjwAyvm9UdEjdqZdmp9jP96rO3i3zxILHL9wz4hBAiSNJYwJu8OQIztNRSlGECnVaUeVLVIIH3Fi3xZT2DElF_FMFFhfmvkxk"/>
+</div>
+</header>
+<main class="pt-24 px-6 max-w-7xl mx-auto">
+<!-- Hero Section -->
+<header class="mb-10">
+<h2 class="font-serif text-5xl md:text-6xl text-[#F5E1DB] editorial-header mb-2">Receitas</h2>
+<p class="font-sans text-[#8B7355] text-lg">Gerencie seus preparos e margens de lucro.</p>
+</header>
+<!-- Categories Scroller -->
+<div class="flex gap-3 overflow-x-auto pb-6 no-scrollbar">
+<button class="flex-shrink-0 px-6 py-2.5 rounded-[12px] bg-primary text-white font-sans font-semibold text-sm transition-transform active:scale-95 duration-200">
+                Todas
+            </button>
+<button class="flex-shrink-0 px-6 py-2.5 rounded-[12px] bg-surface-container text-[#8B7355] font-sans font-medium text-sm hover:opacity-80 transition-opacity active:scale-95 duration-200">
+                Bolos
+            </button>
+<button class="flex-shrink-0 px-6 py-2.5 rounded-[12px] bg-surface-container text-[#8B7355] font-sans font-medium text-sm hover:opacity-80 transition-opacity active:scale-95 duration-200">
+                Doces
+            </button>
+<button class="flex-shrink-0 px-6 py-2.5 rounded-[12px] bg-surface-container text-[#8B7355] font-sans font-medium text-sm hover:opacity-80 transition-opacity active:scale-95 duration-200">
+                Salgados
+            </button>
+<button class="flex-shrink-0 px-6 py-2.5 rounded-[12px] bg-surface-container text-[#8B7355] font-sans font-medium text-sm hover:opacity-80 transition-opacity active:scale-95 duration-200">
+                Sazonais
+            </button>
+</div>
+<!-- Recipe Canvas (Bento-inspired Grid) -->
+<div class="recipe-grid">
+<!-- Recipe Card 1 -->
+<div class="group relative overflow-hidden bg-surface-container rounded-[24px] p-6 flex flex-col justify-between min-h-[220px] transition-all hover:bg-surface-container-high">
+<div class="relative z-10">
+<h3 class="font-serif text-2xl font-bold text-[#F5E1DB] mb-3 leading-tight">Bolo de Cenoura com Brigadeiro</h3>
+<div class="flex flex-col gap-1">
+<span class="font-sans font-semibold text-[#6BBF96] flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">payments</span>
+                            Custo: R$ 1,20/un
+                        </span>
+<span class="font-sans text-[#8B7355] flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">rebase_edit</span>
+                            Rende: 50 unidades
+                        </span>
+</div>
+</div>
+<!-- Organic Illustration Masked -->
+<div class="absolute -bottom-4 -right-4 w-32 h-32 opacity-20 pointer-events-none transform group-hover:scale-110 transition-transform duration-500">
+<img class="w-full h-full object-contain filter grayscale invert" data-alt="minimalist flat illustration style drawing of a simple cake slice with organic brush strokes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5K5bCXOWU2cebzR0fMsDx5LOgTWNSQw06rMtfyUarnFPe_nHenu0hklfX4Ql6hIVKxm1JHu4OqPQgtFWf37HQR027WJ0BUUQBmlPTi6Od3GCBd-8MzWQ1Y_dFEQ6aNtq83n20v-3_yTk6qiN5P9RCYd5PkVj1WGFTRbur1N_RR-2vYC7hm_d7GF2_lDyMhfgQDQjcpOew0eHpWel04LtxHpNhlc40hKhdLokCnqvF6K5xxHvPJFlAeJfh6AHYQog5Zd6JfiG-N1s"/>
+</div>
+<div class="mt-6 flex justify-end">
+<button class="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+</div>
+<!-- Recipe Card 2 (Highlight/Premium) -->
+<div class="group relative overflow-hidden bg-surface-container rounded-[24px] p-6 flex flex-col justify-between min-h-[220px] transition-all hover:bg-surface-container-high border border-primary/10">
+<div class="relative z-10">
+<div class="flex justify-between items-start">
+<h3 class="font-serif text-2xl font-bold text-[#F5E1DB] mb-3 leading-tight max-w-[70%]">Brownie de Nozes Premium</h3>
+<span class="bg-[#D4A054]/20 text-[#D4A054] text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">Top Venda</span>
+</div>
+<div class="flex flex-col gap-1">
+<span class="font-sans font-semibold text-[#6BBF96] flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">payments</span>
+                            Custo: R$ 2,45/un
+                        </span>
+<span class="font-sans text-[#8B7355] flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">rebase_edit</span>
+                            Rende: 24 unidades
+                        </span>
+</div>
+</div>
+<div class="absolute -bottom-6 -right-2 w-40 h-40 opacity-15 pointer-events-none transform group-hover:-rotate-12 transition-transform duration-700">
+<img class="w-full h-full object-contain filter grayscale invert" data-alt="flat vector style aesthetic illustration of chocolate chunks and cocoa beans on a plain background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkr7a9BqT5H4Q1QexmS4CWozSfkEB8oZBQHdwu3EyzxUu74MJWcW5qbXOITpvSRxm8t6rliH7viAQ3GIP4C3V03MHi2NBXjCkgKJrJs-6TXjgHNMp3l7Lk2jtsD0uLZEdcFXTjXSn_fLMs-qGWc2qW_hA-YOvt8TBqy-mHL9GL3BNHz7yLgm6HW0qaEVCnykwH3C2F4NHp09y7Q22yZuZWOQ0qkV2jSlhe9Z_HIVLjVg5BdiQRSYrjKZfzKsdY4fZ8wu-JqpKA-z4"/>
+</div>
+<div class="mt-6 flex justify-end">
+<button class="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+</div>
+<!-- Recipe Card 3 -->
+<div class="group relative overflow-hidden bg-surface-container rounded-[24px] p-6 flex flex-col justify-between min-h-[220px] transition-all hover:bg-surface-container-high">
+<div class="relative z-10">
+<h3 class="font-serif text-2xl font-bold text-[#F5E1DB] mb-3 leading-tight">Empada de Frango Cremosa</h3>
+<div class="flex flex-col gap-1">
+<span class="font-sans font-semibold text-[#6BBF96] flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">payments</span>
+                            Custo: R$ 0,85/un
+                        </span>
+<span class="font-sans text-[#8B7355] flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">rebase_edit</span>
+                            Rende: 100 unidades
+                        </span>
+</div>
+</div>
+<div class="absolute -bottom-2 -right-4 w-32 h-32 opacity-20 pointer-events-none transform group-hover:scale-105 transition-transform duration-500">
+<img class="w-full h-full object-contain filter grayscale invert" data-alt="minimalist outline of a chef whisk and rolling pin in a clean vector aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFeOsvTE459cZa4UFCCb3SIyyAtJ_Vpk1WayOGQKjzG2V--WF-5Eb916a7ZNe8FSAx37zl3BNISOc-PGzyqPpCP8rq3QTfZkSbHFaIl8sB52o1ILcUV-1yiYUosger564EsiM9EO-OEa2ogKe5PYp3QndgStdthAPuZi3MizFRw-uYSLZ2OiMntDWfcroF74u9a_A_KrtEzGCoP7uGy5DQ5o0D06LL0fmXUFbZaCw_UzlHdDjMMPhreTyANQArwMwo1VH2cRXo2wg"/>
+</div>
+<div class="mt-6 flex justify-end">
+<button class="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+</div>
+<!-- Recipe Card 4 -->
+<div class="group relative overflow-hidden bg-surface-container rounded-[24px] p-6 flex flex-col justify-between min-h-[220px] transition-all hover:bg-surface-container-high">
+<div class="relative z-10">
+<h3 class="font-serif text-2xl font-bold text-[#F5E1DB] mb-3 leading-tight">Cookie de Baunilha e Chocolate</h3>
+<div class="flex flex-col gap-1">
+<span class="font-sans font-semibold text-[#6BBF96] flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">payments</span>
+                            Custo: R$ 0,98/un
+                        </span>
+<span class="font-sans text-[#8B7355] flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">rebase_edit</span>
+                            Rende: 40 unidades
+                        </span>
+</div>
+</div>
+<div class="absolute -bottom-4 -right-2 w-36 h-36 opacity-10 pointer-events-none transform group-hover:translate-x-2 transition-transform duration-500">
+<img class="w-full h-full object-contain filter grayscale invert" data-alt="simple cookie icon in a vintage hand-drawn style with organic textures" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-cvubY65JmQH2MhbVd5fT_uwvleQZPHtlnsI7ori8ExOFyF7jYAOpi57GWSZPrdRWdV17uHc_OVeVm2PS2NGXzVJr_ExLR785FD8A6_Ct-8jWasowiI5Unso4myBN7VNkilKQDwGuHbkDfoQbeiwJQnQEd5L0dQ74Dhn1k68WrryLdBq1G280icGJkpIVp8YIgqZoVarl1_f-Kia_zqyk0muQFxTBisIWoyoiz2gjS2yG3Uy5KJmfmY6GI5yqeNFahqITLadtGvQ"/>
+</div>
+<div class="mt-6 flex justify-end">
+<button class="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar Shell -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-2 bg-[#1E1814]/80 backdrop-blur-xl z-50 rounded-t-[32px]">
+<a class="flex flex-col items-center justify-center text-[#C4707E] bg-[#2C2420] rounded-2xl px-5 py-2 active:scale-90 transition-transform duration-300" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">receipt_long</span>
+<span class="font-sans text-[11px] font-medium mt-1">Receitas</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] opacity-60 hover:bg-[#2C2420]/50 rounded-2xl px-4 py-2 transition-opacity" href="#">
+<span class="material-symbols-outlined">local_mall</span>
+<span class="font-sans text-[11px] font-medium mt-1">Vendas</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] opacity-60 hover:bg-[#2C2420]/50 rounded-2xl px-4 py-2 transition-opacity" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-sans text-[11px] font-medium mt-1">Custos</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] opacity-60 hover:bg-[#2C2420]/50 rounded-2xl px-4 py-2 transition-opacity" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-sans text-[11px] font-medium mt-1">Perfil</span>
+</a>
+</nav>
+<!-- FAB Suppression: Not rendered as it's a detail list screen -->
+</body></html>

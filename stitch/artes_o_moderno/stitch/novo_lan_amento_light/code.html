@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Poppins:wght@700&amp;family=Playfair+Display:wght@700;900&amp;family=Quicksand:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#C4707E",
+              "primary-container": "#ac5d6a",
+              "secondary": "#D4919C",
+              "background": "#FFF5F0",
+              "surface": "#F5E1DB",
+              "on-surface": "#4A3228",
+              "text-main": "#4A3228",
+              "text-sub": "#8B7355",
+              "success-mint": "#6BBF96",
+              "alert-coral": "#E07272",
+              "surface-white": "#FFFFFF"
+            },
+            fontFamily: {
+              "serif": ["Noto Serif", "serif"],
+              "display": ["Playfair Display", "serif"],
+              "sans": ["Quicksand", "sans-serif"],
+              "numeric": ["Poppins", "sans-serif"]
+            },
+            borderRadius: {
+              "sm": "12px",
+              "md": "16px",
+              "lg": "20px",
+              "xl": "24px",
+              "full": "9999px"
+            },
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        -webkit-tap-highlight-color: transparent;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background min-h-screen font-sans text-text-main overflow-x-hidden pb-32">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-6 py-4 max-w-screen-xl mx-auto bg-[#FFF5F0] dark:bg-[#1E1814]">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface">
+<img alt="Small business owner profile picture" class="w-full h-full object-cover" data-alt="close-up portrait of a smiling woman in a warm lit artisanal kitchen wearing a linen apron" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAO8IQJoDnVIl5rjQRXw4PZJ-BQbQfocqHoOD4qQ5Es2uSCi-07mtl2h77Gt0X-lJwKX3oDRay4ul8NAEAswq5FHUdGA455MpmxE63jzXUHU1ZiqzYJTRwckaBmMoeXG1GfU2ozOo3HCboFxGoIKXjTwyp8fbPbXh0GauzS_cfrQAqLlUT3z1Y_6yLamumdI1JhhguPPgm685_3SrOICStOzjqzhlyHcplsm83k44UUt7tc4XQ5P629ktxjsTXjfP0QoVT4En7nNE8"/>
+</div>
+<span class="font-serif italic text-[#C4707E] dark:text-[#D4919C] text-xl">Atelier Finance</span>
+</div>
+<div class="text-[#C4707E] dark:text-[#D4919C] hover:opacity-80 transition-opacity cursor-pointer">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</div>
+</header>
+<div class="bg-[#F5E1DB] dark:bg-[#2C2420] h-px w-full opacity-20"></div>
+<main class="max-w-md mx-auto px-6 pt-10 relative">
+<!-- Title Section -->
+<div class="mb-10 text-center">
+<h1 class="font-serif text-3xl font-bold text-text-main mb-2">Novo lancamento</h1>
+<p class="font-sans text-text-sub text-sm">Registre sua movimentação de hoje</p>
+</div>
+<!-- Centralized Toggle -->
+<div class="flex justify-center mb-10">
+<div class="inline-flex bg-surface p-1 rounded-sm overflow-hidden">
+<button class="px-8 py-2.5 rounded-sm font-semibold text-sm transition-all duration-200 bg-success-mint text-white">
+                    Entrada
+                </button>
+<button class="px-8 py-2.5 rounded-sm font-semibold text-sm transition-all duration-200 text-text-sub hover:bg-white/50">
+                    Saida
+                </button>
+</div>
+</div>
+<!-- Value Input -->
+<div class="mb-10">
+<div class="bg-surface rounded-md p-8 flex flex-col items-center justify-center">
+<span class="font-sans text-xs uppercase tracking-widest text-text-sub mb-2">Valor Total</span>
+<input class="bg-transparent border-none text-center font-numeric text-4xl text-text-main focus:ring-0 w-full" readonly="" type="text" value="R$ 0,00"/>
+</div>
+</div>
+<!-- Description & Date Form -->
+<div class="space-y-6">
+<div class="group">
+<label class="block font-serif text-text-sub text-sm mb-2 ml-1">Descricao</label>
+<input class="w-full bg-surface-white border-none rounded-sm px-5 py-4 text-text-main focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-text-sub/40" placeholder="Ex: Venda de Bolo de Rolo" type="text"/>
+</div>
+<div class="group">
+<label class="block font-serif text-text-sub text-sm mb-2 ml-1">Data</label>
+<div class="relative">
+<input class="w-full bg-surface-white border-none rounded-sm px-5 py-4 text-text-main focus:ring-2 focus:ring-primary/20 transition-all pr-12" readonly="" type="text" value="12 de Outubro, 2023"/>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-primary" data-icon="calendar_today">calendar_today</span>
+</div>
+</div>
+<!-- Categories Pills -->
+<div class="py-4">
+<label class="block font-serif text-text-sub text-sm mb-4 ml-1">Categorias</label>
+<div class="flex flex-wrap gap-3">
+<button class="bg-primary text-background px-5 py-2.5 rounded-sm text-sm font-medium transition-all transform active:scale-95">Material</button>
+<button class="bg-surface text-text-sub px-5 py-2.5 rounded-sm text-sm font-medium hover:bg-primary/10 transition-all transform active:scale-95">Embalagem</button>
+<button class="bg-surface text-text-sub px-5 py-2.5 rounded-sm text-sm font-medium hover:bg-primary/10 transition-all transform active:scale-95">Transporte</button>
+<button class="bg-surface text-text-sub px-5 py-2.5 rounded-sm text-sm font-medium hover:bg-primary/10 transition-all transform active:scale-95">Taxa</button>
+<button class="bg-surface text-text-sub px-5 py-2.5 rounded-sm text-sm font-medium hover:bg-primary/10 transition-all transform active:scale-95">Utilidade</button>
+<button class="bg-surface text-text-sub px-5 py-2.5 rounded-sm text-sm font-medium hover:bg-primary/10 transition-all transform active:scale-95">Outro</button>
+</div>
+</div>
+</div>
+<!-- Main CTA -->
+<div class="mt-12 pb-10">
+<button class="w-full bg-primary text-white py-5 rounded-md font-semibold text-lg shadow-sm hover:opacity-90 active:scale-95 transition-all flex justify-center items-center gap-3">
+<span>Salvar lancamento</span>
+</button>
+</div>
+<!-- Small Flat Illustration -->
+<div class="absolute -bottom-4 -left-8 w-24 h-24 opacity-60 pointer-events-none">
+<div class="relative w-full h-full">
+<!-- Abstract coin illustration using shapes -->
+<div class="absolute bottom-0 left-0 w-12 h-12 bg-primary/20 rounded-full"></div>
+<div class="absolute bottom-2 left-6 w-10 h-10 bg-secondary/30 rounded-full"></div>
+<div class="absolute bottom-6 left-2 w-8 h-8 bg-surface border-2 border-primary/20 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="payments">payments</span>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#FFF5F0]/70 dark:bg-[#1E1814]/70 backdrop-blur-md rounded-t-[32px]">
+<a class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/60 px-5 py-2 hover:text-[#C4707E] transition-colors active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="dashboard">dashboard</span>
+<span class="font-sans font-semibold text-[10px] tracking-wide uppercase">Overview</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/60 px-5 py-2 hover:text-[#C4707E] transition-colors active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="receipt_long">receipt_long</span>
+<span class="font-sans font-semibold text-[10px] tracking-wide uppercase">Ledger</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#C4707E] dark:text-[#D4919C] bg-[#F5E1DB] dark:bg-[#2C2420] rounded-2xl px-5 py-2 active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="add_circle" style="font-variation-settings: 'FILL' 1;">add_circle</span>
+<span class="font-sans font-semibold text-[10px] tracking-wide uppercase">Register</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/60 px-5 py-2 hover:text-[#C4707E] transition-colors active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="analytics">analytics</span>
+<span class="font-sans font-semibold text-[10px] tracking-wide uppercase">Insights</span>
+</a>
+</nav>
+</body></html>

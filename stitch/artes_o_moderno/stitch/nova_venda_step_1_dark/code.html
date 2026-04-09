@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&amp;family=Quicksand:wght@400;500;600;700&amp;family=Poppins:wght@700&amp;family=Noto+Serif:wght@700&amp;family=Plus+Jakarta+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-dim": "#e1d8d3",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary": "#864e58",
+                        "on-primary-container": "#fffbff",
+                        "surface": "#fff8f5",
+                        "on-primary-fixed-variant": "#75303e",
+                        "on-error": "#ffffff",
+                        "surface-bright": "#fff8f5",
+                        "surface-container-highest": "#eae1dc",
+                        "on-tertiary-fixed": "#291800",
+                        "surface-container-low": "#fcf2ed",
+                        "primary": "#8f4552",
+                        "background": "#fff8f5",
+                        "on-tertiary-fixed-variant": "#624000",
+                        "on-secondary": "#ffffff",
+                        "primary-container": "#ac5d6a",
+                        "inverse-surface": "#342f2c",
+                        "inverse-primary": "#ffb2bd",
+                        "inverse-on-surface": "#f9efea",
+                        "on-primary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed-dim": "#fbb3bf",
+                        "outline": "#867274",
+                        "primary-fixed": "#ffd9dd",
+                        "on-tertiary-container": "#fffbff",
+                        "on-surface-variant": "#534345",
+                        "on-secondary-fixed": "#360d17",
+                        "on-primary-fixed": "#3d0414",
+                        "on-surface": "#1f1b18",
+                        "error": "#ba1a1a",
+                        "secondary-container": "#feb6c1",
+                        "on-secondary-container": "#7a444e",
+                        "primary-fixed-dim": "#ffb2bd",
+                        "on-background": "#1f1b18",
+                        "outline-variant": "#d8c1c3",
+                        "on-tertiary": "#ffffff",
+                        "surface-container": "#f6ece7",
+                        "tertiary": "#7d540c",
+                        "surface-container-high": "#f0e6e1",
+                        "on-secondary-fixed-variant": "#6b3741",
+                        "tertiary-container": "#996c25",
+                        "secondary-fixed": "#ffd9de",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#ffddb2",
+                        "surface-variant": "#eae1dc",
+                        "tertiary-fixed-dim": "#f4bd6e",
+                        "surface-tint": "#924755"
+                    },
+                    fontFamily: {
+                        "headline": ["Noto Serif"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+        body {
+            background-color: #1E1814;
+            color: #F5E1DB;
+        }
+        .font-playfair { font-family: 'Playfair Display', serif; }
+        .font-quicksand { font-family: 'Quicksand', sans-serif; }
+        .font-poppins { font-family: 'Poppins', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="antialiased min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="bg-[#1E1814] fixed top-0 w-full z-50 flex items-center justify-between px-6 py-4">
+<button class="text-[#D4919C] hover:opacity-80 transition-opacity active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+<h1 class="font-playfair text-xl font-bold text-[#F5E1DB] tracking-tight">Nova Venda</h1>
+<div class="w-6"></div> <!-- Spacer for center alignment -->
+</header>
+<main class="pt-20 px-6 max-w-2xl mx-auto">
+<!-- Progress Dots -->
+<div class="flex justify-center gap-2 mb-8">
+<div class="w-2.5 h-2.5 rounded-full bg-[#C4707E]"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#2C2420]"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#2C2420]"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#2C2420]"></div>
+</div>
+<!-- Headline -->
+<h2 class="font-playfair text-3xl font-bold text-[#F5E1DB] mb-8 leading-tight">O que você vai vender?</h2>
+<!-- Search Input -->
+<div class="relative mb-8">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#8B7355]" data-icon="search">search</span>
+<input class="w-full bg-[#2C2420] border-none rounded-[12px] py-4 pl-12 pr-4 text-[#F5E1DB] placeholder-[#8B7355] focus:ring-1 focus:ring-[#C4707E]/30 focus:bg-[#2C2420]" placeholder="Buscar produto..." type="text"/>
+</div>
+<!-- Product Grid -->
+<div class="grid grid-cols-2 gap-4">
+<!-- Card 1 (Selected) -->
+<div class="relative bg-[#3D322C] rounded-[20px] p-4 flex flex-col items-center text-center overflow-hidden transition-all duration-300">
+<div class="absolute top-3 right-3 flex items-center gap-1">
+<div class="bg-[#C4707E] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] flex items-center justify-center">2</div>
+</div>
+<div class="w-14 h-14 rounded-full bg-[#F5E1DB] flex items-center justify-center mb-3">
+<span class="font-quicksand font-bold text-xl text-[#4A3228]">C</span>
+</div>
+<p class="font-quicksand font-bold text-[#F5E1DB] text-sm mb-1">Cupcake Rosa</p>
+<p class="font-poppins text-[#6BBF96] text-xs">R$ 3,50</p>
+<!-- Flat Illustration -->
+<div class="absolute -bottom-2 -right-2 opacity-40">
+<img class="w-12 h-12 object-contain" data-alt="flat minimal illustration of a pink cupcake with white frosting and a cherry on top icon style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjjI_Dcaw6m9RDWo4CjPW64pZVNtL4ukBIVYtqQdZ-njg3JLm8fQk_2QuwfuH3PVPCFrztfybY_L5vnH_Y9Xo9N--4R76n6RHupy3YqEbXQ9rBDQX_kcPPcqf9IMW4l4YFjdl7GcGy1fHxxS_N9I2tOcNhXSmti2BNZ06iQT_eamUN5owrNfrQwdhZCIYHhJKgMTxHD7PoPhlvFzhmhwFXMgGnrrZ4jDq_FiQZf2cZ3ziVimOjoQFrSuJUztYgqEOyV9eZo1qxBGc"/>
+</div>
+<div class="mt-3 bg-[#C4707E] rounded-full p-1">
+<span class="material-symbols-outlined text-white text-sm filled-icon" data-icon="check_circle">check_circle</span>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-[#2C2420] rounded-[20px] p-4 flex flex-col items-center text-center overflow-hidden relative">
+<div class="w-14 h-14 rounded-full bg-[#8B7355]/30 flex items-center justify-center mb-3">
+<span class="font-quicksand font-bold text-xl text-[#F5E1DB]">B</span>
+</div>
+<p class="font-quicksand font-bold text-[#F5E1DB] text-sm mb-1">Bolo de Cenoura</p>
+<p class="font-poppins text-[#6BBF96] text-xs">R$ 15,00</p>
+<div class="absolute -bottom-2 -right-2 opacity-20">
+<img class="w-12 h-12 object-contain" data-alt="flat minimal illustration of a slice of carrot cake with orange frosting icon style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCf1fBS_u0E_IP-TkBF08asfByvk3Z_JjJ7L7BdfJk-wtkiUAwdUVVrTwIqSSZ8LkWt0-eYWFqTZc_uwWVgRW3tgO-3pzI-WuU1AQYEy_Usa2m8GgM-HM3JyVUnr0nBAtkK2Gfb7HDIySShWGgkuHFmw8vARZQyudZUcUgt8-q9PVkRmYQQe2nrJ3kAslciUH1AB9WifphE04h_c4-HuyslX_eEDxg7nyCVoMIgeKKgirs5Xaw23OojtQTUGk3xRn2qQCubvmikXWA"/>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-[#2C2420] rounded-[20px] p-4 flex flex-col items-center text-center overflow-hidden relative">
+<div class="w-14 h-14 rounded-full bg-[#8B7355]/30 flex items-center justify-center mb-3">
+<span class="font-quicksand font-bold text-xl text-[#F5E1DB]">P</span>
+</div>
+<p class="font-quicksand font-bold text-[#F5E1DB] text-sm mb-1">Pão Caseiro</p>
+<p class="font-poppins text-[#6BBF96] text-xs">R$ 10,00</p>
+<div class="absolute -bottom-2 -right-2 opacity-20">
+<img class="w-12 h-12 object-contain" data-alt="flat minimal illustration of a golden artisan sourdough bread loaf icon style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBscTrU0JkCJc1ebUm_iYjgFn64zNHO0L3AAV2rjKfkmPAtaCxDVqsD17dohQQ1wwvtEdB7QGT7jhsGlXwMD7XKVfvlaUXJlbWhDaypCkRYb8C6mZIbWZdf95XKGHqG5CW8Bd5V9vJ7_x2IzRuUh-ybQ-QcHM-ix4GZzlHiFjTY3EFMfrHR9dvxqq-m6D_aLHEQhj410PzlCmXqSbcIK8vJSo_DNJHztWkk7wLOKnT6a-AdWmYI92ZMUcDVcEQd7T3G9NL9xY8GyZg"/>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-[#2C2420] rounded-[20px] p-4 flex flex-col items-center text-center overflow-hidden relative">
+<div class="w-14 h-14 rounded-full bg-[#8B7355]/30 flex items-center justify-center mb-3">
+<span class="font-quicksand font-bold text-xl text-[#F5E1DB]">B</span>
+</div>
+<p class="font-quicksand font-bold text-[#F5E1DB] text-sm mb-1">Brownie</p>
+<p class="font-poppins text-[#6BBF96] text-xs">R$ 5,00</p>
+<div class="absolute -bottom-2 -right-2 opacity-20">
+<img class="w-12 h-12 object-contain" data-alt="flat minimal illustration of a square chocolate brownie piece with crumbs icon style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuChs_TJFFV7XVztv0BNpvQJ3_XbmFADojHZC7CTWKGhk3AtyzWuvtmRHAbWZY3PyVKTONs3PZRD-BbJFz6XExBf_eJyalwvV-tR5f6j5M4kxcnDg37EluAO_MQBvI3tTndfSRYQQqY6i_zYOQefy_d_CDGmJYJXXMvuAcNlPUG9CzORelLbfjIvn6XyluEUCrr6RjlV3Zyy2VaHLfKmtIfV39FUrRNa7kLtR3KU6lPGwttaY5iUhtqhP42l_At46oT7sKKKDHYbkZA"/>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Bar -->
+<footer class="fixed bottom-0 left-0 w-full bg-[#2C2420]/80 backdrop-blur-lg px-8 pt-4 pb-8 flex items-center justify-between rounded-t-[24px]">
+<div class="flex flex-col">
+<span class="font-quicksand text-[10px] font-semibold text-[#8B7355]">TOTAL SELECIONADO</span>
+<span class="font-poppins text-2xl text-[#6BBF96]">R$ 35,00</span>
+</div>
+<button class="bg-[#C4707E] text-white px-10 py-4 rounded-[16px] font-quicksand font-bold text-base hover:opacity-90 transition-all active:scale-95 duration-200">
+            Próximo
+        </button>
+</footer>
+</body></html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Poppins:wght@600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#8f4552", // Rosa Chá based on secondary/primary mix
+              "primary-brand": "#C4707E",
+              "secondary-brand": "#D4919C",
+              "background-brand": "#FFF5F0",
+              "surface-brand": "#F5E1DB",
+              "text-main": "#4A3228",
+              "text-sub": "#8B7355",
+              "accent-lavender": "#B8A9D4",
+              "accent-blue": "#89A5B5",
+              "accent-green": "#6BBF96",
+              "accent-yellow": "#D4A054",
+              "surface-container": "#f6ece7",
+              "on-surface": "#1f1b18",
+            },
+            fontFamily: {
+              "serif": ["Noto Serif", "serif"],
+              "sans": ["Plus Jakarta Sans", "sans-serif"],
+              "poppins": ["Poppins", "sans-serif"],
+            },
+            borderRadius: {
+              "custom-xl": "20px",
+              "custom-2xl": "24px",
+              "custom-3xl": "32px",
+            },
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        background-color: #FFF5F0;
+        color: #4A3228;
+      }
+      .editorial-shadow {
+        box-shadow: 0 10px 30px -15px rgba(74, 50, 40, 0.08);
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-sans antialiased">
+<!-- TopAppBar -->
+<nav class="w-full top-0 z-50 flex justify-between items-center px-6 py-4 w-full bg-[#FFF5F0] dark:bg-[#1E1814]">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#C4707E] dark:text-[#D4919C]">menu</span>
+<h1 class="font-serif italic text-2xl text-[#C4707E] dark:text-[#D4919C]">Lucro Caseiro</h1>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-brand overflow-hidden flex items-center justify-center border-2 border-white">
+<img alt="User Profile" data-alt="Soft-lit portrait of a professional female pastry chef smiling, warm kitchen background with organic golden lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6ZjUmhphUdk0xmD1hzHjcCooSFeJCthe2NvtXOOXaXOsRNinqzXtz6RPUGwjW8VFnfhlaPMZ2PdNijBOgukUhLE6YUsAeqyxE2S515x3SgojyyQ2hOgu5fS3eqW0zXf6TTY-UcMfKTc3_s2a-M6rHaDaLWtU2Dmg956xzV6G8dqzgWtce-0gsUpYnU27lQy-gKCXwXEJlciSZzd2J1Vl1tj2QejvHXYcs7WdRQYzJwVGN6TYo6T1ZkygsPfUJkWJyAOosBNWc2Ys"/>
+</div>
+</nav>
+<main class="px-6 pt-8 pb-32 max-w-4xl mx-auto">
+<!-- Header Section -->
+<header class="mb-10">
+<h2 class="font-serif text-[3.5rem] leading-tight tracking-tight text-text-main">Embalagens</h2>
+<p class="font-sans text-text-sub text-lg mt-2">Gerencie o custo unitário e estoque dos seus materiais de finalização.</p>
+</header>
+<!-- Bento Grid / Cards Layout -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Card 1: Caixa -->
+<div class="relative bg-surface-brand rounded-custom-xl p-6 overflow-hidden min-h-[160px] flex flex-col justify-between group">
+<div>
+<span class="inline-block px-3 py-1 bg-accent-lavender/20 text-accent-lavender text-[10px] font-bold tracking-widest uppercase rounded-lg mb-3">Caixa</span>
+<h3 class="font-sans font-bold text-xl text-text-main">Caixa Kraft P</h3>
+<p class="font-poppins text-text-sub mt-1">R$ 1,20/un</p>
+</div>
+<div class="absolute -right-4 -bottom-4 w-32 h-32 opacity-90 transition-transform group-hover:scale-110">
+<img class="w-full h-full object-contain pointer-events-none" data-alt="Minimalist flat lay of a small brown kraft cardboard gift box, isolated on a soft pastel background, organic shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2jU90MYYmQfcs6CMedaUs1YbBV8sTIOwViWZNkysi5PuufI2oxnQkvJcjaDXXzZuPwLJxYsUomSAF0afqFc0JZBcjVsCaoFp11ZE5rnXCCssxiNhUjvjXWCM4Se5t_tooRvcYYy9ov-Cdwmlxj6c_TUZ_Ich-vTcKmlETb2ChZBBIQMZKCD7aGYQYUP5_B-RYl7xltfwK8od0ErZ-p0aWzHNJOpcXYoTYibZy5vJENHasb8fpKS8lbiiyCPjn-NCrOGyOwX0ACo4"/>
+</div>
+</div>
+<!-- Card 2: Saco -->
+<div class="relative bg-surface-brand rounded-custom-xl p-6 overflow-hidden min-h-[160px] flex flex-col justify-between group">
+<div>
+<span class="inline-block px-3 py-1 bg-accent-blue/20 text-accent-blue text-[10px] font-bold tracking-widest uppercase rounded-lg mb-3">Saco</span>
+<h3 class="font-sans font-bold text-xl text-text-main">Saco Transparente M</h3>
+<p class="font-poppins text-text-sub mt-1">R$ 0,15/un</p>
+</div>
+<div class="absolute -right-6 -bottom-6 w-36 h-36 opacity-80 group-hover:rotate-6 transition-transform">
+<img class="w-full h-full object-contain pointer-events-none" data-alt="Clean transparent cellophane bag with a gold twist tie, soft botanical aesthetic, floating organic composition" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyfMY2oqorrLGz9ooDLtmUVi-aECe8blnyyFoZi-SjQiSbXlX9UYFwXZSjzpPH7SsQo3f6nixihuPHAB6gzcfdJksZl6ODcZ5w9FZM8F0KVxZf6Hliz7NJqqZLSxspxocEgcp7lC1XY4QBTjjULaLWudhBOtLN7kEs2Xus1_vMvowslN2S8bT0sNf5EntSqfKrQsRi-DmLeExf4suCVKzRHvR2Up5aYSO0Xl9sVqqMOyRpxa4ywHBL1X8vIgdCITGtJMdl9i5C5-8"/>
+</div>
+</div>
+<!-- Card 3: Pote -->
+<div class="relative bg-surface-brand rounded-custom-xl p-6 overflow-hidden min-h-[160px] flex flex-col justify-between group">
+<div>
+<span class="inline-block px-3 py-1 bg-accent-green/20 text-accent-green text-[10px] font-bold tracking-widest uppercase rounded-lg mb-3">Pote</span>
+<h3 class="font-sans font-bold text-xl text-text-main">Pote Plástico 250ml</h3>
+<p class="font-poppins text-text-sub mt-1">R$ 0,85/un</p>
+</div>
+<div class="absolute -right-2 -bottom-4 w-32 h-32 opacity-90 group-hover:-translate-y-2 transition-transform">
+<img class="w-full h-full object-contain pointer-events-none" data-alt="Simple clear plastic food container with lid, professional food packaging photography, light cream highlights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjRON7OUoR6Hb6PPvh7Kg-Qs98VPcUyGgf2NNdQYHRHJCyGgnHkGwipxdCY2s-KQlC34xOsWlHQ8I_ZlVUqJ9Cqm4S1KD_PLwIFp9v8MMvjeSWXLjDryECHoaxRwDEZEuYkzocOrdMWn1lAJycE6pXKtU1bg_QThAiyRYyRBrekiIAQDIqRnD2huXw1XYCzPIA6nnWB9_28p8yAWWtqFnVxf0ZzFl8M1P6daPstkqioCy206hzNFHVzV2cs4BfrjX48tdZ7_XfImk"/>
+</div>
+</div>
+<!-- Card 4: Filme -->
+<div class="relative bg-surface-brand rounded-custom-xl p-6 overflow-hidden min-h-[160px] flex flex-col justify-between group">
+<div>
+<span class="inline-block px-3 py-1 bg-accent-yellow/20 text-accent-yellow text-[10px] font-bold tracking-widest uppercase rounded-lg mb-3">Filme</span>
+<h3 class="font-sans font-bold text-xl text-text-main">Rolo Filme PVC</h3>
+<p class="font-poppins text-text-sub mt-1">R$ 0,05/un</p>
+</div>
+<div class="absolute -right-4 bottom-0 w-32 h-32 opacity-80 group-hover:scale-105 transition-transform">
+<img class="w-full h-full object-contain pointer-events-none" data-alt="Roll of plastic kitchen wrap film, soft natural lighting, elegant product display for artisan kitchen use" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMTv2SIFEGe6aIoXORr87VN1cB4_DvIEpsu0DmTmZnh9SyL_mNDIxt6re6ujrnLpZwWwlFmqIrBeCqKuCvUjxSYww0xrCqhEDFwN_v9oAKVqay9xdjYAa65nP6f7sdbfWQ1BCs85-mu6s4Y0Yv4bltUHqbiYx7c-BabDtBGP_2W8q8AIjaiH65KixpmDkiFfL3_AWwErrPPRKr2Mi-e9tYfYX_5eTt_vv8G38bRdr-qbhJ0cygQQi9EOdX-K_4qmzsylkm1Aw34a0"/>
+</div>
+</div>
+</div>
+<!-- Floating Action Button -->
+<button class="fixed bottom-28 right-6 w-16 h-16 bg-[#C4707E] text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all z-40">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#FFF5F0]/70 dark:bg-[#1E1814]/70 backdrop-blur-xl rounded-t-[32px]">
+<div class="flex flex-col items-center justify-center bg-[#F5E1DB] dark:bg-[#2C2420] text-[#C4707E] dark:text-[#D4919C] rounded-[20px] px-5 py-2">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-sans text-[11px] font-medium tracking-wide uppercase mt-1">Estoque</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/50 px-5 py-2 hover:text-[#C4707E] dark:hover:text-[#D4919C] transition-colors">
+<span class="material-symbols-outlined">label</span>
+<span class="font-sans text-[11px] font-medium tracking-wide uppercase mt-1">Editor</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/50 px-5 py-2 hover:text-[#C4707E] dark:hover:text-[#D4919C] transition-colors">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-sans text-[11px] font-medium tracking-wide uppercase mt-1">Lucros</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#8B7355] dark:text-[#F5E1DB]/50 px-5 py-2 hover:text-[#C4707E] dark:hover:text-[#D4919C] transition-colors">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-sans text-[11px] font-medium tracking-wide uppercase mt-1">Ajustes</span>
+</div>
+</nav>
+</body></html>

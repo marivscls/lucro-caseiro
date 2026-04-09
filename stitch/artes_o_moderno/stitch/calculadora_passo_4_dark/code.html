@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&amp;family=Quicksand:wght@300;400;500;600;700&amp;family=Poppins:wght@600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-container": "#fffbff",
+              "tertiary": "#7d540c",
+              "on-primary-fixed": "#3d0414",
+              "error-container": "#ffdad6",
+              "outline": "#867274",
+              "secondary": "#864e58",
+              "on-background": "#f5e1db",
+              "primary-container": "#ac5d6a",
+              "on-secondary-container": "#7a444e",
+              "surface-tint": "#924755",
+              "surface-dim": "#e1d8d3",
+              "on-surface-variant": "#d8c1c3",
+              "tertiary-fixed-dim": "#f4bd6e",
+              "surface-container-lowest": "#1e1814",
+              "secondary-fixed": "#ffd9de",
+              "on-tertiary": "#ffffff",
+              "surface-container-low": "#2c2420",
+              "primary": "#c4707e",
+              "on-secondary": "#ffffff",
+              "inverse-surface": "#f5e1db",
+              "background": "#1e1814",
+              "primary-fixed-dim": "#ffb2bd",
+              "tertiary-fixed": "#ffddb2",
+              "on-surface": "#f5e1db",
+              "surface-bright": "#2c2420",
+              "surface-container": "#2c2420",
+              "primary-fixed": "#ffd9dd",
+              "surface-container-highest": "#3d342f",
+              "error": "#ba1a1a",
+              "on-tertiary-fixed-variant": "#624000",
+              "inverse-primary": "#ffb2bd",
+              "on-secondary-fixed": "#360d17",
+              "on-primary-fixed-variant": "#75303e",
+              "surface-container-high": "#342b26",
+              "secondary-fixed-dim": "#fbb3bf",
+              "on-primary": "#ffffff",
+              "on-secondary-fixed-variant": "#6b3741",
+              "surface-variant": "#3d342f",
+              "on-primary-container": "#fffbff",
+              "on-error": "#ffffff",
+              "inverse-on-surface": "#1e1814",
+              "tertiary-container": "#996c25"
+            },
+            fontFamily: {
+              "serif": ["Playfair Display", "serif"],
+              "sans": ["Quicksand", "sans-serif"],
+              "numbers": ["Poppins", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "3xl": "1.5xl", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        background-color: #1e1814;
+        color: #f5e1db;
+        font-family: 'Quicksand', sans-serif;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#1E1814] px-6 py-4 flex justify-between items-center max-w-4xl mx-auto left-0 right-0">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#D4919C] cursor-pointer">menu</span>
+<h1 class="font-serif italic text-2xl text-[#D4919C]">Atelier de Preços</h1>
+</div>
+<div class="w-10 h-10 rounded-full overflow-hidden bg-[#2C2420] border-2 border-[#D4919C]/20">
+<img alt="Avatar" data-alt="close-up portrait of a smiling female pastry chef in a dark kitchen environment with warm overhead lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBjLTdYO2uXNH9FU9s-3qSJeBAr1SLoqZ7n-4R7eCj_itaUPDG5i392PGK8XSPVcdL5GvxfvCVlNwR6TeOyLcYvwz3TcEwxs71Q-iq_nDN1PqFozEVEgPWp6yEFRhICB-hsNAS_7YjK2BD6lwSTnaLAV2J9RHdTQxBdXfmmeDlfO2NfSDqrhuAEA2luuL4K_5iPhidqulBw3Z3fv24w1CPUArQ_jyOFUBP2qLY-gZNUICi4h9hVz9EErzz1-cqmC6724MBKtl8SexU"/>
+</div>
+</header>
+<main class="flex-1 mt-24 mb-32 px-6 max-w-2xl mx-auto w-full">
+<!-- Progress Dots -->
+<div class="flex justify-center gap-3 mb-10">
+<div class="w-2.5 h-2.5 rounded-full bg-[#D4919C] opacity-30"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#D4919C] opacity-30"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#D4919C] opacity-30"></div>
+<div class="w-3 h-3 rounded-full bg-[#C4707E] ring-4 ring-[#C4707E]/20"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-[#D4919C] opacity-30"></div>
+</div>
+<!-- Hero Section -->
+<section class="mb-12">
+<h2 class="font-serif text-5xl font-bold text-[#F5E1DB] leading-tight mb-4">Custos fixos</h2>
+<p class="text-[#8B7355] text-lg font-medium leading-relaxed">Insira os gastos mensais que não mudam, como aluguel, luz e internet, para calcularmos seu ponto de equilíbrio.</p>
+</section>
+<!-- Main Input Card -->
+<div class="bg-[#2C2420] rounded-[32px] p-8 mb-8 relative overflow-hidden">
+<!-- Decorative Illustration -->
+<div class="absolute -right-4 -bottom-4 opacity-40 w-40 h-40">
+<img class="w-full h-full object-contain" data-alt="flat vector minimalist illustration of a cozy small house with a glowing window and a paper bill icon floating nearby" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4lMFwVlWrh_DFPyFTKo598n57tjLWxShjPV74lJ-xLbY_zJg3UtrIl8C85DmzkG5WmET43uGEn0vPyQC8-oJH64KzRJz9dZ1fp_ZMm1AB3B5X4ckgfVQUxEmAH-gJVbw1O1u6ztnnZl7_uLD1uJuyV3_fvJAszipkjX4w9CfArAMUgvPxaxxLgoOZp_lN3Hh6sFV3BMW0zPIeY3bxw4fCj_4_FGOdlJXcc2loAmumur5RYq8AThH1TPDY4wG0zE4nkYBV1wePfBw" style="mask-image: linear-gradient(to top right, black, transparent);"/>
+</div>
+<div class="relative z-10">
+<label class="block text-xs font-bold uppercase tracking-widest text-[#D4919C] mb-4">Valor Total Mensal</label>
+<div class="flex flex-col">
+<input class="bg-transparent border-none text-6xl font-numbers font-bold text-[#F5E1DB] p-0 focus:ring-0 w-full placeholder-[#4A3228]" placeholder="R$ 0,00" type="text" value="R$ 0,00"/>
+<div class="h-1 w-full bg-[#C4707E]/30 mt-4 rounded-full"></div>
+</div>
+<div class="mt-8 flex items-center gap-3 text-[#8B7355]">
+<span class="material-symbols-outlined text-sm">info</span>
+<p class="text-sm font-sans italic">Some todos os boletos que vencem todo mês.</p>
+</div>
+</div>
+</div>
+<!-- Hint Card -->
+<div class="bg-[#2C2420]/50 rounded-2xl p-6 border border-[#F5E1DB]/5">
+<div class="flex gap-4">
+<div class="bg-[#C4707E]/10 p-3 rounded-xl self-start">
+<span class="material-symbols-outlined text-[#C4707E]">lightbulb</span>
+</div>
+<div>
+<h4 class="text-[#F5E1DB] font-bold mb-1">Dica do Atelier</h4>
+<p class="text-[#8B7355] text-sm leading-relaxed">Não esqueça de incluir uma pequena reserva para manutenção de equipamentos e taxas bancárias.</p>
+</div>
+</div>
+</div>
+<!-- Action Area -->
+<div class="mt-12 flex flex-col items-center">
+<button class="w-full py-5 bg-[#C4707E] text-white rounded-2xl font-sans font-bold text-lg hover:opacity-90 transition-opacity active:scale-95 duration-150 shadow-lg shadow-[#C4707E]/10">
+                Próximo
+            </button>
+<button class="mt-6 text-[#8B7355] font-semibold text-sm uppercase tracking-widest hover:text-[#D4919C] transition-colors">
+                Voltar
+            </button>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-[#1E1814]/70 backdrop-blur-md rounded-t-[24px] z-50">
+<a class="flex flex-col items-center justify-center text-[#8B7355] opacity-70 hover:text-[#C4707E] transition-colors" href="#">
+<span class="material-symbols-outlined mb-1">home</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider">Início</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#2C2420] text-[#C4707E] rounded-2xl px-3 py-1.5 transition-transform duration-200 scale-90" href="#">
+<span class="material-symbols-outlined mb-1">calculate</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider">Cálculos</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] opacity-70 hover:text-[#C4707E] transition-colors" href="#">
+<span class="material-symbols-outlined mb-1">history</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider">Histórico</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] opacity-70 hover:text-[#C4707E] transition-colors" href="#">
+<span class="material-symbols-outlined mb-1">lightbulb</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider">Dicas</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#8B7355] opacity-70 hover:text-[#C4707E] transition-colors" href="#">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="font-sans text-[10px] font-semibold uppercase tracking-wider">Perfil</span>
+</a>
+</nav>
+<!-- Separation logic simulated via background change -->
+<div class="fixed bottom-[88px] w-full h-px bg-[#2C2420] opacity-20"></div>
+</body></html>

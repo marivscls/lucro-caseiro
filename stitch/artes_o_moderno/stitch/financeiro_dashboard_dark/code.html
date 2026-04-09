@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Poppins:wght@700&amp;family=Playfair+Display:wght@700;900&amp;family=Quicksand:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #1E1814;
+            color: #F5E1DB;
+        }
+        .font-serif-boutique { font-family: 'Playfair Display', serif; }
+        .font-sans-rounded { font-family: 'Quicksand', sans-serif; }
+        .font-data { font-family: 'Poppins', sans-serif; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#C4707E",
+                        "secondary": "#D4919C",
+                        "background": "#1E1814",
+                        "surface": "#2C2420",
+                        "on-surface": "#F5E1DB",
+                        "text-main": "#F5E1DB",
+                        "text-sub": "#8B7355",
+                        "success": "#6BBF96",
+                        "alert": "#E07272",
+                        "premium": "#D4A054"
+                    },
+                    fontFamily: {
+                        "headline": ["Noto Serif", "serif"],
+                        "body": ["Plus Jakarta Sans", "sans-serif"],
+                        "label": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1.25rem",
+                        "3xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-6 py-4 max-w-screen-xl mx-auto bg-[#1E1814] sticky top-0 z-40">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface">
+<img alt="Small business owner" class="w-full h-full object-cover" data-alt="Close-up portrait of a smiling female artisan in a warm sunlit studio with soft focus wooden shelves in background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcpFJ7BfCSbPx0pUOo0zPGalb8ado8AER-KRRepMzzaa74mJUCA3m0I2bsNpE-4QxZVzOLovMUgMuk11Sv4qb5aV4xY7IcT6HyzWw_MNFlFG83K-UcswQJvl6YRJnu3LaKinrzsrujnOushEXuQV03gKj90Sus70_Dq0gBJV_Q8XuD8U44TipYtjOK0FH-ILePeWTkiS-adY0wUmGNYWlOrjM96iLdU56cLjIsb24_xqmerneLiV2Slh2qRgqXk3iNWjhQFhVtIl0"/>
+</div>
+<span class="font-serif italic text-[#D4919C] text-xl">Atelier Finance</span>
+</div>
+<button class="text-[#D4919C] hover:opacity-80 transition-opacity active:scale-95 duration-150">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</header>
+<main class="max-w-screen-xl mx-auto px-6 pt-4">
+<!-- Header Section -->
+<div class="flex flex-col gap-1 mb-8">
+<h1 class="font-serif-boutique text-4xl text-[#F5E1DB]">Financeiro</h1>
+<div class="flex items-center gap-2 text-[#8B7355] font-sans-rounded font-semibold tracking-wide">
+<span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
+<span>Marco 2026</span>
+<span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+<!-- Profit Bento Card -->
+<section class="relative overflow-hidden bg-surface rounded-[20px] p-8 mb-10 group">
+<div class="relative z-10 flex flex-col gap-6">
+<div>
+<h2 class="font-serif-boutique text-2xl text-[#F5E1DB] mb-2">Seu lucro</h2>
+<div class="font-data text-5xl font-bold text-success leading-none">R$ 2.300</div>
+</div>
+<div class="flex flex-col gap-3 max-w-[240px]">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<p class="font-sans-rounded text-success font-medium">Entradas: <span class="font-data">R$ 3.500</span></p>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<p class="font-sans-rounded text-alert font-medium">Saidas: <span class="font-data">R$ 1.200</span></p>
+</div>
+</div>
+</div>
+<!-- Illustration bleed-off -->
+<div class="absolute -right-4 -bottom-4 w-48 h-48 opacity-90 pointer-events-none transform group-hover:scale-105 transition-transform duration-700">
+<img alt="Flat cofre com moedas" class="w-full h-full object-contain filter drop-shadow-2xl" data-alt="Stylized flat illustration of a piggy bank with golden coins scattered around, earthy tones, organic shapes, minimalist aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbLXyEwnu9T8mnsjz2wn3zJwwFJXYOM6IglPJ8AlNObYrehw6_TIw40i2MZgSTLEyokVt-zxDJL_WSlst91l9YohsfyhyzJji0fzl4077diE6bmn2E6Wew_tjNn7lIBSOrAJUG9hy1MMaJoJBiEUUJXwtUTgFG39Wkp4mXp9s-W5ZZlBEiqCldqe6NM0GXBynZPwVYvAeekwslFHBVZMqJR1tLE1ePvZCAlndMMFBGVk69za5QbWj1ULsootiGr5PtzlS9tU4cYYI"/>
+</div>
+</section>
+<!-- Transaction List -->
+<div class="space-y-10">
+<!-- Group: Today -->
+<section>
+<h3 class="font-serif-boutique text-xl text-[#F5E1DB] mb-5 px-1">Hoje</h3>
+<div class="space-y-4">
+<!-- Item 1 -->
+<div class="bg-surface rounded-2xl p-5 flex items-center justify-between transition-all hover:translate-x-1">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-[#1E1814] flex items-center justify-center">
+<span class="material-symbols-outlined text-[#D4919C]" data-icon="cake">cake</span>
+</div>
+<div>
+<h4 class="font-sans-rounded font-bold text-[#F5E1DB]">Encomenda Bolo de Nozes</h4>
+<span class="inline-block px-2 py-0.5 rounded-full bg-[#1E1814] text-[#8B7355] text-[10px] uppercase tracking-wider font-bold mt-1">Vendas</span>
+</div>
+</div>
+<div class="text-right">
+<div class="font-data text-lg font-bold text-success">+ R$ 450,00</div>
+<div class="text-[10px] text-[#8B7355] font-sans-rounded uppercase">14:30</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="bg-surface rounded-2xl p-5 flex items-center justify-between transition-all hover:translate-x-1">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-[#1E1814] flex items-center justify-center">
+<span class="material-symbols-outlined text-[#D4919C]" data-icon="shopping_basket">shopping_basket</span>
+</div>
+<div>
+<h4 class="font-sans-rounded font-bold text-[#F5E1DB]">Insumos de Panificação</h4>
+<span class="inline-block px-2 py-0.5 rounded-full bg-[#1E1814] text-[#8B7355] text-[10px] uppercase tracking-wider font-bold mt-1">Custos</span>
+</div>
+</div>
+<div class="text-right">
+<div class="font-data text-lg font-bold text-alert">- R$ 180,00</div>
+<div class="text-[10px] text-[#8B7355] font-sans-rounded uppercase">10:15</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Group: Yesterday -->
+<section>
+<h3 class="font-serif-boutique text-xl text-[#F5E1DB] mb-5 px-1">Ontem</h3>
+<div class="space-y-4">
+<div class="bg-surface rounded-2xl p-5 flex items-center justify-between transition-all hover:translate-x-1">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-[#1E1814] flex items-center justify-center">
+<span class="material-symbols-outlined text-[#D4919C]" data-icon="local_cafe">local_cafe</span>
+</div>
+<div>
+<h4 class="font-sans-rounded font-bold text-[#F5E1DB]">Combo Café da Manhã (4x)</h4>
+<span class="inline-block px-2 py-0.5 rounded-full bg-[#1E1814] text-[#8B7355] text-[10px] uppercase tracking-wider font-bold mt-1">Vendas</span>
+</div>
+</div>
+<div class="text-right">
+<div class="font-data text-lg font-bold text-success">+ R$ 120,00</div>
+<div class="text-[10px] text-[#8B7355] font-sans-rounded uppercase">17:45</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Floating Action Button -->
+<button class="fixed bottom-28 right-6 w-16 h-16 bg-[#C4707E] text-white rounded-2xl shadow-2xl flex items-center justify-center active:scale-90 transition-transform z-50">
+<span class="material-symbols-outlined text-3xl" data-icon="add">add</span>
+</button>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#1E1814]/70 backdrop-blur-md rounded-t-[32px]">
+<a class="flex flex-col items-center justify-center text-[#C4707E] bg-[#2C2420] rounded-2xl px-5 py-2 tap-highlight-none transform active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-sans font-semibold text-[10px] tracking-wide uppercase mt-1">Overview</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#F5E1DB]/60 px-5 py-2 hover:text-[#C4707E] transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="font-sans font-semibold text-[10px] tracking-wide uppercase mt-1">Ledger</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#F5E1DB]/60 px-5 py-2 hover:text-[#C4707E] transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+<span class="font-sans font-semibold text-[10px] tracking-wide uppercase mt-1">Register</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#F5E1DB]/60 px-5 py-2 hover:text-[#C4707E] transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-sans font-semibold text-[10px] tracking-wide uppercase mt-1">Insights</span>
+</a>
+</nav>
+</body></html>

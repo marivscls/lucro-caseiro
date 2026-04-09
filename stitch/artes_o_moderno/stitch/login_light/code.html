@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Entrar - Lucro Caseiro</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&amp;family=Quicksand:wght@400;500;600;700&amp;family=Poppins:wght@700&amp;family=Noto+Serif:wght@700&amp;family=Plus+Jakarta+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "inverse-on-surface": "#f9efea",
+              "on-tertiary-fixed-variant": "#624000",
+              "secondary": "#864e58",
+              "on-primary-fixed": "#3d0414",
+              "surface-dim": "#e1d8d3",
+              "surface-container": "#f6ece7",
+              "on-primary-fixed-variant": "#75303e",
+              "secondary-fixed": "#ffd9de",
+              "surface-container-highest": "#eae1dc",
+              "on-tertiary-container": "#fffbff",
+              "error": "#ba1a1a",
+              "tertiary-container": "#996c25",
+              "on-surface-variant": "#534345",
+              "surface-tint": "#924755",
+              "on-background": "#1f1b18",
+              "surface-bright": "#fff8f5",
+              "on-secondary": "#ffffff",
+              "primary": "#8f4552",
+              "surface-variant": "#eae1dc",
+              "on-error-container": "#93000a",
+              "on-surface": "#1f1b18",
+              "on-secondary-fixed": "#360d17",
+              "tertiary-fixed-dim": "#f4bd6e",
+              "outline": "#867274",
+              "primary-container": "#ac5d6a",
+              "on-primary-container": "#fffbff",
+              "on-secondary-container": "#7a444e",
+              "inverse-surface": "#342f2c",
+              "surface-container-low": "#fcf2ed",
+              "on-primary": "#ffffff",
+              "secondary-fixed-dim": "#fbb3bf",
+              "error-container": "#ffdad6",
+              "surface-container-high": "#f0e6e1",
+              "primary-fixed-dim": "#ffb2bd",
+              "on-secondary-fixed-variant": "#6b3741",
+              "secondary-container": "#feb6c1",
+              "background": "#fff8f5",
+              "surface": "#fff8f5",
+              "outline-variant": "#d8c1c3",
+              "on-error": "#ffffff",
+              "tertiary-fixed": "#ffddb2",
+              "surface-container-lowest": "#ffffff",
+              "primary-fixed": "#ffd9dd",
+              "on-tertiary-fixed": "#291800",
+              "tertiary": "#7d540c",
+              "inverse-primary": "#ffb2bd",
+              "on-tertiary": "#ffffff"
+            },
+            fontFamily: {
+              "headline": ["Playfair Display", "serif"],
+              "body": ["Quicksand", "sans-serif"],
+              "label": ["Quicksand", "sans-serif"],
+              "serif": ["Playfair Display", "serif"],
+              "sans": ["Quicksand", "sans-serif"],
+              "poppins": ["Poppins", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1.25rem", "3xl": "2rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        display: inline-block;
+        line-height: 1;
+        text-transform: none;
+        letter-spacing: normal;
+        word-wrap: normal;
+        white-space: nowrap;
+        direction: ltr;
+      }
+      body {
+        background-color: #FFF5F0;
+        color: #4A3228;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen flex flex-col font-sans selection:bg-secondary/20 selection:text-primary">
+<!-- Header -->
+<header class="flex justify-center items-center px-6 py-8 md:py-12">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 flex items-center justify-center bg-surface-container rounded-2xl relative overflow-hidden group">
+<span class="material-symbols-outlined text-primary text-3xl z-10" data-icon="home">home</span>
+<span class="absolute top-1 right-1 text-[10px] text-primary material-symbols-outlined" data-icon="favorite" data-weight="fill" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+<h1 class="font-serif text-2xl md:text-3xl font-bold tracking-tight text-[#4A3228]">Lucro Caseiro</h1>
+</div>
+</header>
+<main class="flex-grow flex flex-col items-center px-6 pb-12">
+<!-- Hero Title -->
+<div class="mb-10 text-center">
+<h2 class="font-serif text-4xl md:text-5xl font-bold text-[#4A3228] mb-2">Que bom te ver!</h2>
+<p class="text-[#8B7355] font-medium">Acesse sua cozinha digital e gerencie seus lucros.</p>
+</div>
+<!-- Login Card -->
+<div class="w-full max-w-md bg-[#F5E1DB] rounded-3xl p-8 md:p-10 relative overflow-hidden">
+<!-- Decorative organic element -->
+<div class="absolute -right-12 -bottom-12 w-48 h-48 opacity-10 pointer-events-none">
+<span class="material-symbols-outlined text-9xl text-primary transform rotate-12" data-icon="bakery_dining">bakery_dining</span>
+</div>
+<div class="relative z-10 flex flex-col gap-6">
+<!-- Google Sign In -->
+<button class="w-full flex items-center justify-center gap-3 bg-white hover:bg-surface-container-low transition-colors duration-200 py-4 px-6 rounded-xl text-[#4A3228] font-semibold text-sm active:scale-95 duration-150">
+<svg class="w-5 h-5" viewbox="0 0 24 24">
+<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+<path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"></path>
+<path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
+</svg>
+          Entrar com Google
+        </button>
+<!-- Divider -->
+<div class="relative flex items-center justify-center">
+<div aria-hidden="true" class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-[#D4919C]/30"></div>
+</div>
+<div class="relative w-10 h-10 flex items-center justify-center bg-[#FFF5F0] rounded-full">
+<span class="text-xs font-bold text-[#8B7355] uppercase tracking-widest">ou</span>
+</div>
+</div>
+<!-- Form Fields -->
+<div class="space-y-5">
+<div class="space-y-1.5">
+<label class="block font-serif text-[#8B7355] text-sm ml-1">E-mail</label>
+<input class="w-full bg-white border-none rounded-xl py-4 px-5 text-[#4A3228] placeholder:text-[#8B7355]/40 focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-200" placeholder="seu@email.com" type="email"/>
+</div>
+<div class="space-y-1.5">
+<label class="block font-serif text-[#8B7355] text-sm ml-1">Senha</label>
+<div class="relative">
+<input class="w-full bg-white border-none rounded-xl py-4 px-5 text-[#4A3228] placeholder:text-[#8B7355]/40 focus:ring-2 focus:ring-primary/20 outline-none transition-all duration-200" placeholder="••••••••" type="password"/>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-[#8B7355]/60 hover:text-[#4A3228]">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+</div>
+</div>
+<div class="flex justify-end">
+<a class="text-sm font-semibold text-[#D4919C] hover:text-[#C4707E] transition-colors" href="#">Esqueci minha senha</a>
+</div>
+</div>
+<!-- Submit Button -->
+<button class="w-full bg-[#C4707E] text-[#FFF5F0] hover:bg-[#B3606E] transition-colors py-4 px-6 rounded-2xl font-bold text-lg active:scale-95 duration-150 mt-2">
+          Entrar
+        </button>
+</div>
+</div>
+<!-- Footer Action -->
+<div class="mt-12 text-center">
+<p class="text-[#8B7355] font-medium">
+        Primeira vez? 
+        <a class="ml-1 text-[#C4707E] font-bold hover:underline decoration-2 underline-offset-4" href="#">Criar conta</a>
+</p>
+</div>
+</main>
+<!-- Illustration Side elements for editorial feel (hidden on small screens) -->
+<div class="fixed left-0 bottom-24 hidden lg:block opacity-20 transform -translate-x-12 select-none pointer-events-none">
+<div class="w-64 h-64 bg-surface-variant rounded-full flex items-center justify-center p-12">
+<img alt="Decorativo" class="w-full h-full object-contain rounded-full" data-alt="Illustration of a soft minimalist cupcake with pastel icing and a small heart on top in a boutique style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWUje2UeiaBgERa0sn7zaMcb4KNKXIsscO9HroalmhvGJ4bZZdbrU32BP5Vf7gdud4eYgh0ZpwYQF-uUkQDSaz8QfFI0mSv-leIgRtVgDUiN7I5ZsgR-p2L_nCD1SLYzAHrZ1KIB3cUMwceYLJfUHu0DmACCInUDRpa2nra-UIYIzo6S0CK6NxiQdZuNJmJCoTXpXLNYKLCqoKuZmY3Fqw1oImHvb8nNM_zCqfgvQXd1h3-SY-so2HjyMxTiyO3dkVpFOJJgZAouQ"/>
+</div>
+</div>
+<div class="fixed right-0 top-32 hidden lg:block opacity-20 transform translate-x-12 select-none pointer-events-none">
+<div class="w-48 h-48 bg-surface-variant rounded-full flex items-center justify-center p-8">
+<img alt="Decorativo" class="w-full h-full object-contain rounded-full" data-alt="Artisan rolling pin and whisk placed on a textured paper background with soft shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuASDxjtvqY_ew2R3x6iRhkheWUpVZURKfbPW41kvsEPA7gz5nnAwI5V00iNH4w-LpDTulx11IcQqTpn4WbQID7FMUjFDvi8MQtsL3TwM0NEIlhxO7Q3AQMQkkLT9tW8YiogjFYjEtEzm84eusmhWgs9PvoHVy5BsBiuDG8iO10mMeHnyyty51HmliQWYDYJrQ-MPYDw-mT7vHfywVFeipMPBDqSAMiHEs8U7x6AGf7fYMa-NCLJMm4EdtNwh6SzkY1N43_HKj_iPZ0"/>
+</div>
+</div>
+</body></html>
