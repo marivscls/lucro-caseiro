@@ -9,7 +9,7 @@
     "build": "expo export --platform web",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "android": "expo run:android",
     "ios": "expo run:ios"
