@@ -180,84 +180,82 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Quick access grid */}
-        <View style={{ gap: spacing.sm }}>
-          <Typography variant="label">ACESSO RAPIDO</Typography>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-            {[
-              {
-                icon: "wallet-outline" as const,
-                label: "Financeiro",
-                route: "/finance" as const,
-              },
-              {
-                icon: "cube-outline" as const,
-                label: "Produtos",
-                route: "/products" as const,
-              },
-              {
-                icon: "document-text-outline" as const,
-                label: "Receitas",
-                route: "/recipes" as const,
-              },
-              {
-                icon: "calculator-outline" as const,
-                label: "Precificacao",
-                route: "/pricing" as const,
-              },
-              {
-                icon: "gift-outline" as const,
-                label: "Embalagens",
-                route: "/packaging" as const,
-              },
-              {
-                icon: "pricetag-outline" as const,
-                label: "Rotulos",
-                route: "/labels" as const,
-              },
-              {
-                icon: "diamond-outline" as const,
-                label: "Planos",
-                route: "/plans" as const,
-              },
-              {
-                icon: "settings-outline" as const,
-                label: "Config",
-                route: "/settings" as const,
-              },
-            ].map((item) => (
-              <Pressable
-                key={item.label}
-                onPress={() => router.push(item.route)}
+        {/* Quick access - horizontal scroll */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ marginHorizontal: -spacing.xl }}
+          contentContainerStyle={{ paddingHorizontal: spacing.xl, gap: spacing.lg }}
+        >
+          {[
+            {
+              icon: "wallet-outline" as const,
+              label: "Financeiro",
+              route: "/finance" as const,
+            },
+            {
+              icon: "cube-outline" as const,
+              label: "Produtos",
+              route: "/products" as const,
+            },
+            {
+              icon: "document-text-outline" as const,
+              label: "Receitas",
+              route: "/recipes" as const,
+            },
+            {
+              icon: "calculator-outline" as const,
+              label: "Precificacao",
+              route: "/pricing" as const,
+            },
+            {
+              icon: "gift-outline" as const,
+              label: "Embalagens",
+              route: "/packaging" as const,
+            },
+            {
+              icon: "pricetag-outline" as const,
+              label: "Rotulos",
+              route: "/labels" as const,
+            },
+            {
+              icon: "diamond-outline" as const,
+              label: "Planos",
+              route: "/plans" as const,
+            },
+            {
+              icon: "settings-outline" as const,
+              label: "Config",
+              route: "/settings" as const,
+            },
+          ].map((item) => (
+            <Pressable
+              key={item.label}
+              onPress={() => router.push(item.route)}
+              style={{ alignItems: "center", width: 80, gap: spacing.sm }}
+            >
+              <View
                 style={{
-                  width: "23%",
+                  width: 60,
+                  height: 60,
+                  borderRadius: radii.xl,
+                  backgroundColor: theme.colors.surface,
                   alignItems: "center",
-                  paddingVertical: spacing.md,
-                  gap: spacing.xs,
+                  justifyContent: "center",
                 }}
               >
-                <View
-                  style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 12,
-                    backgroundColor: theme.colors.surface,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Ionicons name={item.icon} size={22} color={theme.colors.primary} />
-                </View>
-                <Typography
-                  variant="caption"
-                  style={{ textAlign: "center", fontSize: 11 }}
-                >
-                  {item.label}
-                </Typography>
-              </Pressable>
-            ))}
-          </View>
-        </View>
+                <Ionicons name={item.icon} size={28} color={theme.colors.primary} />
+              </View>
+              <Typography
+                variant="caption"
+                style={{ textAlign: "center" }}
+                numberOfLines={1}
+              >
+                {item.label}
+              </Typography>
+            </Pressable>
+          ))}
+        </ScrollView>
 
         {isLoading ? (
           <ActivityIndicator
