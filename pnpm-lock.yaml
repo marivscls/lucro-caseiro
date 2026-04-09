@@ -240,6 +240,9 @@ importers:
         specifier: 0.81.5
         version: 0.81.5(@babel/core@7.29.0)(@react-native/metro-config@0.84.1(@babel/core@7.29.0))(@types/react@19.1.17)(react@19.1.0)
     devDependencies:
+      '@lucro-caseiro/config':
+        specifier: workspace:*
+        version: link:../config
       '@types/react':
         specifier: ~19.1.10
         version: 19.1.17
