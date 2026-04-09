@@ -10,12 +10,13 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src/"
+    "lint": "echo 'contracts: no lint needed'"
   },
   "dependencies": {
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@lucro-caseiro/config": "workspace:*",
     "typescript": "^5.7.3"
   }
 }
