@@ -267,6 +267,13 @@ export default function NewSaleScreen() {
               <Button
                 title="Cadastrar produto"
                 onPress={() => setShowCreateProduct(true)}
+                icon={
+                  <Ionicons
+                    name="add-circle"
+                    size={18}
+                    color={theme.colors.textOnPrimary}
+                  />
+                }
               />
             </View>
           )}
@@ -368,7 +375,17 @@ export default function NewSaleScreen() {
                 <Typography variant="label">TOTAL SELECIONADO</Typography>
                 <Typography variant="moneyLg">{formatCurrency(cartTotal)}</Typography>
               </View>
-              <Button title="Proximo" onPress={() => setStep(2)} />
+              <Button
+                title="Proximo"
+                onPress={() => setStep(2)}
+                icon={
+                  <Ionicons
+                    name="arrow-forward"
+                    size={16}
+                    color={theme.colors.textOnPrimary}
+                  />
+                }
+              />
             </View>
           )}
         </View>
@@ -568,6 +585,13 @@ export default function NewSaleScreen() {
               void handleSubmit();
             }}
             loading={createSale.isPending}
+            icon={
+              <Ionicons
+                name="checkmark-circle"
+                size={18}
+                color={theme.colors.textOnPrimary}
+              />
+            }
           />
         </ScrollView>
       )}
@@ -587,12 +611,20 @@ export default function NewSaleScreen() {
             variant="secondary"
             style={{ flex: 1 }}
             onPress={() => setStep((s) => (s - 1) as Step)}
+            icon={<Ionicons name="arrow-back" size={16} color={theme.colors.text} />}
           />
           <Button
             title="Proximo"
             style={{ flex: 1 }}
             disabled={!canAdvance()}
             onPress={() => setStep((s) => (s + 1) as Step)}
+            icon={
+              <Ionicons
+                name="arrow-forward"
+                size={16}
+                color={theme.colors.textOnPrimary}
+              />
+            }
           />
         </View>
       )}
