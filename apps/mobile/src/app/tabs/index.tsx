@@ -162,20 +162,30 @@ export default function HomeScreen() {
         <View style={{ flexDirection: "row", gap: spacing.md }}>
           <View style={{ flex: 1 }}>
             <Button
-              title="Nova venda"
+              title="Venda"
               variant="primary"
-              size="lg"
+              size="md"
               onPress={() => router.push("/tabs/new-sale")}
               style={{ borderRadius: radii.xl }}
+              icon={
+                <Ionicons
+                  name="cart-outline"
+                  size={18}
+                  color={theme.colors.textOnPrimary}
+                />
+              }
             />
           </View>
           <View style={{ flex: 1 }}>
             <Button
-              title="Novo cliente"
+              title="Cliente"
               variant="secondary"
-              size="lg"
+              size="md"
               onPress={() => router.push("/tabs/clients")}
               style={{ borderRadius: radii.xl }}
+              icon={
+                <Ionicons name="person-add-outline" size={18} color={theme.colors.text} />
+              }
             />
           </View>
         </View>
