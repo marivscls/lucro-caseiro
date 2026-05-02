@@ -7,6 +7,7 @@ const envSchema = z.object({
   SUPABASE_URL: z.string().url(),
   SUPABASE_ANON_KEY: z.string().min(1),
   CORS_ORIGIN: z.string().default("*"),
+  REVENUECAT_WEBHOOK_SECRET: z.string().default(""),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -23,4 +24,5 @@ export const config = {
   supabaseUrl: parsed.data.SUPABASE_URL,
   supabaseAnonKey: parsed.data.SUPABASE_ANON_KEY,
   corsOrigin: parsed.data.CORS_ORIGIN,
+  revenuecatWebhookSecret: parsed.data.REVENUECAT_WEBHOOK_SECRET,
 };

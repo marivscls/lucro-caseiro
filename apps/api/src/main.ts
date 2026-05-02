@@ -32,6 +32,7 @@ import { SalesUseCases } from "./features/sales/sales.usecases";
 import { createSubscriptionRouter } from "./features/subscription/subscription.routes";
 import { SubscriptionRepoPg } from "./features/subscription/subscription.repo.pg";
 import { SubscriptionUseCases } from "./features/subscription/subscription.usecases";
+import { createWebhookRouter } from "./features/subscription/webhook.routes";
 import { errorHandler } from "./shared/middleware/error-handler";
 import { healthRouter } from "./shared/health";
 import { setDb } from "./shared/db";
@@ -86,6 +87,7 @@ app.use("/api/v1/pricing", createPricingRouter(pricingUseCases));
 app.use("/api/v1/labels", createLabelsRouter(labelsUseCases));
 app.use("/api/v1/packaging", createPackagingRouter(packagingUseCases));
 app.use("/api/v1/subscription", createSubscriptionRouter(subscriptionUseCases));
+app.use("/api/v1/webhooks", createWebhookRouter(subscriptionUseCases));
 
 app.use(errorHandler);
 
