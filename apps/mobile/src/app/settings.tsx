@@ -13,6 +13,7 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   Modal,
   Pressable,
   ScrollView,
@@ -23,6 +24,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "../shared/hooks/use-auth";
 import { useProfile, useUpdateProfile } from "../features/subscription/hooks";
+import { useSubscription } from "../features/subscription/use-subscription";
+
+const PRIVACY_POLICY_URL =
+  "https://www.orionseven.com.br/lucro-caseiro/politica-de-privacidade";
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -30,6 +35,7 @@ export default function SettingsScreen() {
   const { signOut } = useAuth();
   const { data: profile, isLoading } = useProfile();
   const updateProfile = useUpdateProfile();
+  const { restore, loading: subscriptionLoading } = useSubscription();
 
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [editName, setEditName] = useState("");
@@ -83,6 +89,15 @@ export default function SettingsScreen() {
         },
       },
     ]);
+  }
+
+  async function openPrivacyPolicy() {
+    const canOpen = await Linking.canOpenURL(PRIVACY_POLICY_URL);
+    if (!canOpen) {
+      Alert.alert("Erro", "Nao foi possivel abrir a politica de privacidade.");
+      return;
+    }
+    await Linking.openURL(PRIVACY_POLICY_URL);
   }
 
   if (isLoading) {
@@ -190,13 +205,23 @@ export default function SettingsScreen() {
           </View>
 
           {!isPremium && (
-            <Button
-              title="Assinar Premium"
-              variant="premium"
-              size="md"
-              onPress={() => router.push("/plans")}
-              style={{ marginTop: 16 }}
-            />
+            <View style={{ gap: 8, marginTop: 16 }}>
+              <Button
+                title="Assinar Premium"
+                variant="premium"
+                size="md"
+                onPress={() => router.push("/plans")}
+              />
+              <Pressable
+                onPress={() => void restore()}
+                disabled={subscriptionLoading}
+                style={{ alignItems: "center", paddingVertical: 4 }}
+              >
+                <Typography variant="caption" color={theme.colors.primary}>
+                  {subscriptionLoading ? "Restaurando..." : "Restaurar compra anterior"}
+                </Typography>
+              </Pressable>
+            </View>
           )}
         </Card>
 
@@ -258,23 +283,59 @@ export default function SettingsScreen() {
           </View>
 
           {/* Notifications */}
-          <View
+          {[
+            { key: "sales", label: "Vendas pendentes" },
+            { key: "birthdays", label: "Aniversarios de clientes" },
+            { key: "stock", label: "Estoque baixo" },
+            { key: "weekly", label: "Resumo semanal" },
+            { key: "daily", label: "Lembretes diarios" },
+          ].map((item) => (
+            <View
+              key={item.key}
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Typography variant="body">{item.label}</Typography>
+              <Switch
+                trackColor={{
+                  false: theme.colors.surface,
+                  true: theme.colors.primary,
+                }}
+                thumbColor={theme.colors.textOnPrimary}
+                value={true}
+              />
+            </View>
+          ))}
+        </Card>
+
+        {/* Legal Card */}
+        <Card style={{ gap: 16 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Ionicons
+              name="shield-checkmark-outline"
+              size={18}
+              color={theme.colors.textSecondary}
+            />
+            <Typography variant="bodyBold">Privacidade</Typography>
+          </View>
+
+          <Pressable
+            onPress={() => {
+              void openPrivacyPolicy();
+            }}
             style={{
               flexDirection: "row",
-              justifyContent: "space-between",
               alignItems: "center",
+              justifyContent: "space-between",
+              paddingVertical: 4,
             }}
           >
-            <Typography variant="body">Notificacoes</Typography>
-            <Switch
-              trackColor={{
-                false: theme.colors.surface,
-                true: theme.colors.primary,
-              }}
-              thumbColor={theme.colors.textOnPrimary}
-              value={true}
-            />
-          </View>
+            <Typography variant="body">Politica de privacidade</Typography>
+            <Ionicons name="open-outline" size={18} color={theme.colors.textSecondary} />
+          </Pressable>
         </Card>
 
         {/* Logout */}

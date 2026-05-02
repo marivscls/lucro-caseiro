@@ -7,9 +7,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useBirthdays } from "../../features/clients/hooks";
 import { useFinanceSummary } from "../../features/finance/hooks";
+import { useLowStockProducts } from "../../features/products/hooks";
 import { useTodaySummary } from "../../features/sales/hooks";
 import { LimitBanner } from "../../features/subscription/components/limit-banner";
 import { useProfile } from "../../features/subscription/hooks";
+import { AdBanner } from "../../shared/components/ad-banner";
 import { usePaywall } from "../../shared/hooks/use-paywall";
 
 function formatCurrency(value: number): string {
@@ -122,6 +124,7 @@ export default function HomeScreen() {
   const { data: todaySummary, isLoading: loadingSales } = useTodaySummary();
   const { data: financeSummary, isLoading: loadingFinance } = useFinanceSummary();
   const { data: birthdays } = useBirthdays();
+  const { data: lowStockProducts } = useLowStockProducts();
 
   const monthName = getMonthName();
   const isLoading = loadingSales || loadingFinance;
@@ -351,6 +354,58 @@ export default function HomeScreen() {
               </View>
             </Card>
 
+            {/* Low stock alerts */}
+            {lowStockProducts && lowStockProducts.length > 0 && (
+              <Card
+                variant="surface"
+                padding="xl"
+                style={{ borderLeftWidth: 3, borderLeftColor: theme.colors.alert }}
+              >
+                <Typography
+                  variant="h3"
+                  color={theme.colors.alert}
+                  style={{ marginBottom: spacing.sm }}
+                >
+                  Estoque baixo
+                </Typography>
+                {lowStockProducts.slice(0, 5).map((product) => (
+                  <View
+                    key={product.id}
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginTop: spacing.xs,
+                    }}
+                  >
+                    <Typography variant="body">{product.name}</Typography>
+                    <Typography
+                      variant="caption"
+                      color={
+                        product.stockQuantity === 0
+                          ? theme.colors.alert
+                          : theme.colors.premium
+                      }
+                    >
+                      {product.stockQuantity === 0
+                        ? "Sem estoque"
+                        : `${product.stockQuantity} un.`}
+                    </Typography>
+                  </View>
+                ))}
+                {lowStockProducts.length > 5 && (
+                  <Pressable
+                    onPress={() => router.push("/products")}
+                    style={{ marginTop: spacing.sm }}
+                  >
+                    <Typography variant="caption" color={theme.colors.primary}>
+                      Ver todos ({lowStockProducts.length})
+                    </Typography>
+                  </Pressable>
+                )}
+              </Card>
+            )}
+
             {/* Birthdays */}
             {birthdays && birthdays.length > 0 && (
               <Card
@@ -394,6 +449,9 @@ export default function HomeScreen() {
                 </View>
               </Card>
             </View>
+
+            {/* Ad banner — only for free plan users */}
+            <AdBanner size="banner" />
           </>
         )}
       </ScrollView>
