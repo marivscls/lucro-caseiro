@@ -26,3 +26,14 @@ export async function updateProfile(
 export async function fetchLimits(token: string): Promise<FreemiumLimits> {
   return apiClient<FreemiumLimits>(`${BASE}/limits`, { token });
 }
+
+export async function syncPlan(
+  token: string,
+  data: { plan: "free" | "premium"; expiresAt: string | null },
+): Promise<UserProfile> {
+  return apiClient<UserProfile>(`${BASE}/sync-plan`, {
+    method: "POST",
+    body: data,
+    token,
+  });
+}

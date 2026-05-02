@@ -1,14 +1,16 @@
 import { Button, Card, Typography, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import React, { useState } from "react";
+import { Alert, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 interface PaywallProps {
   readonly title?: string;
   readonly message?: string;
   readonly currentUsage?: string;
-  readonly onSubscribe?: () => void;
+  readonly onSubscribe?: (period: "monthly" | "annual") => void;
+  readonly onRestore?: () => void;
+  readonly loading?: boolean;
   readonly onClose?: () => void;
 }
 
@@ -21,6 +23,7 @@ const BENEFITS = [
   "Exportar PDF e Excel",
   "Templates premium",
   "Suporte prioritario",
+  "Sem anuncios",
 ];
 
 export function Paywall({
@@ -28,9 +31,28 @@ export function Paywall({
   message,
   currentUsage,
   onSubscribe,
+  onRestore,
+  loading = false,
   onClose,
 }: PaywallProps) {
   const { theme } = useTheme();
+  const [selectedPlan, setSelectedPlan] = useState<"monthly" | "annual">("monthly");
+
+  function handleSubscribe() {
+    if (onSubscribe) {
+      onSubscribe(selectedPlan);
+    } else {
+      Alert.alert("Em breve", "Assinatura sera disponibilizada em breve.");
+    }
+  }
+
+  function handleRestore() {
+    if (onRestore) {
+      onRestore();
+    } else {
+      Alert.alert("Em breve", "Restauracao sera disponibilizada em breve.");
+    }
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -121,30 +143,93 @@ export function Paywall({
           ))}
         </Card>
 
-        {/* Price Card */}
-        <Card style={{ alignItems: "center", gap: 4 }}>
-          <View style={{ flexDirection: "row", alignItems: "baseline", gap: 4 }}>
-            <Typography
-              variant="moneyHero"
-              color={theme.colors.premium}
-              style={{ fontSize: 40 }}
-            >
+        {/* Plan Selection */}
+        <View style={{ flexDirection: "row", gap: 12 }}>
+          <Pressable
+            onPress={() => setSelectedPlan("monthly")}
+            style={{
+              flex: 1,
+              padding: 16,
+              borderRadius: 16,
+              borderWidth: 2,
+              borderColor:
+                selectedPlan === "monthly" ? theme.colors.premium : theme.colors.surface,
+              backgroundColor: theme.colors.surfaceElevated,
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            <Typography variant="caption">Mensal</Typography>
+            <Typography variant="moneyLg" color={theme.colors.premium}>
               R$ 14,90
             </Typography>
-            <Typography variant="body">/mes</Typography>
-          </View>
-          <Typography variant="caption">ou R$ 119,90/ano (economize 33%)</Typography>
-        </Card>
+            <Typography variant="caption">/mes</Typography>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setSelectedPlan("annual")}
+            style={{
+              flex: 1,
+              padding: 16,
+              borderRadius: 16,
+              borderWidth: 2,
+              borderColor:
+                selectedPlan === "annual" ? theme.colors.premium : theme.colors.surface,
+              backgroundColor: theme.colors.surfaceElevated,
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: theme.colors.success,
+                paddingHorizontal: 8,
+                paddingVertical: 2,
+                borderRadius: 8,
+                marginBottom: 4,
+              }}
+            >
+              <Typography variant="caption" color={theme.colors.textOnPrimary}>
+                -33%
+              </Typography>
+            </View>
+            <Typography variant="caption">Anual</Typography>
+            <Typography variant="moneyLg" color={theme.colors.premium}>
+              R$ 119,90
+            </Typography>
+            <Typography variant="caption">/ano</Typography>
+          </Pressable>
+        </View>
+
+        {/* Trial info */}
+        <Typography
+          variant="caption"
+          color={theme.colors.textSecondary}
+          style={{ textAlign: "center" }}
+        >
+          7 dias gratis para experimentar. Cancele quando quiser.
+        </Typography>
 
         {/* Actions */}
         <View style={{ gap: 12, paddingBottom: 16 }}>
           <Button
-            title="Assinar Premium"
+            title="Comecar teste gratis"
             variant="premium"
             size="lg"
-            onPress={onSubscribe}
+            loading={loading}
+            onPress={handleSubscribe}
             icon={<Ionicons name="star" size={18} color="#FFFFFF" />}
           />
+
+          <Pressable
+            onPress={handleRestore}
+            style={{ alignItems: "center", paddingVertical: 4 }}
+          >
+            <Typography variant="caption" color={theme.colors.primary}>
+              Restaurar compra anterior
+            </Typography>
+          </Pressable>
+
           {onClose && (
             <Pressable
               onPress={onClose}

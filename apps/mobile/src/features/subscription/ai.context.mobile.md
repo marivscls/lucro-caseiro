@@ -117,6 +117,15 @@ Gerenciar perfil do usuario e assinatura: exibir/editar perfil (nome, negocio, t
 ## Change log / Decisions
 
 - Preco do Premium: R$ 14,90/mes ou R$ 119,90/ano (hard-coded no front).
-- Paywall nao integra com sistema de pagamento real (em breve para `onSubscribe`).
+- Trial: 7 dias gratis em ambos os planos (configurado nas lojas e RevenueCat, nao no codigo).
+- Dois planos expostos ao usuario (mensal + anual) — o paywall permite escolha.
+- Integracao de pagamento via **RevenueCat** (`react-native-purchases`):
+  - Entitlement unico: `premium`
+  - Product IDs: `lucrocaseiro_premium_monthly` / `lucrocaseiro_premium_annual`
+  - Offering: `default` (Current) com packages `$rc_monthly` e `$rc_annual`
+  - API keys lidas de `Constants.expoConfig.extra.revenuecat` ({ iosKey, androidKey, entitlementId }) — campos vazios em `app.json`, preencher antes de build de producao
+  - Sync backend via `POST /api/v1/subscription/sync-plan` apos compra/restore (client-side, otimista)
+  - Webhook RevenueCat → `/api/v1/webhooks/revenuecat` e a fonte de verdade server-side
 - `usePaywall` e Zustand store global para permitir abertura de qualquer lugar do app.
 - Limites: sales 30/mes, clients 20, recipes 5, packaging 3 no plano Free.
+- Setup completo das lojas + RevenueCat documentado em `docs/subscription-setup.md`.
