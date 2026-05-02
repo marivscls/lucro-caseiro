@@ -114,7 +114,70 @@ Keys publicas da RevenueCat podem ficar commitadas (sao publicas por design — 
 - RevenueCat dashboard → Integrations → Webhooks → **Send Test Event** — deve retornar 200.
 - Verificar logs do backend para evento `TEST`.
 
-## 6. Checklist de Lancamento
+## 6. Mercado Pago (alternativa PIX/cartao via web)
+
+Metodo **opcional** paralelo ao RevenueCat. Util pro publico brasileiro que prefere PIX ou nao quer cadastrar cartao na conta Google. Taxa de ~4,99% (vs 15% Apple/Google).
+
+### Criar Preapproval Plans
+
+1. Acesse [mercadopago.com.br/developers/panel/app](https://www.mercadopago.com.br/developers/panel/app) → criar app `Lucro Caseiro`.
+2. **Activities & integrations** → **Subscriptions (preapproval)** → ativar.
+3. Criar 2 planos via API (precisa de access token):
+
+   ```bash
+   # Plano Mensal
+   curl -X POST https://api.mercadopago.com/preapproval_plan \
+     -H "Authorization: Bearer <ACCESS_TOKEN>" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "reason": "Lucro Caseiro Premium Mensal",
+       "auto_recurring": {
+         "frequency": 1,
+         "frequency_type": "months",
+         "transaction_amount": 14.90,
+         "currency_id": "BRL"
+       },
+       "back_url": "https://lucrocaseiro.app/payment-return",
+       "payment_methods_allowed": {
+         "payment_types": [{"id": "credit_card"}, {"id": "ticket"}],
+         "payment_methods": [{"id": "pix"}]
+       }
+     }'
+
+   # Plano Anual — repetir com transaction_amount: 119.90, frequency: 1, frequency_type: "years"
+   ```
+
+4. Anote os `id` retornados (ex: `2c93808489...`).
+
+### Configurar webhook
+
+1. Painel MP → **Webhooks** → criar:
+   - URL: `https://<API>/api/v1/webhooks/mercadopago`
+   - Eventos: `subscription_preapproval`, `subscription_authorized_payment`
+   - Modo: **Producao**
+2. Copiar o **Secret** gerado pelo MP (sera usado em `MERCADOPAGO_WEBHOOK_SECRET`).
+
+### Variaveis de ambiente (backend)
+
+```env
+MERCADOPAGO_ACCESS_TOKEN=APP_USR-xxxxxxxx
+MERCADOPAGO_WEBHOOK_SECRET=<secret_gerado_no_painel>
+MERCADOPAGO_PLAN_MONTHLY_ID=<id_do_plano_mensal>
+MERCADOPAGO_PLAN_ANNUAL_ID=<id_do_plano_anual>
+```
+
+### Testar
+
+1. Sandbox: usar `TEST-xxxxx` access token + cartao de teste documentado em [mercadopago.com.br/developers/pt/docs/checkout-pro/test-integration](https://www.mercadopago.com.br/developers/pt/docs/checkout-pro/test-integration).
+2. App → Paywall → "Pagar com PIX ou cartao" → abre browser do MP → completar pagamento.
+3. Painel MP → Webhooks → **Send Test Event** → conferir log da API.
+4. Checar `users.plan` no banco apos compra de teste — deve estar `premium`.
+
+---
+
+## 7. Checklist de Lancamento
+
+### RevenueCat (Apple/Google IAP)
 
 - [ ] Produtos criados em App Store Connect (status "Ready to Submit")
 - [ ] Produtos criados em Google Play Console (status "Active")
@@ -127,3 +190,12 @@ Keys publicas da RevenueCat podem ficar commitadas (sao publicas por design — 
 - [ ] Teste de compra internal Android → entitlement ativo
 - [ ] Teste de restore em conta ja paga
 - [ ] Teste de cancelamento → webhook EXPIRATION → `plan: free`
+
+### Mercado Pago (opcional)
+
+- [ ] Conta MP com KYC completo + dados bancarios
+- [ ] Preapproval plans criados (mensal + anual)
+- [ ] Webhook configurado com URL de producao
+- [ ] `MERCADOPAGO_*` envs no backend de producao
+- [ ] Teste sandbox: assinatura ativa premium via webhook
+- [ ] Teste de cancelamento via painel MP → webhook desativa premium
