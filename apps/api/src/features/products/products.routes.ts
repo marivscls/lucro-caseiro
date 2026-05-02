@@ -43,6 +43,27 @@ export function createProductsRouter(useCases: ProductsUseCases): Router {
     }
   });
 
+  router.get("/low-stock", async (req, res, next) => {
+    try {
+      const userId = getUserId(req);
+      const result = await useCases.list(userId, {
+        page: 1,
+        limit: 100,
+        activeOnly: true,
+      });
+      const lowStock = result.items.filter(
+        (p) =>
+          p.stockQuantity !== null &&
+          p.stockAlertThreshold !== null &&
+          p.stockQuantity <= p.stockAlertThreshold,
+      );
+      lowStock.sort((a, b) => (a.stockQuantity ?? 0) - (b.stockQuantity ?? 0));
+      res.json(lowStock);
+    } catch (err) {
+      next(err);
+    }
+  });
+
   router.get("/:id", async (req, res, next) => {
     try {
       const userId = getUserId(req);
