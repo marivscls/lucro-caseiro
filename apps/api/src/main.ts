@@ -33,6 +33,12 @@ import { createSubscriptionRouter } from "./features/subscription/subscription.r
 import { SubscriptionRepoPg } from "./features/subscription/subscription.repo.pg";
 import { SubscriptionUseCases } from "./features/subscription/subscription.usecases";
 import { createWebhookRouter } from "./features/subscription/webhook.routes";
+import { MercadoPagoClient } from "./features/payments/mercadopago.client";
+import {
+  createMercadoPagoCheckoutRouter,
+  createMercadoPagoWebhookRouter,
+} from "./features/payments/mercadopago.routes";
+import { MercadoPagoUseCases } from "./features/payments/mercadopago.usecases";
 import { errorHandler } from "./shared/middleware/error-handler";
 import { healthRouter } from "./shared/health";
 import { setDb } from "./shared/db";
@@ -66,6 +72,17 @@ const packagingUseCases = new PackagingUseCases(packagingRepo);
 const pricingUseCases = new PricingUseCases(pricingRepo);
 const subscriptionUseCases = new SubscriptionUseCases(subscriptionRepo);
 
+// Payments (Mercado Pago)
+const mercadopagoClient = new MercadoPagoClient(config.mercadopagoAccessToken);
+const mercadopagoUseCases = new MercadoPagoUseCases(
+  mercadopagoClient,
+  subscriptionUseCases,
+  {
+    monthlyPlanId: config.mercadopagoPlanMonthlyId,
+    annualPlanId: config.mercadopagoPlanAnnualId,
+  },
+);
+
 // App
 const app: Express = express();
 app.disable("x-powered-by");
@@ -87,7 +104,17 @@ app.use("/api/v1/pricing", createPricingRouter(pricingUseCases));
 app.use("/api/v1/labels", createLabelsRouter(labelsUseCases));
 app.use("/api/v1/packaging", createPackagingRouter(packagingUseCases));
 app.use("/api/v1/subscription", createSubscriptionRouter(subscriptionUseCases));
+app.use(
+  "/api/v1/payments/mercadopago",
+  createMercadoPagoCheckoutRouter(mercadopagoUseCases),
+);
 app.use("/api/v1/webhooks", createWebhookRouter(subscriptionUseCases));
+app.use(
+  "/api/v1/webhooks",
+  createMercadoPagoWebhookRouter(mercadopagoUseCases, {
+    webhookSecret: config.mercadopagoWebhookSecret,
+  }),
+);
 
 app.use(errorHandler);
 

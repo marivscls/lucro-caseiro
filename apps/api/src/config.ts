@@ -8,6 +8,10 @@ const envSchema = z.object({
   SUPABASE_ANON_KEY: z.string().min(1),
   CORS_ORIGIN: z.string().default("*"),
   REVENUECAT_WEBHOOK_SECRET: z.string().default(""),
+  MERCADOPAGO_ACCESS_TOKEN: z.string().default(""),
+  MERCADOPAGO_WEBHOOK_SECRET: z.string().default(""),
+  MERCADOPAGO_PLAN_MONTHLY_ID: z.string().default(""),
+  MERCADOPAGO_PLAN_ANNUAL_ID: z.string().default(""),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -25,4 +29,8 @@ export const config = {
   supabaseAnonKey: parsed.data.SUPABASE_ANON_KEY,
   corsOrigin: parsed.data.CORS_ORIGIN,
   revenuecatWebhookSecret: parsed.data.REVENUECAT_WEBHOOK_SECRET,
+  mercadopagoAccessToken: parsed.data.MERCADOPAGO_ACCESS_TOKEN,
+  mercadopagoWebhookSecret: parsed.data.MERCADOPAGO_WEBHOOK_SECRET,
+  mercadopagoPlanMonthlyId: parsed.data.MERCADOPAGO_PLAN_MONTHLY_ID,
+  mercadopagoPlanAnnualId: parsed.data.MERCADOPAGO_PLAN_ANNUAL_ID,
 };
