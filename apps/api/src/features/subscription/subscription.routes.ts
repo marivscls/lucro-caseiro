@@ -39,5 +39,28 @@ export function createSubscriptionRouter(useCases: SubscriptionUseCases): Router
     }
   });
 
+  router.post("/sync-plan", async (req, res, next) => {
+    try {
+      const userId = getUserId(req);
+      const { plan, expiresAt } = req.body as {
+        plan: "free" | "premium";
+        expiresAt: string | null;
+      };
+
+      if (plan === "premium") {
+        const profile = await useCases.activatePremium(
+          userId,
+          expiresAt ? new Date(expiresAt) : null,
+        );
+        res.json(profile);
+      } else {
+        const profile = await useCases.deactivatePremium(userId);
+        res.json(profile);
+      }
+    } catch (err) {
+      next(err);
+    }
+  });
+
   return router;
 }
