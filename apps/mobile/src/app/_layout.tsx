@@ -3,27 +3,31 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Modal, View } from "react-native";
+import { ActivityIndicator, Modal, View } from "react-native";
 
 import { OfflineBanner } from "../shared/components/offline-banner";
 import { useAuth } from "../shared/hooks/use-auth";
 import { useNotifications } from "../shared/hooks/use-notifications";
+import { setupAutoSync } from "../shared/hooks/use-offline-queue";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { Paywall } from "../features/subscription/components/paywall";
 
 function AppContent() {
   const { theme } = useTheme();
-  const { initialize, isLoading } = useAuth();
+  const { initialize, isLoading, token } = useAuth();
   const { visible: paywallVisible, hide: hidePaywall } = usePaywall();
 
   // Registers for push notifications once the user is authenticated.
-  // The hook is called unconditionally (Rules of Hooks) but internally
-  // skips registration when isAuthenticated is false.
   useNotifications();
 
   useEffect(() => {
     void initialize();
   }, []);
+
+  // Auto-sync offline queue when connection is restored.
+  useEffect(() => {
+    return setupAutoSync(() => token);
+  }, [token]);
 
   if (isLoading) {
     return (
@@ -50,12 +54,7 @@ function AppContent() {
         presentationStyle="pageSheet"
         onRequestClose={hidePaywall}
       >
-        <Paywall
-          onSubscribe={() => {
-            Alert.alert("Em breve", "A assinatura Premium estara disponivel em breve!");
-          }}
-          onClose={hidePaywall}
-        />
+        <Paywall onClose={hidePaywall} />
       </Modal>
       <Stack
         screenOptions={{
