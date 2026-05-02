@@ -1,7 +1,9 @@
-import { Button, Input, Typography } from "@lucro-caseiro/ui";
+import { Button, Input, Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
+import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Alert, ScrollView } from "react-native";
+import { Alert, Image, Pressable, ScrollView, View } from "react-native";
 
+import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { useCreateProduct } from "../hooks";
 
 interface CreateProductFormProps {
@@ -9,12 +11,14 @@ interface CreateProductFormProps {
 }
 
 export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
+  const { theme } = useTheme();
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [salePrice, setSalePrice] = useState("");
   const [description, setDescription] = useState("");
   const [stockQuantity, setStockQuantity] = useState("");
   const [stockAlert, setStockAlert] = useState("");
+  const { imageUri, showPicker } = useImagePicker();
 
   const createProduct = useCreateProduct();
 
@@ -79,16 +83,38 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
         keyboardType="decimal-pad"
       />
 
-      <Button
-        title="Adicionar foto (em breve)"
-        variant="secondary"
-        onPress={() =>
-          Alert.alert(
-            "Em breve!",
-            "A funcao de adicionar foto estara disponivel em uma proxima atualizacao.",
-          )
-        }
-      />
+      <View>
+        <Typography variant="caption" style={{ marginBottom: spacing.sm }}>
+          Foto do produto
+        </Typography>
+        <Pressable
+          onPress={showPicker}
+          style={{
+            width: 100,
+            height: 100,
+            borderRadius: radii.lg,
+            backgroundColor: theme.colors.surface,
+            alignItems: "center",
+            justifyContent: "center",
+            overflow: "hidden",
+          }}
+        >
+          {imageUri ? (
+            <Image source={{ uri: imageUri }} style={{ width: 100, height: 100 }} />
+          ) : (
+            <View style={{ alignItems: "center", gap: 4 }}>
+              <Ionicons
+                name="camera-outline"
+                size={28}
+                color={theme.colors.textSecondary}
+              />
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                Adicionar
+              </Typography>
+            </View>
+          )}
+        </Pressable>
+      </View>
 
       <Input
         label="Descricao (opcional)"

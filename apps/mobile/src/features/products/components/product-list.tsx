@@ -2,6 +2,12 @@ import { Button, EmptyState, Typography, useTheme } from "@lucro-caseiro/ui";
 import React from "react";
 import { ActivityIndicator, FlatList, View } from "react-native";
 
+import {
+  AD_ITEM_MARKER,
+  AdBanner,
+  interleaveAds,
+} from "../../../shared/components/ad-banner";
+import { useShowAds } from "../../../shared/hooks/use-show-ads";
 import { useProducts } from "../hooks";
 import { ProductCard } from "./product-card";
 
@@ -19,6 +25,7 @@ export function ProductList({
   onAddPress,
 }: ProductListProps) {
   const { theme } = useTheme();
+  const showAds = useShowAds();
   const { data, isLoading, error } = useProducts({ category, search });
 
   if (isLoading) {
@@ -52,13 +59,18 @@ export function ProductList({
     );
   }
 
+  const listData = showAds ? interleaveAds(data.items) : data.items;
+
   return (
     <FlatList
-      data={data.items}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        <ProductCard product={item} onPress={() => onProductPress?.(item.id)} />
-      )}
+      data={listData}
+      keyExtractor={(item, index) => (item === AD_ITEM_MARKER ? `ad-${index}` : item.id)}
+      renderItem={({ item }) => {
+        if (item === AD_ITEM_MARKER) {
+          return <AdBanner size="banner" />;
+        }
+        return <ProductCard product={item} onPress={() => onProductPress?.(item.id)} />;
+      }}
       contentContainerStyle={{ gap: 12, padding: 20 }}
       ListHeaderComponent={
         <Typography variant="caption">

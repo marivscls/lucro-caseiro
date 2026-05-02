@@ -8,8 +8,9 @@ import {
   spacing,
   radii,
 } from "@lucro-caseiro/ui";
+import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Alert, Modal, Pressable, ScrollView, View } from "react-native";
+import { Alert, Image, Modal, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { CreateProductForm } from "../features/products/components/create-product-form";
@@ -19,6 +20,7 @@ import {
   useProduct,
   useUpdateProduct,
 } from "../features/products/hooks";
+import { useImagePicker } from "../shared/hooks/use-image-picker";
 
 function formatCurrency(value: number): string {
   return `R$ ${value.toFixed(2).replace(".", ",")}`;
@@ -37,6 +39,7 @@ function ProductDetailModal({
   const { data: product, isLoading } = useProduct(productId);
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
+  const { imageUri, showPicker, setImageUri } = useImagePicker();
 
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
@@ -49,6 +52,7 @@ function ProductDetailModal({
     setCategory(p.category);
     setSalePrice(String(p.salePrice).replace(".", ","));
     setDescription(p.description ?? "");
+    setImageUri(p.photoUrl ?? null);
     setEditing(true);
   }
 
@@ -150,16 +154,38 @@ function ProductDetailModal({
               onChangeText={setSalePrice}
               keyboardType="decimal-pad"
             />
-            <Button
-              title="Adicionar foto (em breve)"
-              variant="secondary"
-              onPress={() =>
-                Alert.alert(
-                  "Em breve!",
-                  "A funcao de adicionar foto estara disponivel em uma proxima atualizacao.",
-                )
-              }
-            />
+            <View>
+              <Typography variant="caption" style={{ marginBottom: spacing.sm }}>
+                Foto do produto
+              </Typography>
+              <Pressable
+                onPress={showPicker}
+                style={{
+                  width: 100,
+                  height: 100,
+                  borderRadius: radii.lg,
+                  backgroundColor: theme.colors.surface,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  overflow: "hidden",
+                }}
+              >
+                {imageUri ? (
+                  <Image source={{ uri: imageUri }} style={{ width: 100, height: 100 }} />
+                ) : (
+                  <View style={{ alignItems: "center", gap: 4 }}>
+                    <Ionicons
+                      name="camera-outline"
+                      size={28}
+                      color={theme.colors.textSecondary}
+                    />
+                    <Typography variant="caption" color={theme.colors.textSecondary}>
+                      Adicionar
+                    </Typography>
+                  </View>
+                )}
+              </Pressable>
+            </View>
             <Input
               label="Descricao (opcional)"
               value={description}
@@ -221,16 +247,38 @@ function ProductDetailModal({
               </View>
             </Card>
 
-            <Button
-              title="Adicionar foto (em breve)"
-              variant="secondary"
-              onPress={() =>
-                Alert.alert(
-                  "Em breve!",
-                  "A funcao de adicionar foto estara disponivel em uma proxima atualizacao.",
-                )
-              }
-            />
+            <View>
+              <Typography variant="caption" style={{ marginBottom: spacing.sm }}>
+                Foto do produto
+              </Typography>
+              <Pressable
+                onPress={showPicker}
+                style={{
+                  width: 100,
+                  height: 100,
+                  borderRadius: radii.lg,
+                  backgroundColor: theme.colors.surface,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  overflow: "hidden",
+                }}
+              >
+                {imageUri ? (
+                  <Image source={{ uri: imageUri }} style={{ width: 100, height: 100 }} />
+                ) : (
+                  <View style={{ alignItems: "center", gap: 4 }}>
+                    <Ionicons
+                      name="camera-outline"
+                      size={28}
+                      color={theme.colors.textSecondary}
+                    />
+                    <Typography variant="caption" color={theme.colors.textSecondary}>
+                      Adicionar
+                    </Typography>
+                  </View>
+                )}
+              </Pressable>
+            </View>
 
             <Button
               title="Excluir produto"

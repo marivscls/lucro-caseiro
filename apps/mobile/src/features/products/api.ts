@@ -51,3 +51,7 @@ export async function updateProduct(
 export async function deleteProduct(token: string, id: string): Promise<void> {
   await apiClient(`${BASE}/${id}`, { method: "DELETE", token });
 }
+
+export async function fetchLowStockProducts(token: string): Promise<Product[]> {
+  return apiClient<Product[]>(`${BASE}/low-stock`, { token });
+}

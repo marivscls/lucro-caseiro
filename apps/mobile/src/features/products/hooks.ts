@@ -5,6 +5,7 @@ import { useAuth } from "../../shared/hooks/use-auth";
 import {
   createProduct,
   deleteProduct,
+  fetchLowStockProducts,
   fetchProduct,
   fetchProducts,
   updateProduct,
@@ -56,6 +57,15 @@ export function useUpdateProduct() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: PRODUCTS_KEY });
     },
+  });
+}
+
+export function useLowStockProducts() {
+  const { token } = useAuth();
+  return useQuery({
+    queryKey: [...PRODUCTS_KEY, "low-stock"],
+    queryFn: () => fetchLowStockProducts(token!),
+    enabled: !!token,
   });
 }
 
