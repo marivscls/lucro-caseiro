@@ -35,3 +35,21 @@ yarn-error.log*
 coverage/
 .pnpm-store/
 .claude/
+
+# expo
+.expo-shared/
+
+# signing — never commit
+*.jks
+*.keystore
+*.pem
+*.p12
+*.p8
+*.mobileprovision
+upload_certificate*
+
+# tooling cache
+*.tsbuildinfo
+
+# accidental root expo init
+/app.json
