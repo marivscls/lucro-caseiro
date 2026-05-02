@@ -55,9 +55,16 @@ export const useAuth = create<AuthState>((set) => ({
 
   initialize: async () => {
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      // Timeout to prevent infinite loading if Supabase is unreachable
+      const timeout = new Promise<null>((resolve) =>
+        setTimeout(() => resolve(null), 5000),
+      );
+      const sessionPromise = supabase.auth.getSession();
+
+      const result = await Promise.race([sessionPromise, timeout]);
+      const session = result
+        ? (result as { data: { session: Session | null } }).data.session
+        : null;
 
       if (session) {
         set({
