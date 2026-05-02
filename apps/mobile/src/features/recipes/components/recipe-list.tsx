@@ -9,6 +9,12 @@ import {
 import React, { useState } from "react";
 import { ActivityIndicator, FlatList, TouchableOpacity, View } from "react-native";
 
+import {
+  AD_ITEM_MARKER,
+  AdBanner,
+  interleaveAds,
+} from "../../../shared/components/ad-banner";
+import { useShowAds } from "../../../shared/hooks/use-show-ads";
 import { useRecipes } from "../hooks";
 import { RecipeCard } from "./recipe-card";
 
@@ -21,6 +27,7 @@ const CATEGORY_FILTERS = ["Todas", "Doces", "Salgados", "Bolos", "Bebidas", "Out
 
 export function RecipeList({ onRecipePress, onAddPress }: RecipeListProps) {
   const { theme } = useTheme();
+  const showAds = useShowAds();
   const [selectedCategory, setSelectedCategory] = useState("Todas");
 
   const category = selectedCategory === "Todas" ? undefined : selectedCategory;
@@ -57,13 +64,18 @@ export function RecipeList({ onRecipePress, onAddPress }: RecipeListProps) {
     );
   }
 
+  const listData = showAds ? interleaveAds(data.items) : data.items;
+
   return (
     <FlatList
-      data={data.items}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        <RecipeCard recipe={item} onPress={() => onRecipePress?.(item.id)} />
-      )}
+      data={listData}
+      keyExtractor={(item, index) => (item === AD_ITEM_MARKER ? `ad-${index}` : item.id)}
+      renderItem={({ item }) => {
+        if (item === AD_ITEM_MARKER) {
+          return <AdBanner size="banner" />;
+        }
+        return <RecipeCard recipe={item} onPress={() => onRecipePress?.(item.id)} />;
+      }}
       contentContainerStyle={{ gap: spacing.md, padding: spacing.xl }}
       ListHeaderComponent={
         <View style={{ gap: spacing.lg }}>
