@@ -2,6 +2,7 @@ import { z } from "zod";
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  PORT: z.coerce.number().optional(),
   API_PORT: z.coerce.number().default(3001),
   DATABASE_URL: z.string().min(1),
   SUPABASE_URL: z.string().url(),
@@ -23,7 +24,7 @@ if (!parsed.success) {
 
 export const config = {
   env: parsed.data.NODE_ENV,
-  port: parsed.data.API_PORT,
+  port: parsed.data.PORT ?? parsed.data.API_PORT,
   databaseUrl: parsed.data.DATABASE_URL,
   supabaseUrl: parsed.data.SUPABASE_URL,
   supabaseAnonKey: parsed.data.SUPABASE_ANON_KEY,
