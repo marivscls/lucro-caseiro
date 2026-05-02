@@ -11,11 +11,13 @@ import { useNotifications } from "../shared/hooks/use-notifications";
 import { setupAutoSync } from "../shared/hooks/use-offline-queue";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { Paywall } from "../features/subscription/components/paywall";
+import { useMercadoPagoCheckout } from "../features/subscription/use-mercadopago";
 
 function AppContent() {
   const { theme } = useTheme();
   const { initialize, isLoading, token } = useAuth();
   const { visible: paywallVisible, hide: hidePaywall } = usePaywall();
+  const { checkout: payWithMercadoPago, loading: mpLoading } = useMercadoPagoCheckout();
 
   // Registers for push notifications once the user is authenticated.
   useNotifications();
@@ -54,7 +56,13 @@ function AppContent() {
         presentationStyle="pageSheet"
         onRequestClose={hidePaywall}
       >
-        <Paywall onClose={hidePaywall} />
+        <Paywall
+          onClose={hidePaywall}
+          onPayWithMercadoPago={(period) => {
+            void payWithMercadoPago(period);
+          }}
+          loading={mpLoading}
+        />
       </Modal>
       <Stack
         screenOptions={{

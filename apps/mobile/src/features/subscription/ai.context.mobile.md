@@ -57,11 +57,13 @@ Gerenciar perfil do usuario e assinatura: exibir/editar perfil (nome, negocio, t
 
 ## Hooks
 
-| Hook                 | Tipo          | Descricao                                                        |
-| -------------------- | ------------- | ---------------------------------------------------------------- |
-| `useProfile()`       | `useQuery`    | Perfil do usuario. Query key: `["subscription", "profile"]`      |
-| `useLimits()`        | `useQuery`    | Limites freemium atuais. Query key: `["subscription", "limits"]` |
-| `useUpdateProfile()` | `useMutation` | Atualiza perfil. Invalida `["subscription"]`.                    |
+| Hook                       | Tipo          | Descricao                                                                                |
+| -------------------------- | ------------- | ---------------------------------------------------------------------------------------- |
+| `useProfile()`             | `useQuery`    | Perfil do usuario. Query key: `["subscription", "profile"]`                              |
+| `useLimits()`              | `useQuery`    | Limites freemium atuais. Query key: `["subscription", "limits"]`                         |
+| `useUpdateProfile()`       | `useMutation` | Atualiza perfil. Invalida `["subscription"]`.                                            |
+| `useSubscription()`        | custom        | RevenueCat: `subscribe(period)`, `restore()`, `loading`. Sync silencioso no boot.        |
+| `useMercadoPagoCheckout()` | custom        | Mercado Pago: `checkout(period)` chama API e abre URL no browser via `expo-web-browser`. |
 
 ### Hooks compartilhados
 
@@ -72,11 +74,13 @@ Gerenciar perfil do usuario e assinatura: exibir/editar perfil (nome, negocio, t
 
 ## API Integration
 
-| Endpoint                       | Verbo | Funcao          | Parametros            |
-| ------------------------------ | ----- | --------------- | --------------------- |
-| `/api/v1/subscription/profile` | GET   | `fetchProfile`  | -                     |
-| `/api/v1/subscription/profile` | PATCH | `updateProfile` | body: `UpdateProfile` |
-| `/api/v1/subscription/limits`  | GET   | `fetchLimits`   | -                     |
+| Endpoint                                | Verbo | Funcao                      | Parametros                              |
+| --------------------------------------- | ----- | --------------------------- | --------------------------------------- |
+| `/api/v1/subscription/profile`          | GET   | `fetchProfile`              | -                                       |
+| `/api/v1/subscription/profile`          | PATCH | `updateProfile`             | body: `UpdateProfile`                   |
+| `/api/v1/subscription/limits`           | GET   | `fetchLimits`               | -                                       |
+| `/api/v1/subscription/sync-plan`        | POST  | `syncPlan`                  | body: `{ plan, expiresAt }`             |
+| `/api/v1/payments/mercadopago/checkout` | POST  | `createMercadoPagoCheckout` | body: `{ plan: "monthly" \| "annual" }` |
 
 ## Contracts
 
@@ -129,3 +133,4 @@ Gerenciar perfil do usuario e assinatura: exibir/editar perfil (nome, negocio, t
 - `usePaywall` e Zustand store global para permitir abertura de qualquer lugar do app.
 - Limites: sales 30/mes, clients 20, recipes 5, packaging 3 no plano Free.
 - Setup completo das lojas + RevenueCat documentado em `docs/subscription-setup.md`.
+- **Mercado Pago** adicionado como forma alternativa (PIX/cartao via web). Botao "Pagar com PIX ou cartao" aparece na paywall quando `onPayWithMercadoPago` e passado. Hook `useMercadoPagoCheckout` chama backend para gerar URL de checkout e abre no browser externo. Estado do plano e ativado via webhook server-side (`/api/v1/webhooks/mercadopago`), sem sync client-side.

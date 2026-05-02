@@ -10,6 +10,7 @@ interface PaywallProps {
   readonly currentUsage?: string;
   readonly onSubscribe?: (period: "monthly" | "annual") => void;
   readonly onRestore?: () => void;
+  readonly onPayWithMercadoPago?: (period: "monthly" | "annual") => void;
   readonly loading?: boolean;
   readonly onClose?: () => void;
 }
@@ -32,6 +33,7 @@ export function Paywall({
   currentUsage,
   onSubscribe,
   onRestore,
+  onPayWithMercadoPago,
   loading = false,
   onClose,
 }: PaywallProps) {
@@ -220,6 +222,27 @@ export function Paywall({
             onPress={handleSubscribe}
             icon={<Ionicons name="star" size={18} color="#FFFFFF" />}
           />
+
+          {onPayWithMercadoPago && (
+            <Pressable
+              onPress={() => onPayWithMercadoPago(selectedPlan)}
+              style={{
+                alignItems: "center",
+                paddingVertical: 12,
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: theme.colors.surface,
+                flexDirection: "row",
+                justifyContent: "center",
+                gap: 8,
+              }}
+            >
+              <Ionicons name="qr-code" size={18} color={theme.colors.text} />
+              <Typography variant="body" color={theme.colors.text}>
+                Pagar com PIX ou cartao
+              </Typography>
+            </Pressable>
+          )}
 
           <Pressable
             onPress={handleRestore}

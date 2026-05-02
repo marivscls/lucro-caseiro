@@ -37,3 +37,14 @@ export async function syncPlan(
     token,
   });
 }
+
+export async function createMercadoPagoCheckout(
+  token: string,
+  plan: "monthly" | "annual",
+): Promise<{ url: string }> {
+  return apiClient<{ url: string }>(`/api/v1/payments/mercadopago/checkout`, {
+    method: "POST",
+    body: { plan },
+    token,
+  });
+}
