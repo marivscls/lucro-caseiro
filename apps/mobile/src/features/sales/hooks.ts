@@ -3,10 +3,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "../../shared/hooks/use-auth";
 import {
+  type UpdateSaleData,
   createSale,
   fetchSale,
   fetchSales,
   fetchTodaySummary,
+  updateSale,
   updateSaleStatus,
 } from "./api";
 
@@ -57,6 +59,18 @@ export function useUpdateSaleStatus() {
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: SaleStatus }) =>
       updateSaleStatus(token!, id, { status }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: SALES_KEY });
+    },
+  });
+}
+
+export function useUpdateSale() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateSaleData }) =>
+      updateSale(token!, id, data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: SALES_KEY });
     },

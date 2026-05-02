@@ -55,3 +55,22 @@ export async function updateSaleStatus(
     token,
   });
 }
+
+export interface UpdateSaleData {
+  clientId?: string;
+  paymentMethod?: string;
+  items?: Array<{ productId: string; quantity: number; unitPrice: number }>;
+  notes?: string;
+}
+
+export async function updateSale(
+  token: string,
+  id: string,
+  data: UpdateSaleData,
+): Promise<Sale> {
+  return apiClient<Sale>(`${BASE}/${id}`, {
+    method: "PATCH",
+    body: data,
+    token,
+  });
+}

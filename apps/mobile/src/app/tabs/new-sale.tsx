@@ -26,6 +26,7 @@ import { useClients } from "../../features/clients/hooks";
 import { CreateProductForm } from "../../features/products/components/create-product-form";
 import { useProducts } from "../../features/products/hooks";
 import { useCreateSale } from "../../features/sales/hooks";
+import { useInterstitial } from "../../shared/hooks/use-interstitial";
 import { useLimitCheck } from "../../shared/hooks/use-limit-check";
 
 type Step = 1 | 2 | 3 | 4;
@@ -80,6 +81,7 @@ function getAvatarColor(index: number): string {
 
 export default function NewSaleScreen() {
   const { theme } = useTheme();
+  const { show: showInterstitial } = useInterstitial();
   const { checkAndBlock: checkSalesLimit } = useLimitCheck("sales");
   const [step, setStep] = useState<Step>(1);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -161,6 +163,7 @@ export default function NewSaleScreen() {
         })),
       });
       Alert.alert("Venda registrada!", `Total: ${formatCurrency(result.total)}`);
+      showInterstitial();
       resetForm();
     } catch {
       Alert.alert("Erro", "Nao foi possivel registrar a venda. Tente novamente.");

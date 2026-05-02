@@ -11,12 +11,20 @@ import {
 } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { ActivityIndicator, FlatList, Modal, Pressable, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Modal,
+  Pressable,
+  ScrollView,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { SaleCard } from "../../features/sales/components/sale-card";
 import { SaleDetail } from "../../features/sales/components/sale-detail";
-import { useSale, useSales } from "../../features/sales/hooks";
+import { useSale, useSales, useUpdateSale } from "../../features/sales/hooks";
 
 type FilterTab = "all" | "paid" | "pending" | "cancelled";
 
@@ -142,14 +150,43 @@ export default function SalesScreen() {
   const [activeFilter, setActiveFilter] = useState<FilterTab>("all");
   const [selectedSaleId, setSelectedSaleId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showEdit, setShowEdit] = useState(false);
+  const [editPayment, setEditPayment] = useState("");
+  const [editNotes, setEditNotes] = useState("");
 
   const statusParam = activeFilter === "all" ? undefined : activeFilter;
   const { data, isLoading, error, refetch } = useSales({ status: statusParam });
   const { data: selectedSale } = useSale(selectedSaleId ?? "");
+  const updateSale = useUpdateSale();
 
   function handleStatusUpdated() {
     setSelectedSaleId(null);
     void refetch();
+  }
+
+  function handleEditPress() {
+    if (!selectedSale) return;
+    setEditPayment(selectedSale.paymentMethod);
+    setEditNotes(selectedSale.notes ?? "");
+    setShowEdit(true);
+  }
+
+  async function handleSaveEdit() {
+    if (!selectedSaleId) return;
+    try {
+      await updateSale.mutateAsync({
+        id: selectedSaleId,
+        data: {
+          paymentMethod: editPayment,
+          notes: editNotes.trim() || undefined,
+        },
+      });
+      Alert.alert("Venda atualizada!");
+      setShowEdit(false);
+      void refetch();
+    } catch {
+      Alert.alert("Erro", "Nao foi possivel atualizar a venda.");
+    }
   }
 
   const filteredItems = data?.items?.filter((sale) => {
@@ -259,8 +296,95 @@ export default function SalesScreen() {
             </Pressable>
           </View>
           {selectedSale && (
-            <SaleDetail sale={selectedSale} onStatusUpdated={handleStatusUpdated} />
+            <SaleDetail
+              sale={selectedSale}
+              onStatusUpdated={handleStatusUpdated}
+              onEditPress={handleEditPress}
+            />
           )}
+        </SafeAreaView>
+      </Modal>
+
+      {/* Edit sale modal */}
+      <Modal
+        visible={showEdit}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowEdit(false)}
+      >
+        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: spacing.lg,
+            }}
+          >
+            <Pressable onPress={() => setShowEdit(false)}>
+              <Typography variant="bodyBold" color={theme.colors.primary}>
+                Cancelar
+              </Typography>
+            </Pressable>
+            <Typography variant="h3">Editar venda</Typography>
+            <View style={{ width: 60 }} />
+          </View>
+          <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
+            <View style={{ gap: spacing.sm }}>
+              <Typography variant="caption">Forma de pagamento</Typography>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+                {[
+                  { value: "pix", label: "Pix" },
+                  { value: "cash", label: "Dinheiro" },
+                  { value: "card", label: "Cartao" },
+                  { value: "credit", label: "Fiado" },
+                  { value: "transfer", label: "Transferencia" },
+                ].map((opt) => (
+                  <Pressable
+                    key={opt.value}
+                    onPress={() => setEditPayment(opt.value)}
+                    style={{
+                      paddingHorizontal: spacing.lg,
+                      paddingVertical: spacing.sm,
+                      borderRadius: radii.full,
+                      backgroundColor:
+                        editPayment === opt.value
+                          ? theme.colors.primary
+                          : theme.colors.surface,
+                    }}
+                  >
+                    <Typography
+                      variant="caption"
+                      color={
+                        editPayment === opt.value
+                          ? theme.colors.textOnPrimary
+                          : theme.colors.textSecondary
+                      }
+                    >
+                      {opt.label}
+                    </Typography>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+            <Input
+              label="Observacoes"
+              placeholder="Alguma anotacao sobre a venda..."
+              value={editNotes}
+              onChangeText={setEditNotes}
+              multiline
+              numberOfLines={3}
+              style={{ height: 80, textAlignVertical: "top", paddingTop: 12 }}
+            />
+            <Button
+              title="Salvar alteracoes"
+              size="lg"
+              onPress={() => {
+                handleSaveEdit().catch(() => {});
+              }}
+              loading={updateSale.isPending}
+            />
+          </ScrollView>
         </SafeAreaView>
       </Modal>
     </SafeAreaView>

@@ -8,6 +8,7 @@ import { useUpdateSaleStatus } from "../hooks";
 interface SaleDetailProps {
   readonly sale: Sale;
   readonly onStatusUpdated?: () => void;
+  readonly onEditPress?: () => void;
 }
 
 function formatCurrency(value: number): string {
@@ -42,7 +43,7 @@ const PAYMENT_LABELS: Record<string, string> = {
   transfer: "Transferencia",
 };
 
-export function SaleDetail({ sale, onStatusUpdated }: SaleDetailProps) {
+export function SaleDetail({ sale, onStatusUpdated, onEditPress }: SaleDetailProps) {
   const { theme } = useTheme();
   const updateStatus = useUpdateSaleStatus();
 
@@ -168,6 +169,14 @@ export function SaleDetail({ sale, onStatusUpdated }: SaleDetailProps) {
       </Card>
 
       <View style={{ gap: 12, marginTop: 8 }}>
+        {sale.status !== "cancelled" && onEditPress && (
+          <Button
+            title="Editar venda"
+            variant="secondary"
+            size="lg"
+            onPress={onEditPress}
+          />
+        )}
         {sale.status === "pending" && (
           <Button
             title="Marcar como pago"
