@@ -44,6 +44,13 @@
           "photosPermission": "O app precisa acessar suas fotos para adicionar imagens a produtos e receitas.",
           "cameraPermission": "O app precisa acessar a camera para tirar fotos de produtos e receitas."
         }
+      ],
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-8304398247631710~5581735015",
+          "iosAppId": "ca-app-pub-3940256099942544~1458002511"
+        }
       ]
     ],
     "extra": {
@@ -55,6 +62,10 @@
         "iosKey": "",
         "androidKey": "",
         "entitlementId": "premium"
+      },
+      "admob": {
+        "bannerUnitIdAndroid": "ca-app-pub-8304398247631710/6992108312",
+        "interstitialUnitIdAndroid": ""
       }
     }
   }
