@@ -75,7 +75,7 @@ PLANO GRATUITO
 - 3 embalagens
 - Relatorio basico mensal
 
-PLANO PREMIUM (R$ 14,90/mes ou R$ 119,90/ano)
+PLANO PREMIUM (R$ 19,90/mes ou R$ 199,90/ano)
 - Tudo ilimitado
 - Relatorios completos com graficos
 - Exportar em PDF e Excel

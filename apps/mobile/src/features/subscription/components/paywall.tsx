@@ -161,7 +161,7 @@ export function Paywall({
           >
             <Typography variant="caption">Mensal</Typography>
             <Typography variant="moneyLg" color={theme.colors.premium}>
-              R$ 14,90
+              R$ 19,90
             </Typography>
             <Typography variant="caption">/mes</Typography>
           </Pressable>
@@ -190,12 +190,12 @@ export function Paywall({
               }}
             >
               <Typography variant="caption" color={theme.colors.textOnPrimary}>
-                -33%
+                -16%
               </Typography>
             </View>
             <Typography variant="caption">Anual</Typography>
             <Typography variant="moneyLg" color={theme.colors.premium}>
-              R$ 119,90
+              R$ 199,90
             </Typography>
             <Typography variant="caption">/ano</Typography>
           </Pressable>

@@ -189,7 +189,7 @@ export default function PlansScreen() {
         {/* CTA */}
         {!isPremium ? (
           <Button
-            title="Assinar Premium - R$ 14,90/mes"
+            title="Assinar Premium - R$ 19,90/mes"
             variant="premium"
             size="lg"
             onPress={() => {

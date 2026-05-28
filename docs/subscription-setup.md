@@ -6,15 +6,15 @@ Configuracao atual: **Stripe Checkout + webhooks** para pagamentos fora da loja.
 
 | Plano  | Preco     | Stripe Price ID           |
 | ------ | --------- | ------------------------- |
-| Mensal | R$ 14,90  | `STRIPE_PRICE_MONTHLY_ID` |
-| Anual  | R$ 119,90 | `STRIPE_PRICE_ANNUAL_ID`  |
+| Mensal | R$ 19,90  | `STRIPE_PRICE_MONTHLY_ID` |
+| Anual  | R$ 199,90 | `STRIPE_PRICE_ANNUAL_ID`  |
 
 ## 1. Stripe Dashboard
 
 1. Acesse Stripe Dashboard -> **Product catalog**.
 2. Crie o produto **Lucro Caseiro Premium**.
-3. Crie um Price recorrente mensal de R$ 14,90.
-4. Crie um Price recorrente anual de R$ 119,90.
+3. Crie um Price recorrente mensal de R$ 19,90.
+4. Crie um Price recorrente anual de R$ 199,90.
 5. Copie os IDs `price_...` para `STRIPE_PRICE_MONTHLY_ID` e `STRIPE_PRICE_ANNUAL_ID`.
 6. Use chaves `live` em producao e `test` em desenvolvimento.
 
