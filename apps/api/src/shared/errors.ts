@@ -25,3 +25,10 @@ export class LimitExceededError extends Error {
     this.name = "LimitExceededError";
   }
 }
+
+export class ServiceUnavailableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ServiceUnavailableError";
+  }
+}

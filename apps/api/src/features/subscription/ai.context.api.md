@@ -1,181 +1,164 @@
-# ai.context.api.md — Subscription
+# ai.context.api.md - Subscription
 
 ---
 
 ## Purpose
 
-Gerenciar perfil do usuario, plano de assinatura (Free/Premium) e limites freemium. Centraliza a logica de verificacao de limites para vendas/mes, clientes, receitas e embalagens. Permite ativar/desativar Premium e consultar uso atual vs limites.
+Backend ownership for user profile, Free/Premium plan state, freemium limits, and provider-backed Premium validation.
 
 ## Non-goals
 
-- Nao processa pagamentos (apenas gerencia o estado do plano)
-- Nao faz integracao com App Store/Play Store para assinaturas
-- Nao envia emails ou notificacoes de limite
-- Nao faz enforcement automatico de limites nas outras features (cada feature deve consultar)
+- Does not create payment checkout sessions; Stripe checkout lives in `features/payments`.
+- Does not store payment history.
+- Does not trust client-sent plan changes.
+- Does not directly process card or payment method data.
 
 ## Boundaries & Ownership
 
-- **Depende de**: `@lucro-caseiro/contracts` (UpdateProfileDto, UserProfile, FreemiumLimits), `@lucro-caseiro/database/schema` (users, sales, clients, recipes, packaging)
-- **Dependentes**: Todas as features consultam limites freemium (Sales, Clients, Recipes, Packaging)
-- **Cross-feature**: Le tabelas de outras features para contagem de recursos (sales, clients, recipes, packaging)
+- **Depends on:**
+  - `subscription.repo.pg.ts` for profile and plan persistence.
+  - `subscription.domain.ts` for freemium limit calculation.
+  - `google-play.client.ts` for Android purchase-token validation fallback.
+- **Dependents:**
+  - Mobile profile/settings/plans screens.
+  - Payments use cases call `activatePremium` / `deactivatePremium`.
+  - Feature limit guards call `getLimits` / `isPremium`.
 
 ## Code pointers
 
-- `apps/api/src/features/subscription/subscription.routes.ts` — rotas Express
-- `apps/api/src/features/subscription/subscription.usecases.ts` — logica de negocio
-- `apps/api/src/features/subscription/subscription.domain.ts` — limites, verificacao de plano e mensagens
-- `apps/api/src/features/subscription/subscription.repo.pg.ts` — persistencia Drizzle/Postgres
-- `apps/api/src/features/subscription/subscription.types.ts` — interfaces e tipos
-- `apps/api/src/features/subscription/subscription.domain.test.ts` — testes de dominio
-- `apps/api/src/features/subscription/subscription.usecases.test.ts` — testes de usecases
+| File                            | Description                                  |
+| ------------------------------- | -------------------------------------------- |
+| `subscription.routes.ts`        | Profile, limits, and provider sync routes    |
+| `subscription.usecases.ts`      | Profile/limits/plan orchestration            |
+| `subscription.domain.ts`        | Freemium limits and premium activity helpers |
+| `subscription.repo.pg.ts`       | Drizzle/Postgres persistence                 |
+| `subscription.types.ts`         | Interfaces and provider purchase types       |
+| `google-play.client.ts`         | Google Play subscription token validation    |
+| `google-play.client.test.ts`    | Google Play validation tests                 |
+| `subscription.usecases.test.ts` | Subscription use case tests                  |
+| `subscription.domain.test.ts`   | Domain helper tests                          |
 
 ## Data Model
 
-### Tabela: `users`
-
-| Coluna        | Tipo      | Constraints                                                       |
-| ------------- | --------- | ----------------------------------------------------------------- |
-| id            | uuid      | PK (vem do auth provider)                                         |
-| email         | varchar   | NOT NULL, UNIQUE                                                  |
-| name          | varchar   | NOT NULL                                                          |
-| phone         | varchar   | nullable                                                          |
-| businessName  | varchar   | nullable                                                          |
-| businessType  | enum      | "food" \| "beauty" \| "crafts" \| "services" \| "other", nullable |
-| plan          | enum      | "free" \| "premium", default "free"                               |
-| planExpiresAt | timestamp | nullable                                                          |
-| createdAt     | timestamp | default now()                                                     |
-
-### Limites Free Plan (constantes)
-
-| Recurso    | Limite Free |
-| ---------- | ----------- |
-| Vendas/mes | 30          |
-| Clientes   | 20          |
-| Receitas   | 5           |
-| Embalagens | 3           |
+- User profile and plan state live on the users table.
+- Premium state is represented by `users.plan = "premium"` and optional `users.planExpiresAt`.
+- `planExpiresAt = null` means Premium has no known expiry from the provider.
+- Freemium usage counts are read from feature tables and converted into limits.
 
 ## Invariants
 
-- Plan e "free" ou "premium"
-- Premium com expiresAt no passado = free (expirado)
-- Premium sem expiresAt = premium permanente
-- Limites freemium sao Infinity para premium
-- `isLimitExceeded` retorna true quando count >= limit (>=, nao >)
-- Mensagens de limite sao em portugues brasileiro
-- Profile e upsert (insert on conflict update)
+- `userId` always comes from the Supabase JWT via `authMiddleware`.
+- Client cannot set `plan = premium` through profile update.
+- `isPremiumActive` returns false when `planExpiresAt` is in the past.
+- Provider sync activates Premium only after server-side validation.
+- If Google Play returns free/inactive, `/sync-plan` returns the current profile instead of downgrading other payment channels.
+- Canceled but unexpired Google Play subscriptions remain Premium until their expiry time.
 
 ## Operations
 
 ```yaml
 feature: subscription
 app: api
-mobile_counterpart: subscription
 api:
   base: /api/v1/subscription
   endpoints:
     - method: GET
       path: /profile
+      auth: required
       response: UserProfile
     - method: PATCH
       path: /profile
-      dto: UpdateProfileDto
+      auth: required
+      body: UpdateProfile
       response: UserProfile
     - method: GET
       path: /limits
+      auth: required
       response: FreemiumLimits
-db:
-  tables:
-    - users
-  indexes:
-    - users(id) PK
-    - users(email) UNIQUE
-  cross_tables_read:
-    - sales (count por userId + mes)
-    - clients (count por userId)
-    - recipes (count por userId)
-    - packaging (count por userId)
-invariants:
-  - plan in ["free", "premium"]
-  - premium with past expiresAt = expired (treated as free)
-  - free limits: sales=30/month, clients=20, recipes=5, packaging=3
-  - limit exceeded when current >= max
+    - method: POST
+      path: /sync-plan
+      auth: required
+      body:
+        platform: android
+        productId: lucrocaseiro_premium_monthly | lucrocaseiro_premium_annual
+        purchaseToken: string
+      response: UserProfile
 ```
 
 ## Authorization & RLS
 
-- Todas as rotas protegidas por `authMiddleware`
-- `userId` extraido do token JWT
-- Profile acessivel apenas pelo proprio usuario
-- Contagem de recursos usa queries escopadas por `userId`
+- Every route uses `authMiddleware`.
+- Route handlers use `getUserId(req)` and ignore any client-sent user id.
+- Database access is server-side through the repo layer.
 
 ## Contracts (Zod/DTO)
 
-- **UpdateProfileDto**: `{ name?, phone?, businessName?, businessType? }`
-- **UserProfile**: `{ id, email, name, phone, businessName, businessType, plan, planExpiresAt, createdAt }`
-- **FreemiumLimits**: `{ maxSalesPerMonth, maxClients, maxRecipes, maxPackaging, currentSalesThisMonth, currentClients, currentRecipes, currentPackaging }`
+- `UpdateProfileDto` from `@lucro-caseiro/contracts` validates profile updates.
+- `AndroidPurchaseDto` validates `/sync-plan`.
+- `productId` must be `lucrocaseiro_premium_monthly` or `lucrocaseiro_premium_annual`.
+- `purchaseToken` must be a non-empty string.
 
 ## Errors
 
-| Status | Quando                | Mensagem                |
-| ------ | --------------------- | ----------------------- |
-| 404    | Perfil nao encontrado | "Perfil nao encontrado" |
+| Status | When                                 | Message/code                                           |
+| ------ | ------------------------------------ | ------------------------------------------------------ |
+| 401    | Missing/invalid JWT                  | auth middleware response                               |
+| 404    | Profile not found                    | `NotFoundError`                                        |
+| 503    | Google Play service account missing  | `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON nao configurado...`  |
+| 503    | Google Play verification unavailable | `Nao foi possivel verificar assinatura no Google Play` |
 
 ## Events / Side effects
 
-- `ensureProfile`: upsert automatico no login (cria perfil se nao existe)
-- `activatePremium` / `deactivatePremium`: funcoes internas (nao expostos via REST atualmente)
-- Contagem de recursos faz queries em 4 tabelas em paralelo (`Promise.all`)
+- `activatePremium` writes Premium plan state.
+- `deactivatePremium` writes Free plan state.
+- `syncPremiumFromProvider` may update plan state after provider validation.
+- `getLimits` reads usage counters and returns current free/premium limits.
 
 ## Performance
 
-- `getResourceCounts` faz 4 COUNT queries em paralelo
-- Sales count filtrado por `soldAt >= startOfMonth` (usa inicio do mes atual)
-- Profile lookup por PK (userId = id)
+- Profile and limits endpoints perform bounded database reads.
+- `/sync-plan` performs one Google Play API request.
+- No cache is used; data is inexpensive and plan state must be fresh.
 
 ## Security
 
-- Dados de perfil sao sensiveis (email, telefone)
-- Isolamento por `userId`
-- Limites freemium devem ser enforced no backend (nunca confiar no front)
-- Plano nao pode ser alterado diretamente pelo usuario via API publica
+- Google Play service account credentials stay server-side.
+- Purchase tokens are verified server-side before Premium activation.
+- Stripe webhook-driven plan changes go through these use cases, not through client input.
 
 ## Test matrix
 
-### Domain (subscription.domain.test.ts)
-
-- buildFreemiumLimits: free com contagens, premium com Infinity
-- isLimitExceeded: abaixo (false), no limite de cada recurso (true), zerado (false)
-- getLimitMessage: portugues para cada tipo, menciona Premium
-- isPremiumActive: free (false), premium sem expiry (true), premium futuro (true), premium expirado (false)
-
-### UseCases (subscription.usecases.test.ts)
-
-- getProfile: encontrado, NotFoundError
-- updateProfile: atualiza campos, NotFoundError
-- getLimits: free com contagens, premium com Infinity, NotFoundError
-- isPremium: free (false), premium (true), expirado (false), nao encontrado (false)
-- activatePremium: sucesso, NotFoundError
-- deactivatePremium: sucesso
+- Free and Premium limit calculation.
+- Expired Premium detection.
+- Profile fetch/update.
+- Premium activation/deactivation.
+- Google Play active/canceled/expired/mismatched purchase handling.
+- Provider unavailable error paths.
 
 ## Examples
 
-```
+```http
 GET /api/v1/subscription/profile
-=> 200 { "id": "...", "name": "Maria", "plan": "free", "businessName": "Doces da Maria", ... }
+Authorization: Bearer <jwt>
 
-PATCH /api/v1/subscription/profile
-{ "businessName": "Doces Gourmet da Maria" }
-=> 200 { "id": "...", "businessName": "Doces Gourmet da Maria", ... }
+=> 200 { "plan": "free", ... }
+```
 
-GET /api/v1/subscription/limits
-=> 200 { "maxSalesPerMonth": 30, "maxClients": 20, "maxRecipes": 5, "maxPackaging": 3,
-         "currentSalesThisMonth": 10, "currentClients": 5, "currentRecipes": 2, "currentPackaging": 1 }
+```http
+POST /api/v1/subscription/sync-plan
+Authorization: Bearer <jwt>
+Content-Type: application/json
+
+{
+  "platform": "android",
+  "productId": "lucrocaseiro_premium_monthly",
+  "purchaseToken": "<GOOGLE_PLAY_PURCHASE_TOKEN>"
+}
 ```
 
 ## Change log / Decisions
 
-- Criacao inicial com profile + limites freemium
-- Limites hardcoded como constantes (FREE_PLAN_LIMITS)
-- activate/deactivatePremium nao expostos via REST (para uso interno/webhook futuro)
-- Profile usa upsert (ON CONFLICT DO UPDATE) para simplificar criacao no login
-- businessType enum: food, beauty, crafts, services, other
+- Subscription feature owns plan state; payment providers only trigger use cases.
+- Stripe is the active checkout/webhook integration in `features/payments`.
+- Google Play validation remains as a provider fallback for Android store flows.
+- Downgrade on failed Google Play sync is intentionally conservative to avoid removing Stripe-granted Premium.

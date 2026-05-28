@@ -1,8 +1,15 @@
 import { UpdateProfileDto } from "@lucro-caseiro/contracts";
 import { Router } from "express";
+import { z } from "zod";
 
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
 import type { SubscriptionUseCases } from "./subscription.usecases";
+
+const AndroidPurchaseDto = z.object({
+  platform: z.literal("android"),
+  productId: z.enum(["lucrocaseiro_premium_monthly", "lucrocaseiro_premium_annual"]),
+  purchaseToken: z.string().min(1),
+});
 
 export function createSubscriptionRouter(useCases: SubscriptionUseCases): Router {
   const router = Router();
@@ -42,21 +49,9 @@ export function createSubscriptionRouter(useCases: SubscriptionUseCases): Router
   router.post("/sync-plan", async (req, res, next) => {
     try {
       const userId = getUserId(req);
-      const { plan, expiresAt } = req.body as {
-        plan: "free" | "premium";
-        expiresAt: string | null;
-      };
-
-      if (plan === "premium") {
-        const profile = await useCases.activatePremium(
-          userId,
-          expiresAt ? new Date(expiresAt) : null,
-        );
-        res.json(profile);
-      } else {
-        const profile = await useCases.deactivatePremium(userId);
-        res.json(profile);
-      }
+      const purchase = AndroidPurchaseDto.parse(req.body);
+      const profile = await useCases.syncPremiumFromProvider(userId, purchase);
+      res.json(profile);
     } catch (err) {
       next(err);
     }

@@ -5,11 +5,16 @@ import { NotFoundError } from "../../shared/errors";
 import { SubscriptionUseCases } from "./subscription.usecases";
 import type {
   ISubscriptionRepo,
+  ISubscriptionStatusProvider,
   ResourceCounts,
   UpsertProfileData,
 } from "./subscription.types";
 
 const USER_ID = "user-123";
+const ANDROID_PURCHASE = {
+  productId: "lucrocaseiro_premium_monthly",
+  purchaseToken: "purchase-token",
+};
 
 function makeProfile(overrides: Partial<UserProfile> = {}): UserProfile {
   return {
@@ -48,9 +53,21 @@ function makeRepo(overrides: Partial<ISubscriptionRepo> = {}): ISubscriptionRepo
   };
 }
 
-function makeSut(repoOverrides: Partial<ISubscriptionRepo> = {}) {
+function makeStatusProvider(
+  overrides: Partial<ISubscriptionStatusProvider> = {},
+): ISubscriptionStatusProvider {
+  return {
+    getPremiumState: () => Promise.resolve({ plan: "premium", expiresAt: null }),
+    ...overrides,
+  };
+}
+
+function makeSut(
+  repoOverrides: Partial<ISubscriptionRepo> = {},
+  statusProvider?: ISubscriptionStatusProvider,
+) {
   const repo = makeRepo(repoOverrides);
-  return { sut: new SubscriptionUseCases(repo), repo };
+  return { sut: new SubscriptionUseCases(repo, statusProvider), repo };
 }
 
 describe("SubscriptionUseCases", () => {
@@ -155,6 +172,34 @@ describe("SubscriptionUseCases", () => {
       const { sut } = makeSut();
       const result = await sut.deactivatePremium(USER_ID);
       expect(result.plan).toBe("free");
+    });
+  });
+
+  describe("syncPremiumFromProvider", () => {
+    it("activates premium after provider confirms active entitlement", async () => {
+      const { sut } = makeSut({}, makeStatusProvider());
+      const result = await sut.syncPremiumFromProvider(USER_ID, ANDROID_PURCHASE);
+      expect(result.plan).toBe("premium");
+    });
+
+    it("keeps current profile when provider does not confirm active subscription", async () => {
+      const { sut } = makeSut(
+        {
+          getProfile: () => Promise.resolve(makeProfile({ plan: "premium" })),
+        },
+        makeStatusProvider({
+          getPremiumState: () => Promise.resolve({ plan: "free", expiresAt: null }),
+        }),
+      );
+      const result = await sut.syncPremiumFromProvider(USER_ID, ANDROID_PURCHASE);
+      expect(result.plan).toBe("premium");
+    });
+
+    it("does not sync when provider is not configured", async () => {
+      const { sut } = makeSut();
+      await expect(
+        sut.syncPremiumFromProvider(USER_ID, ANDROID_PURCHASE),
+      ).rejects.toThrow("Verificacao de assinatura Android nao configurada");
     });
   });
 });

@@ -32,3 +32,20 @@ export interface FreemiumConfig {
   maxRecipes: number;
   maxPackaging: number;
 }
+
+export interface AndroidPurchaseData {
+  productId: string;
+  purchaseToken: string;
+}
+
+export interface ProviderPremiumState {
+  plan: "free" | "premium";
+  expiresAt: Date | null;
+}
+
+export interface ISubscriptionStatusProvider {
+  getPremiumState(
+    userId: string,
+    purchase: AndroidPurchaseData,
+  ): Promise<ProviderPremiumState>;
+}

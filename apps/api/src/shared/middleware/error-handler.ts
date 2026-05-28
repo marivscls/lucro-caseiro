@@ -5,6 +5,7 @@ import {
   ForbiddenError,
   LimitExceededError,
   NotFoundError,
+  ServiceUnavailableError,
   ValidationError,
 } from "../errors";
 
@@ -51,6 +52,14 @@ export function errorHandler(
   if (err instanceof LimitExceededError) {
     res.status(403).json({
       error: "LIMIT_EXCEEDED",
+      message: err.message,
+    });
+    return;
+  }
+
+  if (err instanceof ServiceUnavailableError) {
+    res.status(503).json({
+      error: "SERVICE_UNAVAILABLE",
       message: err.message,
     });
     return;

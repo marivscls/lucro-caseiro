@@ -1,11 +1,19 @@
 import type { FreemiumLimits, UserProfile } from "@lucro-caseiro/contracts";
 
-import { NotFoundError } from "../../shared/errors";
+import { NotFoundError, ServiceUnavailableError } from "../../shared/errors";
 import { buildFreemiumLimits, isPremiumActive } from "./subscription.domain";
-import type { ISubscriptionRepo, UpsertProfileData } from "./subscription.types";
+import type {
+  AndroidPurchaseData,
+  ISubscriptionRepo,
+  ISubscriptionStatusProvider,
+  UpsertProfileData,
+} from "./subscription.types";
 
 export class SubscriptionUseCases {
-  constructor(private repo: ISubscriptionRepo) {}
+  constructor(
+    private repo: ISubscriptionRepo,
+    private statusProvider?: ISubscriptionStatusProvider,
+  ) {}
 
   async getProfile(userId: string): Promise<UserProfile> {
     const profile = await this.repo.getProfile(userId);
@@ -70,5 +78,24 @@ export class SubscriptionUseCases {
       throw new NotFoundError("Perfil nao encontrado");
     }
     return updated;
+  }
+
+  async syncPremiumFromProvider(
+    userId: string,
+    purchase: AndroidPurchaseData,
+  ): Promise<UserProfile> {
+    if (!this.statusProvider) {
+      throw new ServiceUnavailableError(
+        "Verificacao de assinatura Android nao configurada no servidor",
+      );
+    }
+
+    const state = await this.statusProvider.getPremiumState(userId, purchase);
+
+    if (state.plan === "premium") {
+      return this.activatePremium(userId, state.expiresAt);
+    }
+
+    return this.getProfile(userId);
   }
 }
