@@ -1,6 +1,6 @@
 # API Deploy — Lucro Caseiro
 
-Guia de deploy do backend (`apps/api`). A API e um servidor Express + Postgres (via Supabase) e precisa de URL publica HTTPS para receber webhooks do RevenueCat e do Mercado Pago.
+Guia de deploy do backend (`apps/api`). A API e um servidor Express + Postgres (via Supabase). Para assinaturas Android, ela valida compras com a Google Play Developer API.
 
 ## Recomendacao
 
@@ -14,18 +14,21 @@ Alternativas equivalentes: **Fly.io** (free tier maior, exige `flyctl`), **Rende
 
 Lista completa em [apps/api/.env.example](../apps/api/.env.example). Resumo:
 
-| Variavel                      | Obrigatoria | Descricao                                                   |
-| ----------------------------- | ----------- | ----------------------------------------------------------- |
-| `DATABASE_URL`                | sim         | Postgres connection string (Supabase pooler, porta 5432)    |
-| `SUPABASE_URL`                | sim         | URL do projeto Supabase                                     |
-| `SUPABASE_ANON_KEY`           | sim         | Anon key (publica) do Supabase                              |
-| `API_PORT`                    | nao         | Porta interna (default 3001 — Railway/Fly mapeiam pra fora) |
-| `CORS_ORIGIN`                 | nao         | Origens permitidas (comma-separated, default `*`)           |
-| `REVENUECAT_WEBHOOK_SECRET`   | recomendado | Secret pra validar webhooks RevenueCat                      |
-| `MERCADOPAGO_ACCESS_TOKEN`    | opcional    | Token MP (so se ativar PIX/cartao alternativo)              |
-| `MERCADOPAGO_WEBHOOK_SECRET`  | opcional    | Secret HMAC do webhook MP                                   |
-| `MERCADOPAGO_PLAN_MONTHLY_ID` | opcional    | ID do preapproval_plan mensal                               |
-| `MERCADOPAGO_PLAN_ANNUAL_ID`  | opcional    | ID do preapproval_plan anual                                |
+| Variavel                           | Obrigatoria | Descricao                                                    |
+| ---------------------------------- | ----------- | ------------------------------------------------------------ |
+| `DATABASE_URL`                     | sim         | Postgres connection string (Supabase pooler, porta 5432)     |
+| `SUPABASE_URL`                     | sim         | URL do projeto Supabase                                      |
+| `SUPABASE_ANON_KEY`                | sim         | Anon key (publica) do Supabase                               |
+| `API_PORT`                         | nao         | Porta interna (default 3001 — Railway/Fly mapeiam pra fora)  |
+| `CORS_ORIGIN`                      | nao         | Origens permitidas (comma-separated, default `*`)            |
+| `GOOGLE_PLAY_PACKAGE_NAME`         | sim         | Package name Android (`br.com.orionseven.lucrocaseiro`)      |
+| `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | sim         | JSON da service account para validar assinaturas Google Play |
+| `STRIPE_SECRET_KEY`                | sim         | Secret key live da Stripe (`sk_live_...`)                    |
+| `STRIPE_WEBHOOK_SECRET`            | sim         | Signing secret do webhook Stripe (`whsec_...`)               |
+| `STRIPE_PRICE_MONTHLY_ID`          | sim         | ID do Price mensal recorrente (`price_...`)                  |
+| `STRIPE_PRICE_ANNUAL_ID`           | sim         | ID do Price anual recorrente (`price_...`)                   |
+| `STRIPE_SUCCESS_URL`               | sim         | URL de retorno apos checkout aprovado                        |
+| `STRIPE_CANCEL_URL`                | sim         | URL de retorno apos checkout cancelado                       |
 
 ---
 
@@ -70,7 +73,8 @@ fly launch --no-deploy --copy-config --name lucro-caseiro-api
 fly secrets set DATABASE_URL="postgresql://..." \
   SUPABASE_URL="https://..." \
   SUPABASE_ANON_KEY="..." \
-  REVENUECAT_WEBHOOK_SECRET="..."
+  GOOGLE_PLAY_PACKAGE_NAME="br.com.orionseven.lucrocaseiro" \
+  GOOGLE_PLAY_SERVICE_ACCOUNT_JSON='{"type":"service_account",...}'
 
 # Deploy
 fly deploy
@@ -97,14 +101,14 @@ Fly usa o Dockerfile em `apps/api/Dockerfile` (precisa ajustar `dockerfile = "ap
 
 1. Health check: `curl https://<api>/api/v1/health` → `200 ok`
 2. Tentar logar no app mobile (com `EXPO_PUBLIC_API_URL` apontando pro novo dominio) — deve cadastrar sem erro
-3. Testar webhook RevenueCat:
+3. Testar sync seguro da assinatura com um usuario logado e um token real do Google Play:
    ```bash
-   curl -X POST https://<api>/api/v1/webhooks/revenuecat \
-     -H "Authorization: Bearer <REVENUECAT_WEBHOOK_SECRET>" \
+   curl -X POST https://<api>/api/v1/subscription/sync-plan \
+     -H "Authorization: Bearer <JWT_DO_USUARIO>" \
      -H "Content-Type: application/json" \
-     -d '{"event":{"type":"TEST","app_user_id":"test","expiration_at_ms":null,"event_timestamp_ms":0}}'
+     -d '{"platform":"android","productId":"lucrocaseiro_premium_monthly","purchaseToken":"<GOOGLE_PLAY_PURCHASE_TOKEN>"}'
    ```
-   Deve retornar `{"ok":true}`.
+   Deve consultar o Google Play no servidor e retornar o perfil atualizado.
 
 ---
 

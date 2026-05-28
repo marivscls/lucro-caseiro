@@ -75,7 +75,7 @@ Para cada tipo abaixo, marque **collected** e responda os 4 sub-campos:
 
 #### Purchase history (Yes — required, deriva de vendas registradas)
 
-- Shared: **Yes** — com **Apple**, **Google** e **Mercado Pago** apenas para processar pagamento (assinaturas)
+- Shared: **Yes** — com **Apple**, **Google** e **Stripe** apenas para processar pagamento (assinaturas)
 - Required
 - Purposes: ✅ App functionality
 
@@ -161,7 +161,7 @@ Para cada tipo abaixo, marque **collected** e responda os 4 sub-campos:
 
 Confira o resumo gerado pelo Play Console — deve mostrar:
 
-**Data shared**: Purchase history (com Apple, Google e Mercado Pago)
+**Data shared**: Purchase history (com Apple, Google e Stripe)
 
 **Data collected**:
 
