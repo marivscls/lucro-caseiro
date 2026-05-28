@@ -20,13 +20,15 @@
     "preview": {
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://lucro-caseiro-production.up.railway.app"
+        "EXPO_PUBLIC_API_URL": "https://lucro-caseiro-production.up.railway.app",
+        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucrocaseiro://"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://lucro-caseiro-production.up.railway.app"
+        "EXPO_PUBLIC_API_URL": "https://lucro-caseiro-production.up.railway.app",
+        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucrocaseiro://"
       }
     }
   },
