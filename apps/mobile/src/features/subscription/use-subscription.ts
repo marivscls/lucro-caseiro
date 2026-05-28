@@ -1,190 +1,201 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, Platform } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
-import Constants from "expo-constants";
+import {
+  useIAP,
+  type ProductSubscription,
+  type ProductSubscriptionAndroid,
+  type Purchase,
+} from "react-native-iap";
 
 import { useAuth } from "../../shared/hooks/use-auth";
 import { syncPlan } from "./api";
 
-interface RevenueCatConfig {
-  iosKey?: string;
-  androidKey?: string;
-  entitlementId?: string;
+type PremiumProductId = "lucrocaseiro_premium_monthly" | "lucrocaseiro_premium_annual";
+
+const PRODUCT_IDS: Record<"monthly" | "annual", PremiumProductId> = {
+  monthly: "lucrocaseiro_premium_monthly",
+  annual: "lucrocaseiro_premium_annual",
+};
+
+function isPremiumProduct(productId: string): productId is PremiumProductId {
+  return productId === PRODUCT_IDS.monthly || productId === PRODUCT_IDS.annual;
 }
 
-const revenuecatConfig =
-  (Constants.expoConfig?.extra?.revenuecat as RevenueCatConfig | undefined) ?? {};
-
-interface PurchasesModule {
-  default: {
-    configure: (config: { apiKey: string }) => void;
-    logIn: (userId: string) => Promise<{ customerInfo: CustomerInfo }>;
-    getCustomerInfo: () => Promise<CustomerInfo>;
-    getOfferings: () => Promise<Offerings>;
-    purchasePackage: (pkg: Package) => Promise<{ customerInfo: CustomerInfo }>;
-    restorePurchases: () => Promise<CustomerInfo>;
-  };
+function isAndroidSubscription(
+  subscription: ProductSubscription,
+): subscription is ProductSubscriptionAndroid {
+  return subscription.platform === "android";
 }
 
-interface CustomerInfo {
-  entitlements: {
-    active: Record<string, { expirationDate: string | null }>;
-  };
+function getOfferToken(subscription: ProductSubscription): string | null {
+  if (!isAndroidSubscription(subscription)) return null;
+
+  return subscription.subscriptionOffers?.[0]?.offerTokenAndroid ?? null;
 }
 
-interface Offerings {
-  current: {
-    monthly: Package | null;
-    annual: Package | null;
-  } | null;
-}
-
-interface Package {
-  identifier: string;
-  product: {
-    priceString: string;
-  };
-}
-
-const REVENUECAT_API_KEY = Platform.select({
-  ios: revenuecatConfig.iosKey ?? "",
-  android: revenuecatConfig.androidKey ?? "",
-  default: "",
-});
-
-const ENTITLEMENT_ID = revenuecatConfig.entitlementId ?? "premium";
-
-let purchasesModule: PurchasesModule["default"] | null = null;
-let initialized = false;
-
-function getPurchases(): PurchasesModule["default"] | null {
-  if (!purchasesModule) {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const mod = require("react-native-purchases") as PurchasesModule;
-      purchasesModule = mod.default;
-    } catch {
-      return null;
-    }
+function getPurchaseToken(purchase: Purchase): string | null {
+  if ("purchaseToken" in purchase) {
+    return purchase.purchaseToken ?? null;
   }
-  return purchasesModule;
-}
 
-function isSubscribed(info: CustomerInfo): boolean {
-  return ENTITLEMENT_ID in info.entitlements.active;
-}
-
-function getExpirationDate(info: CustomerInfo): string | null {
-  return info.entitlements.active[ENTITLEMENT_ID]?.expirationDate ?? null;
+  return null;
 }
 
 export function useSubscription() {
   const { token, userId } = useAuth();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
+  const finishTransactionRef = useRef<
+    ((args: { purchase: Purchase; isConsumable?: boolean }) => Promise<void>) | null
+  >(null);
 
-  // Initialize RevenueCat on mount
-  useEffect(() => {
-    const purchases = getPurchases();
-    if (!purchases || initialized || !REVENUECAT_API_KEY || !userId) return;
+  const verifyPurchase = useCallback(
+    async (purchase: Purchase, showSuccess = false) => {
+      if (!token || Platform.OS !== "android" || !isPremiumProduct(purchase.productId)) {
+        return false;
+      }
 
-    purchases.configure({ apiKey: REVENUECAT_API_KEY });
-    purchases.logIn(userId).catch(() => {
-      // Non-blocking: if login fails, continue without RevenueCat
-    });
-    initialized = true;
-  }, [userId]);
+      const purchaseToken = getPurchaseToken(purchase);
+      if (!purchaseToken) return false;
 
-  // Verify subscription on mount (silent sync)
-  useEffect(() => {
-    if (!token || !userId) return;
-
-    const purchases = getPurchases();
-    if (!purchases) return;
-
-    purchases
-      .getCustomerInfo()
-      .then(async (info) => {
-        const subscribed = isSubscribed(info);
-        await syncPlan(token, {
-          plan: subscribed ? "premium" : "free",
-          expiresAt: getExpirationDate(info),
-        });
-        await queryClient.invalidateQueries({ queryKey: ["subscription"] });
-      })
-      .catch(() => {
-        // Silent — don't block app startup
+      await syncPlan(token, {
+        platform: "android",
+        productId: purchase.productId,
+        purchaseToken,
       });
-  }, [token, userId, queryClient]);
+      await queryClient.invalidateQueries({ queryKey: ["subscription"] });
+      await finishTransactionRef.current?.({ purchase, isConsumable: false });
+
+      if (showSuccess) {
+        Alert.alert("Parabens!", "Voce agora e Premium! Aproveite todos os recursos.");
+      }
+
+      return true;
+    },
+    [token, queryClient],
+  );
+
+  const {
+    connected,
+    subscriptions,
+    availablePurchases,
+    fetchProducts,
+    requestPurchase,
+    finishTransaction,
+    getAvailablePurchases,
+  } = useIAP({
+    onPurchaseSuccess: (purchase) => {
+      void verifyPurchase(purchase, true).finally(() => setLoading(false));
+    },
+    onPurchaseError: () => {
+      setLoading(false);
+    },
+  });
+
+  useEffect(() => {
+    finishTransactionRef.current = finishTransaction;
+  }, [finishTransaction]);
+
+  useEffect(() => {
+    if (Platform.OS !== "android" || !connected) return;
+    void fetchProducts({ skus: Object.values(PRODUCT_IDS), type: "subs" });
+    void getAvailablePurchases({ includeSuspendedAndroid: false });
+  }, [connected, fetchProducts, getAvailablePurchases]);
+
+  useEffect(() => {
+    if (!token || Platform.OS !== "android") return;
+
+    for (const purchase of availablePurchases) {
+      if (isPremiumProduct(purchase.productId)) {
+        void verifyPurchase(purchase);
+      }
+    }
+  }, [availablePurchases, token, verifyPurchase]);
 
   const subscribe = useCallback(
     async (period: "monthly" | "annual") => {
-      const purchases = getPurchases();
-      if (!purchases || !token) {
-        Alert.alert("Em breve", "Assinatura sera disponibilizada em breve.");
+      if (Platform.OS !== "android") {
+        Alert.alert("Em breve", "Assinatura iOS sera disponibilizada depois.");
+        return;
+      }
+
+      if (!token) {
+        Alert.alert("Erro", "Faca login antes de assinar.");
+        return;
+      }
+
+      const productId = PRODUCT_IDS[period];
+      const subscription = subscriptions.find((item) => item.id === productId);
+      const offerToken = subscription ? getOfferToken(subscription) : null;
+
+      if (!connected || !subscription || !offerToken) {
+        Alert.alert(
+          "Plano indisponivel",
+          "Nao foi possivel carregar a assinatura do Google Play. Tente novamente.",
+        );
         return;
       }
 
       setLoading(true);
       try {
-        const offerings = await purchases.getOfferings();
-        const pkg =
-          period === "monthly" ? offerings.current?.monthly : offerings.current?.annual;
-
-        if (!pkg) {
-          Alert.alert("Erro", "Plano nao disponivel no momento.");
-          return;
-        }
-
-        const { customerInfo } = await purchases.purchasePackage(pkg);
-
-        if (isSubscribed(customerInfo)) {
-          await syncPlan(token, {
-            plan: "premium",
-            expiresAt: getExpirationDate(customerInfo),
-          });
-          await queryClient.invalidateQueries({ queryKey: ["subscription"] });
-          Alert.alert("Parabens!", "Voce agora e Premium! Aproveite todos os recursos.");
-        }
+        await requestPurchase({
+          type: "subs",
+          request: {
+            google: {
+              skus: [productId],
+              obfuscatedAccountId: userId ?? undefined,
+              subscriptionOffers: [{ sku: productId, offerToken }],
+            },
+          },
+        });
       } catch {
-        // User cancelled or purchase failed — don't show error for cancellation
-      } finally {
         setLoading(false);
+        Alert.alert("Erro", "Nao foi possivel iniciar a compra. Tente novamente.");
       }
     },
-    [token, queryClient],
+    [connected, requestPurchase, subscriptions, token, userId],
   );
 
   const restore = useCallback(async () => {
-    const purchases = getPurchases();
-    if (!purchases || !token) {
-      Alert.alert("Erro", "Nao foi possivel restaurar. Tente novamente.");
+    if (Platform.OS !== "android") {
+      Alert.alert("Em breve", "Restauracao iOS sera disponibilizada depois.");
+      return;
+    }
+
+    if (!token) {
+      Alert.alert("Erro", "Faca login antes de restaurar.");
       return;
     }
 
     setLoading(true);
     try {
-      const info = await purchases.restorePurchases();
+      await getAvailablePurchases({ includeSuspendedAndroid: false });
+      const premiumPurchases = availablePurchases.filter((purchase) =>
+        isPremiumProduct(purchase.productId),
+      );
 
-      if (isSubscribed(info)) {
-        await syncPlan(token, {
-          plan: "premium",
-          expiresAt: getExpirationDate(info),
-        });
-        await queryClient.invalidateQueries({ queryKey: ["subscription"] });
-        Alert.alert("Restaurado!", "Sua assinatura Premium foi restaurada.");
-      } else {
+      if (premiumPurchases.length === 0) {
         Alert.alert(
           "Nenhuma assinatura encontrada",
           "Nao encontramos uma assinatura ativa vinculada a esta conta.",
         );
+        return;
+      }
+
+      const restored = await Promise.all(
+        premiumPurchases.map((purchase) => verifyPurchase(purchase)),
+      );
+
+      if (restored.some(Boolean)) {
+        Alert.alert("Restaurado!", "Sua assinatura Premium foi restaurada.");
       }
     } catch {
       Alert.alert("Erro", "Nao foi possivel restaurar compras. Tente novamente.");
     } finally {
       setLoading(false);
     }
-  }, [token, queryClient]);
+  }, [availablePurchases, getAvailablePurchases, token, verifyPurchase]);
 
   return { subscribe, restore, loading };
 }

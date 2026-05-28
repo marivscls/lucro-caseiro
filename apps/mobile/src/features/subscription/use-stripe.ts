@@ -1,12 +1,14 @@
 import { useCallback, useState } from "react";
 import { Alert } from "react-native";
+import { useQueryClient } from "@tanstack/react-query";
 import * as WebBrowser from "expo-web-browser";
 
 import { useAuth } from "../../shared/hooks/use-auth";
-import { createMercadoPagoCheckout } from "./api";
+import { createStripeCheckout } from "./api";
 
-export function useMercadoPagoCheckout() {
+export function useStripeCheckout() {
   const { token } = useAuth();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
 
   const checkout = useCallback(
@@ -18,18 +20,19 @@ export function useMercadoPagoCheckout() {
 
       setLoading(true);
       try {
-        const { url } = await createMercadoPagoCheckout(token, plan);
+        const { url } = await createStripeCheckout(token, plan);
         await WebBrowser.openBrowserAsync(url);
+        await queryClient.invalidateQueries({ queryKey: ["subscription"] });
       } catch {
         Alert.alert(
           "Erro",
-          "Nao foi possivel abrir o checkout do Mercado Pago. Tente novamente.",
+          "Nao foi possivel abrir o checkout da Stripe. Tente novamente.",
         );
       } finally {
         setLoading(false);
       }
     },
-    [token],
+    [queryClient, token],
   );
 
   return { checkout, loading };

@@ -29,7 +29,11 @@ export async function fetchLimits(token: string): Promise<FreemiumLimits> {
 
 export async function syncPlan(
   token: string,
-  data: { plan: "free" | "premium"; expiresAt: string | null },
+  data: {
+    platform: "android";
+    productId: "lucrocaseiro_premium_monthly" | "lucrocaseiro_premium_annual";
+    purchaseToken: string;
+  },
 ): Promise<UserProfile> {
   return apiClient<UserProfile>(`${BASE}/sync-plan`, {
     method: "POST",
@@ -38,11 +42,11 @@ export async function syncPlan(
   });
 }
 
-export async function createMercadoPagoCheckout(
+export async function createStripeCheckout(
   token: string,
   plan: "monthly" | "annual",
 ): Promise<{ url: string }> {
-  return apiClient<{ url: string }>(`/api/v1/payments/mercadopago/checkout`, {
+  return apiClient<{ url: string }>(`/api/v1/payments/stripe/checkout`, {
     method: "POST",
     body: { plan },
     token,

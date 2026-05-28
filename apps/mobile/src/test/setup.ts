@@ -98,8 +98,17 @@ vi.mock("expo-notifications", () => ({
 // Mock react-native-google-mobile-ads (native SDK — skip)
 vi.mock("react-native-google-mobile-ads", () => ({}));
 
-// Mock react-native-purchases (native SDK — skip)
-vi.mock("react-native-purchases", () => ({}));
+vi.mock("react-native-iap", () => ({
+  useIAP: () => ({
+    connected: false,
+    subscriptions: [],
+    availablePurchases: [],
+    fetchProducts: vi.fn(),
+    requestPurchase: vi.fn(),
+    finishTransaction: vi.fn(),
+    getAvailablePurchases: vi.fn(),
+  }),
+}));
 
 // Mock @react-native-async-storage/async-storage
 vi.mock("@react-native-async-storage/async-storage", () => ({

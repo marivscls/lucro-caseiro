@@ -5,6 +5,18 @@ import { create } from "zustand";
 
 import { supabase } from "../utils/supabase";
 
+function getAuthRedirectUrl(): string {
+  if (process.env.EXPO_PUBLIC_AUTH_REDIRECT_URL) {
+    return process.env.EXPO_PUBLIC_AUTH_REDIRECT_URL;
+  }
+
+  try {
+    return Linking.createURL("/");
+  } catch {
+    return "lucrocaseiro://";
+  }
+}
+
 interface AuthState {
   token: string | null;
   userId: string | null;
@@ -142,14 +154,12 @@ export const useAuth = create<AuthState>((set) => ({
 
   signInWithGoogle: async () => {
     try {
-      // For Expo Go, use the Supabase project URL as redirect
-      // This ensures the OAuth callback works on both iOS and Android
-      const redirectUrl = "https://ujwxvpceqigvyxcqolch.supabase.co/auth/v1/callback";
+      const authRedirectUrl = getAuthRedirectUrl();
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: redirectUrl,
+          redirectTo: authRedirectUrl,
           skipBrowserRedirect: true,
         },
       });
@@ -158,10 +168,7 @@ export const useAuth = create<AuthState>((set) => ({
         return { error: "Erro ao conectar com Google. Tente novamente." };
       }
 
-      // Use the Expo scheme for the return URL so the browser comes back to the app
-      const appRedirectUrl = Linking.createURL("/");
-
-      const result = await WebBrowser.openAuthSessionAsync(data.url, appRedirectUrl);
+      const result = await WebBrowser.openAuthSessionAsync(data.url, authRedirectUrl);
 
       if (result.type === "success" && result.url) {
         const url = new URL(result.url);

@@ -5,6 +5,7 @@ import { Alert, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useProfile, useLimits } from "../features/subscription/hooks";
+import { usePaywall } from "../shared/hooks/use-paywall";
 
 const FREE_LIMITS = {
   "Vendas/mes": "30",
@@ -30,6 +31,7 @@ export default function PlansScreen() {
   const { theme } = useTheme();
   const { data: profile } = useProfile();
   const { data: limits } = useLimits();
+  const showPaywall = usePaywall((state) => state.show);
   const isPremium = profile?.plan === "premium";
 
   return (
@@ -187,11 +189,11 @@ export default function PlansScreen() {
         {/* CTA */}
         {!isPremium ? (
           <Button
-            title="Assinar Premium — R$ 14,90/mes"
+            title="Assinar Premium - R$ 14,90/mes"
             variant="premium"
             size="lg"
             onPress={() => {
-              Alert.alert("Em breve", "A assinatura Premium estara disponivel em breve!");
+              showPaywall("plans");
             }}
           />
         ) : (

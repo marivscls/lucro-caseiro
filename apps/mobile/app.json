@@ -58,11 +58,6 @@
       "eas": {
         "projectId": "83a64ebe-a3e6-408a-b0f9-a076445bfa68"
       },
-      "revenuecat": {
-        "iosKey": "",
-        "androidKey": "",
-        "entitlementId": "premium"
-      },
       "admob": {
         "bannerUnitIdAndroid": "ca-app-pub-8304398247631710/6992108312",
         "interstitialUnitIdAndroid": "ca-app-pub-8304398247631710/5985224969"
