@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Mobile ownership for profile, freemium limits, paywall display, Stripe Checkout launching, and Google Play restore fallback.
+Mobile ownership for profile, freemium limits, paywall display, and platform-based premium checkout: Android uses Google Play Billing; iOS/Web use Stripe Checkout.
 
 ## Non-goals
 
@@ -39,7 +39,7 @@ Mobile ownership for profile, freemium limits, paywall display, Stripe Checkout 
 
 ## Components
 
-- `Paywall`: shows Premium benefits, monthly/annual selection, subscribe CTA, restore action, and close action.
+- `Paywall`: shows Premium benefits, monthly/annual selection, subscribe CTA, restore action, and close action. Its `onSubscribe` is platform-routed in `app/_layout.tsx`.
 - `LimitBanner`: shows free-plan usage and prompts upgrade near/at limits.
 - Plans screen: displays current plan, usage, comparison table, and opens the paywall.
 - Settings screen: displays current plan and restore action.
@@ -92,6 +92,7 @@ Mobile ownership for profile, freemium limits, paywall display, Stripe Checkout 
 ## Test matrix
 
 - Paywall opens from limits/plans.
+- Paywall routes subscribe to Google Play Billing on Android and to Stripe Checkout on iOS/Web.
 - Stripe checkout sends selected plan and opens returned URL.
 - Subscription query invalidates after browser closes.
 - Google Play restore handles no purchase, valid purchase, and provider errors.
@@ -104,12 +105,17 @@ await createStripeCheckout(token, "monthly");
 ```
 
 ```tsx
-<Paywall onSubscribe={(period) => void payWithStripe(period)} />
+<Paywall
+  onSubscribe={(period) =>
+    Platform.OS === "android" ? void subscribe(period) : void payWithStripe(period)
+  }
+/>
 ```
 
 ## Change log / Decisions
 
-- Stripe Checkout is the primary paywall checkout path.
-- Legacy non-Stripe checkout was removed from the mobile flow.
-- Google Play Billing code remains for restore/store fallback.
-- Prices are display-only in mobile and must match Stripe Dashboard.
+- Paywall checkout is platform-routed in `app/_layout.tsx`: Android → Google Play Billing (`useSubscription().subscribe`), iOS/Web → Stripe Checkout (`useStripeCheckout().checkout`).
+- Android uses Google Play Billing to comply with Play Store policy; the backend validates the purchase token via `/sync-plan`.
+- iOS/Web use hosted Stripe Checkout; backend webhooks own Premium activation.
+- Google Play Billing also powers the "restore purchase" action.
+- Prices are display-only in mobile and must match both the Stripe Dashboard and the Google Play products.

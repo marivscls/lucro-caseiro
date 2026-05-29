@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Modal, View } from "react-native";
+import { ActivityIndicator, Modal, Platform, View } from "react-native";
 
 import { OfflineBanner } from "../shared/components/offline-banner";
 import { useAuth } from "../shared/hooks/use-auth";
@@ -18,7 +18,7 @@ function AppContent() {
   const { theme } = useTheme();
   const { initialize, isLoading, token } = useAuth();
   const { visible: paywallVisible, hide: hidePaywall } = usePaywall();
-  const { restore, loading: subscriptionLoading } = useSubscription();
+  const { subscribe, restore, loading: subscriptionLoading } = useSubscription();
   const { checkout: payWithStripe, loading: stripeLoading } = useStripeCheckout();
 
   // Registers for push notifications once the user is authenticated.
@@ -61,7 +61,13 @@ function AppContent() {
         <Paywall
           onClose={hidePaywall}
           onSubscribe={(period) => {
-            void payWithStripe(period);
+            // Android must use Google Play Billing (Play Store policy);
+            // iOS/Web use hosted Stripe Checkout.
+            if (Platform.OS === "android") {
+              void subscribe(period);
+            } else {
+              void payWithStripe(period);
+            }
           }}
           onRestore={() => {
             void restore();
