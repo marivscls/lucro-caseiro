@@ -238,7 +238,7 @@ export async function generateFinanceExcel(
     cell.alignment = { vertical: "middle" };
     cell.border = border;
   });
-  sheet.views = [{ state: "frozen", ySplit: HEADER_ROW }];
+  sheet.views = [{ state: "frozen", ySplit: HEADER_ROW, zoomScale: 130 }];
 
   if (entries.length === 0) {
     const r = HEADER_ROW + 1;
@@ -274,6 +274,7 @@ export async function generateFinanceExcel(
 
   // ---- Sheet 2: Resumo ----
   const summarySheet = workbook.addWorksheet("Resumo");
+  summarySheet.views = [{ zoomScale: 130 }];
   summarySheet.properties.defaultRowHeight = 18;
   summarySheet.columns = [
     { key: "label", width: 30 },
