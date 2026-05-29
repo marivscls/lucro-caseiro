@@ -23,6 +23,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "../shared/hooks/use-auth";
+import { ProlaboreGoalForm } from "../features/goals/components/prolabore-goal-form";
+import { formatCurrency } from "../features/goals/domain";
+import { useProlaboreStatus } from "../features/goals/hooks";
 import { useProfile, useUpdateProfile } from "../features/subscription/hooks";
 import { useSubscription } from "../features/subscription/use-subscription";
 
@@ -36,7 +39,9 @@ export default function SettingsScreen() {
   const { data: profile, isLoading } = useProfile();
   const updateProfile = useUpdateProfile();
   const { restore, loading: subscriptionLoading } = useSubscription();
+  const { data: prolabore } = useProlaboreStatus();
 
+  const [showGoal, setShowGoal] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [editName, setEditName] = useState("");
   const [editBusinessName, setEditBusinessName] = useState("");
@@ -225,6 +230,56 @@ export default function SettingsScreen() {
           )}
         </Card>
 
+        {/* Meta de pro-labore Card */}
+        <Card>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}
+            >
+              <View
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: theme.colors.successBg,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Ionicons name="trophy-outline" size={20} color={theme.colors.success} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Typography variant="h3">Meta de pro-labore</Typography>
+                <Typography variant="caption">
+                  {prolabore?.config
+                    ? `${formatCurrency(prolabore.config.monthlyProlaboreGoal)} por mes`
+                    : "Nao definida"}
+                </Typography>
+              </View>
+            </View>
+
+            <Pressable
+              onPress={() => setShowGoal(true)}
+              style={{
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 8,
+                backgroundColor: theme.colors.surfaceElevated,
+              }}
+            >
+              <Typography variant="caption" color={theme.colors.text}>
+                {prolabore?.config ? "Editar" : "Definir"}
+              </Typography>
+            </Pressable>
+          </View>
+        </Card>
+
         {/* Preferences Card */}
         <Card style={{ gap: 16 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
@@ -360,6 +415,34 @@ export default function SettingsScreen() {
           {appVersion}
         </Typography>
       </ScrollView>
+
+      {/* Meta de pro-labore Modal */}
+      <Modal
+        visible={showGoal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowGoal(false)}
+      >
+        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "flex-end",
+              padding: spacing.lg,
+            }}
+          >
+            <Pressable onPress={() => setShowGoal(false)}>
+              <Typography variant="bodyBold" color={theme.colors.primary}>
+                Fechar
+              </Typography>
+            </Pressable>
+          </View>
+          <ProlaboreGoalForm
+            config={prolabore?.config ?? null}
+            onSuccess={() => setShowGoal(false)}
+          />
+        </SafeAreaView>
+      </Modal>
 
       {/* Edit Profile Modal */}
       <Modal

@@ -7,6 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useBirthdays } from "../../features/clients/hooks";
 import { useFinanceSummary } from "../../features/finance/hooks";
+import { ProlaboreCard } from "../../features/goals/components/prolabore-card";
 import { useLowStockProducts } from "../../features/products/hooks";
 import { useTodaySummary } from "../../features/sales/hooks";
 import { LimitBanner } from "../../features/subscription/components/limit-banner";
@@ -353,6 +354,9 @@ export default function HomeScreen() {
                 </View>
               </View>
             </Card>
+
+            {/* Meta de pro-labore */}
+            <ProlaboreCard />
 
             {/* Low stock alerts */}
             {lowStockProducts && lowStockProducts.length > 0 && (
