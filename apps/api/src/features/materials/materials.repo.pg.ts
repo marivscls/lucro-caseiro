@@ -107,14 +107,10 @@ export class MaterialsRepoPg implements IMaterialsRepo {
   }
 
   async adjustStock(userId: string, id: string, delta: number): Promise<Material | null> {
-    const [row] = await this.db
-      .update(materials)
-      .set({
-        stockQuantity: sql`greatest(0, ${materials.stockQuantity} + ${delta})`,
-      })
-      .where(and(eq(materials.userId, userId), eq(materials.id, id)))
-      .returning();
-    return row ? this.toMaterial(row) : null;
+    const current = await this.findById(userId, id);
+    if (!current) return null;
+    const next = Math.max(0, current.stockQuantity + delta);
+    return this.update(userId, id, { stockQuantity: next });
   }
 
   async delete(userId: string, id: string): Promise<boolean> {

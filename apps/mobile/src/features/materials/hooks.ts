@@ -1,5 +1,6 @@
 import type { CreateMaterial, UpdateMaterial } from "@lucro-caseiro/contracts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Alert } from "react-native";
 
 import { useAuth } from "../../shared/hooks/use-auth";
 import {
@@ -62,6 +63,9 @@ export function useAdjustMaterial() {
       adjustMaterial(token!, id, delta),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: MATERIALS_KEY });
+    },
+    onError: () => {
+      Alert.alert("Erro", "Não foi possível ajustar o estoque. Tente novamente.");
     },
   });
 }
