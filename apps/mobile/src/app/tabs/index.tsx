@@ -23,7 +23,7 @@ function getMonthName(): string {
   const months = [
     "Janeiro",
     "Fevereiro",
-    "Marco",
+    "Março",
     "Abril",
     "Maio",
     "Junho",
@@ -45,11 +45,11 @@ function getFormattedDate(): string {
   const weekdays = [
     "Domingo",
     "Segunda-feira",
-    "Terca-feira",
+    "Terça-feira",
     "Quarta-feira",
     "Quinta-feira",
     "Sexta-feira",
-    "Sabado",
+    "Sábado",
   ];
   const weekday = weekdays[now.getDay()];
   return `${weekday}, ${day} de ${month} ${year}`;
@@ -157,7 +157,13 @@ export default function HomeScreen() {
               {getFormattedDate()}
             </Typography>
           </View>
-          <AvatarCircle name={profile?.name ?? ""} color={theme.colors.primary} />
+          <Pressable
+            onPress={() => router.push("/settings")}
+            accessibilityRole="button"
+            accessibilityLabel="Minha conta"
+          >
+            <AvatarCircle name={profile?.name ?? ""} color={theme.colors.primary} />
+          </Pressable>
         </View>
 
         <LimitBanner resource="sales" onUpgrade={() => showPaywall("sales")} />
@@ -219,7 +225,7 @@ export default function HomeScreen() {
             },
             {
               icon: "calculator-outline" as const,
-              label: "Precificacao",
+              label: "Precificação",
               route: "/pricing" as const,
             },
             {
@@ -229,7 +235,7 @@ export default function HomeScreen() {
             },
             {
               icon: "pricetag-outline" as const,
-              label: "Rotulos",
+              label: "Rótulos",
               route: "/labels" as const,
             },
             {
@@ -319,7 +325,7 @@ export default function HomeScreen() {
                     alignItems: "center",
                   }}
                 >
-                  <Typography variant="body">Saidas</Typography>
+                  <Typography variant="body">Saídas</Typography>
                   <Typography variant="bodyBold" color={theme.colors.alert}>
                     - {formatCurrency(financeSummary?.totalExpenses ?? 0)}
                   </Typography>
@@ -422,7 +428,7 @@ export default function HomeScreen() {
                   color={theme.colors.premium}
                   style={{ marginBottom: spacing.sm }}
                 >
-                  Aniversariantes do mes
+                  Aniversariantes do mês
                 </Typography>
                 {birthdays.map((client) => (
                   <Typography
