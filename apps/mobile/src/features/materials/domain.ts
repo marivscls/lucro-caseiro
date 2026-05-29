@@ -22,3 +22,13 @@ export function stockBadge(m: Material): { label: string; tone: StockTone } {
 export function formatCost(value: number, unit: string): string {
   return `R$ ${value.toFixed(2).replace(".", ",")}/${unit}`;
 }
+
+/** Monta uma lista de compras (texto pronto p/ compartilhar) a partir de insumos baixos/zerados. */
+export function buildShoppingList(items: Material[]): string {
+  const lines = items.map((m) => {
+    const status =
+      m.stockQuantity <= 0 ? "acabou" : `tem ${formatQty(m.stockQuantity)} ${m.unit}`;
+    return `• ${m.name} (${status})`;
+  });
+  return `🛒 Lista de compras\n\n${lines.join("\n")}`;
+}

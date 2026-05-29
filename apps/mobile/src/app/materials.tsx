@@ -8,17 +8,31 @@ import {
 } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { ActivityIndicator, Modal, Pressable, ScrollView, View } from "react-native";
+import {
+  ActivityIndicator,
+  Modal,
+  Pressable,
+  ScrollView,
+  Share,
+  View,
+} from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { MaterialCard } from "../features/materials/components/material-card";
 import { MaterialForm } from "../features/materials/components/material-form";
+import { buildShoppingList } from "../features/materials/domain";
 import { useLowStockMaterials, useMaterials } from "../features/materials/hooks";
 
 function LowStockBanner() {
   const { theme } = useTheme();
   const { data } = useLowStockMaterials();
   if (!data || data.length === 0) return null;
+
+  function shareList() {
+    if (!data) return;
+    void Share.share({ message: buildShoppingList(data) });
+  }
+
   return (
     <View
       style={{
@@ -38,6 +52,25 @@ function LowStockBanner() {
           ? "1 insumo com estoque baixo"
           : `${data.length} insumos com estoque baixo`}
       </Typography>
+      <Pressable
+        onPress={shareList}
+        accessibilityRole="button"
+        accessibilityLabel="Compartilhar lista de compras"
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.xs,
+          paddingHorizontal: spacing.md,
+          paddingVertical: spacing.sm,
+          borderRadius: radii.full,
+          backgroundColor: theme.colors.surface,
+        }}
+      >
+        <Ionicons name="share-social-outline" size={16} color={theme.colors.primary} />
+        <Typography variant="caption" color={theme.colors.primary}>
+          Lista
+        </Typography>
+      </Pressable>
     </View>
   );
 }
