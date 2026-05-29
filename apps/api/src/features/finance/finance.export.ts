@@ -112,7 +112,10 @@ export function generateFinancePdf(
     doc.text("Tipo", COLS.type + 6, y);
     doc.text("Categoria", COLS.category + 6, y);
     doc.text("Descrição", COLS.description + 6, y);
-    doc.text("Valor", COLS.value, y, { width: VALUE_RIGHT - COLS.value, align: "right" });
+    doc.text("Valor", COLS.value, y, {
+      width: VALUE_RIGHT - COLS.value - 8,
+      align: "right",
+    });
     y += 22;
 
     // Empty state
@@ -154,7 +157,10 @@ export function generateFinancePdf(
       doc
         .fillColor(amountColor)
         .font("Helvetica-Bold")
-        .text(signed, COLS.value, y, { width: VALUE_RIGHT - COLS.value, align: "right" });
+        .text(signed, COLS.value, y, {
+          width: VALUE_RIGHT - COLS.value - 8,
+          align: "right",
+        });
 
       y += 18;
     });
@@ -199,18 +205,19 @@ export async function generateFinanceExcel(
 
   // ---- Sheet 1: Lançamentos ----
   const sheet = workbook.addWorksheet("Lançamentos");
+  sheet.properties.defaultRowHeight = 18;
   sheet.columns = [
-    { key: "date", width: 14 },
-    { key: "type", width: 12 },
-    { key: "category", width: 18 },
-    { key: "description", width: 42 },
-    { key: "amount", width: 16 },
+    { key: "date", width: 16 },
+    { key: "type", width: 14 },
+    { key: "category", width: 20 },
+    { key: "description", width: 46 },
+    { key: "amount", width: 18 },
   ];
 
   sheet.mergeCells("A1:E1");
   const title = sheet.getCell("A1");
   title.value = "Relatório Financeiro";
-  title.font = { bold: true, size: 16, color: { argb: INK } };
+  title.font = { bold: true, size: 18, color: { argb: INK } };
   title.alignment = { vertical: "middle" };
   sheet.getRow(1).height = 26;
 
@@ -222,11 +229,11 @@ export async function generateFinanceExcel(
   const HEADER_ROW = 4;
   const headerLabels = ["Data", "Tipo", "Categoria", "Descrição", "Valor"];
   const header = sheet.getRow(HEADER_ROW);
-  header.height = 20;
+  header.height = 22;
   headerLabels.forEach((label, i) => {
     const cell = header.getCell(i + 1);
     cell.value = label;
-    cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    cell.font = { bold: true, size: 12, color: { argb: "FFFFFFFF" } };
     cell.fill = fillSolid(HEADER_BG);
     cell.alignment = { vertical: "middle" };
     cell.border = border;
@@ -239,7 +246,7 @@ export async function generateFinanceExcel(
     const cell = sheet.getCell(`A${r}`);
     cell.value = "Nenhum lançamento neste período.";
     cell.alignment = { horizontal: "center" };
-    cell.font = { italic: true, color: { argb: MUTED } };
+    cell.font = { italic: true, size: 12, color: { argb: MUTED } };
   } else {
     entries.forEach((entry, i) => {
       const income = entry.type === "income";
@@ -253,6 +260,7 @@ export async function generateFinanceExcel(
 
       row.eachCell((cell) => {
         cell.border = border;
+        cell.font = { size: 12 };
         if (i % 2 === 1) cell.fill = fillSolid(ZEBRA_BG);
       });
       row.getCell("date").alignment = { horizontal: "center" };
@@ -260,21 +268,22 @@ export async function generateFinanceExcel(
       const amountCell = row.getCell("amount");
       amountCell.numFmt = currencyFmt;
       amountCell.alignment = { horizontal: "right" };
-      amountCell.font = { color: { argb: income ? "FF16A34A" : "FFDC2626" } };
+      amountCell.font = { size: 12, color: { argb: income ? "FF16A34A" : "FFDC2626" } };
     });
   }
 
   // ---- Sheet 2: Resumo ----
   const summarySheet = workbook.addWorksheet("Resumo");
+  summarySheet.properties.defaultRowHeight = 18;
   summarySheet.columns = [
-    { key: "label", width: 26 },
-    { key: "value", width: 20 },
+    { key: "label", width: 30 },
+    { key: "value", width: 22 },
   ];
 
   summarySheet.mergeCells("A1:B1");
   const sTitle = summarySheet.getCell("A1");
   sTitle.value = "Resumo do mês";
-  sTitle.font = { bold: true, size: 16, color: { argb: INK } };
+  sTitle.font = { bold: true, size: 18, color: { argb: INK } };
   sTitle.alignment = { vertical: "middle" };
   summarySheet.getRow(1).height = 26;
 
@@ -297,13 +306,13 @@ export async function generateFinanceExcel(
     const row = summarySheet.getRow(HEADER_ROW + i);
     const labelCell = row.getCell(1);
     labelCell.value = r.label;
-    labelCell.font = { bold: r.bold ?? false, color: { argb: INK } };
+    labelCell.font = { bold: r.bold ?? false, size: 12, color: { argb: INK } };
     labelCell.border = border;
     const valueCell = row.getCell(2);
     valueCell.value = r.value;
     valueCell.numFmt = currencyFmt;
     valueCell.alignment = { horizontal: "right" };
-    valueCell.font = { bold: r.bold ?? false, color: { argb: r.argb } };
+    valueCell.font = { bold: r.bold ?? false, size: 12, color: { argb: r.argb } };
     valueCell.border = border;
   });
 
