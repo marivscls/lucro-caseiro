@@ -8,3 +8,4 @@ export * from "./ingredients";
 export * from "./pricing";
 export * from "./packaging";
 export * from "./labels";
+export * from "./goals";
