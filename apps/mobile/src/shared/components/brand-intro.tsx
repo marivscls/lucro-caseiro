@@ -15,9 +15,8 @@ interface BrandIntroProps {
 
 /**
  * Abertura da marca: wordmark serifado revelado em cascata, linha verde que se
- * desenha, um brilho que varre o nome e uma tagline. Fundo escuro = transicao
- * continua pro app. Pure Animated (sem libs nativas), reaproveita o tempo do
- * initialize() da auth.
+ * desenha e uma tagline. Fundo escuro = transicao continua pro app. Pure
+ * Animated (sem libs nativas), reaproveita o tempo do initialize() da auth.
  */
 export function BrandIntro({ authReady, onFinish }: BrandIntroProps) {
   const rootOpacity = useRef(new Animated.Value(1)).current;
@@ -29,7 +28,6 @@ export function BrandIntro({ authReady, onFinish }: BrandIntroProps) {
   const l2Y = useRef(new Animated.Value(16)).current;
 
   const underline = useRef(new Animated.Value(0)).current;
-  const sheen = useRef(new Animated.Value(0)).current;
   const tagOpacity = useRef(new Animated.Value(0)).current;
 
   const [minElapsed, setMinElapsed] = useState(false);
@@ -63,17 +61,10 @@ export function BrandIntro({ authReady, onFinish }: BrandIntroProps) {
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
-      Animated.timing(sheen, {
-        toValue: 1,
-        duration: 950,
-        delay: 750,
-        easing: Easing.inOut(Easing.quad),
-        useNativeDriver: true,
-      }),
       Animated.timing(tagOpacity, {
         toValue: 1,
         duration: 650,
-        delay: 1000,
+        delay: 950,
         easing: Easing.out(Easing.quad),
         useNativeDriver: true,
       }),
@@ -81,7 +72,7 @@ export function BrandIntro({ authReady, onFinish }: BrandIntroProps) {
 
     const timer = setTimeout(() => setMinElapsed(true), MIN_DURATION);
     return () => clearTimeout(timer);
-  }, [l1Opacity, l1Y, l2Opacity, l2Y, underline, sheen, tagOpacity]);
+  }, [l1Opacity, l1Y, l2Opacity, l2Y, underline, tagOpacity]);
 
   useEffect(() => {
     if (!minElapsed || !authReady) return;
@@ -101,16 +92,10 @@ export function BrandIntro({ authReady, onFinish }: BrandIntroProps) {
     ]).start(() => onFinish());
   }, [minElapsed, authReady, rootOpacity, rootScale, onFinish]);
 
-  const sheenTranslate = sheen.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-160, 160],
-  });
-
   return (
     <Animated.View
       style={[styles.root, { opacity: rootOpacity, transform: [{ scale: rootScale }] }]}
     >
-      {/* Wordmark + sheen */}
       <View style={styles.wordmark}>
         <Animated.Text
           style={[styles.word, { opacity: l1Opacity, transform: [{ translateY: l1Y }] }]}
@@ -122,15 +107,6 @@ export function BrandIntro({ authReady, onFinish }: BrandIntroProps) {
         >
           Caseiro
         </Animated.Text>
-
-        {/* Brilho diagonal que varre o bloco */}
-        <Animated.View
-          pointerEvents="none"
-          style={[
-            styles.sheen,
-            { transform: [{ translateX: sheenTranslate }, { rotate: "20deg" }] },
-          ]}
-        />
       </View>
 
       {/* Linha verde que se desenha */}
@@ -153,8 +129,6 @@ const styles = StyleSheet.create({
   },
   wordmark: {
     alignItems: "center",
-    overflow: "hidden",
-    paddingHorizontal: 8,
   },
   word: {
     fontFamily: "serif",
@@ -164,13 +138,6 @@ const styles = StyleSheet.create({
     color: CREAM,
     letterSpacing: 0.5,
     textAlign: "center",
-  },
-  sheen: {
-    position: "absolute",
-    top: -20,
-    bottom: -20,
-    width: 50,
-    backgroundColor: "rgba(255, 255, 255, 0.16)",
   },
   underline: {
     width: 88,
