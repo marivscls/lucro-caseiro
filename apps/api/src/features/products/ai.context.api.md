@@ -17,6 +17,7 @@ Gerenciar o catalogo de produtos do negocio caseiro, incluindo nome, descricao, 
 
 - **Depende de**: `@lucro-caseiro/contracts` (CreateProductDto, UpdateProductDto, PaginationDto, Product), `@lucro-caseiro/database/schema` (products)
 - **Dependentes**: Sales (referencia productId nos itens), Pricing (referencia productId), Labels (referencia productId), Packaging (vinculo produto-embalagem)
+- **Composição (injetado)**: `IRecipeCostProvider` (satisfeito por `RecipesUseCases.getById`) — usado para derivar `costPrice` da receita.
 - **Cross-feature**: Sales usa `IProductsRepo` diretamente para checar/decrementar estoque
 
 ## Code pointers
@@ -127,6 +128,10 @@ invariants:
 
 - `decrementStock(userId, productId, quantity)` — chamado por Sales ao criar venda com produtos que tem controle de estoque
 - Delete faz soft delete (set isActive = false), nao remove registro
+- **Custo real via receita**: ao criar/atualizar um produto com `recipeId`, o `costPrice` é
+  preenchido automaticamente com o `costPerUnit` da receita (custo dos insumos), via
+  `IRecipeCostProvider` injetado (satisfeito por `RecipesUseCases.getById`). Sem receita,
+  mantém o `costPrice` informado.
 
 ## Performance
 

@@ -81,11 +81,21 @@ const googlePlayClient = new GooglePlayClient(
 );
 
 // Use Cases
-const productsUseCases = new ProductsUseCases(productsRepo);
+const recipesUseCases = new RecipesUseCases(recipesRepo);
+const productsUseCases = new ProductsUseCases(productsRepo, {
+  // Custo real do produto = custo por unidade da receita (insumos).
+  getCostPerUnit: async (userId, recipeId) => {
+    try {
+      const recipe = await recipesUseCases.getById(userId, recipeId);
+      return recipe.costPerUnit;
+    } catch {
+      return null;
+    }
+  },
+});
 const clientsUseCases = new ClientsUseCases(clientsRepo);
 const salesUseCases = new SalesUseCases(salesRepo, productsRepo);
 const financeUseCases = new FinanceUseCases(financeRepo);
-const recipesUseCases = new RecipesUseCases(recipesRepo);
 const ingredientsUseCases = new IngredientsUseCases(ingredientsRepo);
 const labelsUseCases = new LabelsUseCases(labelsRepo);
 const packagingUseCases = new PackagingUseCases(packagingRepo);

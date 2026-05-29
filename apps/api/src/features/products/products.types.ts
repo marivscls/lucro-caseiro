@@ -18,12 +18,18 @@ export interface IProductsRepo {
   averageActivePrice(userId: string): Promise<number | null>;
 }
 
+/** Fonte do custo real de uma receita (injetada da feature recipes, sem importar internals). */
+export interface IRecipeCostProvider {
+  getCostPerUnit(userId: string, recipeId: string): Promise<number | null>;
+}
+
 export interface CreateProductData {
   name: string;
   description?: string;
   category: string;
   photoUrl?: string;
   salePrice: number;
+  costPrice?: number;
   recipeId?: string;
   stockQuantity?: number;
   stockAlertThreshold?: number;

@@ -68,6 +68,50 @@ describe("ProductsUseCases", () => {
         sut.create(USER_ID, { name: "", category: "doces", salePrice: -1 }),
       ).rejects.toThrow(ValidationError);
     });
+
+    it("preenche o costPrice a partir da receita quando há recipeId", async () => {
+      let captured: CreateProductData | undefined;
+      const repo = makeRepo({
+        create: (_userId: string, data: CreateProductData) => {
+          captured = data;
+          return Promise.resolve(makeProduct({ costPrice: data.costPrice ?? null }));
+        },
+      });
+      const sut = new ProductsUseCases(repo, {
+        getCostPerUnit: () => Promise.resolve(4.2),
+      });
+
+      await sut.create(USER_ID, {
+        name: "Bolo",
+        category: "bolos",
+        salePrice: 20,
+        recipeId: "11111111-1111-1111-1111-111111111111",
+      });
+
+      expect(captured?.costPrice).toBe(4.2);
+    });
+
+    it("mantém o costPrice informado quando não há receita", async () => {
+      let captured: CreateProductData | undefined;
+      const repo = makeRepo({
+        create: (_userId: string, data: CreateProductData) => {
+          captured = data;
+          return Promise.resolve(makeProduct());
+        },
+      });
+      const sut = new ProductsUseCases(repo, {
+        getCostPerUnit: () => Promise.resolve(99),
+      });
+
+      await sut.create(USER_ID, {
+        name: "Bolo",
+        category: "bolos",
+        salePrice: 20,
+        costPrice: 7,
+      });
+
+      expect(captured?.costPrice).toBe(7);
+    });
   });
 
   describe("getById", () => {

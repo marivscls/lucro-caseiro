@@ -3,10 +3,34 @@ import type { Product } from "@lucro-caseiro/contracts";
 import { NotFoundError, ValidationError } from "../../shared/errors";
 import { paginationMeta } from "../../shared/helpers/paginate";
 import { validateProductData } from "./products.domain";
-import type { CreateProductData, FindAllOpts, IProductsRepo } from "./products.types";
+import type {
+  CreateProductData,
+  FindAllOpts,
+  IProductsRepo,
+  IRecipeCostProvider,
+} from "./products.types";
 
 export class ProductsUseCases {
-  constructor(private repo: IProductsRepo) {}
+  constructor(
+    private repo: IProductsRepo,
+    private recipeCost?: IRecipeCostProvider,
+  ) {}
+
+  /**
+   * Quando o produto tem receita, o custo real vem do `costPerUnit` da receita
+   * (custo dos insumos). Caso contrário, mantém o costPrice informado.
+   */
+  private async resolveCostPrice(
+    userId: string,
+    recipeId: string | undefined,
+    fallback: number | undefined,
+  ): Promise<number | undefined> {
+    if (recipeId && this.recipeCost) {
+      const cost = await this.recipeCost.getCostPerUnit(userId, recipeId);
+      if (cost != null) return cost;
+    }
+    return fallback;
+  }
 
   async create(userId: string, data: CreateProductData): Promise<Product> {
     const errors = validateProductData(data);
@@ -14,7 +38,8 @@ export class ProductsUseCases {
       throw new ValidationError(errors);
     }
 
-    return this.repo.create(userId, data);
+    const costPrice = await this.resolveCostPrice(userId, data.recipeId, data.costPrice);
+    return this.repo.create(userId, { ...data, costPrice });
   }
 
   async getById(userId: string, id: string): Promise<Product> {
@@ -59,7 +84,14 @@ export class ProductsUseCases {
       throw new ValidationError(errors);
     }
 
-    const updated = await this.repo.update(userId, id, data);
+    // Se a receita foi (re)definida, recalcula o custo real a partir dela.
+    const dataWithCost = { ...data };
+    if (data.recipeId !== undefined) {
+      const cost = await this.resolveCostPrice(userId, data.recipeId, data.costPrice);
+      if (cost !== undefined) dataWithCost.costPrice = cost;
+    }
+
+    const updated = await this.repo.update(userId, id, dataWithCost);
     if (!updated) {
       throw new NotFoundError("Produto não encontrado");
     }

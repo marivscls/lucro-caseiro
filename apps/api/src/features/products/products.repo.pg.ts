@@ -17,6 +17,7 @@ export class ProductsRepoPg implements IProductsRepo {
         category: data.category,
         photoUrl: data.photoUrl ?? null,
         salePrice: String(data.salePrice),
+        costPrice: data.costPrice != null ? String(data.costPrice) : null,
         recipeId: data.recipeId ?? null,
         stockQuantity: data.stockQuantity ?? null,
         stockAlertThreshold: data.stockAlertThreshold ?? null,
@@ -85,6 +86,8 @@ export class ProductsRepoPg implements IProductsRepo {
     if (data.category !== undefined) updateData.category = data.category;
     if (data.photoUrl !== undefined) updateData.photoUrl = data.photoUrl;
     if (data.salePrice !== undefined) updateData.salePrice = String(data.salePrice);
+    if (data.costPrice !== undefined)
+      updateData.costPrice = data.costPrice != null ? String(data.costPrice) : null;
     if (data.recipeId !== undefined) updateData.recipeId = data.recipeId;
     if (data.stockQuantity !== undefined) updateData.stockQuantity = data.stockQuantity;
     if (data.stockAlertThreshold !== undefined)
