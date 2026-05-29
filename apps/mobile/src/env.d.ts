@@ -7,3 +7,9 @@ declare const process: {
     [key: string]: string | undefined;
   };
 };
+
+// Static image assets imported via `import x from "./x.png"` (Metro asset).
+declare module "*.png" {
+  const content: number;
+  export default content;
+}
