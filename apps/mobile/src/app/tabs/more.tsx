@@ -27,6 +27,12 @@ const menuItems = [
     route: "/products" as const,
   },
   {
+    title: "Insumos",
+    description: "Matéria-prima e estoque",
+    icon: "flask-outline" as const,
+    route: "/materials" as const,
+  },
+  {
     title: "Receitas",
     description: "Suas receitas e ingredientes",
     icon: "document-text-outline" as const,

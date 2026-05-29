@@ -122,6 +122,15 @@ function AppContent() {
           }}
         />
         <Stack.Screen
+          name="materials"
+          options={{
+            headerShown: true,
+            title: "Insumos",
+            headerStyle: { backgroundColor: theme.colors.background },
+            headerTintColor: theme.colors.text,
+          }}
+        />
+        <Stack.Screen
           name="finance"
           options={{
             headerShown: true,
