@@ -37,6 +37,21 @@ export interface DaySummary {
   averageTicket: number;
 }
 
+export interface RecipeConsumptionLine {
+  materialId: string;
+  quantity: number;
+}
+
+/** Fonte das linhas de insumo de uma receita (injetada da feature recipes). */
+export interface IRecipeConsumptionProvider {
+  getRecipeLines(userId: string, recipeId: string): Promise<RecipeConsumptionLine[]>;
+}
+
+/** Ajuste de estoque de insumo (injetado da feature materials). delta negativo = consumo. */
+export interface IMaterialStockAdjuster {
+  adjustStock(userId: string, materialId: string, delta: number): Promise<void>;
+}
+
 export interface ISalesRepo {
   create(userId: string, data: CreateSaleData, total: number): Promise<Sale>;
   findById(userId: string, id: string): Promise<Sale | null>;

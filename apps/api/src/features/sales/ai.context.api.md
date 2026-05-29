@@ -17,7 +17,7 @@ Gerenciar vendas do negocio caseiro, incluindo registro de itens vendidos, forma
 
 - **Depende de**: `@lucro-caseiro/contracts` (CreateSaleDto, UpdateSaleDto, UpdateSaleStatusDto, PaginationDto, Sale, SaleStatus), `@lucro-caseiro/database/schema` (sales, saleItems, products, clients), `IProductsRepo` de Products (para estoque)
 - **Dependentes**: Finance (pode receber lancamento via createFromSale), Subscription (conta vendas/mes para limites freemium)
-- **Cross-feature**: usa `IProductsRepo` diretamente para validar estoque e decrementar
+- **Cross-feature**: usa `IProductsRepo` diretamente para validar estoque e decrementar; recebe `IRecipeConsumptionProvider` (recipes) e `IMaterialStockAdjuster` (materials) para a baixa de insumos
 
 ## Code pointers
 
@@ -148,6 +148,9 @@ invariants:
 ## Events / Side effects
 
 - Ao criar venda: decrementa estoque dos produtos que tem `stockQuantity !== null`
+- Ao criar venda: **baixa automática dos insumos** da receita de cada produto vendido
+  (qtd da receita × qtd vendida), via `IRecipeConsumptionProvider` + `IMaterialStockAdjuster`
+  injetados. É best-effort (clamp em 0 no materials; nunca bloqueia/derruba a venda).
 - Itens da venda sao deletados e reinseridos ao atualizar (replace strategy)
 - findById e findAll fazem JOIN com products e clients para enriquecer com nomes
 
@@ -176,7 +179,7 @@ invariants:
 
 ### UseCases (sales.usecases.test.ts)
 
-- createSale: valido com calculo auto, itens vazios, quantidade invalida, preco invalido, decrementa estoque, nao decrementa sem stockQuantity, estoque insuficiente
+- createSale: valido com calculo auto, itens vazios, quantidade invalida, preco invalido, decrementa estoque, nao decrementa sem stockQuantity, estoque insuficiente, baixa de insumos da receita (qtd×qtd), sem baixa quando produto nao tem receita
 - getById: encontrado, NotFoundError
 - list: paginacao
 - updateStatus: sucesso, NotFoundError, cancelar ja cancelado

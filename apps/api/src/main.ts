@@ -94,7 +94,30 @@ const productsUseCases = new ProductsUseCases(productsRepo, {
   },
 });
 const clientsUseCases = new ClientsUseCases(clientsRepo);
-const salesUseCases = new SalesUseCases(salesRepo, productsRepo);
+const materialsUseCases = new MaterialsUseCases(materialsRepo);
+const salesUseCases = new SalesUseCases(
+  salesRepo,
+  productsRepo,
+  {
+    // Linhas de insumo da receita (materialId + quantidade) para dar baixa na venda.
+    getRecipeLines: async (userId, recipeId) => {
+      try {
+        const recipe = await recipesUseCases.getById(userId, recipeId);
+        return recipe.ingredients.map((line) => ({
+          materialId: line.materialId,
+          quantity: line.quantity,
+        }));
+      } catch {
+        return [];
+      }
+    },
+  },
+  {
+    adjustStock: async (userId, materialId, delta) => {
+      await materialsUseCases.adjust(userId, materialId, delta);
+    },
+  },
+);
 const financeUseCases = new FinanceUseCases(financeRepo);
 const ingredientsUseCases = new IngredientsUseCases(ingredientsRepo);
 const labelsUseCases = new LabelsUseCases(labelsRepo);
@@ -108,7 +131,6 @@ const goalsUseCases = new GoalsUseCases(
   productsUseCases,
 );
 const ordersUseCases = new OrdersUseCases(ordersRepo, financeUseCases);
-const materialsUseCases = new MaterialsUseCases(materialsRepo);
 const insightsUseCases = new InsightsUseCases(insightsRepo);
 
 // Payments (Stripe)

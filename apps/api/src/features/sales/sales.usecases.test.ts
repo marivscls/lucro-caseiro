@@ -182,6 +182,55 @@ describe("SalesUseCases", () => {
         }),
       ).rejects.toThrow("Estoque insuficiente para Brigadeiro");
     });
+
+    it("dá baixa nos insumos da receita (qtd receita × qtd vendida)", async () => {
+      const productsRepo = makeProductsRepo({
+        findById: vi.fn(() =>
+          Promise.resolve(makeProduct({ recipeId: "rec-1", stockQuantity: null })),
+        ),
+      });
+      const adjustStock = vi.fn(() => Promise.resolve());
+      const sut = new SalesUseCases(
+        makeRepo(),
+        productsRepo,
+        {
+          getRecipeLines: () =>
+            Promise.resolve([
+              { materialId: "mat-1", quantity: 2 },
+              { materialId: "mat-2", quantity: 0.5 },
+            ]),
+        },
+        { adjustStock },
+      );
+
+      await sut.createSale(USER_ID, {
+        paymentMethod: "pix",
+        items: [{ productId: "prod-1", quantity: 3, unitPrice: 10 }],
+      });
+
+      expect(adjustStock).toHaveBeenCalledWith(USER_ID, "mat-1", -6);
+      expect(adjustStock).toHaveBeenCalledWith(USER_ID, "mat-2", -1.5);
+    });
+
+    it("não dá baixa de insumos quando o produto não tem receita", async () => {
+      const productsRepo = makeProductsRepo({
+        findById: vi.fn(() => Promise.resolve(makeProduct({ recipeId: null }))),
+      });
+      const adjustStock = vi.fn(() => Promise.resolve());
+      const sut = new SalesUseCases(
+        makeRepo(),
+        productsRepo,
+        { getRecipeLines: () => Promise.resolve([{ materialId: "mat-1", quantity: 2 }]) },
+        { adjustStock },
+      );
+
+      await sut.createSale(USER_ID, {
+        paymentMethod: "pix",
+        items: [{ productId: "prod-1", quantity: 3, unitPrice: 10 }],
+      });
+
+      expect(adjustStock).not.toHaveBeenCalled();
+    });
   });
 
   describe("getById", () => {
