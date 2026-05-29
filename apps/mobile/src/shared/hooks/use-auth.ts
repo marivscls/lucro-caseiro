@@ -237,12 +237,16 @@ export const useAuth = create<AuthState>((set) => ({
       }
 
       // No Android o redirect pode reabrir o app pelo deep link em vez de voltar
-      // aqui (result vem "dismiss"). Damos um tempo pro listener aplicar a sessao
-      // antes de tratar como cancelamento.
+      // aqui (result vem "dismiss"). O listener global aplica a sessao quando o
+      // deep link chega; aguardamos (poll) ela aparecer antes de tratar como
+      // cancelamento.
       if (String(result.type) === "cancel" || String(result.type) === "dismiss") {
-        await new Promise((resolve) => setTimeout(resolve, 1200));
-        const { data: after } = await supabase.auth.getSession();
-        return after.session ? {} : { error: "Login cancelado." };
+        for (let i = 0; i < 10; i++) {
+          await new Promise((resolve) => setTimeout(resolve, 400));
+          const { data: after } = await supabase.auth.getSession();
+          if (after.session) return {};
+        }
+        return { error: "Login cancelado." };
       }
 
       return { error: "Não foi possível completar o login com Google." };
