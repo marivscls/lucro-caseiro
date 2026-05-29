@@ -11,7 +11,10 @@ export function stockBadge(m: Material): { label: string; tone: StockTone } {
     return { label: "Sem estoque", tone: "danger" };
   }
   if (m.stockAlertThreshold != null && m.stockQuantity <= m.stockAlertThreshold) {
-    return { label: "Estoque baixo", tone: "warn" };
+    return {
+      label: `Baixo · ${formatQty(m.stockQuantity)} ${m.unit}`,
+      tone: "warn",
+    };
   }
   return { label: `${formatQty(m.stockQuantity)} ${m.unit}`, tone: "success" };
 }

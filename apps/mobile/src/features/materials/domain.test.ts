@@ -23,10 +23,12 @@ describe("stockBadge", () => {
     expect(stockBadge(makeMaterial({ stockQuantity: 0 })).tone).toBe("danger");
   });
 
-  it("flags low stock", () => {
-    expect(
-      stockBadge(makeMaterial({ stockQuantity: 2, stockAlertThreshold: 3 })).tone,
-    ).toBe("warn");
+  it("flags low stock and shows remaining quantity", () => {
+    const badge = stockBadge(
+      makeMaterial({ stockQuantity: 2, stockAlertThreshold: 3, unit: "kg" }),
+    );
+    expect(badge.tone).toBe("warn");
+    expect(badge.label).toBe("Baixo · 2 kg");
   });
 
   it("shows quantity + unit when ok", () => {
