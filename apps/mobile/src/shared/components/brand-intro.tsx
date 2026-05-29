@@ -1,11 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, StyleSheet, View } from "react-native";
 
-// Paleta da marca (warm/rose + dourado), nao o verde da splash.
+// Paleta da marca (warm/rose + verde), nao o verde da splash.
 const BG = "#1E1814"; // backgroundDark — saida sem corte pro app escuro
 const CREAM = "#F5E1DB"; // textDark
 const GREEN = "#6BBF96"; // success — verde da marca
-const ROSE = "196, 112, 126"; // primary #C4707E em rgb p/ glow
 
 const MIN_DURATION = 1900;
 
@@ -15,17 +14,14 @@ interface BrandIntroProps {
 }
 
 /**
- * Abertura premium da marca: glow quente respirando, wordmark serifado revelado
- * em cascata, linha dourada que se desenha, um brilho que varre o nome e uma
- * tagline. Fundo escuro = transicao continua pro app. Pure Animated (sem libs
- * nativas), reaproveita o tempo do initialize() da auth.
+ * Abertura da marca: wordmark serifado revelado em cascata, linha verde que se
+ * desenha, um brilho que varre o nome e uma tagline. Fundo escuro = transicao
+ * continua pro app. Pure Animated (sem libs nativas), reaproveita o tempo do
+ * initialize() da auth.
  */
 export function BrandIntro({ authReady, onFinish }: BrandIntroProps) {
   const rootOpacity = useRef(new Animated.Value(1)).current;
   const rootScale = useRef(new Animated.Value(1)).current;
-
-  const glowOpacity = useRef(new Animated.Value(0)).current;
-  const glowScale = useRef(new Animated.Value(0.9)).current;
 
   const l1Opacity = useRef(new Animated.Value(0)).current;
   const l1Y = useRef(new Animated.Value(16)).current;
@@ -57,31 +53,6 @@ export function BrandIntro({ authReady, onFinish }: BrandIntroProps) {
         }),
       ]);
 
-    Animated.timing(glowOpacity, {
-      toValue: 1,
-      duration: 700,
-      easing: Easing.out(Easing.quad),
-      useNativeDriver: true,
-    }).start();
-
-    const breathe = Animated.loop(
-      Animated.sequence([
-        Animated.timing(glowScale, {
-          toValue: 1.1,
-          duration: 1700,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(glowScale, {
-          toValue: 0.95,
-          duration: 1700,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    breathe.start();
-
     Animated.parallel([
       reveal(l1Opacity, l1Y, 150),
       reveal(l2Opacity, l2Y, 320),
@@ -109,21 +80,8 @@ export function BrandIntro({ authReady, onFinish }: BrandIntroProps) {
     ]).start();
 
     const timer = setTimeout(() => setMinElapsed(true), MIN_DURATION);
-    return () => {
-      clearTimeout(timer);
-      breathe.stop();
-    };
-  }, [
-    glowOpacity,
-    glowScale,
-    l1Opacity,
-    l1Y,
-    l2Opacity,
-    l2Y,
-    underline,
-    sheen,
-    tagOpacity,
-  ]);
+    return () => clearTimeout(timer);
+  }, [l1Opacity, l1Y, l2Opacity, l2Y, underline, sheen, tagOpacity]);
 
   useEffect(() => {
     if (!minElapsed || !authReady) return;
@@ -152,49 +110,6 @@ export function BrandIntro({ authReady, onFinish }: BrandIntroProps) {
     <Animated.View
       style={[styles.root, { opacity: rootOpacity, transform: [{ scale: rootScale }] }]}
     >
-      {/* Glow quente concentrico (fake radial) */}
-      <Animated.View
-        style={[
-          StyleSheet.absoluteFillObject,
-          styles.center,
-          { opacity: glowOpacity, transform: [{ scale: glowScale }] },
-        ]}
-        pointerEvents="none"
-      >
-        <View
-          style={[
-            styles.glow,
-            {
-              width: 340,
-              height: 340,
-              borderRadius: 170,
-              backgroundColor: `rgba(${ROSE}, 0.07)`,
-            },
-          ]}
-        >
-          <View
-            style={[
-              styles.glow,
-              {
-                width: 220,
-                height: 220,
-                borderRadius: 110,
-                backgroundColor: `rgba(${ROSE}, 0.10)`,
-              },
-            ]}
-          >
-            <View
-              style={{
-                width: 120,
-                height: 120,
-                borderRadius: 60,
-                backgroundColor: "rgba(107, 191, 150, 0.14)",
-              }}
-            />
-          </View>
-        </View>
-      </Animated.View>
-
       {/* Wordmark + sheen */}
       <View style={styles.wordmark}>
         <Animated.Text
@@ -218,7 +133,7 @@ export function BrandIntro({ authReady, onFinish }: BrandIntroProps) {
         />
       </View>
 
-      {/* Linha dourada que se desenha */}
+      {/* Linha verde que se desenha */}
       <Animated.View style={[styles.underline, { transform: [{ scaleX: underline }] }]} />
 
       {/* Tagline */}
@@ -233,14 +148,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: BG,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  center: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  glow: {
     alignItems: "center",
     justifyContent: "center",
   },
