@@ -1,4 +1,4 @@
-import type { CreateMaterial, UpdateMaterial } from "@lucro-caseiro/contracts";
+import type { CreateMaterial, Material, UpdateMaterial } from "@lucro-caseiro/contracts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Alert } from "react-native";
 
@@ -13,6 +13,28 @@ import {
 } from "./api";
 
 const MATERIALS_KEY = ["materials"];
+
+// Aplica o ajuste em um item (clamp em 0) — usado na atualização otimista.
+function bumpStock(m: Material, id: string, delta: number): Material {
+  if (m.id !== id) return m;
+  return { ...m, stockQuantity: Math.max(0, m.stockQuantity + delta) };
+}
+
+// Atualiza qualquer cache de materials (lista paginada { items } ou low-stock []).
+function patchMaterialsCache(old: unknown, id: string, delta: number): unknown {
+  if (Array.isArray(old)) {
+    return (old as Material[]).map((m) => bumpStock(m, id, delta));
+  }
+  if (
+    old &&
+    typeof old === "object" &&
+    Array.isArray((old as { items?: unknown }).items)
+  ) {
+    const o = old as { items: Material[] };
+    return { ...o, items: o.items.map((m) => bumpStock(m, id, delta)) };
+  }
+  return old;
+}
 
 export function useMaterials(opts?: { page?: number; search?: string }) {
   const { token } = useAuth();
@@ -61,14 +83,27 @@ export function useAdjustMaterial() {
   return useMutation({
     mutationFn: ({ id, delta }: { id: string; delta: number }) =>
       adjustMaterial(token!, id, delta),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: MATERIALS_KEY });
+    // Atualização otimista: reflete o +/- na hora, sem esperar a rede.
+    onMutate: async ({ id, delta }) => {
+      await queryClient.cancelQueries({ queryKey: MATERIALS_KEY });
+      const snapshots = queryClient.getQueriesData({ queryKey: MATERIALS_KEY });
+      queryClient.setQueriesData({ queryKey: MATERIALS_KEY }, (old) =>
+        patchMaterialsCache(old, id, delta),
+      );
+      return { snapshots };
     },
-    onError: (err) => {
+    onError: (err, _vars, context) => {
+      context?.snapshots?.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data);
+      });
       Alert.alert(
         "Erro ao ajustar estoque",
         err instanceof Error ? err.message : "Tente novamente.",
       );
+    },
+    // Resincroniza com o servidor depois (sucesso ou erro).
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: MATERIALS_KEY });
     },
   });
 }
