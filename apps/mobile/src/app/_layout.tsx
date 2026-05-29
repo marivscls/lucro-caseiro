@@ -4,7 +4,9 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Modal, Platform, View } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { useLowStockNotifier } from "../features/products/use-low-stock-notifier";
 import { OfflineBanner } from "../shared/components/offline-banner";
 import { useAuth } from "../shared/hooks/use-auth";
 import { useNotifications } from "../shared/hooks/use-notifications";
@@ -23,6 +25,9 @@ function AppContent() {
 
   // Registers for push notifications once the user is authenticated.
   useNotifications();
+
+  // Dispara notificacao local quando algum produto entra em estoque baixo.
+  useLowStockNotifier();
 
   useEffect(() => {
     void initialize();
@@ -181,10 +186,12 @@ export default function RootLayout() {
   );
 
   return (
-    <ThemeProvider initialMode="dark">
-      <QueryClientProvider client={queryClient}>
-        <AppContent />
-      </QueryClientProvider>
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <ThemeProvider initialMode="dark">
+        <QueryClientProvider client={queryClient}>
+          <AppContent />
+        </QueryClientProvider>
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }

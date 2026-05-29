@@ -1,0 +1,69 @@
+import type { Product } from "@lucro-caseiro/contracts";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Notifications from "expo-notifications";
+import { useEffect } from "react";
+
+import { NOTIFICATION_TYPES } from "../../shared/hooks/notification-types";
+import { useLowStockProducts } from "./hooks";
+
+// Guarda os IDs de produtos que ja geraram alerta de estoque baixo, para nao
+// repetir a notificacao a cada refetch da lista.
+const NOTIFIED_KEY = "lowStockNotifiedIds";
+
+function buildContent(products: Product[]): Notifications.NotificationContentInput {
+  const data = { type: NOTIFICATION_TYPES.LOW_STOCK, productId: products[0].id };
+
+  if (products.length === 1) {
+    const p = products[0];
+    const body =
+      p.stockQuantity === 0
+        ? `Acabou o estoque de ${p.name}. Toque para repor.`
+        : `Restam ${p.stockQuantity} un. de ${p.name}. Toque para repor.`;
+    return { title: "Estoque baixo 📦", body, data };
+  }
+
+  return {
+    title: "Estoque baixo 📦",
+    body: `${products.length} produtos estao acabando. Toque para ver.`,
+    data,
+  };
+}
+
+async function syncAndNotify(lowStock: Product[]): Promise<void> {
+  const currentIds = lowStock.map((p) => p.id);
+
+  let notified: string[] = [];
+  try {
+    const raw = await AsyncStorage.getItem(NOTIFIED_KEY);
+    if (raw) notified = JSON.parse(raw) as string[];
+  } catch {
+    notified = [];
+  }
+
+  // So notifica produtos que entraram na faixa de alerta desde a ultima checagem.
+  const fresh = lowStock.filter((p) => !notified.includes(p.id));
+  if (fresh.length > 0) {
+    await Notifications.scheduleNotificationAsync({
+      content: buildContent(fresh),
+      trigger: null, // dispara imediatamente como notificacao local
+    });
+  }
+
+  // Persiste apenas os IDs ainda baixos: produtos repostos saem da lista e
+  // poderao alertar de novo quando o estoque cair outra vez.
+  await AsyncStorage.setItem(NOTIFIED_KEY, JSON.stringify(currentIds));
+}
+
+/**
+ * Observa os produtos com estoque baixo e dispara uma notificacao local quando
+ * um produto novo entra na faixa de alerta. O dedupe via AsyncStorage evita
+ * repetir o aviso do mesmo produto enquanto ele continua baixo.
+ */
+export function useLowStockNotifier(): void {
+  const { data: lowStock } = useLowStockProducts();
+
+  useEffect(() => {
+    if (!lowStock) return;
+    void syncAndNotify(lowStock);
+  }, [lowStock]);
+}
