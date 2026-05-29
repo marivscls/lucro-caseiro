@@ -31,7 +31,7 @@ type FilterTab = "all" | "paid" | "pending" | "cancelled";
 const FILTER_TABS: { key: FilterTab; label: string }[] = [
   { key: "all", label: "Todas" },
   { key: "pending", label: "Pendentes" },
-  { key: "paid", label: "Concluidas" },
+  { key: "paid", label: "Concluídas" },
   { key: "cancelled", label: "Canceladas" },
 ];
 
@@ -103,7 +103,7 @@ function SalesContent({
     return (
       <EmptyState
         title="Algo deu errado"
-        description="Nao foi possivel carregar suas vendas. Tente novamente."
+        description="Não foi possível carregar suas vendas. Tente novamente."
       />
     );
   }
@@ -185,7 +185,7 @@ export default function SalesScreen() {
       setShowEdit(false);
       void refetch();
     } catch {
-      Alert.alert("Erro", "Nao foi possivel atualizar a venda.");
+      Alert.alert("Erro", "Não foi possível atualizar a venda.");
     }
   }
 
@@ -215,11 +215,13 @@ export default function SalesScreen() {
       </View>
 
       {/* Filter pills */}
-      <View
-        style={{
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ flexGrow: 0, paddingVertical: spacing.md }}
+        contentContainerStyle={{
           flexDirection: "row",
           paddingHorizontal: spacing.xl,
-          paddingVertical: spacing.md,
           gap: spacing.sm,
         }}
       >
@@ -245,7 +247,7 @@ export default function SalesScreen() {
             </Pressable>
           );
         })}
-      </View>
+      </ScrollView>
 
       {/* Search */}
       <View style={{ paddingHorizontal: spacing.xl, paddingBottom: spacing.sm }}>
@@ -336,9 +338,9 @@ export default function SalesScreen() {
                 {[
                   { value: "pix", label: "Pix" },
                   { value: "cash", label: "Dinheiro" },
-                  { value: "card", label: "Cartao" },
+                  { value: "card", label: "Cartão" },
                   { value: "credit", label: "Fiado" },
-                  { value: "transfer", label: "Transferencia" },
+                  { value: "transfer", label: "Transferência" },
                 ].map((opt) => (
                   <Pressable
                     key={opt.value}
@@ -368,7 +370,7 @@ export default function SalesScreen() {
               </View>
             </View>
             <Input
-              label="Observacoes"
+              label="Observações"
               placeholder="Alguma anotacao sobre a venda..."
               value={editNotes}
               onChangeText={setEditNotes}
