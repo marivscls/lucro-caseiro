@@ -223,6 +223,11 @@ export default function HomeScreen() {
               route: "/finance" as const,
             },
             {
+              icon: "bar-chart-outline" as const,
+              label: "Insights",
+              route: "/insights" as const,
+            },
+            {
               icon: "cube-outline" as const,
               label: "Produtos",
               route: "/products" as const,

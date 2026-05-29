@@ -18,6 +18,9 @@ import { OrdersUseCases } from "./features/orders/orders.usecases";
 import { createMaterialsRouter } from "./features/materials/materials.routes";
 import { MaterialsRepoPg } from "./features/materials/materials.repo.pg";
 import { MaterialsUseCases } from "./features/materials/materials.usecases";
+import { createInsightsRouter } from "./features/insights/insights.routes";
+import { InsightsRepoPg } from "./features/insights/insights.repo.pg";
+import { InsightsUseCases } from "./features/insights/insights.usecases";
 import { createLabelsRouter } from "./features/labels/labels.routes";
 import { LabelsRepoPg } from "./features/labels/labels.repo.pg";
 import { LabelsUseCases } from "./features/labels/labels.usecases";
@@ -71,6 +74,7 @@ const subscriptionRepo = new SubscriptionRepoPg(db);
 const goalsRepo = new GoalsRepoPg(db);
 const ordersRepo = new OrdersRepoPg(db);
 const materialsRepo = new MaterialsRepoPg(db);
+const insightsRepo = new InsightsRepoPg(db);
 const googlePlayClient = new GooglePlayClient(
   config.googlePlayPackageName,
   config.googlePlayServiceAccountJson,
@@ -95,6 +99,7 @@ const goalsUseCases = new GoalsUseCases(
 );
 const ordersUseCases = new OrdersUseCases(ordersRepo, financeUseCases);
 const materialsUseCases = new MaterialsUseCases(materialsRepo);
+const insightsUseCases = new InsightsUseCases(insightsRepo);
 
 // Payments (Stripe)
 const stripeClient = config.stripeSecretKey ? new Stripe(config.stripeSecretKey) : null;
@@ -130,6 +135,7 @@ app.use("/api/v1/finance", createFinanceRouter(financeUseCases));
 app.use("/api/v1/goals", createGoalsRouter(goalsUseCases));
 app.use("/api/v1/orders", createOrdersRouter(ordersUseCases));
 app.use("/api/v1/materials", createMaterialsRouter(materialsUseCases));
+app.use("/api/v1/insights", createInsightsRouter(insightsUseCases));
 app.use("/api/v1/recipes", createRecipesRouter(recipesUseCases));
 app.use("/api/v1/ingredients", createIngredientsRouter(ingredientsUseCases));
 app.use("/api/v1/pricing", createPricingRouter(pricingUseCases));
