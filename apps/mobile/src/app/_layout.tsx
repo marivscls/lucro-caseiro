@@ -3,10 +3,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Modal, Platform, View } from "react-native";
+import { Modal, Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { useLowStockNotifier } from "../features/products/use-low-stock-notifier";
+import { BrandIntro } from "../shared/components/brand-intro";
 import { OfflineBanner } from "../shared/components/offline-banner";
 import { useAuth } from "../shared/hooks/use-auth";
 import { useNotifications } from "../shared/hooks/use-notifications";
@@ -31,6 +32,7 @@ function AppContent() {
     show: showPremiumSuccess,
     hide: hidePremiumSuccess,
   } = usePremiumSuccess();
+  const [introDone, setIntroDone] = useState(false);
 
   // Registers for push notifications once the user is authenticated.
   useNotifications();
@@ -63,19 +65,10 @@ function AppContent() {
     return setupAutoSync(() => token);
   }, [token]);
 
-  if (isLoading) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: theme.colors.background,
-        }}
-      >
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-      </View>
-    );
+  // Abertura da marca: visivel durante o initialize() da auth, some quando a
+  // sessao esta pronta (e apos o tempo minimo de exibicao).
+  if (!introDone) {
+    return <BrandIntro authReady={!isLoading} onFinish={() => setIntroDone(true)} />;
   }
 
   return (
