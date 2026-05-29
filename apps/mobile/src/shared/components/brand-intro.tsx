@@ -4,7 +4,7 @@ import { Animated, Easing, StyleSheet, View } from "react-native";
 // Paleta da marca (warm/rose + dourado), nao o verde da splash.
 const BG = "#1E1814"; // backgroundDark — saida sem corte pro app escuro
 const CREAM = "#F5E1DB"; // textDark
-const GOLD = "#D4A054"; // premium
+const GREEN = "#6BBF96"; // success — verde da marca
 const ROSE = "196, 112, 126"; // primary #C4707E em rgb p/ glow
 
 const MIN_DURATION = 1900;
@@ -188,7 +188,7 @@ export function BrandIntro({ authReady, onFinish }: BrandIntroProps) {
                 width: 120,
                 height: 120,
                 borderRadius: 60,
-                backgroundColor: "rgba(212, 160, 84, 0.12)",
+                backgroundColor: "rgba(107, 191, 150, 0.14)",
               }}
             />
           </View>
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     width: 88,
     height: 2,
     borderRadius: 1,
-    backgroundColor: GOLD,
+    backgroundColor: GREEN,
     marginTop: 18,
   },
   tagline: {
@@ -277,6 +277,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     letterSpacing: 5,
     fontWeight: "600",
-    color: GOLD,
+    color: GREEN,
   },
 });
