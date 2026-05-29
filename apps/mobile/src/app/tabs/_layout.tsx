@@ -3,17 +3,24 @@ import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
 import { Platform, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabLayout() {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
+
+  // On Android the system navigation bar overlaps the tab bar; reserve its
+  // height so the "+" button and labels are not hidden behind it. iOS already
+  // accounts for the home indicator via the fixed values below.
+  const bottomInset = Platform.OS === "android" ? insets.bottom : 0;
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          height: Platform.OS === "ios" ? 88 : 64,
-          paddingBottom: Platform.OS === "ios" ? 28 : 8,
+          height: (Platform.OS === "ios" ? 88 : 64) + bottomInset,
+          paddingBottom: (Platform.OS === "ios" ? 28 : 8) + bottomInset,
           paddingTop: 8,
           backgroundColor: theme.colors.surface,
           borderTopWidth: 0,
