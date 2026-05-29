@@ -64,8 +64,11 @@ export function useAdjustMaterial() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: MATERIALS_KEY });
     },
-    onError: () => {
-      Alert.alert("Erro", "Não foi possível ajustar o estoque. Tente novamente.");
+    onError: (err) => {
+      Alert.alert(
+        "Erro ao ajustar estoque",
+        err instanceof Error ? err.message : "Tente novamente.",
+      );
     },
   });
 }

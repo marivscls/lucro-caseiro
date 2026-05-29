@@ -8,6 +8,7 @@ import {
   spacing,
   radii,
 } from "@lucro-caseiro/ui";
+import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -35,6 +36,19 @@ import {
 } from "../features/orders/hooks";
 
 const PIPELINE: OrderStatus[] = ["pending", "in_production", "ready"];
+
+type GroupTone = "alert" | "success" | "default";
+const GROUP_META: Record<
+  string,
+  { icon: keyof typeof Ionicons.glyphMap; tone: GroupTone }
+> = {
+  overdue: { icon: "alarm", tone: "alert" },
+  today: { icon: "today-outline", tone: "default" },
+  tomorrow: { icon: "sunny-outline", tone: "default" },
+  week: { icon: "calendar-outline", tone: "default" },
+  later: { icon: "time-outline", tone: "default" },
+  finished: { icon: "checkmark-done-circle", tone: "success" },
+};
 
 function formatMoney(value: number): string {
   return `R$ ${value.toFixed(2).replace(".", ",")}`;
@@ -192,6 +206,13 @@ function OrdersList({
   onSelect: (id: string) => void;
   bottomInset: number;
 }>) {
+  const { theme } = useTheme();
+  const toneColor = (tone: GroupTone) => {
+    if (tone === "alert") return theme.colors.alert;
+    if (tone === "success") return theme.colors.success;
+    return theme.colors.text;
+  };
+
   return (
     <ScrollView
       contentContainerStyle={{
@@ -200,20 +221,32 @@ function OrdersList({
         gap: spacing.xl,
       }}
     >
-      {groups.map((group) => (
-        <View key={group.key} style={{ gap: spacing.md }}>
-          <Typography variant="h3">{group.title}</Typography>
-          <View style={{ gap: spacing.md }}>
-            {group.orders.map((order) => (
-              <OrderCard
-                key={order.id}
-                order={order}
-                onPress={() => onSelect(order.id)}
-              />
-            ))}
+      {groups.map((group) => {
+        const meta = GROUP_META[group.key] ?? {
+          icon: "calendar-outline" as const,
+          tone: "default" as const,
+        };
+        const c = toneColor(meta.tone);
+        return (
+          <View key={group.key} style={{ gap: spacing.md }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+              <Ionicons name={meta.icon} size={18} color={c} />
+              <Typography variant="h3" color={c}>
+                {group.title}
+              </Typography>
+            </View>
+            <View style={{ gap: spacing.md }}>
+              {group.orders.map((order) => (
+                <OrderCard
+                  key={order.id}
+                  order={order}
+                  onPress={() => onSelect(order.id)}
+                />
+              ))}
+            </View>
           </View>
-        </View>
-      ))}
+        );
+      })}
     </ScrollView>
   );
 }
