@@ -15,6 +15,9 @@ import { GoalsUseCases } from "./features/goals/goals.usecases";
 import { createOrdersRouter } from "./features/orders/orders.routes";
 import { OrdersRepoPg } from "./features/orders/orders.repo.pg";
 import { OrdersUseCases } from "./features/orders/orders.usecases";
+import { createMaterialsRouter } from "./features/materials/materials.routes";
+import { MaterialsRepoPg } from "./features/materials/materials.repo.pg";
+import { MaterialsUseCases } from "./features/materials/materials.usecases";
 import { createLabelsRouter } from "./features/labels/labels.routes";
 import { LabelsRepoPg } from "./features/labels/labels.repo.pg";
 import { LabelsUseCases } from "./features/labels/labels.usecases";
@@ -67,6 +70,7 @@ const pricingRepo = new PricingRepoPg(db);
 const subscriptionRepo = new SubscriptionRepoPg(db);
 const goalsRepo = new GoalsRepoPg(db);
 const ordersRepo = new OrdersRepoPg(db);
+const materialsRepo = new MaterialsRepoPg(db);
 const googlePlayClient = new GooglePlayClient(
   config.googlePlayPackageName,
   config.googlePlayServiceAccountJson,
@@ -90,6 +94,7 @@ const goalsUseCases = new GoalsUseCases(
   productsUseCases,
 );
 const ordersUseCases = new OrdersUseCases(ordersRepo, financeUseCases);
+const materialsUseCases = new MaterialsUseCases(materialsRepo);
 
 // Payments (Stripe)
 const stripeClient = config.stripeSecretKey ? new Stripe(config.stripeSecretKey) : null;
@@ -124,6 +129,7 @@ app.use("/api/v1/sales", createSalesRouter(salesUseCases));
 app.use("/api/v1/finance", createFinanceRouter(financeUseCases));
 app.use("/api/v1/goals", createGoalsRouter(goalsUseCases));
 app.use("/api/v1/orders", createOrdersRouter(ordersUseCases));
+app.use("/api/v1/materials", createMaterialsRouter(materialsUseCases));
 app.use("/api/v1/recipes", createRecipesRouter(recipesUseCases));
 app.use("/api/v1/ingredients", createIngredientsRouter(ingredientsUseCases));
 app.use("/api/v1/pricing", createPricingRouter(pricingUseCases));
