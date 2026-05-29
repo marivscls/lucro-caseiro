@@ -2,8 +2,8 @@ import type { FinanceEntry, FinanceSummary } from "@lucro-caseiro/contracts";
 import ExcelJS from "exceljs";
 import PDFDocument from "pdfkit";
 
-const BRAND = "#22C55E"; // verde da marca — agora no header da tabela
-const ROSE = "#C4707E"; // primary — agora na faixa do titulo
+const BRAND = "#22C55E"; // verde da marca — faixa do titulo
+const ROSE = "#C4707E"; // primary — header da tabela
 const INK = "#1F2937";
 const MUTED = "#6B7280";
 const ZEBRA = "#F3F4F6";
@@ -71,8 +71,8 @@ export function generateFinancePdf(
     doc.on("end", () => resolve(Buffer.concat(chunks)));
     doc.on("error", reject);
 
-    // Header band (titulo) — rosa da marca
-    doc.rect(0, 0, doc.page.width, 96).fill(ROSE);
+    // Header band (titulo) — verde da marca
+    doc.rect(0, 0, doc.page.width, 96).fill(BRAND);
     doc
       .fillColor("#FFFFFF")
       .font("Helvetica-Bold")
@@ -184,8 +184,8 @@ export function generateFinancePdf(
     doc.fillColor(INK).font("Helvetica-Bold").fontSize(13).text("Lançamentos", LEFT, y);
     y += 22;
 
-    // Table header — verde da marca
-    doc.rect(50, y - 4, 495, 20).fill(BRAND);
+    // Table header — rosa da marca
+    doc.rect(50, y - 4, 495, 20).fill(ROSE);
     doc.fillColor("#FFFFFF").font("Helvetica-Bold").fontSize(9);
     doc.text("Data", COLS.date + 6, y);
     doc.text("Tipo", COLS.type + 6, y);
