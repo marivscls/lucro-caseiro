@@ -8,6 +8,17 @@ const MUTED = "#6B7280";
 const ZEBRA = "#F3F4F6";
 const INCOME = "#16A34A";
 const EXPENSE = "#DC2626";
+const TRACK = "#ECECEC";
+// Paleta da marca para as barras por categoria.
+const PALETTE = [
+  "#C4707E",
+  "#D4A054",
+  "#89A5B5",
+  "#B8A9D4",
+  "#6BBF96",
+  "#E8C555",
+  "#E07272",
+];
 
 function formatCurrency(value: number): string {
   return `R$ ${value.toFixed(2).replace(".", ",")}`;
@@ -100,9 +111,76 @@ export function generateFinancePdf(
         .text(formatCurrency(item.value), x, boxTop + 44);
     });
 
-    // Table title
-    let y = boxTop + 96;
-    doc.fillColor(INK).font("Helvetica-Bold").fontSize(13).text("Lançamentos", 50, y);
+    // ----- Graficos -----
+    const LEFT = 50;
+    const WIDTH = 495;
+    let y = boxTop + 72 + 26;
+
+    const sectionTitle = (label: string) => {
+      doc.fillColor(INK).font("Helvetica-Bold").fontSize(13).text(label, LEFT, y);
+      y += 20;
+    };
+
+    const LABEL_W = 130;
+    const VALUE_W = 84;
+    const barRow = (label: string, value: number, maxValue: number, color: string) => {
+      const trackX = LEFT + LABEL_W;
+      const trackW = WIDTH - LABEL_W - VALUE_W;
+      doc
+        .fillColor(INK)
+        .font("Helvetica")
+        .fontSize(9)
+        .text(label, LEFT, y + 1, { width: LABEL_W - 8, ellipsis: true });
+      doc.roundedRect(trackX, y, trackW, 10, 5).fill(TRACK);
+      const w = maxValue > 0 ? Math.max(3, (value / maxValue) * trackW) : 3;
+      doc.roundedRect(trackX, y, w, 10, 5).fill(color);
+      doc
+        .fillColor(INK)
+        .font("Helvetica-Bold")
+        .fontSize(9)
+        .text(formatCurrency(value), trackX + trackW + 8, y + 1, {
+          width: VALUE_W - 8,
+          align: "right",
+        });
+      y += 20;
+    };
+
+    // Entradas x Saidas
+    sectionTitle("Entradas x Saídas");
+    const maxCompare = Math.max(summary.totalIncome, summary.totalExpenses, 1);
+    barRow("Entradas", summary.totalIncome, maxCompare, INCOME);
+    barRow("Saídas", summary.totalExpenses, maxCompare, EXPENSE);
+    y += 12;
+
+    // Despesas por categoria
+    const expenseByCat = new Map<string, number>();
+    for (const e of entries) {
+      if (e.type === "expense") {
+        expenseByCat.set(e.category, (expenseByCat.get(e.category) ?? 0) + e.amount);
+      }
+    }
+    const catRows = [...expenseByCat.entries()].sort((a, b) => b[1] - a[1]);
+    const topCat = catRows[0];
+    if (topCat) {
+      sectionTitle("Despesas por categoria");
+      const maxCat = topCat[1];
+      catRows.forEach(([cat, val], idx) => {
+        barRow(
+          translateCategory(cat),
+          val,
+          maxCat,
+          PALETTE[idx % PALETTE.length] ?? INCOME,
+        );
+      });
+      y += 12;
+    }
+
+    // ----- Tabela -----
+    if (y > 680) {
+      doc.addPage();
+      y = 50;
+    }
+    doc.fillColor(INK).font("Helvetica-Bold").fontSize(13).text("Lançamentos", LEFT, y);
     y += 22;
 
     // Table header
