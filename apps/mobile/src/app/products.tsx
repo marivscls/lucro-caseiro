@@ -17,6 +17,7 @@ import { CreateProductForm } from "../features/products/components/create-produc
 import { ProductList } from "../features/products/components/product-list";
 import {
   useDeleteProduct,
+  useLowStockProducts,
   useProduct,
   useUpdateProduct,
 } from "../features/products/hooks";
@@ -24,6 +25,33 @@ import { useImagePicker } from "../shared/hooks/use-image-picker";
 
 function formatCurrency(value: number): string {
   return `R$ ${value.toFixed(2).replace(".", ",")}`;
+}
+
+function stockLabel(p: Product): string {
+  if (p.stockQuantity === null) return "Nao controlado";
+  if (p.stockQuantity === 0) return "Sem estoque";
+  return `${p.stockQuantity} un.`;
+}
+
+function isLowStock(p: Product): boolean {
+  return (
+    p.stockQuantity !== null &&
+    p.stockAlertThreshold !== null &&
+    p.stockQuantity <= p.stockAlertThreshold
+  );
+}
+
+function StockValue({ product }: Readonly<{ product: Product }>) {
+  const { theme } = useTheme();
+  let color = theme.colors.success;
+  if (product.stockQuantity === null) color = theme.colors.textSecondary;
+  else if (isLowStock(product)) color = theme.colors.alert;
+
+  return (
+    <Typography variant="bodyBold" color={color}>
+      {stockLabel(product)}
+    </Typography>
+  );
 }
 
 function ProductDetailModal({
@@ -46,12 +74,16 @@ function ProductDetailModal({
   const [category, setCategory] = useState("");
   const [salePrice, setSalePrice] = useState("");
   const [description, setDescription] = useState("");
+  const [stockQuantity, setStockQuantity] = useState("");
+  const [stockAlert, setStockAlert] = useState("");
 
   function startEditing(p: Product) {
     setName(p.name);
     setCategory(p.category);
     setSalePrice(String(p.salePrice).replace(".", ","));
     setDescription(p.description ?? "");
+    setStockQuantity(p.stockQuantity !== null ? String(p.stockQuantity) : "");
+    setStockAlert(p.stockAlertThreshold !== null ? String(p.stockAlertThreshold) : "");
     setImageUri(p.photoUrl ?? null);
     setEditing(true);
   }
@@ -74,6 +106,8 @@ function ProductDetailModal({
           category: category.trim(),
           salePrice: price,
           description: description.trim() || undefined,
+          stockQuantity: stockQuantity.trim() ? parseInt(stockQuantity, 10) : undefined,
+          stockAlertThreshold: stockAlert.trim() ? parseInt(stockAlert, 10) : undefined,
         },
       });
       Alert.alert("Produto atualizado!");
@@ -194,6 +228,20 @@ function ProductDetailModal({
               numberOfLines={3}
               style={{ height: 100, textAlignVertical: "top", paddingTop: 12 }}
             />
+            <Input
+              label="Quantidade em estoque (opcional)"
+              placeholder="Ex: 50"
+              value={stockQuantity}
+              onChangeText={setStockQuantity}
+              keyboardType="number-pad"
+            />
+            <Input
+              label="Alerta de estoque baixo (opcional)"
+              placeholder="Ex: 10"
+              value={stockAlert}
+              onChangeText={setStockAlert}
+              keyboardType="number-pad"
+            />
             <Button
               title="Salvar"
               size="lg"
@@ -238,6 +286,21 @@ function ProductDetailModal({
                     {formatCurrency(product.salePrice)}
                   </Typography>
                 </View>
+                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                  <Typography variant="caption">Estoque</Typography>
+                  <StockValue product={product} />
+                </View>
+                {product.stockQuantity !== null &&
+                  product.stockAlertThreshold !== null && (
+                    <View
+                      style={{ flexDirection: "row", justifyContent: "space-between" }}
+                    >
+                      <Typography variant="caption">Avisar quando atingir</Typography>
+                      <Typography variant="caption">
+                        {product.stockAlertThreshold} un.
+                      </Typography>
+                    </View>
+                  )}
                 {product.description && (
                   <View style={{ gap: spacing.xs }}>
                     <Typography variant="caption">Descricao</Typography>
@@ -293,6 +356,35 @@ function ProductDetailModal({
   );
 }
 
+function LowStockBanner() {
+  const { theme } = useTheme();
+  const { data } = useLowStockProducts();
+
+  if (!data || data.length === 0) return null;
+
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: spacing.sm,
+        marginHorizontal: spacing.xl,
+        marginTop: spacing.md,
+        padding: spacing.md,
+        borderRadius: radii.lg,
+        backgroundColor: theme.colors.alertBg,
+      }}
+    >
+      <Ionicons name="alert-circle" size={20} color={theme.colors.alert} />
+      <Typography variant="caption" color={theme.colors.text} style={{ flex: 1 }}>
+        {data.length === 1
+          ? "1 produto com estoque baixo"
+          : `${data.length} produtos com estoque baixo`}
+      </Typography>
+    </View>
+  );
+}
+
 export default function ProductsScreen() {
   const { theme } = useTheme();
   const [showCreate, setShowCreate] = useState(false);
@@ -301,6 +393,7 @@ export default function ProductsScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <View style={{ flex: 1 }}>
+        <LowStockBanner />
         <ProductList
           onProductPress={(id) => setSelectedProductId(id)}
           onAddPress={() => setShowCreate(true)}

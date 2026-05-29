@@ -27,7 +27,8 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 | `apps/mobile/src/features/products/components/create-product-form.tsx` | Formulario de criacao                                                                   |
 | `apps/mobile/src/features/products/components/product-card.tsx`        | Card de produto na listagem                                                             |
 | `apps/mobile/src/features/products/components/product-list.tsx`        | Lista de produtos                                                                       |
-| `apps/mobile/src/app/products.tsx`                                     | Screen (rota `/products`) com modal de detalhe/edicao inline                            |
+| `apps/mobile/src/features/products/use-low-stock-notifier.ts`          | Hook que dispara notificacao local de estoque baixo (montado no root layout)            |
+| `apps/mobile/src/app/products.tsx`                                     | Screen (rota `/products`) com banner de estoque baixo + modal de detalhe/edicao inline  |
 
 ## Components
 
@@ -50,29 +51,36 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 ### `ProductDetailModal` (definido no screen)
 
 - Modal inline no arquivo `products.tsx` com visualizacao e edicao do produto.
-- Exibe avatar, nome, categoria, preco, descricao.
-- Modo edicao com campos editaveis.
+- Exibe avatar, nome, categoria, preco, estoque atual (com cor de alerta quando baixo), limite de alerta e descricao.
+- Modo edicao com campos editaveis, incluindo quantidade em estoque e alerta de estoque baixo.
 - Botao de excluir com confirmacao.
+
+### `LowStockBanner` (definido no screen)
+
+- Banner no topo da lista de produtos exibido quando ha itens com estoque baixo (`useLowStockProducts`).
+- Mostra a contagem de produtos abaixo do limite de alerta. Oculto quando nao ha itens baixos.
 
 ## Hooks
 
-| Hook                 | Tipo          | Descricao                                       |
-| -------------------- | ------------- | ----------------------------------------------- |
-| `useProducts(opts?)` | `useQuery`    | Lista paginada. Query key: `["products", opts]` |
-| `useProduct(id)`     | `useQuery`    | Detalhe. Query key: `["products", id]`          |
-| `useCreateProduct()` | `useMutation` | Cria produto. Invalida `["products"]`.          |
-| `useUpdateProduct()` | `useMutation` | Atualiza produto. Invalida `["products"]`.      |
-| `useDeleteProduct()` | `useMutation` | Remove produto. Invalida `["products"]`.        |
+| Hook                    | Tipo          | Descricao                                                                    |
+| ----------------------- | ------------- | ---------------------------------------------------------------------------- |
+| `useProducts(opts?)`    | `useQuery`    | Lista paginada. Query key: `["products", opts]`                              |
+| `useProduct(id)`        | `useQuery`    | Detalhe. Query key: `["products", id]`                                       |
+| `useCreateProduct()`    | `useMutation` | Cria produto. Invalida `["products"]`.                                       |
+| `useUpdateProduct()`    | `useMutation` | Atualiza produto. Invalida `["products"]`.                                   |
+| `useDeleteProduct()`    | `useMutation` | Remove produto. Invalida `["products"]`.                                     |
+| `useLowStockProducts()` | `useQuery`    | Produtos abaixo do limite de alerta. Query key: `["products", "low-stock"]`. |
 
 ## API Integration
 
-| Endpoint               | Verbo  | Funcao          | Parametros                                 |
-| ---------------------- | ------ | --------------- | ------------------------------------------ |
-| `/api/v1/products`     | GET    | `fetchProducts` | `?page=N&limit=N&category=cat&search=term` |
-| `/api/v1/products/:id` | GET    | `fetchProduct`  | path param `id`                            |
-| `/api/v1/products`     | POST   | `createProduct` | body: `CreateProduct`                      |
-| `/api/v1/products/:id` | PATCH  | `updateProduct` | body: `UpdateProduct`                      |
-| `/api/v1/products/:id` | DELETE | `deleteProduct` | -                                          |
+| Endpoint                     | Verbo  | Funcao                  | Parametros                                 |
+| ---------------------------- | ------ | ----------------------- | ------------------------------------------ |
+| `/api/v1/products`           | GET    | `fetchProducts`         | `?page=N&limit=N&category=cat&search=term` |
+| `/api/v1/products/:id`       | GET    | `fetchProduct`          | path param `id`                            |
+| `/api/v1/products`           | POST   | `createProduct`         | body: `CreateProduct`                      |
+| `/api/v1/products/:id`       | PATCH  | `updateProduct`         | body: `UpdateProduct`                      |
+| `/api/v1/products/:id`       | DELETE | `deleteProduct`         | -                                          |
+| `/api/v1/products/low-stock` | GET    | `fetchLowStockProducts` | retorna produtos com estoque <= alerta     |
 
 ## Contracts
 
@@ -111,3 +119,6 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 
 - Detalhe/edicao do produto implementado como modal inline no screen (nao como componente separado na feature).
 - Upload de foto e em breve ("em breve").
+- Estoque agora e visivel e editavel no modal de detalhe (antes so podia ser definido na criacao).
+- Banner de estoque baixo no topo da lista para dar visibilidade ao recurso.
+- Notificacao de estoque baixo implementada como **notificacao local** (`use-low-stock-notifier.ts`), pois o backend ainda nao envia push. Dispara quando um produto entra na faixa de alerta; dedupe via AsyncStorage (`lowStockNotifiedIds`). Apos uma venda, `useCreateSale` invalida `["products"]` para revalidar o estoque e disparar o alerta.
