@@ -62,7 +62,7 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 | `useSales(opts?)`       | `useQuery`    | Lista paginada. Query key: `["sales", opts]`                                                                                  |
 | `useSale(id)`           | `useQuery`    | Detalhe. Query key: `["sales", id]`                                                                                           |
 | `useTodaySummary()`     | `useQuery`    | Resumo do dia (totalSales, totalAmount, averageTicket). `refetchInterval: 60_000`. Query key: `["sales", "summary", "today"]` |
-| `useCreateSale()`       | `useMutation` | Cria venda. Invalida `["sales"]`.                                                                                             |
+| `useCreateSale()`       | `useMutation` | Cria venda. Invalida `["sales"]` e `["products"]` (a venda da baixa no estoque, entao produtos sao revalidados).              |
 | `useUpdateSaleStatus()` | `useMutation` | Atualiza status. Invalida `["sales"]`.                                                                                        |
 
 ## API Integration

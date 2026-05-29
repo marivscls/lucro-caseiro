@@ -49,6 +49,9 @@ export function useCreateSale() {
     mutationFn: (data: CreateSale) => createSale(token!, data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: SALES_KEY });
+      // A venda da baixa no estoque no backend; revalida produtos para
+      // refletir o novo saldo e disparar o alerta de estoque baixo.
+      void queryClient.invalidateQueries({ queryKey: ["products"] });
     },
   });
 }
