@@ -19,7 +19,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#22C55E"
+        "backgroundColor": "#1E1814"
       },
       "package": "br.com.orionseven.lucrocaseiro"
     },
