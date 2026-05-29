@@ -24,7 +24,7 @@ function buildContent(products: Product[]): Notifications.NotificationContentInp
 
   return {
     title: "Estoque baixo 📦",
-    body: `${products.length} produtos estao acabando. Toque para ver.`,
+    body: `${products.length} produtos estão acabando. Toque para ver.`,
     data,
   };
 }
