@@ -33,7 +33,9 @@ Calculadora de precificacao guiada (wizard de 5 passos) que ajuda o usuario a de
 
 - **Props:** `{ onSave?: () => void }`
 - Wizard com 5 steps + resultado:
-  1. Custo dos ingredientes (R$)
+  1. Custo dos insumos (R$) — com seletor opcional de **produto** que pré-preenche o valor
+     com o `costPrice` real (derivado da receita) e amarra o `productId` no salvamento.
+     Só lista produtos com `costPrice != null`.
   2. Custo da embalagem (R$)
   3. Mao de obra (minutos + valor/hora, calculo automatico)
   4. Custos fixos rateados por unidade (R$)
@@ -101,3 +103,5 @@ Calculadora de precificacao guiada (wizard de 5 passos) que ajuda o usuario a de
 
 - Projecao mensal fixa em 200 unidades (nao editavel pelo usuario).
 - Calculo feito no front para feedback instantaneo; POST de save envia ao backend para persistencia.
+- Custo real: o step 1 pode puxar o `costPrice` de um produto (que vem da receita/insumos), em
+  vez de digitar o custo na mao. O `productId` selecionado vai junto no POST de calculo.

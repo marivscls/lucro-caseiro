@@ -8,8 +8,9 @@ import {
   useTheme,
 } from "@lucro-caseiro/ui";
 import React, { useCallback, useState } from "react";
-import { ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 
+import { useProducts } from "../../products/hooks";
 import { useCalculatePricing } from "../hooks";
 import { PricingResult } from "./pricing-result";
 
@@ -17,6 +18,10 @@ type Step = 1 | 2 | 3 | 4 | 5 | "result";
 
 function formatCurrency(value: number): string {
   return `R$ ${value.toFixed(2).replace(".", ",")}`;
+}
+
+function currencyInput(value: number): string {
+  return value.toFixed(2).replace(".", ",");
 }
 
 function parseCurrency(text: string): number {
@@ -31,6 +36,11 @@ interface PricingCalculatorProps {
 export function PricingCalculator({ onSave }: PricingCalculatorProps) {
   const { theme } = useTheme();
   const [step, setStep] = useState<Step>(1);
+
+  const { data: productsData } = useProducts();
+  // Só produtos com custo real (derivado da receita) servem para pré-preencher.
+  const costedProducts = (productsData?.items ?? []).filter((p) => p.costPrice != null);
+  const [productId, setProductId] = useState<string | null>(null);
 
   const [ingredientCost, setIngredientCost] = useState("");
   const [packagingCost, setPackagingCost] = useState("");
@@ -73,9 +83,17 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
     setStep(1);
   }, []);
 
+  const selectProduct = useCallback((id: string | null, costPrice?: number | null) => {
+    setProductId(id);
+    if (id && costPrice != null) {
+      setIngredientCost(currencyInput(costPrice));
+    }
+  }, []);
+
   const handleSave = useCallback(async () => {
     try {
       await calculatePricing.mutateAsync({
+        productId: productId ?? undefined,
         ingredientCost: parseCurrency(ingredientCost),
         packagingCost: parseCurrency(packagingCost),
         laborCost,
@@ -88,6 +106,7 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
     }
   }, [
     calculatePricing,
+    productId,
     ingredientCost,
     packagingCost,
     laborCost,
@@ -148,10 +167,51 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
 
       {step === 1 && (
         <Card style={{ gap: spacing.lg }}>
-          <Typography variant="h2">Custo dos ingredientes</Typography>
+          <Typography variant="h2">Custo dos insumos</Typography>
           <Typography variant="body">
-            Quanto você gasta em ingredientes para produzir uma unidade?
+            Quanto você gasta em insumos para produzir uma unidade?
           </Typography>
+
+          {costedProducts.length > 0 && (
+            <View style={{ gap: spacing.sm }}>
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                Puxar o custo real de um produto (vem da receita):
+              </Typography>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ gap: spacing.sm, paddingVertical: spacing.xs }}
+              >
+                {costedProducts.map((p) => {
+                  const active = p.id === productId;
+                  return (
+                    <Pressable
+                      key={p.id}
+                      onPress={() => selectProduct(active ? null : p.id, p.costPrice)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Usar custo de ${p.name}`}
+                      style={{
+                        paddingHorizontal: spacing.md,
+                        paddingVertical: spacing.sm,
+                        borderRadius: radii.full,
+                        backgroundColor: active
+                          ? theme.colors.primary
+                          : theme.colors.surface,
+                      }}
+                    >
+                      <Typography
+                        variant="caption"
+                        color={active ? theme.colors.textOnPrimary : theme.colors.text}
+                      >
+                        {p.name} · {formatCurrency(p.costPrice ?? 0)}
+                      </Typography>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          )}
+
           <Input
             label="Valor (R$)"
             placeholder="Ex: 12,50"
