@@ -4,11 +4,11 @@ export function validatePackagingData(data: CreatePackagingData): string[] {
   const errors: string[] = [];
 
   if (data.name.trim().length === 0) {
-    errors.push("Nome da embalagem e obrigatorio");
+    errors.push("Nome da embalagem é obrigatório");
   }
 
   if (data.name.length > 200) {
-    errors.push("Nome da embalagem deve ter no maximo 200 caracteres");
+    errors.push("Nome da embalagem deve ter no máximo 200 caracteres");
   }
 
   if (data.unitCost <= 0) {

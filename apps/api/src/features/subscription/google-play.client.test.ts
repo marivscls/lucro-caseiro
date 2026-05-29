@@ -84,6 +84,6 @@ describe("GooglePlayClient", () => {
         productId: "lucrocaseiro_premium_monthly",
         purchaseToken: "token-1",
       }),
-    ).rejects.toThrow("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON nao configurado");
+    ).rejects.toThrow("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON não configurado");
   });
 });

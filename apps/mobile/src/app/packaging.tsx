@@ -38,7 +38,7 @@ const TYPE_LABELS: Record<string, string> = {
   bag: "Sacola",
   pot: "Pote",
   film: "Filme",
-  label: "Rotulo",
+  label: "Rótulo",
   other: "Outro",
 };
 
@@ -47,7 +47,7 @@ const TYPES = [
   { value: "bag", label: "Sacola" },
   { value: "pot", label: "Pote" },
   { value: "film", label: "Filme" },
-  { value: "label", label: "Rotulo" },
+  { value: "label", label: "Rótulo" },
   { value: "other", label: "Outro" },
 ] as const;
 
@@ -102,7 +102,7 @@ function PackagingDetailModal({
       Alert.alert("Embalagem atualizada!");
       setEditing(false);
     } catch {
-      Alert.alert("Erro", "Nao foi possivel atualizar a embalagem.");
+      Alert.alert("Erro", "Não foi possível atualizar a embalagem.");
     }
   }
 
@@ -116,7 +116,7 @@ function PackagingDetailModal({
           deletePackaging
             .mutateAsync(packagingId)
             .then(() => onClose())
-            .catch(() => Alert.alert("Erro", "Nao foi possivel excluir."));
+            .catch(() => Alert.alert("Erro", "Não foi possível excluir."));
         },
       },
     ]);
@@ -266,13 +266,13 @@ export default function PackagingScreen() {
       {!isLoading && error && (
         <EmptyState
           title="Algo deu errado"
-          description="Nao foi possivel carregar suas embalagens. Tente novamente."
+          description="Não foi possível carregar suas embalagens. Tente novamente."
         />
       )}
       {!isLoading && !error && !data?.items.length && (
         <EmptyState
           title="Nenhuma embalagem ainda"
-          description="Cadastre suas embalagens para facilitar a precificacao"
+          description="Cadastre suas embalagens para facilitar a precificação"
           action={
             <Button title="Cadastrar embalagem" onPress={() => setShowCreate(true)} />
           }

@@ -57,10 +57,10 @@ export function isLimitExceeded(
 }
 
 const LIMIT_MESSAGES: Record<ResourceType, string> = {
-  sales: `Voce atingiu o limite de ${FREE_PLAN_LIMITS.maxSalesPerMonth} vendas por mes do plano gratuito. Assine o Premium para vendas ilimitadas!`,
-  clients: `Voce atingiu o limite de ${FREE_PLAN_LIMITS.maxClients} clientes do plano gratuito. Assine o Premium para clientes ilimitados!`,
-  recipes: `Voce atingiu o limite de ${FREE_PLAN_LIMITS.maxRecipes} receitas do plano gratuito. Assine o Premium para receitas ilimitadas!`,
-  packaging: `Voce atingiu o limite de ${FREE_PLAN_LIMITS.maxPackaging} embalagens do plano gratuito. Assine o Premium para embalagens ilimitadas!`,
+  sales: `Você atingiu o limite de ${FREE_PLAN_LIMITS.maxSalesPerMonth} vendas por mês do plano gratuito. Assine o Premium para vendas ilimitadas!`,
+  clients: `Você atingiu o limite de ${FREE_PLAN_LIMITS.maxClients} clientes do plano gratuito. Assine o Premium para clientes ilimitados!`,
+  recipes: `Você atingiu o limite de ${FREE_PLAN_LIMITS.maxRecipes} receitas do plano gratuito. Assine o Premium para receitas ilimitadas!`,
+  packaging: `Você atingiu o limite de ${FREE_PLAN_LIMITS.maxPackaging} embalagens do plano gratuito. Assine o Premium para embalagens ilimitadas!`,
 };
 
 export function getLimitMessage(resourceType: ResourceType): string {

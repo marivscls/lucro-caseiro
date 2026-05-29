@@ -19,7 +19,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
   const token = req.headers.authorization?.replace("Bearer ", "");
 
   if (!token) {
-    res.status(401).json({ error: "UNAUTHORIZED", message: "Voce precisa estar logado" });
+    res.status(401).json({ error: "UNAUTHORIZED", message: "Você precisa estar logado" });
     return;
   }
 
@@ -41,7 +41,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
       .values({
         id: user.id,
         email: user.email ?? "",
-        name: user.user_metadata?.name ?? user.email?.split("@")[0] ?? "Usuario",
+        name: user.user_metadata?.name ?? user.email?.split("@")[0] ?? "Usuário",
       })
       .onConflictDoNothing();
   } catch {

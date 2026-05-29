@@ -21,7 +21,7 @@ export class LabelsUseCases {
   async getById(userId: string, id: string): Promise<Label> {
     const label = await this.repo.findById(userId, id);
     if (!label) {
-      throw new NotFoundError("Rotulo nao encontrado");
+      throw new NotFoundError("Rótulo não encontrado");
     }
     return label;
   }
@@ -41,7 +41,7 @@ export class LabelsUseCases {
   ): Promise<Label> {
     const existing = await this.repo.findById(userId, id);
     if (!existing) {
-      throw new NotFoundError("Rotulo nao encontrado");
+      throw new NotFoundError("Rótulo não encontrado");
     }
 
     const merged = { ...existing, ...data };
@@ -60,7 +60,7 @@ export class LabelsUseCases {
 
     const updated = await this.repo.update(userId, id, data);
     if (!updated) {
-      throw new NotFoundError("Rotulo nao encontrado");
+      throw new NotFoundError("Rótulo não encontrado");
     }
     return updated;
   }
@@ -68,7 +68,7 @@ export class LabelsUseCases {
   async remove(userId: string, id: string): Promise<void> {
     const deleted = await this.repo.delete(userId, id);
     if (!deleted) {
-      throw new NotFoundError("Rotulo nao encontrado");
+      throw new NotFoundError("Rótulo não encontrado");
     }
   }
 

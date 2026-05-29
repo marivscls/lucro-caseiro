@@ -105,7 +105,7 @@ export function createFinanceRouter(useCases: FinanceUseCases): Router {
 
       const pdfBuffer = await generateFinancePdf(entries, summary, businessName, period);
 
-      const filename = `relatorio-financeiro-${year}-${String(month).padStart(2, "0")}.pdf`;
+      const filename = `relatório-financeiro-${year}-${String(month).padStart(2, "0")}.pdf`;
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
       res.send(pdfBuffer);
@@ -148,7 +148,7 @@ export function createFinanceRouter(useCases: FinanceUseCases): Router {
 
       const xlsxBuffer = await generateFinanceExcel(entries, summary, period);
 
-      const filename = `relatorio-financeiro-${year}-${String(month).padStart(2, "0")}.xlsx`;
+      const filename = `relatório-financeiro-${year}-${String(month).padStart(2, "0")}.xlsx`;
       res.setHeader(
         "Content-Type",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

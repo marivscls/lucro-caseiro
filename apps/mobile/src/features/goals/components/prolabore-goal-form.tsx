@@ -30,7 +30,7 @@ export function ProlaboreGoalForm({ config, onSuccess }: ProlaboreGoalFormProps)
   async function handleSave() {
     const g = parseMoney(goal);
     if (isNaN(g) || g <= 0) {
-      Alert.alert("Opa!", "Coloque quanto voce quer ganhar por mes (maior que zero).");
+      Alert.alert("Opa!", "Coloque quanto você quer ganhar por mês (maior que zero).");
       return;
     }
     const c = costs.trim() ? parseMoney(costs) : undefined;
@@ -45,7 +45,7 @@ export function ProlaboreGoalForm({ config, onSuccess }: ProlaboreGoalFormProps)
       Alert.alert("Meta salva!", "Acompanhe seu progresso na tela inicial.");
       onSuccess?.();
     } catch {
-      Alert.alert("Erro", "Nao foi possivel salvar sua meta. Tente novamente.");
+      Alert.alert("Erro", "Não foi possível salvar sua meta. Tente novamente.");
     }
   }
 
@@ -61,7 +61,7 @@ export function ProlaboreGoalForm({ config, onSuccess }: ProlaboreGoalFormProps)
               await remove.mutateAsync();
               onSuccess?.();
             } catch {
-              Alert.alert("Erro", "Nao foi possivel remover a meta.");
+              Alert.alert("Erro", "Não foi possível remover a meta.");
             }
           })();
         },
@@ -73,12 +73,12 @@ export function ProlaboreGoalForm({ config, onSuccess }: ProlaboreGoalFormProps)
     <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
       <Typography variant="h2">Meta de pro-labore</Typography>
       <Typography variant="caption" color={theme.colors.textSecondary}>
-        Defina quanto voce quer ganhar por mes e o app mostra quanto falta vender pra
+        Defina quanto você quer ganhar por mês e o app mostra quanto falta vender pra
         chegar la.
       </Typography>
 
       <Input
-        label="Quanto voce quer ganhar por mes? (R$)"
+        label="Quanto você quer ganhar por mês? (R$)"
         placeholder="Ex: 2.000,00"
         value={goal}
         onChangeText={setGoal}
@@ -86,15 +86,15 @@ export function ProlaboreGoalForm({ config, onSuccess }: ProlaboreGoalFormProps)
         autoFocus
       />
       <Input
-        label="Custos fixos do mes (opcional)"
+        label="Custos fixos do mês (opcional)"
         placeholder="Aluguel, gas, energia..."
         value={costs}
         onChangeText={setCosts}
         keyboardType="decimal-pad"
       />
       <Input
-        label="Preco medio por venda (opcional)"
-        placeholder="Deixe vazio para calcular automatico"
+        label="Preço médio por venda (opcional)"
+        placeholder="Deixe vazio para calcular automático"
         value={ticket}
         onChangeText={setTicket}
         keyboardType="decimal-pad"

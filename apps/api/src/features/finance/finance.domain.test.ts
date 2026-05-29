@@ -70,12 +70,12 @@ describe("validateFinanceEntry", () => {
 
   it("rejects empty description", () => {
     const errors = validateFinanceEntry(makeEntryData({ description: "   " }));
-    expect(errors).toContain("Descricao e obrigatoria");
+    expect(errors).toContain("Descrição é obrigatória");
   });
 
   it("rejects description over 500 chars", () => {
     const errors = validateFinanceEntry(makeEntryData({ description: "a".repeat(501) }));
-    expect(errors).toContain("Descricao deve ter no maximo 500 caracteres");
+    expect(errors).toContain("Descrição deve ter no máximo 500 caracteres");
   });
 
   it("rejects invalid date format", () => {

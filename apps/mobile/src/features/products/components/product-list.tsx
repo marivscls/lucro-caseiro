@@ -40,7 +40,7 @@ export function ProductList({
     return (
       <EmptyState
         title="Algo deu errado"
-        description="Nao foi possivel carregar seus produtos. Tente novamente."
+        description="Não foi possível carregar seus produtos. Tente novamente."
       />
     );
   }
@@ -49,7 +49,7 @@ export function ProductList({
     return (
       <EmptyState
         title="Nenhum produto ainda"
-        description="Cadastre seu primeiro produto para comecar a vender"
+        description="Cadastre seu primeiro produto para começar a vender"
         action={
           onAddPress ? (
             <Button title="Cadastrar produto" onPress={onAddPress} />

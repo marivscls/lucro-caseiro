@@ -23,22 +23,22 @@ describe("validateIngredientData", () => {
 
   it("rejects empty name", () => {
     const errors = validateIngredientData(makeIngredientData({ name: "   " }));
-    expect(errors).toContain("Nome do ingrediente e obrigatorio");
+    expect(errors).toContain("Nome do ingrediente é obrigatório");
   });
 
   it("rejects name over 200 chars", () => {
     const errors = validateIngredientData(makeIngredientData({ name: "a".repeat(201) }));
-    expect(errors).toContain("Nome do ingrediente deve ter no maximo 200 caracteres");
+    expect(errors).toContain("Nome do ingrediente deve ter no máximo 200 caracteres");
   });
 
   it("rejects zero price", () => {
     const errors = validateIngredientData(makeIngredientData({ price: 0 }));
-    expect(errors).toContain("Preco deve ser maior que zero");
+    expect(errors).toContain("Preço deve ser maior que zero");
   });
 
   it("rejects negative price", () => {
     const errors = validateIngredientData(makeIngredientData({ price: -5 }));
-    expect(errors).toContain("Preco deve ser maior que zero");
+    expect(errors).toContain("Preço deve ser maior que zero");
   });
 
   it("rejects zero quantity per package", () => {
@@ -53,12 +53,12 @@ describe("validateIngredientData", () => {
 
   it("rejects empty unit", () => {
     const errors = validateIngredientData(makeIngredientData({ unit: "   " }));
-    expect(errors).toContain("Unidade e obrigatoria");
+    expect(errors).toContain("Unidade é obrigatória");
   });
 
   it("rejects unit over 20 chars", () => {
     const errors = validateIngredientData(makeIngredientData({ unit: "a".repeat(21) }));
-    expect(errors).toContain("Unidade deve ter no maximo 20 caracteres");
+    expect(errors).toContain("Unidade deve ter no máximo 20 caracteres");
   });
 
   it("accumulates multiple errors", () => {

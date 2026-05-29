@@ -17,7 +17,7 @@ const LABELS: Record<string, { current: string; max: string }> = {
 };
 
 const RESOURCE_NAMES: Record<string, string> = {
-  sales: "vendas este mes",
+  sales: "vendas este mês",
   clients: "clientes",
   recipes: "receitas",
   packaging: "embalagens",

@@ -20,12 +20,12 @@ describe("validateGoal", () => {
       monthlyProlaboreGoal: 1000,
       estimatedMonthlyCosts: -1,
     });
-    expect(errors).toContain("Os custos estimados nao podem ser negativos");
+    expect(errors).toContain("Os custos estimados não podem ser negativos");
   });
 
   it("rejects avg ticket <= 0", () => {
     const errors = validateGoal({ monthlyProlaboreGoal: 1000, avgTicketOverride: 0 });
-    expect(errors).toContain("O ticket medio deve ser maior que zero");
+    expect(errors).toContain("O ticket médio deve ser maior que zero");
   });
 });
 

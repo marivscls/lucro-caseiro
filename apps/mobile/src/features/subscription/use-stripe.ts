@@ -14,7 +14,7 @@ export function useStripeCheckout() {
   const checkout = useCallback(
     async (plan: "monthly" | "annual") => {
       if (!token) {
-        Alert.alert("Erro", "Faca login antes de assinar.");
+        Alert.alert("Erro", "Faça login antes de assinar.");
         return;
       }
 
@@ -26,7 +26,7 @@ export function useStripeCheckout() {
       } catch {
         Alert.alert(
           "Erro",
-          "Nao foi possivel abrir o checkout da Stripe. Tente novamente.",
+          "Não foi possível abrir o checkout da Stripe. Tente novamente.",
         );
       } finally {
         setLoading(false);

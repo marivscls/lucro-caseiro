@@ -49,7 +49,7 @@ export default function SettingsScreen() {
   const [editPhone, setEditPhone] = useState("");
 
   const userName = profile?.name ?? "...";
-  const businessName = profile?.businessName ?? "Meu negocio";
+  const businessName = profile?.businessName ?? "Meu negócio";
   const businessType = profile?.businessType ?? "";
   const isPremium = profile?.plan === "premium";
   const appVersion = "v1.0.0";
@@ -64,7 +64,7 @@ export default function SettingsScreen() {
 
   async function handleSaveProfile() {
     if (!editName.trim()) {
-      Alert.alert("Opa!", "O nome e obrigatorio");
+      Alert.alert("Opa!", "O nome é obrigatório");
       return;
     }
     try {
@@ -77,7 +77,7 @@ export default function SettingsScreen() {
       Alert.alert("Perfil atualizado!");
       setShowEditProfile(false);
     } catch {
-      Alert.alert("Erro", "Nao foi possivel atualizar o perfil.");
+      Alert.alert("Erro", "Não foi possível atualizar o perfil.");
     }
   }
 
@@ -99,7 +99,7 @@ export default function SettingsScreen() {
   async function openPrivacyPolicy() {
     const canOpen = await Linking.canOpenURL(PRIVACY_POLICY_URL);
     if (!canOpen) {
-      Alert.alert("Erro", "Nao foi possivel abrir a politica de privacidade.");
+      Alert.alert("Erro", "Não foi possível abrir a politica de privacidade.");
       return;
     }
     await Linking.openURL(PRIVACY_POLICY_URL);
@@ -128,7 +128,7 @@ export default function SettingsScreen() {
           <Pressable onPress={() => router.back()} style={{ padding: 4 }}>
             <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
           </Pressable>
-          <Typography variant="h1">Configuracoes</Typography>
+          <Typography variant="h1">Configurações</Typography>
         </View>
 
         {/* Profile Card */}
@@ -258,8 +258,8 @@ export default function SettingsScreen() {
                 <Typography variant="h3">Meta de pro-labore</Typography>
                 <Typography variant="caption">
                   {prolabore?.config
-                    ? `${formatCurrency(prolabore.config.monthlyProlaboreGoal)} por mes`
-                    : "Nao definida"}
+                    ? `${formatCurrency(prolabore.config.monthlyProlaboreGoal)} por mês`
+                    : "Não definida"}
                 </Typography>
               </View>
             </View>
@@ -340,7 +340,7 @@ export default function SettingsScreen() {
           {/* Notifications */}
           {[
             { key: "sales", label: "Vendas pendentes" },
-            { key: "birthdays", label: "Aniversarios de clientes" },
+            { key: "birthdays", label: "Aniversários de clientes" },
             { key: "stock", label: "Estoque baixo" },
             { key: "weekly", label: "Resumo semanal" },
             { key: "daily", label: "Lembretes diarios" },
@@ -469,13 +469,13 @@ export default function SettingsScreen() {
             <Typography variant="h2">Editar perfil</Typography>
             <Input label="Nome" value={editName} onChangeText={setEditName} />
             <Input
-              label="Nome do negocio"
+              label="Nome do negócio"
               placeholder="Ex: Doces da Maria"
               value={editBusinessName}
               onChangeText={setEditBusinessName}
             />
             <Input
-              label="Tipo de negocio"
+              label="Tipo de negócio"
               placeholder="Ex: Confeitaria, Artesanato..."
               value={editBusinessType}
               onChangeText={setEditBusinessType}

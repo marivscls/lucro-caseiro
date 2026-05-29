@@ -17,21 +17,21 @@ export function validateGoal(data: UpsertGoalData): string[] {
     errors.push("A meta deve ser maior que zero");
   }
   if (data.estimatedMonthlyCosts !== undefined && data.estimatedMonthlyCosts < 0) {
-    errors.push("Os custos estimados nao podem ser negativos");
+    errors.push("Os custos estimados não podem ser negativos");
   }
   if (data.avgTicketOverride !== undefined && data.avgTicketOverride <= 0) {
-    errors.push("O ticket medio deve ser maior que zero");
+    errors.push("O ticket médio deve ser maior que zero");
   }
 
   return errors;
 }
 
 /**
- * Calcula o progresso da meta de pro-labore do mes corrente.
+ * Calcula o progresso da meta de pro-labore do mês corrente.
  *
  * requiredRevenue = meta + custos efetivos, onde custos efetivos =
- * max(despesas reais do mes, custos fixos estimados). Isso evita subestimar a
- * meta no inicio do mes, quando poucas despesas ja foram lancadas.
+ * max(despesas reais do mês, custos fixos estimados). Isso evita subestimar a
+ * meta no início do mês, quando poucas despesas já foram lancadas.
  */
 export function calculateProlaboreProgress(
   input: ProlaboreInputs,

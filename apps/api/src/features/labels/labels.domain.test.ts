@@ -10,7 +10,7 @@ import type { CreateLabelData } from "./labels.types";
 
 function makeLabelData(overrides: Partial<CreateLabelData> = {}): CreateLabelData {
   return {
-    name: "Rotulo Brigadeiro",
+    name: "Rótulo Brigadeiro",
     templateId: "classico",
     data: { productName: "Brigadeiro" },
     ...overrides,
@@ -25,17 +25,17 @@ describe("validateLabelData", () => {
 
   it("rejects empty name", () => {
     const errors = validateLabelData(makeLabelData({ name: "   " }));
-    expect(errors).toContain("Nome do rotulo e obrigatorio");
+    expect(errors).toContain("Nome do rótulo é obrigatório");
   });
 
   it("rejects name over 200 chars", () => {
     const errors = validateLabelData(makeLabelData({ name: "a".repeat(201) }));
-    expect(errors).toContain("Nome do rotulo deve ter no maximo 200 caracteres");
+    expect(errors).toContain("Nome do rótulo deve ter no máximo 200 caracteres");
   });
 
   it("rejects empty templateId", () => {
     const errors = validateLabelData(makeLabelData({ templateId: "" }));
-    expect(errors).toContain("Template e obrigatorio");
+    expect(errors).toContain("Template é obrigatório");
   });
 
   it("rejects invalid templateId", () => {

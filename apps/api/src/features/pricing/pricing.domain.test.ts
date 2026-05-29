@@ -94,7 +94,7 @@ describe("validatePricingData", () => {
       fixedCostShare: 0,
       marginPercent: 0,
     });
-    expect(errors).toContain("Custo de ingredientes nao pode ser negativo");
+    expect(errors).toContain("Custo de ingredientes não pode ser negativo");
   });
 
   it("rejects negative packaging cost", () => {
@@ -105,7 +105,7 @@ describe("validatePricingData", () => {
       fixedCostShare: 0,
       marginPercent: 0,
     });
-    expect(errors).toContain("Custo de embalagem nao pode ser negativo");
+    expect(errors).toContain("Custo de embalagem não pode ser negativo");
   });
 
   it("rejects negative labor cost", () => {
@@ -116,7 +116,7 @@ describe("validatePricingData", () => {
       fixedCostShare: 0,
       marginPercent: 0,
     });
-    expect(errors).toContain("Custo de mao de obra nao pode ser negativo");
+    expect(errors).toContain("Custo de mao de obra não pode ser negativo");
   });
 
   it("rejects negative fixed cost share", () => {
@@ -127,7 +127,7 @@ describe("validatePricingData", () => {
       fixedCostShare: -1,
       marginPercent: 0,
     });
-    expect(errors).toContain("Rateio de custos fixos nao pode ser negativo");
+    expect(errors).toContain("Rateio de custos fixos não pode ser negativo");
   });
 
   it("rejects negative margin", () => {
@@ -138,7 +138,7 @@ describe("validatePricingData", () => {
       fixedCostShare: 0,
       marginPercent: -1,
     });
-    expect(errors).toContain("Margem de lucro nao pode ser negativa");
+    expect(errors).toContain("Margem de lucro não pode ser negativa");
   });
 
   it("rejects margin over 1000%", () => {
@@ -149,7 +149,7 @@ describe("validatePricingData", () => {
       fixedCostShare: 0,
       marginPercent: 1001,
     });
-    expect(errors).toContain("Margem de lucro nao pode exceder 1000%");
+    expect(errors).toContain("Margem de lucro não pode exceder 1000%");
   });
 
   it("accumulates multiple errors", () => {

@@ -6,11 +6,11 @@ export function formatCurrency(value: number): string {
 
 /**
  * Mensagem amigavel de incentivo a partir do progresso da meta.
- * Linguagem simples (publico nao-tech), conforme principios de UX do projeto.
+ * Linguagem simples (publico não-tech), conforme principios de UX do projeto.
  */
 export function prolaboreMessage(progress: ProlaboreProgress): string {
   if (progress.reached) {
-    return "Voce ja atingiu sua meta deste mes! 🎉";
+    return "Você já atingiu sua meta deste mês! 🎉";
   }
   if (progress.salesRemaining !== null && progress.salesRemaining > 0) {
     const plural = progress.salesRemaining === 1 ? "venda" : "vendas";

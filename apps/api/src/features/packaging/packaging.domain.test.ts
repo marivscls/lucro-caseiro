@@ -22,12 +22,12 @@ describe("validatePackagingData", () => {
 
   it("rejects empty name", () => {
     const errors = validatePackagingData(makePackagingData({ name: "   " }));
-    expect(errors).toContain("Nome da embalagem e obrigatorio");
+    expect(errors).toContain("Nome da embalagem é obrigatório");
   });
 
   it("rejects name over 200 chars", () => {
     const errors = validatePackagingData(makePackagingData({ name: "a".repeat(201) }));
-    expect(errors).toContain("Nome da embalagem deve ter no maximo 200 caracteres");
+    expect(errors).toContain("Nome da embalagem deve ter no máximo 200 caracteres");
   });
 
   it("rejects zero unit cost", () => {

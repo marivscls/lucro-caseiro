@@ -9,7 +9,7 @@ export function useImagePicker() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (String(status) !== "granted") {
       Alert.alert(
-        "Permissao necessaria",
+        "Permissao necessária",
         "Precisamos de acesso a sua galeria para selecionar uma foto.",
       );
       return null;
@@ -36,7 +36,7 @@ export function useImagePicker() {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (String(status) !== "granted") {
       Alert.alert(
-        "Permissao necessaria",
+        "Permissao necessária",
         "Precisamos de acesso a camera para tirar uma foto.",
       );
       return null;
@@ -58,7 +58,7 @@ export function useImagePicker() {
   }
 
   function showPicker() {
-    Alert.alert("Adicionar foto", "Como voce quer adicionar a foto?", [
+    Alert.alert("Adicionar foto", "Como você quer adicionar a foto?", [
       {
         text: "Tirar foto",
         onPress: () => {

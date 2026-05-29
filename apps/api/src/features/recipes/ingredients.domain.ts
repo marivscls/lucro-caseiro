@@ -4,15 +4,15 @@ export function validateIngredientData(data: CreateIngredientData): string[] {
   const errors: string[] = [];
 
   if (data.name.trim().length === 0) {
-    errors.push("Nome do ingrediente e obrigatorio");
+    errors.push("Nome do ingrediente é obrigatório");
   }
 
   if (data.name.length > 200) {
-    errors.push("Nome do ingrediente deve ter no maximo 200 caracteres");
+    errors.push("Nome do ingrediente deve ter no máximo 200 caracteres");
   }
 
   if (data.price <= 0) {
-    errors.push("Preco deve ser maior que zero");
+    errors.push("Preço deve ser maior que zero");
   }
 
   if (data.quantityPerPackage <= 0) {
@@ -20,11 +20,11 @@ export function validateIngredientData(data: CreateIngredientData): string[] {
   }
 
   if (data.unit.trim().length === 0) {
-    errors.push("Unidade e obrigatoria");
+    errors.push("Unidade é obrigatória");
   }
 
   if (data.unit.length > 20) {
-    errors.push("Unidade deve ter no maximo 20 caracteres");
+    errors.push("Unidade deve ter no máximo 20 caracteres");
   }
 
   return errors;

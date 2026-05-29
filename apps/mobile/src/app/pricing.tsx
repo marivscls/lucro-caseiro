@@ -41,7 +41,7 @@ function PricingHistoryModal({
             padding: spacing.lg,
           }}
         >
-          <Typography variant="h2">Historico</Typography>
+          <Typography variant="h2">Histórico</Typography>
           <Pressable onPress={onClose}>
             <Typography variant="bodyBold" color={theme.colors.primary}>
               Fechar
@@ -92,7 +92,7 @@ function PricingHistoryModal({
         {!selectedProductId && (
           <EmptyState
             title="Selecione um produto"
-            description="Escolha um produto acima para ver o historico de precificacao"
+            description="Escolha um produto acima para ver o histórico de precificação"
           />
         )}
 
@@ -104,8 +104,8 @@ function PricingHistoryModal({
 
         {selectedProductId && !isLoading && (!history || history.length === 0) && (
           <EmptyState
-            title="Nenhum calculo encontrado"
-            description="Nenhuma precificacao registrada para este produto"
+            title="Nenhum cálculo encontrado"
+            description="Nenhuma precificação registrada para este produto"
           />
         )}
 
@@ -179,14 +179,14 @@ export default function PricingScreen() {
         >
           <Ionicons name="time-outline" size={18} color={theme.colors.primary} />
           <Typography variant="caption" color={theme.colors.primary}>
-            Historico
+            Histórico
           </Typography>
         </Pressable>
       </View>
 
       <PricingCalculator
         onSave={() => {
-          Alert.alert("Calculo salvo!", "Sua precificacao foi salva com sucesso.", [
+          Alert.alert("Cálculo salvo!", "Sua precificação foi salva com sucesso.", [
             { text: "OK", onPress: () => router.back() },
           ]);
         }}

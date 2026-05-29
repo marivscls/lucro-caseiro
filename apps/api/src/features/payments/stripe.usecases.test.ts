@@ -74,7 +74,7 @@ describe("StripeUseCases.createCheckoutUrl", () => {
     const { sut } = makeSut({ monthlyPriceId: "" });
     await expect(
       sut.createCheckoutUrl({ userId: USER_ID, plan: "monthly" }),
-    ).rejects.toThrow("Preco Stripe nao configurado");
+    ).rejects.toThrow("Preço Stripe não configurado");
   });
 });
 

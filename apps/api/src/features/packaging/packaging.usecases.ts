@@ -20,7 +20,7 @@ export class PackagingUseCases {
   async getById(userId: string, id: string): Promise<Packaging> {
     const item = await this.repo.findById(userId, id);
     if (!item) {
-      throw new NotFoundError("Embalagem nao encontrada");
+      throw new NotFoundError("Embalagem não encontrada");
     }
     return item;
   }
@@ -40,7 +40,7 @@ export class PackagingUseCases {
   ): Promise<Packaging> {
     const existing = await this.repo.findById(userId, id);
     if (!existing) {
-      throw new NotFoundError("Embalagem nao encontrada");
+      throw new NotFoundError("Embalagem não encontrada");
     }
 
     const merged = { ...existing, ...data };
@@ -58,7 +58,7 @@ export class PackagingUseCases {
 
     const updated = await this.repo.update(userId, id, data);
     if (!updated) {
-      throw new NotFoundError("Embalagem nao encontrada");
+      throw new NotFoundError("Embalagem não encontrada");
     }
     return updated;
   }
@@ -66,7 +66,7 @@ export class PackagingUseCases {
   async remove(userId: string, id: string): Promise<void> {
     const deleted = await this.repo.delete(userId, id);
     if (!deleted) {
-      throw new NotFoundError("Embalagem nao encontrada");
+      throw new NotFoundError("Embalagem não encontrada");
     }
   }
 
@@ -77,7 +77,7 @@ export class PackagingUseCases {
   ): Promise<void> {
     const item = await this.repo.findById(userId, packagingId);
     if (!item) {
-      throw new NotFoundError("Embalagem nao encontrada");
+      throw new NotFoundError("Embalagem não encontrada");
     }
 
     await this.repo.linkToProduct(packagingId, productId);
@@ -90,12 +90,12 @@ export class PackagingUseCases {
   ): Promise<void> {
     const item = await this.repo.findById(userId, packagingId);
     if (!item) {
-      throw new NotFoundError("Embalagem nao encontrada");
+      throw new NotFoundError("Embalagem não encontrada");
     }
 
     const unlinked = await this.repo.unlinkFromProduct(packagingId, productId);
     if (!unlinked) {
-      throw new NotFoundError("Vinculo nao encontrado");
+      throw new NotFoundError("Vinculo não encontrado");
     }
   }
 }

@@ -30,7 +30,7 @@ export class GoalsUseCases {
     await this.repo.deleteByUser(userId);
   }
 
-  /** Configuracao + progresso da meta de pro-labore no mes corrente. */
+  /** Configuração + progresso da meta de pro-labore no mês corrente. */
   async getProlaboreStatus(userId: string): Promise<ProlaboreStatus> {
     const now = new Date();
     const month = now.getMonth() + 1;

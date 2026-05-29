@@ -7,7 +7,7 @@ export function validateEmail(email: string): ValidationResult {
   const errors: string[] = [];
 
   if (!email.trim()) {
-    errors.push("E-mail e obrigatorio");
+    errors.push("E-mail é obrigatório");
     return { valid: false, errors };
   }
 
@@ -25,12 +25,12 @@ export function validatePassword(password: string): ValidationResult {
   const errors: string[] = [];
 
   if (!password) {
-    errors.push("Senha e obrigatoria");
+    errors.push("Senha é obrigatória");
     return { valid: false, errors };
   }
 
   if (password.length < 8) {
-    errors.push("Minimo 8 caracteres");
+    errors.push("Mínimo 8 caracteres");
   }
 
   if (!/[A-Z]/.test(password)) {
@@ -42,7 +42,7 @@ export function validatePassword(password: string): ValidationResult {
   }
 
   if (!/\d/.test(password)) {
-    errors.push("Pelo menos 1 numero");
+    errors.push("Pelo menos 1 número");
   }
 
   return { valid: errors.length === 0, errors };
@@ -52,7 +52,7 @@ export function validateName(name: string): ValidationResult {
   const errors: string[] = [];
 
   if (!name.trim()) {
-    errors.push("Nome e obrigatorio");
+    errors.push("Nome é obrigatório");
   } else if (name.trim().length < 2) {
     errors.push("Nome deve ter pelo menos 2 caracteres");
   }

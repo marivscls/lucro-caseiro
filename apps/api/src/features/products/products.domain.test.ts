@@ -20,32 +20,32 @@ describe("validateProductData", () => {
 
   it("rejects zero sale price", () => {
     const errors = validateProductData(makeProductData({ salePrice: 0 }));
-    expect(errors).toContain("Preco de venda deve ser maior que zero");
+    expect(errors).toContain("Preço de venda deve ser maior que zero");
   });
 
   it("rejects negative sale price", () => {
     const errors = validateProductData(makeProductData({ salePrice: -5 }));
-    expect(errors).toContain("Preco de venda deve ser maior que zero");
+    expect(errors).toContain("Preço de venda deve ser maior que zero");
   });
 
   it("rejects empty name", () => {
     const errors = validateProductData(makeProductData({ name: "   " }));
-    expect(errors).toContain("Nome do produto e obrigatorio");
+    expect(errors).toContain("Nome do produto é obrigatório");
   });
 
   it("rejects name over 200 chars", () => {
     const errors = validateProductData(makeProductData({ name: "a".repeat(201) }));
-    expect(errors).toContain("Nome do produto deve ter no maximo 200 caracteres");
+    expect(errors).toContain("Nome do produto deve ter no máximo 200 caracteres");
   });
 
   it("rejects negative stock quantity", () => {
     const errors = validateProductData(makeProductData({ stockQuantity: -1 }));
-    expect(errors).toContain("Quantidade em estoque nao pode ser negativa");
+    expect(errors).toContain("Quantidade em estoque não pode ser negativa");
   });
 
   it("rejects negative stock alert threshold", () => {
     const errors = validateProductData(makeProductData({ stockAlertThreshold: -1 }));
-    expect(errors).toContain("Alerta de estoque nao pode ser negativo");
+    expect(errors).toContain("Alerta de estoque não pode ser negativo");
   });
 
   it("accumulates multiple errors", () => {

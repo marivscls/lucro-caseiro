@@ -38,9 +38,9 @@ const STATUS_MAP: Record<
 const PAYMENT_LABELS: Record<string, string> = {
   pix: "Pix",
   cash: "Dinheiro",
-  card: "Cartao",
+  card: "Cartão",
   credit: "Fiado",
-  transfer: "Transferencia",
+  transfer: "Transferência",
 };
 
 export function SaleDetail({ sale, onStatusUpdated, onEditPress }: SaleDetailProps) {
@@ -65,7 +65,7 @@ export function SaleDetail({ sale, onStatusUpdated, onEditPress }: SaleDetailPro
               Alert.alert("Pronto!", "Venda marcada como paga.");
               onStatusUpdated?.();
             } catch {
-              Alert.alert("Erro", "Nao foi possivel atualizar o status.");
+              Alert.alert("Erro", "Não foi possível atualizar o status.");
             }
           })();
         },
@@ -86,7 +86,7 @@ export function SaleDetail({ sale, onStatusUpdated, onEditPress }: SaleDetailPro
               Alert.alert("Pronto!", "Venda cancelada.");
               onStatusUpdated?.();
             } catch {
-              Alert.alert("Erro", "Nao foi possivel cancelar a venda.");
+              Alert.alert("Erro", "Não foi possível cancelar a venda.");
             }
           })();
         },
@@ -123,7 +123,7 @@ export function SaleDetail({ sale, onStatusUpdated, onEditPress }: SaleDetailPro
           </View>
           {sale.notes && (
             <View style={{ marginTop: 4 }}>
-              <Typography variant="caption">Observacoes</Typography>
+              <Typography variant="caption">Observações</Typography>
               <Typography variant="body">{sale.notes}</Typography>
             </View>
           )}

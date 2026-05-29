@@ -45,7 +45,7 @@ export function RecipeList({ onRecipePress, onAddPress }: RecipeListProps) {
     return (
       <EmptyState
         title="Algo deu errado"
-        description="Nao foi possivel carregar suas receitas. Tente novamente."
+        description="Não foi possível carregar suas receitas. Tente novamente."
       />
     );
   }

@@ -22,7 +22,7 @@ function formatCurrency(value: number): string {
 const MONTH_NAMES = [
   "Janeiro",
   "Fevereiro",
-  "Marco",
+  "Março",
   "Abril",
   "Maio",
   "Junho",
@@ -62,7 +62,7 @@ export function FinanceDashboard({
         const monthStr = `${year}-${String(month).padStart(2, "0")}`;
         const url = getExportUrl(format, monthStr);
         const ext = format === "pdf" ? "pdf" : "xlsx";
-        const filename = `relatorio-financeiro-${monthStr}.${ext}`;
+        const filename = `relatório-financeiro-${monthStr}.${ext}`;
         const fileUri = `${FileSystem.cacheDirectory}${filename}`;
 
         const result = await FileSystem.downloadAsync(url, fileUri, {
@@ -80,13 +80,13 @@ export function FinanceDashboard({
               format === "pdf"
                 ? "application/pdf"
                 : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            dialogTitle: "Exportar relatorio financeiro",
+            dialogTitle: "Exportar relatório financeiro",
           });
         } else {
           Alert.alert("Sucesso", "Arquivo salvo com sucesso.");
         }
       } catch {
-        Alert.alert("Erro", "Nao foi possivel exportar o relatorio. Tente novamente.");
+        Alert.alert("Erro", "Não foi possível exportar o relatório. Tente novamente.");
       } finally {
         setExporting(null);
       }
@@ -197,7 +197,7 @@ export function FinanceDashboard({
             backgroundColor: theme.colors.alertBg,
           }}
         >
-          <Typography variant="caption">Saidas</Typography>
+          <Typography variant="caption">Saídas</Typography>
           <Typography variant="money" color={theme.colors.alert}>
             {formatCurrency(expenses)}
           </Typography>

@@ -20,7 +20,7 @@ export class FinanceUseCases {
   async getById(userId: string, id: string): Promise<FinanceEntry> {
     const entry = await this.repo.findById(userId, id);
     if (!entry) {
-      throw new NotFoundError("Lancamento nao encontrado");
+      throw new NotFoundError("Lançamento não encontrado");
     }
     return entry;
   }
@@ -40,7 +40,7 @@ export class FinanceUseCases {
   ): Promise<FinanceEntry> {
     const existing = await this.repo.findById(userId, id);
     if (!existing) {
-      throw new NotFoundError("Lancamento nao encontrado");
+      throw new NotFoundError("Lançamento não encontrado");
     }
 
     const merged: CreateFinanceEntryData = {
@@ -58,7 +58,7 @@ export class FinanceUseCases {
 
     const updated = await this.repo.update(userId, id, data);
     if (!updated) {
-      throw new NotFoundError("Lancamento nao encontrado");
+      throw new NotFoundError("Lançamento não encontrado");
     }
     return updated;
   }
@@ -66,7 +66,7 @@ export class FinanceUseCases {
   async remove(userId: string, id: string): Promise<void> {
     const deleted = await this.repo.delete(userId, id);
     if (!deleted) {
-      throw new NotFoundError("Lancamento nao encontrado");
+      throw new NotFoundError("Lançamento não encontrado");
     }
   }
 

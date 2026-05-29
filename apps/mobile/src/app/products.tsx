@@ -28,7 +28,7 @@ function formatCurrency(value: number): string {
 }
 
 function stockLabel(p: Product): string {
-  if (p.stockQuantity === null) return "Nao controlado";
+  if (p.stockQuantity === null) return "Não controlado";
   if (p.stockQuantity === 0) return "Sem estoque";
   return `${p.stockQuantity} un.`;
 }
@@ -95,7 +95,7 @@ function ProductDetailModal({
       return;
     }
     if (isNaN(price) || price <= 0) {
-      Alert.alert("Opa!", "O preco precisa ser maior que zero");
+      Alert.alert("Opa!", "O preço precisa ser maior que zero");
       return;
     }
     try {
@@ -113,7 +113,7 @@ function ProductDetailModal({
       Alert.alert("Produto atualizado!");
       setEditing(false);
     } catch {
-      Alert.alert("Erro", "Nao foi possivel atualizar o produto.");
+      Alert.alert("Erro", "Não foi possível atualizar o produto.");
     }
   }
 
@@ -129,7 +129,7 @@ function ProductDetailModal({
               await deleteProduct.mutateAsync(productId);
               onClose();
             } catch {
-              Alert.alert("Erro", "Nao foi possivel excluir o produto.");
+              Alert.alert("Erro", "Não foi possível excluir o produto.");
             }
           })();
         },
@@ -174,7 +174,7 @@ function ProductDetailModal({
         )}
         {!isLoading && !product && (
           <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-            <Typography variant="caption">Produto nao encontrado</Typography>
+            <Typography variant="caption">Produto não encontrado</Typography>
           </View>
         )}
         {!isLoading && product && editing && (
@@ -183,7 +183,7 @@ function ProductDetailModal({
             <Input label="Nome do produto" value={name} onChangeText={setName} />
             <Input label="Categoria" value={category} onChangeText={setCategory} />
             <Input
-              label="Preco de venda (R$)"
+              label="Preço de venda (R$)"
               value={salePrice}
               onChangeText={setSalePrice}
               keyboardType="decimal-pad"
@@ -221,7 +221,7 @@ function ProductDetailModal({
               </Pressable>
             </View>
             <Input
-              label="Descricao (opcional)"
+              label="Descrição (opcional)"
               value={description}
               onChangeText={setDescription}
               multiline
@@ -281,7 +281,7 @@ function ProductDetailModal({
             <Card>
               <View style={{ gap: spacing.sm }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                  <Typography variant="caption">Preco de venda</Typography>
+                  <Typography variant="caption">Preço de venda</Typography>
                   <Typography variant="h3" color={theme.colors.success}>
                     {formatCurrency(product.salePrice)}
                   </Typography>
@@ -303,7 +303,7 @@ function ProductDetailModal({
                   )}
                 {product.description && (
                   <View style={{ gap: spacing.xs }}>
-                    <Typography variant="caption">Descricao</Typography>
+                    <Typography variant="caption">Descrição</Typography>
                     <Typography variant="body">{product.description}</Typography>
                   </View>
                 )}

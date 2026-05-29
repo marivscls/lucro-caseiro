@@ -62,7 +62,7 @@ function LabelDetailModal({
 
   async function handleSave() {
     if (!name.trim()) {
-      Alert.alert("Opa!", "De um nome para o rotulo");
+      Alert.alert("Opa!", "De um nome para o rótulo");
       return;
     }
     try {
@@ -70,15 +70,15 @@ function LabelDetailModal({
         id: labelId,
         data: { name: name.trim(), templateId, data: labelData },
       });
-      Alert.alert("Rotulo atualizado!");
+      Alert.alert("Rótulo atualizado!");
       setEditing(false);
     } catch {
-      Alert.alert("Erro", "Nao foi possivel atualizar o rotulo.");
+      Alert.alert("Erro", "Não foi possível atualizar o rótulo.");
     }
   }
 
   function handleDelete() {
-    Alert.alert("Excluir rotulo", "Tem certeza que deseja excluir este rotulo?", [
+    Alert.alert("Excluir rótulo", "Tem certeza que deseja excluir este rótulo?", [
       { text: "Cancelar", style: "cancel" },
       {
         text: "Excluir",
@@ -87,7 +87,7 @@ function LabelDetailModal({
           deleteLabel
             .mutateAsync(labelId)
             .then(() => onClose())
-            .catch(() => Alert.alert("Erro", "Nao foi possivel excluir."));
+            .catch(() => Alert.alert("Erro", "Não foi possível excluir."));
         },
       },
     ]);
@@ -131,8 +131,8 @@ function LabelDetailModal({
 
         {!isLoading && label && editing && (
           <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
-            <Typography variant="h2">Editar rotulo</Typography>
-            <Input label="Nome do rotulo" value={name} onChangeText={setName} />
+            <Typography variant="h2">Editar rótulo</Typography>
+            <Input label="Nome do rótulo" value={name} onChangeText={setName} />
             <TemplatePicker selected={templateId} onSelect={setTemplateId} />
             <Input
               label="Nome do produto"
@@ -164,7 +164,7 @@ function LabelDetailModal({
               />
             </View>
             <Input
-              label="Seu nome / nome do negocio"
+              label="Seu nome / nome do negócio"
               value={labelData.producerName ?? ""}
               onChangeText={(v) => updateField("producerName", v)}
             />
@@ -201,7 +201,7 @@ function LabelDetailModal({
             <LabelPreview data={label.data} templateId={label.templateId} scale={1.2} />
             <View style={{ gap: spacing.md }}>
               <Button
-                title="Excluir rotulo"
+                title="Excluir rótulo"
                 variant="secondary"
                 onPress={handleDelete}
                 loading={deleteLabel.isPending}
@@ -232,16 +232,16 @@ export default function LabelsScreen() {
       return (
         <EmptyState
           title="Algo deu errado"
-          description="Nao foi possivel carregar seus rotulos."
+          description="Não foi possível carregar seus rótulos."
         />
       );
     }
     if (!data?.items.length) {
       return (
         <EmptyState
-          title="Nenhum rotulo ainda"
-          description="Crie rotulos para seus produtos"
-          action={<Button title="Criar rotulo" onPress={() => setShowCreate(true)} />}
+          title="Nenhum rótulo ainda"
+          description="Crie rótulos para seus produtos"
+          action={<Button title="Criar rótulo" onPress={() => setShowCreate(true)} />}
         />
       );
     }
@@ -280,7 +280,7 @@ export default function LabelsScreen() {
       {/* FAB */}
       <View style={{ position: "absolute", bottom: 100, right: 20 }}>
         <Button
-          title="+ Novo rotulo"
+          title="+ Novo rótulo"
           onPress={() => setShowCreate(true)}
           size="md"
           style={{
@@ -294,7 +294,7 @@ export default function LabelsScreen() {
         />
       </View>
 
-      {/* Modal - Criar rotulo */}
+      {/* Modal - Criar rótulo */}
       <Modal
         visible={showCreate}
         animationType="slide"
@@ -319,7 +319,7 @@ export default function LabelsScreen() {
         </SafeAreaView>
       </Modal>
 
-      {/* Modal - Detalhe do rotulo */}
+      {/* Modal - Detalhe do rótulo */}
       {selectedId && (
         <LabelDetailModal
           labelId={selectedId}

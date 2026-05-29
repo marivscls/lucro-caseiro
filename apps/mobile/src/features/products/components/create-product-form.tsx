@@ -36,7 +36,7 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
     }
 
     if (isNaN(price) || price <= 0) {
-      Alert.alert("Opa!", "O preco precisa ser maior que zero");
+      Alert.alert("Opa!", "O preço precisa ser maior que zero");
       return;
     }
 
@@ -49,10 +49,10 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
         stockQuantity: stockQuantity ? parseInt(stockQuantity, 10) : undefined,
         stockAlertThreshold: stockAlert ? parseInt(stockAlert, 10) : undefined,
       });
-      Alert.alert("Produto cadastrado!", `${name} foi adicionado ao seu catalogo`);
+      Alert.alert("Produto cadastrado!", `${name} foi adicionado ao seu catálogo`);
       onSuccess?.();
     } catch {
-      Alert.alert("Erro", "Nao foi possivel cadastrar o produto. Tente novamente.");
+      Alert.alert("Erro", "Não foi possível cadastrar o produto. Tente novamente.");
     }
   }
 
@@ -76,7 +76,7 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
       />
 
       <Input
-        label="Preco de venda (R$)"
+        label="Preço de venda (R$)"
         placeholder="Ex: 3,50"
         value={salePrice}
         onChangeText={setSalePrice}
@@ -117,7 +117,7 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
       </View>
 
       <Input
-        label="Descricao (opcional)"
+        label="Descrição (opcional)"
         placeholder="Fale um pouco sobre o produto..."
         value={description}
         onChangeText={setDescription}

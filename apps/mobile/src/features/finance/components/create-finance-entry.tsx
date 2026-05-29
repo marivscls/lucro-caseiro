@@ -37,7 +37,7 @@ export function CreateFinanceEntry({ onSuccess }: Readonly<CreateFinanceEntryPro
     }
 
     if (!description.trim()) {
-      Alert.alert("Opa!", "Adicione uma descricao");
+      Alert.alert("Opa!", "Adicione uma descrição");
       return;
     }
 
@@ -55,12 +55,12 @@ export function CreateFinanceEntry({ onSuccess }: Readonly<CreateFinanceEntryPro
         date: date.trim() || new Date().toISOString().split("T")[0],
       });
       Alert.alert(
-        "Lancamento registrado!",
-        `${type === "income" ? "Entrada" : "Saida"} de R$ ${amount} salva`,
+        "Lançamento registrado!",
+        `${type === "income" ? "Entrada" : "Saída"} de R$ ${amount} salva`,
       );
       onSuccess?.();
     } catch {
-      Alert.alert("Erro", "Nao foi possivel registrar o lancamento. Tente novamente.");
+      Alert.alert("Erro", "Não foi possível registrar o lançamento. Tente novamente.");
     }
   }
 
@@ -71,7 +71,7 @@ export function CreateFinanceEntry({ onSuccess }: Readonly<CreateFinanceEntryPro
         gap: spacing.lg,
       }}
     >
-      <Typography variant="h1">Novo lancamento</Typography>
+      <Typography variant="h1">Novo lançamento</Typography>
 
       {/* Type selector */}
       <View style={{ flexDirection: "row", gap: spacing.md }}>
@@ -113,7 +113,7 @@ export function CreateFinanceEntry({ onSuccess }: Readonly<CreateFinanceEntryPro
               type === "expense" ? theme.colors.textOnPrimary : theme.colors.textSecondary
             }
           >
-            Saida
+            Saída
           </Typography>
         </TouchableOpacity>
       </View>
@@ -127,7 +127,7 @@ export function CreateFinanceEntry({ onSuccess }: Readonly<CreateFinanceEntryPro
       />
 
       <Input
-        label="Descricao"
+        label="Descrição"
         placeholder="Ex: Venda de brigadeiros, Compra de leite condensado..."
         value={description}
         onChangeText={setDescription}
@@ -172,7 +172,7 @@ export function CreateFinanceEntry({ onSuccess }: Readonly<CreateFinanceEntryPro
       />
 
       <Button
-        title="Registrar lancamento"
+        title="Registrar lançamento"
         size="lg"
         onPress={() => {
           void handleSubmit();

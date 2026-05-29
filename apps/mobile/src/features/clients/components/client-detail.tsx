@@ -62,7 +62,7 @@ function InfoRow({
         }}
       >
         <Typography variant="caption" color={theme.colors.textSecondary}>
-          {({ Telefone: "T", Endereco: "E", Aniversario: "A" } as Record<string, string>)[
+          {({ Telefone: "T", Endereço: "E", Aniversário: "A" } as Record<string, string>)[
             label
           ] ?? "N"}
         </Typography>
@@ -92,7 +92,7 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
     return (
       <View style={{ flex: 1, padding: spacing.xl, justifyContent: "center" }}>
         <Typography variant="body">
-          Nao foi possivel carregar os dados do cliente.
+          Não foi possível carregar os dados do cliente.
         </Typography>
       </View>
     );
@@ -209,21 +209,21 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
             <InfoRow label="Telefone" value={client.phone} theme={theme} />
           )}
           {client.address && (
-            <InfoRow label="Endereco" value={client.address} theme={theme} />
+            <InfoRow label="Endereço" value={client.address} theme={theme} />
           )}
           {client.birthday && (
             <InfoRow
-              label="Aniversario"
+              label="Aniversário"
               value={formatDate(client.birthday)}
               theme={theme}
             />
           )}
           {client.notes && (
-            <InfoRow label="Observacoes" value={client.notes} theme={theme} />
+            <InfoRow label="Observações" value={client.notes} theme={theme} />
           )}
           {!client.phone && !client.address && !client.birthday && !client.notes && (
             <Typography variant="caption">
-              Nenhuma informacao adicional cadastrada.
+              Nenhuma informação adicional cadastrada.
             </Typography>
           )}
         </View>
@@ -232,10 +232,10 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
       {/* Purchase history */}
       <Card>
         <View style={{ gap: spacing.md }}>
-          <Typography variant="h3">Historico de compras</Typography>
+          <Typography variant="h3">Histórico de compras</Typography>
           {!salesData?.items.length ? (
             <Typography variant="caption">
-              Este cliente ainda nao fez nenhuma compra.
+              Este cliente ainda não fez nenhuma compra.
             </Typography>
           ) : (
             salesData.items.slice(0, 10).map((sale) => (

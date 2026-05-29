@@ -53,7 +53,7 @@ export function ProlaboreCard() {
           style={{ borderLeftWidth: 3, borderLeftColor: theme.colors.primary }}
         >
           <Typography variant="h3" style={{ marginBottom: spacing.xs }}>
-            Sua meta do mes
+            Sua meta do mês
           </Typography>
           <Typography
             variant="caption"
@@ -106,7 +106,7 @@ export function ProlaboreCard() {
             color={theme.colors.textSecondary}
             style={{ marginTop: spacing.xs }}
           >
-            de {formatCurrency(progress.requiredRevenue)} necessarios
+            de {formatCurrency(progress.requiredRevenue)} necessários
           </Typography>
 
           {/* Barra de progresso (flex evita width em %, mais simples de tipar) */}

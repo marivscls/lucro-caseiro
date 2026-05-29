@@ -33,27 +33,27 @@ export function validatePricingData(data: PricingInput): string[] {
   const errors: string[] = [];
 
   if (data.ingredientCost < 0) {
-    errors.push("Custo de ingredientes nao pode ser negativo");
+    errors.push("Custo de ingredientes não pode ser negativo");
   }
 
   if (data.packagingCost < 0) {
-    errors.push("Custo de embalagem nao pode ser negativo");
+    errors.push("Custo de embalagem não pode ser negativo");
   }
 
   if (data.laborCost < 0) {
-    errors.push("Custo de mao de obra nao pode ser negativo");
+    errors.push("Custo de mao de obra não pode ser negativo");
   }
 
   if (data.fixedCostShare < 0) {
-    errors.push("Rateio de custos fixos nao pode ser negativo");
+    errors.push("Rateio de custos fixos não pode ser negativo");
   }
 
   if (data.marginPercent < 0) {
-    errors.push("Margem de lucro nao pode ser negativa");
+    errors.push("Margem de lucro não pode ser negativa");
   }
 
   if (data.marginPercent > 1000) {
-    errors.push("Margem de lucro nao pode exceder 1000%");
+    errors.push("Margem de lucro não pode exceder 1000%");
   }
 
   return errors;

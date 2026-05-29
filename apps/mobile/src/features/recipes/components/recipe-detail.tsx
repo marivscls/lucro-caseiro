@@ -231,7 +231,7 @@ export function RecipeDetail({
                     await deleteRecipe.mutateAsync(recipeId);
                     onDeleted?.();
                   } catch {
-                    Alert.alert("Erro", "Nao foi possivel excluir a receita.");
+                    Alert.alert("Erro", "Não foi possível excluir a receita.");
                   }
                 })();
               },

@@ -44,7 +44,7 @@ interface FinanceEntryListProps {
 const FILTER_OPTIONS: { key: FilterType; label: string }[] = [
   { key: "all", label: "Tudo" },
   { key: "income", label: "Entradas" },
-  { key: "expense", label: "Saidas" },
+  { key: "expense", label: "Saídas" },
 ];
 
 export function FinanceEntryList({
@@ -61,10 +61,10 @@ export function FinanceEntryList({
   if (!entries?.length) {
     return (
       <EmptyState
-        title="Nenhum lancamento"
-        description="Registre suas entradas e saidas para acompanhar seu financeiro"
+        title="Nenhum lançamento"
+        description="Registre suas entradas e saídas para acompanhar seu financeiro"
         action={
-          onAddPress ? <Button title="Novo lancamento" onPress={onAddPress} /> : undefined
+          onAddPress ? <Button title="Novo lançamento" onPress={onAddPress} /> : undefined
         }
       />
     );
@@ -159,7 +159,7 @@ export function FinanceEntryList({
         )}
         ListHeaderComponent={
           <Typography variant="caption">
-            {filtered?.length ?? 0} lancamento{(filtered?.length ?? 0) !== 1 ? "s" : ""}
+            {filtered?.length ?? 0} lançamento{(filtered?.length ?? 0) !== 1 ? "s" : ""}
           </Typography>
         }
       />

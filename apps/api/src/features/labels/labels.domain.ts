@@ -19,15 +19,15 @@ export function validateLabelData(data: CreateLabelData): string[] {
   const errors: string[] = [];
 
   if (data.name.trim().length === 0) {
-    errors.push("Nome do rotulo e obrigatorio");
+    errors.push("Nome do rótulo é obrigatório");
   }
 
   if (data.name.length > 200) {
-    errors.push("Nome do rotulo deve ter no maximo 200 caracteres");
+    errors.push("Nome do rótulo deve ter no máximo 200 caracteres");
   }
 
   if (!data.templateId || data.templateId.trim().length === 0) {
-    errors.push("Template e obrigatorio");
+    errors.push("Template é obrigatório");
   } else if (!isValidTemplate(data.templateId)) {
     errors.push("Template invalido");
   }

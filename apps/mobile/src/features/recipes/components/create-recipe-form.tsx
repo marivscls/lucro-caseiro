@@ -94,7 +94,7 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
       Alert.alert("Receita cadastrada!", `${name} foi adicionada`);
       onSuccess?.();
     } catch {
-      Alert.alert("Erro", "Nao foi possivel cadastrar a receita. Tente novamente.");
+      Alert.alert("Erro", "Não foi possível cadastrar a receita. Tente novamente.");
     }
   }
 

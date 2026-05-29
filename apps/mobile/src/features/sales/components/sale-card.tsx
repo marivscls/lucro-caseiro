@@ -24,9 +24,9 @@ const STATUS_MAP: Record<
 const PAYMENT_LABELS: Record<string, string> = {
   pix: "Pix",
   cash: "Dinheiro",
-  card: "Cartao",
+  card: "Cartão",
   credit: "Fiado",
-  transfer: "Transferencia",
+  transfer: "Transferência",
 };
 
 export function SaleCard({ sale, onPress }: SaleCardProps) {

@@ -23,12 +23,12 @@ describe("validateClientData", () => {
 
   it("rejects empty name", () => {
     const errors = validateClientData(makeClientData({ name: "   " }));
-    expect(errors).toContain("Nome do cliente e obrigatorio");
+    expect(errors).toContain("Nome do cliente é obrigatório");
   });
 
   it("rejects name over 200 chars", () => {
     const errors = validateClientData(makeClientData({ name: "a".repeat(201) }));
-    expect(errors).toContain("Nome do cliente deve ter no maximo 200 caracteres");
+    expect(errors).toContain("Nome do cliente deve ter no máximo 200 caracteres");
   });
 
   it("rejects phone with less than 8 digits", () => {

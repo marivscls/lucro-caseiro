@@ -47,9 +47,9 @@ type PaymentOption = {
 const PAYMENT_OPTIONS: PaymentOption[] = [
   { value: "pix", label: "Pix", icon: "qr-code-outline" },
   { value: "cash", label: "Dinheiro", icon: "cash-outline" },
-  { value: "card", label: "Cartao", icon: "card-outline" },
+  { value: "card", label: "Cartão", icon: "card-outline" },
   { value: "credit", label: "Fiado", icon: "time-outline" },
-  { value: "transfer", label: "Transferencia", icon: "swap-horizontal-outline" },
+  { value: "transfer", label: "Transferência", icon: "swap-horizontal-outline" },
 ];
 
 function formatCurrency(value: number): string {
@@ -57,7 +57,7 @@ function formatCurrency(value: number): string {
 }
 
 const STEP_TITLES: Record<Step, string> = {
-  1: "O que voce vai vender?",
+  1: "O que você vai vender?",
   2: "Selecione o cliente",
   3: "Forma de pagamento",
   4: "Revisar e confirmar",
@@ -166,7 +166,7 @@ export default function NewSaleScreen() {
       showInterstitial();
       resetForm();
     } catch {
-      Alert.alert("Erro", "Nao foi possivel registrar a venda. Tente novamente.");
+      Alert.alert("Erro", "Não foi possível registrar a venda. Tente novamente.");
     }
   }
 
@@ -379,7 +379,7 @@ export default function NewSaleScreen() {
                 <Typography variant="moneyLg">{formatCurrency(cartTotal)}</Typography>
               </View>
               <Button
-                title="Proximo"
+                title="Próximo"
                 onPress={() => setStep(2)}
                 icon={
                   <Ionicons
@@ -617,7 +617,7 @@ export default function NewSaleScreen() {
             icon={<Ionicons name="arrow-back" size={16} color={theme.colors.text} />}
           />
           <Button
-            title="Proximo"
+            title="Próximo"
             style={{ flex: 1 }}
             disabled={!canAdvance()}
             onPress={() => setStep((s) => (s + 1) as Step)}

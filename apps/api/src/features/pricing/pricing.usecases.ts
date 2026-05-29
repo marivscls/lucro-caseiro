@@ -51,7 +51,7 @@ export class PricingUseCases {
   async getById(userId: string, id: string): Promise<Pricing> {
     const item = await this.repo.findById(userId, id);
     if (!item) {
-      throw new NotFoundError("Calculo de precificacao nao encontrado");
+      throw new NotFoundError("Cálculo de precificação não encontrado");
     }
     return item;
   }

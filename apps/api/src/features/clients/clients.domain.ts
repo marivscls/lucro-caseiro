@@ -4,11 +4,11 @@ export function validateClientData(data: CreateClientData): string[] {
   const errors: string[] = [];
 
   if (data.name.trim().length === 0) {
-    errors.push("Nome do cliente e obrigatorio");
+    errors.push("Nome do cliente é obrigatório");
   }
 
   if (data.name.length > 200) {
-    errors.push("Nome do cliente deve ter no maximo 200 caracteres");
+    errors.push("Nome do cliente deve ter no máximo 200 caracteres");
   }
 
   if (data.phone !== undefined && data.phone.trim().length > 0) {

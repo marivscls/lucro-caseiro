@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { NOTIFICATION_TYPES } from "../../shared/hooks/notification-types";
 import { useLowStockProducts } from "./hooks";
 
-// Guarda os IDs de produtos que ja geraram alerta de estoque baixo, para nao
+// Guarda os IDs de produtos que já geraram alerta de estoque baixo, para não
 // repetir a notificacao a cada refetch da lista.
 const NOTIFIED_KEY = "lowStockNotifiedIds";
 
@@ -40,7 +40,7 @@ async function syncAndNotify(lowStock: Product[]): Promise<void> {
     notified = [];
   }
 
-  // So notifica produtos que entraram na faixa de alerta desde a ultima checagem.
+  // So notifica produtos que entraram na faixa de alerta desde a última checagem.
   const fresh = lowStock.filter((p) => !notified.includes(p.id));
   if (fresh.length > 0) {
     await Notifications.scheduleNotificationAsync({

@@ -63,7 +63,7 @@ export function PricingResult({
     >
       {/* Serif title */}
       <View style={{ gap: spacing.xs }}>
-        <Typography variant="h1">Resultado do Calculo</Typography>
+        <Typography variant="h1">Resultado do Cálculo</Typography>
         <Typography variant="body">
           Baseado nos valores informados para o seu produto
         </Typography>
@@ -78,7 +78,7 @@ export function PricingResult({
           paddingVertical: spacing["3xl"],
         }}
       >
-        <Typography variant="caption">Preco sugerido</Typography>
+        <Typography variant="caption">Preço sugerido</Typography>
         <Typography variant="moneyHero" color={theme.colors.success}>
           {formatCurrency(suggestedPrice)}
         </Typography>
@@ -173,7 +173,7 @@ export function PricingResult({
       >
         <Typography variant="h3">Projecao Mensal</Typography>
         <Typography variant="body">
-          Se voce vender {monthlyUnits} unidades por mes, seu faturamento sera de{" "}
+          Se você vender {monthlyUnits} unidades por mês, seu faturamento será de{" "}
           {formatCurrency(monthlyRevenue)} com um lucro liquido de{" "}
           {formatCurrency(monthlyProfit)}.
         </Typography>
@@ -215,7 +215,7 @@ export function PricingResult({
 
       {/* Actions */}
       <View style={{ gap: spacing.md }}>
-        <Button title="Salvar calculo" onPress={onSave} loading={isSaving} size="lg" />
+        <Button title="Salvar cálculo" onPress={onSave} loading={isSaving} size="lg" />
         <Button title="Recalcular" variant="outline" onPress={onRecalculate} size="lg" />
       </View>
     </ScrollView>

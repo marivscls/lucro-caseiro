@@ -20,7 +20,7 @@ export class ClientsUseCases {
   async getById(userId: string, id: string): Promise<Client> {
     const client = await this.repo.findById(userId, id);
     if (!client) {
-      throw new NotFoundError("Cliente nao encontrado");
+      throw new NotFoundError("Cliente não encontrado");
     }
     return client;
   }
@@ -40,7 +40,7 @@ export class ClientsUseCases {
   ): Promise<Client> {
     const existing = await this.repo.findById(userId, id);
     if (!existing) {
-      throw new NotFoundError("Cliente nao encontrado");
+      throw new NotFoundError("Cliente não encontrado");
     }
 
     const merged = { ...existing, ...data };
@@ -59,7 +59,7 @@ export class ClientsUseCases {
 
     const updated = await this.repo.update(userId, id, data);
     if (!updated) {
-      throw new NotFoundError("Cliente nao encontrado");
+      throw new NotFoundError("Cliente não encontrado");
     }
     return updated;
   }
@@ -67,7 +67,7 @@ export class ClientsUseCases {
   async remove(userId: string, id: string): Promise<void> {
     const deleted = await this.repo.delete(userId, id);
     if (!deleted) {
-      throw new NotFoundError("Cliente nao encontrado");
+      throw new NotFoundError("Cliente não encontrado");
     }
   }
 

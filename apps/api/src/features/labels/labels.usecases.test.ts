@@ -13,7 +13,7 @@ function makeLabel(overrides: Partial<Label> = {}): Label {
     userId: USER_ID,
     productId: null,
     templateId: "classico",
-    name: "Rotulo Brigadeiro",
+    name: "Rótulo Brigadeiro",
     data: { productName: "Brigadeiro" },
     logoUrl: null,
     qrCodeUrl: null,
@@ -47,12 +47,12 @@ describe("LabelsUseCases", () => {
     it("creates a label with valid data", async () => {
       const { sut } = makeSut();
       const result = await sut.create(USER_ID, {
-        name: "Rotulo Brigadeiro",
+        name: "Rótulo Brigadeiro",
         templateId: "classico",
         data: { productName: "Brigadeiro" },
       });
 
-      expect(result.name).toBe("Rotulo Brigadeiro");
+      expect(result.name).toBe("Rótulo Brigadeiro");
       expect(result.templateId).toBe("classico");
     });
 
@@ -115,10 +115,10 @@ describe("LabelsUseCases", () => {
     it("updates a label with valid data", async () => {
       const { sut } = makeSut();
       const result = await sut.update(USER_ID, "label-1", {
-        name: "Rotulo Gourmet",
+        name: "Rótulo Gourmet",
       });
 
-      expect(result.name).toBe("Rotulo Gourmet");
+      expect(result.name).toBe("Rótulo Gourmet");
     });
 
     it("throws NotFoundError when label does not exist", async () => {

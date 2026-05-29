@@ -20,7 +20,7 @@ export class RecipesUseCases {
   async getById(userId: string, id: string): Promise<Recipe> {
     const recipe = await this.repo.findById(userId, id);
     if (!recipe) {
-      throw new NotFoundError("Receita nao encontrada");
+      throw new NotFoundError("Receita não encontrada");
     }
     return recipe;
   }
@@ -40,7 +40,7 @@ export class RecipesUseCases {
   ): Promise<Recipe> {
     const existing = await this.repo.findById(userId, id);
     if (!existing) {
-      throw new NotFoundError("Receita nao encontrada");
+      throw new NotFoundError("Receita não encontrada");
     }
 
     const merged = {
@@ -60,7 +60,7 @@ export class RecipesUseCases {
 
     const updated = await this.repo.update(userId, id, data);
     if (!updated) {
-      throw new NotFoundError("Receita nao encontrada");
+      throw new NotFoundError("Receita não encontrada");
     }
     return updated;
   }
@@ -68,7 +68,7 @@ export class RecipesUseCases {
   async remove(userId: string, id: string): Promise<void> {
     const deleted = await this.repo.delete(userId, id);
     if (!deleted) {
-      throw new NotFoundError("Receita nao encontrada");
+      throw new NotFoundError("Receita não encontrada");
     }
   }
 
@@ -79,7 +79,7 @@ export class RecipesUseCases {
   ): Promise<{ ingredients: RecipeIngredient[]; yieldQuantity: number }> {
     const recipe = await this.repo.findById(userId, id);
     if (!recipe) {
-      throw new NotFoundError("Receita nao encontrada");
+      throw new NotFoundError("Receita não encontrada");
     }
 
     const scaledIngredients = scaleRecipe(recipe.ingredients, multiplier);

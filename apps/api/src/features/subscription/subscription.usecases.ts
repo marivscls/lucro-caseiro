@@ -18,7 +18,7 @@ export class SubscriptionUseCases {
   async getProfile(userId: string): Promise<UserProfile> {
     const profile = await this.repo.getProfile(userId);
     if (!profile) {
-      throw new NotFoundError("Perfil nao encontrado");
+      throw new NotFoundError("Perfil não encontrado");
     }
     return profile;
   }
@@ -35,7 +35,7 @@ export class SubscriptionUseCases {
   ): Promise<UserProfile> {
     const existing = await this.repo.getProfile(userId);
     if (!existing) {
-      throw new NotFoundError("Perfil nao encontrado");
+      throw new NotFoundError("Perfil não encontrado");
     }
 
     return this.repo.upsertProfile(userId, {
@@ -50,7 +50,7 @@ export class SubscriptionUseCases {
   async getLimits(userId: string): Promise<FreemiumLimits> {
     const profile = await this.repo.getProfile(userId);
     if (!profile) {
-      throw new NotFoundError("Perfil nao encontrado");
+      throw new NotFoundError("Perfil não encontrado");
     }
 
     const premium = isPremiumActive(profile.plan, profile.planExpiresAt);
@@ -67,7 +67,7 @@ export class SubscriptionUseCases {
   async activatePremium(userId: string, expiresAt: Date | null): Promise<UserProfile> {
     const updated = await this.repo.updatePlan(userId, "premium", expiresAt);
     if (!updated) {
-      throw new NotFoundError("Perfil nao encontrado");
+      throw new NotFoundError("Perfil não encontrado");
     }
     return updated;
   }
@@ -75,7 +75,7 @@ export class SubscriptionUseCases {
   async deactivatePremium(userId: string): Promise<UserProfile> {
     const updated = await this.repo.updatePlan(userId, "free", null);
     if (!updated) {
-      throw new NotFoundError("Perfil nao encontrado");
+      throw new NotFoundError("Perfil não encontrado");
     }
     return updated;
   }
@@ -86,7 +86,7 @@ export class SubscriptionUseCases {
   ): Promise<UserProfile> {
     if (!this.statusProvider) {
       throw new ServiceUnavailableError(
-        "Verificacao de assinatura Android nao configurada no servidor",
+        "Verificacao de assinatura Android não configurada no servidor",
       );
     }
 

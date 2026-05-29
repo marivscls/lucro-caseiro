@@ -26,7 +26,7 @@ export class StripeUseCases {
 
   async createCheckoutUrl({ userId, plan }: CheckoutUrlInput): Promise<string> {
     if (!this.stripe) {
-      throw new Error("Stripe nao configurado");
+      throw new Error("Stripe não configurado");
     }
 
     const priceId = selectStripePriceId(
@@ -36,7 +36,7 @@ export class StripeUseCases {
     );
 
     if (!priceId) {
-      throw new Error("Preco Stripe nao configurado");
+      throw new Error("Preço Stripe não configurado");
     }
 
     const session = await this.stripe.checkout.sessions.create({
@@ -51,7 +51,7 @@ export class StripeUseCases {
     });
 
     if (!session.url) {
-      throw new Error("Stripe nao retornou URL de checkout");
+      throw new Error("Stripe não retornou URL de checkout");
     }
 
     return session.url;

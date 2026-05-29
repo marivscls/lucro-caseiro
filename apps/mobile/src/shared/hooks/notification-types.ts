@@ -23,7 +23,7 @@ type NotificationData =
   | { type: typeof NOTIFICATION_TYPES.TRIAL_EXPIRING };
 
 /**
- * Roteia o usuario para a tela correta ao tocar na notificacao.
+ * Roteia o usuário para a tela correta ao tocar na notificacao.
  */
 export function handleNotificationResponse(response: NotificationResponse): void {
   const data = response.notification.request.content.data as NotificationData | undefined;

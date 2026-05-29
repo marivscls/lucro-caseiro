@@ -20,7 +20,7 @@ function PasswordStrengthBar({ password }: Readonly<{ password: string }>) {
 
   const config = {
     weak: { color: theme.colors.alert, label: "Fraca", width: "33%" },
-    medium: { color: theme.colors.yellow, label: "Media", width: "66%" },
+    medium: { color: theme.colors.yellow, label: "Média", width: "66%" },
     strong: { color: theme.colors.success, label: "Forte", width: "100%" },
   } as const;
 
@@ -57,10 +57,10 @@ function PasswordRules({ password }: Readonly<{ password: string }>) {
   if (!password) return null;
 
   const rules = [
-    { label: "Minimo 8 caracteres", met: password.length >= 8 },
+    { label: "Mínimo 8 caracteres", met: password.length >= 8 },
     { label: "1 letra maiuscula", met: /[A-Z]/.test(password) },
     { label: "1 letra minuscula", met: /[a-z]/.test(password) },
-    { label: "1 numero", met: /\d/.test(password) },
+    { label: "1 número", met: /\d/.test(password) },
   ];
 
   return (
@@ -202,7 +202,7 @@ export default function RegisterScreen() {
           Crie sua conta
         </Typography>
         <Typography variant="body" style={{ textAlign: "center" }}>
-          Comece a organizar seu negocio
+          Comece a organizar seu negócio
         </Typography>
 
         <Button
@@ -275,7 +275,7 @@ export default function RegisterScreen() {
           </View>
 
           <Input
-            label="Nome do negocio (opcional)"
+            label="Nome do negócio (opcional)"
             placeholder="Ex: Doces da Maria"
             value={businessName}
             onChangeText={setBusinessName}
@@ -299,7 +299,7 @@ export default function RegisterScreen() {
             gap: spacing.xs,
           }}
         >
-          <Typography variant="body">Ja tem conta?</Typography>
+          <Typography variant="body">Já tem conta?</Typography>
           <Pressable onPress={() => router.push("/(auth)/login")}>
             <Typography variant="bodyBold" color={theme.colors.primary}>
               Entrar

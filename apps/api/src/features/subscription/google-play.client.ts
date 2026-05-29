@@ -74,7 +74,7 @@ export class GooglePlayClient implements ISubscriptionStatusProvider {
   ): Promise<ProviderPremiumState> {
     if (!this.serviceAccountJson) {
       throw new ServiceUnavailableError(
-        "GOOGLE_PLAY_SERVICE_ACCOUNT_JSON nao configurado no servidor",
+        "GOOGLE_PLAY_SERVICE_ACCOUNT_JSON não configurado no servidor",
       );
     }
 
@@ -92,7 +92,7 @@ export class GooglePlayClient implements ISubscriptionStatusProvider {
       response = await auth.request<GooglePlaySubscriptionPurchase>({ url });
     } catch {
       throw new ServiceUnavailableError(
-        "Nao foi possivel verificar assinatura no Google Play",
+        "Não foi possível verificar assinatura no Google Play",
       );
     }
 

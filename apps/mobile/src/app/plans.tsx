@@ -8,22 +8,22 @@ import { useProfile, useLimits } from "../features/subscription/hooks";
 import { usePaywall } from "../shared/hooks/use-paywall";
 
 const FREE_LIMITS = {
-  "Vendas/mes": "30",
+  "Vendas/mês": "30",
   Clientes: "20",
   Receitas: "5",
   Embalagens: "3",
-  Rotulos: "1 template",
-  Relatorios: "Basico mensal",
-  Exportacao: "Nao",
+  Rótulos: "1 template",
+  Relatórios: "Básico mensal",
+  Exportacao: "Não",
 };
 
 const PREMIUM_LIMITS = {
-  "Vendas/mes": "Ilimitado",
+  "Vendas/mês": "Ilimitado",
   Clientes: "Ilimitado",
   Receitas: "Ilimitado",
   Embalagens: "Ilimitado",
-  Rotulos: "Ilimitado",
-  Relatorios: "Completo + graficos",
+  Rótulos: "Ilimitado",
+  Relatórios: "Completo + gráficos",
   Exportacao: "PDF/Excel",
 };
 
@@ -66,7 +66,7 @@ export default function PlansScreen() {
           <Typography variant="h1">{isPremium ? "Premium" : "Plano Gratuito"}</Typography>
           {isPremium && profile?.planExpiresAt && (
             <Typography variant="caption">
-              Valido ate {new Date(profile.planExpiresAt).toLocaleDateString("pt-BR")}
+              Valido até {new Date(profile.planExpiresAt).toLocaleDateString("pt-BR")}
             </Typography>
           )}
         </Card>
@@ -80,7 +80,7 @@ export default function PlansScreen() {
             <View style={{ gap: spacing.sm }}>
               {[
                 {
-                  label: "Vendas este mes",
+                  label: "Vendas este mês",
                   current: limits.currentSalesThisMonth,
                   max: limits.maxSalesPerMonth,
                 },
@@ -189,7 +189,7 @@ export default function PlansScreen() {
         {/* CTA */}
         {!isPremium ? (
           <Button
-            title="Assinar Premium - R$ 19,90/mes"
+            title="Assinar Premium - R$ 19,90/mês"
             variant="premium"
             size="lg"
             onPress={() => {
@@ -204,7 +204,7 @@ export default function PlansScreen() {
             onPress={() => {
               Alert.alert(
                 "Cancelar",
-                "Funcionalidade disponivel em breve. Entre em contato pelo suporte.",
+                "Funcionalidade disponível em breve. Entre em contato pelo suporte.",
               );
             }}
           />

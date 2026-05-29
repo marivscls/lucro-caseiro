@@ -22,7 +22,7 @@ export function OfflineBanner() {
       <Typography
         style={{ color: theme.colors.alert, fontSize: 14, textAlign: "center" }}
       >
-        Voce esta offline. Dados podem estar desatualizados.
+        Você esta offline. Dados podem estar desatualizados.
       </Typography>
     </View>
   );

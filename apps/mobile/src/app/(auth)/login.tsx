@@ -33,7 +33,7 @@ export default function LoginScreen() {
     }
 
     if (!password.trim()) {
-      setPasswordError("Senha e obrigatoria");
+      setPasswordError("Senha é obrigatória");
       valid = false;
     } else {
       setPasswordError(undefined);
@@ -164,7 +164,7 @@ export default function LoginScreen() {
                 if (error) {
                   Alert.alert(
                     "Erro",
-                    "Nao foi possivel enviar o e-mail. Tente novamente.",
+                    "Não foi possível enviar o e-mail. Tente novamente.",
                   );
                   return;
                 }

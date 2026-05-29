@@ -51,7 +51,7 @@ export class SalesUseCases {
   async getById(userId: string, id: string): Promise<Sale> {
     const sale = await this.repo.findById(userId, id);
     if (!sale) {
-      throw new NotFoundError("Venda nao encontrada");
+      throw new NotFoundError("Venda não encontrada");
     }
     return sale;
   }
@@ -67,11 +67,11 @@ export class SalesUseCases {
   async updateSale(userId: string, id: string, data: UpdateSaleData): Promise<Sale> {
     const existing = await this.repo.findById(userId, id);
     if (!existing) {
-      throw new NotFoundError("Venda nao encontrada");
+      throw new NotFoundError("Venda não encontrada");
     }
 
     if (existing.status === "cancelled") {
-      throw new ValidationError(["Nao e possivel editar uma venda cancelada"]);
+      throw new ValidationError(["Não e possível editar uma venda cancelada"]);
     }
 
     const items =
@@ -93,7 +93,7 @@ export class SalesUseCases {
 
     const updated = await this.repo.update(userId, id, data, total);
     if (!updated) {
-      throw new NotFoundError("Venda nao encontrada");
+      throw new NotFoundError("Venda não encontrada");
     }
     return updated;
   }
@@ -101,16 +101,16 @@ export class SalesUseCases {
   async updateStatus(userId: string, id: string, status: SaleStatus): Promise<Sale> {
     const existing = await this.repo.findById(userId, id);
     if (!existing) {
-      throw new NotFoundError("Venda nao encontrada");
+      throw new NotFoundError("Venda não encontrada");
     }
 
     if (status === "cancelled" && !canCancelSale(existing.status)) {
-      throw new ValidationError(["Venda ja esta cancelada"]);
+      throw new ValidationError(["Venda já esta cancelada"]);
     }
 
     const updated = await this.repo.updateStatus(userId, id, status);
     if (!updated) {
-      throw new NotFoundError("Venda nao encontrada");
+      throw new NotFoundError("Venda não encontrada");
     }
     return updated;
   }

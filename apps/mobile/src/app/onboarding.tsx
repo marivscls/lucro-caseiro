@@ -88,7 +88,7 @@ function WelcomeStep({
         </View>
 
         <Typography variant="display" style={{ textAlign: "center" }}>
-          Sua paixao, seu negocio organizado.
+          Sua paixao, seu negócio organizado.
         </Typography>
         <Typography variant="body" style={{ textAlign: "center", maxWidth: 300 }}>
           Transforme sua cozinha em um atelie lucrativo com ferramentas feitas para
@@ -101,14 +101,14 @@ function WelcomeStep({
       {/* Bottom actions */}
       <View style={{ gap: 12, paddingBottom: 16 }}>
         <Button
-          title="Comecar minha jornada  →"
+          title="Começar minha jornada  →"
           size="lg"
           onPress={onNext}
           style={{ width: "100%" }}
         />
         <Pressable onPress={onLogin} style={{ alignItems: "center", paddingVertical: 8 }}>
           <Typography variant="body" color={theme.colors.textSecondary}>
-            Ja tenho uma conta
+            Já tenho uma conta
           </Typography>
         </Pressable>
       </View>
@@ -147,7 +147,7 @@ function NicheStep({
       <ScrollView contentContainerStyle={{ padding: 24, gap: 16, paddingBottom: 120 }}>
         <Typography variant="display">Qual o sabor do seu sucesso hoje?</Typography>
         <Typography variant="body">
-          Selecione seu nicho para personalizarmos sua experiencia no atelie.
+          Selecione seu nicho para personalizarmos sua experiência no atelie.
         </Typography>
 
         <View style={{ gap: 12, marginTop: 8 }}>
@@ -213,9 +213,9 @@ function NicheStep({
           backgroundColor: theme.colors.background,
         }}
       >
-        <Button title="Proximo  →" size="lg" onPress={onNext} disabled={!selected} />
+        <Button title="Próximo  →" size="lg" onPress={onNext} disabled={!selected} />
         <Typography variant="caption" style={{ textAlign: "center", marginTop: 4 }}>
-          Voce podera alterar isso depois nas configuracoes.
+          Você podera alterar isso depois nas configurações.
         </Typography>
 
         <ProgressDots current={1} total={3} />
@@ -250,13 +250,13 @@ function BusinessNameStep({
       </View>
 
       <View style={{ flex: 1, justifyContent: "center", padding: 24, gap: 20 }}>
-        <Typography variant="display">Como se chama seu negocio?</Typography>
+        <Typography variant="display">Como se chama seu negócio?</Typography>
         <Typography variant="body">
           Pode ser seu nome, um apelido ou o nome da sua marca
         </Typography>
 
         <Input
-          label="Nome do negocio"
+          label="Nome do negócio"
           placeholder="Ex: Doces da Maria, Bia Unhas, Croche da Vo..."
           value={name}
           onChangeText={setName}
@@ -309,12 +309,12 @@ function DoneStep({ onFinish }: Readonly<{ onFinish: () => void }>) {
         Tudo pronto!
       </Typography>
       <Typography variant="body" style={{ textAlign: "center", maxWidth: 300 }}>
-        Seu negocio ja esta organizado. Agora e so registrar suas vendas e acompanhar seus
+        Seu negócio já esta organizado. Agora e so registrar suas vendas e acompanhar seus
         lucros!
       </Typography>
 
       <View style={{ gap: 12, width: "100%", marginTop: 16 }}>
-        <Button title="Comecar a usar  →" size="lg" onPress={onFinish} />
+        <Button title="Começar a usar  →" size="lg" onPress={onFinish} />
       </View>
     </View>
   );

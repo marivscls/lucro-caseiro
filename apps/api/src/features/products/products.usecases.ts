@@ -20,7 +20,7 @@ export class ProductsUseCases {
   async getById(userId: string, id: string): Promise<Product> {
     const product = await this.repo.findById(userId, id);
     if (!product) {
-      throw new NotFoundError("Produto nao encontrado");
+      throw new NotFoundError("Produto não encontrado");
     }
     return product;
   }
@@ -40,7 +40,7 @@ export class ProductsUseCases {
   ): Promise<Product> {
     const existing = await this.repo.findById(userId, id);
     if (!existing) {
-      throw new NotFoundError("Produto nao encontrado");
+      throw new NotFoundError("Produto não encontrado");
     }
 
     const merged = { ...existing, ...data };
@@ -61,7 +61,7 @@ export class ProductsUseCases {
 
     const updated = await this.repo.update(userId, id, data);
     if (!updated) {
-      throw new NotFoundError("Produto nao encontrado");
+      throw new NotFoundError("Produto não encontrado");
     }
     return updated;
   }
@@ -69,11 +69,11 @@ export class ProductsUseCases {
   async remove(userId: string, id: string): Promise<void> {
     const deleted = await this.repo.delete(userId, id);
     if (!deleted) {
-      throw new NotFoundError("Produto nao encontrado");
+      throw new NotFoundError("Produto não encontrado");
     }
   }
 
-  /** Preco medio de venda dos produtos ativos (null se nao houver produtos). */
+  /** Preço médio de venda dos produtos ativos (null se não houver produtos). */
   async averageActivePrice(userId: string): Promise<number | null> {
     return this.repo.averageActivePrice(userId);
   }

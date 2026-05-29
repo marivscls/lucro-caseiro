@@ -18,16 +18,16 @@ const BENEFITS = [
   "Vendas ilimitadas",
   "Clientes ilimitados",
   "Receitas ilimitadas",
-  "Embalagens e rotulos ilimitados",
-  "Relatorios completos com graficos",
+  "Embalagens e rótulos ilimitados",
+  "Relatórios completos com gráficos",
   "Exportar PDF e Excel",
   "Templates premium",
   "Suporte prioritario",
-  "Sem anuncios",
+  "Sem anúncios",
 ];
 
 export function Paywall({
-  title = "Seu negocio merece mais!",
+  title = "Seu negócio merece mais!",
   message,
   currentUsage,
   onSubscribe,
@@ -42,7 +42,7 @@ export function Paywall({
     if (onSubscribe) {
       onSubscribe(selectedPlan);
     } else {
-      Alert.alert("Em breve", "Assinatura sera disponibilizada em breve.");
+      Alert.alert("Em breve", "Assinatura será disponibilizada em breve.");
     }
   }
 
@@ -50,7 +50,7 @@ export function Paywall({
     if (onRestore) {
       onRestore();
     } else {
-      Alert.alert("Em breve", "Restauracao sera disponibilizada em breve.");
+      Alert.alert("Em breve", "Restauração será disponibilizada em breve.");
     }
   }
 
@@ -117,7 +117,7 @@ export function Paywall({
         >
           <Ionicons name="arrow-up-circle" size={20} color={theme.colors.premium} />
           <Typography variant="body" color={theme.colors.premium} style={{ flex: 1 }}>
-            Quero ter limite ilimitado agora para nao perder vendas!
+            Quero ter limite ilimitado agora para não perder vendas!
           </Typography>
         </Card>
 
@@ -163,7 +163,7 @@ export function Paywall({
             <Typography variant="moneyLg" color={theme.colors.premium}>
               R$ 19,90
             </Typography>
-            <Typography variant="caption">/mes</Typography>
+            <Typography variant="caption">/mês</Typography>
           </Pressable>
 
           <Pressable
@@ -207,13 +207,13 @@ export function Paywall({
           color={theme.colors.textSecondary}
           style={{ textAlign: "center" }}
         >
-          7 dias gratis para experimentar. Cancele quando quiser.
+          7 dias grátis para experimentar. Cancele quando quiser.
         </Typography>
 
         {/* Actions */}
         <View style={{ gap: 12, paddingBottom: 16 }}>
           <Button
-            title="Comecar teste gratis"
+            title="Começar teste grátis"
             variant="premium"
             size="lg"
             loading={loading}
@@ -236,7 +236,7 @@ export function Paywall({
               style={{ alignItems: "center", paddingVertical: 8 }}
             >
               <Typography variant="body" color={theme.colors.textSecondary}>
-                Agora nao
+                Agora não
               </Typography>
             </Pressable>
           )}

@@ -53,7 +53,7 @@ export function CreateClientForm({ onSuccess }: Readonly<CreateClientFormProps>)
       const message =
         e instanceof Error
           ? e.message
-          : "Nao foi possivel cadastrar o cliente. Tente novamente.";
+          : "Não foi possível cadastrar o cliente. Tente novamente.";
       Alert.alert("Erro", message);
     }
   }
@@ -79,7 +79,7 @@ export function CreateClientForm({ onSuccess }: Readonly<CreateClientFormProps>)
       />
 
       <Input
-        label="Endereco (opcional)"
+        label="Endereço (opcional)"
         placeholder="Ex: Rua das Flores, 123"
         value={address}
         onChangeText={setAddress}
@@ -93,7 +93,7 @@ export function CreateClientForm({ onSuccess }: Readonly<CreateClientFormProps>)
       />
 
       <Input
-        label="Observacoes (opcional)"
+        label="Observações (opcional)"
         placeholder="Anotacoes sobre o cliente..."
         value={notes}
         onChangeText={setNotes}

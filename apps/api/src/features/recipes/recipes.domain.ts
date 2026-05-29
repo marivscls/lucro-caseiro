@@ -6,15 +6,15 @@ export function validateRecipeData(data: CreateRecipeData): string[] {
   const errors: string[] = [];
 
   if (data.name.trim().length === 0) {
-    errors.push("Nome da receita e obrigatorio");
+    errors.push("Nome da receita é obrigatório");
   }
 
   if (data.name.length > 200) {
-    errors.push("Nome da receita deve ter no maximo 200 caracteres");
+    errors.push("Nome da receita deve ter no máximo 200 caracteres");
   }
 
   if (data.category.trim().length === 0) {
-    errors.push("Categoria e obrigatoria");
+    errors.push("Categoria é obrigatória");
   }
 
   if (data.yieldQuantity <= 0) {
@@ -22,7 +22,7 @@ export function validateRecipeData(data: CreateRecipeData): string[] {
   }
 
   if (data.yieldUnit.trim().length === 0) {
-    errors.push("Unidade de rendimento e obrigatoria");
+    errors.push("Unidade de rendimento é obrigatória");
   }
 
   if (!data.ingredients || data.ingredients.length === 0) {

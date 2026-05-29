@@ -13,7 +13,7 @@ export interface IGoalsRepo {
 }
 
 // Providers injetados a partir de outras features (composition root).
-// Mantem o boundary: goals nao importa arquivos internos de finance/sales/products.
+// Mantem o boundary: goals não importa arquivos internos de finance/sales/products.
 
 export interface IMonthlyFinanceProvider {
   getMonthlySummary(

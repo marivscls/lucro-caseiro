@@ -4,23 +4,23 @@ export function validateProductData(data: CreateProductData): string[] {
   const errors: string[] = [];
 
   if (data.salePrice <= 0) {
-    errors.push("Preco de venda deve ser maior que zero");
+    errors.push("Preço de venda deve ser maior que zero");
   }
 
   if (data.name.trim().length === 0) {
-    errors.push("Nome do produto e obrigatorio");
+    errors.push("Nome do produto é obrigatório");
   }
 
   if (data.name.length > 200) {
-    errors.push("Nome do produto deve ter no maximo 200 caracteres");
+    errors.push("Nome do produto deve ter no máximo 200 caracteres");
   }
 
   if (data.stockQuantity !== undefined && data.stockQuantity < 0) {
-    errors.push("Quantidade em estoque nao pode ser negativa");
+    errors.push("Quantidade em estoque não pode ser negativa");
   }
 
   if (data.stockAlertThreshold !== undefined && data.stockAlertThreshold < 0) {
-    errors.push("Alerta de estoque nao pode ser negativo");
+    errors.push("Alerta de estoque não pode ser negativo");
   }
 
   return errors;

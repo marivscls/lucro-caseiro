@@ -199,7 +199,7 @@ describe("SubscriptionUseCases", () => {
       const { sut } = makeSut();
       await expect(
         sut.syncPremiumFromProvider(USER_ID, ANDROID_PURCHASE),
-      ).rejects.toThrow("Verificacao de assinatura Android nao configurada");
+      ).rejects.toThrow("Verificacao de assinatura Android não configurada");
     });
   });
 });

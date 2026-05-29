@@ -134,7 +134,7 @@ export const useAuth = create<AuthState>((set) => ({
 
     if (error) {
       if (error.message.includes("already registered")) {
-        return { error: "Esse e-mail ja tem uma conta. Tente entrar." };
+        return { error: "Esse e-mail já tem uma conta. Tente entrar." };
       }
       if (error.message.includes("Password should be")) {
         return {
@@ -199,7 +199,7 @@ export const useAuth = create<AuthState>((set) => ({
         return { error: "Login cancelado." };
       }
 
-      return { error: "Nao foi possivel completar o login com Google." };
+      return { error: "Não foi possível completar o login com Google." };
     } catch {
       return { error: "Erro ao entrar com Google. Tente novamente." };
     }

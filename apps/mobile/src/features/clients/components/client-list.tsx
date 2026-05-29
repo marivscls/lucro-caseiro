@@ -54,7 +54,7 @@ export function ClientList({
     return (
       <EmptyState
         title="Algo deu errado"
-        description="Nao foi possivel carregar seus clientes. Tente novamente."
+        description="Não foi possível carregar seus clientes. Tente novamente."
       />
     );
   }
@@ -63,7 +63,7 @@ export function ClientList({
     return (
       <EmptyState
         title="Nenhum cliente ainda"
-        description="Cadastre seu primeiro cliente para comecar a gerenciar suas vendas"
+        description="Cadastre seu primeiro cliente para começar a gerenciar suas vendas"
         action={
           onAddPress ? (
             <Button title="Cadastrar cliente" onPress={onAddPress} />

@@ -44,7 +44,7 @@ describe("useImagePicker", () => {
 
     expect(alertSpy).toHaveBeenCalledWith(
       "Adicionar foto",
-      "Como voce quer adicionar a foto?",
+      "Como você quer adicionar a foto?",
       expect.arrayContaining([
         expect.objectContaining({ text: "Tirar foto" }),
         expect.objectContaining({ text: "Escolher da galeria" }),

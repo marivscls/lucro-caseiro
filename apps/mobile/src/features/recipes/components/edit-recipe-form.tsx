@@ -96,7 +96,7 @@ export function EditRecipeForm({ recipe, onSuccess }: EditRecipeFormProps) {
       Alert.alert("Receita atualizada!", `${name} foi atualizada`);
       onSuccess?.();
     } catch {
-      Alert.alert("Erro", "Nao foi possivel atualizar a receita. Tente novamente.");
+      Alert.alert("Erro", "Não foi possível atualizar a receita. Tente novamente.");
     }
   }
 

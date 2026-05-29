@@ -10,7 +10,7 @@ export function validateSaleItems(items: SaleItemData[]): string[] {
   const errors: string[] = [];
 
   if (!items || items.length === 0) {
-    errors.push("Itens da venda sao obrigatorios");
+    errors.push("Itens da venda são obrigatorios");
     return errors;
   }
 
@@ -22,7 +22,7 @@ export function validateSaleItems(items: SaleItemData[]): string[] {
     }
 
     if (item.unitPrice <= 0) {
-      errors.push(`Item ${i + 1}: preco unitario deve ser maior que zero`);
+      errors.push(`Item ${i + 1}: preço unitario deve ser maior que zero`);
     }
   }
 

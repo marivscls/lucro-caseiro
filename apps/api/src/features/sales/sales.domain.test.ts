@@ -45,7 +45,7 @@ describe("validateSaleItems", () => {
 
   it("rejects empty items array", () => {
     const errors = validateSaleItems([]);
-    expect(errors).toContain("Itens da venda sao obrigatorios");
+    expect(errors).toContain("Itens da venda são obrigatorios");
   });
 
   it("rejects zero quantity", () => {
@@ -60,12 +60,12 @@ describe("validateSaleItems", () => {
 
   it("rejects zero unit price", () => {
     const errors = validateSaleItems([makeItem({ unitPrice: 0 })]);
-    expect(errors).toContain("Item 1: preco unitario deve ser maior que zero");
+    expect(errors).toContain("Item 1: preço unitario deve ser maior que zero");
   });
 
   it("rejects negative unit price", () => {
     const errors = validateSaleItems([makeItem({ unitPrice: -5 })]);
-    expect(errors).toContain("Item 1: preco unitario deve ser maior que zero");
+    expect(errors).toContain("Item 1: preço unitario deve ser maior que zero");
   });
 
   it("accumulates errors across multiple items", () => {
@@ -74,7 +74,7 @@ describe("validateSaleItems", () => {
       makeItem({ unitPrice: -1 }),
     ]);
     expect(errors).toContain("Item 1: quantidade deve ser maior que zero");
-    expect(errors).toContain("Item 2: preco unitario deve ser maior que zero");
+    expect(errors).toContain("Item 2: preço unitario deve ser maior que zero");
   });
 
   it("accumulates multiple errors for same item", () => {

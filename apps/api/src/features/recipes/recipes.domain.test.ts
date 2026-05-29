@@ -41,17 +41,17 @@ describe("validateRecipeData", () => {
 
   it("rejects empty name", () => {
     const errors = validateRecipeData(makeRecipeData({ name: "   " }));
-    expect(errors).toContain("Nome da receita e obrigatorio");
+    expect(errors).toContain("Nome da receita é obrigatório");
   });
 
   it("rejects name over 200 chars", () => {
     const errors = validateRecipeData(makeRecipeData({ name: "a".repeat(201) }));
-    expect(errors).toContain("Nome da receita deve ter no maximo 200 caracteres");
+    expect(errors).toContain("Nome da receita deve ter no máximo 200 caracteres");
   });
 
   it("rejects empty category", () => {
     const errors = validateRecipeData(makeRecipeData({ category: "   " }));
-    expect(errors).toContain("Categoria e obrigatoria");
+    expect(errors).toContain("Categoria é obrigatória");
   });
 
   it("rejects zero yield quantity", () => {
@@ -66,7 +66,7 @@ describe("validateRecipeData", () => {
 
   it("rejects empty yield unit", () => {
     const errors = validateRecipeData(makeRecipeData({ yieldUnit: "   " }));
-    expect(errors).toContain("Unidade de rendimento e obrigatoria");
+    expect(errors).toContain("Unidade de rendimento é obrigatória");
   });
 
   it("rejects empty ingredients list", () => {

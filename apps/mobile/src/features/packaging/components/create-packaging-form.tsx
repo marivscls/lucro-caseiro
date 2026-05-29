@@ -13,7 +13,7 @@ const TYPES = [
   { value: "bag", label: "Sacola" },
   { value: "pot", label: "Pote" },
   { value: "film", label: "Filme" },
-  { value: "label", label: "Rotulo" },
+  { value: "label", label: "Rótulo" },
   { value: "other", label: "Outro" },
 ] as const;
 

@@ -150,7 +150,7 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
         <Card style={{ gap: spacing.lg }}>
           <Typography variant="h2">Custo dos ingredientes</Typography>
           <Typography variant="body">
-            Quanto voce gasta em ingredientes para produzir uma unidade?
+            Quanto você gasta em ingredientes para produzir uma unidade?
           </Typography>
           <Input
             label="Valor (R$)"
@@ -182,7 +182,7 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
         <Card style={{ gap: spacing.lg }}>
           <Typography variant="h2">Mao de obra</Typography>
           <Typography variant="body">
-            Quanto tempo voce leva para produzir uma unidade e qual o valor da sua hora?
+            Quanto tempo você leva para produzir uma unidade e qual o valor da sua hora?
           </Typography>
           <Input
             label="Tempo gasto (minutos)"
@@ -219,7 +219,7 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
         <Card style={{ gap: spacing.lg }}>
           <Typography variant="h2">Custos fixos (rateio)</Typography>
           <Typography variant="body">
-            Divida seus custos fixos mensais pelo numero de unidades que voce produz
+            Divida seus custos fixos mensais pelo número de unidades que você produz
           </Typography>
           <Input
             label="Valor por unidade (R$)"
@@ -283,7 +283,7 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
               Custo total: {formatCurrency(totalCost)}
             </Typography>
             <Typography variant="moneyLg" color={theme.colors.success}>
-              Preco sugerido: {formatCurrency(suggestedPrice)}
+              Preço sugerido: {formatCurrency(suggestedPrice)}
             </Typography>
             <Typography variant="caption" color={theme.colors.success}>
               Lucro por unidade: {formatCurrency(profitPerUnit)}
@@ -303,7 +303,7 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
           />
         )}
         <Button
-          title={step === 5 ? "Ver resultado" : "Proximo"}
+          title={step === 5 ? "Ver resultado" : "Próximo"}
           onPress={handleNext}
           style={{ flex: 1 }}
         />

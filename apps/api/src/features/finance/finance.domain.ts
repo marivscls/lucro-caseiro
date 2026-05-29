@@ -14,11 +14,11 @@ export function validateFinanceEntry(data: CreateFinanceEntryData): string[] {
   }
 
   if (!data.description || data.description.trim().length === 0) {
-    errors.push("Descricao e obrigatoria");
+    errors.push("Descrição é obrigatória");
   }
 
   if (data.description && data.description.length > 500) {
-    errors.push("Descricao deve ter no maximo 500 caracteres");
+    errors.push("Descrição deve ter no máximo 500 caracteres");
   }
 
   if (!data.date || !isValidDate(data.date)) {

@@ -40,11 +40,11 @@ export function CreateLabelForm({
 
   async function handleSubmit() {
     if (!name.trim()) {
-      Alert.alert("Opa!", "De um nome para o rotulo");
+      Alert.alert("Opa!", "De um nome para o rótulo");
       return;
     }
     if (!labelData.productName.trim()) {
-      Alert.alert("Opa!", "Preencha o nome do produto no rotulo");
+      Alert.alert("Opa!", "Preencha o nome do produto no rótulo");
       return;
     }
 
@@ -59,20 +59,20 @@ export function CreateLabelForm({
           expirationDate: toIsoDate(labelData.expirationDate ?? ""),
         },
       });
-      Alert.alert("Rotulo criado!", "Seu rotulo esta pronto para imprimir");
+      Alert.alert("Rótulo criado!", "Seu rótulo esta pronto para imprimir");
       onSuccess?.();
     } catch {
-      Alert.alert("Erro", "Nao foi possivel criar o rotulo. Tente novamente.");
+      Alert.alert("Erro", "Não foi possível criar o rótulo. Tente novamente.");
     }
   }
 
   return (
     <ScrollView contentContainerStyle={{ padding: 20, gap: 20 }}>
-      <Typography variant="h2">Novo rotulo</Typography>
+      <Typography variant="h2">Novo rótulo</Typography>
 
       <Input
-        label="Nome do rotulo"
-        placeholder="Ex: Rotulo Brigadeiro 50g"
+        label="Nome do rótulo"
+        placeholder="Ex: Rótulo Brigadeiro 50g"
         value={name}
         onChangeText={setName}
       />
@@ -80,7 +80,7 @@ export function CreateLabelForm({
       <TemplatePicker selected={templateId} onSelect={setTemplateId} />
 
       <View style={{ gap: 12 }}>
-        <Typography variant="h3">Informacoes do rotulo</Typography>
+        <Typography variant="h3">Informações do rótulo</Typography>
 
         <Input
           label="Nome do produto"
@@ -117,7 +117,7 @@ export function CreateLabelForm({
         </View>
 
         <Input
-          label="Seu nome / nome do negocio"
+          label="Seu nome / nome do negócio"
           placeholder="Ex: Doces da Maria"
           value={labelData.producerName ?? ""}
           onChangeText={(v) => updateField("producerName", v)}
@@ -138,7 +138,7 @@ export function CreateLabelForm({
       </View>
 
       <Button
-        title="Criar rotulo"
+        title="Criar rótulo"
         size="lg"
         onPress={() => {
           void handleSubmit();

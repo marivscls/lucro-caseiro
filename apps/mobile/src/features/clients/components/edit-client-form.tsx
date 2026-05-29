@@ -51,7 +51,7 @@ export function EditClientForm({ client, onSuccess }: Readonly<EditClientFormPro
       const message =
         e instanceof Error
           ? e.message
-          : "Nao foi possivel atualizar o cliente. Tente novamente.";
+          : "Não foi possível atualizar o cliente. Tente novamente.";
       Alert.alert("Erro", message);
     }
   }
@@ -77,7 +77,7 @@ export function EditClientForm({ client, onSuccess }: Readonly<EditClientFormPro
       />
 
       <Input
-        label="Endereco (opcional)"
+        label="Endereço (opcional)"
         placeholder="Ex: Rua das Flores, 123"
         value={address}
         onChangeText={setAddress}
@@ -91,7 +91,7 @@ export function EditClientForm({ client, onSuccess }: Readonly<EditClientFormPro
       />
 
       <Input
-        label="Observacoes (opcional)"
+        label="Observações (opcional)"
         placeholder="Anotacoes sobre o cliente..."
         value={notes}
         onChangeText={setNotes}
