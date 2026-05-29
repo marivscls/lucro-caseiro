@@ -75,7 +75,7 @@ export default function MaterialsScreen() {
         <ScrollView
           contentContainerStyle={{
             padding: spacing.xl,
-            paddingBottom: spacing["5xl"],
+            paddingBottom: 96 + insets.bottom,
             gap: spacing.md,
           }}
         >

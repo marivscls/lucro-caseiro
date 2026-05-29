@@ -186,12 +186,17 @@ function OrderDetail({
 function OrdersList({
   groups,
   onSelect,
-}: Readonly<{ groups: OrderGroup[]; onSelect: (id: string) => void }>) {
+  bottomInset,
+}: Readonly<{
+  groups: OrderGroup[];
+  onSelect: (id: string) => void;
+  bottomInset: number;
+}>) {
   return (
     <ScrollView
       contentContainerStyle={{
         padding: spacing.xl,
-        paddingBottom: spacing["5xl"],
+        paddingBottom: 96 + bottomInset,
         gap: spacing.xl,
       }}
     >
@@ -244,6 +249,7 @@ export default function AgendaScreen() {
     return (
       <OrdersList
         groups={groups}
+        bottomInset={insets.bottom}
         onSelect={(id) => {
           setSelectedId(id);
           setEditing(false);
