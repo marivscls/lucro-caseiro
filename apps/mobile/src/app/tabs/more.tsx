@@ -9,6 +9,12 @@ import { useProfile } from "../../features/subscription/hooks";
 
 const menuItems = [
   {
+    title: "Agenda",
+    description: "Encomendas e entregas",
+    icon: "calendar-outline" as const,
+    route: "/agenda" as const,
+  },
+  {
     title: "Financeiro",
     description: "Entradas, saídas e lucro",
     icon: "wallet-outline" as const,

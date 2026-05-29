@@ -6,6 +6,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Modal, Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { useDeliveryNotifier } from "../features/orders/use-delivery-notifier";
 import { useLowStockNotifier } from "../features/products/use-low-stock-notifier";
 import { BrandIntro } from "../shared/components/brand-intro";
 import { OfflineBanner } from "../shared/components/offline-banner";
@@ -39,6 +40,9 @@ function AppContent() {
 
   // Dispara notificacao local quando algum produto entra em estoque baixo.
   useLowStockNotifier();
+
+  // Dispara notificacao local quando ha entregas proximas na agenda.
+  useDeliveryNotifier();
 
   // Comemora quando o plano vira Premium (cobre Google Play e Stripe).
   // Guarda o plano inicial para não comemorar quem já abre o app como Premium.
@@ -108,6 +112,15 @@ function AppContent() {
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="tabs" />
+        <Stack.Screen
+          name="agenda"
+          options={{
+            headerShown: true,
+            title: "Agenda",
+            headerStyle: { backgroundColor: theme.colors.background },
+            headerTintColor: theme.colors.text,
+          }}
+        />
         <Stack.Screen
           name="finance"
           options={{

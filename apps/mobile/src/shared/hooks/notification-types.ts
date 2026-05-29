@@ -5,6 +5,7 @@ export const NOTIFICATION_TYPES = {
   PENDING_SALES: "PENDING_SALES",
   CLIENT_BIRTHDAY: "CLIENT_BIRTHDAY",
   LOW_STOCK: "LOW_STOCK",
+  DELIVERY: "DELIVERY",
   WEEKLY_SUMMARY: "WEEKLY_SUMMARY",
   DAILY_REMINDER: "DAILY_REMINDER",
   TRIAL_EXPIRING: "TRIAL_EXPIRING",
@@ -18,6 +19,7 @@ type NotificationData =
   | { type: typeof NOTIFICATION_TYPES.PENDING_SALES; saleId?: string }
   | { type: typeof NOTIFICATION_TYPES.CLIENT_BIRTHDAY; clientId?: string }
   | { type: typeof NOTIFICATION_TYPES.LOW_STOCK; productId?: string }
+  | { type: typeof NOTIFICATION_TYPES.DELIVERY }
   | { type: typeof NOTIFICATION_TYPES.WEEKLY_SUMMARY }
   | { type: typeof NOTIFICATION_TYPES.DAILY_REMINDER }
   | { type: typeof NOTIFICATION_TYPES.TRIAL_EXPIRING };
@@ -39,6 +41,9 @@ export function handleNotificationResponse(response: NotificationResponse): void
       break;
     case NOTIFICATION_TYPES.LOW_STOCK:
       router.push("/products");
+      break;
+    case NOTIFICATION_TYPES.DELIVERY:
+      router.push("/agenda");
       break;
     case NOTIFICATION_TYPES.WEEKLY_SUMMARY:
     case NOTIFICATION_TYPES.DAILY_REMINDER:

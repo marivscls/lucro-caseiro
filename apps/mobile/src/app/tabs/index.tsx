@@ -8,6 +8,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useBirthdays } from "../../features/clients/hooks";
 import { useFinanceSummary } from "../../features/finance/hooks";
 import { ProlaboreCard } from "../../features/goals/components/prolabore-card";
+import { upcomingCount } from "../../features/orders/domain";
+import { useOrders } from "../../features/orders/hooks";
 import { useLowStockProducts } from "../../features/products/hooks";
 import { useTodaySummary } from "../../features/sales/hooks";
 import { LimitBanner } from "../../features/subscription/components/limit-banner";
@@ -126,6 +128,8 @@ export default function HomeScreen() {
   const { data: financeSummary, isLoading: loadingFinance } = useFinanceSummary();
   const { data: birthdays } = useBirthdays();
   const { data: lowStockProducts } = useLowStockProducts();
+  const { data: orders } = useOrders();
+  const upcomingDeliveries = orders ? upcomingCount(orders, new Date()) : 0;
 
   const monthName = getMonthName();
   const isLoading = loadingSales || loadingFinance;
@@ -208,6 +212,11 @@ export default function HomeScreen() {
           contentContainerStyle={{ paddingHorizontal: spacing.xl, gap: spacing.lg }}
         >
           {[
+            {
+              icon: "calendar-outline" as const,
+              label: "Agenda",
+              route: "/agenda" as const,
+            },
             {
               icon: "wallet-outline" as const,
               label: "Financeiro",
@@ -360,6 +369,35 @@ export default function HomeScreen() {
                 </View>
               </View>
             </Card>
+
+            {/* Agenda — entregas proximas */}
+            {upcomingDeliveries > 0 && (
+              <Card
+                variant="surface"
+                padding="xl"
+                onPress={() => router.push("/agenda")}
+                style={{ borderLeftWidth: 3, borderLeftColor: theme.colors.primary }}
+              >
+                <View
+                  style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
+                >
+                  <Ionicons name="calendar" size={22} color={theme.colors.primary} />
+                  <View style={{ flex: 1 }}>
+                    <Typography variant="h3">Agenda</Typography>
+                    <Typography variant="caption">
+                      {upcomingDeliveries === 1
+                        ? "1 entrega próxima (hoje/amanhã ou atrasada)"
+                        : `${upcomingDeliveries} entregas próximas (hoje/amanhã ou atrasadas)`}
+                    </Typography>
+                  </View>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={18}
+                    color={theme.colors.textSecondary}
+                  />
+                </View>
+              </Card>
+            )}
 
             {/* Meta de pro-labore */}
             <ProlaboreCard />
