@@ -8,10 +8,10 @@ Gerenciar receitas e ingredientes do negocio caseiro. Receitas contem lista de i
 
 ## Non-goals
 
-- Nao gera lista de compras automatica
-- Nao controla estoque de ingredientes
-- Nao faz conversao automatica de unidades
+- Nao gera lista de compras automatica (isso vive em `materials`)
+- Nao faz conversao automatica de unidades (assume unidade compativel insumo↔linha)
 - Nao calcula informacao nutricional
+- Nao da baixa de estoque por si (a baixa de insumos na venda fica em `sales`, fase 3 do PRD)
 
 ## Boundaries & Ownership
 
@@ -61,12 +61,16 @@ Gerenciar receitas e ingredientes do negocio caseiro. Receitas contem lista de i
 
 ### Tabela: `recipe_ingredients` (associacao)
 
-| Coluna       | Tipo    | Constraints              |
-| ------------ | ------- | ------------------------ |
-| recipeId     | uuid    | FK recipes, NOT NULL     |
-| ingredientId | uuid    | FK ingredients, NOT NULL |
-| quantity     | decimal | NOT NULL                 |
-| unit         | varchar | NOT NULL                 |
+| Coluna     | Tipo    | Constraints                                |
+| ---------- | ------- | ------------------------------------------ |
+| recipeId   | uuid    | FK recipes, NOT NULL                       |
+| materialId | uuid    | aponta para `materials` (insumo), NOT NULL |
+| quantity   | decimal | NOT NULL                                   |
+| unit       | varchar | NOT NULL                                   |
+
+> Unificacao (PRD ciclo de estoque): a linha de receita aponta para **insumos**
+> (`materials`), nao mais para `ingredients`. A coluna antiga `ingredient_id` foi
+> mantida como legado e deixa de ser usada apos a migracao.
 
 ### Tabela: `ingredients`
 
@@ -90,8 +94,8 @@ Gerenciar receitas e ingredientes do negocio caseiro. Receitas contem lista de i
 - Categoria e obrigatoria
 - Rendimento (yieldQuantity) deve ser maior que zero
 - Unidade de rendimento e obrigatoria
-- Receita deve ter pelo menos um ingrediente
-- totalCost = soma de (ingredientPrice / quantityPerPackage \* quantity) para cada ingrediente
+- Receita deve ter pelo menos um insumo
+- totalCost = soma de (material.costPerUnit \* quantity) para cada insumo da receita
 - costPerUnit = totalCost / yieldQuantity
 
 ### Ingredients
@@ -193,9 +197,9 @@ invariants:
 
 - **CreateRecipeDto**: `{ name, category, instructions?, yieldQuantity, yieldUnit, photoUrl?, ingredients: RecipeIngredient[] }`
 - **UpdateRecipeDto**: `Partial<CreateRecipeDto>`
-- **RecipeIngredient**: `{ ingredientId, quantity, unit }`
+- **RecipeIngredient**: `{ materialId, quantity, unit }`
 - **Recipe**: `{ id, userId, name, category, instructions, yieldQuantity, yieldUnit, photoUrl, totalCost, costPerUnit, ingredients: RecipeIngredientFull[], createdAt }`
-- **RecipeIngredientFull**: `{ ingredientId, quantity, unit, ingredientName, ingredientPrice, cost }`
+- **RecipeIngredientFull**: `{ materialId, quantity, unit, materialName, materialCostPerUnit, cost }`
 - **CreateIngredientDto**: `{ name, price, quantityPerPackage, unit, supplier? }`
 - **UpdateIngredientDto**: `Partial<CreateIngredientDto>`
 - **Ingredient**: `{ id, userId, name, price, quantityPerPackage, unit, supplier, updatedAt }`
@@ -263,7 +267,7 @@ invariants:
 ```
 POST /api/v1/recipes
 { "name": "Brigadeiro", "category": "doces", "yieldQuantity": 30, "yieldUnit": "unidades",
-  "ingredients": [{ "ingredientId": "ing-1", "quantity": 395, "unit": "g" }] }
+  "ingredients": [{ "materialId": "mat-1", "quantity": 395, "unit": "g" }] }
 => 201 { "id": "...", "totalCost": 7.5, "costPerUnit": 0.25, ... }
 
 GET /api/v1/recipes/recipe-1/scale?multiplier=2
@@ -280,3 +284,7 @@ POST /api/v1/ingredients
 - Ingredientes de receita sao deletados e reinseridos a cada update (replace strategy)
 - Custo total e por unidade calculados em tempo de leitura (nao persistidos de forma definitiva)
 - Scale retorna dados calculados sem persistir
+- **Unificacao (PRD ciclo de estoque)**: a linha de receita passou a referenciar `materials`
+  (insumo) em vez de `ingredients`. Custo da linha = `material.costPerUnit * quantity`. A
+  feature standalone Ingredients (`ingredients.*`) fica em desuso/aposentadoria; sera
+  removida em chore posterior apos a migracao de dados.

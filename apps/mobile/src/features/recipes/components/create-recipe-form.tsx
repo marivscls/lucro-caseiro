@@ -1,49 +1,29 @@
-import { Button, Input, Typography, useTheme } from "@lucro-caseiro/ui";
+import { Button, Input, Typography } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
-import { Alert, ScrollView, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, View } from "react-native";
 
 import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
 import { useCreateRecipe } from "../hooks";
-
-interface Ingredient {
-  name: string;
-  quantity: string;
-  unit: string;
-}
+import {
+  RecipeMaterialsEditor,
+  emptyLine,
+  type RecipeLine,
+} from "./recipe-materials-editor";
 
 interface CreateRecipeFormProps {
   readonly onSuccess?: () => void;
 }
 
-function createEmptyIngredient(): Ingredient {
-  return { name: "", quantity: "", unit: "" };
-}
-
 export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
-  const { theme } = useTheme();
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [instructions, setInstructions] = useState("");
   const [yieldQuantity, setYieldQuantity] = useState("");
   const [yieldUnit, setYieldUnit] = useState("");
-  const [ingredients, setIngredients] = useState<Ingredient[]>([createEmptyIngredient()]);
+  const [lines, setLines] = useState<RecipeLine[]>([emptyLine()]);
 
   const createRecipe = useCreateRecipe();
   const { checkAndBlock: checkRecipeLimit } = useLimitCheck("recipes");
-
-  function handleAddIngredient() {
-    setIngredients((prev) => [...prev, createEmptyIngredient()]);
-  }
-
-  function handleRemoveIngredient(index: number) {
-    setIngredients((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  function handleIngredientChange(index: number, field: keyof Ingredient, value: string) {
-    setIngredients((prev) =>
-      prev.map((ing, i) => (i === index ? { ...ing, [field]: value } : ing)),
-    );
-  }
 
   async function handleSubmit() {
     if (checkRecipeLimit()) return;
@@ -69,12 +49,10 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
       return;
     }
 
-    const validIngredients = ingredients.filter(
-      (ing) => ing.name.trim() && ing.quantity.trim(),
-    );
+    const validLines = lines.filter((l) => l.materialId && l.quantity.trim());
 
-    if (validIngredients.length === 0) {
-      Alert.alert("Opa!", "Adicione pelo menos um ingrediente");
+    if (validLines.length === 0) {
+      Alert.alert("Opa!", "Adicione pelo menos um insumo");
       return;
     }
 
@@ -85,10 +63,10 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
         instructions: instructions.trim() || undefined,
         yieldQuantity: parsedYield,
         yieldUnit: yieldUnit.trim(),
-        ingredients: validIngredients.map((ing) => ({
-          ingredientId: ing.name.trim(),
-          quantity: parseFloat(ing.quantity.replace(",", ".")),
-          unit: ing.unit.trim(),
+        ingredients: validLines.map((l) => ({
+          materialId: l.materialId,
+          quantity: parseFloat(l.quantity.replace(",", ".")),
+          unit: l.unit.trim(),
         })),
       });
       Alert.alert("Receita cadastrada!", `${name} foi adicionada`);
@@ -147,81 +125,7 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
         </View>
       </View>
 
-      <View style={{ gap: 12 }}>
-        <Typography variant="h3">Ingredientes</Typography>
-
-        {ingredients.map((ing, index) => (
-          <View
-            key={index}
-            style={{
-              gap: 8,
-              padding: 12,
-              borderRadius: 12,
-              backgroundColor: theme.colors.background,
-            }}
-          >
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Typography variant="caption">Ingrediente {index + 1}</Typography>
-              {ingredients.length > 1 && (
-                <TouchableOpacity onPress={() => handleRemoveIngredient(index)}>
-                  <Typography variant="caption" color={theme.colors.alert}>
-                    Remover
-                  </Typography>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            <Input
-              label="Nome"
-              placeholder="Ex: Leite condensado"
-              value={ing.name}
-              onChangeText={(v) => handleIngredientChange(index, "name", v)}
-            />
-
-            <View style={{ flexDirection: "row", gap: 8 }}>
-              <View style={{ flex: 1 }}>
-                <Input
-                  label="Quantidade"
-                  placeholder="Ex: 2"
-                  value={ing.quantity}
-                  onChangeText={(v) => handleIngredientChange(index, "quantity", v)}
-                  keyboardType="decimal-pad"
-                />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Input
-                  label="Unidade"
-                  placeholder="Ex: lata, g, ml..."
-                  value={ing.unit}
-                  onChangeText={(v) => handleIngredientChange(index, "unit", v)}
-                />
-              </View>
-            </View>
-          </View>
-        ))}
-
-        <TouchableOpacity
-          onPress={handleAddIngredient}
-          style={{
-            paddingVertical: 12,
-            borderRadius: 12,
-            borderWidth: 1,
-            borderColor: theme.colors.success,
-            borderStyle: "dashed",
-            alignItems: "center",
-          }}
-        >
-          <Typography variant="body" color={theme.colors.success}>
-            + Adicionar ingrediente
-          </Typography>
-        </TouchableOpacity>
-      </View>
+      <RecipeMaterialsEditor lines={lines} onChange={setLines} />
 
       <Button
         title="Cadastrar receita"

@@ -1,6 +1,1 @@
-export type {
-  Insights,
-  MonthlyRevenue,
-  TopClient,
-  TopProduct,
-} from "@lucro-caseiro/contracts";
+export type { Insights, MonthlyRevenue } from "@lucro-caseiro/contracts";

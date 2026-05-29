@@ -1,55 +1,37 @@
 import type { Recipe } from "@lucro-caseiro/contracts";
-import { Button, Input, Typography, useTheme } from "@lucro-caseiro/ui";
+import { Button, Input, Typography } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
-import { Alert, ScrollView, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, View } from "react-native";
 
 import { useUpdateRecipe } from "../hooks";
+import {
+  RecipeMaterialsEditor,
+  emptyLine,
+  type RecipeLine,
+} from "./recipe-materials-editor";
 
 interface EditRecipeFormProps {
   readonly recipe: Recipe;
   readonly onSuccess?: () => void;
 }
 
-interface IngredientField {
-  ingredientId: string;
-  quantity: string;
-  unit: string;
-}
-
 export function EditRecipeForm({ recipe, onSuccess }: EditRecipeFormProps) {
-  const { theme } = useTheme();
   const [name, setName] = useState(recipe.name);
   const [category, setCategory] = useState(recipe.category);
   const [instructions, setInstructions] = useState(recipe.instructions ?? "");
   const [yieldQuantity, setYieldQuantity] = useState(String(recipe.yieldQuantity));
   const [yieldUnit, setYieldUnit] = useState(recipe.yieldUnit);
-  const [ingredients, setIngredients] = useState<IngredientField[]>(
-    recipe.ingredients.map((ing) => ({
-      ingredientId: ing.ingredientId,
-      quantity: String(ing.quantity),
-      unit: ing.unit,
-    })),
+  const [lines, setLines] = useState<RecipeLine[]>(
+    recipe.ingredients.length > 0
+      ? recipe.ingredients.map((line) => ({
+          materialId: line.materialId,
+          quantity: String(line.quantity),
+          unit: line.unit,
+        }))
+      : [emptyLine()],
   );
 
   const updateRecipe = useUpdateRecipe();
-
-  function handleAddIngredient() {
-    setIngredients((prev) => [...prev, { ingredientId: "", quantity: "", unit: "" }]);
-  }
-
-  function handleRemoveIngredient(index: number) {
-    setIngredients((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  function handleIngredientChange(
-    index: number,
-    field: keyof IngredientField,
-    value: string,
-  ) {
-    setIngredients((prev) =>
-      prev.map((ing, i) => (i === index ? { ...ing, [field]: value } : ing)),
-    );
-  }
 
   async function handleSubmit() {
     if (!name.trim()) {
@@ -68,12 +50,10 @@ export function EditRecipeForm({ recipe, onSuccess }: EditRecipeFormProps) {
       return;
     }
 
-    const validIngredients = ingredients.filter(
-      (ing) => ing.ingredientId.trim() && ing.quantity.trim(),
-    );
+    const validLines = lines.filter((l) => l.materialId && l.quantity.trim());
 
-    if (validIngredients.length === 0) {
-      Alert.alert("Opa!", "Adicione pelo menos um ingrediente");
+    if (validLines.length === 0) {
+      Alert.alert("Opa!", "Adicione pelo menos um insumo");
       return;
     }
 
@@ -86,10 +66,10 @@ export function EditRecipeForm({ recipe, onSuccess }: EditRecipeFormProps) {
           instructions: instructions.trim() || undefined,
           yieldQuantity: parsedYield,
           yieldUnit: yieldUnit.trim(),
-          ingredients: validIngredients.map((ing) => ({
-            ingredientId: ing.ingredientId.trim(),
-            quantity: parseFloat(ing.quantity.replace(",", ".")),
-            unit: ing.unit.trim(),
+          ingredients: validLines.map((l) => ({
+            materialId: l.materialId,
+            quantity: parseFloat(l.quantity.replace(",", ".")),
+            unit: l.unit.trim(),
           })),
         },
       });
@@ -129,79 +109,7 @@ export function EditRecipeForm({ recipe, onSuccess }: EditRecipeFormProps) {
         </View>
       </View>
 
-      <View style={{ gap: 12 }}>
-        <Typography variant="h3">Ingredientes</Typography>
-
-        {ingredients.map((ing, index) => (
-          <View
-            key={index}
-            style={{
-              gap: 8,
-              padding: 12,
-              borderRadius: 12,
-              backgroundColor: theme.colors.background,
-            }}
-          >
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Typography variant="caption">Ingrediente {index + 1}</Typography>
-              {ingredients.length > 1 && (
-                <TouchableOpacity onPress={() => handleRemoveIngredient(index)}>
-                  <Typography variant="caption" color={theme.colors.alert}>
-                    Remover
-                  </Typography>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            <Input
-              label="ID do ingrediente"
-              placeholder="ID do ingrediente cadastrado"
-              value={ing.ingredientId}
-              onChangeText={(v) => handleIngredientChange(index, "ingredientId", v)}
-            />
-
-            <View style={{ flexDirection: "row", gap: 8 }}>
-              <View style={{ flex: 1 }}>
-                <Input
-                  label="Quantidade"
-                  value={ing.quantity}
-                  onChangeText={(v) => handleIngredientChange(index, "quantity", v)}
-                  keyboardType="decimal-pad"
-                />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Input
-                  label="Unidade"
-                  value={ing.unit}
-                  onChangeText={(v) => handleIngredientChange(index, "unit", v)}
-                />
-              </View>
-            </View>
-          </View>
-        ))}
-
-        <TouchableOpacity
-          onPress={handleAddIngredient}
-          style={{
-            paddingVertical: 12,
-            borderRadius: 12,
-            borderWidth: 1,
-            borderColor: theme.colors.success,
-            borderStyle: "dashed",
-            alignItems: "center",
-          }}
-        >
-          <Typography variant="body" color={theme.colors.success}>
-            + Adicionar ingrediente
-          </Typography>
-        </TouchableOpacity>
-      </View>
+      <RecipeMaterialsEditor lines={lines} onChange={setLines} />
 
       <Button
         title="Salvar alteracoes"

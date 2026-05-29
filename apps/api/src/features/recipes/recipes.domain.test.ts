@@ -6,7 +6,7 @@ import {
   scaleRecipe,
   validateRecipeData,
 } from "./recipes.domain";
-import type { CreateRecipeData, IngredientWithPrice } from "./recipes.types";
+import type { CreateRecipeData, MaterialLine } from "./recipes.types";
 
 function makeRecipeData(overrides: Partial<CreateRecipeData> = {}): CreateRecipeData {
   return {
@@ -14,21 +14,18 @@ function makeRecipeData(overrides: Partial<CreateRecipeData> = {}): CreateRecipe
     category: "doces",
     yieldQuantity: 30,
     yieldUnit: "unidades",
-    ingredients: [{ ingredientId: "ing-1", quantity: 395, unit: "g" }],
+    ingredients: [{ materialId: "mat-1", quantity: 395, unit: "g" }],
     ...overrides,
   };
 }
 
-function makeIngredientWithPrice(
-  overrides: Partial<IngredientWithPrice> = {},
-): IngredientWithPrice {
+function makeMaterialLine(overrides: Partial<MaterialLine> = {}): MaterialLine {
   return {
-    ingredientId: "ing-1",
-    ingredientName: "Leite Condensado",
-    ingredientPrice: 7.5,
-    quantity: 395,
+    materialId: "mat-1",
+    materialName: "Leite Condensado",
+    materialCostPerUnit: 0.5,
+    quantity: 15,
     unit: "g",
-    quantityPerPackage: 395,
     ...overrides,
   };
 }
@@ -71,7 +68,7 @@ describe("validateRecipeData", () => {
 
   it("rejects empty ingredients list", () => {
     const errors = validateRecipeData(makeRecipeData({ ingredients: [] }));
-    expect(errors).toContain("Receita deve ter pelo menos um ingrediente");
+    expect(errors).toContain("Receita deve ter pelo menos um insumo");
   });
 
   it("accumulates multiple errors", () => {
@@ -83,30 +80,25 @@ describe("validateRecipeData", () => {
 });
 
 describe("calculateRecipeCost", () => {
-  it("calculates total cost for single ingredient", () => {
-    const ingredients = [makeIngredientWithPrice()];
-    const cost = calculateRecipeCost(ingredients);
-    // 7.5 / 395 * 395 = 7.5
+  it("calculates total cost for single material line", () => {
+    const lines = [makeMaterialLine()];
+    const cost = calculateRecipeCost(lines);
+    // 0.5 * 15 = 7.5
     expect(cost).toBeCloseTo(7.5);
   });
 
-  it("calculates total cost for multiple ingredients", () => {
-    const ingredients = [
-      makeIngredientWithPrice({
-        ingredientPrice: 7.5,
-        quantity: 395,
-        quantityPerPackage: 395,
-      }),
-      makeIngredientWithPrice({
-        ingredientId: "ing-2",
-        ingredientName: "Chocolate em Po",
-        ingredientPrice: 10,
+  it("calculates total cost for multiple material lines", () => {
+    const lines = [
+      makeMaterialLine({ materialCostPerUnit: 0.5, quantity: 15 }),
+      makeMaterialLine({
+        materialId: "mat-2",
+        materialName: "Chocolate em Po",
+        materialCostPerUnit: 0.05,
         quantity: 100,
-        quantityPerPackage: 200,
       }),
     ];
-    const cost = calculateRecipeCost(ingredients);
-    // 7.5 + (10/200)*100 = 7.5 + 5 = 12.5
+    const cost = calculateRecipeCost(lines);
+    // (0.5*15) + (0.05*100) = 7.5 + 5 = 12.5
     expect(cost).toBeCloseTo(12.5);
   });
 
@@ -131,31 +123,31 @@ describe("calculateCostPerUnit", () => {
 
 describe("scaleRecipe", () => {
   it("scales ingredient quantities by multiplier", () => {
-    const ingredients = [
-      { ingredientId: "ing-1", quantity: 395, unit: "g" },
-      { ingredientId: "ing-2", quantity: 100, unit: "g" },
+    const lines = [
+      { materialId: "mat-1", quantity: 395, unit: "g" },
+      { materialId: "mat-2", quantity: 100, unit: "g" },
     ];
 
-    const scaled = scaleRecipe(ingredients, 2);
+    const scaled = scaleRecipe(lines, 2);
 
     expect(scaled[0]!.quantity).toBe(790);
     expect(scaled[1]!.quantity).toBe(200);
   });
 
   it("handles fractional multipliers", () => {
-    const ingredients = [{ ingredientId: "ing-1", quantity: 100, unit: "ml" }];
+    const lines = [{ materialId: "mat-1", quantity: 100, unit: "ml" }];
 
-    const scaled = scaleRecipe(ingredients, 0.5);
+    const scaled = scaleRecipe(lines, 0.5);
 
     expect(scaled[0]!.quantity).toBe(50);
   });
 
-  it("preserves other ingredient properties", () => {
-    const ingredients = [{ ingredientId: "ing-1", quantity: 100, unit: "g" }];
+  it("preserves other material properties", () => {
+    const lines = [{ materialId: "mat-1", quantity: 100, unit: "g" }];
 
-    const scaled = scaleRecipe(ingredients, 3);
+    const scaled = scaleRecipe(lines, 3);
 
-    expect(scaled[0]!.ingredientId).toBe("ing-1");
+    expect(scaled[0]!.materialId).toBe("mat-1");
     expect(scaled[0]!.unit).toBe("g");
   });
 

@@ -21,11 +21,11 @@ function makeRecipe(overrides: Partial<Recipe> = {}): Recipe {
     costPerUnit: 0.25,
     ingredients: [
       {
-        ingredientId: "ing-1",
+        materialId: "mat-1",
         quantity: 395,
         unit: "g",
-        ingredientName: "Leite Condensado",
-        ingredientPrice: 7.5,
+        materialName: "Leite Condensado",
+        materialCostPerUnit: 0.019,
         cost: 7.5,
       },
     ],
@@ -63,7 +63,7 @@ describe("RecipesUseCases", () => {
         category: "doces",
         yieldQuantity: 30,
         yieldUnit: "unidades",
-        ingredients: [{ ingredientId: "ing-1", quantity: 395, unit: "g" }],
+        ingredients: [{ materialId: "mat-1", quantity: 395, unit: "g" }],
       });
 
       expect(result.name).toBe("Brigadeiro");

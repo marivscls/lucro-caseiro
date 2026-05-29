@@ -37,7 +37,7 @@ export const recipeIngredients = pgTable("recipe_ingredients", {
   recipeId: uuid("recipe_id")
     .notNull()
     .references(() => recipes.id, { onDelete: "cascade" }),
-  ingredientId: uuid("ingredient_id").notNull(),
+  materialId: uuid("material_id").notNull(),
   quantity: decimal("quantity", { precision: 10, scale: 3 }).notNull(),
   unit: text("unit").notNull(),
 });

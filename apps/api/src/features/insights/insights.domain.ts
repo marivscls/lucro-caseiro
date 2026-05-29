@@ -1,7 +1,7 @@
 /** Domínio puro dos insights: normalização da janela e geração de buckets mensais. */
 
-export const DEFAULT_MONTHS = 6;
-export const MAX_MONTHS = 12;
+const DEFAULT_MONTHS = 6;
+const MAX_MONTHS = 12;
 
 /** Garante uma janela válida entre 1 e MAX_MONTHS (default 6). */
 export function clampMonths(input: number | undefined): number {

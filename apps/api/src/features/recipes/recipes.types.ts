@@ -30,11 +30,10 @@ export interface FindAllOpts {
   search?: string;
 }
 
-export interface IngredientWithPrice {
-  ingredientId: string;
-  ingredientName: string;
-  ingredientPrice: number;
+export interface MaterialLine {
+  materialId: string;
+  materialName: string;
+  materialCostPerUnit: number;
   quantity: number;
   unit: string;
-  quantityPerPackage: number;
 }

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const RecipeIngredientDto = z.object({
-  ingredientId: z.string().uuid(),
+  materialId: z.string().uuid(),
   quantity: z.number().positive(),
   unit: z.string().min(1).max(20),
 });
@@ -36,8 +36,8 @@ export const RecipeDto = z.object({
   costPerUnit: z.number(),
   ingredients: z.array(
     RecipeIngredientDto.extend({
-      ingredientName: z.string(),
-      ingredientPrice: z.number(),
+      materialName: z.string(),
+      materialCostPerUnit: z.number(),
       cost: z.number(),
     }),
   ),

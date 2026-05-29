@@ -1,5 +1,5 @@
 import type { Recipe } from "@lucro-caseiro/contracts";
-import { ingredients } from "@lucro-caseiro/database/schema";
+import { materials } from "@lucro-caseiro/database/schema";
 import { recipeIngredients, recipes } from "@lucro-caseiro/database/schema";
 import { and, count, eq, ilike, sql } from "drizzle-orm";
 import type { AppDatabase } from "../../shared/db";
@@ -28,11 +28,11 @@ export class RecipesRepoPg implements IRecipesRepo {
 
     if (data.ingredients.length > 0) {
       await this.db.insert(recipeIngredients).values(
-        data.ingredients.map((ing) => ({
+        data.ingredients.map((line) => ({
           recipeId: recipe.id,
-          ingredientId: ing.ingredientId,
-          quantity: String(ing.quantity),
-          unit: ing.unit,
+          materialId: line.materialId,
+          quantity: String(line.quantity),
+          unit: line.unit,
         })),
       );
     }
@@ -48,20 +48,19 @@ export class RecipesRepoPg implements IRecipesRepo {
 
     if (!recipeRow) return null;
 
-    const ingredientRows = await this.db
+    const lineRows = await this.db
       .select({
-        ingredientId: recipeIngredients.ingredientId,
+        materialId: recipeIngredients.materialId,
         quantity: recipeIngredients.quantity,
         unit: recipeIngredients.unit,
-        ingredientName: ingredients.name,
-        ingredientPrice: ingredients.price,
-        quantityPerPackage: ingredients.quantityPerPackage,
+        materialName: materials.name,
+        materialCostPerUnit: materials.costPerUnit,
       })
       .from(recipeIngredients)
-      .innerJoin(ingredients, eq(recipeIngredients.ingredientId, ingredients.id))
+      .innerJoin(materials, eq(recipeIngredients.materialId, materials.id))
       .where(eq(recipeIngredients.recipeId, id));
 
-    return this.toRecipe(recipeRow, ingredientRows);
+    return this.toRecipe(recipeRow, lineRows);
   }
 
   async findAll(
@@ -94,20 +93,19 @@ export class RecipesRepoPg implements IRecipesRepo {
 
     const items = await Promise.all(
       rows.map(async (row) => {
-        const ingredientRows = await this.db
+        const lineRows = await this.db
           .select({
-            ingredientId: recipeIngredients.ingredientId,
+            materialId: recipeIngredients.materialId,
             quantity: recipeIngredients.quantity,
             unit: recipeIngredients.unit,
-            ingredientName: ingredients.name,
-            ingredientPrice: ingredients.price,
-            quantityPerPackage: ingredients.quantityPerPackage,
+            materialName: materials.name,
+            materialCostPerUnit: materials.costPerUnit,
           })
           .from(recipeIngredients)
-          .innerJoin(ingredients, eq(recipeIngredients.ingredientId, ingredients.id))
+          .innerJoin(materials, eq(recipeIngredients.materialId, materials.id))
           .where(eq(recipeIngredients.recipeId, row.id));
 
-        return this.toRecipe(row, ingredientRows);
+        return this.toRecipe(row, lineRows);
       }),
     );
 
@@ -146,11 +144,11 @@ export class RecipesRepoPg implements IRecipesRepo {
 
       if (data.ingredients.length > 0) {
         await this.db.insert(recipeIngredients).values(
-          data.ingredients.map((ing) => ({
+          data.ingredients.map((line) => ({
             recipeId: id,
-            ingredientId: ing.ingredientId,
-            quantity: String(ing.quantity),
-            unit: ing.unit,
+            materialId: line.materialId,
+            quantity: String(line.quantity),
+            unit: line.unit,
           })),
         );
       }
@@ -189,32 +187,30 @@ export class RecipesRepoPg implements IRecipesRepo {
 
   private toRecipe(
     row: typeof recipes.$inferSelect,
-    ingredientRows: {
-      ingredientId: string;
+    lineRows: {
+      materialId: string;
       quantity: string;
       unit: string;
-      ingredientName: string;
-      ingredientPrice: string;
-      quantityPerPackage: string;
+      materialName: string;
+      materialCostPerUnit: string | null;
     }[],
   ): Recipe {
-    const recipeIngredientsList = ingredientRows.map((ing) => {
-      const price = Number(ing.ingredientPrice);
-      const qty = Number(ing.quantity);
-      const qtyPerPkg = Number(ing.quantityPerPackage);
-      const cost = (price / qtyPerPkg) * qty;
+    const recipeIngredientsList = lineRows.map((line) => {
+      const costPerUnit = Number(line.materialCostPerUnit ?? 0);
+      const qty = Number(line.quantity);
+      const cost = costPerUnit * qty;
 
       return {
-        ingredientId: ing.ingredientId,
+        materialId: line.materialId,
         quantity: qty,
-        unit: ing.unit,
-        ingredientName: ing.ingredientName,
-        ingredientPrice: price,
+        unit: line.unit,
+        materialName: line.materialName,
+        materialCostPerUnit: costPerUnit,
         cost,
       };
     });
 
-    const totalCost = recipeIngredientsList.reduce((sum, ing) => sum + ing.cost, 0);
+    const totalCost = recipeIngredientsList.reduce((sum, line) => sum + line.cost, 0);
     const costPerUnit = row.yieldQuantity > 0 ? totalCost / row.yieldQuantity : 0;
 
     return {

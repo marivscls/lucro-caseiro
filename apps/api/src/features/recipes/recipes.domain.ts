@@ -1,6 +1,6 @@
 import type { RecipeIngredient } from "@lucro-caseiro/contracts";
 
-import type { CreateRecipeData, IngredientWithPrice } from "./recipes.types";
+import type { CreateRecipeData, MaterialLine } from "./recipes.types";
 
 export function validateRecipeData(data: CreateRecipeData): string[] {
   const errors: string[] = [];
@@ -26,16 +26,15 @@ export function validateRecipeData(data: CreateRecipeData): string[] {
   }
 
   if (!data.ingredients || data.ingredients.length === 0) {
-    errors.push("Receita deve ter pelo menos um ingrediente");
+    errors.push("Receita deve ter pelo menos um insumo");
   }
 
   return errors;
 }
 
-export function calculateRecipeCost(ingredients: IngredientWithPrice[]): number {
-  return ingredients.reduce((total, ing) => {
-    const pricePerUnit = ing.ingredientPrice / ing.quantityPerPackage;
-    return total + pricePerUnit * ing.quantity;
+export function calculateRecipeCost(lines: MaterialLine[]): number {
+  return lines.reduce((total, line) => {
+    return total + line.materialCostPerUnit * line.quantity;
   }, 0);
 }
 

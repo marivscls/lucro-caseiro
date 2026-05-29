@@ -121,7 +121,7 @@ export function RecipeDetail({
       </View>
 
       <View style={{ gap: 8 }}>
-        <Typography variant="h3">Ingredientes</Typography>
+        <Typography variant="h3">Insumos</Typography>
         <Typography variant="caption">
           Rende: {displayRecipe.yieldQuantity} {displayRecipe.yieldUnit}
           {displayRecipe.yieldQuantity !== 1 ? "s" : ""}
@@ -137,7 +137,7 @@ export function RecipeDetail({
             }}
           >
             <Typography variant="caption" style={{ flex: 2 }}>
-              Ingrediente
+              Insumo
             </Typography>
             <Typography variant="caption" style={{ flex: 1, textAlign: "center" }}>
               Qtd
@@ -150,9 +150,9 @@ export function RecipeDetail({
           {ingredients.map(
             (
               ing: {
-                ingredientId: string;
-                ingredientName: string;
-                ingredientPrice: number;
+                materialId: string;
+                materialName: string;
+                materialCostPerUnit: number;
                 quantity: number;
                 unit: string;
                 cost: number;
@@ -170,7 +170,7 @@ export function RecipeDetail({
                 }}
               >
                 <Typography variant="body" style={{ flex: 2 }}>
-                  {ing.ingredientName}
+                  {ing.materialName}
                 </Typography>
                 <Typography
                   variant="caption"
