@@ -2,7 +2,7 @@ import { ThemeProvider, useTheme } from "@lucro-caseiro/ui";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Modal, Platform, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -12,7 +12,10 @@ import { useAuth } from "../shared/hooks/use-auth";
 import { useNotifications } from "../shared/hooks/use-notifications";
 import { setupAutoSync } from "../shared/hooks/use-offline-queue";
 import { usePaywall } from "../shared/hooks/use-paywall";
+import { usePremiumSuccess } from "../shared/hooks/use-premium-success";
 import { Paywall } from "../features/subscription/components/paywall";
+import { PremiumSuccess } from "../features/subscription/components/premium-success";
+import { useProfile } from "../features/subscription/hooks";
 import { useSubscription } from "../features/subscription/use-subscription";
 import { useStripeCheckout } from "../features/subscription/use-stripe";
 
@@ -22,12 +25,34 @@ function AppContent() {
   const { visible: paywallVisible, hide: hidePaywall } = usePaywall();
   const { subscribe, restore, loading: subscriptionLoading } = useSubscription();
   const { checkout: payWithStripe, loading: stripeLoading } = useStripeCheckout();
+  const { data: profile } = useProfile();
+  const {
+    visible: successVisible,
+    show: showPremiumSuccess,
+    hide: hidePremiumSuccess,
+  } = usePremiumSuccess();
 
   // Registers for push notifications once the user is authenticated.
   useNotifications();
 
   // Dispara notificacao local quando algum produto entra em estoque baixo.
   useLowStockNotifier();
+
+  // Comemora quando o plano vira Premium (cobre Google Play e Stripe).
+  // Guarda o plano inicial para não comemorar quem já abre o app como Premium.
+  const prevPlan = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    const plan = profile?.plan;
+    if (!plan) return;
+    if (prevPlan.current === undefined) {
+      prevPlan.current = plan;
+      return;
+    }
+    if (prevPlan.current !== "premium" && plan === "premium") {
+      showPremiumSuccess();
+    }
+    prevPlan.current = plan;
+  }, [profile?.plan, showPremiumSuccess]);
 
   useEffect(() => {
     void initialize();
@@ -57,6 +82,7 @@ function AppContent() {
     <>
       <StatusBar style="light" />
       <OfflineBanner />
+      <PremiumSuccess visible={successVisible} onClose={hidePremiumSuccess} />
       <Modal
         visible={paywallVisible}
         animationType="slide"
@@ -120,7 +146,7 @@ function AppContent() {
           name="pricing"
           options={{
             headerShown: true,
-            title: "Precificacao",
+            title: "Precificação",
             headerStyle: { backgroundColor: theme.colors.background },
             headerTintColor: theme.colors.text,
           }}
@@ -138,7 +164,7 @@ function AppContent() {
           name="labels"
           options={{
             headerShown: true,
-            title: "Rotulos",
+            title: "Rótulos",
             headerStyle: { backgroundColor: theme.colors.background },
             headerTintColor: theme.colors.text,
           }}
@@ -156,7 +182,7 @@ function AppContent() {
           name="settings"
           options={{
             headerShown: true,
-            title: "Configuracoes",
+            title: "Configurações",
             headerStyle: { backgroundColor: theme.colors.background },
             headerTintColor: theme.colors.text,
           }}

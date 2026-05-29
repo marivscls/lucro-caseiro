@@ -51,7 +51,7 @@ export function useSubscription() {
   >(null);
 
   const verifyPurchase = useCallback(
-    async (purchase: Purchase, showSuccess = false) => {
+    async (purchase: Purchase) => {
       if (!token || Platform.OS !== "android" || !isPremiumProduct(purchase.productId)) {
         return false;
       }
@@ -67,9 +67,8 @@ export function useSubscription() {
       await queryClient.invalidateQueries({ queryKey: ["subscription"] });
       await finishTransactionRef.current?.({ purchase, isConsumable: false });
 
-      if (showSuccess) {
-        Alert.alert("Parabens!", "Voce agora e Premium! Aproveite todos os recursos.");
-      }
+      // A comemoracao (tela + confete) e disparada pelo watcher global de plano
+      // no _layout, cobrindo tanto Google Play quanto Stripe.
 
       return true;
     },
@@ -86,7 +85,7 @@ export function useSubscription() {
     getAvailablePurchases,
   } = useIAP({
     onPurchaseSuccess: (purchase) => {
-      void verifyPurchase(purchase, true).finally(() => setLoading(false));
+      void verifyPurchase(purchase).finally(() => setLoading(false));
     },
     onPurchaseError: () => {
       setLoading(false);
@@ -116,12 +115,12 @@ export function useSubscription() {
   const subscribe = useCallback(
     async (period: "monthly" | "annual") => {
       if (Platform.OS !== "android") {
-        Alert.alert("Em breve", "Assinatura iOS sera disponibilizada depois.");
+        Alert.alert("Em breve", "Assinatura iOS será disponibilizada depois.");
         return;
       }
 
       if (!token) {
-        Alert.alert("Erro", "Faca login antes de assinar.");
+        Alert.alert("Erro", "Faça login antes de assinar.");
         return;
       }
 
@@ -131,8 +130,8 @@ export function useSubscription() {
 
       if (!connected || !subscription || !offerToken) {
         Alert.alert(
-          "Plano indisponivel",
-          "Nao foi possivel carregar a assinatura do Google Play. Tente novamente.",
+          "Plano indisponível",
+          "Não foi possível carregar a assinatura do Google Play. Tente novamente.",
         );
         return;
       }
@@ -151,7 +150,7 @@ export function useSubscription() {
         });
       } catch {
         setLoading(false);
-        Alert.alert("Erro", "Nao foi possivel iniciar a compra. Tente novamente.");
+        Alert.alert("Erro", "Não foi possível iniciar a compra. Tente novamente.");
       }
     },
     [connected, requestPurchase, subscriptions, token, userId],
@@ -159,12 +158,12 @@ export function useSubscription() {
 
   const restore = useCallback(async () => {
     if (Platform.OS !== "android") {
-      Alert.alert("Em breve", "Restauracao iOS sera disponibilizada depois.");
+      Alert.alert("Em breve", "Restauração iOS será disponibilizada depois.");
       return;
     }
 
     if (!token) {
-      Alert.alert("Erro", "Faca login antes de restaurar.");
+      Alert.alert("Erro", "Faça login antes de restaurar.");
       return;
     }
 
@@ -178,7 +177,7 @@ export function useSubscription() {
       if (premiumPurchases.length === 0) {
         Alert.alert(
           "Nenhuma assinatura encontrada",
-          "Nao encontramos uma assinatura ativa vinculada a esta conta.",
+          "Não encontramos uma assinatura ativa vinculada a esta conta.",
         );
         return;
       }
@@ -191,7 +190,7 @@ export function useSubscription() {
         Alert.alert("Restaurado!", "Sua assinatura Premium foi restaurada.");
       }
     } catch {
-      Alert.alert("Erro", "Nao foi possivel restaurar compras. Tente novamente.");
+      Alert.alert("Erro", "Não foi possível restaurar compras. Tente novamente.");
     } finally {
       setLoading(false);
     }
