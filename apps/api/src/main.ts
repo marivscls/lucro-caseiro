@@ -12,6 +12,9 @@ import { FinanceUseCases } from "./features/finance/finance.usecases";
 import { createGoalsRouter } from "./features/goals/goals.routes";
 import { GoalsRepoPg } from "./features/goals/goals.repo.pg";
 import { GoalsUseCases } from "./features/goals/goals.usecases";
+import { createOrdersRouter } from "./features/orders/orders.routes";
+import { OrdersRepoPg } from "./features/orders/orders.repo.pg";
+import { OrdersUseCases } from "./features/orders/orders.usecases";
 import { createLabelsRouter } from "./features/labels/labels.routes";
 import { LabelsRepoPg } from "./features/labels/labels.repo.pg";
 import { LabelsUseCases } from "./features/labels/labels.usecases";
@@ -63,6 +66,7 @@ const packagingRepo = new PackagingRepoPg(db);
 const pricingRepo = new PricingRepoPg(db);
 const subscriptionRepo = new SubscriptionRepoPg(db);
 const goalsRepo = new GoalsRepoPg(db);
+const ordersRepo = new OrdersRepoPg(db);
 const googlePlayClient = new GooglePlayClient(
   config.googlePlayPackageName,
   config.googlePlayServiceAccountJson,
@@ -85,6 +89,7 @@ const goalsUseCases = new GoalsUseCases(
   salesUseCases,
   productsUseCases,
 );
+const ordersUseCases = new OrdersUseCases(ordersRepo, financeUseCases);
 
 // Payments (Stripe)
 const stripeClient = config.stripeSecretKey ? new Stripe(config.stripeSecretKey) : null;
@@ -118,6 +123,7 @@ app.use("/api/v1/clients", createClientsRouter(clientsUseCases));
 app.use("/api/v1/sales", createSalesRouter(salesUseCases));
 app.use("/api/v1/finance", createFinanceRouter(financeUseCases));
 app.use("/api/v1/goals", createGoalsRouter(goalsUseCases));
+app.use("/api/v1/orders", createOrdersRouter(ordersUseCases));
 app.use("/api/v1/recipes", createRecipesRouter(recipesUseCases));
 app.use("/api/v1/ingredients", createIngredientsRouter(ingredientsUseCases));
 app.use("/api/v1/pricing", createPricingRouter(pricingUseCases));
