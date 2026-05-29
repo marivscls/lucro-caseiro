@@ -22,7 +22,7 @@ const BENEFITS = [
   "Relatórios completos com gráficos",
   "Exportar PDF e Excel",
   "Templates premium",
-  "Suporte prioritario",
+  "Suporte prioritário",
   "Sem anúncios",
 ];
 
@@ -160,7 +160,12 @@ export function Paywall({
             }}
           >
             <Typography variant="caption">Mensal</Typography>
-            <Typography variant="moneyLg" color={theme.colors.premium}>
+            <Typography
+              variant="moneyLg"
+              color={theme.colors.premium}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
               R$ 19,90
             </Typography>
             <Typography variant="caption">/mês</Typography>
@@ -194,7 +199,12 @@ export function Paywall({
               </Typography>
             </View>
             <Typography variant="caption">Anual</Typography>
-            <Typography variant="moneyLg" color={theme.colors.premium}>
+            <Typography
+              variant="moneyLg"
+              color={theme.colors.premium}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
               R$ 199,90
             </Typography>
             <Typography variant="caption">/ano</Typography>
