@@ -17,7 +17,7 @@ import {
   ScrollView,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { OrderCard } from "../features/orders/components/order-card";
 import { OrderForm } from "../features/orders/components/order-form";
@@ -215,6 +215,7 @@ function OrdersList({
 
 export default function AgendaScreen() {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const { data: orders, isLoading } = useOrders();
   const [showCreate, setShowCreate] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -278,7 +279,13 @@ export default function AgendaScreen() {
       {renderContent()}
 
       {/* FAB */}
-      <View style={{ position: "absolute", bottom: spacing.xl, right: spacing.xl }}>
+      <View
+        style={{
+          position: "absolute",
+          bottom: spacing.xl + insets.bottom,
+          right: spacing.xl,
+        }}
+      >
         <Button title="+ Nova encomenda" onPress={() => setShowCreate(true)} size="md" />
       </View>
 

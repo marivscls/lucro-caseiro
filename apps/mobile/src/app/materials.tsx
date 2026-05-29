@@ -9,7 +9,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { ActivityIndicator, Modal, Pressable, ScrollView, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { MaterialCard } from "../features/materials/components/material-card";
 import { MaterialForm } from "../features/materials/components/material-form";
@@ -44,6 +44,7 @@ function LowStockBanner() {
 
 export default function MaterialsScreen() {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const { data, isLoading } = useMaterials();
   const [showCreate, setShowCreate] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -94,7 +95,13 @@ export default function MaterialsScreen() {
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       {renderContent()}
 
-      <View style={{ position: "absolute", bottom: spacing.xl, right: spacing.xl }}>
+      <View
+        style={{
+          position: "absolute",
+          bottom: spacing.xl + insets.bottom,
+          right: spacing.xl,
+        }}
+      >
         <Button title="+ Novo insumo" onPress={() => setShowCreate(true)} size="md" />
       </View>
 
