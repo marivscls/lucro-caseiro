@@ -18,9 +18,19 @@ declare module "pdfkit" {
     moveTo(x: number, y: number): this;
     lineTo(x: number, y: number): this;
     stroke(): this;
+    rect(x: number, y: number, width: number, height: number): this;
+    roundedRect(
+      x: number,
+      y: number,
+      width: number,
+      height: number,
+      radius: number,
+    ): this;
+    fill(color?: string): this;
     addPage(): this;
     end(): void;
     y: number;
+    page: { width: number; height: number };
     on(event: "data", listener: (chunk: Buffer) => void): this;
     on(event: "end", listener: () => void): this;
     on(event: "error", listener: (err: Error) => void): this;
