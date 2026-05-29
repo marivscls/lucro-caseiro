@@ -8,8 +8,9 @@ import {
   radii,
 } from "@lucro-caseiro/ui";
 import React from "react";
-import { ActivityIndicator, Linking, ScrollView, View } from "react-native";
+import { ActivityIndicator, ScrollView, View } from "react-native";
 
+import { openWhatsApp, waMessages } from "../../../shared/utils/whatsapp";
 import { useSales } from "../../sales/hooks";
 import { useClient } from "../hooks";
 
@@ -25,12 +26,6 @@ function formatCurrency(value: number): string {
 function formatDate(dateStr: string): string {
   const [year, month, day] = dateStr.split("-");
   return `${day}/${month}/${year}`;
-}
-
-function openWhatsApp(phone: string) {
-  const cleaned = phone.replace(/\D/g, "");
-  const number = cleaned.startsWith("55") ? cleaned : `55${cleaned}`;
-  void Linking.openURL(`https://wa.me/${number}`);
 }
 
 function InfoRow({
@@ -173,6 +168,19 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
           </View>
         )}
       </View>
+
+      {/* Parabéns no mês do aniversário */}
+      {client.phone &&
+        client.birthday &&
+        client.birthday.slice(5, 7) ===
+          String(new Date().getMonth() + 1).padStart(2, "0") && (
+          <Button
+            title="🎉 Enviar parabéns no WhatsApp"
+            variant="secondary"
+            onPress={() => openWhatsApp(client.phone!, waMessages.birthday(client.name))}
+            style={{ borderRadius: radii.lg }}
+          />
+        )}
 
       {/* Phone display */}
       {client.phone && (

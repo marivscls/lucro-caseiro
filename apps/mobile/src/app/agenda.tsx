@@ -20,6 +20,7 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useClient } from "../features/clients/hooks";
 import { OrderCard } from "../features/orders/components/order-card";
 import { OrderForm } from "../features/orders/components/order-form";
 import {
@@ -34,6 +35,7 @@ import {
   useOrders,
   useUpdateOrder,
 } from "../features/orders/hooks";
+import { openWhatsApp, waMessages } from "../shared/utils/whatsapp";
 
 const PIPELINE: OrderStatus[] = ["pending", "in_production", "ready"];
 
@@ -63,6 +65,7 @@ function OrderDetail({
   const updateOrder = useUpdateOrder();
   const deliverOrder = useDeliverOrder();
   const deleteOrder = useDeleteOrder();
+  const { data: client } = useClient(order.clientId ?? "");
 
   function setStatus(status: OrderStatus) {
     updateOrder.mutate({ id: order.id, data: { status } });
@@ -141,6 +144,36 @@ function OrderDetail({
           ) : null}
         </View>
       </Card>
+
+      {client?.phone ? (
+        <View style={{ gap: spacing.sm }}>
+          <Typography variant="caption">WhatsApp</Typography>
+          <Button
+            title="Confirmar pedido"
+            variant="secondary"
+            onPress={() =>
+              openWhatsApp(
+                client.phone!,
+                waMessages.orderConfirm(
+                  order.clientName,
+                  order.title,
+                  order.deliveryDate,
+                ),
+              )
+            }
+          />
+          <Button
+            title="Avisar que está pronto"
+            variant="secondary"
+            onPress={() =>
+              openWhatsApp(
+                client.phone!,
+                waMessages.orderReady(order.clientName, order.title),
+              )
+            }
+          />
+        </View>
+      ) : null}
 
       {order.status !== "done" && order.status !== "cancelled" ? (
         <View style={{ gap: spacing.sm }}>
