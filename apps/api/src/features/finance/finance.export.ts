@@ -180,63 +180,110 @@ export async function generateFinanceExcel(
   workbook.creator = "Lucro Caseiro";
 
   const currencyFmt = '"R$" #,##0.00';
-  const headerFill: ExcelJS.Fill = {
+  const HEADER_BG = "FF22C55E";
+  const ZEBRA_BG = "FFF3F4F6";
+  const MUTED = "FF6B7280";
+  const INK = "FF1F2937";
+
+  const fillSolid = (argb: string): ExcelJS.Fill => ({
     type: "pattern",
     pattern: "solid",
-    fgColor: { argb: "FF22C55E" },
+    fgColor: { argb },
+  });
+  const border: Partial<ExcelJS.Borders> = {
+    top: { style: "thin", color: { argb: "FFE5E7EB" } },
+    left: { style: "thin", color: { argb: "FFE5E7EB" } },
+    bottom: { style: "thin", color: { argb: "FFE5E7EB" } },
+    right: { style: "thin", color: { argb: "FFE5E7EB" } },
   };
 
-  // Sheet 1: Lançamentos
-  const entriesSheet = workbook.addWorksheet("Lançamentos", {
-    views: [{ state: "frozen", ySplit: 1 }],
-  });
-  entriesSheet.columns = [
-    { header: "Data", key: "date", width: 14 },
-    { header: "Tipo", key: "type", width: 12 },
-    { header: "Categoria", key: "category", width: 18 },
-    { header: "Descrição", key: "description", width: 38 },
-    { header: "Valor", key: "amount", width: 16 },
+  // ---- Sheet 1: Lançamentos ----
+  const sheet = workbook.addWorksheet("Lançamentos");
+  sheet.columns = [
+    { key: "date", width: 14 },
+    { key: "type", width: 12 },
+    { key: "category", width: 18 },
+    { key: "description", width: 42 },
+    { key: "amount", width: 16 },
   ];
 
-  const headerRow = entriesSheet.getRow(1);
-  headerRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
-  headerRow.fill = headerFill;
-  headerRow.alignment = { vertical: "middle" };
+  sheet.mergeCells("A1:E1");
+  const title = sheet.getCell("A1");
+  title.value = "Relatório Financeiro";
+  title.font = { bold: true, size: 16, color: { argb: INK } };
+  title.alignment = { vertical: "middle" };
+  sheet.getRow(1).height = 26;
 
-  for (const entry of entries) {
-    const row = entriesSheet.addRow({
-      date: formatDate(entry.date),
-      type: translateType(entry.type),
-      category: translateCategory(entry.category),
-      description: entry.description,
-      amount: entry.type === "income" ? entry.amount : -entry.amount,
-    });
+  sheet.mergeCells("A2:E2");
+  const subtitle = sheet.getCell("A2");
+  subtitle.value = `Período: ${period}`;
+  subtitle.font = { color: { argb: MUTED } };
 
-    const amountCell = row.getCell("amount");
-    amountCell.numFmt = currencyFmt;
-    amountCell.font = {
-      color: { argb: entry.type === "income" ? "FF16A34A" : "FFDC2626" },
-    };
-  }
+  const HEADER_ROW = 4;
+  const headerLabels = ["Data", "Tipo", "Categoria", "Descrição", "Valor"];
+  const header = sheet.getRow(HEADER_ROW);
+  header.height = 20;
+  headerLabels.forEach((label, i) => {
+    const cell = header.getCell(i + 1);
+    cell.value = label;
+    cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    cell.fill = fillSolid(HEADER_BG);
+    cell.alignment = { vertical: "middle" };
+    cell.border = border;
+  });
+  sheet.views = [{ state: "frozen", ySplit: HEADER_ROW }];
 
   if (entries.length === 0) {
-    entriesSheet.addRow({ description: "Nenhum lançamento neste período." });
+    const r = HEADER_ROW + 1;
+    sheet.mergeCells(`A${r}:E${r}`);
+    const cell = sheet.getCell(`A${r}`);
+    cell.value = "Nenhum lançamento neste período.";
+    cell.alignment = { horizontal: "center" };
+    cell.font = { italic: true, color: { argb: MUTED } };
+  } else {
+    entries.forEach((entry, i) => {
+      const income = entry.type === "income";
+      const row = sheet.addRow({
+        date: formatDate(entry.date),
+        type: translateType(entry.type),
+        category: translateCategory(entry.category),
+        description: entry.description,
+        amount: income ? entry.amount : -entry.amount,
+      });
+
+      row.eachCell((cell) => {
+        cell.border = border;
+        if (i % 2 === 1) cell.fill = fillSolid(ZEBRA_BG);
+      });
+      row.getCell("date").alignment = { horizontal: "center" };
+      row.getCell("type").alignment = { horizontal: "center" };
+      const amountCell = row.getCell("amount");
+      amountCell.numFmt = currencyFmt;
+      amountCell.alignment = { horizontal: "right" };
+      amountCell.font = { color: { argb: income ? "FF16A34A" : "FFDC2626" } };
+    });
   }
 
-  // Sheet 2: Resumo
+  // ---- Sheet 2: Resumo ----
   const summarySheet = workbook.addWorksheet("Resumo");
   summarySheet.columns = [
-    { header: "Descrição", key: "label", width: 26 },
-    { header: "Valor", key: "value", width: 20 },
+    { key: "label", width: 26 },
+    { key: "value", width: 20 },
   ];
 
-  const summaryHeader = summarySheet.getRow(1);
-  summaryHeader.font = { bold: true, color: { argb: "FFFFFFFF" } };
-  summaryHeader.fill = headerFill;
+  summarySheet.mergeCells("A1:B1");
+  const sTitle = summarySheet.getCell("A1");
+  sTitle.value = "Resumo do mês";
+  sTitle.font = { bold: true, size: 16, color: { argb: INK } };
+  sTitle.alignment = { vertical: "middle" };
+  summarySheet.getRow(1).height = 26;
 
-  summarySheet.addRow({ label: "Período", value: period });
+  summarySheet.mergeCells("A2:B2");
+  const sSub = summarySheet.getCell("A2");
+  sSub.value = `Período: ${period}`;
+  sSub.font = { color: { argb: MUTED } };
 
-  const rows: { label: string; value: number; argb: string; bold?: boolean }[] = [
+  const summaryRows: { label: string; value: number; argb: string; bold?: boolean }[] = [
     { label: "Receita total", value: summary.totalIncome, argb: "FF16A34A" },
     { label: "Despesas total", value: summary.totalExpenses, argb: "FFDC2626" },
     {
@@ -246,12 +293,19 @@ export async function generateFinanceExcel(
       bold: true,
     },
   ];
-  for (const r of rows) {
-    const row = summarySheet.addRow({ label: r.label, value: r.value });
-    const valueCell = row.getCell("value");
+  summaryRows.forEach((r, i) => {
+    const row = summarySheet.getRow(HEADER_ROW + i);
+    const labelCell = row.getCell(1);
+    labelCell.value = r.label;
+    labelCell.font = { bold: r.bold ?? false, color: { argb: INK } };
+    labelCell.border = border;
+    const valueCell = row.getCell(2);
+    valueCell.value = r.value;
     valueCell.numFmt = currencyFmt;
+    valueCell.alignment = { horizontal: "right" };
     valueCell.font = { bold: r.bold ?? false, color: { argb: r.argb } };
-  }
+    valueCell.border = border;
+  });
 
   const buffer = await workbook.xlsx.writeBuffer();
   return Buffer.from(buffer);
