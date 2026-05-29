@@ -15,6 +15,7 @@ export interface IProductsRepo {
   delete(userId: string, id: string): Promise<boolean>;
   countByUser(userId: string): Promise<number>;
   decrementStock(userId: string, productId: string, quantity: number): Promise<void>;
+  averageActivePrice(userId: string): Promise<number | null>;
 }
 
 export interface CreateProductData {

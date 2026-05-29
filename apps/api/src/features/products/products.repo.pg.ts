@@ -1,6 +1,6 @@
 import type { Product } from "@lucro-caseiro/contracts";
 import { products } from "@lucro-caseiro/database/schema";
-import { and, count, eq, ilike, sql } from "drizzle-orm";
+import { and, avg, count, eq, ilike, sql } from "drizzle-orm";
 import type { AppDatabase } from "../../shared/db";
 import type { CreateProductData, FindAllOpts, IProductsRepo } from "./products.types";
 
@@ -131,6 +131,15 @@ export class ProductsRepoPg implements IProductsRepo {
       .where(and(eq(products.userId, userId), eq(products.isActive, true)));
 
     return result?.value ?? 0;
+  }
+
+  async averageActivePrice(userId: string): Promise<number | null> {
+    const [result] = await this.db
+      .select({ value: avg(products.salePrice) })
+      .from(products)
+      .where(and(eq(products.userId, userId), eq(products.isActive, true)));
+
+    return result?.value != null ? Number(result.value) : null;
   }
 
   private toProduct(row: typeof products.$inferSelect): Product {

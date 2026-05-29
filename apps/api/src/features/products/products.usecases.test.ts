@@ -37,6 +37,7 @@ function makeRepo(overrides: Partial<IProductsRepo> = {}): IProductsRepo {
     delete: () => Promise.resolve(true),
     countByUser: () => Promise.resolve(1),
     decrementStock: () => Promise.resolve(),
+    averageActivePrice: () => Promise.resolve(10),
     ...overrides,
   };
 }

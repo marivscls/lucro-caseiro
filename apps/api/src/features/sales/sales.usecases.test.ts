@@ -81,6 +81,7 @@ function makeProductsRepo(overrides: Partial<IProductsRepo> = {}): IProductsRepo
     delete: vi.fn(() => Promise.resolve(true)),
     countByUser: vi.fn(() => Promise.resolve(1)),
     decrementStock: vi.fn(() => Promise.resolve(undefined)),
+    averageActivePrice: vi.fn(() => Promise.resolve(10)),
     ...overrides,
   };
 }

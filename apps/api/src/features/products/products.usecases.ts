@@ -72,4 +72,9 @@ export class ProductsUseCases {
       throw new NotFoundError("Produto nao encontrado");
     }
   }
+
+  /** Preco medio de venda dos produtos ativos (null se nao houver produtos). */
+  async averageActivePrice(userId: string): Promise<number | null> {
+    return this.repo.averageActivePrice(userId);
+  }
 }
