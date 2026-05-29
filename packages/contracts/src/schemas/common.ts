@@ -28,6 +28,15 @@ export type PaymentMethod = z.infer<typeof PaymentMethod>;
 export const SaleStatus = z.enum(["pending", "paid", "cancelled"]);
 export type SaleStatus = z.infer<typeof SaleStatus>;
 
+export const OrderStatus = z.enum([
+  "pending",
+  "in_production",
+  "ready",
+  "done",
+  "cancelled",
+]);
+export type OrderStatus = z.infer<typeof OrderStatus>;
+
 export const FinanceEntryType = z.enum(["income", "expense"]);
 export type FinanceEntryType = z.infer<typeof FinanceEntryType>;
 
