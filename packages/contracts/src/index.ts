@@ -11,3 +11,4 @@ export * from "./schemas/label";
 export * from "./schemas/subscription";
 export * from "./schemas/goal";
 export * from "./schemas/order";
+export * from "./schemas/material";
