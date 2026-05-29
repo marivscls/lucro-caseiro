@@ -17,6 +17,57 @@ function getAuthRedirectUrl(): string {
   }
 }
 
+// Extrai tokens (implicit) ou code (PKCE) de uma URL de callback OAuth.
+function getAuthParamsFromUrl(rawUrl: string): {
+  code: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
+} {
+  const url = new URL(rawUrl);
+  const hash = url.hash.startsWith("#") ? url.hash.slice(1) : url.hash;
+  const fromHash = new URLSearchParams(hash);
+  const fromQuery = url.searchParams;
+  const pick = (key: string) => fromQuery.get(key) ?? fromHash.get(key);
+  return {
+    code: pick("code"),
+    accessToken: pick("access_token"),
+    refreshToken: pick("refresh_token"),
+  };
+}
+
+/**
+ * Aplica a sessao a partir da URL de callback do OAuth. Suporta tanto PKCE
+ * (`?code=`) quanto implicit (`#access_token=`). Idempotente: se ja existe
+ * sessao, ignora (evita "code already used" quando o callback chega 2x).
+ */
+async function applySessionFromUrl(rawUrl: string): Promise<boolean> {
+  let params: ReturnType<typeof getAuthParamsFromUrl>;
+  try {
+    params = getAuthParamsFromUrl(rawUrl);
+  } catch {
+    return false;
+  }
+
+  const { code, accessToken, refreshToken } = params;
+  if (!code && !accessToken) return false;
+
+  const { data: existing } = await supabase.auth.getSession();
+  if (existing.session) return true;
+
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    return !error;
+  }
+  if (accessToken && refreshToken) {
+    const { error } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
+    return !error;
+  }
+  return false;
+}
+
 interface AuthState {
   token: string | null;
   userId: string | null;
@@ -94,6 +145,16 @@ export const useAuth = create<AuthState>((set) => ({
       supabase.auth.onAuthStateChange((_event, session) => {
         setSession(set, session);
       });
+
+      // Captura o callback do OAuth mesmo quando o Android reabre o app pelo
+      // deep link (lucrocaseiro://) em vez de retornar pro browser in-app.
+      const handleUrl = (url: string | null) => {
+        if (url && (url.includes("code=") || url.includes("access_token="))) {
+          void applySessionFromUrl(url);
+        }
+      };
+      handleUrl(await Linking.getInitialURL());
+      Linking.addEventListener("url", ({ url }) => handleUrl(url));
     } catch {
       set({ isLoading: false });
     }
@@ -171,32 +232,17 @@ export const useAuth = create<AuthState>((set) => ({
       const result = await WebBrowser.openAuthSessionAsync(data.url, authRedirectUrl);
 
       if (result.type === "success" && result.url) {
-        const url = new URL(result.url);
-
-        // Handle fragment-based response (#access_token=...&refresh_token=...)
-        const params = new URLSearchParams(
-          url.hash ? url.hash.substring(1) : url.search.substring(1),
-        );
-
-        const accessToken = params.get("access_token");
-        const refreshToken = params.get("refresh_token");
-
-        if (accessToken && refreshToken) {
-          const { error: sessionError } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-
-          if (sessionError) {
-            return { error: "Erro ao finalizar login com Google." };
-          }
-
-          return {};
-        }
+        const ok = await applySessionFromUrl(result.url);
+        return ok ? {} : { error: "Erro ao finalizar login com Google." };
       }
 
+      // No Android o redirect pode reabrir o app pelo deep link em vez de voltar
+      // aqui (result vem "dismiss"). Damos um tempo pro listener aplicar a sessao
+      // antes de tratar como cancelamento.
       if (String(result.type) === "cancel" || String(result.type) === "dismiss") {
-        return { error: "Login cancelado." };
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+        const { data: after } = await supabase.auth.getSession();
+        return after.session ? {} : { error: "Login cancelado." };
       }
 
       return { error: "Não foi possível completar o login com Google." };
