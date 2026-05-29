@@ -156,6 +156,7 @@ export function Paywall({
                 selectedPlan === "monthly" ? theme.colors.premium : theme.colors.surface,
               backgroundColor: theme.colors.surfaceElevated,
               alignItems: "center",
+              justifyContent: "center",
               gap: 4,
             }}
           >
@@ -182,6 +183,7 @@ export function Paywall({
                 selectedPlan === "annual" ? theme.colors.premium : theme.colors.surface,
               backgroundColor: theme.colors.surfaceElevated,
               alignItems: "center",
+              justifyContent: "center",
               gap: 4,
             }}
           >
