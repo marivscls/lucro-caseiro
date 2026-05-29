@@ -48,6 +48,12 @@ coverage/
 *.mobileprovision
 upload_certificate*
 
+# google cloud / service account keys — never commit
+lucro-caseiro-*.json
+*service-account*.json
+*serviceaccount*.json
+*-gcp-key*.json
+
 # tooling cache
 *.tsbuildinfo
 
