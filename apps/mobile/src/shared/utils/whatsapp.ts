@@ -13,6 +13,14 @@ export function openWhatsApp(phone: string, message?: string): void {
   void Linking.openURL(`https://wa.me/${number}${suffix}`);
 }
 
+/**
+ * Abre o WhatsApp com a mensagem pronta, mas sem destinatário — o usuário
+ * escolhe o contato. Útil quando não há telefone salvo (ex: venda avulsa).
+ */
+export function openWhatsAppShare(message: string): void {
+  void Linking.openURL(`https://wa.me/?text=${encodeURIComponent(message)}`);
+}
+
 const firstName = (name: string) => name.trim().split(" ")[0] ?? name;
 
 const greeting = (name: string | null): string =>

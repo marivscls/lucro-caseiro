@@ -26,7 +26,8 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 | `apps/mobile/src/features/sales/api.ts`                     | Funcoes HTTP (fetchSales, fetchSale, fetchTodaySummary, createSale, updateSaleStatus) |
 | `apps/mobile/src/features/sales/hooks.ts`                   | React Query hooks                                                                     |
 | `apps/mobile/src/features/sales/components/sale-card.tsx`   | Card de venda na listagem                                                             |
-| `apps/mobile/src/features/sales/components/sale-detail.tsx` | Detalhe da venda com acoes de status                                                  |
+| `apps/mobile/src/features/sales/components/sale-detail.tsx` | Detalhe da venda com acoes de status + enviar recibo                                  |
+| `apps/mobile/src/features/sales/receipt.ts`                 | `buildReceiptMessage(sale)` — texto do recibo p/ WhatsApp                             |
 | `apps/mobile/src/app/tabs/new-sale.tsx`                     | Screen do wizard de nova venda (tab)                                                  |
 
 ## Components
@@ -38,10 +39,11 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 
 ### `SaleDetail`
 
-- **Props:** `{ sale: Sale; onStatusUpdated?: () => void }`
+- **Props:** `{ sale: Sale; clientPhone?: string | null; onStatusUpdated?: () => void; onEditPress?: () => void }`
 - Exibe status com Badge, dados do cliente, forma de pagamento, data formatada, observacoes.
 - Lista de itens com quantidade x preco unitario e subtotal.
 - Card de total com fundo verde.
+- Botao "Enviar recibo no WhatsApp" (`buildReceiptMessage` + `openWhatsApp`/`openWhatsAppShare`): se `clientPhone` vai direto pro contato, senao abre o seletor do WhatsApp. A tela `tabs/sales.tsx` passa o telefone via `useClient`.
 - Botao "Marcar como pago" (se pending) e "Cancelar venda" (se nao cancelled), ambos com confirmacao Alert.
 
 ### `NewSaleScreen` (tela/wizard, definido no screen)
@@ -121,3 +123,4 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 - Status da venda: paid (default se nao fiado), pending (se fiado), cancelled.
 - Formas de pagamento: pix, cash, card, credit, transfer.
 - Resumo do dia usa auto-refresh para manter Home atualizada.
+- 2026-05-30: recibo de venda no WhatsApp (`receipt.ts` + botao no `SaleDetail`). Vai direto ao contato se o cliente tiver telefone, senao abre o seletor (`openWhatsAppShare`).

@@ -25,6 +25,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { SaleCard } from "../../features/sales/components/sale-card";
 import { SaleDetail } from "../../features/sales/components/sale-detail";
 import { useSale, useSales, useUpdateSale } from "../../features/sales/hooks";
+import { useClient } from "../../features/clients/hooks";
 
 type FilterTab = "all" | "paid" | "pending" | "cancelled";
 
@@ -157,6 +158,7 @@ export default function SalesScreen() {
   const statusParam = activeFilter === "all" ? undefined : activeFilter;
   const { data, isLoading, error, refetch } = useSales({ status: statusParam });
   const { data: selectedSale } = useSale(selectedSaleId ?? "");
+  const { data: selectedClient } = useClient(selectedSale?.clientId ?? "");
   const updateSale = useUpdateSale();
 
   function handleStatusUpdated() {
@@ -299,6 +301,7 @@ export default function SalesScreen() {
           {selectedSale && (
             <SaleDetail
               sale={selectedSale}
+              clientPhone={selectedClient?.phone}
               onStatusUpdated={handleStatusUpdated}
               onEditPress={handleEditPress}
             />

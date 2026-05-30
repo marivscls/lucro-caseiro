@@ -1,12 +1,16 @@
 import type { Sale } from "@lucro-caseiro/contracts";
 import { Badge, Button, Card, Typography, useTheme } from "@lucro-caseiro/ui";
+import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Alert, ScrollView, View } from "react-native";
 
+import { openWhatsApp, openWhatsAppShare } from "../../../shared/utils/whatsapp";
 import { useUpdateSaleStatus } from "../hooks";
+import { buildReceiptMessage } from "../receipt";
 
 interface SaleDetailProps {
   readonly sale: Sale;
+  readonly clientPhone?: string | null;
   readonly onStatusUpdated?: () => void;
   readonly onEditPress?: () => void;
 }
@@ -43,9 +47,20 @@ const PAYMENT_LABELS: Record<string, string> = {
   transfer: "Transferência",
 };
 
-export function SaleDetail({ sale, onStatusUpdated, onEditPress }: SaleDetailProps) {
+export function SaleDetail({
+  sale,
+  clientPhone,
+  onStatusUpdated,
+  onEditPress,
+}: SaleDetailProps) {
   const { theme } = useTheme();
   const updateStatus = useUpdateSaleStatus();
+
+  function handleSendReceipt() {
+    const message = buildReceiptMessage(sale);
+    if (clientPhone) openWhatsApp(clientPhone, message);
+    else openWhatsAppShare(message);
+  }
 
   const status = STATUS_MAP[sale.status] ?? {
     label: sale.status,
@@ -169,6 +184,15 @@ export function SaleDetail({ sale, onStatusUpdated, onEditPress }: SaleDetailPro
       </Card>
 
       <View style={{ gap: 12, marginTop: 8 }}>
+        {sale.status !== "cancelled" && (
+          <Button
+            title="Enviar recibo no WhatsApp"
+            variant="success"
+            size="lg"
+            icon={<Ionicons name="logo-whatsapp" size={20} color="#FFFFFF" />}
+            onPress={handleSendReceipt}
+          />
+        )}
         {sale.status !== "cancelled" && onEditPress && (
           <Button
             title="Editar venda"
