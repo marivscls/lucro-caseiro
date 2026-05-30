@@ -26,6 +26,7 @@ import { CreateLabelForm } from "../features/labels/components/create-label-form
 import { LabelPreview } from "../features/labels/components/label-preview";
 import { TemplatePicker } from "../features/labels/components/template-picker";
 import { exportLabelPdf } from "../features/labels/label-export";
+import { normalizeLink } from "../features/labels/qr";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
 import { uploadLabelLogo } from "../shared/utils/upload-image";
 import { Ionicons } from "@expo/vector-icons";
@@ -57,15 +58,17 @@ function LabelDetailModal({
   const [exporting, setExporting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [logoRemoved, setLogoRemoved] = useState(false);
+  const [qrLink, setQrLink] = useState("");
   const { imageUri: newLogo, showPicker, clear: clearPickedLogo } = useImagePicker();
 
   // Logo exibido na edição: novo escolhido > existente (a menos que removido).
   const editingLogo = newLogo ?? (logoRemoved ? null : (label?.logoUrl ?? null));
+  const editingQrUrl = normalizeLink(qrLink);
 
   async function handleExport(l: Label) {
     setExporting(true);
     try {
-      await exportLabelPdf(l.data, l.templateId, l.logoUrl);
+      await exportLabelPdf(l.data, l.templateId, l.logoUrl, l.qrCodeUrl);
     } catch {
       Alert.alert("Erro", "Não foi possível gerar o rótulo. Tente novamente.");
     } finally {
@@ -78,6 +81,7 @@ function LabelDetailModal({
     setTemplateId(l.templateId);
     setLabelData(l.data);
     setLogoRemoved(false);
+    setQrLink(l.qrCodeUrl ?? "");
     clearPickedLogo();
     setEditing(true);
   }
@@ -123,6 +127,7 @@ function LabelDetailModal({
           name: name.trim(),
           templateId,
           data: labelData,
+          qrCodeUrl: editingQrUrl ?? null,
           ...(logoUrl !== undefined ? { logoUrl } : {}),
         },
       });
@@ -230,6 +235,14 @@ function LabelDetailModal({
               onChangeText={(v) => updateField("producerPhone", v)}
               keyboardType="phone-pad"
             />
+            <Input
+              label="Link do QR Code (opcional)"
+              placeholder="Seu Instagram, cardápio ou WhatsApp"
+              value={qrLink}
+              onChangeText={setQrLink}
+              autoCapitalize="none"
+              keyboardType="url"
+            />
             <View>
               <Typography variant="caption" style={{ marginBottom: spacing.sm }}>
                 Logo do negócio (opcional)
@@ -275,6 +288,7 @@ function LabelDetailModal({
               data={labelData}
               templateId={templateId}
               logoUrl={editingLogo}
+              qrUrl={editingQrUrl}
             />
             <Button
               title={uploading ? "Enviando logo..." : "Salvar"}
@@ -303,6 +317,7 @@ function LabelDetailModal({
               data={label.data}
               templateId={label.templateId}
               logoUrl={label.logoUrl}
+              qrUrl={label.qrCodeUrl}
               scale={1.2}
             />
             <View style={{ gap: spacing.md }}>

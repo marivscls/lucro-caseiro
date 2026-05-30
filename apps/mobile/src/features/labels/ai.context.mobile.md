@@ -9,7 +9,7 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 ## Non-goals
 
 - Nao gerencia produtos (feature `products`).
-- Nao gera/edita QR code (campo `qrCodeUrl` previsto no contrato mas sem UI).
+- Nao hospeda o QR como imagem: `qrCodeUrl` guarda o link de destino; o QR e gerado on the fly (SVG) no preview e no PDF.
 
 ## Boundaries & Ownership
 
@@ -26,6 +26,7 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 | `apps/mobile/src/features/labels/components/label-preview.tsx`     | Componente de pre-visualizacao do rotulo                                                      |
 | `apps/mobile/src/features/labels/components/template-picker.tsx`   | Seletor horizontal de templates                                                               |
 | `apps/mobile/src/features/labels/label-export.ts`                  | Gera HTML do rotulo -> PDF (expo-print) e abre share/print (expo-sharing)                     |
+| `apps/mobile/src/features/labels/qr.ts`                            | `normalizeLink` (texto -> URL) e `buildQrSvg` (QR como SVG via qrcode-generator, JS puro)     |
 | `apps/mobile/src/app/labels.tsx`                                   | Screen (rota `/labels`)                                                                       |
 
 ## Components
@@ -37,13 +38,14 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 - Converte datas DD/MM/AAAA para ISO antes de enviar.
 - Inclui preview ao vivo via `LabelPreview`.
 - Upload de logo opcional (galeria/camera via `useImagePicker`); sobe pro storage com `uploadLabelLogo` no submit e envia `logoUrl` no `createLabel`. Se o upload falhar, salva sem o logo.
-- Botao "Baixar / Compartilhar" gera PDF do rotulo a partir dos dados atuais (sem precisar salvar) via `exportLabelPdf`, incluindo o logo selecionado.
+- Campo "Link do QR Code" opcional: `normalizeLink` converte o texto em URL e envia em `qrCodeUrl`; o QR aparece no preview e no PDF.
+- Botao "Baixar / Compartilhar" gera PDF do rotulo a partir dos dados atuais (sem precisar salvar) via `exportLabelPdf`, incluindo logo e QR.
 
 ### `LabelPreview`
 
-- **Props:** `{ data: LabelData; templateId: string; logoUrl?: string | null; scale?: number }`
-- Exporta `TEMPLATE_STYLES` e o tipo `TemplateStyle` (reaproveitados pelo HTML do PDF em `label-export.ts`).
-- Renderiza preview visual do rotulo com estilos baseados no template selecionado. Mostra o logo (se `logoUrl`) no topo.
+- **Props:** `{ data: LabelData; templateId: string; logoUrl?: string | null; qrUrl?: string | null; scale?: number }`
+- Exporta `TEMPLATE_STYLES` (reaproveitado pelo HTML do PDF em `label-export.ts`).
+- Renderiza preview visual do rotulo com estilos baseados no template selecionado. Mostra o logo (se `logoUrl`) no topo e o QR (se `qrUrl`, via `buildQrSvg` + `react-native-svg`) no rodape.
 - 5 templates: classico, moderno, minimalista, artesanal, gourmet (cada um com cores bg/accent/border proprias).
 - Largura fixa 280px \* scale.
 
@@ -56,15 +58,20 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 
 ## Utils
 
-### `exportLabelPdf(data, templateId, logoUrl?)`
+### `exportLabelPdf(data, templateId, logoUrl?, qrUrl?)`
 
-- Monta HTML do rotulo reaproveitando `TEMPLATE_STYLES` (exportado de `LabelPreview`) e gera um PDF com `expo-print` (`printToFileAsync`). Inclui o logo (`<img>`) quando `logoUrl` informado.
+- Monta HTML do rotulo reaproveitando `TEMPLATE_STYLES` (exportado de `LabelPreview`) e gera um PDF com `expo-print` (`printToFileAsync`). Inclui o logo (`<img>`) e o QR (SVG inline via `buildQrSvg`) quando informados.
 - Abre a folha de compartilhamento do sistema via `expo-sharing` (salvar em Arquivos, WhatsApp, imprimir). Fallback: `Print.printAsync` (dialogo nativo com "Salvar como PDF") quando sharing indisponivel.
 - Usado no `CreateLabelForm` (dados atuais + logo local, sem salvar) e na visualizacao de rotulo salvo em `labels.tsx` (logo via URL publica).
 
 ### `uploadLabelLogo(localUri)` (shared/utils/upload-image)
 
 - Sobe a imagem local pro bucket `product-photos` do Supabase Storage (path `${userId}/logo-${timestamp}.{ext}`) e devolve a URL publica. Mesma infra de `uploadProductImage` (bucket unico, escopado por usuario).
+
+### `normalizeLink(input)` e `buildQrSvg(text, color?)` (features/labels/qr.ts)
+
+- `normalizeLink`: trim; vazio -> undefined; sem esquema -> prefixa `https://`. Usado para montar o `qrCodeUrl`.
+- `buildQrSvg`: gera o QR como string SVG (modulos escuros na `color` do template sobre fundo branco, quiet zone 2) com `qrcode-generator` (JS puro, sem Buffer). Mesmo SVG no preview (`react-native-svg`) e no PDF (inline no HTML).
 
 ## Hooks
 
@@ -114,6 +121,8 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 - [ ] `LabelPreview` aplica estilo correto por template
 - [ ] `TemplatePicker` marca template selecionado
 - [ ] Conversao de data DD/MM/AAAA para ISO funciona
+- [x] `normalizeLink` prefixa https quando falta esquema e retorna undefined p/ vazio
+- [x] `buildQrSvg` gera SVG com path dos modulos na cor do template
 
 ## Examples
 
@@ -128,3 +137,4 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 - 2026-05-30: adicionada exportacao de rotulo como PDF (expo-print + expo-sharing). `TEMPLATE_STYLES` agora exportado de `LabelPreview` para o HTML do PDF bater com o preview. Decisao por PDF (qualidade de impressao) em vez de imagem, pois rotulo e impresso/colado no produto.
 - 2026-05-30: upload de logo no fluxo de criacao (campo `logoUrl` ja existia no contrato/DB). Reaproveita bucket `product-photos` (path com prefixo `logo-`) — sem migration nova.
 - 2026-05-30: edicao de logo em rotulo salvo (`LabelDetailModal` em `labels.tsx`): trocar (upload do novo) ou remover. Remover envia `logoUrl: null` (UpdateLabelDto passou a aceitar nullable). Omitir `logoUrl` mantem o atual; upload com falha mantem o logo anterior.
+- 2026-05-30: QR code no rotulo. `qrCodeUrl` guarda o link de destino (Instagram/cardapio/WhatsApp); o QR e gerado como SVG (offline) via `qrcode-generator` e renderizado no preview (`react-native-svg`) e no PDF. Edicao envia `qrCodeUrl: normalizeLink(qrLink) ?? null` (vazio limpa). Deps novas: `react-native-svg`, `qrcode-generator`.

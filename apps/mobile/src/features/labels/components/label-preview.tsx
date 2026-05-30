@@ -2,15 +2,19 @@ import type { LabelData } from "@lucro-caseiro/contracts";
 import { Card, Typography } from "@lucro-caseiro/ui";
 import React from "react";
 import { Image, View } from "react-native";
+import { SvgXml } from "react-native-svg";
+
+import { buildQrSvg } from "../qr";
 
 interface LabelPreviewProps {
   data: LabelData;
   templateId: string;
   logoUrl?: string | null;
+  qrUrl?: string | null;
   scale?: number;
 }
 
-export type TemplateStyle = {
+type TemplateStyle = {
   bg: string;
   accent: string;
   border: string;
@@ -34,9 +38,11 @@ export function LabelPreview({
   data,
   templateId,
   logoUrl,
+  qrUrl,
   scale = 1,
 }: Readonly<LabelPreviewProps>) {
   const style = TEMPLATE_STYLES[templateId] ?? TEMPLATE_STYLES.classico;
+  const qrSvg = qrUrl ? buildQrSvg(qrUrl, style.accent) : null;
 
   return (
     <Card
@@ -165,6 +171,12 @@ export function LabelPreview({
               {data.producerPhone}
             </Typography>
           )}
+        </View>
+      )}
+
+      {qrSvg && (
+        <View style={{ alignItems: "center", marginTop: 4 }}>
+          <SvgXml xml={qrSvg} width={64 * scale} height={64 * scale} />
         </View>
       )}
     </Card>

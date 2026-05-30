@@ -7,6 +7,7 @@ import { Alert, Image, Pressable, ScrollView, View } from "react-native";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { uploadLabelLogo } from "../../../shared/utils/upload-image";
 import { exportLabelPdf } from "../label-export";
+import { normalizeLink } from "../qr";
 import { useCreateLabel } from "../hooks";
 import { LabelPreview } from "./label-preview";
 import { TemplatePicker } from "./template-picker";
@@ -28,8 +29,10 @@ export function CreateLabelForm({
   });
   const [exporting, setExporting] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [qrLink, setQrLink] = useState("");
   const { imageUri: logoUri, showPicker, clear: clearLogo } = useImagePicker();
 
+  const qrUrl = normalizeLink(qrLink);
   const createLabel = useCreateLabel();
 
   function updateField<K extends keyof LabelData>(key: K, value: LabelData[K]) {
@@ -78,6 +81,7 @@ export function CreateLabelForm({
         templateId,
         productId,
         logoUrl,
+        qrCodeUrl: qrUrl,
         data: {
           ...labelData,
           manufacturingDate: toIsoDate(labelData.manufacturingDate ?? ""),
@@ -98,7 +102,7 @@ export function CreateLabelForm({
     }
     setExporting(true);
     try {
-      await exportLabelPdf(labelData, templateId, logoUri);
+      await exportLabelPdf(labelData, templateId, logoUri, qrUrl);
     } catch {
       Alert.alert("Erro", "Não foi possível gerar o rótulo. Tente novamente.");
     } finally {
@@ -207,6 +211,15 @@ export function CreateLabelForm({
           onChangeText={(v) => updateField("producerPhone", v)}
           keyboardType="phone-pad"
         />
+
+        <Input
+          label="Link do QR Code (opcional)"
+          placeholder="Seu Instagram, cardápio ou WhatsApp"
+          value={qrLink}
+          onChangeText={setQrLink}
+          autoCapitalize="none"
+          keyboardType="url"
+        />
       </View>
 
       <View style={{ gap: 12 }}>
@@ -215,6 +228,7 @@ export function CreateLabelForm({
           data={labelData}
           templateId={templateId}
           logoUrl={logoUri}
+          qrUrl={qrUrl}
           scale={1.1}
         />
       </View>

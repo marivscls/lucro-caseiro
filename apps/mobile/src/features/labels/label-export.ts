@@ -3,6 +3,7 @@ import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 
 import { TEMPLATE_STYLES } from "./components/label-preview";
+import { buildQrSvg } from "./qr";
 
 function escapeHtml(value: string): string {
   return value
@@ -27,10 +28,12 @@ function buildLabelHtml(
   data: LabelData,
   templateId: string,
   logoUrl?: string | null,
+  qrUrl?: string | null,
 ): string {
   const style = TEMPLATE_STYLES[templateId] ?? TEMPLATE_STYLES.classico;
 
   const logo = logoUrl ? `<img class="logo" src="${escapeHtml(logoUrl)}" />` : "";
+  const qr = qrUrl ? `<div class="qr">${buildQrSvg(qrUrl, style.accent)}</div>` : "";
 
   let ingredients = "";
   if (data.ingredients?.trim()) {
@@ -111,6 +114,14 @@ function buildLabelHtml(
       font-size: 13px;
     }
     .producer .phone { font-size: 12px; }
+    .qr {
+      margin-top: 12px;
+      text-align: center;
+    }
+    .qr svg {
+      width: 96px;
+      height: 96px;
+    }
   </style>
 </head>
 <body>
@@ -120,6 +131,7 @@ function buildLabelHtml(
     ${ingredients}
     ${dates}
     ${producer}
+    ${qr}
   </div>
 </body>
 </html>`;
@@ -133,8 +145,9 @@ export async function exportLabelPdf(
   data: LabelData,
   templateId: string,
   logoUrl?: string | null,
+  qrUrl?: string | null,
 ): Promise<void> {
-  const html = buildLabelHtml(data, templateId, logoUrl);
+  const html = buildLabelHtml(data, templateId, logoUrl, qrUrl);
   const { uri } = await Print.printToFileAsync({ html });
 
   if (await Sharing.isAvailableAsync()) {
