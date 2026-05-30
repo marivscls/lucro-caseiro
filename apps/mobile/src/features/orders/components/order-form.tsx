@@ -3,6 +3,7 @@ import { Button, Input, Typography, useTheme, spacing, radii } from "@lucro-case
 import React, { useState } from "react";
 import { Alert, Pressable, ScrollView, View } from "react-native";
 
+import { brToIso, isoToBR, maskDateBR } from "../../../shared/utils/date";
 import { useCreateOrder, useUpdateOrder } from "../hooks";
 
 interface OrderFormProps {
@@ -12,20 +13,6 @@ interface OrderFormProps {
 
 function pad(n: number): string {
   return String(n).padStart(2, "0");
-}
-
-function isoToBr(iso: string): string {
-  const [y, m, d] = iso.split("-");
-  return `${d}/${m}/${y}`;
-}
-
-function brToIso(br: string): string | null {
-  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(br.trim());
-  if (!match) return null;
-  const [, d, m, y] = match;
-  const iso = `${y}-${m}-${d}`;
-  const dt = new Date(`${iso}T12:00:00`);
-  return isNaN(dt.getTime()) ? null : iso;
 }
 
 function offsetIsoBr(days: number): string {
@@ -38,7 +25,7 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
   const { theme } = useTheme();
   const [title, setTitle] = useState(order?.title ?? "");
   const [dateText, setDateText] = useState(
-    order?.deliveryDate ? isoToBr(order.deliveryDate) : offsetIsoBr(0),
+    order?.deliveryDate ? isoToBR(order.deliveryDate) : offsetIsoBr(0),
   );
   const [time, setTime] = useState(order?.deliveryTime ?? "");
   const [amount, setAmount] = useState(
@@ -133,8 +120,8 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
         <Input
           placeholder="DD/MM/AAAA"
           value={dateText}
-          onChangeText={setDateText}
-          keyboardType="numbers-and-punctuation"
+          onChangeText={(v) => setDateText(maskDateBR(v))}
+          keyboardType="number-pad"
         />
       </View>
 

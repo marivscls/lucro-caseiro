@@ -31,6 +31,8 @@ export function brToIso(value: string): string | undefined {
   const year = Number(y);
   if (![day, month, year].every(Number.isInteger)) return undefined;
   if (month < 1 || month > 12 || day < 1 || day > 31) return undefined;
+  // Faixa de ano plausível — rejeita digitação claramente errada (ex: 11/11/1111).
+  if (year < 1900 || year > 2100) return undefined;
 
   const iso = `${y}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
   const dt = new Date(`${iso}T12:00:00`);

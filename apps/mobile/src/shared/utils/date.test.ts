@@ -26,6 +26,8 @@ describe("brToIso", () => {
     expect(brToIso("30/05/26")).toBeUndefined(); // ano com 2 dígitos
     expect(brToIso("31/02/2026")).toBeUndefined(); // dia inválido p/ o mês
     expect(brToIso("00/13/2026")).toBeUndefined(); // fora de faixa
+    expect(brToIso("11/11/1111")).toBeUndefined(); // ano implausível
+    expect(brToIso("01/01/9999")).toBeUndefined(); // ano implausível
   });
 });
 
