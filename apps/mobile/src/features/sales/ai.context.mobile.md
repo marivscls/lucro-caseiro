@@ -52,6 +52,7 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 
 - Wizard de 4 steps:
   1. **Selecionar produtos:** grid 2 colunas com busca, tap para adicionar ao carrinho, long press para remover. Badge de quantidade. Barra de total no rodape.
+     - Produtos por peso (`saleUnit === "kg"`): tap abre um modal com campo de **peso em kg** (decimal-pad) e preview do subtotal; preco exibido como "R$X/kg"; badge mostra o peso (ex.: "1,5 kg"); long press remove a linha inteira (nao faz "−1 kg"). Itens do carrinho carregam `saleUnit` para calcular/exibir corretamente.
   2. **Selecionar cliente:** opcao "Sem cliente (avulso)", busca de clientes, selecao com borda destacada.
   3. **Forma de pagamento:** opcoes Pix, Dinheiro, Cartao, Fiado, Transferencia com icones.
   4. **Revisar e confirmar:** resumo de itens, cliente, pagamento, total. Botao "Registrar venda".
@@ -83,7 +84,7 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 
 - `Sale` — venda (id, clientId, clientName, paymentMethod, status, total, soldAt, notes, items[]).
 - `Sale.items[]` — item da venda (id, productId, productName, quantity, unitPrice, subtotal).
-- `CreateSale` — payload (clientId?, paymentMethod, items[{ productId, quantity, unitPrice }]).
+- `CreateSale` — payload (clientId?, paymentMethod, items[{ productId, quantity, unitPrice }]). `quantity` pode ser decimal (peso em kg) para produtos vendidos por peso.
 - `UpdateSaleStatus` — payload ({ status: SaleStatus }).
 - `SaleStatus` — `"paid" | "pending" | "cancelled"`.
 - `DaySummary` — tipo local (totalSales, totalAmount, averageTicket).
@@ -128,3 +129,4 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 - 2026-05-30: recibo de venda no WhatsApp (`receipt.ts` + botao no `SaleDetail`). Vai direto ao contato se o cliente tiver telefone, senao abre o seletor (`openWhatsAppShare`).
 - 2026-05-30: `openWhatsApp`/`openWhatsAppShare` agora async e com verificacoes — valida o numero (`isValidBrazilPhone`) e avisa se o numero for invalido ou se o WhatsApp nao abrir. Recibo/fiado caem no seletor de contato quando o telefone salvo nao e valido.
 - 2026-05-30: controle de fiado (tela `/fiado`, acessada via "Mais"). Fiado = vendas com status `pending`; agrupadas por cliente (`groupFiados`), com total a receber, "marcar como recebido" (status->paid) e "cobrar no WhatsApp" (`buildChargeMessage`). Telefone do cliente vem de `useClients` (1a pagina); sem telefone, usa o seletor do WhatsApp.
+- 2026-05-30: **venda por peso (R$/kg)** — `CartItem` ganhou `saleUnit`. Produtos `saleUnit === "kg"` usam um modal de peso (kg, decimal-pad) ao inves de incrementar unidades; subtotal = preco/kg × peso. Review/badge formatam peso com virgula (ex.: "1,5 kg"). O payload `createSale` envia `quantity` decimal.

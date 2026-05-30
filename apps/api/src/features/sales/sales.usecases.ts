@@ -59,11 +59,13 @@ export class SalesUseCases {
 
     const total = calculateSaleTotal(data.items);
 
-    // Validate and decrement stock for each product
+    // Validate and decrement stock for each product.
+    // Estoque por unidades inteiras nao se aplica a produtos vendidos por peso
+    // (saleUnit === "kg"): nesses casos pulamos validacao/baixa de estoque.
     if (this.productsRepo) {
       for (const item of data.items) {
         const product = await this.productsRepo.findById(userId, item.productId);
-        if (product && product.stockQuantity !== null) {
+        if (product && product.saleUnit !== "kg" && product.stockQuantity !== null) {
           if (product.stockQuantity < item.quantity) {
             throw new ValidationError([`Estoque insuficiente para ${product.name}`]);
           }
@@ -72,7 +74,7 @@ export class SalesUseCases {
 
       for (const item of data.items) {
         const product = await this.productsRepo.findById(userId, item.productId);
-        if (product && product.stockQuantity !== null) {
+        if (product && product.saleUnit !== "kg" && product.stockQuantity !== null) {
           await this.productsRepo.decrementStock(userId, item.productId, item.quantity);
         }
       }

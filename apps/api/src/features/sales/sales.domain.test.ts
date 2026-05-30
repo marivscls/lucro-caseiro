@@ -35,11 +35,22 @@ describe("calculateSaleTotal", () => {
     const total = calculateSaleTotal([]);
     expect(total).toBe(0);
   });
+
+  it("calcula total com quantidade decimal (venda por peso)", () => {
+    // 1.5 kg a R$80/kg = 120
+    const total = calculateSaleTotal([makeItem({ quantity: 1.5, unitPrice: 80 })]);
+    expect(total).toBe(120);
+  });
 });
 
 describe("validateSaleItems", () => {
   it("returns empty array for valid items", () => {
     const errors = validateSaleItems([makeItem()]);
+    expect(errors).toEqual([]);
+  });
+
+  it("aceita quantidade decimal positiva (venda por peso)", () => {
+    const errors = validateSaleItems([makeItem({ quantity: 1.5 })]);
     expect(errors).toEqual([]);
   });
 

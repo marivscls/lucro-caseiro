@@ -62,6 +62,7 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
     category: "Doces",
     photoUrl: null,
     salePrice: 10,
+    saleUnit: "unit",
     costPrice: null,
     recipeId: null,
     stockQuantity: 50,
@@ -145,6 +146,39 @@ describe("SalesUseCases", () => {
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(productsRepo.decrementStock).toHaveBeenCalledWith(USER_ID, "prod-1", 3);
+    });
+
+    it("não decrementa estoque para produto vendido por peso (kg)", async () => {
+      const productsRepo = makeProductsRepo({
+        findById: vi.fn(() =>
+          Promise.resolve(makeProduct({ saleUnit: "kg", stockQuantity: 50 })),
+        ),
+      });
+      const { sut } = makeSut({}, productsRepo);
+
+      await sut.createSale(USER_ID, {
+        paymentMethod: "pix",
+        items: [{ productId: "prod-1", quantity: 1.5, unitPrice: 80 }],
+      });
+
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(productsRepo.decrementStock).not.toHaveBeenCalled();
+    });
+
+    it("calcula total com quantidade decimal para venda por peso (kg)", async () => {
+      const productsRepo = makeProductsRepo({
+        findById: vi.fn(() =>
+          Promise.resolve(makeProduct({ saleUnit: "kg", stockQuantity: null })),
+        ),
+      });
+      const { sut } = makeSut({}, productsRepo);
+
+      const result = await sut.createSale(USER_ID, {
+        paymentMethod: "pix",
+        items: [{ productId: "prod-1", quantity: 1.5, unitPrice: 80 }],
+      });
+
+      expect(result.total).toBe(120);
     });
 
     it("does not decrement stock when product has null stockQuantity", async () => {

@@ -47,23 +47,25 @@ Gerenciar vendas do negocio caseiro, incluindo registro de itens vendidos, forma
 
 ### Tabela: `sale_items`
 
-| Coluna    | Tipo    | Constraints           |
-| --------- | ------- | --------------------- |
-| id        | uuid    | PK                    |
-| saleId    | uuid    | FK sales, NOT NULL    |
-| productId | uuid    | FK products, NOT NULL |
-| quantity  | integer | NOT NULL              |
-| unitPrice | decimal | NOT NULL              |
-| subtotal  | decimal | NOT NULL              |
+| Coluna    | Tipo          | Constraints                                      |
+| --------- | ------------- | ------------------------------------------------ |
+| id        | uuid          | PK                                               |
+| saleId    | uuid          | FK sales, NOT NULL                               |
+| productId | uuid          | FK products, NOT NULL                            |
+| quantity  | numeric(10,3) | NOT NULL (decimal p/ venda por peso, ex. 1.5 kg) |
+| unitPrice | decimal       | NOT NULL                                         |
+| subtotal  | decimal       | NOT NULL                                         |
 
 ## Invariants
 
 - Venda deve ter pelo menos um item
 - Cada item deve ter quantidade > 0 e preco unitario > 0
-- Total = soma de (quantity \* unitPrice) de cada item
+- `quantity` pode ser decimal (venda por peso, ex.: 1.5 kg); produtos por unidade enviam inteiros
+- Total = soma de (quantity \* unitPrice) de cada item (formula inalterada com decimais)
 - Venda cancelada nao pode ser editada
 - Venda ja cancelada nao pode ser cancelada novamente
-- Se produto tem stockQuantity, deve ter estoque suficiente ao criar venda
+- Se produto tem stockQuantity **e** `saleUnit !== 'kg'`, deve ter estoque suficiente ao criar venda
+- Produtos vendidos por peso (`saleUnit === 'kg'`) nao tem baixa de estoque por unidade
 - Toda query escopada por `userId`
 
 ## Operations
@@ -110,12 +112,12 @@ db:
     - saleItems(saleId)
 invariants:
   - items.length >= 1
-  - item.quantity > 0
+  - item.quantity > 0 (decimal permitido p/ venda por peso)
   - item.unitPrice > 0
   - total = sum(item.quantity * item.unitPrice)
   - cancelled sale cannot be edited
   - cancelled sale cannot be cancelled again
-  - stock validation when product has stockQuantity
+  - stock validation when product has stockQuantity AND saleUnit != 'kg'
 ```
 
 ## Authorization & RLS
@@ -127,7 +129,7 @@ invariants:
 ## Contracts (Zod/DTO)
 
 - **CreateSaleDto**: `{ clientId?, paymentMethod, items: SaleItemData[], notes?, soldAt? }`
-- **SaleItemData**: `{ productId, quantity, unitPrice }`
+- **SaleItemData**: `{ productId, quantity, unitPrice }` (`quantity`: number positivo, decimal permitido)
 - **UpdateSaleDto**: `{ clientId?, paymentMethod?, items?: SaleItemData[], notes? }`
 - **UpdateSaleStatusDto**: `{ status: SaleStatus }`
 - **Sale**: `{ id, userId, clientId, clientName, status, paymentMethod, total, notes, items: SaleItem[], soldAt, createdAt }`
@@ -147,7 +149,10 @@ invariants:
 
 ## Events / Side effects
 
-- Ao criar venda: decrementa estoque dos produtos que tem `stockQuantity !== null`
+- Ao criar venda: decrementa estoque dos produtos que tem `stockQuantity !== null` **e** `saleUnit !== 'kg'`
+  (produtos por peso nao usam estoque por unidade — validacao e baixa sao puladas)
+- **Decimal quantity**: `sale_items.quantity` e `numeric(10,3)`; Drizzle retorna como string,
+  entao o repo converte com `Number(row.quantity)` na leitura e `String(quantity)` no insert
 - Ao criar venda: **baixa automática dos insumos** da receita de cada produto vendido
   (qtd da receita × qtd vendida), via `IRecipeConsumptionProvider` + `IMaterialStockAdjuster`
   injetados. É best-effort (clamp em 0 no materials; nunca bloqueia/derruba a venda).
@@ -172,14 +177,14 @@ invariants:
 
 ### Domain (sales.domain.test.ts)
 
-- calculateSaleTotal: item unico, multiplos, vazio
-- validateSaleItems: valido, itens vazios, quantidade zero/negativa, preco zero/negativo, acumulo entre itens, acumulo no mesmo item
+- calculateSaleTotal: item unico, multiplos, vazio, quantidade decimal (venda por peso)
+- validateSaleItems: valido, quantidade decimal positiva (peso), itens vazios, quantidade zero/negativa, preco zero/negativo, acumulo entre itens, acumulo no mesmo item
 - canCancelSale: pending ok, paid ok, cancelled nao
 - buildDaySummary: com vendas, sem vendas
 
 ### UseCases (sales.usecases.test.ts)
 
-- createSale: valido com calculo auto, itens vazios, quantidade invalida, preco invalido, decrementa estoque, nao decrementa sem stockQuantity, estoque insuficiente, baixa de insumos da receita (qtd×qtd), sem baixa quando produto nao tem receita
+- createSale: valido com calculo auto, itens vazios, quantidade invalida, preco invalido, decrementa estoque, nao decrementa sem stockQuantity, **nao decrementa estoque para produto por peso (kg)**, **calcula total com quantidade decimal (kg)**, estoque insuficiente, baixa de insumos da receita (qtd×qtd), sem baixa quando produto nao tem receita
 - getById: encontrado, NotFoundError
 - list: paginacao
 - updateStatus: sucesso, NotFoundError, cancelar ja cancelado
@@ -212,3 +217,7 @@ PATCH /api/v1/sales/sale-1/status
 - Itens da venda sao replace (delete + insert) ao atualizar
 - SalesUseCases recebe `IProductsRepo` opcional para controle de estoque
 - `soldAt` pode ser informado na criacao (para vendas retroativas), default = now()
+- 2026-05-30: **venda por peso** — `sale_items.quantity` migrado de `integer` para `numeric(10,3)`
+  (migration `006_sell_by_weight.sql`) para aceitar peso (ex.: 1.5 kg). DTO `SaleItemDto.quantity`
+  passou a aceitar decimal (`z.number().positive()`). Repo converte quantity string<->number na borda.
+  Produtos com `saleUnit === 'kg'` nao tem validacao/baixa de estoque por unidade.

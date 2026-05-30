@@ -1,5 +1,5 @@
 import { formatCurrency } from "../shared/utils/format";
-import type { Product } from "@lucro-caseiro/contracts";
+import type { Product, SaleUnit } from "@lucro-caseiro/contracts";
 import {
   Button,
   Card,
@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { CreateProductForm } from "../features/products/components/create-product-form";
 import { ProductList } from "../features/products/components/product-list";
+import { SaleUnitToggle } from "../features/products/components/sale-unit-toggle";
 import {
   useDeleteProduct,
   useLowStockProducts,
@@ -24,6 +25,13 @@ import {
 } from "../features/products/hooks";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
 import { uploadProductImage } from "../shared/utils/upload-image";
+
+/** Preco de venda com sufixo "/kg" quando o produto e vendido por peso. */
+function priceLabel(p: Product): string {
+  return p.saleUnit === "kg"
+    ? `${formatCurrency(p.salePrice)}/kg`
+    : formatCurrency(p.salePrice);
+}
 
 function stockLabel(p: Product): string {
   if (p.stockQuantity === null) return "Não controlado";
@@ -72,6 +80,7 @@ function ProductDetailModal({
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [salePrice, setSalePrice] = useState("");
+  const [saleUnit, setSaleUnit] = useState<SaleUnit>("unit");
   const [description, setDescription] = useState("");
   const [stockQuantity, setStockQuantity] = useState("");
   const [stockAlert, setStockAlert] = useState("");
@@ -80,6 +89,7 @@ function ProductDetailModal({
     setName(p.name);
     setCategory(p.category);
     setSalePrice(String(p.salePrice).replace(".", ","));
+    setSaleUnit(p.saleUnit);
     setDescription(p.description ?? "");
     setStockQuantity(p.stockQuantity !== null ? String(p.stockQuantity) : "");
     setStockAlert(p.stockAlertThreshold !== null ? String(p.stockAlertThreshold) : "");
@@ -125,10 +135,18 @@ function ProductDetailModal({
           name: name.trim(),
           category: category.trim(),
           salePrice: price,
+          saleUnit,
           description: description.trim() || undefined,
           photoUrl,
-          stockQuantity: stockQuantity.trim() ? parseInt(stockQuantity, 10) : undefined,
-          stockAlertThreshold: stockAlert.trim() ? parseInt(stockAlert, 10) : undefined,
+          // Estoque por unidades nao se aplica a venda por peso (kg).
+          stockQuantity:
+            saleUnit === "kg" || !stockQuantity.trim()
+              ? undefined
+              : parseInt(stockQuantity, 10),
+          stockAlertThreshold:
+            saleUnit === "kg" || !stockAlert.trim()
+              ? undefined
+              : parseInt(stockAlert, 10),
         },
       });
       Alert.alert("Produto atualizado!");
@@ -203,8 +221,9 @@ function ProductDetailModal({
             <Typography variant="h2">Editar produto</Typography>
             <Input label="Nome do produto" value={name} onChangeText={setName} />
             <Input label="Categoria" value={category} onChangeText={setCategory} />
+            <SaleUnitToggle value={saleUnit} onChange={setSaleUnit} />
             <Input
-              label="Preço de venda (R$)"
+              label={saleUnit === "kg" ? "Preço por kg (R$)" : "Preço de venda (R$)"}
               value={salePrice}
               onChangeText={setSalePrice}
               keyboardType="decimal-pad"
@@ -249,20 +268,24 @@ function ProductDetailModal({
               numberOfLines={3}
               style={{ height: 100, textAlignVertical: "top", paddingTop: 12 }}
             />
-            <Input
-              label="Quantidade em estoque (opcional)"
-              placeholder="Ex: 50"
-              value={stockQuantity}
-              onChangeText={setStockQuantity}
-              keyboardType="number-pad"
-            />
-            <Input
-              label="Alerta de estoque baixo (opcional)"
-              placeholder="Ex: 10"
-              value={stockAlert}
-              onChangeText={setStockAlert}
-              keyboardType="number-pad"
-            />
+            {saleUnit === "unit" && (
+              <>
+                <Input
+                  label="Quantidade em estoque (opcional)"
+                  placeholder="Ex: 50"
+                  value={stockQuantity}
+                  onChangeText={setStockQuantity}
+                  keyboardType="number-pad"
+                />
+                <Input
+                  label="Alerta de estoque baixo (opcional)"
+                  placeholder="Ex: 10"
+                  value={stockAlert}
+                  onChangeText={setStockAlert}
+                  keyboardType="number-pad"
+                />
+              </>
+            )}
             <Button
               title={uploading ? "Enviando foto..." : "Salvar"}
               size="lg"
@@ -309,16 +332,21 @@ function ProductDetailModal({
             <Card>
               <View style={{ gap: spacing.sm }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                  <Typography variant="caption">Preço de venda</Typography>
+                  <Typography variant="caption">
+                    {product.saleUnit === "kg" ? "Preço por kg" : "Preço de venda"}
+                  </Typography>
                   <Typography variant="h3" color={theme.colors.success}>
-                    {formatCurrency(product.salePrice)}
+                    {priceLabel(product)}
                   </Typography>
                 </View>
-                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                  <Typography variant="caption">Estoque</Typography>
-                  <StockValue product={product} />
-                </View>
-                {product.stockQuantity !== null &&
+                {product.saleUnit === "unit" && (
+                  <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                    <Typography variant="caption">Estoque</Typography>
+                    <StockValue product={product} />
+                  </View>
+                )}
+                {product.saleUnit === "unit" &&
+                  product.stockQuantity !== null &&
                   product.stockAlertThreshold !== null && (
                     <View
                       style={{ flexDirection: "row", justifyContent: "space-between" }}

@@ -1,12 +1,17 @@
 import { z } from "zod";
 import { MAX_MONEY, MAX_QUANTITY } from "./common";
 
+/** Unidade de venda: por unidade ou por quilo (R$/kg). */
+export const SaleUnit = z.enum(["unit", "kg"]);
+export type SaleUnit = z.infer<typeof SaleUnit>;
+
 export const CreateProductDto = z.object({
   name: z.string().min(1).max(200),
   description: z.string().max(1000).optional(),
   category: z.string().min(1).max(100),
   photoUrl: z.string().url().optional(),
   salePrice: z.number().positive().max(MAX_MONEY),
+  saleUnit: SaleUnit.optional(),
   recipeId: z.string().uuid().optional(),
   stockQuantity: z.number().int().min(0).max(MAX_QUANTITY).optional(),
   stockAlertThreshold: z.number().int().min(0).max(MAX_QUANTITY).optional(),
@@ -25,6 +30,7 @@ export const ProductDto = z.object({
   category: z.string(),
   photoUrl: z.string().nullable(),
   salePrice: z.number(),
+  saleUnit: SaleUnit,
   costPrice: z.number().nullable(),
   recipeId: z.string().uuid().nullable(),
   stockQuantity: z.number().int().nullable(),

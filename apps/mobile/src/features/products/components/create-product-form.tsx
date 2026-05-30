@@ -1,3 +1,4 @@
+import type { SaleUnit } from "@lucro-caseiro/contracts";
 import { Button, Input, Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
@@ -6,6 +7,7 @@ import { Alert, Image, Pressable, ScrollView, View } from "react-native";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { uploadProductImage } from "../../../shared/utils/upload-image";
 import { useCreateProduct } from "../hooks";
+import { SaleUnitToggle } from "./sale-unit-toggle";
 
 interface CreateProductFormProps {
   readonly onSuccess?: () => void;
@@ -16,6 +18,7 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [salePrice, setSalePrice] = useState("");
+  const [saleUnit, setSaleUnit] = useState<SaleUnit>("unit");
   const [description, setDescription] = useState("");
   const [stockQuantity, setStockQuantity] = useState("");
   const [stockAlert, setStockAlert] = useState("");
@@ -63,10 +66,14 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
         name: name.trim(),
         category: category.trim(),
         salePrice: price,
+        saleUnit,
         description: description.trim() || undefined,
         photoUrl,
-        stockQuantity: stockQuantity ? parseInt(stockQuantity, 10) : undefined,
-        stockAlertThreshold: stockAlert ? parseInt(stockAlert, 10) : undefined,
+        // Estoque por unidades nao se aplica a venda por peso (kg).
+        stockQuantity:
+          saleUnit === "kg" || !stockQuantity ? undefined : parseInt(stockQuantity, 10),
+        stockAlertThreshold:
+          saleUnit === "kg" || !stockAlert ? undefined : parseInt(stockAlert, 10),
       });
       Alert.alert("Produto cadastrado!", `${name} foi adicionado ao seu catálogo`);
       onSuccess?.();
@@ -94,9 +101,11 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
         onChangeText={setCategory}
       />
 
+      <SaleUnitToggle value={saleUnit} onChange={setSaleUnit} />
+
       <Input
-        label="Preço de venda (R$)"
-        placeholder="Ex: 3,50"
+        label={saleUnit === "kg" ? "Preço por kg (R$)" : "Preço de venda (R$)"}
+        placeholder={saleUnit === "kg" ? "Ex: 80,00" : "Ex: 3,50"}
         value={salePrice}
         onChangeText={setSalePrice}
         keyboardType="decimal-pad"
@@ -145,21 +154,25 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
         style={{ height: 100, textAlignVertical: "top", paddingTop: 12 }}
       />
 
-      <Input
-        label="Quantidade em estoque (opcional)"
-        placeholder="Ex: 50"
-        value={stockQuantity}
-        onChangeText={setStockQuantity}
-        keyboardType="number-pad"
-      />
+      {saleUnit === "unit" && (
+        <>
+          <Input
+            label="Quantidade em estoque (opcional)"
+            placeholder="Ex: 50"
+            value={stockQuantity}
+            onChangeText={setStockQuantity}
+            keyboardType="number-pad"
+          />
 
-      <Input
-        label="Alerta de estoque baixo (opcional)"
-        placeholder="Ex: 10"
-        value={stockAlert}
-        onChangeText={setStockAlert}
-        keyboardType="number-pad"
-      />
+          <Input
+            label="Alerta de estoque baixo (opcional)"
+            placeholder="Ex: 10"
+            value={stockAlert}
+            onChangeText={setStockAlert}
+            keyboardType="number-pad"
+          />
+        </>
+      )}
 
       <Button
         title={uploading ? "Enviando foto..." : "Cadastrar produto"}

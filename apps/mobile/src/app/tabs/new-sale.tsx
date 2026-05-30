@@ -1,5 +1,5 @@
 import { formatCurrency } from "../../shared/utils/format";
-import type { Product, Client, PaymentMethod } from "@lucro-caseiro/contracts";
+import type { Product, Client, PaymentMethod, SaleUnit } from "@lucro-caseiro/contracts";
 import {
   Button,
   Card,
@@ -38,6 +38,7 @@ interface CartItem {
   productName: string;
   unitPrice: number;
   quantity: number;
+  saleUnit: SaleUnit;
 }
 
 type PaymentOption = {
@@ -81,6 +82,17 @@ function getAvatarColor(index: number): string {
   return AVATAR_COLORS[index % AVATAR_COLORS.length];
 }
 
+/** Formata um peso em kg com virgula decimal, ate 3 casas (ex.: "1,5 kg"). */
+function formatWeight(kg: number): string {
+  const str = Number.parseFloat(kg.toFixed(3)).toString().replace(".", ",");
+  return `${str} kg`;
+}
+
+/** Rotulo de quantidade no carrinho: unidades (ex.: "3") ou peso (ex.: "1,5 kg"). */
+function cartQuantityLabel(item: CartItem): string {
+  return item.saleUnit === "kg" ? formatWeight(item.quantity) : String(item.quantity);
+}
+
 export default function NewSaleScreen() {
   const { theme } = useTheme();
   const { show: showInterstitial } = useInterstitial();
@@ -95,6 +107,9 @@ export default function NewSaleScreen() {
   const [clientSearch, setClientSearch] = useState("");
   const [productSearch, setProductSearch] = useState("");
   const [showCreateProduct, setShowCreateProduct] = useState(false);
+  // Produto por peso (kg) em edicao de quantidade + peso digitado (em kg).
+  const [weightProduct, setWeightProduct] = useState<Product | null>(null);
+  const [weightInput, setWeightInput] = useState("");
 
   const { data: productsData, isLoading: loadingProducts } = useProducts();
   const { data: clientsData, isLoading: loadingClients } = useClients({
@@ -105,6 +120,13 @@ export default function NewSaleScreen() {
   const cartTotal = cart.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
 
   function addToCart(product: Product) {
+    // Produtos por peso (kg) abrem um campo pra digitar o peso em kg.
+    if (product.saleUnit === "kg") {
+      const existing = cart.find((i) => i.productId === product.id);
+      setWeightProduct(product);
+      setWeightInput(existing ? String(existing.quantity).replace(".", ",") : "");
+      return;
+    }
     setCart((prev) => {
       const existing = prev.find((i) => i.productId === product.id);
       if (existing) {
@@ -119,16 +141,43 @@ export default function NewSaleScreen() {
           productName: product.name,
           unitPrice: product.salePrice,
           quantity: 1,
+          saleUnit: "unit",
         },
       ];
     });
+  }
+
+  function confirmWeight() {
+    if (!weightProduct) return;
+    const weight = parseFloat(weightInput.replace(",", "."));
+    if (isNaN(weight) || weight <= 0) {
+      Alert.alert("Opa!", "Digite um peso maior que zero (em kg)");
+      return;
+    }
+    const product = weightProduct;
+    setCart((prev) => {
+      const others = prev.filter((i) => i.productId !== product.id);
+      return [
+        ...others,
+        {
+          productId: product.id,
+          productName: product.name,
+          unitPrice: product.salePrice,
+          quantity: weight,
+          saleUnit: "kg",
+        },
+      ];
+    });
+    setWeightProduct(null);
+    setWeightInput("");
   }
 
   function removeFromCart(productId: string) {
     setCart((prev) => {
       const existing = prev.find((i) => i.productId === productId);
       if (!existing) return prev;
-      if (existing.quantity <= 1) {
+      // Por peso (kg): remove a linha inteira (nao faz sentido "−1 kg").
+      if (existing.saleUnit === "kg" || existing.quantity <= 1) {
         return prev.filter((i) => i.productId !== productId);
       }
       return prev.map((i) =>
@@ -141,6 +190,10 @@ export default function NewSaleScreen() {
     return cart.find((i) => i.productId === productId)?.quantity ?? 0;
   }
 
+  function getCartItem(productId: string): CartItem | undefined {
+    return cart.find((i) => i.productId === productId);
+  }
+
   function resetForm() {
     setStep(1);
     setCart([]);
@@ -148,6 +201,8 @@ export default function NewSaleScreen() {
     setPaymentMethod(null);
     setClientSearch("");
     setProductSearch("");
+    setWeightProduct(null);
+    setWeightInput("");
   }
 
   async function handleSubmit() {
@@ -303,6 +358,7 @@ export default function NewSaleScreen() {
               columnWrapperStyle={{ gap: spacing.md }}
               renderItem={({ item, index }) => {
                 const qty = getCartQuantity(item.id);
+                const cartItem = getCartItem(item.id);
                 return (
                   <Pressable
                     onPress={() => addToCart(item)}
@@ -342,7 +398,9 @@ export default function NewSaleScreen() {
                       {item.name}
                     </Typography>
                     <Typography variant="caption" color={theme.colors.success}>
-                      {formatCurrency(item.salePrice)}
+                      {item.saleUnit === "kg"
+                        ? `${formatCurrency(item.salePrice)}/kg`
+                        : formatCurrency(item.salePrice)}
                     </Typography>
                     {qty > 0 && (
                       <View
@@ -352,8 +410,9 @@ export default function NewSaleScreen() {
                           right: spacing.sm,
                           backgroundColor: theme.colors.primary,
                           borderRadius: radii.full,
-                          width: 24,
+                          minWidth: 24,
                           height: 24,
+                          paddingHorizontal: cartItem?.saleUnit === "kg" ? spacing.sm : 0,
                           alignItems: "center",
                           justifyContent: "center",
                         }}
@@ -363,7 +422,7 @@ export default function NewSaleScreen() {
                           color={theme.colors.textOnPrimary}
                           style={{ fontWeight: "700" }}
                         >
-                          {qty}
+                          {cartItem ? cartQuantityLabel(cartItem) : qty}
                         </Typography>
                       </View>
                     )}
@@ -588,7 +647,9 @@ export default function NewSaleScreen() {
                 <View style={{ flex: 1 }}>
                   <Typography variant="bodyBold">{item.productName}</Typography>
                   <Typography variant="caption">
-                    {item.quantity}x {formatCurrency(item.unitPrice)}
+                    {item.saleUnit === "kg"
+                      ? `${formatWeight(item.quantity)} x ${formatCurrency(item.unitPrice)}/kg`
+                      : `${item.quantity}x ${formatCurrency(item.unitPrice)}`}
                   </Typography>
                 </View>
                 <Typography variant="bodyBold" color={theme.colors.success}>
@@ -700,6 +761,58 @@ export default function NewSaleScreen() {
           </View>
           <CreateProductForm onSuccess={() => setShowCreateProduct(false)} />
         </SafeAreaView>
+      </Modal>
+
+      {/* Peso (kg) — para produtos vendidos por quilo */}
+      <Modal
+        visible={weightProduct !== null}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setWeightProduct(null)}
+      >
+        <Pressable
+          onPress={() => setWeightProduct(null)}
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.4)",
+            justifyContent: "center",
+            padding: spacing.xl,
+          }}
+        >
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: theme.colors.background,
+              borderRadius: radii.xl,
+              padding: spacing.xl,
+              gap: spacing.lg,
+            }}
+          >
+            <Typography variant="h3">{weightProduct?.name}</Typography>
+            {weightProduct && (
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                {formatCurrency(weightProduct.salePrice)}/kg
+              </Typography>
+            )}
+            <Input
+              label="Peso (kg)"
+              placeholder="Ex: 1,5"
+              value={weightInput}
+              onChangeText={setWeightInput}
+              keyboardType="decimal-pad"
+              autoFocus
+            />
+            {weightProduct && !isNaN(parseFloat(weightInput.replace(",", "."))) && (
+              <Typography variant="bodyBold" color={theme.colors.success}>
+                Subtotal:{" "}
+                {formatCurrency(
+                  parseFloat(weightInput.replace(",", ".")) * weightProduct.salePrice,
+                )}
+              </Typography>
+            )}
+            <Button title="Adicionar" size="lg" onPress={confirmWeight} />
+          </Pressable>
+        </Pressable>
       </Modal>
     </SafeAreaView>
   );

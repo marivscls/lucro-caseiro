@@ -1,4 +1,4 @@
-import type { Product } from "@lucro-caseiro/contracts";
+import type { Product, SaleUnit } from "@lucro-caseiro/contracts";
 
 export interface IProductsRepo {
   create(userId: string, data: CreateProductData): Promise<Product>;
@@ -29,6 +29,7 @@ export interface CreateProductData {
   category: string;
   photoUrl?: string;
   salePrice: number;
+  saleUnit?: SaleUnit;
   costPrice?: number;
   recipeId?: string;
   stockQuantity?: number;

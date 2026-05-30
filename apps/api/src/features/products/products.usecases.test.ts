@@ -16,6 +16,7 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
     category: "doces",
     photoUrl: null,
     salePrice: 3.5,
+    saleUnit: "unit",
     costPrice: null,
     recipeId: null,
     stockQuantity: null,
@@ -67,6 +68,27 @@ describe("ProductsUseCases", () => {
       await expect(
         sut.create(USER_ID, { name: "", category: "doces", salePrice: -1 }),
       ).rejects.toThrow(ValidationError);
+    });
+
+    it("repassa saleUnit 'kg' para o repo (venda por peso)", async () => {
+      let captured: CreateProductData | undefined;
+      const repo = makeRepo({
+        create: (_userId: string, data: CreateProductData) => {
+          captured = data;
+          return Promise.resolve(makeProduct({ saleUnit: "kg" }));
+        },
+      });
+      const sut = new ProductsUseCases(repo);
+
+      const result = await sut.create(USER_ID, {
+        name: "Bolo",
+        category: "bolos",
+        salePrice: 80,
+        saleUnit: "kg",
+      });
+
+      expect(captured?.saleUnit).toBe("kg");
+      expect(result.saleUnit).toBe("kg");
     });
 
     it("preenche o costPrice a partir da receita quando há recipeId", async () => {

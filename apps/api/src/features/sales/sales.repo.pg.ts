@@ -36,7 +36,7 @@ export class SalesRepoPg implements ISalesRepo {
         data.items.map((item) => ({
           saleId: sale.id,
           productId: item.productId,
-          quantity: item.quantity,
+          quantity: String(item.quantity),
           unitPrice: String(item.unitPrice),
           subtotal: String(item.quantity * item.unitPrice),
         })),
@@ -79,7 +79,7 @@ export class SalesRepoPg implements ISalesRepo {
         data.items.map((item) => ({
           saleId: id,
           productId: item.productId,
-          quantity: item.quantity,
+          quantity: String(item.quantity),
           unitPrice: String(item.unitPrice),
           subtotal: String(item.quantity * item.unitPrice),
         })),
@@ -175,7 +175,7 @@ export class SalesRepoPg implements ISalesRepo {
       Array<{
         id: string;
         productId: string;
-        quantity: number;
+        quantity: string;
         unitPrice: string;
         subtotal: string;
         productName: string | null;
@@ -286,7 +286,7 @@ export class SalesRepoPg implements ISalesRepo {
         id: item.id,
         productId: item.productId,
         productName: "Produto",
-        quantity: item.quantity,
+        quantity: Number(item.quantity),
         unitPrice: Number(item.unitPrice),
         subtotal: Number(item.subtotal),
       })),
@@ -300,7 +300,7 @@ export class SalesRepoPg implements ISalesRepo {
     itemRows: Array<{
       id: string;
       productId: string;
-      quantity: number;
+      quantity: string;
       unitPrice: string;
       subtotal: string;
       productName: string | null;
@@ -320,7 +320,7 @@ export class SalesRepoPg implements ISalesRepo {
         id: item.id,
         productId: item.productId,
         productName: item.productName ?? "Produto removido",
-        quantity: item.quantity,
+        quantity: Number(item.quantity),
         unitPrice: Number(item.unitPrice),
         subtotal: Number(item.subtotal),
       })),

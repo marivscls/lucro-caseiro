@@ -3,7 +3,9 @@ import { MAX_MONEY, MAX_QUANTITY, PaymentMethod, SaleStatus } from "./common";
 
 export const SaleItemDto = z.object({
   productId: z.string().uuid(),
-  quantity: z.number().int().positive().max(MAX_QUANTITY),
+  // Quantidade pode ser decimal para venda por peso (ex.: 1.5 kg).
+  // Para produtos por unidade o app envia inteiros; aqui so exigimos > 0.
+  quantity: z.number().positive().max(MAX_QUANTITY),
   unitPrice: z.number().positive().max(MAX_MONEY),
 });
 

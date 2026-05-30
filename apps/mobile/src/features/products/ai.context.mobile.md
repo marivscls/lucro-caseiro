@@ -25,6 +25,7 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 | `apps/mobile/src/features/products/api.ts`                             | Funcoes HTTP (fetchProducts, fetchProduct, createProduct, updateProduct, deleteProduct) |
 | `apps/mobile/src/features/products/hooks.ts`                           | React Query hooks                                                                       |
 | `apps/mobile/src/features/products/components/create-product-form.tsx` | Formulario de criacao                                                                   |
+| `apps/mobile/src/features/products/components/sale-unit-toggle.tsx`    | Toggle "Por unidade / Por quilo (kg)" (usado na criacao e na edicao)                    |
 | `apps/mobile/src/features/products/components/product-card.tsx`        | Card de produto na listagem                                                             |
 | `apps/mobile/src/features/products/components/product-list.tsx`        | Lista de produtos                                                                       |
 | `apps/mobile/src/features/products/use-low-stock-notifier.ts`          | Hook que dispara notificacao local de estoque baixo (montado no root layout)            |
@@ -36,6 +37,13 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 
 - **Props:** `{ product: Product; onPress?: () => void }`
 - Exibe foto ou avatar com inicial, nome, categoria, preco de venda e badge de estoque (sem estoque/estoque baixo/quantidade).
+- Produtos por peso (`saleUnit === "kg"`): preco exibido como "R$X/kg" e badge de estoque oculto.
+
+### `SaleUnitToggle`
+
+- **Props:** `{ value: SaleUnit; onChange: (value: SaleUnit) => void }`
+- Alternador segmentado "Por unidade" / "Por quilo (kg)". Quando "kg", o preco passa a ser por quilo.
+- Usado no `CreateProductForm` e no modal de edicao (`products.tsx`).
 
 ### `ProductList`
 
@@ -46,7 +54,8 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 ### `CreateProductForm`
 
 - **Props:** `{ onSuccess?: () => void }`
-- Campos: nome (obrigatorio), categoria (obrigatorio), preco de venda (obrigatorio, > 0), foto (botao "em breve"), descricao, quantidade em estoque, alerta de estoque baixo.
+- Campos: nome (obrigatorio), categoria (obrigatorio), **unidade de venda (toggle por unidade/kg)**, preco de venda (obrigatorio, > 0; label vira "Preço por kg (R$)" quando kg), foto, descricao, quantidade em estoque, alerta de estoque baixo.
+- Campos de estoque ficam ocultos quando "Por quilo (kg)" (estoque por unidade nao se aplica).
 
 ### `ProductDetailModal` (definido no screen)
 
@@ -84,9 +93,10 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 
 ## Contracts
 
-- `Product` — produto (id, name, category, salePrice, description, photoUrl, stockQuantity, stockAlertThreshold).
-- `CreateProduct` — payload de criacao (name, category, salePrice, description?, stockQuantity?, stockAlertThreshold?).
+- `Product` — produto (id, name, category, salePrice, saleUnit, description, photoUrl, stockQuantity, stockAlertThreshold).
+- `CreateProduct` — payload de criacao (name, category, salePrice, saleUnit?, description?, stockQuantity?, stockAlertThreshold?).
 - `UpdateProduct` — payload de edicao.
+- `SaleUnit` — `"unit" | "kg"` (default `"unit"`; quando `"kg"`, `salePrice` = preco por quilo).
 
 ## Error Handling
 
@@ -122,3 +132,4 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 - Estoque agora e visivel e editavel no modal de detalhe (antes so podia ser definido na criacao).
 - Banner de estoque baixo no topo da lista para dar visibilidade ao recurso.
 - Notificacao de estoque baixo implementada como **notificacao local** (`use-low-stock-notifier.ts`), pois o backend ainda nao envia push. Dispara quando um produto entra na faixa de alerta; dedupe via AsyncStorage (`lowStockNotifiedIds`). Apos uma venda, `useCreateSale` invalida `["products"]` para revalidar o estoque e disparar o alerta.
+- 2026-05-30: **venda por peso (R$/kg)** — `SaleUnitToggle` na criacao e edicao. Quando "kg", o preco vira "Preço por kg" e os campos de estoque ficam ocultos. Card e detalhe do produto exibem "R$X/kg" e ocultam estoque para produtos por peso.

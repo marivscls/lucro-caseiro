@@ -1,7 +1,6 @@
 import {
   decimal,
   index,
-  integer,
   pgEnum,
   pgTable,
   text,
@@ -55,7 +54,9 @@ export const saleItems = pgTable("sale_items", {
   productId: uuid("product_id")
     .notNull()
     .references(() => products.id),
-  quantity: integer("quantity").notNull(),
+  // numeric(10,3) para suportar venda por peso (ex.: 1.5 kg). Drizzle retorna
+  // decimais como string — converter com Number(...) na borda do repo.
+  quantity: decimal("quantity", { precision: 10, scale: 3 }).notNull(),
   unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
   subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
 });

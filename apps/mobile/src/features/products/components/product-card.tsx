@@ -10,6 +10,8 @@ interface ProductCardProps {
 }
 
 function getStockBadge(product: Product) {
+  // Produtos vendidos por peso (kg) nao usam controle de estoque por unidade.
+  if (product.saleUnit === "kg") return null;
   if (product.stockQuantity === null) return null;
   if (product.stockQuantity === 0)
     return { label: "Sem estoque", variant: "danger" as const };
@@ -59,7 +61,9 @@ export function ProductCard({ product, onPress }: ProductCardProps) {
         <Typography variant="caption">{product.category}</Typography>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Typography variant="h3" color={theme.colors.success}>
-            {formatCurrency(product.salePrice)}
+            {product.saleUnit === "kg"
+              ? `${formatCurrency(product.salePrice)}/kg`
+              : formatCurrency(product.salePrice)}
           </Typography>
           {stockBadge && <Badge label={stockBadge.label} variant={stockBadge.variant} />}
         </View>

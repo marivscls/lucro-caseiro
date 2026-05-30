@@ -23,6 +23,9 @@ export const products = pgTable(
     category: text("category").notNull(),
     photoUrl: text("photo_url"),
     salePrice: decimal("sale_price", { precision: 10, scale: 2 }).notNull(),
+    // Unidade de venda: "unit" (por unidade) ou "kg" (por quilo). Quando "kg",
+    // salePrice representa o preco por quilo (R$/kg).
+    saleUnit: text("sale_unit").notNull().default("unit"),
     costPrice: decimal("cost_price", { precision: 10, scale: 2 }),
     recipeId: uuid("recipe_id"),
     stockQuantity: integer("stock_quantity"),
