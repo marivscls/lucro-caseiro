@@ -23,6 +23,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { CreateLabelForm } from "../features/labels/components/create-label-form";
 import { LabelPreview } from "../features/labels/components/label-preview";
 import { TemplatePicker } from "../features/labels/components/template-picker";
+import { exportLabelPdf } from "../features/labels/label-export";
+import { Ionicons } from "@expo/vector-icons";
 import {
   useDeleteLabel,
   useLabel,
@@ -48,6 +50,18 @@ function LabelDetailModal({
   const [name, setName] = useState("");
   const [templateId, setTemplateId] = useState("classico");
   const [labelData, setLabelData] = useState<LabelData>({ productName: "" });
+  const [exporting, setExporting] = useState(false);
+
+  async function handleExport(l: Label) {
+    setExporting(true);
+    try {
+      await exportLabelPdf(l.data, l.templateId);
+    } catch {
+      Alert.alert("Erro", "Não foi possível gerar o rótulo. Tente novamente.");
+    } finally {
+      setExporting(false);
+    }
+  }
 
   function startEditing(l: Label) {
     setName(l.name);
@@ -200,6 +214,21 @@ function LabelDetailModal({
             </Typography>
             <LabelPreview data={label.data} templateId={label.templateId} scale={1.2} />
             <View style={{ gap: spacing.md }}>
+              <Button
+                title="Baixar / Compartilhar"
+                size="lg"
+                icon={
+                  <Ionicons
+                    name="download-outline"
+                    size={20}
+                    color={theme.colors.textOnPrimary}
+                  />
+                }
+                onPress={() => {
+                  void handleExport(label);
+                }}
+                loading={exporting}
+              />
               <Button
                 title="Excluir rótulo"
                 variant="secondary"

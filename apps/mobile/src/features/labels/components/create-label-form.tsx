@@ -1,8 +1,10 @@
 import type { LabelData } from "@lucro-caseiro/contracts";
-import { Button, Input, Typography } from "@lucro-caseiro/ui";
+import { Button, Input, Typography, useTheme } from "@lucro-caseiro/ui";
+import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Alert, ScrollView, View } from "react-native";
 
+import { exportLabelPdf } from "../label-export";
 import { useCreateLabel } from "../hooks";
 import { LabelPreview } from "./label-preview";
 import { TemplatePicker } from "./template-picker";
@@ -16,11 +18,13 @@ export function CreateLabelForm({
   productId,
   onSuccess,
 }: Readonly<CreateLabelFormProps>) {
+  const { theme } = useTheme();
   const [name, setName] = useState("");
   const [templateId, setTemplateId] = useState("classico");
   const [labelData, setLabelData] = useState<LabelData>({
     productName: "",
   });
+  const [exporting, setExporting] = useState(false);
 
   const createLabel = useCreateLabel();
 
@@ -63,6 +67,21 @@ export function CreateLabelForm({
       onSuccess?.();
     } catch {
       Alert.alert("Erro", "Não foi possível criar o rótulo. Tente novamente.");
+    }
+  }
+
+  async function handleExport() {
+    if (!labelData.productName.trim()) {
+      Alert.alert("Opa!", "Preencha o nome do produto para baixar o rótulo");
+      return;
+    }
+    setExporting(true);
+    try {
+      await exportLabelPdf(labelData, templateId);
+    } catch {
+      Alert.alert("Erro", "Não foi possível gerar o rótulo. Tente novamente.");
+    } finally {
+      setExporting(false);
     }
   }
 
@@ -132,19 +151,33 @@ export function CreateLabelForm({
         />
       </View>
 
-      <View style={{ gap: 8 }}>
-        <Typography variant="h3">Pre-visualizacao</Typography>
-        <LabelPreview data={labelData} templateId={templateId} />
+      <View style={{ gap: 12 }}>
+        <Typography variant="h3">Pré-visualização</Typography>
+        <LabelPreview data={labelData} templateId={templateId} scale={1.1} />
       </View>
 
-      <Button
-        title="Criar rótulo"
-        size="lg"
-        onPress={() => {
-          void handleSubmit();
-        }}
-        loading={createLabel.isPending}
-      />
+      <View style={{ gap: 12 }}>
+        <Button
+          title="Baixar / Compartilhar"
+          variant="outline"
+          size="lg"
+          icon={
+            <Ionicons name="download-outline" size={20} color={theme.colors.primary} />
+          }
+          onPress={() => {
+            void handleExport();
+          }}
+          loading={exporting}
+        />
+        <Button
+          title="Criar rótulo"
+          size="lg"
+          onPress={() => {
+            void handleSubmit();
+          }}
+          loading={createLabel.isPending}
+        />
+      </View>
     </ScrollView>
   );
 }

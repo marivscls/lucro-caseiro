@@ -10,10 +10,14 @@ interface LabelPreviewProps {
   scale?: number;
 }
 
-const TEMPLATE_STYLES: Record<
-  string,
-  { bg: string; accent: string; border: string; font: string }
-> = {
+export type TemplateStyle = {
+  bg: string;
+  accent: string;
+  border: string;
+  font: string;
+};
+
+export const TEMPLATE_STYLES: Record<string, TemplateStyle> = {
   classico: { bg: "#FFFBEB", accent: "#92400E", border: "#D97706", font: "serif" },
   moderno: { bg: "#FFFFFF", accent: "#1E40AF", border: "#3B82F6", font: "sans-serif" },
   minimalista: {

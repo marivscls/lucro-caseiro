@@ -8,7 +8,6 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 
 ## Non-goals
 
-- Nao imprime rotulos diretamente (apenas cria/salva para uso posterior).
 - Nao gerencia produtos (feature `products`).
 - Nao faz upload de logo (campo previsto mas sem upload implementado).
 
@@ -26,6 +25,7 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 | `apps/mobile/src/features/labels/components/create-label-form.tsx` | Formulario de criacao com preview ao vivo                                                     |
 | `apps/mobile/src/features/labels/components/label-preview.tsx`     | Componente de pre-visualizacao do rotulo                                                      |
 | `apps/mobile/src/features/labels/components/template-picker.tsx`   | Seletor horizontal de templates                                                               |
+| `apps/mobile/src/features/labels/label-export.ts`                  | Gera HTML do rotulo -> PDF (expo-print) e abre share/print (expo-sharing)                     |
 | `apps/mobile/src/app/labels.tsx`                                   | Screen (rota `/labels`)                                                                       |
 
 ## Components
@@ -36,6 +36,7 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 - Campos: nome do rotulo, template (via TemplatePicker), nome do produto, ingredientes, datas de fabricacao/validade (DD/MM/AAAA), nome do produtor, telefone.
 - Converte datas DD/MM/AAAA para ISO antes de enviar.
 - Inclui preview ao vivo via `LabelPreview`.
+- Botao "Baixar / Compartilhar" gera PDF do rotulo a partir dos dados atuais (sem precisar salvar) via `exportLabelPdf`.
 
 ### `LabelPreview`
 
@@ -50,6 +51,14 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 - FlatList horizontal com cards de 120x140 para cada template.
 - Usa `useTemplates()` para carregar templates do backend.
 - Indica selecao com borda verde.
+
+## Utils
+
+### `exportLabelPdf(data, templateId)`
+
+- Monta HTML do rotulo reaproveitando `TEMPLATE_STYLES` (exportado de `LabelPreview`) e gera um PDF com `expo-print` (`printToFileAsync`).
+- Abre a folha de compartilhamento do sistema via `expo-sharing` (salvar em Arquivos, WhatsApp, imprimir). Fallback: `Print.printAsync` (dialogo nativo com "Salvar como PDF") quando sharing indisponivel.
+- Usado no `CreateLabelForm` (dados atuais, sem salvar) e na visualizacao de rotulo salvo em `labels.tsx`.
 
 ## Hooks
 
@@ -110,3 +119,4 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 
 - Limite freemium: 1 template no Free, ilimitado no Premium (enforcement no backend).
 - Templates definidos com cores fixas no front (TEMPLATE_STYLES e TEMPLATE_COLORS).
+- 2026-05-30: adicionada exportacao de rotulo como PDF (expo-print + expo-sharing). `TEMPLATE_STYLES` agora exportado de `LabelPreview` para o HTML do PDF bater com o preview. Decisao por PDF (qualidade de impressao) em vez de imagem, pois rotulo e impresso/colado no produto.
