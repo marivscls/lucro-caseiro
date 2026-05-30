@@ -23,6 +23,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "../shared/hooks/use-auth";
+import { maskPhoneBR } from "../shared/utils/phone";
 import { ProlaboreGoalForm } from "../features/goals/components/prolabore-goal-form";
 import { formatCurrency } from "../features/goals/domain";
 import { useProlaboreStatus } from "../features/goals/hooks";
@@ -484,7 +485,7 @@ export default function SettingsScreen() {
               label="Telefone"
               placeholder="Ex: (11) 99999-9999"
               value={editPhone}
-              onChangeText={setEditPhone}
+              onChangeText={(v) => setEditPhone(maskPhoneBR(v))}
               keyboardType="phone-pad"
             />
             <Button

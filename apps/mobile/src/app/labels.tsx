@@ -31,6 +31,7 @@ import { cleanNutrition } from "../features/labels/nutrition";
 import { NutritionFields } from "../features/labels/components/nutrition-fields";
 import { normalizeLink } from "../features/labels/qr";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
+import { maskPhoneBR } from "../shared/utils/phone";
 import { uploadLabelLogo } from "../shared/utils/upload-image";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -279,7 +280,7 @@ function LabelDetailModal({
             <Input
               label="Telefone"
               value={labelData.producerPhone ?? ""}
-              onChangeText={(v) => updateField("producerPhone", v)}
+              onChangeText={(v) => updateField("producerPhone", maskPhoneBR(v))}
               keyboardType="phone-pad"
             />
             <Input

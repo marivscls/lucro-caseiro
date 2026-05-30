@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { Alert, Image, Pressable, ScrollView, View } from "react-native";
 
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
+import { maskPhoneBR } from "../../../shared/utils/phone";
 import { uploadLabelLogo } from "../../../shared/utils/upload-image";
 import { addDaysToBR, brToIso, maskDateBR } from "../dates";
 import { exportLabelPdfWithChoice } from "../label-export";
@@ -238,7 +239,7 @@ export function CreateLabelForm({
           label="Telefone"
           placeholder="(11) 99999-9999"
           value={labelData.producerPhone ?? ""}
-          onChangeText={(v) => updateField("producerPhone", v)}
+          onChangeText={(v) => updateField("producerPhone", maskPhoneBR(v))}
           keyboardType="phone-pad"
         />
 
