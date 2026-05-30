@@ -284,7 +284,7 @@ function OrdersList({
 export default function AgendaScreen() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
-  const { data: orders, isLoading } = useOrders();
+  const { data: orders, isLoading, error } = useOrders();
   const [showCreate, setShowCreate] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
@@ -298,6 +298,14 @@ export default function AgendaScreen() {
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
+      );
+    }
+    if (error) {
+      return (
+        <EmptyState
+          title="Algo deu errado"
+          description="Não foi possível carregar sua agenda. Tente novamente."
+        />
       );
     }
     if (groups.length === 0) {

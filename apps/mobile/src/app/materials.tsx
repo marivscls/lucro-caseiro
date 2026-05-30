@@ -78,7 +78,7 @@ function LowStockBanner() {
 export default function MaterialsScreen() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
-  const { data, isLoading } = useMaterials();
+  const { data, isLoading, error } = useMaterials();
   const [showCreate, setShowCreate] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -91,6 +91,14 @@ export default function MaterialsScreen() {
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
+      );
+    }
+    if (error) {
+      return (
+        <EmptyState
+          title="Algo deu errado"
+          description="Não foi possível carregar seus insumos. Tente novamente."
+        />
       );
     }
     if (items.length === 0) {

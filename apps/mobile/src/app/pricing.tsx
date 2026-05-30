@@ -18,7 +18,7 @@ function PricingHistoryModal({
   const { theme } = useTheme();
   const { data: productsData } = useProducts();
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
-  const { data: history, isLoading } = usePricingHistory(selectedProductId ?? "");
+  const { data: history, isLoading, error } = usePricingHistory(selectedProductId ?? "");
 
   const products = productsData?.items ?? [];
 
@@ -99,12 +99,22 @@ function PricingHistoryModal({
           </View>
         )}
 
-        {selectedProductId && !isLoading && (!history || history.length === 0) && (
+        {selectedProductId && !isLoading && error && (
           <EmptyState
-            title="Nenhum cálculo encontrado"
-            description="Nenhuma precificação registrada para este produto"
+            title="Algo deu errado"
+            description="Não foi possível carregar o histórico. Tente novamente."
           />
         )}
+
+        {selectedProductId &&
+          !isLoading &&
+          !error &&
+          (!history || history.length === 0) && (
+            <EmptyState
+              title="Nenhum cálculo encontrado"
+              description="Nenhuma precificação registrada para este produto"
+            />
+          )}
 
         {selectedProductId && !isLoading && history && history.length > 0 && (
           <FlatList

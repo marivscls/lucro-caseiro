@@ -47,7 +47,7 @@ export function FinanceDashboard({
   const [year, setYear] = useState(now.getFullYear());
   const [exporting, setExporting] = useState<"pdf" | "xlsx" | null>(null);
 
-  const { data: summary, isLoading } = useFinanceSummary({ month, year });
+  const { data: summary, isLoading, error } = useFinanceSummary({ month, year });
   const { data: entries } = useFinanceEntries({ type: undefined });
 
   const handleExport = useCallback(
@@ -113,6 +113,16 @@ export function FinanceDashboard({
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", padding: spacing.xl }}>
+        <Typography variant="body" color={theme.colors.textSecondary}>
+          Não foi possível carregar o financeiro. Tente novamente.
+        </Typography>
       </View>
     );
   }
