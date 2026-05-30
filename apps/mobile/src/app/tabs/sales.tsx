@@ -26,6 +26,7 @@ import { SaleCard } from "../../features/sales/components/sale-card";
 import { SaleDetail } from "../../features/sales/components/sale-detail";
 import { useSale, useSales, useUpdateSale } from "../../features/sales/hooks";
 import { useClient } from "../../features/clients/hooks";
+import { PAYMENT_OPTIONS } from "../../features/sales/payment";
 
 type FilterTab = "all" | "paid" | "pending" | "cancelled";
 
@@ -337,13 +338,7 @@ export default function SalesScreen() {
             <View style={{ gap: spacing.sm }}>
               <Typography variant="caption">Forma de pagamento</Typography>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-                {[
-                  { value: "pix", label: "Pix" },
-                  { value: "cash", label: "Dinheiro" },
-                  { value: "card", label: "Cartão" },
-                  { value: "credit", label: "Fiado" },
-                  { value: "transfer", label: "Transferência" },
-                ].map((opt) => (
+                {PAYMENT_OPTIONS.map((opt) => (
                   <Pressable
                     key={opt.value}
                     onPress={() => setEditPayment(opt.value)}

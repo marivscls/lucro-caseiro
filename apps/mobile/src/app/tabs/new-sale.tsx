@@ -1,4 +1,4 @@
-import type { Product, Client } from "@lucro-caseiro/contracts";
+import type { Product, Client, PaymentMethod } from "@lucro-caseiro/contracts";
 import {
   Button,
   Card,
@@ -26,6 +26,7 @@ import { useClients } from "../../features/clients/hooks";
 import { CreateProductForm } from "../../features/products/components/create-product-form";
 import { useProducts } from "../../features/products/hooks";
 import { useCreateSale } from "../../features/sales/hooks";
+import { PAYMENT_LABELS } from "../../features/sales/payment";
 import { useInterstitial } from "../../shared/hooks/use-interstitial";
 import { useLimitCheck } from "../../shared/hooks/use-limit-check";
 
@@ -39,17 +40,21 @@ interface CartItem {
 }
 
 type PaymentOption = {
-  value: "pix" | "cash" | "card" | "credit" | "transfer";
+  value: PaymentMethod;
   label: string;
   icon: string;
 };
 
 const PAYMENT_OPTIONS: PaymentOption[] = [
-  { value: "pix", label: "Pix", icon: "qr-code-outline" },
-  { value: "cash", label: "Dinheiro", icon: "cash-outline" },
-  { value: "card", label: "Cartão", icon: "card-outline" },
-  { value: "credit", label: "Fiado", icon: "time-outline" },
-  { value: "transfer", label: "Transferência", icon: "swap-horizontal-outline" },
+  { value: "pix", label: PAYMENT_LABELS.pix, icon: "qr-code-outline" },
+  { value: "cash", label: PAYMENT_LABELS.cash, icon: "cash-outline" },
+  { value: "card", label: PAYMENT_LABELS.card, icon: "card-outline" },
+  { value: "credit", label: PAYMENT_LABELS.credit, icon: "time-outline" },
+  {
+    value: "transfer",
+    label: PAYMENT_LABELS.transfer,
+    icon: "swap-horizontal-outline",
+  },
 ];
 
 function formatCurrency(value: number): string {

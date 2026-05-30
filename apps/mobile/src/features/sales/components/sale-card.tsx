@@ -3,6 +3,8 @@ import { Badge, Card, Typography, useTheme, spacing } from "@lucro-caseiro/ui";
 import React from "react";
 import { View } from "react-native";
 
+import { paymentLabel } from "../payment";
+
 interface SaleCardProps {
   readonly sale: Sale;
   readonly onPress?: () => void;
@@ -21,21 +23,13 @@ const STATUS_MAP: Record<
   cancelled: { label: "Cancelado", variant: "danger" },
 };
 
-const PAYMENT_LABELS: Record<string, string> = {
-  pix: "Pix",
-  cash: "Dinheiro",
-  card: "Cartão",
-  credit: "Fiado",
-  transfer: "Transferência",
-};
-
 export function SaleCard({ sale, onPress }: SaleCardProps) {
   const { theme } = useTheme();
   const status = STATUS_MAP[sale.status] ?? {
     label: sale.status,
     variant: "neutral" as const,
   };
-  const paymentLabel = PAYMENT_LABELS[sale.paymentMethod] ?? sale.paymentMethod;
+  const payment = paymentLabel(sale.paymentMethod);
 
   const itemsSummary = sale.items
     ?.map((i) => i.productName)
@@ -82,7 +76,7 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
               {itemsSummary}
             </Typography>
           ) : (
-            <Typography variant="caption">{paymentLabel}</Typography>
+            <Typography variant="caption">{payment}</Typography>
           )}
         </View>
 

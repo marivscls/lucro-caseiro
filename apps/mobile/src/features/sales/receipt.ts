@@ -1,12 +1,6 @@
 import type { Sale } from "@lucro-caseiro/contracts";
 
-const PAYMENT_LABELS: Record<string, string> = {
-  pix: "Pix",
-  cash: "Dinheiro",
-  card: "Cartão",
-  credit: "Fiado",
-  transfer: "Transferência",
-};
+import { paymentLabel } from "./payment";
 
 function money(value: number): string {
   return `R$ ${value.toFixed(2).replace(".", ",")}`;
@@ -35,7 +29,7 @@ export function buildReceiptMessage(sale: Sale): string {
 
   lines.push("");
   lines.push(`*Total: ${money(sale.total)}*`);
-  lines.push(`Pagamento: ${PAYMENT_LABELS[sale.paymentMethod] ?? sale.paymentMethod}`);
+  lines.push(`Pagamento: ${paymentLabel(sale.paymentMethod)}`);
   if (sale.status === "pending") lines.push("Situação: em aberto");
   lines.push("");
   lines.push("Obrigada pela preferência! 💛");

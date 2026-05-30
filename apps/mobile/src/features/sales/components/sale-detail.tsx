@@ -7,6 +7,7 @@ import { Alert, ScrollView, View } from "react-native";
 import { isValidBrazilPhone } from "../../../shared/utils/phone";
 import { openWhatsApp, openWhatsAppShare } from "../../../shared/utils/whatsapp";
 import { useUpdateSaleStatus } from "../hooks";
+import { paymentLabel } from "../payment";
 import { buildReceiptMessage } from "../receipt";
 
 interface SaleDetailProps {
@@ -40,14 +41,6 @@ const STATUS_MAP: Record<
   cancelled: { label: "Cancelado", variant: "danger" },
 };
 
-const PAYMENT_LABELS: Record<string, string> = {
-  pix: "Pix",
-  cash: "Dinheiro",
-  card: "Cartão",
-  credit: "Fiado",
-  transfer: "Transferência",
-};
-
 export function SaleDetail({
   sale,
   clientPhone,
@@ -70,7 +63,7 @@ export function SaleDetail({
     label: sale.status,
     variant: "neutral" as const,
   };
-  const paymentLabel = PAYMENT_LABELS[sale.paymentMethod] ?? sale.paymentMethod;
+  const payment = paymentLabel(sale.paymentMethod);
 
   function handleMarkAsPaid() {
     Alert.alert("Confirmar", "Deseja marcar esta venda como paga?", [
@@ -134,7 +127,7 @@ export function SaleDetail({
           </View>
           <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
             <Typography variant="caption">Pagamento</Typography>
-            <Badge label={paymentLabel} variant="info" />
+            <Badge label={payment} variant="info" />
           </View>
           <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
             <Typography variant="caption">Data</Typography>
