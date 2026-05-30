@@ -284,20 +284,27 @@ function ProductDetailModal({
         {!isLoading && product && !editing && (
           <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
             <View style={{ alignItems: "center", gap: spacing.md }}>
-              <View
-                style={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: radii.full,
-                  backgroundColor: theme.colors.primaryLight,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Typography variant="display" color={theme.colors.textOnPrimary}>
-                  {product.name.charAt(0).toUpperCase()}
-                </Typography>
-              </View>
+              {product.photoUrl ? (
+                <Image
+                  source={{ uri: product.photoUrl }}
+                  style={{ width: 96, height: 96, borderRadius: radii.full }}
+                />
+              ) : (
+                <View
+                  style={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: radii.full,
+                    backgroundColor: theme.colors.primaryLight,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Typography variant="display" color={theme.colors.textOnPrimary}>
+                    {product.name.charAt(0).toUpperCase()}
+                  </Typography>
+                </View>
+              )}
               <Typography variant="h1">{product.name}</Typography>
               <Typography variant="caption">{product.category}</Typography>
             </View>
@@ -333,39 +340,6 @@ function ProductDetailModal({
                 )}
               </View>
             </Card>
-
-            <View>
-              <Typography variant="caption" style={{ marginBottom: spacing.sm }}>
-                Foto do produto
-              </Typography>
-              <Pressable
-                onPress={showPicker}
-                style={{
-                  width: 100,
-                  height: 100,
-                  borderRadius: radii.lg,
-                  backgroundColor: theme.colors.surface,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  overflow: "hidden",
-                }}
-              >
-                {imageUri ? (
-                  <Image source={{ uri: imageUri }} style={{ width: 100, height: 100 }} />
-                ) : (
-                  <View style={{ alignItems: "center", gap: 4 }}>
-                    <Ionicons
-                      name="camera-outline"
-                      size={28}
-                      color={theme.colors.textSecondary}
-                    />
-                    <Typography variant="caption" color={theme.colors.textSecondary}>
-                      Adicionar
-                    </Typography>
-                  </View>
-                )}
-              </Pressable>
-            </View>
 
             <Button
               title="Excluir produto"
