@@ -468,51 +468,66 @@ export default function NewSaleScreen() {
 
       {/* Step 3: Payment Method */}
       {step === 3 && (
-        <View style={{ flex: 1, paddingHorizontal: spacing.xl, gap: spacing.lg }}>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{
+            paddingHorizontal: spacing.xl,
+            gap: spacing.md,
+            paddingBottom: spacing.lg,
+          }}
+        >
           {PAYMENT_OPTIONS.map((option) => {
             const isSelected = paymentMethod === option.value;
             return (
               <Pressable
                 key={option.value}
                 onPress={() => setPaymentMethod(option.value)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isSelected }}
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
-                  gap: spacing.lg,
-                  padding: spacing.xl,
-                  backgroundColor: isSelected
-                    ? theme.colors.surfaceElevated
-                    : theme.colors.surface,
+                  gap: spacing.md,
+                  paddingVertical: spacing.md,
+                  paddingHorizontal: spacing.lg,
+                  backgroundColor: theme.colors.surface,
                   borderRadius: radii.xl,
-                  borderWidth: isSelected ? 2 : 0,
-                  borderColor: isSelected ? theme.colors.primary : theme.colors.surface,
+                  borderWidth: 2,
+                  borderColor: isSelected ? theme.colors.primary : "transparent",
                 }}
               >
                 <View
                   style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 28,
+                    width: 44,
+                    height: 44,
+                    borderRadius: radii.full,
                     backgroundColor: isSelected
                       ? theme.colors.primary
-                      : theme.colors.surfaceElevated,
+                      : theme.colors.background,
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
                   <Ionicons
                     name={option.icon as keyof typeof Ionicons.glyphMap}
-                    size={22}
-                    color={
-                      isSelected ? theme.colors.textOnPrimary : theme.colors.textSecondary
-                    }
+                    size={20}
+                    color={isSelected ? theme.colors.textOnPrimary : theme.colors.primary}
                   />
                 </View>
-                <Typography variant="h3">{option.label}</Typography>
+                <Typography variant="bodyBold" style={{ flex: 1 }}>
+                  {option.label}
+                </Typography>
+                {isSelected && (
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={22}
+                    color={theme.colors.primary}
+                  />
+                )}
               </Pressable>
             );
           })}
-        </View>
+        </ScrollView>
       )}
 
       {/* Step 4: Review & Confirm */}
