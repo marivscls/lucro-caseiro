@@ -28,6 +28,8 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 | `apps/mobile/src/features/sales/components/sale-card.tsx`   | Card de venda na listagem                                                             |
 | `apps/mobile/src/features/sales/components/sale-detail.tsx` | Detalhe da venda com acoes de status + enviar recibo                                  |
 | `apps/mobile/src/features/sales/receipt.ts`                 | `buildReceiptMessage(sale)` — texto do recibo p/ WhatsApp                             |
+| `apps/mobile/src/features/sales/fiado.ts`                   | Fiado (vendas pendentes): `groupFiados`, `totalOwed`, `buildChargeMessage`            |
+| `apps/mobile/src/app/fiado.tsx`                             | Tela `/fiado` (quem te deve, por cliente, + cobrar no WhatsApp)                       |
 | `apps/mobile/src/app/tabs/new-sale.tsx`                     | Screen do wizard de nova venda (tab)                                                  |
 
 ## Components
@@ -124,3 +126,4 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 - Formas de pagamento: pix, cash, card, credit, transfer.
 - Resumo do dia usa auto-refresh para manter Home atualizada.
 - 2026-05-30: recibo de venda no WhatsApp (`receipt.ts` + botao no `SaleDetail`). Vai direto ao contato se o cliente tiver telefone, senao abre o seletor (`openWhatsAppShare`).
+- 2026-05-30: controle de fiado (tela `/fiado`, acessada via "Mais"). Fiado = vendas com status `pending`; agrupadas por cliente (`groupFiados`), com total a receber, "marcar como recebido" (status->paid) e "cobrar no WhatsApp" (`buildChargeMessage`). Telefone do cliente vem de `useClients` (1a pagina); sem telefone, usa o seletor do WhatsApp.

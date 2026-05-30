@@ -21,6 +21,12 @@ const menuItems = [
     route: "/finance" as const,
   },
   {
+    title: "Fiado",
+    description: "Quem te deve e cobrança",
+    icon: "cash-outline" as const,
+    route: "/fiado" as const,
+  },
+  {
     title: "Produtos",
     description: "Seu catálogo",
     icon: "cube-outline" as const,

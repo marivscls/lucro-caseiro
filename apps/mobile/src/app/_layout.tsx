@@ -140,6 +140,15 @@ function AppContent() {
           }}
         />
         <Stack.Screen
+          name="fiado"
+          options={{
+            headerShown: true,
+            title: "Fiado",
+            headerStyle: { backgroundColor: theme.colors.background },
+            headerTintColor: theme.colors.text,
+          }}
+        />
+        <Stack.Screen
           name="insights"
           options={{
             headerShown: true,
