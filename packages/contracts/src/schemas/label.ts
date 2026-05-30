@@ -23,7 +23,11 @@ export const CreateLabelDto = z.object({
 
 export type CreateLabel = z.infer<typeof CreateLabelDto>;
 
-export const UpdateLabelDto = CreateLabelDto.partial();
+export const UpdateLabelDto = CreateLabelDto.partial().extend({
+  // Nullable no update para permitir remover o logo/QR de um rotulo ja salvo.
+  logoUrl: z.string().url().nullable().optional(),
+  qrCodeUrl: z.string().url().nullable().optional(),
+});
 export type UpdateLabel = z.infer<typeof UpdateLabelDto>;
 
 export const LabelDto = z.object({

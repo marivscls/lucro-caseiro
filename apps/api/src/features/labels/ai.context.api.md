@@ -105,7 +105,7 @@ invariants:
 ## Contracts (Zod/DTO)
 
 - **CreateLabelDto**: `{ productId?, templateId, name, data: LabelData, logoUrl?, qrCodeUrl? }`
-- **UpdateLabelDto**: `Partial<CreateLabelDto>`
+- **UpdateLabelDto**: `Partial<CreateLabelDto>`, exceto `logoUrl`/`qrCodeUrl` que sao `string().url().nullable().optional()` — enviar `null` limpa o campo (remover logo/QR de um rotulo salvo); omitir mantem o valor atual.
 - **LabelData**: `{ productName, ingredients?, ... }` (objeto JSON flexivel)
 - **Label**: `{ id, userId, productId, templateId, name, data, logoUrl, qrCodeUrl, createdAt }`
 - **LabelTemplate**: `{ id: string, name: string }`
@@ -165,3 +165,4 @@ GET /api/v1/labels/templates
 - Criacao inicial com CRUD + templates pre-definidos
 - Templates hardcoded no dominio (nao persistidos em DB)
 - `buildLabelContent` permite merge de ingredientes de receita
+- 2026-05-30: `UpdateLabelDto.logoUrl`/`qrCodeUrl` agora aceitam `null` para limpar o campo (mobile permite remover o logo na edicao). Repo ja persistia `null`; `CreateLabelData.logoUrl?/qrCodeUrl?` widened para `string | null`.

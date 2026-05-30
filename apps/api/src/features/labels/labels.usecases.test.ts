@@ -136,6 +136,21 @@ describe("LabelsUseCases", () => {
         sut.update(USER_ID, "label-1", { templateId: "invalido" }),
       ).rejects.toThrow(ValidationError);
     });
+
+    it("passes logoUrl: null to repo to clear an existing logo", async () => {
+      let received: Partial<CreateLabelData> | undefined;
+      const { sut } = makeSut({
+        findById: () => Promise.resolve(makeLabel({ logoUrl: "https://x/logo.png" })),
+        update: (_userId, _id, data) => {
+          received = data;
+          return Promise.resolve(makeLabel({ ...data }));
+        },
+      });
+
+      await sut.update(USER_ID, "label-1", { logoUrl: null });
+
+      expect(received?.logoUrl).toBeNull();
+    });
   });
 
   describe("remove", () => {

@@ -18,8 +18,8 @@ export interface CreateLabelData {
   templateId: string;
   name: string;
   data: LabelData;
-  logoUrl?: string;
-  qrCodeUrl?: string;
+  logoUrl?: string | null;
+  qrCodeUrl?: string | null;
 }
 
 export interface FindAllOpts {
