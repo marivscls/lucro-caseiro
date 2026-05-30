@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Alert, Image, Pressable, ScrollView, View } from "react-native";
 
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
+import { uploadProductImage } from "../../../shared/utils/upload-image";
 import { useCreateProduct } from "../hooks";
 
 interface CreateProductFormProps {
@@ -19,6 +20,7 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
   const [stockQuantity, setStockQuantity] = useState("");
   const [stockAlert, setStockAlert] = useState("");
   const { imageUri, showPicker } = useImagePicker();
+  const [uploading, setUploading] = useState(false);
 
   const createProduct = useCreateProduct();
 
@@ -40,12 +42,29 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
       return;
     }
 
+    // Sobe a foto (se houver) e usa a URL pública. Se falhar, salva sem a foto.
+    let photoUrl: string | undefined;
+    if (imageUri) {
+      try {
+        setUploading(true);
+        photoUrl = await uploadProductImage(imageUri);
+      } catch {
+        Alert.alert(
+          "Foto não enviada",
+          "Não consegui enviar a foto agora. Vou salvar o produto sem ela — você pode adicionar depois.",
+        );
+      } finally {
+        setUploading(false);
+      }
+    }
+
     try {
       await createProduct.mutateAsync({
         name: name.trim(),
         category: category.trim(),
         salePrice: price,
         description: description.trim() || undefined,
+        photoUrl,
         stockQuantity: stockQuantity ? parseInt(stockQuantity, 10) : undefined,
         stockAlertThreshold: stockAlert ? parseInt(stockAlert, 10) : undefined,
       });
@@ -143,12 +162,12 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
       />
 
       <Button
-        title="Cadastrar produto"
+        title={uploading ? "Enviando foto..." : "Cadastrar produto"}
         size="lg"
         onPress={() => {
           void handleSubmit();
         }}
-        loading={createProduct.isPending}
+        loading={createProduct.isPending || uploading}
       />
     </ScrollView>
   );

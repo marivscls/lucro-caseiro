@@ -22,6 +22,7 @@ import {
   useUpdateProduct,
 } from "../features/products/hooks";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
+import { uploadProductImage } from "../shared/utils/upload-image";
 
 function formatCurrency(value: number): string {
   return `R$ ${value.toFixed(2).replace(".", ",")}`;
@@ -68,6 +69,7 @@ function ProductDetailModal({
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
   const { imageUri, showPicker, setImageUri } = useImagePicker();
+  const [uploading, setUploading] = useState(false);
 
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
@@ -98,6 +100,27 @@ function ProductDetailModal({
       Alert.alert("Opa!", "O preço precisa ser maior que zero");
       return;
     }
+
+    // Foto: mantém a URL atual (http) ou sobe a nova (file://) pro storage.
+    let photoUrl: string | undefined;
+    if (imageUri) {
+      if (imageUri.startsWith("http")) {
+        photoUrl = imageUri;
+      } else {
+        try {
+          setUploading(true);
+          photoUrl = await uploadProductImage(imageUri);
+        } catch {
+          Alert.alert(
+            "Foto não enviada",
+            "Não consegui enviar a foto agora. As outras alterações serão salvas.",
+          );
+        } finally {
+          setUploading(false);
+        }
+      }
+    }
+
     try {
       await updateProduct.mutateAsync({
         id: productId,
@@ -106,6 +129,7 @@ function ProductDetailModal({
           category: category.trim(),
           salePrice: price,
           description: description.trim() || undefined,
+          photoUrl,
           stockQuantity: stockQuantity.trim() ? parseInt(stockQuantity, 10) : undefined,
           stockAlertThreshold: stockAlert.trim() ? parseInt(stockAlert, 10) : undefined,
         },
@@ -243,12 +267,12 @@ function ProductDetailModal({
               keyboardType="number-pad"
             />
             <Button
-              title="Salvar"
+              title={uploading ? "Enviando foto..." : "Salvar"}
               size="lg"
               onPress={() => {
                 void handleSave();
               }}
-              loading={updateProduct.isPending}
+              loading={updateProduct.isPending || uploading}
             />
             <Button
               title="Cancelar"
