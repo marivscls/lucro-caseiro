@@ -9,7 +9,7 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 ## Non-goals
 
 - Nao gerencia produtos (feature `products`).
-- Nao edita o logo de um rotulo ja salvo (upload de logo so no fluxo de criacao).
+- Nao gera/edita QR code (campo `qrCodeUrl` previsto no contrato mas sem UI).
 
 ## Boundaries & Ownership
 
@@ -126,4 +126,5 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 - Limite freemium: 1 template no Free, ilimitado no Premium (enforcement no backend).
 - Templates definidos com cores fixas no front (TEMPLATE_STYLES e TEMPLATE_COLORS).
 - 2026-05-30: adicionada exportacao de rotulo como PDF (expo-print + expo-sharing). `TEMPLATE_STYLES` agora exportado de `LabelPreview` para o HTML do PDF bater com o preview. Decisao por PDF (qualidade de impressao) em vez de imagem, pois rotulo e impresso/colado no produto.
-- 2026-05-30: upload de logo no fluxo de criacao (campo `logoUrl` ja existia no contrato/DB). Reaproveita bucket `product-photos` (path com prefixo `logo-`) — sem migration nova. Edicao de logo de rotulo salvo nao implementada.
+- 2026-05-30: upload de logo no fluxo de criacao (campo `logoUrl` ja existia no contrato/DB). Reaproveita bucket `product-photos` (path com prefixo `logo-`) — sem migration nova.
+- 2026-05-30: edicao de logo em rotulo salvo (`LabelDetailModal` em `labels.tsx`): trocar (upload do novo) ou remover. Remover envia `logoUrl: null` (UpdateLabelDto passou a aceitar nullable). Omitir `logoUrl` mantem o atual; upload com falha mantem o logo anterior.

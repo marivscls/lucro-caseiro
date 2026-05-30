@@ -5,6 +5,7 @@ import {
   EmptyState,
   Input,
   Typography,
+  radii,
   spacing,
   useTheme,
 } from "@lucro-caseiro/ui";
@@ -13,6 +14,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -24,6 +26,8 @@ import { CreateLabelForm } from "../features/labels/components/create-label-form
 import { LabelPreview } from "../features/labels/components/label-preview";
 import { TemplatePicker } from "../features/labels/components/template-picker";
 import { exportLabelPdf } from "../features/labels/label-export";
+import { useImagePicker } from "../shared/hooks/use-image-picker";
+import { uploadLabelLogo } from "../shared/utils/upload-image";
 import { Ionicons } from "@expo/vector-icons";
 import {
   useDeleteLabel,
@@ -51,6 +55,12 @@ function LabelDetailModal({
   const [templateId, setTemplateId] = useState("classico");
   const [labelData, setLabelData] = useState<LabelData>({ productName: "" });
   const [exporting, setExporting] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [logoRemoved, setLogoRemoved] = useState(false);
+  const { imageUri: newLogo, showPicker, clear: clearPickedLogo } = useImagePicker();
+
+  // Logo exibido na edição: novo escolhido > existente (a menos que removido).
+  const editingLogo = newLogo ?? (logoRemoved ? null : (label?.logoUrl ?? null));
 
   async function handleExport(l: Label) {
     setExporting(true);
@@ -67,7 +77,14 @@ function LabelDetailModal({
     setName(l.name);
     setTemplateId(l.templateId);
     setLabelData(l.data);
+    setLogoRemoved(false);
+    clearPickedLogo();
     setEditing(true);
+  }
+
+  function handleRemoveLogo() {
+    clearPickedLogo();
+    setLogoRemoved(true);
   }
 
   function updateField<K extends keyof LabelData>(key: K, value: LabelData[K]) {
@@ -79,10 +96,35 @@ function LabelDetailModal({
       Alert.alert("Opa!", "De um nome para o rótulo");
       return;
     }
+
+    // logoUrl: string (novo upload), null (removido) ou undefined (inalterado).
+    let logoUrl: string | null | undefined;
+    if (newLogo) {
+      try {
+        setUploading(true);
+        logoUrl = await uploadLabelLogo(newLogo);
+      } catch {
+        Alert.alert(
+          "Logo não enviado",
+          "Não consegui enviar o novo logo agora. Vou salvar mantendo o logo anterior.",
+        );
+        logoUrl = undefined;
+      } finally {
+        setUploading(false);
+      }
+    } else if (logoRemoved) {
+      logoUrl = null;
+    }
+
     try {
       await updateLabel.mutateAsync({
         id: labelId,
-        data: { name: name.trim(), templateId, data: labelData },
+        data: {
+          name: name.trim(),
+          templateId,
+          data: labelData,
+          ...(logoUrl !== undefined ? { logoUrl } : {}),
+        },
       });
       Alert.alert("Rótulo atualizado!");
       setEditing(false);
@@ -188,18 +230,59 @@ function LabelDetailModal({
               onChangeText={(v) => updateField("producerPhone", v)}
               keyboardType="phone-pad"
             />
+            <View>
+              <Typography variant="caption" style={{ marginBottom: spacing.sm }}>
+                Logo do negócio (opcional)
+              </Typography>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
+              >
+                <Pressable
+                  onPress={showPicker}
+                  style={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: radii.lg,
+                    backgroundColor: theme.colors.surface,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    overflow: "hidden",
+                  }}
+                >
+                  {editingLogo ? (
+                    <Image
+                      source={{ uri: editingLogo }}
+                      style={{ width: 80, height: 80 }}
+                    />
+                  ) : (
+                    <Ionicons
+                      name="image-outline"
+                      size={28}
+                      color={theme.colors.textSecondary}
+                    />
+                  )}
+                </Pressable>
+                {editingLogo && (
+                  <Pressable onPress={handleRemoveLogo} hitSlop={8}>
+                    <Typography variant="caption" color={theme.colors.primary}>
+                      Remover logo
+                    </Typography>
+                  </Pressable>
+                )}
+              </View>
+            </View>
             <LabelPreview
               data={labelData}
               templateId={templateId}
-              logoUrl={label.logoUrl}
+              logoUrl={editingLogo}
             />
             <Button
-              title="Salvar"
+              title={uploading ? "Enviando logo..." : "Salvar"}
               size="lg"
               onPress={() => {
                 handleSave().catch(() => {});
               }}
-              loading={updateLabel.isPending}
+              loading={updateLabel.isPending || uploading}
             />
             <Button
               title="Cancelar"
