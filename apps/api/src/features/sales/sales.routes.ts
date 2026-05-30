@@ -4,16 +4,19 @@ import {
   UpdateSaleDto,
   UpdateSaleStatusDto,
 } from "@lucro-caseiro/contracts";
-import { Router } from "express";
+import { Router, type RequestHandler } from "express";
 
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
 import type { SalesUseCases } from "./sales.usecases";
 
-export function createSalesRouter(useCases: SalesUseCases): Router {
+export function createSalesRouter(
+  useCases: SalesUseCases,
+  createGuard?: RequestHandler,
+): Router {
   const router = Router();
   router.use(authMiddleware);
 
-  router.post("/", async (req, res, next) => {
+  router.post("/", ...(createGuard ? [createGuard] : []), async (req, res, next) => {
     try {
       const userId = getUserId(req);
       const data = CreateSaleDto.parse(req.body);

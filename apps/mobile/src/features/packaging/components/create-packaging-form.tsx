@@ -2,6 +2,7 @@ import { Button, Input, Typography, useTheme, spacing } from "@lucro-caseiro/ui"
 import React, { useState } from "react";
 import { Alert, Pressable, ScrollView, View } from "react-native";
 
+import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
 import { useCreatePackaging } from "../hooks";
 
 interface CreatePackagingFormProps {
@@ -25,8 +26,11 @@ export function CreatePackagingForm({ onSuccess }: CreatePackagingFormProps) {
   const [supplier, setSupplier] = useState("");
 
   const createPackaging = useCreatePackaging();
+  const { checkAndBlock: checkPackagingLimit } = useLimitCheck("packaging");
 
   async function handleSubmit() {
+    if (checkPackagingLimit()) return;
+
     if (!name.trim()) {
       Alert.alert("Opa!", "Coloque o nome da embalagem");
       return;

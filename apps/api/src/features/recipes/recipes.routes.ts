@@ -3,17 +3,20 @@ import {
   PaginationDto,
   UpdateRecipeDto,
 } from "@lucro-caseiro/contracts";
-import { Router } from "express";
+import { Router, type RequestHandler } from "express";
 import { z } from "zod";
 
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
 import type { RecipesUseCases } from "./recipes.usecases";
 
-export function createRecipesRouter(useCases: RecipesUseCases): Router {
+export function createRecipesRouter(
+  useCases: RecipesUseCases,
+  createGuard?: RequestHandler,
+): Router {
   const router = Router();
   router.use(authMiddleware);
 
-  router.post("/", async (req, res, next) => {
+  router.post("/", ...(createGuard ? [createGuard] : []), async (req, res, next) => {
     try {
       const userId = getUserId(req);
       const data = CreateRecipeDto.parse(req.body);

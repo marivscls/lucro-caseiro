@@ -52,6 +52,7 @@ import {
 } from "./features/payments/stripe.routes";
 import { StripeUseCases } from "./features/payments/stripe.usecases";
 import { errorHandler } from "./shared/middleware/error-handler";
+import { freemiumGuard } from "./shared/middleware/freemium-guard";
 import { healthRouter } from "./shared/health";
 import { setDb } from "./shared/db";
 import { createClient } from "@lucro-caseiro/database";
@@ -161,18 +162,30 @@ app.use("/api/v1/health", healthRouter);
 
 // Feature routes
 app.use("/api/v1/products", createProductsRouter(productsUseCases));
-app.use("/api/v1/clients", createClientsRouter(clientsUseCases));
-app.use("/api/v1/sales", createSalesRouter(salesUseCases));
+app.use(
+  "/api/v1/clients",
+  createClientsRouter(clientsUseCases, freemiumGuard(subscriptionRepo, "clients")),
+);
+app.use(
+  "/api/v1/sales",
+  createSalesRouter(salesUseCases, freemiumGuard(subscriptionRepo, "sales")),
+);
 app.use("/api/v1/finance", createFinanceRouter(financeUseCases));
 app.use("/api/v1/goals", createGoalsRouter(goalsUseCases));
 app.use("/api/v1/orders", createOrdersRouter(ordersUseCases));
 app.use("/api/v1/materials", createMaterialsRouter(materialsUseCases));
 app.use("/api/v1/insights", createInsightsRouter(insightsUseCases));
-app.use("/api/v1/recipes", createRecipesRouter(recipesUseCases));
+app.use(
+  "/api/v1/recipes",
+  createRecipesRouter(recipesUseCases, freemiumGuard(subscriptionRepo, "recipes")),
+);
 app.use("/api/v1/ingredients", createIngredientsRouter(ingredientsUseCases));
 app.use("/api/v1/pricing", createPricingRouter(pricingUseCases));
 app.use("/api/v1/labels", createLabelsRouter(labelsUseCases));
-app.use("/api/v1/packaging", createPackagingRouter(packagingUseCases));
+app.use(
+  "/api/v1/packaging",
+  createPackagingRouter(packagingUseCases, freemiumGuard(subscriptionRepo, "packaging")),
+);
 app.use("/api/v1/subscription", createSubscriptionRouter(subscriptionUseCases));
 app.use("/api/v1/payments/stripe", createStripeCheckoutRouter(stripeUseCases));
 

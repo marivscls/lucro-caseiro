@@ -3,16 +3,19 @@ import {
   PaginationDto,
   UpdatePackagingDto,
 } from "@lucro-caseiro/contracts";
-import { Router } from "express";
+import { Router, type RequestHandler } from "express";
 
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
 import type { PackagingUseCases } from "./packaging.usecases";
 
-export function createPackagingRouter(useCases: PackagingUseCases): Router {
+export function createPackagingRouter(
+  useCases: PackagingUseCases,
+  createGuard?: RequestHandler,
+): Router {
   const router = Router();
   router.use(authMiddleware);
 
-  router.post("/", async (req, res, next) => {
+  router.post("/", ...(createGuard ? [createGuard] : []), async (req, res, next) => {
     try {
       const userId = getUserId(req);
       const data = CreatePackagingDto.parse(req.body);

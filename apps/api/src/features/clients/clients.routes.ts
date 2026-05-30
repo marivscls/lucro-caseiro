@@ -3,16 +3,19 @@ import {
   PaginationDto,
   UpdateClientDto,
 } from "@lucro-caseiro/contracts";
-import { Router } from "express";
+import { Router, type RequestHandler } from "express";
 
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
 import type { ClientsUseCases } from "./clients.usecases";
 
-export function createClientsRouter(useCases: ClientsUseCases): Router {
+export function createClientsRouter(
+  useCases: ClientsUseCases,
+  createGuard?: RequestHandler,
+): Router {
   const router = Router();
   router.use(authMiddleware);
 
-  router.post("/", async (req, res, next) => {
+  router.post("/", ...(createGuard ? [createGuard] : []), async (req, res, next) => {
     try {
       const userId = getUserId(req);
       const data = CreateClientDto.parse(req.body);
