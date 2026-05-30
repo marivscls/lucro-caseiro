@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { addDaysToBR, brToIso, isoToBR, maskDateBR } from "./dates";
+import { addDaysToBR, brToIso, isoToBR, maskDateBR } from "./date";
 
 describe("isoToBR", () => {
   it("converts ISO to DD/MM/AAAA", () => {

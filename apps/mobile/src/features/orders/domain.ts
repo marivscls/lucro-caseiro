@@ -1,5 +1,7 @@
 import type { Order, OrderStatus } from "@lucro-caseiro/contracts";
 
+import { isoToBR } from "../../shared/utils/date";
+
 export const STATUS_LABEL: Record<OrderStatus, string> = {
   pending: "A fazer",
   in_production: "Produzindo",
@@ -38,8 +40,7 @@ function addDays(d: Date, days: number): Date {
 }
 
 export function formatDateBR(iso: string): string {
-  const [y, m, d] = iso.split("-");
-  return `${d}/${m}/${y}`;
+  return isoToBR(iso);
 }
 
 /**
