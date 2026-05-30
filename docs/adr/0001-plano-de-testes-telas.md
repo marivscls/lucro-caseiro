@@ -210,15 +210,15 @@ Adotamos uma **estratégia de testes em camadas** + um **checklist de coerência
 > Itens concretos levantados nesta auditoria. ✅ = já corrigido · ⚠️ = a verificar/corrigir.
 
 1. ✅ **6.1 — Chips de filtro de Vendas** não apareciam no primeiro render (ScrollView horizontal colapsava). Corrigido para `flex-wrap`. _Teste de regressão: chips visíveis no mount._
-2. ⚠️ **6.2 — Aniversário do cliente em formato ISO.** O formulário de cliente usa placeholder/parse **`AAAA-MM-DD`**, enquanto **todas as outras datas do app são `DD/MM/AAAA` com máscara**. Incoerência de formato e de UX. _Ação sugerida: aplicar a mesma máscara/conversão das datas do rótulo (`maskDateBR`/`brToIso`/`isoToBR`)._
+2. ✅ **6.2 — Aniversário do cliente em formato ISO.** Corrigido: campo agora usa máscara `DD/MM/AAAA` (`maskDateBR`), converte para ISO ao salvar (`brToIso`) e hidrata na edição via `isoToBR`.
 3. ✅ **6.3 — Datas do rótulo salvas em ISO apareciam cruas** no rótulo salvo e no PDF. Corrigido com `isoToBR` no preview e no PDF.
 4. ✅ **6.4 — Telefone sem máscara** em vários campos. Padronizado: máscara em cliente (criar/editar), rótulo (produtor) e configurações; validação que bloqueia apenas no cliente.
 5. ✅ **6.5 — `wa.me` com DDI errado para DDD 55.** `normalizePhone` passou a decidir o DDI **pelo tamanho** do número.
-6. ⚠️ **6.6 — Moeda: formatador duplicado em ~10+ telas/arquivos** (`fiado`, `packaging`, `pricing`, `products`, `tabs/index`, `new-sale`, `client-card`, `client-detail`, `finance-dashboard`, `finance-entry-list`, `receipt`, …). Alto risco de divergir (com/sem separador de milhar). _Ação sugerida: centralizar **um** `formatCurrency` em `@lucro-caseiro/ui` ou `shared/utils` e reutilizar; testar `R$ 1.234,56`._
-7. ⚠️ **6.7 — Labels de pagamento duplicados.** O mapa Pix/Dinheiro/Cartão/Fiado/Transferência aparece em `sale-detail`, `receipt`, `new-sale`. Risco de divergir. _Ação sugerida: extrair um único `PAYMENT_LABELS` compartilhado._
-8. ⚠️ **6.8 — Datas: três formatadores `dateBR`/`formatDateBR`/`isoToBR`** em features diferentes (orders, whatsapp, sales/receipt, labels/dates). Verificar saída idêntica e considerar centralizar.
-9. ⚠️ **6.9 — Estados vazio/erro:** auditar que **toda** lista (finanças, insumos, receitas, embalagens, precificação) usa `EmptyState` + tratamento de erro, não só as telas revisadas.
-10. ⚠️ **6.10 — Acessibilidade:** auditar toque mínimo 48dp nos `Pressable` pequenos (ex: "Recebi" no Fiado, "Remover logo" no rótulo, chips de filtro) e contraste de texto sobre cards coloridos.
+6. ✅ **6.6 — Moeda: formatador único.** Centralizado em `shared/utils/format.ts` (`formatCurrency`, com separador de milhar `R$ 1.234,56`), reutilizado em ~20 arquivos. Coberto por `format.test.ts`.
+7. ✅ **6.7 — Labels de pagamento.** Fonte única `features/sales/payment.ts` (`PAYMENT_LABELS`/`PAYMENT_OPTIONS`/`paymentLabel`), usada em sale-card, sale-detail, receipt, new-sale e edição.
+8. ✅ **6.8 — Datas.** Helpers unificados em `shared/utils/date.ts` (`isoToBR`/`brToIso`/`maskDateBR`/`addDaysToBR`); labels re-exporta; orders e whatsapp delegam a `isoToBR`. Coberto por `date.test.ts`. _Obs: formatadores de data-a-partir-de-datetime do detalhe de venda (`toLocaleDateString` com hora) são propositalmente distintos._
+9. ✅ **6.9 — Estados vazio/erro.** Adicionado estado de **erro** em materials, pricing, finance-dashboard e agenda (loading/vazio já existiam). Verificado: products-list, recipe-list, client-list, sales e fiado já cobrem os três estados.
+10. ◐ **6.10 — Acessibilidade (parcial).** Aplicado toque mínimo 44dp aos chips de filtro de Vendas e de forma de pagamento; ações de texto ("Recebi", "Remover logo") já têm `hitSlop`. **Pendente:** criar um componente `Chip`/`TappableText` em `@lucro-caseiro/ui` com toque ≥44dp por padrão (cobre status pills da Agenda, chips de template etc.) e auditoria formal de contraste do tema (WCAG AA). _Botões do design system (`Button`) já garantem 48/56dp._
 
 ---
 

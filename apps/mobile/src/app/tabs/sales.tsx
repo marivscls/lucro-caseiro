@@ -235,7 +235,8 @@ export default function SalesScreen() {
               onPress={() => setActiveFilter(tab.key)}
               style={{
                 paddingHorizontal: spacing.lg,
-                paddingVertical: spacing.sm,
+                minHeight: 44,
+                justifyContent: "center",
                 borderRadius: radii.full,
                 backgroundColor: isActive ? theme.colors.primary : theme.colors.surface,
               }}
@@ -344,7 +345,8 @@ export default function SalesScreen() {
                     onPress={() => setEditPayment(opt.value)}
                     style={{
                       paddingHorizontal: spacing.lg,
-                      paddingVertical: spacing.sm,
+                      minHeight: 44,
+                      justifyContent: "center",
                       borderRadius: radii.full,
                       backgroundColor:
                         editPayment === opt.value
