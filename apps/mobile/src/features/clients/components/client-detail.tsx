@@ -162,7 +162,9 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
               title="WhatsApp"
               variant="success"
               size="sm"
-              onPress={() => openWhatsApp(client.phone!)}
+              onPress={() => {
+                void openWhatsApp(client.phone!);
+              }}
               style={{ borderRadius: radii.lg }}
             />
           </View>
@@ -177,7 +179,9 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
           <Button
             title="🎉 Enviar parabéns no WhatsApp"
             variant="secondary"
-            onPress={() => openWhatsApp(client.phone!, waMessages.birthday(client.name))}
+            onPress={() => {
+              void openWhatsApp(client.phone!, waMessages.birthday(client.name));
+            }}
             style={{ borderRadius: radii.lg }}
           />
         )}

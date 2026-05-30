@@ -55,7 +55,7 @@ Gerenciar a carteira de clientes do usuario: listar, buscar, criar, editar, excl
 ### `CreateClientForm`
 
 - **Props:** `{ onSuccess?: () => void }`
-- Campos: nome (obrigatorio), telefone, endereco, aniversario (AAAA-MM-DD), observacoes, tags.
+- Campos: nome (obrigatorio), telefone (mascara `maskPhoneBR`, validado por `isValidBrazilPhone`), endereco, aniversario (AAAA-MM-DD), observacoes, tags.
 - Checa limite freemium via `useLimitCheck("clients")` antes de submeter.
 
 ### `EditClientForm`
@@ -105,7 +105,7 @@ Importados de `@lucro-caseiro/contracts`.
 - **Erro de listagem:** `EmptyState` com mensagem "Nao foi possivel carregar seus clientes. Tente novamente."
 - **Erro de detalhe:** Typography com "Nao foi possivel carregar os dados do cliente."
 - **Erro de criacao/edicao:** `Alert.alert("Erro", message)` onde `message` vem da exception ou fallback generico.
-- **Validacao local:** nome obrigatorio, telefone minimo 8 digitos.
+- **Validacao local:** nome obrigatorio; telefone (se preenchido) validado por `isValidBrazilPhone` (DDD + numero) com mascara `maskPhoneBR`.
 - **Limite freemium:** `useLimitCheck("clients")` bloqueia criacao e mostra paywall.
 
 ## Performance

@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Alert, ScrollView } from "react-native";
 
 import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
+import { isValidBrazilPhone, maskPhoneBR } from "../../../shared/utils/phone";
 import { useCreateClient } from "../hooks";
 import { TagInput } from "./tag-input";
 
@@ -30,8 +31,8 @@ export function CreateClientForm({ onSuccess }: Readonly<CreateClientFormProps>)
     }
 
     const trimmedPhone = phone.trim();
-    if (trimmedPhone && trimmedPhone.length < 8) {
-      Alert.alert("Opa!", "O telefone precisa ter pelo menos 8 digitos");
+    if (trimmedPhone && !isValidBrazilPhone(trimmedPhone)) {
+      Alert.alert("Opa!", "Telefone inválido. Use DDD + número, ex: (11) 99999-9999.");
       return;
     }
 
@@ -74,7 +75,7 @@ export function CreateClientForm({ onSuccess }: Readonly<CreateClientFormProps>)
         label="Telefone (opcional)"
         placeholder="Ex: (11) 99999-9999"
         value={phone}
-        onChangeText={setPhone}
+        onChangeText={(v) => setPhone(maskPhoneBR(v))}
         keyboardType="phone-pad"
       />
 

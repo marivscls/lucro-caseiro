@@ -151,26 +151,26 @@ function OrderDetail({
           <Button
             title="Confirmar pedido"
             variant="secondary"
-            onPress={() =>
-              openWhatsApp(
+            onPress={() => {
+              void openWhatsApp(
                 client.phone!,
                 waMessages.orderConfirm(
                   order.clientName,
                   order.title,
                   order.deliveryDate,
                 ),
-              )
-            }
+              );
+            }}
           />
           <Button
             title="Avisar que está pronto"
             variant="secondary"
-            onPress={() =>
-              openWhatsApp(
+            onPress={() => {
+              void openWhatsApp(
                 client.phone!,
                 waMessages.orderReady(order.clientName, order.title),
-              )
-            }
+              );
+            }}
           />
         </View>
       ) : null}

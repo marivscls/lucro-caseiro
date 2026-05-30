@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Alert, ScrollView, View } from "react-native";
 
+import { isValidBrazilPhone } from "../../../shared/utils/phone";
 import { openWhatsApp, openWhatsAppShare } from "../../../shared/utils/whatsapp";
 import { useUpdateSaleStatus } from "../hooks";
 import { buildReceiptMessage } from "../receipt";
@@ -58,8 +59,11 @@ export function SaleDetail({
 
   function handleSendReceipt() {
     const message = buildReceiptMessage(sale);
-    if (clientPhone) openWhatsApp(clientPhone, message);
-    else openWhatsAppShare(message);
+    if (clientPhone && isValidBrazilPhone(clientPhone)) {
+      void openWhatsApp(clientPhone, message);
+    } else {
+      void openWhatsAppShare(message);
+    }
   }
 
   const status = STATUS_MAP[sale.status] ?? {

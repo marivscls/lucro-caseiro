@@ -16,6 +16,7 @@ import { useClients } from "../features/clients/hooks";
 import { useSales, useUpdateSaleStatus } from "../features/sales/hooks";
 import { buildChargeMessage, groupFiados, totalOwed } from "../features/sales/fiado";
 import type { FiadoGroup } from "../features/sales/fiado";
+import { isValidBrazilPhone } from "../shared/utils/phone";
 import { openWhatsApp, openWhatsAppShare } from "../shared/utils/whatsapp";
 
 function money(value: number): string {
@@ -112,8 +113,8 @@ export default function FiadoScreen() {
   function handleCharge(group: FiadoGroup) {
     const message = buildChargeMessage(group);
     const phone = group.clientId ? phoneById.get(group.clientId) : undefined;
-    if (phone) openWhatsApp(phone, message);
-    else openWhatsAppShare(message);
+    if (phone && isValidBrazilPhone(phone)) void openWhatsApp(phone, message);
+    else void openWhatsAppShare(message);
   }
 
   function handleMarkPaid(saleId: string) {

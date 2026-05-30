@@ -3,6 +3,7 @@ import { Button, Input, Typography, spacing } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
 import { Alert, ScrollView } from "react-native";
 
+import { isValidBrazilPhone, maskPhoneBR } from "../../../shared/utils/phone";
 import { useUpdateClient } from "../hooks";
 import { TagInput } from "./tag-input";
 
@@ -28,8 +29,8 @@ export function EditClientForm({ client, onSuccess }: Readonly<EditClientFormPro
     }
 
     const trimmedPhone = phone.trim();
-    if (trimmedPhone && trimmedPhone.length < 8) {
-      Alert.alert("Opa!", "O telefone precisa ter pelo menos 8 digitos");
+    if (trimmedPhone && !isValidBrazilPhone(trimmedPhone)) {
+      Alert.alert("Opa!", "Telefone inválido. Use DDD + número, ex: (11) 99999-9999.");
       return;
     }
 
@@ -72,7 +73,7 @@ export function EditClientForm({ client, onSuccess }: Readonly<EditClientFormPro
         label="Telefone (opcional)"
         placeholder="Ex: (11) 99999-9999"
         value={phone}
-        onChangeText={setPhone}
+        onChangeText={(v) => setPhone(maskPhoneBR(v))}
         keyboardType="phone-pad"
       />
 
