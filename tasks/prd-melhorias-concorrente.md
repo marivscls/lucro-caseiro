@@ -244,12 +244,18 @@ no Lucro Caseiro — marcados com ⚠️ **validar implementação atual** antes
 | 13  | Somar valores dos pedidos        | ✅ EXISTE (finance + sales agregam)                             | **ADAPTAR** (ponte `orders` → finance)                | `insights`/`finance` + `orders`             |
 | 14  | Insumo: unidade compra × uso     | 🟡 PARCIAL (2 units guardadas, sem conversão)                   | **INSERIR** (`unit_conversions` + `convert()`)        | `materials`/`recipes` domain                |
 
-**Quick wins (esforço mínimo, já existe a base):**
+**Status de implementação (atualizado 30/05/2026, após inspeção do código):**
 
-- ⚡ **#10 Modo de preparo** → campo `recipes.instructions` **já existe**; só falta exibir nos
-  forms do mobile (~1h).
-- ⚡ **#2 Editar qtd inline** → tabela suporta; só falta `PATCH` + edição inline (sem migration).
-- ⚡ **#1 Duplicar receita** → modelo suporta; só lógica de cópia (sem migration).
+- ✅ **#1 Duplicar receita** — **IMPLEMENTADO**: `POST /recipes/:id/duplicate` (reusa
+  `repo.create`, respeita limite freemium) + hook `useDuplicateRecipe` + botão "Duplicar
+  receita" no detalhe. Commit `feat(recipes): add duplicate recipe (api + mobile)`.
+- ✅ **#2 Editar qtd de ingrediente inline** — **JÁ EXISTIA**: `recipe-materials-editor.tsx`
+  tem um campo de **Quantidade por linha** (edita sem remover); usado nos forms de criar e
+  editar. A reclamação era do concorrente — o Lucro Caseiro já resolve. **Nada a fazer.**
+- ✅ **#10 Modo de preparo / ficha técnica** — **JÁ EXISTIA**: campo "Modo de preparo
+  (opcional)" nos forms de **criar e editar**, e exibido no detalhe. **Nada a fazer.**
+- ⛔ **#3 Taxas/despesas em %** — segue **faltando** e é o **maior pedido** (19 úteis). É o
+  próximo P0 real (precisa migration + gross-up — ver P0.3).
 
 ---
 
@@ -314,3 +320,7 @@ no Lucro Caseiro — marcados com ⚠️ **validar implementação atual** antes
   Precificação" (JSL Apps).
 - 2026-05-30: auditoria do código adicionada (já existe × adaptar × inserir) + quebra
   técnica dos P0.
+- 2026-05-30: **#1 Duplicar receita implementado** (api + mobile). Inspeção do código
+  revelou que **#2 (editar qtd inline) e #10 (modo de preparo) já existiam** no Lucro
+  Caseiro (eram lacunas do concorrente) → removidos do backlog de implementação. Próximo
+  P0 real = **#3 taxas/despesas em %**.
