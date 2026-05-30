@@ -254,8 +254,10 @@ no Lucro Caseiro — marcados com ⚠️ **validar implementação atual** antes
   editar. A reclamação era do concorrente — o Lucro Caseiro já resolve. **Nada a fazer.**
 - ✅ **#10 Modo de preparo / ficha técnica** — **JÁ EXISTIA**: campo "Modo de preparo
   (opcional)" nos forms de **criar e editar**, e exibido no detalhe. **Nada a fazer.**
-- ⛔ **#3 Taxas/despesas em %** — segue **faltando** e é o **maior pedido** (19 úteis). É o
-  próximo P0 real (precisa migration + gross-up — ver P0.3).
+- ✅ **#3 Taxas/despesas em %** — **IMPLEMENTADO**: `feesPercent` no cálculo + inputs
+  iFood%/cartão% no passo 5 da calculadora, com **gross-up** (preserva a margem) e preço
+  final no resultado. Migration `004_pricing_percentage_fees.sql`. Commit
+  `feat(pricing): add percentage sale fees (ifood/card) with gross-up`.
 
 ---
 
@@ -320,6 +322,8 @@ no Lucro Caseiro — marcados com ⚠️ **validar implementação atual** antes
   Precificação" (JSL Apps).
 - 2026-05-30: auditoria do código adicionada (já existe × adaptar × inserir) + quebra
   técnica dos P0.
+- 2026-05-30: **#3 Taxas/despesas em % implementado** (api + mobile + migration 004 +
+  gross-up). Os 3 P0 estão resolvidos (#1 implementado; #2 e #10 já existiam).
 - 2026-05-30: **#1 Duplicar receita implementado** (api + mobile). Inspeção do código
   revelou que **#2 (editar qtd inline) e #10 (modo de preparo) já existiam** no Lucro
   Caseiro (eram lacunas do concorrente) → removidos do backlog de implementação. Próximo
