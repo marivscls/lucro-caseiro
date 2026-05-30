@@ -9,6 +9,7 @@ interface FinanceEntry {
   description: string;
   amount: number;
   category: string;
+  isFixed: boolean;
   date: string;
 }
 
@@ -140,6 +141,12 @@ export function FinanceEntryList({
                   label={item.category}
                   variant={getCategoryVariant(item.category)}
                 />
+                {item.type === "expense" && (
+                  <Badge
+                    label={item.isFixed ? "Fixo" : "Variável"}
+                    variant={item.isFixed ? "info" : "neutral"}
+                  />
+                )}
                 <Typography variant="caption" color={theme.colors.textSecondary}>
                   {formatDate(item.date)}
                 </Typography>

@@ -1,4 +1,5 @@
 import {
+  boolean,
   date,
   decimal,
   index,
@@ -35,6 +36,8 @@ export const financeEntries = pgTable(
     category: expenseCategoryEnum("category").notNull(),
     amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
     description: text("description").notNull(),
+    // Apenas para despesas (type = "expense"): fixo (recorrente) x variavel.
+    isFixed: boolean("is_fixed").notNull().default(false),
     saleId: uuid("sale_id").references(() => sales.id, { onDelete: "set null" }),
     date: date("date").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

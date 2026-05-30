@@ -16,6 +16,7 @@ export class FinanceRepoPg implements IFinanceRepo {
         category: data.category,
         amount: String(data.amount),
         description: data.description,
+        isFixed: data.isFixed ?? false,
         date: data.date,
         saleId: data.saleId ?? null,
       })
@@ -45,6 +46,10 @@ export class FinanceRepoPg implements IFinanceRepo {
 
     if (opts.category) {
       conditions.push(eq(financeEntries.category, opts.category));
+    }
+
+    if (opts.isFixed !== undefined) {
+      conditions.push(eq(financeEntries.isFixed, opts.isFixed));
     }
 
     if (opts.startDate) {
@@ -86,6 +91,7 @@ export class FinanceRepoPg implements IFinanceRepo {
     if (data.category !== undefined) updateData.category = data.category;
     if (data.amount !== undefined) updateData.amount = String(data.amount);
     if (data.description !== undefined) updateData.description = data.description;
+    if (data.isFixed !== undefined) updateData.isFixed = data.isFixed;
     if (data.date !== undefined) updateData.date = data.date;
     if (data.saleId !== undefined) updateData.saleId = data.saleId;
 
@@ -122,7 +128,7 @@ export class FinanceRepoPg implements IFinanceRepo {
       lte(financeEntries.date, endDate),
     ];
 
-    const [incomeResult, expenseResult] = await Promise.all([
+    const [incomeResult, fixedResult, variableResult] = await Promise.all([
       this.db
         .select({ total: sum(financeEntries.amount) })
         .from(financeEntries)
@@ -130,15 +136,35 @@ export class FinanceRepoPg implements IFinanceRepo {
       this.db
         .select({ total: sum(financeEntries.amount) })
         .from(financeEntries)
-        .where(and(...baseConditions, eq(financeEntries.type, "expense"))),
+        .where(
+          and(
+            ...baseConditions,
+            eq(financeEntries.type, "expense"),
+            eq(financeEntries.isFixed, true),
+          ),
+        ),
+      this.db
+        .select({ total: sum(financeEntries.amount) })
+        .from(financeEntries)
+        .where(
+          and(
+            ...baseConditions,
+            eq(financeEntries.type, "expense"),
+            eq(financeEntries.isFixed, false),
+          ),
+        ),
     ]);
 
     const totalIncome = Number(incomeResult[0]?.total ?? 0);
-    const totalExpenses = Number(expenseResult[0]?.total ?? 0);
+    const fixedExpenses = Number(fixedResult[0]?.total ?? 0);
+    const variableExpenses = Number(variableResult[0]?.total ?? 0);
+    const totalExpenses = fixedExpenses + variableExpenses;
 
     return {
       totalIncome,
       totalExpenses,
+      fixedExpenses,
+      variableExpenses,
       profit: totalIncome - totalExpenses,
     };
   }
@@ -151,6 +177,7 @@ export class FinanceRepoPg implements IFinanceRepo {
       category: row.category,
       amount: Number(row.amount),
       description: row.description,
+      isFixed: row.isFixed,
       date: row.date,
       saleId: row.saleId ?? null,
       createdAt: row.createdAt.toISOString(),

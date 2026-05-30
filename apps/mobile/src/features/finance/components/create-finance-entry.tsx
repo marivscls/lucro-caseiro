@@ -1,5 +1,13 @@
 import type { ExpenseCategory, FinanceEntryType } from "@lucro-caseiro/contracts";
-import { Button, Input, Typography, spacing, radii, useTheme } from "@lucro-caseiro/ui";
+import {
+  Button,
+  Chip,
+  Input,
+  Typography,
+  spacing,
+  radii,
+  useTheme,
+} from "@lucro-caseiro/ui";
 import React, { useState } from "react";
 import { Alert, ScrollView, TouchableOpacity, View } from "react-native";
 
@@ -24,6 +32,7 @@ export function CreateFinanceEntry({ onSuccess }: Readonly<CreateFinanceEntryPro
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<ExpenseCategory | "">("");
+  const [isFixed, setIsFixed] = useState(false);
   const [date, setDate] = useState("");
 
   const createEntry = useCreateFinanceEntry();
@@ -52,6 +61,7 @@ export function CreateFinanceEntry({ onSuccess }: Readonly<CreateFinanceEntryPro
         amount: parsedAmount,
         description: description.trim(),
         category: category,
+        isFixed: type === "expense" ? isFixed : false,
         date: date.trim() || new Date().toISOString().split("T")[0],
       });
       Alert.alert(
@@ -163,6 +173,32 @@ export function CreateFinanceEntry({ onSuccess }: Readonly<CreateFinanceEntryPro
           ))}
         </View>
       </View>
+
+      {/* Fixed vs variable — only for expenses */}
+      {type === "expense" && (
+        <View style={{ gap: spacing.sm }}>
+          <Typography variant="caption">Tipo de gasto</Typography>
+          <View style={{ flexDirection: "row", gap: spacing.sm }}>
+            <Chip
+              label="Variável"
+              selected={!isFixed}
+              onPress={() => setIsFixed(false)}
+              style={{ flex: 1 }}
+            />
+            <Chip
+              label="Fixo"
+              selected={isFixed}
+              onPress={() => setIsFixed(true)}
+              style={{ flex: 1 }}
+            />
+          </View>
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            {isFixed
+              ? "Gasto que se repete todo mês (ex: aluguel, internet)."
+              : "Gasto que muda conforme os pedidos (ex: ingredientes)."}
+          </Typography>
+        </View>
+      )}
 
       <Input
         label="Data (opcional)"

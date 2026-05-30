@@ -31,6 +31,7 @@ function makeFinanceEntry(overrides: Partial<FinanceEntry> = {}): FinanceEntry {
     category: "material",
     amount: 50,
     description: "Compra de farinha",
+    isFixed: false,
     saleId: null,
     date: "2026-03-15",
     createdAt: new Date().toISOString(),

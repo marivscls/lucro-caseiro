@@ -15,6 +15,7 @@ function makeEntry(overrides: Partial<FinanceEntry> = {}): FinanceEntry {
     category: "material",
     amount: 50,
     description: "Compra de farinha",
+    isFixed: false,
     saleId: null,
     date: "2026-03-15",
     createdAt: new Date().toISOString(),
@@ -30,6 +31,7 @@ function makeRepo(overrides: Partial<IFinanceRepo> = {}): IFinanceRepo {
           type: data.type,
           amount: data.amount,
           description: data.description,
+          isFixed: data.isFixed ?? false,
         }),
       ),
     findById: () => Promise.resolve(makeEntry()),
@@ -38,7 +40,13 @@ function makeRepo(overrides: Partial<IFinanceRepo> = {}): IFinanceRepo {
       Promise.resolve(makeEntry({ ...data })),
     delete: () => Promise.resolve(true),
     getSummary: () =>
-      Promise.resolve({ totalIncome: 1000, totalExpenses: 600, profit: 400 }),
+      Promise.resolve({
+        totalIncome: 1000,
+        totalExpenses: 600,
+        fixedExpenses: 200,
+        variableExpenses: 400,
+        profit: 400,
+      }),
     ...overrides,
   };
 }
@@ -63,6 +71,41 @@ describe("FinanceUseCases", () => {
 
       expect(result.amount).toBe(50);
       expect(result.description).toBe("Compra de farinha");
+    });
+
+    it("defaults isFixed to false when absent", async () => {
+      let captured: CreateFinanceEntryData | null = null;
+      const { sut } = makeSut({
+        create: (_userId: string, data: CreateFinanceEntryData) => {
+          captured = data;
+          return Promise.resolve(makeEntry({ isFixed: data.isFixed ?? false }));
+        },
+      });
+
+      const result = await sut.create(USER_ID, {
+        type: "expense",
+        category: "material",
+        amount: 50,
+        description: "Compra de farinha",
+        date: "2026-03-15",
+      });
+
+      expect(result.isFixed).toBe(false);
+      expect(captured!.isFixed).toBeUndefined();
+    });
+
+    it("persists isFixed=true for a fixed expense", async () => {
+      const { sut } = makeSut();
+      const result = await sut.create(USER_ID, {
+        type: "expense",
+        category: "utility",
+        amount: 120,
+        description: "Aluguel",
+        date: "2026-03-15",
+        isFixed: true,
+      });
+
+      expect(result.isFixed).toBe(true);
     });
 
     it("throws ValidationError for invalid data", async () => {
@@ -157,6 +200,8 @@ describe("FinanceUseCases", () => {
 
       expect(result.totalIncome).toBe(1000);
       expect(result.totalExpenses).toBe(600);
+      expect(result.fixedExpenses).toBe(200);
+      expect(result.variableExpenses).toBe(400);
       expect(result.profit).toBe(400);
       expect(result.period).toBe("2026-03");
     });
@@ -169,7 +214,13 @@ describe("FinanceUseCases", () => {
         getSummary: (_userId: string, startDate: string, endDate: string) => {
           capturedStart = startDate;
           capturedEnd = endDate;
-          return Promise.resolve({ totalIncome: 0, totalExpenses: 0, profit: 0 });
+          return Promise.resolve({
+            totalIncome: 0,
+            totalExpenses: 0,
+            fixedExpenses: 0,
+            variableExpenses: 0,
+            profit: 0,
+          });
         },
       });
 

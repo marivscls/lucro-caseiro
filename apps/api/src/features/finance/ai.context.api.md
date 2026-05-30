@@ -42,6 +42,7 @@ Gerenciar lancamentos financeiros (entradas e saidas) do negocio caseiro, com re
 | category    | enum      | "sale" \| "material" \| "packaging" \| "transport" \| "fee" \| "utility" \| "other", NOT NULL |
 | amount      | decimal   | NOT NULL                                                                                      |
 | description | varchar   | NOT NULL                                                                                      |
+| isFixed     | boolean   | NOT NULL DEFAULT false (so faz sentido para type="expense")                                   |
 | date        | varchar   | NOT NULL (formato YYYY-MM-DD)                                                                 |
 | saleId      | uuid      | nullable, FK sales                                                                            |
 | createdAt   | timestamp | default now()                                                                                 |
@@ -54,6 +55,8 @@ Gerenciar lancamentos financeiros (entradas e saidas) do negocio caseiro, com re
 - Data deve ser valida no formato YYYY-MM-DD
 - Toda query e escopada por `userId`
 - Lucro = receita - despesas (funcao pura `calculateProfit`)
+- `isFixed` classifica despesas: `true` = gasto fixo/recorrente, `false` = variavel. Default `false`. Para `income` o valor e ignorado (sempre `false`).
+- No summary: `fixedExpenses + variableExpenses = totalExpenses`
 
 ## Operations
 
@@ -70,7 +73,7 @@ api:
       response: FinanceEntry (201)
     - method: GET
       path: /
-      query: page, limit, type, category, startDate, endDate
+      query: page, limit, type, category, fixed (true|false), startDate, endDate
       dto: PaginationDto
       response: { items: FinanceEntry[], total, page, totalPages }
     - method: GET
@@ -108,6 +111,7 @@ invariants:
   - description.length <= 500
   - date formato YYYY-MM-DD valido
   - profit = totalIncome - totalExpenses
+  - fixedExpenses + variableExpenses = totalExpenses
 ```
 
 ## Authorization & RLS
@@ -118,10 +122,10 @@ invariants:
 
 ## Contracts (Zod/DTO)
 
-- **CreateFinanceEntryDto**: `{ type: "income"|"expense", category, amount, description, date, saleId? }`
+- **CreateFinanceEntryDto**: `{ type: "income"|"expense", category, amount, description, date, isFixed?=false, saleId? }`
 - **UpdateFinanceEntryDto**: `Partial<CreateFinanceEntryDto>`
-- **FinanceEntry**: `{ id, userId, type, category, amount, description, date, saleId, createdAt }`
-- **FinanceSummary**: `{ totalIncome, totalExpenses, profit, period }`
+- **FinanceEntry**: `{ id, userId, type, category, amount, description, isFixed, date, saleId, createdAt }`
+- **FinanceSummary**: `{ totalIncome, totalExpenses, fixedExpenses, variableExpenses, profit, period }`
 
 ## Errors
 
@@ -164,18 +168,26 @@ invariants:
 - list: paginacao
 - update: dados validos, NotFoundError, ValidationError
 - remove: existente, NotFoundError
-- getMonthlySummary: retorno correto, range de datas correto
+- getMonthlySummary: retorno correto, range de datas correto, split fixedExpenses/variableExpenses
 - createFromSale: cria lancamento income vinculado a sale
+- create: isFixed default false quando ausente; isFixed=true persistido para gasto fixo
 
 ## Examples
 
 ```
 POST /api/v1/finance
 { "type": "expense", "category": "material", "amount": 50, "description": "Compra de farinha", "date": "2026-03-15" }
-=> 201 { "id": "...", "type": "expense", ... }
+=> 201 { "id": "...", "type": "expense", "isFixed": false, ... }
+
+POST /api/v1/finance
+{ "type": "expense", "category": "utility", "amount": 800, "description": "Aluguel", "date": "2026-03-01", "isFixed": true }
+=> 201 { "id": "...", "isFixed": true, ... }
+
+GET /api/v1/finance?fixed=true
+=> 200 { "items": [ /* apenas despesas fixas */ ], ... }
 
 GET /api/v1/finance/summary?month=3&year=2026
-=> 200 { "totalIncome": 1000, "totalExpenses": 600, "profit": 400, "period": "2026-03" }
+=> 200 { "totalIncome": 1000, "totalExpenses": 600, "fixedExpenses": 200, "variableExpenses": 400, "profit": 400, "period": "2026-03" }
 
 GET /api/v1/finance/export/pdf?month=2026-03
 => 200 (PDF binary)
@@ -186,3 +198,4 @@ GET /api/v1/finance/export/pdf?month=2026-03
 - Criacao inicial com CRUD + summary mensal
 - Adicionado exportacao PDF e Excel
 - `createFromSale` permite Sales criar lancamentos automaticos
+- Adicionado `isFixed` (migration 005) para separar gastos fixos x variaveis; filtro `?fixed=` na listagem e split `fixedExpenses`/`variableExpenses` no summary

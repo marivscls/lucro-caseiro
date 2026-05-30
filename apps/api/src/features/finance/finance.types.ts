@@ -35,6 +35,8 @@ export interface CreateFinanceEntryData {
   amount: number;
   description: string;
   date: string;
+  /** Apenas para despesas: fixo (recorrente) x variavel. Default false. */
+  isFixed?: boolean;
   saleId?: string;
 }
 
@@ -43,6 +45,7 @@ export interface FindAllOpts {
   limit: number;
   type?: "income" | "expense";
   category?: FinanceCategory;
+  isFixed?: boolean;
   startDate?: string;
   endDate?: string;
 }

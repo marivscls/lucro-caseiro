@@ -34,20 +34,21 @@ Dashboard financeiro do usuario: visualizar resumo mensal (entradas, saidas, luc
 ### `FinanceDashboard`
 
 - **Props:** `{ onEntryPress?: (id: string) => void; onAddPress?: () => void }`
-- Exibe seletor de mes (navegacao < >), card hero de lucro, cards de entradas/saidas, botoes de exportacao (PDF/Excel), e lista de lancamentos.
+- Exibe seletor de mes (navegacao < >), card hero de lucro, cards de entradas/saidas, cards de gastos fixos x variaveis (quando ha despesas), botoes de exportacao (PDF/Excel), e lista de lancamentos.
 - Usa `useFinanceSummary({ month, year })` e `useFinanceEntries`.
 
 ### `FinanceEntryList`
 
 - **Props:** `{ entries?: FinanceEntry[]; onEntryPress?: (id: string) => void; onAddPress?: () => void; showFilter?: boolean }`
 - FlatList de lancamentos com filtro por tipo (Tudo/Entradas/Saidas).
-- Cada item mostra icone +/-, descricao, categoria (Badge), data e valor colorido.
+- Cada item mostra icone +/-, descricao, categoria (Badge), tag "Fixo"/"Variavel" (apenas para despesas), data e valor colorido.
 - EmptyState quando vazio.
 
 ### `CreateFinanceEntry`
 
 - **Props:** `{ onSuccess?: () => void }`
-- Campos: tipo (income/expense via toggle), valor, descricao, categoria (chips: material, embalagem, transporte, taxa, utilidade, outro), data.
+- Campos: tipo (income/expense via toggle), valor, descricao, categoria (chips: material, embalagem, transporte, taxa, utilidade, outro), tipo de gasto (Variavel/Fixo via `Chip`, **so para despesas**, wired a `isFixed`), data.
+- `isFixed` enviado como `false` quando o lancamento e `income`.
 
 ## Hooks
 
@@ -61,20 +62,20 @@ Dashboard financeiro do usuario: visualizar resumo mensal (entradas, saidas, luc
 
 ## API Integration
 
-| Endpoint                         | Verbo  | Funcao         | Parametros                              |
-| -------------------------------- | ------ | -------------- | --------------------------------------- |
-| `/api/v1/finance`                | GET    | `fetchEntries` | `?page=N&type=income&category=material` |
-| `/api/v1/finance/summary`        | GET    | `fetchSummary` | `?month=N&year=N`                       |
-| `/api/v1/finance`                | POST   | `createEntry`  | body: `CreateFinanceEntry`              |
-| `/api/v1/finance/:id`            | PATCH  | `updateEntry`  | body: `UpdateFinanceEntry`              |
-| `/api/v1/finance/:id`            | DELETE | `deleteEntry`  | -                                       |
-| `/api/v1/finance/export/:format` | GET    | `getExportUrl` | `?month=YYYY-MM` (download direto)      |
+| Endpoint                         | Verbo  | Funcao         | Parametros                                         |
+| -------------------------------- | ------ | -------------- | -------------------------------------------------- |
+| `/api/v1/finance`                | GET    | `fetchEntries` | `?page=N&type=income&category=material&fixed=true` |
+| `/api/v1/finance/summary`        | GET    | `fetchSummary` | `?month=N&year=N`                                  |
+| `/api/v1/finance`                | POST   | `createEntry`  | body: `CreateFinanceEntry`                         |
+| `/api/v1/finance/:id`            | PATCH  | `updateEntry`  | body: `UpdateFinanceEntry`                         |
+| `/api/v1/finance/:id`            | DELETE | `deleteEntry`  | -                                                  |
+| `/api/v1/finance/export/:format` | GET    | `getExportUrl` | `?month=YYYY-MM` (download direto)                 |
 
 ## Contracts
 
-- `FinanceEntry` — lancamento financeiro (id, type, amount, description, category, date).
-- `FinanceSummary` — resumo mensal (totalIncome, totalExpenses, profit).
-- `CreateFinanceEntry` — payload de criacao (type, amount, description, category, date).
+- `FinanceEntry` — lancamento financeiro (id, type, amount, description, category, isFixed, date).
+- `FinanceSummary` — resumo mensal (totalIncome, totalExpenses, fixedExpenses, variableExpenses, profit).
+- `CreateFinanceEntry` — payload de criacao (type, amount, description, category, isFixed, date).
 - `UpdateFinanceEntry` — payload de edicao.
 - `FinanceEntryType` — `"income" | "expense"`.
 - `ExpenseCategory` — `"material" | "packaging" | "transport" | "fee" | "utility" | "other"`.
@@ -110,3 +111,4 @@ Dashboard financeiro do usuario: visualizar resumo mensal (entradas, saidas, luc
 
 - Exportacao PDF/Excel depende do backend retornar arquivo via download (header Authorization).
 - Dashboard mostra lucro = entradas - saidas (calculo feito no front a partir do summary).
+- Adicionado `isFixed`: toggle Variavel/Fixo no form (so para despesas), tag na lista e cards de gastos fixos x variaveis no dashboard.

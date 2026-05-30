@@ -40,12 +40,15 @@ export function createFinanceRouter(useCases: FinanceUseCases): Router {
         | undefined;
       const startDate = req.query.startDate as string | undefined;
       const endDate = req.query.endDate as string | undefined;
+      const fixedParam = req.query.fixed as string | undefined;
+      const isFixed = fixedParam === undefined ? undefined : fixedParam === "true";
 
       const result = await useCases.list(userId, {
         page,
         limit,
         type,
         category,
+        isFixed,
         startDate,
         endDate,
       });

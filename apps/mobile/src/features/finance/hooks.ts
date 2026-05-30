@@ -10,6 +10,7 @@ export function useFinanceEntries(opts?: {
   page?: number;
   type?: string;
   category?: string;
+  fixed?: boolean;
 }) {
   const { token } = useAuth();
   return useQuery({

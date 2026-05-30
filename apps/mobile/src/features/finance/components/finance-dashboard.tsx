@@ -129,6 +129,8 @@ export function FinanceDashboard({
 
   const income = summary?.totalIncome ?? 0;
   const expenses = summary?.totalExpenses ?? 0;
+  const fixedExpenses = summary?.fixedExpenses ?? 0;
+  const variableExpenses = summary?.variableExpenses ?? 0;
   const profit = income - expenses;
 
   return (
@@ -210,6 +212,25 @@ export function FinanceDashboard({
           </Typography>
         </Card>
       </View>
+
+      {/* Fixed vs variable expense split */}
+      {expenses > 0 && (
+        <View style={{ flexDirection: "row", gap: spacing.md }}>
+          <Card style={{ flex: 1, gap: spacing.xs }}>
+            <Typography variant="caption">Gastos fixos</Typography>
+            <Typography variant="money" color={theme.colors.text}>
+              {formatCurrency(fixedExpenses)}
+            </Typography>
+          </Card>
+
+          <Card style={{ flex: 1, gap: spacing.xs }}>
+            <Typography variant="caption">Gastos variáveis</Typography>
+            <Typography variant="money" color={theme.colors.text}>
+              {formatCurrency(variableExpenses)}
+            </Typography>
+          </Card>
+        </View>
+      )}
 
       {/* Export buttons */}
       <Typography variant="h2">Exportar</Typography>

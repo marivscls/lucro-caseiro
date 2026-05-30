@@ -48,6 +48,7 @@ export class FinanceUseCases {
       category: data.category ?? existing.category,
       amount: data.amount ?? existing.amount,
       description: data.description ?? existing.description,
+      isFixed: data.isFixed ?? existing.isFixed,
       date: data.date ?? existing.date,
     };
 

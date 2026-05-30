@@ -19,12 +19,13 @@ interface PaginatedFinance {
 
 export async function fetchEntries(
   token: string,
-  opts?: { page?: number; type?: string; category?: string },
+  opts?: { page?: number; type?: string; category?: string; fixed?: boolean },
 ): Promise<PaginatedFinance> {
   const params = new URLSearchParams();
   if (opts?.page) params.set("page", String(opts.page));
   if (opts?.type) params.set("type", opts.type);
   if (opts?.category) params.set("category", opts.category);
+  if (opts?.fixed !== undefined) params.set("fixed", String(opts.fixed));
 
   const query = params.toString();
   const queryString = query ? `?${query}` : "";
