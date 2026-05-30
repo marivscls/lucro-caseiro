@@ -3,6 +3,7 @@ import { Button, Input, Typography, spacing } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
 import { Alert, ScrollView } from "react-native";
 
+import { brToIso, isoToBR, maskDateBR } from "../../../shared/utils/date";
 import { isValidBrazilPhone, maskPhoneBR } from "../../../shared/utils/phone";
 import { useUpdateClient } from "../hooks";
 import { TagInput } from "./tag-input";
@@ -16,7 +17,7 @@ export function EditClientForm({ client, onSuccess }: Readonly<EditClientFormPro
   const [name, setName] = useState(client.name);
   const [phone, setPhone] = useState(client.phone ?? "");
   const [address, setAddress] = useState(client.address ?? "");
-  const [birthday, setBirthday] = useState(client.birthday ?? "");
+  const [birthday, setBirthday] = useState(isoToBR(client.birthday));
   const [notes, setNotes] = useState(client.notes ?? "");
   const [tags, setTags] = useState<string[]>(client.tags ?? []);
 
@@ -41,7 +42,7 @@ export function EditClientForm({ client, onSuccess }: Readonly<EditClientFormPro
           name: name.trim(),
           phone: trimmedPhone || undefined,
           address: address.trim() || undefined,
-          birthday: birthday.trim() || undefined,
+          birthday: brToIso(birthday),
           notes: notes.trim() || undefined,
           tags: tags.length > 0 ? tags : undefined,
         },
@@ -86,9 +87,10 @@ export function EditClientForm({ client, onSuccess }: Readonly<EditClientFormPro
 
       <Input
         label="Data de nascimento (opcional)"
-        placeholder="AAAA-MM-DD"
+        placeholder="DD/MM/AAAA"
         value={birthday}
-        onChangeText={setBirthday}
+        onChangeText={(v) => setBirthday(maskDateBR(v))}
+        keyboardType="number-pad"
       />
 
       <Input

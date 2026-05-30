@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Alert, ScrollView } from "react-native";
 
 import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
+import { brToIso, maskDateBR } from "../../../shared/utils/date";
 import { isValidBrazilPhone, maskPhoneBR } from "../../../shared/utils/phone";
 import { useCreateClient } from "../hooks";
 import { TagInput } from "./tag-input";
@@ -41,7 +42,7 @@ export function CreateClientForm({ onSuccess }: Readonly<CreateClientFormProps>)
         name: name.trim(),
         phone: trimmedPhone || undefined,
         address: address.trim() || undefined,
-        birthday: birthday.trim() || undefined,
+        birthday: brToIso(birthday),
         notes: notes.trim() || undefined,
         tags: tags.length > 0 ? tags : undefined,
       });
@@ -88,9 +89,10 @@ export function CreateClientForm({ onSuccess }: Readonly<CreateClientFormProps>)
 
       <Input
         label="Data de nascimento (opcional)"
-        placeholder="AAAA-MM-DD"
+        placeholder="DD/MM/AAAA"
         value={birthday}
-        onChangeText={setBirthday}
+        onChangeText={(v) => setBirthday(maskDateBR(v))}
+        keyboardType="number-pad"
       />
 
       <Input

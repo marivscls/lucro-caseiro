@@ -55,7 +55,7 @@ Gerenciar a carteira de clientes do usuario: listar, buscar, criar, editar, excl
 ### `CreateClientForm`
 
 - **Props:** `{ onSuccess?: () => void }`
-- Campos: nome (obrigatorio), telefone (mascara `maskPhoneBR`, validado por `isValidBrazilPhone`), endereco, aniversario (AAAA-MM-DD), observacoes, tags.
+- Campos: nome (obrigatorio), telefone (mascara `maskPhoneBR`, validado por `isValidBrazilPhone`), endereco, aniversario (digitado DD/MM/AAAA com `maskDateBR`, convertido p/ ISO com `brToIso` ao salvar; editado via `isoToBR`), observacoes, tags.
 - Checa limite freemium via `useLimitCheck("clients")` antes de submeter.
 
 ### `EditClientForm`
