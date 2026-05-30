@@ -21,6 +21,12 @@ describe("brToIso", () => {
   it("returns undefined for empty", () => {
     expect(brToIso("  ")).toBeUndefined();
   });
+  it("returns undefined for incomplete or invalid dates", () => {
+    expect(brToIso("30/05")).toBeUndefined(); // sem ano
+    expect(brToIso("30/05/26")).toBeUndefined(); // ano com 2 dígitos
+    expect(brToIso("31/02/2026")).toBeUndefined(); // dia inválido p/ o mês
+    expect(brToIso("00/13/2026")).toBeUndefined(); // fora de faixa
+  });
 });
 
 describe("maskDateBR", () => {

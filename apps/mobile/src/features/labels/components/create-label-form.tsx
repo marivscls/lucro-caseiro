@@ -74,6 +74,16 @@ export function CreateLabelForm({
       return;
     }
 
+    const manufacturingDate = brToIso(labelData.manufacturingDate ?? "");
+    const expirationDate = brToIso(labelData.expirationDate ?? "");
+    if (
+      (labelData.manufacturingDate?.trim() && !manufacturingDate) ||
+      (labelData.expirationDate?.trim() && !expirationDate)
+    ) {
+      Alert.alert("Data incompleta", "Confira as datas no formato DD/MM/AAAA.");
+      return;
+    }
+
     // Sobe o logo (se houver) e usa a URL pública. Se falhar, salva sem o logo.
     let logoUrl: string | undefined;
     if (logoUri) {
@@ -99,15 +109,20 @@ export function CreateLabelForm({
         qrCodeUrl: qrUrl,
         data: {
           ...labelData,
-          manufacturingDate: brToIso(labelData.manufacturingDate ?? ""),
-          expirationDate: brToIso(labelData.expirationDate ?? ""),
+          manufacturingDate,
+          expirationDate,
           nutrition: cleanNutrition(labelData.nutrition),
         },
       });
       Alert.alert("Rótulo criado!", "Seu rótulo esta pronto para imprimir");
       onSuccess?.();
-    } catch {
-      Alert.alert("Erro", "Não foi possível criar o rótulo. Tente novamente.");
+    } catch (e) {
+      Alert.alert(
+        "Erro",
+        e instanceof Error
+          ? e.message
+          : "Não foi possível criar o rótulo. Tente novamente.",
+      );
     }
   }
 

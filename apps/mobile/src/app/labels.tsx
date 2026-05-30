@@ -168,8 +168,11 @@ function LabelDetailModal({
       });
       Alert.alert("Rótulo atualizado!");
       setEditing(false);
-    } catch {
-      Alert.alert("Erro", "Não foi possível atualizar o rótulo.");
+    } catch (e) {
+      Alert.alert(
+        "Erro",
+        e instanceof Error ? e.message : "Não foi possível atualizar o rótulo.",
+      );
     }
   }
 

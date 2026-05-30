@@ -12,16 +12,32 @@ export function isoToBR(value?: string | null): string {
   return `${day}/${month}/${year}`;
 }
 
-/** DD/MM/AAAA -> ISO (yyyy-mm-dd). Vazio -> undefined. */
+/**
+ * DD/MM/AAAA -> ISO (yyyy-mm-dd). Retorna undefined se vazio OU se a data for
+ * incompleta/inválida (ano sem 4 dígitos, mês/dia fora de faixa, 31/02 etc.) —
+ * assim nunca enviamos uma data inválida que o backend rejeitaria.
+ */
 export function brToIso(value: string): string | undefined {
   const trimmed = value.trim();
   if (!trimmed) return undefined;
+
   const parts = trimmed.split("/");
-  if (parts.length === 3) {
-    const [day, month, year] = parts;
-    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+  if (parts.length !== 3) return undefined;
+  const [d, mo, y] = parts;
+  if (y.length !== 4) return undefined;
+
+  const day = Number(d);
+  const month = Number(mo);
+  const year = Number(y);
+  if (![day, month, year].every(Number.isInteger)) return undefined;
+  if (month < 1 || month > 12 || day < 1 || day > 31) return undefined;
+
+  const iso = `${y}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  const dt = new Date(`${iso}T12:00:00`);
+  if (Number.isNaN(dt.getTime()) || dt.getDate() !== day || dt.getMonth() + 1 !== month) {
+    return undefined;
   }
-  return trimmed;
+  return iso;
 }
 
 /** Aplica máscara DD/MM/AAAA progressiva enquanto o usuário digita (só dígitos). */
