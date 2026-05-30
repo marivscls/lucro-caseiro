@@ -2,12 +2,12 @@ import type { Sale } from "@lucro-caseiro/contracts";
 import { useRouter } from "expo-router";
 import {
   Button,
+  Chip,
   EmptyState,
   Input,
   Typography,
   useTheme,
   spacing,
-  radii,
 } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
@@ -227,29 +227,14 @@ export default function SalesScreen() {
           gap: spacing.sm,
         }}
       >
-        {FILTER_TABS.map((tab) => {
-          const isActive = activeFilter === tab.key;
-          return (
-            <Pressable
-              key={tab.key}
-              onPress={() => setActiveFilter(tab.key)}
-              style={{
-                paddingHorizontal: spacing.lg,
-                minHeight: 44,
-                justifyContent: "center",
-                borderRadius: radii.full,
-                backgroundColor: isActive ? theme.colors.primary : theme.colors.surface,
-              }}
-            >
-              <Typography
-                variant="caption"
-                color={isActive ? theme.colors.textOnPrimary : theme.colors.textSecondary}
-              >
-                {tab.label}
-              </Typography>
-            </Pressable>
-          );
-        })}
+        {FILTER_TABS.map((tab) => (
+          <Chip
+            key={tab.key}
+            label={tab.label}
+            selected={activeFilter === tab.key}
+            onPress={() => setActiveFilter(tab.key)}
+          />
+        ))}
       </View>
 
       {/* Search */}
@@ -340,31 +325,12 @@ export default function SalesScreen() {
               <Typography variant="caption">Forma de pagamento</Typography>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
                 {PAYMENT_OPTIONS.map((opt) => (
-                  <Pressable
+                  <Chip
                     key={opt.value}
+                    label={opt.label}
+                    selected={editPayment === opt.value}
                     onPress={() => setEditPayment(opt.value)}
-                    style={{
-                      paddingHorizontal: spacing.lg,
-                      minHeight: 44,
-                      justifyContent: "center",
-                      borderRadius: radii.full,
-                      backgroundColor:
-                        editPayment === opt.value
-                          ? theme.colors.primary
-                          : theme.colors.surface,
-                    }}
-                  >
-                    <Typography
-                      variant="caption"
-                      color={
-                        editPayment === opt.value
-                          ? theme.colors.textOnPrimary
-                          : theme.colors.textSecondary
-                      }
-                    >
-                      {opt.label}
-                    </Typography>
-                  </Pressable>
+                  />
                 ))}
               </View>
             </View>

@@ -3,11 +3,11 @@ import type { Order, OrderStatus } from "@lucro-caseiro/contracts";
 import {
   Button,
   Card,
+  Chip,
   EmptyState,
   Typography,
   useTheme,
   spacing,
-  radii,
 } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
@@ -176,30 +176,14 @@ function OrderDetail({
         <View style={{ gap: spacing.sm }}>
           <Typography variant="caption">Status</Typography>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-            {PIPELINE.map((s) => {
-              const active = order.status === s;
-              return (
-                <Pressable
-                  key={s}
-                  onPress={() => setStatus(s)}
-                  style={{
-                    paddingHorizontal: spacing.lg,
-                    paddingVertical: spacing.sm,
-                    borderRadius: radii.full,
-                    backgroundColor: active ? theme.colors.primary : theme.colors.surface,
-                  }}
-                >
-                  <Typography
-                    variant="caption"
-                    color={
-                      active ? theme.colors.textOnPrimary : theme.colors.textSecondary
-                    }
-                  >
-                    {STATUS_LABEL[s]}
-                  </Typography>
-                </Pressable>
-              );
-            })}
+            {PIPELINE.map((s) => (
+              <Chip
+                key={s}
+                label={STATUS_LABEL[s]}
+                selected={order.status === s}
+                onPress={() => setStatus(s)}
+              />
+            ))}
           </View>
         </View>
       ) : (
