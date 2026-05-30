@@ -195,11 +195,11 @@ Adotar as **regras transversais (§4)** como padrão obrigatório e tratar a **m
 
 **P0 — antes de produção**
 
-1. Enforçar limites freemium no **backend** (sales/clients/recipes/packaging).
-2. `useLimitCheck("packaging")` no client (está faltando).
-3. Backend rejeitar `quantity ≤ 0` de ingrediente de receita.
+1. ✅ Enforçar limites freemium no **backend** (`freemiumGuard` plugado em sales/clients/recipes/packaging) — _commit db1eb28_.
+2. ✅ `useLimitCheck("packaging")` no client — _commit db1eb28_.
+3. ✅ Backend rejeita `quantity ≤ 0` de ingrediente — já garantido pelo Zod `z.number().positive()`.
 
-**P1 — importante** 4. Máximos numéricos em dinheiro/quantidade (contratos Zod) — anti-absurdo/overflow. 5. Regras de data: Validade ≥ Fabricação; encomenda não no passado; financeiro/aniversário não no futuro. 6. Encomenda `amount > 0` se preenchido. 7. `scale(multiplier) > 0` em receitas. 8. Cadastro: confirmar senha + senha `≤128`. 9. Precificação: tratar `totalCost = 0`.
+**P1 — importante** 4. ✅ Máximos numéricos em dinheiro/quantidade (`MAX_MONEY`/`MAX_QUANTITY` nos contratos) — _commit 289dbe3_. 5. Regras de data: ✅ **Validade ≥ Fabricação** (_289dbe3_) · ⚠️ encomenda não no passado · ⚠️ financeiro/aniversário não no futuro. 6. ✅ Encomenda `amount > 0` se preenchido — _289dbe3_. 7. ✅ `scale(multiplier) > 0` — já garantido pelo Zod na rota (`z.coerce.number().positive()`). 8. ⚠️ Cadastro: confirmar senha + senha `≤128`. 9. ⚠️ Precificação: tratar `totalCost = 0`.
 
 **P2 — melhorias** 10. Telefone uniforme (rótulo/produtor) e no server (settings). 11. Máx de texto livre faltantes (ingredients/address/nutrição/notes); avisar 10 tags. 12. Avisos de UX: preço < custo, margem extrema, uso do limite (ex: 5/20 clientes), typos PT-BR. 13. `businessType` tipado; e-mail normalizado; rate limit.
 
