@@ -1,3 +1,4 @@
+import { formatCurrency } from "../shared/utils/format";
 import type { Packaging } from "@lucro-caseiro/contracts";
 import {
   Badge,
@@ -28,10 +29,6 @@ import {
   usePackagingList,
   useUpdatePackaging,
 } from "../features/packaging/hooks";
-
-function formatCurrency(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
-}
 
 const TYPE_LABELS: Record<string, string> = {
   box: "Caixa",

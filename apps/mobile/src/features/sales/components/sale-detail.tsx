@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Alert, ScrollView, View } from "react-native";
 
+import { formatCurrency } from "../../../shared/utils/format";
 import { isValidBrazilPhone } from "../../../shared/utils/phone";
 import { openWhatsApp, openWhatsAppShare } from "../../../shared/utils/whatsapp";
 import { useUpdateSaleStatus } from "../hooks";
@@ -15,10 +16,6 @@ interface SaleDetailProps {
   readonly clientPhone?: string | null;
   readonly onStatusUpdated?: () => void;
   readonly onEditPress?: () => void;
-}
-
-function formatCurrency(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
 }
 
 function formatDate(iso: string): string {

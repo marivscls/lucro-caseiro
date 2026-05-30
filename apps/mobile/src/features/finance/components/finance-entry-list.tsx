@@ -1,3 +1,4 @@
+import { formatCurrency } from "../../../shared/utils/format";
 import { Badge, Button, EmptyState, Typography, useTheme } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
 import { FlatList, TouchableOpacity, View } from "react-native";
@@ -12,10 +13,6 @@ interface FinanceEntry {
 }
 
 type FilterType = "all" | "income" | "expense";
-
-function formatCurrency(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
-}
 
 function formatDate(dateString: string): string {
   const date = new Date(dateString);

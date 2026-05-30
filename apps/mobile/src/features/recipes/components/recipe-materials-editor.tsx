@@ -1,3 +1,4 @@
+import { formatCurrency as formatMoney } from "../../../shared/utils/format";
 import type { Material } from "@lucro-caseiro/contracts";
 import { Input, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { useRouter } from "expo-router";
@@ -21,10 +22,6 @@ function lineCost(material: Material | undefined, quantity: string): number {
   const qty = parseFloat(quantity.replace(",", "."));
   if (Number.isNaN(qty)) return 0;
   return material.costPerUnit * qty;
-}
-
-function formatMoney(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
 }
 
 /** Editor das linhas de insumo de uma receita: seleciona insumo, quantidade e mostra custo. */

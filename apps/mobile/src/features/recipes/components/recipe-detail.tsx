@@ -1,3 +1,4 @@
+import { formatCurrency } from "../../../shared/utils/format";
 import { Button, Card, Typography, useTheme } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, View } from "react-native";
@@ -9,10 +10,6 @@ interface RecipeDetailProps {
   readonly onDuplicate?: () => void;
   readonly onEdit?: () => void;
   readonly onDeleted?: () => void;
-}
-
-function formatCurrency(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
 }
 
 const SCALE_OPTIONS = [0.5, 1, 1.5, 2, 3, 5];

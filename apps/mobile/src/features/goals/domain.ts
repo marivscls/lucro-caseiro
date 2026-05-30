@@ -1,8 +1,8 @@
 import type { ProlaboreProgress } from "@lucro-caseiro/contracts";
 
-export function formatCurrency(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
-}
+import { formatCurrency } from "../../shared/utils/format";
+
+export { formatCurrency };
 
 /**
  * Mensagem amigavel de incentivo a partir do progresso da meta.

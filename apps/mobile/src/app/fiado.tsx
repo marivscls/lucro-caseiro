@@ -16,12 +16,9 @@ import { useClients } from "../features/clients/hooks";
 import { useSales, useUpdateSaleStatus } from "../features/sales/hooks";
 import { buildChargeMessage, groupFiados, totalOwed } from "../features/sales/fiado";
 import type { FiadoGroup } from "../features/sales/fiado";
+import { formatCurrency } from "../shared/utils/format";
 import { isValidBrazilPhone } from "../shared/utils/phone";
 import { openWhatsApp, openWhatsAppShare } from "../shared/utils/whatsapp";
-
-function money(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
-}
 
 function dateBR(iso: string): string {
   const d = new Date(iso);
@@ -51,7 +48,7 @@ function FiadoGroupCard({
           <Typography variant="h3" style={{ flex: 1 }}>
             {group.clientName}
           </Typography>
-          <Badge label={money(group.total)} variant="warning" />
+          <Badge label={formatCurrency(group.total)} variant="warning" />
         </View>
 
         {group.sales.map((sale) => (
@@ -65,7 +62,7 @@ function FiadoGroupCard({
             }}
           >
             <Typography variant="body" color={theme.colors.textSecondary}>
-              {dateBR(sale.soldAt)} · {money(sale.total)}
+              {dateBR(sale.soldAt)} · {formatCurrency(sale.total)}
             </Typography>
             <Pressable
               onPress={() => onMarkPaid(sale.id)}
@@ -172,7 +169,7 @@ export default function FiadoScreen() {
           >
             <Typography variant="h3">Total a receber</Typography>
             <Typography variant="h2" color={theme.colors.primary}>
-              {money(grandTotal)}
+              {formatCurrency(grandTotal)}
             </Typography>
           </View>
         </Card>

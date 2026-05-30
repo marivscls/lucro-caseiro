@@ -1,3 +1,4 @@
+import { formatCurrency } from "../../../shared/utils/format";
 import type { Product } from "@lucro-caseiro/contracts";
 import { Badge, Card, Typography, useTheme } from "@lucro-caseiro/ui";
 import React from "react";
@@ -6,10 +7,6 @@ import { Image, View } from "react-native";
 interface ProductCardProps {
   readonly product: Product;
   readonly onPress?: () => void;
-}
-
-function formatCurrency(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
 }
 
 function getStockBadge(product: Product) {

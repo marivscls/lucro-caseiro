@@ -1,3 +1,4 @@
+import { formatCurrency } from "../../../shared/utils/format";
 import type { Client } from "@lucro-caseiro/contracts";
 import { Card, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import React from "react";
@@ -6,10 +7,6 @@ import { View } from "react-native";
 interface ClientCardProps {
   client: Client;
   onPress?: () => void;
-}
-
-function formatCurrency(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
 }
 
 export function ClientCard({ client, onPress }: Readonly<ClientCardProps>) {

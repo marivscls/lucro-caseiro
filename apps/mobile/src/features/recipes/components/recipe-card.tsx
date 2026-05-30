@@ -1,3 +1,4 @@
+import { formatCurrency } from "../../../shared/utils/format";
 import { Badge, Card, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import React from "react";
 import { View } from "react-native";
@@ -14,10 +15,6 @@ interface Recipe {
 interface RecipeCardProps {
   readonly recipe: Recipe;
   readonly onPress?: () => void;
-}
-
-function formatCurrency(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
 }
 
 export function RecipeCard({ recipe, onPress }: RecipeCardProps) {

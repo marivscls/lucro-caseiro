@@ -3,15 +3,12 @@ import { Badge, Card, Typography, useTheme, spacing } from "@lucro-caseiro/ui";
 import React from "react";
 import { View } from "react-native";
 
+import { formatCurrency } from "../../../shared/utils/format";
 import { paymentLabel } from "../payment";
 
 interface SaleCardProps {
   readonly sale: Sale;
   readonly onPress?: () => void;
-}
-
-function formatCurrency(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
 }
 
 const STATUS_MAP: Record<

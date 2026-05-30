@@ -1,3 +1,4 @@
+import { formatCurrency } from "../../../shared/utils/format";
 import { Button, Card, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
@@ -14,10 +15,6 @@ import { useAuth } from "../../../shared/hooks/use-auth";
 import { getExportUrl } from "../api";
 import { useFinanceEntries, useFinanceSummary } from "../hooks";
 import { FinanceEntryList } from "./finance-entry-list";
-
-function formatCurrency(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
-}
 
 const MONTH_NAMES = [
   "Janeiro",

@@ -1,3 +1,4 @@
+import { formatCurrency } from "../../shared/utils/format";
 import type { Material } from "@lucro-caseiro/contracts";
 
 export type StockTone = "success" | "warn" | "danger";
@@ -20,7 +21,7 @@ export function stockBadge(m: Material): { label: string; tone: StockTone } {
 }
 
 export function formatCost(value: number, unit: string): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}/${unit}`;
+  return `${formatCurrency(value)}/${unit}`;
 }
 
 /** Monta uma lista de compras (texto pronto p/ compartilhar) a partir de insumos baixos/zerados. */

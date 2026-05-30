@@ -1,11 +1,8 @@
+import { formatCurrency } from "../../../shared/utils/format";
 import { Button, Card, Typography, spacing, radii, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { ScrollView, View } from "react-native";
-
-function formatCurrency(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
-}
 
 interface CostBreakdownItem {
   label: string;

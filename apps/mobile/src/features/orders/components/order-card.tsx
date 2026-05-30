@@ -1,3 +1,4 @@
+import { formatCurrency as formatMoney } from "../../../shared/utils/format";
 import type { Order } from "@lucro-caseiro/contracts";
 import {
   Card,
@@ -31,10 +32,6 @@ function toneColors(theme: Theme, tone: StatusTone): { bg: string; fg: string } 
     default:
       return { bg: theme.colors.surfaceElevated, fg: theme.colors.textSecondary };
   }
-}
-
-function formatMoney(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
 }
 
 export function OrderCard({ order, onPress }: OrderCardProps) {

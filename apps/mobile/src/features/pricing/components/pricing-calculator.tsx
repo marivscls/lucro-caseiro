@@ -1,3 +1,4 @@
+import { formatCurrency } from "../../../shared/utils/format";
 import {
   Button,
   Card,
@@ -15,10 +16,6 @@ import { useCalculatePricing } from "../hooks";
 import { PricingResult } from "./pricing-result";
 
 type Step = 1 | 2 | 3 | 4 | 5 | "result";
-
-function formatCurrency(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
-}
 
 function currencyInput(value: number): string {
   return value.toFixed(2).replace(".", ",");

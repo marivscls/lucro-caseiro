@@ -1,3 +1,4 @@
+import { formatCurrency } from "../shared/utils/format";
 import type { Product } from "@lucro-caseiro/contracts";
 import {
   Button,
@@ -23,10 +24,6 @@ import {
 } from "../features/products/hooks";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
 import { uploadProductImage } from "../shared/utils/upload-image";
-
-function formatCurrency(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
-}
 
 function stockLabel(p: Product): string {
   if (p.stockQuantity === null) return "Não controlado";

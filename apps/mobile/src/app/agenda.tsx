@@ -1,3 +1,4 @@
+import { formatCurrency as formatMoney } from "../shared/utils/format";
 import type { Order, OrderStatus } from "@lucro-caseiro/contracts";
 import {
   Button,
@@ -51,10 +52,6 @@ const GROUP_META: Record<
   later: { icon: "time-outline", tone: "default" },
   finished: { icon: "checkmark-done-circle", tone: "success" },
 };
-
-function formatMoney(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
-}
 
 function OrderDetail({
   order,

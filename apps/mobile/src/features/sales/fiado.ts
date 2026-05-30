@@ -1,14 +1,12 @@
 import type { Sale } from "@lucro-caseiro/contracts";
 
+import { formatCurrency } from "../../shared/utils/format";
+
 export interface FiadoGroup {
   clientId: string | null;
   clientName: string;
   total: number;
   sales: Sale[];
-}
-
-function money(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
 }
 
 function dateBR(iso: string): string {
@@ -59,10 +57,10 @@ export function buildChargeMessage(group: FiadoGroup): string {
   lines.push(`${hello} Passando para lembrar do valor em aberto:`);
   lines.push("");
   for (const sale of group.sales) {
-    lines.push(`• ${dateBR(sale.soldAt)} — ${money(sale.total)}`);
+    lines.push(`• ${dateBR(sale.soldAt)} — ${formatCurrency(sale.total)}`);
   }
   lines.push("");
-  lines.push(`*Total: ${money(group.total)}*`);
+  lines.push(`*Total: ${formatCurrency(group.total)}*`);
   lines.push("Quando puder acertar, é só me chamar. Obrigada! 💛");
   return lines.join("\n");
 }

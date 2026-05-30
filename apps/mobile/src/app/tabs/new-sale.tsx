@@ -1,3 +1,4 @@
+import { formatCurrency } from "../../shared/utils/format";
 import type { Product, Client, PaymentMethod } from "@lucro-caseiro/contracts";
 import {
   Button,
@@ -56,10 +57,6 @@ const PAYMENT_OPTIONS: PaymentOption[] = [
     icon: "swap-horizontal-outline",
   },
 ];
-
-function formatCurrency(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
-}
 
 const STEP_TITLES: Record<Step, string> = {
   1: "O que você vai vender?",

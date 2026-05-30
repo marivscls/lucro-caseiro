@@ -1,3 +1,4 @@
+import { formatCurrency } from "../../../shared/utils/format";
 import {
   Badge,
   Button,
@@ -17,10 +18,6 @@ import { useClient } from "../hooks";
 interface ClientDetailProps {
   clientId: string;
   onEditPress?: () => void;
-}
-
-function formatCurrency(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
 }
 
 function formatDate(dateStr: string): string {

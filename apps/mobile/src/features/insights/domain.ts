@@ -1,8 +1,6 @@
 import type { MonthlyRevenue } from "@lucro-caseiro/contracts";
 
-export function formatMoney(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
-}
+export { formatCurrency as formatMoney } from "../../shared/utils/format";
 
 /** Versão curta para eixos/labels (sem centavos). Ex.: "R$ 1,2 mil", "R$ 350". */
 export function formatMoneyShort(value: number): string {

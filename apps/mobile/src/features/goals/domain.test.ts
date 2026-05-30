@@ -19,8 +19,8 @@ function makeProgress(overrides: Partial<ProlaboreProgress> = {}): ProlaboreProg
 }
 
 describe("formatCurrency", () => {
-  it("formats with comma decimals", () => {
-    expect(formatCurrency(1234.5)).toBe("R$ 1234,50");
+  it("formats with comma decimals and thousand separator", () => {
+    expect(formatCurrency(1234.5)).toBe("R$ 1.234,50");
   });
 });
 
@@ -45,6 +45,6 @@ describe("prolaboreMessage", () => {
     const msg = prolaboreMessage(
       makeProgress({ salesRemaining: null, remainingRevenue: 1500 }),
     );
-    expect(msg).toBe("Faltam R$ 1500,00 para sua meta");
+    expect(msg).toBe("Faltam R$ 1.500,00 para sua meta");
   });
 });

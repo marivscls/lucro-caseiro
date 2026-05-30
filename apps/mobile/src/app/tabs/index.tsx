@@ -1,3 +1,4 @@
+import { formatCurrency } from "../../shared/utils/format";
 import { Button, Card, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -16,10 +17,6 @@ import { LimitBanner } from "../../features/subscription/components/limit-banner
 import { useProfile } from "../../features/subscription/hooks";
 import { AdBanner } from "../../shared/components/ad-banner";
 import { usePaywall } from "../../shared/hooks/use-paywall";
-
-function formatCurrency(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
-}
 
 function getMonthName(): string {
   const months = [
@@ -113,7 +110,7 @@ function _RecentOrderItem({
         <Typography variant="bodyBold">{name}</Typography>
       </View>
       <Typography variant="bodyBold" color={theme.colors.success}>
-        R$ {amount.toFixed(2).replace(".", ",")}
+        {formatCurrency(amount)}
       </Typography>
     </View>
   );

@@ -1,10 +1,7 @@
 import type { Sale } from "@lucro-caseiro/contracts";
 
+import { formatCurrency } from "../../shared/utils/format";
 import { paymentLabel } from "./payment";
-
-function money(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
-}
 
 function dateBR(iso: string): string {
   const d = new Date(iso);
@@ -24,11 +21,13 @@ export function buildReceiptMessage(sale: Sale): string {
   lines.push("");
 
   for (const item of sale.items) {
-    lines.push(`• ${item.quantity}x ${item.productName} — ${money(item.subtotal)}`);
+    lines.push(
+      `• ${item.quantity}x ${item.productName} — ${formatCurrency(item.subtotal)}`,
+    );
   }
 
   lines.push("");
-  lines.push(`*Total: ${money(sale.total)}*`);
+  lines.push(`*Total: ${formatCurrency(sale.total)}*`);
   lines.push(`Pagamento: ${paymentLabel(sale.paymentMethod)}`);
   if (sale.status === "pending") lines.push("Situação: em aberto");
   lines.push("");

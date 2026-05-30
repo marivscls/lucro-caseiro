@@ -1,3 +1,4 @@
+import { formatCurrency } from "../shared/utils/format";
 import type { Pricing } from "@lucro-caseiro/contracts";
 import { Card, EmptyState, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
@@ -9,10 +10,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { PricingCalculator } from "../features/pricing/components/pricing-calculator";
 import { usePricingHistory } from "../features/pricing/hooks";
 import { useProducts } from "../features/products/hooks";
-
-function formatCurrency(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
-}
 
 function PricingHistoryModal({
   visible,
