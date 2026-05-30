@@ -6,6 +6,7 @@ import { Alert, Image, Pressable, ScrollView, View } from "react-native";
 
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { uploadLabelLogo } from "../../../shared/utils/upload-image";
+import { addDaysToBR, brToIso, maskDateBR } from "../dates";
 import { exportLabelPdf } from "../label-export";
 import { normalizeLink } from "../qr";
 import { useCreateLabel } from "../hooks";
@@ -30,6 +31,7 @@ export function CreateLabelForm({
   const [exporting, setExporting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [qrLink, setQrLink] = useState("");
+  const [shelfDays, setShelfDays] = useState("");
   const { imageUri: logoUri, showPicker, clear: clearLogo } = useImagePicker();
 
   const qrUrl = normalizeLink(qrLink);
@@ -39,14 +41,24 @@ export function CreateLabelForm({
     setLabelData((prev) => ({ ...prev, [key]: value }));
   }
 
-  function toIsoDate(ddmmyyyy: string): string | undefined {
-    if (!ddmmyyyy.trim()) return undefined;
-    const parts = ddmmyyyy.split("/");
-    if (parts.length === 3) {
-      const [dd, mm, yyyy] = parts;
-      return `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
-    }
-    return ddmmyyyy;
+  // Recalcula a validade (fabricação + dias) sempre que um dos dois muda.
+  function recomputeExpiration(manufacturing: string, days: string) {
+    const n = parseInt(days, 10);
+    if (!manufacturing || Number.isNaN(n) || n <= 0) return;
+    const expiration = addDaysToBR(manufacturing, n);
+    if (expiration) updateField("expirationDate", expiration);
+  }
+
+  function handleManufacturingChange(value: string) {
+    const masked = maskDateBR(value);
+    updateField("manufacturingDate", masked);
+    recomputeExpiration(masked, shelfDays);
+  }
+
+  function handleShelfDaysChange(value: string) {
+    const digits = value.replace(/\D/g, "").slice(0, 4);
+    setShelfDays(digits);
+    recomputeExpiration(labelData.manufacturingDate ?? "", digits);
   }
 
   async function handleSubmit() {
@@ -84,8 +96,8 @@ export function CreateLabelForm({
         qrCodeUrl: qrUrl,
         data: {
           ...labelData,
-          manufacturingDate: toIsoDate(labelData.manufacturingDate ?? ""),
-          expirationDate: toIsoDate(labelData.expirationDate ?? ""),
+          manufacturingDate: brToIso(labelData.manufacturingDate ?? ""),
+          expirationDate: brToIso(labelData.expirationDate ?? ""),
         },
       });
       Alert.alert("Rótulo criado!", "Seu rótulo esta pronto para imprimir");
@@ -185,17 +197,27 @@ export function CreateLabelForm({
             label="Fabricacao"
             placeholder="DD/MM/AAAA"
             value={labelData.manufacturingDate ?? ""}
-            onChangeText={(v) => updateField("manufacturingDate", v)}
+            onChangeText={handleManufacturingChange}
+            keyboardType="number-pad"
             containerStyle={{ flex: 1 }}
           />
           <Input
             label="Validade"
             placeholder="DD/MM/AAAA"
             value={labelData.expirationDate ?? ""}
-            onChangeText={(v) => updateField("expirationDate", v)}
+            onChangeText={(v) => updateField("expirationDate", maskDateBR(v))}
+            keyboardType="number-pad"
             containerStyle={{ flex: 1 }}
           />
         </View>
+
+        <Input
+          label="Validade em dias (opcional)"
+          placeholder="Ex: 7 — preenche a validade sozinho"
+          value={shelfDays}
+          onChangeText={handleShelfDaysChange}
+          keyboardType="number-pad"
+        />
 
         <Input
           label="Seu nome / nome do negócio"

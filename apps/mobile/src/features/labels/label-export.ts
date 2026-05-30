@@ -3,6 +3,7 @@ import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 
 import { TEMPLATE_STYLES } from "./components/label-preview";
+import { isoToBR } from "./dates";
 import { buildQrSvg } from "./qr";
 
 function escapeHtml(value: string): string {
@@ -46,8 +47,8 @@ function buildLabelHtml(
   let dates = "";
   if (data.manufacturingDate?.trim() || data.expirationDate?.trim()) {
     dates = `<div class="dates">
-          ${dateBlock("Fabricação", data.manufacturingDate)}
-          ${dateBlock("Validade", data.expirationDate)}
+          ${dateBlock("Fabricação", isoToBR(data.manufacturingDate))}
+          ${dateBlock("Validade", isoToBR(data.expirationDate))}
         </div>`;
   }
 

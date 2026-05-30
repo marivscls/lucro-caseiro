@@ -18,24 +18,25 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 
 ## Code pointers
 
-| Arquivo                                                            | Descricao                                                                                     |
-| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
-| `apps/mobile/src/features/labels/api.ts`                           | Funcoes HTTP (fetchLabels, fetchLabel, fetchTemplates, createLabel, updateLabel, deleteLabel) |
-| `apps/mobile/src/features/labels/hooks.ts`                         | React Query hooks                                                                             |
-| `apps/mobile/src/features/labels/components/create-label-form.tsx` | Formulario de criacao com preview ao vivo                                                     |
-| `apps/mobile/src/features/labels/components/label-preview.tsx`     | Componente de pre-visualizacao do rotulo                                                      |
-| `apps/mobile/src/features/labels/components/template-picker.tsx`   | Seletor horizontal de templates                                                               |
-| `apps/mobile/src/features/labels/label-export.ts`                  | Gera HTML do rotulo -> PDF (expo-print) e abre share/print (expo-sharing)                     |
-| `apps/mobile/src/features/labels/qr.ts`                            | `normalizeLink` (texto -> URL) e `buildQrSvg` (QR como SVG via qrcode-generator, JS puro)     |
-| `apps/mobile/src/app/labels.tsx`                                   | Screen (rota `/labels`)                                                                       |
+| Arquivo                                                            | Descricao                                                                                        |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| `apps/mobile/src/features/labels/api.ts`                           | Funcoes HTTP (fetchLabels, fetchLabel, fetchTemplates, createLabel, updateLabel, deleteLabel)    |
+| `apps/mobile/src/features/labels/hooks.ts`                         | React Query hooks                                                                                |
+| `apps/mobile/src/features/labels/components/create-label-form.tsx` | Formulario de criacao com preview ao vivo                                                        |
+| `apps/mobile/src/features/labels/components/label-preview.tsx`     | Componente de pre-visualizacao do rotulo                                                         |
+| `apps/mobile/src/features/labels/components/template-picker.tsx`   | Seletor horizontal de templates                                                                  |
+| `apps/mobile/src/features/labels/label-export.ts`                  | Gera HTML do rotulo -> PDF (expo-print) e abre share/print (expo-sharing)                        |
+| `apps/mobile/src/features/labels/qr.ts`                            | `normalizeLink` (texto -> URL) e `buildQrSvg` (QR como SVG via qrcode-generator, JS puro)        |
+| `apps/mobile/src/features/labels/dates.ts`                         | Datas: `isoToBR`/`brToIso` (exibir vs salvar), `maskDateBR` (mascara) e `addDaysToBR` (validade) |
+| `apps/mobile/src/app/labels.tsx`                                   | Screen (rota `/labels`)                                                                          |
 
 ## Components
 
 ### `CreateLabelForm`
 
 - **Props:** `{ productId?: string; onSuccess?: () => void }`
-- Campos: nome do rotulo, template (via TemplatePicker), nome do produto, ingredientes, datas de fabricacao/validade (DD/MM/AAAA), nome do produtor, telefone.
-- Converte datas DD/MM/AAAA para ISO antes de enviar.
+- Campos: nome do rotulo, template (via TemplatePicker), nome do produto, ingredientes, datas de fabricacao/validade (DD/MM/AAAA com mascara `maskDateBR`), "validade em dias" (auto-calcula a validade via `addDaysToBR`), nome do produtor, telefone.
+- Datas exibidas/digitadas em DD/MM/AAAA; converte para ISO (`brToIso`) antes de enviar. O preview/PDF exibem via `isoToBR` (funciona tanto para ISO salvo quanto para o BR ao vivo).
 - Inclui preview ao vivo via `LabelPreview`.
 - Upload de logo opcional (galeria/camera via `useImagePicker`); sobe pro storage com `uploadLabelLogo` no submit e envia `logoUrl` no `createLabel`. Se o upload falhar, salva sem o logo.
 - Campo "Link do QR Code" opcional: `normalizeLink` converte o texto em URL e envia em `qrCodeUrl`; o QR aparece no preview e no PDF.
@@ -72,6 +73,13 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 
 - `normalizeLink`: trim; vazio -> undefined; sem esquema -> prefixa `https://`. Usado para montar o `qrCodeUrl`.
 - `buildQrSvg`: gera o QR como string SVG (modulos pretos sobre fundo branco para maximo contraste/leitura, quiet zone 2; `color` customizavel) com `qrcode-generator` (JS puro, sem Buffer). Mesmo SVG no preview (`react-native-svg`) e no PDF (inline no HTML).
+
+### Datas (features/labels/dates.ts)
+
+- `isoToBR(iso)`: yyyy-mm-dd -> DD/MM/AAAA (deixa nao-ISO intacto). Usado no preview e no PDF para exibir datas salvas.
+- `brToIso(br)`: DD/MM/AAAA -> ISO; enviado ao back (contrato exige `z.string().date()`).
+- `maskDateBR(input)`: mascara progressiva DD/MM/AAAA enquanto digita.
+- `addDaysToBR(br, days)`: fabricacao + dias -> validade (campo "validade em dias").
 
 ## Hooks
 
@@ -123,6 +131,7 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 - [ ] Conversao de data DD/MM/AAAA para ISO funciona
 - [x] `normalizeLink` prefixa https quando falta esquema e retorna undefined p/ vazio
 - [x] `buildQrSvg` gera SVG com path dos modulos na cor do template
+- [x] `isoToBR`/`brToIso`/`maskDateBR`/`addDaysToBR` (dates.test.ts)
 
 ## Examples
 
@@ -138,3 +147,4 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 - 2026-05-30: upload de logo no fluxo de criacao (campo `logoUrl` ja existia no contrato/DB). Reaproveita bucket `product-photos` (path com prefixo `logo-`) — sem migration nova.
 - 2026-05-30: edicao de logo em rotulo salvo (`LabelDetailModal` em `labels.tsx`): trocar (upload do novo) ou remover. Remover envia `logoUrl: null` (UpdateLabelDto passou a aceitar nullable). Omitir `logoUrl` mantem o atual; upload com falha mantem o logo anterior.
 - 2026-05-30: QR code no rotulo. `qrCodeUrl` guarda o link de destino (Instagram/cardapio/WhatsApp); o QR e gerado como SVG (offline) via `qrcode-generator` e renderizado no preview (`react-native-svg`) e no PDF. Edicao envia `qrCodeUrl: normalizeLink(qrLink) ?? null` (vazio limpa). Deps novas: `react-native-svg`, `qrcode-generator`.
+- 2026-05-30: datas. Corrigido bug de exibicao (rotulo salvo/PDF mostravam ISO) via `isoToBR`. Inputs com mascara `maskDateBR`. Campo "validade em dias" auto-calcula a validade (`addDaysToBR`). Edicao agora hidrata datas em BR e converte para ISO no salvar (evita rejeicao do contrato).

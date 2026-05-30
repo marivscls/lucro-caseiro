@@ -26,6 +26,7 @@ import { CreateLabelForm } from "../features/labels/components/create-label-form
 import { LabelPreview } from "../features/labels/components/label-preview";
 import { TemplatePicker } from "../features/labels/components/template-picker";
 import { exportLabelPdf } from "../features/labels/label-export";
+import { addDaysToBR, brToIso, isoToBR, maskDateBR } from "../features/labels/dates";
 import { normalizeLink } from "../features/labels/qr";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
 import { uploadLabelLogo } from "../shared/utils/upload-image";
@@ -59,6 +60,7 @@ function LabelDetailModal({
   const [uploading, setUploading] = useState(false);
   const [logoRemoved, setLogoRemoved] = useState(false);
   const [qrLink, setQrLink] = useState("");
+  const [shelfDays, setShelfDays] = useState("");
   const { imageUri: newLogo, showPicker, clear: clearPickedLogo } = useImagePicker();
 
   // Logo exibido na edição: novo escolhido > existente (a menos que removido).
@@ -79,7 +81,13 @@ function LabelDetailModal({
   function startEditing(l: Label) {
     setName(l.name);
     setTemplateId(l.templateId);
-    setLabelData(l.data);
+    // datas vêm em ISO do back; no formulário usamos DD/MM/AAAA.
+    setLabelData({
+      ...l.data,
+      manufacturingDate: isoToBR(l.data.manufacturingDate),
+      expirationDate: isoToBR(l.data.expirationDate),
+    });
+    setShelfDays("");
     setLogoRemoved(false);
     setQrLink(l.qrCodeUrl ?? "");
     clearPickedLogo();
@@ -93,6 +101,25 @@ function LabelDetailModal({
 
   function updateField<K extends keyof LabelData>(key: K, value: LabelData[K]) {
     setLabelData((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function recomputeExpiration(manufacturing: string, days: string) {
+    const n = parseInt(days, 10);
+    if (!manufacturing || Number.isNaN(n) || n <= 0) return;
+    const expiration = addDaysToBR(manufacturing, n);
+    if (expiration) updateField("expirationDate", expiration);
+  }
+
+  function handleManufacturingChange(value: string) {
+    const masked = maskDateBR(value);
+    updateField("manufacturingDate", masked);
+    recomputeExpiration(masked, shelfDays);
+  }
+
+  function handleShelfDaysChange(value: string) {
+    const digits = value.replace(/\D/g, "").slice(0, 4);
+    setShelfDays(digits);
+    recomputeExpiration(labelData.manufacturingDate ?? "", digits);
   }
 
   async function handleSave() {
@@ -126,7 +153,11 @@ function LabelDetailModal({
         data: {
           name: name.trim(),
           templateId,
-          data: labelData,
+          data: {
+            ...labelData,
+            manufacturingDate: brToIso(labelData.manufacturingDate ?? ""),
+            expirationDate: brToIso(labelData.expirationDate ?? ""),
+          },
           qrCodeUrl: editingQrUrl ?? null,
           ...(logoUrl !== undefined ? { logoUrl } : {}),
         },
@@ -213,17 +244,26 @@ function LabelDetailModal({
                 label="Fabricacao"
                 placeholder="DD/MM/AAAA"
                 value={labelData.manufacturingDate ?? ""}
-                onChangeText={(v) => updateField("manufacturingDate", v)}
+                onChangeText={handleManufacturingChange}
+                keyboardType="number-pad"
                 containerStyle={{ flex: 1 }}
               />
               <Input
                 label="Validade"
                 placeholder="DD/MM/AAAA"
                 value={labelData.expirationDate ?? ""}
-                onChangeText={(v) => updateField("expirationDate", v)}
+                onChangeText={(v) => updateField("expirationDate", maskDateBR(v))}
+                keyboardType="number-pad"
                 containerStyle={{ flex: 1 }}
               />
             </View>
+            <Input
+              label="Validade em dias (opcional)"
+              placeholder="Ex: 7 — preenche a validade sozinho"
+              value={shelfDays}
+              onChangeText={handleShelfDaysChange}
+              keyboardType="number-pad"
+            />
             <Input
               label="Seu nome / nome do negócio"
               value={labelData.producerName ?? ""}

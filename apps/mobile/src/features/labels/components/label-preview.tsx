@@ -4,6 +4,7 @@ import React from "react";
 import { Image, View } from "react-native";
 import { SvgXml } from "react-native-svg";
 
+import { isoToBR } from "../dates";
 import { buildQrSvg } from "../qr";
 
 interface LabelPreviewProps {
@@ -120,7 +121,7 @@ export function LabelPreview({
               color={style.accent}
               style={{ fontSize: 9 * scale }}
             >
-              {data.manufacturingDate}
+              {isoToBR(data.manufacturingDate)}
             </Typography>
           </View>
         )}
@@ -138,7 +139,7 @@ export function LabelPreview({
               color={style.accent}
               style={{ fontSize: 9 * scale }}
             >
-              {data.expirationDate}
+              {isoToBR(data.expirationDate)}
             </Typography>
           </View>
         )}
