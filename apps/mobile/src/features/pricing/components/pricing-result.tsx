@@ -79,7 +79,9 @@ export function PricingResult({
           paddingVertical: spacing["3xl"],
         }}
       >
-        <Typography variant="caption">Preço sugerido</Typography>
+        <Typography variant="caption" color={theme.colors.success}>
+          Preço sugerido
+        </Typography>
         <Typography variant="moneyHero" color={theme.colors.success}>
           {formatCurrency(suggestedPrice)}
         </Typography>
@@ -158,8 +160,12 @@ export function PricingResult({
           backgroundColor: theme.colors.successBg,
         }}
       >
-        <Typography variant="caption">Margem de Lucro</Typography>
-        <Typography variant="label">LUCRO POR UNIDADE</Typography>
+        <Typography variant="caption" color={theme.colors.success}>
+          Margem de Lucro
+        </Typography>
+        <Typography variant="label" color={theme.colors.success}>
+          LUCRO POR UNIDADE
+        </Typography>
         <Typography variant="moneyLg" color={theme.colors.success}>
           {formatCurrency(profitPerUnit)}
         </Typography>
