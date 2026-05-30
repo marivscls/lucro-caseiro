@@ -63,7 +63,7 @@ export function createRecipesRouter(
     async (req, res, next) => {
       try {
         const userId = getUserId(req);
-        const recipe = await useCases.duplicate(userId, req.params.id);
+        const recipe = await useCases.duplicate(userId, req.params.id as string);
         res.status(201).json(recipe);
       } catch (err) {
         next(err);
