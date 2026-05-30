@@ -4,6 +4,7 @@ import * as Sharing from "expo-sharing";
 
 import { TEMPLATE_STYLES } from "./components/label-preview";
 import { isoToBR } from "./dates";
+import { NUTRITION_FIELDS, hasNutrition } from "./nutrition";
 import { buildQrSvg } from "./qr";
 
 function escapeHtml(value: string): string {
@@ -50,6 +51,19 @@ function buildLabelHtml(
           ${dateBlock("Fabricação", isoToBR(data.manufacturingDate))}
           ${dateBlock("Validade", isoToBR(data.expirationDate))}
         </div>`;
+  }
+
+  let nutrition = "";
+  if (hasNutrition(data.nutrition)) {
+    const rows = NUTRITION_FIELDS.filter((f) => data.nutrition?.[f.key]?.trim())
+      .map(
+        (f) =>
+          `<tr><td>${f.label}</td><td class="v">${escapeHtml(
+            data.nutrition?.[f.key] ?? "",
+          )}</td></tr>`,
+      )
+      .join("");
+    nutrition = `<div class="nutrition"><div class="nutrition-title">Informação nutricional</div><table>${rows}</table></div>`;
   }
 
   let producer = "";
@@ -115,6 +129,16 @@ function buildLabelHtml(
       font-size: 13px;
     }
     .producer .phone { font-size: 12px; }
+    .nutrition {
+      border: 1px solid ${style.accent};
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 12px;
+    }
+    .nutrition-title { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+    .nutrition table { width: 100%; border-collapse: collapse; }
+    .nutrition td { font-size: 11px; padding: 1px 0; }
+    .nutrition td.v { text-align: right; font-weight: 700; }
     .qr {
       margin-top: 12px;
       text-align: center;
@@ -130,6 +154,7 @@ function buildLabelHtml(
     ${logo}
     <div class="title">${escapeHtml(data.productName || "Produto")}</div>
     ${ingredients}
+    ${nutrition}
     ${dates}
     ${producer}
     ${qr}

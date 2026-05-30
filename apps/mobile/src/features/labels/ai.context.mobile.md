@@ -28,6 +28,8 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 | `apps/mobile/src/features/labels/label-export.ts`                  | Gera HTML do rotulo -> PDF (expo-print) e abre share/print (expo-sharing)                        |
 | `apps/mobile/src/features/labels/qr.ts`                            | `normalizeLink` (texto -> URL) e `buildQrSvg` (QR como SVG via qrcode-generator, JS puro)        |
 | `apps/mobile/src/features/labels/dates.ts`                         | Datas: `isoToBR`/`brToIso` (exibir vs salvar), `maskDateBR` (mascara) e `addDaysToBR` (validade) |
+| `apps/mobile/src/features/labels/nutrition.ts`                     | `NUTRITION_FIELDS` (config), `hasNutrition`, `cleanNutrition`                                    |
+| `apps/mobile/src/features/labels/components/nutrition-fields.tsx`  | Secao colapsavel de inputs da informacao nutricional (criar/editar)                              |
 | `apps/mobile/src/app/labels.tsx`                                   | Screen (rota `/labels`)                                                                          |
 
 ## Components
@@ -38,6 +40,7 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 - Campos: nome do rotulo, template (via TemplatePicker), nome do produto, ingredientes, datas de fabricacao/validade (DD/MM/AAAA com mascara `maskDateBR`), "validade em dias" (auto-calcula a validade via `addDaysToBR`), nome do produtor, telefone.
 - Datas exibidas/digitadas em DD/MM/AAAA; converte para ISO (`brToIso`) antes de enviar. O preview/PDF exibem via `isoToBR` (funciona tanto para ISO salvo quanto para o BR ao vivo).
 - Inclui preview ao vivo via `LabelPreview`.
+- Secao "Informacao nutricional" (colapsavel, `NutritionFields`): 9 campos opcionais (porcao, kcal, carboidratos, acucares, proteinas, gorduras totais/saturadas, fibra, sodio). `cleanNutrition` nao envia se vazio. Renderizada como tabela no preview e no PDF. Layout informativo, nao e o template certificado ANVISA.
 - Upload de logo opcional (galeria/camera via `useImagePicker`); sobe pro storage com `uploadLabelLogo` no submit e envia `logoUrl` no `createLabel`. Se o upload falhar, salva sem o logo.
 - Campo "Link do QR Code" opcional: `normalizeLink` converte o texto em URL e envia em `qrCodeUrl`; o QR aparece no preview e no PDF.
 - Botao "Baixar / Compartilhar" gera PDF do rotulo a partir dos dados atuais (sem precisar salvar) via `exportLabelPdf`, incluindo logo e QR.
@@ -106,7 +109,8 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 ## Contracts
 
 - `Label` — rotulo salvo (id, name, templateId, productId, data, createdAt).
-- `LabelData` — dados do rotulo (productName, ingredients, manufacturingDate, expirationDate, producerName, producerPhone).
+- `LabelData` — dados do rotulo (productName, ingredients, manufacturingDate, expirationDate, producerName, producerPhone, `nutrition?: NutritionFacts`).
+- `NutritionFacts` — informacao nutricional opcional (servingSize, calories, carbs, sugars, protein, totalFat, satFat, fiber, sodium; cada campo e string opcional).
 - `CreateLabel` — payload de criacao (name, templateId, productId?, data).
 - `UpdateLabel` — payload de edicao.
 - `LabelTemplate` — tipo local `{ id: string; name: string }`.
@@ -148,3 +152,4 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 - 2026-05-30: edicao de logo em rotulo salvo (`LabelDetailModal` em `labels.tsx`): trocar (upload do novo) ou remover. Remover envia `logoUrl: null` (UpdateLabelDto passou a aceitar nullable). Omitir `logoUrl` mantem o atual; upload com falha mantem o logo anterior.
 - 2026-05-30: QR code no rotulo. `qrCodeUrl` guarda o link de destino (Instagram/cardapio/WhatsApp); o QR e gerado como SVG (offline) via `qrcode-generator` e renderizado no preview (`react-native-svg`) e no PDF. Edicao envia `qrCodeUrl: normalizeLink(qrLink) ?? null` (vazio limpa). Deps novas: `react-native-svg`, `qrcode-generator`.
 - 2026-05-30: datas. Corrigido bug de exibicao (rotulo salvo/PDF mostravam ISO) via `isoToBR`. Inputs com mascara `maskDateBR`. Campo "validade em dias" auto-calcula a validade (`addDaysToBR`). Edicao agora hidrata datas em BR e converte para ISO no salvar (evita rejeicao do contrato).
+- 2026-05-30: informacao nutricional opcional. `LabelData.nutrition` (objeto `NutritionFacts` no contrato, dentro do JSON `data` — sem migration). Tabela no preview e no PDF.

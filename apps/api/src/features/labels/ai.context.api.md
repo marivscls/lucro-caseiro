@@ -106,7 +106,7 @@ invariants:
 
 - **CreateLabelDto**: `{ productId?, templateId, name, data: LabelData, logoUrl?, qrCodeUrl? }`
 - **UpdateLabelDto**: `Partial<CreateLabelDto>`, exceto `logoUrl`/`qrCodeUrl` que sao `string().url().nullable().optional()` — enviar `null` limpa o campo (remover logo/QR de um rotulo salvo); omitir mantem o valor atual.
-- **LabelData**: `{ productName, ingredients?, ... }` (objeto JSON flexivel)
+- **LabelData**: `{ productName, ingredients?, ..., nutrition? }` (objeto JSON flexivel; `nutrition` = `NutritionFacts` opcional). Persistido na coluna jsonb `data` — sem migration ao evoluir campos.
 - **Label**: `{ id, userId, productId, templateId, name, data, logoUrl, qrCodeUrl, createdAt }`
 - **LabelTemplate**: `{ id: string, name: string }`
 

@@ -5,6 +5,7 @@ import { Image, View } from "react-native";
 import { SvgXml } from "react-native-svg";
 
 import { isoToBR } from "../dates";
+import { NUTRITION_FIELDS, hasNutrition } from "../nutrition";
 import { buildQrSvg } from "../qr";
 
 interface LabelPreviewProps {
@@ -97,6 +98,47 @@ export function LabelPreview({
           >
             {data.ingredients}
           </Typography>
+        </View>
+      )}
+
+      {hasNutrition(data.nutrition) && (
+        <View
+          style={{
+            borderWidth: 1,
+            borderColor: style.accent,
+            borderRadius: 6,
+            padding: 6 * scale,
+            gap: 2,
+          }}
+        >
+          <Typography
+            variant="caption"
+            color={style.accent}
+            style={{ fontWeight: "700", fontSize: 10 * scale }}
+          >
+            Informação nutricional
+          </Typography>
+          {NUTRITION_FIELDS.filter((f) => data.nutrition?.[f.key]?.trim()).map((f) => (
+            <View
+              key={f.key}
+              style={{ flexDirection: "row", justifyContent: "space-between" }}
+            >
+              <Typography
+                variant="caption"
+                color={style.accent}
+                style={{ fontSize: 9 * scale }}
+              >
+                {f.label}
+              </Typography>
+              <Typography
+                variant="caption"
+                color={style.accent}
+                style={{ fontSize: 9 * scale, fontWeight: "700" }}
+              >
+                {data.nutrition?.[f.key]}
+              </Typography>
+            </View>
+          ))}
         </View>
       )}
 

@@ -8,9 +8,11 @@ import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { uploadLabelLogo } from "../../../shared/utils/upload-image";
 import { addDaysToBR, brToIso, maskDateBR } from "../dates";
 import { exportLabelPdf } from "../label-export";
+import { cleanNutrition } from "../nutrition";
 import { normalizeLink } from "../qr";
 import { useCreateLabel } from "../hooks";
 import { LabelPreview } from "./label-preview";
+import { NutritionFields } from "./nutrition-fields";
 import { TemplatePicker } from "./template-picker";
 
 interface CreateLabelFormProps {
@@ -98,6 +100,7 @@ export function CreateLabelForm({
           ...labelData,
           manufacturingDate: brToIso(labelData.manufacturingDate ?? ""),
           expirationDate: brToIso(labelData.expirationDate ?? ""),
+          nutrition: cleanNutrition(labelData.nutrition),
         },
       });
       Alert.alert("Rótulo criado!", "Seu rótulo esta pronto para imprimir");
@@ -190,6 +193,11 @@ export function CreateLabelForm({
           multiline
           numberOfLines={3}
           style={{ height: 80, textAlignVertical: "top", paddingTop: 12 }}
+        />
+
+        <NutritionFields
+          value={labelData.nutrition}
+          onChange={(n) => updateField("nutrition", n)}
         />
 
         <View style={{ flexDirection: "row", gap: 12 }}>

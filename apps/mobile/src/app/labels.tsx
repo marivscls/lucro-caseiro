@@ -27,6 +27,8 @@ import { LabelPreview } from "../features/labels/components/label-preview";
 import { TemplatePicker } from "../features/labels/components/template-picker";
 import { exportLabelPdf } from "../features/labels/label-export";
 import { addDaysToBR, brToIso, isoToBR, maskDateBR } from "../features/labels/dates";
+import { cleanNutrition } from "../features/labels/nutrition";
+import { NutritionFields } from "../features/labels/components/nutrition-fields";
 import { normalizeLink } from "../features/labels/qr";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
 import { uploadLabelLogo } from "../shared/utils/upload-image";
@@ -157,6 +159,7 @@ function LabelDetailModal({
             ...labelData,
             manufacturingDate: brToIso(labelData.manufacturingDate ?? ""),
             expirationDate: brToIso(labelData.expirationDate ?? ""),
+            nutrition: cleanNutrition(labelData.nutrition),
           },
           qrCodeUrl: editingQrUrl ?? null,
           ...(logoUrl !== undefined ? { logoUrl } : {}),
@@ -238,6 +241,10 @@ function LabelDetailModal({
               multiline
               numberOfLines={3}
               style={{ height: 80, textAlignVertical: "top", paddingTop: 12 }}
+            />
+            <NutritionFields
+              value={labelData.nutrition}
+              onChange={(n) => updateField("nutrition", n)}
             />
             <View style={{ flexDirection: "row", gap: 12 }}>
               <Input

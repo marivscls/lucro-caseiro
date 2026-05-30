@@ -1,5 +1,21 @@
 import { z } from "zod";
 
+// Informacao nutricional simplificada (valores como string livre, ex: "12 g").
+// Layout informativo — nao e o template certificado ANVISA RDC 429/2020.
+export const NutritionFactsDto = z.object({
+  servingSize: z.string().optional(), // porcao, ex: "30 g (1 unidade)"
+  calories: z.string().optional(), // valor energetico (kcal)
+  carbs: z.string().optional(), // carboidratos
+  sugars: z.string().optional(), // acucares totais
+  protein: z.string().optional(), // proteinas
+  totalFat: z.string().optional(), // gorduras totais
+  satFat: z.string().optional(), // gorduras saturadas
+  fiber: z.string().optional(), // fibra alimentar
+  sodium: z.string().optional(), // sodio
+});
+
+export type NutritionFacts = z.infer<typeof NutritionFactsDto>;
+
 export const LabelDataDto = z.object({
   productName: z.string(),
   ingredients: z.string().optional(),
@@ -8,6 +24,7 @@ export const LabelDataDto = z.object({
   producerName: z.string().optional(),
   producerPhone: z.string().optional(),
   producerAddress: z.string().optional(),
+  nutrition: NutritionFactsDto.optional(),
 });
 
 export type LabelData = z.infer<typeof LabelDataDto>;
