@@ -63,6 +63,13 @@ export async function deleteRecipe(token: string, id: string): Promise<void> {
   await apiClient(`${RECIPES_BASE}/${id}`, { method: "DELETE", token });
 }
 
+export async function duplicateRecipe(token: string, id: string): Promise<Recipe> {
+  return apiClient<Recipe>(`${RECIPES_BASE}/${id}/duplicate`, {
+    method: "POST",
+    token,
+  });
+}
+
 export async function scaleRecipe(
   token: string,
   id: string,

@@ -72,6 +72,28 @@ export class RecipesUseCases {
     }
   }
 
+  /**
+   * Cria uma cópia independente da receita (nome "X (cópia)"), incluindo todos
+   * os ingredientes. Reusa `repo.create`, então respeita o limite freemium via
+   * o mesmo guard aplicado na criação.
+   */
+  async duplicate(userId: string, id: string): Promise<Recipe> {
+    const original = await this.repo.findById(userId, id);
+    if (!original) {
+      throw new NotFoundError("Receita não encontrada");
+    }
+
+    return this.repo.create(userId, {
+      name: `${original.name} (cópia)`,
+      category: original.category,
+      instructions: original.instructions ?? undefined,
+      yieldQuantity: original.yieldQuantity,
+      yieldUnit: original.yieldUnit,
+      photoUrl: original.photoUrl ?? undefined,
+      ingredients: original.ingredients,
+    });
+  }
+
   async scale(
     userId: string,
     id: string,

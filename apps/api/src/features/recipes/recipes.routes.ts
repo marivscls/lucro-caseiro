@@ -57,6 +57,20 @@ export function createRecipesRouter(
     }
   });
 
+  router.post(
+    "/:id/duplicate",
+    ...(createGuard ? [createGuard] : []),
+    async (req, res, next) => {
+      try {
+        const userId = getUserId(req);
+        const recipe = await useCases.duplicate(userId, req.params.id);
+        res.status(201).json(recipe);
+      } catch (err) {
+        next(err);
+      }
+    },
+  );
+
   router.get("/:id/scale", async (req, res, next) => {
     try {
       const userId = getUserId(req);

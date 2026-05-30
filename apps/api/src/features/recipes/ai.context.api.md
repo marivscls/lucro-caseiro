@@ -128,6 +128,9 @@ api:
     - method: GET
       path: /:id
       response: Recipe
+    - method: POST
+      path: /:id/duplicate
+      response: Recipe (201) — cópia independente, nome "X (cópia)"; respeita limite freemium (createGuard)
     - method: GET
       path: /:id/scale
       query: multiplier (number > 0)
@@ -247,6 +250,7 @@ invariants:
 - list: paginacao
 - update: valido, NotFoundError, ValidationError
 - remove: existente, NotFoundError
+- duplicate: cria copia "(copia)" com ingredientes, NotFoundError
 - scale: multiplicador inteiro, fracionario, NotFoundError
 
 ### Ingredients Domain (ingredients.domain.test.ts)
@@ -273,6 +277,9 @@ POST /api/v1/recipes
 GET /api/v1/recipes/recipe-1/scale?multiplier=2
 => 200 { "ingredients": [{ "quantity": 790, ... }], "yieldQuantity": 60 }
 
+POST /api/v1/recipes/recipe-1/duplicate
+=> 201 { "id": "novo-id", "name": "Brigadeiro (cópia)", "ingredients": [ ... iguais ... ] }
+
 POST /api/v1/ingredients
 { "name": "Leite Condensado", "price": 7.50, "quantityPerPackage": 395, "unit": "g" }
 => 201 { "id": "...", "name": "Leite Condensado", "price": 7.5, ... }
@@ -284,6 +291,9 @@ POST /api/v1/ingredients
 - Ingredientes de receita sao deletados e reinseridos a cada update (replace strategy)
 - Custo total e por unidade calculados em tempo de leitura (nao persistidos de forma definitiva)
 - Scale retorna dados calculados sem persistir
+- **Duplicar receita** (`POST /:id/duplicate`): reusa `repo.create` com os dados da
+  original (nome + " (cópia)"), copiando todas as linhas de `recipe_ingredients`. Passa
+  pelo mesmo `createGuard` da criação → respeita o limite freemium de receitas.
 - **Unificacao (PRD ciclo de estoque)**: a linha de receita passou a referenciar `materials`
   (insumo) em vez de `ingredients`. Custo da linha = `material.costPerUnit * quantity`. A
   feature standalone Ingredients (`ingredients.*`) fica em desuso/aposentadoria; sera

@@ -6,6 +6,7 @@ import {
   createIngredient,
   createRecipe,
   deleteRecipe,
+  duplicateRecipe,
   fetchIngredients,
   fetchRecipe,
   fetchRecipes,
@@ -71,6 +72,17 @@ export function useDeleteRecipe() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => deleteRecipe(token!, id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: RECIPES_KEY });
+    },
+  });
+}
+
+export function useDuplicateRecipe() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => duplicateRecipe(token!, id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: RECIPES_KEY });
     },

@@ -3,7 +3,7 @@ import { Button, Card, Typography, useTheme } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, View } from "react-native";
 
-import { useDeleteRecipe, useRecipe, useScaleRecipe } from "../hooks";
+import { useDeleteRecipe, useDuplicateRecipe, useRecipe, useScaleRecipe } from "../hooks";
 
 interface RecipeDetailProps {
   readonly recipeId: string;
@@ -16,7 +16,7 @@ const SCALE_OPTIONS = [0.5, 1, 1.5, 2, 3, 5];
 
 export function RecipeDetail({
   recipeId,
-  onDuplicate: _onDuplicate,
+  onDuplicate,
   onEdit,
   onDeleted,
 }: RecipeDetailProps) {
@@ -25,6 +25,7 @@ export function RecipeDetail({
   const { data: recipe, isLoading } = useRecipe(recipeId);
   const { data: scaledRecipe } = useScaleRecipe(recipeId, multiplier);
   const deleteRecipe = useDeleteRecipe();
+  const duplicateRecipe = useDuplicateRecipe();
 
   if (isLoading) {
     return (
@@ -211,6 +212,27 @@ export function RecipeDetail({
       </View>
 
       {onEdit && <Button title="Editar receita" size="lg" onPress={onEdit} />}
+
+      <Button
+        title="Duplicar receita"
+        variant="outline"
+        size="lg"
+        onPress={() => {
+          void (async () => {
+            try {
+              await duplicateRecipe.mutateAsync(recipeId);
+              Alert.alert("Receita duplicada", `Criamos uma cópia de "${recipe.name}".`);
+              onDuplicate?.();
+            } catch {
+              Alert.alert(
+                "Não foi possível duplicar",
+                "Você pode ter atingido o limite de receitas do plano gratuito.",
+              );
+            }
+          })();
+        }}
+        loading={duplicateRecipe.isPending}
+      />
 
       <Button
         title="Excluir receita"

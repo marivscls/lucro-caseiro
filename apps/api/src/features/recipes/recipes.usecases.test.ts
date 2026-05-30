@@ -154,6 +154,32 @@ describe("RecipesUseCases", () => {
     });
   });
 
+  describe("duplicate", () => {
+    it("creates an independent copy named 'X (cópia)' with the same ingredients", async () => {
+      let created: CreateRecipeData | undefined;
+      const { sut } = makeSut({
+        create: (_userId: string, data: CreateRecipeData) => {
+          created = data;
+          return Promise.resolve(makeRecipe({ name: data.name }));
+        },
+      });
+
+      const result = await sut.duplicate(USER_ID, "recipe-1");
+
+      expect(result.name).toBe("Brigadeiro (cópia)");
+      expect(created?.name).toBe("Brigadeiro (cópia)");
+      expect(created?.ingredients).toHaveLength(1);
+      expect(created?.ingredients[0]!.materialId).toBe("mat-1");
+    });
+
+    it("throws NotFoundError when recipe does not exist", async () => {
+      const { sut } = makeSut({
+        findById: () => Promise.resolve(null),
+      });
+      await expect(sut.duplicate(USER_ID, "nope")).rejects.toThrow(NotFoundError);
+    });
+  });
+
   describe("scale", () => {
     it("scales recipe ingredients by multiplier", async () => {
       const { sut } = makeSut();
