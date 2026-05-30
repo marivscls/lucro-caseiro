@@ -1,9 +1,11 @@
 import type { LabelData } from "@lucro-caseiro/contracts";
-import { Button, Input, Typography, useTheme } from "@lucro-caseiro/ui";
+import { Button, Input, Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Alert, ScrollView, View } from "react-native";
+import { Alert, Image, Pressable, ScrollView, View } from "react-native";
 
+import { useImagePicker } from "../../../shared/hooks/use-image-picker";
+import { uploadLabelLogo } from "../../../shared/utils/upload-image";
 import { exportLabelPdf } from "../label-export";
 import { useCreateLabel } from "../hooks";
 import { LabelPreview } from "./label-preview";
@@ -25,6 +27,8 @@ export function CreateLabelForm({
     productName: "",
   });
   const [exporting, setExporting] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const { imageUri: logoUri, showPicker, clear: clearLogo } = useImagePicker();
 
   const createLabel = useCreateLabel();
 
@@ -52,11 +56,28 @@ export function CreateLabelForm({
       return;
     }
 
+    // Sobe o logo (se houver) e usa a URL pública. Se falhar, salva sem o logo.
+    let logoUrl: string | undefined;
+    if (logoUri) {
+      try {
+        setUploading(true);
+        logoUrl = await uploadLabelLogo(logoUri);
+      } catch {
+        Alert.alert(
+          "Logo não enviado",
+          "Não consegui enviar o logo agora. Vou salvar o rótulo sem ele — você pode adicionar depois.",
+        );
+      } finally {
+        setUploading(false);
+      }
+    }
+
     try {
       await createLabel.mutateAsync({
         name: name.trim(),
         templateId,
         productId,
+        logoUrl,
         data: {
           ...labelData,
           manufacturingDate: toIsoDate(labelData.manufacturingDate ?? ""),
@@ -77,7 +98,7 @@ export function CreateLabelForm({
     }
     setExporting(true);
     try {
-      await exportLabelPdf(labelData, templateId);
+      await exportLabelPdf(labelData, templateId, logoUri);
     } catch {
       Alert.alert("Erro", "Não foi possível gerar o rótulo. Tente novamente.");
     } finally {
@@ -97,6 +118,43 @@ export function CreateLabelForm({
       />
 
       <TemplatePicker selected={templateId} onSelect={setTemplateId} />
+
+      <View>
+        <Typography variant="caption" style={{ marginBottom: spacing.sm }}>
+          Logo do negócio (opcional)
+        </Typography>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+          <Pressable
+            onPress={showPicker}
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: radii.lg,
+              backgroundColor: theme.colors.surface,
+              alignItems: "center",
+              justifyContent: "center",
+              overflow: "hidden",
+            }}
+          >
+            {logoUri ? (
+              <Image source={{ uri: logoUri }} style={{ width: 80, height: 80 }} />
+            ) : (
+              <Ionicons
+                name="image-outline"
+                size={28}
+                color={theme.colors.textSecondary}
+              />
+            )}
+          </Pressable>
+          {logoUri && (
+            <Pressable onPress={clearLogo} hitSlop={8}>
+              <Typography variant="caption" color={theme.colors.primary}>
+                Remover logo
+              </Typography>
+            </Pressable>
+          )}
+        </View>
+      </View>
 
       <View style={{ gap: 12 }}>
         <Typography variant="h3">Informações do rótulo</Typography>
@@ -153,7 +211,12 @@ export function CreateLabelForm({
 
       <View style={{ gap: 12 }}>
         <Typography variant="h3">Pré-visualização</Typography>
-        <LabelPreview data={labelData} templateId={templateId} scale={1.1} />
+        <LabelPreview
+          data={labelData}
+          templateId={templateId}
+          logoUrl={logoUri}
+          scale={1.1}
+        />
       </View>
 
       <View style={{ gap: 12 }}>
@@ -170,12 +233,12 @@ export function CreateLabelForm({
           loading={exporting}
         />
         <Button
-          title="Criar rótulo"
+          title={uploading ? "Enviando logo..." : "Criar rótulo"}
           size="lg"
           onPress={() => {
             void handleSubmit();
           }}
-          loading={createLabel.isPending}
+          loading={createLabel.isPending || uploading}
         />
       </View>
     </ScrollView>

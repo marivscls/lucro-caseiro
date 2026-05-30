@@ -23,8 +23,14 @@ function textLine(value: string | undefined, className?: string): string {
   return `<div${cls}>${escapeHtml(value)}</div>`;
 }
 
-function buildLabelHtml(data: LabelData, templateId: string): string {
+function buildLabelHtml(
+  data: LabelData,
+  templateId: string,
+  logoUrl?: string | null,
+): string {
   const style = TEMPLATE_STYLES[templateId] ?? TEMPLATE_STYLES.classico;
+
+  const logo = logoUrl ? `<img class="logo" src="${escapeHtml(logoUrl)}" />` : "";
 
   let ingredients = "";
   if (data.ingredients?.trim()) {
@@ -74,6 +80,14 @@ function buildLabelHtml(data: LabelData, templateId: string): string {
       padding: 24px;
       color: ${style.accent};
     }
+    .logo {
+      display: block;
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
+      margin: 0 auto 12px;
+      border-radius: 8px;
+    }
     .title {
       text-align: center;
       font-size: 24px;
@@ -101,6 +115,7 @@ function buildLabelHtml(data: LabelData, templateId: string): string {
 </head>
 <body>
   <div class="label-card">
+    ${logo}
     <div class="title">${escapeHtml(data.productName || "Produto")}</div>
     ${ingredients}
     ${dates}
@@ -114,8 +129,12 @@ function buildLabelHtml(data: LabelData, templateId: string): string {
  * Gera um PDF do rotulo e abre a folha de compartilhamento do sistema
  * (salvar em Arquivos, enviar no WhatsApp, imprimir, etc).
  */
-export async function exportLabelPdf(data: LabelData, templateId: string): Promise<void> {
-  const html = buildLabelHtml(data, templateId);
+export async function exportLabelPdf(
+  data: LabelData,
+  templateId: string,
+  logoUrl?: string | null,
+): Promise<void> {
+  const html = buildLabelHtml(data, templateId, logoUrl);
   const { uri } = await Print.printToFileAsync({ html });
 
   if (await Sharing.isAvailableAsync()) {

@@ -1,12 +1,14 @@
 import { supabase } from "./supabase";
 
+// Bucket público único para imagens do app (fotos de produto e logos de rótulo).
+// Caminhos são escopados por usuário (`${userId}/...`) pelas policies do storage.
 const BUCKET = "product-photos";
 
 /**
  * Sobe uma imagem local (file:// do image picker) pro Supabase Storage e
- * devolve a URL pública. Caminho: `${userId}/${timestamp}.{ext}` — escopado por usuário.
+ * devolve a URL pública. Caminho: `${userId}/${prefix}{timestamp}.{ext}` — escopado por usuário.
  */
-export async function uploadProductImage(localUri: string): Promise<string> {
+async function uploadImage(localUri: string, prefix: string): Promise<string> {
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -19,7 +21,7 @@ export async function uploadProductImage(localUri: string): Promise<string> {
   const rawExt = (localUri.split(".").pop() ?? "jpg").split("?")[0].toLowerCase();
   const isPng = rawExt === "png";
   const contentType = isPng ? "image/png" : "image/jpeg";
-  const path = `${userId}/${Date.now()}.${isPng ? "png" : "jpg"}`;
+  const path = `${userId}/${prefix}${Date.now()}.${isPng ? "png" : "jpg"}`;
 
   const { error } = await supabase.storage
     .from(BUCKET)
@@ -27,4 +29,12 @@ export async function uploadProductImage(localUri: string): Promise<string> {
   if (error) throw error;
 
   return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+}
+
+export function uploadProductImage(localUri: string): Promise<string> {
+  return uploadImage(localUri, "");
+}
+
+export function uploadLabelLogo(localUri: string): Promise<string> {
+  return uploadImage(localUri, "logo-");
 }

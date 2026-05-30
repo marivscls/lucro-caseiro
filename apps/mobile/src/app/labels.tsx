@@ -55,7 +55,7 @@ function LabelDetailModal({
   async function handleExport(l: Label) {
     setExporting(true);
     try {
-      await exportLabelPdf(l.data, l.templateId);
+      await exportLabelPdf(l.data, l.templateId, l.logoUrl);
     } catch {
       Alert.alert("Erro", "Não foi possível gerar o rótulo. Tente novamente.");
     } finally {
@@ -188,7 +188,11 @@ function LabelDetailModal({
               onChangeText={(v) => updateField("producerPhone", v)}
               keyboardType="phone-pad"
             />
-            <LabelPreview data={labelData} templateId={templateId} />
+            <LabelPreview
+              data={labelData}
+              templateId={templateId}
+              logoUrl={label.logoUrl}
+            />
             <Button
               title="Salvar"
               size="lg"
@@ -212,7 +216,12 @@ function LabelDetailModal({
               Template: {label.templateId} · Criado em{" "}
               {new Date(label.createdAt).toLocaleDateString("pt-BR")}
             </Typography>
-            <LabelPreview data={label.data} templateId={label.templateId} scale={1.2} />
+            <LabelPreview
+              data={label.data}
+              templateId={label.templateId}
+              logoUrl={label.logoUrl}
+              scale={1.2}
+            />
             <View style={{ gap: spacing.md }}>
               <Button
                 title="Baixar / Compartilhar"

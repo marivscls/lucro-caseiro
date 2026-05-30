@@ -9,7 +9,7 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 ## Non-goals
 
 - Nao gerencia produtos (feature `products`).
-- Nao faz upload de logo (campo previsto mas sem upload implementado).
+- Nao edita o logo de um rotulo ja salvo (upload de logo so no fluxo de criacao).
 
 ## Boundaries & Ownership
 
@@ -36,12 +36,14 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 - Campos: nome do rotulo, template (via TemplatePicker), nome do produto, ingredientes, datas de fabricacao/validade (DD/MM/AAAA), nome do produtor, telefone.
 - Converte datas DD/MM/AAAA para ISO antes de enviar.
 - Inclui preview ao vivo via `LabelPreview`.
-- Botao "Baixar / Compartilhar" gera PDF do rotulo a partir dos dados atuais (sem precisar salvar) via `exportLabelPdf`.
+- Upload de logo opcional (galeria/camera via `useImagePicker`); sobe pro storage com `uploadLabelLogo` no submit e envia `logoUrl` no `createLabel`. Se o upload falhar, salva sem o logo.
+- Botao "Baixar / Compartilhar" gera PDF do rotulo a partir dos dados atuais (sem precisar salvar) via `exportLabelPdf`, incluindo o logo selecionado.
 
 ### `LabelPreview`
 
 - **Props:** `{ data: LabelData; templateId: string; logoUrl?: string | null; scale?: number }`
-- Renderiza preview visual do rotulo com estilos baseados no template selecionado.
+- Exporta `TEMPLATE_STYLES` e o tipo `TemplateStyle` (reaproveitados pelo HTML do PDF em `label-export.ts`).
+- Renderiza preview visual do rotulo com estilos baseados no template selecionado. Mostra o logo (se `logoUrl`) no topo.
 - 5 templates: classico, moderno, minimalista, artesanal, gourmet (cada um com cores bg/accent/border proprias).
 - Largura fixa 280px \* scale.
 
@@ -54,11 +56,15 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 
 ## Utils
 
-### `exportLabelPdf(data, templateId)`
+### `exportLabelPdf(data, templateId, logoUrl?)`
 
-- Monta HTML do rotulo reaproveitando `TEMPLATE_STYLES` (exportado de `LabelPreview`) e gera um PDF com `expo-print` (`printToFileAsync`).
+- Monta HTML do rotulo reaproveitando `TEMPLATE_STYLES` (exportado de `LabelPreview`) e gera um PDF com `expo-print` (`printToFileAsync`). Inclui o logo (`<img>`) quando `logoUrl` informado.
 - Abre a folha de compartilhamento do sistema via `expo-sharing` (salvar em Arquivos, WhatsApp, imprimir). Fallback: `Print.printAsync` (dialogo nativo com "Salvar como PDF") quando sharing indisponivel.
-- Usado no `CreateLabelForm` (dados atuais, sem salvar) e na visualizacao de rotulo salvo em `labels.tsx`.
+- Usado no `CreateLabelForm` (dados atuais + logo local, sem salvar) e na visualizacao de rotulo salvo em `labels.tsx` (logo via URL publica).
+
+### `uploadLabelLogo(localUri)` (shared/utils/upload-image)
+
+- Sobe a imagem local pro bucket `product-photos` do Supabase Storage (path `${userId}/logo-${timestamp}.{ext}`) e devolve a URL publica. Mesma infra de `uploadProductImage` (bucket unico, escopado por usuario).
 
 ## Hooks
 
@@ -120,3 +126,4 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 - Limite freemium: 1 template no Free, ilimitado no Premium (enforcement no backend).
 - Templates definidos com cores fixas no front (TEMPLATE_STYLES e TEMPLATE_COLORS).
 - 2026-05-30: adicionada exportacao de rotulo como PDF (expo-print + expo-sharing). `TEMPLATE_STYLES` agora exportado de `LabelPreview` para o HTML do PDF bater com o preview. Decisao por PDF (qualidade de impressao) em vez de imagem, pois rotulo e impresso/colado no produto.
+- 2026-05-30: upload de logo no fluxo de criacao (campo `logoUrl` ja existia no contrato/DB). Reaproveita bucket `product-photos` (path com prefixo `logo-`) — sem migration nova. Edicao de logo de rotulo salvo nao implementada.
