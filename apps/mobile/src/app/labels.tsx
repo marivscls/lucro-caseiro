@@ -25,7 +25,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { CreateLabelForm } from "../features/labels/components/create-label-form";
 import { LabelPreview } from "../features/labels/components/label-preview";
 import { TemplatePicker } from "../features/labels/components/template-picker";
-import { exportLabelPdf } from "../features/labels/label-export";
+import { exportLabelPdfWithChoice } from "../features/labels/label-export";
 import { addDaysToBR, brToIso, isoToBR, maskDateBR } from "../features/labels/dates";
 import { cleanNutrition } from "../features/labels/nutrition";
 import { NutritionFields } from "../features/labels/components/nutrition-fields";
@@ -72,7 +72,7 @@ function LabelDetailModal({
   async function handleExport(l: Label) {
     setExporting(true);
     try {
-      await exportLabelPdf(l.data, l.templateId, l.logoUrl, l.qrCodeUrl);
+      await exportLabelPdfWithChoice(l.data, l.templateId, l.logoUrl, l.qrCodeUrl);
     } catch {
       Alert.alert("Erro", "Não foi possível gerar o rótulo. Tente novamente.");
     } finally {

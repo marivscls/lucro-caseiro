@@ -62,11 +62,15 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 
 ## Utils
 
-### `exportLabelPdf(data, templateId, logoUrl?, qrUrl?)`
+### `exportLabelPdf(data, templateId, logoUrl?, qrUrl?, copies?)`
 
-- Monta HTML do rotulo reaproveitando `TEMPLATE_STYLES` (exportado de `LabelPreview`) e gera um PDF com `expo-print` (`printToFileAsync`). Inclui o logo (`<img>`) e o QR (SVG inline via `buildQrSvg`) quando informados.
-- Abre a folha de compartilhamento do sistema via `expo-sharing` (salvar em Arquivos, WhatsApp, imprimir). Fallback: `Print.printAsync` (dialogo nativo com "Salvar como PDF") quando sharing indisponivel.
-- Usado no `CreateLabelForm` (dados atuais + logo local, sem salvar) e na visualizacao de rotulo salvo em `labels.tsx` (logo via URL publica).
+- Monta HTML do rotulo reaproveitando `TEMPLATE_STYLES` (exportado de `LabelPreview`) e gera um PDF com `expo-print` (`printToFileAsync`). Inclui o logo (`<img>`), o QR (SVG inline via `buildQrSvg`) e a tabela nutricional quando informados.
+- `copies > 1`: repete o card numa grade A4 de 2 colunas (`@page A4`, `break-inside: avoid`) que pagina sozinha — imprimir varias etiquetas por folha.
+- Abre a folha de compartilhamento do sistema via `expo-sharing` (salvar em Arquivos, WhatsApp, imprimir). Fallback: `Print.printAsync`.
+
+### `exportLabelPdfWithChoice(data, templateId, logoUrl?, qrUrl?)`
+
+- Pergunta (Alert) "1 etiqueta" ou "Folha cheia (8)" e chama `exportLabelPdf` com o `copies` escolhido. Usado pelos botoes "Baixar / Compartilhar" no `CreateLabelForm` e em `labels.tsx`.
 
 ### `uploadLabelLogo(localUri)` (shared/utils/upload-image)
 
@@ -153,3 +157,4 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 - 2026-05-30: QR code no rotulo. `qrCodeUrl` guarda o link de destino (Instagram/cardapio/WhatsApp); o QR e gerado como SVG (offline) via `qrcode-generator` e renderizado no preview (`react-native-svg`) e no PDF. Edicao envia `qrCodeUrl: normalizeLink(qrLink) ?? null` (vazio limpa). Deps novas: `react-native-svg`, `qrcode-generator`.
 - 2026-05-30: datas. Corrigido bug de exibicao (rotulo salvo/PDF mostravam ISO) via `isoToBR`. Inputs com mascara `maskDateBR`. Campo "validade em dias" auto-calcula a validade (`addDaysToBR`). Edicao agora hidrata datas em BR e converte para ISO no salvar (evita rejeicao do contrato).
 - 2026-05-30: informacao nutricional opcional. `LabelData.nutrition` (objeto `NutritionFacts` no contrato, dentro do JSON `data` — sem migration). Tabela no preview e no PDF.
+- 2026-05-30: imprimir varias etiquetas por folha. `exportLabelPdf` aceita `copies`; `exportLabelPdfWithChoice` pergunta 1 vs folha cheia (8). Grade A4 2 colunas que pagina sozinha.

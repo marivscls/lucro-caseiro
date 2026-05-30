@@ -7,7 +7,7 @@ import { Alert, Image, Pressable, ScrollView, View } from "react-native";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { uploadLabelLogo } from "../../../shared/utils/upload-image";
 import { addDaysToBR, brToIso, maskDateBR } from "../dates";
-import { exportLabelPdf } from "../label-export";
+import { exportLabelPdfWithChoice } from "../label-export";
 import { cleanNutrition } from "../nutrition";
 import { normalizeLink } from "../qr";
 import { useCreateLabel } from "../hooks";
@@ -117,7 +117,7 @@ export function CreateLabelForm({
     }
     setExporting(true);
     try {
-      await exportLabelPdf(labelData, templateId, logoUri, qrUrl);
+      await exportLabelPdfWithChoice(labelData, templateId, logoUri, qrUrl);
     } catch {
       Alert.alert("Erro", "Não foi possível gerar o rótulo. Tente novamente.");
     } finally {

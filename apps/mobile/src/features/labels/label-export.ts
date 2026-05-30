@@ -1,6 +1,7 @@
 import type { LabelData } from "@lucro-caseiro/contracts";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
+import { Alert } from "react-native";
 
 import { TEMPLATE_STYLES } from "./components/label-preview";
 import { isoToBR } from "./dates";
@@ -26,14 +27,12 @@ function textLine(value: string | undefined, className?: string): string {
   return `<div${cls}>${escapeHtml(value)}</div>`;
 }
 
-function buildLabelHtml(
+/** Conteúdo interno do card do rótulo (sem o wrapper `.label-card`). */
+function buildLabelCard(
   data: LabelData,
-  templateId: string,
   logoUrl?: string | null,
   qrUrl?: string | null,
 ): string {
-  const style = TEMPLATE_STYLES[templateId] ?? TEMPLATE_STYLES.classico;
-
   const logo = logoUrl ? `<img class="logo" src="${escapeHtml(logoUrl)}" />` : "";
   const qr = qrUrl ? `<div class="qr">${buildQrSvg(qrUrl)}</div>` : "";
 
@@ -74,6 +73,28 @@ function buildLabelHtml(
         </div>`;
   }
 
+  return `${logo}
+    <div class="title">${escapeHtml(data.productName || "Produto")}</div>
+    ${ingredients}
+    ${nutrition}
+    ${dates}
+    ${producer}
+    ${qr}`;
+}
+
+function buildLabelHtml(
+  data: LabelData,
+  templateId: string,
+  logoUrl?: string | null,
+  qrUrl?: string | null,
+  copies = 1,
+): string {
+  const style = TEMPLATE_STYLES[templateId] ?? TEMPLATE_STYLES.classico;
+  const count = Math.max(1, Math.floor(copies));
+  const card = buildLabelCard(data, logoUrl, qrUrl);
+  const cards = `<div class="label-card">${card}</div>`.repeat(count);
+  const sheet = count > 1;
+
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -81,17 +102,21 @@ function buildLabelHtml(
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     * { box-sizing: border-box; }
+    @page { size: A4; margin: 10mm; }
     body {
       margin: 0;
-      padding: 32px;
+      padding: ${sheet ? "0" : "32px"};
       display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
       justify-content: center;
       align-items: flex-start;
       font-family: ${style.font};
       background: #ffffff;
     }
     .label-card {
-      width: 320px;
+      width: ${sheet ? "47%" : "320px"};
+      break-inside: avoid;
       background: ${style.bg};
       border: 3px solid ${style.border};
       border-radius: 16px;
@@ -150,15 +175,7 @@ function buildLabelHtml(
   </style>
 </head>
 <body>
-  <div class="label-card">
-    ${logo}
-    <div class="title">${escapeHtml(data.productName || "Produto")}</div>
-    ${ingredients}
-    ${nutrition}
-    ${dates}
-    ${producer}
-    ${qr}
-  </div>
+  ${cards}
 </body>
 </html>`;
 }
@@ -172,8 +189,9 @@ export async function exportLabelPdf(
   templateId: string,
   logoUrl?: string | null,
   qrUrl?: string | null,
+  copies = 1,
 ): Promise<void> {
-  const html = buildLabelHtml(data, templateId, logoUrl, qrUrl);
+  const html = buildLabelHtml(data, templateId, logoUrl, qrUrl, copies);
   const { uri } = await Print.printToFileAsync({ html });
 
   if (await Sharing.isAvailableAsync()) {
@@ -187,4 +205,38 @@ export async function exportLabelPdf(
 
   // Fallback: abre o dialogo de impressao nativo (inclui "Salvar como PDF").
   await Print.printAsync({ html });
+}
+
+const SHEET_COPIES = 8;
+
+/**
+ * Pergunta se quer 1 etiqueta ou uma folha cheia e gera o PDF correspondente.
+ * Resolve ao concluir/cancelar; rejeita em erro real (caller mostra o aviso).
+ */
+export function exportLabelPdfWithChoice(
+  data: LabelData,
+  templateId: string,
+  logoUrl?: string | null,
+  qrUrl?: string | null,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    Alert.alert("Baixar rótulo", "Quantas etiquetas no PDF?", [
+      {
+        text: "1 etiqueta",
+        onPress: () => {
+          exportLabelPdf(data, templateId, logoUrl, qrUrl, 1).then(resolve, reject);
+        },
+      },
+      {
+        text: `Folha cheia (${SHEET_COPIES})`,
+        onPress: () => {
+          exportLabelPdf(data, templateId, logoUrl, qrUrl, SHEET_COPIES).then(
+            resolve,
+            reject,
+          );
+        },
+      },
+      { text: "Cancelar", style: "cancel", onPress: () => resolve() },
+    ]);
+  });
 }
