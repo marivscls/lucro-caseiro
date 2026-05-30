@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  calculatePriceWithFees,
   calculateProfitPerUnit,
   calculateSuggestedPrice,
   calculateTotalCost,
@@ -60,6 +61,33 @@ describe("calculateProfitPerUnit", () => {
   it("returns 0 when both are 0", () => {
     const result = calculateProfitPerUnit(0, 0);
     expect(result).toBe(0);
+  });
+});
+
+describe("calculatePriceWithFees", () => {
+  it("returns the same price and zero fee when feesPercent is 0", () => {
+    const result = calculatePriceWithFees(20, 0);
+    expect(result.finalPrice).toBe(20);
+    expect(result.feesAmount).toBe(0);
+  });
+
+  it("grosses up the price so the seller keeps the suggested price", () => {
+    // R$20 com 18% de taxas: 20 / 0,82 = 24,3902...
+    const result = calculatePriceWithFees(20, 18);
+    expect(result.finalPrice).toBeCloseTo(24.39, 2);
+    expect(result.feesAmount).toBeCloseTo(4.39, 2);
+  });
+
+  it("preserves the net (final − fee = suggested price)", () => {
+    const suggested = 37.5;
+    const { finalPrice, feesAmount } = calculatePriceWithFees(suggested, 15);
+    expect(finalPrice - feesAmount).toBeCloseTo(suggested, 6);
+  });
+
+  it("treats negative feesPercent as no fee", () => {
+    const result = calculatePriceWithFees(20, -5);
+    expect(result.finalPrice).toBe(20);
+    expect(result.feesAmount).toBe(0);
   });
 });
 
@@ -150,6 +178,42 @@ describe("validatePricingData", () => {
       marginPercent: 1001,
     });
     expect(errors).toContain("Margem de lucro não pode exceder 1000%");
+  });
+
+  it("rejects negative feesPercent", () => {
+    const errors = validatePricingData({
+      ingredientCost: 0,
+      packagingCost: 0,
+      laborCost: 0,
+      fixedCostShare: 0,
+      marginPercent: 0,
+      feesPercent: -1,
+    });
+    expect(errors).toContain("Taxas em % não podem ser negativas");
+  });
+
+  it("rejects feesPercent of 100% or more", () => {
+    const errors = validatePricingData({
+      ingredientCost: 0,
+      packagingCost: 0,
+      laborCost: 0,
+      fixedCostShare: 0,
+      marginPercent: 0,
+      feesPercent: 100,
+    });
+    expect(errors).toContain("Taxas em % não podem chegar a 100%");
+  });
+
+  it("accepts a valid feesPercent", () => {
+    const errors = validatePricingData({
+      ingredientCost: 10,
+      packagingCost: 0,
+      laborCost: 0,
+      fixedCostShare: 0,
+      marginPercent: 50,
+      feesPercent: 18,
+    });
+    expect(errors).toEqual([]);
   });
 
   it("accumulates multiple errors", () => {

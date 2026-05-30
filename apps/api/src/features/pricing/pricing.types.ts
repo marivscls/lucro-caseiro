@@ -19,6 +19,9 @@ export interface CreatePricingData {
   totalCost: number;
   marginPercent: number;
   suggestedPrice: number;
+  feesPercent: number;
+  feesAmount: number;
+  finalPrice: number;
 }
 
 export interface FindAllOpts {

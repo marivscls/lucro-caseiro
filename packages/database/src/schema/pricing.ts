@@ -18,5 +18,9 @@ export const pricingCalculations = pgTable("pricing_calculations", {
   totalCost: decimal("total_cost", { precision: 10, scale: 2 }).notNull(),
   marginPercent: decimal("margin_percent", { precision: 5, scale: 2 }).notNull(),
   suggestedPrice: decimal("suggested_price", { precision: 10, scale: 2 }).notNull(),
+  // Taxas percentuais (iFood, cartão...) sobre o preço de venda.
+  feesPercent: decimal("fees_percent", { precision: 5, scale: 2 }).notNull().default("0"),
+  feesAmount: decimal("fees_amount", { precision: 10, scale: 2 }).notNull().default("0"),
+  finalPrice: decimal("final_price", { precision: 10, scale: 2 }).notNull().default("0"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

@@ -20,6 +20,9 @@ export class PricingRepoPg implements IPricingRepo {
         totalCost: String(data.totalCost),
         marginPercent: String(data.marginPercent),
         suggestedPrice: String(data.suggestedPrice),
+        feesPercent: String(data.feesPercent),
+        feesAmount: String(data.feesAmount),
+        finalPrice: String(data.finalPrice),
       })
       .returning();
 
@@ -92,6 +95,9 @@ export class PricingRepoPg implements IPricingRepo {
       totalCost: Number(row.totalCost),
       marginPercent: Number(row.marginPercent),
       suggestedPrice: Number(row.suggestedPrice),
+      feesPercent: Number(row.feesPercent),
+      feesAmount: Number(row.feesAmount),
+      finalPrice: Number(row.finalPrice),
       createdAt: row.createdAt.toISOString(),
     };
   }

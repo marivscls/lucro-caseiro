@@ -39,15 +39,20 @@ Calculadora de precificacao guiada (wizard de 5 passos) que ajuda o usuario a de
   2. Custo da embalagem (R$)
   3. Mao de obra (minutos + valor/hora, calculo automatico)
   4. Custos fixos rateados por unidade (R$)
-  5. Margem de lucro (% com botoes pre-definidos 30/50/80/100/150/200 ou custom)
+  5. Margem de lucro (% presets ou custom) + **taxas de venda opcionais** (iFood % e
+     cartão %), somadas em `feesPercent`.
 - Barra de progresso visual.
-- Calculo local: `totalCost = ingredientes + embalagem + maoDeObra + fixos`, `preco = totalCost * (1 + margem/100)`.
+- Calculo local: `totalCost = ingredientes + embalagem + maoDeObra + fixos`;
+  `precoBase = totalCost * (1 + margem/100)`; com taxas, **gross-up**:
+  `precoFinal = precoBase / (1 - feesPercent/100)` (a taxa incide sobre a venda, preservando
+  a margem).
 - Botoes Voltar/Proximo em cada step.
 
 ### `PricingResult`
 
-- **Props:** `{ ingredientCost, packagingCost, laborCost, fixedCostShare, totalCost, marginPercent, suggestedPrice, profitPerUnit, onRecalculate, onSave, isSaving }`
-- Card hero com preco sugerido.
+- **Props:** `{ ingredientCost, packagingCost, laborCost, fixedCostShare, totalCost, marginPercent, suggestedPrice, profitPerUnit, feesPercent?, feesAmount?, finalPrice?, onRecalculate, onSave, isSaving }`
+- Card hero com o **preço final** (com taxas, se houver) ou o preço sugerido; quando há
+  taxas, mostra a quebra "base + X% taxas".
 - Barra empilhada de composicao de custos (ingredientes, embalagem, mao de obra, custos fixos) com legenda colorida.
 - Card de margem de lucro por unidade.
 - Projecao mensal (200 unidades fixo).
@@ -71,8 +76,8 @@ Calculadora de precificacao guiada (wizard de 5 passos) que ajuda o usuario a de
 
 ## Contracts
 
-- `CreatePricing` — payload (ingredientCost, packagingCost, laborCost, fixedCostShare, marginPercent).
-- `Pricing` — resultado salvo do calculo.
+- `CreatePricing` — payload (ingredientCost, packagingCost, laborCost, fixedCostShare, marginPercent, `feesPercent?` 0–95).
+- `Pricing` — resultado salvo (inclui `feesPercent`, `feesAmount`, `finalPrice`).
 
 ## Error Handling
 
@@ -90,6 +95,7 @@ Calculadora de precificacao guiada (wizard de 5 passos) que ajuda o usuario a de
 - [ ] Calculo de custo total soma cada um dos componentes
 - [ ] Calculo de mao de obra: (minutos/60) \* valorHora
 - [ ] Preco sugerido: totalCost \* (1 + margem/100)
+- [ ] Preco final com taxas (gross-up): precoBase / (1 - feesPercent/100)
 - [ ] Projecao mensal usa 200 unidades
 - [ ] Navegacao entre steps funciona corretamente
 - [ ] `useCalculatePricing` envia payload correto
@@ -105,3 +111,6 @@ Calculadora de precificacao guiada (wizard de 5 passos) que ajuda o usuario a de
 - Calculo feito no front para feedback instantaneo; POST de save envia ao backend para persistencia.
 - Custo real: o step 1 pode puxar o `costPrice` de um produto (que vem da receita/insumos), em
   vez de digitar o custo na mao. O `productId` selecionado vai junto no POST de calculo.
+- **Taxas de venda (iFood/cartão) em %** (step 5, opcional): aplicadas via **gross-up** sobre
+  o preço de venda para preservar a margem. Inspirado em reviews do concorrente
+  (`tasks/prd-melhorias-concorrente.md`).

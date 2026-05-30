@@ -45,6 +45,8 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
   const [laborHourlyRate, setLaborHourlyRate] = useState("");
   const [fixedCostShare, setFixedCostShare] = useState("");
   const [marginPercent, setMarginPercent] = useState(50);
+  const [ifoodPercent, setIfoodPercent] = useState("");
+  const [cardPercent, setCardPercent] = useState("");
 
   const calculatePricing = useCalculatePricing();
 
@@ -59,6 +61,17 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
 
   const suggestedPrice = totalCost * (1 + marginPercent / 100);
   const profitPerUnit = suggestedPrice - totalCost;
+
+  // Taxas de venda (iFood, cartão) em %. Gross-up: a taxa incide sobre a venda,
+  // então o preço final é "inflado" para o vendedor manter o preço sugerido.
+  const feesPercent =
+    (parseFloat(ifoodPercent.replace(",", ".")) || 0) +
+    (parseFloat(cardPercent.replace(",", ".")) || 0);
+  const finalPrice =
+    feesPercent > 0 && feesPercent < 100
+      ? suggestedPrice / (1 - feesPercent / 100)
+      : suggestedPrice;
+  const feesAmount = finalPrice - suggestedPrice;
 
   const handleNext = useCallback(() => {
     if (step === 5) {
@@ -96,6 +109,7 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
         laborCost,
         fixedCostShare: parseCurrency(fixedCostShare),
         marginPercent,
+        feesPercent: feesPercent > 0 ? feesPercent : undefined,
       });
       onSave?.();
     } catch {
@@ -109,6 +123,7 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
     laborCost,
     fixedCostShare,
     marginPercent,
+    feesPercent,
     onSave,
   ]);
 
@@ -123,6 +138,9 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
         marginPercent={marginPercent}
         suggestedPrice={suggestedPrice}
         profitPerUnit={profitPerUnit}
+        feesPercent={feesPercent}
+        feesAmount={feesAmount}
+        finalPrice={finalPrice}
         onRecalculate={handleRecalculate}
         onSave={() => {
           void handleSave();
@@ -327,6 +345,35 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
             />
           </View>
 
+          {/* Taxas de venda (opcional) */}
+          <View style={{ gap: spacing.sm }}>
+            <Typography variant="h3">Taxas de venda (opcional)</Typography>
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              iFood, cartão... incidem em % sobre a venda. Calculamos o preço final pra
+              você não perder margem.
+            </Typography>
+            <View style={{ flexDirection: "row", gap: spacing.md }}>
+              <View style={{ flex: 1 }}>
+                <Input
+                  label="iFood (%)"
+                  placeholder="Ex: 15"
+                  value={ifoodPercent}
+                  onChangeText={setIfoodPercent}
+                  keyboardType="decimal-pad"
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Input
+                  label="Cartão (%)"
+                  placeholder="Ex: 3"
+                  value={cardPercent}
+                  onChangeText={setCardPercent}
+                  keyboardType="decimal-pad"
+                />
+              </View>
+            </View>
+          </View>
+
           {/* Live preview */}
           <View
             style={{
@@ -339,9 +386,20 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
             <Typography variant="caption" color={theme.colors.success}>
               Custo total: {formatCurrency(totalCost)}
             </Typography>
-            <Typography variant="moneyLg" color={theme.colors.success}>
-              Preço sugerido: {formatCurrency(suggestedPrice)}
-            </Typography>
+            {feesPercent > 0 ? (
+              <>
+                <Typography variant="caption" color={theme.colors.success}>
+                  Preço base (margem): {formatCurrency(suggestedPrice)}
+                </Typography>
+                <Typography variant="moneyLg" color={theme.colors.success}>
+                  Preço final (c/ {feesPercent}% taxas): {formatCurrency(finalPrice)}
+                </Typography>
+              </>
+            ) : (
+              <Typography variant="moneyLg" color={theme.colors.success}>
+                Preço sugerido: {formatCurrency(suggestedPrice)}
+              </Typography>
+            )}
             <Typography variant="caption" color={theme.colors.success}>
               Lucro por unidade: {formatCurrency(profitPerUnit)}
             </Typography>

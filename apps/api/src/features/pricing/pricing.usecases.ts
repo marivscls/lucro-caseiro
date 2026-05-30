@@ -3,6 +3,7 @@ import type { Pricing } from "@lucro-caseiro/contracts";
 import { NotFoundError, ValidationError } from "../../shared/errors";
 import { paginationMeta } from "../../shared/helpers/paginate";
 import {
+  calculatePriceWithFees,
   calculateSuggestedPrice,
   calculateTotalCost,
   validatePricingData,
@@ -16,6 +17,7 @@ interface CalculateInput {
   laborCost: number;
   fixedCostShare: number;
   marginPercent: number;
+  feesPercent?: number;
 }
 
 export class PricingUseCases {
@@ -36,6 +38,12 @@ export class PricingUseCases {
 
     const suggestedPrice = calculateSuggestedPrice(totalCost, input.marginPercent);
 
+    const feesPercent = input.feesPercent ?? 0;
+    const { finalPrice, feesAmount } = calculatePriceWithFees(
+      suggestedPrice,
+      feesPercent,
+    );
+
     return this.repo.create(userId, {
       productId: input.productId,
       ingredientCost: input.ingredientCost,
@@ -45,6 +53,9 @@ export class PricingUseCases {
       totalCost,
       marginPercent: input.marginPercent,
       suggestedPrice,
+      feesPercent,
+      feesAmount,
+      finalPrice,
     });
   }
 

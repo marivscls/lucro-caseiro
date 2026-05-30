@@ -19,6 +19,9 @@ interface PricingResultProps {
   readonly marginPercent: number;
   readonly suggestedPrice: number;
   readonly profitPerUnit: number;
+  readonly feesPercent?: number;
+  readonly feesAmount?: number;
+  readonly finalPrice?: number;
   readonly onRecalculate: () => void;
   readonly onSave: () => void;
   readonly isSaving: boolean;
@@ -33,11 +36,17 @@ export function PricingResult({
   marginPercent: _marginPercent,
   suggestedPrice,
   profitPerUnit,
+  feesPercent = 0,
+  feesAmount = 0,
+  finalPrice,
   onRecalculate,
   onSave,
   isSaving,
 }: PricingResultProps) {
   const { theme } = useTheme();
+
+  const priceToCharge = finalPrice ?? suggestedPrice;
+  const hasFees = feesPercent > 0;
 
   const breakdown: CostBreakdownItem[] = [
     { label: "Insumos", value: ingredientCost, color: theme.colors.premium },
@@ -47,10 +56,10 @@ export function PricingResult({
   ];
 
   const monthlyUnits = 200;
-  const monthlyRevenue = suggestedPrice * monthlyUnits;
+  const monthlyRevenue = priceToCharge * monthlyUnits;
   const monthlyProfit = profitPerUnit * monthlyUnits;
   const profitMarginDisplay =
-    totalCost > 0 ? Math.round((profitPerUnit / suggestedPrice) * 100) : 0;
+    suggestedPrice > 0 ? Math.round((profitPerUnit / suggestedPrice) * 100) : 0;
 
   return (
     <ScrollView
@@ -77,11 +86,17 @@ export function PricingResult({
         }}
       >
         <Typography variant="caption" color={theme.colors.success}>
-          Preço sugerido
+          {hasFees ? "Preço final (com taxas)" : "Preço sugerido"}
         </Typography>
         <Typography variant="moneyHero" color={theme.colors.success}>
-          {formatCurrency(suggestedPrice)}
+          {formatCurrency(priceToCharge)}
         </Typography>
+        {hasFees && (
+          <Typography variant="caption" color={theme.colors.success}>
+            Base {formatCurrency(suggestedPrice)} + {feesPercent}% de taxas (
+            {formatCurrency(feesAmount)})
+          </Typography>
+        )}
       </Card>
 
       {/* Cost composition */}

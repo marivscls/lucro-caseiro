@@ -8,6 +8,8 @@ export const CreatePricingDto = z.object({
   laborCost: z.number().min(0).max(MAX_MONEY),
   fixedCostShare: z.number().min(0).max(MAX_MONEY),
   marginPercent: z.number().min(0).max(1000),
+  // Soma das taxas percentuais sobre a venda (iFood + cartão + ...). Max < 100.
+  feesPercent: z.number().min(0).max(95).optional(),
 });
 
 export type CreatePricing = z.infer<typeof CreatePricingDto>;
@@ -23,6 +25,9 @@ export const PricingDto = z.object({
   totalCost: z.number(),
   marginPercent: z.number(),
   suggestedPrice: z.number(),
+  feesPercent: z.number(),
+  feesAmount: z.number(),
+  finalPrice: z.number(),
   createdAt: z.string().datetime(),
 });
 

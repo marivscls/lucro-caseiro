@@ -19,6 +19,9 @@ function makePricing(overrides: Partial<Pricing> = {}): Pricing {
     totalCost: 20,
     marginPercent: 50,
     suggestedPrice: 30,
+    feesPercent: 0,
+    feesAmount: 0,
+    finalPrice: 30,
     createdAt: new Date().toISOString(),
     ...overrides,
   };
@@ -36,6 +39,9 @@ function makeRepo(overrides: Partial<IPricingRepo> = {}): IPricingRepo {
           totalCost: data.totalCost,
           marginPercent: data.marginPercent,
           suggestedPrice: data.suggestedPrice,
+          feesPercent: data.feesPercent,
+          feesAmount: data.feesAmount,
+          finalPrice: data.finalPrice,
         }),
       ),
     findById: () => Promise.resolve(makePricing()),
@@ -104,6 +110,38 @@ describe("PricingUseCases", () => {
           laborCost: 0,
           fixedCostShare: 0,
           marginPercent: 50,
+        }),
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it("grosses up the final price when percentage fees are given", async () => {
+      const { sut } = makeSut();
+      const result = await sut.calculate(USER_ID, {
+        ingredientCost: 10,
+        packagingCost: 5,
+        laborCost: 3,
+        fixedCostShare: 2,
+        marginPercent: 50,
+        feesPercent: 18,
+      });
+
+      // suggestedPrice 30, taxas 18% → 30 / 0,82 = 36,585...
+      expect(result.suggestedPrice).toBe(30);
+      expect(result.feesPercent).toBe(18);
+      expect(result.finalPrice).toBeCloseTo(36.59, 2);
+      expect(result.feesAmount).toBeCloseTo(6.59, 2);
+    });
+
+    it("throws ValidationError for fees of 100% or more", async () => {
+      const { sut } = makeSut();
+      await expect(
+        sut.calculate(USER_ID, {
+          ingredientCost: 10,
+          packagingCost: 0,
+          laborCost: 0,
+          fixedCostShare: 0,
+          marginPercent: 50,
+          feesPercent: 100,
         }),
       ).rejects.toThrow(ValidationError);
     });

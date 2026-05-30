@@ -32,19 +32,26 @@ Calcular e armazenar precificacao de produtos do negocio caseiro, somando custos
 
 ### Tabela: `pricing_calculations`
 
-| Coluna         | Tipo      | Constraints           |
-| -------------- | --------- | --------------------- |
-| id             | uuid      | PK                    |
-| userId         | uuid      | FK users, NOT NULL    |
-| productId      | uuid      | nullable, FK products |
-| ingredientCost | decimal   | NOT NULL              |
-| packagingCost  | decimal   | NOT NULL              |
-| laborCost      | decimal   | NOT NULL              |
-| fixedCostShare | decimal   | NOT NULL              |
-| totalCost      | decimal   | NOT NULL (calculado)  |
-| marginPercent  | decimal   | NOT NULL              |
-| suggestedPrice | decimal   | NOT NULL (calculado)  |
-| createdAt      | timestamp | default now()         |
+| Coluna         | Tipo      | Constraints                    |
+| -------------- | --------- | ------------------------------ |
+| id             | uuid      | PK                             |
+| userId         | uuid      | FK users, NOT NULL             |
+| productId      | uuid      | nullable, FK products          |
+| ingredientCost | decimal   | NOT NULL                       |
+| packagingCost  | decimal   | NOT NULL                       |
+| laborCost      | decimal   | NOT NULL                       |
+| fixedCostShare | decimal   | NOT NULL                       |
+| totalCost      | decimal   | NOT NULL (calculado)           |
+| marginPercent  | decimal   | NOT NULL                       |
+| suggestedPrice | decimal   | NOT NULL (calculado)           |
+| feesPercent    | decimal   | NOT NULL default 0             |
+| feesAmount     | decimal   | NOT NULL default 0 (calculado) |
+| finalPrice     | decimal   | NOT NULL default 0 (calculado) |
+| createdAt      | timestamp | default now()                  |
+
+> `feesPercent` = soma das taxas % sobre a venda (iFood, cartão...). `finalPrice` e
+> `feesAmount` são derivados via **gross-up** (ver Invariants). Colunas adicionadas na
+> migration `004_pricing_percentage_fees.sql` (existentes: `final_price = suggested_price`).
 
 ## Invariants
 
@@ -53,6 +60,10 @@ Calcular e armazenar precificacao de produtos do negocio caseiro, somando custos
 - Margem de lucro nao pode exceder 1000%
 - totalCost = ingredientCost + packagingCost + laborCost + fixedCostShare
 - suggestedPrice = totalCost \* (1 + marginPercent / 100)
+- feesPercent >= 0 e < 100 (taxas % sobre o preço de venda)
+- finalPrice = suggestedPrice / (1 - feesPercent / 100) — **gross-up**: a taxa incide
+  sobre a venda, não sobre o custo; preserva a margem (vendedor recebe `suggestedPrice`)
+- feesAmount = finalPrice - suggestedPrice
 - Toda query escopada por `userId`
 
 ## Operations
@@ -92,8 +103,11 @@ invariants:
   - laborCost >= 0
   - fixedCostShare >= 0
   - marginPercent >= 0 && marginPercent <= 1000
+  - feesPercent >= 0 && feesPercent < 100
   - totalCost = sum of all costs
   - suggestedPrice = totalCost * (1 + marginPercent/100)
+  - finalPrice = suggestedPrice / (1 - feesPercent/100)
+  - feesAmount = finalPrice - suggestedPrice
 ```
 
 ## Authorization & RLS
@@ -104,14 +118,15 @@ invariants:
 
 ## Contracts (Zod/DTO)
 
-- **CreatePricingDto**: `{ productId?, ingredientCost, packagingCost, laborCost, fixedCostShare, marginPercent }`
-- **Pricing**: `{ id, userId, productId, ingredientCost, packagingCost, laborCost, fixedCostShare, totalCost, marginPercent, suggestedPrice, createdAt }`
+- **CreatePricingDto**: `{ productId?, ingredientCost, packagingCost, laborCost, fixedCostShare, marginPercent, feesPercent? (0–95) }`
+- **Pricing**: `{ id, userId, productId, ingredientCost, packagingCost, laborCost, fixedCostShare, totalCost, marginPercent, suggestedPrice, feesPercent, feesAmount, finalPrice, createdAt }`
 
 ## Errors
 
 | Status | Quando                                       | Mensagem                                 |
 | ------ | -------------------------------------------- | ---------------------------------------- |
 | 400    | Custos negativos, margem negativa ou > 1000% | Array de strings com erros               |
+| 400    | Taxas em % negativas ou >= 100%              | Array de strings com erros               |
 | 404    | Calculo nao encontrado                       | "Calculo de precificacao nao encontrado" |
 
 ## Events / Side effects
@@ -134,8 +149,9 @@ invariants:
 
 - calculateTotalCost: soma correta, zeros, decimais
 - calculateSuggestedPrice: margem aplicada, margem zero, margem alta, custo zero
+- calculatePriceWithFees: taxa zero (sem mudança), gross-up correto (18% → 24,39), líquido preservado, taxa negativa tratada como zero
 - calculateProfitPerUnit: positivo, zero, ambos zero
-- validatePricingData: dados validos, custos zero aceitos, cada custo negativo rejeitado, margem negativa, margem > 1000, acumulo
+- validatePricingData: dados validos, custos zero aceitos, cada custo negativo rejeitado, margem negativa, margem > 1000, feesPercent negativo, feesPercent >= 100, feesPercent valido, acumulo
 
 ### UseCases (pricing.usecases.test.ts)
 
@@ -149,7 +165,11 @@ invariants:
 ```
 POST /api/v1/pricing/calculate
 { "ingredientCost": 10, "packagingCost": 5, "laborCost": 3, "fixedCostShare": 2, "marginPercent": 50 }
-=> 201 { "totalCost": 20, "suggestedPrice": 30, ... }
+=> 201 { "totalCost": 20, "suggestedPrice": 30, "feesPercent": 0, "feesAmount": 0, "finalPrice": 30, ... }
+
+POST /api/v1/pricing/calculate  (com taxas iFood 15% + cartão 3% = 18%)
+{ "ingredientCost": 10, "packagingCost": 5, "laborCost": 3, "fixedCostShare": 2, "marginPercent": 50, "feesPercent": 18 }
+=> 201 { "suggestedPrice": 30, "feesPercent": 18, "feesAmount": 6.59, "finalPrice": 36.59, ... }
 
 GET /api/v1/pricing/product/prod-1/history
 => 200 [{ "totalCost": 20, "suggestedPrice": 30, "createdAt": "..." }, ...]
@@ -160,3 +180,8 @@ GET /api/v1/pricing/product/prod-1/history
 - Criacao inicial com calculo + historico
 - Pricing e append-only (sem update/delete) para manter historico
 - Funcao `calculateProfitPerUnit` disponivel no dominio mas nao exposta via API
+- **Taxas/despesas em % (iFood, cartão)**: `feesPercent` opcional no calculo. Aplicado via
+  **gross-up** (`finalPrice = suggestedPrice / (1 - feesPercent/100)`) para que a taxa
+  incida sobre a venda e a margem do vendedor seja preservada. Somar `preço × taxa%` ao
+  custo estaria errado (subestima). Colunas `fees_percent/fees_amount/final_price` na
+  migration `004`. Inspirado em reviews do concorrente (ver `tasks/prd-melhorias-concorrente.md`).
