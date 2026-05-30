@@ -33,7 +33,7 @@ function buildLabelHtml(
   const style = TEMPLATE_STYLES[templateId] ?? TEMPLATE_STYLES.classico;
 
   const logo = logoUrl ? `<img class="logo" src="${escapeHtml(logoUrl)}" />` : "";
-  const qr = qrUrl ? `<div class="qr">${buildQrSvg(qrUrl, style.accent)}</div>` : "";
+  const qr = qrUrl ? `<div class="qr">${buildQrSvg(qrUrl)}</div>` : "";
 
   let ingredients = "";
   if (data.ingredients?.trim()) {

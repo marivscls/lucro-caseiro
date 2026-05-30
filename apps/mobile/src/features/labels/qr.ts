@@ -13,10 +13,11 @@ export function normalizeLink(input: string): string | undefined {
 
 /**
  * Gera o SVG de um QR code (JS puro, offline) a partir de um texto/link.
- * Módulos escuros (`color`) sobre fundo branco para boa leitura. Quiet zone de 2 módulos.
+ * Módulos pretos sobre fundo branco (máximo contraste -> leitura confiável em
+ * qualquer leitor, independente do template). Quiet zone de 2 módulos.
  * O mesmo SVG serve para o preview (react-native-svg) e para o PDF (HTML inline).
  */
-export function buildQrSvg(text: string, color = "#111827"): string {
+export function buildQrSvg(text: string, color = "#000000"): string {
   const qr = qrcode(0, "M"); // type automático, correção de erro média
   qr.addData(text);
   qr.make();

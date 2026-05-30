@@ -22,11 +22,16 @@ describe("normalizeLink", () => {
 });
 
 describe("buildQrSvg", () => {
-  it("builds an svg with the dark modules path in the given color", () => {
-    const svg = buildQrSvg("https://exemplo.com", "#92400E");
+  it("builds an svg with black modules by default (max contrast)", () => {
+    const svg = buildQrSvg("https://exemplo.com");
     expect(svg.startsWith("<svg")).toBe(true);
     expect(svg).toContain("viewBox");
-    expect(svg).toContain('fill="#92400E"');
+    expect(svg).toContain('fill="#000000"');
+    expect(svg).toContain('fill="#ffffff"'); // fundo branco
     expect(svg).toContain("<path");
+  });
+
+  it("accepts a custom module color", () => {
+    expect(buildQrSvg("https://exemplo.com", "#92400E")).toContain('fill="#92400E"');
   });
 });

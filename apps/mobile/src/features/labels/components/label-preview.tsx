@@ -42,7 +42,7 @@ export function LabelPreview({
   scale = 1,
 }: Readonly<LabelPreviewProps>) {
   const style = TEMPLATE_STYLES[templateId] ?? TEMPLATE_STYLES.classico;
-  const qrSvg = qrUrl ? buildQrSvg(qrUrl, style.accent) : null;
+  const qrSvg = qrUrl ? buildQrSvg(qrUrl) : null;
 
   return (
     <Card

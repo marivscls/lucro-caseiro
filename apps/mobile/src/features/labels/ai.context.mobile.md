@@ -71,7 +71,7 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 ### `normalizeLink(input)` e `buildQrSvg(text, color?)` (features/labels/qr.ts)
 
 - `normalizeLink`: trim; vazio -> undefined; sem esquema -> prefixa `https://`. Usado para montar o `qrCodeUrl`.
-- `buildQrSvg`: gera o QR como string SVG (modulos escuros na `color` do template sobre fundo branco, quiet zone 2) com `qrcode-generator` (JS puro, sem Buffer). Mesmo SVG no preview (`react-native-svg`) e no PDF (inline no HTML).
+- `buildQrSvg`: gera o QR como string SVG (modulos pretos sobre fundo branco para maximo contraste/leitura, quiet zone 2; `color` customizavel) com `qrcode-generator` (JS puro, sem Buffer). Mesmo SVG no preview (`react-native-svg`) e no PDF (inline no HTML).
 
 ## Hooks
 
