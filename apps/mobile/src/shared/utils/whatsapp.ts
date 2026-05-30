@@ -1,9 +1,14 @@
 import { Linking } from "react-native";
 
-/** Normaliza telefone BR para o formato do wa.me (só dígitos, com DDI 55). */
+/**
+ * Normaliza telefone BR para o formato do wa.me (só dígitos, com DDI 55).
+ * Usa o tamanho para decidir o DDI (mais seguro que checar prefixo "55", que
+ * confundiria a cidade de DDD 55): 10–11 dígitos = nacional (adiciona 55);
+ * 12–13 dígitos = já tem o DDI (mantém).
+ */
 export function normalizePhone(phone: string): string {
-  const cleaned = phone.replace(/\D/g, "");
-  return cleaned.startsWith("55") ? cleaned : `55${cleaned}`;
+  const digits = phone.replace(/\D/g, "");
+  return digits.length <= 11 ? `55${digits}` : digits;
 }
 
 /** Abre uma conversa no WhatsApp, opcionalmente com mensagem pré-preenchida. */
