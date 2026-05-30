@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { PackagingType } from "./common";
+import { MAX_MONEY, PackagingType } from "./common";
 
 export const CreatePackagingDto = z.object({
   name: z.string().min(1).max(200),
   type: PackagingType,
-  unitCost: z.number().positive(),
+  unitCost: z.number().positive().max(MAX_MONEY),
   supplier: z.string().max(200).optional(),
   photoUrl: z.string().url().optional(),
 });

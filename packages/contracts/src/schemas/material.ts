@@ -1,11 +1,12 @@
 import { z } from "zod";
+import { MAX_MONEY, MAX_QUANTITY } from "./common";
 
 export const CreateMaterialDto = z.object({
   name: z.string().min(1).max(200),
   unit: z.string().min(1).max(20),
-  stockQuantity: z.number().min(0).optional(),
-  stockAlertThreshold: z.number().min(0).optional(),
-  costPerUnit: z.number().min(0).optional(),
+  stockQuantity: z.number().min(0).max(MAX_QUANTITY).optional(),
+  stockAlertThreshold: z.number().min(0).max(MAX_QUANTITY).optional(),
+  costPerUnit: z.number().min(0).max(MAX_MONEY).optional(),
   notes: z.string().max(500).optional(),
 });
 

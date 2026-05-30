@@ -1,14 +1,15 @@
 import { z } from "zod";
+import { MAX_MONEY, MAX_QUANTITY } from "./common";
 
 export const CreateProductDto = z.object({
   name: z.string().min(1).max(200),
   description: z.string().max(1000).optional(),
   category: z.string().min(1).max(100),
   photoUrl: z.string().url().optional(),
-  salePrice: z.number().positive(),
+  salePrice: z.number().positive().max(MAX_MONEY),
   recipeId: z.string().uuid().optional(),
-  stockQuantity: z.number().int().min(0).optional(),
-  stockAlertThreshold: z.number().int().min(0).optional(),
+  stockQuantity: z.number().int().min(0).max(MAX_QUANTITY).optional(),
+  stockAlertThreshold: z.number().int().min(0).max(MAX_QUANTITY).optional(),
 });
 
 export type CreateProduct = z.infer<typeof CreateProductDto>;

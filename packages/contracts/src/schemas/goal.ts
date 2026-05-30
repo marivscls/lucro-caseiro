@@ -1,9 +1,10 @@
 import { z } from "zod";
+import { MAX_MONEY, MAX_QUANTITY } from "./common";
 
 export const UpsertProlaboreGoalDto = z.object({
-  monthlyProlaboreGoal: z.number().positive(),
-  estimatedMonthlyCosts: z.number().min(0).optional(),
-  avgTicketOverride: z.number().positive().optional(),
+  monthlyProlaboreGoal: z.number().positive().max(MAX_MONEY),
+  estimatedMonthlyCosts: z.number().min(0).max(MAX_MONEY).optional(),
+  avgTicketOverride: z.number().positive().max(MAX_MONEY).optional(),
 });
 
 export type UpsertProlaboreGoal = z.infer<typeof UpsertProlaboreGoalDto>;

@@ -1,11 +1,12 @@
 import { z } from "zod";
+import { MAX_MONEY, MAX_QUANTITY } from "./common";
 
 export const CreatePricingDto = z.object({
   productId: z.string().uuid().optional(),
-  ingredientCost: z.number().min(0),
-  packagingCost: z.number().min(0),
-  laborCost: z.number().min(0),
-  fixedCostShare: z.number().min(0),
+  ingredientCost: z.number().min(0).max(MAX_MONEY),
+  packagingCost: z.number().min(0).max(MAX_MONEY),
+  laborCost: z.number().min(0).max(MAX_MONEY),
+  fixedCostShare: z.number().min(0).max(MAX_MONEY),
   marginPercent: z.number().min(0).max(1000),
 });
 

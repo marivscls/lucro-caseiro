@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { OrderStatus, PaymentMethod } from "./common";
+import { MAX_MONEY, OrderStatus, PaymentMethod } from "./common";
 
 export const CreateOrderDto = z.object({
   title: z.string().min(1).max(200),
@@ -10,7 +10,7 @@ export const CreateOrderDto = z.object({
     .regex(/^\d{2}:\d{2}$/)
     .optional(),
   clientId: z.string().uuid().optional(),
-  amount: z.number().min(0).optional(),
+  amount: z.number().positive().max(MAX_MONEY).optional(),
   notes: z.string().max(500).optional(),
   status: OrderStatus.optional(),
 });

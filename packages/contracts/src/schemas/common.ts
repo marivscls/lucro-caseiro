@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+// Tetos anti-absurdo/overflow para valores monetários e quantidades.
+export const MAX_MONEY = 9_999_999.99;
+export const MAX_QUANTITY = 1_000_000;
+
 export const PaginationDto = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),

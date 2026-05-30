@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { MAX_MONEY, MAX_QUANTITY } from "./common";
 
 export const RecipeIngredientDto = z.object({
   materialId: z.string().uuid(),
-  quantity: z.number().positive(),
+  quantity: z.number().positive().max(MAX_QUANTITY),
   unit: z.string().min(1).max(20),
 });
 
@@ -12,7 +13,7 @@ export const CreateRecipeDto = z.object({
   name: z.string().min(1).max(200),
   category: z.string().min(1).max(100),
   instructions: z.string().max(5000).optional(),
-  yieldQuantity: z.number().int().positive(),
+  yieldQuantity: z.number().int().positive().max(MAX_QUANTITY),
   yieldUnit: z.string().min(1).max(50),
   photoUrl: z.string().url().optional(),
   ingredients: z.array(RecipeIngredientDto).min(1),

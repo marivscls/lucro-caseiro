@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { PaymentMethod, SaleStatus } from "./common";
+import { MAX_MONEY, MAX_QUANTITY, PaymentMethod, SaleStatus } from "./common";
 
 export const SaleItemDto = z.object({
   productId: z.string().uuid(),
-  quantity: z.number().int().positive(),
-  unitPrice: z.number().positive(),
+  quantity: z.number().int().positive().max(MAX_QUANTITY),
+  unitPrice: z.number().positive().max(MAX_MONEY),
 });
 
 export type SaleItem = z.infer<typeof SaleItemDto>;

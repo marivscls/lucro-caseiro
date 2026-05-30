@@ -1,10 +1,10 @@
 import { z } from "zod";
-import { ExpenseCategory, FinanceEntryType } from "./common";
+import { ExpenseCategory, FinanceEntryType, MAX_MONEY } from "./common";
 
 export const CreateFinanceEntryDto = z.object({
   type: FinanceEntryType,
   category: ExpenseCategory,
-  amount: z.number().positive(),
+  amount: z.number().positive().max(MAX_MONEY),
   description: z.string().min(1).max(500),
   date: z.string().date(),
 });

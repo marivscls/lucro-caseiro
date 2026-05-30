@@ -47,6 +47,32 @@ describe("validateLabelData", () => {
     const errors = validateLabelData(makeLabelData({ name: "", templateId: "invalido" }));
     expect(errors.length).toBeGreaterThanOrEqual(2);
   });
+
+  it("rejects expiration before manufacturing", () => {
+    const errors = validateLabelData(
+      makeLabelData({
+        data: {
+          productName: "Brigadeiro",
+          manufacturingDate: "2026-05-30",
+          expirationDate: "2026-05-20",
+        },
+      }),
+    );
+    expect(errors).toContain("A validade não pode ser anterior à fabricação");
+  });
+
+  it("accepts expiration on/after manufacturing", () => {
+    const errors = validateLabelData(
+      makeLabelData({
+        data: {
+          productName: "Brigadeiro",
+          manufacturingDate: "2026-05-20",
+          expirationDate: "2026-05-30",
+        },
+      }),
+    );
+    expect(errors).toEqual([]);
+  });
 });
 
 describe("getAvailableTemplates", () => {

@@ -83,6 +83,10 @@ export function CreateLabelForm({
       Alert.alert("Data incompleta", "Confira as datas no formato DD/MM/AAAA.");
       return;
     }
+    if (manufacturingDate && expirationDate && expirationDate < manufacturingDate) {
+      Alert.alert("Datas invertidas", "A validade não pode ser anterior à fabricação.");
+      return;
+    }
 
     // Sobe o logo (se houver) e usa a URL pública. Se falhar, salva sem o logo.
     let logoUrl: string | undefined;

@@ -32,6 +32,11 @@ export function validateLabelData(data: CreateLabelData): string[] {
     errors.push("Template invalido");
   }
 
+  const { manufacturingDate, expirationDate } = data.data;
+  if (manufacturingDate && expirationDate && expirationDate < manufacturingDate) {
+    errors.push("A validade não pode ser anterior à fabricação");
+  }
+
   return errors;
 }
 
