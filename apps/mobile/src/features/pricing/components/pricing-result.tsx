@@ -1,4 +1,5 @@
 import { Button, Card, Typography, spacing, radii, useTheme } from "@lucro-caseiro/ui";
+import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { ScrollView, View } from "react-native";
 
@@ -42,9 +43,9 @@ export function PricingResult({
   const { theme } = useTheme();
 
   const breakdown: CostBreakdownItem[] = [
-    { label: "Ingredientes", value: ingredientCost, color: theme.colors.premium },
+    { label: "Insumos", value: ingredientCost, color: theme.colors.premium },
     { label: "Embalagem", value: packagingCost, color: theme.colors.blue },
-    { label: "Mao de obra", value: laborCost, color: theme.colors.lavender },
+    { label: "Mão de obra", value: laborCost, color: theme.colors.lavender },
     { label: "Custos fixos", value: fixedCostShare, color: theme.colors.alert },
   ];
 
@@ -93,7 +94,7 @@ export function PricingResult({
             alignItems: "center",
           }}
         >
-          <Typography variant="h3">Composicao</Typography>
+          <Typography variant="h3">Composição</Typography>
           <Typography variant="caption">
             {formatCurrency(totalCost)} (
             {totalCost > 0 ? Math.round((totalCost / suggestedPrice) * 100) : 0}%)
@@ -165,51 +166,60 @@ export function PricingResult({
       </Card>
 
       {/* Monthly projection */}
-      <Card
-        style={{
-          gap: spacing.md,
-          backgroundColor: theme.colors.premiumBg,
-        }}
-      >
-        <Typography variant="h3">Projecao Mensal</Typography>
-        <Typography variant="body">
-          Se você vender {monthlyUnits} unidades por mês, seu faturamento será de{" "}
-          {formatCurrency(monthlyRevenue)} com um lucro liquido de{" "}
-          {formatCurrency(monthlyProfit)}.
+      <Card style={{ gap: spacing.lg }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+          <Ionicons name="trending-up" size={20} color={theme.colors.premium} />
+          <Typography variant="h3">Projeção mensal</Typography>
+        </View>
+        <Typography variant="caption" color={theme.colors.textSecondary}>
+          Estimativa vendendo {monthlyUnits} unidades por mês
         </Typography>
 
         <View style={{ flexDirection: "row", gap: spacing.md }}>
           <View
             style={{
               flex: 1,
-              backgroundColor: theme.colors.surface,
+              backgroundColor: theme.colors.surfaceElevated,
               borderRadius: radii.lg,
-              padding: spacing.md,
-              alignItems: "center",
+              padding: spacing.lg,
               gap: spacing.xs,
             }}
           >
-            <Typography variant="moneyLg" color={theme.colors.text}>
-              {monthlyUnits}
+            <Typography variant="label">FATURAMENTO</Typography>
+            <Typography variant="money" color={theme.colors.text}>
+              {formatCurrency(monthlyRevenue)}
             </Typography>
-            <Typography variant="label">UNIDADES</Typography>
           </View>
 
           <View
             style={{
               flex: 1,
-              backgroundColor: theme.colors.surface,
+              backgroundColor: theme.colors.surfaceElevated,
               borderRadius: radii.lg,
-              padding: spacing.md,
-              alignItems: "center",
+              padding: spacing.lg,
               gap: spacing.xs,
             }}
           >
-            <Typography variant="moneyLg" color={theme.colors.success}>
-              {profitMarginDisplay}%
+            <Typography variant="label">LUCRO LÍQUIDO</Typography>
+            <Typography variant="money" color={theme.colors.success}>
+              {formatCurrency(monthlyProfit)}
             </Typography>
-            <Typography variant="label">MARGEM</Typography>
           </View>
+        </View>
+
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            Margem sobre o preço
+          </Typography>
+          <Typography variant="bodyBold" color={theme.colors.success}>
+            {profitMarginDisplay}%
+          </Typography>
         </View>
       </Card>
 
