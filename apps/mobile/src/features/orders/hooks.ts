@@ -8,6 +8,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "../../shared/hooks/use-auth";
 import { createOrder, deleteOrder, deliverOrder, fetchOrders, updateOrder } from "./api";
+import { cancelOrderReminder, scheduleOrderReminder } from "./reminders";
 
 const ORDERS_KEY = ["orders"];
 
@@ -25,8 +26,9 @@ export function useCreateOrder() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: CreateOrder) => createOrder(token!, data),
-    onSuccess: () => {
+    onSuccess: (order) => {
       void queryClient.invalidateQueries({ queryKey: ORDERS_KEY });
+      void scheduleOrderReminder(order);
     },
   });
 }
@@ -37,8 +39,10 @@ export function useUpdateOrder() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateOrder }) =>
       updateOrder(token!, id, data),
-    onSuccess: () => {
+    onSuccess: (order) => {
       void queryClient.invalidateQueries({ queryKey: ORDERS_KEY });
+      // Reagenda (data/status podem ter mudado).
+      void scheduleOrderReminder(order);
     },
   });
 }
@@ -49,10 +53,11 @@ export function useDeliverOrder() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: DeliverOrder }) =>
       deliverOrder(token!, id, data),
-    onSuccess: () => {
+    onSuccess: (order) => {
       void queryClient.invalidateQueries({ queryKey: ORDERS_KEY });
       // Pode ter gerado receita no financeiro.
       void queryClient.invalidateQueries({ queryKey: ["finance"] });
+      void cancelOrderReminder(order.id);
     },
   });
 }
@@ -62,8 +67,9 @@ export function useDeleteOrder() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => deleteOrder(token!, id),
-    onSuccess: () => {
+    onSuccess: (_result, id) => {
       void queryClient.invalidateQueries({ queryKey: ORDERS_KEY });
+      void cancelOrderReminder(id);
     },
   });
 }

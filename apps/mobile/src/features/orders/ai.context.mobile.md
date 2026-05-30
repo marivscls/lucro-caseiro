@@ -21,17 +21,18 @@ receita ao entregar.
 
 ## Code pointers
 
-| Arquivo                                                     | Descricao                                            |
-| ----------------------------------------------------------- | ---------------------------------------------------- |
-| `apps/mobile/src/features/orders/api.ts`                    | Funcoes HTTP (fetch/create/update/deliver/delete)    |
-| `apps/mobile/src/features/orders/hooks.ts`                  | React Query hooks                                    |
-| `apps/mobile/src/features/orders/types.ts`                  | Re-export dos tipos de contracts                     |
-| `apps/mobile/src/features/orders/domain.ts`                 | Agrupar por data, rótulos/tons de status, formatação |
-| `apps/mobile/src/features/orders/domain.test.ts`            | Testes de agrupamento/contagem/formatação            |
-| `apps/mobile/src/features/orders/components/order-card.tsx` | Card de encomenda (status pill, data, valor)         |
-| `apps/mobile/src/features/orders/components/order-form.tsx` | Formulario criar/editar                              |
-| `apps/mobile/src/features/orders/use-delivery-notifier.ts`  | Notificacao local de entregas proximas (1x/dia)      |
-| `apps/mobile/src/app/agenda.tsx`                            | Tela `/agenda` (lista agrupada + detalhe/edicao)     |
+| Arquivo                                                     | Descricao                                                                          |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `apps/mobile/src/features/orders/api.ts`                    | Funcoes HTTP (fetch/create/update/deliver/delete)                                  |
+| `apps/mobile/src/features/orders/hooks.ts`                  | React Query hooks                                                                  |
+| `apps/mobile/src/features/orders/types.ts`                  | Re-export dos tipos de contracts                                                   |
+| `apps/mobile/src/features/orders/domain.ts`                 | Agrupar por data, rótulos/tons de status, formatação                               |
+| `apps/mobile/src/features/orders/domain.test.ts`            | Testes de agrupamento/contagem/formatação                                          |
+| `apps/mobile/src/features/orders/components/order-card.tsx` | Card de encomenda (status pill, data, valor)                                       |
+| `apps/mobile/src/features/orders/components/order-form.tsx` | Formulario criar/editar                                                            |
+| `apps/mobile/src/features/orders/use-delivery-notifier.ts`  | Notificacao local de entregas proximas (1x/dia) + sync dos lembretes por encomenda |
+| `apps/mobile/src/features/orders/reminders.ts`              | Agenda/cancela lembrete local por encomenda (vespera 9h)                           |
+| `apps/mobile/src/app/agenda.tsx`                            | Tela `/agenda` (lista agrupada + detalhe/edicao)                                   |
 
 ## Components
 
@@ -85,7 +86,8 @@ receita ao entregar.
 ## Performance
 
 - `useOrders` traz tudo e o agrupamento é client-side (`groupOrders`).
-- `useDeliveryNotifier` notifica no máximo 1x/dia (dedupe via AsyncStorage `deliveryNotifiedDate`).
+- `useDeliveryNotifier` notifica no máximo 1x/dia (dedupe via AsyncStorage `deliveryNotifiedDate`) e sincroniza os lembretes agendados por encomenda.
+- Lembrete agendado por encomenda (`reminders.ts`): notificação local na véspera às 9h via `expo-notifications` (trigger DATE). Agenda no criar/editar, cancela no entregar/excluir e em status finalizado. Mapa `orderId -> notificationId` em AsyncStorage (`orderReminderIds`). Não agenda para datas passadas. Chega mesmo com o app fechado.
 
 ## Test matrix
 
@@ -106,3 +108,4 @@ receita ao entregar.
 - v1 sem itens de produto nem seleção de cliente no form (só título+data+valor).
 - "Entregar" pode registrar a receita no financeiro (back cria lançamento income/sale).
 - Notificação local de entregas próximas (tipo `DELIVERY` → roteia `/agenda`).
+- 2026-05-30: lembrete agendado por encomenda (véspera 9h) via `reminders.ts`, complementar ao resumo diário. Chega com o app fechado; ligado ao ciclo de vida nos hooks + sync em `useDeliveryNotifier`.

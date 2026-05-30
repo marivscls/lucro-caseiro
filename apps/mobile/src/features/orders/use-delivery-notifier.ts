@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { NOTIFICATION_TYPES } from "../../shared/hooks/notification-types";
 import { upcomingCount } from "./domain";
 import { useOrders } from "./hooks";
+import { scheduleOrderReminder } from "./reminders";
 
 // Garante no máximo uma notificação de agenda por dia.
 const KEY = "deliveryNotifiedDate";
@@ -52,5 +53,10 @@ export function useDeliveryNotifier(): void {
   useEffect(() => {
     if (!orders) return;
     void maybeNotify(upcomingCount(orders, new Date()));
+    // Garante o lembrete agendado por encomenda (cobre pedidos antigos e
+    // reagenda se o SO tiver limpado os agendamentos). Idempotente.
+    for (const order of orders) {
+      void scheduleOrderReminder(order);
+    }
   }, [orders]);
 }
