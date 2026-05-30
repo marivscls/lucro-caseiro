@@ -247,6 +247,13 @@ export default function NewSaleScreen() {
                 />
               }
             />
+            <Typography
+              variant="caption"
+              color={theme.colors.textSecondary}
+              style={{ marginTop: spacing.sm }}
+            >
+              Toque pra adicionar. Use o − pra tirar uma unidade.
+            </Typography>
           </View>
 
           {loadingProducts && (
@@ -285,8 +292,10 @@ export default function NewSaleScreen() {
               data={filteredProducts}
               keyExtractor={(item) => item.id}
               numColumns={2}
+              style={{ flex: 1 }}
               contentContainerStyle={{
                 paddingHorizontal: spacing.xl,
+                paddingBottom: spacing.md,
                 gap: spacing.md,
               }}
               columnWrapperStyle={{ gap: spacing.md }}
@@ -355,6 +364,27 @@ export default function NewSaleScreen() {
                           {qty}
                         </Typography>
                       </View>
+                    )}
+                    {qty > 0 && (
+                      <Pressable
+                        onPress={() => removeFromCart(item.id)}
+                        hitSlop={10}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Tirar uma unidade de ${item.name}`}
+                        style={{
+                          position: "absolute",
+                          top: spacing.sm,
+                          left: spacing.sm,
+                          backgroundColor: theme.colors.surfaceElevated,
+                          borderRadius: radii.full,
+                          width: 24,
+                          height: 24,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Ionicons name="remove" size={16} color={theme.colors.text} />
+                      </Pressable>
                     )}
                   </Pressable>
                 );
