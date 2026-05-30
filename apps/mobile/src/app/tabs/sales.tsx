@@ -215,13 +215,12 @@ export default function SalesScreen() {
       </View>
 
       {/* Filter pills */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={{ flexGrow: 0, paddingVertical: spacing.md }}
-        contentContainerStyle={{
+      <View
+        style={{
           flexDirection: "row",
+          flexWrap: "wrap",
           paddingHorizontal: spacing.xl,
+          paddingVertical: spacing.md,
           gap: spacing.sm,
         }}
       >
@@ -247,7 +246,7 @@ export default function SalesScreen() {
             </Pressable>
           );
         })}
-      </ScrollView>
+      </View>
 
       {/* Search */}
       <View style={{ paddingHorizontal: spacing.xl, paddingBottom: spacing.sm }}>
