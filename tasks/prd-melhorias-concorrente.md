@@ -322,6 +322,11 @@ no Lucro Caseiro — marcados com ⚠️ **validar implementação atual** antes
   Precificação" (JSL Apps).
 - 2026-05-30: auditoria do código adicionada (já existe × adaptar × inserir) + quebra
   técnica dos P0.
+- 2026-05-30: **Todos os P2 implementados** — #9 rendimento decimal kg/g (migration 008),
+  #11 imprimir/compartilhar receita em PDF (expo-print), #13 resumo/total dos pedidos
+  (endpoint `GET /orders/summary` a receber × recebido), #14 conversão leve un↔g/ml por
+  insumo (`content_per_unit`/`content_unit`, migration 009, conversão de custo na receita).
+  **Backlog do PRD 100% endereçado** (todos implementados ou já existentes). 419 testes API.
 - 2026-05-30: **#5 Produto composto (kit) + #8 Venda por peso (kg) implementados** (P1) —
   migrations 006/007, tabela `product_components`, `is_composite`, `sale_unit`,
   `sale_items.quantity` decimal, rollup de custo do kit. Com isso **todos os P0 e P1 estão
