@@ -322,6 +322,10 @@ no Lucro Caseiro — marcados com ⚠️ **validar implementação atual** antes
   Precificação" (JSL Apps).
 - 2026-05-30: auditoria do código adicionada (já existe × adaptar × inserir) + quebra
   técnica dos P0.
+- 2026-05-30: **#5 Produto composto (kit) + #8 Venda por peso (kg) implementados** (P1) —
+  migrations 006/007, tabela `product_components`, `is_composite`, `sale_unit`,
+  `sale_items.quantity` decimal, rollup de custo do kit. Com isso **todos os P0 e P1 estão
+  resolvidos** (#4 e #6 já existiam). 401 testes da API passando + typecheck limpo.
 - 2026-05-30: **#7 Gastos fixos × variáveis implementado** (P1) — coluna `is_fixed`
   (migration 005), toggle Fixo/Variável no form de despesa, split fixo/variável no resumo
   - filtro `?fixed=`. **#4 (mão de obra) e #6 (embalagens) já existiam** → P1 restantes
