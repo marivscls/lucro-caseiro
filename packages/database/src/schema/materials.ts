@@ -17,6 +17,9 @@ export const materials = pgTable(
       .default("0"),
     stockAlertThreshold: decimal("stock_alert_threshold", { precision: 12, scale: 3 }),
     costPerUnit: decimal("cost_per_unit", { precision: 10, scale: 2 }),
+    // #14: conteúdo por unidade (ex.: 1 lata = 350 ml). Ambos nullable/opcionais.
+    contentPerUnit: decimal("content_per_unit", { precision: 12, scale: 3 }),
+    contentUnit: text("content_unit"),
     notes: text("notes"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },

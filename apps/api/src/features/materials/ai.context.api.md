@@ -41,6 +41,8 @@ estoque (entrada/baixa), alertar quando está baixo. Separado dos **produtos aca
 | stockQuantity       | decimal   | NOT NULL default 0 (12,3)      |
 | stockAlertThreshold | decimal   | nullable (12,3)                |
 | costPerUnit         | decimal   | nullable (10,2)                |
+| contentPerUnit      | decimal   | nullable (12,3) — #14          |
+| contentUnit         | text      | nullable — #14                 |
 | notes               | text      | nullable                       |
 | createdAt           | timestamp | default now()                  |
 
@@ -50,6 +52,9 @@ estoque (entrada/baixa), alertar quando está baixo. Separado dos **produtos aca
 
 - `name` e `unit` obrigatórios.
 - `stockQuantity` >= 0; `stockAlertThreshold`/`costPerUnit` >= 0 quando presentes.
+- **#14 Conteúdo por unidade (LIGHT):** `contentPerUnit` e `contentUnit` são opcionais; se
+  um for informado, **ambos** são obrigatórios (`contentPerUnit` > 0, `contentUnit` não vazio).
+  Ex.: 1 lata = 350 ml. Habilita conversão de custo nas receitas (ver feature `recipes`).
 - Ajuste (`adjust`) faz `greatest(0, estoque + delta)` — nunca fica negativo.
 - "Baixo" = `stockAlertThreshold` definido e `stockQuantity <= stockAlertThreshold`.
 - Toda query escopada por `userId`.
@@ -100,10 +105,10 @@ db:
 
 ## Contracts (Zod/DTO)
 
-- **CreateMaterialDto**: `{ name, unit, stockQuantity?, stockAlertThreshold?, costPerUnit?, notes? }`
+- **CreateMaterialDto**: `{ name, unit, stockQuantity?, stockAlertThreshold?, costPerUnit?, contentPerUnit?, contentUnit?, notes? }` (`contentPerUnit`/`contentUnit` nullable)
 - **UpdateMaterialDto**: `Partial<CreateMaterialDto>`
 - **AdjustMaterialDto**: `{ delta: number }`
-- **Material**: `{ id, userId, name, unit, stockQuantity, stockAlertThreshold, costPerUnit, notes, createdAt }`
+- **Material**: `{ id, userId, name, unit, stockQuantity, stockAlertThreshold, costPerUnit, contentPerUnit, contentUnit, notes, createdAt }`
 
 ## Errors
 
@@ -129,6 +134,8 @@ db:
 ### Domain (materials.domain.test.ts)
 
 - validateMaterial: válido, nome/unidade obrigatórios, valores negativos, modo parcial
+- validateMaterial (#14): aceita ambos os campos de conteúdo juntos; sem conteúdo; exige
+  unidade quando só vem `contentPerUnit`; exige `contentPerUnit > 0` quando só vem `contentUnit`
 - clampStock: negativo → 0
 
 ### UseCases (materials.usecases.test.ts)
@@ -150,3 +157,9 @@ POST /api/v1/materials/:id/adjust
 
 - Criação inicial: catálogo + estoque de insumos com ajuste e low-stock.
 - v1 standalone (sem baixa automática por receita/produção — futuro liga Receitas↔Insumos↔Agenda).
+- **#14 Conteúdo por unidade (LIGHT)** (migration `009_material_content_per_unit.sql`): novas
+  colunas opcionais `content_per_unit numeric(12,3)` + `content_unit text` (ambas NULLABLE).
+  Schema Drizzle usa `decimal(12,3)` (string), repo faz `Number(...)`/`String(...)` null-safe.
+  Validação: se um vier, ambos obrigatórios (`contentPerUnit` > 0, `contentUnit` não vazio).
+  Sem conversão global — apenas viabiliza a conversão de custo na feature `recipes`
+  (`effectiveCostPerUnit`). Sem essas colunas, comportamento inalterado.

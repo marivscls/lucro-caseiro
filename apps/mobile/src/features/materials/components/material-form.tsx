@@ -33,6 +33,12 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
   const [cost, setCost] = useState(
     material?.costPerUnit != null ? String(material.costPerUnit).replace(".", ",") : "",
   );
+  const [contentPerUnit, setContentPerUnit] = useState(
+    material?.contentPerUnit != null
+      ? String(material.contentPerUnit).replace(".", ",")
+      : "",
+  );
+  const [contentUnit, setContentUnit] = useState(material?.contentUnit ?? "");
   const [notes, setNotes] = useState(material?.notes ?? "");
 
   const createMaterial = useCreateMaterial();
@@ -45,12 +51,24 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
       Alert.alert("Opa!", "Dê um nome ao insumo (ex.: Farinha de trigo).");
       return;
     }
+    const contentValue = parseNum(contentPerUnit);
+    const contentUnitTrimmed = contentUnit.trim();
+    if ((contentValue != null) !== contentUnitTrimmed.length > 0) {
+      Alert.alert(
+        "Conteúdo por unidade",
+        "Preencha a quantidade e a unidade do conteúdo (ex.: 350 e ml), ou deixe os dois em branco.",
+      );
+      return;
+    }
+
     const data = {
       name: name.trim(),
       unit: unit.trim() || "un",
       stockQuantity: parseNum(stock) ?? 0,
       stockAlertThreshold: parseNum(alertThreshold),
       costPerUnit: parseNum(cost),
+      contentPerUnit: contentValue ?? null,
+      contentUnit: contentUnitTrimmed || null,
       notes: notes.trim() || undefined,
     };
     try {
@@ -140,6 +158,34 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
         onChangeText={setCost}
         keyboardType="decimal-pad"
       />
+      <View style={{ gap: spacing.sm }}>
+        <Typography variant="caption">Conteúdo por unidade (opcional)</Typography>
+        <View style={{ flexDirection: "row", gap: spacing.sm, alignItems: "flex-end" }}>
+          <View style={{ flex: 2 }}>
+            <Input
+              label="Quantidade"
+              placeholder="Ex: 350"
+              value={contentPerUnit}
+              onChangeText={setContentPerUnit}
+              keyboardType="decimal-pad"
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Input
+              label="Unidade"
+              placeholder="Ex: ml"
+              value={contentUnit}
+              onChangeText={setContentUnit}
+              autoCapitalize="none"
+            />
+          </View>
+        </View>
+        <Typography variant="caption" color={theme.colors.textSecondary}>
+          Ex.: 1 {unit.trim() || "lata"} = 350 ml. Permite usar este insumo em g/ml nas
+          receitas.
+        </Typography>
+      </View>
+
       <Input
         label="Observações (opcional)"
         placeholder="Marca, fornecedor..."

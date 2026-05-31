@@ -26,6 +26,8 @@ export class MaterialsRepoPg implements IMaterialsRepo {
         stockQuantity: String(data.stockQuantity ?? 0),
         stockAlertThreshold: dec(data.stockAlertThreshold),
         costPerUnit: dec(data.costPerUnit),
+        contentPerUnit: dec(data.contentPerUnit),
+        contentUnit: data.contentUnit ?? null,
         notes: data.notes ?? null,
       })
       .returning();
@@ -94,6 +96,8 @@ export class MaterialsRepoPg implements IMaterialsRepo {
     if (data.stockAlertThreshold !== undefined)
       set.stockAlertThreshold = dec(data.stockAlertThreshold);
     if (data.costPerUnit !== undefined) set.costPerUnit = dec(data.costPerUnit);
+    if (data.contentPerUnit !== undefined) set.contentPerUnit = dec(data.contentPerUnit);
+    if (data.contentUnit !== undefined) set.contentUnit = data.contentUnit ?? null;
     if (data.notes !== undefined) set.notes = data.notes ?? null;
 
     if (Object.keys(set).length === 0) return this.findById(userId, id);
@@ -131,6 +135,8 @@ export class MaterialsRepoPg implements IMaterialsRepo {
       stockAlertThreshold:
         row.stockAlertThreshold != null ? Number(row.stockAlertThreshold) : null,
       costPerUnit: row.costPerUnit != null ? Number(row.costPerUnit) : null,
+      contentPerUnit: row.contentPerUnit != null ? Number(row.contentPerUnit) : null,
+      contentUnit: row.contentUnit,
       notes: row.notes,
       createdAt: row.createdAt.toISOString(),
     };

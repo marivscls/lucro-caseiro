@@ -3,6 +3,7 @@ import { materials } from "@lucro-caseiro/database/schema";
 import { recipeIngredients, recipes } from "@lucro-caseiro/database/schema";
 import { and, count, eq, ilike, sql } from "drizzle-orm";
 import type { AppDatabase } from "../../shared/db";
+import { effectiveCostPerUnit } from "./recipes.domain";
 import type { CreateRecipeData, FindAllOpts, IRecipesRepo } from "./recipes.types";
 
 export class RecipesRepoPg implements IRecipesRepo {
@@ -55,6 +56,8 @@ export class RecipesRepoPg implements IRecipesRepo {
         unit: recipeIngredients.unit,
         materialName: materials.name,
         materialCostPerUnit: materials.costPerUnit,
+        materialContentPerUnit: materials.contentPerUnit,
+        materialContentUnit: materials.contentUnit,
       })
       .from(recipeIngredients)
       .innerJoin(materials, eq(recipeIngredients.materialId, materials.id))
@@ -100,6 +103,8 @@ export class RecipesRepoPg implements IRecipesRepo {
             unit: recipeIngredients.unit,
             materialName: materials.name,
             materialCostPerUnit: materials.costPerUnit,
+            materialContentPerUnit: materials.contentPerUnit,
+            materialContentUnit: materials.contentUnit,
           })
           .from(recipeIngredients)
           .innerJoin(materials, eq(recipeIngredients.materialId, materials.id))
@@ -194,19 +199,33 @@ export class RecipesRepoPg implements IRecipesRepo {
       unit: string;
       materialName: string;
       materialCostPerUnit: string | null;
+      materialContentPerUnit: string | null;
+      materialContentUnit: string | null;
     }[],
   ): Recipe {
     const recipeIngredientsList = lineRows.map((line) => {
       const costPerUnit = Number(line.materialCostPerUnit ?? 0);
       const qty = Number(line.quantity);
-      const cost = costPerUnit * qty;
+      // #14: converte para a unidade de conteudo quando o insumo declara conteudo/unidade.
+      const lineCostPerUnit = effectiveCostPerUnit(
+        {
+          costPerUnit,
+          contentPerUnit:
+            line.materialContentPerUnit != null
+              ? Number(line.materialContentPerUnit)
+              : null,
+          contentUnit: line.materialContentUnit,
+        },
+        line.unit,
+      );
+      const cost = lineCostPerUnit * qty;
 
       return {
         materialId: line.materialId,
         quantity: qty,
         unit: line.unit,
         materialName: line.materialName,
-        materialCostPerUnit: costPerUnit,
+        materialCostPerUnit: lineCostPerUnit,
         cost,
       };
     });

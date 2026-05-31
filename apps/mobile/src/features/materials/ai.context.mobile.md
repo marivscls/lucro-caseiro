@@ -40,7 +40,11 @@ estoque rápido (+/−) e ver alerta de estoque baixo. Separado dos produtos aca
 ### `MaterialForm`
 
 - **Props:** `{ material?: Material | null; onSuccess?: () => void }`
-- Cria/edita: nome, unidade (chips kg/g/L/ml/un/dz), quantidade, alerta, custo, notas. Em edição mostra "Excluir".
+- Cria/edita: nome, unidade (chips kg/g/L/ml/un/dz), quantidade, alerta, custo, **conteúdo por unidade (opcional)**, notas. Em edição mostra "Excluir".
+- **#14 Conteúdo por unidade (opcional):** seção com quantidade + unidade curta (ex.: 350 + "ml"),
+  helper "Ex.: 1 lata = 350 ml. Permite usar este insumo em g/ml nas receitas." Validação local:
+  ou os dois preenchidos, ou os dois em branco. Envia `contentPerUnit`/`contentUnit` (number/string)
+  ou `null` para limpar.
 
 ## Hooks
 
@@ -66,7 +70,7 @@ estoque rápido (+/−) e ver alerta de estoque baixo. Separado dos produtos aca
 
 ## Contracts
 
-- `Material` — `{ id, userId, name, unit, stockQuantity, stockAlertThreshold, costPerUnit, notes, createdAt }`.
+- `Material` — `{ id, userId, name, unit, stockQuantity, stockAlertThreshold, costPerUnit, contentPerUnit, contentUnit, notes, createdAt }`.
 - `CreateMaterial` / `UpdateMaterial` — payloads.
 - `AdjustMaterial` — `{ delta }`.
 
@@ -94,3 +98,6 @@ estoque rápido (+/−) e ver alerta de estoque baixo. Separado dos produtos aca
 
 - Criação inicial: catálogo + estoque de insumos com ajuste rápido e alerta de baixo.
 - v1 standalone (sem baixa automática por receita — futuro).
+- **#14 Conteúdo por unidade (LIGHT)**: form ganhou seção opcional (quantidade + unidade) para
+  declarar quanto cabe em 1 unidade (ex.: 1 lata = 350 ml). Habilita escolha de unidade na
+  linha de receita (ver feature `recipes`). Sem conteúdo, comportamento inalterado.

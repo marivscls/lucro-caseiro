@@ -6,6 +6,8 @@ export interface CreateMaterialData {
   stockQuantity?: number;
   stockAlertThreshold?: number;
   costPerUnit?: number;
+  contentPerUnit?: number | null;
+  contentUnit?: string | null;
   notes?: string;
 }
 

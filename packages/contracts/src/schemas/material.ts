@@ -7,6 +7,9 @@ export const CreateMaterialDto = z.object({
   stockQuantity: z.number().min(0).max(MAX_QUANTITY).optional(),
   stockAlertThreshold: z.number().min(0).max(MAX_QUANTITY).optional(),
   costPerUnit: z.number().min(0).max(MAX_MONEY).optional(),
+  // #14: conteúdo por unidade (ex.: 1 lata = 350 ml). Opcional; se um vier, ambos devem vir.
+  contentPerUnit: z.number().positive().max(MAX_QUANTITY).nullable().optional(),
+  contentUnit: z.string().min(1).max(20).nullable().optional(),
   notes: z.string().max(500).optional(),
 });
 
@@ -29,6 +32,8 @@ export const MaterialDto = z.object({
   stockQuantity: z.number(),
   stockAlertThreshold: z.number().nullable(),
   costPerUnit: z.number().nullable(),
+  contentPerUnit: z.number().nullable(),
+  contentUnit: z.string().nullable(),
   notes: z.string().nullable(),
   createdAt: z.string().datetime(),
 });

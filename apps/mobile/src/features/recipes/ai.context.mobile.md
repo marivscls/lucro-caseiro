@@ -19,18 +19,19 @@ Gerenciar receitas do negocio caseiro: criar, listar, visualizar detalhes, edita
 
 ## Code pointers
 
-| Arquivo                                                              | Descricao                                                                                                                           |
-| -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `apps/mobile/src/features/recipes/api.ts`                            | Funcoes HTTP (fetchRecipes, fetchRecipe, createRecipe, updateRecipe, deleteRecipe, scaleRecipe, fetchIngredients, createIngredient) |
-| `apps/mobile/src/features/recipes/hooks.ts`                          | React Query hooks                                                                                                                   |
-| `apps/mobile/src/features/recipes/recipe-pdf.ts`                     | `buildRecipeHtml(recipe)` + `exportRecipePdf(recipe)` — gera PDF da receita e abre share/print (expo-print + expo-sharing)          |
-| `apps/mobile/src/features/recipes/yield-units.ts`                    | `YIELD_UNIT_PRESETS` — atalhos de unidade de rendimento (unidades, fatias, porções, kg, g)                                          |
-| `apps/mobile/src/features/recipes/components/create-recipe-form.tsx` | Formulario de criacao com ingredientes dinamicos                                                                                    |
-| `apps/mobile/src/features/recipes/components/edit-recipe-form.tsx`   | Formulario de edicao                                                                                                                |
-| `apps/mobile/src/features/recipes/components/recipe-card.tsx`        | Card de receita na listagem                                                                                                         |
-| `apps/mobile/src/features/recipes/components/recipe-detail.tsx`      | Detalhe com tabela de ingredientes e escala                                                                                         |
-| `apps/mobile/src/features/recipes/components/recipe-list.tsx`        | Lista com filtro por categoria                                                                                                      |
-| `apps/mobile/src/app/recipes.tsx`                                    | Screen (rota `/recipes`) com modais de CRUD                                                                                         |
+| Arquivo                                                                   | Descricao                                                                                                                           |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/mobile/src/features/recipes/api.ts`                                 | Funcoes HTTP (fetchRecipes, fetchRecipe, createRecipe, updateRecipe, deleteRecipe, scaleRecipe, fetchIngredients, createIngredient) |
+| `apps/mobile/src/features/recipes/hooks.ts`                               | React Query hooks                                                                                                                   |
+| `apps/mobile/src/features/recipes/recipe-pdf.ts`                          | `buildRecipeHtml(recipe)` + `exportRecipePdf(recipe)` — gera PDF da receita e abre share/print (expo-print + expo-sharing)          |
+| `apps/mobile/src/features/recipes/yield-units.ts`                         | `YIELD_UNIT_PRESETS` — atalhos de unidade de rendimento (unidades, fatias, porções, kg, g)                                          |
+| `apps/mobile/src/features/recipes/components/create-recipe-form.tsx`      | Formulario de criacao com ingredientes dinamicos                                                                                    |
+| `apps/mobile/src/features/recipes/components/recipe-materials-editor.tsx` | Editor de linhas de insumo: seleciona insumo, unidade (#14) e quantidade; preview de custo                                          |
+| `apps/mobile/src/features/recipes/components/edit-recipe-form.tsx`        | Formulario de edicao                                                                                                                |
+| `apps/mobile/src/features/recipes/components/recipe-card.tsx`             | Card de receita na listagem                                                                                                         |
+| `apps/mobile/src/features/recipes/components/recipe-detail.tsx`           | Detalhe com tabela de ingredientes e escala                                                                                         |
+| `apps/mobile/src/features/recipes/components/recipe-list.tsx`             | Lista com filtro por categoria                                                                                                      |
+| `apps/mobile/src/app/recipes.tsx`                                         | Screen (rota `/recipes`) com modais de CRUD                                                                                         |
 
 ## Components
 
@@ -144,3 +145,8 @@ Gerenciar receitas do negocio caseiro: criar, listar, visualizar detalhes, edita
 - **#11 Imprimir / Compartilhar (PDF)**: `recipe-pdf.ts` reusa a mesma abordagem de `labels`
   (`expo-print` + `expo-sharing`) — `printToFileAsync` + `shareAsync`, fallback `printAsync`.
   Botao no `RecipeDetail`. Client-side, sem mudanca de API.
+- **#14 Conversao unidade↔peso/volume (LIGHT)**: em `recipe-materials-editor.tsx`, quando o insumo
+  selecionado tem `contentPerUnit`/`contentUnit` (ex.: 1 lata = 350 ml), a linha mostra chips para
+  escolher a unidade entre a do insumo e a de conteudo (armazenada no campo `unit` da linha). O
+  preview de custo usa `effectiveCostPerUnit` local (`costPerUnit / contentPerUnit` quando a
+  unidade da linha casa com a de conteudo). Sem conteudo no insumo, comportamento inalterado.

@@ -16,6 +16,8 @@ function makeMaterial(overrides: Partial<Material> = {}): Material {
     stockQuantity: 10,
     stockAlertThreshold: 3,
     costPerUnit: 5,
+    contentPerUnit: null,
+    contentUnit: null,
     notes: null,
     createdAt: new Date().toISOString(),
     ...overrides,

@@ -17,11 +17,46 @@ export function emptyLine(): RecipeLine {
   return { materialId: "", quantity: "", unit: "" };
 }
 
-function lineCost(material: Material | undefined, quantity: string): number {
-  if (!material?.costPerUnit) return 0;
+/**
+ * #14: custo efetivo por unidade da linha. Se o insumo declara conteudo por unidade
+ * (ex.: 1 lata = 350 ml) e a linha usa essa unidade de conteudo, converte o custo.
+ * Caso contrario, usa o custo por unidade do insumo (comportamento original).
+ */
+function effectiveCostPerUnit(material: Material, lineUnit: string): number {
+  const base = material.costPerUnit ?? 0;
+  if (
+    material.contentPerUnit != null &&
+    material.contentPerUnit > 0 &&
+    material.contentUnit != null &&
+    material.contentUnit.trim().toLowerCase() === lineUnit.trim().toLowerCase()
+  ) {
+    return base / material.contentPerUnit;
+  }
+  return base;
+}
+
+/** Unidades disponiveis para uma linha: a propria do insumo + a de conteudo (se houver). */
+function unitOptions(material: Material): string[] {
+  const opts = [material.unit];
+  if (
+    material.contentUnit &&
+    material.contentUnit.trim() &&
+    material.contentUnit.trim().toLowerCase() !== material.unit.trim().toLowerCase()
+  ) {
+    opts.push(material.contentUnit.trim());
+  }
+  return opts;
+}
+
+function lineCost(
+  material: Material | undefined,
+  quantity: string,
+  unit: string,
+): number {
+  if (!material) return 0;
   const qty = parseFloat(quantity.replace(",", "."));
   if (Number.isNaN(qty)) return 0;
-  return material.costPerUnit * qty;
+  return effectiveCostPerUnit(material, unit) * qty;
 }
 
 /** Editor das linhas de insumo de uma receita: seleciona insumo, quantidade e mostra custo. */
@@ -52,7 +87,7 @@ export function RecipeMaterialsEditor({
   }
 
   const total = lines.reduce(
-    (sum, l) => sum + lineCost(byId.get(l.materialId), l.quantity),
+    (sum, l) => sum + lineCost(byId.get(l.materialId), l.quantity, l.unit),
     0,
   );
 
@@ -86,7 +121,8 @@ export function RecipeMaterialsEditor({
 
       {lines.map((line, index) => {
         const material = byId.get(line.materialId);
-        const cost = lineCost(material, line.quantity);
+        const cost = lineCost(material, line.quantity, line.unit);
+        const units = material ? unitOptions(material) : [];
         return (
           <View
             key={index}
@@ -147,12 +183,51 @@ export function RecipeMaterialsEditor({
               })}
             </ScrollView>
 
+            {units.length > 1 && (
+              <View style={{ gap: spacing.xs }}>
+                <Typography variant="caption" color={theme.colors.textSecondary}>
+                  Usar em
+                </Typography>
+                <View style={{ flexDirection: "row", gap: spacing.sm }}>
+                  {units.map((u) => {
+                    const active =
+                      u.trim().toLowerCase() === line.unit.trim().toLowerCase();
+                    return (
+                      <Pressable
+                        key={u}
+                        onPress={() => updateLine(index, { unit: u })}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Usar em ${u}`}
+                        style={{
+                          paddingHorizontal: spacing.md,
+                          paddingVertical: spacing.sm,
+                          borderRadius: radii.full,
+                          backgroundColor: active
+                            ? theme.colors.primary
+                            : theme.colors.surfaceElevated,
+                        }}
+                      >
+                        <Typography
+                          variant="caption"
+                          color={active ? theme.colors.textOnPrimary : theme.colors.text}
+                        >
+                          {u}
+                        </Typography>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+
             <View
               style={{ flexDirection: "row", gap: spacing.sm, alignItems: "flex-end" }}
             >
               <View style={{ flex: 1 }}>
                 <Input
-                  label={material ? `Quantidade (${material.unit})` : "Quantidade"}
+                  label={
+                    material ? `Quantidade (${line.unit || material.unit})` : "Quantidade"
+                  }
                   placeholder="Ex: 2"
                   value={line.quantity}
                   onChangeText={(v) => updateLine(index, { quantity: v })}

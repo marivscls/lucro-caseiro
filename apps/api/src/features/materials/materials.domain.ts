@@ -33,5 +33,17 @@ export function validateMaterial(
     errors.push("O custo nao pode ser negativo");
   }
 
+  // #14: conteúdo por unidade — se um dos dois for informado, ambos sao obrigatorios.
+  const hasContentPerUnit = data.contentPerUnit != null;
+  const hasContentUnit = data.contentUnit != null && data.contentUnit.trim().length > 0;
+  if (hasContentPerUnit || hasContentUnit) {
+    if (!hasContentPerUnit || (data.contentPerUnit as number) <= 0) {
+      errors.push("O conteudo por unidade deve ser maior que zero");
+    }
+    if (!hasContentUnit) {
+      errors.push("A unidade de conteudo e obrigatoria");
+    }
+  }
+
   return errors;
 }

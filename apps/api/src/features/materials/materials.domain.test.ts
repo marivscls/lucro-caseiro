@@ -28,6 +28,49 @@ describe("validateMaterial", () => {
     expect(validateMaterial({ costPerUnit: 5 }, true)).toEqual([]);
     expect(validateMaterial({ unit: "" }, true)).toContain("A unidade e obrigatoria");
   });
+
+  it("accepts both content fields together", () => {
+    expect(
+      validateMaterial({
+        name: "Leite condensado",
+        unit: "lata",
+        contentPerUnit: 350,
+        contentUnit: "ml",
+      }),
+    ).toEqual([]);
+  });
+
+  it("accepts material without any content info", () => {
+    expect(validateMaterial({ name: "Farinha", unit: "kg" })).toEqual([]);
+  });
+
+  it("requires the content unit when only contentPerUnit is given", () => {
+    const errors = validateMaterial({
+      name: "Leite condensado",
+      unit: "lata",
+      contentPerUnit: 350,
+    });
+    expect(errors).toContain("A unidade de conteudo e obrigatoria");
+  });
+
+  it("requires a positive contentPerUnit when only contentUnit is given", () => {
+    const errors = validateMaterial({
+      name: "Leite condensado",
+      unit: "lata",
+      contentUnit: "ml",
+    });
+    expect(errors).toContain("O conteudo por unidade deve ser maior que zero");
+  });
+
+  it("rejects non-positive contentPerUnit", () => {
+    const errors = validateMaterial({
+      name: "Leite condensado",
+      unit: "lata",
+      contentPerUnit: 0,
+      contentUnit: "ml",
+    });
+    expect(errors).toContain("O conteudo por unidade deve ser maior que zero");
+  });
 });
 
 describe("clampStock", () => {

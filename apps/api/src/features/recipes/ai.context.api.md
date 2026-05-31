@@ -9,7 +9,9 @@ Gerenciar receitas e ingredientes do negocio caseiro. Receitas contem lista de i
 ## Non-goals
 
 - Nao gera lista de compras automatica (isso vive em `materials`)
-- Nao faz conversao automatica de unidades (assume unidade compativel insumo↔linha)
+- Conversao de unidades e LIMITADA (LIGHT, #14): so converte quando o insumo declara
+  `contentPerUnit`/`contentUnit` (ex.: 1 lata = 350 ml) e a linha usa essa unidade de conteudo.
+  NAO ha tabela global de conversao (kg↔g, L↔ml arbitrarios seguem fora de escopo).
 - Nao calcula informacao nutricional
 - Nao da baixa de estoque por si (a baixa de insumos na venda fica em `sales`, fase 3 do PRD)
 
@@ -95,8 +97,12 @@ Gerenciar receitas e ingredientes do negocio caseiro. Receitas contem lista de i
 - Rendimento (yieldQuantity) deve ser maior que zero (aceita decimais, ex.: 1,5 kg)
 - Unidade de rendimento e obrigatoria
 - Receita deve ter pelo menos um insumo
-- totalCost = soma de (material.costPerUnit \* quantity) para cada insumo da receita
+- totalCost = soma de (effectiveCostPerUnit(material, linha.unit) \* quantity) para cada insumo
 - costPerUnit = totalCost / yieldQuantity
+- **#14 effectiveCostPerUnit (LIGHT)**: se `material.contentPerUnit > 0` e
+  `material.contentUnit` (trim, case-insensitive) == `linha.unit`, custo da linha usa
+  `material.costPerUnit / material.contentPerUnit` (custo por unidade de conteudo). Caso
+  contrario usa `material.costPerUnit` (inalterado/compativel). Divisao por zero protegida.
 
 ### Ingredients
 
@@ -202,7 +208,7 @@ invariants:
 - **UpdateRecipeDto**: `Partial<CreateRecipeDto>`
 - **RecipeIngredient**: `{ materialId, quantity, unit }`
 - **Recipe**: `{ id, userId, name, category, instructions, yieldQuantity, yieldUnit, photoUrl, totalCost, costPerUnit, ingredients: RecipeIngredientFull[], createdAt }`
-- **RecipeIngredientFull**: `{ materialId, quantity, unit, materialName, materialCostPerUnit, cost }`
+- **RecipeIngredientFull**: `{ materialId, quantity, unit, materialName, materialCostPerUnit, cost }` — `materialCostPerUnit` reflete o custo por unidade DA LINHA (já convertido por #14 quando aplicável; `cost = materialCostPerUnit * quantity`)
 - **CreateIngredientDto**: `{ name, price, quantityPerPackage, unit, supplier? }`
 - **UpdateIngredientDto**: `Partial<CreateIngredientDto>`
 - **Ingredient**: `{ id, userId, name, price, quantityPerPackage, unit, supplier, updatedAt }`
@@ -241,6 +247,8 @@ invariants:
 - validateRecipeData: nome vazio/> 200, categoria vazia, rendimento zero/negativo, unidade vazia, ingredientes vazios, acumulo, rendimento decimal (1,5 kg)
 - calculateRecipeCost: unico, multiplos, vazio
 - calculateCostPerUnit: calculo correto, rendimento zero, rendimento negativo, rendimento decimal
+- effectiveCostPerUnit (#14): converte lata→ml; case-insensitive/trim; fallback unidade propria;
+  fallback sem conteudo; guard divisao por zero
 - scaleRecipe: multiplier inteiro, fracionario, preserva props, vazio
 
 ### Recipes UseCases (recipes.usecases.test.ts)
@@ -305,3 +313,10 @@ POST /api/v1/ingredients
   `CreateRecipeDto.yieldQuantity` e `RecipeDto.yieldQuantity` deixaram de ser `.int()`
   (agora `z.number().positive()`). `calculateCostPerUnit` e `scaleRecipe` ja eram puros em
   number e seguem corretos com decimais.
+- **#14 Conversao unidade↔peso/volume (LIGHT)**: helper puro `effectiveCostPerUnit(material, lineUnit)`
+  em `recipes.domain.ts`. O repo (`toRecipe`) passou a selecionar `materials.contentPerUnit` +
+  `materials.contentUnit` e calcula `lineCost = effectiveCostPerUnit(material, line.unit) * quantity`.
+  Backward compatible: linhas cuja unidade nao casa com `contentUnit` (ou insumos sem conteudo)
+  mantem `costPerUnit * quantity`. `RecipeIngredientFull.materialCostPerUnit` passou a refletir o
+  custo por unidade da linha (ja convertido) para manter `cost == materialCostPerUnit * quantity`.
+  Sem tabela global de conversao — conversao arbitraria de unidades segue fora de escopo.

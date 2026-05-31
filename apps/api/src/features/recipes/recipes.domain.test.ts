@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   calculateCostPerUnit,
   calculateRecipeCost,
+  effectiveCostPerUnit,
   scaleRecipe,
   validateRecipeData,
 } from "./recipes.domain";
@@ -129,6 +130,49 @@ describe("calculateCostPerUnit", () => {
 
   it("calculates cost per unit with decimal yield (ex: 1.5 kg)", () => {
     expect(calculateCostPerUnit(12, 1.5)).toBeCloseTo(8, 5);
+  });
+});
+
+describe("effectiveCostPerUnit", () => {
+  it("converts to content unit when line matches (ex: 1 lata = 350 ml)", () => {
+    // R$ 7,00 por lata, 350 ml por lata -> R$ 0,02 por ml
+    const cost = effectiveCostPerUnit(
+      { costPerUnit: 7, contentPerUnit: 350, contentUnit: "ml" },
+      "ml",
+    );
+    expect(cost).toBeCloseTo(0.02, 5);
+  });
+
+  it("matches content unit case-insensitively and trimmed", () => {
+    const cost = effectiveCostPerUnit(
+      { costPerUnit: 7, contentPerUnit: 350, contentUnit: "ML" },
+      " ml ",
+    );
+    expect(cost).toBeCloseTo(0.02, 5);
+  });
+
+  it("keeps costPerUnit when the line uses the material's own unit", () => {
+    const cost = effectiveCostPerUnit(
+      { costPerUnit: 7, contentPerUnit: 350, contentUnit: "ml" },
+      "lata",
+    );
+    expect(cost).toBe(7);
+  });
+
+  it("keeps costPerUnit when material has no content info", () => {
+    const cost = effectiveCostPerUnit(
+      { costPerUnit: 5, contentPerUnit: null, contentUnit: null },
+      "ml",
+    );
+    expect(cost).toBe(5);
+  });
+
+  it("guards against zero/invalid contentPerUnit (no divide-by-zero)", () => {
+    const cost = effectiveCostPerUnit(
+      { costPerUnit: 5, contentPerUnit: 0, contentUnit: "ml" },
+      "ml",
+    );
+    expect(cost).toBe(5);
   });
 });
 
