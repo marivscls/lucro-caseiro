@@ -30,6 +30,9 @@ export const products = pgTable(
     recipeId: uuid("recipe_id"),
     stockQuantity: integer("stock_quantity"),
     stockAlertThreshold: integer("stock_alert_threshold"),
+    // Produto composto (kit/caixinha): quando true, o custo e os componentes
+    // vem da tabela product_components. Ver schema/product-components.ts.
+    isComposite: boolean("is_composite").notNull().default(false),
     isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },

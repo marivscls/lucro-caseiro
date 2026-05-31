@@ -21,6 +21,7 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
     recipeId: null,
     stockQuantity: null,
     stockAlertThreshold: null,
+    isComposite: false,
     isActive: true,
     createdAt: new Date().toISOString(),
     ...overrides,
@@ -33,12 +34,20 @@ function makeRepo(overrides: Partial<IProductsRepo> = {}): IProductsRepo {
       Promise.resolve(makeProduct({ name: data.name, salePrice: data.salePrice })),
     findById: () => Promise.resolve(makeProduct()),
     findAll: () => Promise.resolve({ items: [makeProduct()], total: 1 }),
-    update: (_userId: string, _id: string, data: Partial<CreateProductData>) =>
-      Promise.resolve(makeProduct({ ...data })),
+    update: (_userId: string, _id: string, data: Partial<CreateProductData>) => {
+      // `components` tem shape de input (sem name/costPrice); nao se aplica ao Product.
+      const patch: Partial<Product> = {};
+      if (data.name !== undefined) patch.name = data.name;
+      if (data.salePrice !== undefined) patch.salePrice = data.salePrice;
+      if (data.isComposite !== undefined) patch.isComposite = data.isComposite;
+      return Promise.resolve(makeProduct(patch));
+    },
     delete: () => Promise.resolve(true),
     countByUser: () => Promise.resolve(1),
     decrementStock: () => Promise.resolve(),
     averageActivePrice: () => Promise.resolve(10),
+    findComponentCandidates: (_userId: string, ids: string[]) =>
+      Promise.resolve(ids.map((id) => ({ id, isComposite: false }))),
     ...overrides,
   };
 }
@@ -133,6 +142,83 @@ describe("ProductsUseCases", () => {
       });
 
       expect(captured?.costPrice).toBe(7);
+    });
+
+    it("creates a composite product with components", async () => {
+      let captured: CreateProductData | undefined;
+      const repo = makeRepo({
+        create: (_userId: string, data: CreateProductData) => {
+          captured = data;
+          return Promise.resolve(makeProduct({ isComposite: true }));
+        },
+      });
+      const sut = new ProductsUseCases(repo);
+
+      const result = await sut.create(USER_ID, {
+        name: "Caixinha de doces",
+        category: "kits",
+        salePrice: 50,
+        isComposite: true,
+        components: [
+          { componentProductId: "11111111-1111-1111-1111-111111111111", quantity: 6 },
+          { componentProductId: "22222222-2222-2222-2222-222222222222", quantity: 4 },
+        ],
+      });
+
+      expect(result.isComposite).toBe(true);
+      expect(captured?.isComposite).toBe(true);
+      expect(captured?.components).toHaveLength(2);
+      // Custo do kit nao e informado: vem do rollup no repo (na leitura).
+      expect(captured?.costPrice).toBeUndefined();
+    });
+
+    it("rejects a composite product without components", async () => {
+      const { sut } = makeSut();
+      await expect(
+        sut.create(USER_ID, {
+          name: "Kit vazio",
+          category: "kits",
+          salePrice: 50,
+          isComposite: true,
+          components: [],
+        }),
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it("rejects a composite whose component is itself composite (no nesting)", async () => {
+      const { sut } = makeSut({
+        findComponentCandidates: (_userId: string, ids: string[]) =>
+          Promise.resolve(ids.map((id) => ({ id, isComposite: true }))),
+      });
+      await expect(
+        sut.create(USER_ID, {
+          name: "Kit de kits",
+          category: "kits",
+          salePrice: 50,
+          isComposite: true,
+          components: [
+            { componentProductId: "11111111-1111-1111-1111-111111111111", quantity: 1 },
+          ],
+        }),
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it("rejects a composite whose component does not belong to the user", async () => {
+      const { sut } = makeSut({
+        // Nenhum candidato encontrado -> componente nao pertence ao usuario.
+        findComponentCandidates: () => Promise.resolve([]),
+      });
+      await expect(
+        sut.create(USER_ID, {
+          name: "Kit alheio",
+          category: "kits",
+          salePrice: 50,
+          isComposite: true,
+          components: [
+            { componentProductId: "11111111-1111-1111-1111-111111111111", quantity: 1 },
+          ],
+        }),
+      ).rejects.toThrow(ValidationError);
     });
   });
 

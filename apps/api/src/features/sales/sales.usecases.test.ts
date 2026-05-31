@@ -67,6 +67,7 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
     recipeId: null,
     stockQuantity: 50,
     stockAlertThreshold: null,
+    isComposite: false,
     isActive: true,
     createdAt: new Date().toISOString(),
     ...overrides,
@@ -83,6 +84,7 @@ function makeProductsRepo(overrides: Partial<IProductsRepo> = {}): IProductsRepo
     countByUser: vi.fn(() => Promise.resolve(1)),
     decrementStock: vi.fn(() => Promise.resolve(undefined)),
     averageActivePrice: vi.fn(() => Promise.resolve(10)),
+    findComponentCandidates: vi.fn(() => Promise.resolve([])),
     ...overrides,
   };
 }

@@ -5,7 +5,15 @@ import { MAX_MONEY, MAX_QUANTITY } from "./common";
 export const SaleUnit = z.enum(["unit", "kg"]);
 export type SaleUnit = z.infer<typeof SaleUnit>;
 
-export const CreateProductDto = z.object({
+/** Componente de um produto composto (kit/caixinha): produto-filho + quantidade. */
+export const ProductComponentInputDto = z.object({
+  componentProductId: z.string().uuid(),
+  quantity: z.number().positive().max(MAX_QUANTITY),
+});
+
+export type ProductComponentInput = z.infer<typeof ProductComponentInputDto>;
+
+const ProductBaseDto = z.object({
   name: z.string().min(1).max(200),
   description: z.string().max(1000).optional(),
   category: z.string().min(1).max(100),
@@ -15,12 +23,46 @@ export const CreateProductDto = z.object({
   recipeId: z.string().uuid().optional(),
   stockQuantity: z.number().int().min(0).max(MAX_QUANTITY).optional(),
   stockAlertThreshold: z.number().int().min(0).max(MAX_QUANTITY).optional(),
+  // Produto composto (kit): quando true, `components` e obrigatorio e nao-vazio.
+  isComposite: z.boolean().optional(),
+  components: z.array(ProductComponentInputDto).optional(),
 });
+
+/** Um produto composto precisa de pelo menos um componente. */
+function compositeHasComponents(data: {
+  isComposite?: boolean;
+  components?: ProductComponentInput[];
+}): boolean {
+  return !data.isComposite || (data.components?.length ?? 0) > 0;
+}
+
+const compositeRefine = {
+  message: "Um produto composto precisa de pelo menos um componente",
+  path: ["components"],
+};
+
+export const CreateProductDto = ProductBaseDto.refine(
+  compositeHasComponents,
+  compositeRefine,
+);
 
 export type CreateProduct = z.infer<typeof CreateProductDto>;
 
-export const UpdateProductDto = CreateProductDto.partial();
+export const UpdateProductDto = ProductBaseDto.partial().refine(
+  compositeHasComponents,
+  compositeRefine,
+);
 export type UpdateProduct = z.infer<typeof UpdateProductDto>;
+
+/** Componente resolvido para exibicao (nome + custo + quantidade). */
+export const ProductComponentDto = z.object({
+  componentProductId: z.string().uuid(),
+  name: z.string(),
+  costPrice: z.number().nullable(),
+  quantity: z.number(),
+});
+
+export type ProductComponent = z.infer<typeof ProductComponentDto>;
 
 export const ProductDto = z.object({
   id: z.string().uuid(),
@@ -35,6 +77,9 @@ export const ProductDto = z.object({
   recipeId: z.string().uuid().nullable(),
   stockQuantity: z.number().int().nullable(),
   stockAlertThreshold: z.number().int().nullable(),
+  isComposite: z.boolean(),
+  // Presente apenas quando isComposite = true.
+  components: z.array(ProductComponentDto).optional(),
   isActive: z.boolean(),
   createdAt: z.string().datetime(),
 });

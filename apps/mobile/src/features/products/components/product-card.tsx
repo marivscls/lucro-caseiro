@@ -12,6 +12,8 @@ interface ProductCardProps {
 function getStockBadge(product: Product) {
   // Produtos vendidos por peso (kg) nao usam controle de estoque por unidade.
   if (product.saleUnit === "kg") return null;
+  // Kits (produtos compostos) nao tem estoque proprio por unidade no MVP.
+  if (product.isComposite) return null;
   if (product.stockQuantity === null) return null;
   if (product.stockQuantity === 0)
     return { label: "Sem estoque", variant: "danger" as const };
@@ -57,7 +59,10 @@ export function ProductCard({ product, onPress }: ProductCardProps) {
       )}
 
       <View style={{ flex: 1, gap: 4 }}>
-        <Typography variant="h3">{product.name}</Typography>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <Typography variant="h3">{product.name}</Typography>
+          {product.isComposite && <Badge label="Kit" variant="lavender" />}
+        </View>
         <Typography variant="caption">{product.category}</Typography>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Typography variant="h3" color={theme.colors.success}>

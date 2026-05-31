@@ -7,6 +7,12 @@ import { Alert, Image, Pressable, ScrollView, View } from "react-native";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { uploadProductImage } from "../../../shared/utils/upload-image";
 import { useCreateProduct } from "../hooks";
+import {
+  ComponentPicker,
+  draftsToComponents,
+  type ComponentDraft,
+} from "./component-picker";
+import { CompositeToggle } from "./composite-toggle";
 import { SaleUnitToggle } from "./sale-unit-toggle";
 
 interface CreateProductFormProps {
@@ -22,6 +28,8 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
   const [description, setDescription] = useState("");
   const [stockQuantity, setStockQuantity] = useState("");
   const [stockAlert, setStockAlert] = useState("");
+  const [isComposite, setIsComposite] = useState(false);
+  const [components, setComponents] = useState<ComponentDraft[]>([]);
   const { imageUri, showPicker } = useImagePicker();
   const [uploading, setUploading] = useState(false);
 
@@ -42,6 +50,12 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
 
     if (isNaN(price) || price <= 0) {
       Alert.alert("Opa!", "O preço precisa ser maior que zero");
+      return;
+    }
+
+    const componentsPayload = isComposite ? draftsToComponents(components) : undefined;
+    if (isComposite && (componentsPayload?.length ?? 0) === 0) {
+      Alert.alert("Opa!", "Escolha pelo menos um produto para montar o kit");
       return;
     }
 
@@ -74,6 +88,8 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
           saleUnit === "kg" || !stockQuantity ? undefined : parseInt(stockQuantity, 10),
         stockAlertThreshold:
           saleUnit === "kg" || !stockAlert ? undefined : parseInt(stockAlert, 10),
+        isComposite,
+        components: componentsPayload,
       });
       Alert.alert("Produto cadastrado!", `${name} foi adicionado ao seu catálogo`);
       onSuccess?.();
@@ -101,11 +117,18 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
         onChangeText={setCategory}
       />
 
-      <SaleUnitToggle value={saleUnit} onChange={setSaleUnit} />
+      <CompositeToggle value={isComposite} onChange={setIsComposite} />
+
+      {isComposite && <ComponentPicker value={components} onChange={setComponents} />}
+
+      {/* Venda por peso (kg) so faz sentido para produto simples. */}
+      {!isComposite && <SaleUnitToggle value={saleUnit} onChange={setSaleUnit} />}
 
       <Input
-        label={saleUnit === "kg" ? "Preço por kg (R$)" : "Preço de venda (R$)"}
-        placeholder={saleUnit === "kg" ? "Ex: 80,00" : "Ex: 3,50"}
+        label={
+          saleUnit === "kg" && !isComposite ? "Preço por kg (R$)" : "Preço de venda (R$)"
+        }
+        placeholder={saleUnit === "kg" && !isComposite ? "Ex: 80,00" : "Ex: 3,50"}
         value={salePrice}
         onChangeText={setSalePrice}
         keyboardType="decimal-pad"
@@ -154,7 +177,7 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
         style={{ height: 100, textAlignVertical: "top", paddingTop: 12 }}
       />
 
-      {saleUnit === "unit" && (
+      {saleUnit === "unit" && !isComposite && (
         <>
           <Input
             label="Quantidade em estoque (opcional)"

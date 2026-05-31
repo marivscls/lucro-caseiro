@@ -2,7 +2,7 @@ import type { Product } from "@lucro-caseiro/contracts";
 
 import { NotFoundError, ValidationError } from "../../shared/errors";
 import { paginationMeta } from "../../shared/helpers/paginate";
-import { validateProductData } from "./products.domain";
+import { validateCompositeComponents, validateProductData } from "./products.domain";
 import type {
   CreateProductData,
   FindAllOpts,
@@ -32,10 +32,54 @@ export class ProductsUseCases {
     return fallback;
   }
 
+  /**
+   * Valida os componentes de um produto composto (kit). Garante: regras puras de
+   * dominio (>=1 componente, qty > 0, sem auto-referencia) + que cada componente
+   * pertence ao usuario e NAO e composto (sem aninhamento no MVP, evita recursao).
+   */
+  private async validateComponents(
+    userId: string,
+    productId: string | undefined,
+    components: CreateProductData["components"],
+  ): Promise<void> {
+    const list = components ?? [];
+
+    const errors = validateCompositeComponents(productId, list);
+    if (errors.length > 0) {
+      throw new ValidationError(errors);
+    }
+
+    const ids = [...new Set(list.map((c) => c.componentProductId))];
+    const candidates = await this.repo.findComponentCandidates(userId, ids);
+    const byId = new Map(candidates.map((c) => [c.id, c]));
+
+    const ownershipErrors: string[] = [];
+    for (const id of ids) {
+      const candidate = byId.get(id);
+      if (!candidate) {
+        ownershipErrors.push("Algum componente não foi encontrado");
+        break;
+      }
+    }
+    if (candidates.some((c) => c.isComposite)) {
+      ownershipErrors.push("Um kit não pode conter outro kit como componente");
+    }
+
+    if (ownershipErrors.length > 0) {
+      throw new ValidationError(ownershipErrors);
+    }
+  }
+
   async create(userId: string, data: CreateProductData): Promise<Product> {
     const errors = validateProductData(data);
     if (errors.length > 0) {
       throw new ValidationError(errors);
+    }
+
+    if (data.isComposite) {
+      await this.validateComponents(userId, undefined, data.components);
+      // Custo do kit e calculado a partir dos componentes (no repo, na leitura).
+      return this.repo.create(userId, { ...data, costPrice: undefined });
     }
 
     const costPrice = await this.resolveCostPrice(userId, data.recipeId, data.costPrice);
@@ -84,9 +128,22 @@ export class ProductsUseCases {
       throw new ValidationError(errors);
     }
 
-    // Se a receita foi (re)definida, recalcula o custo real a partir dela.
+    // Estado final de composicao apos o merge.
+    const willBeComposite = data.isComposite ?? existing.isComposite;
+
+    // Valida os componentes quando o produto sera composto e os componentes
+    // foram (re)definidos, OU quando esta virando composto agora.
+    if (willBeComposite && (data.components !== undefined || data.isComposite === true)) {
+      await this.validateComponents(userId, id, data.components);
+    }
+
     const dataWithCost = { ...data };
-    if (data.recipeId !== undefined) {
+
+    if (willBeComposite) {
+      // Custo do kit vem dos componentes (calculado no repo na leitura).
+      dataWithCost.costPrice = undefined;
+    } else if (data.recipeId !== undefined) {
+      // Se a receita foi (re)definida, recalcula o custo real a partir dela.
       const cost = await this.resolveCostPrice(userId, data.recipeId, data.costPrice);
       if (cost !== undefined) dataWithCost.costPrice = cost;
     }

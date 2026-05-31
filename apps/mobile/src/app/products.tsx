@@ -1,6 +1,7 @@
 import { formatCurrency } from "../shared/utils/format";
 import type { Product, SaleUnit } from "@lucro-caseiro/contracts";
 import {
+  Badge,
   Button,
   Card,
   Input,
@@ -14,6 +15,12 @@ import React, { useState } from "react";
 import { Alert, Image, Modal, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import {
+  ComponentPicker,
+  draftsToComponents,
+  type ComponentDraft,
+} from "../features/products/components/component-picker";
+import { CompositeToggle } from "../features/products/components/composite-toggle";
 import { CreateProductForm } from "../features/products/components/create-product-form";
 import { ProductList } from "../features/products/components/product-list";
 import { SaleUnitToggle } from "../features/products/components/sale-unit-toggle";
@@ -84,6 +91,8 @@ function ProductDetailModal({
   const [description, setDescription] = useState("");
   const [stockQuantity, setStockQuantity] = useState("");
   const [stockAlert, setStockAlert] = useState("");
+  const [isComposite, setIsComposite] = useState(false);
+  const [components, setComponents] = useState<ComponentDraft[]>([]);
 
   function startEditing(p: Product) {
     setName(p.name);
@@ -93,6 +102,13 @@ function ProductDetailModal({
     setDescription(p.description ?? "");
     setStockQuantity(p.stockQuantity !== null ? String(p.stockQuantity) : "");
     setStockAlert(p.stockAlertThreshold !== null ? String(p.stockAlertThreshold) : "");
+    setIsComposite(p.isComposite);
+    setComponents(
+      (p.components ?? []).map((c) => ({
+        componentProductId: c.componentProductId,
+        quantity: String(c.quantity).replace(".", ","),
+      })),
+    );
     setImageUri(p.photoUrl ?? null);
     setEditing(true);
   }
@@ -105,6 +121,12 @@ function ProductDetailModal({
     }
     if (isNaN(price) || price <= 0) {
       Alert.alert("Opa!", "O preço precisa ser maior que zero");
+      return;
+    }
+
+    const componentsPayload = isComposite ? draftsToComponents(components) : undefined;
+    if (isComposite && (componentsPayload?.length ?? 0) === 0) {
+      Alert.alert("Opa!", "Escolha pelo menos um produto para montar o kit");
       return;
     }
 
@@ -138,15 +160,17 @@ function ProductDetailModal({
           saleUnit,
           description: description.trim() || undefined,
           photoUrl,
-          // Estoque por unidades nao se aplica a venda por peso (kg).
+          // Estoque por unidades nao se aplica a venda por peso (kg) nem a kits.
           stockQuantity:
-            saleUnit === "kg" || !stockQuantity.trim()
+            saleUnit === "kg" || isComposite || !stockQuantity.trim()
               ? undefined
               : parseInt(stockQuantity, 10),
           stockAlertThreshold:
-            saleUnit === "kg" || !stockAlert.trim()
+            saleUnit === "kg" || isComposite || !stockAlert.trim()
               ? undefined
               : parseInt(stockAlert, 10),
+          isComposite,
+          components: componentsPayload,
         },
       });
       Alert.alert("Produto atualizado!");
@@ -221,9 +245,21 @@ function ProductDetailModal({
             <Typography variant="h2">Editar produto</Typography>
             <Input label="Nome do produto" value={name} onChangeText={setName} />
             <Input label="Categoria" value={category} onChangeText={setCategory} />
-            <SaleUnitToggle value={saleUnit} onChange={setSaleUnit} />
+            <CompositeToggle value={isComposite} onChange={setIsComposite} />
+            {isComposite && (
+              <ComponentPicker
+                value={components}
+                onChange={setComponents}
+                excludeProductId={productId}
+              />
+            )}
+            {!isComposite && <SaleUnitToggle value={saleUnit} onChange={setSaleUnit} />}
             <Input
-              label={saleUnit === "kg" ? "Preço por kg (R$)" : "Preço de venda (R$)"}
+              label={
+                saleUnit === "kg" && !isComposite
+                  ? "Preço por kg (R$)"
+                  : "Preço de venda (R$)"
+              }
               value={salePrice}
               onChangeText={setSalePrice}
               keyboardType="decimal-pad"
@@ -268,7 +304,7 @@ function ProductDetailModal({
               numberOfLines={3}
               style={{ height: 100, textAlignVertical: "top", paddingTop: 12 }}
             />
-            {saleUnit === "unit" && (
+            {saleUnit === "unit" && !isComposite && (
               <>
                 <Input
                   label="Quantidade em estoque (opcional)"
@@ -325,7 +361,12 @@ function ProductDetailModal({
                   </Typography>
                 </View>
               )}
-              <Typography variant="h1">{product.name}</Typography>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
+              >
+                <Typography variant="h1">{product.name}</Typography>
+                {product.isComposite && <Badge label="Kit" variant="lavender" />}
+              </View>
               <Typography variant="caption">{product.category}</Typography>
             </View>
 
@@ -339,13 +380,24 @@ function ProductDetailModal({
                     {priceLabel(product)}
                   </Typography>
                 </View>
-                {product.saleUnit === "unit" && (
+                {product.isComposite && (
+                  <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                    <Typography variant="caption">Custo do kit</Typography>
+                    <Typography variant="bodyBold">
+                      {product.costPrice != null
+                        ? formatCurrency(product.costPrice)
+                        : "—"}
+                    </Typography>
+                  </View>
+                )}
+                {product.saleUnit === "unit" && !product.isComposite && (
                   <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                     <Typography variant="caption">Estoque</Typography>
                     <StockValue product={product} />
                   </View>
                 )}
                 {product.saleUnit === "unit" &&
+                  !product.isComposite &&
                   product.stockQuantity !== null &&
                   product.stockAlertThreshold !== null && (
                     <View
@@ -365,6 +417,32 @@ function ProductDetailModal({
                 )}
               </View>
             </Card>
+
+            {product.isComposite && product.components && (
+              <Card>
+                <View style={{ gap: spacing.sm }}>
+                  <Typography variant="bodyBold">O que vem no kit</Typography>
+                  {product.components.map((c) => (
+                    <View
+                      key={c.componentProductId}
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <Typography variant="body">
+                        {c.quantity}x {c.name}
+                      </Typography>
+                      <Typography variant="caption" color={theme.colors.textSecondary}>
+                        {c.costPrice != null
+                          ? formatCurrency(c.costPrice * c.quantity)
+                          : "—"}
+                      </Typography>
+                    </View>
+                  ))}
+                </View>
+              </Card>
+            )}
 
             <Button
               title="Excluir produto"

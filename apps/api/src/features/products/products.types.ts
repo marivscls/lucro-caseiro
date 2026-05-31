@@ -1,4 +1,10 @@
-import type { Product, SaleUnit } from "@lucro-caseiro/contracts";
+import type { Product, ProductComponentInput, SaleUnit } from "@lucro-caseiro/contracts";
+
+/** Dados minimos de um candidato a componente (para validar pertencimento/tipo). */
+export interface ComponentCandidate {
+  id: string;
+  isComposite: boolean;
+}
 
 export interface IProductsRepo {
   create(userId: string, data: CreateProductData): Promise<Product>;
@@ -16,6 +22,11 @@ export interface IProductsRepo {
   countByUser(userId: string): Promise<number>;
   decrementStock(userId: string, productId: string, quantity: number): Promise<void>;
   averageActivePrice(userId: string): Promise<number | null>;
+  /**
+   * Busca, dentre os produtos do usuario, os que estao na lista de ids.
+   * Usado para validar que os componentes pertencem ao usuario e nao sao compostos.
+   */
+  findComponentCandidates(userId: string, ids: string[]): Promise<ComponentCandidate[]>;
 }
 
 /** Fonte do custo real de uma receita (injetada da feature recipes, sem importar internals). */
@@ -34,6 +45,8 @@ export interface CreateProductData {
   recipeId?: string;
   stockQuantity?: number;
   stockAlertThreshold?: number;
+  isComposite?: boolean;
+  components?: ProductComponentInput[];
 }
 
 export interface FindAllOpts {

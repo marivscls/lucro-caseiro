@@ -1,8 +1,22 @@
-import type { Product } from "@lucro-caseiro/contracts";
-import { products } from "@lucro-caseiro/database/schema";
-import { and, avg, count, eq, ilike, sql } from "drizzle-orm";
+import type { Product, ProductComponent } from "@lucro-caseiro/contracts";
+import { productComponents, products } from "@lucro-caseiro/database/schema";
+import { and, avg, count, eq, ilike, inArray, sql } from "drizzle-orm";
+import { calculateCompositeCost } from "./products.domain";
 import type { AppDatabase } from "../../shared/db";
-import type { CreateProductData, FindAllOpts, IProductsRepo } from "./products.types";
+import type {
+  ComponentCandidate,
+  CreateProductData,
+  FindAllOpts,
+  IProductsRepo,
+} from "./products.types";
+
+/** Linha de componente resolvida com nome e custo do produto-filho. */
+type ComponentRow = {
+  componentProductId: string;
+  name: string;
+  costPrice: string | null;
+  quantity: string;
+};
 
 export class ProductsRepoPg implements IProductsRepo {
   constructor(private db: AppDatabase) {}
@@ -22,10 +36,18 @@ export class ProductsRepoPg implements IProductsRepo {
         recipeId: data.recipeId ?? null,
         stockQuantity: data.stockQuantity ?? null,
         stockAlertThreshold: data.stockAlertThreshold ?? null,
+        isComposite: data.isComposite ?? false,
       })
       .returning();
 
-    return this.toProduct(row!);
+    const created = row!;
+
+    if (data.isComposite && data.components && data.components.length > 0) {
+      await this.insertComponents(created.id, data.components);
+    }
+
+    // Releitura para computar o custo do kit a partir dos componentes.
+    return (await this.findById(userId, created.id)) ?? this.toProduct(created, []);
   }
 
   async findById(userId: string, id: string): Promise<Product | null> {
@@ -34,7 +56,10 @@ export class ProductsRepoPg implements IProductsRepo {
       .from(products)
       .where(and(eq(products.userId, userId), eq(products.id, id)));
 
-    return row ? this.toProduct(row) : null;
+    if (!row) return null;
+
+    const componentRows = row.isComposite ? await this.fetchComponents(id) : [];
+    return this.toProduct(row, componentRows);
   }
 
   async findAll(
@@ -69,8 +94,15 @@ export class ProductsRepoPg implements IProductsRepo {
       this.db.select({ value: count() }).from(products).where(where),
     ]);
 
+    const items = await Promise.all(
+      rows.map(async (r) => {
+        const componentRows = r.isComposite ? await this.fetchComponents(r.id) : [];
+        return this.toProduct(r, componentRows);
+      }),
+    );
+
     return {
-      items: rows.map((r) => this.toProduct(r)),
+      items,
       total: countResult?.value ?? 0,
     };
   }
@@ -94,18 +126,29 @@ export class ProductsRepoPg implements IProductsRepo {
     if (data.stockQuantity !== undefined) updateData.stockQuantity = data.stockQuantity;
     if (data.stockAlertThreshold !== undefined)
       updateData.stockAlertThreshold = data.stockAlertThreshold;
+    if (data.isComposite !== undefined) updateData.isComposite = data.isComposite;
 
-    if (Object.keys(updateData).length === 0) {
-      return this.findById(userId, id);
+    if (Object.keys(updateData).length > 0) {
+      const [row] = await this.db
+        .update(products)
+        .set(updateData)
+        .where(and(eq(products.userId, userId), eq(products.id, id)))
+        .returning({ id: products.id });
+
+      if (!row) return null;
     }
 
-    const [row] = await this.db
-      .update(products)
-      .set(updateData)
-      .where(and(eq(products.userId, userId), eq(products.id, id)))
-      .returning();
+    // Estrategia de replace (igual recipe_ingredients): quando `components` vem
+    // definido, apaga os antigos e regrava os novos.
+    if (data.components !== undefined) {
+      await this.db.delete(productComponents).where(eq(productComponents.productId, id));
 
-    return row ? this.toProduct(row) : null;
+      if (data.components.length > 0) {
+        await this.insertComponents(id, data.components);
+      }
+    }
+
+    return this.findById(userId, id);
   }
 
   async delete(userId: string, id: string): Promise<boolean> {
@@ -147,7 +190,70 @@ export class ProductsRepoPg implements IProductsRepo {
     return result?.value != null ? Number(result.value) : null;
   }
 
-  private toProduct(row: typeof products.$inferSelect): Product {
+  async findComponentCandidates(
+    userId: string,
+    ids: string[],
+  ): Promise<ComponentCandidate[]> {
+    if (ids.length === 0) return [];
+
+    const rows = await this.db
+      .select({ id: products.id, isComposite: products.isComposite })
+      .from(products)
+      .where(
+        and(
+          eq(products.userId, userId),
+          eq(products.isActive, true),
+          inArray(products.id, ids),
+        ),
+      );
+
+    return rows.map((r) => ({ id: r.id, isComposite: r.isComposite }));
+  }
+
+  /** Insere os componentes de um kit. */
+  private async insertComponents(
+    productId: string,
+    components: { componentProductId: string; quantity: number }[],
+  ): Promise<void> {
+    await this.db.insert(productComponents).values(
+      components.map((c) => ({
+        productId,
+        componentProductId: c.componentProductId,
+        quantity: String(c.quantity),
+      })),
+    );
+  }
+
+  /** Busca os componentes de um kit com nome e custo do produto-filho. */
+  private async fetchComponents(productId: string): Promise<ComponentRow[]> {
+    return this.db
+      .select({
+        componentProductId: productComponents.componentProductId,
+        name: products.name,
+        costPrice: products.costPrice,
+        quantity: productComponents.quantity,
+      })
+      .from(productComponents)
+      .innerJoin(products, eq(productComponents.componentProductId, products.id))
+      .where(eq(productComponents.productId, productId));
+  }
+
+  private toProduct(
+    row: typeof products.$inferSelect,
+    componentRows: ComponentRow[],
+  ): Product {
+    const components: ProductComponent[] = componentRows.map((c) => ({
+      componentProductId: c.componentProductId,
+      name: c.name,
+      costPrice: c.costPrice != null ? Number(c.costPrice) : null,
+      quantity: Number(c.quantity),
+    }));
+
+    // Produto composto: custo = soma de (custo do componente x quantidade).
+    // Caso contrario, usa o costPrice armazenado.
+    const storedCost = row.costPrice ? Number(row.costPrice) : null;
+    const costPrice = row.isComposite ? calculateCompositeCost(components) : storedCost;
+
     return {
       id: row.id,
       userId: row.userId,
@@ -157,10 +263,12 @@ export class ProductsRepoPg implements IProductsRepo {
       photoUrl: row.photoUrl,
       salePrice: Number(row.salePrice),
       saleUnit: row.saleUnit === "kg" ? "kg" : "unit",
-      costPrice: row.costPrice ? Number(row.costPrice) : null,
+      costPrice,
       recipeId: row.recipeId,
       stockQuantity: row.stockQuantity,
       stockAlertThreshold: row.stockAlertThreshold,
+      isComposite: row.isComposite,
+      ...(row.isComposite ? { components } : {}),
       isActive: row.isActive,
       createdAt: row.createdAt.toISOString(),
     };

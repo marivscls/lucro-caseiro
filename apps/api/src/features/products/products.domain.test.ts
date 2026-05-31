@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { calculateStockStatus, isLowStock, validateProductData } from "./products.domain";
+import {
+  calculateCompositeCost,
+  calculateStockStatus,
+  isLowStock,
+  validateCompositeComponents,
+  validateProductData,
+} from "./products.domain";
 import type { CreateProductData } from "./products.types";
 
 function makeProductData(overrides: Partial<CreateProductData> = {}): CreateProductData {
@@ -51,6 +57,63 @@ describe("validateProductData", () => {
   it("accumulates multiple errors", () => {
     const errors = validateProductData(makeProductData({ name: "", salePrice: -1 }));
     expect(errors.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe("calculateCompositeCost", () => {
+  it("returns 0 for empty components", () => {
+    expect(calculateCompositeCost([])).toBe(0);
+  });
+
+  it("sums componentCost * quantity", () => {
+    const cost = calculateCompositeCost([
+      { costPrice: 2, quantity: 3 }, // 6
+      { costPrice: 1.5, quantity: 2 }, // 3
+    ]);
+    expect(cost).toBe(9);
+  });
+
+  it("treats null costPrice as 0", () => {
+    const cost = calculateCompositeCost([
+      { costPrice: null, quantity: 5 },
+      { costPrice: 4, quantity: 2 }, // 8
+    ]);
+    expect(cost).toBe(8);
+  });
+});
+
+describe("validateCompositeComponents", () => {
+  it("returns empty array for valid components", () => {
+    const errors = validateCompositeComponents("prod-1", [
+      { componentProductId: "prod-2", quantity: 1 },
+    ]);
+    expect(errors).toEqual([]);
+  });
+
+  it("rejects empty components", () => {
+    const errors = validateCompositeComponents("prod-1", []);
+    expect(errors).toContain("Um produto composto precisa de pelo menos um componente");
+  });
+
+  it("rejects zero or negative quantity", () => {
+    const errors = validateCompositeComponents("prod-1", [
+      { componentProductId: "prod-2", quantity: 0 },
+    ]);
+    expect(errors).toContain("A quantidade de cada componente deve ser maior que zero");
+  });
+
+  it("rejects self-reference", () => {
+    const errors = validateCompositeComponents("prod-1", [
+      { componentProductId: "prod-1", quantity: 1 },
+    ]);
+    expect(errors).toContain("Um produto não pode ser componente dele mesmo");
+  });
+
+  it("skips self-reference check when productId is undefined (create)", () => {
+    const errors = validateCompositeComponents(undefined, [
+      { componentProductId: "prod-2", quantity: 1 },
+    ]);
+    expect(errors).toEqual([]);
   });
 });
 

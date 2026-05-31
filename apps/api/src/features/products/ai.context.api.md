@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Gerenciar o catalogo de produtos do negocio caseiro, incluindo nome, descricao, categoria, preco de venda, foto, vinculo com receita e controle de estoque com alertas de nivel baixo.
+Gerenciar o catalogo de produtos do negocio caseiro, incluindo nome, descricao, categoria, preco de venda, foto, vinculo com receita e controle de estoque com alertas de nivel baixo. Suporta **produtos compostos (kit/caixinha)**: um produto montado a partir de outros produtos (cada um com quantidade), com custo rolado automaticamente.
 
 ## Non-goals
 
@@ -48,8 +48,21 @@ Gerenciar o catalogo de produtos do negocio caseiro, incluindo nome, descricao, 
 | recipeId            | uuid      | nullable, FK recipes                      |
 | stockQuantity       | integer   | nullable                                  |
 | stockAlertThreshold | integer   | nullable                                  |
+| isComposite         | boolean   | NOT NULL, default false                   |
 | isActive            | boolean   | default true                              |
 | createdAt           | timestamp | default now()                             |
+
+### Tabela: `product_components` (junção do kit)
+
+| Coluna             | Tipo          | Constraints                                     |
+| ------------------ | ------------- | ----------------------------------------------- |
+| id                 | uuid          | PK                                              |
+| productId          | uuid          | FK products (o kit), onDelete cascade, NOT NULL |
+| componentProductId | uuid          | FK products (produto-filho), NOT NULL           |
+| quantity           | numeric(10,3) | NOT NULL                                        |
+
+- Index: `(productId)`.
+- Estrategia de persistencia: **replace** (igual `recipe_ingredients`) — em create/update do kit, apaga e regrava as linhas quando `components` vem definido.
 
 ## Invariants
 
@@ -65,6 +78,20 @@ Gerenciar o catalogo de produtos do negocio caseiro, incluindo nome, descricao, 
 - Delete e soft delete (isActive = false), nao fisico
 - Listagem por padrao retorna apenas produtos ativos (isActive = true)
 - Toda query escopada por `userId`
+
+### Produto composto (kit/caixinha)
+
+- `isComposite = true` marca o produto como kit.
+- Um kit precisa de **>= 1 componente**; cada componente tem `quantity > 0`.
+- Os componentes devem ser **produtos do proprio usuario** e **NAO compostos** (sem
+  aninhamento no MVP -> evita recursao). Validado nos usecases via `findComponentCandidates`.
+- Um produto **nao pode ser componente dele mesmo** (`componentProductId !== productId`).
+- **Custo do kit (rollup)**: `costPrice = soma(custo_do_componente x quantidade)`,
+  computado **na leitura** no repo (`toProduct` chama `calculateCompositeCost`). Componentes
+  sem custo conhecido contam como 0. O `cost_price` armazenado da linha do kit nao e usado
+  (fica null/ignorado para compostos).
+- Um kit conta como um produto normal no create (mesmo fluxo `create`); nao ha limite
+  freemium dedicado a produtos.
 
 ## Operations
 
@@ -97,10 +124,12 @@ api:
 db:
   tables:
     - products
+    - product_components
   indexes:
     - (userId, id)
     - (userId, isActive, createdAt DESC)
     - (userId, category)
+    - product_components(productId)
 invariants:
   - name.trim().length > 0
   - name.length <= 200
@@ -109,6 +138,10 @@ invariants:
   - stockQuantity >= 0 (quando presente)
   - stockAlertThreshold >= 0 (quando presente)
   - delete e soft delete (isActive = false)
+  - isComposite => components.length >= 1, cada quantity > 0
+  - componente NAO pode ser composto (sem aninhamento), deve ser do mesmo usuario
+  - componentProductId != productId (sem auto-referencia)
+  - custo do kit = soma(custo_componente x quantidade), computado na leitura
 ```
 
 ## Authorization & RLS
@@ -119,9 +152,13 @@ invariants:
 
 ## Contracts (Zod/DTO)
 
-- **CreateProductDto**: `{ name, description?, category, photoUrl?, salePrice, saleUnit?, recipeId?, stockQuantity?, stockAlertThreshold? }`
-- **UpdateProductDto**: `Partial<CreateProductDto>`
-- **Product**: `{ id, userId, name, description, category, photoUrl, salePrice, saleUnit, costPrice, recipeId, stockQuantity, stockAlertThreshold, isActive, createdAt }`
+- **CreateProductDto**: `{ name, description?, category, photoUrl?, salePrice, saleUnit?, recipeId?, stockQuantity?, stockAlertThreshold?, isComposite?, components? }`
+  - `refine`: quando `isComposite`, `components` precisa ter >= 1 item.
+- **UpdateProductDto**: `Partial<CreateProductDto>` (com o mesmo refine de composto)
+- **ProductComponentInputDto**: `{ componentProductId: uuid, quantity: number > 0 }` (entrada)
+- **ProductComponentDto**: `{ componentProductId: uuid, name, costPrice: number|null, quantity }` (saida/display)
+- **Product**: `{ id, userId, name, description, category, photoUrl, salePrice, saleUnit, costPrice, recipeId, stockQuantity, stockAlertThreshold, isComposite, components?, isActive, createdAt }`
+  - `components` presente apenas quando `isComposite = true`.
 - **SaleUnit**: `"unit" | "kg"` (default `"unit"`)
 
 ## Errors
@@ -159,10 +196,14 @@ invariants:
 - validateProductData: preco zero/negativo, nome vazio/> 200, estoque negativo, alerta negativo, acumulo
 - isLowStock: null, abaixo, igual, acima
 - calculateStockStatus: null -> untracked, 0 -> out, <= threshold -> low, > threshold -> ok, sem threshold -> ok
+- calculateCompositeCost: vazio -> 0, soma custo x qty, costPrice null conta como 0
+- validateCompositeComponents: vazio rejeitado, qty <= 0 rejeitado, auto-referencia rejeitada, sem productId (create) ok
 
 ### UseCases (products.usecases.test.ts)
 
 - create: dados validos, ValidationError, repassa saleUnit 'kg' para o repo (venda por peso)
+- create composto: cria com componentes (costPrice undefined, vem do rollup), rejeita sem componentes,
+  rejeita componente composto (sem aninhamento), rejeita componente de outro usuario (nao encontrado)
 - getById: encontrado, NotFoundError
 - list: paginacao
 - update: dados validos, NotFoundError, ValidationError
@@ -181,6 +222,24 @@ POST /api/v1/products  (venda por peso)
 
 GET /api/v1/products?category=doces&search=brig
 => 200 { "items": [...], "total": 3, "page": 1, "totalPages": 1 }
+
+POST /api/v1/products  (produto composto / kit / caixinha)
+{
+  "name": "Caixinha de doces", "category": "kits", "salePrice": 50.00,
+  "isComposite": true,
+  "components": [
+    { "componentProductId": "<id-brigadeiro>", "quantity": 6 },
+    { "componentProductId": "<id-beijinho>", "quantity": 4 }
+  ]
+}
+=> 201 {
+  "id": "...", "name": "Caixinha de doces", "isComposite": true,
+  "costPrice": 12.50,   // rollup: soma(custo_componente x qty)
+  "components": [
+    { "componentProductId": "...", "name": "Brigadeiro", "costPrice": 1.25, "quantity": 6 },
+    { "componentProductId": "...", "name": "Beijinho", "costPrice": 1.25, "quantity": 4 }
+  ], ...
+}
 ```
 
 ## Change log / Decisions
@@ -191,3 +250,11 @@ GET /api/v1/products?category=doces&search=brig
 - 2026-05-30: **venda por peso** — coluna `sale_unit` ('unit' | 'kg', default 'unit', migration `006_sell_by_weight.sql`).
   Quando 'kg', `salePrice` = preco por quilo. Produtos por peso nao usam estoque por unidade
   (Sales pula baixa de estoque). Threaded em CreateProductData/UpdateProductDto/Product e no repo.
+- 2026-05-30: **produto composto / kit / caixinha** — nova tabela `product_components` +
+  coluna `products.is_composite` (migration `007_composite_products.sql`). Um kit e montado a
+  partir de outros produtos (cada um com quantidade). Custo do kit = soma(custo_componente x qty),
+  **computado na leitura** no repo (igual ao `costPerUnit` das receitas), nao armazenado.
+  Persistencia dos componentes via **replace strategy** (espelha `recipe_ingredients`).
+  Validacoes: >= 1 componente, qty > 0, sem auto-referencia (dominio); componente do mesmo
+  usuario e nao-composto, **sem aninhamento no MVP** (usecases via `findComponentCandidates`).
+  Decisao: kit nao tem estoque proprio por unidade no MVP.

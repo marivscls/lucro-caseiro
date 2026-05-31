@@ -26,6 +26,43 @@ export function validateProductData(data: CreateProductData): string[] {
   return errors;
 }
 
+/**
+ * Custo de um produto composto (kit/caixinha): soma de (custo do componente x quantidade).
+ * Componentes sem custo conhecido (costPrice null) contam como 0.
+ */
+export function calculateCompositeCost(
+  components: { costPrice: number | null; quantity: number }[],
+): number {
+  return components.reduce((sum, c) => sum + (c.costPrice ?? 0) * c.quantity, 0);
+}
+
+/**
+ * Valida os componentes informados ao criar/atualizar um produto composto.
+ * Regras (MVP): >= 1 componente; quantidade > 0; nao pode referenciar a si mesmo.
+ * Nota: a verificacao de "componente nao-composto" e "pertence ao mesmo usuario"
+ * exige buscar os produtos no banco, entao e feita nos usecases.
+ */
+export function validateCompositeComponents(
+  productId: string | undefined,
+  components: { componentProductId: string; quantity: number }[],
+): string[] {
+  const errors: string[] = [];
+
+  if (components.length === 0) {
+    errors.push("Um produto composto precisa de pelo menos um componente");
+  }
+
+  if (components.some((c) => c.quantity <= 0)) {
+    errors.push("A quantidade de cada componente deve ser maior que zero");
+  }
+
+  if (productId && components.some((c) => c.componentProductId === productId)) {
+    errors.push("Um produto não pode ser componente dele mesmo");
+  }
+
+  return errors;
+}
+
 export function isLowStock(quantity: number | null, threshold: number | null): boolean {
   if (quantity === null || threshold === null) return false;
   return quantity <= threshold;

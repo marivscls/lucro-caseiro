@@ -26,6 +26,8 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 | `apps/mobile/src/features/products/hooks.ts`                           | React Query hooks                                                                       |
 | `apps/mobile/src/features/products/components/create-product-form.tsx` | Formulario de criacao                                                                   |
 | `apps/mobile/src/features/products/components/sale-unit-toggle.tsx`    | Toggle "Por unidade / Por quilo (kg)" (usado na criacao e na edicao)                    |
+| `apps/mobile/src/features/products/components/composite-toggle.tsx`    | Toggle "Produto simples / Produto composto (kit)"                                       |
+| `apps/mobile/src/features/products/components/component-picker.tsx`    | Seletor de produtos-componentes do kit + quantidade + custo total ao vivo               |
 | `apps/mobile/src/features/products/components/product-card.tsx`        | Card de produto na listagem                                                             |
 | `apps/mobile/src/features/products/components/product-list.tsx`        | Lista de produtos                                                                       |
 | `apps/mobile/src/features/products/use-low-stock-notifier.ts`          | Hook que dispara notificacao local de estoque baixo (montado no root layout)            |
@@ -38,6 +40,19 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 - **Props:** `{ product: Product; onPress?: () => void }`
 - Exibe foto ou avatar com inicial, nome, categoria, preco de venda e badge de estoque (sem estoque/estoque baixo/quantidade).
 - Produtos por peso (`saleUnit === "kg"`): preco exibido como "R$X/kg" e badge de estoque oculto.
+- Produtos compostos (`isComposite`): badge **"Kit"** (lavender) ao lado do nome; badge de estoque oculto.
+
+### `CompositeToggle`
+
+- **Props:** `{ value: boolean; onChange: (value: boolean) => void }`
+- Alternador segmentado "Produto simples" / "Produto composto (kit)". Usado em `CreateProductForm` e no modal de edicao.
+
+### `ComponentPicker`
+
+- **Props:** `{ value: ComponentDraft[]; onChange: (next) => void; excludeProductId?: string }`
+- Lista os produtos **simples** do usuario (via `useProducts`, exclui compostos e o proprio produto em edicao) como chips selecionaveis; cada selecionado vira uma linha com Input de quantidade e botao remover.
+- Mostra o **custo total do kit ao vivo** (soma de `costPrice x quantidade`).
+- Helper `draftsToComponents(drafts)` converte os rascunhos (quantidade string) em `ProductComponentInput[]` (filtra qty <= 0/invalida).
 
 ### `SaleUnitToggle`
 
@@ -54,14 +69,16 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 ### `CreateProductForm`
 
 - **Props:** `{ onSuccess?: () => void }`
-- Campos: nome (obrigatorio), categoria (obrigatorio), **unidade de venda (toggle por unidade/kg)**, preco de venda (obrigatorio, > 0; label vira "Preço por kg (R$)" quando kg), foto, descricao, quantidade em estoque, alerta de estoque baixo.
+- Campos: nome (obrigatorio), categoria (obrigatorio), **tipo (toggle simples/kit)**, **unidade de venda (toggle por unidade/kg)**, preco de venda (obrigatorio, > 0; label vira "Preço por kg (R$)" quando kg), foto, descricao, quantidade em estoque, alerta de estoque baixo.
 - Campos de estoque ficam ocultos quando "Por quilo (kg)" (estoque por unidade nao se aplica).
+- Quando **kit** (`isComposite`): mostra o `ComponentPicker`; oculta o toggle de unidade de venda e os campos de estoque. O preco de venda continua sendo pedido (preco do kit). Validacao local: pelo menos um componente.
 
 ### `ProductDetailModal` (definido no screen)
 
 - Modal inline no arquivo `products.tsx` com visualizacao e edicao do produto.
-- Exibe avatar, nome, categoria, preco, estoque atual (com cor de alerta quando baixo), limite de alerta e descricao.
-- Modo edicao com campos editaveis, incluindo quantidade em estoque e alerta de estoque baixo.
+- Exibe avatar, nome (com badge "Kit" quando composto), categoria, preco, estoque atual (oculto para kits; com cor de alerta quando baixo), limite de alerta e descricao.
+- Kits: exibe "Custo do kit" (rollup vindo do back) e um card **"O que vem no kit"** com `quantidade x nome` e custo por linha.
+- Modo edicao com campos editaveis, incluindo o toggle simples/kit + `ComponentPicker`, quantidade em estoque e alerta de estoque baixo.
 - Botao de excluir com confirmacao.
 
 ### `LowStockBanner` (definido no screen)
@@ -93,9 +110,11 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 
 ## Contracts
 
-- `Product` — produto (id, name, category, salePrice, saleUnit, description, photoUrl, stockQuantity, stockAlertThreshold).
-- `CreateProduct` — payload de criacao (name, category, salePrice, saleUnit?, description?, stockQuantity?, stockAlertThreshold?).
+- `Product` — produto (id, name, category, salePrice, saleUnit, costPrice, description, photoUrl, stockQuantity, stockAlertThreshold, isComposite, components?).
+- `CreateProduct` — payload de criacao (name, category, salePrice, saleUnit?, description?, stockQuantity?, stockAlertThreshold?, isComposite?, components?).
 - `UpdateProduct` — payload de edicao.
+- `ProductComponentInput` — `{ componentProductId, quantity }` (entrada do kit).
+- `ProductComponent` — `{ componentProductId, name, costPrice, quantity }` (componente resolvido para exibicao).
 - `SaleUnit` — `"unit" | "kg"` (default `"unit"`; quando `"kg"`, `salePrice` = preco por quilo).
 
 ## Error Handling
@@ -116,6 +135,9 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 - [ ] `CreateProductForm` valida nome obrigatorio
 - [ ] `CreateProductForm` valida preco > 0
 - [ ] `ProductCard` exibe badge de estoque correto
+- [ ] `ProductCard` exibe badge "Kit" para produto composto
+- [ ] `ComponentPicker` calcula custo total do kit ao vivo
+- [ ] `CreateProductForm` exige >= 1 componente quando kit
 - [ ] Exclusao de produto com confirmacao
 - [ ] Edicao inline no modal
 
@@ -133,3 +155,4 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 - Banner de estoque baixo no topo da lista para dar visibilidade ao recurso.
 - Notificacao de estoque baixo implementada como **notificacao local** (`use-low-stock-notifier.ts`), pois o backend ainda nao envia push. Dispara quando um produto entra na faixa de alerta; dedupe via AsyncStorage (`lowStockNotifiedIds`). Apos uma venda, `useCreateSale` invalida `["products"]` para revalidar o estoque e disparar o alerta.
 - 2026-05-30: **venda por peso (R$/kg)** — `SaleUnitToggle` na criacao e edicao. Quando "kg", o preco vira "Preço por kg" e os campos de estoque ficam ocultos. Card e detalhe do produto exibem "R$X/kg" e ocultam estoque para produtos por peso.
+- 2026-05-30: **produto composto / kit / caixinha** — `CompositeToggle` (simples/kit) + `ComponentPicker` (escolhe produtos simples + quantidade, mostra custo total ao vivo) na criacao e edicao. Card e detalhe exibem badge "Kit"; detalhe mostra "Custo do kit" e a lista "O que vem no kit". Kits ocultam unidade de venda e estoque por unidade. Custo do kit e calculado no backend (rollup) e exibido via `product.costPrice`/`product.components`. Sem aninhamento (kit dentro de kit) no MVP.
