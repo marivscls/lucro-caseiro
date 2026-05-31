@@ -34,6 +34,7 @@ import {
   useDeleteOrder,
   useDeliverOrder,
   useOrders,
+  useOrdersSummary,
   useUpdateOrder,
 } from "../features/orders/hooks";
 import { openWhatsApp, waMessages } from "../shared/utils/whatsapp";
@@ -211,6 +212,34 @@ function OrderDetail({
   );
 }
 
+function OrdersSummaryHeader() {
+  const { theme } = useTheme();
+  const { data: summary } = useOrdersSummary();
+
+  if (!summary || summary.totalOrders === 0) return null;
+
+  return (
+    <Card>
+      <View style={{ gap: spacing.sm }}>
+        <Typography variant="caption" color={theme.colors.textSecondary}>
+          Total dos pedidos
+        </Typography>
+        <Typography variant="h2" color={theme.colors.success}>
+          {formatMoney(summary.totalAmount)}
+        </Typography>
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <Typography variant="body" color={theme.colors.textSecondary}>
+            A receber: {formatMoney(summary.pending.amount)}
+          </Typography>
+          <Typography variant="body" color={theme.colors.textSecondary}>
+            Recebido: {formatMoney(summary.delivered.amount)}
+          </Typography>
+        </View>
+      </View>
+    </Card>
+  );
+}
+
 function OrdersList({
   groups,
   onSelect,
@@ -235,6 +264,7 @@ function OrdersList({
         gap: spacing.xl,
       }}
     >
+      <OrdersSummaryHeader />
       {groups.map((group) => {
         const meta = GROUP_META[group.key] ?? {
           icon: "calendar-outline" as const,

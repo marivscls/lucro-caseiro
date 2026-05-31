@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isTerminal, todayISO, validateOrder } from "./orders.domain";
+import { buildOrdersSummary, isTerminal, todayISO, validateOrder } from "./orders.domain";
 
 describe("validateOrder", () => {
   it("accepts valid data", () => {
@@ -44,6 +44,43 @@ describe("isTerminal", () => {
     expect(isTerminal("cancelled")).toBe(true);
     expect(isTerminal("pending")).toBe(false);
     expect(isTerminal("ready")).toBe(false);
+  });
+});
+
+describe("buildOrdersSummary", () => {
+  it("returns zeros for no rows", () => {
+    expect(buildOrdersSummary([])).toEqual({
+      totalOrders: 0,
+      totalAmount: 0,
+      pending: { count: 0, amount: 0 },
+      delivered: { count: 0, amount: 0 },
+    });
+  });
+
+  it("buckets active statuses into pending and done into delivered", () => {
+    const summary = buildOrdersSummary([
+      { status: "pending", count: 2, amount: 100 },
+      { status: "in_production", count: 1, amount: 50 },
+      { status: "ready", count: 1, amount: 30 },
+      { status: "done", count: 3, amount: 300 },
+    ]);
+
+    expect(summary.totalOrders).toBe(7);
+    expect(summary.totalAmount).toBe(480);
+    expect(summary.pending).toEqual({ count: 4, amount: 180 });
+    expect(summary.delivered).toEqual({ count: 3, amount: 300 });
+  });
+
+  it("ignores cancelled orders in totals and buckets", () => {
+    const summary = buildOrdersSummary([
+      { status: "pending", count: 1, amount: 100 },
+      { status: "cancelled", count: 5, amount: 999 },
+    ]);
+
+    expect(summary.totalOrders).toBe(1);
+    expect(summary.totalAmount).toBe(100);
+    expect(summary.pending).toEqual({ count: 1, amount: 100 });
+    expect(summary.delivered).toEqual({ count: 0, amount: 0 });
   });
 });
 

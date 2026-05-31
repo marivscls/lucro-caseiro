@@ -1,6 +1,11 @@
 import type { OrderStatus } from "@lucro-caseiro/contracts";
 
-import type { CreateOrderData, UpdateOrderData } from "./orders.types";
+import type {
+  CreateOrderData,
+  OrdersStatusAggregate,
+  OrdersSummary,
+  UpdateOrderData,
+} from "./orders.types";
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_RE = /^\d{2}:\d{2}$/;
@@ -42,6 +47,33 @@ export function validateOrder(
   }
 
   return errors;
+}
+
+/**
+ * Monta o resumo agregado das encomendas a partir das linhas por status.
+ * `cancelled` e ignorado (nao conta como receita/total).
+ * `pending` = ativas (pending/in_production/ready); `delivered` = `done`.
+ */
+export function buildOrdersSummary(rows: OrdersStatusAggregate[]): OrdersSummary {
+  const summary: OrdersSummary = {
+    totalOrders: 0,
+    totalAmount: 0,
+    pending: { count: 0, amount: 0 },
+    delivered: { count: 0, amount: 0 },
+  };
+
+  for (const row of rows) {
+    if (row.status === "cancelled") continue;
+
+    summary.totalOrders += row.count;
+    summary.totalAmount += row.amount;
+
+    const bucket = row.status === "done" ? summary.delivered : summary.pending;
+    bucket.count += row.count;
+    bucket.amount += row.amount;
+  }
+
+  return summary;
 }
 
 /** Hoje em YYYY-MM-DD (data local). */

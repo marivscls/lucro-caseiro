@@ -51,25 +51,32 @@ receita ao entregar.
 - Detalhe com troca rápida de status (a fazer/produzindo/pronto), "Marcar como entregue"
   (pergunta se registra receita), Editar e Excluir.
 
+### `OrdersSummaryHeader` (definido na tela `agenda.tsx`)
+
+- Card no topo da lista: "Total dos pedidos: R$ X" + linha "A receber: R$ Y · Recebido: R$ Z".
+- Usa `useOrdersSummary()`; oculto quando não há pedidos (`totalOrders === 0`).
+
 ## Hooks
 
-| Hook                | Tipo          | Descricao                                                          |
-| ------------------- | ------------- | ------------------------------------------------------------------ |
-| `useOrders(opts?)`  | `useQuery`    | Lista de encomendas. Query key: `["orders", opts]`.                |
-| `useCreateOrder()`  | `useMutation` | Cria. Invalida `["orders"]`.                                       |
-| `useUpdateOrder()`  | `useMutation` | Atualiza (inclui status). Invalida `["orders"]`.                   |
-| `useDeliverOrder()` | `useMutation` | Entrega (opcional receita). Invalida `["orders"]` e `["finance"]`. |
-| `useDeleteOrder()`  | `useMutation` | Remove. Invalida `["orders"]`.                                     |
+| Hook                      | Tipo          | Descricao                                                                             |
+| ------------------------- | ------------- | ------------------------------------------------------------------------------------- |
+| `useOrders(opts?)`        | `useQuery`    | Lista de encomendas. Query key: `["orders", opts]`.                                   |
+| `useOrdersSummary(opts?)` | `useQuery`    | Resumo agregado (total/a receber/recebido). Query key: `["orders", "summary", opts]`. |
+| `useCreateOrder()`        | `useMutation` | Cria. Invalida `["orders"]`.                                                          |
+| `useUpdateOrder()`        | `useMutation` | Atualiza (inclui status). Invalida `["orders"]`.                                      |
+| `useDeliverOrder()`       | `useMutation` | Entrega (opcional receita). Invalida `["orders"]` e `["finance"]`.                    |
+| `useDeleteOrder()`        | `useMutation` | Remove. Invalida `["orders"]`.                                                        |
 
 ## API Integration
 
-| Endpoint                     | Verbo  | Funcao         | Parametros           |
-| ---------------------------- | ------ | -------------- | -------------------- |
-| `/api/v1/orders`             | GET    | `fetchOrders`  | `?status=&from=&to=` |
-| `/api/v1/orders`             | POST   | `createOrder`  | body: `CreateOrder`  |
-| `/api/v1/orders/:id`         | PATCH  | `updateOrder`  | body: `UpdateOrder`  |
-| `/api/v1/orders/:id/deliver` | POST   | `deliverOrder` | body: `DeliverOrder` |
-| `/api/v1/orders/:id`         | DELETE | `deleteOrder`  | -                    |
+| Endpoint                     | Verbo  | Funcao               | Parametros                     |
+| ---------------------------- | ------ | -------------------- | ------------------------------ |
+| `/api/v1/orders`             | GET    | `fetchOrders`        | `?status=&from=&to=`           |
+| `/api/v1/orders/summary`     | GET    | `fetchOrdersSummary` | `?status=&startDate=&endDate=` |
+| `/api/v1/orders`             | POST   | `createOrder`        | body: `CreateOrder`            |
+| `/api/v1/orders/:id`         | PATCH  | `updateOrder`        | body: `UpdateOrder`            |
+| `/api/v1/orders/:id/deliver` | POST   | `deliverOrder`       | body: `DeliverOrder`           |
+| `/api/v1/orders/:id`         | DELETE | `deleteOrder`        | -                              |
 
 ## Contracts
 
@@ -77,6 +84,7 @@ receita ao entregar.
 - `CreateOrder` / `UpdateOrder` — payloads de criação/edição.
 - `DeliverOrder` — `{ registerIncome, paymentMethod? }`.
 - `OrderStatus` — `"pending"|"in_production"|"ready"|"done"|"cancelled"`.
+- `OrdersSummary` — `{ totalOrders, totalAmount, pending: { count, amount }, delivered: { count, amount } }`.
 
 ## Error Handling
 
@@ -109,3 +117,4 @@ receita ao entregar.
 - "Entregar" pode registrar a receita no financeiro (back cria lançamento income/sale).
 - Notificação local de entregas próximas (tipo `DELIVERY` → roteia `/agenda`).
 - 2026-05-30: lembrete agendado por encomenda (véspera 9h) via `reminders.ts`, complementar ao resumo diário. Chega com o app fechado; ligado ao ciclo de vida nos hooks + sync em `useDeliveryNotifier`.
+- 2026-05-30: resumo de valores (P2 #13) — `useOrdersSummary` + `fetchOrdersSummary` (`GET /summary`) e header `OrdersSummaryHeader` no topo da agenda ("Total dos pedidos" + a receber/recebido). Query key `["orders","summary",opts]` é invalidada automaticamente pelas mutações existentes (criar/entregar/excluir) por prefixo, já que todas invalidam `["orders"]`.

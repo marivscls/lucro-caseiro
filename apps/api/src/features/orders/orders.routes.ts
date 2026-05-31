@@ -39,6 +39,21 @@ export function createOrdersRouter(useCases: OrdersUseCases): Router {
     }
   });
 
+  router.get("/summary", async (req, res, next) => {
+    try {
+      const userId = getUserId(req);
+      const statusRaw = req.query.status as string | undefined;
+      const status = statusRaw ? OrderStatus.parse(statusRaw) : undefined;
+      const startDate = req.query.startDate as string | undefined;
+      const endDate = req.query.endDate as string | undefined;
+
+      const summary = await useCases.getSummary(userId, { status, startDate, endDate });
+      res.json(summary);
+    } catch (err) {
+      next(err);
+    }
+  });
+
   router.get("/:id", async (req, res, next) => {
     try {
       const userId = getUserId(req);

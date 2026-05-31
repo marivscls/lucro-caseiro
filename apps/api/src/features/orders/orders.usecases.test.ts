@@ -32,6 +32,7 @@ function makeRepo(overrides: Partial<IOrdersRepo> = {}): IOrdersRepo {
     findAll: () => Promise.resolve([makeOrder()]),
     update: (_userId, _id, data) => Promise.resolve(makeOrder({ ...data })),
     delete: () => Promise.resolve(true),
+    summarize: () => Promise.resolve([]),
     ...overrides,
   };
 }
@@ -94,6 +95,40 @@ describe("OrdersUseCases", () => {
       const result = await sut.deliver(USER_ID, "order-1", { registerIncome: true });
       expect(result.status).toBe("done");
       expect(createIncome).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("getSummary", () => {
+    it("shapes the aggregate rows into a summary", async () => {
+      const { sut } = makeSut({
+        repo: {
+          summarize: () =>
+            Promise.resolve([
+              { status: "pending", count: 2, amount: 100 },
+              { status: "done", count: 1, amount: 80 },
+              { status: "cancelled", count: 3, amount: 500 },
+            ]),
+        },
+      });
+
+      const result = await sut.getSummary(USER_ID, {});
+
+      expect(result.totalOrders).toBe(3);
+      expect(result.totalAmount).toBe(180);
+      expect(result.pending).toEqual({ count: 2, amount: 100 });
+      expect(result.delivered).toEqual({ count: 1, amount: 80 });
+    });
+
+    it("forwards filter opts to the repo", async () => {
+      const summarize = vi.fn(() => Promise.resolve([]));
+      const { sut } = makeSut({ repo: { summarize } });
+
+      await sut.getSummary(USER_ID, { status: "pending", startDate: "2026-05-01" });
+
+      expect(summarize).toHaveBeenCalledWith(USER_ID, {
+        status: "pending",
+        startDate: "2026-05-01",
+      });
     });
   });
 

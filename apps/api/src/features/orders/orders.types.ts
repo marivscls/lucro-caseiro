@@ -18,12 +18,43 @@ export interface FindAllOrdersOpts {
   to?: string;
 }
 
+export interface OrdersSummaryOpts {
+  status?: OrderStatus;
+  startDate?: string;
+  endDate?: string;
+}
+
+/** Contagem + soma de valores por bucket de status. */
+export interface OrdersSummaryBucket {
+  count: number;
+  amount: number;
+}
+
+/**
+ * Agregado das encomendas do usuario (exclui `cancelled`).
+ * `pending` = ativas (pending/in_production/ready); `delivered` = `done`.
+ */
+export interface OrdersSummary {
+  totalOrders: number;
+  totalAmount: number;
+  pending: OrdersSummaryBucket;
+  delivered: OrdersSummaryBucket;
+}
+
+/** Agregacao crua vinda do repo (uma linha por status). */
+export interface OrdersStatusAggregate {
+  status: OrderStatus;
+  count: number;
+  amount: number;
+}
+
 export interface IOrdersRepo {
   create(userId: string, data: CreateOrderData): Promise<Order>;
   findById(userId: string, id: string): Promise<Order | null>;
   findAll(userId: string, opts: FindAllOrdersOpts): Promise<Order[]>;
   update(userId: string, id: string, data: UpdateOrderData): Promise<Order | null>;
   delete(userId: string, id: string): Promise<boolean>;
+  summarize(userId: string, opts: OrdersSummaryOpts): Promise<OrdersStatusAggregate[]>;
 }
 
 // Registra receita ao entregar — implementado por FinanceUseCases no composition

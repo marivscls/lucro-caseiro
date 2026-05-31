@@ -2,6 +2,7 @@ import type {
   CreateOrder,
   DeliverOrder,
   Order,
+  OrdersSummary,
   OrderStatus,
   UpdateOrder,
 } from "@lucro-caseiro/contracts";
@@ -22,6 +23,19 @@ export async function fetchOrders(
   const suffix = query ? `?${query}` : "";
   const res = await apiClient<{ items: Order[] }>(`${BASE}${suffix}`, { token });
   return res.items;
+}
+
+export async function fetchOrdersSummary(
+  token: string,
+  opts?: { status?: OrderStatus; startDate?: string; endDate?: string },
+): Promise<OrdersSummary> {
+  const params = new URLSearchParams();
+  if (opts?.status) params.set("status", opts.status);
+  if (opts?.startDate) params.set("startDate", opts.startDate);
+  if (opts?.endDate) params.set("endDate", opts.endDate);
+  const query = params.toString();
+  const suffix = query ? `?${query}` : "";
+  return apiClient<OrdersSummary>(`${BASE}/summary${suffix}`, { token });
 }
 
 export async function createOrder(token: string, data: CreateOrder): Promise<Order> {

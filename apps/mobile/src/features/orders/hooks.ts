@@ -7,16 +7,37 @@ import type {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "../../shared/hooks/use-auth";
-import { createOrder, deleteOrder, deliverOrder, fetchOrders, updateOrder } from "./api";
+import {
+  createOrder,
+  deleteOrder,
+  deliverOrder,
+  fetchOrders,
+  fetchOrdersSummary,
+  updateOrder,
+} from "./api";
 import { cancelOrderReminder, scheduleOrderReminder } from "./reminders";
 
 const ORDERS_KEY = ["orders"];
+const ORDERS_SUMMARY_KEY = ["orders", "summary"];
 
 export function useOrders(opts?: { status?: OrderStatus; from?: string; to?: string }) {
   const { token } = useAuth();
   return useQuery({
     queryKey: [...ORDERS_KEY, opts],
     queryFn: () => fetchOrders(token!, opts),
+    enabled: !!token,
+  });
+}
+
+export function useOrdersSummary(opts?: {
+  status?: OrderStatus;
+  startDate?: string;
+  endDate?: string;
+}) {
+  const { token } = useAuth();
+  return useQuery({
+    queryKey: [...ORDERS_SUMMARY_KEY, opts],
+    queryFn: () => fetchOrdersSummary(token!, opts),
     enabled: !!token,
   });
 }

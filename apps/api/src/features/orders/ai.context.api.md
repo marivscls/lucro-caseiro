@@ -57,6 +57,7 @@ opcionalmente registrando a receita no financeiro.
 - `done`/`cancelled` são terminais (helper `isTerminal`).
 - `deliver` é idempotente: encomenda já `done` não registra receita de novo.
 - Toda query escopada por `userId`.
+- `summary` agrega via `COUNT`/`SUM` agrupado por `status` (user-scoped); `cancelled` fora dos totais; `amount` nulo = 0.
 
 ## Operations
 
@@ -71,6 +72,11 @@ api:
       path: /
       query: status?, from?, to?
       response: { items: Order[] }
+    - method: GET
+      path: /summary
+      query: status?, startDate?, endDate?   # filtra por deliveryDate
+      response: OrdersSummary
+      note: rota declarada ANTES de /:id (evita conflito de match)
     - method: POST
       path: /
       dto: CreateOrderDto
@@ -105,6 +111,10 @@ db:
 - **DeliverOrderDto**: `{ registerIncome: boolean, paymentMethod? }`
 - **Order**: `{ id, userId, clientId, clientName, title, deliveryDate, deliveryTime, status, amount, notes, saleId, createdAt }`
 - **OrderStatus**: `"pending"|"in_production"|"ready"|"done"|"cancelled"`
+- **OrdersSummary**: `{ totalOrders, totalAmount, pending: { count, amount }, delivered: { count, amount } }`
+  - `pending` = ativas (`pending`+`in_production`+`ready`); `delivered` = `done`.
+  - `cancelled` é ignorado (não entra em totais nem buckets — não é receita).
+  - `amount` nulo conta como 0; soma SQL convertida com `Number(...)`.
 
 ## Errors
 
@@ -133,9 +143,12 @@ db:
 - isTerminal: done/cancelled vs ativos
 - todayISO: formatação
 
+- buildOrdersSummary: vazio (zeros), buckets pending/delivered, ignora cancelled
+
 ### UseCases (orders.usecases.test.ts)
 
 - create válido / ValidationError; getById NotFound; deliver (sem receita / com receita / idempotente); remove NotFound
+- getSummary: shaping das linhas agregadas; encaminha filtros (status/startDate) ao repo
 
 ## Examples
 
@@ -155,3 +168,4 @@ POST /api/v1/orders/:id/deliver
 - v1 sem itens de produto (só title+amount). Conversão a venda real fica p/ v2.
 - `deliver` registra **receita no financeiro** (não cria uma `sale`, pois encomenda não tem itens na v1).
 - `orders` não acopla finance: usa `IIncomeRegistrar` injetada (boundary do CLAUDE.md).
+- 2026-05-30: endpoint `GET /summary` (P2 #13) — total dos pedidos + buckets a receber/recebido. Agregação `COUNT`/`SUM` agrupada por status no repo (`summarize`), shaping puro em `buildOrdersSummary` (domain). `cancelled` fora dos totais; `amount` nulo = 0; filtros opcionais por `status`/`startDate`/`endDate` (deliveryDate). Rota antes de `/:id`. `OrdersSummary` adicionado em `@lucro-caseiro/contracts`.

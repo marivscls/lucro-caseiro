@@ -1,12 +1,14 @@
 import type { DeliverOrder, Order } from "@lucro-caseiro/contracts";
 
 import { NotFoundError, ValidationError } from "../../shared/errors";
-import { todayISO, validateOrder } from "./orders.domain";
+import { buildOrdersSummary, todayISO, validateOrder } from "./orders.domain";
 import type {
   CreateOrderData,
   FindAllOrdersOpts,
   IIncomeRegistrar,
   IOrdersRepo,
+  OrdersSummary,
+  OrdersSummaryOpts,
   UpdateOrderData,
 } from "./orders.types";
 
@@ -30,6 +32,12 @@ export class OrdersUseCases {
 
   async list(userId: string, opts: FindAllOrdersOpts): Promise<Order[]> {
     return this.repo.findAll(userId, opts);
+  }
+
+  /** Resumo agregado das encomendas (total + a receber/recebido). */
+  async getSummary(userId: string, opts: OrdersSummaryOpts): Promise<OrdersSummary> {
+    const rows = await this.repo.summarize(userId, opts);
+    return buildOrdersSummary(rows);
   }
 
   async update(userId: string, id: string, data: UpdateOrderData): Promise<Order> {

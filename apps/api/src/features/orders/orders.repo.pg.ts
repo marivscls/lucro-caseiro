@@ -1,12 +1,14 @@
 import type { Order } from "@lucro-caseiro/contracts";
 import { clients, orders } from "@lucro-caseiro/database/schema";
-import { and, asc, eq, gte, lte } from "drizzle-orm";
+import { and, asc, count, eq, gte, lte, sum } from "drizzle-orm";
 
 import type { AppDatabase } from "../../shared/db";
 import type {
   CreateOrderData,
   FindAllOrdersOpts,
   IOrdersRepo,
+  OrdersStatusAggregate,
+  OrdersSummaryOpts,
   UpdateOrderData,
 } from "./orders.types";
 
@@ -79,6 +81,32 @@ export class OrdersRepoPg implements IOrdersRepo {
       .returning({ id: orders.id });
 
     return row ? this.findById(userId, id) : null;
+  }
+
+  async summarize(
+    userId: string,
+    opts: OrdersSummaryOpts,
+  ): Promise<OrdersStatusAggregate[]> {
+    const conditions = [eq(orders.userId, userId)];
+    if (opts.status) conditions.push(eq(orders.status, opts.status));
+    if (opts.startDate) conditions.push(gte(orders.deliveryDate, opts.startDate));
+    if (opts.endDate) conditions.push(lte(orders.deliveryDate, opts.endDate));
+
+    const rows = await this.db
+      .select({
+        status: orders.status,
+        count: count(),
+        amount: sum(orders.amount),
+      })
+      .from(orders)
+      .where(and(...conditions))
+      .groupBy(orders.status);
+
+    return rows.map((r) => ({
+      status: r.status,
+      count: Number(r.count ?? 0),
+      amount: Number(r.amount ?? 0),
+    }));
   }
 
   async delete(userId: string, id: string): Promise<boolean> {

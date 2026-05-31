@@ -43,3 +43,17 @@ export const OrderDto = z.object({
 });
 
 export type Order = z.infer<typeof OrderDto>;
+
+const OrdersSummaryBucketDto = z.object({
+  count: z.number(),
+  amount: z.number(),
+});
+
+export const OrdersSummaryDto = z.object({
+  totalOrders: z.number(),
+  totalAmount: z.number(),
+  pending: OrdersSummaryBucketDto,
+  delivered: OrdersSummaryBucketDto,
+});
+
+export type OrdersSummary = z.infer<typeof OrdersSummaryDto>;
