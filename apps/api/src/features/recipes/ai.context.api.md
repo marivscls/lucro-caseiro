@@ -45,19 +45,19 @@ Gerenciar receitas e ingredientes do negocio caseiro. Receitas contem lista de i
 
 ### Tabela: `recipes`
 
-| Coluna        | Tipo      | Constraints        |
-| ------------- | --------- | ------------------ |
-| id            | uuid      | PK                 |
-| userId        | uuid      | FK users, NOT NULL |
-| name          | varchar   | NOT NULL           |
-| category      | varchar   | NOT NULL           |
-| instructions  | text      | nullable           |
-| yieldQuantity | integer   | NOT NULL           |
-| yieldUnit     | varchar   | NOT NULL           |
-| photoUrl      | varchar   | nullable           |
-| totalCost     | decimal   | default "0"        |
-| costPerUnit   | decimal   | default "0"        |
-| createdAt     | timestamp | default now()      |
+| Coluna        | Tipo          | Constraints        |
+| ------------- | ------------- | ------------------ |
+| id            | uuid          | PK                 |
+| userId        | uuid          | FK users, NOT NULL |
+| name          | varchar       | NOT NULL           |
+| category      | varchar       | NOT NULL           |
+| instructions  | text          | nullable           |
+| yieldQuantity | numeric(10,3) | NOT NULL           |
+| yieldUnit     | varchar       | NOT NULL           |
+| photoUrl      | varchar       | nullable           |
+| totalCost     | decimal       | default "0"        |
+| costPerUnit   | decimal       | default "0"        |
+| createdAt     | timestamp     | default now()      |
 
 ### Tabela: `recipe_ingredients` (associacao)
 
@@ -92,7 +92,7 @@ Gerenciar receitas e ingredientes do negocio caseiro. Receitas contem lista de i
 - Nome da receita e obrigatorio (trim > 0)
 - Nome da receita deve ter no maximo 200 caracteres
 - Categoria e obrigatoria
-- Rendimento (yieldQuantity) deve ser maior que zero
+- Rendimento (yieldQuantity) deve ser maior que zero (aceita decimais, ex.: 1,5 kg)
 - Unidade de rendimento e obrigatoria
 - Receita deve ter pelo menos um insumo
 - totalCost = soma de (material.costPerUnit \* quantity) para cada insumo da receita
@@ -238,9 +238,9 @@ invariants:
 
 ### Recipes Domain (recipes.domain.test.ts)
 
-- validateRecipeData: nome vazio/> 200, categoria vazia, rendimento zero/negativo, unidade vazia, ingredientes vazios, acumulo
+- validateRecipeData: nome vazio/> 200, categoria vazia, rendimento zero/negativo, unidade vazia, ingredientes vazios, acumulo, rendimento decimal (1,5 kg)
 - calculateRecipeCost: unico, multiplos, vazio
-- calculateCostPerUnit: calculo correto, rendimento zero, rendimento negativo
+- calculateCostPerUnit: calculo correto, rendimento zero, rendimento negativo, rendimento decimal
 - scaleRecipe: multiplier inteiro, fracionario, preserva props, vazio
 
 ### Recipes UseCases (recipes.usecases.test.ts)
@@ -251,7 +251,7 @@ invariants:
 - update: valido, NotFoundError, ValidationError
 - remove: existente, NotFoundError
 - duplicate: cria copia "(copia)" com ingredientes, NotFoundError
-- scale: multiplicador inteiro, fracionario, NotFoundError
+- scale: multiplicador inteiro, fracionario, rendimento decimal (1,5 kg -> 3 kg), NotFoundError
 
 ### Ingredients Domain (ingredients.domain.test.ts)
 
@@ -298,3 +298,10 @@ POST /api/v1/ingredients
   (insumo) em vez de `ingredients`. Custo da linha = `material.costPerUnit * quantity`. A
   feature standalone Ingredients (`ingredients.*`) fica em desuso/aposentadoria; sera
   removida em chore posterior apos a migracao de dados.
+- **#9 Rendimento decimal** (migration `008_recipe_yield_decimal.sql`): `recipes.yield_quantity`
+  passou de `integer` para `numeric(10,3)` para aceitar decimais (ex.: 1,5 kg). Schema Drizzle
+  agora usa `decimal(10,3)`, portanto a coluna volta como **string**: o repo (`toRecipe`) faz
+  `Number(row.yieldQuantity)` e o insert/update usa `String(data.yieldQuantity)`. Contrato
+  `CreateRecipeDto.yieldQuantity` e `RecipeDto.yieldQuantity` deixaram de ser `.int()`
+  (agora `z.number().positive()`). `calculateCostPerUnit` e `scaleRecipe` ja eram puros em
+  number e seguem corretos com decimais.

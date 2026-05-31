@@ -1,12 +1,4 @@
-import {
-  decimal,
-  index,
-  integer,
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-} from "drizzle-orm/pg-core";
+import { decimal, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 import { users } from "./users";
 
@@ -20,7 +12,7 @@ export const recipes = pgTable(
     name: text("name").notNull(),
     category: text("category").notNull(),
     instructions: text("instructions"),
-    yieldQuantity: integer("yield_quantity").notNull(),
+    yieldQuantity: decimal("yield_quantity", { precision: 10, scale: 3 }).notNull(),
     yieldUnit: text("yield_unit").notNull(),
     photoUrl: text("photo_url"),
     totalCost: decimal("total_cost", { precision: 10, scale: 2 }).notNull().default("0"),

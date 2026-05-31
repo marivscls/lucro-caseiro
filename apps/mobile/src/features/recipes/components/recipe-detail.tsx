@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, View } from "react-native";
 
 import { useDeleteRecipe, useDuplicateRecipe, useRecipe, useScaleRecipe } from "../hooks";
+import { exportRecipePdf } from "../recipe-pdf";
 
 interface RecipeDetailProps {
   readonly recipeId: string;
@@ -212,6 +213,29 @@ export function RecipeDetail({
       </View>
 
       {onEdit && <Button title="Editar receita" size="lg" onPress={onEdit} />}
+
+      <Button
+        title="Imprimir / Compartilhar"
+        variant="outline"
+        size="lg"
+        onPress={() => {
+          void (async () => {
+            try {
+              await exportRecipePdf({
+                ...displayRecipe,
+                ingredients,
+                totalCost,
+                costPerUnit,
+              });
+            } catch {
+              Alert.alert(
+                "Erro",
+                "Não foi possível gerar o PDF da receita. Tente novamente.",
+              );
+            }
+          })();
+        }}
+      />
 
       <Button
         title="Duplicar receita"

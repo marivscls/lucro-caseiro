@@ -197,6 +197,16 @@ describe("RecipesUseCases", () => {
       expect(result.yieldQuantity).toBe(15);
     });
 
+    it("scales a recipe with decimal yield (ex: 1.5 kg -> 3 kg)", async () => {
+      const { sut } = makeSut({
+        findById: () =>
+          Promise.resolve(makeRecipe({ yieldQuantity: 1.5, yieldUnit: "kg" })),
+      });
+      const result = await sut.scale(USER_ID, "recipe-1", 2);
+
+      expect(result.yieldQuantity).toBe(3);
+    });
+
     it("throws NotFoundError when recipe does not exist", async () => {
       const { sut } = makeSut({
         findById: () => Promise.resolve(null),

@@ -23,6 +23,8 @@ Gerenciar receitas do negocio caseiro: criar, listar, visualizar detalhes, edita
 | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | `apps/mobile/src/features/recipes/api.ts`                            | Funcoes HTTP (fetchRecipes, fetchRecipe, createRecipe, updateRecipe, deleteRecipe, scaleRecipe, fetchIngredients, createIngredient) |
 | `apps/mobile/src/features/recipes/hooks.ts`                          | React Query hooks                                                                                                                   |
+| `apps/mobile/src/features/recipes/recipe-pdf.ts`                     | `buildRecipeHtml(recipe)` + `exportRecipePdf(recipe)` — gera PDF da receita e abre share/print (expo-print + expo-sharing)          |
+| `apps/mobile/src/features/recipes/yield-units.ts`                    | `YIELD_UNIT_PRESETS` — atalhos de unidade de rendimento (unidades, fatias, porções, kg, g)                                          |
 | `apps/mobile/src/features/recipes/components/create-recipe-form.tsx` | Formulario de criacao com ingredientes dinamicos                                                                                    |
 | `apps/mobile/src/features/recipes/components/edit-recipe-form.tsx`   | Formulario de edicao                                                                                                                |
 | `apps/mobile/src/features/recipes/components/recipe-card.tsx`        | Card de receita na listagem                                                                                                         |
@@ -50,13 +52,17 @@ Gerenciar receitas do negocio caseiro: criar, listar, visualizar detalhes, edita
 - Exibe nome, categoria, modo de preparo (Card), custo total e custo por unidade.
 - Seletor de escala (0.5x, 1x, 1.5x, 2x, 3x, 5x) via chips.
 - Tabela de ingredientes com nome, quantidade, unidade e custo.
-- Botoes de editar e excluir (com confirmacao Alert).
+- Botoes de editar, **imprimir/compartilhar (PDF)**, duplicar e excluir (com confirmacao Alert).
 - Usa `useScaleRecipe` para receita escalada.
+- **Imprimir / Compartilhar**: chama `exportRecipePdf` com a receita na escala atual
+  (`displayRecipe` + totais recalculados). Erro -> `Alert.alert("Erro", ...)`.
 
 ### `CreateRecipeForm`
 
 - **Props:** `{ onSuccess?: () => void }`
 - Campos: nome (obrigatorio), categoria (obrigatorio), modo de preparo, rendimento (quantidade + unidade), ingredientes dinamicos (nome, quantidade, unidade).
+- Rendimento aceita decimais (`keyboardType="decimal-pad"`, parse vírgula->ponto).
+- Unidade de rendimento tem chips de atalho (`YIELD_UNIT_PRESETS`: unidades · fatias · porções · kg · g) + input livre.
 - Adicionar/remover ingredientes.
 - Checa limite freemium via `useLimitCheck("recipes")`.
 
@@ -133,3 +139,8 @@ Gerenciar receitas do negocio caseiro: criar, listar, visualizar detalhes, edita
 - Escala de receita delegada ao backend (GET /recipes/:id/scale?multiplier=N).
 - Ingredientes no create usam nome como `ingredientId` (simplificacao para MVP).
 - Limite freemium: 5 receitas no Free.
+- **#9 Rendimento decimal**: forms aceitam decimais (decimal-pad + vírgula->ponto) e chips
+  de atalho de unidade (`yield-units.ts`). Backend armazena `numeric(10,3)`.
+- **#11 Imprimir / Compartilhar (PDF)**: `recipe-pdf.ts` reusa a mesma abordagem de `labels`
+  (`expo-print` + `expo-sharing`) — `printToFileAsync` + `shareAsync`, fallback `printAsync`.
+  Botao no `RecipeDetail`. Client-side, sem mudanca de API.

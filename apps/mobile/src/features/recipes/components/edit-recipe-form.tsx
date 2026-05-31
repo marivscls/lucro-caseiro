@@ -1,8 +1,9 @@
 import type { Recipe } from "@lucro-caseiro/contracts";
-import { Button, Input, Typography } from "@lucro-caseiro/ui";
+import { Button, Chip, Input, Typography } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
 import { Alert, ScrollView, View } from "react-native";
 
+import { YIELD_UNIT_PRESETS } from "../yield-units";
 import { useUpdateRecipe } from "../hooks";
 import {
   RecipeMaterialsEditor,
@@ -107,6 +108,17 @@ export function EditRecipeForm({ recipe, onSuccess }: EditRecipeFormProps) {
         <View style={{ flex: 1 }}>
           <Input label="Unidade" value={yieldUnit} onChangeText={setYieldUnit} />
         </View>
+      </View>
+
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        {YIELD_UNIT_PRESETS.map((preset) => (
+          <Chip
+            key={preset}
+            label={preset}
+            selected={yieldUnit.trim() === preset}
+            onPress={() => setYieldUnit(preset)}
+          />
+        ))}
       </View>
 
       <RecipeMaterialsEditor lines={lines} onChange={setLines} />

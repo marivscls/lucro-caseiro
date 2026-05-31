@@ -66,6 +66,13 @@ describe("validateRecipeData", () => {
     expect(errors).toContain("Unidade de rendimento é obrigatória");
   });
 
+  it("accepts decimal yield quantity (ex: 1.5 kg)", () => {
+    const errors = validateRecipeData(
+      makeRecipeData({ yieldQuantity: 1.5, yieldUnit: "kg" }),
+    );
+    expect(errors).toEqual([]);
+  });
+
   it("rejects empty ingredients list", () => {
     const errors = validateRecipeData(makeRecipeData({ ingredients: [] }));
     expect(errors).toContain("Receita deve ter pelo menos um insumo");
@@ -118,6 +125,10 @@ describe("calculateCostPerUnit", () => {
 
   it("returns 0 when yield is negative", () => {
     expect(calculateCostPerUnit(10, -1)).toBe(0);
+  });
+
+  it("calculates cost per unit with decimal yield (ex: 1.5 kg)", () => {
+    expect(calculateCostPerUnit(12, 1.5)).toBeCloseTo(8, 5);
   });
 });
 

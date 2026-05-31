@@ -1,8 +1,9 @@
-import { Button, Input, Typography } from "@lucro-caseiro/ui";
+import { Button, Chip, Input, Typography } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
 import { Alert, ScrollView, View } from "react-native";
 
 import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
+import { YIELD_UNIT_PRESETS } from "../yield-units";
 import { useCreateRecipe } from "../hooks";
 import {
   RecipeMaterialsEditor,
@@ -109,7 +110,7 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
         <View style={{ flex: 1 }}>
           <Input
             label="Rendimento"
-            placeholder="Ex: 30"
+            placeholder="Ex: 30 ou 1,5"
             value={yieldQuantity}
             onChangeText={setYieldQuantity}
             keyboardType="decimal-pad"
@@ -123,6 +124,17 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
             onChangeText={setYieldUnit}
           />
         </View>
+      </View>
+
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        {YIELD_UNIT_PRESETS.map((preset) => (
+          <Chip
+            key={preset}
+            label={preset}
+            selected={yieldUnit.trim() === preset}
+            onPress={() => setYieldUnit(preset)}
+          />
+        ))}
       </View>
 
       <RecipeMaterialsEditor lines={lines} onChange={setLines} />

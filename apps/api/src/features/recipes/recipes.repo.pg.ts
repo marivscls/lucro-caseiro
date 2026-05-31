@@ -16,7 +16,7 @@ export class RecipesRepoPg implements IRecipesRepo {
         name: data.name,
         category: data.category,
         instructions: data.instructions ?? null,
-        yieldQuantity: data.yieldQuantity,
+        yieldQuantity: String(data.yieldQuantity),
         yieldUnit: data.yieldUnit,
         photoUrl: data.photoUrl ?? null,
         totalCost: "0",
@@ -128,7 +128,8 @@ export class RecipesRepoPg implements IRecipesRepo {
     if (data.name !== undefined) updateData.name = data.name;
     if (data.category !== undefined) updateData.category = data.category;
     if (data.instructions !== undefined) updateData.instructions = data.instructions;
-    if (data.yieldQuantity !== undefined) updateData.yieldQuantity = data.yieldQuantity;
+    if (data.yieldQuantity !== undefined)
+      updateData.yieldQuantity = String(data.yieldQuantity);
     if (data.yieldUnit !== undefined) updateData.yieldUnit = data.yieldUnit;
     if (data.photoUrl !== undefined) updateData.photoUrl = data.photoUrl;
 
@@ -210,8 +211,9 @@ export class RecipesRepoPg implements IRecipesRepo {
       };
     });
 
+    const yieldQuantity = Number(row.yieldQuantity);
     const totalCost = recipeIngredientsList.reduce((sum, line) => sum + line.cost, 0);
-    const costPerUnit = row.yieldQuantity > 0 ? totalCost / row.yieldQuantity : 0;
+    const costPerUnit = yieldQuantity > 0 ? totalCost / yieldQuantity : 0;
 
     return {
       id: row.id,
@@ -219,7 +221,7 @@ export class RecipesRepoPg implements IRecipesRepo {
       name: row.name,
       category: row.category,
       instructions: row.instructions,
-      yieldQuantity: row.yieldQuantity,
+      yieldQuantity,
       yieldUnit: row.yieldUnit,
       photoUrl: row.photoUrl,
       totalCost,
