@@ -1,4 +1,5 @@
 import React from "react";
+import { Stack } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useTheme } from "@lucro-caseiro/ui";
@@ -10,6 +11,7 @@ export default function FinanceScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <Stack.Screen options={{ headerShown: false }} />
       <FinanceDashboard />
     </SafeAreaView>
   );

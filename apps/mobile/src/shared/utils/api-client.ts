@@ -1,5 +1,21 @@
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3001";
 
+/**
+ * Erro de resposta da API. Carrega o status HTTP e o `code` do backend
+ * (ex.: "LIMIT_EXCEEDED", "VALIDATION_ERROR") para que a UI possa reagir
+ * de forma especifica — ex.: abrir o paywall quando o plano gratuito esgota.
+ */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly code?: string,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
 interface RequestOptions {
   method?: string;
   body?: unknown;
@@ -28,8 +44,21 @@ export async function apiClient<T>(
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: "Erro desconhecido" }));
-    throw new Error(error.message ?? `HTTP ${response.status}`);
+    throw new ApiError(
+      error.message ?? `HTTP ${response.status}`,
+      response.status,
+      error.error,
+    );
   }
 
-  return response.json() as Promise<T>;
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  const text = await response.text();
+  if (!text) {
+    return undefined as T;
+  }
+
+  return JSON.parse(text) as T;
 }

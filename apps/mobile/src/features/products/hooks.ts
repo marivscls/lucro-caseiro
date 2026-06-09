@@ -15,6 +15,7 @@ const PRODUCTS_KEY = ["products"];
 
 export function useProducts(opts?: {
   page?: number;
+  limit?: number;
   category?: string;
   search?: string;
 }) {

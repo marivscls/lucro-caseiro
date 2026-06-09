@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Lucro Caseiro: Negocio em Casa",
-    "slug": "lucro-caseiro",
+    "slug": "lucro-caseiro-dev",
     "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -21,7 +21,8 @@
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#1E1814"
       },
-      "package": "br.com.orionseven.lucrocaseiro"
+      "package": "br.com.orionseven.lucrocaseiro",
+      "permissions": ["android.permission.RECORD_AUDIO"]
     },
     "web": {
       "bundler": "metro",
@@ -57,12 +58,13 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "83a64ebe-a3e6-408a-b0f9-a076445bfa68"
+        "projectId": "f1dbfa95-c134-44cd-855c-52fc8bb1c3f3"
       },
       "admob": {
         "bannerUnitIdAndroid": "ca-app-pub-8304398247631710/6992108312",
         "interstitialUnitIdAndroid": "ca-app-pub-8304398247631710/5985224969"
       }
-    }
+    },
+    "owner": "marivscls5"
   }
 }

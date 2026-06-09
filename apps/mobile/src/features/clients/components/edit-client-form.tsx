@@ -1,12 +1,11 @@
 import type { Client } from "@lucro-caseiro/contracts";
 import { Button, Input, Typography, spacing } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
-import { Alert, ScrollView } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, View } from "react-native";
 
 import { brToIso, isoToBR, maskDateBR } from "../../../shared/utils/date";
 import { isValidBrazilPhone, maskPhoneBR } from "../../../shared/utils/phone";
 import { useUpdateClient } from "../hooks";
-import { TagInput } from "./tag-input";
 
 interface EditClientFormProps {
   client: Client;
@@ -19,13 +18,12 @@ export function EditClientForm({ client, onSuccess }: Readonly<EditClientFormPro
   const [address, setAddress] = useState(client.address ?? "");
   const [birthday, setBirthday] = useState(isoToBR(client.birthday));
   const [notes, setNotes] = useState(client.notes ?? "");
-  const [tags, setTags] = useState<string[]>(client.tags ?? []);
 
   const updateClient = useUpdateClient();
 
   async function handleSubmit() {
     if (!name.trim()) {
-      Alert.alert("Opa!", "Coloque o nome do cliente");
+      Alert.alert("Opa!", "Coloque o nome do cliente.");
       return;
     }
 
@@ -44,10 +42,9 @@ export function EditClientForm({ client, onSuccess }: Readonly<EditClientFormPro
           address: address.trim() || undefined,
           birthday: brToIso(birthday),
           notes: notes.trim() || undefined,
-          tags: tags.length > 0 ? tags : undefined,
         },
       });
-      Alert.alert("Cliente atualizado!", `${name} foi atualizado`);
+      Alert.alert("Cliente atualizado!", `${name} foi atualizado.`);
       onSuccess?.();
     } catch (e: unknown) {
       const message =
@@ -59,60 +56,74 @@ export function EditClientForm({ client, onSuccess }: Readonly<EditClientFormPro
   }
 
   return (
-    <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
-      <Typography variant="h2">Editar cliente</Typography>
-
-      <Input
-        label="Nome do cliente"
-        placeholder="Ex: Maria Silva, Joao..."
-        value={name}
-        onChangeText={setName}
-        autoFocus
-      />
-
-      <Input
-        label="Telefone (opcional)"
-        placeholder="Ex: (11) 99999-9999"
-        value={phone}
-        onChangeText={(v) => setPhone(maskPhoneBR(v))}
-        keyboardType="phone-pad"
-      />
-
-      <Input
-        label="Endereço (opcional)"
-        placeholder="Ex: Rua das Flores, 123"
-        value={address}
-        onChangeText={setAddress}
-      />
-
-      <Input
-        label="Data de nascimento (opcional)"
-        placeholder="DD/MM/AAAA"
-        value={birthday}
-        onChangeText={(v) => setBirthday(maskDateBR(v))}
-        keyboardType="number-pad"
-      />
-
-      <Input
-        label="Observações (opcional)"
-        placeholder="Anotacoes sobre o cliente..."
-        value={notes}
-        onChangeText={setNotes}
-        multiline
-        numberOfLines={3}
-        style={{ height: 100, textAlignVertical: "top", paddingTop: 12 }}
-      />
-
-      <TagInput tags={tags} onChange={setTags} />
-
-      <Button
-        title="Salvar alteracoes"
-        size="lg"
-        onPress={() => {
-          void handleSubmit();
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      style={{ flex: 1 }}
+    >
+      <View
+        style={{
+          flex: 1,
+          paddingHorizontal: spacing.xl,
+          paddingBottom: spacing.xl,
+          gap: spacing.md,
         }}
-        loading={updateClient.isPending}
-      />
-    </ScrollView>
+      >
+        <Typography variant="h2" style={{ marginBottom: spacing.sm }}>
+          Editar cliente
+        </Typography>
+
+        <Input
+          label="Nome do cliente"
+          placeholder="Ex: Maria Silva, João Pereira..."
+          value={name}
+          onChangeText={setName}
+          autoFocus
+        />
+
+        <Input
+          label="Telefone (opcional)"
+          placeholder="Ex: (11) 99999-9999"
+          value={phone}
+          onChangeText={(v) => setPhone(maskPhoneBR(v))}
+          keyboardType="phone-pad"
+        />
+
+        <Input
+          label="Endereço (opcional)"
+          placeholder="Ex: Rua das Flores, 123"
+          value={address}
+          onChangeText={setAddress}
+        />
+
+        <Input
+          label="Data de nascimento (opcional)"
+          placeholder="DD/MM/AAAA"
+          value={birthday}
+          onChangeText={(v) => setBirthday(maskDateBR(v))}
+          keyboardType="number-pad"
+        />
+
+        <Input
+          label="Observações (opcional)"
+          placeholder="Anotações sobre o cliente..."
+          value={notes}
+          onChangeText={(value) => setNotes(value.slice(0, 200))}
+          multiline
+          numberOfLines={2}
+          style={{ height: 78, textAlignVertical: "top", paddingTop: 12 }}
+        />
+
+        <View style={{ flex: 1 }} />
+
+        <Button
+          title="Salvar alterações"
+          size="lg"
+          onPress={() => {
+            void handleSubmit();
+          }}
+          loading={updateClient.isPending}
+        />
+      </View>
+    </KeyboardAvoidingView>
   );
 }
