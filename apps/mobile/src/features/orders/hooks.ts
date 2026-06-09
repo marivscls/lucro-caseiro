@@ -1,6 +1,7 @@
 import type {
   CreateOrder,
   DeliverOrder,
+  Order,
   OrderStatus,
   UpdateOrder,
 } from "@lucro-caseiro/contracts";
@@ -60,6 +61,25 @@ export function useUpdateOrder() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateOrder }) =>
       updateOrder(token!, id, data),
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: ORDERS_KEY });
+      const snapshots = queryClient.getQueriesData<Order[]>({ queryKey: ORDERS_KEY });
+
+      for (const [queryKey, orders] of snapshots) {
+        if (!orders) continue;
+        queryClient.setQueryData<Order[]>(
+          queryKey,
+          orders.map((order) => (order.id === id ? { ...order, ...data } : order)),
+        );
+      }
+
+      return { snapshots };
+    },
+    onError: (_error, _variables, context) => {
+      for (const [queryKey, orders] of context?.snapshots ?? []) {
+        queryClient.setQueryData(queryKey, orders);
+      }
+    },
     onSuccess: (order) => {
       void queryClient.invalidateQueries({ queryKey: ORDERS_KEY });
       // Reagenda (data/status podem ter mudado).

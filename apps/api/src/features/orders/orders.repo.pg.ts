@@ -26,6 +26,7 @@ export class OrdersRepoPg implements IOrdersRepo {
         deliveryTime: data.deliveryTime ?? null,
         status: data.status ?? "pending",
         amount: data.amount != null ? String(data.amount) : null,
+        photoUrl: data.photoUrl ?? null,
         notes: data.notes ?? null,
       })
       .returning();
@@ -67,6 +68,7 @@ export class OrdersRepoPg implements IOrdersRepo {
     if (data.clientId !== undefined) set.clientId = data.clientId ?? null;
     if (data.amount !== undefined)
       set.amount = data.amount != null ? String(data.amount) : null;
+    if (data.photoUrl !== undefined) set.photoUrl = data.photoUrl ?? null;
     if (data.notes !== undefined) set.notes = data.notes ?? null;
     if (data.status !== undefined) set.status = data.status;
 
@@ -129,6 +131,7 @@ export class OrdersRepoPg implements IOrdersRepo {
       deliveryTime: row.deliveryTime,
       status: row.status,
       amount: row.amount != null ? Number(row.amount) : null,
+      photoUrl: row.photoUrl,
       notes: row.notes,
       saleId: row.saleId,
       createdAt: row.createdAt.toISOString(),

@@ -16,6 +16,7 @@ function makeOrder(overrides: Partial<Order> = {}): Order {
     deliveryTime: null,
     status: "pending",
     amount: null,
+    photoUrl: null,
     notes: null,
     saleId: null,
     createdAt: "2026-05-01T00:00:00.000Z",

@@ -11,6 +11,7 @@ export const CreateOrderDto = z.object({
     .optional(),
   clientId: z.string().uuid().optional(),
   amount: z.number().positive().max(MAX_MONEY).optional(),
+  photoUrl: z.string().url().nullable().optional(),
   notes: z.string().max(500).optional(),
   status: OrderStatus.optional(),
 });
@@ -37,6 +38,7 @@ export const OrderDto = z.object({
   deliveryTime: z.string().nullable(),
   status: OrderStatus,
   amount: z.number().nullable(),
+  photoUrl: z.string().nullable(),
   notes: z.string().nullable(),
   saleId: z.string().uuid().nullable(),
   createdAt: z.string().datetime(),

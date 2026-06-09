@@ -35,6 +35,7 @@ export const orders = pgTable(
     deliveryTime: text("delivery_time"),
     status: orderStatusEnum("status").notNull().default("pending"),
     amount: decimal("amount", { precision: 10, scale: 2 }),
+    photoUrl: text("photo_url"),
     notes: text("notes"),
     saleId: uuid("sale_id").references(() => sales.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

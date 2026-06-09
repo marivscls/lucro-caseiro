@@ -18,6 +18,7 @@ function makeOrder(overrides: Partial<Order> = {}): Order {
     deliveryTime: null,
     status: "pending",
     amount: 80,
+    photoUrl: null,
     notes: null,
     saleId: null,
     createdAt: new Date().toISOString(),

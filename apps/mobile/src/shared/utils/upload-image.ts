@@ -38,3 +38,7 @@ export function uploadProductImage(localUri: string): Promise<string> {
 export function uploadLabelLogo(localUri: string): Promise<string> {
   return uploadImage(localUri, "logo-");
 }
+
+export function uploadOrderImage(localUri: string): Promise<string> {
+  return uploadImage(localUri, "order-");
+}
