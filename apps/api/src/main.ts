@@ -1,8 +1,12 @@
 import cors from "cors";
 import express, { type Express } from "express";
 import Stripe from "stripe";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 
 import { config } from "./config";
+import { createAccountRouter } from "./features/account/account.routes";
+import { AccountRepoPg } from "./features/account/account.repo.pg";
+import { AccountUseCases } from "./features/account/account.usecases";
 import { createClientsRouter } from "./features/clients/clients.routes";
 import { ClientsRepoPg } from "./features/clients/clients.repo.pg";
 import { ClientsUseCases } from "./features/clients/clients.usecases";
@@ -51,6 +55,7 @@ import {
   createStripeWebhookRouter,
 } from "./features/payments/stripe.routes";
 import { StripeUseCases } from "./features/payments/stripe.usecases";
+import { ServiceUnavailableError } from "./shared/errors";
 import { errorHandler } from "./shared/middleware/error-handler";
 import { freemiumGuard } from "./shared/middleware/freemium-guard";
 import { healthRouter } from "./shared/health";
@@ -119,6 +124,31 @@ const salesUseCases = new SalesUseCases(
     },
   },
 );
+// Exclusao de conta: usa um client Supabase com service-role key para remover
+// o usuario do Auth. A key e opcional no boot; se ausente, deleteAuthUser lanca
+// ServiceUnavailableError (503) em vez de derrubar o servidor.
+const supabaseAdmin = config.supabaseServiceRoleKey
+  ? createSupabaseClient(config.supabaseUrl, config.supabaseServiceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    })
+  : null;
+const accountRepo = new AccountRepoPg(db);
+const accountUseCases = new AccountUseCases(accountRepo, {
+  deleteAuthUser: async (userId: string) => {
+    if (!supabaseAdmin) {
+      throw new ServiceUnavailableError(
+        "Exclusão de conta indisponível no momento. Tente novamente mais tarde.",
+      );
+    }
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    if (error) {
+      throw new ServiceUnavailableError(
+        "Não foi possível excluir a conta agora. Tente novamente mais tarde.",
+      );
+    }
+  },
+});
+
 const financeUseCases = new FinanceUseCases(financeRepo);
 const ingredientsUseCases = new IngredientsUseCases(ingredientsRepo);
 const labelsUseCases = new LabelsUseCases(labelsRepo);
@@ -161,6 +191,7 @@ app.use(express.json());
 app.use("/api/v1/health", healthRouter);
 
 // Feature routes
+app.use("/api/v1/account", createAccountRouter(accountUseCases));
 app.use("/api/v1/products", createProductsRouter(productsUseCases));
 app.use(
   "/api/v1/clients",

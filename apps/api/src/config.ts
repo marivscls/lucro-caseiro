@@ -7,6 +7,9 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1),
   SUPABASE_URL: z.string().url(),
   SUPABASE_ANON_KEY: z.string().min(1),
+  // Service-role key: necessaria APENAS para exclusao de conta (auth.admin).
+  // Opcional para o boot; sem ela, DELETE /account responde 503.
+  SUPABASE_SERVICE_ROLE_KEY: z.string().default(""),
   CORS_ORIGIN: z.string().default("*"),
   GOOGLE_PLAY_PACKAGE_NAME: z.string().default("br.com.orionseven.lucrocaseiro"),
   GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: z.string().default(""),
@@ -31,6 +34,7 @@ export const config = {
   databaseUrl: parsed.data.DATABASE_URL,
   supabaseUrl: parsed.data.SUPABASE_URL,
   supabaseAnonKey: parsed.data.SUPABASE_ANON_KEY,
+  supabaseServiceRoleKey: parsed.data.SUPABASE_SERVICE_ROLE_KEY,
   corsOrigin: parsed.data.CORS_ORIGIN,
   googlePlayPackageName: parsed.data.GOOGLE_PLAY_PACKAGE_NAME,
   googlePlayServiceAccountJson: parsed.data.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON,

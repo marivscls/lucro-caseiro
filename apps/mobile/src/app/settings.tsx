@@ -24,6 +24,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "../shared/hooks/use-auth";
 import { maskPhoneBR } from "../shared/utils/phone";
+import { useDeleteAccount } from "../features/account/hooks";
 import { ProlaboreGoalForm } from "../features/goals/components/prolabore-goal-form";
 import { formatCurrency } from "../features/goals/domain";
 import { useProlaboreStatus } from "../features/goals/hooks";
@@ -41,6 +42,7 @@ export default function SettingsScreen() {
   const updateProfile = useUpdateProfile();
   const { restore, loading: subscriptionLoading } = useSubscription();
   const { data: prolabore } = useProlaboreStatus();
+  const deleteAccount = useDeleteAccount();
 
   const [showGoal, setShowGoal] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
@@ -95,6 +97,51 @@ export default function SettingsScreen() {
         },
       },
     ]);
+  }
+
+  async function runDeleteAccount() {
+    try {
+      await deleteAccount.mutateAsync();
+      // Sucesso: o hook ja encerrou a sessao e limpou o cache.
+      router.replace("/(auth)/login");
+    } catch (e: unknown) {
+      const message =
+        e instanceof Error
+          ? e.message
+          : "Não foi possível excluir a conta. Tente novamente.";
+      Alert.alert("Erro", message);
+    }
+  }
+
+  function handleDeleteAccount() {
+    // Confirmacao em dois toques: aviso claro de que e definitivo.
+    Alert.alert(
+      "Excluir conta",
+      "Isso apaga DEFINITIVAMENTE sua conta e todos os seus dados (vendas, clientes, finanças, produtos e receitas). Não tem como desfazer.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Continuar",
+          style: "destructive",
+          onPress: () => {
+            Alert.alert(
+              "Tem certeza?",
+              "Esta é sua última chance. Ao confirmar, sua conta e todos os dados serão apagados para sempre.",
+              [
+                { text: "Cancelar", style: "cancel" },
+                {
+                  text: "Excluir minha conta",
+                  style: "destructive",
+                  onPress: () => {
+                    void runDeleteAccount();
+                  },
+                },
+              ],
+            );
+          },
+        },
+      ],
+    );
   }
 
   async function openPrivacyPolicy() {
@@ -409,6 +456,31 @@ export default function SettingsScreen() {
             Sair da conta
           </Typography>
           <Ionicons name="log-out-outline" size={20} color={theme.colors.alert} />
+        </Pressable>
+
+        {/* Delete account (zona de perigo) */}
+        <Pressable
+          onPress={handleDeleteAccount}
+          disabled={deleteAccount.isPending}
+          accessibilityRole="button"
+          accessibilityLabel="Excluir conta definitivamente"
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingVertical: 16,
+            paddingHorizontal: 4,
+            opacity: deleteAccount.isPending ? 0.6 : 1,
+          }}
+        >
+          <Typography variant="body" color={theme.colors.alert}>
+            {deleteAccount.isPending ? "Excluindo conta..." : "Excluir conta"}
+          </Typography>
+          {deleteAccount.isPending ? (
+            <ActivityIndicator size="small" color={theme.colors.alert} />
+          ) : (
+            <Ionicons name="trash-outline" size={20} color={theme.colors.alert} />
+          )}
         </Pressable>
 
         {/* Version */}
