@@ -105,6 +105,7 @@ export class SalesRepoPg implements ISalesRepo {
         unitPrice: saleItems.unitPrice,
         subtotal: saleItems.subtotal,
         productName: products.name,
+        productPhotoUrl: products.photoUrl,
       })
       .from(saleItems)
       .leftJoin(products, eq(saleItems.productId, products.id))
@@ -179,6 +180,7 @@ export class SalesRepoPg implements ISalesRepo {
         unitPrice: string;
         subtotal: string;
         productName: string | null;
+        productPhotoUrl: string | null;
       }>
     > = {};
 
@@ -192,6 +194,7 @@ export class SalesRepoPg implements ISalesRepo {
           unitPrice: saleItems.unitPrice,
           subtotal: saleItems.subtotal,
           productName: products.name,
+          productPhotoUrl: products.photoUrl,
         })
         .from(saleItems)
         .leftJoin(products, eq(saleItems.productId, products.id))
@@ -304,6 +307,7 @@ export class SalesRepoPg implements ISalesRepo {
       unitPrice: string;
       subtotal: string;
       productName: string | null;
+      productPhotoUrl: string | null;
     }>,
     clientName: string | null,
   ): Sale {
@@ -320,6 +324,7 @@ export class SalesRepoPg implements ISalesRepo {
         id: item.id,
         productId: item.productId,
         productName: item.productName ?? "Produto removido",
+        productPhotoUrl: item.productPhotoUrl,
         quantity: Number(item.quantity),
         unitPrice: Number(item.unitPrice),
         subtotal: Number(item.subtotal),

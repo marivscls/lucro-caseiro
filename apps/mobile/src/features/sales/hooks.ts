@@ -52,6 +52,9 @@ export function useCreateSale() {
       // A venda da baixa no estoque no backend; revalida produtos para
       // refletir o novo saldo e disparar o alerta de estoque baixo.
       void queryClient.invalidateQueries({ queryKey: ["products"] });
+      // Atualiza a contagem de limites (vendas do mes) para o gate do plano
+      // gratuito bloquear na hora certa, sem depender de contagem defasada.
+      void queryClient.invalidateQueries({ queryKey: ["subscription"] });
     },
   });
 }

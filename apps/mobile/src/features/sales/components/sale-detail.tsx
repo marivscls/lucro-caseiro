@@ -1,8 +1,8 @@
-import type { Sale } from "@lucro-caseiro/contracts";
+﻿import type { Sale } from "@lucro-caseiro/contracts";
 import { Badge, Button, Card, Typography, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Alert, ScrollView, View } from "react-native";
+import { Alert, Image, ScrollView, View } from "react-native";
 
 import { formatCurrency } from "../../../shared/utils/format";
 import { isValidBrazilPhone } from "../../../shared/utils/phone";
@@ -147,8 +147,32 @@ export function SaleDetail({
               flexDirection: "row",
               justifyContent: "space-between",
               alignItems: "center",
+              gap: 12,
             }}
           >
+            <View
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 12,
+                overflow: "hidden",
+                backgroundColor: theme.colors.surface,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {item.productPhotoUrl ? (
+                <Image
+                  source={{ uri: item.productPhotoUrl }}
+                  style={{ width: "100%", height: "100%" }}
+                  resizeMode="cover"
+                />
+              ) : (
+                <Typography variant="h3" color={theme.colors.textSecondary}>
+                  {item.productName.charAt(0).toUpperCase()}
+                </Typography>
+              )}
+            </View>
             <View style={{ flex: 1, gap: 2 }}>
               <Typography variant="body">{item.productName}</Typography>
               <Typography variant="caption">

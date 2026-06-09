@@ -49,6 +49,7 @@ export const SaleDto = z.object({
     SaleItemDto.extend({
       id: z.string().uuid(),
       productName: z.string(),
+      productPhotoUrl: z.string().nullable().optional(),
       subtotal: z.number(),
     }),
   ),
