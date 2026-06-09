@@ -28,9 +28,15 @@ const menuItems = [
   },
   {
     title: "Produtos",
-    description: "Seu catálogo",
+    description: "Seus produtos e estoque",
     icon: "cube-outline" as const,
     route: "/products" as const,
+  },
+  {
+    title: "Catálogo online",
+    description: "Link para compartilhar com clientes",
+    icon: "storefront-outline" as const,
+    route: "/catalog" as const,
   },
   {
     title: "Insumos",

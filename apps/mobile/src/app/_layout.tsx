@@ -140,6 +140,15 @@ function AppContent() {
           }}
         />
         <Stack.Screen
+          name="catalog"
+          options={{
+            headerShown: true,
+            title: "Catálogo online",
+            headerStyle: { backgroundColor: theme.colors.background },
+            headerTintColor: theme.colors.text,
+          }}
+        />
+        <Stack.Screen
           name="fiado"
           options={{
             headerShown: true,

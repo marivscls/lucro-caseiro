@@ -7,6 +7,12 @@ import { config } from "./config";
 import { createAccountRouter } from "./features/account/account.routes";
 import { AccountRepoPg } from "./features/account/account.repo.pg";
 import { AccountUseCases } from "./features/account/account.usecases";
+import {
+  createCatalogRouter,
+  createPublicCatalogRouter,
+} from "./features/catalog/catalog.routes";
+import { CatalogRepoPg } from "./features/catalog/catalog.repo.pg";
+import { CatalogUseCases } from "./features/catalog/catalog.usecases";
 import { createClientsRouter } from "./features/clients/clients.routes";
 import { ClientsRepoPg } from "./features/clients/clients.repo.pg";
 import { ClientsUseCases } from "./features/clients/clients.usecases";
@@ -149,6 +155,7 @@ const accountUseCases = new AccountUseCases(accountRepo, {
   },
 });
 
+const catalogUseCases = new CatalogUseCases(new CatalogRepoPg(db));
 const financeUseCases = new FinanceUseCases(financeRepo);
 const ingredientsUseCases = new IngredientsUseCases(ingredientsRepo);
 const labelsUseCases = new LabelsUseCases(labelsRepo);
@@ -217,6 +224,9 @@ app.use(
   "/api/v1/packaging",
   createPackagingRouter(packagingUseCases, freemiumGuard(subscriptionRepo, "packaging")),
 );
+app.use("/api/v1/catalog", createCatalogRouter(catalogUseCases));
+// Catalogo publico (sem auth): pagina HTML compartilhavel em /c/:slug.
+app.use("/c", createPublicCatalogRouter(catalogUseCases));
 app.use("/api/v1/subscription", createSubscriptionRouter(subscriptionUseCases));
 app.use("/api/v1/payments/stripe", createStripeCheckoutRouter(stripeUseCases));
 
