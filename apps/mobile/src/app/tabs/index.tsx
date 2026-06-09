@@ -16,6 +16,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useBirthdays } from "../../features/clients/hooks";
+import { useFinanceSummary } from "../../features/finance/hooks";
 import { ProlaboreGoalForm } from "../../features/goals/components/prolabore-goal-form";
 import { prolaboreMessage } from "../../features/goals/domain";
 import { useProlaboreStatus } from "../../features/goals/hooks";
@@ -258,6 +259,8 @@ export default function HomeScreen() {
   const { data: birthdays } = useBirthdays();
   const { data: lowStockProducts } = useLowStockProducts();
   const { data: orders } = useOrders();
+  const { data: financeSummary } = useFinanceSummary();
+  const monthProfit = financeSummary?.profit ?? 0;
   const upcomingDeliveries = orders ? upcomingCount(orders, new Date()) : 0;
 
   const isWide = width >= 390;
@@ -414,6 +417,38 @@ export default function HomeScreen() {
                   <ChevronButton onPress={() => router.push("/tabs/sales")} />
                   <TrendBadge />
                 </View>
+              </View>
+            </Card>
+
+            <Card
+              variant="surface"
+              padding="xl"
+              onPress={() => router.push("/finance")}
+              style={cardStyle}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <View style={{ flex: 1, gap: spacing.xs }}>
+                  <Typography variant="label">
+                    QUANTO SOBROU EM {getMonthName().toUpperCase()}
+                  </Typography>
+                  <Typography
+                    variant="moneyLg"
+                    color={monthProfit >= 0 ? theme.colors.success : theme.colors.alert}
+                  >
+                    {formatCurrency(monthProfit)}
+                  </Typography>
+                  <Typography variant="caption">
+                    {formatCurrency(financeSummary?.totalIncome ?? 0)} entradas −{" "}
+                    {formatCurrency(financeSummary?.totalExpenses ?? 0)} despesas
+                  </Typography>
+                </View>
+                <ChevronButton onPress={() => router.push("/finance")} />
               </View>
             </Card>
 
