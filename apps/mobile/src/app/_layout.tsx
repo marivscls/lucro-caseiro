@@ -1,5 +1,5 @@
 import { ThemeProvider, useTheme } from "@lucro-caseiro/ui";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useRef, useState } from "react";
@@ -64,10 +64,17 @@ function AppContent() {
     void initialize();
   }, []);
 
-  // Auto-sync offline queue when connection is restored.
+  // Auto-sync offline queue when connection is restored. Apos sincronizar,
+  // invalida o cache para listas/resumos refletirem as vendas enviadas.
+  const appQueryClient = useQueryClient();
   useEffect(() => {
-    return setupAutoSync(() => token);
-  }, [token]);
+    return setupAutoSync(
+      () => token,
+      () => {
+        void appQueryClient.invalidateQueries();
+      },
+    );
+  }, [token, appQueryClient]);
 
   // Abertura da marca: visivel durante o initialize() da auth, some quando a
   // sessao esta pronta (e apos o tempo minimo de exibicao).

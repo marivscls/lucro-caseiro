@@ -118,7 +118,10 @@ export async function processOfflineQueue(authToken: string): Promise<{
 /**
  * Subscribe to network changes and auto-sync when coming back online.
  */
-export function setupAutoSync(getAuthToken: () => string | null): () => void {
+export function setupAutoSync(
+  getAuthToken: () => string | null,
+  onSynced?: (synced: number) => void,
+): () => void {
   let wasOffline = false;
 
   return useNetwork.subscribe((state) => {
@@ -131,7 +134,11 @@ export function setupAutoSync(getAuthToken: () => string | null): () => void {
       wasOffline = false;
       const token = getAuthToken();
       if (token) {
-        processOfflineQueue(token).catch(() => {});
+        processOfflineQueue(token)
+          .then(({ synced }) => {
+            if (synced > 0) onSynced?.(synced);
+          })
+          .catch(() => {});
       }
     }
   });

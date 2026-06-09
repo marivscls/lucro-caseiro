@@ -34,6 +34,7 @@ import { useCreateSale } from "../../features/sales/hooks";
 import { PAYMENT_LABELS } from "../../features/sales/payment";
 import { useInterstitial } from "../../shared/hooks/use-interstitial";
 import { useLimitCheck } from "../../shared/hooks/use-limit-check";
+import { useOfflineQueue } from "../../shared/hooks/use-offline-queue";
 import { usePaywall } from "../../shared/hooks/use-paywall";
 import { ApiError } from "../../shared/utils/api-client";
 
@@ -417,16 +418,18 @@ export default function NewSaleScreen() {
     if (!paymentMethod || cart.length === 0) return;
     if (checkSalesLimit()) return;
 
+    const payload = {
+      clientId: selectedClient?.id,
+      paymentMethod,
+      items: cart.map((i) => ({
+        productId: i.productId,
+        quantity: i.quantity,
+        unitPrice: i.unitPrice,
+      })),
+    };
+
     try {
-      const result = await createSale.mutateAsync({
-        clientId: selectedClient?.id,
-        paymentMethod,
-        items: cart.map((i) => ({
-          productId: i.productId,
-          quantity: i.quantity,
-          unitPrice: i.unitPrice,
-        })),
-      });
+      const result = await createSale.mutateAsync(payload);
       Alert.alert("Venda registrada!", `Total: ${formatCurrency(result.total)}`);
       showInterstitial();
       resetForm();
@@ -435,6 +438,21 @@ export default function NewSaleScreen() {
       // (Fallback do gate client-side, que pode estar com a contagem defasada.)
       if (e instanceof ApiError && e.code === "LIMIT_EXCEEDED") {
         showPaywall("sales");
+        return;
+      }
+      // Falha de rede (sem resposta HTTP): salva a venda na fila offline.
+      // setupAutoSync envia automaticamente quando a conexao voltar.
+      if (!(e instanceof ApiError)) {
+        useOfflineQueue.getState().enqueue({
+          method: "POST",
+          endpoint: "/api/v1/sales",
+          payload,
+        });
+        Alert.alert(
+          "Venda salva no aparelho",
+          `Total: ${formatCurrency(cartTotal)}. Você está sem internet — a venda será enviada automaticamente quando a conexão voltar.`,
+        );
+        resetForm();
         return;
       }
       const message =

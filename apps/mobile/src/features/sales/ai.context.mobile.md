@@ -129,4 +129,9 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 - 2026-05-30: recibo de venda no WhatsApp (`receipt.ts` + botao no `SaleDetail`). Vai direto ao contato se o cliente tiver telefone, senao abre o seletor (`openWhatsAppShare`).
 - 2026-05-30: `openWhatsApp`/`openWhatsAppShare` agora async e com verificacoes — valida o numero (`isValidBrazilPhone`) e avisa se o numero for invalido ou se o WhatsApp nao abrir. Recibo/fiado caem no seletor de contato quando o telefone salvo nao e valido.
 - 2026-05-30: controle de fiado (tela `/fiado`, acessada via "Mais"). Fiado = vendas com status `pending`; agrupadas por cliente (`groupFiados`), com total a receber, "marcar como recebido" (status->paid) e "cobrar no WhatsApp" (`buildChargeMessage`). Telefone do cliente vem de `useClients` (1a pagina); sem telefone, usa o seletor do WhatsApp.
+- 2026-06-09: **venda offline** — se `createSale` falhar sem resposta HTTP (erro de rede,
+  nao-`ApiError`), o wizard enfileira o POST em `useOfflineQueue` (AsyncStorage) e avisa
+  "Venda salva no aparelho". `setupAutoSync` (no `_layout`) reenvia quando a conexao volta
+  e invalida o cache do React Query; o `OfflineBanner` mostra quantas vendas aguardam.
+  Limite freemium continua sendo aplicado pelo backend no momento do sync.
 - 2026-05-30: **venda por peso (R$/kg)** — `CartItem` ganhou `saleUnit`. Produtos `saleUnit === "kg"` usam um modal de peso (kg, decimal-pad) ao inves de incrementar unidades; subtotal = preco/kg × peso. Review/badge formatam peso com virgula (ex.: "1,5 kg"). O payload `createSale` envia `quantity` decimal.

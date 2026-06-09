@@ -3,12 +3,19 @@ import React from "react";
 import { View } from "react-native";
 
 import { useNetwork } from "../hooks/use-network";
+import { useOfflineQueue } from "../hooks/use-offline-queue";
 
 export function OfflineBanner() {
   const { isOnline } = useNetwork();
+  const pendingCount = useOfflineQueue((s) => s.operations.length);
   const { theme } = useTheme();
 
   if (isOnline) return null;
+
+  const pendingMessage =
+    pendingCount > 0
+      ? ` ${pendingCount} venda(s) aguardando para enviar.`
+      : " Dados podem estar desatualizados.";
 
   return (
     <View
@@ -22,7 +29,7 @@ export function OfflineBanner() {
       <Typography
         style={{ color: theme.colors.alert, fontSize: 14, textAlign: "center" }}
       >
-        Você esta offline. Dados podem estar desatualizados.
+        Você esta offline.{pendingMessage}
       </Typography>
     </View>
   );
