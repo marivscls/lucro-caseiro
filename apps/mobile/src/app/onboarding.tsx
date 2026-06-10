@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useUpdateProfile } from "../features/subscription/hooks";
 import { BackgroundDecor, BrandMark } from "../shared/components/auth-decor";
 import { Illustration } from "../shared/components/illustrations";
+import { useAuth } from "../shared/hooks/use-auth";
 import { useOnboarding } from "../shared/hooks/use-onboarding";
 
 // Nichos cobrindo todos os publicos do app (nao so comida). `db` e o valor
@@ -411,6 +412,7 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const { theme } = useTheme();
   const updateProfile = useUpdateProfile();
+  const { signOut } = useAuth();
   const {
     currentStep,
     businessType,
@@ -449,7 +451,11 @@ export default function OnboardingScreen() {
       {currentStep === 0 && (
         <WelcomeStep
           onNext={() => setStep(1)}
-          onLogin={() => router.push("/(auth)/login")}
+          onLogin={() => {
+            // Aqui o usuario ja esta logado (onboarding vem depois do login);
+            // "ja tenho conta" = trocar de conta -> desloga e vai pro login.
+            void signOut().then(() => router.replace("/(auth)/login"));
+          }}
         />
       )}
 
