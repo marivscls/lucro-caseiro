@@ -1,7 +1,13 @@
 import type { Sale } from "@lucro-caseiro/contracts";
 import { describe, expect, it } from "vitest";
 
-import { buildChargeMessage, groupFiados, openFiados, totalOwed } from "./fiado";
+import {
+  buildChargeMessage,
+  groupFiados,
+  oldFiadoSummary,
+  openFiados,
+  totalOwed,
+} from "./fiado";
 
 function makeSale(overrides: Partial<Sale> = {}): Sale {
   return {
@@ -40,6 +46,24 @@ describe("groupFiados", () => {
     expect(groups.map((g) => g.clientName)).toEqual(["João", "Maria", "Cliente avulso"]);
     expect(groups[1].total).toBe(25);
     expect(totalOwed(openFiados(sales))).toBe(80);
+  });
+});
+
+describe("oldFiadoSummary", () => {
+  const now = new Date("2026-06-10T12:00:00.000Z");
+
+  it("counts only pending sales older than the minimum age", () => {
+    const sales = [
+      makeSale({ id: "old", soldAt: "2026-06-01T12:00:00.000Z", total: 40 }),
+      makeSale({ id: "recent", soldAt: "2026-06-08T12:00:00.000Z", total: 10 }),
+      makeSale({ id: "paid", soldAt: "2026-05-01T12:00:00.000Z", status: "paid" }),
+    ];
+    expect(oldFiadoSummary(sales, now, 7)).toEqual({ count: 1, total: 40 });
+  });
+
+  it("returns zero when nothing is old enough", () => {
+    const sales = [makeSale({ soldAt: "2026-06-09T12:00:00.000Z" })];
+    expect(oldFiadoSummary(sales, now, 7)).toEqual({ count: 0, total: 0 });
   });
 });
 

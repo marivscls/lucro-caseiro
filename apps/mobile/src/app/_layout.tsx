@@ -8,6 +8,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { useDeliveryNotifier } from "../features/orders/use-delivery-notifier";
 import { useLowStockNotifier } from "../features/products/use-low-stock-notifier";
+import { useFiadoNotifier } from "../features/sales/use-fiado-notifier";
 import { BrandIntro } from "../shared/components/brand-intro";
 import { OfflineBanner } from "../shared/components/offline-banner";
 import { ToastHost } from "../shared/components/toast";
@@ -44,6 +45,9 @@ function AppContent() {
 
   // Dispara notificacao local quando ha entregas proximas na agenda.
   useDeliveryNotifier();
+
+  // Lembra de cobrar fiado parado ha mais de uma semana (com cooldown).
+  useFiadoNotifier();
 
   // Comemora quando o plano vira Premium (cobre Google Play e Stripe).
   // Guarda o plano inicial para não comemorar quem já abre o app como Premium.

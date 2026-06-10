@@ -34,7 +34,7 @@ export function handleNotificationResponse(response: NotificationResponse): void
 
   switch (data.type) {
     case NOTIFICATION_TYPES.PENDING_SALES:
-      router.push("/tabs");
+      router.push("/fiado");
       break;
     case NOTIFICATION_TYPES.CLIENT_BIRTHDAY:
       router.push("/tabs/clients");

@@ -50,6 +50,17 @@ export function groupFiados(sales: Sale[]): FiadoGroup[] {
   return [...map.values()].sort((a, b) => b.total - a.total);
 }
 
+/** Fiados "antigos": pendentes há pelo menos `minAgeDays` dias. */
+export function oldFiadoSummary(
+  sales: Sale[],
+  now: Date,
+  minAgeDays = 7,
+): { count: number; total: number } {
+  const cutoff = now.getTime() - minAgeDays * 24 * 60 * 60 * 1000;
+  const old = openFiados(sales).filter((s) => new Date(s.soldAt).getTime() <= cutoff);
+  return { count: old.length, total: totalOwed(old) };
+}
+
 /** Mensagem de cobrança gentil (pt-BR) com os valores em aberto do cliente. */
 export function buildChargeMessage(group: FiadoGroup): string {
   const lines: string[] = [];

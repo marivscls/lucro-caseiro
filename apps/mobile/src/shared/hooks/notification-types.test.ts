@@ -33,9 +33,9 @@ describe("handleNotificationResponse", () => {
     (router.push as ReturnType<typeof import("vitest").vi.fn>).mockReset();
   });
 
-  it("navigates to /tabs for PENDING_SALES", () => {
+  it("navigates to /fiado for PENDING_SALES", () => {
     handleNotificationResponse(makeResponse("PENDING_SALES"));
-    expect(router.push).toHaveBeenCalledWith("/tabs");
+    expect(router.push).toHaveBeenCalledWith("/fiado");
   });
 
   it("navigates to /tabs/clients for CLIENT_BIRTHDAY", () => {

@@ -142,3 +142,4 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
   recurso Premium na tabela freemium.
 - 2026-06-10: vislumbre pro free — "Recibo em PDF" abre `ReceiptPreviewModal`
   (miniatura do recibo real com cadeado + CTA Premium) em vez de paywall seco.
+- 2026-06-10: lembrete de fiado antigo — useFiadoNotifier (use-fiado-notifier.ts, montado em app/\_layout) notifica localmente quando ha vendas pendentes ha mais de 7 dias, com cooldown de 3 dias (AsyncStorage fiadoNotifiedAt). Toque roteia para /fiado (PENDING_SALES). Regra pura em oldFiadoSummary (fiado.ts).
