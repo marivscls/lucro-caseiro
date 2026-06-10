@@ -1,5 +1,5 @@
 -- Massa de testes do Lucro Caseiro (rodar no SQL editor do Supabase).
--- Usa o usuário mais recente da tabela users. Idempotente "na prática": pode
+-- Aplica na conta marianadosreisvasconcelos7@gmail.com (ajuste o e-mail abaixo se precisar). Idempotente "na prática": pode
 -- rodar mais de uma vez, mas vai duplicar os dados (apague antes se precisar).
 --
 -- Para limpar depois (apaga SÓ os dados de demonstração, pelo prefixo [demo]):
@@ -33,8 +33,8 @@ DECLARE
   v_sale uuid;
   v_order uuid;
 BEGIN
-  SELECT id INTO v_user FROM users ORDER BY created_at DESC LIMIT 1;
-  IF v_user IS NULL THEN RAISE EXCEPTION 'Nenhum usuário encontrado'; END IF;
+  SELECT id INTO v_user FROM users WHERE email = 'marianadosreisvasconcelos7@gmail.com';
+  IF v_user IS NULL THEN RAISE EXCEPTION 'Usuário não encontrado para esse e-mail'; END IF;
 
   ------------------------------------------------------------------ clientes
   INSERT INTO clients (user_id, name, phone, birthday, tags, notes) VALUES
