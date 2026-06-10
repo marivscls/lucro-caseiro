@@ -1,9 +1,11 @@
-import { Button, Input, Typography, useTheme, spacing } from "@lucro-caseiro/ui";
+import { Button, Input, Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Alert, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { BackgroundDecor, BrandMark } from "../../shared/components/auth-decor";
 import { useAuth } from "../../shared/hooks/use-auth";
 import {
   getPasswordStrength,
@@ -181,8 +183,13 @@ export default function RegisterScreen() {
     }
   }
 
+  const isDark = theme.mode === "dark";
+  const cardBg = isDark ? "rgba(44, 36, 32, 0.72)" : theme.colors.surfaceElevated;
+  const cardBorder = isDark ? "rgba(245, 225, 219, 0.1)" : "rgba(74, 50, 40, 0.08)";
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <BackgroundDecor />
       <ScrollView
         contentContainerStyle={{
           flexGrow: 1,
@@ -191,38 +198,62 @@ export default function RegisterScreen() {
           gap: spacing.xl,
         }}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <View style={{ alignItems: "center", gap: spacing.sm }}>
-          <Typography variant="caption" color={theme.colors.primary}>
+        <View style={{ alignItems: "center", gap: spacing.md }}>
+          <BrandMark size={76} />
+          <Typography
+            variant="caption"
+            color={theme.colors.primaryLight}
+            style={{ letterSpacing: 3, textTransform: "uppercase" }}
+          >
             Lucro Caseiro
+          </Typography>
+          <Typography variant="display" style={{ textAlign: "center" }}>
+            Crie sua conta
+          </Typography>
+          <Typography
+            variant="body"
+            color={theme.colors.textSecondary}
+            style={{ textAlign: "center" }}
+          >
+            Leva menos de um minuto — e é grátis.
           </Typography>
         </View>
 
-        <Typography variant="display" style={{ textAlign: "center" }}>
-          Crie sua conta
-        </Typography>
-        <Typography variant="body" style={{ textAlign: "center" }}>
-          Comece a organizar seu negócio
-        </Typography>
-
-        <Button
-          title="Criar com Google"
-          variant="secondary"
-          size="lg"
-          onPress={() => {
-            void handleGoogleRegister();
+        <View
+          style={{
+            backgroundColor: cardBg,
+            borderWidth: 1,
+            borderColor: cardBorder,
+            borderRadius: radii["2xl"],
+            padding: spacing.xl,
+            gap: spacing.lg,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 14 },
+            shadowOpacity: isDark ? 0.3 : 0.08,
+            shadowRadius: 24,
+            elevation: 5,
           }}
-          loading={loading}
-          style={{ width: "100%" }}
-        />
+        >
+          <Button
+            title="Criar com Google"
+            variant="secondary"
+            size="lg"
+            icon={<Ionicons name="logo-google" size={20} color={theme.colors.text} />}
+            onPress={() => {
+              void handleGoogleRegister();
+            }}
+            loading={loading}
+            style={{ width: "100%" }}
+          />
 
-        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-          <View style={{ flex: 1, height: 1, backgroundColor: theme.colors.surface }} />
-          <Typography variant="caption">ou</Typography>
-          <View style={{ flex: 1, height: 1, backgroundColor: theme.colors.surface }} />
-        </View>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+            <View style={{ flex: 1, height: 1, backgroundColor: cardBorder }} />
+            <Typography variant="caption">ou com e-mail</Typography>
+            <View style={{ flex: 1, height: 1, backgroundColor: cardBorder }} />
+          </View>
 
-        <View style={{ gap: spacing.lg }}>
           <Input
             label="Seu nome"
             placeholder="Como podemos te chamar?"
@@ -264,8 +295,24 @@ export default function RegisterScreen() {
             />
             <Pressable
               onPress={() => setShowPassword(!showPassword)}
-              style={{ position: "absolute", right: spacing.lg, top: 38 }}
+              accessibilityRole="button"
+              accessibilityLabel={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              hitSlop={10}
+              style={{
+                position: "absolute",
+                right: spacing.lg,
+                top: 34,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 4,
+                minHeight: 32,
+              }}
             >
+              <Ionicons
+                name={showPassword ? "eye-off-outline" : "eye-outline"}
+                size={18}
+                color={theme.colors.primary}
+              />
               <Typography variant="caption" color={theme.colors.primary}>
                 {showPassword ? "Ocultar" : "Mostrar"}
               </Typography>
@@ -280,17 +327,24 @@ export default function RegisterScreen() {
             value={businessName}
             onChangeText={setBusinessName}
           />
-        </View>
 
-        <Button
-          title="Criar minha conta"
-          size="lg"
-          onPress={() => {
-            void handleRegister();
-          }}
-          loading={loading}
-          disabled={!name.trim() || !email.trim() || !password.trim()}
-        />
+          <Button
+            title="Criar minha conta"
+            size="lg"
+            icon={
+              <Ionicons
+                name="arrow-forward"
+                size={20}
+                color={theme.colors.textOnPrimary}
+              />
+            }
+            onPress={() => {
+              void handleRegister();
+            }}
+            loading={loading}
+            disabled={!name.trim() || !email.trim() || !password.trim()}
+          />
+        </View>
 
         <View
           style={{
