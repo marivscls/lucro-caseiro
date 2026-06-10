@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Alert, ScrollView } from "react-native";
 
 import { useDeleteProlaboreGoal, useUpsertProlaboreGoal } from "../hooks";
+import { showToast } from "../../../shared/components/toast";
 
 interface ProlaboreGoalFormProps {
   readonly config: ProlaboreGoal | null;
@@ -42,7 +43,7 @@ export function ProlaboreGoalForm({ config, onSuccess }: ProlaboreGoalFormProps)
         estimatedMonthlyCosts: c !== undefined && !isNaN(c) ? c : undefined,
         avgTicketOverride: t !== undefined && !isNaN(t) ? t : undefined,
       });
-      Alert.alert("Meta salva!", "Acompanhe seu progresso na tela inicial.");
+      showToast("Meta salva! Acompanhe na tela inicial.");
       onSuccess?.();
     } catch {
       Alert.alert("Erro", "Não foi possível salvar sua meta. Tente novamente.");

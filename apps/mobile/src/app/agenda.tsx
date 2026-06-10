@@ -42,9 +42,16 @@ import {
 import { openWhatsApp, waMessages } from "../shared/utils/whatsapp";
 
 const PIPELINE: OrderStatus[] = ["pending", "in_production", "ready"];
-const SURFACE = "rgba(44, 36, 32, 0.84)";
-const BORDER = "rgba(245, 225, 219, 0.1)";
-const MUTED = "#B8A090";
+// Paleta da agenda derivada do tema ativo (antes eram constantes fixas de dark,
+// que quebravam o modo claro).
+function agendaPalette(theme: ReturnType<typeof useTheme>["theme"]) {
+  const isDark = theme.mode === "dark";
+  return {
+    surface: isDark ? "rgba(44, 36, 32, 0.84)" : theme.colors.surfaceElevated,
+    border: isDark ? "rgba(245, 225, 219, 0.1)" : "rgba(74, 50, 40, 0.1)",
+    muted: theme.colors.textSecondary,
+  };
+}
 
 type GroupTone = "alert" | "success" | "default";
 const GROUP_META: Record<
@@ -223,6 +230,7 @@ function ModernOrderDetail({
   onEdit,
 }: Readonly<{ order: Order; onClose: () => void; onEdit: () => void }>) {
   const { theme } = useTheme();
+  const agColors = agendaPalette(theme);
   const updateOrder = useUpdateOrder();
   const deliverOrder = useDeliverOrder();
   const deleteOrder = useDeleteOrder();
@@ -325,9 +333,9 @@ function ModernOrderDetail({
           flex: 1,
           minHeight: 78,
           borderRadius: radii.xl,
-          backgroundColor: SURFACE,
+          backgroundColor: agColors.surface,
           borderWidth: 1,
-          borderColor: BORDER,
+          borderColor: agColors.border,
           padding: spacing.sm,
           flexDirection: "row",
           alignItems: "center",
@@ -349,7 +357,7 @@ function ModernOrderDetail({
           </Typography>
           <Typography
             variant="caption"
-            color={MUTED}
+            color={agColors.muted}
             numberOfLines={2}
             style={{ fontSize: 12 }}
           >
@@ -381,9 +389,9 @@ function ModernOrderDetail({
         style={({ pressed }) => ({
           minHeight: 74,
           borderRadius: radii.xl,
-          backgroundColor: SURFACE,
+          backgroundColor: agColors.surface,
           borderWidth: 1,
-          borderColor: BORDER,
+          borderColor: agColors.border,
           padding: spacing.md,
           flexDirection: "row",
           alignItems: "center",
@@ -413,11 +421,13 @@ function ModernOrderDetail({
           >
             {title}
           </Typography>
-          <Typography variant="body" color={MUTED} style={{ fontSize: 14 }}>
+          <Typography variant="body" color={agColors.muted} style={{ fontSize: 14 }}>
             {subtitle}
           </Typography>
         </View>
-        {onPress ? <Ionicons name="chevron-forward" size={24} color={MUTED} /> : null}
+        {onPress ? (
+          <Ionicons name="chevron-forward" size={24} color={agColors.muted} />
+        ) : null}
       </Pressable>
     );
   }
@@ -471,7 +481,7 @@ function ModernOrderDetail({
               />
               <Typography
                 variant="bodyBold"
-                color={MUTED}
+                color={agColors.muted}
                 numberOfLines={1}
                 style={{ fontSize: 17 }}
               >
@@ -485,9 +495,9 @@ function ModernOrderDetail({
       <View
         style={{
           borderRadius: radii["2xl"],
-          backgroundColor: SURFACE,
+          backgroundColor: agColors.surface,
           borderWidth: 1,
-          borderColor: BORDER,
+          borderColor: agColors.border,
           padding: spacing.md,
           flexDirection: "row",
           gap: spacing.md,
@@ -521,7 +531,7 @@ function ModernOrderDetail({
             <View style={{ flex: 1, minWidth: 0 }}>
               <Typography
                 variant="body"
-                color={MUTED}
+                color={agColors.muted}
                 numberOfLines={1}
                 style={{ fontSize: 13 }}
               >
@@ -555,7 +565,7 @@ function ModernOrderDetail({
             <View style={{ flex: 1, minWidth: 0 }}>
               <Typography
                 variant="body"
-                color={MUTED}
+                color={agColors.muted}
                 numberOfLines={1}
                 style={{ fontSize: 13 }}
               >
@@ -574,7 +584,7 @@ function ModernOrderDetail({
             </View>
           </View>
         </View>
-        <View style={{ width: 1, backgroundColor: BORDER }} />
+        <View style={{ width: 1, backgroundColor: agColors.border }} />
         <View
           style={{
             width: 118,
@@ -621,7 +631,7 @@ function ModernOrderDetail({
         <View style={{ gap: spacing.md }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
             <Ionicons name="logo-whatsapp" size={24} color={theme.colors.success} />
-            <Typography variant="h3" color={MUTED} style={{ fontSize: 18 }}>
+            <Typography variant="h3" color={agColors.muted} style={{ fontSize: 18 }}>
               WhatsApp
             </Typography>
           </View>
@@ -656,10 +666,10 @@ function ModernOrderDetail({
         </View>
       ) : null}
 
-      <View style={{ height: 1, backgroundColor: BORDER }} />
+      <View style={{ height: 1, backgroundColor: agColors.border }} />
 
       {isFinished ? (
-        <Typography variant="h3" color={MUTED} style={{ fontSize: 19 }}>
+        <Typography variant="h3" color={agColors.muted} style={{ fontSize: 19 }}>
           Encomenda {STATUS_LABEL[order.status].toLowerCase()}.
         </Typography>
       ) : (
@@ -733,6 +743,7 @@ function OrdersSummaryHeader({
   onOpenFilter,
 }: Readonly<{ selectedDate: string | null; onOpenFilter: () => void }>) {
   const { theme } = useTheme();
+  const agColors = agendaPalette(theme);
   const { data: summary } = useOrdersSummary(
     selectedDate ? { startDate: selectedDate, endDate: selectedDate } : undefined,
   );
@@ -744,9 +755,9 @@ function OrdersSummaryHeader({
     <View
       style={{
         borderRadius: 26,
-        backgroundColor: SURFACE,
+        backgroundColor: agColors.surface,
         borderWidth: 1,
-        borderColor: BORDER,
+        borderColor: agColors.border,
         padding: spacing.lg,
         gap: spacing.md,
       }}
@@ -769,7 +780,7 @@ function OrdersSummaryHeader({
               Resumo do dia
             </Typography>
           </View>
-          <Typography variant="body" color={MUTED} style={{ fontSize: 18 }}>
+          <Typography variant="body" color={agColors.muted} style={{ fontSize: 18 }}>
             Total dos pedidos
           </Typography>
           <Typography
@@ -796,14 +807,14 @@ function OrdersSummaryHeader({
           <Typography variant="bodyBold" color={theme.colors.text} numberOfLines={1}>
             {filterLabel}
           </Typography>
-          <Ionicons name="chevron-down" size={18} color={MUTED} />
+          <Ionicons name="chevron-down" size={18} color={agColors.muted} />
         </Pressable>
       </View>
       <View
         style={{
           borderRadius: radii.xl,
           borderWidth: 1,
-          borderColor: BORDER,
+          borderColor: agColors.border,
           overflow: "hidden",
           flexDirection: "row",
         }}
@@ -831,7 +842,7 @@ function OrdersSummaryHeader({
               gap: spacing.sm,
               alignItems: "center",
               borderLeftWidth: index === 1 ? 1 : 0,
-              borderLeftColor: BORDER,
+              borderLeftColor: agColors.border,
             }}
           >
             <View
@@ -853,7 +864,7 @@ function OrdersSummaryHeader({
             <View style={{ flex: 1, minWidth: 0 }}>
               <Typography
                 variant="body"
-                color={MUTED}
+                color={agColors.muted}
                 numberOfLines={1}
                 style={{ fontSize: 14 }}
               >
@@ -893,6 +904,7 @@ function OrdersList({
   bottomInset: number;
 }>) {
   const { theme } = useTheme();
+  const agColors = agendaPalette(theme);
   const [showTip, setShowTip] = useState(true);
   const toneColor = (tone: GroupTone) => {
     if (tone === "alert") return theme.colors.alert;
@@ -980,9 +992,9 @@ function OrdersList({
             minHeight: 64,
             borderRadius: radii.xl,
             padding: spacing.md,
-            backgroundColor: SURFACE,
+            backgroundColor: agColors.surface,
             borderWidth: 1,
-            borderColor: BORDER,
+            borderColor: agColors.border,
             flexDirection: "row",
             alignItems: "center",
             gap: spacing.md,
@@ -998,7 +1010,7 @@ function OrdersList({
             </Typography>
           </View>
           <Pressable onPress={() => setShowTip(false)} hitSlop={10}>
-            <Ionicons name="close" size={22} color={MUTED} />
+            <Ionicons name="close" size={22} color={agColors.muted} />
           </Pressable>
         </View>
       ) : null}
@@ -1031,6 +1043,7 @@ function DayFilterModal({
   onClose: () => void;
 }>) {
   const { theme } = useTheme();
+  const agColors = agendaPalette(theme);
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -1046,9 +1059,9 @@ function DayFilterModal({
         <Pressable
           style={{
             borderRadius: radii["2xl"],
-            backgroundColor: SURFACE,
+            backgroundColor: agColors.surface,
             borderWidth: 1,
-            borderColor: BORDER,
+            borderColor: agColors.border,
             padding: spacing.lg,
             gap: spacing.md,
           }}
@@ -1071,7 +1084,7 @@ function DayFilterModal({
               </Typography>
             </View>
             <Pressable onPress={onClose} hitSlop={10}>
-              <Ionicons name="close" size={24} color={MUTED} />
+              <Ionicons name="close" size={24} color={agColors.muted} />
             </Pressable>
           </View>
 
@@ -1096,7 +1109,7 @@ function DayFilterModal({
               <Typography variant="bodyBold" color={theme.colors.text}>
                 Todos os dias
               </Typography>
-              <Typography variant="caption" color={MUTED}>
+              <Typography variant="caption" color={agColors.muted}>
                 limpar filtro
               </Typography>
             </Pressable>
@@ -1125,7 +1138,7 @@ function DayFilterModal({
                   <Typography variant="bodyBold" color={theme.colors.text}>
                     {formatDateBR(option.date)}
                   </Typography>
-                  <Typography variant="caption" color={MUTED}>
+                  <Typography variant="caption" color={agColors.muted}>
                     {option.count} {option.count === 1 ? "encomenda" : "encomendas"}
                   </Typography>
                 </Pressable>
@@ -1140,6 +1153,7 @@ function DayFilterModal({
 
 export default function AgendaScreen() {
   const { theme } = useTheme();
+  const agColors = agendaPalette(theme);
   const insets = useSafeAreaInsets();
   const { data: orders, isLoading, error } = useOrders();
   const [showCreate, setShowCreate] = useState(false);
@@ -1249,7 +1263,7 @@ export default function AgendaScreen() {
                 height: 44,
                 borderRadius: 22,
                 borderWidth: 1,
-                borderColor: BORDER,
+                borderColor: agColors.border,
                 alignItems: "center",
                 justifyContent: "center",
               }}
@@ -1301,7 +1315,7 @@ export default function AgendaScreen() {
                 height: 44,
                 borderRadius: 22,
                 borderWidth: 1,
-                borderColor: BORDER,
+                borderColor: agColors.border,
                 backgroundColor: "rgba(245, 225, 219, 0.06)",
                 alignItems: "center",
                 justifyContent: "center",
@@ -1334,7 +1348,7 @@ export default function AgendaScreen() {
                   justifyContent: "center",
                 }}
               >
-                <Ionicons name="close" size={22} color={MUTED} />
+                <Ionicons name="close" size={22} color={agColors.muted} />
               </Pressable>
             </View>
           </View>

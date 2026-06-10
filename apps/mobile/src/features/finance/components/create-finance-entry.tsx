@@ -18,6 +18,7 @@ import {
 
 import { brToIso, maskDateBR } from "../../../shared/utils/date";
 import { useCreateFinanceEntry } from "../hooks";
+import { showToast } from "../../../shared/components/toast";
 
 interface CreateFinanceEntryProps {
   onClose?: () => void;
@@ -108,10 +109,7 @@ export function CreateFinanceEntry({
         date: normalizedDate || new Date().toISOString().split("T")[0],
       });
 
-      Alert.alert(
-        "Lançamento registrado!",
-        `${type === "income" ? "Entrada" : "Saída"} de R$ ${amount} salva.`,
-      );
+      showToast(`${type === "income" ? "Entrada" : "Saída"} de R$ ${amount} salva!`);
       onSuccess?.();
     } catch {
       Alert.alert("Erro", "Não foi possível registrar o lançamento. Tente novamente.");

@@ -6,6 +6,7 @@ import { Alert, KeyboardAvoidingView, Platform, View } from "react-native";
 import { brToIso, isoToBR, maskDateBR } from "../../../shared/utils/date";
 import { isValidBrazilPhone, maskPhoneBR } from "../../../shared/utils/phone";
 import { useUpdateClient } from "../hooks";
+import { showToast } from "../../../shared/components/toast";
 
 interface EditClientFormProps {
   client: Client;
@@ -44,7 +45,7 @@ export function EditClientForm({ client, onSuccess }: Readonly<EditClientFormPro
           notes: notes.trim() || undefined,
         },
       });
-      Alert.alert("Cliente atualizado!", `${name} foi atualizado.`);
+      showToast(`${name} atualizado!`);
       onSuccess?.();
     } catch (e: unknown) {
       const message =

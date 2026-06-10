@@ -12,6 +12,7 @@ import { exportLabelPdfWithChoice } from "../label-export";
 import { cleanNutrition } from "../nutrition";
 import { normalizeLink } from "../qr";
 import { useCreateLabel } from "../hooks";
+import { FormSection } from "../../../shared/components/form-section";
 import { LabelPreview } from "./label-preview";
 import { NutritionFields } from "./nutrition-fields";
 import { TemplatePicker } from "./template-picker";
@@ -158,68 +159,29 @@ export function CreateLabelForm({
 
       <TemplatePicker selected={templateId} onSelect={setTemplateId} />
 
-      <View>
-        <Typography variant="caption" style={{ marginBottom: spacing.sm }}>
-          Logo do negócio (opcional)
-        </Typography>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-          <Pressable
-            onPress={showPicker}
-            style={{
-              width: 80,
-              height: 80,
-              borderRadius: radii.lg,
-              backgroundColor: theme.colors.surface,
-              alignItems: "center",
-              justifyContent: "center",
-              overflow: "hidden",
-            }}
-          >
-            {logoUri ? (
-              <Image source={{ uri: logoUri }} style={{ width: 80, height: 80 }} />
-            ) : (
-              <Ionicons
-                name="image-outline"
-                size={28}
-                color={theme.colors.textSecondary}
-              />
-            )}
-          </Pressable>
-          {logoUri && (
-            <Pressable onPress={clearLogo} hitSlop={8}>
-              <Typography variant="caption" color={theme.colors.primary}>
-                Remover logo
-              </Typography>
-            </Pressable>
-          )}
-        </View>
-      </View>
+      <Input
+        label="Nome do produto"
+        placeholder="Ex: Brigadeiro Gourmet"
+        value={labelData.productName}
+        onChangeText={(v) => updateField("productName", v)}
+      />
 
-      <View style={{ gap: 12 }}>
-        <Typography variant="h3">Informações do rótulo</Typography>
+      <Input
+        label="Ingredientes"
+        placeholder="Ex: Leite condensado, chocolate, manteiga..."
+        value={labelData.ingredients ?? ""}
+        onChangeText={(v) => updateField("ingredients", v)}
+        multiline
+        numberOfLines={3}
+        style={{ height: 80, textAlignVertical: "top", paddingTop: 12 }}
+      />
 
-        <Input
-          label="Nome do produto"
-          placeholder="Ex: Brigadeiro Gourmet"
-          value={labelData.productName}
-          onChangeText={(v) => updateField("productName", v)}
-        />
-
-        <Input
-          label="Ingredientes"
-          placeholder="Ex: Leite condensado, chocolate, manteiga..."
-          value={labelData.ingredients ?? ""}
-          onChangeText={(v) => updateField("ingredients", v)}
-          multiline
-          numberOfLines={3}
-          style={{ height: 80, textAlignVertical: "top", paddingTop: 12 }}
-        />
-
-        <NutritionFields
-          value={labelData.nutrition}
-          onChange={(n) => updateField("nutrition", n)}
-        />
-
+      <FormSection
+        title="Datas de validade"
+        subtitle="Fabricação e validade do produto"
+        icon="calendar-outline"
+        initiallyOpen
+      >
         <View style={{ flexDirection: "row", gap: 12 }}>
           <Input
             label="Fabricacao"
@@ -238,7 +200,6 @@ export function CreateLabelForm({
             containerStyle={{ flex: 1 }}
           />
         </View>
-
         <Input
           label="Validade em dias (opcional)"
           placeholder="Ex: 7 — preenche a validade sozinho"
@@ -246,14 +207,30 @@ export function CreateLabelForm({
           onChangeText={handleShelfDaysChange}
           keyboardType="number-pad"
         />
+      </FormSection>
 
+      <FormSection
+        title="Informação nutricional"
+        subtitle="Opcional — tabela de nutrientes"
+        icon="nutrition-outline"
+      >
+        <NutritionFields
+          value={labelData.nutrition}
+          onChange={(n) => updateField("nutrition", n)}
+        />
+      </FormSection>
+
+      <FormSection
+        title="Contato e marca"
+        subtitle="Opcional — seu nome, telefone, QR Code e logo"
+        icon="person-circle-outline"
+      >
         <Input
           label="Seu nome / nome do negócio"
           placeholder="Ex: Doces da Maria"
           value={labelData.producerName ?? ""}
           onChangeText={(v) => updateField("producerName", v)}
         />
-
         <Input
           label="Telefone"
           placeholder="(11) 99999-9999"
@@ -261,7 +238,6 @@ export function CreateLabelForm({
           onChangeText={(v) => updateField("producerPhone", maskPhoneBR(v))}
           keyboardType="phone-pad"
         />
-
         <Input
           label="Link do QR Code (opcional)"
           placeholder="Seu Instagram, cardápio ou WhatsApp"
@@ -270,7 +246,45 @@ export function CreateLabelForm({
           autoCapitalize="none"
           keyboardType="url"
         />
-      </View>
+        <View>
+          <Typography variant="caption" style={{ marginBottom: spacing.sm }}>
+            Logo do negócio (opcional)
+          </Typography>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+            <Pressable
+              onPress={showPicker}
+              accessibilityRole="button"
+              accessibilityLabel="Adicionar logo do negócio"
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: radii.lg,
+                backgroundColor: theme.colors.surface,
+                alignItems: "center",
+                justifyContent: "center",
+                overflow: "hidden",
+              }}
+            >
+              {logoUri ? (
+                <Image source={{ uri: logoUri }} style={{ width: 80, height: 80 }} />
+              ) : (
+                <Ionicons
+                  name="image-outline"
+                  size={28}
+                  color={theme.colors.textSecondary}
+                />
+              )}
+            </Pressable>
+            {logoUri && (
+              <Pressable onPress={clearLogo} hitSlop={8}>
+                <Typography variant="caption" color={theme.colors.primary}>
+                  Remover logo
+                </Typography>
+              </Pressable>
+            )}
+          </View>
+        </View>
+      </FormSection>
 
       <View style={{ gap: 12 }}>
         <Typography variant="h3">Pré-visualização</Typography>

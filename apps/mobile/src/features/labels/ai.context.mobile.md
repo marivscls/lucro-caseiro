@@ -158,3 +158,7 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 - 2026-05-30: datas. Corrigido bug de exibicao (rotulo salvo/PDF mostravam ISO) via `isoToBR`. Inputs com mascara `maskDateBR`. Campo "validade em dias" auto-calcula a validade (`addDaysToBR`). Edicao agora hidrata datas em BR e converte para ISO no salvar (evita rejeicao do contrato).
 - 2026-05-30: informacao nutricional opcional. `LabelData.nutrition` (objeto `NutritionFacts` no contrato, dentro do JSON `data` — sem migration). Tabela no preview e no PDF.
 - 2026-05-30: imprimir varias etiquetas por folha. `exportLabelPdf` aceita `copies`; `exportLabelPdfWithChoice` pergunta 1 vs folha cheia (8). Grade A4 2 colunas que pagina sozinha.
+
+- 2026-06-09: formulário de rótulo reorganizado com `FormSection` (shared/components/
+  form-section.tsx, seções colapsáveis): básico aberto; datas (aberta), nutrição e
+  contato/marca (fechadas). Reduz a rolagem de 40+ campos.
