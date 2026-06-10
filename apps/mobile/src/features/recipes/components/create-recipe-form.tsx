@@ -1,4 +1,4 @@
-import { Button, Chip, Input, Typography } from "@lucro-caseiro/ui";
+import { Button, Chip, Input } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
 import { Alert, ScrollView, View } from "react-native";
 
@@ -80,8 +80,6 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 20, gap: 16 }}>
-      <Typography variant="h2">Nova receita</Typography>
-
       <Input
         label="Nome da receita"
         placeholder="Ex: Brigadeiro, Bolo de cenoura..."

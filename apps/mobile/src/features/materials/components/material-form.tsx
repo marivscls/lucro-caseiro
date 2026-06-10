@@ -101,8 +101,6 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
 
   return (
     <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
-      <Typography variant="h2">{isEditing ? "Editar insumo" : "Novo insumo"}</Typography>
-
       <Input
         label="Nome do insumo"
         placeholder="Ex: Farinha de trigo"

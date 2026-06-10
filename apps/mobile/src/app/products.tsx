@@ -5,6 +5,7 @@ import {
   Button,
   Card,
   Input,
+  ModalHeader,
   Typography,
   useTheme,
   spacing,
@@ -212,23 +213,36 @@ function ProductDetailModal({
         <View
           style={{
             flexDirection: "row",
-            justifyContent: "space-between",
             alignItems: "center",
             padding: spacing.lg,
+            gap: spacing.lg,
           }}
         >
-          <Pressable onPress={onClose}>
-            <Typography variant="bodyBold" color={theme.colors.primary}>
-              Fechar
-            </Typography>
-          </Pressable>
+          <Typography variant="h3" style={{ flex: 1 }} numberOfLines={1}>
+            {editing ? "Editar produto" : "Detalhes do produto"}
+          </Typography>
           {product && !editing && (
-            <Pressable onPress={() => startEditing(product)}>
+            <Pressable
+              onPress={() => startEditing(product)}
+              accessibilityRole="button"
+              hitSlop={12}
+              style={{ minHeight: 48, justifyContent: "center" }}
+            >
               <Typography variant="bodyBold" color={theme.colors.primary}>
                 Editar
               </Typography>
             </Pressable>
           )}
+          <Pressable
+            onPress={onClose}
+            accessibilityRole="button"
+            hitSlop={12}
+            style={{ minHeight: 48, justifyContent: "center" }}
+          >
+            <Typography variant="bodyBold" color={theme.colors.primary}>
+              Fechar
+            </Typography>
+          </Pressable>
         </View>
 
         {isLoading && (
@@ -243,7 +257,6 @@ function ProductDetailModal({
         )}
         {!isLoading && product && editing && (
           <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
-            <Typography variant="h2">Editar produto</Typography>
             <Input label="Nome do produto" value={name} onChangeText={setName} />
             <Input label="Categoria" value={category} onChangeText={setCategory} />
             <CompositeToggle value={isComposite} onChange={setIsComposite} />
@@ -534,19 +547,7 @@ export default function ProductsScreen() {
         onRequestClose={() => setShowCreate(false)}
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "flex-end",
-              padding: spacing.lg,
-            }}
-          >
-            <Pressable onPress={() => setShowCreate(false)}>
-              <Typography variant="bodyBold" color={theme.colors.primary}>
-                Fechar
-              </Typography>
-            </Pressable>
-          </View>
+          <ModalHeader title="Novo produto" onClose={() => setShowCreate(false)} />
           <CreateProductForm onSuccess={() => setShowCreate(false)} />
         </SafeAreaView>
       </Modal>

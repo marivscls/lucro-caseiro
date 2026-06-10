@@ -6,6 +6,7 @@ import {
   Card,
   EmptyState,
   Input,
+  ModalHeader,
   Typography,
   useTheme,
   spacing,
@@ -1575,19 +1576,7 @@ export default function NewSaleScreen() {
         onRequestClose={() => setShowCreateProduct(false)}
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "flex-end",
-              padding: spacing.lg,
-            }}
-          >
-            <Pressable onPress={() => setShowCreateProduct(false)}>
-              <Typography variant="bodyBold" color={theme.colors.primary}>
-                Fechar
-              </Typography>
-            </Pressable>
-          </View>
+          <ModalHeader title="Novo produto" onClose={() => setShowCreateProduct(false)} />
           <CreateProductForm onSuccess={() => setShowCreateProduct(false)} />
         </SafeAreaView>
       </Modal>

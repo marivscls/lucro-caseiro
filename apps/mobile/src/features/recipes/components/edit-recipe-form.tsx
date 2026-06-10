@@ -1,5 +1,5 @@
 import type { Recipe } from "@lucro-caseiro/contracts";
-import { Button, Chip, Input, Typography } from "@lucro-caseiro/ui";
+import { Button, Chip, Input } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
 import { Alert, ScrollView, View } from "react-native";
 
@@ -84,8 +84,6 @@ export function EditRecipeForm({ recipe, onSuccess }: EditRecipeFormProps) {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 20, gap: 16 }}>
-      <Typography variant="h2">Editar receita</Typography>
-
       <Input label="Nome da receita" value={name} onChangeText={setName} autoFocus />
       <Input label="Categoria" value={category} onChangeText={setCategory} />
       <Input

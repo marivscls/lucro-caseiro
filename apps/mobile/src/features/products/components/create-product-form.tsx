@@ -101,8 +101,6 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 20, gap: 16 }}>
-      <Typography variant="h2">Novo produto</Typography>
-
       <Input
         label="Nome do produto"
         placeholder="Ex: Brigadeiro, Bolo de chocolate..."

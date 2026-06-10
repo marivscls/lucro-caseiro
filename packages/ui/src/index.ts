@@ -12,3 +12,4 @@ export { IconButton } from "./components/icon-button";
 export { Badge } from "./components/badge";
 export { Chip } from "./components/chip";
 export { EmptyState } from "./components/empty-state";
+export { ModalHeader } from "./components/modal-header";

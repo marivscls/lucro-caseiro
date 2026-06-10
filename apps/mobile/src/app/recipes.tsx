@@ -1,6 +1,6 @@
-import { Button, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
+import { Button, ModalHeader, spacing, useTheme } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
-import { Modal, Pressable, View } from "react-native";
+import { Modal, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CreateRecipeForm } from "../features/recipes/components/create-recipe-form";
@@ -67,19 +67,7 @@ export default function RecipesScreen() {
         onRequestClose={closeModal}
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "flex-end",
-              padding: spacing.lg,
-            }}
-          >
-            <Pressable onPress={closeModal}>
-              <Typography variant="bodyBold" color={theme.colors.primary}>
-                Fechar
-              </Typography>
-            </Pressable>
-          </View>
+          <ModalHeader title="Nova receita" onClose={closeModal} />
           <CreateRecipeForm onSuccess={closeModal} />
         </SafeAreaView>
       </Modal>
@@ -92,19 +80,7 @@ export default function RecipesScreen() {
         onRequestClose={closeModal}
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "flex-end",
-              padding: spacing.lg,
-            }}
-          >
-            <Pressable onPress={closeModal}>
-              <Typography variant="bodyBold" color={theme.colors.primary}>
-                Fechar
-              </Typography>
-            </Pressable>
-          </View>
+          <ModalHeader title="Detalhes da receita" onClose={closeModal} />
           {modal.type === "detail" && (
             <RecipeDetail
               recipeId={modal.recipeId}
@@ -123,19 +99,7 @@ export default function RecipesScreen() {
         onRequestClose={closeModal}
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "flex-end",
-              padding: spacing.lg,
-            }}
-          >
-            <Pressable onPress={closeModal}>
-              <Typography variant="bodyBold" color={theme.colors.primary}>
-                Fechar
-              </Typography>
-            </Pressable>
-          </View>
+          <ModalHeader title="Editar receita" onClose={closeModal} />
           {editingRecipe && (
             <EditRecipeForm recipe={editingRecipe} onSuccess={closeModal} />
           )}

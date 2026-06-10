@@ -1,6 +1,7 @@
 import {
   Button,
   EmptyState,
+  ModalHeader,
   Typography,
   useTheme,
   spacing,
@@ -155,19 +156,7 @@ export default function MaterialsScreen() {
         onRequestClose={() => setShowCreate(false)}
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "flex-end",
-              padding: spacing.lg,
-            }}
-          >
-            <Pressable onPress={() => setShowCreate(false)}>
-              <Typography variant="bodyBold" color={theme.colors.primary}>
-                Fechar
-              </Typography>
-            </Pressable>
-          </View>
+          <ModalHeader title="Novo insumo" onClose={() => setShowCreate(false)} />
           <MaterialForm onSuccess={() => setShowCreate(false)} />
         </SafeAreaView>
       </Modal>
@@ -179,19 +168,7 @@ export default function MaterialsScreen() {
         onRequestClose={() => setSelectedId(null)}
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "flex-end",
-              padding: spacing.lg,
-            }}
-          >
-            <Pressable onPress={() => setSelectedId(null)}>
-              <Typography variant="bodyBold" color={theme.colors.primary}>
-                Fechar
-              </Typography>
-            </Pressable>
-          </View>
+          <ModalHeader title="Editar insumo" onClose={() => setSelectedId(null)} />
           {selected ? (
             <MaterialForm material={selected} onSuccess={() => setSelectedId(null)} />
           ) : null}
