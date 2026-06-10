@@ -20,7 +20,7 @@ import {
   ScrollView,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CreateLabelForm } from "../features/labels/components/create-label-form";
 import { LabelPreview } from "../features/labels/components/label-preview";
@@ -403,6 +403,7 @@ function LabelDetailModal({
 
 export default function LabelsScreen() {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const { data, isLoading, error } = useLabels();
   const [showCreate, setShowCreate] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -465,7 +466,13 @@ export default function LabelsScreen() {
       {renderContent()}
 
       {/* FAB */}
-      <View style={{ position: "absolute", bottom: 100, right: 20 }}>
+      <View
+        style={{
+          position: "absolute",
+          bottom: spacing.xl + insets.bottom,
+          right: spacing.xl,
+        }}
+      >
         <Button
           title="+ Novo rótulo"
           onPress={() => setShowCreate(true)}

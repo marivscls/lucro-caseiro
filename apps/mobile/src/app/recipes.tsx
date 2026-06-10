@@ -1,7 +1,7 @@
 import { Button, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
 import { Modal, Pressable, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CreateRecipeForm } from "../features/recipes/components/create-recipe-form";
 import { EditRecipeForm } from "../features/recipes/components/edit-recipe-form";
@@ -17,6 +17,7 @@ type ModalState =
 
 export default function RecipesScreen() {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const [modal, setModal] = useState<ModalState>({ type: "none" });
 
   const editingRecipeId = modal.type === "edit" ? modal.recipeId : "";
@@ -36,7 +37,13 @@ export default function RecipesScreen() {
       </View>
 
       {/* FAB - Nova receita */}
-      <View style={{ position: "absolute", bottom: 100, right: 20 }}>
+      <View
+        style={{
+          position: "absolute",
+          bottom: spacing.xl + insets.bottom,
+          right: spacing.xl,
+        }}
+      >
         <Button
           title="+ Nova receita"
           onPress={() => setModal({ type: "create" })}

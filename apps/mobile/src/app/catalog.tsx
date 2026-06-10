@@ -35,6 +35,7 @@ import { useProfile } from "../features/subscription/hooks";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { ApiError } from "../shared/utils/api-client";
+import { showToast } from "../shared/components/toast";
 import { uploadCatalogCover, uploadCatalogLogo } from "../shared/utils/upload-image";
 
 // Mesmas chaves/cores dos presets do backend (CATALOG_ACCENT_PRESETS).
@@ -193,7 +194,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
       ...(isPremium ? { tagline: tagline.trim() || null } : {}),
     });
     if (ok) {
-      Alert.alert("Pronto!", "As configurações do catálogo foram salvas.");
+      showToast("Configurações salvas!");
     }
   }
 

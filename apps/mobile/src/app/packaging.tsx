@@ -20,7 +20,7 @@ import {
   ScrollView,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CreatePackagingForm } from "../features/packaging/components/create-packaging-form";
 import {
@@ -249,6 +249,7 @@ function PackagingDetailModal({
 
 export default function PackagingScreen() {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const { data, isLoading, error } = usePackagingList();
   const [showCreate, setShowCreate] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -314,7 +315,13 @@ export default function PackagingScreen() {
       )}
 
       {/* FAB */}
-      <View style={{ position: "absolute", bottom: 100, right: 20 }}>
+      <View
+        style={{
+          position: "absolute",
+          bottom: spacing.xl + insets.bottom,
+          right: spacing.xl,
+        }}
+      >
         <Button
           title="+ Nova embalagem"
           onPress={() => setShowCreate(true)}

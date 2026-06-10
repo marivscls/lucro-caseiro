@@ -15,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useClients } from "../features/clients/hooks";
 import { useSales, useUpdateSaleStatus } from "../features/sales/hooks";
 import { buildChargeMessage, groupFiados, totalOwed } from "../features/sales/fiado";
+import { showToast } from "../shared/components/toast";
 import type { FiadoGroup } from "../features/sales/fiado";
 import { formatCurrency } from "../shared/utils/format";
 import { isValidBrazilPhone } from "../shared/utils/phone";
@@ -130,6 +131,7 @@ export default function FiadoScreen() {
           void (async () => {
             try {
               await updateStatus.mutateAsync({ id: saleId, status: "paid" });
+              showToast("Recebido! Venda marcada como paga.");
               void refetch();
             } catch {
               Alert.alert("Erro", "Não foi possível atualizar. Tente novamente.");

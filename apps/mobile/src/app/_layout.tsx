@@ -10,6 +10,7 @@ import { useDeliveryNotifier } from "../features/orders/use-delivery-notifier";
 import { useLowStockNotifier } from "../features/products/use-low-stock-notifier";
 import { BrandIntro } from "../shared/components/brand-intro";
 import { OfflineBanner } from "../shared/components/offline-banner";
+import { ToastHost } from "../shared/components/toast";
 import { useAuth } from "../shared/hooks/use-auth";
 import { useNotifications } from "../shared/hooks/use-notifications";
 import { setupAutoSync } from "../shared/hooks/use-offline-queue";
@@ -86,6 +87,7 @@ function AppContent() {
     <>
       <StatusBar style="light" />
       <OfflineBanner />
+      <ToastHost />
       <PremiumSuccess visible={successVisible} onClose={hidePremiumSuccess} />
       <Modal
         visible={paywallVisible}

@@ -13,7 +13,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Alert, Image, Modal, Pressable, ScrollView, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   ComponentPicker,
@@ -488,6 +488,7 @@ function LowStockBanner() {
 
 export default function ProductsScreen() {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const [showCreate, setShowCreate] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
 
@@ -502,7 +503,13 @@ export default function ProductsScreen() {
       </View>
 
       {/* FAB - Novo produto */}
-      <View style={{ position: "absolute", bottom: 100, right: 20 }}>
+      <View
+        style={{
+          position: "absolute",
+          bottom: spacing.xl + insets.bottom,
+          right: spacing.xl,
+        }}
+      >
         <Button
           title="+ Novo produto"
           onPress={() => setShowCreate(true)}
