@@ -63,7 +63,9 @@ export class CatalogRepoPg implements ICatalogRepo {
           enabled: values.enabled,
           whatsapp: values.whatsapp,
           coverUrl: values.coverUrl,
+          logoUrl: values.logoUrl,
           accentColor: values.accentColor,
+          pattern: values.pattern,
           tagline: values.tagline,
           updatedAt: values.updatedAt,
         },
@@ -121,8 +123,14 @@ export class CatalogRepoPg implements ICatalogRepo {
       enabled: row.enabled,
       whatsapp: row.whatsapp,
       coverUrl: row.coverUrl,
-      accentColor: ACCENT_KEYS.includes(row.accentColor ?? "")
-        ? (row.accentColor as CatalogSettings["accentColor"])
+      logoUrl: row.logoUrl,
+      accentColor:
+        ACCENT_KEYS.includes(row.accentColor ?? "") ||
+        /^#[0-9a-fA-F]{6}$/.test(row.accentColor ?? "")
+          ? row.accentColor
+          : null,
+      pattern: ["dots", "bubbles", "grid", "stripes"].includes(row.pattern ?? "")
+        ? (row.pattern as CatalogSettings["pattern"])
         : null,
       tagline: row.tagline,
       updatedAt: row.updatedAt.toISOString(),

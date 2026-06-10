@@ -1,5 +1,6 @@
 import type {
-  CatalogAccentColorKey,
+  CatalogAccentColorValue,
+  CatalogPatternKey,
   CatalogSettings,
   PublicCatalogProduct,
 } from "@lucro-caseiro/contracts";
@@ -16,7 +17,9 @@ export interface CatalogSettingsData {
   enabled: boolean;
   whatsapp: string | null;
   coverUrl: string | null;
-  accentColor: CatalogAccentColorKey | null;
+  logoUrl: string | null;
+  accentColor: CatalogAccentColorValue | null;
+  pattern: CatalogPatternKey | null;
   tagline: string | null;
 }
 

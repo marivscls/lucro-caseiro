@@ -84,9 +84,54 @@ export const CATALOG_ACCENT_PRESETS: Record<string, AccentPalette> = {
   amber: { dark: "#8c6420", base: "#b3852f", light: "#cda354", bg: "#faf5ea" },
 };
 
+const HEX_COLOR_REGEX = /^#[0-9a-fA-F]{6}$/;
+
+/** Mistura um canal RGB com um alvo (0 = preto, 255 = branco) na proporcao dada. */
+function mixChannel(channel: number, target: number, ratio: number): number {
+  return Math.round(channel + (target - channel) * ratio);
+}
+
+/** Deriva a paleta (gradiente + fundo) a partir de um hex base escolhido pelo usuario. */
+export function paletteFromHex(hex: string): AccentPalette {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const toHex = (cr: number, cg: number, cb: number) =>
+    `#${[cr, cg, cb].map((c) => c.toString(16).padStart(2, "0")).join("")}`;
+  return {
+    base: toHex(r, g, b),
+    dark: toHex(mixChannel(r, 0, 0.25), mixChannel(g, 0, 0.25), mixChannel(b, 0, 0.25)),
+    light: toHex(
+      mixChannel(r, 255, 0.2),
+      mixChannel(g, 255, 0.2),
+      mixChannel(b, 255, 0.2),
+    ),
+    bg: toHex(
+      mixChannel(r, 255, 0.93),
+      mixChannel(g, 255, 0.93),
+      mixChannel(b, 255, 0.93),
+    ),
+  };
+}
+
+// Patterns decorativos sobre o gradiente do hero (CSS puro, sem imagens).
+const HERO_PATTERNS: Record<string, string> = {
+  dots: "background-image: radial-gradient(rgba(255,255,255,0.22) 1.5px, transparent 1.5px); background-size: 16px 16px;",
+  bubbles:
+    "background-image: radial-gradient(rgba(255,255,255,0.14) 9px, transparent 10px); background-size: 56px 56px;",
+  grid: "background-image: linear-gradient(rgba(255,255,255,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.12) 1px, transparent 1px); background-size: 26px 26px;",
+  stripes:
+    "background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.09) 0 10px, transparent 10px 24px);",
+};
+
+function resolvePalette(accentColor: string | null): AccentPalette {
+  if (!accentColor) return BROWN_PALETTE;
+  if (HEX_COLOR_REGEX.test(accentColor)) return paletteFromHex(accentColor);
+  return CATALOG_ACCENT_PRESETS[accentColor] ?? BROWN_PALETTE;
+}
+
 export function renderCatalogHtml(catalog: PublicCatalog): string {
-  const palette: AccentPalette =
-    CATALOG_ACCENT_PRESETS[catalog.accentColor ?? "brown"] ?? BROWN_PALETTE;
+  const palette = resolvePalette(catalog.accentColor);
   const cards = catalog.products.map((p) => productCard(p, catalog.whatsapp)).join("");
   const initial = escapeHtml(catalog.businessName.charAt(0).toUpperCase() || "?");
   const count = catalog.products.length;
@@ -98,6 +143,11 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   const cover = catalog.coverUrl
     ? `<div class="cover"><img src="${escapeHtml(catalog.coverUrl)}" alt=""></div>`
     : "";
+  const patternCss = catalog.pattern ? (HERO_PATTERNS[catalog.pattern] ?? "") : "";
+  const patternOverlay = patternCss ? `<div class="pattern"></div>` : "";
+  const avatar = catalog.logoUrl
+    ? `<div class="avatar"><img src="${escapeHtml(catalog.logoUrl)}" alt=""></div>`
+    : `<div class="avatar">${initial}</div>`;
   const tagline = catalog.tagline
     ? `<p class="bio">${escapeHtml(catalog.tagline)}</p>`
     : "";
@@ -123,7 +173,9 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   .bio { margin-top: 10px; font-size: 15px; line-height: 1.5; opacity: 0.92; max-width: 480px; margin-left: auto; margin-right: auto; position: relative; z-index: 1; }
   .hero-bg::before { content: ""; position: absolute; top: -60px; right: -60px; width: 220px; height: 220px; border-radius: 50%; background: rgba(255,255,255,0.06); }
   .hero-bg::after { content: ""; position: absolute; bottom: -80px; left: -40px; width: 260px; height: 260px; border-radius: 50%; background: rgba(255,255,255,0.05); }
-  .avatar { width: 76px; height: 76px; border-radius: 50%; background: rgba(255,255,255,0.16); border: 2px solid rgba(255,255,255,0.45); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; font-family: Georgia, "Times New Roman", serif; font-size: 34px; font-weight: 700; position: relative; z-index: 1; }
+  .pattern { position: absolute; inset: 0; pointer-events: none; ${patternCss} }
+  .avatar { width: 76px; height: 76px; border-radius: 50%; background: rgba(255,255,255,0.16); border: 2px solid rgba(255,255,255,0.45); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; font-family: Georgia, "Times New Roman", serif; font-size: 34px; font-weight: 700; position: relative; z-index: 1; overflow: hidden; }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
   h1 { font-family: Georgia, "Times New Roman", serif; font-size: 30px; letter-spacing: 0.2px; position: relative; z-index: 1; }
   .tagline { margin-top: 6px; font-size: 14px; letter-spacing: 2.5px; text-transform: uppercase; opacity: 0.78; position: relative; z-index: 1; }
   .count { display: inline-block; margin-top: 14px; font-size: 13px; background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.25); padding: 6px 14px; border-radius: 999px; position: relative; z-index: 1; }
@@ -154,7 +206,8 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
 <body>
 ${cover}
 <div class="hero-bg">
-  <div class="avatar">${initial}</div>
+  ${patternOverlay}
+  ${avatar}
   <h1>${escapeHtml(catalog.businessName)}</h1>
   <p class="tagline">Catálogo de produtos</p>
   ${tagline}

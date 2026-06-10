@@ -11,7 +11,9 @@ import type { ICatalogRepo } from "./catalog.types";
 function wantsCustomization(data: UpdateCatalogSettings): boolean {
   return (
     data.coverUrl !== undefined ||
+    data.logoUrl !== undefined ||
     data.accentColor !== undefined ||
+    data.pattern !== undefined ||
     data.tagline !== undefined
   );
 }
@@ -40,7 +42,9 @@ export class CatalogUseCases {
       enabled: false,
       whatsapp: owner.phone,
       coverUrl: null,
+      logoUrl: null,
       accentColor: null,
+      pattern: null,
       tagline: null,
     });
   }
@@ -76,8 +80,10 @@ export class CatalogUseCases {
       enabled: data.enabled ?? current.enabled,
       whatsapp: data.whatsapp === undefined ? current.whatsapp : data.whatsapp,
       coverUrl: data.coverUrl === undefined ? current.coverUrl : data.coverUrl,
+      logoUrl: data.logoUrl === undefined ? current.logoUrl : data.logoUrl,
       accentColor:
         data.accentColor === undefined ? current.accentColor : data.accentColor,
+      pattern: data.pattern === undefined ? current.pattern : data.pattern,
       tagline: data.tagline === undefined ? current.tagline : data.tagline,
     });
   }
@@ -97,7 +103,9 @@ export class CatalogUseCases {
       businessName: owner.businessName,
       whatsapp: owner.whatsapp ?? owner.phone,
       coverUrl: isPremium ? owner.coverUrl : null,
+      logoUrl: isPremium ? owner.logoUrl : null,
       accentColor: isPremium ? owner.accentColor : null,
+      pattern: isPremium ? owner.pattern : null,
       tagline: isPremium ? owner.tagline : null,
       products,
     };

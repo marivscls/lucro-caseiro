@@ -90,3 +90,16 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
 - 2026-06-09: card "Aparência" (Premium, badge): capa (galeria → `uploadCatalogCover` no
   bucket `product-photos`), 6 cores preset (swatches) e frase de apresentação. Free: tocar
   abre o paywall (`usePaywall("catalog")`); backend reforça via LIMIT_EXCEEDED.
+- 2026-06-09: campo de cor hexadecimal livre no card Aparência (preview + "Aplicar";
+  aceita com/sem `#`, valida 6 dígitos).
+- 2026-06-09: foto de perfil no card Aparência (`uploadCatalogLogo`) — círculo tocável
+  com remover; mesmo gate Premium.
+- 2026-06-09: UX da cor custom — bolinha "+" ao lado dos presets abre `ColorPickerModal`
+  (components/color-picker-modal.tsx: quadro saturação/brilho + barra de matiz em SVG,
+  campo hex, confirmar/cancelar). Estampas do topo (nenhum/pontinhos/bolinhas/
+  quadriculado/listras) em bolinhas abaixo das cores; mesmo gate Premium.
+- 2026-06-09: UX — botão "Salvar" único (primário, fim da tela) salva endereço, WhatsApp
+  e frase juntos (frase só entra no payload se premium); prévia local imediata de
+  capa/foto de perfil após escolher na galeria; `HeroPreview`
+  (components/hero-preview.tsx, SVG) mostra o topo com cor+estampa+frase em tempo real,
+  entre as estampas e a frase.

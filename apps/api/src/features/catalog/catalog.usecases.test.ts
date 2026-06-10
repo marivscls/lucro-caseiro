@@ -13,6 +13,8 @@ function makeSettings(overrides: Partial<CatalogSettings> = {}): CatalogSettings
     enabled: true,
     whatsapp: "11999998888",
     coverUrl: null,
+    logoUrl: null,
+    pattern: null,
     accentColor: null,
     tagline: null,
     updatedAt: new Date().toISOString(),

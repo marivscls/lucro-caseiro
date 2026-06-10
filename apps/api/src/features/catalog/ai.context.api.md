@@ -134,3 +134,10 @@ invariants:
   (senão `LimitExceededError`/LIMIT_EXCEEDED → paywall no app); na página pública a
   personalização só é aplicada enquanto o dono for premium (assinatura caiu → tema padrão,
   dados preservados). Paletas em `CATALOG_ACCENT_PRESETS` (domínio).
+- 2026-06-09: cor hexadecimal livre — `accentColor` aceita preset OU `#rrggbb`
+  (`CATALOG_HEX_COLOR_REGEX`); `paletteFromHex` deriva gradiente/fundo do hex. Valor
+  inválido salvo no banco cai no marrom padrão no render.
+- 2026-06-09: foto de perfil/logo (`logo_url`, migration 013) — substitui a inicial no
+  avatar do hero. Mesmo gate Premium dos demais campos de personalização.
+- 2026-06-09: pattern decorativo no hero (`pattern`, migration 014; enum
+  dots/bubbles/grid/stripes) — overlay CSS puro (`HERO_PATTERNS`); mesmo gate Premium.

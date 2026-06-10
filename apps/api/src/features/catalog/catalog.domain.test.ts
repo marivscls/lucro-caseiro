@@ -51,7 +51,9 @@ describe("renderCatalogHtml", () => {
     businessName: "Doces",
     whatsapp: null,
     coverUrl: null,
+    logoUrl: null,
     accentColor: null,
+    pattern: null,
     tagline: null,
     products: [] as (typeof product)[],
   };
@@ -108,6 +110,17 @@ describe("renderCatalogHtml", () => {
     expect(html).not.toContain("#8c5a45");
   });
 
+  it("aplica cor hexadecimal customizada com paleta derivada", () => {
+    const html = renderCatalogHtml({ ...baseCatalog, accentColor: "#ff66aa" });
+    expect(html).toContain("#ff66aa");
+    expect(html).not.toContain("#8c5a45");
+  });
+
+  it("cai no marrom padrao se a cor salva for invalida", () => {
+    const html = renderCatalogHtml({ ...baseCatalog, accentColor: "vermelho" });
+    expect(html).toContain("#8c5a45");
+  });
+
   it("renderiza capa e tagline quando definidas", () => {
     const html = renderCatalogHtml({
       ...baseCatalog,
@@ -116,5 +129,24 @@ describe("renderCatalogHtml", () => {
     });
     expect(html).toContain("https://cdn.example.com/capa.jpg");
     expect(html).toContain("Bolos artesanais feitos com amor");
+  });
+
+  it("renderiza overlay de pattern quando definido", () => {
+    const html = renderCatalogHtml({ ...baseCatalog, pattern: "dots" });
+    expect(html).toContain('class="pattern"');
+    expect(html).toContain("radial-gradient");
+  });
+
+  it("sem pattern, nao renderiza overlay", () => {
+    const html = renderCatalogHtml(baseCatalog);
+    expect(html).not.toContain('class="pattern"');
+  });
+
+  it("renderiza a foto de perfil no avatar quando definida", () => {
+    const html = renderCatalogHtml({
+      ...baseCatalog,
+      logoUrl: "https://cdn.example.com/logo.jpg",
+    });
+    expect(html).toContain("https://cdn.example.com/logo.jpg");
   });
 });

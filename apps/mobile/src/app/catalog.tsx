@@ -1,4 +1,8 @@
-import type { CatalogAccentColorKey, CatalogSettings } from "@lucro-caseiro/contracts";
+import type {
+  CatalogAccentColorValue,
+  CatalogPatternKey,
+  CatalogSettings,
+} from "@lucro-caseiro/contracts";
 import {
   Badge,
   Button,
@@ -24,21 +28,37 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { publicCatalogUrl } from "../features/catalog/api";
+import { ColorPickerModal } from "../features/catalog/components/color-picker-modal";
+import { HeroPreview } from "../features/catalog/components/hero-preview";
 import { useCatalogSettings, useUpdateCatalogSettings } from "../features/catalog/hooks";
 import { useProfile } from "../features/subscription/hooks";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { ApiError } from "../shared/utils/api-client";
-import { uploadCatalogCover } from "../shared/utils/upload-image";
+import { uploadCatalogCover, uploadCatalogLogo } from "../shared/utils/upload-image";
 
 // Mesmas chaves/cores dos presets do backend (CATALOG_ACCENT_PRESETS).
-const ACCENT_SWATCHES: { key: CatalogAccentColorKey; color: string; label: string }[] = [
-  { key: "brown", color: "#8c5a45", label: "Marrom" },
-  { key: "rose", color: "#c2557b", label: "Rosa" },
-  { key: "green", color: "#447a55", label: "Verde" },
-  { key: "lavender", color: "#7a64b0", label: "Lilás" },
-  { key: "blue", color: "#3f74a0", label: "Azul" },
-  { key: "amber", color: "#b3852f", label: "Dourado" },
+const ACCENT_SWATCHES: { key: CatalogAccentColorValue; color: string; label: string }[] =
+  [
+    { key: "brown", color: "#8c5a45", label: "Marrom" },
+    { key: "rose", color: "#c2557b", label: "Rosa" },
+    { key: "green", color: "#447a55", label: "Verde" },
+    { key: "lavender", color: "#7a64b0", label: "Lilás" },
+    { key: "blue", color: "#3f74a0", label: "Azul" },
+    { key: "amber", color: "#b3852f", label: "Dourado" },
+  ];
+
+// Patterns decorativos do hero (mesmas chaves do backend, HERO_PATTERNS).
+const PATTERN_OPTIONS: {
+  key: CatalogPatternKey | null;
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+}[] = [
+  { key: null, icon: "ban-outline", label: "Nenhum" },
+  { key: "dots", icon: "ellipsis-horizontal", label: "Pontinhos" },
+  { key: "bubbles", icon: "ellipse-outline", label: "Bolinhas" },
+  { key: "grid", icon: "grid-outline", label: "Quadriculado" },
+  { key: "stripes", icon: "reorder-three-outline", label: "Listras" },
 ];
 
 function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
@@ -47,11 +67,24 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
   const [slug, setSlug] = useState(settings.slug);
   const [whatsapp, setWhatsapp] = useState(settings.whatsapp ?? "");
   const [tagline, setTagline] = useState(settings.tagline ?? "");
+  const isCustomColor = !!settings.accentColor && settings.accentColor.startsWith("#");
+  const [colorModalVisible, setColorModalVisible] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  // Previa local imediata apos escolher a imagem (enquanto o upload/salvar roda).
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const { data: profile } = useProfile();
   const showPaywall = usePaywall((s) => s.show);
   const { pickFromGallery } = useImagePicker();
   const isPremium = profile?.plan === "premium";
+  const dashedBorder =
+    theme.mode === "dark" ? "rgba(245, 225, 219, 0.35)" : "rgba(74, 50, 40, 0.3)";
+  const customCircleBorderColor = isCustomColor ? theme.colors.text : dashedBorder;
+  const resolvedBaseColor = isCustomColor
+    ? settings.accentColor!
+    : (ACCENT_SWATCHES.find((sw) => sw.key === (settings.accentColor ?? "brown"))
+        ?.color ?? "#8c5a45");
 
   useEffect(() => {
     setSlug(settings.slug);
@@ -90,6 +123,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
     if (requirePremium()) return;
     const uri = await pickFromGallery();
     if (!uri) return;
+    setCoverPreview(uri);
     setUploadingCover(true);
     try {
       const coverUrl = await uploadCatalogCover(uri);
@@ -102,18 +136,49 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
   }
 
   async function handleRemoveCover() {
+    setCoverPreview(null);
     await save({ coverUrl: null });
   }
 
-  async function handlePickColor(color: CatalogAccentColorKey) {
+  async function handlePickLogo() {
+    if (requirePremium()) return;
+    const uri = await pickFromGallery();
+    if (!uri) return;
+    setLogoPreview(uri);
+    setUploadingLogo(true);
+    try {
+      const logoUrl = await uploadCatalogLogo(uri);
+      await save({ logoUrl });
+    } catch {
+      Alert.alert("Erro", "Não foi possível enviar a foto de perfil. Tente novamente.");
+    } finally {
+      setUploadingLogo(false);
+    }
+  }
+
+  async function handleRemoveLogo() {
+    setLogoPreview(null);
+    await save({ logoUrl: null });
+  }
+
+  async function handlePickColor(color: CatalogAccentColorValue) {
     if (requirePremium()) return;
     await save({ accentColor: color });
   }
 
-  async function handleSaveTagline() {
+  function handleOpenColorModal() {
     if (requirePremium()) return;
-    const ok = await save({ tagline: tagline.trim() || null });
-    if (ok) Alert.alert("Pronto!", "Frase de apresentação salva.");
+    setColorModalVisible(true);
+  }
+
+  async function handleConfirmCustomColor(hex: string) {
+    setColorModalVisible(false);
+    await save({ accentColor: hex });
+  }
+
+  async function handlePickPattern(pattern: CatalogPatternKey | null) {
+    if (requirePremium()) return;
+    await save({ pattern });
   }
 
   async function handleToggle(enabled: boolean) {
@@ -124,6 +189,8 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
     const ok = await save({
       slug: slug.trim().toLowerCase(),
       whatsapp: whatsapp.trim() || null,
+      // Tagline so entra no payload para premium (o backend bloqueia no free).
+      ...(isPremium ? { tagline: tagline.trim() || null } : {}),
     });
     if (ok) {
       Alert.alert("Pronto!", "As configurações do catálogo foram salvas.");
@@ -307,11 +374,6 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
             keyboardType="phone-pad"
             placeholder="11 99999-8888"
           />
-          <Button
-            title={update.isPending ? "Salvando..." : "Salvar alterações"}
-            onPress={() => void handleSave()}
-            disabled={update.isPending}
-          />
         </View>
       </Card>
 
@@ -332,9 +394,9 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
             accessibilityLabel="Foto de capa do catálogo"
             style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
           >
-            {settings.coverUrl ? (
+            {(settings.coverUrl ?? coverPreview) ? (
               <Image
-                source={{ uri: settings.coverUrl }}
+                source={{ uri: settings.coverUrl ?? coverPreview! }}
                 style={{
                   width: "100%",
                   height: 120,
@@ -384,6 +446,74 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
             </Pressable>
           )}
 
+          {/* Foto de perfil / logo */}
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            Foto de perfil (aparece no topo do catálogo)
+          </Typography>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+            <Pressable
+              onPress={() => void handlePickLogo()}
+              accessibilityRole="button"
+              accessibilityLabel="Foto de perfil do catálogo"
+              style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
+            >
+              {(settings.logoUrl ?? logoPreview) ? (
+                <Image
+                  source={{ uri: settings.logoUrl ?? logoPreview! }}
+                  style={{
+                    width: 72,
+                    height: 72,
+                    borderRadius: 36,
+                    backgroundColor: theme.colors.surface,
+                  }}
+                />
+              ) : (
+                <View
+                  style={{
+                    width: 72,
+                    height: 72,
+                    borderRadius: 36,
+                    borderWidth: 1.5,
+                    borderStyle: "dashed",
+                    borderColor:
+                      theme.mode === "dark"
+                        ? "rgba(245, 225, 219, 0.25)"
+                        : "rgba(74, 50, 40, 0.2)",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {uploadingLogo ? (
+                    <ActivityIndicator color={theme.colors.primary} />
+                  ) : (
+                    <Ionicons
+                      name="person-circle-outline"
+                      size={32}
+                      color={theme.colors.primaryLight}
+                    />
+                  )}
+                </View>
+              )}
+            </Pressable>
+            <View style={{ flex: 1, gap: spacing.xs }}>
+              <Typography variant="caption">
+                {settings.logoUrl
+                  ? "Toque na foto para trocar."
+                  : "Toque para adicionar sua logo ou uma foto sua."}
+              </Typography>
+              {settings.logoUrl && (
+                <Pressable
+                  onPress={() => void handleRemoveLogo()}
+                  accessibilityRole="button"
+                >
+                  <Typography variant="caption" color={theme.colors.alert}>
+                    Remover foto de perfil
+                  </Typography>
+                </Pressable>
+              )}
+            </View>
+          </View>
+
           {/* Cor do tema */}
           <Typography variant="caption" color={theme.colors.textSecondary}>
             Cor do catálogo
@@ -417,7 +547,93 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                 </Pressable>
               );
             })}
+
+            {/* Cor personalizada: bolinha "+" abre o seletor de cores */}
+            <Pressable
+              onPress={handleOpenColorModal}
+              accessibilityRole="button"
+              accessibilityLabel="Escolher cor personalizada"
+              style={{ alignItems: "center", gap: spacing.xs }}
+            >
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  backgroundColor: isCustomColor
+                    ? settings.accentColor!
+                    : theme.colors.surface,
+                  borderWidth: isCustomColor ? 3 : 1.5,
+                  borderStyle: isCustomColor ? "solid" : "dashed",
+                  borderColor: customCircleBorderColor,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Ionicons
+                  name={isCustomColor ? "checkmark" : "add"}
+                  size={22}
+                  color={isCustomColor ? "#fff" : theme.colors.primaryLight}
+                />
+              </View>
+              <Typography variant="caption">
+                {isCustomColor ? "Sua cor" : "Outra"}
+              </Typography>
+            </Pressable>
           </View>
+
+          {/* Pattern decorativo */}
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            Estampa do topo
+          </Typography>
+          <View style={{ flexDirection: "row", gap: spacing.md, flexWrap: "wrap" }}>
+            {PATTERN_OPTIONS.map((option) => {
+              const selected = (settings.pattern ?? null) === option.key;
+              return (
+                <Pressable
+                  key={option.label}
+                  onPress={() => void handlePickPattern(option.key)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Estampa ${option.label}`}
+                  style={{ alignItems: "center", gap: spacing.xs }}
+                >
+                  <View
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 22,
+                      backgroundColor: theme.colors.primary,
+                      borderWidth: selected ? 3 : 0,
+                      borderColor: theme.colors.text,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Ionicons name={option.icon} size={20} color="#fff" />
+                  </View>
+                  <Typography variant="caption">{option.label}</Typography>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {/* Previa do topo (cor + estampa) */}
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            Prévia do topo do catálogo
+          </Typography>
+          <HeroPreview
+            baseColor={resolvedBaseColor}
+            pattern={settings.pattern ?? null}
+            businessName={profile?.businessName ?? profile?.name ?? "Seu negócio"}
+            tagline={tagline}
+          />
+
+          <ColorPickerModal
+            visible={colorModalVisible}
+            initialColor={isCustomColor ? settings.accentColor! : "#8c5a45"}
+            onConfirm={(hex) => void handleConfirmCustomColor(hex)}
+            onCancel={() => setColorModalVisible(false)}
+          />
 
           {/* Frase de apresentação */}
           <Input
@@ -427,13 +643,15 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
             placeholder="Bolos artesanais feitos com amor 🧁"
             maxLength={120}
           />
-          <Button
-            title="Salvar frase"
-            variant="secondary"
-            onPress={() => void handleSaveTagline()}
-          />
         </View>
       </Card>
+
+      {/* Salvar geral (endereco, whatsapp e frase) */}
+      <Button
+        title={update.isPending ? "Salvando..." : "Salvar"}
+        onPress={() => void handleSave()}
+        disabled={update.isPending}
+      />
 
       <View
         style={{

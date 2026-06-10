@@ -14,7 +14,9 @@ export const catalogSettings = pgTable(
     whatsapp: text("whatsapp"),
     // Personalizacao (Premium): capa, preset de cor e frase de apresentacao.
     coverUrl: text("cover_url"),
+    logoUrl: text("logo_url"),
     accentColor: text("accent_color"),
+    pattern: text("pattern"),
     tagline: text("tagline"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
