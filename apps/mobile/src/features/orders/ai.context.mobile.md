@@ -121,3 +121,4 @@ receita ao entregar.
 - 2026-06-10: formulário ganhou "Sinal recebido" (validação local sinal ≤ valor) e
   FormSection "Personalização" (tema/homenageado/cores). Card mostra "Falta R$X";
   detalhe na agenda mostra faixa de sinal e bloco de personalização.
+- 2026-06-10: campo de data de entrega ganhou seletor nativo de data (icone de calendario abre @react-native-community/datetimepicker); digitacao mascarada continua valendo. Conversao de orcamento em quotes.tsx usa o DateField compartilhado.

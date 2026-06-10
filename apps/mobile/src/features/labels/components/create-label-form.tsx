@@ -13,6 +13,7 @@ import { cleanNutrition } from "../nutrition";
 import { normalizeLink } from "../qr";
 import { useCreateLabel } from "../hooks";
 import { useProfile } from "../../subscription/hooks";
+import { DateField } from "../../../shared/components/date-field";
 import { FormSection } from "../../../shared/components/form-section";
 import { usePaywall } from "../../../shared/hooks/use-paywall";
 import { LabelStyleEditor } from "./label-style-editor";
@@ -190,20 +191,16 @@ export function CreateLabelForm({
         initiallyOpen
       >
         <View style={{ flexDirection: "row", gap: 12 }}>
-          <Input
-            label="Fabricacao"
-            placeholder="DD/MM/AAAA"
+          <DateField
+            label="Fabricação"
             value={labelData.manufacturingDate ?? ""}
-            onChangeText={handleManufacturingChange}
-            keyboardType="number-pad"
+            onChange={handleManufacturingChange}
             containerStyle={{ flex: 1 }}
           />
-          <Input
+          <DateField
             label="Validade"
-            placeholder="DD/MM/AAAA"
             value={labelData.expirationDate ?? ""}
-            onChangeText={(v) => updateField("expirationDate", maskDateBR(v))}
-            keyboardType="number-pad"
+            onChange={(v) => updateField("expirationDate", v)}
             containerStyle={{ flex: 1 }}
           />
         </View>

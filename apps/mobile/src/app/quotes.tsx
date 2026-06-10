@@ -33,9 +33,11 @@ import {
 import { buildQuoteMessage } from "../features/quotes/message";
 import { exportQuotePdf } from "../features/quotes/quote-pdf";
 import { useProfile } from "../features/subscription/hooks";
+import { DateField } from "../shared/components/date-field";
 import { Illustration } from "../shared/components/illustrations";
 import { showToast } from "../shared/components/toast";
 import { usePaywall } from "../shared/hooks/use-paywall";
+import { brToIso } from "../shared/utils/date";
 import { formatCurrency } from "../shared/utils/format";
 import { openWhatsAppShare } from "../shared/utils/whatsapp";
 import { alertValidation, alertError } from "../shared/utils/alerts";
@@ -55,18 +57,6 @@ const FILTERS: { key: QuoteStatusType | "all"; label: string }[] = [
   { key: "accepted", label: "Aprovados" },
   { key: "rejected", label: "Recusados" },
 ];
-
-function maskDateBR(value: string): string {
-  const digits = value.replace(/\D/g, "").slice(0, 8);
-  if (digits.length <= 2) return digits;
-  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
-}
-
-function brToIso(value: string): string | null {
-  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value.trim());
-  return m ? `${m[3]}-${m[2]}-${m[1]}` : null;
-}
 
 function QuoteCard({ quote, onPress }: Readonly<{ quote: Quote; onPress: () => void }>) {
   const { theme } = useTheme();
@@ -159,13 +149,7 @@ function ConvertModal({
             O orçamento "{quote.title}" ({formatCurrency(quote.total)}) vira uma encomenda
             na sua agenda.
           </Typography>
-          <Input
-            label="Data de entrega"
-            placeholder="DD/MM/AAAA"
-            value={dateText}
-            onChangeText={(v) => setDateText(maskDateBR(v))}
-            keyboardType="number-pad"
-          />
+          <DateField label="Data de entrega" value={dateText} onChange={setDateText} />
           <Input
             label="Sinal recebido (opcional)"
             placeholder="Ex.: 60,00"

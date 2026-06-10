@@ -1,4 +1,5 @@
 import type { Order } from "@lucro-caseiro/contracts";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
@@ -53,11 +54,13 @@ function offsetIsoBr(days: number): string {
 function Field({
   icon,
   trailingIcon,
+  onTrailingPress,
   ...props
 }: Readonly<
   TextInputProps & {
     icon: keyof typeof Ionicons.glyphMap;
     trailingIcon?: keyof typeof Ionicons.glyphMap;
+    onTrailingPress?: () => void;
   }
 >) {
   const { theme } = useTheme();
@@ -94,7 +97,14 @@ function Field({
         ]}
       />
       {trailingIcon ? (
-        <Ionicons name={trailingIcon} size={24} color={theme.colors.primaryLight} />
+        <Pressable
+          accessibilityRole="button"
+          onPress={onTrailingPress}
+          disabled={!onTrailingPress}
+          hitSlop={12}
+        >
+          <Ionicons name={trailingIcon} size={24} color={theme.colors.primaryLight} />
+        </Pressable>
       ) : null}
     </View>
   );
@@ -108,6 +118,7 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
     order?.deliveryDate ? isoToBR(order.deliveryDate) : offsetIsoBr(0),
   );
   const [time, setTime] = useState(order?.deliveryTime ?? "");
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [amount, setAmount] = useState(
     order?.amount != null ? String(order.amount).replace(".", ",") : "",
   );
@@ -441,11 +452,29 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
             <Field
               icon="calendar-outline"
               trailingIcon="calendar-outline"
+              onTrailingPress={() => setShowDatePicker(true)}
               value={dateText}
               onChangeText={(v) => setDateText(maskDateBR(v))}
               keyboardType="number-pad"
               placeholder="DD/MM/AAAA"
             />
+            {showDatePicker && (
+              <DateTimePicker
+                value={(() => {
+                  const iso = brToIso(dateText);
+                  return iso ? new Date(`${iso}T12:00:00`) : new Date();
+                })()}
+                mode="date"
+                display={Platform.OS === "ios" ? "spinner" : "default"}
+                onChange={(event, picked) => {
+                  setShowDatePicker(false);
+                  if (event.type === "dismissed" || !picked) return;
+                  setDateText(
+                    `${pad(picked.getDate())}/${pad(picked.getMonth() + 1)}/${picked.getFullYear()}`,
+                  );
+                }}
+              />
+            )}
           </View>
 
           <View style={{ gap: spacing.sm }}>

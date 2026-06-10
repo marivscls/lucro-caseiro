@@ -170,3 +170,4 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
   Free: tocar abre paywall; backend reforça com LIMIT_EXCEEDED.
 - 2026-06-10: `LabelStyleEditor` ganhou prop `locked` (free): opções visíveis com leve
   opacidade + cadeado; tocar abre o paywall. Vislumbre converte mais que esconder.
+- 2026-06-10: datas de fabricacao/validade usam DateField compartilhado (shared/components/date-field.tsx): mascara DD/MM/AAAA + seletor nativo (@react-native-community/datetimepicker) pelo icone de calendario.

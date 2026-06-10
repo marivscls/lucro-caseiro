@@ -53,7 +53,8 @@
           "androidAppId": "ca-app-pub-8304398247631710~5581735015",
           "iosAppId": "ca-app-pub-3940256099942544~1458002511"
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "extra": {
       "router": {},
