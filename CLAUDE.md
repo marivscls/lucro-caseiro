@@ -41,6 +41,7 @@
 | Receitas   | 5             | Ilimitado           |
 | Embalagens | 3             | Ilimitado           |
 | Rotulos    | 1 template    | Ilimitado           |
+| Catalogo   | 5 produtos    | Ilimitado + visual  |
 | Relatorios | Basico mensal | Completo + graficos |
 | Exportacao | Nao           | PDF/Excel           |
 
