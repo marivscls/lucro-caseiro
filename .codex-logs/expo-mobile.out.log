@@ -1,0 +1,171 @@
+
+> @lucro-caseiro/mobile@0.0.1 dev C:\Users\maria\Documents\projects\lucro-caseiro\apps\mobile
+> expo start "--" "--clear" "--host" "lan"
+
+env: load .env
+env: export EXPO_PUBLIC_API_URL EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_ANON_KEY EXPO_PUBLIC_AUTH_REDIRECT_URL
+Starting project at C:\Users\maria\Documents\projects\lucro-caseiro\apps\mobile
+Using src/app as the root directory for Expo Router.
+Starting Metro Bundler
+warning: Bundler cache is empty, rebuilding (this may take a minute)
+Waiting on http://localhost:8081
+Logs for your project will appear below.
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ▓▓▓░░░░░░░░░░░░░ 22.4% (335/708)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░ 86.7% (1550/1680)
+Android Bundled 8069ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1890 modules)
+ WARN  [expo-notifications]: `shouldShowAlert` is deprecated. Specify `shouldShowBanner` and / or `shouldShowList` instead.
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 74ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 71ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 52ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 53ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 53ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 197ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+ ERROR  [Error: BannerAd: 'size(s)' expected a valid BannerAdSize or custom size string.]
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 50ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 210ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 53ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 50ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 139ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 52ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 52ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 51ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+ WARN  [expo-notifications]: `shouldShowAlert` is deprecated. Specify `shouldShowBanner` and / or `shouldShowList` instead.
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 84ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 57ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 52ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 185ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 53ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 150ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 75ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 83ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 61ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Unable to resolve "../features/finance/components/finance-dashboard" from "apps\mobile\src\app\finance.tsx"
+[0m [90m 4 |[39m [36mimport[39m { useTheme } [36mfrom[39m [32m"@lucro-caseiro/ui"[39m[33m;[39m
+ [90m 5 |[39m
+[31m[1m>[22m[39m[90m 6 |[39m [36mimport[39m { [33mFinanceDashboard[39m } [36mfrom[39m [32m"../features/finance/components/finance-dashboard"[39m[33m;[39m
+ [90m   |[39m                                   [31m[1m^[22m[39m
+ [90m 7 |[39m
+ [90m 8 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mFinanceScreen[39m() {
+ [90m 9 |[39m   [36mconst[39m { theme } [33m=[39m useTheme()[33m;[39m[0m
+
+Import stack:
+
+ apps\mobile\src\app\finance.tsx
+ | import "../features/finance/components/finance-dashboard"
+
+ apps\mobile\src\app (require.context)
+
+ ERROR  [Error: UnableToResolveError Unable to resolve module ../features/finance/components/finance-dashboard from C:\Users\maria\Documents\projects\lucro-caseiro\apps\mobile\src\app\finance.tsx: 
+
+None of these files exist:
+  * src\features\finance\components\finance-dashboard(.android.ts|.native.ts|.ts|.android.tsx|.native.tsx|.tsx|.android.mjs|.native.mjs|.mjs|.android.js|.native.js|.js|.android.jsx|.native.jsx|.jsx|.android.json|.native.json|.json|.android.cjs|.native.cjs|.cjs|.android.scss|.native.scss|.scss|.android.sass|.native.sass|.sass|.android.css|.native.css|.css)
+  * src\features\finance\components\finance-dashboard
+[0m [90m 4 |[39m [36mimport[39m { useTheme } [36mfrom[39m [32m"@lucro-caseiro/ui"[39m[33m;[39m
+ [90m 5 |[39m
+[31m[1m>[22m[39m[90m 6 |[39m [36mimport[39m { [33mFinanceDashboard[39m } [36mfrom[39m [32m"../features/finance/components/finance-dashboard"[39m[33m;[39m
+ [90m   |[39m                                   [31m[1m^[22m[39m
+ [90m 7 |[39m
+ [90m 8 |[39m [36mexport[39m [36mdefault[39m [36mfunction[39m [33mFinanceScreen[39m() {
+ [90m 9 |[39m   [36mconst[39m { theme } [33m=[39m useTheme()[33m;[39m[0m]
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 296ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 613ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+ WARN  Cannot connect to Metro.
+
+Try the following to fix the issue:
+- Ensure that Metro is running and available on the same network
+- Ensure that your device/emulator is connected to your machine and has USB debugging enabled - run 'adb devices' to see a list of connected devices
+- If you're on a physical device connected to the same machine, run 'adb reverse tcp:8081 tcp:8081' to forward requests from your device
+- If your device is on the same Wi-Fi network, set 'Debug server host & port for device' in 'Dev settings' to your machine's IP address and the port of the local dev server - e.g. 10.0.1.1:8081
+
+URL: 192.168.1.105:8081
+
+Error: undefined
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 622ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 627ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 599ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 835ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 267ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Unable to resolve "./create-finance-entry" from "apps\mobile\src\features\finance\components\finance-dashboard.tsx"
+[0m [90m 26 |[39m [36mimport[39m { getExportUrl } [36mfrom[39m [32m"../api"[39m[33m;[39m
+ [90m 27 |[39m [36mimport[39m { useDeleteFinanceEntry[33m,[39m useFinanceEntries[33m,[39m useFinanceSummary } [36mfrom[39m [32m"../hooks"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 28 |[39m [36mimport[39m { [33mCreateFinanceEntry[39m } [36mfrom[39m [32m"./create-finance-entry"[39m[33m;[39m
+ [90m    |[39m                                     [31m[1m^[22m[39m
+ [90m 29 |[39m
+ [90m 30 |[39m [36mconst[39m [33mMONTH_NAMES[39m [33m=[39m [
+ [90m 31 |[39m   [32m"Janeiro"[39m[33m,[39m[0m
+
+Import stack:
+
+ apps\mobile\src\features\finance\components\finance-dashboard.tsx
+ | import "./create-finance-entry"
+
+ apps\mobile\src\app\finance.tsx
+ | import "../features/finance/components/finance-dashboard"
+
+ apps\mobile\src\app (require.context)
+
+ ERROR  [Error: UnableToResolveError Unable to resolve module ./create-finance-entry from C:\Users\maria\Documents\projects\lucro-caseiro\apps\mobile\src\features\finance\components\finance-dashboard.tsx: 
+
+None of these files exist:
+  * src\features\finance\components\create-finance-entry(.android.ts|.native.ts|.ts|.android.tsx|.native.tsx|.tsx|.android.mjs|.native.mjs|.mjs|.android.js|.native.js|.js|.android.jsx|.native.jsx|.jsx|.android.json|.native.json|.json|.android.cjs|.native.cjs|.cjs|.android.scss|.native.scss|.scss|.android.sass|.native.sass|.sass|.android.css|.native.css|.css)
+  * src\features\finance\components\create-finance-entry
+[0m [90m 26 |[39m [36mimport[39m { getExportUrl } [36mfrom[39m [32m"../api"[39m[33m;[39m
+ [90m 27 |[39m [36mimport[39m { useDeleteFinanceEntry[33m,[39m useFinanceEntries[33m,[39m useFinanceSummary } [36mfrom[39m [32m"../hooks"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 28 |[39m [36mimport[39m { [33mCreateFinanceEntry[39m } [36mfrom[39m [32m"./create-finance-entry"[39m[33m;[39m
+ [90m    |[39m                                     [31m[1m^[22m[39m
+ [90m 29 |[39m
+ [90m 30 |[39m [36mconst[39m [33mMONTH_NAMES[39m [33m=[39m [
+ [90m 31 |[39m   [32m"Janeiro"[39m[33m,[39m[0m]
+ ERROR  [ReferenceError: Property 'onTrailingPress' doesn't exist]
+ ERROR  [ReferenceError: Property 'onTrailingPress' doesn't exist]
+ ERROR  [ReferenceError: Property 'onTrailingPress' doesn't exist]
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 424ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 371ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+ ERROR  [Error: BannerAd: 'size(s)' expected a valid BannerAdSize or custom size string.]
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 167ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+ ERROR  [Error: BannerAd: 'size(s)' expected a valid BannerAdSize or custom size string.]
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 685ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+ ERROR  [Error: BannerAd: 'size(s)' expected a valid BannerAdSize or custom size string.]
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 345ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+ ERROR  [Error: BannerAd: 'size(s)' expected a valid BannerAdSize or custom size string.]
+Android node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 580ms node_modules\.pnpm\expo-router@6.0.23_36yothvmsjihho3xradocxp5gq\node_modules\expo-router\entry.js (1 module)
+C:\Users\maria\Documents\projects\lucro-caseiro\apps\mobile:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @lucro-caseiro/mobile@0.0.1 dev: `expo start "--" "--clear" "--host" "lan"`
+Exit status 4294967295

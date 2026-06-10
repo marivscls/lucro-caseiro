@@ -12,6 +12,10 @@ export const catalogSettings = pgTable(
     enabled: boolean("enabled").notNull().default(false),
     // WhatsApp para receber pedidos; se null, usa users.phone.
     whatsapp: text("whatsapp"),
+    // Personalizacao (Premium): capa, preset de cor e frase de apresentacao.
+    coverUrl: text("cover_url"),
+    accentColor: text("accent_color"),
+    tagline: text("tagline"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("idx_catalog_settings_slug").on(table.slug)],

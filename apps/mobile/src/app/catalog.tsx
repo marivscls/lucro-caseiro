@@ -1,4 +1,4 @@
-import type { CatalogSettings } from "@lucro-caseiro/contracts";
+import type { CatalogAccentColorKey, CatalogSettings } from "@lucro-caseiro/contracts";
 import {
   Badge,
   Button,
@@ -14,6 +14,7 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Pressable,
   ScrollView,
   Share,
@@ -24,18 +25,39 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { publicCatalogUrl } from "../features/catalog/api";
 import { useCatalogSettings, useUpdateCatalogSettings } from "../features/catalog/hooks";
+import { useProfile } from "../features/subscription/hooks";
+import { useImagePicker } from "../shared/hooks/use-image-picker";
+import { usePaywall } from "../shared/hooks/use-paywall";
 import { ApiError } from "../shared/utils/api-client";
+import { uploadCatalogCover } from "../shared/utils/upload-image";
+
+// Mesmas chaves/cores dos presets do backend (CATALOG_ACCENT_PRESETS).
+const ACCENT_SWATCHES: { key: CatalogAccentColorKey; color: string; label: string }[] = [
+  { key: "brown", color: "#8c5a45", label: "Marrom" },
+  { key: "rose", color: "#c2557b", label: "Rosa" },
+  { key: "green", color: "#447a55", label: "Verde" },
+  { key: "lavender", color: "#7a64b0", label: "Lilás" },
+  { key: "blue", color: "#3f74a0", label: "Azul" },
+  { key: "amber", color: "#b3852f", label: "Dourado" },
+];
 
 function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
   const { theme } = useTheme();
   const update = useUpdateCatalogSettings();
   const [slug, setSlug] = useState(settings.slug);
   const [whatsapp, setWhatsapp] = useState(settings.whatsapp ?? "");
+  const [tagline, setTagline] = useState(settings.tagline ?? "");
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const { data: profile } = useProfile();
+  const showPaywall = usePaywall((s) => s.show);
+  const { pickFromGallery } = useImagePicker();
+  const isPremium = profile?.plan === "premium";
 
   useEffect(() => {
     setSlug(settings.slug);
     setWhatsapp(settings.whatsapp ?? "");
-  }, [settings.slug, settings.whatsapp]);
+    setTagline(settings.tagline ?? "");
+  }, [settings.slug, settings.whatsapp, settings.tagline]);
 
   const url = publicCatalogUrl(settings.slug);
 
@@ -44,6 +66,11 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
       await update.mutateAsync(data);
       return true;
     } catch (err) {
+      // Personalizacao e Premium: o backend devolve LIMIT_EXCEEDED — abre o paywall.
+      if (err instanceof ApiError && err.code === "LIMIT_EXCEEDED") {
+        showPaywall("catalog");
+        return false;
+      }
       const message =
         err instanceof ApiError && err.status === 400
           ? err.message
@@ -51,6 +78,42 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
       Alert.alert("Erro", message);
       return false;
     }
+  }
+
+  function requirePremium(): boolean {
+    if (isPremium) return false;
+    showPaywall("catalog");
+    return true;
+  }
+
+  async function handlePickCover() {
+    if (requirePremium()) return;
+    const uri = await pickFromGallery();
+    if (!uri) return;
+    setUploadingCover(true);
+    try {
+      const coverUrl = await uploadCatalogCover(uri);
+      await save({ coverUrl });
+    } catch {
+      Alert.alert("Erro", "Não foi possível enviar a capa. Tente novamente.");
+    } finally {
+      setUploadingCover(false);
+    }
+  }
+
+  async function handleRemoveCover() {
+    await save({ coverUrl: null });
+  }
+
+  async function handlePickColor(color: CatalogAccentColorKey) {
+    if (requirePremium()) return;
+    await save({ accentColor: color });
+  }
+
+  async function handleSaveTagline() {
+    if (requirePremium()) return;
+    const ok = await save({ tagline: tagline.trim() || null });
+    if (ok) Alert.alert("Pronto!", "Frase de apresentação salva.");
   }
 
   async function handleToggle(enabled: boolean) {
@@ -248,6 +311,126 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
             title={update.isPending ? "Salvando..." : "Salvar alterações"}
             onPress={() => void handleSave()}
             disabled={update.isPending}
+          />
+        </View>
+      </Card>
+
+      {/* Aparência (Premium) */}
+      <Card padding="lg">
+        <View style={{ gap: spacing.md }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+            <Typography variant="label" style={{ flex: 1 }}>
+              APARÊNCIA
+            </Typography>
+            <Badge label="Premium" variant="premium" />
+          </View>
+
+          {/* Capa */}
+          <Pressable
+            onPress={() => void handlePickCover()}
+            accessibilityRole="button"
+            accessibilityLabel="Foto de capa do catálogo"
+            style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
+          >
+            {settings.coverUrl ? (
+              <Image
+                source={{ uri: settings.coverUrl }}
+                style={{
+                  width: "100%",
+                  height: 120,
+                  borderRadius: radii.xl,
+                  backgroundColor: theme.colors.surface,
+                }}
+              />
+            ) : (
+              <View
+                style={{
+                  height: 120,
+                  borderRadius: radii.xl,
+                  borderWidth: 1.5,
+                  borderStyle: "dashed",
+                  borderColor:
+                    theme.mode === "dark"
+                      ? "rgba(245, 225, 219, 0.25)"
+                      : "rgba(74, 50, 40, 0.2)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: spacing.xs,
+                }}
+              >
+                {uploadingCover ? (
+                  <ActivityIndicator color={theme.colors.primary} />
+                ) : (
+                  <>
+                    <Ionicons
+                      name="image-outline"
+                      size={28}
+                      color={theme.colors.primaryLight}
+                    />
+                    <Typography variant="caption">Adicionar foto de capa</Typography>
+                  </>
+                )}
+              </View>
+            )}
+          </Pressable>
+          {settings.coverUrl && (
+            <Pressable
+              onPress={() => void handleRemoveCover()}
+              accessibilityRole="button"
+            >
+              <Typography variant="caption" color={theme.colors.alert}>
+                Remover capa
+              </Typography>
+            </Pressable>
+          )}
+
+          {/* Cor do tema */}
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            Cor do catálogo
+          </Typography>
+          <View style={{ flexDirection: "row", gap: spacing.md, flexWrap: "wrap" }}>
+            {ACCENT_SWATCHES.map((swatch) => {
+              const selected = (settings.accentColor ?? "brown") === swatch.key;
+              return (
+                <Pressable
+                  key={swatch.key}
+                  onPress={() => void handlePickColor(swatch.key)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Cor ${swatch.label}`}
+                  style={{ alignItems: "center", gap: spacing.xs }}
+                >
+                  <View
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 22,
+                      backgroundColor: swatch.color,
+                      borderWidth: selected ? 3 : 0,
+                      borderColor: theme.colors.text,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {selected && <Ionicons name="checkmark" size={20} color="#fff" />}
+                  </View>
+                  <Typography variant="caption">{swatch.label}</Typography>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {/* Frase de apresentação */}
+          <Input
+            label="Frase de apresentação"
+            value={tagline}
+            onChangeText={setTagline}
+            placeholder="Bolos artesanais feitos com amor 🧁"
+            maxLength={120}
+          />
+          <Button
+            title="Salvar frase"
+            variant="secondary"
+            onPress={() => void handleSaveTagline()}
           />
         </View>
       </Card>

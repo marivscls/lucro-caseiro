@@ -87,3 +87,6 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
 - 2026-06-09: visual premium — hero com ícone de loja e badge de status, card "Seu link"
   (pill tocável + botão compartilhar, visível só com catálogo ativo), seções com ícones.
   Tela trata erro com botão "Tentar de novo". Mensagem de compartilhamento mais calorosa.
+- 2026-06-09: card "Aparência" (Premium, badge): capa (galeria → `uploadCatalogCover` no
+  bucket `product-photos`), 6 cores preset (swatches) e frase de apresentação. Free: tocar
+  abre o paywall (`usePaywall("catalog")`); backend reforça via LIMIT_EXCEEDED.

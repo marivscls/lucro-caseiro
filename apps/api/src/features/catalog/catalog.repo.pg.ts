@@ -3,7 +3,9 @@ import { catalogSettings, products, users } from "@lucro-caseiro/database/schema
 import { and, asc, eq, ne } from "drizzle-orm";
 
 import type { AppDatabase } from "../../shared/db";
-import type { CatalogOwner, ICatalogRepo } from "./catalog.types";
+import type { CatalogOwner, CatalogSettingsData, ICatalogRepo } from "./catalog.types";
+
+const ACCENT_KEYS = ["brown", "rose", "green", "lavender", "blue", "amber"];
 
 export class CatalogRepoPg implements ICatalogRepo {
   constructor(private db: AppDatabase) {}
@@ -23,6 +25,7 @@ export class CatalogRepoPg implements ICatalogRepo {
         name: users.name,
         businessName: users.businessName,
         phone: users.phone,
+        plan: users.plan,
       })
       .from(catalogSettings)
       .innerJoin(users, eq(catalogSettings.userId, users.id))
@@ -34,6 +37,7 @@ export class CatalogRepoPg implements ICatalogRepo {
       userId: row.settings.userId,
       businessName: row.businessName ?? row.name,
       phone: row.phone,
+      plan: row.plan,
     };
   }
 
@@ -47,10 +51,7 @@ export class CatalogRepoPg implements ICatalogRepo {
     return !!row;
   }
 
-  async upsert(
-    userId: string,
-    data: { slug: string; enabled: boolean; whatsapp: string | null },
-  ): Promise<CatalogSettings> {
+  async upsert(userId: string, data: CatalogSettingsData): Promise<CatalogSettings> {
     const values = { userId, ...data, updatedAt: new Date() };
     const [row] = await this.db
       .insert(catalogSettings)
@@ -61,6 +62,9 @@ export class CatalogRepoPg implements ICatalogRepo {
           slug: values.slug,
           enabled: values.enabled,
           whatsapp: values.whatsapp,
+          coverUrl: values.coverUrl,
+          accentColor: values.accentColor,
+          tagline: values.tagline,
           updatedAt: values.updatedAt,
         },
       })
@@ -94,7 +98,12 @@ export class CatalogRepoPg implements ICatalogRepo {
 
   async getOwnerDefaults(userId: string): Promise<CatalogOwner | null> {
     const [row] = await this.db
-      .select({ name: users.name, businessName: users.businessName, phone: users.phone })
+      .select({
+        name: users.name,
+        businessName: users.businessName,
+        phone: users.phone,
+        plan: users.plan,
+      })
       .from(users)
       .where(eq(users.id, userId));
     if (!row) return null;
@@ -102,6 +111,7 @@ export class CatalogRepoPg implements ICatalogRepo {
       userId,
       businessName: row.businessName ?? row.name,
       phone: row.phone,
+      plan: row.plan,
     };
   }
 
@@ -110,6 +120,11 @@ export class CatalogRepoPg implements ICatalogRepo {
       slug: row.slug,
       enabled: row.enabled,
       whatsapp: row.whatsapp,
+      coverUrl: row.coverUrl,
+      accentColor: ACCENT_KEYS.includes(row.accentColor ?? "")
+        ? (row.accentColor as CatalogSettings["accentColor"])
+        : null,
+      tagline: row.tagline,
       updatedAt: row.updatedAt.toISOString(),
     };
   }

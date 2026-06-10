@@ -1,8 +1,8 @@
 import type { CatalogSettings, PublicCatalogProduct } from "@lucro-caseiro/contracts";
 import { describe, expect, it, vi } from "vitest";
 
-import { NotFoundError, ValidationError } from "../../shared/errors";
-import type { CatalogOwner, ICatalogRepo } from "./catalog.types";
+import { LimitExceededError, NotFoundError, ValidationError } from "../../shared/errors";
+import type { CatalogOwner, CatalogSettingsData, ICatalogRepo } from "./catalog.types";
 import { CatalogUseCases } from "./catalog.usecases";
 
 const USER_ID = "user-123";
@@ -12,7 +12,20 @@ function makeSettings(overrides: Partial<CatalogSettings> = {}): CatalogSettings
     slug: "doces-da-maria",
     enabled: true,
     whatsapp: "11999998888",
+    coverUrl: null,
+    accentColor: null,
+    tagline: null,
     updatedAt: new Date().toISOString(),
+    ...overrides,
+  };
+}
+
+function makeOwner(overrides: Partial<CatalogOwner> = {}): CatalogOwner {
+  return {
+    userId: USER_ID,
+    businessName: "Doces da Maria",
+    phone: "11988887777",
+    plan: "free",
     ...overrides,
   };
 }
@@ -31,22 +44,11 @@ function makeProduct(): PublicCatalogProduct {
 function makeRepo(overrides: Partial<ICatalogRepo> = {}): ICatalogRepo {
   return {
     findByUser: () => Promise.resolve(makeSettings()),
-    findOwnerBySlug: () =>
-      Promise.resolve({
-        ...makeSettings(),
-        userId: USER_ID,
-        businessName: "Doces da Maria",
-        phone: "11988887777",
-      }),
+    findOwnerBySlug: () => Promise.resolve({ ...makeSettings(), ...makeOwner() }),
     slugTaken: () => Promise.resolve(false),
     upsert: (_userId, data) => Promise.resolve(makeSettings({ ...data })),
     listPublicProducts: () => Promise.resolve([makeProduct()]),
-    getOwnerDefaults: (): Promise<CatalogOwner | null> =>
-      Promise.resolve({
-        userId: USER_ID,
-        businessName: "Doces da Maria",
-        phone: "11988887777",
-      }),
+    getOwnerDefaults: () => Promise.resolve(makeOwner()),
     ...overrides,
   };
 }
@@ -63,11 +65,8 @@ describe("CatalogUseCases.getSettings", () => {
   });
 
   it("cria defaults desabilitados a partir do nome do negocio na primeira vez", async () => {
-    const upsert = vi.fn(
-      (
-        _userId: string,
-        data: { slug: string; enabled: boolean; whatsapp: string | null },
-      ) => Promise.resolve(makeSettings(data)),
+    const upsert = vi.fn((_userId: string, data: CatalogSettingsData) =>
+      Promise.resolve(makeSettings(data)),
     );
     const sut = new CatalogUseCases(
       makeRepo({ findByUser: () => Promise.resolve(null), upsert }),
@@ -128,6 +127,50 @@ describe("CatalogUseCases.updateSettings", () => {
 
     expect(settings.whatsapp).toBe("11999998888");
   });
+
+  it("bloqueia personalizacao para plano free (LIMIT_EXCEEDED)", async () => {
+    const sut = new CatalogUseCases(makeRepo());
+
+    await expect(
+      sut.updateSettings(USER_ID, { accentColor: "rose" }),
+    ).rejects.toBeInstanceOf(LimitExceededError);
+    await expect(
+      sut.updateSettings(USER_ID, { coverUrl: "https://cdn.x/capa.jpg" }),
+    ).rejects.toBeInstanceOf(LimitExceededError);
+    await expect(
+      sut.updateSettings(USER_ID, { tagline: "Feito com amor" }),
+    ).rejects.toBeInstanceOf(LimitExceededError);
+  });
+
+  it("permite personalizacao para plano premium", async () => {
+    const sut = new CatalogUseCases(
+      makeRepo({
+        getOwnerDefaults: () => Promise.resolve(makeOwner({ plan: "premium" })),
+      }),
+    );
+
+    const settings = await sut.updateSettings(USER_ID, {
+      accentColor: "rose",
+      tagline: "Bolos artesanais",
+      coverUrl: "https://cdn.x/capa.jpg",
+    });
+
+    expect(settings.accentColor).toBe("rose");
+    expect(settings.tagline).toBe("Bolos artesanais");
+    expect(settings.coverUrl).toBe("https://cdn.x/capa.jpg");
+  });
+
+  it("campos basicos (slug/enabled/whatsapp) seguem livres no plano free", async () => {
+    const sut = new CatalogUseCases(makeRepo());
+
+    const settings = await sut.updateSettings(USER_ID, {
+      slug: "novo",
+      enabled: true,
+      whatsapp: "11911112222",
+    });
+
+    expect(settings.slug).toBe("novo");
+  });
 });
 
 describe("CatalogUseCases.getPublicCatalog", () => {
@@ -145,18 +188,52 @@ describe("CatalogUseCases.getPublicCatalog", () => {
     const sut = new CatalogUseCases(
       makeRepo({
         findOwnerBySlug: () =>
-          Promise.resolve({
-            ...makeSettings({ whatsapp: null }),
-            userId: USER_ID,
-            businessName: "Doces da Maria",
-            phone: "11988887777",
-          }),
+          Promise.resolve({ ...makeSettings({ whatsapp: null }), ...makeOwner() }),
       }),
     );
 
     const catalog = await sut.getPublicCatalog("doces-da-maria");
 
     expect(catalog.whatsapp).toBe("11988887777");
+  });
+
+  it("oculta personalizacao quando o dono nao e premium", async () => {
+    const sut = new CatalogUseCases(
+      makeRepo({
+        findOwnerBySlug: () =>
+          Promise.resolve({
+            ...makeSettings({
+              coverUrl: "https://cdn.x/capa.jpg",
+              accentColor: "rose",
+              tagline: "Feito com amor",
+            }),
+            ...makeOwner({ plan: "free" }),
+          }),
+      }),
+    );
+
+    const catalog = await sut.getPublicCatalog("doces-da-maria");
+
+    expect(catalog.coverUrl).toBeNull();
+    expect(catalog.accentColor).toBeNull();
+    expect(catalog.tagline).toBeNull();
+  });
+
+  it("exibe personalizacao quando o dono e premium", async () => {
+    const sut = new CatalogUseCases(
+      makeRepo({
+        findOwnerBySlug: () =>
+          Promise.resolve({
+            ...makeSettings({ accentColor: "rose", tagline: "Feito com amor" }),
+            ...makeOwner({ plan: "premium" }),
+          }),
+      }),
+    );
+
+    const catalog = await sut.getPublicCatalog("doces-da-maria");
+
+    expect(catalog.accentColor).toBe("rose");
+    expect(catalog.tagline).toBe("Feito com amor");
   });
 
   it("404 quando slug nao existe", async () => {
@@ -173,12 +250,7 @@ describe("CatalogUseCases.getPublicCatalog", () => {
     const sut = new CatalogUseCases(
       makeRepo({
         findOwnerBySlug: () =>
-          Promise.resolve({
-            ...makeSettings({ enabled: false }),
-            userId: USER_ID,
-            businessName: "Doces da Maria",
-            phone: null,
-          }),
+          Promise.resolve({ ...makeSettings({ enabled: false }), ...makeOwner() }),
       }),
     );
 

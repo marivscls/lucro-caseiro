@@ -42,3 +42,7 @@ export function uploadLabelLogo(localUri: string): Promise<string> {
 export function uploadOrderImage(localUri: string): Promise<string> {
   return uploadImage(localUri, "order-");
 }
+
+export function uploadCatalogCover(localUri: string): Promise<string> {
+  return uploadImage(localUri, "catalog-cover-");
+}

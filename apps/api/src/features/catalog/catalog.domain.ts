@@ -57,7 +57,36 @@ function productCard(product: PublicCatalogProduct, whatsapp: string | null): st
 }
 
 /** Renderiza a pagina HTML publica do catalogo (mobile-first, sem JS). */
+/**
+ * Presets de cor do catalogo (personalizacao Premium). `dark`/`base`/`light`
+ * compoem o gradiente do hero; `accent` colore detalhes (rodape, placeholder).
+ */
+interface AccentPalette {
+  dark: string;
+  base: string;
+  light: string;
+  bg: string;
+}
+
+const BROWN_PALETTE: AccentPalette = {
+  dark: "#6e4534",
+  base: "#8c5a45",
+  light: "#a8715a",
+  bg: "#f7efe9",
+};
+
+export const CATALOG_ACCENT_PRESETS: Record<string, AccentPalette> = {
+  brown: BROWN_PALETTE,
+  rose: { dark: "#9c3d5c", base: "#c2557b", light: "#d97a9c", bg: "#faf0f3" },
+  green: { dark: "#2f5d3e", base: "#447a55", light: "#639672", bg: "#eff5f0" },
+  lavender: { dark: "#5c4a8c", base: "#7a64b0", light: "#9883cc", bg: "#f4f1fa" },
+  blue: { dark: "#2c5577", base: "#3f74a0", light: "#6494bd", bg: "#eef4f8" },
+  amber: { dark: "#8c6420", base: "#b3852f", light: "#cda354", bg: "#faf5ea" },
+};
+
 export function renderCatalogHtml(catalog: PublicCatalog): string {
+  const palette: AccentPalette =
+    CATALOG_ACCENT_PRESETS[catalog.accentColor ?? "brown"] ?? BROWN_PALETTE;
   const cards = catalog.products.map((p) => productCard(p, catalog.whatsapp)).join("");
   const initial = escapeHtml(catalog.businessName.charAt(0).toUpperCase() || "?");
   const count = catalog.products.length;
@@ -65,6 +94,12 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
     count === 1 ? "1 produto disponível" : `${count} produtos disponíveis`;
   const headerButton = catalog.whatsapp
     ? `<a class="order hero" href="${whatsappLink(catalog.whatsapp)}">${WHATSAPP_ICON}Fazer pedido no WhatsApp</a>`
+    : "";
+  const cover = catalog.coverUrl
+    ? `<div class="cover"><img src="${escapeHtml(catalog.coverUrl)}" alt=""></div>`
+    : "";
+  const tagline = catalog.tagline
+    ? `<p class="bio">${escapeHtml(catalog.tagline)}</p>`
     : "";
   const empty =
     count === 0
@@ -82,8 +117,10 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
 <style>
   :root { color-scheme: light; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: #f7efe9; color: #3d2b22; -webkit-font-smoothing: antialiased; }
-  .hero-bg { background: linear-gradient(160deg, #6e4534 0%, #8c5a45 55%, #a8715a 100%); padding: 44px 20px 72px; text-align: center; color: #fff; position: relative; overflow: hidden; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: ${palette.bg}; color: #3d2b22; -webkit-font-smoothing: antialiased; }
+  .cover img { width: 100%; height: 200px; object-fit: cover; display: block; }
+  .hero-bg { background: linear-gradient(160deg, ${palette.dark} 0%, ${palette.base} 55%, ${palette.light} 100%); padding: 44px 20px 72px; text-align: center; color: #fff; position: relative; overflow: hidden; }
+  .bio { margin-top: 10px; font-size: 15px; line-height: 1.5; opacity: 0.92; max-width: 480px; margin-left: auto; margin-right: auto; position: relative; z-index: 1; }
   .hero-bg::before { content: ""; position: absolute; top: -60px; right: -60px; width: 220px; height: 220px; border-radius: 50%; background: rgba(255,255,255,0.06); }
   .hero-bg::after { content: ""; position: absolute; bottom: -80px; left: -40px; width: 260px; height: 260px; border-radius: 50%; background: rgba(255,255,255,0.05); }
   .avatar { width: 76px; height: 76px; border-radius: 50%; background: rgba(255,255,255,0.16); border: 2px solid rgba(255,255,255,0.45); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; font-family: Georgia, "Times New Roman", serif; font-size: 34px; font-weight: 700; position: relative; z-index: 1; }
@@ -105,20 +142,22 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   .order { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; background: #25d366; color: #fff; text-decoration: none; font-weight: 700; font-size: 15px; padding: 13px 20px; border-radius: 999px; box-shadow: 0 6px 16px rgba(37, 211, 102, 0.35); }
   .order:active { transform: scale(0.98); }
   .order svg { width: 18px; height: 18px; }
-  .order.hero { margin-top: 18px; background: #fff; color: #6e4534; box-shadow: 0 8px 22px rgba(0,0,0,0.18); position: relative; z-index: 1; }
+  .order.hero { margin-top: 18px; background: #fff; color: ${palette.dark}; box-shadow: 0 8px 22px rgba(0,0,0,0.18); position: relative; z-index: 1; }
   .empty { grid-column: 1 / -1; text-align: center; padding: 56px 20px; background: #fffdfb; border-radius: 20px; box-shadow: 0 10px 30px rgba(61, 43, 34, 0.1); }
   .empty-icon { font-size: 44px; margin-bottom: 12px; }
   .empty p { font-size: 16px; font-weight: 600; color: #4a3228; }
   .empty .empty-sub { margin-top: 6px; font-size: 14px; font-weight: 400; color: #9b8275; }
   footer { text-align: center; padding: 32px 16px 44px; font-size: 13px; color: #9b8275; }
-  footer strong { color: #8c5a45; }
+  footer strong { color: ${palette.base}; }
 </style>
 </head>
 <body>
+${cover}
 <div class="hero-bg">
   <div class="avatar">${initial}</div>
   <h1>${escapeHtml(catalog.businessName)}</h1>
   <p class="tagline">Catálogo de produtos</p>
+  ${tagline}
   ${count > 0 ? `<span class="count">${countLabel}</span>` : ""}
   ${headerButton}
 </div>

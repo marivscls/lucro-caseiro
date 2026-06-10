@@ -3,10 +3,25 @@ import { z } from "zod";
 // Slug da URL publica do catalogo: minusculas, numeros e hifens.
 export const CATALOG_SLUG_REGEX = /^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])?$/;
 
+// Presets de cor do catalogo (personalizacao Premium). A chave e persistida;
+// as cores concretas ficam no dominio da API (render do HTML).
+export const CatalogAccentColor = z.enum([
+  "brown",
+  "rose",
+  "green",
+  "lavender",
+  "blue",
+  "amber",
+]);
+export type CatalogAccentColorKey = z.infer<typeof CatalogAccentColor>;
+
 export const CatalogSettingsDto = z.object({
   slug: z.string(),
   enabled: z.boolean(),
   whatsapp: z.string().nullable(),
+  coverUrl: z.string().nullable(),
+  accentColor: CatalogAccentColor.nullable(),
+  tagline: z.string().nullable(),
   updatedAt: z.string().datetime(),
 });
 
@@ -16,6 +31,10 @@ export const UpdateCatalogSettingsDto = z.object({
   slug: z.string().regex(CATALOG_SLUG_REGEX).optional(),
   enabled: z.boolean().optional(),
   whatsapp: z.string().max(20).nullable().optional(),
+  // Personalizacao (Premium — gate no backend):
+  coverUrl: z.string().url().nullable().optional(),
+  accentColor: CatalogAccentColor.nullable().optional(),
+  tagline: z.string().max(120).nullable().optional(),
 });
 
 export type UpdateCatalogSettings = z.infer<typeof UpdateCatalogSettingsDto>;
@@ -32,6 +51,9 @@ export const PublicCatalogProductDto = z.object({
 export const PublicCatalogDto = z.object({
   businessName: z.string(),
   whatsapp: z.string().nullable(),
+  coverUrl: z.string().nullable(),
+  accentColor: CatalogAccentColor.nullable(),
+  tagline: z.string().nullable(),
   products: z.array(PublicCatalogProductDto),
 });
 

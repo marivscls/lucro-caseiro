@@ -128,3 +128,9 @@ invariants:
 - 2026-06-09: redesign premium da página: hero com gradiente e avatar, tipografia serif,
   cards com sombra, botão WhatsApp com ícone SVG inline, contador de produtos, og:tags
   para preview de link, mensagens `wa.me` com emojis e nome do produto em negrito.
+- 2026-06-09: **personalização Premium** (migration 012): `cover_url`, `accent_color`
+  (preset: brown/rose/green/lavender/blue/amber) e `tagline` (máx 120) em
+  `catalog_settings`. Gate no backend: update desses campos exige plano premium
+  (senão `LimitExceededError`/LIMIT_EXCEEDED → paywall no app); na página pública a
+  personalização só é aplicada enquanto o dono for premium (assinatura caiu → tema padrão,
+  dados preservados). Paletas em `CATALOG_ACCENT_PRESETS` (domínio).

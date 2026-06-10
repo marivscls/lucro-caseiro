@@ -47,9 +47,18 @@ describe("renderCatalogHtml", () => {
     salePrice: 12.5,
     saleUnit: "unit",
   };
+  const baseCatalog = {
+    businessName: "Doces",
+    whatsapp: null,
+    coverUrl: null,
+    accentColor: null,
+    tagline: null,
+    products: [] as (typeof product)[],
+  };
 
   it("renderiza nome do negocio, produto e preco formatado", () => {
     const html = renderCatalogHtml({
+      ...baseCatalog,
       businessName: "Doces da Maria",
       whatsapp: "11999998888",
       products: [product],
@@ -62,8 +71,7 @@ describe("renderCatalogHtml", () => {
 
   it("mostra sufixo /kg para produtos por peso", () => {
     const html = renderCatalogHtml({
-      businessName: "Doces",
-      whatsapp: null,
+      ...baseCatalog,
       products: [{ ...product, saleUnit: "kg", salePrice: 45 }],
     });
     expect(html).toContain("R$ 45,00");
@@ -72,29 +80,41 @@ describe("renderCatalogHtml", () => {
 
   it("escapa HTML em campos do usuario", () => {
     const html = renderCatalogHtml({
+      ...baseCatalog,
       businessName: "<script>alert(1)</script>",
-      whatsapp: null,
-      products: [],
     });
     expect(html).not.toContain("<script>alert(1)</script>");
     expect(html).toContain("&lt;script&gt;");
   });
 
   it("sem whatsapp, nao renderiza botao de pedido", () => {
-    const html = renderCatalogHtml({
-      businessName: "Doces",
-      whatsapp: null,
-      products: [product],
-    });
+    const html = renderCatalogHtml({ ...baseCatalog, products: [product] });
     expect(html).not.toContain("wa.me");
   });
 
   it("sem produtos, mostra estado vazio", () => {
-    const html = renderCatalogHtml({
-      businessName: "Doces",
-      whatsapp: null,
-      products: [],
-    });
+    const html = renderCatalogHtml(baseCatalog);
     expect(html).toContain("Nenhum produto disponível no momento.");
+  });
+
+  it("usa a paleta padrao (marrom) sem personalizacao", () => {
+    const html = renderCatalogHtml(baseCatalog);
+    expect(html).toContain("#8c5a45");
+  });
+
+  it("aplica preset de cor quando definido", () => {
+    const html = renderCatalogHtml({ ...baseCatalog, accentColor: "rose" });
+    expect(html).toContain("#c2557b");
+    expect(html).not.toContain("#8c5a45");
+  });
+
+  it("renderiza capa e tagline quando definidas", () => {
+    const html = renderCatalogHtml({
+      ...baseCatalog,
+      coverUrl: "https://cdn.example.com/capa.jpg",
+      tagline: "Bolos artesanais feitos com amor",
+    });
+    expect(html).toContain("https://cdn.example.com/capa.jpg");
+    expect(html).toContain("Bolos artesanais feitos com amor");
   });
 });
