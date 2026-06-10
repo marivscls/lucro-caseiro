@@ -73,6 +73,10 @@ interface AdBannerProps {
 
 export function AdBanner({ style }: AdBannerProps) {
   const showAds = useShowAds();
+  // Em dev, o banner adaptativo do react-native-google-mobile-ads pode crashar
+  // nativamente (IndexOutOfBounds no createViewInstance) quando o JS do Metro
+  // diverge do nativo do dev build. Ads so renderizam em builds de producao.
+  if (__DEV__) return null;
   if (!showAds) return null;
 
   const mod = getAdMob();
