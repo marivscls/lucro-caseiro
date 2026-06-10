@@ -35,15 +35,26 @@ type ClientGroup = {
   data: Client[];
 };
 
-const CARD_BACKGROUND = "rgba(44, 36, 32, 0.82)";
-const CARD_BORDER = "rgba(245, 225, 219, 0.1)";
-const MUTED_TEXT = "#B8A090";
-
-function surfaceStyle(extra?: ViewStyle): ViewStyle {
+// Paleta derivada do tema ativo (antes constantes fixas de dark).
+function clientsPalette(theme: { mode: string; colors: Record<string, string> }) {
+  const isDark = theme.mode === "dark";
   return {
-    backgroundColor: CARD_BACKGROUND,
+    cardBg: isDark ? "rgba(44, 36, 32, 0.82)" : theme.colors.surfaceElevated,
+    cardBorder: isDark ? "rgba(245, 225, 219, 0.1)" : "rgba(74, 50, 40, 0.1)",
+    muted: theme.colors.textSecondary,
+    divider: isDark ? "rgba(245, 225, 219, 0.08)" : "rgba(74, 50, 40, 0.08)",
+    subtleFill: isDark ? "rgba(245, 225, 219, 0.06)" : "rgba(74, 50, 40, 0.05)",
+  };
+}
+
+function surfaceStyle(
+  pal: ReturnType<typeof clientsPalette>,
+  extra?: ViewStyle,
+): ViewStyle {
+  return {
+    backgroundColor: pal.cardBg,
     borderWidth: 1,
-    borderColor: CARD_BORDER,
+    borderColor: pal.cardBorder,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.16,
@@ -89,11 +100,12 @@ function SearchBox({
   filterIcon = "options-outline",
 }: Readonly<SearchBoxProps>) {
   const { theme } = useTheme();
+  const pal = clientsPalette(theme);
 
   return (
     <View
       style={[
-        surfaceStyle({
+        surfaceStyle(pal, {
           minHeight: 48,
           borderRadius: radii.xl,
           flexDirection: "row",
@@ -103,7 +115,7 @@ function SearchBox({
         }),
       ]}
     >
-      <Ionicons name="search-outline" size={20} color={MUTED_TEXT} />
+      <Ionicons name="search-outline" size={20} color={pal.muted} />
       <TextInput
         value={value}
         onChangeText={onChangeText}
@@ -122,7 +134,7 @@ function SearchBox({
         hitSlop={10}
         style={{
           borderLeftWidth: 1,
-          borderLeftColor: "rgba(245, 225, 219, 0.08)",
+          borderLeftColor: pal.divider,
           paddingLeft: spacing.md,
         }}
       >
@@ -167,12 +179,13 @@ interface ClientCardProps {
 
 function ClientCard({ client, onPress }: Readonly<ClientCardProps>) {
   const { theme } = useTheme();
+  const pal = clientsPalette(theme);
 
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [
-        surfaceStyle({
+        surfaceStyle(pal, {
           borderRadius: radii["2xl"],
           minHeight: 62,
           paddingHorizontal: spacing.md,
@@ -198,7 +211,7 @@ function ClientCard({ client, onPress }: Readonly<ClientCardProps>) {
           <Ionicons name="call" size={14} color={theme.colors.primaryLight} />
           <Typography
             variant="body"
-            color={MUTED_TEXT}
+            color={pal.muted}
             numberOfLines={1}
             style={{ fontSize: 13 }}
           >
@@ -206,18 +219,19 @@ function ClientCard({ client, onPress }: Readonly<ClientCardProps>) {
           </Typography>
         </View>
       </View>
-      <Ionicons name="chevron-forward" size={22} color={MUTED_TEXT} />
+      <Ionicons name="chevron-forward" size={22} color={pal.muted} />
     </Pressable>
   );
 }
 
 function EmptyClients({ onCreatePress }: Readonly<{ onCreatePress: () => void }>) {
   const { theme } = useTheme();
+  const pal = clientsPalette(theme);
 
   return (
     <View
       style={[
-        surfaceStyle({
+        surfaceStyle(pal, {
           borderRadius: radii["2xl"],
           padding: spacing["2xl"],
           alignItems: "center",
@@ -242,7 +256,7 @@ function EmptyClients({ onCreatePress }: Readonly<{ onCreatePress: () => void }>
       </Typography>
       <Typography
         variant="body"
-        color={MUTED_TEXT}
+        color={pal.muted}
         style={{ textAlign: "center", lineHeight: 24 }}
       >
         Cadastre seu primeiro cliente para organizar contatos e vendas.
@@ -288,6 +302,7 @@ function ClientsListScreen({
   onClientPress,
 }: Readonly<ClientsListScreenProps>) {
   const { theme } = useTheme();
+  const pal = clientsPalette(theme);
   const [showTip, setShowTip] = useState(true);
   const { data, isLoading, error, refetch, isRefetching } = useClients({
     search: search.trim() || undefined,
@@ -309,7 +324,7 @@ function ClientsListScreen({
         <Typography variant="h3" color={theme.colors.text}>
           Algo deu errado
         </Typography>
-        <Typography variant="body" color={MUTED_TEXT}>
+        <Typography variant="body" color={pal.muted}>
           Não foi possível carregar seus clientes.
         </Typography>
       </View>
@@ -381,7 +396,7 @@ function ClientsListScreen({
             </Typography>
             <Typography
               variant="label"
-              color={MUTED_TEXT}
+              color={pal.muted}
               style={{ fontSize: 11, letterSpacing: 2.4, fontWeight: "800" }}
             >
               {totalClients} CLIENTES CADASTRADOS
@@ -391,7 +406,7 @@ function ClientsListScreen({
           <Pressable
             onPress={onCreatePress}
             style={({ pressed }) => [
-              surfaceStyle({
+              surfaceStyle(pal, {
                 borderRadius: radii.xl,
                 minHeight: 48,
                 paddingHorizontal: spacing.md,
@@ -457,7 +472,7 @@ function ClientsListScreen({
       {showTip && (
         <View
           style={[
-            surfaceStyle({
+            surfaceStyle(pal, {
               position: "absolute",
               left: spacing.xl,
               right: spacing.xl,
@@ -500,7 +515,7 @@ function ClientsListScreen({
             </Typography>
           </View>
           <Pressable onPress={() => setShowTip(false)} hitSlop={10}>
-            <Ionicons name="close" size={24} color={MUTED_TEXT} />
+            <Ionicons name="close" size={24} color={pal.muted} />
           </Pressable>
         </View>
       )}
@@ -528,11 +543,12 @@ function NewClientField({
   ...inputProps
 }: Readonly<NewClientFieldProps>) {
   const { theme } = useTheme();
+  const pal = clientsPalette(theme);
 
   return (
     <View
       style={[
-        surfaceStyle({
+        surfaceStyle(pal, {
           minHeight: tall ? 108 : 72,
           borderRadius: radii.xl,
           paddingHorizontal: spacing.md,
@@ -585,13 +601,13 @@ function NewClientField({
           hitSlop={10}
           style={{ alignSelf: "center", opacity: onTrailingPress ? 1 : 0.9 }}
         >
-          <Ionicons name={trailingIcon} size={23} color={MUTED_TEXT} />
+          <Ionicons name={trailingIcon} size={23} color={pal.muted} />
         </Pressable>
       ) : null}
       {count ? (
         <Typography
           variant="caption"
-          color={MUTED_TEXT}
+          color={pal.muted}
           style={{ position: "absolute", right: spacing.lg, bottom: spacing.sm }}
         >
           {count}
@@ -648,6 +664,7 @@ function CalendarModal({
   onSelect,
 }: Readonly<CalendarModalProps>) {
   const { theme } = useTheme();
+  const pal = clientsPalette(theme);
   const [visibleMonth, setVisibleMonth] = useState(() => getInitialCalendarDate(value));
 
   const year = visibleMonth.getFullYear();
@@ -684,7 +701,7 @@ function CalendarModal({
       >
         <Pressable
           style={[
-            surfaceStyle({
+            surfaceStyle(pal, {
               borderRadius: radii["2xl"],
               padding: spacing.lg,
               gap: spacing.md,
@@ -722,7 +739,7 @@ function CalendarModal({
               <Typography
                 key={`${day}-${index}`}
                 variant="label"
-                color={MUTED_TEXT}
+                color={pal.muted}
                 style={{ flex: 1, textAlign: "center", letterSpacing: 0 }}
               >
                 {day}
@@ -804,6 +821,7 @@ function CalendarModal({
 
 function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
   const { theme } = useTheme();
+  const pal = clientsPalette(theme);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
@@ -882,12 +900,12 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
                 width: 42,
                 height: 48,
                 borderRadius: 21,
-                backgroundColor: "rgba(245, 225, 219, 0.06)",
+                backgroundColor: pal.subtleFill,
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Ionicons name="arrow-back" size={23} color={MUTED_TEXT} />
+              <Ionicons name="arrow-back" size={23} color={pal.muted} />
             </Pressable>
             <Typography
               variant="h1"
@@ -923,7 +941,7 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
           >
             <View
               style={[
-                surfaceStyle({
+                surfaceStyle(pal, {
                   borderRadius: radii.lg,
                   minHeight: 74,
                   paddingHorizontal: spacing.md,
@@ -961,7 +979,7 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
                 >
                   Preencha os dados do cliente.
                 </Typography>
-                <Typography variant="body" color={MUTED_TEXT} style={{ fontSize: 14 }}>
+                <Typography variant="body" color={pal.muted} style={{ fontSize: 14 }}>
                   Campos opcionais ajudam a personalizar o cadastro.
                 </Typography>
               </View>
@@ -1011,7 +1029,7 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
               maxLength={200}
               count={`${notes.length}/200`}
             />
-            <Typography variant="body" color={MUTED_TEXT} style={{ fontSize: 14 }}>
+            <Typography variant="body" color={pal.muted} style={{ fontSize: 14 }}>
               <Typography variant="bodyBold" color={theme.colors.primaryLight}>
                 *
               </Typography>{" "}

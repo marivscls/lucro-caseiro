@@ -25,10 +25,18 @@ interface OrderFormProps {
   readonly onSuccess?: () => void;
 }
 
-const SURFACE = "rgba(44, 36, 32, 0.82)";
-const PANEL = "rgba(44, 36, 32, 0.6)";
-const BORDER = "rgba(245, 225, 219, 0.1)";
-const MUTED = "#B8A090";
+// Paleta derivada do tema ativo (antes eram constantes fixas de dark, que
+// deixavam o formulario de encomenda com cores erradas no modo claro).
+function formPalette(theme: { mode: string; colors: Record<string, string> }) {
+  const isDark = theme.mode === "dark";
+  return {
+    surface: isDark ? "rgba(44, 36, 32, 0.82)" : theme.colors.surfaceElevated,
+    panel: isDark ? "rgba(44, 36, 32, 0.6)" : theme.colors.surface,
+    border: isDark ? "rgba(245, 225, 219, 0.1)" : "rgba(74, 50, 40, 0.1)",
+    muted: theme.colors.textSecondary,
+    subtleFill: isDark ? "rgba(245, 225, 219, 0.03)" : "rgba(74, 50, 40, 0.03)",
+  };
+}
 
 function pad(n: number): string {
   return String(n).padStart(2, "0");
@@ -51,15 +59,16 @@ function Field({
   }
 >) {
   const { theme } = useTheme();
+  const pal = formPalette(theme);
 
   return (
     <View
       style={{
         minHeight: 58,
         borderRadius: radii.lg,
-        backgroundColor: SURFACE,
+        backgroundColor: pal.surface,
         borderWidth: 1,
-        borderColor: BORDER,
+        borderColor: pal.border,
         flexDirection: "row",
         alignItems: "center",
         paddingHorizontal: spacing.md,
@@ -91,6 +100,7 @@ function Field({
 
 export function OrderForm({ order, onSuccess }: OrderFormProps) {
   const { theme } = useTheme();
+  const pal = formPalette(theme);
   const [title, setTitle] = useState(order?.title ?? "");
   const [dateText, setDateText] = useState(
     order?.deliveryDate ? isoToBR(order.deliveryDate) : offsetIsoBr(0),
@@ -227,7 +237,7 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
             >
               {isEditing ? "Editar encomenda" : "Nova encomenda"}
             </Typography>
-            <Typography variant="body" color={MUTED} style={{ fontSize: 17 }}>
+            <Typography variant="body" color={pal.muted} style={{ fontSize: 17 }}>
               Preencha os dados da encomenda
             </Typography>
           </View>
@@ -237,8 +247,8 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
           style={{
             borderRadius: 24,
             borderWidth: 1,
-            borderColor: BORDER,
-            backgroundColor: PANEL,
+            borderColor: pal.border,
+            backgroundColor: pal.panel,
             padding: spacing.lg,
             gap: spacing.lg,
           }}
@@ -254,10 +264,10 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
                   width: 96,
                   height: 96,
                   borderRadius: radii.lg,
-                  backgroundColor: "rgba(245, 225, 219, 0.03)",
+                  backgroundColor: pal.subtleFill,
                   borderWidth: 1,
                   borderStyle: currentPhotoUrl ? "solid" : "dashed",
-                  borderColor: currentPhotoUrl ? BORDER : "rgba(184, 160, 144, 0.45)",
+                  borderColor: currentPhotoUrl ? pal.border : "rgba(184, 160, 144, 0.45)",
                   alignItems: "center",
                   justifyContent: "center",
                   overflow: "hidden",
@@ -311,7 +321,7 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
                 </Pressable>
                 <Typography
                   variant="caption"
-                  color={MUTED}
+                  color={pal.muted}
                   style={{ fontSize: 13, lineHeight: 17 }}
                 >
                   Foto opcional para identificar a encomenda.
@@ -332,7 +342,7 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
             </View>
           </View>
 
-          <View style={{ height: 1, backgroundColor: BORDER }} />
+          <View style={{ height: 1, backgroundColor: pal.border }} />
 
           <View style={{ gap: spacing.sm }}>
             <Typography variant="h3" color={theme.colors.text} style={{ fontSize: 18 }}>
@@ -383,17 +393,17 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
                       justifyContent: "center",
                       flexDirection: "row",
                       gap: spacing.sm,
-                      backgroundColor: active ? theme.colors.primary : SURFACE,
+                      backgroundColor: active ? theme.colors.primary : pal.surface,
                     }}
                   >
                     <Ionicons
                       name={chip.icon}
                       size={21}
-                      color={active ? theme.colors.textOnPrimary : MUTED}
+                      color={active ? theme.colors.textOnPrimary : pal.muted}
                     />
                     <Typography
                       variant="bodyBold"
-                      color={active ? theme.colors.textOnPrimary : MUTED}
+                      color={active ? theme.colors.textOnPrimary : pal.muted}
                       style={{ fontSize: 17 }}
                     >
                       {chip.label}
@@ -482,8 +492,8 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
             gap: spacing.sm,
           }}
         >
-          <Ionicons name="shield-checkmark-outline" size={17} color={MUTED} />
-          <Typography variant="caption" color={MUTED} style={{ fontSize: 14 }}>
+          <Ionicons name="shield-checkmark-outline" size={17} color={pal.muted} />
+          <Typography variant="caption" color={pal.muted} style={{ fontSize: 14 }}>
             Seus dados estão seguros
           </Typography>
         </View>

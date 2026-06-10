@@ -23,7 +23,11 @@ function toneColors(theme: Theme, tone: StatusTone): { bg: string; fg: string } 
     case "danger":
       return { bg: "rgba(224, 114, 114, 0.22)", fg: theme.colors.alert };
     default:
-      return { bg: "rgba(245, 225, 219, 0.08)", fg: theme.colors.textSecondary };
+      return {
+        bg:
+          theme.mode === "dark" ? "rgba(245, 225, 219, 0.08)" : "rgba(74, 50, 40, 0.08)",
+        fg: theme.colors.textSecondary,
+      };
   }
 }
 

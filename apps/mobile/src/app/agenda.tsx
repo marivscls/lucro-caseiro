@@ -50,6 +50,10 @@ function agendaPalette(theme: ReturnType<typeof useTheme>["theme"]) {
     surface: isDark ? "rgba(44, 36, 32, 0.84)" : theme.colors.surfaceElevated,
     border: isDark ? "rgba(245, 225, 219, 0.1)" : "rgba(74, 50, 40, 0.1)",
     muted: theme.colors.textSecondary,
+    subtleFill: isDark ? "rgba(245, 225, 219, 0.06)" : "rgba(74, 50, 40, 0.05)",
+    subtleFillStrong: isDark ? "rgba(245, 225, 219, 0.08)" : "rgba(74, 50, 40, 0.08)",
+    scrim: isDark ? "rgba(44, 36, 32, 0.35)" : "rgba(74, 50, 40, 0.12)",
+    pillFill: isDark ? "rgba(245, 225, 219, 0.05)" : "rgba(74, 50, 40, 0.05)",
   };
 }
 
@@ -796,7 +800,7 @@ function OrdersSummaryHeader({
           style={{
             alignSelf: "flex-start",
             borderRadius: radii.lg,
-            backgroundColor: "rgba(245, 225, 219, 0.06)",
+            backgroundColor: agColors.subtleFill,
             paddingHorizontal: spacing.md,
             minHeight: 42,
             flexDirection: "row",
@@ -974,7 +978,7 @@ function OrdersList({
           justifyContent: "center",
           flexDirection: "row",
           gap: spacing.md,
-          backgroundColor: "rgba(44, 36, 32, 0.35)",
+          backgroundColor: agColors.scrim,
         }}
       >
         <Ionicons name="add-circle-outline" size={24} color={theme.colors.primaryLight} />
@@ -1097,9 +1101,7 @@ function DayFilterModal({
               style={{
                 borderRadius: radii.lg,
                 backgroundColor:
-                  selectedDate === null
-                    ? "rgba(196, 112, 126, 0.22)"
-                    : "rgba(245, 225, 219, 0.05)",
+                  selectedDate === null ? "rgba(196, 112, 126, 0.22)" : agColors.pillFill,
                 padding: spacing.md,
                 flexDirection: "row",
                 alignItems: "center",
@@ -1127,7 +1129,7 @@ function DayFilterModal({
                     borderRadius: radii.lg,
                     backgroundColor: selected
                       ? "rgba(196, 112, 126, 0.22)"
-                      : "rgba(245, 225, 219, 0.05)",
+                      : agColors.pillFill,
                     padding: spacing.md,
                     flexDirection: "row",
                     alignItems: "center",
@@ -1316,7 +1318,7 @@ export default function AgendaScreen() {
                 borderRadius: 22,
                 borderWidth: 1,
                 borderColor: agColors.border,
-                backgroundColor: "rgba(245, 225, 219, 0.06)",
+                backgroundColor: agColors.subtleFill,
                 alignItems: "center",
                 justifyContent: "center",
               }}
@@ -1343,7 +1345,7 @@ export default function AgendaScreen() {
                   width: 36,
                   height: 36,
                   borderRadius: 18,
-                  backgroundColor: "rgba(245, 225, 219, 0.08)",
+                  backgroundColor: agColors.subtleFillStrong,
                   alignItems: "center",
                   justifyContent: "center",
                 }}

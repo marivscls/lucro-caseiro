@@ -187,6 +187,14 @@ function SearchBox({
   );
 }
 
+function stepDotColor(
+  reached: boolean,
+  theme: ReturnType<typeof useTheme>["theme"],
+): string {
+  if (reached) return theme.colors.primary;
+  return theme.mode === "dark" ? "rgba(245, 225, 219, 0.12)" : "rgba(74, 50, 40, 0.15)";
+}
+
 function StepIndicator({ step }: Readonly<{ step: Step }>) {
   const { theme } = useTheme();
   return (
@@ -206,8 +214,7 @@ function StepIndicator({ step }: Readonly<{ step: Step }>) {
             width: i + 1 === step ? 42 : 12,
             height: 12,
             borderRadius: radii.full,
-            backgroundColor:
-              i + 1 <= step ? theme.colors.primary : "rgba(245, 225, 219, 0.12)",
+            backgroundColor: stepDotColor(i + 1 <= step, theme),
           }}
         />
       ))}
