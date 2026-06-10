@@ -7,6 +7,7 @@ import { brToIso, maskDateBR } from "../../../shared/utils/date";
 import { isValidBrazilPhone, maskPhoneBR } from "../../../shared/utils/phone";
 import { useCreateClient } from "../hooks";
 import { TagInput } from "./tag-input";
+import { alertValidation, alertError } from "../../../shared/utils/alerts";
 
 interface CreateClientFormProps {
   onSuccess?: () => void;
@@ -27,13 +28,13 @@ export function CreateClientForm({ onSuccess }: Readonly<CreateClientFormProps>)
     if (checkClientLimit()) return;
 
     if (!name.trim()) {
-      Alert.alert("Opa!", "Coloque o nome do cliente");
+      alertValidation("Coloque o nome do cliente");
       return;
     }
 
     const trimmedPhone = phone.trim();
     if (trimmedPhone && !isValidBrazilPhone(trimmedPhone)) {
-      Alert.alert("Opa!", "Telefone inválido. Use DDD + número, ex: (11) 99999-9999.");
+      alertValidation("Telefone inválido. Use DDD + número, ex: (11) 99999-9999.");
       return;
     }
 
@@ -56,7 +57,7 @@ export function CreateClientForm({ onSuccess }: Readonly<CreateClientFormProps>)
         e instanceof Error
           ? e.message
           : "Não foi possível cadastrar o cliente. Tente novamente.";
-      Alert.alert("Erro", message);
+      alertError(message);
     }
   }
 

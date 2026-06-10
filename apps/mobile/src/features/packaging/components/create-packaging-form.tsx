@@ -4,6 +4,7 @@ import { Alert, Pressable, ScrollView, View } from "react-native";
 
 import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
 import { useCreatePackaging } from "../hooks";
+import { alertValidation, alertError } from "../../../shared/utils/alerts";
 
 interface CreatePackagingFormProps {
   readonly onSuccess?: () => void;
@@ -32,12 +33,12 @@ export function CreatePackagingForm({ onSuccess }: CreatePackagingFormProps) {
     if (checkPackagingLimit()) return;
 
     if (!name.trim()) {
-      Alert.alert("Opa!", "Coloque o nome da embalagem");
+      alertValidation("Coloque o nome da embalagem");
       return;
     }
     const cost = parseFloat(unitCost.replace(",", "."));
     if (isNaN(cost) || cost <= 0) {
-      Alert.alert("Opa!", "O custo precisa ser maior que zero");
+      alertValidation("O custo precisa ser maior que zero");
       return;
     }
 
@@ -52,7 +53,7 @@ export function CreatePackagingForm({ onSuccess }: CreatePackagingFormProps) {
       onSuccess?.();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Tente novamente.";
-      Alert.alert("Erro", msg);
+      alertError(msg);
     }
   }
 

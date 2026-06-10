@@ -44,6 +44,7 @@ import {
   useLabels,
   useUpdateLabel,
 } from "../features/labels/hooks";
+import { alertValidation, alertError } from "../shared/utils/alerts";
 
 function LabelDetailModal({
   labelId,
@@ -82,7 +83,7 @@ function LabelDetailModal({
     try {
       await exportLabelPdfWithChoice(l.data, l.templateId, l.logoUrl, l.qrCodeUrl);
     } catch {
-      Alert.alert("Erro", "Não foi possível gerar o rótulo. Tente novamente.");
+      alertError("Não foi possível gerar o rótulo. Tente novamente.");
     } finally {
       setExporting(false);
     }
@@ -134,7 +135,7 @@ function LabelDetailModal({
 
   async function handleSave() {
     if (!name.trim()) {
-      Alert.alert("Opa!", "De um nome para o rótulo");
+      alertValidation("De um nome para o rótulo");
       return;
     }
 
@@ -193,7 +194,7 @@ function LabelDetailModal({
           deleteLabel
             .mutateAsync(labelId)
             .then(() => onClose())
-            .catch(() => Alert.alert("Erro", "Não foi possível excluir."));
+            .catch(() => alertError("Não foi possível excluir."));
         },
       },
     ]);

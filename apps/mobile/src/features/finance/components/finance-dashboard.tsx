@@ -27,6 +27,7 @@ import { getExportUrl } from "../api";
 import { useDeleteFinanceEntry, useFinanceEntries, useFinanceSummary } from "../hooks";
 import { Illustration } from "../../../shared/components/illustrations";
 import { CreateFinanceEntry } from "./create-finance-entry";
+import { alertError } from "../../../shared/utils/alerts";
 
 const MONTH_NAMES = [
   "Janeiro",
@@ -131,7 +132,7 @@ export function FinanceDashboard({
           Alert.alert("Sucesso", "Arquivo salvo com sucesso.");
         }
       } catch {
-        Alert.alert("Erro", "Não foi possível exportar o relatório. Tente novamente.");
+        alertError("Não foi possível exportar o relatório. Tente novamente.");
       } finally {
         setExporting(null);
       }

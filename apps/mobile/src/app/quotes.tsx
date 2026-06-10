@@ -38,6 +38,7 @@ import { showToast } from "../shared/components/toast";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { formatCurrency } from "../shared/utils/format";
 import { openWhatsAppShare } from "../shared/utils/whatsapp";
+import { alertValidation, alertError } from "../shared/utils/alerts";
 
 const STATUS_META: Record<
   QuoteStatusType,
@@ -112,14 +113,14 @@ function ConvertModal({
   async function handleConvert() {
     const iso = brToIso(dateText);
     if (!iso) {
-      Alert.alert("Opa!", "Informe a data de entrega no formato DD/MM/AAAA.");
+      alertValidation("Informe a data de entrega no formato DD/MM/AAAA.");
       return;
     }
     const parsedDeposit = deposit.trim()
       ? parseFloat(deposit.replace(",", "."))
       : undefined;
     if (parsedDeposit !== undefined && Number.isNaN(parsedDeposit)) {
-      Alert.alert("Opa!", "Sinal inválido.");
+      alertValidation("Sinal inválido.");
       return;
     }
     try {
@@ -131,7 +132,7 @@ function ConvertModal({
       onDone();
     } catch (err) {
       const message = err instanceof Error ? err.message : "Não foi possível converter.";
-      Alert.alert("Erro", message);
+      alertError(message);
     }
   }
 
@@ -213,7 +214,7 @@ function QuoteDetail({
     try {
       await exportQuotePdf(quote, { name: businessName, phone: profile?.phone });
     } catch {
-      Alert.alert("Erro", "Não foi possível gerar o PDF. Tente novamente.");
+      alertError("Não foi possível gerar o PDF. Tente novamente.");
     } finally {
       setExporting(false);
     }
@@ -229,7 +230,7 @@ function QuoteDetail({
           setStatus
             .mutateAsync({ id: quote.id, status: "rejected" })
             .then(() => showToast("Orçamento marcado como recusado."))
-            .catch(() => Alert.alert("Erro", "Não foi possível atualizar."));
+            .catch(() => alertError("Não foi possível atualizar."));
         },
       },
     ]);
@@ -248,7 +249,7 @@ function QuoteDetail({
               showToast("Orçamento excluído.");
               onClose();
             })
-            .catch(() => Alert.alert("Erro", "Não foi possível excluir."));
+            .catch(() => alertError("Não foi possível excluir."));
         },
       },
     ]);

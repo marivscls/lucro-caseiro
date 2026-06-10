@@ -14,6 +14,7 @@ import {
 } from "./component-picker";
 import { CompositeToggle } from "./composite-toggle";
 import { SaleUnitToggle } from "./sale-unit-toggle";
+import { alertValidation, alertError } from "../../../shared/utils/alerts";
 
 interface CreateProductFormProps {
   readonly onSuccess?: () => void;
@@ -39,23 +40,23 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
     const price = parseFloat(salePrice.replace(",", "."));
 
     if (!name.trim()) {
-      Alert.alert("Opa!", "Coloque o nome do produto");
+      alertValidation("Coloque o nome do produto");
       return;
     }
 
     if (!category.trim()) {
-      Alert.alert("Opa!", "Escolha uma categoria");
+      alertValidation("Escolha uma categoria");
       return;
     }
 
     if (isNaN(price) || price <= 0) {
-      Alert.alert("Opa!", "O preço precisa ser maior que zero");
+      alertValidation("O preço precisa ser maior que zero");
       return;
     }
 
     const componentsPayload = isComposite ? draftsToComponents(components) : undefined;
     if (isComposite && (componentsPayload?.length ?? 0) === 0) {
-      Alert.alert("Opa!", "Escolha pelo menos um produto para montar o kit");
+      alertValidation("Escolha pelo menos um produto para montar o kit");
       return;
     }
 
@@ -94,7 +95,7 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
       Alert.alert("Produto cadastrado!", `${name} foi adicionado ao seu catálogo`);
       onSuccess?.();
     } catch {
-      Alert.alert("Erro", "Não foi possível cadastrar o produto. Tente novamente.");
+      alertError("Não foi possível cadastrar o produto. Tente novamente.");
     }
   }
 

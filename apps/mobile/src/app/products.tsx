@@ -32,6 +32,7 @@ import {
 } from "../features/products/hooks";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
 import { uploadProductImage } from "../shared/utils/upload-image";
+import { alertValidation, alertError } from "../shared/utils/alerts";
 
 /** Preco de venda com sufixo "/kg" quando o produto e vendido por peso. */
 function priceLabel(p: Product): string {
@@ -116,17 +117,17 @@ function ProductDetailModal({
   async function handleSave() {
     const price = parseFloat(salePrice.replace(",", "."));
     if (!name.trim()) {
-      Alert.alert("Opa!", "Coloque o nome do produto");
+      alertValidation("Coloque o nome do produto");
       return;
     }
     if (isNaN(price) || price <= 0) {
-      Alert.alert("Opa!", "O preço precisa ser maior que zero");
+      alertValidation("O preço precisa ser maior que zero");
       return;
     }
 
     const componentsPayload = isComposite ? draftsToComponents(components) : undefined;
     if (isComposite && (componentsPayload?.length ?? 0) === 0) {
-      Alert.alert("Opa!", "Escolha pelo menos um produto para montar o kit");
+      alertValidation("Escolha pelo menos um produto para montar o kit");
       return;
     }
 
@@ -176,7 +177,7 @@ function ProductDetailModal({
       Alert.alert("Produto atualizado!");
       setEditing(false);
     } catch {
-      Alert.alert("Erro", "Não foi possível atualizar o produto.");
+      alertError("Não foi possível atualizar o produto.");
     }
   }
 
@@ -192,7 +193,7 @@ function ProductDetailModal({
               await deleteProduct.mutateAsync(productId);
               onClose();
             } catch {
-              Alert.alert("Erro", "Não foi possível excluir o produto.");
+              alertError("Não foi possível excluir o produto.");
             }
           })();
         },

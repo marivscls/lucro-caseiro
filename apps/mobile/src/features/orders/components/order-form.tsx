@@ -20,6 +20,7 @@ import { brToIso, isoToBR, maskDateBR } from "../../../shared/utils/date";
 import { uploadOrderImage } from "../../../shared/utils/upload-image";
 import { useCreateOrder, useDeleteOrder, useUpdateOrder } from "../hooks";
 import { FormSection } from "../../../shared/components/form-section";
+import { alertValidation } from "../../../shared/utils/alerts";
 
 interface OrderFormProps {
   readonly order?: Order | null;
@@ -131,16 +132,16 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
 
   async function handleSave() {
     if (!title.trim()) {
-      Alert.alert("Opa!", "Dê um nome para a encomenda.");
+      alertValidation("Dê um nome para a encomenda.");
       return;
     }
     const iso = brToIso(dateText);
     if (!iso) {
-      Alert.alert("Opa!", "Data inválida. Use o formato DD/MM/AAAA.");
+      alertValidation("Data inválida. Use o formato DD/MM/AAAA.");
       return;
     }
     if (time.trim() && !/^\d{2}:\d{2}$/.test(time.trim())) {
-      Alert.alert("Opa!", "Horário inválido. Use HH:MM, ex.: 14:30.");
+      alertValidation("Horário inválido. Use HH:MM, ex.: 14:30.");
       return;
     }
 
@@ -153,7 +154,7 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
       parsedAmount !== undefined &&
       parsedDeposit > parsedAmount
     ) {
-      Alert.alert("Opa!", "O sinal não pode ser maior que o valor combinado.");
+      alertValidation("O sinal não pode ser maior que o valor combinado.");
       return;
     }
     let photoUrl: string | null | undefined = savedPhotoUrl;

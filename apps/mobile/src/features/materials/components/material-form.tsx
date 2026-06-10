@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Alert, Pressable, ScrollView, View } from "react-native";
 
 import { useCreateMaterial, useDeleteMaterial, useUpdateMaterial } from "../hooks";
+import { alertValidation, alertError } from "../../../shared/utils/alerts";
 
 interface MaterialFormProps {
   readonly material?: Material | null;
@@ -49,7 +50,7 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
 
   async function handleSave() {
     if (!name.trim()) {
-      Alert.alert("Opa!", "Dê um nome ao insumo (ex.: Farinha de trigo).");
+      alertValidation("Dê um nome ao insumo (ex.: Farinha de trigo).");
       return;
     }
     const contentValue = parseNum(contentPerUnit);
@@ -80,7 +81,7 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
       }
       onSuccess?.();
     } catch {
-      Alert.alert("Erro", "Não foi possível salvar o insumo. Tente novamente.");
+      alertError("Não foi possível salvar o insumo. Tente novamente.");
     }
   }
 

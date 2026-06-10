@@ -30,6 +30,7 @@ import { formatCurrency } from "../features/goals/domain";
 import { useProlaboreStatus } from "../features/goals/hooks";
 import { useProfile, useUpdateProfile } from "../features/subscription/hooks";
 import { useSubscription } from "../features/subscription/use-subscription";
+import { alertValidation, alertError } from "../shared/utils/alerts";
 
 const PRIVACY_POLICY_URL =
   "https://www.orionseven.com.br/lucro-caseiro/politica-de-privacidade";
@@ -67,7 +68,7 @@ export default function SettingsScreen() {
 
   async function handleSaveProfile() {
     if (!editName.trim()) {
-      Alert.alert("Opa!", "O nome é obrigatório");
+      alertValidation("O nome é obrigatório");
       return;
     }
     try {
@@ -80,7 +81,7 @@ export default function SettingsScreen() {
       Alert.alert("Perfil atualizado!");
       setShowEditProfile(false);
     } catch {
-      Alert.alert("Erro", "Não foi possível atualizar o perfil.");
+      alertError("Não foi possível atualizar o perfil.");
     }
   }
 
@@ -109,7 +110,7 @@ export default function SettingsScreen() {
         e instanceof Error
           ? e.message
           : "Não foi possível excluir a conta. Tente novamente.";
-      Alert.alert("Erro", message);
+      alertError(message);
     }
   }
 
@@ -147,7 +148,7 @@ export default function SettingsScreen() {
   async function openPrivacyPolicy() {
     const canOpen = await Linking.canOpenURL(PRIVACY_POLICY_URL);
     if (!canOpen) {
-      Alert.alert("Erro", "Não foi possível abrir a politica de privacidade.");
+      alertError("Não foi possível abrir a politica de privacidade.");
       return;
     }
     await Linking.openURL(PRIVACY_POLICY_URL);

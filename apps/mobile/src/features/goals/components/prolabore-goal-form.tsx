@@ -5,6 +5,7 @@ import { Alert, ScrollView } from "react-native";
 
 import { useDeleteProlaboreGoal, useUpsertProlaboreGoal } from "../hooks";
 import { showToast } from "../../../shared/components/toast";
+import { alertValidation, alertError } from "../../../shared/utils/alerts";
 
 interface ProlaboreGoalFormProps {
   readonly config: ProlaboreGoal | null;
@@ -31,7 +32,7 @@ export function ProlaboreGoalForm({ config, onSuccess }: ProlaboreGoalFormProps)
   async function handleSave() {
     const g = parseMoney(goal);
     if (isNaN(g) || g <= 0) {
-      Alert.alert("Opa!", "Coloque quanto você quer ganhar por mês (maior que zero).");
+      alertValidation("Coloque quanto você quer ganhar por mês (maior que zero).");
       return;
     }
     const c = costs.trim() ? parseMoney(costs) : undefined;
@@ -46,7 +47,7 @@ export function ProlaboreGoalForm({ config, onSuccess }: ProlaboreGoalFormProps)
       showToast("Meta salva! Acompanhe na tela inicial.");
       onSuccess?.();
     } catch {
-      Alert.alert("Erro", "Não foi possível salvar sua meta. Tente novamente.");
+      alertError("Não foi possível salvar sua meta. Tente novamente.");
     }
   }
 
@@ -62,7 +63,7 @@ export function ProlaboreGoalForm({ config, onSuccess }: ProlaboreGoalFormProps)
               await remove.mutateAsync();
               onSuccess?.();
             } catch {
-              Alert.alert("Erro", "Não foi possível remover a meta.");
+              alertError("Não foi possível remover a meta.");
             }
           })();
         },

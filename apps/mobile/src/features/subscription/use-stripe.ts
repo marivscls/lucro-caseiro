@@ -5,6 +5,7 @@ import * as WebBrowser from "expo-web-browser";
 
 import { useAuth } from "../../shared/hooks/use-auth";
 import { createStripeCheckout } from "./api";
+import { alertError } from "../../shared/utils/alerts";
 
 export function useStripeCheckout() {
   const { token } = useAuth();
@@ -14,7 +15,7 @@ export function useStripeCheckout() {
   const checkout = useCallback(
     async (plan: "monthly" | "annual") => {
       if (!token) {
-        Alert.alert("Erro", "Faça login antes de assinar.");
+        alertError("Faça login antes de assinar.");
         return;
       }
 

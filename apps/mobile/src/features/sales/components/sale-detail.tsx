@@ -14,6 +14,7 @@ import { paymentLabel } from "../payment";
 import { buildReceiptMessage } from "../receipt";
 import { exportReceiptPdf } from "../receipt-pdf";
 import { ReceiptPreviewModal } from "./receipt-preview-modal";
+import { alertError } from "../../../shared/utils/alerts";
 
 interface SaleDetailProps {
   readonly sale: Sale;
@@ -67,7 +68,7 @@ export function SaleDetail({
     try {
       await exportReceiptPdf(sale, { name: businessName, phone: profile?.phone });
     } catch {
-      Alert.alert("Erro", "Não foi possível gerar o recibo. Tente novamente.");
+      alertError("Não foi possível gerar o recibo. Tente novamente.");
     } finally {
       setExporting(false);
     }
@@ -100,7 +101,7 @@ export function SaleDetail({
               Alert.alert("Pronto!", "Venda marcada como paga.");
               onStatusUpdated?.();
             } catch {
-              Alert.alert("Erro", "Não foi possível atualizar o status.");
+              alertError("Não foi possível atualizar o status.");
             }
           })();
         },
@@ -121,7 +122,7 @@ export function SaleDetail({
               Alert.alert("Pronto!", "Venda cancelada.");
               onStatusUpdated?.();
             } catch {
-              Alert.alert("Erro", "Não foi possível cancelar a venda.");
+              alertError("Não foi possível cancelar a venda.");
             }
           })();
         },

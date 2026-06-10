@@ -10,6 +10,7 @@ import {
   emptyLine,
   type RecipeLine,
 } from "./recipe-materials-editor";
+import { alertValidation, alertError } from "../../../shared/utils/alerts";
 
 interface CreateRecipeFormProps {
   readonly onSuccess?: () => void;
@@ -30,30 +31,30 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
     if (checkRecipeLimit()) return;
 
     if (!name.trim()) {
-      Alert.alert("Opa!", "Informe o nome da receita");
+      alertValidation("Informe o nome da receita");
       return;
     }
 
     if (!category.trim()) {
-      Alert.alert("Opa!", "Escolha uma categoria");
+      alertValidation("Escolha uma categoria");
       return;
     }
 
     const parsedYield = parseFloat(yieldQuantity.replace(",", "."));
     if (isNaN(parsedYield) || parsedYield <= 0) {
-      Alert.alert("Opa!", "Informe o rendimento da receita");
+      alertValidation("Informe o rendimento da receita");
       return;
     }
 
     if (!yieldUnit.trim()) {
-      Alert.alert("Opa!", "Informe a unidade de rendimento");
+      alertValidation("Informe a unidade de rendimento");
       return;
     }
 
     const validLines = lines.filter((l) => l.materialId && l.quantity.trim());
 
     if (validLines.length === 0) {
-      Alert.alert("Opa!", "Adicione pelo menos um insumo");
+      alertValidation("Adicione pelo menos um insumo");
       return;
     }
 
@@ -73,7 +74,7 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
       Alert.alert("Receita cadastrada!", `${name} foi adicionada`);
       onSuccess?.();
     } catch {
-      Alert.alert("Erro", "Não foi possível cadastrar a receita. Tente novamente.");
+      alertError("Não foi possível cadastrar a receita. Tente novamente.");
     }
   }
 

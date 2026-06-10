@@ -10,6 +10,7 @@ import {
 
 import { useAuth } from "../../shared/hooks/use-auth";
 import { syncPlan } from "./api";
+import { alertError } from "../../shared/utils/alerts";
 
 type PremiumProductId = "lucrocaseiro_premium_monthly" | "lucrocaseiro_premium_annual";
 
@@ -120,7 +121,7 @@ export function useSubscription() {
       }
 
       if (!token) {
-        Alert.alert("Erro", "Faça login antes de assinar.");
+        alertError("Faça login antes de assinar.");
         return;
       }
 
@@ -150,7 +151,7 @@ export function useSubscription() {
         });
       } catch {
         setLoading(false);
-        Alert.alert("Erro", "Não foi possível iniciar a compra. Tente novamente.");
+        alertError("Não foi possível iniciar a compra. Tente novamente.");
       }
     },
     [connected, requestPurchase, subscriptions, token, userId],
@@ -163,7 +164,7 @@ export function useSubscription() {
     }
 
     if (!token) {
-      Alert.alert("Erro", "Faça login antes de restaurar.");
+      alertError("Faça login antes de restaurar.");
       return;
     }
 
@@ -190,7 +191,7 @@ export function useSubscription() {
         Alert.alert("Restaurado!", "Sua assinatura Premium foi restaurada.");
       }
     } catch {
-      Alert.alert("Erro", "Não foi possível restaurar compras. Tente novamente.");
+      alertError("Não foi possível restaurar compras. Tente novamente.");
     } finally {
       setLoading(false);
     }

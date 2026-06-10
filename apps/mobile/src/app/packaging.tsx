@@ -30,6 +30,7 @@ import {
   usePackagingList,
   useUpdatePackaging,
 } from "../features/packaging/hooks";
+import { alertValidation, alertError } from "../shared/utils/alerts";
 
 const TYPE_LABELS: Record<string, string> = {
   box: "Caixa",
@@ -80,11 +81,11 @@ function PackagingDetailModal({
   async function handleSave() {
     const cost = parseFloat(unitCost.replace(",", "."));
     if (!name.trim()) {
-      Alert.alert("Opa!", "Coloque o nome da embalagem");
+      alertValidation("Coloque o nome da embalagem");
       return;
     }
     if (isNaN(cost) || cost <= 0) {
-      Alert.alert("Opa!", "O custo precisa ser maior que zero");
+      alertValidation("O custo precisa ser maior que zero");
       return;
     }
     try {
@@ -100,7 +101,7 @@ function PackagingDetailModal({
       Alert.alert("Embalagem atualizada!");
       setEditing(false);
     } catch {
-      Alert.alert("Erro", "Não foi possível atualizar a embalagem.");
+      alertError("Não foi possível atualizar a embalagem.");
     }
   }
 
@@ -114,7 +115,7 @@ function PackagingDetailModal({
           deletePackaging
             .mutateAsync(packagingId)
             .then(() => onClose())
-            .catch(() => Alert.alert("Erro", "Não foi possível excluir."));
+            .catch(() => alertError("Não foi possível excluir."));
         },
       },
     ]);

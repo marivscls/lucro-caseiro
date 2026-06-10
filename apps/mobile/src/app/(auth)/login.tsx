@@ -9,6 +9,7 @@ import { BackgroundDecor, BrandMark } from "../../shared/components/auth-decor";
 import { useAuth } from "../../shared/hooks/use-auth";
 import { supabase } from "../../shared/utils/supabase";
 import { validateEmail } from "../../shared/utils/validation";
+import { alertError } from "../../shared/utils/alerts";
 
 export default function LoginScreen() {
   const { theme } = useTheme();
@@ -59,7 +60,7 @@ export default function LoginScreen() {
       }
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : "Erro desconhecido ao entrar";
-      Alert.alert("Erro", message);
+      alertError(message);
     } finally {
       setLoading(false);
     }
@@ -90,7 +91,7 @@ export default function LoginScreen() {
     void supabase.auth.resetPasswordForEmail(trimmed).then(({ error }) => {
       setResetLoading(false);
       if (error) {
-        Alert.alert("Erro", "Não foi possível enviar o e-mail. Tente novamente.");
+        alertError("Não foi possível enviar o e-mail. Tente novamente.");
         return;
       }
       Alert.alert(

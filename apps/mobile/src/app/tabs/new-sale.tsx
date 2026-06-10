@@ -38,6 +38,7 @@ import { useOfflineQueue } from "../../shared/hooks/use-offline-queue";
 import { usePaywall } from "../../shared/hooks/use-paywall";
 import { ApiError } from "../../shared/utils/api-client";
 import { Illustration } from "../../shared/components/illustrations";
+import { alertValidation, alertError } from "../../shared/utils/alerts";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -345,7 +346,7 @@ export default function NewSaleScreen() {
     if (!weightProduct) return;
     const weight = parseFloat(weightInput.replace(",", "."));
     if (isNaN(weight) || weight <= 0) {
-      Alert.alert("Opa!", "Digite um peso maior que zero (em kg)");
+      alertValidation("Digite um peso maior que zero (em kg)");
       return;
     }
     const product = weightProduct;
@@ -415,7 +416,7 @@ export default function NewSaleScreen() {
   function handleBarcodeSearch() {
     const query = barcodeInput.trim();
     if (!query) {
-      Alert.alert("Opa!", "Digite ou cole um código para buscar.");
+      alertValidation("Digite ou cole um código para buscar.");
       return;
     }
     setProductSearch(query);
@@ -467,7 +468,7 @@ export default function NewSaleScreen() {
         e instanceof Error
           ? e.message
           : "Não foi possível registrar a venda. Tente novamente.";
-      Alert.alert("Erro", message);
+      alertError(message);
     }
   }
 

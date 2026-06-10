@@ -5,6 +5,7 @@ import { ActivityIndicator, Alert, ScrollView, View } from "react-native";
 
 import { useDeleteRecipe, useDuplicateRecipe, useRecipe, useScaleRecipe } from "../hooks";
 import { exportRecipePdf } from "../recipe-pdf";
+import { alertError } from "../../../shared/utils/alerts";
 
 interface RecipeDetailProps {
   readonly recipeId: string;
@@ -274,7 +275,7 @@ export function RecipeDetail({
                     await deleteRecipe.mutateAsync(recipeId);
                     onDeleted?.();
                   } catch {
-                    Alert.alert("Erro", "Não foi possível excluir a receita.");
+                    alertError("Não foi possível excluir a receita.");
                   }
                 })();
               },

@@ -3,7 +3,6 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -19,6 +18,7 @@ import {
 import { brToIso, maskDateBR } from "../../../shared/utils/date";
 import { useCreateFinanceEntry } from "../hooks";
 import { showToast } from "../../../shared/components/toast";
+import { alertValidation, alertError } from "../../../shared/utils/alerts";
 
 interface CreateFinanceEntryProps {
   onClose?: () => void;
@@ -80,22 +80,22 @@ export function CreateFinanceEntry({
     const selectedCategory = category || (type === "income" ? "sale" : "");
 
     if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
-      Alert.alert("Opa!", "Informe um valor maior que zero.");
+      alertValidation("Informe um valor maior que zero.");
       return;
     }
 
     if (!description.trim()) {
-      Alert.alert("Opa!", "Adicione uma descrição.");
+      alertValidation("Adicione uma descrição.");
       return;
     }
 
     if (!selectedCategory) {
-      Alert.alert("Opa!", "Escolha uma categoria.");
+      alertValidation("Escolha uma categoria.");
       return;
     }
 
     if (date.trim() && !normalizedDate) {
-      Alert.alert("Opa!", "Informe a data no formato DD/MM/AAAA.");
+      alertValidation("Informe a data no formato DD/MM/AAAA.");
       return;
     }
 
@@ -112,7 +112,7 @@ export function CreateFinanceEntry({
       showToast(`${type === "income" ? "Entrada" : "Saída"} de R$ ${amount} salva!`);
       onSuccess?.();
     } catch {
-      Alert.alert("Erro", "Não foi possível registrar o lançamento. Tente novamente.");
+      alertError("Não foi possível registrar o lançamento. Tente novamente.");
     }
   }
 

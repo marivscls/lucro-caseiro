@@ -1,12 +1,13 @@
 import type { Client } from "@lucro-caseiro/contracts";
 import { Button, Input, Typography, spacing } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, View } from "react-native";
+import { KeyboardAvoidingView, Platform, View } from "react-native";
 
 import { brToIso, isoToBR, maskDateBR } from "../../../shared/utils/date";
 import { isValidBrazilPhone, maskPhoneBR } from "../../../shared/utils/phone";
 import { useUpdateClient } from "../hooks";
 import { showToast } from "../../../shared/components/toast";
+import { alertValidation, alertError } from "../../../shared/utils/alerts";
 
 interface EditClientFormProps {
   client: Client;
@@ -24,13 +25,13 @@ export function EditClientForm({ client, onSuccess }: Readonly<EditClientFormPro
 
   async function handleSubmit() {
     if (!name.trim()) {
-      Alert.alert("Opa!", "Coloque o nome do cliente.");
+      alertValidation("Coloque o nome do cliente.");
       return;
     }
 
     const trimmedPhone = phone.trim();
     if (trimmedPhone && !isValidBrazilPhone(trimmedPhone)) {
-      Alert.alert("Opa!", "Telefone inválido. Use DDD + número, ex: (11) 99999-9999.");
+      alertValidation("Telefone inválido. Use DDD + número, ex: (11) 99999-9999.");
       return;
     }
 
@@ -52,7 +53,7 @@ export function EditClientForm({ client, onSuccess }: Readonly<EditClientFormPro
         e instanceof Error
           ? e.message
           : "Não foi possível atualizar o cliente. Tente novamente.";
-      Alert.alert("Erro", message);
+      alertError(message);
     }
   }
 

@@ -7,6 +7,7 @@ import { Alert, Pressable, ScrollView, View } from "react-native";
 import { showToast } from "../../../shared/components/toast";
 import { formatCurrency } from "../../../shared/utils/format";
 import { useCreateQuote, useUpdateQuote } from "../hooks";
+import { alertValidation, alertError } from "../../../shared/utils/alerts";
 
 interface ItemDraft {
   description: string;
@@ -79,7 +80,7 @@ export function QuoteForm({ quote, onSuccess }: QuoteFormProps) {
 
   async function handleSave() {
     if (!title.trim()) {
-      Alert.alert("Opa!", "Dê um título ao orçamento. Ex.: Kit festa Safari");
+      alertValidation("Dê um título ao orçamento. Ex.: Kit festa Safari");
       return;
     }
     const parsedItems: QuoteItem[] = [];
@@ -97,14 +98,14 @@ export function QuoteForm({ quote, onSuccess }: QuoteFormProps) {
       parsedItems.push({ description: item.description.trim(), quantity, unitPrice });
     }
     if (parsedItems.length === 0) {
-      Alert.alert("Opa!", "Adicione pelo menos um item com descrição e preço.");
+      alertValidation("Adicione pelo menos um item com descrição e preço.");
       return;
     }
     let validIso: string | null = null;
     if (validUntil.trim()) {
       validIso = brToIso(validUntil);
       if (!validIso) {
-        Alert.alert("Opa!", "Validade inválida. Use o formato DD/MM/AAAA.");
+        alertValidation("Validade inválida. Use o formato DD/MM/AAAA.");
         return;
       }
     }
@@ -130,7 +131,7 @@ export function QuoteForm({ quote, onSuccess }: QuoteFormProps) {
         err instanceof Error
           ? err.message
           : "Não foi possível salvar o orçamento. Tente novamente.";
-      Alert.alert("Erro", message);
+      alertError(message);
     }
   }
 

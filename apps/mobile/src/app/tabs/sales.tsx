@@ -34,6 +34,7 @@ import { useSale, useSales, useUpdateSale } from "../../features/sales/hooks";
 import { PAYMENT_OPTIONS } from "../../features/sales/payment";
 import { useAuth } from "../../shared/hooks/use-auth";
 import { useProfile } from "../../features/subscription/hooks";
+import { alertError } from "../../shared/utils/alerts";
 
 type FilterTab = "all" | "paid" | "pending" | "cancelled";
 
@@ -692,7 +693,7 @@ export default function SalesScreen() {
       setShowEdit(false);
       void refetch();
     } catch {
-      Alert.alert("Erro", "Não foi possível atualizar a venda.");
+      alertError("Não foi possível atualizar a venda.");
     }
   }
 

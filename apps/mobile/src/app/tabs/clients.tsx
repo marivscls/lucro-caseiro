@@ -24,6 +24,7 @@ import { useClient, useClients, useCreateClient } from "../../features/clients/h
 import { useLimitCheck } from "../../shared/hooks/use-limit-check";
 import { brToIso, maskDateBR } from "../../shared/utils/date";
 import { isValidBrazilPhone, maskPhoneBR } from "../../shared/utils/phone";
+import { alertValidation } from "../../shared/utils/alerts";
 
 type Screen =
   | { name: "list" }
@@ -850,12 +851,12 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
     const trimmedName = name.trim();
     const trimmedPhone = phone.trim();
     if (!trimmedName) {
-      Alert.alert("Opa!", "Coloque o nome do cliente.");
+      alertValidation("Coloque o nome do cliente.");
       return;
     }
 
     if (trimmedPhone && !isValidBrazilPhone(trimmedPhone)) {
-      Alert.alert("Opa!", "Telefone inválido. Use DDD + número, ex: (11) 99999-9999.");
+      alertValidation("Telefone inválido. Use DDD + número, ex: (11) 99999-9999.");
       return;
     }
 

@@ -17,7 +17,6 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Image,
   Pressable,
   ScrollView,
@@ -37,6 +36,7 @@ import { usePaywall } from "../shared/hooks/use-paywall";
 import { ApiError } from "../shared/utils/api-client";
 import { showToast } from "../shared/components/toast";
 import { uploadCatalogCover, uploadCatalogLogo } from "../shared/utils/upload-image";
+import { alertError } from "../shared/utils/alerts";
 
 // Mesmas chaves/cores dos presets do backend (CATALOG_ACCENT_PRESETS).
 const ACCENT_SWATCHES: { key: CatalogAccentColorValue; color: string; label: string }[] =
@@ -109,7 +109,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
         err instanceof ApiError && err.status === 400
           ? err.message
           : "Não foi possível salvar. Tente novamente.";
-      Alert.alert("Erro", message);
+      alertError(message);
       return false;
     }
   }
@@ -130,7 +130,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
       const coverUrl = await uploadCatalogCover(uri);
       await save({ coverUrl });
     } catch {
-      Alert.alert("Erro", "Não foi possível enviar a capa. Tente novamente.");
+      alertError("Não foi possível enviar a capa. Tente novamente.");
     } finally {
       setUploadingCover(false);
     }
@@ -151,7 +151,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
       const logoUrl = await uploadCatalogLogo(uri);
       await save({ logoUrl });
     } catch {
-      Alert.alert("Erro", "Não foi possível enviar a foto de perfil. Tente novamente.");
+      alertError("Não foi possível enviar a foto de perfil. Tente novamente.");
     } finally {
       setUploadingLogo(false);
     }

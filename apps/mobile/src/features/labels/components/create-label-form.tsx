@@ -19,6 +19,7 @@ import { LabelStyleEditor } from "./label-style-editor";
 import { LabelPreview } from "./label-preview";
 import { NutritionFields } from "./nutrition-fields";
 import { TemplatePicker } from "./template-picker";
+import { alertValidation, alertError } from "../../../shared/utils/alerts";
 
 interface CreateLabelFormProps {
   productId?: string;
@@ -73,11 +74,11 @@ export function CreateLabelForm({
 
   async function handleSubmit() {
     if (!name.trim()) {
-      Alert.alert("Opa!", "De um nome para o rótulo");
+      alertValidation("De um nome para o rótulo");
       return;
     }
     if (!labelData.productName.trim()) {
-      Alert.alert("Opa!", "Preencha o nome do produto no rótulo");
+      alertValidation("Preencha o nome do produto no rótulo");
       return;
     }
 
@@ -139,14 +140,14 @@ export function CreateLabelForm({
 
   async function handleExport() {
     if (!labelData.productName.trim()) {
-      Alert.alert("Opa!", "Preencha o nome do produto para baixar o rótulo");
+      alertValidation("Preencha o nome do produto para baixar o rótulo");
       return;
     }
     setExporting(true);
     try {
       await exportLabelPdfWithChoice(labelData, templateId, logoUri, qrUrl);
     } catch {
-      Alert.alert("Erro", "Não foi possível gerar o rótulo. Tente novamente.");
+      alertError("Não foi possível gerar o rótulo. Tente novamente.");
     } finally {
       setExporting(false);
     }

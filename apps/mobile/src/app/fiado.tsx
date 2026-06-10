@@ -21,6 +21,7 @@ import { formatCurrency } from "../shared/utils/format";
 import { isValidBrazilPhone } from "../shared/utils/phone";
 import { openWhatsApp, openWhatsAppShare } from "../shared/utils/whatsapp";
 import { Illustration } from "../shared/components/illustrations";
+import { alertError } from "../shared/utils/alerts";
 
 function dateBR(iso: string): string {
   const d = new Date(iso);
@@ -135,7 +136,7 @@ export default function FiadoScreen() {
               showToast("Recebido! Venda marcada como paga.");
               void refetch();
             } catch {
-              Alert.alert("Erro", "Não foi possível atualizar. Tente novamente.");
+              alertError("Não foi possível atualizar. Tente novamente.");
             }
           })();
         },

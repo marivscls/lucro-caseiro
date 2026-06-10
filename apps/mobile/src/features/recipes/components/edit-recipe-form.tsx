@@ -10,6 +10,7 @@ import {
   emptyLine,
   type RecipeLine,
 } from "./recipe-materials-editor";
+import { alertValidation, alertError } from "../../../shared/utils/alerts";
 
 interface EditRecipeFormProps {
   readonly recipe: Recipe;
@@ -36,25 +37,25 @@ export function EditRecipeForm({ recipe, onSuccess }: EditRecipeFormProps) {
 
   async function handleSubmit() {
     if (!name.trim()) {
-      Alert.alert("Opa!", "Informe o nome da receita");
+      alertValidation("Informe o nome da receita");
       return;
     }
 
     const parsedYield = parseFloat(yieldQuantity.replace(",", "."));
     if (isNaN(parsedYield) || parsedYield <= 0) {
-      Alert.alert("Opa!", "Informe o rendimento da receita");
+      alertValidation("Informe o rendimento da receita");
       return;
     }
 
     if (!yieldUnit.trim()) {
-      Alert.alert("Opa!", "Informe a unidade de rendimento");
+      alertValidation("Informe a unidade de rendimento");
       return;
     }
 
     const validLines = lines.filter((l) => l.materialId && l.quantity.trim());
 
     if (validLines.length === 0) {
-      Alert.alert("Opa!", "Adicione pelo menos um insumo");
+      alertValidation("Adicione pelo menos um insumo");
       return;
     }
 
@@ -77,7 +78,7 @@ export function EditRecipeForm({ recipe, onSuccess }: EditRecipeFormProps) {
       Alert.alert("Receita atualizada!", `${name} foi atualizada`);
       onSuccess?.();
     } catch {
-      Alert.alert("Erro", "Não foi possível atualizar a receita. Tente novamente.");
+      alertError("Não foi possível atualizar a receita. Tente novamente.");
     }
   }
 
