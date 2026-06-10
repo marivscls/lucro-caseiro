@@ -66,7 +66,8 @@ describe("renderCatalogHtml", () => {
       whatsapp: null,
       products: [{ ...product, saleUnit: "kg", salePrice: 45 }],
     });
-    expect(html).toContain("R$ 45,00/kg");
+    expect(html).toContain("R$ 45,00");
+    expect(html).toContain(">/kg</span>");
   });
 
   it("escapa HTML em campos do usuario", () => {

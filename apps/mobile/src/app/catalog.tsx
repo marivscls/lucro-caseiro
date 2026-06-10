@@ -1,8 +1,25 @@
 import type { CatalogSettings } from "@lucro-caseiro/contracts";
-import { Button, Card, Input, Typography, useTheme, spacing } from "@lucro-caseiro/ui";
+import {
+  Badge,
+  Button,
+  Card,
+  Input,
+  Typography,
+  useTheme,
+  spacing,
+  radii,
+} from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, Share, Switch, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  Share,
+  Switch,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { publicCatalogUrl } from "../features/catalog/api";
@@ -52,34 +69,148 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
 
   async function handleShare() {
     await Share.share({
-      message: `Confira meu catálogo de produtos: ${url}`,
+      message: `Oi! 😊 Dá uma olhada no meu catálogo de produtos — é só escolher e me chamar no WhatsApp:\n\n${url}`,
     });
   }
 
-  return (
-    <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
-      <Typography variant="h1" serif>
-        Catálogo online
-      </Typography>
-      <Typography variant="body" color={theme.colors.textSecondary}>
-        Uma página com seus produtos para compartilhar com clientes. Os pedidos chegam
-        direto no seu WhatsApp.
-      </Typography>
+  const isDark = theme.mode === "dark";
+  const heroBg = isDark ? "rgba(44, 36, 32, 0.85)" : theme.colors.surfaceElevated;
 
-      <Card>
+  return (
+    <ScrollView
+      contentContainerStyle={{
+        padding: spacing.xl,
+        paddingBottom: spacing["4xl"],
+        gap: spacing.lg,
+      }}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Hero */}
+      <View
+        style={{
+          alignItems: "center",
+          gap: spacing.sm,
+          paddingVertical: spacing.lg,
+        }}
+      >
+        <View
+          style={{
+            width: 84,
+            height: 84,
+            borderRadius: 42,
+            backgroundColor: theme.colors.primary,
+            alignItems: "center",
+            justifyContent: "center",
+            shadowColor: theme.colors.primary,
+            shadowOffset: { width: 0, height: 10 },
+            shadowOpacity: 0.35,
+            shadowRadius: 18,
+            elevation: 6,
+          }}
+        >
+          <Ionicons name="storefront" size={40} color={theme.colors.textOnPrimary} />
+        </View>
+        <Typography variant="h1" serif style={{ marginTop: spacing.sm }}>
+          Sua vitrine online
+        </Typography>
+        <Typography
+          variant="body"
+          color={theme.colors.textSecondary}
+          style={{ textAlign: "center", paddingHorizontal: spacing.lg }}
+        >
+          Uma página linda com seus produtos. Compartilhe o link e receba pedidos direto
+          no WhatsApp.
+        </Typography>
+        <Badge
+          label={settings.enabled ? "✓ Catálogo no ar" : "Catálogo desativado"}
+          variant={settings.enabled ? "success" : "neutral"}
+        />
+      </View>
+
+      {/* Link compartilhável */}
+      {settings.enabled && (
+        <Card padding="lg" style={{ backgroundColor: heroBg }}>
+          <View style={{ gap: spacing.md }}>
+            <Typography variant="label">SEU LINK</Typography>
+            <Pressable
+              onPress={() => void handleShare()}
+              accessibilityRole="button"
+              accessibilityLabel="Compartilhar link do catálogo"
+              style={({ pressed }) => [
+                {
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: spacing.sm,
+                  backgroundColor: isDark
+                    ? "rgba(255,255,255,0.06)"
+                    : theme.colors.surface,
+                  borderWidth: 1,
+                  borderColor: isDark
+                    ? "rgba(245, 225, 219, 0.14)"
+                    : "rgba(74, 50, 40, 0.1)",
+                  borderRadius: radii.xl,
+                  paddingVertical: spacing.md,
+                  paddingHorizontal: spacing.lg,
+                  opacity: pressed ? 0.8 : 1,
+                },
+              ]}
+            >
+              <Ionicons name="link-outline" size={20} color={theme.colors.primaryLight} />
+              <Typography
+                variant="caption"
+                style={{ flex: 1 }}
+                numberOfLines={1}
+                color={theme.colors.text}
+              >
+                {url.replace(/^https?:\/\//, "")}
+              </Typography>
+              <Ionicons
+                name="share-social-outline"
+                size={20}
+                color={theme.colors.primaryLight}
+              />
+            </Pressable>
+            <Button
+              title="Compartilhar com clientes"
+              onPress={() => void handleShare()}
+            />
+          </View>
+        </Card>
+      )}
+
+      {/* Ativação */}
+      <Card padding="lg">
         <View
           style={{
             flexDirection: "row",
             alignItems: "center",
-            justifyContent: "space-between",
+            gap: spacing.md,
           }}
         >
-          <View style={{ flex: 1, paddingRight: spacing.md }}>
+          <View
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: radii.lg,
+              backgroundColor: settings.enabled
+                ? theme.colors.successBg
+                : theme.colors.surface,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Ionicons
+              name={settings.enabled ? "globe-outline" : "eye-off-outline"}
+              size={22}
+              color={settings.enabled ? theme.colors.success : theme.colors.textSecondary}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
             <Typography variant="h3">Catálogo ativo</Typography>
             <Typography variant="caption">
               {settings.enabled
                 ? "Qualquer pessoa com o link pode ver seus produtos."
-                : "Ative para compartilhar o link com seus clientes."}
+                : "Ative para compartilhar com seus clientes."}
             </Typography>
           </View>
           <Switch
@@ -91,8 +222,10 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
         </View>
       </Card>
 
-      <Card>
+      {/* Configurações */}
+      <Card padding="lg">
         <View style={{ gap: spacing.md }}>
+          <Typography variant="label">PERSONALIZAR</Typography>
           <Input
             label="Endereço do catálogo"
             value={slug}
@@ -102,7 +235,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
             placeholder="doces-da-maria"
           />
           <Typography variant="caption" color={theme.colors.textSecondary}>
-            Só letras minúsculas, números e hífens. Seu link: {url}
+            Só letras minúsculas, números e hífens.
           </Typography>
           <Input
             label="WhatsApp para pedidos"
@@ -112,20 +245,12 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
             placeholder="11 99999-8888"
           />
           <Button
-            title={update.isPending ? "Salvando..." : "Salvar"}
+            title={update.isPending ? "Salvando..." : "Salvar alterações"}
             onPress={() => void handleSave()}
             disabled={update.isPending}
           />
         </View>
       </Card>
-
-      {settings.enabled && (
-        <Button
-          title="Compartilhar link do catálogo"
-          variant="secondary"
-          onPress={() => void handleShare()}
-        />
-      )}
 
       <View
         style={{

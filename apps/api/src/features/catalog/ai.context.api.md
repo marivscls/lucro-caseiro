@@ -125,3 +125,6 @@ invariants:
 
 - 2026-06-09: criação (MVP). HTML server-rendered pela própria API para não exigir
   novo deploy/web app; pedido via deep link `wa.me` com mensagem pré-preenchida.
+- 2026-06-09: redesign premium da página: hero com gradiente e avatar, tipografia serif,
+  cards com sombra, botão WhatsApp com ícone SVG inline, contador de produtos, og:tags
+  para preview de link, mensagens `wa.me` com emojis e nome do produto em negrito.

@@ -84,3 +84,6 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
 
 - 2026-06-09: criação (MVP). Página pública é HTML da API (sem web app novo); o
   mobile só configura e compartilha o link.
+- 2026-06-09: visual premium — hero com ícone de loja e badge de status, card "Seu link"
+  (pill tocável + botão compartilhar, visível só com catálogo ativo), seções com ícones.
+  Tela trata erro com botão "Tentar de novo". Mensagem de compartilhamento mais calorosa.
