@@ -150,19 +150,42 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
 
 export default function CatalogScreen() {
   const { theme } = useTheme();
-  const { data: settings, isLoading } = useCatalogSettings();
+  const { data: settings, isLoading, refetch } = useCatalogSettings();
+
+  let content: React.ReactNode;
+  if (settings) {
+    content = <CatalogForm settings={settings} />;
+  } else if (isLoading) {
+    content = (
+      <ActivityIndicator
+        size="large"
+        color={theme.colors.primary}
+        style={{ marginTop: spacing["3xl"] }}
+      />
+    );
+  } else {
+    content = (
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          padding: spacing.xl,
+          gap: spacing.lg,
+        }}
+      >
+        <Ionicons name="cloud-offline-outline" size={44} color={theme.colors.alert} />
+        <Typography variant="body" style={{ textAlign: "center" }}>
+          Não foi possível carregar o catálogo. Verifique sua conexão e tente de novo.
+        </Typography>
+        <Button title="Tentar de novo" onPress={() => void refetch()} />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      {isLoading || !settings ? (
-        <ActivityIndicator
-          size="large"
-          color={theme.colors.primary}
-          style={{ marginTop: spacing["3xl"] }}
-        />
-      ) : (
-        <CatalogForm settings={settings} />
-      )}
+      {content}
     </SafeAreaView>
   );
 }
