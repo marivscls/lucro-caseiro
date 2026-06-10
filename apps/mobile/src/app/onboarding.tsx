@@ -11,25 +11,25 @@ const NICHES = [
   {
     id: "confeitaria",
     label: "Confeitaria",
-    description: "Bolos artisticos, doces finos e sobremesas que encantam os olhos.",
+    description: "Bolos, doces e sobremesas.",
     emoji: "🎂",
   },
   {
     id: "panificacao",
     label: "Panificacao",
-    description: "Paes artesanais, fermentacao natural e o calor do forno a lenha.",
+    description: "Pães caseiros e quitandas.",
     emoji: "🍞",
   },
   {
     id: "salgados",
     label: "Salgados",
-    description: "Buffet, petiscos e as receitas de familia que todo mundo ama.",
+    description: "Salgadinhos, festas e encomendas.",
     emoji: "🥟",
   },
   {
     id: "bebidas",
     label: "Bebidas",
-    description: "Cafes especiais, chas blendados e sucos naturais artesanais.",
+    description: "Cafés, chás e sucos.",
     emoji: "☕",
   },
 ];
@@ -279,7 +279,10 @@ function BusinessNameStep({
   );
 }
 
-function DoneStep({ onFinish }: Readonly<{ onFinish: () => void }>) {
+function DoneStep({
+  onFinish,
+  onFirstProduct,
+}: Readonly<{ onFinish: () => void; onFirstProduct: () => void }>) {
   const { theme } = useTheme();
 
   return (
@@ -309,12 +312,17 @@ function DoneStep({ onFinish }: Readonly<{ onFinish: () => void }>) {
         Tudo pronto!
       </Typography>
       <Typography variant="body" style={{ textAlign: "center", maxWidth: 300 }}>
-        Seu negócio já esta organizado. Agora e so registrar suas vendas e acompanhar seus
-        lucros!
+        Que tal começar cadastrando seu primeiro produto? Leva menos de 1 minuto — e
+        depois é só registrar a primeira venda!
       </Typography>
 
       <View style={{ gap: 12, width: "100%", marginTop: 16 }}>
-        <Button title="Começar a usar  →" size="lg" onPress={onFinish} />
+        <Button
+          title="Cadastrar meu primeiro produto"
+          size="lg"
+          onPress={onFirstProduct}
+        />
+        <Button title="Deixar para depois" size="lg" variant="ghost" onPress={onFinish} />
       </View>
     </View>
   );
@@ -335,6 +343,12 @@ export default function OnboardingScreen() {
   function handleFinish() {
     completeOnboarding();
     router.replace("/tabs");
+  }
+
+  // Primeira vitoria: leva direto ao cadastro do 1o produto.
+  function handleFirstProduct() {
+    completeOnboarding();
+    router.replace("/products");
   }
 
   return (
@@ -365,7 +379,9 @@ export default function OnboardingScreen() {
         />
       )}
 
-      {currentStep === 3 && <DoneStep onFinish={handleFinish} />}
+      {currentStep === 3 && (
+        <DoneStep onFinish={handleFinish} onFirstProduct={handleFirstProduct} />
+      )}
     </SafeAreaView>
   );
 }
