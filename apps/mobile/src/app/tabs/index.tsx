@@ -217,7 +217,7 @@ function ChevronButton({ onPress }: Readonly<{ onPress?: () => void }>) {
       onPress={onPress}
       hitSlop={12}
       accessibilityRole="button"
-      style={{ width: 32, height: 32, alignItems: "flex-end", justifyContent: "center" }}
+      style={{ width: 48, height: 48, alignItems: "flex-end", justifyContent: "center" }}
     >
       <Ionicons name="chevron-forward" size={22} color={theme.colors.textSecondary} />
     </Pressable>

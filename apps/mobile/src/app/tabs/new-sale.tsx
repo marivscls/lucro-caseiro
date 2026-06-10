@@ -516,6 +516,7 @@ export default function NewSaleScreen() {
               step > 1 ? setStep((s) => (s - 1) as Step) : router.push("/tabs/sales")
             }
             accessibilityRole="button"
+            accessibilityLabel="Voltar"
             style={{
               width: 48,
               height: 48,
@@ -532,12 +533,26 @@ export default function NewSaleScreen() {
           </Pressable>
           <Typography variant="h2">Nova Venda</Typography>
         </View>
-        <Pressable onPress={handleHelpPress} accessibilityRole="button" hitSlop={12}>
+        <Pressable
+          onPress={handleHelpPress}
+          accessibilityRole="button"
+          accessibilityLabel="Ajuda"
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 4,
+            minHeight: 48,
+            paddingHorizontal: spacing.sm,
+          }}
+        >
           <Ionicons
             name="help-circle-outline"
-            size={28}
+            size={24}
             color={theme.colors.textSecondary}
           />
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            Ajuda
+          </Typography>
         </Pressable>
       </View>
 
@@ -571,7 +586,7 @@ export default function NewSaleScreen() {
             <Typography
               variant="caption"
               color={theme.colors.textSecondary}
-              style={{ display: "none" }}
+              style={{ height: 0, overflow: "hidden" }}
             >
               Toque pra adicionar. Use o - pra tirar uma unidade.
             </Typography>

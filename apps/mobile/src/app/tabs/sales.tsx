@@ -140,7 +140,7 @@ function getStatusSummaryCopy(activeFilter: FilterTab) {
   return {
     icon: "checkmark-outline" as const,
     label: "Concluídas",
-    totalLabel: "concluÃ­do",
+    totalLabel: "concluído",
   };
 }
 
@@ -452,7 +452,7 @@ function StatusSummary({
             <Typography variant="caption" numberOfLines={1}>
               {copy.label}
             </Typography>
-            <Typography variant="caption">este mÃªs</Typography>
+            <Typography variant="caption">este mês</Typography>
           </View>
         </View>
         <View
@@ -488,7 +488,7 @@ function StatusSummary({
             <Typography variant="caption" numberOfLines={1}>
               {copy.totalLabel}
             </Typography>
-            <Typography variant="caption">este mÃªs</Typography>
+            <Typography variant="caption">este mês</Typography>
           </View>
         </View>
       </View>
@@ -500,14 +500,14 @@ function getEmptyStateCopy(isFiltered: boolean) {
   if (isFiltered) {
     return {
       title: "Nenhuma venda encontrada",
-      description: "NÃ£o encontramos vendas com os filtros aplicados.",
+      description: "Não encontramos vendas com os filtros aplicados.",
       button: "Limpar filtros",
       icon: "options-outline" as const,
     };
   }
   return {
     title: "Nenhuma venda registrada",
-    description: "Suas vendas aparecerÃ£o aqui depois do primeiro registro.",
+    description: "Suas vendas aparecerão aqui depois do primeiro registro.",
     button: "Nova venda",
     icon: "add-outline" as const,
   };
@@ -962,8 +962,8 @@ export default function SalesScreen() {
               </View>
             </View>
             <Input
-              label="ObservaÃ§Ãµes"
-              placeholder="Alguma anotaÃ§Ã£o sobre a venda..."
+              label="Observações"
+              placeholder="Alguma anotação sobre a venda..."
               value={editNotes}
               onChangeText={setEditNotes}
               multiline
@@ -971,7 +971,7 @@ export default function SalesScreen() {
               style={{ height: 80, textAlignVertical: "top", paddingTop: 12 }}
             />
             <Button
-              title="Salvar alteraÃ§Ãµes"
+              title="Salvar alterações"
               size="lg"
               onPress={() => {
                 handleSaveEdit().catch(() => {});

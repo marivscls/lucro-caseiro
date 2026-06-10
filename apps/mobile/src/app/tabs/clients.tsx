@@ -94,7 +94,7 @@ function SearchBox({
     <View
       style={[
         surfaceStyle({
-          minHeight: 46,
+          minHeight: 48,
           borderRadius: radii.xl,
           flexDirection: "row",
           alignItems: "center",
@@ -545,7 +545,7 @@ function NewClientField({
       <View
         style={{
           width: 42,
-          height: 42,
+          height: 48,
           borderRadius: 21,
           backgroundColor: "rgba(196, 112, 126, 0.18)",
           alignItems: "center",
@@ -880,7 +880,7 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
               onPress={close}
               style={{
                 width: 42,
-                height: 42,
+                height: 48,
                 borderRadius: 21,
                 backgroundColor: "rgba(245, 225, 219, 0.06)",
                 alignItems: "center",
@@ -940,7 +940,7 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
               <View
                 style={{
                   width: 42,
-                  height: 42,
+                  height: 48,
                   borderRadius: 21,
                   backgroundColor: "rgba(196, 112, 126, 0.18)",
                   alignItems: "center",

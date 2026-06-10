@@ -66,15 +66,22 @@ function FiadoGroupCard({
             </Typography>
             <Pressable
               onPress={() => onMarkPaid(sale.id)}
-              hitSlop={8}
-              style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+              accessibilityRole="button"
+              accessibilityLabel="Marcar como recebido"
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
+                minHeight: 48,
+                paddingHorizontal: 8,
+              }}
             >
               <Ionicons
                 name="checkmark-circle-outline"
-                size={18}
+                size={22}
                 color={theme.colors.success}
               />
-              <Typography variant="caption" color={theme.colors.success}>
+              <Typography variant="bodyBold" color={theme.colors.success}>
                 Recebi
               </Typography>
             </Pressable>

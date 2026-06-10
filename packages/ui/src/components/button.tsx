@@ -24,7 +24,7 @@ interface ButtonProps extends Omit<PressableProps, "style"> {
 
 const sizeStyles: Record<ButtonSize, { height: number; fontSize: number; px: number }> =
   {
-    sm: { height: 40, fontSize: fontSizes.sm, px: spacing.lg },
+    sm: { height: 48, fontSize: fontSizes.sm, px: spacing.lg },
     md: { height: 48, fontSize: fontSizes.md, px: spacing.xl },
     lg: { height: 56, fontSize: fontSizes.lg, px: spacing["2xl"] },
   };

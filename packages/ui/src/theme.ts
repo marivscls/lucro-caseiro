@@ -60,8 +60,9 @@ export const fonts = {
 } as const;
 
 export const fontSizes = {
-  xs: 11,
-  sm: 13,
+  // Publico inclui idosos: nada abaixo de 13 (xs so para selos/labels curtos).
+  xs: 13,
+  sm: 14,
   md: 16,
   lg: 18,
   xl: 22,
