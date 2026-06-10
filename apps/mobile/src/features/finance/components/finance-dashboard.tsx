@@ -1,7 +1,7 @@
 import type { FinanceEntry, FinanceEntryType } from "@lucro-caseiro/contracts";
 import { Ionicons } from "@expo/vector-icons";
 import { formatCurrency } from "../../../shared/utils/format";
-import { spacing, useTheme } from "@lucro-caseiro/ui";
+import { Button, spacing, useTheme } from "@lucro-caseiro/ui";
 import * as FileSystem from "expo-file-system/legacy";
 import { router } from "expo-router";
 import * as Sharing from "expo-sharing";
@@ -25,6 +25,7 @@ import financeHero from "../../../assets/finance-hero.png";
 import { useAuth } from "../../../shared/hooks/use-auth";
 import { getExportUrl } from "../api";
 import { useDeleteFinanceEntry, useFinanceEntries, useFinanceSummary } from "../hooks";
+import { Illustration } from "../../../shared/components/illustrations";
 import { CreateFinanceEntry } from "./create-finance-entry";
 
 const MONTH_NAMES = [
@@ -66,12 +67,22 @@ export function FinanceDashboard({
   const [selectedEntry, setSelectedEntry] = useState<FinanceEntry | null>(null);
 
   const { data: summary, isLoading, error } = useFinanceSummary({ month, year });
+  const { data: prevSummary } = useFinanceSummary({
+    month: previousMonth(month) + 1,
+    year: previousYear(month, year),
+  });
   const { data: entries } = useFinanceEntries({ type: undefined });
   const deleteEntry = useDeleteFinanceEntry();
 
   const income = summary?.totalIncome ?? 0;
   const expenses = summary?.totalExpenses ?? 0;
   const profit = income - expenses;
+  const prevProfit = (prevSummary?.totalIncome ?? 0) - (prevSummary?.totalExpenses ?? 0);
+  // So compara quando ha base: lucro anterior diferente de zero.
+  const profitDeltaPct =
+    prevProfit !== 0
+      ? Math.round(((profit - prevProfit) / Math.abs(prevProfit)) * 100)
+      : null;
   const allEntries = entries?.items ?? [];
   const filteredEntries = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -221,12 +232,22 @@ export function FinanceDashboard({
           <View style={styles.heroContent}>
             <Text style={styles.heroLabel}>Seu lucro</Text>
             <Text style={styles.heroValue}>{formatCurrency(profit)}</Text>
-            <View style={styles.percentBadge}>
-              <Ionicons name="trending-up-outline" size={18} color="#DDF4E7" />
-              <Text style={styles.percentText}>
-                0% vs. {MONTH_NAMES[previousMonth(month)]} {previousYear(month, year)}
-              </Text>
-            </View>
+            {profitDeltaPct !== null && (
+              <View style={styles.percentBadge}>
+                <Ionicons
+                  name={
+                    profitDeltaPct >= 0 ? "trending-up-outline" : "trending-down-outline"
+                  }
+                  size={18}
+                  color="#DDF4E7"
+                />
+                <Text style={styles.percentText}>
+                  {profitDeltaPct >= 0 ? "+" : ""}
+                  {profitDeltaPct}% vs. {MONTH_NAMES[previousMonth(month)]}{" "}
+                  {previousYear(month, year)}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -235,14 +256,14 @@ export function FinanceDashboard({
             icon="arrow-down-circle-outline"
             label="Entradas"
             value={formatCurrency(income)}
-            description={`${incomeCount} lançamento${incomeCount === 1 ? "" : "s"}`}
+            description={entryCountLabel(incomeCount)}
             tone="green"
           />
           <SummaryCard
             icon="arrow-up-circle-outline"
             label="Saídas"
             value={formatCurrency(expenses)}
-            description={`${expenseCount} lançamento${expenseCount === 1 ? "" : "s"}`}
+            description={entryCountLabel(expenseCount)}
             tone="red"
           />
         </View>
@@ -314,9 +335,7 @@ export function FinanceDashboard({
           </View>
         )}
 
-        <Text style={styles.entryCount}>
-          {filteredEntries.length} lançamento{filteredEntries.length === 1 ? "" : "s"}
-        </Text>
+        <Text style={styles.entryCount}>{entryCountLabel(filteredEntries.length)}</Text>
 
         <View style={styles.entryListCard}>
           {filteredEntries.length > 0 ? (
@@ -336,11 +355,12 @@ export function FinanceDashboard({
             ))
           ) : (
             <View style={styles.emptyState}>
-              <Ionicons name="wallet-outline" size={36} color="#D6748B" />
-              <Text style={styles.emptyTitle}>Nenhum lançamento encontrado</Text>
+              <Illustration name="coins" size={110} />
+              <Text style={styles.emptyTitle}>Nenhum lançamento por aqui</Text>
               <Text style={styles.emptyText}>
-                Use os filtros ou registre um novo lançamento.
+                Registre entradas e saídas para acompanhar o lucro do mês.
               </Text>
+              <Button title="Registrar lançamento" onPress={openCreateEntry} />
             </View>
           )}
         </View>
@@ -497,6 +517,13 @@ export function FinanceDashboard({
       </Modal>
     </>
   );
+}
+
+/** Contagem humana, sem "0 lançamentos". */
+function entryCountLabel(count: number): string {
+  if (count === 0) return "Nenhum lançamento";
+  if (count === 1) return "1 lançamento";
+  return `${count} lançamentos`;
 }
 
 function previousMonth(month: number) {
