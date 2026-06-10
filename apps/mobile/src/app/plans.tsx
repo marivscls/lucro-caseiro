@@ -13,8 +13,9 @@ const FREE_LIMITS = {
   Receitas: "5",
   Embalagens: "3",
   Rótulos: "1 template",
+  Catálogo: "5 produtos",
   Relatórios: "Básico mensal",
-  Exportacao: "Não",
+  Exportação: "Não",
 };
 
 const PREMIUM_LIMITS = {
@@ -23,8 +24,9 @@ const PREMIUM_LIMITS = {
   Receitas: "Ilimitado",
   Embalagens: "Ilimitado",
   Rótulos: "Ilimitado",
+  Catálogo: "Ilimitado + visual",
   Relatórios: "Completo + gráficos",
-  Exportacao: "PDF/Excel",
+  Exportação: "PDF/Excel",
 };
 
 export default function PlansScreen() {
@@ -145,15 +147,17 @@ export default function PlansScreen() {
           <Typography variant="h3" style={{ marginBottom: spacing.md }}>
             Comparativo
           </Typography>
-          <View style={{ flexDirection: "row", marginBottom: spacing.sm }}>
-            <View style={{ flex: 2 }} />
-            <Typography variant="caption" style={{ flex: 1, textAlign: "center" }}>
+          <View
+            style={{ flexDirection: "row", marginBottom: spacing.sm, gap: spacing.xs }}
+          >
+            <View style={{ flex: 1 }} />
+            <Typography variant="caption" style={{ width: 72, textAlign: "center" }}>
               Free
             </Typography>
             <Typography
               variant="caption"
               color={theme.colors.premium}
-              style={{ flex: 1, textAlign: "center" }}
+              style={{ width: 88, textAlign: "center" }}
             >
               Premium
             </Typography>
@@ -167,18 +171,19 @@ export default function PlansScreen() {
                 borderTopWidth: 1,
                 borderTopColor: theme.colors.surface,
                 alignItems: "center",
+                gap: spacing.xs,
               }}
             >
-              <Typography variant="caption" style={{ flex: 2 }}>
+              <Typography variant="caption" style={{ flex: 1, flexShrink: 1 }}>
                 {key}
               </Typography>
-              <Typography variant="caption" style={{ flex: 1, textAlign: "center" }}>
+              <Typography variant="caption" style={{ width: 72, textAlign: "center" }}>
                 {FREE_LIMITS[key as keyof typeof FREE_LIMITS]}
               </Typography>
               <Typography
                 variant="caption"
                 color={theme.colors.success}
-                style={{ flex: 1, textAlign: "center" }}
+                style={{ width: 88, textAlign: "center" }}
               >
                 {PREMIUM_LIMITS[key as keyof typeof PREMIUM_LIMITS]}
               </Typography>
