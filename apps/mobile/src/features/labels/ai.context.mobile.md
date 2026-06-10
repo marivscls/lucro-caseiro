@@ -162,3 +162,11 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 - 2026-06-09: formulário de rótulo reorganizado com `FormSection` (shared/components/
   form-section.tsx, seções colapsáveis): básico aberto; datas (aberta), nutrição e
   contato/marca (fechadas). Reduz a rolagem de 40+ campos.
+- 2026-06-09: **estilo customizado (Premium)** — `LabelStyleEditor`
+  (components/label-style-editor.tsx): cor de destaque (presets + ColorPickerModal,
+  agora em shared/components), fonte (clássica/moderna), borda (linha/tracejada/dupla/
+  sem) e cantos (arredondado/reto). Persistido em `data.style` (contrato `LabelStyle`);
+  preview (`resolveLabelStyle`) e PDF aplicam o estilo; fundo derivado da cor por tint.
+  Free: tocar abre paywall; backend reforça com LIMIT_EXCEEDED.
+- 2026-06-10: `LabelStyleEditor` ganhou prop `locked` (free): opções visíveis com leve
+  opacidade + cadeado; tocar abre o paywall. Vislumbre converte mais que esconder.

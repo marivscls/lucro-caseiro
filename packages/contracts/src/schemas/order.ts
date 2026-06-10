@@ -11,6 +11,12 @@ export const CreateOrderDto = z.object({
     .optional(),
   clientId: z.string().uuid().optional(),
   amount: z.number().positive().max(MAX_MONEY).optional(),
+  // Sinal (entrada) ja recebido; validado contra o amount no usecase.
+  deposit: z.number().min(0).max(MAX_MONEY).nullable().optional(),
+  // Personalizacao (papelaria/festas):
+  theme: z.string().max(100).nullable().optional(),
+  honoree: z.string().max(100).nullable().optional(),
+  colors: z.string().max(100).nullable().optional(),
   photoUrl: z.string().url().nullable().optional(),
   notes: z.string().max(500).optional(),
   status: OrderStatus.optional(),
@@ -38,6 +44,10 @@ export const OrderDto = z.object({
   deliveryTime: z.string().nullable(),
   status: OrderStatus,
   amount: z.number().nullable(),
+  deposit: z.number().nullable(),
+  theme: z.string().nullable(),
+  honoree: z.string().nullable(),
+  colors: z.string().nullable(),
   photoUrl: z.string().nullable(),
   notes: z.string().nullable(),
   saleId: z.string().uuid().nullable(),

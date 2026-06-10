@@ -12,7 +12,10 @@ import { exportLabelPdfWithChoice } from "../label-export";
 import { cleanNutrition } from "../nutrition";
 import { normalizeLink } from "../qr";
 import { useCreateLabel } from "../hooks";
+import { useProfile } from "../../subscription/hooks";
 import { FormSection } from "../../../shared/components/form-section";
+import { usePaywall } from "../../../shared/hooks/use-paywall";
+import { LabelStyleEditor } from "./label-style-editor";
 import { LabelPreview } from "./label-preview";
 import { NutritionFields } from "./nutrition-fields";
 import { TemplatePicker } from "./template-picker";
@@ -27,6 +30,9 @@ export function CreateLabelForm({
   onSuccess,
 }: Readonly<CreateLabelFormProps>) {
   const { theme } = useTheme();
+  const { data: profile } = useProfile();
+  const showPaywall = usePaywall((st) => st.show);
+  const isPremium = profile?.plan === "premium";
   const [name, setName] = useState("");
   const [templateId, setTemplateId] = useState("classico");
   const [labelData, setLabelData] = useState<LabelData>({
@@ -217,6 +223,23 @@ export function CreateLabelForm({
         <NutritionFields
           value={labelData.nutrition}
           onChange={(n) => updateField("nutrition", n)}
+        />
+      </FormSection>
+
+      <FormSection
+        title="Estilo do rótulo"
+        subtitle="Premium — cores, fonte, borda e cantos"
+        icon="color-palette-outline"
+      >
+        <LabelStyleEditor
+          value={labelData.style}
+          onChange={(style) => updateField("style", style)}
+          locked={!isPremium}
+          onLockedPress={() => {
+            if (isPremium) return false;
+            showPaywall("labels");
+            return true;
+          }}
         />
       </FormSection>
 

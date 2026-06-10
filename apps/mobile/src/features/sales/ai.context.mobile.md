@@ -135,3 +135,10 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
   e invalida o cache do React Query; o `OfflineBanner` mostra quantas vendas aguardam.
   Limite freemium continua sendo aplicado pelo backend no momento do sync.
 - 2026-05-30: **venda por peso (R$/kg)** — `CartItem` ganhou `saleUnit`. Produtos `saleUnit === "kg"` usam um modal de peso (kg, decimal-pad) ao inves de incrementar unidades; subtotal = preco/kg × peso. Review/badge formatam peso com virgula (ex.: "1,5 kg"). O payload `createSale` envia `quantity` decimal.
+- 2026-06-10: **recibo em PDF (Premium)** — `receipt-pdf.ts` (`buildReceiptHtml`,
+  `exportReceiptPdf` via expo-print/expo-sharing): recibo A5 com a paleta da marca,
+  nº derivado do id, itens (peso em kg), selo pago/pendente, rodapé "sem valor fiscal".
+  Botão "Recibo em PDF" no `SaleDetail`; free abre paywall ("export") — exportação é
+  recurso Premium na tabela freemium.
+- 2026-06-10: vislumbre pro free — "Recibo em PDF" abre `ReceiptPreviewModal`
+  (miniatura do recibo real com cadeado + CTA Premium) em vez de paywall seco.

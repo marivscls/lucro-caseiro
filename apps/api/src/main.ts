@@ -46,6 +46,9 @@ import { ProductsUseCases } from "./features/products/products.usecases";
 import { createIngredientsRouter } from "./features/recipes/ingredients.routes";
 import { IngredientsRepoPg } from "./features/recipes/ingredients.repo.pg";
 import { IngredientsUseCases } from "./features/recipes/ingredients.usecases";
+import { createQuotesRouter } from "./features/quotes/quotes.routes";
+import { QuotesRepoPg } from "./features/quotes/quotes.repo.pg";
+import { QuotesUseCases } from "./features/quotes/quotes.usecases";
 import { createRecipesRouter } from "./features/recipes/recipes.routes";
 import { RecipesRepoPg } from "./features/recipes/recipes.repo.pg";
 import { RecipesUseCases } from "./features/recipes/recipes.usecases";
@@ -62,6 +65,7 @@ import {
 } from "./features/payments/stripe.routes";
 import { StripeUseCases } from "./features/payments/stripe.usecases";
 import { ServiceUnavailableError } from "./shared/errors";
+import { isPremiumActive } from "./features/subscription/subscription.domain";
 import { errorHandler } from "./shared/middleware/error-handler";
 import { freemiumGuard } from "./shared/middleware/freemium-guard";
 import { healthRouter } from "./shared/health";
@@ -156,9 +160,14 @@ const accountUseCases = new AccountUseCases(accountRepo, {
 });
 
 const catalogUseCases = new CatalogUseCases(new CatalogRepoPg(db));
+// Conversao orcamento -> encomenda reusa o usecase de orders (injetado adiante).
+
 const financeUseCases = new FinanceUseCases(financeRepo);
 const ingredientsUseCases = new IngredientsUseCases(ingredientsRepo);
-const labelsUseCases = new LabelsUseCases(labelsRepo);
+const labelsUseCases = new LabelsUseCases(labelsRepo, async (userId) => {
+  const profile = await subscriptionRepo.getProfile(userId);
+  return !!profile && isPremiumActive(profile.plan, profile.planExpiresAt);
+});
 const packagingUseCases = new PackagingUseCases(packagingRepo);
 const pricingUseCases = new PricingUseCases(pricingRepo);
 const subscriptionUseCases = new SubscriptionUseCases(subscriptionRepo, googlePlayClient);
@@ -223,6 +232,10 @@ app.use("/api/v1/labels", createLabelsRouter(labelsUseCases));
 app.use(
   "/api/v1/packaging",
   createPackagingRouter(packagingUseCases, freemiumGuard(subscriptionRepo, "packaging")),
+);
+app.use(
+  "/api/v1/quotes",
+  createQuotesRouter(new QuotesUseCases(new QuotesRepoPg(db), ordersUseCases)),
 );
 app.use("/api/v1/catalog", createCatalogRouter(catalogUseCases));
 // Catalogo publico (sem auth): pagina HTML compartilhavel em /c/:slug.

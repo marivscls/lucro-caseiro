@@ -3,6 +3,35 @@ import { describe, expect, it } from "vitest";
 import { buildOrdersSummary, isTerminal, todayISO, validateOrder } from "./orders.domain";
 
 describe("validateOrder", () => {
+  it("rejeita sinal maior que o valor da encomenda", () => {
+    const errors = validateOrder({
+      title: "Kit festa",
+      deliveryDate: "2026-07-01",
+      amount: 100,
+      deposit: 150,
+    });
+    expect(errors).toContain("O sinal nao pode ser maior que o valor da encomenda");
+  });
+
+  it("aceita sinal menor ou igual ao valor", () => {
+    const errors = validateOrder({
+      title: "Kit festa",
+      deliveryDate: "2026-07-01",
+      amount: 100,
+      deposit: 50,
+    });
+    expect(errors).toHaveLength(0);
+  });
+
+  it("rejeita sinal negativo", () => {
+    const errors = validateOrder({
+      title: "Kit festa",
+      deliveryDate: "2026-07-01",
+      deposit: -1,
+    });
+    expect(errors).toContain("O sinal nao pode ser negativo");
+  });
+
   it("accepts valid data", () => {
     expect(
       validateOrder({ title: "Bolo de chocolate", deliveryDate: "2026-05-30" }),

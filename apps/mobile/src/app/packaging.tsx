@@ -23,6 +23,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CreatePackagingForm } from "../features/packaging/components/create-packaging-form";
+import { Illustration } from "../shared/components/illustrations";
 import {
   useDeletePackaging,
   usePackaging,
@@ -269,6 +270,7 @@ export default function PackagingScreen() {
       )}
       {!isLoading && !error && !data?.items.length && (
         <EmptyState
+          icon={<Illustration name="box" />}
           title="Nenhuma embalagem ainda"
           description="Cadastre suas embalagens para facilitar a precificação"
           action={

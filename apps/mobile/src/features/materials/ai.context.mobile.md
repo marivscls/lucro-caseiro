@@ -101,3 +101,4 @@ estoque rápido (+/−) e ver alerta de estoque baixo. Separado dos produtos aca
 - **#14 Conteúdo por unidade (LIGHT)**: form ganhou seção opcional (quantidade + unidade) para
   declarar quanto cabe em 1 unidade (ex.: 1 lata = 350 ml). Habilita escolha de unidade na
   linha de receita (ver feature `recipes`). Sem conteúdo, comportamento inalterado.
+- 2026-06-10: unidades de papelaria/artesanato no form: folha, m, cm.

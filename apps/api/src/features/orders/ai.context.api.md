@@ -169,3 +169,6 @@ POST /api/v1/orders/:id/deliver
 - `deliver` registra **receita no financeiro** (não cria uma `sale`, pois encomenda não tem itens na v1).
 - `orders` não acopla finance: usa `IIncomeRegistrar` injetada (boundary do CLAUDE.md).
 - 2026-05-30: endpoint `GET /summary` (P2 #13) — total dos pedidos + buckets a receber/recebido. Agregação `COUNT`/`SUM` agrupada por status no repo (`summarize`), shaping puro em `buildOrdersSummary` (domain). `cancelled` fora dos totais; `amount` nulo = 0; filtros opcionais por `status`/`startDate`/`endDate` (deliveryDate). Rota antes de `/:id`. `OrdersSummary` adicionado em `@lucro-caseiro/contracts`.
+- 2026-06-10: **sinal e personalização** (migration 015): `deposit` (entrada recebida,
+  validada ≤ amount), `theme`, `honoree`, `colors` (personalização de festas/papelaria).
+  Sinal é informativo no MVP (não muda o fluxo de registrar receita na entrega).

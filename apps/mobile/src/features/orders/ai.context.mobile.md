@@ -118,3 +118,6 @@ receita ao entregar.
 - Notificação local de entregas próximas (tipo `DELIVERY` → roteia `/agenda`).
 - 2026-05-30: lembrete agendado por encomenda (véspera 9h) via `reminders.ts`, complementar ao resumo diário. Chega com o app fechado; ligado ao ciclo de vida nos hooks + sync em `useDeliveryNotifier`.
 - 2026-05-30: resumo de valores (P2 #13) — `useOrdersSummary` + `fetchOrdersSummary` (`GET /summary`) e header `OrdersSummaryHeader` no topo da agenda ("Total dos pedidos" + a receber/recebido). Query key `["orders","summary",opts]` é invalidada automaticamente pelas mutações existentes (criar/entregar/excluir) por prefixo, já que todas invalidam `["orders"]`.
+- 2026-06-10: formulário ganhou "Sinal recebido" (validação local sinal ≤ valor) e
+  FormSection "Personalização" (tema/homenageado/cores). Card mostra "Falta R$X";
+  detalhe na agenda mostra faixa de sinal e bloco de personalização.

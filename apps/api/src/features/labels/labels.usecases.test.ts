@@ -1,7 +1,7 @@
 import type { Label } from "@lucro-caseiro/contracts";
 import { describe, expect, it } from "vitest";
 
-import { NotFoundError, ValidationError } from "../../shared/errors";
+import { LimitExceededError, NotFoundError, ValidationError } from "../../shared/errors";
 import { LabelsUseCases } from "./labels.usecases";
 import type { CreateLabelData, FindAllOpts, ILabelsRepo } from "./labels.types";
 
@@ -36,13 +36,61 @@ function makeRepo(overrides: Partial<ILabelsRepo> = {}): ILabelsRepo {
   };
 }
 
-function makeSut(repoOverrides: Partial<ILabelsRepo> = {}) {
+function makeSut(repoOverrides: Partial<ILabelsRepo> = {}, premium = false) {
   const repo = makeRepo(repoOverrides);
-  const sut = new LabelsUseCases(repo);
+  const sut = new LabelsUseCases(repo, () => Promise.resolve(premium));
   return { sut, repo };
 }
 
 describe("LabelsUseCases", () => {
+  describe("estilo customizado (Premium)", () => {
+    const styledData: CreateLabelData = {
+      name: "Rótulo",
+      templateId: "classico",
+      data: { productName: "Brigadeiro", style: { accentColor: "#ff66aa" } },
+    };
+
+    it("bloqueia estilo customizado no plano free (create)", async () => {
+      const { sut } = makeSut({}, false);
+      await expect(sut.create(USER_ID, styledData)).rejects.toBeInstanceOf(
+        LimitExceededError,
+      );
+    });
+
+    it("bloqueia estilo customizado no plano free (update)", async () => {
+      const { sut } = makeSut({}, false);
+      await expect(
+        sut.update(USER_ID, "label-1", { data: styledData.data }),
+      ).rejects.toBeInstanceOf(LimitExceededError);
+    });
+
+    it("permite estilo customizado no premium", async () => {
+      const { sut } = makeSut({}, true);
+      const label = await sut.create(USER_ID, styledData);
+      expect(label.name).toBe("Rótulo");
+    });
+
+    it("sem estilo, plano free segue criando normalmente", async () => {
+      const { sut } = makeSut({}, false);
+      const label = await sut.create(USER_ID, {
+        name: "Rótulo",
+        templateId: "classico",
+        data: { productName: "Brigadeiro" },
+      });
+      expect(label.name).toBe("Rótulo");
+    });
+
+    it("style vazio ({}) nao exige premium", async () => {
+      const { sut } = makeSut({}, false);
+      const label = await sut.create(USER_ID, {
+        name: "Rótulo",
+        templateId: "classico",
+        data: { productName: "Brigadeiro", style: {} },
+      });
+      expect(label.name).toBe("Rótulo");
+    });
+  });
+
   describe("create", () => {
     it("creates a label with valid data", async () => {
       const { sut } = makeSut();

@@ -23,9 +23,12 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CreateLabelForm } from "../features/labels/components/create-label-form";
+import { LabelStyleEditor } from "../features/labels/components/label-style-editor";
 import { LabelPreview } from "../features/labels/components/label-preview";
 import { TemplatePicker } from "../features/labels/components/template-picker";
 import { exportLabelPdfWithChoice } from "../features/labels/label-export";
+import { useProfile } from "../features/subscription/hooks";
+import { usePaywall } from "../shared/hooks/use-paywall";
 import { addDaysToBR, brToIso, isoToBR, maskDateBR } from "../features/labels/dates";
 import { cleanNutrition } from "../features/labels/nutrition";
 import { NutritionFields } from "../features/labels/components/nutrition-fields";
@@ -34,6 +37,7 @@ import { useImagePicker } from "../shared/hooks/use-image-picker";
 import { maskPhoneBR } from "../shared/utils/phone";
 import { uploadLabelLogo } from "../shared/utils/upload-image";
 import { Ionicons } from "@expo/vector-icons";
+import { Illustration } from "../shared/components/illustrations";
 import {
   useDeleteLabel,
   useLabel,
@@ -51,6 +55,9 @@ function LabelDetailModal({
   onClose: () => void;
 }>) {
   const { theme } = useTheme();
+  const { data: profile } = useProfile();
+  const showPaywall = usePaywall((st) => st.show);
+  const isPremium = profile?.plan === "premium";
   const { data: label, isLoading } = useLabel(labelId);
   const updateLabel = useUpdateLabel();
   const deleteLabel = useDeleteLabel();
@@ -335,6 +342,16 @@ function LabelDetailModal({
                 )}
               </View>
             </View>
+            <LabelStyleEditor
+              value={labelData.style}
+              onChange={(style) => updateField("style", style)}
+              locked={!isPremium}
+              onLockedPress={() => {
+                if (isPremium) return false;
+                showPaywall("labels");
+                return true;
+              }}
+            />
             <LabelPreview
               data={labelData}
               templateId={templateId}
@@ -427,6 +444,7 @@ export default function LabelsScreen() {
     if (!data?.items.length) {
       return (
         <EmptyState
+          icon={<Illustration name="tag" />}
           title="Nenhum rótulo ainda"
           description="Crie rótulos para seus produtos"
           action={<Button title="Criar rótulo" onPress={() => setShowCreate(true)} />}

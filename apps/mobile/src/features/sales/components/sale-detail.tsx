@@ -1,15 +1,19 @@
 ﻿import type { Sale } from "@lucro-caseiro/contracts";
 import { Badge, Button, Card, Typography, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useState } from "react";
 import { Alert, Image, ScrollView, View } from "react-native";
 
 import { formatCurrency } from "../../../shared/utils/format";
 import { isValidBrazilPhone } from "../../../shared/utils/phone";
 import { openWhatsApp, openWhatsAppShare } from "../../../shared/utils/whatsapp";
+import { useProfile } from "../../subscription/hooks";
+import { usePaywall } from "../../../shared/hooks/use-paywall";
 import { useUpdateSaleStatus } from "../hooks";
 import { paymentLabel } from "../payment";
 import { buildReceiptMessage } from "../receipt";
+import { exportReceiptPdf } from "../receipt-pdf";
+import { ReceiptPreviewModal } from "./receipt-preview-modal";
 
 interface SaleDetailProps {
   readonly sale: Sale;
@@ -46,6 +50,28 @@ export function SaleDetail({
 }: SaleDetailProps) {
   const { theme } = useTheme();
   const updateStatus = useUpdateSaleStatus();
+  const { data: profile } = useProfile();
+  const showPaywall = usePaywall((st) => st.show);
+  const [exporting, setExporting] = useState(false);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const businessName = profile?.businessName ?? profile?.name ?? "Meu negócio";
+
+  // Recibo em PDF e recurso de exportacao — exclusivo do Premium.
+  // Free ve um vislumbre do recibo (com cadeado) antes do paywall.
+  async function handleReceiptPdf() {
+    if (profile?.plan !== "premium") {
+      setPreviewVisible(true);
+      return;
+    }
+    setExporting(true);
+    try {
+      await exportReceiptPdf(sale, { name: businessName, phone: profile?.phone });
+    } catch {
+      Alert.alert("Erro", "Não foi possível gerar o recibo. Tente novamente.");
+    } finally {
+      setExporting(false);
+    }
+  }
 
   function handleSendReceipt() {
     const message = buildReceiptMessage(sale);
@@ -211,6 +237,22 @@ export function SaleDetail({
             onPress={handleSendReceipt}
           />
         )}
+        {sale.status !== "cancelled" && (
+          <Button
+            title="Recibo em PDF"
+            variant="secondary"
+            size="lg"
+            icon={
+              <Ionicons
+                name="document-text-outline"
+                size={20}
+                color={theme.colors.primary}
+              />
+            }
+            onPress={() => void handleReceiptPdf()}
+            loading={exporting}
+          />
+        )}
         {sale.status !== "cancelled" && onEditPress && (
           <Button
             title="Editar venda"
@@ -237,6 +279,17 @@ export function SaleDetail({
           />
         )}
       </View>
+
+      <ReceiptPreviewModal
+        visible={previewVisible}
+        sale={sale}
+        businessName={businessName}
+        onUpgrade={() => {
+          setPreviewVisible(false);
+          showPaywall("export");
+        }}
+        onClose={() => setPreviewVisible(false)}
+      />
     </ScrollView>
   );
 }

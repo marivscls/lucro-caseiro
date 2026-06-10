@@ -15,6 +15,7 @@ import { MonthlyBars } from "../features/insights/components/monthly-bars";
 import { RankBars, type RankRow } from "../features/insights/components/rank-bars";
 import { formatMoney } from "../features/insights/domain";
 import { useInsights } from "../features/insights/hooks";
+import { Illustration } from "../shared/components/illustrations";
 
 const WINDOWS = [3, 6, 12] as const;
 
@@ -157,6 +158,7 @@ export default function InsightsScreen() {
         <InsightsContent data={data} />
       ) : (
         <EmptyState
+          icon={<Illustration name="chart" />}
           title="Ainda sem dados pra mostrar"
           description="Registre algumas vendas e volte aqui para ver seus gráficos e os campeões de venda."
         />

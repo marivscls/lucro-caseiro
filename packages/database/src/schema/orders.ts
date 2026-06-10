@@ -35,6 +35,12 @@ export const orders = pgTable(
     deliveryTime: text("delivery_time"),
     status: orderStatusEnum("status").notNull().default("pending"),
     amount: decimal("amount", { precision: 10, scale: 2 }),
+    // Sinal/entrada ja recebido (parcial do amount).
+    deposit: decimal("deposit", { precision: 10, scale: 2 }),
+    // Personalizacao estruturada (papelaria/festas): tema, homenageado e cores.
+    theme: text("theme"),
+    honoree: text("honoree"),
+    colors: text("colors"),
     photoUrl: text("photo_url"),
     notes: text("notes"),
     saleId: uuid("sale_id").references(() => sales.id, { onDelete: "set null" }),

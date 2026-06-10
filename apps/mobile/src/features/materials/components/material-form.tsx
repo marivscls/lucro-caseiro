@@ -10,7 +10,8 @@ interface MaterialFormProps {
   readonly onSuccess?: () => void;
 }
 
-const UNITS = ["kg", "g", "L", "ml", "un", "dz"];
+// Inclui unidades de papelaria/artesanato: folha, metro e centimetro.
+const UNITS = ["kg", "g", "L", "ml", "un", "dz", "folha", "m", "cm"];
 
 function parseNum(v: string): number | undefined {
   if (!v.trim()) return undefined;

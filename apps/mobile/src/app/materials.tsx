@@ -22,6 +22,7 @@ import { MaterialCard } from "../features/materials/components/material-card";
 import { MaterialForm } from "../features/materials/components/material-form";
 import { buildShoppingList } from "../features/materials/domain";
 import { useLowStockMaterials, useMaterials } from "../features/materials/hooks";
+import { Illustration } from "../shared/components/illustrations";
 
 function LowStockBanner() {
   const { theme } = useTheme();
@@ -104,6 +105,7 @@ export default function MaterialsScreen() {
     if (items.length === 0) {
       return (
         <EmptyState
+          icon={<Illustration name="jars" />}
           title="Nenhum insumo ainda"
           description="Cadastre seus insumos (farinha, açúcar, embalagens...) para controlar o estoque."
           action={<Button title="Novo insumo" onPress={() => setShowCreate(true)} />}

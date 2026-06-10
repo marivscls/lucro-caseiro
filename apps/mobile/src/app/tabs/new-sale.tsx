@@ -37,6 +37,7 @@ import { useLimitCheck } from "../../shared/hooks/use-limit-check";
 import { useOfflineQueue } from "../../shared/hooks/use-offline-queue";
 import { usePaywall } from "../../shared/hooks/use-paywall";
 import { ApiError } from "../../shared/utils/api-client";
+import { Illustration } from "../../shared/components/illustrations";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -664,8 +665,10 @@ export default function NewSaleScreen() {
               }}
             >
               <EmptyState
+                icon={<Illustration name="basket" size={104} />}
                 title="Nenhum produto cadastrado"
                 description="Cadastre produtos antes de registrar uma venda"
+                style={{ flex: 0, padding: spacing.lg }}
               />
               <Button
                 title="Cadastrar produto"

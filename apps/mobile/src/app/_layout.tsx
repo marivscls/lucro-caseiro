@@ -149,6 +149,15 @@ function AppContent() {
           }}
         />
         <Stack.Screen
+          name="quotes"
+          options={{
+            headerShown: true,
+            title: "Orçamentos",
+            headerStyle: { backgroundColor: theme.colors.background },
+            headerTintColor: theme.colors.text,
+          }}
+        />
+        <Stack.Screen
           name="catalog"
           options={{
             headerShown: true,

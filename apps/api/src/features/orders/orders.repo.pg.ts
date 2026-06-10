@@ -26,6 +26,10 @@ export class OrdersRepoPg implements IOrdersRepo {
         deliveryTime: data.deliveryTime ?? null,
         status: data.status ?? "pending",
         amount: data.amount != null ? String(data.amount) : null,
+        deposit: data.deposit != null ? String(data.deposit) : null,
+        theme: data.theme ?? null,
+        honoree: data.honoree ?? null,
+        colors: data.colors ?? null,
         photoUrl: data.photoUrl ?? null,
         notes: data.notes ?? null,
       })
@@ -68,6 +72,11 @@ export class OrdersRepoPg implements IOrdersRepo {
     if (data.clientId !== undefined) set.clientId = data.clientId ?? null;
     if (data.amount !== undefined)
       set.amount = data.amount != null ? String(data.amount) : null;
+    if (data.deposit !== undefined)
+      set.deposit = data.deposit != null ? String(data.deposit) : null;
+    if (data.theme !== undefined) set.theme = data.theme ?? null;
+    if (data.honoree !== undefined) set.honoree = data.honoree ?? null;
+    if (data.colors !== undefined) set.colors = data.colors ?? null;
     if (data.photoUrl !== undefined) set.photoUrl = data.photoUrl ?? null;
     if (data.notes !== undefined) set.notes = data.notes ?? null;
     if (data.status !== undefined) set.status = data.status;
@@ -131,6 +140,10 @@ export class OrdersRepoPg implements IOrdersRepo {
       deliveryTime: row.deliveryTime,
       status: row.status,
       amount: row.amount != null ? Number(row.amount) : null,
+      deposit: row.deposit != null ? Number(row.deposit) : null,
+      theme: row.theme,
+      honoree: row.honoree,
+      colors: row.colors,
       photoUrl: row.photoUrl,
       notes: row.notes,
       saleId: row.saleId,

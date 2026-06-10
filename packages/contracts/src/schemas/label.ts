@@ -16,6 +16,24 @@ export const NutritionFactsDto = z.object({
 
 export type NutritionFacts = z.infer<typeof NutritionFactsDto>;
 
+// Estilo customizado do rotulo (personalizacao Premium; gate no backend).
+// Quando ausente, o template escolhido define o visual.
+export const LabelStyleDto = z.object({
+  accentColor: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/)
+    .optional(),
+  bgColor: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/)
+    .optional(),
+  font: z.enum(["serif", "sans"]).optional(),
+  borderStyle: z.enum(["solid", "dashed", "double", "none"]).optional(),
+  corner: z.enum(["rounded", "square"]).optional(),
+});
+
+export type LabelStyle = z.infer<typeof LabelStyleDto>;
+
 export const LabelDataDto = z.object({
   productName: z.string(),
   ingredients: z.string().optional(),
@@ -25,6 +43,7 @@ export const LabelDataDto = z.object({
   producerPhone: z.string().optional(),
   producerAddress: z.string().optional(),
   nutrition: NutritionFactsDto.optional(),
+  style: LabelStyleDto.optional(),
 });
 
 export type LabelData = z.infer<typeof LabelDataDto>;

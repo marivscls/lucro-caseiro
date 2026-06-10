@@ -42,6 +42,14 @@ export function validateOrder(
     errors.push("Horario invalido");
   }
 
+  if (data.deposit != null) {
+    if (data.deposit < 0) {
+      errors.push("O sinal nao pode ser negativo");
+    } else if (data.amount != null && data.deposit > data.amount) {
+      errors.push("O sinal nao pode ser maior que o valor da encomenda");
+    }
+  }
+
   if (data.amount != null && data.amount < 0) {
     errors.push("O valor nao pode ser negativo");
   }

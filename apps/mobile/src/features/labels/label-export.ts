@@ -3,7 +3,7 @@ import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { Alert } from "react-native";
 
-import { TEMPLATE_STYLES } from "./components/label-preview";
+import { resolveLabelStyle } from "./components/label-preview";
 import { isoToBR } from "./dates";
 import { NUTRITION_FIELDS, hasNutrition } from "./nutrition";
 import { buildQrSvg } from "./qr";
@@ -89,7 +89,10 @@ function buildLabelHtml(
   qrUrl?: string | null,
   copies = 1,
 ): string {
-  const style = TEMPLATE_STYLES[templateId] ?? TEMPLATE_STYLES.classico;
+  const style = resolveLabelStyle(templateId, data.style);
+  const borderCss =
+    style.borderStyle === "none" ? "none" : `2px ${style.borderStyle} ${style.border}`;
+  const radiusCss = style.corner === "square" ? "0" : "12px";
   const count = Math.max(1, Math.floor(copies));
   const card = buildLabelCard(data, logoUrl, qrUrl);
   const cards = `<div class="label-card">${card}</div>`.repeat(count);
@@ -118,8 +121,8 @@ function buildLabelHtml(
       width: ${sheet ? "47%" : "320px"};
       break-inside: avoid;
       background: ${style.bg};
-      border: 3px solid ${style.border};
-      border-radius: 16px;
+      border: ${borderCss};
+      border-radius: ${radiusCss};
       padding: 24px;
       color: ${style.accent};
     }

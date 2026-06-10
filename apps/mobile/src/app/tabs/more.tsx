@@ -21,6 +21,12 @@ const menuItems = [
     route: "/finance" as const,
   },
   {
+    title: "Orçamentos",
+    description: "Monte, envie e aprove propostas",
+    icon: "reader-outline" as const,
+    route: "/quotes" as const,
+  },
+  {
     title: "Fiado",
     description: "Quem te deve e cobrança",
     icon: "cash-outline" as const,

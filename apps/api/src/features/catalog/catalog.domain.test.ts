@@ -121,13 +121,22 @@ describe("renderCatalogHtml", () => {
   });
 
   it("aplica preset de cor quando definido", () => {
-    const html = renderCatalogHtml({ ...baseCatalog, accentColor: "rose" });
+    // com produto: o estado vazio (cesta SVG marrom) nao entra na pagina
+    const html = renderCatalogHtml({
+      ...baseCatalog,
+      accentColor: "rose",
+      products: [product],
+    });
     expect(html).toContain("#c2557b");
     expect(html).not.toContain("#8c5a45");
   });
 
   it("aplica cor hexadecimal customizada com paleta derivada", () => {
-    const html = renderCatalogHtml({ ...baseCatalog, accentColor: "#ff66aa" });
+    const html = renderCatalogHtml({
+      ...baseCatalog,
+      accentColor: "#ff66aa",
+      products: [product],
+    });
     expect(html).toContain("#ff66aa");
     expect(html).not.toContain("#8c5a45");
   });

@@ -5,6 +5,7 @@ import { ActivityIndicator, FlatList, RefreshControl, View } from "react-native"
 
 import { useClients } from "../hooks";
 import { ClientCard } from "./client-card";
+import { Illustration } from "../../../shared/components/illustrations";
 
 interface ClientListProps {
   search?: string;
@@ -62,6 +63,7 @@ export function ClientList({
   if (!data?.items.length) {
     return (
       <EmptyState
+        icon={<Illustration name="clients" />}
         title="Nenhum cliente ainda"
         description="Cadastre seu primeiro cliente para começar a gerenciar suas vendas"
         action={

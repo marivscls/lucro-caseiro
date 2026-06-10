@@ -1,19 +1,37 @@
-import type { Label } from "@lucro-caseiro/contracts";
+import type { Label, LabelStyle } from "@lucro-caseiro/contracts";
 
-import { NotFoundError, ValidationError } from "../../shared/errors";
+import { LimitExceededError, NotFoundError, ValidationError } from "../../shared/errors";
 import { paginationMeta } from "../../shared/helpers/paginate";
 import { getAvailableTemplates, validateLabelData } from "./labels.domain";
 import type { LabelTemplate } from "./labels.domain";
 import type { CreateLabelData, FindAllOpts, ILabelsRepo } from "./labels.types";
 
+function hasCustomStyle(style?: LabelStyle): boolean {
+  return !!style && Object.values(style).some((value) => value != null);
+}
+
 export class LabelsUseCases {
-  constructor(private repo: ILabelsRepo) {}
+  constructor(
+    private repo: ILabelsRepo,
+    // Estilo customizado e exclusivo do Premium; sem wiring explicito, nega.
+    private isPremiumUser: (userId: string) => Promise<boolean> = () =>
+      Promise.resolve(false),
+  ) {}
+
+  private async assertStyleAllowed(userId: string, style?: LabelStyle): Promise<void> {
+    if (!hasCustomStyle(style)) return;
+    if (await this.isPremiumUser(userId)) return;
+    throw new LimitExceededError(
+      "A personalização do rótulo é exclusiva do plano Premium.",
+    );
+  }
 
   async create(userId: string, data: CreateLabelData): Promise<Label> {
     const errors = validateLabelData(data);
     if (errors.length > 0) {
       throw new ValidationError(errors);
     }
+    await this.assertStyleAllowed(userId, data.data.style);
 
     return this.repo.create(userId, data);
   }
@@ -57,6 +75,7 @@ export class LabelsUseCases {
     if (errors.length > 0) {
       throw new ValidationError(errors);
     }
+    await this.assertStyleAllowed(userId, data.data?.style);
 
     const updated = await this.repo.update(userId, id, data);
     if (!updated) {

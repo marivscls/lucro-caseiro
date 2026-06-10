@@ -114,6 +114,11 @@ export function OrderCard({ order, onPress }: OrderCardProps) {
             {formatMoney(order.amount)}
           </Typography>
         ) : null}
+        {order.deposit != null && order.amount != null && order.deposit < order.amount ? (
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            Falta {formatMoney(order.amount - order.deposit)}
+          </Typography>
+        ) : null}
         <View
           style={{
             backgroundColor: colors.bg,

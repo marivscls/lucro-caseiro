@@ -40,6 +40,7 @@ import {
   useUpdateOrder,
 } from "../features/orders/hooks";
 import { openWhatsApp, waMessages } from "../shared/utils/whatsapp";
+import { Illustration } from "../shared/components/illustrations";
 
 const PIPELINE: OrderStatus[] = ["pending", "in_production", "ready"];
 // Paleta da agenda derivada do tema ativo (antes eram constantes fixas de dark,
@@ -631,6 +632,45 @@ function ModernOrderDetail({
         </View>
       </View>
 
+      {order.deposit != null && order.amount != null && (
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: spacing.sm,
+            backgroundColor: theme.colors.successBg,
+            borderRadius: radii.lg,
+            padding: spacing.md,
+          }}
+        >
+          <Ionicons name="wallet-outline" size={20} color={theme.colors.success} />
+          <Typography variant="bodyBold" color={theme.colors.success} style={{ flex: 1 }}>
+            Sinal: {formatMoney(order.deposit)}
+          </Typography>
+          <Typography variant="bodyBold" color={theme.colors.text}>
+            Falta: {formatMoney(Math.max(order.amount - order.deposit, 0))}
+          </Typography>
+        </View>
+      )}
+
+      {(order.theme || order.honoree || order.colors) && (
+        <View style={{ gap: spacing.sm }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+            <Ionicons
+              name="sparkles-outline"
+              size={20}
+              color={theme.colors.primaryLight}
+            />
+            <Typography variant="h3" color={agColors.muted} style={{ fontSize: 18 }}>
+              Personalização
+            </Typography>
+          </View>
+          {order.theme && <Typography variant="body">Tema: {order.theme}</Typography>}
+          {order.honoree && <Typography variant="body">Para: {order.honoree}</Typography>}
+          {order.colors && <Typography variant="body">Cores: {order.colors}</Typography>}
+        </View>
+      )}
+
       {client?.phone ? (
         <View style={{ gap: spacing.md }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
@@ -1194,6 +1234,7 @@ export default function AgendaScreen() {
     if (groups.length === 0) {
       return (
         <EmptyState
+          icon={<Illustration name="calendar" />}
           title="Sua agenda está vazia"
           description="Cadastre uma encomenda com data de entrega para começar a se organizar."
           action={<Button title="Nova encomenda" onPress={() => setShowCreate(true)} />}

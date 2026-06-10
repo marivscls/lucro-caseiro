@@ -6,6 +6,10 @@ export interface CreateOrderData {
   deliveryTime?: string;
   clientId?: string;
   amount?: number;
+  deposit?: number | null;
+  theme?: string | null;
+  honoree?: string | null;
+  colors?: string | null;
   photoUrl?: string | null;
   notes?: string;
   status?: OrderStatus;

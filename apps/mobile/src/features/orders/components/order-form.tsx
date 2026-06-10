@@ -19,6 +19,7 @@ import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { brToIso, isoToBR, maskDateBR } from "../../../shared/utils/date";
 import { uploadOrderImage } from "../../../shared/utils/upload-image";
 import { useCreateOrder, useDeleteOrder, useUpdateOrder } from "../hooks";
+import { FormSection } from "../../../shared/components/form-section";
 
 interface OrderFormProps {
   readonly order?: Order | null;
@@ -109,6 +110,12 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
   const [amount, setAmount] = useState(
     order?.amount != null ? String(order.amount).replace(".", ",") : "",
   );
+  const [deposit, setDeposit] = useState(
+    order?.deposit != null ? String(order.deposit).replace(".", ",") : "",
+  );
+  const [orderTheme, setOrderTheme] = useState(order?.theme ?? "");
+  const [honoree, setHonoree] = useState(order?.honoree ?? "");
+  const [colors, setColors] = useState(order?.colors ?? "");
   const [notes] = useState(order?.notes ?? "");
   const [savedPhotoUrl, setSavedPhotoUrl] = useState(order?.photoUrl ?? null);
   const { imageUri, showPicker, clear } = useImagePicker();
@@ -138,6 +145,17 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
     }
 
     const parsedAmount = amount.trim() ? parseFloat(amount.replace(",", ".")) : undefined;
+    const parsedDeposit = deposit.trim()
+      ? parseFloat(deposit.replace(",", "."))
+      : undefined;
+    if (
+      parsedDeposit !== undefined &&
+      parsedAmount !== undefined &&
+      parsedDeposit > parsedAmount
+    ) {
+      Alert.alert("Opa!", "O sinal não pode ser maior que o valor combinado.");
+      return;
+    }
     let photoUrl: string | null | undefined = savedPhotoUrl;
     if (imageUri && !imageUri.startsWith("http")) {
       try {
@@ -164,6 +182,13 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
         parsedAmount !== undefined && !Number.isNaN(parsedAmount)
           ? parsedAmount
           : undefined,
+      deposit:
+        parsedDeposit !== undefined && !Number.isNaN(parsedDeposit)
+          ? parsedDeposit
+          : null,
+      theme: orderTheme.trim() || null,
+      honoree: honoree.trim() || null,
+      colors: colors.trim() || null,
       photoUrl,
       notes: notes.trim() || undefined,
     };
@@ -448,6 +473,45 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
               keyboardType="decimal-pad"
             />
           </View>
+
+          <View style={{ gap: spacing.sm }}>
+            <Typography variant="h3" color={theme.colors.text} style={{ fontSize: 18 }}>
+              Sinal recebido (opcional)
+            </Typography>
+            <Field
+              icon="wallet-outline"
+              placeholder="Ex: 60,00 — entrada já paga"
+              value={deposit}
+              onChangeText={setDeposit}
+              keyboardType="decimal-pad"
+            />
+          </View>
+
+          <FormSection
+            title="Personalização"
+            subtitle="Tema, homenageado e cores (festas e encomendas personalizadas)"
+            icon="sparkles-outline"
+            initiallyOpen={!!(orderTheme || honoree || colors)}
+          >
+            <Field
+              icon="balloon-outline"
+              placeholder="Tema — ex.: Safari, Princesas"
+              value={orderTheme}
+              onChangeText={setOrderTheme}
+            />
+            <Field
+              icon="person-outline"
+              placeholder="Nome e idade — ex.: Alice, 5 anos"
+              value={honoree}
+              onChangeText={setHonoree}
+            />
+            <Field
+              icon="color-palette-outline"
+              placeholder="Cores — ex.: rosa e dourado"
+              value={colors}
+              onChangeText={setColors}
+            />
+          </FormSection>
         </View>
 
         <Pressable

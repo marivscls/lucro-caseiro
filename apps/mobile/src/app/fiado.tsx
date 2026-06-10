@@ -20,6 +20,7 @@ import type { FiadoGroup } from "../features/sales/fiado";
 import { formatCurrency } from "../shared/utils/format";
 import { isValidBrazilPhone } from "../shared/utils/phone";
 import { openWhatsApp, openWhatsAppShare } from "../shared/utils/whatsapp";
+import { Illustration } from "../shared/components/illustrations";
 
 function dateBR(iso: string): string {
   const d = new Date(iso);
@@ -161,6 +162,7 @@ export default function FiadoScreen() {
     if (groups.length === 0) {
       return (
         <EmptyState
+          icon={<Illustration name="coins" />}
           title="Ninguém te deve 🎉"
           description="Vendas no fiado em aberto aparecem aqui para você cobrar."
         />

@@ -28,7 +28,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { publicCatalogUrl } from "../features/catalog/api";
-import { ColorPickerModal } from "../features/catalog/components/color-picker-modal";
+import { ColorPickerModal } from "../shared/components/color-picker-modal";
 import { HeroPreview } from "../features/catalog/components/hero-preview";
 import { useCatalogSettings, useUpdateCatalogSettings } from "../features/catalog/hooks";
 import { useProfile } from "../features/subscription/hooks";

@@ -147,3 +147,5 @@ invariants:
 - 2026-06-09: limite freemium — plano free exibe no máximo 5 produtos no catálogo
   público (`totalProducts` no DTO traz o total real; página mostra "Mostrando X de Y").
   Rodapé ganhou a logo do app embutida em base64 (`catalog-logo.ts`).
+- 2026-06-10: estado vazio da página com cesta SVG inline da marca (antes emoji 🧺,
+  que renderizava diferente por aparelho); logo do rodapé em chip claro com sombra.
