@@ -64,6 +64,13 @@ function getFormattedDate(): string {
   return `${weekdays[now.getDay()]}, ${day} de ${month} de ${year}`;
 }
 
+/** Texto humano da contagem de vendas do dia (sem "(s)" de programador). */
+function todaySalesLabel(count: number): string {
+  if (count === 0) return "Nenhuma venda ainda — bora registrar a primeira?";
+  if (count === 1) return "1 venda registrada";
+  return `${count} vendas registradas`;
+}
+
 function getCardStyle(theme: ReturnType<typeof useTheme>["theme"]): ViewStyle {
   const isDark = theme.mode === "dark";
   return {
@@ -203,7 +210,13 @@ function ShortcutTile({
       >
         <Ionicons name={icon} size={29} color={theme.colors.primaryLight} />
       </View>
-      <Typography variant="bodyBold" style={{ textAlign: "center" }} numberOfLines={1}>
+      <Typography
+        variant="bodyBold"
+        style={{ textAlign: "center", fontSize: 14 }}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.85}
+      >
         {label}
       </Typography>
     </Pressable>
@@ -262,6 +275,7 @@ export default function HomeScreen() {
   const { data: financeSummary } = useFinanceSummary();
   const monthProfit = financeSummary?.profit ?? 0;
   const upcomingDeliveries = orders ? upcomingCount(orders, new Date()) : 0;
+  const hasSalesToday = (todaySummary?.totalSales ?? 0) > 0;
 
   const isWide = width >= 390;
   const isLoading = loadingSales || loadingGoal;
@@ -361,7 +375,7 @@ export default function HomeScreen() {
           />
           <ShortcutTile
             icon="wallet-outline"
-            label="Financeiro"
+            label="Finanças"
             onPress={() => router.push("/finance")}
           />
           <ShortcutTile
@@ -387,7 +401,9 @@ export default function HomeScreen() {
             <Card
               variant="surface"
               padding="xl"
-              onPress={() => router.push("/tabs/sales")}
+              onPress={() =>
+                router.push(hasSalesToday ? "/tabs/sales" : "/tabs/new-sale")
+              }
               style={cardStyle}
             >
               <View
@@ -400,22 +416,32 @@ export default function HomeScreen() {
                 <View
                   style={{
                     flex: 1,
-                    minHeight: 112,
+                    minHeight: hasSalesToday ? 112 : 76,
                     justifyContent: "center",
                     gap: spacing.xs,
                   }}
                 >
                   <Typography variant="label">VENDAS DE HOJE</Typography>
-                  <Typography variant="moneyHero" color={theme.colors.success}>
+                  <Typography
+                    variant={hasSalesToday ? "moneyHero" : "moneyLg"}
+                    color={theme.colors.success}
+                  >
                     {formatCurrency(todaySummary?.totalAmount ?? 0)}
                   </Typography>
-                  <Typography variant="bodyBold" color={theme.colors.text}>
-                    {todaySummary?.totalSales ?? 0} venda(s) registrada(s)
+                  <Typography
+                    variant="bodyBold"
+                    color={hasSalesToday ? theme.colors.text : theme.colors.primaryLight}
+                  >
+                    {todaySalesLabel(todaySummary?.totalSales ?? 0)}
                   </Typography>
                 </View>
                 <View style={{ alignItems: "flex-end", gap: spacing.md }}>
-                  <ChevronButton onPress={() => router.push("/tabs/sales")} />
-                  <TrendBadge />
+                  <ChevronButton
+                    onPress={() =>
+                      router.push(hasSalesToday ? "/tabs/sales" : "/tabs/new-sale")
+                    }
+                  />
+                  {hasSalesToday && <TrendBadge />}
                 </View>
               </View>
             </Card>
