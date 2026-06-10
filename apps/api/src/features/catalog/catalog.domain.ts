@@ -140,10 +140,14 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   const headerButton = catalog.whatsapp
     ? `<a class="order hero" href="${whatsappLink(catalog.whatsapp)}">${WHATSAPP_ICON}Fazer pedido no WhatsApp</a>`
     : "";
-  const cover = catalog.coverUrl
-    ? `<div class="cover"><img src="${escapeHtml(catalog.coverUrl)}" alt=""></div>`
-    : "";
-  const patternCss = catalog.pattern ? (HERO_PATTERNS[catalog.pattern] ?? "") : "";
+  // Capa integrada: vira o fundo do proprio hero, com um veu da cor por cima
+  // para manter nome/frase legiveis (evita "banner duplo" capa + cor).
+  const heroBackground = catalog.coverUrl
+    ? `background-image: linear-gradient(160deg, ${palette.dark}e6 0%, ${palette.base}cc 55%, ${palette.light}b3 100%), url('${escapeHtml(catalog.coverUrl)}'); background-size: cover; background-position: center;`
+    : `background: linear-gradient(160deg, ${palette.dark} 0%, ${palette.base} 55%, ${palette.light} 100%);`;
+  // Com capa, a estampa sairia poluida — so aplica pattern sem capa.
+  const patternCss =
+    catalog.pattern && !catalog.coverUrl ? (HERO_PATTERNS[catalog.pattern] ?? "") : "";
   const patternOverlay = patternCss ? `<div class="pattern"></div>` : "";
   const avatar = catalog.logoUrl
     ? `<div class="avatar"><img src="${escapeHtml(catalog.logoUrl)}" alt=""></div>`
@@ -168,8 +172,7 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   :root { color-scheme: light; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: ${palette.bg}; color: #3d2b22; -webkit-font-smoothing: antialiased; }
-  .cover img { width: 100%; height: 200px; object-fit: cover; display: block; }
-  .hero-bg { background: linear-gradient(160deg, ${palette.dark} 0%, ${palette.base} 55%, ${palette.light} 100%); padding: 44px 20px 72px; text-align: center; color: #fff; position: relative; overflow: hidden; }
+  .hero-bg { ${heroBackground} padding: 44px 20px 72px; text-align: center; color: #fff; position: relative; overflow: hidden; }
   .bio { margin-top: 10px; font-size: 15px; line-height: 1.5; opacity: 0.92; max-width: 480px; margin-left: auto; margin-right: auto; position: relative; z-index: 1; }
   .hero-bg::before { content: ""; position: absolute; top: -60px; right: -60px; width: 220px; height: 220px; border-radius: 50%; background: rgba(255,255,255,0.06); }
   .hero-bg::after { content: ""; position: absolute; bottom: -80px; left: -40px; width: 260px; height: 260px; border-radius: 50%; background: rgba(255,255,255,0.05); }
@@ -204,7 +207,6 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
 </style>
 </head>
 <body>
-${cover}
 <div class="hero-bg">
   ${patternOverlay}
   ${avatar}

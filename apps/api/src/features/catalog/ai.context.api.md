@@ -141,3 +141,6 @@ invariants:
   avatar do hero. Mesmo gate Premium dos demais campos de personalização.
 - 2026-06-09: pattern decorativo no hero (`pattern`, migration 014; enum
   dots/bubbles/grid/stripes) — overlay CSS puro (`HERO_PATTERNS`); mesmo gate Premium.
+- 2026-06-09: capa integrada ao hero — `cover_url` vira background do próprio hero com
+  véu da cor por cima (gradiente com alpha), em vez de bloco separado; pattern é
+  ignorado quando há capa (evita poluição visual).

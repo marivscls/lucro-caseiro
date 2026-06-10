@@ -429,7 +429,9 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                       size={28}
                       color={theme.colors.primaryLight}
                     />
-                    <Typography variant="caption">Adicionar foto de capa</Typography>
+                    <Typography variant="caption">
+                      Adicionar foto de fundo do topo
+                    </Typography>
                   </>
                 )}
               </View>
