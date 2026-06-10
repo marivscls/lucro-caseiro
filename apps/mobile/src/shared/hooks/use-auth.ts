@@ -4,6 +4,7 @@ import * as WebBrowser from "expo-web-browser";
 import { create } from "zustand";
 
 import { supabase } from "../utils/supabase";
+import { useOnboarding } from "./use-onboarding";
 
 function getAuthRedirectUrl(): string {
   if (process.env.EXPO_PUBLIC_AUTH_REDIRECT_URL) {
@@ -257,6 +258,9 @@ export const useAuth = create<AuthState>((set) => ({
 
   signOut: async () => {
     await supabase.auth.signOut();
+    // O estado de onboarding e por aparelho; ao trocar de conta, a proxima
+    // que entrar decide de novo (quem ja tem businessName pula sozinha).
+    useOnboarding.getState().reset();
     set({
       token: null,
       userId: null,
