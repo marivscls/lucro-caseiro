@@ -56,7 +56,23 @@ describe("renderCatalogHtml", () => {
     pattern: null,
     tagline: null,
     products: [] as (typeof product)[],
+    totalProducts: 0,
   };
+
+  it("mostra aviso quando ha mais produtos do que os exibidos (plano free)", () => {
+    const html = renderCatalogHtml({
+      ...baseCatalog,
+      products: [product],
+      totalProducts: 8,
+    });
+    expect(html).toContain("Mostrando 1 de 8 produtos");
+  });
+
+  it("rodape inclui a logo do app", () => {
+    const html = renderCatalogHtml(baseCatalog);
+    expect(html).toContain("data:image/png;base64,");
+    expect(html).toContain("Lucro Caseiro");
+  });
 
   it("renderiza nome do negocio, produto e preco formatado", () => {
     const html = renderCatalogHtml({

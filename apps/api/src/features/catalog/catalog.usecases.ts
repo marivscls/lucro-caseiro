@@ -95,10 +95,13 @@ export class CatalogUseCases {
       throw new NotFoundError("Catálogo não encontrado");
     }
 
-    const products = await this.repo.listPublicProducts(owner.userId);
+    const allProducts = await this.repo.listPublicProducts(owner.userId);
     // Personalizacao so aparece enquanto o dono for Premium (se a assinatura
     // cair, a pagina volta ao tema padrao sem apagar o que foi salvo).
     const isPremium = owner.plan === "premium";
+    // Plano free exibe no maximo 5 produtos (gatilho de conversao; o app mostra
+    // o aviso "Mostre seu catalogo completo com o Premium").
+    const products = isPremium ? allProducts : allProducts.slice(0, 5);
     return {
       businessName: owner.businessName,
       whatsapp: owner.whatsapp ?? owner.phone,
@@ -108,6 +111,7 @@ export class CatalogUseCases {
       pattern: isPremium ? owner.pattern : null,
       tagline: isPremium ? owner.tagline : null,
       products,
+      totalProducts: allProducts.length,
     };
   }
 }

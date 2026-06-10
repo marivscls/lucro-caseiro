@@ -103,3 +103,5 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
   capa/foto de perfil após escolher na galeria; `HeroPreview`
   (components/hero-preview.tsx, SVG) mostra o topo com cor+estampa+frase em tempo real,
   entre as estampas e a frase.
+- 2026-06-09: banner de upgrade para free ("Seu catálogo mostra até 5 produtos") com
+  CTA para o paywall, refletindo o limite de 5 produtos aplicado no backend.

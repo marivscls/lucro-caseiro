@@ -144,3 +144,6 @@ invariants:
 - 2026-06-09: capa integrada ao hero — `cover_url` vira background do próprio hero com
   véu da cor por cima (gradiente com alpha), em vez de bloco separado; pattern é
   ignorado quando há capa (evita poluição visual).
+- 2026-06-09: limite freemium — plano free exibe no máximo 5 produtos no catálogo
+  público (`totalProducts` no DTO traz o total real; página mostra "Mostrando X de Y").
+  Rodapé ganhou a logo do app embutida em base64 (`catalog-logo.ts`).

@@ -176,6 +176,34 @@ describe("CatalogUseCases.updateSettings", () => {
 });
 
 describe("CatalogUseCases.getPublicCatalog", () => {
+  it("plano free exibe no maximo 5 produtos, com totalProducts real", async () => {
+    const many = Array.from({ length: 8 }, () => makeProduct());
+    const sut = new CatalogUseCases(
+      makeRepo({ listPublicProducts: () => Promise.resolve(many) }),
+    );
+
+    const catalog = await sut.getPublicCatalog("doces-da-maria");
+
+    expect(catalog.products).toHaveLength(5);
+    expect(catalog.totalProducts).toBe(8);
+  });
+
+  it("plano premium exibe todos os produtos", async () => {
+    const many = Array.from({ length: 8 }, () => makeProduct());
+    const sut = new CatalogUseCases(
+      makeRepo({
+        listPublicProducts: () => Promise.resolve(many),
+        findOwnerBySlug: () =>
+          Promise.resolve({ ...makeSettings(), ...makeOwner({ plan: "premium" }) }),
+      }),
+    );
+
+    const catalog = await sut.getPublicCatalog("doces-da-maria");
+
+    expect(catalog.products).toHaveLength(8);
+    expect(catalog.totalProducts).toBe(8);
+  });
+
   it("retorna catalogo com produtos quando habilitado", async () => {
     const sut = new CatalogUseCases(makeRepo());
 

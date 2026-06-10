@@ -308,6 +308,35 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
         </Card>
       )}
 
+      {/* Gatilho de upgrade: free mostra ate 5 produtos no catalogo */}
+      {!isPremium && (
+        <Card
+          padding="lg"
+          onPress={() => showPaywall("catalog")}
+          style={{
+            borderLeftWidth: 3,
+            borderLeftColor: theme.colors.premium,
+          }}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+            <Ionicons name="diamond-outline" size={24} color={theme.colors.premium} />
+            <View style={{ flex: 1 }}>
+              <Typography variant="bodyBold">
+                Seu catálogo mostra até 5 produtos
+              </Typography>
+              <Typography variant="caption">
+                Mostre seu catálogo completo e personalize as cores com o Premium.
+              </Typography>
+            </View>
+            <Ionicons
+              name="chevron-forward"
+              size={18}
+              color={theme.colors.textSecondary}
+            />
+          </View>
+        </Card>
+      )}
+
       {/* Ativação */}
       <Card padding="lg">
         <View

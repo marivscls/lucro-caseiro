@@ -73,6 +73,8 @@ export const PublicCatalogDto = z.object({
   pattern: CatalogPattern.nullable(),
   tagline: z.string().nullable(),
   products: z.array(PublicCatalogProductDto),
+  // Total real de produtos ativos (free mostra so os primeiros 5).
+  totalProducts: z.number(),
 });
 
 export type PublicCatalog = z.infer<typeof PublicCatalogDto>;

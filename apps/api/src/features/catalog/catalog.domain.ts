@@ -1,6 +1,8 @@
 import type { PublicCatalog, PublicCatalogProduct } from "@lucro-caseiro/contracts";
 import { CATALOG_SLUG_REGEX } from "@lucro-caseiro/contracts";
 
+import { LUCRO_CASEIRO_LOGO_B64 } from "./catalog-logo";
+
 /** Gera um slug a partir do nome do negocio (ex.: "Doces da Má" -> "doces-da-ma"). */
 export function slugify(name: string): string {
   const slug = name
@@ -155,6 +157,11 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   const tagline = catalog.tagline
     ? `<p class="bio">${escapeHtml(catalog.tagline)}</p>`
     : "";
+  const hiddenCount = catalog.totalProducts - count;
+  const moreNote =
+    hiddenCount > 0
+      ? `<p class="more-note">Mostrando ${count} de ${catalog.totalProducts} produtos</p>`
+      : "";
   const empty =
     count === 0
       ? `<div class="empty"><div class="empty-icon">🧺</div><p>Nenhum produto disponível no momento.</p><p class="empty-sub">Volte em breve — novidades chegando!</p></div>`
@@ -202,7 +209,9 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   .empty-icon { font-size: 44px; margin-bottom: 12px; }
   .empty p { font-size: 16px; font-weight: 600; color: #4a3228; }
   .empty .empty-sub { margin-top: 6px; font-size: 14px; font-weight: 400; color: #9b8275; }
-  footer { text-align: center; padding: 32px 16px 44px; font-size: 13px; color: #9b8275; }
+  .more-note { grid-column: 1 / -1; text-align: center; font-size: 13px; color: #9b8275; padding: 4px 0 8px; }
+  footer { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 32px 16px 44px; font-size: 13px; color: #9b8275; }
+  footer img { width: 28px; height: 28px; border-radius: 8px; }
   footer strong { color: ${palette.base}; }
 </style>
 </head>
@@ -216,8 +225,8 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   ${count > 0 ? `<span class="count">${countLabel}</span>` : ""}
   ${headerButton}
 </div>
-<main>${cards}${empty}</main>
-<footer>Feito com carinho no <strong>Lucro Caseiro</strong> 🧡</footer>
+<main>${cards}${moreNote}${empty}</main>
+<footer><img src="data:image/png;base64,${LUCRO_CASEIRO_LOGO_B64}" alt="Lucro Caseiro"><span>Feito com carinho no <strong>Lucro Caseiro</strong> 🧡</span></footer>
 </body>
 </html>`;
 }
