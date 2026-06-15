@@ -150,10 +150,6 @@ export function QuoteForm({ quote, onSuccess }: QuoteFormProps) {
         gap: spacing.lg,
       }}
     >
-      <Typography variant="h2">
-        {quote ? "Editar orçamento" : "Novo orçamento"}
-      </Typography>
-
       <Input
         label="Título"
         placeholder="Ex.: Kit festa Safari"
