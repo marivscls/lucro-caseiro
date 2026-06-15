@@ -11,7 +11,7 @@ import {
   spacing,
 } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -58,6 +58,78 @@ const FILTERS: { key: QuoteStatusType | "all"; label: string }[] = [
   { key: "accepted", label: "Aprovados" },
   { key: "rejected", label: "Recusados" },
 ];
+
+function ModalHeader({
+  title,
+  onClose,
+  onBack,
+  rightLabel,
+  onRight,
+}: Readonly<{
+  title: string;
+  onClose?: () => void;
+  onBack?: () => void;
+  rightLabel?: string;
+  onRight?: () => void;
+}>) {
+  const { theme } = useTheme();
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: spacing.md,
+        paddingHorizontal: spacing.lg,
+        paddingTop: spacing.md,
+        paddingBottom: spacing.sm,
+      }}
+    >
+      {onBack ? (
+        <Pressable
+          onPress={onBack}
+          accessibilityLabel="Voltar"
+          hitSlop={10}
+          style={{ minHeight: 44, justifyContent: "center" }}
+        >
+          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
+        </Pressable>
+      ) : (
+        <Pressable
+          onPress={onClose}
+          accessibilityLabel="Fechar"
+          hitSlop={10}
+          style={{ minHeight: 44, justifyContent: "center" }}
+        >
+          <Ionicons name="close" size={28} color={theme.colors.text} />
+        </Pressable>
+      )}
+      <Typography
+        variant="h1"
+        color={theme.colors.text}
+        numberOfLines={1}
+        style={{ flex: 1, fontSize: 22, fontWeight: "800" }}
+      >
+        {title}
+      </Typography>
+      {rightLabel && onRight ? (
+        <Pressable
+          onPress={onRight}
+          accessibilityRole="button"
+          hitSlop={10}
+          style={{ minHeight: 44, justifyContent: "center" }}
+        >
+          <Typography
+            variant="bodyBold"
+            color={theme.colors.primary}
+            style={{ fontSize: 16 }}
+          >
+            {rightLabel}
+          </Typography>
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
 
 function QuoteCard({ quote, onPress }: Readonly<{ quote: Quote; onPress: () => void }>) {
   const { theme } = useTheme();
@@ -238,6 +310,31 @@ function QuoteDetail({
     ]);
   }
 
+  // Ações secundárias agrupadas num menu, pra não virar parede de botões.
+  function openMoreActions() {
+    const options: {
+      text: string;
+      style?: "cancel" | "destructive";
+      onPress?: () => void;
+    }[] = [
+      {
+        text: exporting ? "Gerando PDF..." : "Orçamento em PDF",
+        onPress: () => void handlePdf(),
+      },
+    ];
+    if (quote.status === "pending") {
+      options.push({ text: "Editar orçamento", onPress: onEdit });
+      options.push({ text: "Marcar como recusado", onPress: handleReject });
+    }
+    options.push({
+      text: "Excluir orçamento",
+      style: "destructive",
+      onPress: handleDelete,
+    });
+    options.push({ text: "Cancelar", style: "cancel" });
+    Alert.alert("Mais ações", quote.title, options);
+  }
+
   return (
     <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
       <View
@@ -308,6 +405,7 @@ function QuoteDetail({
       )}
       {quote.notes && <Typography variant="body">{quote.notes}</Typography>}
 
+      {/* Ação primária + ações relevantes por status; o resto vai no menu "Mais ações" */}
       <View style={{ gap: spacing.md }}>
         <Button
           title="Enviar no WhatsApp"
@@ -315,20 +413,6 @@ function QuoteDetail({
           size="lg"
           icon={<Ionicons name="logo-whatsapp" size={20} color="#fff" />}
           onPress={handleWhatsApp}
-        />
-        <Button
-          title="Orçamento em PDF"
-          variant="secondary"
-          size="lg"
-          icon={
-            <Ionicons
-              name="document-text-outline"
-              size={20}
-              color={theme.colors.primary}
-            />
-          }
-          onPress={() => void handlePdf()}
-          loading={exporting}
         />
         {quote.status === "pending" && (
           <Button
@@ -349,18 +433,15 @@ function QuoteDetail({
             }}
           />
         )}
-        {quote.status === "pending" && (
-          <Button title="Editar" variant="secondary" size="lg" onPress={onEdit} />
-        )}
-        {quote.status === "pending" && (
-          <Button
-            title="Marcar como recusado"
-            variant="outline"
-            size="lg"
-            onPress={handleReject}
-          />
-        )}
-        <Button title="Excluir" variant="ghost" size="lg" onPress={handleDelete} />
+        <Button
+          title="Mais ações"
+          variant="ghost"
+          size="lg"
+          icon={
+            <Ionicons name="ellipsis-horizontal" size={20} color={theme.colors.primary} />
+          }
+          onPress={openMoreActions}
+        />
       </View>
 
       <ConvertModal
@@ -375,6 +456,7 @@ function QuoteDetail({
 
 export default function QuotesScreen() {
   const { theme } = useTheme();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState<QuoteStatusType | "all">("all");
   const [showCreate, setShowCreate] = useState(false);
@@ -390,10 +472,46 @@ export default function QuotesScreen() {
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: theme.colors.background }}
-      edges={["bottom"]}
+      edges={["top", "bottom"]}
     >
-      <View style={{ flex: 1, padding: spacing.xl, gap: spacing.md }}>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+      <Stack.Screen options={{ headerShown: false }} />
+
+      {/* Top bar */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.md,
+          paddingHorizontal: spacing.lg,
+          paddingTop: spacing.sm,
+          paddingBottom: spacing.sm,
+        }}
+      >
+        <Pressable
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="Voltar"
+          hitSlop={10}
+          style={{ width: 32, height: 40, justifyContent: "center" }}
+        >
+          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
+        </Pressable>
+        <Typography
+          variant="h1"
+          color={theme.colors.text}
+          style={{ flex: 1, fontSize: 26, fontWeight: "800" }}
+        >
+          Orçamentos
+        </Typography>
+      </View>
+
+      {/* Filtros (chips) */}
+      <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.sm }}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: spacing.sm }}
+        >
           {FILTERS.map((f) => {
             const active = filter === f.key;
             return (
@@ -404,8 +522,7 @@ export default function QuotesScreen() {
                 accessibilityState={{ selected: active }}
                 style={{
                   minHeight: 44,
-                  width: "48%",
-                  paddingHorizontal: spacing.md,
+                  paddingHorizontal: spacing.lg,
                   borderRadius: radii.full,
                   alignItems: "center",
                   justifyContent: "center",
@@ -415,14 +532,17 @@ export default function QuotesScreen() {
                 <Typography
                   variant="bodyBold"
                   color={active ? theme.colors.textOnPrimary : theme.colors.text}
+                  style={{ fontSize: 15 }}
                 >
                   {f.label}
                 </Typography>
               </Pressable>
             );
           })}
-        </View>
+        </ScrollView>
+      </View>
 
+      <View style={{ flex: 1, paddingHorizontal: spacing.xl }}>
         {isLoading && (
           <ActivityIndicator
             size="large"
@@ -436,13 +556,12 @@ export default function QuotesScreen() {
             icon={<Illustration name="clipboard" />}
             title="Nenhum orçamento ainda"
             description="Monte o orçamento, envie no WhatsApp e, quando aprovar, vire encomenda com um toque."
-            action={<Button title="Novo orçamento" onPress={() => setShowCreate(true)} />}
           />
         )}
 
         {!isLoading && quotes.length > 0 && (
           <ScrollView
-            contentContainerStyle={{ gap: spacing.md, paddingBottom: 120 }}
+            contentContainerStyle={{ gap: spacing.md, paddingBottom: spacing.lg }}
             showsVerticalScrollIndicator={false}
           >
             {quotes.map((quote) => (
@@ -456,33 +575,36 @@ export default function QuotesScreen() {
         )}
       </View>
 
-      {/* FAB */}
+      {/* Ação principal: novo orçamento */}
       <View
         style={{
-          position: "absolute",
-          bottom: spacing.xl + insets.bottom,
-          right: spacing.xl,
+          paddingHorizontal: spacing.xl,
+          paddingTop: spacing.sm,
+          paddingBottom: spacing.sm + insets.bottom,
         }}
       >
         <Pressable
           onPress={() => setShowCreate(true)}
           accessibilityRole="button"
-          accessibilityLabel="Novo orçamento"
-          style={{
-            width: 60,
-            height: 60,
-            borderRadius: 30,
+          style={({ pressed }) => ({
+            minHeight: 56,
+            borderRadius: radii.lg,
             backgroundColor: theme.colors.primary,
+            flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
-            elevation: 6,
-            shadowColor: theme.colors.primary,
-            shadowOffset: { width: 0, height: 8 },
-            shadowOpacity: 0.35,
-            shadowRadius: 14,
-          }}
+            gap: spacing.sm,
+            opacity: pressed ? 0.85 : 1,
+          })}
         >
-          <Ionicons name="add" size={30} color={theme.colors.textOnPrimary} />
+          <Ionicons name="add" size={24} color={theme.colors.textOnPrimary} />
+          <Typography
+            variant="bodyBold"
+            color={theme.colors.textOnPrimary}
+            style={{ fontSize: 18 }}
+          >
+            Novo orçamento
+          </Typography>
         </Pressable>
       </View>
 
@@ -494,13 +616,7 @@ export default function QuotesScreen() {
         onRequestClose={() => setShowCreate(false)}
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <View style={{ alignItems: "flex-end", padding: spacing.lg }}>
-            <Pressable onPress={() => setShowCreate(false)} hitSlop={12}>
-              <Typography variant="bodyBold" color={theme.colors.primary}>
-                Fechar
-              </Typography>
-            </Pressable>
-          </View>
+          <ModalHeader title="Novo orçamento" onClose={() => setShowCreate(false)} />
           <QuoteForm onSuccess={() => setShowCreate(false)} />
         </SafeAreaView>
       </Modal>
@@ -516,28 +632,28 @@ export default function QuotesScreen() {
         }}
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <View style={{ alignItems: "flex-end", padding: spacing.lg }}>
-            <Pressable
-              onPress={() => {
-                setSelectedId(null);
-                setEditing(false);
-              }}
-              hitSlop={12}
-            >
-              <Typography variant="bodyBold" color={theme.colors.primary}>
-                Fechar
-              </Typography>
-            </Pressable>
-          </View>
           {selected && !editing && (
-            <QuoteDetail
-              quote={selected}
-              onClose={() => setSelectedId(null)}
-              onEdit={() => setEditing(true)}
-            />
+            <>
+              <ModalHeader
+                title="Detalhes"
+                onClose={() => setSelectedId(null)}
+                rightLabel={selected.status === "pending" ? "Editar" : undefined}
+                onRight={
+                  selected.status === "pending" ? () => setEditing(true) : undefined
+                }
+              />
+              <QuoteDetail
+                quote={selected}
+                onClose={() => setSelectedId(null)}
+                onEdit={() => setEditing(true)}
+              />
+            </>
           )}
           {selected && editing && (
-            <QuoteForm quote={selected} onSuccess={() => setEditing(false)} />
+            <>
+              <ModalHeader title="Editar orçamento" onBack={() => setEditing(false)} />
+              <QuoteForm quote={selected} onSuccess={() => setEditing(false)} />
+            </>
           )}
         </SafeAreaView>
       </Modal>
