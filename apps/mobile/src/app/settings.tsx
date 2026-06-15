@@ -9,7 +9,7 @@ import {
   spacing,
 } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -198,8 +198,36 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: theme.colors.background }}
-      edges={["bottom"]}
+      edges={["top", "bottom"]}
     >
+      <Stack.Screen options={{ headerShown: false }} />
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.md,
+          paddingHorizontal: spacing.lg,
+          paddingTop: spacing.sm,
+          paddingBottom: spacing.sm,
+        }}
+      >
+        <Pressable
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="Voltar"
+          hitSlop={10}
+          style={{ width: 32, height: 40, justifyContent: "center" }}
+        >
+          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
+        </Pressable>
+        <Typography
+          variant="h1"
+          color={theme.colors.text}
+          style={{ flex: 1, fontSize: 26, fontWeight: "800" }}
+        >
+          Configurações
+        </Typography>
+      </View>
       <ScrollView contentContainerStyle={{ padding: 20, gap: 20, paddingBottom: 40 }}>
         {/* Profile Card */}
         <Card>
@@ -231,14 +259,21 @@ export default function SettingsScreen() {
 
             <Pressable
               onPress={openEditProfile}
+              accessibilityRole="button"
+              accessibilityLabel="Editar perfil"
               style={{
-                paddingHorizontal: 12,
-                paddingVertical: 6,
-                borderRadius: 8,
+                minHeight: 44,
+                paddingHorizontal: 16,
+                justifyContent: "center",
+                borderRadius: 10,
                 backgroundColor: theme.colors.surfaceElevated,
               }}
             >
-              <Typography variant="caption" color={theme.colors.text}>
+              <Typography
+                variant="bodyBold"
+                color={theme.colors.text}
+                style={{ fontSize: 14 }}
+              >
                 Editar
               </Typography>
             </Pressable>
@@ -338,14 +373,25 @@ export default function SettingsScreen() {
 
             <Pressable
               onPress={() => setShowGoal(true)}
+              accessibilityRole="button"
+              accessibilityLabel={
+                prolabore?.config
+                  ? "Editar meta de pro-labore"
+                  : "Definir meta de pro-labore"
+              }
               style={{
-                paddingHorizontal: 12,
-                paddingVertical: 6,
-                borderRadius: 8,
+                minHeight: 44,
+                paddingHorizontal: 16,
+                justifyContent: "center",
+                borderRadius: 10,
                 backgroundColor: theme.colors.surfaceElevated,
               }}
             >
-              <Typography variant="caption" color={theme.colors.text}>
+              <Typography
+                variant="bodyBold"
+                color={theme.colors.text}
+                style={{ fontSize: 14 }}
+              >
                 {prolabore?.config ? "Editar" : "Definir"}
               </Typography>
             </Pressable>
@@ -427,6 +473,7 @@ export default function SettingsScreen() {
             >
               <Typography variant="body">{item.label}</Typography>
               <Switch
+                accessibilityLabel={item.label}
                 trackColor={{
                   false: theme.colors.surface,
                   true: theme.colors.primary,
@@ -524,15 +571,28 @@ export default function SettingsScreen() {
           <View
             style={{
               flexDirection: "row",
-              justifyContent: "flex-end",
-              padding: spacing.lg,
+              alignItems: "center",
+              gap: spacing.md,
+              paddingHorizontal: spacing.xl,
+              paddingTop: spacing.md,
+              paddingBottom: spacing.sm,
             }}
           >
-            <Pressable onPress={() => setShowGoal(false)}>
-              <Typography variant="bodyBold" color={theme.colors.primary}>
-                Fechar
-              </Typography>
+            <Pressable
+              onPress={() => setShowGoal(false)}
+              accessibilityLabel="Fechar"
+              hitSlop={10}
+              style={{ minHeight: 44, justifyContent: "center" }}
+            >
+              <Ionicons name="close" size={28} color={theme.colors.text} />
             </Pressable>
+            <Typography
+              variant="h1"
+              color={theme.colors.text}
+              style={{ flex: 1, fontSize: 24, fontWeight: "800" }}
+            >
+              Meta de pro-labore
+            </Typography>
           </View>
           <ProlaboreGoalForm
             config={prolabore?.config ?? null}
@@ -552,15 +612,28 @@ export default function SettingsScreen() {
           <View
             style={{
               flexDirection: "row",
-              justifyContent: "flex-end",
-              padding: spacing.lg,
+              alignItems: "center",
+              gap: spacing.md,
+              paddingHorizontal: spacing.xl,
+              paddingTop: spacing.md,
+              paddingBottom: spacing.sm,
             }}
           >
-            <Pressable onPress={() => setShowEditProfile(false)}>
-              <Typography variant="bodyBold" color={theme.colors.primary}>
-                Fechar
-              </Typography>
+            <Pressable
+              onPress={() => setShowEditProfile(false)}
+              accessibilityLabel="Fechar"
+              hitSlop={10}
+              style={{ minHeight: 44, justifyContent: "center" }}
+            >
+              <Ionicons name="close" size={28} color={theme.colors.text} />
             </Pressable>
+            <Typography
+              variant="h1"
+              color={theme.colors.text}
+              style={{ flex: 1, fontSize: 24, fontWeight: "800" }}
+            >
+              Editar perfil
+            </Typography>
           </View>
           <KeyboardAwareScrollView
             contentContainerStyle={{
@@ -569,7 +642,6 @@ export default function SettingsScreen() {
               gap: spacing.lg,
             }}
           >
-            <Typography variant="h2">Editar perfil</Typography>
             <Input label="Nome" value={editName} onChangeText={setEditName} />
             <Input
               label="Nome do negócio"
@@ -577,22 +649,27 @@ export default function SettingsScreen() {
               value={editBusinessName}
               onChangeText={setEditBusinessName}
             />
-            <Input
-              label="Tipo de negócio"
-              placeholder="Ex: Confeitaria, Artesanato..."
-              value={editBusinessType ? businessTypeLabel(editBusinessType) : ""}
-              editable={false}
-              selectTextOnFocus={false}
-            />
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-              {BUSINESS_TYPES.map((type) => (
-                <Chip
-                  key={type.value}
-                  label={type.label}
-                  selected={editBusinessType === type.value}
-                  onPress={() => setEditBusinessType(type.value)}
-                />
-              ))}
+            <View style={{ gap: spacing.sm }}>
+              <Typography
+                variant="bodyBold"
+                color={theme.colors.text}
+                style={{ fontSize: 15 }}
+              >
+                Tipo de negócio
+              </Typography>
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                Toque para selecionar
+              </Typography>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+                {BUSINESS_TYPES.map((type) => (
+                  <Chip
+                    key={type.value}
+                    label={type.label}
+                    selected={editBusinessType === type.value}
+                    onPress={() => setEditBusinessType(type.value)}
+                  />
+                ))}
+              </View>
             </View>
             <Input
               label="Telefone"
