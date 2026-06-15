@@ -450,13 +450,15 @@ function ClientsListScreen({
 
       <Pressable
         onPress={onCreatePress}
+        accessibilityRole="button"
+        accessibilityLabel="Novo cliente"
         style={{
           position: "absolute",
           right: spacing.xl,
           bottom: showTip ? 118 : 98,
-          width: 52,
-          height: 52,
-          borderRadius: 26,
+          width: 56,
+          height: 56,
+          borderRadius: 28,
           backgroundColor: theme.colors.primary,
           alignItems: "center",
           justifyContent: "center",
@@ -467,7 +469,7 @@ function ClientsListScreen({
           elevation: 8,
         }}
       >
-        <Ionicons name="add" size={30} color={theme.colors.textOnPrimary} />
+        <Ionicons name="add" size={28} color={theme.colors.textOnPrimary} />
       </Pressable>
 
       {showTip && (
