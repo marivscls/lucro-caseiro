@@ -20,18 +20,20 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 
 ## Code pointers
 
-| Arquivo                                                                | Descricao                                                                               |
-| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `apps/mobile/src/features/products/api.ts`                             | Funcoes HTTP (fetchProducts, fetchProduct, createProduct, updateProduct, deleteProduct) |
-| `apps/mobile/src/features/products/hooks.ts`                           | React Query hooks                                                                       |
-| `apps/mobile/src/features/products/components/create-product-form.tsx` | Formulario de criacao                                                                   |
-| `apps/mobile/src/features/products/components/sale-unit-toggle.tsx`    | Toggle "Por unidade / Por quilo (kg)" (usado na criacao e na edicao)                    |
-| `apps/mobile/src/features/products/components/composite-toggle.tsx`    | Toggle "Produto simples / Produto composto (kit)"                                       |
-| `apps/mobile/src/features/products/components/component-picker.tsx`    | Seletor de produtos-componentes do kit + quantidade + custo total ao vivo               |
-| `apps/mobile/src/features/products/components/product-card.tsx`        | Card de produto na listagem                                                             |
-| `apps/mobile/src/features/products/components/product-list.tsx`        | Lista de produtos                                                                       |
-| `apps/mobile/src/features/products/use-low-stock-notifier.ts`          | Hook que dispara notificacao local de estoque baixo (montado no root layout)            |
-| `apps/mobile/src/app/products.tsx`                                     | Screen (rota `/products`) com banner de estoque baixo + modal de detalhe/edicao inline  |
+| Arquivo                                                                | Descricao                                                                                     |
+| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `apps/mobile/src/features/products/api.ts`                             | Funcoes HTTP (fetchProducts, fetchProduct, createProduct, updateProduct, deleteProduct)       |
+| `apps/mobile/src/features/products/hooks.ts`                           | React Query hooks                                                                             |
+| `apps/mobile/src/features/products/components/create-product-form.tsx` | Formulario de criacao                                                                         |
+| `apps/mobile/src/features/products/components/sale-unit-toggle.tsx`    | Toggle "Por unidade / Por quilo (kg)" (usado na criacao e na edicao)                          |
+| `apps/mobile/src/features/products/components/composite-toggle.tsx`    | Toggle "Produto simples / Produto composto (kit)"                                             |
+| `apps/mobile/src/features/products/components/component-picker.tsx`    | Seletor de produtos-componentes do kit (chips + modal) — UI; re-exporta de `kit.ts`           |
+| `apps/mobile/src/features/products/kit.ts`                             | Logica pura do kit: `draftsToComponents`, `kitTotalCost`, `chipLabel`, `validateProductDraft` |
+| `apps/mobile/src/features/products/kit.test.ts`                        | Testes unitarios da logica pura do kit/validacao                                              |
+| `apps/mobile/src/features/products/components/product-card.tsx`        | Card de produto na listagem                                                                   |
+| `apps/mobile/src/features/products/components/product-list.tsx`        | Lista de produtos                                                                             |
+| `apps/mobile/src/features/products/use-low-stock-notifier.ts`          | Hook que dispara notificacao local de estoque baixo (montado no root layout)                  |
+| `apps/mobile/src/app/products.tsx`                                     | Screen (rota `/products`) com banner de estoque baixo + modal de detalhe/edicao inline        |
 
 ## Components
 
@@ -132,12 +134,13 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 ## Test matrix
 
 - [ ] `useProducts` retorna dados paginados
-- [ ] `CreateProductForm` valida nome obrigatorio
-- [ ] `CreateProductForm` valida preco > 0
+- [x] `validateProductDraft` valida nome obrigatorio (`kit.test.ts`)
+- [x] `validateProductDraft` valida preco > 0 (`kit.test.ts`)
 - [ ] `ProductCard` exibe badge de estoque correto
 - [ ] `ProductCard` exibe badge "Kit" para produto composto
-- [ ] `ComponentPicker` calcula custo total do kit ao vivo
-- [ ] `CreateProductForm` exige >= 1 componente quando kit
+- [x] `kitTotalCost` calcula custo total do kit ao vivo (`kit.test.ts`)
+- [x] `validateProductDraft` exige >= 1 componente quando kit (`kit.test.ts`)
+- [x] `draftsToComponents` descarta quantidade invalida/<= 0 (`kit.test.ts`)
 - [ ] Exclusao de produto com confirmacao
 - [ ] Edicao inline no modal
 
@@ -156,3 +159,5 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 - Notificacao de estoque baixo implementada como **notificacao local** (`use-low-stock-notifier.ts`), pois o backend ainda nao envia push. Dispara quando um produto entra na faixa de alerta; dedupe via AsyncStorage (`lowStockNotifiedIds`). Apos uma venda, `useCreateSale` invalida `["products"]` para revalidar o estoque e disparar o alerta.
 - 2026-05-30: **venda por peso (R$/kg)** — `SaleUnitToggle` na criacao e edicao. Quando "kg", o preco vira "Preço por kg" e os campos de estoque ficam ocultos. Card e detalhe do produto exibem "R$X/kg" e ocultam estoque para produtos por peso.
 - 2026-05-30: **produto composto / kit / caixinha** — `CompositeToggle` (simples/kit) + `ComponentPicker` (escolhe produtos simples + quantidade, mostra custo total ao vivo) na criacao e edicao. Card e detalhe exibem badge "Kit"; detalhe mostra "Custo do kit" e a lista "O que vem no kit". Kits ocultam unidade de venda e estoque por unidade. Custo do kit e calculado no backend (rollup) e exibido via `product.costPrice`/`product.components`. Sem aninhamento (kit dentro de kit) no MVP.
+- 2026-06-15: **logica pura do kit extraida** — `draftsToComponents`, `kitTotalCost`, `chipLabel` e `validateProductDraft` movidos para `kit.ts` (puro, sem React Native) e cobertos por `kit.test.ts`. `component-picker.tsx` re-exporta `draftsToComponents`/`ComponentDraft` (imports existentes seguem funcionando). `CreateProductForm.handleSubmit` agora usa `validateProductDraft`. `kitTotalCost` espelha `calculateCompositeCost` do backend (custo nulo conta 0); o `costPrice` vem na listagem (`findAll` -> `toProduct`), entao produtos sem custo definido (sem receita) somam 0.
+- 2026-06-15: **redesign do "Novo produto"** — `CreateProductForm` reescrito com campos estilizados (label acima + box com icone rosa: nome=pricetag, preco=cash, descricao=document com contador 0/300, estoque=cube/notifications), `CategoryField` (campo dropdown com icone grid + chevron que abre um bottom-sheet com as categorias ja usadas + digitar nova), foto em area full-width com borda tracejada ("Adicionar foto / PNG, JPG até 5MB"), e botao rosa "Cadastrar produto" com icone de check. Header do modal (em `products.tsx`) ganhou seta de voltar alem do "Fechar". `CompositeToggle`/`SaleUnitToggle` viraram dois botoes com icone (cube/gift e cube/scale), selecionado em rosa. `ComponentPicker` agora mostra os itens como **chips removiveis** (com "+N" quando ha mais de 2) + link "Adicionar produto" que abre um bottom-sheet de selecao (checkbox + stepper de quantidade); card "Custo total do kit" ganhou icone de calculadora e subtitulo "Soma dos produtos selecionados". Categorias derivadas de `useProducts`. As mudancas nos toggles e no picker tambem refletem no modal de edicao.

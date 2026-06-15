@@ -1,4 +1,5 @@
 import { Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
+import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Pressable, View } from "react-native";
 
@@ -8,9 +9,13 @@ interface CompositeToggleProps {
   readonly onChange: (value: boolean) => void;
 }
 
-const OPTIONS: ReadonlyArray<{ value: boolean; label: string }> = [
-  { value: false, label: "Produto simples" },
-  { value: true, label: "Produto composto (kit)" },
+const OPTIONS: ReadonlyArray<{
+  value: boolean;
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+}> = [
+  { value: false, label: "Produto simples", icon: "cube-outline" },
+  { value: true, label: "Produto composto (kit)", icon: "gift-outline" },
 ];
 
 /**
@@ -20,19 +25,16 @@ const OPTIONS: ReadonlyArray<{ value: boolean; label: string }> = [
  */
 export function CompositeToggle({ value, onChange }: CompositeToggleProps) {
   const { theme } = useTheme();
+  const isDark = theme.mode === "dark";
+  const border = isDark ? "rgba(245, 225, 219, 0.12)" : "rgba(74, 50, 40, 0.12)";
+  const fieldBg = isDark ? "rgba(58, 50, 45, 0.5)" : theme.colors.surface;
 
   return (
     <View style={{ gap: spacing.sm }}>
-      <Typography variant="caption">Que tipo de produto é?</Typography>
-      <View
-        style={{
-          flexDirection: "row",
-          backgroundColor: theme.colors.surface,
-          borderRadius: radii.lg,
-          padding: spacing.xs,
-          gap: spacing.xs,
-        }}
-      >
+      <Typography variant="bodyBold" color={theme.colors.text} style={{ fontSize: 15 }}>
+        Que tipo de produto é?
+      </Typography>
+      <View style={{ flexDirection: "row", gap: spacing.sm }}>
         {OPTIONS.map((option) => {
           const selected = value === option.value;
           return (
@@ -42,20 +44,37 @@ export function CompositeToggle({ value, onChange }: CompositeToggleProps) {
               accessibilityRole="button"
               accessibilityState={{ selected }}
               accessibilityLabel={option.label}
-              style={{
+              style={({ pressed }) => ({
                 flex: 1,
-                minHeight: 48,
+                minHeight: 72,
+                flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
+                gap: spacing.xs,
                 paddingHorizontal: spacing.sm,
-                borderRadius: radii.md,
-                backgroundColor: selected ? theme.colors.primary : "transparent",
-              }}
+                paddingVertical: spacing.md,
+                borderRadius: radii.lg,
+                borderWidth: 1,
+                borderColor: selected ? theme.colors.primary : border,
+                backgroundColor: selected ? theme.colors.primary : fieldBg,
+                opacity: pressed ? 0.85 : 1,
+              })}
             >
+              <Ionicons
+                name={option.icon}
+                size={22}
+                color={selected ? theme.colors.textOnPrimary : theme.colors.primary}
+              />
               <Typography
                 variant="bodyBold"
                 color={selected ? theme.colors.textOnPrimary : theme.colors.text}
-                style={{ textAlign: "center" }}
+                numberOfLines={2}
+                style={{
+                  fontSize: 14,
+                  lineHeight: 18,
+                  flexShrink: 1,
+                  textAlign: "center",
+                }}
               >
                 {option.label}
               </Typography>

@@ -5,7 +5,6 @@ import {
   Button,
   Card,
   Input,
-  ModalHeader,
   Typography,
   useTheme,
   spacing,
@@ -25,6 +24,7 @@ import { CompositeToggle } from "../features/products/components/composite-toggl
 import { CreateProductForm } from "../features/products/components/create-product-form";
 import { ProductList } from "../features/products/components/product-list";
 import { SaleUnitToggle } from "../features/products/components/sale-unit-toggle";
+import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
 import {
   useDeleteProduct,
   useLowStockProducts,
@@ -34,6 +34,11 @@ import {
 import { useImagePicker } from "../shared/hooks/use-image-picker";
 import { uploadProductImage } from "../shared/utils/upload-image";
 import { alertValidation, alertError } from "../shared/utils/alerts";
+import {
+  currencyInput,
+  maskCurrencyInput,
+  parseCurrencyInput,
+} from "../shared/utils/currency-input";
 
 /** Preco de venda com sufixo "/kg" quando o produto e vendido por peso. */
 function priceLabel(p: Product): string {
@@ -99,7 +104,7 @@ function ProductDetailModal({
   function startEditing(p: Product) {
     setName(p.name);
     setCategory(p.category);
-    setSalePrice(String(p.salePrice).replace(".", ","));
+    setSalePrice(currencyInput(p.salePrice));
     setSaleUnit(p.saleUnit);
     setDescription(p.description ?? "");
     setStockQuantity(p.stockQuantity !== null ? String(p.stockQuantity) : "");
@@ -116,7 +121,7 @@ function ProductDetailModal({
   }
 
   async function handleSave() {
-    const price = parseFloat(salePrice.replace(",", "."));
+    const price = parseCurrencyInput(salePrice);
     if (!name.trim()) {
       alertValidation("Coloque o nome do produto");
       return;
@@ -256,7 +261,13 @@ function ProductDetailModal({
           </View>
         )}
         {!isLoading && product && editing && (
-          <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
+          <KeyboardAwareScrollView
+            contentContainerStyle={{
+              padding: spacing.xl,
+              paddingBottom: spacing["3xl"],
+              gap: spacing.lg,
+            }}
+          >
             <Input label="Nome do produto" value={name} onChangeText={setName} />
             <Input label="Categoria" value={category} onChangeText={setCategory} />
             <CompositeToggle value={isComposite} onChange={setIsComposite} />
@@ -275,8 +286,8 @@ function ProductDetailModal({
                   : "Preço de venda (R$)"
               }
               value={salePrice}
-              onChangeText={setSalePrice}
-              keyboardType="decimal-pad"
+              onChangeText={(value) => setSalePrice(maskCurrencyInput(value))}
+              keyboardType="numeric"
             />
             <View>
               <Typography variant="caption" style={{ marginBottom: spacing.sm }}>
@@ -349,7 +360,7 @@ function ProductDetailModal({
               variant="secondary"
               onPress={() => setEditing(false)}
             />
-          </ScrollView>
+          </KeyboardAwareScrollView>
         )}
         {!isLoading && product && !editing && (
           <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
@@ -507,7 +518,10 @@ export default function ProductsScreen() {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      edges={["bottom"]}
+    >
       <View style={{ flex: 1 }}>
         <LowStockBanner />
         <ProductList
@@ -547,7 +561,49 @@ export default function ProductsScreen() {
         onRequestClose={() => setShowCreate(false)}
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <ModalHeader title="Novo produto" onClose={() => setShowCreate(false)} />
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              paddingHorizontal: spacing.xl,
+              paddingTop: spacing.md,
+              paddingBottom: spacing.md,
+              gap: spacing.md,
+            }}
+          >
+            <Pressable
+              onPress={() => setShowCreate(false)}
+              accessibilityRole="button"
+              accessibilityLabel="Voltar"
+              hitSlop={10}
+              style={{ minHeight: 44, justifyContent: "center" }}
+            >
+              <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
+            </Pressable>
+            <Typography
+              variant="h1"
+              color={theme.colors.text}
+              numberOfLines={1}
+              style={{ flex: 1, fontSize: 24, fontWeight: "800" }}
+            >
+              Novo produto
+            </Typography>
+            <Pressable
+              onPress={() => setShowCreate(false)}
+              accessibilityRole="button"
+              accessibilityLabel="Fechar"
+              hitSlop={10}
+              style={{ minHeight: 44, justifyContent: "center" }}
+            >
+              <Typography
+                variant="bodyBold"
+                color={theme.colors.primary}
+                style={{ fontSize: 17 }}
+              >
+                Fechar
+              </Typography>
+            </Pressable>
+          </View>
           <CreateProductForm onSuccess={() => setShowCreate(false)} />
         </SafeAreaView>
       </Modal>
