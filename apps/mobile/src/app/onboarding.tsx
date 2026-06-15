@@ -242,7 +242,13 @@ function NicheStep({
                   </View>
                   <View style={{ flex: 1 }}>
                     <Typography variant="h3">{niche.label}</Typography>
-                    <Typography variant="caption">{niche.description}</Typography>
+                    <Typography
+                      variant="body"
+                      color={theme.colors.textSecondary}
+                      style={{ fontSize: 14 }}
+                    >
+                      {niche.description}
+                    </Typography>
                   </View>
                   <View
                     style={{
@@ -329,6 +335,7 @@ function BusinessNameStep({
           Ele aparece no seu catálogo, nos recibos e nos orçamentos.
         </Typography>
         <Input
+          label="Nome do negócio"
           placeholder="Ex.: Doces da Maria"
           value={name}
           onChangeText={setName}
