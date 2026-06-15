@@ -33,21 +33,21 @@ function PasswordStrengthBar({ password }: Readonly<{ password: string }>) {
     <View style={{ gap: spacing.xs }}>
       <View
         style={{
-          height: 4,
+          height: 8,
           backgroundColor: theme.colors.surface,
-          borderRadius: 2,
+          borderRadius: radii.full,
         }}
       >
         <View
           style={{
-            height: 4,
+            height: 8,
             width: c.width,
             backgroundColor: c.color,
-            borderRadius: 2,
+            borderRadius: radii.full,
           }}
         />
       </View>
-      <Typography variant="caption" color={c.color}>
+      <Typography variant="bodyBold" color={c.color} style={{ fontSize: 14 }}>
         Senha {c.label.toLowerCase()}
       </Typography>
     </View>
@@ -75,27 +75,24 @@ function PasswordRules({ password }: Readonly<{ password: string }>) {
         >
           <View
             style={{
-              width: 16,
-              height: 16,
-              borderRadius: 8,
+              width: 22,
+              height: 22,
+              borderRadius: 11,
               backgroundColor: rule.met ? theme.colors.success : theme.colors.surface,
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            {rule.met && (
-              <Typography
-                variant="caption"
-                color={theme.colors.textOnPrimary}
-                style={{ fontSize: 10 }}
-              >
-                ✓
-              </Typography>
-            )}
+            <Ionicons
+              name="checkmark"
+              size={14}
+              color={rule.met ? theme.colors.textOnPrimary : "transparent"}
+            />
           </View>
           <Typography
-            variant="caption"
+            variant="body"
             color={rule.met ? theme.colors.success : theme.colors.textSecondary}
+            style={{ fontSize: 14 }}
           >
             {rule.label}
           </Typography>
@@ -301,20 +298,25 @@ export default function RegisterScreen() {
               hitSlop={10}
               style={{
                 position: "absolute",
-                right: spacing.lg,
-                top: 34,
+                right: spacing.md,
+                top: 30,
                 flexDirection: "row",
                 alignItems: "center",
-                gap: 4,
-                minHeight: 32,
+                gap: 6,
+                minHeight: 44,
+                paddingHorizontal: spacing.xs,
               }}
             >
               <Ionicons
                 name={showPassword ? "eye-off-outline" : "eye-outline"}
-                size={18}
+                size={20}
                 color={theme.colors.primary}
               />
-              <Typography variant="caption" color={theme.colors.primary}>
+              <Typography
+                variant="bodyBold"
+                color={theme.colors.primary}
+                style={{ fontSize: 14 }}
+              >
                 {showPassword ? "Ocultar" : "Mostrar"}
               </Typography>
             </Pressable>

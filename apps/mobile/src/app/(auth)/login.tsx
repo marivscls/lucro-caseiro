@@ -206,31 +206,41 @@ export default function LoginScreen() {
               hitSlop={10}
               style={{
                 position: "absolute",
-                right: spacing.lg,
-                top: 34,
+                right: spacing.md,
+                top: 30,
                 flexDirection: "row",
                 alignItems: "center",
-                gap: 4,
-                minHeight: 32,
+                gap: 6,
+                minHeight: 44,
+                paddingHorizontal: spacing.xs,
               }}
             >
               <Ionicons
                 name={showPassword ? "eye-off-outline" : "eye-outline"}
-                size={18}
+                size={20}
                 color={theme.colors.primary}
               />
-              <Typography variant="caption" color={theme.colors.primary}>
+              <Typography
+                variant="bodyBold"
+                color={theme.colors.primary}
+                style={{ fontSize: 14 }}
+              >
                 {showPassword ? "Ocultar" : "Mostrar"}
               </Typography>
             </Pressable>
           </View>
 
           <Pressable
-            style={{ alignSelf: "flex-end", minHeight: 32, justifyContent: "center" }}
+            style={{ alignSelf: "flex-end", minHeight: 44, justifyContent: "center" }}
             disabled={resetLoading}
+            accessibilityRole="button"
             onPress={handleForgotPassword}
           >
-            <Typography variant="caption" color={theme.colors.primary}>
+            <Typography
+              variant="bodyBold"
+              color={theme.colors.primary}
+              style={{ fontSize: 14 }}
+            >
               {resetLoading ? "Enviando..." : "Esqueci minha senha"}
             </Typography>
           </Pressable>
