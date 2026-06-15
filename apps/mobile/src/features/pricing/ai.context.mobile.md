@@ -107,10 +107,11 @@ Calculadora de precificacao guiada (wizard de 5 passos) que ajuda o usuario a de
 
 ## Change log / Decisions
 
-- Projecao mensal fixa em 200 unidades (nao editavel pelo usuario).
+- ~~Projecao mensal fixa em 200 unidades~~ → agora vem da **Produção mensal estimada** (step 4); o resultado usa esse número na projeção (`monthlyUnits`).
 - Calculo feito no front para feedback instantaneo; POST de save envia ao backend para persistencia.
 - Custo real: o step 1 pode puxar o `costPrice` de um produto (que vem da receita/insumos), em
   vez de digitar o custo na mao. O `productId` selecionado vai junto no POST de calculo.
 - **Taxas de venda (iFood/cartão) em %** (step 5, opcional): aplicadas via **gross-up** sobre
   o preço de venda para preservar a margem. Inspirado em reviews do concorrente
   (`tasks/prd-melhorias-concorrente.md`).
+- 2026-06-15: **redesign do wizard** (`pricing-calculator.tsx`): círculos numerados com check + "Etapa X de 5", título fora do card, cards ricos com ícone, **stepper** no tempo de mão de obra (step 3) e na produção mensal (step 4), cards de valor calculado (mão de obra/unidade, custo fixo/unidade) e caixas de dica (verde/azul). **Step 4 mudou**: agora pede **custos fixos mensais** + **produção mensal** e calcula `fixedCostShare = mensal ÷ produção` (antes era valor/unidade direto). Step 5 ganhou "Margem selecionada" + **Resumo do cálculo** (custo total, margem, preço base, taxas, preço final). Step 1 mostra card "Produto selecionado" + "Valor importado da receita"; step 2 mostra **sugestão = média do custo das embalagens cadastradas** (`usePackagingList`). Campos de dinheiro têm **mini-calculadora** (`shared/components/calculator-modal.tsx`). Top bar (em `pricing.tsx`): voltar + "Precificação" + Histórico. `PricingResult`: badges de % por item na composição, "margem sobre o preço" e projeção usando `monthlyUnits`.

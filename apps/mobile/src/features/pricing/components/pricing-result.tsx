@@ -22,6 +22,7 @@ interface PricingResultProps {
   readonly feesPercent?: number;
   readonly feesAmount?: number;
   readonly finalPrice?: number;
+  readonly monthlyUnits?: number;
   readonly onRecalculate: () => void;
   readonly onSave: () => void;
   readonly isSaving: boolean;
@@ -39,6 +40,7 @@ export function PricingResult({
   feesPercent = 0,
   feesAmount = 0,
   finalPrice,
+  monthlyUnits = 200,
   onRecalculate,
   onSave,
   isSaving,
@@ -55,7 +57,6 @@ export function PricingResult({
     { label: "Custos fixos", value: fixedCostShare, color: theme.colors.alert },
   ];
 
-  const monthlyUnits = 200;
   const monthlyRevenue = priceToCharge * monthlyUnits;
   const monthlyProfit = profitPerUnit * monthlyUnits;
   const profitMarginDisplay =
@@ -140,47 +141,86 @@ export function PricingResult({
         </View>
 
         {/* Legend */}
-        {breakdown.map((item) => (
-          <View
-            key={item.label}
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+        {breakdown.map((item) => {
+          const pct =
+            suggestedPrice > 0 ? Math.round((item.value / suggestedPrice) * 100) : 0;
+          return (
+            <View
+              key={item.label}
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
               <View
-                style={{
-                  width: 12,
-                  height: 12,
-                  borderRadius: radii.full,
-                  backgroundColor: item.color,
-                }}
-              />
-              <Typography variant="caption">{item.label}</Typography>
+                style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
+              >
+                <View
+                  style={{
+                    width: 12,
+                    height: 12,
+                    borderRadius: radii.full,
+                    backgroundColor: item.color,
+                  }}
+                />
+                <Typography variant="body">{item.label}</Typography>
+              </View>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
+              >
+                <Typography variant="body">{formatCurrency(item.value)}</Typography>
+                <View
+                  style={{
+                    paddingHorizontal: spacing.sm,
+                    paddingVertical: 2,
+                    borderRadius: radii.sm,
+                    backgroundColor: `${item.color}26`,
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    color={item.color}
+                    style={{ fontWeight: "700" }}
+                  >
+                    {pct}%
+                  </Typography>
+                </View>
+              </View>
             </View>
-            <Typography variant="caption">{formatCurrency(item.value)}</Typography>
-          </View>
-        ))}
+          );
+        })}
       </Card>
 
       {/* Profit margin card */}
       <Card
         style={{
-          gap: spacing.sm,
+          gap: spacing.md,
           backgroundColor: theme.colors.successBg,
         }}
       >
-        <Typography variant="caption" color={theme.colors.success}>
-          Margem de Lucro
+        <Typography variant="bodyBold" color={theme.colors.success}>
+          Margem de lucro
         </Typography>
-        <Typography variant="label" color={theme.colors.success}>
-          LUCRO POR UNIDADE
-        </Typography>
-        <Typography variant="moneyLg" color={theme.colors.success}>
-          {formatCurrency(profitPerUnit)}
-        </Typography>
+        <View style={{ flexDirection: "row", gap: spacing.lg }}>
+          <View style={{ flex: 1, gap: spacing.xs }}>
+            <Typography variant="caption" color={theme.colors.success}>
+              Lucro por unidade
+            </Typography>
+            <Typography variant="moneyLg" color={theme.colors.success}>
+              {formatCurrency(profitPerUnit)}
+            </Typography>
+          </View>
+          <View style={{ width: 1, backgroundColor: `${theme.colors.success}40` }} />
+          <View style={{ flex: 1, gap: spacing.xs }}>
+            <Typography variant="caption" color={theme.colors.success}>
+              Margem sobre o preço
+            </Typography>
+            <Typography variant="moneyLg" color={theme.colors.success}>
+              {profitMarginDisplay}%
+            </Typography>
+          </View>
+        </View>
       </Card>
 
       {/* Monthly projection */}

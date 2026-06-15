@@ -2,7 +2,7 @@ import { formatCurrency } from "../shared/utils/format";
 import type { Pricing } from "@lucro-caseiro/contracts";
 import { Card, EmptyState, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import { ActivityIndicator, Alert, FlatList, Modal, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -168,27 +168,48 @@ export default function PricingScreen() {
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: theme.colors.background }}
-      edges={["bottom"]}
+      edges={["top", "bottom"]}
     >
+      <Stack.Screen options={{ headerShown: false }} />
       <View
         style={{
           flexDirection: "row",
-          justifyContent: "flex-end",
-          paddingHorizontal: spacing.xl,
-          paddingTop: spacing.md,
+          alignItems: "center",
+          gap: spacing.md,
+          paddingHorizontal: spacing.lg,
+          paddingTop: spacing.sm,
+          paddingBottom: spacing.sm,
         }}
       >
         <Pressable
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="Voltar"
+          hitSlop={10}
+          style={{ width: 32, height: 40, justifyContent: "center" }}
+        >
+          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
+        </Pressable>
+        <Typography
+          variant="h2"
+          color={theme.colors.text}
+          style={{ flex: 1, fontSize: 22, fontWeight: "800" }}
+        >
+          Precificação
+        </Typography>
+        <Pressable
           onPress={() => setShowHistory(true)}
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: spacing.xs,
-            padding: spacing.sm,
-          }}
+          accessibilityRole="button"
+          accessibilityLabel="Histórico"
+          hitSlop={10}
+          style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
         >
           <Ionicons name="time-outline" size={18} color={theme.colors.primary} />
-          <Typography variant="caption" color={theme.colors.primary}>
+          <Typography
+            variant="bodyBold"
+            color={theme.colors.primary}
+            style={{ fontSize: 16 }}
+          >
             Histórico
           </Typography>
         </Pressable>
