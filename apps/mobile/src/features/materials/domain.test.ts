@@ -1,7 +1,13 @@
 import type { Material } from "@lucro-caseiro/contracts";
 import { describe, expect, it } from "vitest";
 
-import { formatCost, formatQty, stockBadge } from "./domain";
+import {
+  currentStockLabel,
+  formatCost,
+  formatQty,
+  isLowStock,
+  stockBadge,
+} from "./domain";
 
 function makeMaterial(overrides: Partial<Material> = {}): Material {
   return {
@@ -25,18 +31,38 @@ describe("stockBadge", () => {
     expect(stockBadge(makeMaterial({ stockQuantity: 0 })).tone).toBe("danger");
   });
 
-  it("flags low stock and shows remaining quantity", () => {
+  it("flags low stock and shows the alert threshold", () => {
     const badge = stockBadge(
-      makeMaterial({ stockQuantity: 2, stockAlertThreshold: 3, unit: "kg" }),
+      makeMaterial({ stockQuantity: 0.8, stockAlertThreshold: 1, unit: "kg" }),
     );
     expect(badge.tone).toBe("warn");
-    expect(badge.label).toBe("Baixo · 2 kg");
+    expect(badge.label).toBe("Baixo • 1 kg");
   });
 
   it("shows quantity + unit when ok", () => {
     const badge = stockBadge(makeMaterial({ stockQuantity: 10, unit: "kg" }));
     expect(badge.tone).toBe("success");
     expect(badge.label).toBe("10 kg");
+  });
+});
+
+describe("isLowStock", () => {
+  it("true quando abaixo do limite, false sem limite", () => {
+    expect(isLowStock(makeMaterial({ stockQuantity: 1.2, stockAlertThreshold: 5 }))).toBe(
+      true,
+    );
+    expect(isLowStock(makeMaterial({ stockQuantity: 10, stockAlertThreshold: 3 }))).toBe(
+      false,
+    );
+    expect(isLowStock(makeMaterial({ stockAlertThreshold: null }))).toBe(false);
+  });
+});
+
+describe("currentStockLabel", () => {
+  it("formata estoque atual com unidade", () => {
+    expect(currentStockLabel(makeMaterial({ stockQuantity: 0.8, unit: "kg" }))).toBe(
+      "0,8 kg",
+    );
   });
 });
 

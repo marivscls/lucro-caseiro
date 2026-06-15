@@ -7,15 +7,27 @@ export function formatQty(n: number): string {
   return Number.isInteger(n) ? String(n) : String(n).replace(".", ",");
 }
 
+/** Insumo abaixo (ou igual) ao limite de alerta definido. */
+export function isLowStock(m: Material): boolean {
+  return m.stockAlertThreshold != null && m.stockQuantity <= m.stockAlertThreshold;
+}
+
+/** Texto do estoque atual (ex.: "0,8 kg"). */
+export function currentStockLabel(m: Material): string {
+  return `${formatQty(m.stockQuantity)} ${m.unit}`;
+}
+
+/**
+ * Badge do card: "Sem estoque" (zerado), "Baixo • {limite} {un}" (abaixo do
+ * alerta — mostra a meta mínima) ou "{estoque} {un}" (ok).
+ */
 export function stockBadge(m: Material): { label: string; tone: StockTone } {
   if (m.stockQuantity <= 0) {
     return { label: "Sem estoque", tone: "danger" };
   }
-  if (m.stockAlertThreshold != null && m.stockQuantity <= m.stockAlertThreshold) {
-    return {
-      label: `Baixo · ${formatQty(m.stockQuantity)} ${m.unit}`,
-      tone: "warn",
-    };
+  const threshold = m.stockAlertThreshold;
+  if (threshold != null && m.stockQuantity <= threshold) {
+    return { label: `Baixo • ${formatQty(threshold)} ${m.unit}`, tone: "warn" };
   }
   return { label: `${formatQty(m.stockQuantity)} ${m.unit}`, tone: "success" };
 }

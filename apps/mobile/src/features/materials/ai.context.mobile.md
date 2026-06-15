@@ -35,7 +35,7 @@ estoque rápido (+/−) e ver alerta de estoque baixo. Separado dos produtos aca
 ### `MaterialCard`
 
 - **Props:** `{ material: Material; onPress?: () => void }`
-- Mostra nome, badge de estoque (ok/baixo/sem) e custo/unidade. Botões **+/−** ajustam o estoque em 1 (via `useAdjustMaterial`). Tap no nome abre edição.
+- `IngredientAvatar` + nome + badge de estoque (sem/baixo→mostra o limite/ok→mostra estoque) + custo/unidade + linha "Estoque atual: X" (vermelha quando baixo). Stepper **+/−** com o número grande ajusta o estoque em 1 (via `useAdjustMaterial`). Tap na área de texto abre edição.
 
 ### `MaterialForm`
 
@@ -102,3 +102,5 @@ estoque rápido (+/−) e ver alerta de estoque baixo. Separado dos produtos aca
   declarar quanto cabe em 1 unidade (ex.: 1 lata = 350 ml). Habilita escolha de unidade na
   linha de receita (ver feature `recipes`). Sem conteúdo, comportamento inalterado.
 - 2026-06-10: unidades de papelaria/artesanato no form: folha, m, cm.
+- 2026-06-15: **redesign da tela de Insumos + Novo insumo**. Lista: header próprio (voltar + busca + filtro "só baixo"), banner de estoque baixo em 2 linhas com botão "Lista" (compartilha a lista de compras), `MaterialCard` com **avatar** (`IngredientAvatar`), badge que mostra o **limite** quando baixo ("Baixo • {limite} {un}") e o estoque quando ok, linha "Estoque atual: X" (vermelha quando baixo) e stepper com o número grande (±1 via `useAdjustMaterial`). Botão "Novo insumo" full-width + dica no rodapé. `stockBadge` passou a exibir o limite quando baixo; novos helpers puros `isLowStock`/`currentStockLabel` (cobertos em `domain.test.ts`). Form (`MaterialForm`) reescrito no padrão de campos com ícone (`shared/components/form-field`): nome, chips de unidade (kg/g/L/ml/un/dz; mantém a unidade atual se for fora da lista), estoque/alerta em 2 colunas com sub-labels, custo, conteúdo por unidade (quantidade + **dropdown** de unidade) com caixa de dica, observações com contador 0/200, botão "Salvar insumo" com check. Header dos modais ganhou seta de voltar.
+- 2026-06-15: **avatar de insumo/produto** (`shared/ingredient-image`): `IngredientAvatar(nome)` resolve a ilustração pelo nome (catálogo + `resolveIngredient`) e mostra o PNG quando publicado (`image-manifest`) ou o fallback emoji+cor. Catálogo/resolver sincronizados de `tools/asset-forge` (gerador de PNGs 3D). Resolver coberto por `resolve.test.ts`.
