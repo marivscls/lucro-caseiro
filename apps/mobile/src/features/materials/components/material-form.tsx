@@ -19,6 +19,7 @@ import {
   useFieldPalette,
 } from "../../../shared/components/form-field";
 import { IngredientAvatar } from "../../../shared/ingredient-image/ingredient-avatar";
+import { MaterialIconField } from "./material-icon-field";
 import { formatCost } from "../domain";
 import { useCreateMaterial, useDeleteMaterial, useUpdateMaterial } from "../hooks";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
@@ -60,7 +61,8 @@ function SummaryCard({
   name,
   unit,
   cost,
-}: Readonly<{ name: string; unit: string; cost: string }>) {
+  icon,
+}: Readonly<{ name: string; unit: string; cost: string; icon: string | null }>) {
   const { theme } = useTheme();
   const pal = useFieldPalette();
   const price = cost.trim() ? parseCurrencyInput(cost) : NaN;
@@ -78,7 +80,7 @@ function SummaryCard({
         padding: spacing.md,
       }}
     >
-      <IngredientAvatar name={name} size={56} />
+      <IngredientAvatar name={name} emoji={icon} size={56} />
       <View style={{ flex: 1, gap: 6 }}>
         <Typography
           variant="h3"
@@ -284,6 +286,7 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
   );
   const [contentUnit, setContentUnit] = useState(material?.contentUnit ?? "");
   const [notes, setNotes] = useState(material?.notes ?? "");
+  const [icon, setIcon] = useState<string | null>(material?.icon ?? null);
 
   const createMaterial = useCreateMaterial();
   const updateMaterial = useUpdateMaterial();
@@ -331,6 +334,7 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
       contentPerUnit: contentValue ?? null,
       contentUnit: contentUnitTrimmed || null,
       notes: notes.trim() || undefined,
+      icon,
     };
     try {
       if (isEditing && material) {
@@ -367,7 +371,7 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
       }}
     >
       {isEditing ? (
-        <SummaryCard name={name} unit={unit} cost={cost} />
+        <SummaryCard name={name} unit={unit} cost={cost} icon={icon} />
       ) : (
         <>
           <Typography
@@ -389,6 +393,11 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
           </View>
         </>
       )}
+
+      <View>
+        <FieldLabel label="Ícone (opcional)" />
+        <MaterialIconField name={name} value={icon} onChange={setIcon} />
+      </View>
 
       <View>
         <View

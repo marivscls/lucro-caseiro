@@ -35,12 +35,16 @@ estoque rápido (+/−) e ver alerta de estoque baixo. Separado dos produtos aca
 ### `MaterialCard`
 
 - **Props:** `{ material: Material; onPress?: () => void }`
-- `IngredientAvatar` + nome + badge de estoque (sem/baixo→mostra o limite/ok→mostra estoque) + custo/unidade + linha "Estoque atual: X" (vermelha quando baixo). Stepper **+/−** com o número grande ajusta o estoque em 1 (via `useAdjustMaterial`). Tap na área de texto abre edição.
+- Card em **2 linhas**: (1) `IngredientAvatar` (usa `material.icon` se houver, senão resolve pelo nome) + nome + badge de estoque + custo/unidade (com `flexWrap`); (2) "Estoque atual: X" (cor por status) + botões **−/+** (48dp) que ajustam o estoque em 1 (via `useAdjustMaterial`, otimista). Evita a colisão custo×stepper do layout antigo.
 
 ### `MaterialForm`
 
 - **Props:** `{ material?: Material | null; onSuccess?: () => void }`
-- Cria/edita: nome, unidade (chips kg/g/L/ml/un/dz), quantidade, alerta, custo, **conteúdo por unidade (opcional)**, notas. Em edição mostra "Excluir".
+- Cria/edita: nome, **ícone (opcional)**, unidade (chips kg/g/L/ml/un/dz), quantidade, alerta, custo, **conteúdo por unidade (opcional)**, notas. Em edição mostra "Excluir".
+- **Ícone (opcional):** `MaterialIconField` — preview do avatar + modal com grade de emojis
+  (`features/materials/icons.ts` → `MATERIAL_ICONS`) e opção **"Automático"** (limpa → `icon = null`,
+  volta a resolver pelo nome). O emoji escolhido vai no payload (`icon`) e o `IngredientAvatar` o usa
+  via a prop `emoji` (que tem prioridade sobre a resolução por nome/imagem, mas perde para `photoUrl`).
 - **#14 Conteúdo por unidade (opcional):** seção com quantidade + unidade curta (ex.: 350 + "ml"),
   helper "Ex.: 1 lata = 350 ml. Permite usar este insumo em g/ml nas receitas." Validação local:
   ou os dois preenchidos, ou os dois em branco. Envia `contentPerUnit`/`contentUnit` (number/string)
@@ -70,7 +74,7 @@ estoque rápido (+/−) e ver alerta de estoque baixo. Separado dos produtos aca
 
 ## Contracts
 
-- `Material` — `{ id, userId, name, unit, stockQuantity, stockAlertThreshold, costPerUnit, contentPerUnit, contentUnit, notes, createdAt }`.
+- `Material` — `{ id, userId, name, unit, stockQuantity, stockAlertThreshold, costPerUnit, contentPerUnit, contentUnit, notes, icon, createdAt }`. `icon` = emoji escolhido (ou `null`).
 - `CreateMaterial` / `UpdateMaterial` — payloads.
 - `AdjustMaterial` — `{ delta }`.
 
@@ -104,3 +108,5 @@ estoque rápido (+/−) e ver alerta de estoque baixo. Separado dos produtos aca
 - 2026-06-10: unidades de papelaria/artesanato no form: folha, m, cm.
 - 2026-06-15: **redesign da tela de Insumos + Novo insumo**. Lista: header próprio (voltar + busca + filtro "só baixo"), banner de estoque baixo em 2 linhas com botão "Lista" (compartilha a lista de compras), `MaterialCard` com **avatar** (`IngredientAvatar`), badge que mostra o **limite** quando baixo ("Baixo • {limite} {un}") e o estoque quando ok, linha "Estoque atual: X" (vermelha quando baixo) e stepper com o número grande (±1 via `useAdjustMaterial`). Botão "Novo insumo" full-width + dica no rodapé. `stockBadge` passou a exibir o limite quando baixo; novos helpers puros `isLowStock`/`currentStockLabel` (cobertos em `domain.test.ts`). Form (`MaterialForm`) reescrito no padrão de campos com ícone (`shared/components/form-field`): nome, chips de unidade (kg/g/L/ml/un/dz; mantém a unidade atual se for fora da lista), estoque/alerta em 2 colunas com sub-labels, custo, conteúdo por unidade (quantidade + **dropdown** de unidade) com caixa de dica, observações com contador 0/200, botão "Salvar insumo" com check. Header dos modais ganhou seta de voltar.
 - 2026-06-15: **avatar de insumo/produto** (`shared/ingredient-image`): `IngredientAvatar(nome)` resolve a ilustração pelo nome (catálogo + `resolveIngredient`) e mostra o PNG quando publicado (`image-manifest`) ou o fallback emoji+cor. Catálogo/resolver sincronizados de `tools/asset-forge` (gerador de PNGs 3D). Resolver coberto por `resolve.test.ts`.
+- 2026-06-15: **card de Insumos em 2 linhas** (corrige sobreposição custo×stepper no aparelho físico): cabeçalho (avatar + nome + badge + custo com `flexWrap`) e linha de estoque (valor atual + botões −/+ 48dp). Removida a redundância da quantidade.
+- 2026-06-15: **ícone escolhível do insumo** — novo campo `Material.icon` (emoji; backend `017_material_icon.sql`). `MaterialIconField` (modal com grade `MATERIAL_ICONS` + "Automático") no form; `IngredientAvatar` ganhou a prop `emoji` (prioridade sobre nome/imagem, abaixo de `photoUrl`); card e summary usam `material.icon`. Lista de emojis coberta por `icons.test.ts`.

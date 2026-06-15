@@ -57,7 +57,7 @@ export function MaterialCard({ material, onPress }: MaterialCardProps) {
         onPress={onPress}
         style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
       >
-        <IngredientAvatar name={material.name} size={52} />
+        <IngredientAvatar name={material.name} emoji={material.icon} size={52} />
         <View style={{ flex: 1, gap: 4 }}>
           <Typography
             variant="bodyBold"

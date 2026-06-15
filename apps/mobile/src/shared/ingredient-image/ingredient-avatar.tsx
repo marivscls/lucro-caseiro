@@ -11,6 +11,11 @@ interface IngredientAvatarProps {
   readonly size?: number;
   /** Foto explícita (ex.: foto da receita enviada pelo usuário) — tem prioridade sobre tudo. */
   readonly photoUrl?: string | null;
+  /**
+   * Emoji escolhido manualmente pelo usuário (ex.: ícone do insumo). Tem prioridade
+   * sobre a resolução por nome/imagem — mostra esse emoji (a menos que haja `photoUrl`).
+   */
+  readonly emoji?: string | null;
   /** Fallback quando o nome não está no catálogo (ex.: ícone/cor da categoria da receita). */
   readonly fallbackEmoji?: string;
   readonly fallbackColor?: string;
@@ -33,17 +38,19 @@ export function IngredientAvatar({
   name,
   size = 50,
   photoUrl,
+  emoji,
   fallbackEmoji,
   fallbackColor,
   matchCatalog = true,
 }: IngredientAvatarProps) {
   const [imageFailed, setImageFailed] = useState(false);
+  const chosen = emoji?.trim() ? emoji.trim() : null;
   const entry = matchCatalog ? resolveIngredient(name) : null;
   const slug = entry?.slug ?? slugify(name);
   const color = entry?.color ?? fallbackColor ?? FALLBACK_COLOR;
-  const emoji = entry?.emoji ?? fallbackEmoji ?? FALLBACK_EMOJI;
-  // Prioridade: foto explícita (receita) > PNG publicado por slug > fallback.
-  const url = photoUrl ?? ingredientImageUrl(slug);
+  const displayEmoji = chosen ?? entry?.emoji ?? fallbackEmoji ?? FALLBACK_EMOJI;
+  // Prioridade: foto explícita > emoji escolhido > PNG publicado por slug > fallback.
+  const url = photoUrl ?? (chosen ? "" : ingredientImageUrl(slug));
   const showImage = Boolean(url) && !imageFailed;
 
   return (
@@ -71,7 +78,7 @@ export function IngredientAvatar({
           }}
         />
       ) : (
-        <Text style={{ fontSize: size * 0.46 }}>{emoji}</Text>
+        <Text style={{ fontSize: size * 0.46 }}>{displayEmoji}</Text>
       )}
     </View>
   );

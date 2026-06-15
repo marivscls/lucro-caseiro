@@ -21,6 +21,7 @@ function makeMaterial(overrides: Partial<Material> = {}): Material {
     contentPerUnit: null,
     contentUnit: null,
     notes: null,
+    icon: null,
     createdAt: "2026-05-01T00:00:00.000Z",
     ...overrides,
   };
