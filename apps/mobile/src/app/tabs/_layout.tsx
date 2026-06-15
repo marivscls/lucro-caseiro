@@ -28,7 +28,7 @@ export default function TabLayout() {
           shadowOpacity: 0,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 13,
           fontWeight: "600",
         },
         tabBarActiveTintColor: theme.colors.primary,
@@ -58,8 +58,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="new-sale"
         options={{
-          title: "",
+          title: "Nova venda",
           tabBarLabel: () => null,
+          tabBarAccessibilityLabel: "Nova venda",
           tabBarIcon: () => (
             <View
               style={{
