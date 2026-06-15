@@ -31,6 +31,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { useClients } from "../../features/clients/hooks";
 import { CreateProductForm } from "../../features/products/components/create-product-form";
 import { useProducts } from "../../features/products/hooks";
+import { cartTotal as computeCartTotal, formatWeight } from "../../features/sales/cart";
 import { useCreateSale } from "../../features/sales/hooks";
 import { PAYMENT_LABELS } from "../../features/sales/payment";
 import { useInterstitial } from "../../shared/hooks/use-interstitial";
@@ -102,12 +103,6 @@ const AVATAR_COLORS = [
 
 function getAvatarColor(index: number): string {
   return AVATAR_COLORS[index % AVATAR_COLORS.length];
-}
-
-/** Formata um peso em kg com virgula decimal, ate 3 casas (ex.: "1,5 kg"). */
-function formatWeight(kg: number): string {
-  const str = Number.parseFloat(kg.toFixed(3)).toString().replace(".", ",");
-  return `${str} kg`;
 }
 
 /** Rotulo de quantidade no carrinho: unidades (ex.: "3") ou peso (ex.: "1,5 kg"). */
@@ -310,7 +305,7 @@ export default function NewSaleScreen() {
   });
   const createSale = useCreateSale();
 
-  const cartTotal = cart.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  const cartTotal = computeCartTotal(cart);
 
   function addToCart(product: Product) {
     // Produtos por peso (kg) abrem um campo pra digitar o peso em kg.

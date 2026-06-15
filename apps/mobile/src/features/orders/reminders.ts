@@ -40,13 +40,28 @@ export async function cancelOrderReminder(orderId: string): Promise<void> {
   await setMap(map);
 }
 
-/** Momento do lembrete: véspera da entrega às 9h. Null se já passou. */
-function reminderDate(deliveryDate: string): Date | null {
+/**
+ * Momento do lembrete: véspera da entrega às 9h. Null se a data for inválida
+ * ou se o instante já passou em relação a `now`. Função pura (testável).
+ */
+export function reminderInstant(deliveryDate: string, now: Date): Date | null {
   const [year, month, day] = deliveryDate.split("-").map(Number);
   if (!year || !month || !day) return null;
   const when = new Date(year, month - 1, day, REMIND_HOUR, 0, 0);
   when.setDate(when.getDate() - 1);
-  return when.getTime() > Date.now() ? when : null;
+  return when.getTime() > now.getTime() ? when : null;
+}
+
+/**
+ * Regra pura: deve agendar lembrete? Não para encomendas finalizadas
+ * (entregue/cancelada) nem quando não há instante futuro válido.
+ */
+export function shouldScheduleReminder(
+  order: Pick<Order, "status" | "deliveryDate">,
+  now: Date,
+): boolean {
+  if (order.status === "done" || order.status === "cancelled") return false;
+  return reminderInstant(order.deliveryDate, now) !== null;
 }
 
 /**
@@ -56,8 +71,9 @@ function reminderDate(deliveryDate: string): Date | null {
 export async function scheduleOrderReminder(order: Order): Promise<void> {
   await cancelOrderReminder(order.id);
 
-  if (order.status === "done" || order.status === "cancelled") return;
-  const when = reminderDate(order.deliveryDate);
+  const now = new Date();
+  if (!shouldScheduleReminder(order, now)) return;
+  const when = reminderInstant(order.deliveryDate, now);
   if (!when) return;
 
   const time = order.deliveryTime ? ` às ${order.deliveryTime}` : "";

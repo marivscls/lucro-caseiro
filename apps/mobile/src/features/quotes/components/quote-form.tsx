@@ -2,12 +2,19 @@ import type { CreateQuote, Quote, QuoteItem } from "@lucro-caseiro/contracts";
 import { Button, Input, Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Alert, Pressable, ScrollView, View } from "react-native";
+import { Alert, Pressable, View } from "react-native";
 
+import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { showToast } from "../../../shared/components/toast";
 import { formatCurrency } from "../../../shared/utils/format";
+import { computeQuoteTotal } from "../calc";
 import { useCreateQuote, useUpdateQuote } from "../hooks";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
+import {
+  currencyInput,
+  maskCurrencyInput,
+  parseCurrencyInput,
+} from "../../../shared/utils/currency-input";
 
 interface ItemDraft {
   description: string;
@@ -24,7 +31,7 @@ function toDrafts(items: QuoteItem[]): ItemDraft[] {
   return items.map((item) => ({
     description: item.description,
     quantity: String(item.quantity).replace(".", ","),
-    unitPrice: String(item.unitPrice).replace(".", ","),
+    unitPrice: currencyInput(item.unitPrice),
   }));
 }
 
@@ -59,12 +66,12 @@ export function QuoteForm({ quote, onSuccess }: QuoteFormProps) {
   );
   const isSaving = createQuote.isPending || updateQuote.isPending;
 
-  const total = items.reduce((sum, item) => {
-    const quantity = parseNumber(item.quantity);
-    const price = parseNumber(item.unitPrice);
-    if (Number.isNaN(quantity) || Number.isNaN(price)) return sum;
-    return sum + Math.round(quantity * price * 100) / 100;
-  }, 0);
+  const total = computeQuoteTotal(
+    items.map((item) => ({
+      quantity: parseNumber(item.quantity),
+      unitPrice: parseCurrencyInput(item.unitPrice),
+    })),
+  );
 
   function setItem(index: number, patch: Partial<ItemDraft>) {
     setItems((prev) => prev.map((it, i) => (i === index ? { ...it, ...patch } : it)));
@@ -87,7 +94,7 @@ export function QuoteForm({ quote, onSuccess }: QuoteFormProps) {
     for (const item of items) {
       if (!item.description.trim()) continue;
       const quantity = parseNumber(item.quantity);
-      const unitPrice = parseNumber(item.unitPrice);
+      const unitPrice = parseCurrencyInput(item.unitPrice);
       if (Number.isNaN(quantity) || quantity <= 0 || Number.isNaN(unitPrice)) {
         Alert.alert(
           "Opa!",
@@ -136,7 +143,13 @@ export function QuoteForm({ quote, onSuccess }: QuoteFormProps) {
   }
 
   return (
-    <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
+    <KeyboardAwareScrollView
+      contentContainerStyle={{
+        padding: spacing.xl,
+        paddingBottom: spacing["3xl"],
+        gap: spacing.lg,
+      }}
+    >
       <Typography variant="h2">
         {quote ? "Editar orçamento" : "Novo orçamento"}
       </Typography>
@@ -185,8 +198,8 @@ export function QuoteForm({ quote, onSuccess }: QuoteFormProps) {
             <Input
               placeholder="Preço un."
               value={item.unitPrice}
-              onChangeText={(v) => setItem(index, { unitPrice: v })}
-              keyboardType="decimal-pad"
+              onChangeText={(v) => setItem(index, { unitPrice: maskCurrencyInput(v) })}
+              keyboardType="numeric"
               containerStyle={{ flex: 1.4 }}
             />
             <Pressable
@@ -254,6 +267,6 @@ export function QuoteForm({ quote, onSuccess }: QuoteFormProps) {
         onPress={() => void handleSave()}
         loading={isSaving}
       />
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }

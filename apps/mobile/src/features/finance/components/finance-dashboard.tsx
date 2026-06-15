@@ -24,6 +24,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import financeHero from "../../../assets/finance-hero.png";
 import { useAuth } from "../../../shared/hooks/use-auth";
 import { getExportUrl } from "../api";
+import {
+  countByType,
+  profit as computeProfit,
+  profitDeltaPct as computeProfitDeltaPct,
+} from "../calc";
 import { useDeleteFinanceEntry, useFinanceEntries, useFinanceSummary } from "../hooks";
 import { Illustration } from "../../../shared/components/illustrations";
 import { CreateFinanceEntry } from "./create-finance-entry";
@@ -77,13 +82,13 @@ export function FinanceDashboard({
 
   const income = summary?.totalIncome ?? 0;
   const expenses = summary?.totalExpenses ?? 0;
-  const profit = income - expenses;
-  const prevProfit = (prevSummary?.totalIncome ?? 0) - (prevSummary?.totalExpenses ?? 0);
+  const profit = computeProfit(income, expenses);
+  const prevProfit = computeProfit(
+    prevSummary?.totalIncome ?? 0,
+    prevSummary?.totalExpenses ?? 0,
+  );
   // So compara quando ha base: lucro anterior diferente de zero.
-  const profitDeltaPct =
-    prevProfit !== 0
-      ? Math.round(((profit - prevProfit) / Math.abs(prevProfit)) * 100)
-      : null;
+  const profitDeltaPct = computeProfitDeltaPct(profit, prevProfit);
   const allEntries = entries?.items ?? [];
   const filteredEntries = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -98,8 +103,7 @@ export function FinanceDashboard({
       return matchesType && matchesSearch;
     });
   }, [allEntries, filter, searchTerm]);
-  const incomeCount = allEntries.filter((entry) => entry.type === "income").length;
-  const expenseCount = allEntries.filter((entry) => entry.type === "expense").length;
+  const { incomeCount, expenseCount } = countByType(allEntries);
 
   const handleExport = useCallback(
     async (format: "pdf" | "xlsx") => {

@@ -10,20 +10,23 @@ import {
 } from "@lucro-caseiro/ui";
 import React, { useCallback, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
+import {
+  currencyInput,
+  maskCurrencyInput,
+  parseCurrencyInput,
+} from "../../../shared/utils/currency-input";
 import { useProducts } from "../../products/hooks";
+import * as priceCalc from "../calc";
 import { useCalculatePricing } from "../hooks";
 import { PricingResult } from "./pricing-result";
 
 type Step = 1 | 2 | 3 | 4 | 5 | "result";
 
-function currencyInput(value: number): string {
-  return value.toFixed(2).replace(".", ",");
-}
-
 function parseCurrency(text: string): number {
-  const cleaned = text.replace(/[^\d,]/g, "").replace(",", ".");
-  return parseFloat(cleaned) || 0;
+  return parseCurrencyInput(text) || 0;
 }
 
 interface PricingCalculatorProps {
@@ -32,6 +35,7 @@ interface PricingCalculatorProps {
 
 export function PricingCalculator({ onSave }: PricingCalculatorProps) {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const [step, setStep] = useState<Step>(1);
 
   const { data: productsData } = useProducts();
@@ -50,28 +54,30 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
 
   const calculatePricing = useCalculatePricing();
 
-  const laborCost =
-    ((parseFloat(laborMinutes) || 0) / 60) * (parseCurrency(laborHourlyRate) || 0);
+  const laborCost = priceCalc.laborCost(
+    parseFloat(laborMinutes) || 0,
+    parseCurrency(laborHourlyRate),
+  );
 
-  const totalCost =
-    parseCurrency(ingredientCost) +
-    parseCurrency(packagingCost) +
-    laborCost +
-    parseCurrency(fixedCostShare);
+  const totalCost = priceCalc.totalCost(
+    parseCurrency(ingredientCost),
+    parseCurrency(packagingCost),
+    laborCost,
+    parseCurrency(fixedCostShare),
+  );
 
-  const suggestedPrice = totalCost * (1 + marginPercent / 100);
-  const profitPerUnit = suggestedPrice - totalCost;
+  const suggestedPrice = priceCalc.suggestedPrice(totalCost, marginPercent);
+  const profitPerUnit = priceCalc.profitPerUnit(suggestedPrice, totalCost);
 
   // Taxas de venda (iFood, cartão) em %. Gross-up: a taxa incide sobre a venda,
   // então o preço final é "inflado" para o vendedor manter o preço sugerido.
   const feesPercent =
     (parseFloat(ifoodPercent.replace(",", ".")) || 0) +
     (parseFloat(cardPercent.replace(",", ".")) || 0);
-  const finalPrice =
-    feesPercent > 0 && feesPercent < 100
-      ? suggestedPrice / (1 - feesPercent / 100)
-      : suggestedPrice;
-  const feesAmount = finalPrice - suggestedPrice;
+  const { finalPrice, feesAmount } = priceCalc.finalPriceWithFees(
+    suggestedPrice,
+    feesPercent,
+  );
 
   const handleNext = useCallback(() => {
     if (step === 5) {
@@ -154,9 +160,10 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
   const TOTAL_STEPS = 5;
 
   return (
-    <ScrollView
+    <KeyboardAwareScrollView
       contentContainerStyle={{
         padding: spacing.xl,
+        paddingBottom: spacing["5xl"] + insets.bottom + 56,
         gap: spacing.xl,
       }}
     >
@@ -181,7 +188,7 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
       </Typography>
 
       {step === 1 && (
-        <Card style={{ gap: spacing.lg }}>
+        <Card style={{ gap: spacing.md }}>
           <Typography variant="h2">Custo dos insumos</Typography>
           <Typography variant="body">
             Quanto você gasta em insumos para produzir uma unidade?
@@ -231,8 +238,8 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
             label="Valor (R$)"
             placeholder="Ex: 12,50"
             value={ingredientCost}
-            onChangeText={setIngredientCost}
-            keyboardType="decimal-pad"
+            onChangeText={(text) => setIngredientCost(maskCurrencyInput(text))}
+            keyboardType="numeric"
             autoFocus
           />
         </Card>
@@ -246,8 +253,8 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
             label="Valor (R$)"
             placeholder="Ex: 2,00"
             value={packagingCost}
-            onChangeText={setPackagingCost}
-            keyboardType="decimal-pad"
+            onChangeText={(text) => setPackagingCost(maskCurrencyInput(text))}
+            keyboardType="numeric"
             autoFocus
           />
         </Card>
@@ -271,8 +278,8 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
             label="Valor da hora (R$)"
             placeholder="Ex: 20,00"
             value={laborHourlyRate}
-            onChangeText={setLaborHourlyRate}
-            keyboardType="decimal-pad"
+            onChangeText={(text) => setLaborHourlyRate(maskCurrencyInput(text))}
+            keyboardType="numeric"
           />
           {parseFloat(laborMinutes) > 0 && parseCurrency(laborHourlyRate) > 0 && (
             <View
@@ -300,8 +307,8 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
             label="Valor por unidade (R$)"
             placeholder="Ex: 1,50"
             value={fixedCostShare}
-            onChangeText={setFixedCostShare}
-            keyboardType="decimal-pad"
+            onChangeText={(text) => setFixedCostShare(maskCurrencyInput(text))}
+            keyboardType="numeric"
             autoFocus
           />
         </Card>
@@ -315,17 +322,38 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
           </Typography>
 
           <View style={{ gap: spacing.sm }}>
-            <Typography variant="h3">{marginPercent}%</Typography>
+            <Typography variant="h3">{marginPercent}% de margem</Typography>
 
             <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
               {[30, 50, 80, 100, 150, 200].map((v) => (
-                <Button
+                <Pressable
                   key={v}
-                  title={`${v}%`}
-                  variant={marginPercent === v ? "primary" : "outline"}
-                  size="sm"
                   onPress={() => setMarginPercent(v)}
-                />
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: marginPercent === v }}
+                  style={{
+                    width: "31.5%",
+                    minHeight: 48,
+                    borderRadius: radii.lg,
+                    borderWidth: 2,
+                    borderColor: theme.colors.primary,
+                    backgroundColor:
+                      marginPercent === v ? theme.colors.primary : "transparent",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Typography
+                    variant="bodyBold"
+                    color={
+                      marginPercent === v
+                        ? theme.colors.textOnPrimary
+                        : theme.colors.primaryLight
+                    }
+                  >
+                    {v}%
+                  </Typography>
+                </Pressable>
               ))}
             </View>
 
@@ -379,8 +407,8 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
             style={{
               backgroundColor: theme.colors.successBg,
               borderRadius: radii.lg,
-              padding: spacing.lg,
-              gap: spacing.sm,
+              padding: spacing.md,
+              gap: spacing.xs,
             }}
           >
             <Typography variant="caption" color={theme.colors.success}>
@@ -391,12 +419,12 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
                 <Typography variant="caption" color={theme.colors.success}>
                   Preço base (margem): {formatCurrency(suggestedPrice)}
                 </Typography>
-                <Typography variant="moneyLg" color={theme.colors.success}>
+                <Typography variant="h3" color={theme.colors.success}>
                   Preço final (c/ {feesPercent}% taxas): {formatCurrency(finalPrice)}
                 </Typography>
               </>
             ) : (
-              <Typography variant="moneyLg" color={theme.colors.success}>
+              <Typography variant="h3" color={theme.colors.success}>
                 Preço sugerido: {formatCurrency(suggestedPrice)}
               </Typography>
             )}
@@ -423,6 +451,6 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
           style={{ flex: 1 }}
         />
       </View>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }
