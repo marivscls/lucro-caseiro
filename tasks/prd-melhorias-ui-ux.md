@@ -132,3 +132,27 @@ Em **Embalagens**, os mockups previam "usado em X produtos" e "histórico de uso
 não expõe esse dado hoje (contrato `Product` não referencia packaging; `Packaging` não traz contagem).
 Foi **omitido** para não inventar números. Se for prioridade, abrir tarefa separada de backend
 (endpoint de uso + query no join `packaging↔products`).
+
+## Status de implementação (2026-06-15)
+
+**Feito:**
+
+- **P0 acessibilidade:** tab bar (fonte 13 + label "Nova venda"), tabela de Planos legível,
+  regras/força de senha e toggle (login + cadastro) maiores, botão "Editar" de Configurações ≥44dp,
+  FAB de Orçamentos → botão inferior, FAB de Clientes com label, campo de nome no Onboarding com label.
+- **P1 consistência (top bar + headers de modal):** Planos, Orçamentos, Rótulos, Catálogo, Configurações.
+  Mais opções (ícones 24 + descrições legíveis). Login/Cadastro/Onboarding mantêm `Input` compartilhado
+  (acessível, com erro embutido). Financeiro já seguia o padrão (sem mudança).
+- **P2 simplicidade:** detalhe de Orçamento agora tem 1 ação primária + "Mais ações" (menu).
+- **P3:** chevron "morto" removido da agenda; feedback de toque no seletor do Insights.
+
+**Decisões / não-feito (pragmático):**
+
+- **Campos `TextFieldCard` com círculo de ícone** em quote-form e no form de edição de rótulos: **não**
+  convertidos. Eles usam o `Input` compartilhado (acessível, com label e erro). Converter regrediria o
+  editor de itens / a exibição de erro. Intenção do PRD (campos acessíveis) já atendida.
+- **Catálogo — premium progressivo:** o hero já serve de estado inicial e o paywall já existe; só o top
+  bar foi adicionado. Revisão fina do paywall fica como melhoria futura.
+- **Contraste de badges `primaryLight`** (P3): auditoria WCAG ampla ainda pendente.
+- **Switches de notificação** (Configurações): ganharam `accessibilityLabel`, mas seguem **sem
+  persistência** (faltam endpoint/estado) — toggle visual apenas. Tarefa de backend separada.
