@@ -159,8 +159,6 @@ export function CreateLabelForm({
     <KeyboardAwareScrollView
       contentContainerStyle={{ padding: 20, paddingBottom: 80, gap: 20 }}
     >
-      <Typography variant="h2">Novo rótulo</Typography>
-
       <Input
         label="Nome do rótulo"
         placeholder="Ex: Rótulo Brigadeiro 50g"
@@ -264,7 +262,7 @@ export function CreateLabelForm({
         />
         <Input
           label="Link do QR Code (opcional)"
-          placeholder="Seu Instagram, cardápio ou WhatsApp"
+          placeholder="Ex: instagram.com/seunegocio"
           value={qrLink}
           onChangeText={setQrLink}
           autoCapitalize="none"

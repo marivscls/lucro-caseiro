@@ -9,6 +9,7 @@ import {
   spacing,
   useTheme,
 } from "@lucro-caseiro/ui";
+import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -248,6 +249,9 @@ function LabelDetailModal({
             <Typography variant="h2">Editar rótulo</Typography>
             <Input label="Nome do rótulo" value={name} onChangeText={setName} />
             <TemplatePicker selected={templateId} onSelect={setTemplateId} />
+            <Typography variant="h3" style={{ marginTop: spacing.xs }}>
+              Informações do produto
+            </Typography>
             <Input
               label="Nome do produto"
               value={labelData.productName}
@@ -265,6 +269,9 @@ function LabelDetailModal({
               value={labelData.nutrition}
               onChange={(n) => updateField("nutrition", n)}
             />
+            <Typography variant="h3" style={{ marginTop: spacing.xs }}>
+              Datas
+            </Typography>
             <View style={{ flexDirection: "row", gap: 12 }}>
               <Input
                 label="Fabricacao"
@@ -290,6 +297,9 @@ function LabelDetailModal({
               onChangeText={handleShelfDaysChange}
               keyboardType="number-pad"
             />
+            <Typography variant="h3" style={{ marginTop: spacing.xs }}>
+              Contato e marca
+            </Typography>
             <Input
               label="Seu nome / nome do negócio"
               value={labelData.producerName ?? ""}
@@ -303,7 +313,7 @@ function LabelDetailModal({
             />
             <Input
               label="Link do QR Code (opcional)"
-              placeholder="Seu Instagram, cardápio ou WhatsApp"
+              placeholder="Ex: instagram.com/seunegocio"
               value={qrLink}
               onChangeText={setQrLink}
               autoCapitalize="none"
@@ -428,6 +438,7 @@ function LabelDetailModal({
 
 export default function LabelsScreen() {
   const { theme } = useTheme();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { data, isLoading, error } = useLabels();
   const [showCreate, setShowCreate] = useState(false);
@@ -490,31 +501,72 @@ export default function LabelsScreen() {
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: theme.colors.background }}
-      edges={["bottom"]}
+      edges={["top", "bottom"]}
     >
-      {renderContent()}
+      <Stack.Screen options={{ headerShown: false }} />
 
-      {/* FAB */}
+      {/* Top bar */}
       <View
         style={{
-          position: "absolute",
-          bottom: spacing.xl + insets.bottom,
-          right: spacing.xl,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.md,
+          paddingHorizontal: spacing.lg,
+          paddingTop: spacing.sm,
+          paddingBottom: spacing.sm,
         }}
       >
-        <Button
-          title="+ Novo rótulo"
+        <Pressable
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="Voltar"
+          hitSlop={10}
+          style={{ width: 32, height: 40, justifyContent: "center" }}
+        >
+          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
+        </Pressable>
+        <Typography
+          variant="h1"
+          color={theme.colors.text}
+          style={{ flex: 1, fontSize: 26, fontWeight: "800" }}
+        >
+          Rótulos
+        </Typography>
+      </View>
+
+      <View style={{ flex: 1 }}>{renderContent()}</View>
+
+      {/* Ação principal */}
+      <View
+        style={{
+          paddingHorizontal: spacing.xl,
+          paddingTop: spacing.sm,
+          paddingBottom: spacing.sm + insets.bottom,
+        }}
+      >
+        <Pressable
           onPress={() => setShowCreate(true)}
-          size="md"
-          style={{
-            borderRadius: 28,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.15,
-            shadowRadius: 8,
-            elevation: 6,
-          }}
-        />
+          accessibilityRole="button"
+          style={({ pressed }) => ({
+            minHeight: 56,
+            borderRadius: radii.lg,
+            backgroundColor: theme.colors.primary,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: spacing.sm,
+            opacity: pressed ? 0.85 : 1,
+          })}
+        >
+          <Ionicons name="add" size={24} color={theme.colors.textOnPrimary} />
+          <Typography
+            variant="bodyBold"
+            color={theme.colors.textOnPrimary}
+            style={{ fontSize: 18 }}
+          >
+            Novo rótulo
+          </Typography>
+        </Pressable>
       </View>
 
       {/* Modal - Criar rótulo */}
@@ -528,15 +580,28 @@ export default function LabelsScreen() {
           <View
             style={{
               flexDirection: "row",
-              justifyContent: "flex-end",
-              padding: spacing.lg,
+              alignItems: "center",
+              gap: spacing.md,
+              paddingHorizontal: spacing.xl,
+              paddingTop: spacing.md,
+              paddingBottom: spacing.sm,
             }}
           >
-            <Pressable onPress={() => setShowCreate(false)}>
-              <Typography variant="bodyBold" color={theme.colors.primary}>
-                Fechar
-              </Typography>
+            <Pressable
+              onPress={() => setShowCreate(false)}
+              accessibilityLabel="Fechar"
+              hitSlop={10}
+              style={{ minHeight: 44, justifyContent: "center" }}
+            >
+              <Ionicons name="close" size={28} color={theme.colors.text} />
             </Pressable>
+            <Typography
+              variant="h1"
+              color={theme.colors.text}
+              style={{ flex: 1, fontSize: 24, fontWeight: "800" }}
+            >
+              Novo rótulo
+            </Typography>
           </View>
           <CreateLabelForm onSuccess={() => setShowCreate(false)} />
         </SafeAreaView>
