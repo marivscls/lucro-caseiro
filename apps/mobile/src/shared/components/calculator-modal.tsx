@@ -1,0 +1,259 @@
+import { Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
+import { Ionicons } from "@expo/vector-icons";
+import React, { useState } from "react";
+import { Modal, Pressable, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+// Mini-calculadora (modal). Operações encadeadas simples (sem precedência),
+// decimal com vírgula. "Usar" devolve o número resultante para o campo.
+
+type Op = "+" | "-" | "×" | "÷";
+
+function parseDisplay(s: string): number {
+  return parseFloat(s.replace(",", ".")) || 0;
+}
+
+function formatNumber(n: number): string {
+  const rounded = Math.round(n * 100) / 100;
+  return String(rounded).replace(".", ",");
+}
+
+function apply(a: number, b: number, op: Op): number {
+  if (op === "+") return a + b;
+  if (op === "-") return a - b;
+  if (op === "×") return a * b;
+  return b === 0 ? 0 : a / b;
+}
+
+interface CalculatorModalProps {
+  readonly visible: boolean;
+  readonly onClose: () => void;
+  readonly onResult: (value: number) => void;
+}
+
+export function CalculatorModal({ visible, onClose, onResult }: CalculatorModalProps) {
+  const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
+  const isDark = theme.mode === "dark";
+  const keyBg = isDark ? "rgba(255,255,255,0.06)" : theme.colors.surface;
+  const sheetBg = isDark ? "#2C2420" : theme.colors.surfaceElevated;
+
+  const [display, setDisplay] = useState("0");
+  const [acc, setAcc] = useState<number | null>(null);
+  const [op, setOp] = useState<Op | null>(null);
+  const [fresh, setFresh] = useState(true);
+
+  function pressDigit(d: string) {
+    if (fresh) {
+      setDisplay(d);
+      setFresh(false);
+    } else {
+      setDisplay((cur) => (cur === "0" ? d : cur + d));
+    }
+  }
+
+  function pressDecimal() {
+    if (fresh) {
+      setDisplay("0,");
+      setFresh(false);
+    } else if (!display.includes(",")) {
+      setDisplay((cur) => `${cur},`);
+    }
+  }
+
+  function pressOp(next: Op) {
+    const cur = parseDisplay(display);
+    if (acc != null && op && !fresh) {
+      const result = apply(acc, cur, op);
+      setAcc(result);
+      setDisplay(formatNumber(result));
+    } else {
+      setAcc(cur);
+    }
+    setOp(next);
+    setFresh(true);
+  }
+
+  function pressEquals() {
+    if (acc != null && op) {
+      const result = apply(acc, parseDisplay(display), op);
+      setDisplay(formatNumber(result));
+      setAcc(null);
+      setOp(null);
+      setFresh(true);
+    }
+  }
+
+  function clearAll() {
+    setDisplay("0");
+    setAcc(null);
+    setOp(null);
+    setFresh(true);
+  }
+
+  function backspace() {
+    setDisplay((cur) => (cur.length > 1 ? cur.slice(0, -1) : "0"));
+  }
+
+  function use() {
+    onResult(parseDisplay(display));
+    clearAll();
+    onClose();
+  }
+
+  function Key({
+    label,
+    onPress,
+    tone = "default",
+    icon,
+  }: Readonly<{
+    label?: string;
+    onPress: () => void;
+    tone?: "default" | "op" | "danger";
+    icon?: keyof typeof Ionicons.glyphMap;
+  }>) {
+    let bg = keyBg;
+    let fg = theme.colors.text;
+    if (tone === "op") {
+      bg = `${theme.colors.primary}26`;
+      fg = theme.colors.primary;
+    } else if (tone === "danger") {
+      fg = theme.colors.alert;
+    }
+    return (
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={label ?? icon}
+        style={({ pressed }) => ({
+          flex: 1,
+          minHeight: 56,
+          borderRadius: radii.md,
+          backgroundColor: bg,
+          alignItems: "center",
+          justifyContent: "center",
+          opacity: pressed ? 0.7 : 1,
+        })}
+      >
+        {icon ? (
+          <Ionicons name={icon} size={22} color={fg} />
+        ) : (
+          <Typography variant="h3" color={fg}>
+            {label}
+          </Typography>
+        )}
+      </Pressable>
+    );
+  }
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <Pressable
+        onPress={onClose}
+        style={{
+          flex: 1,
+          backgroundColor: "rgba(0,0,0,0.55)",
+          justifyContent: "flex-end",
+        }}
+      >
+        <Pressable
+          style={{
+            backgroundColor: sheetBg,
+            borderTopLeftRadius: radii["2xl"],
+            borderTopRightRadius: radii["2xl"],
+            paddingHorizontal: spacing.lg,
+            paddingTop: spacing.md,
+            paddingBottom: spacing.lg + insets.bottom,
+            gap: spacing.sm,
+          }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Typography variant="h3" color={theme.colors.text} style={{ fontSize: 18 }}>
+              Calculadora
+            </Typography>
+            <Pressable onPress={onClose} hitSlop={10} accessibilityLabel="Fechar">
+              <Ionicons name="close" size={26} color={theme.colors.textSecondary} />
+            </Pressable>
+          </View>
+
+          <View
+            style={{
+              minHeight: 64,
+              borderRadius: radii.lg,
+              backgroundColor: keyBg,
+              justifyContent: "center",
+              alignItems: "flex-end",
+              paddingHorizontal: spacing.lg,
+            }}
+          >
+            <Typography
+              variant="moneyLg"
+              color={theme.colors.text}
+              style={{ fontSize: 32 }}
+            >
+              {display}
+            </Typography>
+          </View>
+
+          <View style={{ flexDirection: "row", gap: spacing.sm }}>
+            <Key label="C" tone="danger" onPress={clearAll} />
+            <Key icon="backspace-outline" onPress={backspace} />
+            <Key label="÷" tone="op" onPress={() => pressOp("÷")} />
+            <Key label="×" tone="op" onPress={() => pressOp("×")} />
+          </View>
+          <View style={{ flexDirection: "row", gap: spacing.sm }}>
+            <Key label="7" onPress={() => pressDigit("7")} />
+            <Key label="8" onPress={() => pressDigit("8")} />
+            <Key label="9" onPress={() => pressDigit("9")} />
+            <Key label="−" tone="op" onPress={() => pressOp("-")} />
+          </View>
+          <View style={{ flexDirection: "row", gap: spacing.sm }}>
+            <Key label="4" onPress={() => pressDigit("4")} />
+            <Key label="5" onPress={() => pressDigit("5")} />
+            <Key label="6" onPress={() => pressDigit("6")} />
+            <Key label="+" tone="op" onPress={() => pressOp("+")} />
+          </View>
+          <View style={{ flexDirection: "row", gap: spacing.sm }}>
+            <Key label="1" onPress={() => pressDigit("1")} />
+            <Key label="2" onPress={() => pressDigit("2")} />
+            <Key label="3" onPress={() => pressDigit("3")} />
+            <Key label="=" tone="op" onPress={pressEquals} />
+          </View>
+          <View style={{ flexDirection: "row", gap: spacing.sm }}>
+            <Key label="0" onPress={() => pressDigit("0")} />
+            <Key label="," onPress={pressDecimal} />
+            <View style={{ flex: 2 }} />
+          </View>
+
+          <Pressable
+            onPress={use}
+            accessibilityRole="button"
+            style={({ pressed }) => ({
+              minHeight: 52,
+              borderRadius: radii.lg,
+              backgroundColor: theme.colors.primary,
+              alignItems: "center",
+              justifyContent: "center",
+              marginTop: spacing.xs,
+              opacity: pressed ? 0.85 : 1,
+            })}
+          >
+            <Typography
+              variant="bodyBold"
+              color={theme.colors.textOnPrimary}
+              style={{ fontSize: 16 }}
+            >
+              Usar valor
+            </Typography>
+          </Pressable>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
