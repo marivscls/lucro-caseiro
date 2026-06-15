@@ -22,6 +22,7 @@
         "backgroundColor": "#1E1814"
       },
       "package": "br.com.orionseven.lucrocaseiro",
+      "softwareKeyboardLayoutMode": "resize",
       "permissions": ["android.permission.RECORD_AUDIO"]
     },
     "web": {

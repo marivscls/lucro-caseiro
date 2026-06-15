@@ -1,0 +1,13 @@
+node_modules
+**/node_modules
+.turbo
+**/.turbo
+.expo
+**/.expo
+dist
+**/dist
+.codex-logs
+.idea
+*.log
+.env
+apps/mobile/.env
