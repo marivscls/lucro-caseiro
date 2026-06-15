@@ -985,14 +985,11 @@ function OrdersList({
               <View
                 style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
               >
-                <Ionicons name={meta.icon} size={23} color={c} />
+                <Ionicons name={meta.icon} size={22} color={c} />
                 <Typography variant="h3" color={c} style={{ fontSize: 22 }}>
                   {group.title}
                 </Typography>
               </View>
-              {group.key !== "finished" ? (
-                <Ionicons name="chevron-up" size={22} color={theme.colors.text} />
-              ) : null}
             </View>
             <View style={{ gap: spacing.md }}>
               {group.orders.map((order) => (

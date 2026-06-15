@@ -51,17 +51,22 @@ function WindowSelector({
             key={w}
             onPress={() => onChange(w)}
             accessibilityRole="button"
+            accessibilityState={{ selected: active }}
             accessibilityLabel={`Últimos ${w} meses`}
-            style={{
+            style={({ pressed }) => ({
+              minHeight: 40,
+              justifyContent: "center",
               paddingHorizontal: spacing.lg,
               paddingVertical: spacing.sm,
               borderRadius: radii.full,
               backgroundColor: active ? theme.colors.primary : theme.colors.surface,
-            }}
+              opacity: pressed ? 0.7 : 1,
+            })}
           >
             <Typography
-              variant="caption"
+              variant="bodyBold"
               color={active ? theme.colors.textOnPrimary : theme.colors.textSecondary}
+              style={{ fontSize: 14 }}
             >
               {w} meses
             </Typography>
