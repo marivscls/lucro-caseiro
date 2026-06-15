@@ -1,7 +1,8 @@
-import { Button, Card, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
+import { Button, Card, Typography, spacing, radii, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
+import { Stack, useRouter } from "expo-router";
 import React from "react";
-import { Alert, ScrollView, View } from "react-native";
+import { Alert, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useProfile, useLimits } from "../features/subscription/hooks";
@@ -29,8 +30,15 @@ const PREMIUM_LIMITS = {
   Exportação: "PDF/Excel",
 };
 
+const PREMIUM_BENEFITS: { icon: keyof typeof Ionicons.glyphMap; text: string }[] = [
+  { icon: "infinite", text: "Vendas, clientes e receitas ilimitados" },
+  { icon: "bar-chart", text: "Relatórios completos com gráficos" },
+  { icon: "download-outline", text: "Exportação em PDF e Excel" },
+];
+
 export default function PlansScreen() {
   const { theme } = useTheme();
+  const router = useRouter();
   const { data: profile } = useProfile();
   const { data: limits } = useLimits();
   const showPaywall = usePaywall((state) => state.show);
@@ -39,11 +47,43 @@ export default function PlansScreen() {
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: theme.colors.background }}
-      edges={["bottom"]}
+      edges={["top", "bottom"]}
     >
+      <Stack.Screen options={{ headerShown: false }} />
+
+      {/* Top bar */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.md,
+          paddingHorizontal: spacing.lg,
+          paddingTop: spacing.sm,
+          paddingBottom: spacing.sm,
+        }}
+      >
+        <Pressable
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="Voltar"
+          hitSlop={10}
+          style={{ width: 32, height: 40, justifyContent: "center" }}
+        >
+          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
+        </Pressable>
+        <Typography
+          variant="h1"
+          color={theme.colors.text}
+          style={{ flex: 1, fontSize: 26, fontWeight: "800" }}
+        >
+          Planos
+        </Typography>
+      </View>
+
       <ScrollView
         contentContainerStyle={{
           padding: spacing.xl,
+          paddingTop: spacing.sm,
           gap: spacing.xl,
           paddingBottom: spacing["3xl"],
         }}
@@ -70,8 +110,8 @@ export default function PlansScreen() {
           </View>
           <Typography variant="h1">{isPremium ? "Premium" : "Plano Gratuito"}</Typography>
           {isPremium && profile?.planExpiresAt && (
-            <Typography variant="caption">
-              Valido até {new Date(profile.planExpiresAt).toLocaleDateString("pt-BR")}
+            <Typography variant="body" color={theme.colors.textSecondary}>
+              Válido até {new Date(profile.planExpiresAt).toLocaleDateString("pt-BR")}
             </Typography>
           )}
         </Card>
@@ -82,7 +122,7 @@ export default function PlansScreen() {
             <Typography variant="h3" style={{ marginBottom: spacing.md }}>
               Seu uso atual
             </Typography>
-            <View style={{ gap: spacing.sm }}>
+            <View style={{ gap: spacing.md }}>
               {[
                 {
                   label: "Vendas este mês",
@@ -108,13 +148,16 @@ export default function PlansScreen() {
                 const pct = Math.min((item.current / item.max) * 100, 100);
                 const isNear = pct >= 80;
                 return (
-                  <View key={item.label} style={{ gap: 4 }}>
+                  <View key={item.label} style={{ gap: 6 }}>
                     <View
                       style={{ flexDirection: "row", justifyContent: "space-between" }}
                     >
-                      <Typography variant="caption">{item.label}</Typography>
+                      <Typography variant="bodyBold" style={{ fontSize: 15 }}>
+                        {item.label}
+                      </Typography>
                       <Typography
-                        variant="caption"
+                        variant="bodyBold"
+                        style={{ fontSize: 15 }}
                         color={isNear ? theme.colors.alert : theme.colors.textSecondary}
                       >
                         {item.current}/{item.max}
@@ -122,19 +165,19 @@ export default function PlansScreen() {
                     </View>
                     <View
                       style={{
-                        height: 4,
+                        height: 8,
                         backgroundColor: theme.colors.surface,
-                        borderRadius: 2,
+                        borderRadius: radii.full,
                       }}
                     >
                       <View
                         style={{
-                          height: 4,
+                          height: 8,
                           width: `${pct}%`,
                           backgroundColor: isNear
                             ? theme.colors.alert
                             : theme.colors.success,
-                          borderRadius: 2,
+                          borderRadius: radii.full,
                         }}
                       />
                     </View>
@@ -151,16 +194,19 @@ export default function PlansScreen() {
             Comparativo
           </Typography>
           <View
-            style={{ flexDirection: "row", marginBottom: spacing.sm, gap: spacing.xs }}
+            style={{ flexDirection: "row", marginBottom: spacing.sm, gap: spacing.sm }}
           >
-            <View style={{ flex: 1 }} />
-            <Typography variant="caption" style={{ width: 72, textAlign: "center" }}>
+            <View style={{ flex: 1.3 }} />
+            <Typography
+              variant="bodyBold"
+              style={{ flex: 1, textAlign: "center", fontSize: 15 }}
+            >
               Free
             </Typography>
             <Typography
-              variant="caption"
+              variant="bodyBold"
               color={theme.colors.premium}
-              style={{ width: 88, textAlign: "center" }}
+              style={{ flex: 1, textAlign: "center", fontSize: 15 }}
             >
               Premium
             </Typography>
@@ -170,23 +216,31 @@ export default function PlansScreen() {
               key={key}
               style={{
                 flexDirection: "row",
-                paddingVertical: spacing.sm,
+                paddingVertical: spacing.md,
                 borderTopWidth: 1,
                 borderTopColor: theme.colors.surface,
                 alignItems: "center",
-                gap: spacing.xs,
+                gap: spacing.sm,
               }}
             >
-              <Typography variant="caption" style={{ flex: 1, flexShrink: 1 }}>
+              <Typography
+                variant="bodyBold"
+                color={theme.colors.text}
+                style={{ flex: 1.3, fontSize: 15 }}
+              >
                 {key}
               </Typography>
-              <Typography variant="caption" style={{ width: 72, textAlign: "center" }}>
+              <Typography
+                variant="body"
+                color={theme.colors.textSecondary}
+                style={{ flex: 1, textAlign: "center", fontSize: 14 }}
+              >
                 {FREE_LIMITS[key as keyof typeof FREE_LIMITS]}
               </Typography>
               <Typography
-                variant="caption"
+                variant="bodyBold"
                 color={theme.colors.success}
-                style={{ width: 88, textAlign: "center" }}
+                style={{ flex: 1, textAlign: "center", fontSize: 14 }}
               >
                 {PREMIUM_LIMITS[key as keyof typeof PREMIUM_LIMITS]}
               </Typography>
@@ -194,16 +248,38 @@ export default function PlansScreen() {
           ))}
         </Card>
 
-        {/* CTA */}
+        {/* Benefits + CTA */}
         {!isPremium ? (
-          <Button
-            title="Assinar Premium - R$ 19,90/mês"
-            variant="premium"
-            size="lg"
-            onPress={() => {
-              showPaywall("plans");
-            }}
-          />
+          <View style={{ gap: spacing.lg }}>
+            <Card style={{ gap: spacing.md, backgroundColor: theme.colors.premiumBg }}>
+              <Typography variant="h3" color={theme.colors.premium}>
+                Vantagens do Premium
+              </Typography>
+              {PREMIUM_BENEFITS.map((b) => (
+                <View
+                  key={b.text}
+                  style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
+                >
+                  <Ionicons name={b.icon} size={22} color={theme.colors.premium} />
+                  <Typography
+                    variant="body"
+                    color={theme.colors.text}
+                    style={{ flex: 1, fontSize: 15 }}
+                  >
+                    {b.text}
+                  </Typography>
+                </View>
+              ))}
+            </Card>
+            <Button
+              title="Assinar Premium - R$ 19,90/mês"
+              variant="premium"
+              size="lg"
+              onPress={() => {
+                showPaywall("plans");
+              }}
+            />
+          </View>
         ) : (
           <Button
             title="Cancelar assinatura"
