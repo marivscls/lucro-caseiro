@@ -11,6 +11,9 @@ export const CreateMaterialDto = z.object({
   contentPerUnit: z.number().positive().max(MAX_QUANTITY).nullable().optional(),
   contentUnit: z.string().min(1).max(20).nullable().optional(),
   notes: z.string().max(500).optional(),
+  // Ícone (emoji) escolhido pelo usuário. Nullable: sem ele, o avatar é
+  // resolvido automaticamente pelo nome.
+  icon: z.string().max(32).nullable().optional(),
 });
 
 export type CreateMaterial = z.infer<typeof CreateMaterialDto>;
@@ -35,6 +38,7 @@ export const MaterialDto = z.object({
   contentPerUnit: z.number().nullable(),
   contentUnit: z.string().nullable(),
   notes: z.string().nullable(),
+  icon: z.string().nullable(),
   createdAt: z.string().datetime(),
 });
 

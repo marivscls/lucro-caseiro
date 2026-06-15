@@ -9,6 +9,7 @@ export interface CreateMaterialData {
   contentPerUnit?: number | null;
   contentUnit?: string | null;
   notes?: string;
+  icon?: string | null;
 }
 
 export type UpdateMaterialData = Partial<CreateMaterialData>;

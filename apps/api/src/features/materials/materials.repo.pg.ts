@@ -29,6 +29,7 @@ export class MaterialsRepoPg implements IMaterialsRepo {
         contentPerUnit: dec(data.contentPerUnit),
         contentUnit: data.contentUnit ?? null,
         notes: data.notes ?? null,
+        icon: data.icon ?? null,
       })
       .returning();
 
@@ -99,6 +100,7 @@ export class MaterialsRepoPg implements IMaterialsRepo {
     if (data.contentPerUnit !== undefined) set.contentPerUnit = dec(data.contentPerUnit);
     if (data.contentUnit !== undefined) set.contentUnit = data.contentUnit ?? null;
     if (data.notes !== undefined) set.notes = data.notes ?? null;
+    if (data.icon !== undefined) set.icon = data.icon ?? null;
 
     if (Object.keys(set).length === 0) return this.findById(userId, id);
 
@@ -138,6 +140,7 @@ export class MaterialsRepoPg implements IMaterialsRepo {
       contentPerUnit: row.contentPerUnit != null ? Number(row.contentPerUnit) : null,
       contentUnit: row.contentUnit,
       notes: row.notes,
+      icon: row.icon,
       createdAt: row.createdAt.toISOString(),
     };
   }

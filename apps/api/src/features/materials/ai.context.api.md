@@ -163,3 +163,7 @@ POST /api/v1/materials/:id/adjust
   Validação: se um vier, ambos obrigatórios (`contentPerUnit` > 0, `contentUnit` não vazio).
   Sem conversão global — apenas viabiliza a conversão de custo na feature `recipes`
   (`effectiveCostPerUnit`). Sem essas colunas, comportamento inalterado.
+- **Ícone do insumo** (migration `017_material_icon.sql`): coluna `icon text` (NULLABLE).
+  Guarda o emoji escolhido pelo usuário; quando NULL, o mobile resolve o avatar pelo nome.
+  Repassado direto no create/update (contrato `icon?: string | null`, max 32). Sem validação
+  extra de domínio.

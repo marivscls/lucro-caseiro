@@ -21,6 +21,8 @@ export const materials = pgTable(
     contentPerUnit: decimal("content_per_unit", { precision: 12, scale: 3 }),
     contentUnit: text("content_unit"),
     notes: text("notes"),
+    // Ícone (emoji) escolhido pelo usuário; nullable -> avatar automático pelo nome.
+    icon: text("icon"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
