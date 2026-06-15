@@ -1,361 +1,436 @@
 import { formatCurrency } from "../shared/utils/format";
-import type { Packaging } from "@lucro-caseiro/contracts";
-import {
-  Badge,
-  Button,
-  Card,
-  EmptyState,
-  Input,
-  Typography,
-  useTheme,
-  spacing,
-} from "@lucro-caseiro/ui";
-import React, { useState } from "react";
+import { EmptyState, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import { Ionicons } from "@expo/vector-icons";
+import { Stack, useRouter } from "expo-router";
+import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
   Modal,
   Pressable,
   ScrollView,
+  TextInput,
   View,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { CreatePackagingForm } from "../features/packaging/components/create-packaging-form";
-import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
+import { PackagingCard } from "../features/packaging/components/packaging-card";
+import { PackagingDetail } from "../features/packaging/components/packaging-detail";
+import { PackagingForm } from "../features/packaging/components/packaging-form";
+import { PACKAGING_TYPES, totalStockCost, typeColor } from "../features/packaging/domain";
+import { useDeletePackaging, usePackagingList } from "../features/packaging/hooks";
 import { Illustration } from "../shared/components/illustrations";
-import {
-  useDeletePackaging,
-  usePackaging,
-  usePackagingList,
-  useUpdatePackaging,
-} from "../features/packaging/hooks";
-import { alertValidation, alertError } from "../shared/utils/alerts";
-import {
-  currencyInput,
-  maskCurrencyInput,
-  parseCurrencyInput,
-} from "../shared/utils/currency-input";
+import { alertError } from "../shared/utils/alerts";
 
-const TYPE_LABELS: Record<string, string> = {
-  box: "Caixa",
-  bag: "Sacola",
-  pot: "Pote",
-  film: "Filme",
-  label: "Rótulo",
-  other: "Outro",
-};
-
-const TYPES = [
-  { value: "box", label: "Caixa" },
-  { value: "bag", label: "Sacola" },
-  { value: "pot", label: "Pote" },
-  { value: "film", label: "Filme" },
-  { value: "label", label: "Rótulo" },
-  { value: "other", label: "Outro" },
-] as const;
-
-function PackagingDetailModal({
-  packagingId,
-  visible,
-  onClose,
+function SummaryCard({
+  icon,
+  label,
+  value,
+  hint,
 }: Readonly<{
-  packagingId: string;
-  visible: boolean;
-  onClose: () => void;
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  value: string;
+  hint: string;
 }>) {
   const { theme } = useTheme();
-  const { data: pkg, isLoading } = usePackaging(packagingId);
-  const updatePackaging = useUpdatePackaging();
-  const deletePackaging = useDeletePackaging();
-
-  const [editing, setEditing] = useState(false);
-  const [name, setName] = useState("");
-  const [type, setType] = useState("box");
-  const [unitCost, setUnitCost] = useState("");
-  const [supplier, setSupplier] = useState("");
-
-  function startEditing(p: Packaging) {
-    setName(p.name);
-    setType(p.type);
-    setUnitCost(currencyInput(p.unitCost));
-    setSupplier(p.supplier ?? "");
-    setEditing(true);
-  }
-
-  async function handleSave() {
-    const cost = parseCurrencyInput(unitCost);
-    if (!name.trim()) {
-      alertValidation("Coloque o nome da embalagem");
-      return;
-    }
-    if (isNaN(cost) || cost <= 0) {
-      alertValidation("O custo precisa ser maior que zero");
-      return;
-    }
-    try {
-      await updatePackaging.mutateAsync({
-        id: packagingId,
-        data: {
-          name: name.trim(),
-          type: type as "box" | "bag" | "pot" | "film" | "label" | "other",
-          unitCost: cost,
-          supplier: supplier.trim() || undefined,
-        },
-      });
-      Alert.alert("Embalagem atualizada!");
-      setEditing(false);
-    } catch {
-      alertError("Não foi possível atualizar a embalagem.");
-    }
-  }
-
-  function handleDelete() {
-    Alert.alert("Excluir embalagem", "Tem certeza que deseja excluir esta embalagem?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Excluir",
-        style: "destructive",
-        onPress: () => {
-          deletePackaging
-            .mutateAsync(packagingId)
-            .then(() => onClose())
-            .catch(() => alertError("Não foi possível excluir."));
-        },
-      },
-    ]);
-  }
-
+  const isDark = theme.mode === "dark";
+  const cardBg = isDark ? "rgba(44, 36, 32, 0.55)" : theme.colors.surfaceElevated;
+  const border = isDark ? "rgba(245, 225, 219, 0.1)" : "rgba(74, 50, 40, 0.1)";
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
+    <View
+      style={{
+        flex: 1,
+        borderRadius: radii.xl,
+        borderWidth: 1,
+        borderColor: border,
+        backgroundColor: cardBg,
+        padding: spacing.lg,
+        gap: spacing.sm,
+        alignItems: "center",
+      }}
     >
-      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: spacing.lg,
-          }}
-        >
-          <Pressable onPress={onClose}>
-            <Typography variant="bodyBold" color={theme.colors.primary}>
-              Fechar
-            </Typography>
-          </Pressable>
-          {pkg && !editing && (
-            <Pressable onPress={() => startEditing(pkg)}>
-              <Typography variant="bodyBold" color={theme.colors.primary}>
-                Editar
-              </Typography>
-            </Pressable>
-          )}
-        </View>
-
-        {isLoading && (
-          <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-            <ActivityIndicator size="large" color={theme.colors.primary} />
-          </View>
-        )}
-
-        {!isLoading && pkg && editing && (
-          <KeyboardAwareScrollView
-            contentContainerStyle={{
-              padding: spacing.xl,
-              paddingBottom: spacing["3xl"],
-              gap: spacing.lg,
-            }}
-          >
-            <Typography variant="h2">Editar embalagem</Typography>
-            <Input label="Nome" value={name} onChangeText={setName} />
-            <View style={{ gap: spacing.sm }}>
-              <Typography variant="caption">Tipo</Typography>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-                {TYPES.map((t) => (
-                  <Pressable
-                    key={t.value}
-                    onPress={() => setType(t.value)}
-                    style={{
-                      paddingHorizontal: spacing.lg,
-                      paddingVertical: spacing.sm,
-                      borderRadius: 20,
-                      backgroundColor:
-                        type === t.value ? theme.colors.primary : theme.colors.surface,
-                    }}
-                  >
-                    <Typography
-                      variant="caption"
-                      color={
-                        type === t.value
-                          ? theme.colors.textOnPrimary
-                          : theme.colors.textSecondary
-                      }
-                    >
-                      {t.label}
-                    </Typography>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-            <Input
-              label="Custo unitario (R$)"
-              value={unitCost}
-              onChangeText={(value) => setUnitCost(maskCurrencyInput(value))}
-              keyboardType="numeric"
-            />
-            <Input label="Fornecedor" value={supplier} onChangeText={setSupplier} />
-            <Button
-              title="Salvar"
-              size="lg"
-              onPress={() => {
-                handleSave().catch(() => {});
-              }}
-              loading={updatePackaging.isPending}
-            />
-            <Button
-              title="Cancelar"
-              variant="secondary"
-              onPress={() => setEditing(false)}
-            />
-          </KeyboardAwareScrollView>
-        )}
-
-        {!isLoading && pkg && !editing && (
-          <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
-            <Typography variant="h1">{pkg.name}</Typography>
-            <Card>
-              <View style={{ gap: spacing.sm }}>
-                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                  <Typography variant="caption">Tipo</Typography>
-                  <Badge label={TYPE_LABELS[pkg.type] ?? pkg.type} variant="info" />
-                </View>
-                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                  <Typography variant="caption">Custo unitario</Typography>
-                  <Typography variant="h3" color={theme.colors.success}>
-                    {formatCurrency(pkg.unitCost)}
-                  </Typography>
-                </View>
-                {pkg.supplier && (
-                  <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                    <Typography variant="caption">Fornecedor</Typography>
-                    <Typography variant="body">{pkg.supplier}</Typography>
-                  </View>
-                )}
-              </View>
-            </Card>
-            <Button
-              title="Excluir embalagem"
-              variant="secondary"
-              onPress={handleDelete}
-              loading={deletePackaging.isPending}
-            />
-          </ScrollView>
-        )}
-      </SafeAreaView>
-    </Modal>
+      <View
+        style={{
+          width: 48,
+          height: 48,
+          borderRadius: radii.full,
+          backgroundColor: `${theme.colors.primary}26`,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Ionicons name={icon} size={24} color={theme.colors.primary} />
+      </View>
+      <Typography
+        variant="caption"
+        color={theme.colors.textSecondary}
+        numberOfLines={1}
+        style={{ textAlign: "center" }}
+      >
+        {label}
+      </Typography>
+      <Typography
+        variant="h3"
+        color={theme.colors.text}
+        style={{ fontSize: 22, textAlign: "center" }}
+      >
+        {value}
+      </Typography>
+      <Typography variant="caption" color={theme.colors.textSecondary}>
+        {hint}
+      </Typography>
+    </View>
   );
 }
 
 export default function PackagingScreen() {
   const { theme } = useTheme();
-  const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { data, isLoading, error } = usePackagingList();
+  const deletePackaging = useDeletePackaging();
+
   const [showCreate, setShowCreate] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [typeFilter, setTypeFilter] = useState<string | null>(null);
 
-  return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: theme.colors.background }}
-      edges={["bottom"]}
-    >
-      {isLoading && (
+  const items = data?.items ?? [];
+  const selected = items.find((p) => p.id === selectedId) ?? null;
+
+  const visible = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return items.filter((p) => {
+      if (typeFilter && p.type !== typeFilter) return false;
+      return !query || p.name.toLowerCase().includes(query);
+    });
+  }, [items, search, typeFilter]);
+
+  const isDark = theme.mode === "dark";
+  const border = isDark ? "rgba(245, 225, 219, 0.1)" : "rgba(74, 50, 40, 0.1)";
+
+  function deleteById(id: string) {
+    deletePackaging
+      .mutateAsync(id)
+      .then(() => {
+        if (selectedId === id) {
+          setSelectedId(null);
+          setEditing(false);
+        }
+      })
+      .catch(() => alertError("Não foi possível excluir a embalagem."));
+  }
+
+  function openCard(id: string) {
+    setSelectedId(id);
+    setEditing(false);
+  }
+
+  function startEdit(id: string) {
+    setSelectedId(id);
+    setEditing(true);
+  }
+
+  function renderList() {
+    if (isLoading) {
+      return (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
-      )}
-      {!isLoading && error && (
+      );
+    }
+    if (error) {
+      return (
         <EmptyState
           title="Algo deu errado"
           description="Não foi possível carregar suas embalagens. Tente novamente."
         />
-      )}
-      {!isLoading && !error && !data?.items.length && (
+      );
+    }
+    if (items.length === 0) {
+      return (
         <EmptyState
           icon={<Illustration name="box" />}
           title="Nenhuma embalagem ainda"
-          description="Cadastre suas embalagens para facilitar a precificação"
-          action={
-            <Button title="Cadastrar embalagem" onPress={() => setShowCreate(true)} />
-          }
+          description="Cadastre suas embalagens para facilitar a precificação."
         />
-      )}
-      {!isLoading && !error && !!data?.items.length && (
-        <FlatList
-          data={data.items}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={{ gap: 12, padding: 20 }}
-          ListHeaderComponent={
-            <View style={{ gap: 8 }}>
-              <Typography variant="h2">Embalagens</Typography>
-              <Typography variant="caption">
-                {data.total} embalage{data.total !== 1 ? "ns" : "m"}
-              </Typography>
-            </View>
-          }
-          renderItem={({ item }) => (
-            <Card onPress={() => setSelectedId(item.id)}>
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <View style={{ gap: 4, flex: 1 }}>
-                  <Typography variant="h3">{item.name}</Typography>
-                  <Typography variant="caption">
-                    {formatCurrency(item.unitCost)}
-                    {item.supplier ? ` · ${item.supplier}` : ""}
-                  </Typography>
-                </View>
-                {item.type && (
-                  <Badge label={TYPE_LABELS[item.type] ?? item.type} variant="info" />
-                )}
-              </View>
-            </Card>
-          )}
-        />
-      )}
-
-      {/* FAB */}
-      <View
-        style={{
-          position: "absolute",
-          bottom: spacing.xl + insets.bottom,
-          right: spacing.xl,
+      );
+    }
+    return (
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingHorizontal: spacing.xl,
+          paddingTop: spacing.sm,
+          paddingBottom: spacing.lg,
+          gap: spacing.md,
         }}
       >
-        <Button
-          title="+ Nova embalagem"
+        {/* Resumo */}
+        <View style={{ flexDirection: "row", gap: spacing.md }}>
+          <SummaryCard
+            icon="cube-outline"
+            label="Total de embalagens"
+            value={String(data?.total ?? items.length)}
+            hint="cadastradas"
+          />
+          <SummaryCard
+            icon="cash-outline"
+            label="Custo total em estoque"
+            value={formatCurrency(totalStockCost(items))}
+            hint="valor investido"
+          />
+        </View>
+
+        {visible.length === 0 ? (
+          <View style={{ paddingVertical: spacing["3xl"], alignItems: "center" }}>
+            <Typography
+              variant="body"
+              color={theme.colors.textSecondary}
+              style={{ textAlign: "center" }}
+            >
+              Nenhuma embalagem encontrada. Ajuste a busca ou o filtro.
+            </Typography>
+          </View>
+        ) : (
+          visible.map((pkg) => (
+            <PackagingCard
+              key={pkg.id}
+              packaging={pkg}
+              onPress={() => openCard(pkg.id)}
+              onEdit={() => startEdit(pkg.id)}
+              onDelete={() => deleteById(pkg.id)}
+            />
+          ))
+        )}
+
+        {/* CTA tracejado */}
+        <Pressable
           onPress={() => setShowCreate(true)}
-          size="md"
-          style={{
-            borderRadius: 28,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.15,
-            shadowRadius: 8,
-            elevation: 6,
-          }}
-        />
+          accessibilityRole="button"
+          accessibilityLabel="Adicionar nova embalagem"
+          style={({ pressed }) => ({
+            marginTop: spacing.sm,
+            borderRadius: radii.xl,
+            borderWidth: 1.5,
+            borderStyle: "dashed",
+            borderColor: `${theme.colors.primary}80`,
+            padding: spacing.lg,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: spacing.md,
+            opacity: pressed ? 0.7 : 1,
+          })}
+        >
+          <Ionicons name="add-circle-outline" size={28} color={theme.colors.primary} />
+          <View style={{ flex: 1 }}>
+            <Typography
+              variant="bodyBold"
+              color={theme.colors.primary}
+              style={{ fontSize: 16 }}
+            >
+              Adicionar nova embalagem
+            </Typography>
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              Cadastre uma embalagem que será utilizada nos seus produtos
+            </Typography>
+          </View>
+        </Pressable>
+      </ScrollView>
+    );
+  }
+
+  return (
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      edges={["top", "bottom"]}
+    >
+      <Stack.Screen options={{ headerShown: false }} />
+
+      {/* Top bar */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.sm,
+          paddingHorizontal: spacing.lg,
+          paddingTop: spacing.sm,
+          paddingBottom: spacing.sm,
+        }}
+      >
+        <Pressable
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="Voltar"
+          hitSlop={10}
+          style={{ width: 32, height: 40, justifyContent: "center" }}
+        >
+          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
+        </Pressable>
+        <Typography
+          variant="h1"
+          color={theme.colors.text}
+          numberOfLines={1}
+          style={{ flex: 1, fontSize: 26, fontWeight: "800" }}
+        >
+          Embalagens
+        </Typography>
+        <Pressable
+          onPress={() => setShowCreate(true)}
+          accessibilityRole="button"
+          accessibilityLabel="Nova embalagem"
+          style={({ pressed }) => ({
+            flexDirection: "row",
+            alignItems: "center",
+            gap: spacing.xs,
+            paddingHorizontal: spacing.md,
+            paddingVertical: spacing.sm,
+            borderRadius: radii.full,
+            backgroundColor: theme.colors.primary,
+            opacity: pressed ? 0.85 : 1,
+          })}
+        >
+          <Ionicons name="add" size={20} color={theme.colors.textOnPrimary} />
+          <Typography
+            variant="bodyBold"
+            color={theme.colors.textOnPrimary}
+            style={{ fontSize: 14 }}
+          >
+            Nova embalagem
+          </Typography>
+        </Pressable>
       </View>
 
-      {/* Modal - Criar embalagem */}
+      {/* Busca + Filtros */}
+      <View
+        style={{
+          flexDirection: "row",
+          gap: spacing.sm,
+          paddingHorizontal: spacing.lg,
+          paddingBottom: spacing.sm,
+        }}
+      >
+        <View
+          style={{
+            flex: 1,
+            minHeight: 48,
+            borderRadius: radii.md,
+            borderWidth: 1,
+            borderColor: border,
+            flexDirection: "row",
+            alignItems: "center",
+            paddingHorizontal: spacing.md,
+            gap: spacing.sm,
+          }}
+        >
+          <Ionicons name="search-outline" size={20} color={theme.colors.textSecondary} />
+          <TextInput
+            value={search}
+            onChangeText={(v) => {
+              setSearch(v);
+              setSearchOpen(true);
+            }}
+            placeholder="Buscar embalagem..."
+            placeholderTextColor={theme.colors.textSecondary}
+            style={{
+              flex: 1,
+              color: theme.colors.text,
+              fontSize: 16,
+              paddingVertical: 0,
+            }}
+          />
+          {searchOpen && search.length > 0 ? (
+            <Pressable
+              onPress={() => setSearch("")}
+              hitSlop={8}
+              accessibilityLabel="Limpar busca"
+            >
+              <Ionicons
+                name="close-circle"
+                size={20}
+                color={theme.colors.textSecondary}
+              />
+            </Pressable>
+          ) : null}
+        </View>
+        <Pressable
+          onPress={() => setFiltersOpen((v) => !v)}
+          accessibilityRole="button"
+          accessibilityLabel="Filtros"
+          style={({ pressed }) => ({
+            minHeight: 48,
+            paddingHorizontal: spacing.md,
+            borderRadius: radii.md,
+            borderWidth: 1,
+            borderColor: typeFilter ? theme.colors.primary : border,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: spacing.xs,
+            opacity: pressed ? 0.7 : 1,
+          })}
+        >
+          <Ionicons
+            name="funnel-outline"
+            size={18}
+            color={typeFilter ? theme.colors.primary : theme.colors.text}
+          />
+          <Typography
+            variant="bodyBold"
+            color={typeFilter ? theme.colors.primary : theme.colors.text}
+            style={{ fontSize: 15 }}
+          >
+            Filtros
+          </Typography>
+        </Pressable>
+      </View>
+
+      {filtersOpen ? (
+        <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.sm }}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: spacing.sm }}
+          >
+            {[{ value: null, label: "Todas" }, ...PACKAGING_TYPES].map((t) => {
+              const active = typeFilter === t.value;
+              const chipColor = t.value
+                ? typeColor(theme, t.value)
+                : theme.colors.primary;
+              return (
+                <Pressable
+                  key={t.label}
+                  onPress={() => setTypeFilter(t.value)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
+                  style={{
+                    paddingHorizontal: spacing.md,
+                    paddingVertical: spacing.sm,
+                    borderRadius: radii.full,
+                    borderWidth: 1,
+                    borderColor: active ? chipColor : border,
+                    backgroundColor: active ? `${chipColor}26` : "transparent",
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    color={active ? chipColor : theme.colors.textSecondary}
+                    style={{ fontWeight: "700" }}
+                  >
+                    {t.label}
+                  </Typography>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </View>
+      ) : null}
+
+      <View style={{ flex: 1 }}>{renderList()}</View>
+
+      {/* Modal: criar */}
       <Modal
         visible={showCreate}
         animationType="slide"
@@ -366,28 +441,150 @@ export default function PackagingScreen() {
           <View
             style={{
               flexDirection: "row",
-              justifyContent: "flex-end",
-              padding: spacing.lg,
+              alignItems: "center",
+              paddingHorizontal: spacing.xl,
+              paddingTop: spacing.md,
+              paddingBottom: spacing.md,
+              gap: spacing.md,
             }}
           >
-            <Pressable onPress={() => setShowCreate(false)}>
-              <Typography variant="bodyBold" color={theme.colors.primary}>
-                Fechar
-              </Typography>
+            <Pressable
+              onPress={() => setShowCreate(false)}
+              accessibilityLabel="Fechar"
+              hitSlop={10}
+              style={{ minHeight: 44, justifyContent: "center" }}
+            >
+              <Ionicons name="close" size={28} color={theme.colors.text} />
             </Pressable>
+            <Typography
+              variant="h1"
+              color={theme.colors.text}
+              style={{ flex: 1, fontSize: 24, fontWeight: "800" }}
+            >
+              Nova embalagem
+            </Typography>
           </View>
-          <CreatePackagingForm onSuccess={() => setShowCreate(false)} />
+          <PackagingForm
+            onSuccess={() => setShowCreate(false)}
+            onCancel={() => setShowCreate(false)}
+          />
         </SafeAreaView>
       </Modal>
 
-      {/* Modal - Detalhe da embalagem */}
-      {selectedId && (
-        <PackagingDetailModal
-          packagingId={selectedId}
-          visible={true}
-          onClose={() => setSelectedId(null)}
-        />
-      )}
+      {/* Modal: detalhe / editar */}
+      <Modal
+        visible={!!selected}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setSelectedId(null)}
+      >
+        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+          {selected && !editing ? (
+            <>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  paddingHorizontal: spacing.xl,
+                  paddingTop: spacing.md,
+                  paddingBottom: spacing.sm,
+                }}
+              >
+                <Pressable onPress={() => setSelectedId(null)} hitSlop={10}>
+                  <Typography
+                    variant="bodyBold"
+                    color={theme.colors.primary}
+                    style={{ fontSize: 17 }}
+                  >
+                    Fechar
+                  </Typography>
+                </Pressable>
+                <Pressable onPress={() => setEditing(true)} hitSlop={10}>
+                  <Typography
+                    variant="bodyBold"
+                    color={theme.colors.primary}
+                    style={{ fontSize: 17 }}
+                  >
+                    Editar
+                  </Typography>
+                </Pressable>
+              </View>
+              <PackagingDetail
+                packaging={selected}
+                onDelete={() => deleteById(selected.id)}
+                isDeleting={deletePackaging.isPending}
+              />
+            </>
+          ) : null}
+
+          {selected && editing ? (
+            <>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingHorizontal: spacing.xl,
+                  paddingTop: spacing.md,
+                  paddingBottom: spacing.sm,
+                  gap: spacing.md,
+                }}
+              >
+                <Pressable
+                  onPress={() => setEditing(false)}
+                  accessibilityLabel="Voltar"
+                  hitSlop={10}
+                  style={{ minHeight: 44, justifyContent: "center" }}
+                >
+                  <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
+                </Pressable>
+                <Typography
+                  variant="h1"
+                  color={theme.colors.text}
+                  numberOfLines={1}
+                  style={{ flex: 1, fontSize: 22, fontWeight: "800" }}
+                >
+                  Editar embalagem
+                </Typography>
+                <Pressable
+                  onPress={() => {
+                    Alert.alert(
+                      "Excluir embalagem",
+                      "Tem certeza que deseja excluir esta embalagem?",
+                      [
+                        { text: "Cancelar", style: "cancel" },
+                        {
+                          text: "Excluir",
+                          style: "destructive",
+                          onPress: () => deleteById(selected.id),
+                        },
+                      ],
+                    );
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Excluir"
+                  hitSlop={10}
+                  style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}
+                >
+                  <Ionicons name="trash-outline" size={20} color={theme.colors.alert} />
+                  <Typography
+                    variant="bodyBold"
+                    color={theme.colors.alert}
+                    style={{ fontSize: 15 }}
+                  >
+                    Excluir
+                  </Typography>
+                </Pressable>
+              </View>
+              <PackagingForm
+                packaging={selected}
+                onSuccess={() => setEditing(false)}
+                onCancel={() => setEditing(false)}
+              />
+            </>
+          ) : null}
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
