@@ -1,0 +1,21 @@
+{
+  "name": "asset-forge",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Gera e resolve ilustrações 3D (PNG) por nome de insumo/produto, com biblioteca curada + geração sob demanda + cache. Ferramenta isolada (fora do workspace).",
+  "bin": {
+    "asset-forge": "cli.mjs"
+  },
+  "scripts": {
+    "resolve": "node cli.mjs resolve",
+    "catalog": "node cli.mjs catalog",
+    "build": "node cli.mjs build",
+    "gen": "node cli.mjs gen",
+    "worker": "node worker.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
