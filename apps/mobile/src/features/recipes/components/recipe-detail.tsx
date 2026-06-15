@@ -1,8 +1,10 @@
 import { formatCurrency } from "../../../shared/utils/format";
 import { Button, Card, Typography, useTheme } from "@lucro-caseiro/ui";
+import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, View } from "react-native";
+import { ActivityIndicator, Alert, Image, ScrollView, View } from "react-native";
 
+import { IngredientAvatar } from "../../../shared/ingredient-image/ingredient-avatar";
 import { useDeleteRecipe, useDuplicateRecipe, useRecipe, useScaleRecipe } from "../hooks";
 import { exportRecipePdf } from "../recipe-pdf";
 import { alertError } from "../../../shared/utils/alerts";
@@ -50,12 +52,20 @@ export function RecipeDetail({
 
   return (
     <ScrollView contentContainerStyle={{ padding: 20, gap: 16 }}>
-      <View style={{ gap: 4 }}>
-        <Typography variant="h2">{recipe.name}</Typography>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <Ionicons name="ice-cream-outline" size={18} color={theme.colors.primary} />
         <Typography variant="caption" color={theme.colors.textSecondary}>
           {recipe.category}
         </Typography>
       </View>
+
+      {recipe.photoUrl ? (
+        <Image
+          source={{ uri: recipe.photoUrl }}
+          style={{ width: "100%", height: 200, borderRadius: 16 }}
+          resizeMode="cover"
+        />
+      ) : null}
 
       {recipe.instructions && (
         <Card style={{ gap: 8 }}>
@@ -101,7 +111,7 @@ export function RecipeDetail({
                 paddingVertical: 8,
                 borderRadius: 20,
                 backgroundColor:
-                  multiplier === scale ? theme.colors.success : theme.colors.surface,
+                  multiplier === scale ? theme.colors.primary : theme.colors.surface,
               }}
             >
               <Typography
@@ -122,10 +132,12 @@ export function RecipeDetail({
 
       <View style={{ gap: 8 }}>
         <Typography variant="h3">Insumos</Typography>
-        <Typography variant="caption">
-          Rende: {displayRecipe.yieldQuantity} {displayRecipe.yieldUnit}
-          {displayRecipe.yieldQuantity !== 1 ? "s" : ""}
-        </Typography>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Ionicons name="time-outline" size={16} color={theme.colors.textSecondary} />
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            Rende: {displayRecipe.yieldQuantity} {displayRecipe.yieldUnit}
+          </Typography>
+        </View>
 
         <Card style={{ gap: 0 }}>
           <View
@@ -169,9 +181,14 @@ export function RecipeDetail({
                   alignItems: "center",
                 }}
               >
-                <Typography variant="body" style={{ flex: 2 }}>
-                  {ing.materialName}
-                </Typography>
+                <View
+                  style={{ flex: 2, flexDirection: "row", alignItems: "center", gap: 8 }}
+                >
+                  <IngredientAvatar name={ing.materialName} size={28} />
+                  <Typography variant="body" style={{ flex: 1 }} numberOfLines={1}>
+                    {ing.materialName}
+                  </Typography>
+                </View>
                 <Typography
                   variant="caption"
                   color={theme.colors.textSecondary}

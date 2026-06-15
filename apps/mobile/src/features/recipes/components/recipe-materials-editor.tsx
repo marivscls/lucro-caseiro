@@ -1,10 +1,12 @@
 import { formatCurrency as formatMoney } from "../../../shared/utils/format";
 import type { Material } from "@lucro-caseiro/contracts";
 import { Input, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Pressable, ScrollView, TouchableOpacity, View } from "react-native";
 
+import { IngredientAvatar } from "../../../shared/ingredient-image/ingredient-avatar";
 import { useMaterials } from "../../materials/hooks";
 
 export interface RecipeLine {
@@ -63,7 +65,12 @@ function lineCost(
 export function RecipeMaterialsEditor({
   lines,
   onChange,
-}: Readonly<{ lines: RecipeLine[]; onChange: (lines: RecipeLine[]) => void }>) {
+  onTotalCost,
+}: Readonly<{
+  lines: RecipeLine[];
+  onChange: (lines: RecipeLine[]) => void;
+  onTotalCost?: (total: number) => void;
+}>) {
   const { theme } = useTheme();
   const router = useRouter();
   const { data } = useMaterials();
@@ -91,6 +98,13 @@ export function RecipeMaterialsEditor({
     0,
   );
 
+  // Expõe o custo total ao pai (ex.: card de custo na edição) sem loop de render.
+  const onTotalCostRef = useRef(onTotalCost);
+  onTotalCostRef.current = onTotalCost;
+  useEffect(() => {
+    onTotalCostRef.current?.(total);
+  }, [total]);
+
   if (materials.length === 0) {
     return (
       <View style={{ gap: spacing.md }}>
@@ -117,7 +131,19 @@ export function RecipeMaterialsEditor({
 
   return (
     <View style={{ gap: spacing.md }}>
-      <Typography variant="h3">Insumos</Typography>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+        <Ionicons name="basket-outline" size={22} color={theme.colors.primary} />
+        <Typography variant="h3" color={theme.colors.text}>
+          Insumos
+        </Typography>
+      </View>
+      <Typography
+        variant="caption"
+        color={theme.colors.textSecondary}
+        style={{ marginTop: -spacing.sm }}
+      >
+        Adicione os ingredientes utilizados na receita
+      </Typography>
 
       {lines.map((line, index) => {
         const material = byId.get(line.materialId);
@@ -140,12 +166,16 @@ export function RecipeMaterialsEditor({
                 alignItems: "center",
               }}
             >
-              <Typography variant="caption">Insumo {index + 1}</Typography>
+              <Typography variant="bodyBold" color={theme.colors.text}>
+                Insumo {index + 1}
+              </Typography>
               {lines.length > 1 && (
-                <TouchableOpacity onPress={() => removeLine(index)}>
-                  <Typography variant="caption" color={theme.colors.alert}>
-                    Remover
-                  </Typography>
+                <TouchableOpacity
+                  onPress={() => removeLine(index)}
+                  accessibilityLabel={`Remover insumo ${index + 1}`}
+                  hitSlop={8}
+                >
+                  <Ionicons name="trash-outline" size={20} color={theme.colors.alert} />
                 </TouchableOpacity>
               )}
             </View>
@@ -164,17 +194,27 @@ export function RecipeMaterialsEditor({
                     accessibilityRole="button"
                     accessibilityLabel={`Selecionar ${m.name}`}
                     style={{
-                      paddingHorizontal: spacing.md,
-                      paddingVertical: spacing.sm,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: spacing.xs,
+                      paddingLeft: spacing.xs,
+                      paddingRight: spacing.md,
+                      paddingVertical: spacing.xs,
                       borderRadius: radii.full,
+                      borderWidth: 1,
+                      borderColor: active
+                        ? theme.colors.primary
+                        : "rgba(245, 225, 219, 0.12)",
                       backgroundColor: active
                         ? theme.colors.primary
                         : theme.colors.surfaceElevated,
                     }}
                   >
+                    <IngredientAvatar name={m.name} size={26} />
                     <Typography
                       variant="caption"
                       color={active ? theme.colors.textOnPrimary : theme.colors.text}
+                      style={{ fontWeight: "600" }}
                     >
                       {m.name}
                     </Typography>
@@ -250,16 +290,20 @@ export function RecipeMaterialsEditor({
       <TouchableOpacity
         onPress={addLine}
         style={{
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: spacing.xs,
           paddingVertical: spacing.md,
           borderRadius: radii.lg,
           borderWidth: 1,
-          borderColor: theme.colors.success,
+          borderColor: theme.colors.primary,
           borderStyle: "dashed",
-          alignItems: "center",
         }}
       >
-        <Typography variant="body" color={theme.colors.success}>
-          + Adicionar insumo
+        <Ionicons name="add" size={20} color={theme.colors.primary} />
+        <Typography variant="bodyBold" color={theme.colors.primary}>
+          Adicionar insumo
         </Typography>
       </TouchableOpacity>
 

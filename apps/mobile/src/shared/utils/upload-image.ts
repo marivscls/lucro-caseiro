@@ -43,6 +43,10 @@ export function uploadOrderImage(localUri: string): Promise<string> {
   return uploadImage(localUri, "order-");
 }
 
+export function uploadRecipeImage(localUri: string): Promise<string> {
+  return uploadImage(localUri, "recipe-");
+}
+
 export function uploadCatalogCover(localUri: string): Promise<string> {
   return uploadImage(localUri, "catalog-cover-");
 }

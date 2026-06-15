@@ -1,13 +1,16 @@
-import {
-  Button,
-  EmptyState,
-  Typography,
-  spacing,
-  radii,
-  useTheme,
-} from "@lucro-caseiro/ui";
+import { EmptyState, Typography, spacing, radii, useTheme } from "@lucro-caseiro/ui";
+import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { ActivityIndicator, FlatList, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Image,
+  Pressable,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 import {
   AD_ITEM_MARKER,
@@ -17,6 +20,182 @@ import {
 import { useShowAds } from "../../../shared/hooks/use-show-ads";
 import { useRecipes } from "../hooks";
 import { RecipeCard } from "./recipe-card";
+import recipesEmpty from "../../../assets/recipes-empty.png";
+
+function FeatureCol({
+  icon,
+  title,
+  desc,
+}: Readonly<{ icon: keyof typeof Ionicons.glyphMap; title: string; desc: string }>) {
+  const { theme } = useTheme();
+  return (
+    <View
+      style={{
+        flex: 1,
+        alignItems: "center",
+        gap: spacing.sm,
+        paddingHorizontal: spacing.xs,
+      }}
+    >
+      <View
+        style={{
+          width: 44,
+          height: 44,
+          borderRadius: 22,
+          backgroundColor: "rgba(196, 112, 126, 0.35)",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Ionicons name={icon} size={22} color="#FFFFFF" />
+      </View>
+      <Typography
+        variant="bodyBold"
+        color={theme.colors.text}
+        style={{ fontSize: 14, textAlign: "center" }}
+      >
+        {title}
+      </Typography>
+      <Typography
+        variant="caption"
+        color={theme.colors.textSecondary}
+        style={{ textAlign: "center", lineHeight: 16 }}
+      >
+        {desc}
+      </Typography>
+    </View>
+  );
+}
+
+function RecipesEmptyState({ onAddPress }: Readonly<{ onAddPress?: () => void }>) {
+  const { theme } = useTheme();
+  const isDark = theme.mode === "dark";
+  const cardBg = isDark ? "rgba(44, 36, 32, 0.55)" : theme.colors.surface;
+  const border = isDark ? "rgba(245, 225, 219, 0.1)" : "rgba(74, 50, 40, 0.1)";
+
+  function howItWorks() {
+    Alert.alert(
+      "Como funciona",
+      "Cadastre uma receita com os insumos e o rendimento. O app calcula o custo por unidade e ajuda você a definir o preço com lucro.",
+    );
+  }
+
+  return (
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{
+        flexGrow: 1,
+        padding: spacing.xl,
+        alignItems: "center",
+        justifyContent: "center",
+        gap: spacing.lg,
+      }}
+    >
+      <Image
+        source={recipesEmpty}
+        style={{ width: 240, height: 200 }}
+        resizeMode="contain"
+      />
+      <Typography
+        variant="h1"
+        serif
+        color={theme.colors.text}
+        style={{ textAlign: "center" }}
+      >
+        Nenhuma receita ainda
+      </Typography>
+      <Typography
+        variant="body"
+        color={theme.colors.textSecondary}
+        style={{ textAlign: "center", lineHeight: 22 }}
+      >
+        Cadastre sua primeira receita para começar a calcular seus custos e lucros.
+      </Typography>
+
+      <Pressable
+        onPress={onAddPress}
+        accessibilityRole="button"
+        style={({ pressed }) => ({
+          alignSelf: "stretch",
+          minHeight: 56,
+          borderRadius: radii.lg,
+          backgroundColor: theme.colors.primary,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: spacing.sm,
+          opacity: pressed ? 0.85 : 1,
+        })}
+      >
+        <Ionicons
+          name="document-text-outline"
+          size={22}
+          color={theme.colors.textOnPrimary}
+        />
+        <Typography
+          variant="bodyBold"
+          color={theme.colors.textOnPrimary}
+          style={{ fontSize: 17 }}
+        >
+          Cadastrar receita
+        </Typography>
+      </Pressable>
+
+      <View
+        style={{
+          alignSelf: "stretch",
+          flexDirection: "row",
+          borderRadius: radii.xl,
+          borderWidth: 1,
+          borderColor: border,
+          backgroundColor: cardBg,
+          paddingVertical: spacing.lg,
+          paddingHorizontal: spacing.sm,
+        }}
+      >
+        <FeatureCol
+          icon="calculator-outline"
+          title="Calcule custos"
+          desc="Saiba exatamente quanto cada receita custa."
+        />
+        <View style={{ width: 1, alignSelf: "stretch", backgroundColor: border }} />
+        <FeatureCol
+          icon="trending-up-outline"
+          title="Acompanhe lucros"
+          desc="Veja suas margens e aumente seus resultados."
+        />
+        <View style={{ width: 1, alignSelf: "stretch", backgroundColor: border }} />
+        <FeatureCol
+          icon="time-outline"
+          title="Economize tempo"
+          desc="Receitas organizadas e fáceis de consultar sempre que precisar."
+        />
+      </View>
+
+      <Pressable
+        onPress={howItWorks}
+        accessibilityRole="button"
+        style={({ pressed }) => ({
+          minHeight: 48,
+          paddingHorizontal: spacing.xl,
+          borderRadius: radii.full,
+          borderWidth: 1,
+          borderColor: `${theme.colors.primary}66`,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: spacing.sm,
+          opacity: pressed ? 0.7 : 1,
+        })}
+      >
+        <Ionicons name="play-circle-outline" size={20} color={theme.colors.primary} />
+        <Typography variant="bodyBold" color={theme.colors.primary}>
+          Saiba como funciona
+        </Typography>
+      </Pressable>
+    </ScrollView>
+  );
+}
 
 interface RecipeListProps {
   readonly onRecipePress?: (id: string) => void;
@@ -51,17 +230,7 @@ export function RecipeList({ onRecipePress, onAddPress }: RecipeListProps) {
   }
 
   if (!data?.items.length) {
-    return (
-      <EmptyState
-        title="Nenhuma receita ainda"
-        description="Cadastre sua primeira receita para calcular seus custos"
-        action={
-          onAddPress ? (
-            <Button title="Cadastrar receita" onPress={onAddPress} />
-          ) : undefined
-        }
-      />
-    );
+    return <RecipesEmptyState onAddPress={onAddPress} />;
   }
 
   const listData = showAds ? interleaveAds(data.items) : data.items;
