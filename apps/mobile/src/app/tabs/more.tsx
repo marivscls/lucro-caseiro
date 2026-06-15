@@ -116,11 +116,17 @@ export default function MoreScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Typography variant="h3">{userName}</Typography>
-              <Typography variant="caption">{businessName}</Typography>
+              <Typography
+                variant="body"
+                color={theme.colors.textSecondary}
+                style={{ fontSize: 14 }}
+              >
+                {businessName}
+              </Typography>
             </View>
             <Ionicons
               name="chevron-forward"
-              size={18}
+              size={20}
               color={theme.colors.textSecondary}
             />
           </View>
@@ -145,15 +151,21 @@ export default function MoreScreen() {
                   justifyContent: "center",
                 }}
               >
-                <Ionicons name={item.icon} size={22} color={theme.colors.primary} />
+                <Ionicons name={item.icon} size={24} color={theme.colors.primary} />
               </View>
               <View style={{ flex: 1 }}>
                 <Typography variant="h3">{item.title}</Typography>
-                <Typography variant="caption">{item.description}</Typography>
+                <Typography
+                  variant="body"
+                  color={theme.colors.textSecondary}
+                  style={{ fontSize: 14 }}
+                >
+                  {item.description}
+                </Typography>
               </View>
               <Ionicons
                 name="chevron-forward"
-                size={18}
+                size={20}
                 color={theme.colors.textSecondary}
               />
             </View>
