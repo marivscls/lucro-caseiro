@@ -8,7 +8,6 @@ import { IngredientAvatar } from "../../../shared/ingredient-image/ingredient-av
 import {
   currentStockLabel,
   formatCost,
-  formatQty,
   isLowStock,
   stockBadge,
   type StockTone,
@@ -40,6 +39,8 @@ export function MaterialCard({ material, onPress }: MaterialCardProps) {
 
   const step = (delta: number) => adjust.mutate({ id: material.id, delta });
 
+  const minusBg = isDark ? "rgba(255,255,255,0.08)" : theme.colors.surface;
+
   return (
     <View
       style={{
@@ -48,95 +49,111 @@ export function MaterialCard({ material, onPress }: MaterialCardProps) {
         borderColor: border,
         backgroundColor: cardBg,
         padding: spacing.md,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: spacing.md,
+        gap: spacing.sm,
       }}
     >
-      <IngredientAvatar name={material.name} size={52} />
-
-      <Pressable style={{ flex: 1, gap: 6 }} onPress={onPress}>
-        <Typography
-          variant="bodyBold"
-          color={theme.colors.text}
-          numberOfLines={1}
-          style={{ fontSize: 16 }}
-        >
-          {material.name}
-        </Typography>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-          <View
-            style={{
-              backgroundColor: c.bg,
-              paddingHorizontal: 10,
-              paddingVertical: 3,
-              borderRadius: radii.full,
-            }}
-          >
-            <Typography variant="caption" color={c.fg} style={{ fontWeight: "700" }}>
-              {badge.label}
-            </Typography>
-          </View>
-          {material.costPerUnit != null ? (
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              {formatCost(material.costPerUnit, material.unit)}
-            </Typography>
-          ) : null}
-        </View>
-        <Typography variant="caption" color={stockColor}>
-          Estoque atual: {currentStockLabel(material)}
-        </Typography>
-      </Pressable>
-
-      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-        <Pressable
-          onPress={() => step(-1)}
-          accessibilityRole="button"
-          accessibilityLabel={`Diminuir ${material.name}`}
-          style={({ pressed }) => ({
-            width: 44,
-            height: 44,
-            borderRadius: radii.md,
-            borderWidth: 1,
-            borderColor: border,
-            backgroundColor: isDark ? "rgba(255,255,255,0.04)" : theme.colors.surface,
-            alignItems: "center",
-            justifyContent: "center",
-            opacity: pressed ? 0.7 : 1,
-          })}
-        >
-          <Ionicons name="remove" size={22} color={theme.colors.text} />
-        </Pressable>
-
-        <View style={{ minWidth: 44, alignItems: "center" }}>
+      {/* Cabeçalho: avatar + nome + badge + custo */}
+      <Pressable
+        onPress={onPress}
+        style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
+      >
+        <IngredientAvatar name={material.name} size={52} />
+        <View style={{ flex: 1, gap: 4 }}>
           <Typography
             variant="bodyBold"
             color={theme.colors.text}
-            style={{ fontSize: 22, lineHeight: 26 }}
+            numberOfLines={1}
+            style={{ fontSize: 16 }}
           >
-            {formatQty(material.stockQuantity)}
+            {material.name}
           </Typography>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: spacing.sm,
+              flexWrap: "wrap",
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: c.bg,
+                paddingHorizontal: 10,
+                paddingVertical: 3,
+                borderRadius: radii.full,
+              }}
+            >
+              <Typography variant="caption" color={c.fg} style={{ fontWeight: "700" }}>
+                {badge.label}
+              </Typography>
+            </View>
+            {material.costPerUnit != null ? (
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                {formatCost(material.costPerUnit, material.unit)}
+              </Typography>
+            ) : null}
+          </View>
+        </View>
+      </Pressable>
+
+      {/* Estoque atual + controle */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: spacing.md,
+          borderTopWidth: 1,
+          borderTopColor: border,
+          paddingTop: spacing.sm,
+        }}
+      >
+        <View style={{ flex: 1 }}>
           <Typography variant="caption" color={theme.colors.textSecondary}>
-            {material.unit}
+            Estoque atual
+          </Typography>
+          <Typography variant="bodyBold" color={stockColor} style={{ fontSize: 18 }}>
+            {currentStockLabel(material)}
           </Typography>
         </View>
 
-        <Pressable
-          onPress={() => step(1)}
-          accessibilityRole="button"
-          accessibilityLabel={`Adicionar ${material.name}`}
-          style={({ pressed }) => ({
-            width: 44,
-            height: 44,
-            borderRadius: radii.md,
-            backgroundColor: theme.colors.primary,
-            alignItems: "center",
-            justifyContent: "center",
-            opacity: pressed ? 0.85 : 1,
-          })}
-        >
-          <Ionicons name="add" size={22} color={theme.colors.textOnPrimary} />
-        </Pressable>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+          <Pressable
+            onPress={() => step(-1)}
+            accessibilityRole="button"
+            accessibilityLabel={`Diminuir ${material.name}`}
+            style={({ pressed }) => ({
+              width: 48,
+              height: 48,
+              borderRadius: radii.md,
+              borderWidth: 1,
+              borderColor: border,
+              backgroundColor: minusBg,
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: pressed ? 0.7 : 1,
+            })}
+          >
+            <Ionicons name="remove" size={24} color={theme.colors.text} />
+          </Pressable>
+
+          <Pressable
+            onPress={() => step(1)}
+            accessibilityRole="button"
+            accessibilityLabel={`Adicionar ${material.name}`}
+            style={({ pressed }) => ({
+              width: 48,
+              height: 48,
+              borderRadius: radii.md,
+              backgroundColor: theme.colors.primary,
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: pressed ? 0.85 : 1,
+            })}
+          >
+            <Ionicons name="add" size={24} color={theme.colors.textOnPrimary} />
+          </Pressable>
+        </View>
       </View>
     </View>
   );
