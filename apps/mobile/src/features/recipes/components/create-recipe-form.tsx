@@ -1,7 +1,8 @@
 import { Button, Chip, Input } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
-import { Alert, ScrollView, View } from "react-native";
+import { Alert, View } from "react-native";
 
+import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
 import { YIELD_UNIT_PRESETS } from "../yield-units";
 import { useCreateRecipe } from "../hooks";
@@ -79,7 +80,9 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
   }
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 20, gap: 16 }}>
+    <KeyboardAwareScrollView
+      contentContainerStyle={{ padding: 20, paddingBottom: 80, gap: 16 }}
+    >
       <Input
         label="Nome da receita"
         placeholder="Ex: Brigadeiro, Bolo de cenoura..."
@@ -146,6 +149,6 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
         }}
         loading={createRecipe.isPending}
       />
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }

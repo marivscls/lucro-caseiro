@@ -2,10 +2,11 @@ import { Button, Input, Typography, useTheme, radii, spacing } from "@lucro-case
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Alert, Pressable, ScrollView, View } from "react-native";
+import { Alert, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BackgroundDecor, BrandMark } from "../../shared/components/auth-decor";
+import { KeyboardAwareScrollView } from "../../shared/components/keyboard-aware-scroll-view";
 import { useAuth } from "../../shared/hooks/use-auth";
 import {
   getPasswordStrength,
@@ -190,7 +191,7 @@ export default function RegisterScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <BackgroundDecor />
-      <ScrollView
+      <KeyboardAwareScrollView
         contentContainerStyle={{
           flexGrow: 1,
           justifyContent: "center",
@@ -360,7 +361,7 @@ export default function RegisterScreen() {
             </Typography>
           </Pressable>
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }

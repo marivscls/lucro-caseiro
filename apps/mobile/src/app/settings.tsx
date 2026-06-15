@@ -2,6 +2,7 @@ import {
   Badge,
   Button,
   Card,
+  Chip,
   Input,
   Typography,
   useTheme,
@@ -30,10 +31,34 @@ import { formatCurrency } from "../features/goals/domain";
 import { useProlaboreStatus } from "../features/goals/hooks";
 import { useProfile, useUpdateProfile } from "../features/subscription/hooks";
 import { useSubscription } from "../features/subscription/use-subscription";
+import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
 import { alertValidation, alertError } from "../shared/utils/alerts";
 
 const PRIVACY_POLICY_URL =
   "https://www.orionseven.com.br/lucro-caseiro/politica-de-privacidade";
+
+const BUSINESS_TYPES = [
+  { value: "food", label: "Alimentação" },
+  { value: "beauty", label: "Beleza" },
+  { value: "crafts", label: "Artesanato" },
+  { value: "services", label: "Serviços" },
+  { value: "other", label: "Outro" },
+] as const;
+
+function businessTypeLabel(value: string): string {
+  return BUSINESS_TYPES.find((type) => type.value === value)?.label ?? value;
+}
+
+function businessTypeValue(value: string): string | undefined {
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  return (
+    BUSINESS_TYPES.find(
+      (type) =>
+        type.value === trimmed || type.label.toLowerCase() === trimmed.toLowerCase(),
+    )?.value ?? trimmed
+  );
+}
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -75,7 +100,7 @@ export default function SettingsScreen() {
       await updateProfile.mutateAsync({
         name: editName.trim(),
         businessName: editBusinessName.trim() || undefined,
-        businessType: editBusinessType.trim() || undefined,
+        businessType: businessTypeValue(editBusinessType),
         phone: editPhone.trim() || undefined,
       });
       Alert.alert("Perfil atualizado!");
@@ -163,6 +188,7 @@ export default function SettingsScreen() {
           justifyContent: "center",
           alignItems: "center",
         }}
+        edges={["bottom"]}
       >
         <ActivityIndicator size="large" color={theme.colors.primary} />
       </SafeAreaView>
@@ -170,16 +196,11 @@ export default function SettingsScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      edges={["bottom"]}
+    >
       <ScrollView contentContainerStyle={{ padding: 20, gap: 20, paddingBottom: 40 }}>
-        {/* Header */}
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-          <Pressable onPress={() => router.back()} style={{ padding: 4 }}>
-            <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
-          </Pressable>
-          <Typography variant="h1">Configurações</Typography>
-        </View>
-
         {/* Profile Card */}
         <Card>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
@@ -201,7 +222,9 @@ export default function SettingsScreen() {
             <View style={{ flex: 1, gap: 2 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                 <Typography variant="h3">{userName}</Typography>
-                {businessType ? <Badge label={businessType} variant="primary" /> : null}
+                {businessType ? (
+                  <Badge label={businessTypeLabel(businessType)} variant="primary" />
+                ) : null}
               </View>
               <Typography variant="caption">{businessName}</Typography>
             </View>
@@ -539,7 +562,13 @@ export default function SettingsScreen() {
               </Typography>
             </Pressable>
           </View>
-          <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
+          <KeyboardAwareScrollView
+            contentContainerStyle={{
+              padding: spacing.xl,
+              paddingBottom: spacing["3xl"],
+              gap: spacing.lg,
+            }}
+          >
             <Typography variant="h2">Editar perfil</Typography>
             <Input label="Nome" value={editName} onChangeText={setEditName} />
             <Input
@@ -551,9 +580,20 @@ export default function SettingsScreen() {
             <Input
               label="Tipo de negócio"
               placeholder="Ex: Confeitaria, Artesanato..."
-              value={editBusinessType}
-              onChangeText={setEditBusinessType}
+              value={editBusinessType ? businessTypeLabel(editBusinessType) : ""}
+              editable={false}
+              selectTextOnFocus={false}
             />
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+              {BUSINESS_TYPES.map((type) => (
+                <Chip
+                  key={type.value}
+                  label={type.label}
+                  selected={editBusinessType === type.value}
+                  onPress={() => setEditBusinessType(type.value)}
+                />
+              ))}
+            </View>
             <Input
               label="Telefone"
               placeholder="Ex: (11) 99999-9999"
@@ -569,7 +609,7 @@ export default function SettingsScreen() {
               }}
               loading={updateProfile.isPending}
             />
-          </ScrollView>
+          </KeyboardAwareScrollView>
         </SafeAreaView>
       </Modal>
     </SafeAreaView>

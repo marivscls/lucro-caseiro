@@ -1,5 +1,4 @@
 import type { Order } from "@lucro-caseiro/contracts";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
@@ -22,6 +21,28 @@ import { uploadOrderImage } from "../../../shared/utils/upload-image";
 import { useCreateOrder, useDeleteOrder, useUpdateOrder } from "../hooks";
 import { FormSection } from "../../../shared/components/form-section";
 import { alertValidation } from "../../../shared/utils/alerts";
+import {
+  currencyInput,
+  maskCurrencyInput,
+  parseCurrencyInput,
+} from "../../../shared/utils/currency-input";
+
+type DateTimePickerEvent = { type?: string };
+type NativeDatePicker = React.ComponentType<{
+  value: Date;
+  mode: "date";
+  display: "spinner" | "default";
+  onChange: (event: DateTimePickerEvent, date?: Date) => void;
+}>;
+
+function getNativeDatePicker(): NativeDatePicker | null {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require("@react-native-community/datetimepicker").default as NativeDatePicker;
+  } catch {
+    return null;
+  }
+}
 
 interface OrderFormProps {
   readonly order?: Order | null;
@@ -119,11 +140,12 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
   );
   const [time, setTime] = useState(order?.deliveryTime ?? "");
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const DateTimePicker = showDatePicker ? getNativeDatePicker() : null;
   const [amount, setAmount] = useState(
-    order?.amount != null ? String(order.amount).replace(".", ",") : "",
+    order?.amount != null ? currencyInput(order.amount) : "",
   );
   const [deposit, setDeposit] = useState(
-    order?.deposit != null ? String(order.deposit).replace(".", ",") : "",
+    order?.deposit != null ? currencyInput(order.deposit) : "",
   );
   const [orderTheme, setOrderTheme] = useState(order?.theme ?? "");
   const [honoree, setHonoree] = useState(order?.honoree ?? "");
@@ -141,6 +163,14 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
   const isSaving =
     createOrder.isPending || updateOrder.isPending || deleteOrder.isPending || uploading;
 
+  function openDatePicker() {
+    if (!getNativeDatePicker()) {
+      Alert.alert("Calendario indisponivel", "Digite a data no formato DD/MM/AAAA.");
+      return;
+    }
+    setShowDatePicker(true);
+  }
+
   async function handleSave() {
     if (!title.trim()) {
       alertValidation("Dê um nome para a encomenda.");
@@ -156,10 +186,8 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
       return;
     }
 
-    const parsedAmount = amount.trim() ? parseFloat(amount.replace(",", ".")) : undefined;
-    const parsedDeposit = deposit.trim()
-      ? parseFloat(deposit.replace(",", "."))
-      : undefined;
+    const parsedAmount = amount.trim() ? parseCurrencyInput(amount) : undefined;
+    const parsedDeposit = deposit.trim() ? parseCurrencyInput(deposit) : undefined;
     if (
       parsedDeposit !== undefined &&
       parsedAmount !== undefined &&
@@ -238,7 +266,7 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ flex: 1 }}
     >
       <ScrollView
@@ -452,13 +480,13 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
             <Field
               icon="calendar-outline"
               trailingIcon="calendar-outline"
-              onTrailingPress={() => setShowDatePicker(true)}
+              onTrailingPress={openDatePicker}
               value={dateText}
               onChangeText={(v) => setDateText(maskDateBR(v))}
               keyboardType="number-pad"
               placeholder="DD/MM/AAAA"
             />
-            {showDatePicker && (
+            {showDatePicker && DateTimePicker && (
               <DateTimePicker
                 value={(() => {
                   const iso = brToIso(dateText);
@@ -499,8 +527,8 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
               icon="cash-outline"
               placeholder="Ex: 120,00"
               value={amount}
-              onChangeText={setAmount}
-              keyboardType="decimal-pad"
+              onChangeText={(value) => setAmount(maskCurrencyInput(value))}
+              keyboardType="numeric"
             />
           </View>
 
@@ -512,8 +540,8 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
               icon="wallet-outline"
               placeholder="Ex: 60,00 — entrada já paga"
               value={deposit}
-              onChangeText={setDeposit}
-              keyboardType="decimal-pad"
+              onChangeText={(value) => setDeposit(maskCurrencyInput(value))}
+              keyboardType="numeric"
             />
           </View>
 

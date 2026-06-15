@@ -15,20 +15,13 @@ import {
 } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  Pressable,
-  ScrollView,
-  Share,
-  Switch,
-  View,
-} from "react-native";
+import { ActivityIndicator, Image, Pressable, Share, Switch, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { publicCatalogUrl } from "../features/catalog/api";
 import { ColorPickerModal } from "../shared/components/color-picker-modal";
 import { HeroPreview } from "../features/catalog/components/hero-preview";
+import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
 import { useCatalogSettings, useUpdateCatalogSettings } from "../features/catalog/hooks";
 import { useProfile } from "../features/subscription/hooks";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
@@ -208,7 +201,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
   const heroBg = isDark ? "rgba(44, 36, 32, 0.85)" : theme.colors.surfaceElevated;
 
   return (
-    <ScrollView
+    <KeyboardAwareScrollView
       contentContainerStyle={{
         padding: spacing.xl,
         paddingBottom: spacing["4xl"],
@@ -702,7 +695,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
           Aparecem no catálogo todos os seus produtos ativos, com foto, descrição e preço.
         </Typography>
       </View>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }
 
@@ -742,7 +735,10 @@ export default function CatalogScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      edges={["bottom"]}
+    >
       {content}
     </SafeAreaView>
   );

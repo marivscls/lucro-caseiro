@@ -1,11 +1,17 @@
 import type { ProlaboreGoal } from "@lucro-caseiro/contracts";
 import { Button, Input, Typography, useTheme, spacing } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
-import { Alert, ScrollView } from "react-native";
+import { Alert } from "react-native";
 
+import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { useDeleteProlaboreGoal, useUpsertProlaboreGoal } from "../hooks";
 import { showToast } from "../../../shared/components/toast";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
+import {
+  currencyInput,
+  maskCurrencyInput,
+  parseCurrencyInput,
+} from "../../../shared/utils/currency-input";
 
 interface ProlaboreGoalFormProps {
   readonly config: ProlaboreGoal | null;
@@ -13,11 +19,11 @@ interface ProlaboreGoalFormProps {
 }
 
 function parseMoney(value: string): number {
-  return parseFloat(value.replace(",", "."));
+  return parseCurrencyInput(value);
 }
 
 function initial(value: number | null): string {
-  return value != null ? String(value).replace(".", ",") : "";
+  return value != null ? currencyInput(value) : "";
 }
 
 export function ProlaboreGoalForm({ config, onSuccess }: ProlaboreGoalFormProps) {
@@ -72,7 +78,13 @@ export function ProlaboreGoalForm({ config, onSuccess }: ProlaboreGoalFormProps)
   }
 
   return (
-    <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
+    <KeyboardAwareScrollView
+      contentContainerStyle={{
+        padding: spacing.xl,
+        paddingBottom: spacing["3xl"],
+        gap: spacing.lg,
+      }}
+    >
       <Typography variant="h2">Meta de pro-labore</Typography>
       <Typography variant="caption" color={theme.colors.textSecondary}>
         Defina quanto você quer ganhar por mês e o app mostra quanto falta vender pra
@@ -83,23 +95,23 @@ export function ProlaboreGoalForm({ config, onSuccess }: ProlaboreGoalFormProps)
         label="Quanto você quer ganhar por mês? (R$)"
         placeholder="Ex: 2.000,00"
         value={goal}
-        onChangeText={setGoal}
-        keyboardType="decimal-pad"
+        onChangeText={(value) => setGoal(maskCurrencyInput(value))}
+        keyboardType="numeric"
         autoFocus
       />
       <Input
         label="Custos fixos do mês (opcional)"
         placeholder="Aluguel, gas, energia..."
         value={costs}
-        onChangeText={setCosts}
-        keyboardType="decimal-pad"
+        onChangeText={(value) => setCosts(maskCurrencyInput(value))}
+        keyboardType="numeric"
       />
       <Input
         label="Preço médio por venda (opcional)"
         placeholder="Deixe vazio para calcular automático"
         value={ticket}
-        onChangeText={setTicket}
-        keyboardType="decimal-pad"
+        onChangeText={(value) => setTicket(maskCurrencyInput(value))}
+        keyboardType="numeric"
       />
 
       <Button
@@ -118,6 +130,6 @@ export function ProlaboreGoalForm({ config, onSuccess }: ProlaboreGoalFormProps)
           loading={remove.isPending}
         />
       )}
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }

@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useUpdateProfile } from "../features/subscription/hooks";
 import { BackgroundDecor, BrandMark } from "../shared/components/auth-decor";
 import { Illustration } from "../shared/components/illustrations";
+import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
 import { useAuth } from "../shared/hooks/use-auth";
 import { useOnboarding } from "../shared/hooks/use-onboarding";
 
@@ -305,7 +306,7 @@ function BusinessNameStep({
     <View style={{ flex: 1 }}>
       <StepHeader onBack={onBack} />
 
-      <ScrollView
+      <KeyboardAwareScrollView
         contentContainerStyle={{
           flexGrow: 1,
           padding: spacing["2xl"],
@@ -333,7 +334,7 @@ function BusinessNameStep({
           onChangeText={setName}
           autoFocus
         />
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <View
         style={{

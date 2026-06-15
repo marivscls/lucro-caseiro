@@ -85,7 +85,9 @@ interface AuthState {
     name: string,
     businessName?: string,
   ) => Promise<{ error?: string }>;
-  signInWithGoogle: () => Promise<{ error?: string }>;
+  signInWithGoogle: (options?: {
+    completeOnboardingForExistingAccount?: boolean;
+  }) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
 }
 
@@ -179,6 +181,7 @@ export const useAuth = create<AuthState>((set) => ({
       return { error: "Erro ao entrar. Tente novamente." };
     }
 
+    useOnboarding.getState().completeOnboarding();
     return {};
   },
 
@@ -214,9 +217,11 @@ export const useAuth = create<AuthState>((set) => ({
     return {};
   },
 
-  signInWithGoogle: async () => {
+  signInWithGoogle: async (options) => {
     try {
       const authRedirectUrl = getAuthRedirectUrl();
+      const completeOnboardingForExistingAccount =
+        options?.completeOnboardingForExistingAccount ?? false;
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -234,6 +239,9 @@ export const useAuth = create<AuthState>((set) => ({
 
       if (result.type === "success" && result.url) {
         const ok = await applySessionFromUrl(result.url);
+        if (ok && completeOnboardingForExistingAccount) {
+          useOnboarding.getState().completeOnboarding();
+        }
         return ok ? {} : { error: "Erro ao finalizar login com Google." };
       }
 
@@ -245,7 +253,12 @@ export const useAuth = create<AuthState>((set) => ({
         for (let i = 0; i < 10; i++) {
           await new Promise((resolve) => setTimeout(resolve, 400));
           const { data: after } = await supabase.auth.getSession();
-          if (after.session) return {};
+          if (after.session) {
+            if (completeOnboardingForExistingAccount) {
+              useOnboarding.getState().completeOnboarding();
+            }
+            return {};
+          }
         }
         return { error: "Login cancelado." };
       }

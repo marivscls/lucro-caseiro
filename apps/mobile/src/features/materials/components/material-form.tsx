@@ -1,10 +1,16 @@
 import type { Material } from "@lucro-caseiro/contracts";
 import { Button, Input, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
-import { Alert, Pressable, ScrollView, View } from "react-native";
+import { Alert, Pressable, View } from "react-native";
 
+import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { useCreateMaterial, useDeleteMaterial, useUpdateMaterial } from "../hooks";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
+import {
+  currencyInput,
+  maskCurrencyInput,
+  parseCurrencyInput,
+} from "../../../shared/utils/currency-input";
 
 interface MaterialFormProps {
   readonly material?: Material | null;
@@ -33,7 +39,7 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
       : "",
   );
   const [cost, setCost] = useState(
-    material?.costPerUnit != null ? String(material.costPerUnit).replace(".", ",") : "",
+    material?.costPerUnit != null ? currencyInput(material.costPerUnit) : "",
   );
   const [contentPerUnit, setContentPerUnit] = useState(
     material?.contentPerUnit != null
@@ -68,7 +74,7 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
       unit: unit.trim() || "un",
       stockQuantity: parseNum(stock) ?? 0,
       stockAlertThreshold: parseNum(alertThreshold),
-      costPerUnit: parseNum(cost),
+      costPerUnit: cost.trim() ? parseCurrencyInput(cost) : undefined,
       contentPerUnit: contentValue ?? null,
       contentUnit: contentUnitTrimmed || null,
       notes: notes.trim() || undefined,
@@ -100,7 +106,13 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
   }
 
   return (
-    <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
+    <KeyboardAwareScrollView
+      contentContainerStyle={{
+        padding: spacing.xl,
+        paddingBottom: spacing["3xl"],
+        gap: spacing.lg,
+      }}
+    >
       <Input
         label="Nome do insumo"
         placeholder="Ex: Farinha de trigo"
@@ -155,8 +167,8 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
         label="Custo por unidade (opcional)"
         placeholder="Ex: 4,50"
         value={cost}
-        onChangeText={setCost}
-        keyboardType="decimal-pad"
+        onChangeText={(value) => setCost(maskCurrencyInput(value))}
+        keyboardType="numeric"
       />
       <View style={{ gap: spacing.sm }}>
         <Typography variant="caption">Conteúdo por unidade (opcional)</Typography>
@@ -212,6 +224,6 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
           loading={deleteMaterial.isPending}
         />
       ) : null}
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }

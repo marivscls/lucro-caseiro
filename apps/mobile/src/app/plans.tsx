@@ -37,7 +37,10 @@ export default function PlansScreen() {
   const isPremium = profile?.plan === "premium";
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      edges={["bottom"]}
+    >
       <ScrollView
         contentContainerStyle={{
           padding: spacing.xl,

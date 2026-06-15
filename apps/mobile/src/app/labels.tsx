@@ -34,6 +34,7 @@ import { cleanNutrition } from "../features/labels/nutrition";
 import { NutritionFields } from "../features/labels/components/nutrition-fields";
 import { normalizeLink } from "../features/labels/qr";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
+import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
 import { maskPhoneBR } from "../shared/utils/phone";
 import { uploadLabelLogo } from "../shared/utils/upload-image";
 import { Ionicons } from "@expo/vector-icons";
@@ -237,7 +238,13 @@ function LabelDetailModal({
         )}
 
         {!isLoading && label && editing && (
-          <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
+          <KeyboardAwareScrollView
+            contentContainerStyle={{
+              padding: spacing.xl,
+              paddingBottom: spacing["3xl"],
+              gap: spacing.lg,
+            }}
+          >
             <Typography variant="h2">Editar rótulo</Typography>
             <Input label="Nome do rótulo" value={name} onChangeText={setName} />
             <TemplatePicker selected={templateId} onSelect={setTemplateId} />
@@ -372,7 +379,7 @@ function LabelDetailModal({
               variant="secondary"
               onPress={() => setEditing(false)}
             />
-          </ScrollView>
+          </KeyboardAwareScrollView>
         )}
 
         {!isLoading && label && !editing && (
@@ -481,7 +488,10 @@ export default function LabelsScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      edges={["bottom"]}
+    >
       {renderContent()}
 
       {/* FAB */}

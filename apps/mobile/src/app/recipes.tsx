@@ -28,7 +28,10 @@ export default function RecipesScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      edges={["bottom"]}
+    >
       <View style={{ flex: 1 }}>
         <RecipeList
           onRecipePress={(id) => setModal({ type: "detail", recipeId: id })}

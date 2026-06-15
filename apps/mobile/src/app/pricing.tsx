@@ -166,7 +166,10 @@ export default function PricingScreen() {
   const [showHistory, setShowHistory] = useState(false);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      edges={["bottom"]}
+    >
       <View
         style={{
           flexDirection: "row",

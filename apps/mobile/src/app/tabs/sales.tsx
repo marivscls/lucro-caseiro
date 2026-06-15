@@ -18,7 +18,6 @@ import {
   FlatList,
   Modal,
   Pressable,
-  ScrollView,
   TextInput,
   View,
   type ViewStyle,
@@ -34,6 +33,7 @@ import { useSale, useSales, useUpdateSale } from "../../features/sales/hooks";
 import { PAYMENT_OPTIONS } from "../../features/sales/payment";
 import { useAuth } from "../../shared/hooks/use-auth";
 import { useProfile } from "../../features/subscription/hooks";
+import { KeyboardAwareScrollView } from "../../shared/components/keyboard-aware-scroll-view";
 import { alertError } from "../../shared/utils/alerts";
 
 type FilterTab = "all" | "paid" | "pending" | "cancelled";
@@ -948,7 +948,13 @@ export default function SalesScreen() {
             <Typography variant="h3">Editar venda</Typography>
             <View style={{ width: 60 }} />
           </View>
-          <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
+          <KeyboardAwareScrollView
+            contentContainerStyle={{
+              padding: spacing.xl,
+              paddingBottom: spacing["3xl"],
+              gap: spacing.lg,
+            }}
+          >
             <View style={{ gap: spacing.sm }}>
               <Typography variant="caption">Forma de pagamento</Typography>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
@@ -979,7 +985,7 @@ export default function SalesScreen() {
               }}
               loading={updateSale.isPending}
             />
-          </ScrollView>
+          </KeyboardAwareScrollView>
         </SafeAreaView>
       </Modal>
     </SafeAreaView>

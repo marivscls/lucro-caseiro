@@ -1,27 +1,35 @@
-import DateTimePicker, {
-  type DateTimePickerEvent,
-} from "@react-native-community/datetimepicker";
 import { Input, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Platform, Pressable, type ViewStyle } from "react-native";
+import { Alert, Platform, Pressable, type ViewStyle } from "react-native";
 
 import { brToIso, maskDateBR } from "../utils/date";
 
+type DateTimePickerEvent = { type?: string };
+type NativeDatePicker = React.ComponentType<{
+  value: Date;
+  mode: "date";
+  display: "spinner" | "default";
+  onChange: (event: DateTimePickerEvent, date?: Date) => void;
+}>;
+
+function getNativeDatePicker(): NativeDatePicker | null {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require("@react-native-community/datetimepicker").default as NativeDatePicker;
+  } catch {
+    return null;
+  }
+}
+
 interface DateFieldProps {
   label: string;
-  /** Data em DD/MM/AAAA (mesmo formato dos states existentes). */
   value: string;
   onChange: (br: string) => void;
   placeholder?: string;
   containerStyle?: ViewStyle;
 }
 
-/**
- * Campo de data com digitação mascarada (DD/MM/AAAA) e seletor nativo
- * pelo ícone de calendário — quem não enxerga bem ou não sabe digitar
- * a data consegue escolher tocando.
- */
 export function DateField({
   label,
   value,
@@ -31,9 +39,18 @@ export function DateField({
 }: Readonly<DateFieldProps>) {
   const { theme } = useTheme();
   const [showPicker, setShowPicker] = useState(false);
+  const DateTimePicker = showPicker ? getNativeDatePicker() : null;
 
   const iso = brToIso(value);
   const pickerDate = iso ? new Date(`${iso}T12:00:00`) : new Date();
+
+  function openPicker() {
+    if (!getNativeDatePicker()) {
+      Alert.alert("Calendario indisponivel", "Digite a data no formato DD/MM/AAAA.");
+      return;
+    }
+    setShowPicker(true);
+  }
 
   function handlePicked(event: DateTimePickerEvent, date?: Date) {
     setShowPicker(Platform.OS === "ios");
@@ -56,16 +73,16 @@ export function DateField({
         containerStyle={containerStyle}
         icon={
           <Pressable
-            onPress={() => setShowPicker(true)}
+            onPress={openPicker}
             accessibilityRole="button"
-            accessibilityLabel={`Escolher ${label} no calendário`}
+            accessibilityLabel={`Escolher ${label} no calendario`}
             hitSlop={12}
           >
             <Ionicons name="calendar-outline" size={22} color={theme.colors.primary} />
           </Pressable>
         }
       />
-      {showPicker && (
+      {showPicker && DateTimePicker && (
         <DateTimePicker
           value={pickerDate}
           mode="date"

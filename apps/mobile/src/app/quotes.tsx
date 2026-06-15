@@ -41,6 +41,7 @@ import { brToIso } from "../shared/utils/date";
 import { formatCurrency } from "../shared/utils/format";
 import { openWhatsAppShare } from "../shared/utils/whatsapp";
 import { alertValidation, alertError } from "../shared/utils/alerts";
+import { maskCurrencyInput, parseCurrencyInput } from "../shared/utils/currency-input";
 
 const STATUS_META: Record<
   QuoteStatusType,
@@ -62,10 +63,10 @@ function QuoteCard({ quote, onPress }: Readonly<{ quote: Quote; onPress: () => v
   const { theme } = useTheme();
   const meta = STATUS_META[quote.status];
   return (
-    <Card onPress={onPress}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+    <Card onPress={onPress} padding="lg">
+      <View style={{ gap: spacing.sm }}>
         <View style={{ flex: 1, gap: 2 }}>
-          <Typography variant="h3" numberOfLines={1}>
+          <Typography variant="h3" numberOfLines={2} style={{ lineHeight: 25 }}>
             {quote.title}
           </Typography>
           <Typography variant="caption" numberOfLines={1}>
@@ -106,9 +107,7 @@ function ConvertModal({
       alertValidation("Informe a data de entrega no formato DD/MM/AAAA.");
       return;
     }
-    const parsedDeposit = deposit.trim()
-      ? parseFloat(deposit.replace(",", "."))
-      : undefined;
+    const parsedDeposit = deposit.trim() ? parseCurrencyInput(deposit) : undefined;
     if (parsedDeposit !== undefined && Number.isNaN(parsedDeposit)) {
       alertValidation("Sinal inválido.");
       return;
@@ -154,8 +153,8 @@ function ConvertModal({
             label="Sinal recebido (opcional)"
             placeholder="Ex.: 60,00"
             value={deposit}
-            onChangeText={setDeposit}
-            keyboardType="decimal-pad"
+            onChangeText={(value) => setDeposit(maskCurrencyInput(value))}
+            keyboardType="numeric"
           />
           <Button
             title="Criar encomenda"
@@ -389,14 +388,12 @@ export default function QuotesScreen() {
   const selected = quotes.find((q) => q.id === selectedId) ?? null;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      edges={["bottom"]}
+    >
       <View style={{ flex: 1, padding: spacing.xl, gap: spacing.md }}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={{ flexGrow: 0 }}
-          contentContainerStyle={{ gap: spacing.sm }}
-        >
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
           {FILTERS.map((f) => {
             const active = filter === f.key;
             return (
@@ -407,8 +404,10 @@ export default function QuotesScreen() {
                 accessibilityState={{ selected: active }}
                 style={{
                   minHeight: 44,
-                  paddingHorizontal: spacing.lg,
+                  width: "48%",
+                  paddingHorizontal: spacing.md,
                   borderRadius: radii.full,
+                  alignItems: "center",
                   justifyContent: "center",
                   backgroundColor: active ? theme.colors.primary : theme.colors.surface,
                 }}
@@ -422,7 +421,7 @@ export default function QuotesScreen() {
               </Pressable>
             );
           })}
-        </ScrollView>
+        </View>
 
         {isLoading && (
           <ActivityIndicator

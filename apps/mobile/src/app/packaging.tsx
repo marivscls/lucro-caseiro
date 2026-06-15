@@ -23,6 +23,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CreatePackagingForm } from "../features/packaging/components/create-packaging-form";
+import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
 import { Illustration } from "../shared/components/illustrations";
 import {
   useDeletePackaging,
@@ -31,6 +32,11 @@ import {
   useUpdatePackaging,
 } from "../features/packaging/hooks";
 import { alertValidation, alertError } from "../shared/utils/alerts";
+import {
+  currencyInput,
+  maskCurrencyInput,
+  parseCurrencyInput,
+} from "../shared/utils/currency-input";
 
 const TYPE_LABELS: Record<string, string> = {
   box: "Caixa",
@@ -73,13 +79,13 @@ function PackagingDetailModal({
   function startEditing(p: Packaging) {
     setName(p.name);
     setType(p.type);
-    setUnitCost(String(p.unitCost).replace(".", ","));
+    setUnitCost(currencyInput(p.unitCost));
     setSupplier(p.supplier ?? "");
     setEditing(true);
   }
 
   async function handleSave() {
-    const cost = parseFloat(unitCost.replace(",", "."));
+    const cost = parseCurrencyInput(unitCost);
     if (!name.trim()) {
       alertValidation("Coloque o nome da embalagem");
       return;
@@ -158,7 +164,13 @@ function PackagingDetailModal({
         )}
 
         {!isLoading && pkg && editing && (
-          <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
+          <KeyboardAwareScrollView
+            contentContainerStyle={{
+              padding: spacing.xl,
+              paddingBottom: spacing["3xl"],
+              gap: spacing.lg,
+            }}
+          >
             <Typography variant="h2">Editar embalagem</Typography>
             <Input label="Nome" value={name} onChangeText={setName} />
             <View style={{ gap: spacing.sm }}>
@@ -193,8 +205,8 @@ function PackagingDetailModal({
             <Input
               label="Custo unitario (R$)"
               value={unitCost}
-              onChangeText={setUnitCost}
-              keyboardType="decimal-pad"
+              onChangeText={(value) => setUnitCost(maskCurrencyInput(value))}
+              keyboardType="numeric"
             />
             <Input label="Fornecedor" value={supplier} onChangeText={setSupplier} />
             <Button
@@ -210,7 +222,7 @@ function PackagingDetailModal({
               variant="secondary"
               onPress={() => setEditing(false)}
             />
-          </ScrollView>
+          </KeyboardAwareScrollView>
         )}
 
         {!isLoading && pkg && !editing && (
@@ -257,7 +269,10 @@ export default function PackagingScreen() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      edges={["bottom"]}
+    >
       {isLoading && (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
           <ActivityIndicator size="large" color={theme.colors.primary} />

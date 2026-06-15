@@ -1,8 +1,9 @@
 import type { Recipe } from "@lucro-caseiro/contracts";
 import { Button, Chip, Input } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
-import { Alert, ScrollView, View } from "react-native";
+import { Alert, View } from "react-native";
 
+import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { YIELD_UNIT_PRESETS } from "../yield-units";
 import { useUpdateRecipe } from "../hooks";
 import {
@@ -83,7 +84,9 @@ export function EditRecipeForm({ recipe, onSuccess }: EditRecipeFormProps) {
   }
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 20, gap: 16 }}>
+    <KeyboardAwareScrollView
+      contentContainerStyle={{ padding: 20, paddingBottom: 80, gap: 16 }}
+    >
       <Input label="Nome da receita" value={name} onChangeText={setName} autoFocus />
       <Input label="Categoria" value={category} onChangeText={setCategory} />
       <Input
@@ -130,6 +133,6 @@ export function EditRecipeForm({ recipe, onSuccess }: EditRecipeFormProps) {
         }}
         loading={updateRecipe.isPending}
       />
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }

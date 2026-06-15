@@ -1,10 +1,15 @@
 import { Button, Input, Typography, useTheme, spacing } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
-import { Alert, Pressable, ScrollView, View } from "react-native";
+import { Alert, Pressable, View } from "react-native";
 
+import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
 import { useCreatePackaging } from "../hooks";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
+import {
+  maskCurrencyInput,
+  parseCurrencyInput,
+} from "../../../shared/utils/currency-input";
 
 interface CreatePackagingFormProps {
   readonly onSuccess?: () => void;
@@ -36,7 +41,7 @@ export function CreatePackagingForm({ onSuccess }: CreatePackagingFormProps) {
       alertValidation("Coloque o nome da embalagem");
       return;
     }
-    const cost = parseFloat(unitCost.replace(",", "."));
+    const cost = parseCurrencyInput(unitCost);
     if (isNaN(cost) || cost <= 0) {
       alertValidation("O custo precisa ser maior que zero");
       return;
@@ -58,7 +63,13 @@ export function CreatePackagingForm({ onSuccess }: CreatePackagingFormProps) {
   }
 
   return (
-    <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
+    <KeyboardAwareScrollView
+      contentContainerStyle={{
+        padding: spacing.xl,
+        paddingBottom: spacing["3xl"],
+        gap: spacing.lg,
+      }}
+    >
       <Typography variant="h2">Nova embalagem</Typography>
 
       <Input
@@ -103,8 +114,8 @@ export function CreatePackagingForm({ onSuccess }: CreatePackagingFormProps) {
         label="Custo unitario (R$)"
         placeholder="Ex: 1,50"
         value={unitCost}
-        onChangeText={setUnitCost}
-        keyboardType="decimal-pad"
+        onChangeText={(value) => setUnitCost(maskCurrencyInput(value))}
+        keyboardType="numeric"
       />
 
       <Input
@@ -122,6 +133,6 @@ export function CreatePackagingForm({ onSuccess }: CreatePackagingFormProps) {
         }}
         loading={createPackaging.isPending}
       />
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }

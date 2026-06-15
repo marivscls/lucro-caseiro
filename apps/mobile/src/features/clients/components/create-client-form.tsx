@@ -1,7 +1,8 @@
 import { Button, Input, Typography } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
-import { Alert, ScrollView } from "react-native";
+import { Alert } from "react-native";
 
+import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
 import { brToIso, maskDateBR } from "../../../shared/utils/date";
 import { isValidBrazilPhone, maskPhoneBR } from "../../../shared/utils/phone";
@@ -62,7 +63,9 @@ export function CreateClientForm({ onSuccess }: Readonly<CreateClientFormProps>)
   }
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 20, gap: 16 }}>
+    <KeyboardAwareScrollView
+      contentContainerStyle={{ padding: 20, paddingBottom: 80, gap: 16 }}
+    >
       <Typography variant="h2">Novo cliente</Typography>
 
       <Input
@@ -116,6 +119,6 @@ export function CreateClientForm({ onSuccess }: Readonly<CreateClientFormProps>)
         }}
         loading={createClient.isPending}
       />
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }

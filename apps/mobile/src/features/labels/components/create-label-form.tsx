@@ -2,8 +2,9 @@ import type { LabelData } from "@lucro-caseiro/contracts";
 import { Button, Input, Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Alert, Image, Pressable, ScrollView, View } from "react-native";
+import { Alert, Image, Pressable, View } from "react-native";
 
+import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { maskPhoneBR } from "../../../shared/utils/phone";
 import { uploadLabelLogo } from "../../../shared/utils/upload-image";
@@ -155,7 +156,9 @@ export function CreateLabelForm({
   }
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 20, gap: 20 }}>
+    <KeyboardAwareScrollView
+      contentContainerStyle={{ padding: 20, paddingBottom: 80, gap: 20 }}
+    >
       <Typography variant="h2">Novo rótulo</Typography>
 
       <Input
@@ -340,6 +343,6 @@ export function CreateLabelForm({
           loading={createLabel.isPending || uploading}
         />
       </View>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }

@@ -928,15 +928,17 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
         </View>
 
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={{ flex: 1 }}
         >
-          <View
-            style={{
-              flex: 1,
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              flexGrow: 1,
               paddingHorizontal: spacing.xl,
               paddingTop: spacing.md,
-              paddingBottom: spacing.lg,
+              paddingBottom: spacing["5xl"],
               gap: spacing.md,
             }}
           >
@@ -1070,7 +1072,7 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
                 Cadastrar cliente
               </Typography>
             </Pressable>
-          </View>
+          </ScrollView>
         </KeyboardAvoidingView>
         <CalendarModal
           visible={calendarVisible}

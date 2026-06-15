@@ -16,6 +16,10 @@ import {
 } from "react-native";
 
 import { brToIso, maskDateBR } from "../../../shared/utils/date";
+import {
+  maskCurrencyInput,
+  parseCurrencyInput,
+} from "../../../shared/utils/currency-input";
 import { useCreateFinanceEntry } from "../hooks";
 import { showToast } from "../../../shared/components/toast";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
@@ -448,22 +452,6 @@ function CalendarModal({
   );
 }
 
-function maskCurrencyInput(value: string) {
-  const digits = value.replace(/\D/g, "").slice(0, 10);
-  if (!digits) return "";
-
-  const cents = Number(digits);
-  const fixed = (cents / 100).toFixed(2);
-  const [intPart, decimalPart] = fixed.split(".");
-  const withThousands = withThousandsSep(intPart);
-  return `${withThousands},${decimalPart}`;
-}
-
-function parseCurrencyInput(value: string) {
-  const normalized = value.replace(/\./g, "").replace(",", ".");
-  return Number.parseFloat(normalized);
-}
-
 function dateToCalendarMonth(value: string) {
   const iso = brToIso(value);
   if (!iso) return new Date();
@@ -496,15 +484,6 @@ function formatIsoDate(date: Date) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${date.getFullYear()}-${month}-${day}`;
-}
-
-function withThousandsSep(intPart: string) {
-  let out = "";
-  for (let index = 0; index < intPart.length; index += 1) {
-    if (index > 0 && (intPart.length - index) % 3 === 0) out += ".";
-    out += intPart[index];
-  }
-  return out;
 }
 
 const styles = StyleSheet.create({
