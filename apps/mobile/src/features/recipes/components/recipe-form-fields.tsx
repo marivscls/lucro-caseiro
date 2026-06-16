@@ -358,14 +358,13 @@ export function RecipePhotoField({
         borderColor: pal.border,
         backgroundColor: pal.fieldBg,
         overflow: "hidden",
-        minHeight: 96,
         justifyContent: "center",
       }}
     >
       {imageUri ? (
         <Image
           source={{ uri: imageUri }}
-          style={{ width: "100%", height: 180 }}
+          style={{ width: "100%", height: 150 }}
           resizeMode="cover"
         />
       ) : (
@@ -374,27 +373,27 @@ export function RecipePhotoField({
             flexDirection: "row",
             alignItems: "center",
             paddingHorizontal: spacing.md,
-            paddingVertical: spacing.lg,
-            gap: spacing.md,
+            paddingVertical: spacing.md,
+            gap: spacing.sm,
           }}
         >
           <View
             style={{
-              width: 56,
-              height: 56,
+              width: 40,
+              height: 40,
               borderRadius: radii.md,
               backgroundColor: `${theme.colors.primary}22`,
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Ionicons name="camera-outline" size={28} color={theme.colors.primary} />
+            <Ionicons name="camera-outline" size={22} color={theme.colors.primary} />
           </View>
           <View style={{ flex: 1 }}>
             <Typography
               variant="bodyBold"
               color={theme.colors.text}
-              style={{ fontSize: 15 }}
+              style={{ fontSize: 14 }}
             >
               Adicionar foto
             </Typography>
