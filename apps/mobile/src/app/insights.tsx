@@ -7,9 +7,11 @@ import {
   spacing,
   radii,
 } from "@lucro-caseiro/ui";
+import { Ionicons } from "@expo/vector-icons";
+import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { MonthlyBars } from "../features/insights/components/monthly-bars";
 import { RankBars, type RankRow } from "../features/insights/components/rank-bars";
@@ -22,18 +24,75 @@ const WINDOWS = [3, 6, 12] as const;
 function StatCard({
   label,
   value,
-  color,
-}: Readonly<{ label: string; value: string; color?: string }>) {
+  icon,
+  tint,
+  iconColor,
+  valueColor,
+}: Readonly<{
+  label: string;
+  value: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  tint: string;
+  iconColor: string;
+  valueColor?: string;
+}>) {
   const { theme } = useTheme();
   return (
-    <Card variant="surface" padding="lg" style={{ flex: 1 }}>
-      <Typography variant="label" style={{ marginBottom: spacing.xs }}>
-        {label}
-      </Typography>
-      <Typography variant="moneyLg" color={color ?? theme.colors.text}>
+    <Card variant="surface" padding="lg" style={{ flex: 1, gap: spacing.sm }}>
+      <View
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: radii.full,
+          backgroundColor: tint,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Ionicons name={icon} size={22} color={iconColor} />
+      </View>
+      <Typography variant="label">{label}</Typography>
+      <Typography variant="moneyLg" color={valueColor ?? theme.colors.text}>
         {value}
       </Typography>
     </Card>
+  );
+}
+
+function SectionTitle({
+  icon,
+  title,
+  tint,
+  iconColor,
+}: Readonly<{
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  tint: string;
+  iconColor: string;
+}>) {
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: spacing.sm,
+        marginBottom: spacing.lg,
+      }}
+    >
+      <View
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: radii.full,
+          backgroundColor: tint,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Ionicons name={icon} size={18} color={iconColor} />
+      </View>
+      <Typography variant="h3">{title}</Typography>
+    </View>
   );
 }
 
@@ -54,10 +113,11 @@ function WindowSelector({
             accessibilityState={{ selected: active }}
             accessibilityLabel={`Últimos ${w} meses`}
             style={({ pressed }) => ({
-              minHeight: 40,
+              flex: 1,
+              minHeight: 42,
+              alignItems: "center",
               justifyContent: "center",
               paddingHorizontal: spacing.lg,
-              paddingVertical: spacing.sm,
               borderRadius: radii.full,
               backgroundColor: active ? theme.colors.primary : theme.colors.surface,
               opacity: pressed ? 0.7 : 1,
@@ -101,33 +161,57 @@ function InsightsContent({ data }: Readonly<{ data: Insights }>) {
         <StatCard
           label="FATURAMENTO"
           value={formatMoney(data.totalRevenue)}
-          color={theme.colors.success}
+          icon="cash-outline"
+          tint={theme.colors.successBg}
+          iconColor={theme.colors.success}
+          valueColor={theme.colors.success}
         />
-        <StatCard label="VENDAS" value={String(data.totalSales)} />
+        <StatCard
+          label="VENDAS"
+          value={String(data.totalSales)}
+          icon="receipt-outline"
+          tint={`${theme.colors.primary}26`}
+          iconColor={theme.colors.primary}
+        />
       </View>
-      <StatCard label="TICKET MÉDIO" value={formatMoney(averageTicket)} />
+      <StatCard
+        label="TICKET MÉDIO"
+        value={formatMoney(averageTicket)}
+        icon="pricetag-outline"
+        tint={theme.colors.blueBg}
+        iconColor={theme.colors.blue}
+      />
 
       <Card variant="surface" padding="xl">
-        <Typography variant="h3" style={{ marginBottom: spacing.lg }}>
-          Faturamento por mês
-        </Typography>
+        <SectionTitle
+          icon="bar-chart-outline"
+          title="Faturamento por mês"
+          tint={`${theme.colors.primary}26`}
+          iconColor={theme.colors.primary}
+        />
         <MonthlyBars series={data.monthlyRevenue} />
       </Card>
 
       {productRows.length > 0 && (
         <Card variant="surface" padding="xl">
-          <Typography variant="h3" style={{ marginBottom: spacing.lg }}>
-            Mais vendidos
-          </Typography>
+          <SectionTitle
+            icon="flame-outline"
+            title="Mais vendidos"
+            tint={`${theme.colors.primary}26`}
+            iconColor={theme.colors.primary}
+          />
           <RankBars rows={productRows} color={theme.colors.primary} />
         </Card>
       )}
 
       {clientRows.length > 0 && (
         <Card variant="surface" padding="xl">
-          <Typography variant="h3" style={{ marginBottom: spacing.lg }}>
-            Melhores clientes
-          </Typography>
+          <SectionTitle
+            icon="trophy-outline"
+            title="Melhores clientes"
+            tint={theme.colors.premiumBg}
+            iconColor={theme.colors.premium}
+          />
           <RankBars rows={clientRows} color={theme.colors.premium} />
         </Card>
       )}
@@ -137,37 +221,74 @@ function InsightsContent({ data }: Readonly<{ data: Insights }>) {
 
 export default function InsightsScreen() {
   const { theme } = useTheme();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const [months, setMonths] = useState<number>(6);
   const { data, isLoading } = useInsights(months);
 
-  if (isLoading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-      </View>
-    );
-  }
-
   return (
-    <ScrollView
-      contentContainerStyle={{
-        padding: spacing.xl,
-        paddingBottom: spacing["2xl"] + insets.bottom,
-        gap: spacing.xl,
-      }}
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      edges={["top", "bottom"]}
     >
-      <WindowSelector months={months} onChange={setMonths} />
+      <Stack.Screen options={{ headerShown: false }} />
 
-      {data && data.totalSales > 0 ? (
-        <InsightsContent data={data} />
+      {/* Top bar */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.md,
+          paddingHorizontal: spacing.lg,
+          paddingTop: spacing.sm,
+          paddingBottom: spacing.sm,
+        }}
+      >
+        <Pressable
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="Voltar"
+          hitSlop={10}
+          style={{ width: 32, height: 40, justifyContent: "center" }}
+        >
+          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
+        </Pressable>
+        <Typography
+          variant="h1"
+          color={theme.colors.text}
+          style={{ flex: 1, fontSize: 26, fontWeight: "800" }}
+        >
+          Insights
+        </Typography>
+      </View>
+
+      {isLoading ? (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+        </View>
       ) : (
-        <EmptyState
-          icon={<Illustration name="chart" />}
-          title="Ainda sem dados pra mostrar"
-          description="Registre algumas vendas e volte aqui para ver seus gráficos e os campeões de venda."
-        />
+        <ScrollView
+          contentContainerStyle={{
+            padding: spacing.xl,
+            paddingTop: spacing.md,
+            paddingBottom: spacing["2xl"] + insets.bottom,
+            gap: spacing.xl,
+          }}
+          showsVerticalScrollIndicator={false}
+        >
+          <WindowSelector months={months} onChange={setMonths} />
+
+          {data && data.totalSales > 0 ? (
+            <InsightsContent data={data} />
+          ) : (
+            <EmptyState
+              icon={<Illustration name="chart" />}
+              title="Ainda sem dados pra mostrar"
+              description="Registre algumas vendas e volte aqui para ver seus gráficos e os campeões de venda."
+            />
+          )}
+        </ScrollView>
       )}
-    </ScrollView>
+    </SafeAreaView>
   );
 }
