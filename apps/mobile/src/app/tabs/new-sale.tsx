@@ -18,7 +18,9 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   TextInput,
@@ -1505,67 +1507,72 @@ export default function NewSaleScreen() {
         transparent
         onRequestClose={() => setShowBarcodeSearch(false)}
       >
-        <Pressable
-          onPress={() => setShowBarcodeSearch(false)}
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0, 0, 0, 0.45)",
-            justifyContent: "flex-end",
-          }}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
         >
           <Pressable
-            onPress={(event) => event.stopPropagation()}
+            onPress={() => setShowBarcodeSearch(false)}
             style={{
-              backgroundColor: theme.colors.surface,
-              borderTopLeftRadius: radii["2xl"],
-              borderTopRightRadius: radii["2xl"],
-              padding: spacing.xl,
-              paddingBottom: Math.max(insets.bottom + spacing["3xl"], spacing["5xl"]),
-              gap: spacing.lg,
+              flex: 1,
+              backgroundColor: "rgba(0, 0, 0, 0.45)",
+              justifyContent: "flex-end",
             }}
           >
-            <View
+            <Pressable
+              onPress={(event) => event.stopPropagation()}
               style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
+                backgroundColor: theme.colors.surface,
+                borderTopLeftRadius: radii["2xl"],
+                borderTopRightRadius: radii["2xl"],
+                padding: spacing.xl,
+                paddingBottom: Math.max(insets.bottom + spacing["3xl"], spacing["5xl"]),
+                gap: spacing.lg,
               }}
             >
-              <Typography variant="h2">Buscar por código</Typography>
-              <Pressable onPress={() => setShowBarcodeSearch(false)} hitSlop={12}>
-                <Ionicons
-                  name="close-outline"
-                  size={26}
-                  color={theme.colors.textSecondary}
-                />
-              </Pressable>
-            </View>
-            <Typography variant="body">
-              Digite ou cole o código do produto para filtrar a lista.
-            </Typography>
-            <Input
-              label="Código"
-              placeholder="Ex: 789..."
-              value={barcodeInput}
-              onChangeText={setBarcodeInput}
-              keyboardType="number-pad"
-              autoFocus
-            />
-            <Button
-              title="Buscar produto"
-              size="lg"
-              style={{ borderRadius: radii.xl }}
-              icon={
-                <Ionicons
-                  name="search-outline"
-                  size={18}
-                  color={theme.colors.textOnPrimary}
-                />
-              }
-              onPress={handleBarcodeSearch}
-            />
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Typography variant="h2">Buscar por código</Typography>
+                <Pressable onPress={() => setShowBarcodeSearch(false)} hitSlop={12}>
+                  <Ionicons
+                    name="close-outline"
+                    size={26}
+                    color={theme.colors.textSecondary}
+                  />
+                </Pressable>
+              </View>
+              <Typography variant="body">
+                Digite ou cole o código do produto para filtrar a lista.
+              </Typography>
+              <Input
+                label="Código"
+                placeholder="Ex: 789..."
+                value={barcodeInput}
+                onChangeText={setBarcodeInput}
+                keyboardType="number-pad"
+                autoFocus
+              />
+              <Button
+                title="Buscar produto"
+                size="lg"
+                style={{ borderRadius: radii.xl }}
+                icon={
+                  <Ionicons
+                    name="search-outline"
+                    size={18}
+                    color={theme.colors.textOnPrimary}
+                  />
+                }
+                onPress={handleBarcodeSearch}
+              />
+            </Pressable>
           </Pressable>
-        </Pressable>
+        </KeyboardAvoidingView>
       </Modal>
       <Modal
         visible={showCreateProduct}
