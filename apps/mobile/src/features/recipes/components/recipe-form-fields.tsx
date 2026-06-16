@@ -413,6 +413,7 @@ export function YieldUnitChips({
   onChange,
 }: Readonly<{ value: string; onChange: (v: string) => void }>) {
   const { theme } = useTheme();
+  const pal = useFieldPalette();
   return (
     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
       {YIELD_UNIT_PRESETS.map((preset) => {
@@ -431,8 +432,8 @@ export function YieldUnitChips({
               minHeight: 44,
               borderRadius: radii.full,
               borderWidth: 1,
-              borderColor: active ? theme.colors.primary : "rgba(245, 225, 219, 0.12)",
-              backgroundColor: active ? theme.colors.primary : "rgba(58, 50, 45, 0.5)",
+              borderColor: active ? theme.colors.primary : pal.border,
+              backgroundColor: active ? theme.colors.primary : pal.fieldBg,
             }}
           >
             <Ionicons

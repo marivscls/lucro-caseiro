@@ -104,7 +104,7 @@ function Field({
       <Ionicons name={icon} size={24} color={theme.colors.primaryLight} />
       <TextInput
         {...props}
-        placeholderTextColor="rgba(184, 160, 144, 0.7)"
+        placeholderTextColor={theme.colors.textSecondary}
         style={[
           {
             flex: 1,

@@ -76,6 +76,8 @@ export function RecipeMaterialsEditor({
   const { data } = useMaterials();
   const materials = data?.items ?? [];
   const byId = new Map(materials.map((m) => [m.id, m]));
+  const inactiveBorder =
+    theme.mode === "dark" ? "rgba(245, 225, 219, 0.12)" : "rgba(74, 50, 40, 0.12)";
 
   function updateLine(index: number, patch: Partial<RecipeLine>) {
     onChange(lines.map((l, i) => (i === index ? { ...l, ...patch } : l)));
@@ -202,9 +204,7 @@ export function RecipeMaterialsEditor({
                       paddingVertical: spacing.xs,
                       borderRadius: radii.full,
                       borderWidth: 1,
-                      borderColor: active
-                        ? theme.colors.primary
-                        : "rgba(245, 225, 219, 0.12)",
+                      borderColor: active ? theme.colors.primary : inactiveBorder,
                       backgroundColor: active
                         ? theme.colors.primary
                         : theme.colors.surfaceElevated,

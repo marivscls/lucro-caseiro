@@ -121,7 +121,7 @@ function SearchBox({
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor="rgba(184, 160, 144, 0.7)"
+        placeholderTextColor={theme.colors.textSecondary}
         style={{
           flex: 1,
           color: theme.colors.text,
@@ -582,7 +582,7 @@ function NewClientField({
           {label}
         </Typography>
         <TextInput
-          placeholderTextColor="rgba(184, 160, 144, 0.7)"
+          placeholderTextColor={theme.colors.textSecondary}
           style={[
             {
               color: theme.colors.text,

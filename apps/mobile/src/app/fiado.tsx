@@ -862,6 +862,11 @@ export default function FiadoScreen() {
         >
           {FILTER_OPTIONS.map((option) => {
             const selected = activeFilter === option.key;
+            const isDark = theme.mode === "dark";
+            const idleBg = isDark ? "rgba(255,255,255,0.06)" : theme.colors.surface;
+            const idleBorder = isDark
+              ? "rgba(245, 225, 219, 0.1)"
+              : "rgba(74, 50, 40, 0.1)";
             return (
               <Pressable
                 key={option.key}
@@ -873,13 +878,9 @@ export default function FiadoScreen() {
                   paddingHorizontal: spacing.md,
                   alignItems: "center",
                   justifyContent: "center",
-                  backgroundColor: selected
-                    ? theme.colors.primary
-                    : "rgba(255,255,255,0.06)",
+                  backgroundColor: selected ? theme.colors.primary : idleBg,
                   borderWidth: 1,
-                  borderColor: selected
-                    ? theme.colors.primary
-                    : "rgba(245, 225, 219, 0.1)",
+                  borderColor: selected ? theme.colors.primary : idleBorder,
                   opacity: pressed ? 0.82 : 1,
                 })}
               >
