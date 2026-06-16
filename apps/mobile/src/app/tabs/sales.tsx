@@ -14,7 +14,6 @@ import { useQueries } from "@tanstack/react-query";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Modal,
   Pressable,
@@ -34,6 +33,7 @@ import { PAYMENT_OPTIONS } from "../../features/sales/payment";
 import { useAuth } from "../../shared/hooks/use-auth";
 import { useProfile } from "../../features/subscription/hooks";
 import { KeyboardAwareScrollView } from "../../shared/components/keyboard-aware-scroll-view";
+import { showAlert } from "../../shared/components/alert-store";
 import { alertError } from "../../shared/utils/alerts";
 
 type FilterTab = "all" | "paid" | "pending" | "cancelled";
@@ -689,7 +689,7 @@ export default function SalesScreen() {
           notes: editNotes.trim() || undefined,
         },
       });
-      Alert.alert("Venda atualizada!");
+      showAlert({ title: "Venda atualizada!" });
       setShowEdit(false);
       void refetch();
     } catch {

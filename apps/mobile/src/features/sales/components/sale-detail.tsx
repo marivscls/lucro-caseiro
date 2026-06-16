@@ -2,7 +2,7 @@
 import { Badge, Button, Card, Typography, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Alert, Image, ScrollView, View } from "react-native";
+import { Image, ScrollView, View } from "react-native";
 
 import { formatCurrency } from "../../../shared/utils/format";
 import { isValidBrazilPhone } from "../../../shared/utils/phone";
@@ -14,6 +14,7 @@ import { paymentLabel } from "../payment";
 import { buildReceiptMessage } from "../receipt";
 import { exportReceiptPdf } from "../receipt-pdf";
 import { ReceiptPreviewModal } from "./receipt-preview-modal";
+import { showAlert } from "../../../shared/components/alert-store";
 import { alertError } from "../../../shared/utils/alerts";
 
 interface SaleDetailProps {
@@ -90,44 +91,52 @@ export function SaleDetail({
   const payment = paymentLabel(sale.paymentMethod);
 
   function handleMarkAsPaid() {
-    Alert.alert("Confirmar", "Deseja marcar esta venda como paga?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Sim, marcar como paga",
-        onPress: () => {
-          void (async () => {
-            try {
-              await updateStatus.mutateAsync({ id: sale.id, status: "paid" });
-              Alert.alert("Pronto!", "Venda marcada como paga.");
-              onStatusUpdated?.();
-            } catch {
-              alertError("Não foi possível atualizar o status.");
-            }
-          })();
+    showAlert({
+      title: "Confirmar",
+      message: "Deseja marcar esta venda como paga?",
+      buttons: [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Sim, marcar como paga",
+          onPress: () => {
+            void (async () => {
+              try {
+                await updateStatus.mutateAsync({ id: sale.id, status: "paid" });
+                showAlert({ title: "Pronto!", message: "Venda marcada como paga." });
+                onStatusUpdated?.();
+              } catch {
+                alertError("Não foi possível atualizar o status.");
+              }
+            })();
+          },
         },
-      },
-    ]);
+      ],
+    });
   }
 
   function handleCancel() {
-    Alert.alert("Cancelar venda", "Tem certeza que deseja cancelar esta venda?", [
-      { text: "Voltar", style: "cancel" },
-      {
-        text: "Sim, cancelar",
-        style: "destructive",
-        onPress: () => {
-          void (async () => {
-            try {
-              await updateStatus.mutateAsync({ id: sale.id, status: "cancelled" });
-              Alert.alert("Pronto!", "Venda cancelada.");
-              onStatusUpdated?.();
-            } catch {
-              alertError("Não foi possível cancelar a venda.");
-            }
-          })();
+    showAlert({
+      title: "Cancelar venda",
+      message: "Tem certeza que deseja cancelar esta venda?",
+      buttons: [
+        { text: "Voltar", style: "cancel" },
+        {
+          text: "Sim, cancelar",
+          style: "destructive",
+          onPress: () => {
+            void (async () => {
+              try {
+                await updateStatus.mutateAsync({ id: sale.id, status: "cancelled" });
+                showAlert({ title: "Pronto!", message: "Venda cancelada." });
+                onStatusUpdated?.();
+              } catch {
+                alertError("Não foi possível cancelar a venda.");
+              }
+            })();
+          },
         },
-      },
-    ]);
+      ],
+    });
   }
 
   return (

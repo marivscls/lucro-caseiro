@@ -13,7 +13,6 @@ import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Modal,
   Pressable,
@@ -24,6 +23,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { PricingCalculator } from "../features/pricing/components/pricing-calculator";
 import { usePricingList } from "../features/pricing/hooks";
+import { showAlert } from "../shared/components/alert-store";
 import { useProducts } from "../features/products/hooks";
 
 function PricingHistoryCard({
@@ -271,9 +271,11 @@ export default function PricingScreen() {
 
       <PricingCalculator
         onSave={() => {
-          Alert.alert("Cálculo salvo!", "Sua precificação foi salva com sucesso.", [
-            { text: "OK", onPress: () => router.back() },
-          ]);
+          showAlert({
+            title: "Cálculo salvo!",
+            message: "Sua precificação foi salva com sucesso.",
+            buttons: [{ text: "OK", onPress: () => router.back() }],
+          });
         }}
       />
 

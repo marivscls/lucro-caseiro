@@ -13,7 +13,6 @@ import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Image,
   Linking,
   Modal,
@@ -39,6 +38,7 @@ import { formatCurrency } from "../features/goals/domain";
 import { useProlaboreStatus } from "../features/goals/hooks";
 import { useProfile, useUpdateProfile } from "../features/subscription/hooks";
 import { useSubscription } from "../features/subscription/use-subscription";
+import { showAlert } from "../shared/components/alert-store";
 import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
 import { FieldLabel, TextFieldCard } from "../shared/components/form-field";
 import { alertValidation, alertError } from "../shared/utils/alerts";
@@ -166,10 +166,11 @@ export default function SettingsScreen() {
         setSavingAvatar(true);
         avatarUrl = await uploadProfilePhoto(pickedAvatar);
       } catch {
-        Alert.alert(
-          "Foto não enviada",
-          "Não consegui enviar a foto agora. Vou salvar o resto do perfil — tente a foto depois.",
-        );
+        showAlert({
+          title: "Foto não enviada",
+          message:
+            "Não consegui enviar a foto agora. Vou salvar o resto do perfil — tente a foto depois.",
+        });
       } finally {
         setSavingAvatar(false);
       }
@@ -183,7 +184,7 @@ export default function SettingsScreen() {
         phone: editPhone.trim() || undefined,
         ...(avatarUrl ? { avatarUrl } : {}),
       });
-      Alert.alert("Perfil atualizado!");
+      showAlert({ title: "Perfil atualizado!" });
       setShowEditProfile(false);
     } catch {
       alertError("Não foi possível atualizar o perfil.");
@@ -191,18 +192,22 @@ export default function SettingsScreen() {
   }
 
   function handleLogout() {
-    Alert.alert("Sair", "Tem certeza que deseja sair?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Sair",
-        style: "destructive",
-        onPress: () => {
-          void signOut().then(() => {
-            router.replace("/(auth)/login");
-          });
+    showAlert({
+      title: "Sair",
+      message: "Tem certeza que deseja sair?",
+      buttons: [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Sair",
+          style: "destructive",
+          onPress: () => {
+            void signOut().then(() => {
+              router.replace("/(auth)/login");
+            });
+          },
         },
-      },
-    ]);
+      ],
+    });
   }
 
   async function runDeleteAccount() {
@@ -221,19 +226,21 @@ export default function SettingsScreen() {
 
   function handleDeleteAccount() {
     // Confirmacao em dois toques: aviso claro de que e definitivo.
-    Alert.alert(
-      "Excluir conta",
-      "Isso apaga DEFINITIVAMENTE sua conta e todos os seus dados (vendas, clientes, finanças, produtos e receitas). Não tem como desfazer.",
-      [
+    showAlert({
+      title: "Excluir conta",
+      message:
+        "Isso apaga DEFINITIVAMENTE sua conta e todos os seus dados (vendas, clientes, finanças, produtos e receitas). Não tem como desfazer.",
+      buttons: [
         { text: "Cancelar", style: "cancel" },
         {
           text: "Continuar",
           style: "destructive",
           onPress: () => {
-            Alert.alert(
-              "Tem certeza?",
-              "Esta é sua última chance. Ao confirmar, sua conta e todos os dados serão apagados para sempre.",
-              [
+            showAlert({
+              title: "Tem certeza?",
+              message:
+                "Esta é sua última chance. Ao confirmar, sua conta e todos os dados serão apagados para sempre.",
+              buttons: [
                 { text: "Cancelar", style: "cancel" },
                 {
                   text: "Excluir minha conta",
@@ -243,11 +250,11 @@ export default function SettingsScreen() {
                   },
                 },
               ],
-            );
+            });
           },
         },
       ],
-    );
+    });
   }
 
   async function openPrivacyPolicy() {

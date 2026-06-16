@@ -1,11 +1,11 @@
 import type { ProlaboreGoal } from "@lucro-caseiro/contracts";
 import { Button, Input, Typography, useTheme, spacing } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
-import { Alert } from "react-native";
 
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { useDeleteProlaboreGoal, useUpsertProlaboreGoal } from "../hooks";
 import { showToast } from "../../../shared/components/toast";
+import { showAlert } from "../../../shared/components/alert-store";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
 import {
   currencyInput,
@@ -58,23 +58,27 @@ export function ProlaboreGoalForm({ config, onSuccess }: ProlaboreGoalFormProps)
   }
 
   function handleRemove() {
-    Alert.alert("Remover meta", "Tem certeza que deseja remover sua meta?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Remover",
-        style: "destructive",
-        onPress: () => {
-          void (async () => {
-            try {
-              await remove.mutateAsync();
-              onSuccess?.();
-            } catch {
-              alertError("Não foi possível remover a meta.");
-            }
-          })();
+    showAlert({
+      title: "Remover meta",
+      message: "Tem certeza que deseja remover sua meta?",
+      buttons: [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Remover",
+          style: "destructive",
+          onPress: () => {
+            void (async () => {
+              try {
+                await remove.mutateAsync();
+                onSuccess?.();
+              } catch {
+                alertError("Não foi possível remover a meta.");
+              }
+            })();
+          },
         },
-      },
-    ]);
+      ],
+    });
   }
 
   return (

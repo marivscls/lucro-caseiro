@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+
+import { showAlert } from "../components/alert-store";
 
 export function useImagePicker() {
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -8,10 +9,10 @@ export function useImagePicker() {
   async function pickFromGallery() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (String(status) !== "granted") {
-      Alert.alert(
-        "Permissao necessária",
-        "Precisamos de acesso a sua galeria para selecionar uma foto.",
-      );
+      showAlert({
+        title: "Permissao necessária",
+        message: "Precisamos de acesso a sua galeria para selecionar uma foto.",
+      });
       return null;
     }
 
@@ -35,10 +36,10 @@ export function useImagePicker() {
   async function takePhoto() {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (String(status) !== "granted") {
-      Alert.alert(
-        "Permissao necessária",
-        "Precisamos de acesso a camera para tirar uma foto.",
-      );
+      showAlert({
+        title: "Permissao necessária",
+        message: "Precisamos de acesso a camera para tirar uma foto.",
+      });
       return null;
     }
 
@@ -58,21 +59,25 @@ export function useImagePicker() {
   }
 
   function showPicker() {
-    Alert.alert("Adicionar foto", "Como você quer adicionar a foto?", [
-      {
-        text: "Tirar foto",
-        onPress: () => {
-          takePhoto().catch(() => {});
+    showAlert({
+      title: "Adicionar foto",
+      message: "Como você quer adicionar a foto?",
+      buttons: [
+        {
+          text: "Tirar foto",
+          onPress: () => {
+            takePhoto().catch(() => {});
+          },
         },
-      },
-      {
-        text: "Escolher da galeria",
-        onPress: () => {
-          pickFromGallery().catch(() => {});
+        {
+          text: "Escolher da galeria",
+          onPress: () => {
+            pickFromGallery().catch(() => {});
+          },
         },
-      },
-      { text: "Cancelar", style: "cancel" },
-    ]);
+        { text: "Cancelar", style: "cancel" },
+      ],
+    });
   }
 
   function clear() {

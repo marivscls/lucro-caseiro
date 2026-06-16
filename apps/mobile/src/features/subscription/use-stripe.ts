@@ -1,11 +1,11 @@
 import { useCallback, useState } from "react";
-import { Alert } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import * as WebBrowser from "expo-web-browser";
 
 import { useAuth } from "../../shared/hooks/use-auth";
 import { createStripeCheckout } from "./api";
 import { alertError } from "../../shared/utils/alerts";
+import { showAlert } from "../../shared/components/alert-store";
 
 export function useStripeCheckout() {
   const { token } = useAuth();
@@ -25,10 +25,10 @@ export function useStripeCheckout() {
         await WebBrowser.openBrowserAsync(url);
         await queryClient.invalidateQueries({ queryKey: ["subscription"] });
       } catch {
-        Alert.alert(
-          "Erro",
-          "Não foi possível abrir o checkout da Stripe. Tente novamente.",
-        );
+        showAlert({
+          title: "Erro",
+          message: "Não foi possível abrir o checkout da Stripe. Tente novamente.",
+        });
       } finally {
         setLoading(false);
       }

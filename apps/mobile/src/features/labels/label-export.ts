@@ -1,8 +1,8 @@
 import type { LabelData } from "@lucro-caseiro/contracts";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
-import { Alert } from "react-native";
 
+import { showAlert } from "../../shared/components/alert-store";
 import { resolveLabelStyle } from "./components/label-preview";
 import { isoToBR } from "./dates";
 import { NUTRITION_FIELDS, hasNutrition } from "./nutrition";
@@ -223,23 +223,27 @@ export function exportLabelPdfWithChoice(
   qrUrl?: string | null,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    Alert.alert("Baixar rótulo", "Quantas etiquetas no PDF?", [
-      {
-        text: "1 etiqueta",
-        onPress: () => {
-          exportLabelPdf(data, templateId, logoUrl, qrUrl, 1).then(resolve, reject);
+    showAlert({
+      title: "Baixar rótulo",
+      message: "Quantas etiquetas no PDF?",
+      buttons: [
+        {
+          text: "1 etiqueta",
+          onPress: () => {
+            exportLabelPdf(data, templateId, logoUrl, qrUrl, 1).then(resolve, reject);
+          },
         },
-      },
-      {
-        text: `Folha cheia (${SHEET_COPIES})`,
-        onPress: () => {
-          exportLabelPdf(data, templateId, logoUrl, qrUrl, SHEET_COPIES).then(
-            resolve,
-            reject,
-          );
+        {
+          text: `Folha cheia (${SHEET_COPIES})`,
+          onPress: () => {
+            exportLabelPdf(data, templateId, logoUrl, qrUrl, SHEET_COPIES).then(
+              resolve,
+              reject,
+            );
+          },
         },
-      },
-      { text: "Cancelar", style: "cancel", onPress: () => resolve() },
-    ]);
+        { text: "Cancelar", style: "cancel", onPress: () => resolve() },
+      ],
+    });
   });
 }

@@ -1,8 +1,10 @@
 import { Button, Card, Typography, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Alert, Pressable, ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+import { showAlert } from "../../../shared/components/alert-store";
 
 interface PaywallProps {
   readonly title?: string;
@@ -42,7 +44,10 @@ export function Paywall({
     if (onSubscribe) {
       onSubscribe(selectedPlan);
     } else {
-      Alert.alert("Em breve", "Assinatura será disponibilizada em breve.");
+      showAlert({
+        title: "Em breve",
+        message: "Assinatura será disponibilizada em breve.",
+      });
     }
   }
 
@@ -50,7 +55,10 @@ export function Paywall({
     if (onRestore) {
       onRestore();
     } else {
-      Alert.alert("Em breve", "Restauração será disponibilizada em breve.");
+      showAlert({
+        title: "Em breve",
+        message: "Restauração será disponibilizada em breve.",
+      });
     }
   }
 

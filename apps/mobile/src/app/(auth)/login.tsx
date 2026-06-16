@@ -2,7 +2,7 @@ import { Button, Input, Typography, useTheme, radii, spacing } from "@lucro-case
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Alert, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BackgroundDecor, BrandMark } from "../../shared/components/auth-decor";
@@ -11,6 +11,7 @@ import { useAuth } from "../../shared/hooks/use-auth";
 import { supabase } from "../../shared/utils/supabase";
 import { validateEmail } from "../../shared/utils/validation";
 import { alertError } from "../../shared/utils/alerts";
+import { showAlert } from "../../shared/components/alert-store";
 
 export default function LoginScreen() {
   const { theme } = useTheme();
@@ -57,7 +58,7 @@ export default function LoginScreen() {
     try {
       const result = await signInWithEmail(email, password);
       if (result.error) {
-        Alert.alert("Ops!", result.error);
+        showAlert({ title: "Ops!", message: result.error });
       }
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : "Erro desconhecido ao entrar";
@@ -75,19 +76,25 @@ export default function LoginScreen() {
     setLoading(false);
 
     if (result.error) {
-      Alert.alert("Ops!", result.error);
+      showAlert({ title: "Ops!", message: result.error });
     }
   }
 
   function handleForgotPassword() {
     const trimmed = email.trim();
     if (!trimmed) {
-      Alert.alert("Ops!", "Preencha seu e-mail para recuperar a senha.");
+      showAlert({
+        title: "Ops!",
+        message: "Preencha seu e-mail para recuperar a senha.",
+      });
       return;
     }
     const emailResult = validateEmail(trimmed);
     if (!emailResult.valid) {
-      Alert.alert("Ops!", "Digite um e-mail valido para recuperar a senha.");
+      showAlert({
+        title: "Ops!",
+        message: "Digite um e-mail valido para recuperar a senha.",
+      });
       return;
     }
     setResetLoading(true);
@@ -97,10 +104,10 @@ export default function LoginScreen() {
         alertError("Não foi possível enviar o e-mail. Tente novamente.");
         return;
       }
-      Alert.alert(
-        "E-mail enviado!",
-        "Verifique sua caixa de entrada para redefinir sua senha.",
-      );
+      showAlert({
+        title: "E-mail enviado!",
+        message: "Verifique sua caixa de entrada para redefinir sua senha.",
+      });
     });
   }
 

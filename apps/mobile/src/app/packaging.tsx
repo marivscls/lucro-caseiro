@@ -5,7 +5,6 @@ import { Stack, useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Modal,
   Pressable,
   ScrollView,
@@ -19,6 +18,7 @@ import { PackagingDetail } from "../features/packaging/components/packaging-deta
 import { PackagingForm } from "../features/packaging/components/packaging-form";
 import { PACKAGING_TYPES, totalStockCost, typeColor } from "../features/packaging/domain";
 import { useDeletePackaging, usePackagingList } from "../features/packaging/hooks";
+import { showAlert } from "../shared/components/alert-store";
 import { Illustration } from "../shared/components/illustrations";
 import { alertError } from "../shared/utils/alerts";
 
@@ -540,10 +540,10 @@ export default function PackagingScreen() {
                 </Typography>
                 <Pressable
                   onPress={() => {
-                    Alert.alert(
-                      "Excluir embalagem",
-                      "Tem certeza que deseja excluir esta embalagem?",
-                      [
+                    showAlert({
+                      title: "Excluir embalagem",
+                      message: "Tem certeza que deseja excluir esta embalagem?",
+                      buttons: [
                         { text: "Cancelar", style: "cancel" },
                         {
                           text: "Excluir",
@@ -551,7 +551,7 @@ export default function PackagingScreen() {
                           onPress: () => deleteById(selected.id),
                         },
                       ],
-                    );
+                    });
                   }}
                   accessibilityRole="button"
                   accessibilityLabel="Excluir"

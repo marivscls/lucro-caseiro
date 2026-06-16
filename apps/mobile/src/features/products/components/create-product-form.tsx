@@ -4,7 +4,6 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Image,
   KeyboardAvoidingView,
   Modal,
@@ -30,6 +29,7 @@ import { validateProductDraft } from "../kit";
 import { CompositeToggle } from "./composite-toggle";
 import { SaleUnitToggle } from "./sale-unit-toggle";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
+import { showAlert } from "../../../shared/components/alert-store";
 import {
   maskCurrencyInput,
   parseCurrencyInput,
@@ -468,10 +468,11 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
         setUploading(true);
         photoUrl = await uploadProductImage(imageUri);
       } catch {
-        Alert.alert(
-          "Foto não enviada",
-          "Não consegui enviar a foto agora. Vou salvar o produto sem ela — você pode adicionar depois.",
-        );
+        showAlert({
+          title: "Foto não enviada",
+          message:
+            "Não consegui enviar a foto agora. Vou salvar o produto sem ela — você pode adicionar depois.",
+        });
       } finally {
         setUploading(false);
       }
@@ -493,7 +494,10 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
         isComposite,
         components: componentsPayload,
       });
-      Alert.alert("Produto cadastrado!", `${name} foi adicionado ao seu catálogo`);
+      showAlert({
+        title: "Produto cadastrado!",
+        message: `${name} foi adicionado ao seu catálogo`,
+      });
       onSuccess?.();
     } catch {
       alertError("Não foi possível cadastrar o produto. Tente novamente.");

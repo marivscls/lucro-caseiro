@@ -3,7 +3,6 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Image,
   Pressable,
@@ -12,6 +11,7 @@ import {
   View,
 } from "react-native";
 
+import { showAlert } from "../../../shared/components/alert-store";
 import {
   AD_ITEM_MARKER,
   AdBanner,
@@ -74,10 +74,11 @@ function RecipesEmptyState({ onAddPress }: Readonly<{ onAddPress?: () => void }>
   const border = isDark ? "rgba(245, 225, 219, 0.1)" : "rgba(74, 50, 40, 0.1)";
 
   function howItWorks() {
-    Alert.alert(
-      "Como funciona",
-      "Cadastre uma receita com os insumos e o rendimento. O app calcula o custo por unidade e ajuda você a definir o preço com lucro.",
-    );
+    showAlert({
+      title: "Como funciona",
+      message:
+        "Cadastre uma receita com os insumos e o rendimento. O app calcula o custo por unidade e ajuda você a definir o preço com lucro.",
+    });
   }
 
   return (

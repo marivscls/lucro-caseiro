@@ -3,9 +3,10 @@ import type { Packaging } from "@lucro-caseiro/contracts";
 import { Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Alert, Pressable, ScrollView, Share, View } from "react-native";
+import { Pressable, ScrollView, Share, View } from "react-native";
 
 import { buildPackagingShareText, typeColor, typeLabel } from "../domain";
+import { showAlert } from "../../../shared/components/alert-store";
 
 interface PackagingDetailProps {
   readonly packaging: Packaging;
@@ -88,10 +89,14 @@ export function PackagingDetail({
   const tColor = typeColor(theme, packaging.type);
 
   function confirmDelete() {
-    Alert.alert("Excluir embalagem", "Tem certeza que deseja excluir esta embalagem?", [
-      { text: "Cancelar", style: "cancel" },
-      { text: "Excluir", style: "destructive", onPress: onDelete },
-    ]);
+    showAlert({
+      title: "Excluir embalagem",
+      message: "Tem certeza que deseja excluir esta embalagem?",
+      buttons: [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Excluir", style: "destructive", onPress: onDelete },
+      ],
+    });
   }
 
   function share() {

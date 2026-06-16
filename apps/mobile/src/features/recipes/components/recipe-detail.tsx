@@ -2,8 +2,9 @@ import { formatCurrency } from "../../../shared/utils/format";
 import { Button, Card, Typography, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { ActivityIndicator, Alert, Image, ScrollView, View } from "react-native";
+import { ActivityIndicator, Image, ScrollView, View } from "react-native";
 
+import { showAlert } from "../../../shared/components/alert-store";
 import { IngredientAvatar } from "../../../shared/ingredient-image/ingredient-avatar";
 import { useDeleteRecipe, useDuplicateRecipe, useRecipe, useScaleRecipe } from "../hooks";
 import { exportRecipePdf } from "../recipe-pdf";
@@ -246,10 +247,10 @@ export function RecipeDetail({
                 costPerUnit,
               });
             } catch {
-              Alert.alert(
-                "Erro",
-                "Não foi possível gerar o PDF da receita. Tente novamente.",
-              );
+              showAlert({
+                title: "Erro",
+                message: "Não foi possível gerar o PDF da receita. Tente novamente.",
+              });
             }
           })();
         }}
@@ -263,13 +264,16 @@ export function RecipeDetail({
           void (async () => {
             try {
               await duplicateRecipe.mutateAsync(recipeId);
-              Alert.alert("Receita duplicada", `Criamos uma cópia de "${recipe.name}".`);
+              showAlert({
+                title: "Receita duplicada",
+                message: `Criamos uma cópia de "${recipe.name}".`,
+              });
               onDuplicate?.();
             } catch {
-              Alert.alert(
-                "Não foi possível duplicar",
-                "Você pode ter atingido o limite de receitas do plano gratuito.",
-              );
+              showAlert({
+                title: "Não foi possível duplicar",
+                message: "Você pode ter atingido o limite de receitas do plano gratuito.",
+              });
             }
           })();
         }}
@@ -281,23 +285,27 @@ export function RecipeDetail({
         variant="outline"
         size="lg"
         onPress={() => {
-          Alert.alert("Excluir receita", "Tem certeza que deseja excluir esta receita?", [
-            { text: "Cancelar", style: "cancel" },
-            {
-              text: "Excluir",
-              style: "destructive",
-              onPress: () => {
-                void (async () => {
-                  try {
-                    await deleteRecipe.mutateAsync(recipeId);
-                    onDeleted?.();
-                  } catch {
-                    alertError("Não foi possível excluir a receita.");
-                  }
-                })();
+          showAlert({
+            title: "Excluir receita",
+            message: "Tem certeza que deseja excluir esta receita?",
+            buttons: [
+              { text: "Cancelar", style: "cancel" },
+              {
+                text: "Excluir",
+                style: "destructive",
+                onPress: () => {
+                  void (async () => {
+                    try {
+                      await deleteRecipe.mutateAsync(recipeId);
+                      onDeleted?.();
+                    } catch {
+                      alertError("Não foi possível excluir a receita.");
+                    }
+                  })();
+                },
               },
-            },
-          ]);
+            ],
+          });
         }}
         loading={deleteRecipe.isPending}
       />

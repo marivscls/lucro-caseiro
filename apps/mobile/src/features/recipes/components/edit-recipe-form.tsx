@@ -2,8 +2,9 @@ import type { Recipe } from "@lucro-caseiro/contracts";
 import { Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Pressable, View } from "react-native";
+import { ActivityIndicator, Pressable, View } from "react-native";
 
+import { showAlert } from "../../../shared/components/alert-store";
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { uploadRecipeImage } from "../../../shared/utils/upload-image";
@@ -91,10 +92,11 @@ export function EditRecipeForm({ recipe, onSuccess }: EditRecipeFormProps) {
           setUploading(true);
           photoUrl = await uploadRecipeImage(imageUri);
         } catch {
-          Alert.alert(
-            "Foto não enviada",
-            "Não consegui enviar a foto agora. As outras alterações serão salvas.",
-          );
+          showAlert({
+            title: "Foto não enviada",
+            message:
+              "Não consegui enviar a foto agora. As outras alterações serão salvas.",
+          });
         } finally {
           setUploading(false);
         }
@@ -118,7 +120,7 @@ export function EditRecipeForm({ recipe, onSuccess }: EditRecipeFormProps) {
           })),
         },
       });
-      Alert.alert("Receita atualizada!", `${name} foi atualizada`);
+      showAlert({ title: "Receita atualizada!", message: `${name} foi atualizada` });
       onSuccess?.();
     } catch {
       alertError("Não foi possível atualizar a receita. Tente novamente.");
@@ -126,23 +128,27 @@ export function EditRecipeForm({ recipe, onSuccess }: EditRecipeFormProps) {
   }
 
   function handleDelete() {
-    Alert.alert("Excluir receita", "Tem certeza que deseja excluir esta receita?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Excluir",
-        style: "destructive",
-        onPress: () => {
-          void (async () => {
-            try {
-              await deleteRecipe.mutateAsync(recipe.id);
-              onSuccess?.();
-            } catch {
-              alertError("Não foi possível excluir a receita.");
-            }
-          })();
+    showAlert({
+      title: "Excluir receita",
+      message: "Tem certeza que deseja excluir esta receita?",
+      buttons: [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: () => {
+            void (async () => {
+              try {
+                await deleteRecipe.mutateAsync(recipe.id);
+                onSuccess?.();
+              } catch {
+                alertError("Não foi possível excluir a receita.");
+              }
+            })();
+          },
         },
-      },
-    ]);
+      ],
+    });
   }
 
   return (

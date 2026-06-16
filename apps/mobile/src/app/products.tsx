@@ -13,15 +13,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
-import {
-  Alert,
-  Image,
-  Modal,
-  Pressable,
-  ScrollView,
-  TextInput,
-  View,
-} from "react-native";
+import { Image, Modal, Pressable, ScrollView, TextInput, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
@@ -33,6 +25,7 @@ import { CompositeToggle } from "../features/products/components/composite-toggl
 import { CreateProductForm } from "../features/products/components/create-product-form";
 import { ProductList } from "../features/products/components/product-list";
 import { SaleUnitToggle } from "../features/products/components/sale-unit-toggle";
+import { showAlert } from "../shared/components/alert-store";
 import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
 import {
   useDeleteProduct,
@@ -158,10 +151,11 @@ function ProductDetailModal({
           setUploading(true);
           photoUrl = await uploadProductImage(imageUri);
         } catch {
-          Alert.alert(
-            "Foto não enviada",
-            "Não consegui enviar a foto agora. As outras alterações serão salvas.",
-          );
+          showAlert({
+            title: "Foto não enviada",
+            message:
+              "Não consegui enviar a foto agora. As outras alterações serão salvas.",
+          });
         } finally {
           setUploading(false);
         }
@@ -191,7 +185,7 @@ function ProductDetailModal({
           components: componentsPayload,
         },
       });
-      Alert.alert("Produto atualizado!");
+      showAlert({ title: "Produto atualizado!" });
       setEditing(false);
     } catch {
       alertError("Não foi possível atualizar o produto.");
@@ -199,23 +193,27 @@ function ProductDetailModal({
   }
 
   function handleDelete() {
-    Alert.alert("Excluir produto", "Tem certeza que deseja excluir este produto?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Excluir",
-        style: "destructive",
-        onPress: () => {
-          void (async () => {
-            try {
-              await deleteProduct.mutateAsync(productId);
-              onClose();
-            } catch {
-              alertError("Não foi possível excluir o produto.");
-            }
-          })();
+    showAlert({
+      title: "Excluir produto",
+      message: "Tem certeza que deseja excluir este produto?",
+      buttons: [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: () => {
+            void (async () => {
+              try {
+                await deleteProduct.mutateAsync(productId);
+                onClose();
+              } catch {
+                alertError("Não foi possível excluir o produto.");
+              }
+            })();
+          },
         },
-      },
-    ]);
+      ],
+    });
   }
 
   return (

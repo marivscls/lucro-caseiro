@@ -15,7 +15,6 @@ import { Stack, useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Image,
   Modal,
   Pressable,
@@ -41,6 +40,7 @@ import {
   useUpdateOrder,
 } from "../features/orders/hooks";
 import { openWhatsApp, waMessages } from "../shared/utils/whatsapp";
+import { showAlert } from "../shared/components/alert-store";
 import { Illustration } from "../shared/components/illustrations";
 
 const PIPELINE: OrderStatus[] = ["pending", "in_production", "ready"];
@@ -88,10 +88,10 @@ function _OrderDetail({
   }
 
   function handleDeliver() {
-    Alert.alert(
-      "Marcar como entregue?",
-      "Deseja registrar essa encomenda como receita no financeiro?",
-      [
+    showAlert({
+      title: "Marcar como entregue?",
+      message: "Deseja registrar essa encomenda como receita no financeiro?",
+      buttons: [
         { text: "Cancelar", style: "cancel" },
         {
           text: "Sem receita",
@@ -112,20 +112,24 @@ function _OrderDetail({
           },
         },
       ],
-    );
+    });
   }
 
   function handleDelete() {
-    Alert.alert("Excluir encomenda", "Tem certeza?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Excluir",
-        style: "destructive",
-        onPress: () => {
-          deleteOrder.mutate(order.id, { onSuccess: onClose });
+    showAlert({
+      title: "Excluir encomenda",
+      message: "Tem certeza?",
+      buttons: [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: () => {
+            deleteOrder.mutate(order.id, { onSuccess: onClose });
+          },
         },
-      },
-    ]);
+      ],
+    });
   }
 
   return (
@@ -280,10 +284,10 @@ function ModernOrderDetail({
 
   // eslint-disable-next-line sonarjs/no-identical-functions
   function handleDeliver() {
-    Alert.alert(
-      "Marcar como entregue?",
-      "Deseja registrar essa encomenda como receita no financeiro?",
-      [
+    showAlert({
+      title: "Marcar como entregue?",
+      message: "Deseja registrar essa encomenda como receita no financeiro?",
+      buttons: [
         { text: "Cancelar", style: "cancel" },
         {
           text: "Sem receita",
@@ -304,21 +308,25 @@ function ModernOrderDetail({
           },
         },
       ],
-    );
+    });
   }
 
   // eslint-disable-next-line sonarjs/no-identical-functions
   function handleDelete() {
-    Alert.alert("Excluir encomenda", "Tem certeza?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Excluir",
-        style: "destructive",
-        onPress: () => {
-          deleteOrder.mutate(order.id, { onSuccess: onClose });
+    showAlert({
+      title: "Excluir encomenda",
+      message: "Tem certeza?",
+      buttons: [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: () => {
+            deleteOrder.mutate(order.id, { onSuccess: onClose });
+          },
         },
-      },
-    ]);
+      ],
+    });
   }
 
   function ActionCard({

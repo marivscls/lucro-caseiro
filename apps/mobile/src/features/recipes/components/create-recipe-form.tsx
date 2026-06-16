@@ -1,8 +1,9 @@
 import { Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { ActivityIndicator, Alert, Pressable, View } from "react-native";
+import { ActivityIndicator, Pressable, View } from "react-native";
 
+import { showAlert } from "../../../shared/components/alert-store";
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
@@ -74,10 +75,11 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
         setUploading(true);
         photoUrl = await uploadRecipeImage(imageUri);
       } catch {
-        Alert.alert(
-          "Foto não enviada",
-          "Não consegui enviar a foto agora. Vou salvar a receita sem ela — você pode adicionar depois.",
-        );
+        showAlert({
+          title: "Foto não enviada",
+          message:
+            "Não consegui enviar a foto agora. Vou salvar a receita sem ela — você pode adicionar depois.",
+        });
       } finally {
         setUploading(false);
       }
@@ -97,7 +99,7 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
           unit: l.unit.trim(),
         })),
       });
-      Alert.alert("Receita cadastrada!", `${name} foi adicionada`);
+      showAlert({ title: "Receita cadastrada!", message: `${name} foi adicionada` });
       onSuccess?.();
     } catch {
       alertError("Não foi possível cadastrar a receita. Tente novamente.");

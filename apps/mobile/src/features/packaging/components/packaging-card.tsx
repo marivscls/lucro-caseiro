@@ -3,10 +3,11 @@ import type { Packaging } from "@lucro-caseiro/contracts";
 import { Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Alert, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 
 import { typeColor, typeLabel } from "../domain";
 import { PackagingAvatar } from "./packaging-avatar";
+import { showAlert } from "../../../shared/components/alert-store";
 
 interface PackagingCardProps {
   readonly packaging: Packaging;
@@ -31,11 +32,15 @@ export function PackagingCard({
   const subtitleIcon = packaging.supplier ? "storefront-outline" : "cube-outline";
 
   function openMenu() {
-    Alert.alert(packaging.name, "O que você quer fazer?", [
-      { text: "Editar", onPress: onEdit },
-      { text: "Excluir embalagem", style: "destructive", onPress: onDelete },
-      { text: "Cancelar", style: "cancel" },
-    ]);
+    showAlert({
+      title: packaging.name,
+      message: "O que você quer fazer?",
+      buttons: [
+        { text: "Editar", onPress: onEdit },
+        { text: "Excluir embalagem", style: "destructive", onPress: onDelete },
+        { text: "Cancelar", style: "cancel" },
+      ],
+    });
   }
 
   return (

@@ -2,7 +2,7 @@ import { Button, Input, Typography, useTheme, radii, spacing } from "@lucro-case
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Alert, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BackgroundDecor, BrandMark } from "../../shared/components/auth-decor";
@@ -14,6 +14,7 @@ import {
   validateName,
   validatePassword,
 } from "../../shared/utils/validation";
+import { showAlert } from "../../shared/components/alert-store";
 
 function PasswordStrengthBar({ password }: Readonly<{ password: string }>) {
   const { theme } = useTheme();
@@ -161,13 +162,13 @@ export default function RegisterScreen() {
     setLoading(false);
 
     if (result.error) {
-      Alert.alert("Ops!", result.error);
+      showAlert({ title: "Ops!", message: result.error });
     } else {
-      Alert.alert(
-        "Conta criada!",
-        "Verifique seu e-mail para confirmar a conta. Depois e so entrar!",
-        [{ text: "Ok", onPress: () => router.push("/(auth)/login") }],
-      );
+      showAlert({
+        title: "Conta criada!",
+        message: "Verifique seu e-mail para confirmar a conta. Depois e so entrar!",
+        buttons: [{ text: "Ok", onPress: () => router.push("/(auth)/login") }],
+      });
     }
   }
 
@@ -177,7 +178,7 @@ export default function RegisterScreen() {
     setLoading(false);
 
     if (result.error) {
-      Alert.alert("Ops!", result.error);
+      showAlert({ title: "Ops!", message: result.error });
     }
   }
 

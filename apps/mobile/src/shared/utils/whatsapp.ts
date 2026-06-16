@@ -1,5 +1,6 @@
-import { Alert, Linking } from "react-native";
+import { Linking } from "react-native";
 
+import { showAlert } from "../components/alert-store";
 import { isoToBR } from "./date";
 import { isValidBrazilPhone } from "./phone";
 
@@ -23,10 +24,10 @@ async function openOrWarn(url: string): Promise<boolean> {
     await Linking.openURL(url);
     return true;
   } catch {
-    Alert.alert(
-      "Não foi possível abrir o WhatsApp",
-      "Verifique se o WhatsApp está instalado neste aparelho.",
-    );
+    showAlert({
+      title: "Não foi possível abrir o WhatsApp",
+      message: "Verifique se o WhatsApp está instalado neste aparelho.",
+    });
     return false;
   }
 }
@@ -37,10 +38,11 @@ async function openOrWarn(url: string): Promise<boolean> {
  */
 export async function openWhatsApp(phone: string, message?: string): Promise<boolean> {
   if (!isValidBrazilPhone(phone)) {
-    Alert.alert(
-      "Telefone inválido",
-      "Confira o número do cliente — precisa de DDD + número (ex: (11) 99999-9999).",
-    );
+    showAlert({
+      title: "Telefone inválido",
+      message:
+        "Confira o número do cliente — precisa de DDD + número (ex: (11) 99999-9999).",
+    });
     return false;
   }
   return openOrWarn(`https://wa.me/${normalizePhone(phone)}${textSuffix(message)}`);

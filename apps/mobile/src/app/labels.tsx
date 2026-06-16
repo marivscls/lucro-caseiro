@@ -13,7 +13,6 @@ import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Image,
   Modal,
@@ -39,6 +38,7 @@ import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scr
 import { maskPhoneBR } from "../shared/utils/phone";
 import { uploadLabelLogo } from "../shared/utils/upload-image";
 import { Ionicons } from "@expo/vector-icons";
+import { showAlert } from "../shared/components/alert-store";
 import { Illustration } from "../shared/components/illustrations";
 import {
   useDeleteLabel,
@@ -148,10 +148,11 @@ function LabelDetailModal({
         setUploading(true);
         logoUrl = await uploadLabelLogo(newLogo);
       } catch {
-        Alert.alert(
-          "Logo não enviado",
-          "Não consegui enviar o novo logo agora. Vou salvar mantendo o logo anterior.",
-        );
+        showAlert({
+          title: "Logo não enviado",
+          message:
+            "Não consegui enviar o novo logo agora. Vou salvar mantendo o logo anterior.",
+        });
         logoUrl = undefined;
       } finally {
         setUploading(false);
@@ -176,30 +177,34 @@ function LabelDetailModal({
           ...(logoUrl !== undefined ? { logoUrl } : {}),
         },
       });
-      Alert.alert("Rótulo atualizado!");
+      showAlert({ title: "Rótulo atualizado!" });
       setEditing(false);
     } catch (e) {
-      Alert.alert(
-        "Erro",
-        e instanceof Error ? e.message : "Não foi possível atualizar o rótulo.",
-      );
+      showAlert({
+        title: "Erro",
+        message: e instanceof Error ? e.message : "Não foi possível atualizar o rótulo.",
+      });
     }
   }
 
   function handleDelete() {
-    Alert.alert("Excluir rótulo", "Tem certeza que deseja excluir este rótulo?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Excluir",
-        style: "destructive",
-        onPress: () => {
-          deleteLabel
-            .mutateAsync(labelId)
-            .then(() => onClose())
-            .catch(() => alertError("Não foi possível excluir."));
+    showAlert({
+      title: "Excluir rótulo",
+      message: "Tem certeza que deseja excluir este rótulo?",
+      buttons: [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: () => {
+            deleteLabel
+              .mutateAsync(labelId)
+              .then(() => onClose())
+              .catch(() => alertError("Não foi possível excluir."));
+          },
         },
-      },
-    ]);
+      ],
+    });
   }
 
   return (

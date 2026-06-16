@@ -2,8 +2,9 @@ import type { CreateQuote, Quote, QuoteItem } from "@lucro-caseiro/contracts";
 import { Button, Input, Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Alert, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 
+import { showAlert } from "../../../shared/components/alert-store";
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { showToast } from "../../../shared/components/toast";
 import { formatCurrency } from "../../../shared/utils/format";
@@ -96,10 +97,10 @@ export function QuoteForm({ quote, onSuccess }: QuoteFormProps) {
       const quantity = parseNumber(item.quantity);
       const unitPrice = parseCurrencyInput(item.unitPrice);
       if (Number.isNaN(quantity) || quantity <= 0 || Number.isNaN(unitPrice)) {
-        Alert.alert(
-          "Opa!",
-          `Confira a quantidade e o preço do item "${item.description}".`,
-        );
+        showAlert({
+          title: "Opa!",
+          message: `Confira a quantidade e o preço do item "${item.description}".`,
+        });
         return;
       }
       parsedItems.push({ description: item.description.trim(), quantity, unitPrice });

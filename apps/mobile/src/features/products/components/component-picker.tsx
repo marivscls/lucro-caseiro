@@ -3,10 +3,11 @@ import type { Product } from "@lucro-caseiro/contracts";
 import { Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Alert, Modal, Pressable, ScrollView, View } from "react-native";
+import { Modal, Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { chipLabel, draftsToComponents, kitTotalCost, type ComponentDraft } from "../kit";
+import { showAlert } from "../../../shared/components/alert-store";
 import { useProducts } from "../hooks";
 
 export { draftsToComponents };
@@ -67,10 +68,11 @@ export function ComponentPicker({
   }
 
   function showInfo() {
-    Alert.alert(
-      "Produto composto (kit)",
-      "Um kit é montado a partir de outros produtos que você já cadastrou. O custo total do kit é a soma do custo de cada item.",
-    );
+    showAlert({
+      title: "Produto composto (kit)",
+      message:
+        "Um kit é montado a partir de outros produtos que você já cadastrou. O custo total do kit é a soma do custo de cada item.",
+    });
   }
 
   // Custo total do kit ao vivo.

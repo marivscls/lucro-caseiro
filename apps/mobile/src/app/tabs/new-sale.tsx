@@ -16,7 +16,6 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Image,
   Modal,
@@ -40,6 +39,7 @@ import { useOfflineQueue } from "../../shared/hooks/use-offline-queue";
 import { usePaywall } from "../../shared/hooks/use-paywall";
 import { ApiError } from "../../shared/utils/api-client";
 import { Illustration } from "../../shared/components/illustrations";
+import { showAlert } from "../../shared/components/alert-store";
 import { alertValidation, alertError } from "../../shared/utils/alerts";
 
 type Step = 1 | 2 | 3 | 4;
@@ -435,7 +435,10 @@ export default function NewSaleScreen() {
 
     try {
       const result = await createSale.mutateAsync(payload);
-      Alert.alert("Venda registrada!", `Total: ${formatCurrency(result.total)}`);
+      showAlert({
+        title: "Venda registrada!",
+        message: `Total: ${formatCurrency(result.total)}`,
+      });
       showInterstitial();
       resetForm();
     } catch (e: unknown) {
@@ -453,10 +456,10 @@ export default function NewSaleScreen() {
           endpoint: "/api/v1/sales",
           payload,
         });
-        Alert.alert(
-          "Venda salva no aparelho",
-          `Total: ${formatCurrency(cartTotal)}. Você está sem internet — a venda será enviada automaticamente quando a conexão voltar.`,
-        );
+        showAlert({
+          title: "Venda salva no aparelho",
+          message: `Total: ${formatCurrency(cartTotal)}. Você está sem internet — a venda será enviada automaticamente quando a conexão voltar.`,
+        });
         resetForm();
         return;
       }
@@ -483,7 +486,7 @@ export default function NewSaleScreen() {
       4: "Revise os itens, cliente, pagamento e total antes de registrar a venda.",
     };
 
-    Alert.alert("Ajuda", messages[step]);
+    showAlert({ title: "Ajuda", message: messages[step] });
   }
 
   const filteredProducts = productsData?.items.filter(

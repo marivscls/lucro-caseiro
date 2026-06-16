@@ -4,7 +4,6 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -15,6 +14,7 @@ import {
   type TextInputProps,
 } from "react-native";
 
+import { showAlert } from "../../../shared/components/alert-store";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { brToIso, isoToBR, maskDateBR } from "../../../shared/utils/date";
 import { uploadOrderImage } from "../../../shared/utils/upload-image";
@@ -165,7 +165,10 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
 
   function openDatePicker() {
     if (!getNativeDatePicker()) {
-      Alert.alert("Calendario indisponivel", "Digite a data no formato DD/MM/AAAA.");
+      showAlert({
+        title: "Calendario indisponivel",
+        message: "Digite a data no formato DD/MM/AAAA.",
+      });
       return;
     }
     setShowDatePicker(true);
@@ -202,10 +205,11 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
         setUploading(true);
         photoUrl = await uploadOrderImage(imageUri);
       } catch {
-        Alert.alert(
-          "Foto não enviada",
-          "Não consegui enviar a imagem. A encomenda não foi salva para evitar ficar sem a foto.",
-        );
+        showAlert({
+          title: "Foto não enviada",
+          message:
+            "Não consegui enviar a imagem. A encomenda não foi salva para evitar ficar sem a foto.",
+        });
         return;
       } finally {
         setUploading(false);
@@ -248,10 +252,11 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
             // A falha de limpeza nao deve esconder o motivo real: API sem suporte a photoUrl.
           }
         }
-        Alert.alert(
-          isEditing ? "Imagem não atualizada" : "Encomenda não salva",
-          "A API que está rodando ainda não aceita imagem de encomenda. Publique a API nova e aplique a migration photo_url.",
-        );
+        showAlert({
+          title: isEditing ? "Imagem não atualizada" : "Encomenda não salva",
+          message:
+            "A API que está rodando ainda não aceita imagem de encomenda. Publique a API nova e aplique a migration photo_url.",
+        });
         return;
       }
       onSuccess?.();
@@ -260,7 +265,7 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
         error instanceof Error
           ? error.message
           : "Não foi possível salvar a encomenda. Tente novamente.";
-      Alert.alert("Erro ao salvar", message);
+      showAlert({ title: "Erro ao salvar", message });
     }
   }
 

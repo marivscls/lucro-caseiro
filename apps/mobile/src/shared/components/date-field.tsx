@@ -1,9 +1,10 @@
 import { Input, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Alert, Platform, Pressable, type ViewStyle } from "react-native";
+import { Platform, Pressable, type ViewStyle } from "react-native";
 
 import { brToIso, maskDateBR } from "../utils/date";
+import { showAlert } from "./alert-store";
 
 type DateTimePickerEvent = { type?: string };
 type NativeDatePicker = React.ComponentType<{
@@ -46,7 +47,10 @@ export function DateField({
 
   function openPicker() {
     if (!getNativeDatePicker()) {
-      Alert.alert("Calendario indisponivel", "Digite a data no formato DD/MM/AAAA.");
+      showAlert({
+        title: "Calendario indisponivel",
+        message: "Digite a data no formato DD/MM/AAAA.",
+      });
       return;
     }
     setShowPicker(true);

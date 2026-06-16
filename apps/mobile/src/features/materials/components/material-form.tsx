@@ -2,16 +2,10 @@ import type { Material } from "@lucro-caseiro/contracts";
 import { Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  Pressable,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, Modal, Pressable, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { showAlert } from "../../../shared/components/alert-store";
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import {
   FieldLabel,
@@ -300,14 +294,18 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
     : [unit, ...UNIT_OPTIONS];
 
   function showContentInfo() {
-    Alert.alert(
-      "Conteúdo por unidade",
-      "Diz quanto vem em 1 unidade do insumo (ex.: 1 lata = 350 ml). Assim dá para usar este insumo em g/ml nas receitas.",
-    );
+    showAlert({
+      title: "Conteúdo por unidade",
+      message:
+        "Diz quanto vem em 1 unidade do insumo (ex.: 1 lata = 350 ml). Assim dá para usar este insumo em g/ml nas receitas.",
+    });
   }
 
   function showUnitInfo() {
-    Alert.alert("Unidade", "Selecione a unidade padrão deste insumo (ex.: kg, ml, un).");
+    showAlert({
+      title: "Unidade",
+      message: "Selecione a unidade padrão deste insumo (ex.: kg, ml, un).",
+    });
   }
 
   async function handleSave() {
@@ -318,10 +316,11 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
     const contentValue = parseNum(contentPerUnit);
     const contentUnitTrimmed = contentUnit.trim();
     if ((contentValue != null) !== contentUnitTrimmed.length > 0) {
-      Alert.alert(
-        "Conteúdo por unidade",
-        "Preencha a quantidade e a unidade do conteúdo (ex.: 350 e ml), ou deixe os dois em branco.",
-      );
+      showAlert({
+        title: "Conteúdo por unidade",
+        message:
+          "Preencha a quantidade e a unidade do conteúdo (ex.: 350 e ml), ou deixe os dois em branco.",
+      });
       return;
     }
 
@@ -350,16 +349,20 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
 
   function handleDelete() {
     if (!material) return;
-    Alert.alert("Excluir insumo", "Tem certeza?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Excluir",
-        style: "destructive",
-        onPress: () => {
-          deleteMaterial.mutate(material.id, { onSuccess });
+    showAlert({
+      title: "Excluir insumo",
+      message: "Tem certeza?",
+      buttons: [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: () => {
+            deleteMaterial.mutate(material.id, { onSuccess });
+          },
         },
-      },
-    ]);
+      ],
+    });
   }
 
   return (

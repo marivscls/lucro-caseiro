@@ -4,7 +4,6 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -25,6 +24,7 @@ import { useLimitCheck } from "../../shared/hooks/use-limit-check";
 import { brToIso, maskDateBR } from "../../shared/utils/date";
 import { isValidBrazilPhone, maskPhoneBR } from "../../shared/utils/phone";
 import { alertValidation } from "../../shared/utils/alerts";
+import { showAlert } from "../../shared/components/alert-store";
 
 type Screen =
   | { name: "list" }
@@ -438,10 +438,10 @@ function ClientsListScreen({
           onChangeText={setSearch}
           placeholder="Buscar por nome ou telefone..."
           onFilterPress={() => {
-            Alert.alert(
-              "Filtro de clientes",
-              "Use a busca para filtrar por nome ou telefone.",
-            );
+            showAlert({
+              title: "Filtro de clientes",
+              message: "Use a busca para filtrar por nome ou telefone.",
+            });
           }}
         />
 
@@ -870,15 +870,19 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
         birthday: brToIso(birthday),
         notes: notes.trim() || undefined,
       });
-      Alert.alert("Cliente cadastrado!", `${trimmedName} foi adicionado à sua lista.`);
+      showAlert({
+        title: "Cliente cadastrado!",
+        message: `${trimmedName} foi adicionado à sua lista.`,
+      });
       close();
     } catch (error: unknown) {
-      Alert.alert(
-        "Erro",
-        error instanceof Error
-          ? error.message
-          : "Não foi possível cadastrar o cliente. Tente novamente.",
-      );
+      showAlert({
+        title: "Erro",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Não foi possível cadastrar o cliente. Tente novamente.",
+      });
     }
   }
 

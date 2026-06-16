@@ -13,6 +13,7 @@ import { useFiadoNotifier } from "../features/sales/use-fiado-notifier";
 import { useDailyReminderNotifier } from "../shared/hooks/use-daily-reminder-notifier";
 import { useNotificationPrefs } from "../shared/hooks/notification-prefs";
 import { useWeeklySummaryNotifier } from "../shared/hooks/use-weekly-summary-notifier";
+import { AlertHost } from "../shared/components/alert-host";
 import { BrandIntro } from "../shared/components/brand-intro";
 import { OfflineBanner } from "../shared/components/offline-banner";
 import { ToastHost } from "../shared/components/toast";
@@ -119,6 +120,7 @@ function AppContent() {
       <StatusBar style="light" />
       <OfflineBanner />
       <ToastHost />
+      <AlertHost />
       <PremiumSuccess visible={successVisible} onClose={hidePremiumSuccess} />
       <Modal
         visible={paywallVisible}

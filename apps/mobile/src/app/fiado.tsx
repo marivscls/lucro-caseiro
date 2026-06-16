@@ -5,7 +5,6 @@ import { Stack, useRouter } from "expo-router";
 import React from "react";
 import {
   ActivityIndicator,
-  Alert,
   Image,
   Linking,
   Modal,
@@ -20,6 +19,7 @@ import { useClients } from "../features/clients/hooks";
 import { useSales, useUpdateSaleStatus } from "../features/sales/hooks";
 import { buildChargeMessage, groupFiados, totalOwed } from "../features/sales/fiado";
 import type { FiadoGroup } from "../features/sales/fiado";
+import { showAlert } from "../shared/components/alert-store";
 import { Illustration } from "../shared/components/illustrations";
 import { showToast } from "../shared/components/toast";
 import { alertError } from "../shared/utils/alerts";
@@ -545,23 +545,27 @@ export default function FiadoScreen() {
   }
 
   function handleMarkPaid(saleId: string) {
-    Alert.alert("Recebido?", "Marcar esta venda como paga?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Sim, recebi",
-        onPress: () => {
-          void (async () => {
-            try {
-              await updateStatus.mutateAsync({ id: saleId, status: "paid" });
-              showToast("Recebido! Venda marcada como paga.");
-              void refetch();
-            } catch {
-              alertError("Não foi possível atualizar. Tente novamente.");
-            }
-          })();
+    showAlert({
+      title: "Recebido?",
+      message: "Marcar esta venda como paga?",
+      buttons: [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Sim, recebi",
+          onPress: () => {
+            void (async () => {
+              try {
+                await updateStatus.mutateAsync({ id: saleId, status: "paid" });
+                showToast("Recebido! Venda marcada como paga.");
+                void refetch();
+              } catch {
+                alertError("Não foi possível atualizar. Tente novamente.");
+              }
+            })();
+          },
         },
-      },
-    ]);
+      ],
+    });
   }
 
   function runMarkAllPaid(group: FiadoGroup) {
@@ -586,14 +590,14 @@ export default function FiadoScreen() {
       handleMarkPaid(group.sales[0].id);
       return;
     }
-    Alert.alert(
-      "Marcar tudo como recebido?",
-      `Marcar as ${count} vendas de ${group.clientName} como pagas?`,
-      [
+    showAlert({
+      title: "Marcar tudo como recebido?",
+      message: `Marcar as ${count} vendas de ${group.clientName} como pagas?`,
+      buttons: [
         { text: "Cancelar", style: "cancel" },
         { text: "Sim, recebi tudo", onPress: () => runMarkAllPaid(group) },
       ],
-    );
+    });
   }
 
   function renderContent() {

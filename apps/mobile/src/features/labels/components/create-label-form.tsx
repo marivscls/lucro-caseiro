@@ -2,8 +2,9 @@ import type { LabelData } from "@lucro-caseiro/contracts";
 import { Button, Input, Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Alert, Image, Pressable, View } from "react-native";
+import { Image, Pressable, View } from "react-native";
 
+import { showAlert } from "../../../shared/components/alert-store";
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { maskPhoneBR } from "../../../shared/utils/phone";
@@ -90,11 +91,17 @@ export function CreateLabelForm({
       (labelData.manufacturingDate?.trim() && !manufacturingDate) ||
       (labelData.expirationDate?.trim() && !expirationDate)
     ) {
-      Alert.alert("Data incompleta", "Confira as datas no formato DD/MM/AAAA.");
+      showAlert({
+        title: "Data incompleta",
+        message: "Confira as datas no formato DD/MM/AAAA.",
+      });
       return;
     }
     if (manufacturingDate && expirationDate && expirationDate < manufacturingDate) {
-      Alert.alert("Datas invertidas", "A validade não pode ser anterior à fabricação.");
+      showAlert({
+        title: "Datas invertidas",
+        message: "A validade não pode ser anterior à fabricação.",
+      });
       return;
     }
 
@@ -105,10 +112,11 @@ export function CreateLabelForm({
         setUploading(true);
         logoUrl = await uploadLabelLogo(logoUri);
       } catch {
-        Alert.alert(
-          "Logo não enviado",
-          "Não consegui enviar o logo agora. Vou salvar o rótulo sem ele — você pode adicionar depois.",
-        );
+        showAlert({
+          title: "Logo não enviado",
+          message:
+            "Não consegui enviar o logo agora. Vou salvar o rótulo sem ele — você pode adicionar depois.",
+        });
       } finally {
         setUploading(false);
       }
@@ -128,15 +136,19 @@ export function CreateLabelForm({
           nutrition: cleanNutrition(labelData.nutrition),
         },
       });
-      Alert.alert("Rótulo criado!", "Seu rótulo esta pronto para imprimir");
+      showAlert({
+        title: "Rótulo criado!",
+        message: "Seu rótulo esta pronto para imprimir",
+      });
       onSuccess?.();
     } catch (e) {
-      Alert.alert(
-        "Erro",
-        e instanceof Error
-          ? e.message
-          : "Não foi possível criar o rótulo. Tente novamente.",
-      );
+      showAlert({
+        title: "Erro",
+        message:
+          e instanceof Error
+            ? e.message
+            : "Não foi possível criar o rótulo. Tente novamente.",
+      });
     }
   }
 

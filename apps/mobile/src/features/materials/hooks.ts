@@ -1,7 +1,7 @@
 import type { CreateMaterial, Material, UpdateMaterial } from "@lucro-caseiro/contracts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Alert } from "react-native";
 
+import { showAlert } from "../../shared/components/alert-store";
 import { useAuth } from "../../shared/hooks/use-auth";
 import {
   adjustMaterial,
@@ -96,10 +96,10 @@ export function useAdjustMaterial() {
       context?.snapshots?.forEach(([key, data]) => {
         queryClient.setQueryData(key, data);
       });
-      Alert.alert(
-        "Erro ao ajustar estoque",
-        err instanceof Error ? err.message : "Tente novamente.",
-      );
+      showAlert({
+        title: "Erro ao ajustar estoque",
+        message: err instanceof Error ? err.message : "Tente novamente.",
+      });
     },
     // Resincroniza com o servidor depois (sucesso ou erro).
     onSettled: () => {

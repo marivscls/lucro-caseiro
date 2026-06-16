@@ -2,10 +2,11 @@ import { Button, Card, Typography, spacing, radii, useTheme } from "@lucro-casei
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import React from "react";
-import { Alert, Pressable, ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useProfile, useLimits } from "../features/subscription/hooks";
+import { showAlert } from "../shared/components/alert-store";
 import { usePaywall } from "../shared/hooks/use-paywall";
 
 const FREE_LIMITS = {
@@ -286,10 +287,11 @@ export default function PlansScreen() {
             variant="outline"
             size="lg"
             onPress={() => {
-              Alert.alert(
-                "Cancelar",
-                "Funcionalidade disponível em breve. Entre em contato pelo suporte.",
-              );
+              showAlert({
+                title: "Cancelar",
+                message:
+                  "Funcionalidade disponível em breve. Entre em contato pelo suporte.",
+              });
             }}
           />
         )}

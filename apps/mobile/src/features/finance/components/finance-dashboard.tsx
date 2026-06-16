@@ -8,7 +8,6 @@ import * as Sharing from "expo-sharing";
 import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Image,
   Modal,
   Pressable,
@@ -33,6 +32,7 @@ import { useDeleteFinanceEntry, useFinanceEntries, useFinanceSummary } from "../
 import { Illustration } from "../../../shared/components/illustrations";
 import { CreateFinanceEntry } from "./create-finance-entry";
 import { alertError } from "../../../shared/utils/alerts";
+import { showAlert } from "../../../shared/components/alert-store";
 
 const MONTH_NAMES = [
   "Janeiro",
@@ -136,7 +136,7 @@ export function FinanceDashboard({
             dialogTitle: "Exportar relatório financeiro",
           });
         } else {
-          Alert.alert("Sucesso", "Arquivo salvo com sucesso.");
+          showAlert({ title: "Sucesso", message: "Arquivo salvo com sucesso." });
         }
       } catch {
         alertError("Não foi possível exportar o relatório. Tente novamente.");
@@ -519,10 +519,10 @@ export function FinanceDashboard({
                     deleteEntry.isPending && styles.disabled,
                   ]}
                   onPress={() => {
-                    Alert.alert(
-                      "Excluir lançamento",
-                      "Deseja remover este lançamento do financeiro?",
-                      [
+                    showAlert({
+                      title: "Excluir lançamento",
+                      message: "Deseja remover este lançamento do financeiro?",
+                      buttons: [
                         { text: "Cancelar", style: "cancel" },
                         {
                           text: "Excluir",
@@ -532,15 +532,16 @@ export function FinanceDashboard({
                               .mutateAsync(selectedEntry.id)
                               .then(() => setSelectedEntry(null))
                               .catch(() =>
-                                Alert.alert(
-                                  "Erro",
-                                  "Não foi possível excluir o lançamento. Tente novamente.",
-                                ),
+                                showAlert({
+                                  title: "Erro",
+                                  message:
+                                    "Não foi possível excluir o lançamento. Tente novamente.",
+                                }),
                               );
                           },
                         },
                       ],
-                    );
+                    });
                   }}
                 >
                   <Ionicons name="trash-outline" size={20} color={theme.colors.alert} />

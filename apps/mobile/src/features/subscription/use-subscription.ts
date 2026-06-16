@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, Platform } from "react-native";
+import { Platform } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useIAP,
@@ -11,6 +11,7 @@ import {
 import { useAuth } from "../../shared/hooks/use-auth";
 import { syncPlan } from "./api";
 import { alertError } from "../../shared/utils/alerts";
+import { showAlert } from "../../shared/components/alert-store";
 
 type PremiumProductId = "lucrocaseiro_premium_monthly" | "lucrocaseiro_premium_annual";
 
@@ -116,7 +117,10 @@ export function useSubscription() {
   const subscribe = useCallback(
     async (period: "monthly" | "annual") => {
       if (Platform.OS !== "android") {
-        Alert.alert("Em breve", "Assinatura iOS será disponibilizada depois.");
+        showAlert({
+          title: "Em breve",
+          message: "Assinatura iOS será disponibilizada depois.",
+        });
         return;
       }
 
@@ -130,10 +134,11 @@ export function useSubscription() {
       const offerToken = subscription ? getOfferToken(subscription) : null;
 
       if (!connected || !subscription || !offerToken) {
-        Alert.alert(
-          "Plano indisponível",
-          "Não foi possível carregar a assinatura do Google Play. Tente novamente.",
-        );
+        showAlert({
+          title: "Plano indisponível",
+          message:
+            "Não foi possível carregar a assinatura do Google Play. Tente novamente.",
+        });
         return;
       }
 
@@ -159,7 +164,10 @@ export function useSubscription() {
 
   const restore = useCallback(async () => {
     if (Platform.OS !== "android") {
-      Alert.alert("Em breve", "Restauração iOS será disponibilizada depois.");
+      showAlert({
+        title: "Em breve",
+        message: "Restauração iOS será disponibilizada depois.",
+      });
       return;
     }
 
@@ -176,10 +184,10 @@ export function useSubscription() {
       );
 
       if (premiumPurchases.length === 0) {
-        Alert.alert(
-          "Nenhuma assinatura encontrada",
-          "Não encontramos uma assinatura ativa vinculada a esta conta.",
-        );
+        showAlert({
+          title: "Nenhuma assinatura encontrada",
+          message: "Não encontramos uma assinatura ativa vinculada a esta conta.",
+        });
         return;
       }
 
@@ -188,7 +196,10 @@ export function useSubscription() {
       );
 
       if (restored.some(Boolean)) {
-        Alert.alert("Restaurado!", "Sua assinatura Premium foi restaurada.");
+        showAlert({
+          title: "Restaurado!",
+          message: "Sua assinatura Premium foi restaurada.",
+        });
       }
     } catch {
       alertError("Não foi possível restaurar compras. Tente novamente.");

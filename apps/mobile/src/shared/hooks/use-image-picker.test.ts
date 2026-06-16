@@ -1,7 +1,7 @@
 import { renderHook, act } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
-import { Alert } from "react-native";
+import { describe, expect, it } from "vitest";
 
+import { useAppAlert } from "../components/alert-store";
 import { useImagePicker } from "./use-image-picker";
 
 describe("useImagePicker", () => {
@@ -34,25 +34,22 @@ describe("useImagePicker", () => {
     expect(result.current.imageUri).toBeNull();
   });
 
-  it("showPicker calls Alert.alert with 3 options", () => {
-    const alertSpy = vi.spyOn(Alert, "alert");
+  it("showPicker opens the app alert with 3 options", () => {
     const { result } = renderHook(() => useImagePicker());
 
     act(() => {
       result.current.showPicker();
     });
 
-    expect(alertSpy).toHaveBeenCalledWith(
-      "Adicionar foto",
-      "Como você quer adicionar a foto?",
+    const options = useAppAlert.getState().options;
+    expect(options?.title).toBe("Adicionar foto");
+    expect(options?.buttons).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ text: "Tirar foto" }),
         expect.objectContaining({ text: "Escolher da galeria" }),
         expect.objectContaining({ text: "Cancelar", style: "cancel" }),
       ]),
     );
-
-    alertSpy.mockRestore();
   });
 
   it("exposes all expected functions", () => {

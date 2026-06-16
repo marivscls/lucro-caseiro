@@ -13,17 +13,11 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  Pressable,
-  ScrollView,
-  View,
-} from "react-native";
+import { ActivityIndicator, Modal, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { QuoteForm } from "../features/quotes/components/quote-form";
+import { showAlert } from "../shared/components/alert-store";
 import {
   useConvertQuote,
   useDeleteQuote,
@@ -276,38 +270,46 @@ function QuoteDetail({
   }
 
   function handleReject() {
-    Alert.alert("Recusado?", "Marcar este orçamento como recusado?", [
-      { text: "Voltar", style: "cancel" },
-      {
-        text: "Sim, recusado",
-        style: "destructive",
-        onPress: () => {
-          setStatus
-            .mutateAsync({ id: quote.id, status: "rejected" })
-            .then(() => showToast("Orçamento marcado como recusado."))
-            .catch(() => alertError("Não foi possível atualizar."));
+    showAlert({
+      title: "Recusado?",
+      message: "Marcar este orçamento como recusado?",
+      buttons: [
+        { text: "Voltar", style: "cancel" },
+        {
+          text: "Sim, recusado",
+          style: "destructive",
+          onPress: () => {
+            setStatus
+              .mutateAsync({ id: quote.id, status: "rejected" })
+              .then(() => showToast("Orçamento marcado como recusado."))
+              .catch(() => alertError("Não foi possível atualizar."));
+          },
         },
-      },
-    ]);
+      ],
+    });
   }
 
   function handleDelete() {
-    Alert.alert("Excluir orçamento", "Essa ação não pode ser desfeita.", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Excluir",
-        style: "destructive",
-        onPress: () => {
-          removeQuote
-            .mutateAsync(quote.id)
-            .then(() => {
-              showToast("Orçamento excluído.");
-              onClose();
-            })
-            .catch(() => alertError("Não foi possível excluir."));
+    showAlert({
+      title: "Excluir orçamento",
+      message: "Essa ação não pode ser desfeita.",
+      buttons: [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: () => {
+            removeQuote
+              .mutateAsync(quote.id)
+              .then(() => {
+                showToast("Orçamento excluído.");
+                onClose();
+              })
+              .catch(() => alertError("Não foi possível excluir."));
+          },
         },
-      },
-    ]);
+      ],
+    });
   }
 
   // Ações secundárias agrupadas num menu, pra não virar parede de botões.
@@ -332,7 +334,7 @@ function QuoteDetail({
       onPress: handleDelete,
     });
     options.push({ text: "Cancelar", style: "cancel" });
-    Alert.alert("Mais ações", quote.title, options);
+    showAlert({ title: "Mais ações", message: quote.title, buttons: options });
   }
 
   return (

@@ -1,6 +1,5 @@
 import { Button, Input, Typography } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
-import { Alert } from "react-native";
 
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
@@ -9,6 +8,7 @@ import { isValidBrazilPhone, maskPhoneBR } from "../../../shared/utils/phone";
 import { useCreateClient } from "../hooks";
 import { TagInput } from "./tag-input";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
+import { showAlert } from "../../../shared/components/alert-store";
 
 interface CreateClientFormProps {
   onSuccess?: () => void;
@@ -48,10 +48,10 @@ export function CreateClientForm({ onSuccess }: Readonly<CreateClientFormProps>)
         notes: notes.trim() || undefined,
         tags: tags.length > 0 ? tags : undefined,
       });
-      Alert.alert(
-        "Cliente cadastrado!",
-        `${name} foi adicionado a sua lista de clientes`,
-      );
+      showAlert({
+        title: "Cliente cadastrado!",
+        message: `${name} foi adicionado a sua lista de clientes`,
+      });
       onSuccess?.();
     } catch (e: unknown) {
       const message =
