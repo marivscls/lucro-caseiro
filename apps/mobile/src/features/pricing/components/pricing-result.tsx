@@ -10,6 +10,34 @@ interface CostBreakdownItem {
   color: string;
 }
 
+/** Círculo de ícone tintado (cabeçalhos de seção). */
+function IconCircle({
+  icon,
+  tint,
+  color,
+  size = 32,
+}: Readonly<{
+  icon: keyof typeof Ionicons.glyphMap;
+  tint: string;
+  color: string;
+  size?: number;
+}>) {
+  return (
+    <View
+      style={{
+        width: size,
+        height: size,
+        borderRadius: radii.full,
+        backgroundColor: tint,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Ionicons name={icon} size={Math.round(size * 0.56)} color={color} />
+    </View>
+  );
+}
+
 interface PricingResultProps {
   readonly ingredientCost: number;
   readonly packagingCost: number;
@@ -89,7 +117,13 @@ export function PricingResult({
         <Typography variant="caption" color={theme.colors.success}>
           {hasFees ? "Preço final (com taxas)" : "Preço sugerido"}
         </Typography>
-        <Typography variant="moneyHero" color={theme.colors.success}>
+        <Typography
+          variant="moneyHero"
+          color={theme.colors.success}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.5}
+        >
           {formatCurrency(priceToCharge)}
         </Typography>
         {hasFees && (
@@ -109,7 +143,14 @@ export function PricingResult({
             alignItems: "center",
           }}
         >
-          <Typography variant="h3">Composição</Typography>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+            <IconCircle
+              icon="pie-chart-outline"
+              tint={`${theme.colors.primary}26`}
+              color={theme.colors.primary}
+            />
+            <Typography variant="h3">Composição</Typography>
+          </View>
           <Typography variant="caption">
             {formatCurrency(totalCost)} (
             {totalCost > 0 ? Math.round((totalCost / suggestedPrice) * 100) : 0}%)
@@ -199,15 +240,32 @@ export function PricingResult({
           backgroundColor: theme.colors.successBg,
         }}
       >
-        <Typography variant="bodyBold" color={theme.colors.success}>
-          Margem de lucro
-        </Typography>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+          <IconCircle
+            icon="trending-up"
+            tint={`${theme.colors.success}33`}
+            color={theme.colors.success}
+          />
+          <Typography
+            variant="bodyBold"
+            color={theme.colors.success}
+            style={{ fontSize: 16 }}
+          >
+            Margem de lucro
+          </Typography>
+        </View>
         <View style={{ flexDirection: "row", gap: spacing.lg }}>
           <View style={{ flex: 1, gap: spacing.xs }}>
             <Typography variant="caption" color={theme.colors.success}>
               Lucro por unidade
             </Typography>
-            <Typography variant="moneyLg" color={theme.colors.success}>
+            <Typography
+              variant="moneyLg"
+              color={theme.colors.success}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.6}
+            >
               {formatCurrency(profitPerUnit)}
             </Typography>
           </View>
@@ -216,7 +274,13 @@ export function PricingResult({
             <Typography variant="caption" color={theme.colors.success}>
               Margem sobre o preço
             </Typography>
-            <Typography variant="moneyLg" color={theme.colors.success}>
+            <Typography
+              variant="moneyLg"
+              color={theme.colors.success}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.6}
+            >
               {profitMarginDisplay}%
             </Typography>
           </View>
@@ -226,7 +290,11 @@ export function PricingResult({
       {/* Monthly projection */}
       <Card style={{ gap: spacing.lg }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-          <Ionicons name="trending-up" size={20} color={theme.colors.premium} />
+          <IconCircle
+            icon="trending-up"
+            tint={theme.colors.premiumBg}
+            color={theme.colors.premium}
+          />
           <Typography variant="h3">Projeção mensal</Typography>
         </View>
         <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -244,7 +312,13 @@ export function PricingResult({
             }}
           >
             <Typography variant="label">FATURAMENTO</Typography>
-            <Typography variant="money" color={theme.colors.text}>
+            <Typography
+              variant="money"
+              color={theme.colors.text}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.5}
+            >
               {formatCurrency(monthlyRevenue)}
             </Typography>
           </View>
@@ -259,7 +333,13 @@ export function PricingResult({
             }}
           >
             <Typography variant="label">LUCRO LÍQUIDO</Typography>
-            <Typography variant="money" color={theme.colors.success}>
+            <Typography
+              variant="money"
+              color={theme.colors.success}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.5}
+            >
               {formatCurrency(monthlyProfit)}
             </Typography>
           </View>
