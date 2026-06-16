@@ -283,6 +283,7 @@ export default function HomeScreen() {
   const { data: birthdays } = useBirthdays();
   const { data: lowStockProducts } = useLowStockProducts();
   const lowStockEnabled = useNotificationEnabled(NOTIFICATION_TYPES.LOW_STOCK);
+  const birthdaysEnabled = useNotificationEnabled(NOTIFICATION_TYPES.CLIENT_BIRTHDAY);
   const { data: orders } = useOrders();
   const { data: financeSummary } = useFinanceSummary();
   const monthProfit = financeSummary?.profit ?? 0;
@@ -737,7 +738,7 @@ export default function HomeScreen() {
               )}
             </View>
 
-            {birthdays && birthdays.length > 0 && (
+            {birthdaysEnabled && birthdays && birthdays.length > 0 && (
               <Card
                 variant="surface"
                 padding="xl"
