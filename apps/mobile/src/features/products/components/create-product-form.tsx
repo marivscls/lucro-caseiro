@@ -6,7 +6,9 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   TextInput,
@@ -164,114 +166,124 @@ function CategoryField({
         animationType="slide"
         onRequestClose={() => setOpen(false)}
       >
-        <Pressable
-          onPress={() => setOpen(false)}
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0,0,0,0.55)",
-            justifyContent: "flex-end",
-          }}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
           <Pressable
+            onPress={() => setOpen(false)}
             style={{
-              backgroundColor: pal.sheetBg,
-              borderTopLeftRadius: radii["2xl"],
-              borderTopRightRadius: radii["2xl"],
-              paddingHorizontal: spacing.lg,
-              paddingTop: spacing.md,
-              paddingBottom: spacing.lg + insets.bottom,
-              maxHeight: "80%",
-              gap: spacing.md,
+              flex: 1,
+              backgroundColor: "rgba(0,0,0,0.55)",
+              justifyContent: "flex-end",
             }}
           >
-            <Typography variant="h3" color={theme.colors.text} style={{ fontSize: 18 }}>
-              Categoria
-            </Typography>
-
-            <View
+            <Pressable
               style={{
-                minHeight: 56,
-                borderRadius: radii.lg,
-                borderWidth: 1,
-                borderColor: pal.border,
-                backgroundColor: pal.fieldBg,
-                flexDirection: "row",
-                alignItems: "center",
-                paddingHorizontal: spacing.md,
+                backgroundColor: pal.sheetBg,
+                borderTopLeftRadius: radii["2xl"],
+                borderTopRightRadius: radii["2xl"],
+                paddingHorizontal: spacing.lg,
+                paddingTop: spacing.md,
+                paddingBottom: spacing.lg + insets.bottom,
+                maxHeight: "80%",
                 gap: spacing.md,
               }}
             >
-              <Ionicons name="create-outline" size={22} color={theme.colors.primary} />
-              <TextInput
-                value={draft}
-                onChangeText={setDraft}
-                placeholder="Digite uma categoria nova"
-                placeholderTextColor={pal.placeholder}
-                autoFocus
-                style={{
-                  flex: 1,
-                  color: theme.colors.text,
-                  fontSize: 16,
-                  paddingVertical: spacing.md,
-                }}
-              />
-            </View>
-
-            {categories.length > 0 ? (
-              <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 220 }}>
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-                  {categories.map((cat) => (
-                    <Pressable
-                      key={cat}
-                      onPress={() => confirm(cat)}
-                      accessibilityRole="button"
-                      style={{
-                        minHeight: 40,
-                        paddingHorizontal: spacing.md,
-                        justifyContent: "center",
-                        borderRadius: radii.full,
-                        borderWidth: 1,
-                        borderColor: pal.border,
-                        backgroundColor: pal.fieldBg,
-                      }}
-                    >
-                      <Typography variant="body" color={theme.colors.text}>
-                        {cat}
-                      </Typography>
-                    </Pressable>
-                  ))}
-                </View>
-              </ScrollView>
-            ) : null}
-
-            <Pressable
-              onPress={() => confirm(draft)}
-              disabled={!draft.trim()}
-              accessibilityRole="button"
-              style={({ pressed }) => {
-                let opacity = 1;
-                if (!draft.trim()) opacity = 0.5;
-                else if (pressed) opacity = 0.85;
-                return {
-                  minHeight: 52,
-                  borderRadius: radii.lg,
-                  backgroundColor: theme.colors.primary,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  opacity,
-                };
-              }}
-            >
-              <Typography
-                variant="bodyBold"
-                color={theme.colors.textOnPrimary}
-                style={{ fontSize: 16 }}
-              >
-                Usar categoria
+              <Typography variant="h3" color={theme.colors.text} style={{ fontSize: 18 }}>
+                Categoria
               </Typography>
+
+              <View
+                style={{
+                  minHeight: 56,
+                  borderRadius: radii.lg,
+                  borderWidth: 1,
+                  borderColor: pal.border,
+                  backgroundColor: pal.fieldBg,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingHorizontal: spacing.md,
+                  gap: spacing.md,
+                }}
+              >
+                <Ionicons name="create-outline" size={22} color={theme.colors.primary} />
+                <TextInput
+                  value={draft}
+                  onChangeText={setDraft}
+                  placeholder="Digite uma categoria nova"
+                  placeholderTextColor={pal.placeholder}
+                  autoFocus
+                  style={{
+                    flex: 1,
+                    color: theme.colors.text,
+                    fontSize: 16,
+                    paddingVertical: spacing.md,
+                  }}
+                />
+              </View>
+
+              {categories.length > 0 ? (
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  style={{ maxHeight: 220 }}
+                >
+                  <View
+                    style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
+                  >
+                    {categories.map((cat) => (
+                      <Pressable
+                        key={cat}
+                        onPress={() => confirm(cat)}
+                        accessibilityRole="button"
+                        style={{
+                          minHeight: 40,
+                          paddingHorizontal: spacing.md,
+                          justifyContent: "center",
+                          borderRadius: radii.full,
+                          borderWidth: 1,
+                          borderColor: pal.border,
+                          backgroundColor: pal.fieldBg,
+                        }}
+                      >
+                        <Typography variant="body" color={theme.colors.text}>
+                          {cat}
+                        </Typography>
+                      </Pressable>
+                    ))}
+                  </View>
+                </ScrollView>
+              ) : null}
+
+              <Pressable
+                onPress={() => confirm(draft)}
+                disabled={!draft.trim()}
+                accessibilityRole="button"
+                style={({ pressed }) => {
+                  let opacity = 1;
+                  if (!draft.trim()) opacity = 0.5;
+                  else if (pressed) opacity = 0.85;
+                  return {
+                    minHeight: 52,
+                    borderRadius: radii.lg,
+                    backgroundColor: theme.colors.primary,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    opacity,
+                  };
+                }}
+              >
+                <Typography
+                  variant="bodyBold"
+                  color={theme.colors.textOnPrimary}
+                  style={{ fontSize: 16 }}
+                >
+                  Usar categoria
+                </Typography>
+              </Pressable>
             </Pressable>
           </Pressable>
-        </Pressable>
+        </KeyboardAvoidingView>
       </Modal>
     </>
   );
