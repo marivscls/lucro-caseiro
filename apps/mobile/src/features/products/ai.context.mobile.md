@@ -11,7 +11,7 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 - Nao calcula preco de venda (feature `pricing`).
 - Nao gerencia receitas associadas (feature `recipes`).
 - Nao registra vendas (feature `sales`).
-- Upload de foto planejado mas nao implementado (botao "em breve").
+- (Histórico) Upload de foto já implementado — `uploadProductImage` (Supabase Storage), usado na criação/edição.
 
 ## Boundaries & Ownership
 
