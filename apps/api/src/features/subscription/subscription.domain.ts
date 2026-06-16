@@ -7,6 +7,7 @@ export const FREE_PLAN_LIMITS: FreemiumConfig = {
   maxClients: 20,
   maxRecipes: 5,
   maxPackaging: 3,
+  maxProducts: 20,
 };
 
 export function buildFreemiumLimits(
@@ -19,10 +20,12 @@ export function buildFreemiumLimits(
       maxClients: Infinity,
       maxRecipes: Infinity,
       maxPackaging: Infinity,
+      maxProducts: Infinity,
       currentSalesThisMonth: counts.salesThisMonth,
       currentClients: counts.clients,
       currentRecipes: counts.recipes,
       currentPackaging: counts.packaging,
+      currentProducts: counts.products,
     };
   }
 
@@ -31,14 +34,16 @@ export function buildFreemiumLimits(
     maxClients: FREE_PLAN_LIMITS.maxClients,
     maxRecipes: FREE_PLAN_LIMITS.maxRecipes,
     maxPackaging: FREE_PLAN_LIMITS.maxPackaging,
+    maxProducts: FREE_PLAN_LIMITS.maxProducts,
     currentSalesThisMonth: counts.salesThisMonth,
     currentClients: counts.clients,
     currentRecipes: counts.recipes,
     currentPackaging: counts.packaging,
+    currentProducts: counts.products,
   };
 }
 
-export type ResourceType = "sales" | "clients" | "recipes" | "packaging";
+export type ResourceType = "sales" | "clients" | "recipes" | "packaging" | "products";
 
 export function isLimitExceeded(
   resourceType: ResourceType,
@@ -53,6 +58,8 @@ export function isLimitExceeded(
       return counts.recipes >= FREE_PLAN_LIMITS.maxRecipes;
     case "packaging":
       return counts.packaging >= FREE_PLAN_LIMITS.maxPackaging;
+    case "products":
+      return counts.products >= FREE_PLAN_LIMITS.maxProducts;
   }
 }
 
@@ -61,6 +68,7 @@ const LIMIT_MESSAGES: Record<ResourceType, string> = {
   clients: `Você atingiu o limite de ${FREE_PLAN_LIMITS.maxClients} clientes do plano gratuito. Assine o Premium para clientes ilimitados!`,
   recipes: `Você atingiu o limite de ${FREE_PLAN_LIMITS.maxRecipes} receitas do plano gratuito. Assine o Premium para receitas ilimitadas!`,
   packaging: `Você atingiu o limite de ${FREE_PLAN_LIMITS.maxPackaging} embalagens do plano gratuito. Assine o Premium para embalagens ilimitadas!`,
+  products: `Você atingiu o limite de ${FREE_PLAN_LIMITS.maxProducts} produtos do plano gratuito. Assine o Premium para produtos ilimitados!`,
 };
 
 export function getLimitMessage(resourceType: ResourceType): string {

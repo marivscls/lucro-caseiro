@@ -38,10 +38,11 @@
 | ---------- | ------------- | ------------------- |
 | Vendas/mes | 30            | Ilimitado           |
 | Clientes   | 20            | Ilimitado           |
+| Produtos   | 20            | Ilimitado           |
 | Receitas   | 5             | Ilimitado           |
 | Embalagens | 3             | Ilimitado           |
 | Rotulos    | 1 template    | Ilimitado           |
-| Catalogo   | 5 produtos    | Ilimitado + visual  |
+| Catalogo   | 5 (vitrine)   | Ilimitado + visual  |
 | Relatorios | Basico mensal | Completo + graficos |
 | Exportacao | Nao           | PDF/Excel           |
 

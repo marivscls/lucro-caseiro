@@ -1,13 +1,14 @@
 import { useLimits } from "../../features/subscription/hooks";
 import { usePaywall } from "./use-paywall";
 
-type Resource = "sales" | "clients" | "recipes" | "packaging";
+type Resource = "sales" | "clients" | "recipes" | "packaging" | "products";
 
 const LIMIT_MAP: Record<Resource, { current: string; max: string }> = {
   sales: { current: "currentSalesThisMonth", max: "maxSalesPerMonth" },
   clients: { current: "currentClients", max: "maxClients" },
   recipes: { current: "currentRecipes", max: "maxRecipes" },
   packaging: { current: "currentPackaging", max: "maxPackaging" },
+  products: { current: "currentProducts", max: "maxProducts" },
 };
 
 export function useLimitCheck(resource: Resource) {

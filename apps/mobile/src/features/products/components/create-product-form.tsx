@@ -31,6 +31,7 @@ import { SaleUnitToggle } from "./sale-unit-toggle";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
 import { showAlert } from "../../../shared/components/alert-store";
 import { BarcodeScanner } from "../../../shared/components/barcode-scanner";
+import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
 import {
   maskCurrencyInput,
   parseCurrencyInput,
@@ -436,6 +437,7 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
   const [uploading, setUploading] = useState(false);
 
   const createProduct = useCreateProduct();
+  const { checkAndBlock: checkProductLimit } = useLimitCheck("products");
   const { data: productsData } = useProducts();
 
   const categories = useMemo(() => {
@@ -448,6 +450,8 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
   const isKg = saleUnit === "kg" && !isComposite;
 
   async function handleSubmit() {
+    if (checkProductLimit()) return;
+
     const price = parseCurrencyInput(salePrice);
 
     const validationError = validateProductDraft({

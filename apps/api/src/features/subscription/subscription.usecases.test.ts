@@ -38,6 +38,7 @@ function makeCounts(overrides: Partial<ResourceCounts> = {}): ResourceCounts {
     clients: 5,
     recipes: 2,
     packaging: 1,
+    products: 8,
     ...overrides,
   };
 }

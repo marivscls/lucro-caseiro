@@ -2,6 +2,7 @@ import type { UserProfile } from "@lucro-caseiro/contracts";
 import {
   clients,
   packaging,
+  products,
   recipes,
   sales,
   users,
@@ -81,24 +82,36 @@ export class SubscriptionRepoPg implements ISubscriptionRepo {
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    const [salesCount, clientsCount, recipesCount, packagingCount] = await Promise.all([
-      this.db
-        .select({ value: count() })
-        .from(sales)
-        .where(and(eq(sales.userId, userId), gte(sales.soldAt, startOfMonth))),
-      this.db.select({ value: count() }).from(clients).where(eq(clients.userId, userId)),
-      this.db.select({ value: count() }).from(recipes).where(eq(recipes.userId, userId)),
-      this.db
-        .select({ value: count() })
-        .from(packaging)
-        .where(eq(packaging.userId, userId)),
-    ]);
+    const [salesCount, clientsCount, recipesCount, packagingCount, productsCount] =
+      await Promise.all([
+        this.db
+          .select({ value: count() })
+          .from(sales)
+          .where(and(eq(sales.userId, userId), gte(sales.soldAt, startOfMonth))),
+        this.db
+          .select({ value: count() })
+          .from(clients)
+          .where(eq(clients.userId, userId)),
+        this.db
+          .select({ value: count() })
+          .from(recipes)
+          .where(eq(recipes.userId, userId)),
+        this.db
+          .select({ value: count() })
+          .from(packaging)
+          .where(eq(packaging.userId, userId)),
+        this.db
+          .select({ value: count() })
+          .from(products)
+          .where(and(eq(products.userId, userId), eq(products.isActive, true))),
+      ]);
 
     return {
       salesThisMonth: salesCount[0]?.value ?? 0,
       clients: clientsCount[0]?.value ?? 0,
       recipes: recipesCount[0]?.value ?? 0,
       packaging: packagingCount[0]?.value ?? 0,
+      products: productsCount[0]?.value ?? 0,
     };
   }
 

@@ -3,16 +3,19 @@ import {
   PaginationDto,
   UpdateProductDto,
 } from "@lucro-caseiro/contracts";
-import { Router } from "express";
+import { Router, type RequestHandler } from "express";
 
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
 import type { ProductsUseCases } from "./products.usecases";
 
-export function createProductsRouter(useCases: ProductsUseCases): Router {
+export function createProductsRouter(
+  useCases: ProductsUseCases,
+  createGuard?: RequestHandler,
+): Router {
   const router = Router();
   router.use(authMiddleware);
 
-  router.post("/", async (req, res, next) => {
+  router.post("/", ...(createGuard ? [createGuard] : []), async (req, res, next) => {
     try {
       const userId = getUserId(req);
       const data = CreateProductDto.parse(req.body);

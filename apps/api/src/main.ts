@@ -208,7 +208,10 @@ app.use("/api/v1/health", healthRouter);
 
 // Feature routes
 app.use("/api/v1/account", createAccountRouter(accountUseCases));
-app.use("/api/v1/products", createProductsRouter(productsUseCases));
+app.use(
+  "/api/v1/products",
+  createProductsRouter(productsUseCases, freemiumGuard(subscriptionRepo, "products")),
+);
 app.use(
   "/api/v1/clients",
   createClientsRouter(clientsUseCases, freemiumGuard(subscriptionRepo, "clients")),

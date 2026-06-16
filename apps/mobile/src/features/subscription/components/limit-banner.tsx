@@ -5,7 +5,7 @@ import { Pressable, View } from "react-native";
 import { useLimits } from "../hooks";
 
 interface LimitBannerProps {
-  readonly resource: "sales" | "clients" | "recipes" | "packaging";
+  readonly resource: "sales" | "clients" | "recipes" | "packaging" | "products";
   readonly onUpgrade?: () => void;
 }
 
@@ -14,6 +14,7 @@ const LABELS: Record<string, { current: string; max: string }> = {
   clients: { current: "currentClients", max: "maxClients" },
   recipes: { current: "currentRecipes", max: "maxRecipes" },
   packaging: { current: "currentPackaging", max: "maxPackaging" },
+  products: { current: "currentProducts", max: "maxProducts" },
 };
 
 const RESOURCE_NAMES: Record<string, string> = {
@@ -21,6 +22,7 @@ const RESOURCE_NAMES: Record<string, string> = {
   clients: "clientes",
   recipes: "receitas",
   packaging: "embalagens",
+  products: "produtos",
 };
 
 export function LimitBanner({ resource, onUpgrade }: LimitBannerProps) {

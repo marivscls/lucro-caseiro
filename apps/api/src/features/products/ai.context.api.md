@@ -264,3 +264,7 @@ POST /api/v1/products  (produto composto / kit / caixinha)
   migration `019_product_code.sql`) + índice `(user_id, code)`. Threaded em CreateProductData/
   UpdateProductDto/Product e no repo. A **busca** (`?search=`) passou a casar por **nome OU código**
   (`ILIKE` em ambos), habilitando o scanner de câmera do mobile (escaneia → filtra a lista por código).
+- 2026-06-16: **limite freemium de produtos (20 no free)** — `POST /products` agora passa pelo
+  `freemiumGuard("products")`; `ResourceCounts.products` conta produtos **ativos** (`is_active = true`);
+  `FreemiumConfig.maxProducts = 20`; `FreemiumLimits` ganhou `maxProducts`/`currentProducts`.
+  (O catálogo público continua limitado a 5 itens no free — coisa separada do cadastro.)

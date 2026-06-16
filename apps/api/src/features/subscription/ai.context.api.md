@@ -163,3 +163,4 @@ Content-Type: application/json
 - Google Play validation remains as a provider fallback for Android store flows.
 - Downgrade on failed Google Play sync is intentionally conservative to avoid removing Stripe-granted Premium.
 - 2026-06-15: **avatar do perfil** (migration `018_user_avatar.sql`): coluna `users.avatar_url` (NULLABLE). `UserProfile.avatarUrl` + `UpdateProfile.avatarUrl?` no contrato; propagado por `upsertProfile`/`updateProfile` (merge mantém o atual quando não enviado). Sem ela, o app mostra a inicial do nome.
+- 2026-06-16: **limite de produtos (20 no free)** — `products` adicionado a `ResourceCounts`/`ResourceType`/`FreemiumConfig` (`maxProducts = 20`) e os campos `maxProducts`/`currentProducts` ao contrato `FreemiumLimits`. `getResourceCounts` conta produtos ativos; `freemiumGuard("products")` aplicado no `POST /api/v1/products`. Mensagem de limite em `LIMIT_MESSAGES.products`.

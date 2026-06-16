@@ -12,10 +12,11 @@ import { usePaywall } from "../shared/hooks/use-paywall";
 const FREE_LIMITS = {
   "Vendas/mês": "30",
   Clientes: "20",
+  Produtos: "20",
   Receitas: "5",
   Embalagens: "3",
   Rótulos: "1 template",
-  Catálogo: "5 produtos",
+  "Catálogo público": "5 produtos",
   Relatórios: "Básico mensal",
   Exportação: "Não",
 };
@@ -23,10 +24,11 @@ const FREE_LIMITS = {
 const PREMIUM_LIMITS = {
   "Vendas/mês": "Ilimitado",
   Clientes: "Ilimitado",
+  Produtos: "Ilimitado",
   Receitas: "Ilimitado",
   Embalagens: "Ilimitado",
   Rótulos: "Ilimitado",
-  Catálogo: "Ilimitado + visual",
+  "Catálogo público": "Ilimitado + visual",
   Relatórios: "Completo + gráficos",
   Exportação: "PDF/Excel",
 };
@@ -134,6 +136,11 @@ export default function PlansScreen() {
                   label: "Clientes",
                   current: limits.currentClients,
                   max: limits.maxClients,
+                },
+                {
+                  label: "Produtos",
+                  current: limits.currentProducts,
+                  max: limits.maxProducts,
                 },
                 {
                   label: "Receitas",

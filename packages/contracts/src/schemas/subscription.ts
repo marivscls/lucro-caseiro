@@ -31,10 +31,12 @@ export const FreemiumLimitsDto = z.object({
   maxClients: z.number(),
   maxRecipes: z.number(),
   maxPackaging: z.number(),
+  maxProducts: z.number(),
   currentSalesThisMonth: z.number(),
   currentClients: z.number(),
   currentRecipes: z.number(),
   currentPackaging: z.number(),
+  currentProducts: z.number(),
 });
 
 export type FreemiumLimits = z.infer<typeof FreemiumLimitsDto>;

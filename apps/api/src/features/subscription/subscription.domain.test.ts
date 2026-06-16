@@ -15,6 +15,7 @@ function makeCounts(overrides: Partial<ResourceCounts> = {}): ResourceCounts {
     clients: 0,
     recipes: 0,
     packaging: 0,
+    products: 0,
     ...overrides,
   };
 }
@@ -68,11 +69,18 @@ describe("isLimitExceeded", () => {
     ).toBe(true);
   });
 
+  it("returns true when at products limit", () => {
+    expect(
+      isLimitExceeded("products", makeCounts({ products: FREE_PLAN_LIMITS.maxProducts })),
+    ).toBe(true);
+  });
+
   it("returns false when below all limits", () => {
     expect(isLimitExceeded("sales", makeCounts())).toBe(false);
     expect(isLimitExceeded("clients", makeCounts())).toBe(false);
     expect(isLimitExceeded("recipes", makeCounts())).toBe(false);
     expect(isLimitExceeded("packaging", makeCounts())).toBe(false);
+    expect(isLimitExceeded("products", makeCounts())).toBe(false);
   });
 });
 
@@ -82,6 +90,7 @@ describe("getLimitMessage", () => {
     expect(getLimitMessage("clients")).toContain("clientes");
     expect(getLimitMessage("recipes")).toContain("receitas");
     expect(getLimitMessage("packaging")).toContain("embalagens");
+    expect(getLimitMessage("products")).toContain("produtos");
   });
 
   it("includes Premium mention", () => {
