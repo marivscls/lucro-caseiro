@@ -71,6 +71,11 @@ const NOTIFICATIONS: {
     label: "Estoque baixo",
     icon: "alert-circle-outline",
   },
+  {
+    type: NOTIFICATION_TYPES.DELIVERY,
+    label: "Lembretes de entrega",
+    icon: "cube-outline",
+  },
   // Premium
   {
     type: NOTIFICATION_TYPES.CLIENT_BIRTHDAY,

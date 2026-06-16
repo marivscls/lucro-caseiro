@@ -3,9 +3,10 @@ import * as Notifications from "expo-notifications";
 import { useEffect } from "react";
 
 import { NOTIFICATION_TYPES } from "../../shared/hooks/notification-types";
+import { useNotificationEnabled } from "../../shared/hooks/notification-prefs";
 import { upcomingCount } from "./domain";
 import { useOrders } from "./hooks";
-import { scheduleOrderReminder } from "./reminders";
+import { cancelOrderReminder, scheduleOrderReminder } from "./reminders";
 
 // Garante no máximo uma notificação de agenda por dia.
 const KEY = "deliveryNotifiedDate";
@@ -45,18 +46,29 @@ async function maybeNotify(count: number): Promise<void> {
 
 /**
  * Dispara uma notificação local quando há entregas próximas (hoje/amanhã ou
- * atrasadas), no máximo uma vez por dia.
+ * atrasadas), no máximo uma vez por dia. Respeita a preferência "Lembretes de
+ * entrega": desligada, cancela os lembretes já agendados e não dispara nada.
  */
 export function useDeliveryNotifier(): void {
   const { data: orders } = useOrders();
+  const enabled = useNotificationEnabled(NOTIFICATION_TYPES.DELIVERY);
 
   useEffect(() => {
     if (!orders) return;
+
+    if (!enabled) {
+      // Desligado: remove os lembretes por encomenda já agendados.
+      for (const order of orders) {
+        void cancelOrderReminder(order.id);
+      }
+      return;
+    }
+
     void maybeNotify(upcomingCount(orders, new Date()));
     // Garante o lembrete agendado por encomenda (cobre pedidos antigos e
     // reagenda se o SO tiver limpado os agendamentos). Idempotente.
     for (const order of orders) {
       void scheduleOrderReminder(order);
     }
-  }, [orders]);
+  }, [orders, enabled]);
 }

@@ -55,7 +55,7 @@ function AppContent() {
   useLowStockNotifier();
   useFiadoNotifier();
 
-  // Notificacao local quando ha entregas proximas na agenda.
+  // Entregas próximas na agenda (respeita a preferência "Lembretes de entrega").
   useDeliveryNotifier();
 
   // Premium: aniversário de cliente, lembrete diário e resumo semanal.
