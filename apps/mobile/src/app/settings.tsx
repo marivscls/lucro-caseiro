@@ -247,14 +247,23 @@ export default function SettingsScreen() {
               </Typography>
             </View>
 
-            <View style={{ flex: 1, gap: 2 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                <Typography variant="h3">{userName}</Typography>
+            <View style={{ flex: 1, gap: 4 }}>
+              <Typography variant="h3" numberOfLines={2}>
+                {userName}
+              </Typography>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: spacing.sm,
+                  flexWrap: "wrap",
+                }}
+              >
+                <Typography variant="caption">{businessName}</Typography>
                 {businessType ? (
                   <Badge label={businessTypeLabel(businessType)} variant="primary" />
                 ) : null}
               </View>
-              <Typography variant="caption">{businessName}</Typography>
             </View>
 
             <Pressable
@@ -406,7 +415,7 @@ export default function SettingsScreen() {
               size={18}
               color={theme.colors.textSecondary}
             />
-            <Typography variant="bodyBold">Preferencias</Typography>
+            <Typography variant="bodyBold">Preferências</Typography>
           </View>
 
           {/* Theme Toggle */}
@@ -456,22 +465,41 @@ export default function SettingsScreen() {
           </View>
 
           {/* Notifications */}
-          {[
-            { key: "sales", label: "Vendas pendentes" },
-            { key: "birthdays", label: "Aniversários de clientes" },
-            { key: "stock", label: "Estoque baixo" },
-            { key: "weekly", label: "Resumo semanal" },
-            { key: "daily", label: "Lembretes diarios" },
-          ].map((item) => (
+          {(
+            [
+              { key: "sales", label: "Vendas pendentes", icon: "receipt-outline" },
+              {
+                key: "birthdays",
+                label: "Aniversários de clientes",
+                icon: "gift-outline",
+              },
+              { key: "stock", label: "Estoque baixo", icon: "alert-circle-outline" },
+              { key: "weekly", label: "Resumo semanal", icon: "bar-chart-outline" },
+              { key: "daily", label: "Lembretes diários", icon: "notifications-outline" },
+            ] as const
+          ).map((item) => (
             <View
               key={item.key}
               style={{
                 flexDirection: "row",
                 justifyContent: "space-between",
                 alignItems: "center",
+                gap: spacing.md,
               }}
             >
-              <Typography variant="body">{item.label}</Typography>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: spacing.md,
+                  flex: 1,
+                }}
+              >
+                <Ionicons name={item.icon} size={20} color={theme.colors.textSecondary} />
+                <Typography variant="body" color={theme.colors.text} style={{ flex: 1 }}>
+                  {item.label}
+                </Typography>
+              </View>
               <Switch
                 accessibilityLabel={item.label}
                 trackColor={{
