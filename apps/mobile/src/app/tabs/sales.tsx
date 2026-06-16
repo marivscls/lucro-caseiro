@@ -34,6 +34,7 @@ import { useAuth } from "../../shared/hooks/use-auth";
 import { useProfile } from "../../features/subscription/hooks";
 import { KeyboardAwareScrollView } from "../../shared/components/keyboard-aware-scroll-view";
 import { showAlert } from "../../shared/components/alert-store";
+import { AnimatedListItem } from "../../shared/components/animated-list-item";
 import { alertError } from "../../shared/utils/alerts";
 
 type FilterTab = "all" | "paid" | "pending" | "cancelled";
@@ -631,8 +632,10 @@ function SalesContent({
         <View style={{ marginTop: spacing.xl }}>
           <GroupHeader title={group.title} count={group.data.length} />
           <View style={{ gap: spacing.md }}>
-            {group.data.map((sale) => (
-              <SaleCard key={sale.id} sale={sale} onPress={() => onSalePress(sale.id)} />
+            {group.data.map((sale, i) => (
+              <AnimatedListItem key={sale.id} index={i}>
+                <SaleCard sale={sale} onPress={() => onSalePress(sale.id)} />
+              </AnimatedListItem>
             ))}
           </View>
         </View>

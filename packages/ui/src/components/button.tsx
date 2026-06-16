@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Pressable,
   Text,
   type PressableProps,
@@ -8,6 +9,7 @@ import {
 } from "react-native";
 
 import { useTheme } from "../theme-context";
+import { useReducedMotion } from "../use-reduced-motion";
 import { fontSizes, radii, spacing } from "../theme";
 
 type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "success" | "premium";
@@ -21,6 +23,8 @@ interface ButtonProps extends Omit<PressableProps, "style"> {
   icon?: React.ReactNode;
   style?: ViewStyle;
 }
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 const sizeStyles: Record<ButtonSize, { height: number; fontSize: number; px: number }> =
   {
@@ -37,11 +41,23 @@ export function Button({
   icon,
   disabled,
   style,
+  onPressIn,
+  onPressOut,
   ...props
 }: ButtonProps) {
   const { theme } = useTheme();
+  const reduced = useReducedMotion();
+  const scale = useRef(new Animated.Value(1)).current;
   const s = sizeStyles[size];
   const isDisabled = disabled || loading;
+
+  const animateTo = (to: number) =>
+    Animated.spring(scale, {
+      toValue: to,
+      useNativeDriver: true,
+      speed: 50,
+      bounciness: 0,
+    }).start();
 
   const variants: Record<ButtonVariant, { bg: string; text: string; border?: string }> = {
     primary: { bg: theme.colors.primary, text: theme.colors.textOnPrimary },
@@ -55,8 +71,16 @@ export function Button({
   const v = variants[variant];
 
   return (
-    <Pressable
+    <AnimatedPressable
       disabled={isDisabled}
+      onPressIn={(e) => {
+        if (!reduced && !isDisabled) animateTo(0.97);
+        onPressIn?.(e);
+      }}
+      onPressOut={(e) => {
+        if (!reduced) animateTo(1);
+        onPressOut?.(e);
+      }}
       style={({ pressed }) => [
         {
           height: s.height,
@@ -67,11 +91,12 @@ export function Button({
           alignItems: "center",
           justifyContent: "center",
           gap: spacing.sm,
-          opacity: isDisabled ? 0.5 : pressed ? 0.85 : 1,
+          opacity: isDisabled ? 0.5 : pressed ? 0.9 : 1,
           borderWidth: v.border ? 1.5 : 0,
           borderColor: v.border,
         },
         style,
+        { transform: [{ scale }] },
       ]}
       {...props}
     >
@@ -91,6 +116,6 @@ export function Button({
           </Text>
         </>
       )}
-    </Pressable>
+    </AnimatedPressable>
   );
 }

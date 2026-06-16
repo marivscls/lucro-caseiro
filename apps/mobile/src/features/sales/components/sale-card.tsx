@@ -1,8 +1,8 @@
 ﻿import type { Sale } from "@lucro-caseiro/contracts";
-import { Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import { PressableScale, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Image, Pressable, View } from "react-native";
+import { Image, View } from "react-native";
 
 import { formatCurrency } from "../../../shared/utils/format";
 import { paymentLabel } from "../payment";
@@ -57,29 +57,24 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
   const statusColors = getStatusColors(status.color, theme);
 
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
       accessibilityRole="button"
-      style={({ pressed }) => [
-        {
-          minHeight: 96,
-          borderRadius: radii.xl,
-          padding: spacing.md,
-          backgroundColor:
-            theme.mode === "dark"
-              ? "rgba(44, 36, 32, 0.84)"
-              : theme.colors.surfaceElevated,
-          borderWidth: 1,
-          borderColor:
-            theme.mode === "dark" ? "rgba(245, 225, 219, 0.1)" : "rgba(74, 50, 40, 0.08)",
-          shadowColor: "#000000",
-          shadowOffset: { width: 0, height: 10 },
-          shadowOpacity: theme.mode === "dark" ? 0.28 : 0.07,
-          shadowRadius: 18,
-          elevation: 3,
-          opacity: pressed ? 0.86 : 1,
-        },
-      ]}
+      style={{
+        minHeight: 96,
+        borderRadius: radii.xl,
+        padding: spacing.md,
+        backgroundColor:
+          theme.mode === "dark" ? "rgba(44, 36, 32, 0.84)" : theme.colors.surfaceElevated,
+        borderWidth: 1,
+        borderColor:
+          theme.mode === "dark" ? "rgba(245, 225, 219, 0.1)" : "rgba(74, 50, 40, 0.08)",
+        shadowColor: "#000000",
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: theme.mode === "dark" ? 0.28 : 0.07,
+        shadowRadius: 18,
+        elevation: 3,
+      }}
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
         <View
@@ -147,6 +142,6 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
 
         <Ionicons name="chevron-forward" size={24} color={theme.colors.textSecondary} />
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }

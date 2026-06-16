@@ -1,6 +1,13 @@
-import { Button, Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
-import React from "react";
-import { Modal, Pressable, View, type ViewStyle } from "react-native";
+import {
+  Button,
+  Typography,
+  useReducedMotion,
+  useTheme,
+  radii,
+  spacing,
+} from "@lucro-caseiro/ui";
+import React, { useEffect, useRef } from "react";
+import { Animated, Modal, Pressable, View, type ViewStyle } from "react-native";
 
 import { useAppAlert, type AppAlertButton } from "./alert-store";
 
@@ -10,12 +17,26 @@ const OK_BUTTON: AppAlertButton[] = [{ text: "OK" }];
 
 /**
  * Diálogo global na identidade do app — substitui o `Alert` nativo do sistema.
- * Montado uma vez no `_layout`, segue o tema (claro/escuro) automaticamente.
+ * Montado uma vez no `_layout`, segue o tema (claro/escuro) automaticamente e
+ * faz um "pop" sutil (spring) ao abrir. Respeita reduce-motion.
  */
 export function AlertHost() {
   const { theme } = useTheme();
   const options = useAppAlert((s) => s.options);
   const hide = useAppAlert((s) => s.hide);
+  const reduced = useReducedMotion();
+  const scale = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (!options || reduced) return;
+    scale.setValue(0.92);
+    Animated.spring(scale, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 18,
+      bounciness: 8,
+    }).start();
+  }, [options, reduced, scale]);
 
   if (!options) return null;
 
@@ -61,47 +82,47 @@ export function AlertHost() {
           padding: spacing.xl,
         }}
       >
-        {/* Card: o onPress vazio impede que o toque "vaze" e feche o diálogo. */}
-        <Pressable
-          onPress={() => {}}
-          style={{
-            width: "100%",
-            maxWidth: 360,
-            backgroundColor: theme.colors.surfaceElevated,
-            borderRadius: radii.xl,
-            padding: spacing["2xl"],
-            gap: spacing.md,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 8 },
-            shadowOpacity: 0.35,
-            shadowRadius: 16,
-            elevation: 12,
-          }}
-        >
-          <Typography variant="h3">{options.title}</Typography>
-          {options.message ? (
-            <Typography variant="body">{options.message}</Typography>
-          ) : null}
-
-          <View
+        <Animated.View style={{ width: "100%", maxWidth: 360, transform: [{ scale }] }}>
+          {/* Card: o onPress vazio impede que o toque "vaze" e feche o diálogo. */}
+          <Pressable
+            onPress={() => {}}
             style={{
-              flexDirection: stacked ? "column" : "row",
-              justifyContent: "flex-end",
-              gap: spacing.sm,
-              marginTop: spacing.sm,
+              backgroundColor: theme.colors.surfaceElevated,
+              borderRadius: radii.xl,
+              padding: spacing["2xl"],
+              gap: spacing.md,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.35,
+              shadowRadius: 16,
+              elevation: 12,
             }}
           >
-            {buttons.map((button, i) => (
-              <Button
-                key={`${button.text}-${i}`}
-                title={button.text}
-                variant={button.style === "cancel" ? "secondary" : "primary"}
-                onPress={() => press(button)}
-                style={buttonStyle(button)}
-              />
-            ))}
-          </View>
-        </Pressable>
+            <Typography variant="h3">{options.title}</Typography>
+            {options.message ? (
+              <Typography variant="body">{options.message}</Typography>
+            ) : null}
+
+            <View
+              style={{
+                flexDirection: stacked ? "column" : "row",
+                justifyContent: "flex-end",
+                gap: spacing.sm,
+                marginTop: spacing.sm,
+              }}
+            >
+              {buttons.map((button, i) => (
+                <Button
+                  key={`${button.text}-${i}`}
+                  title={button.text}
+                  variant={button.style === "cancel" ? "secondary" : "primary"}
+                  onPress={() => press(button)}
+                  style={buttonStyle(button)}
+                />
+              ))}
+            </View>
+          </Pressable>
+        </Animated.View>
       </Pressable>
     </Modal>
   );

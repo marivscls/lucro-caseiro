@@ -1,6 +1,7 @@
 import React from "react";
-import { Pressable, View, type PressableProps, type ViewStyle } from "react-native";
+import { View, type PressableProps, type ViewStyle } from "react-native";
 
+import { PressableScale } from "./pressable-scale";
 import { useTheme } from "../theme-context";
 import { radii, spacing } from "../theme";
 
@@ -36,12 +37,9 @@ export function Card({
 
   if (onPress) {
     return (
-      <Pressable
-        onPress={onPress}
-        style={({ pressed }) => [cardStyle, pressed && { opacity: 0.85 }]}
-      >
+      <PressableScale onPress={onPress} style={cardStyle}>
         {children}
-      </Pressable>
+      </PressableScale>
     );
   }
 

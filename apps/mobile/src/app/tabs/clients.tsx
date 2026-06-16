@@ -1,5 +1,5 @@
 import type { Client } from "@lucro-caseiro/contracts";
-import { Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import { PressableScale, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useMemo, useState } from "react";
 import {
@@ -25,6 +25,7 @@ import { brToIso, maskDateBR } from "../../shared/utils/date";
 import { isValidBrazilPhone, maskPhoneBR } from "../../shared/utils/phone";
 import { alertValidation } from "../../shared/utils/alerts";
 import { showAlert } from "../../shared/components/alert-store";
+import { AnimatedListItem } from "../../shared/components/animated-list-item";
 
 type Screen =
   | { name: "list" }
@@ -183,20 +184,17 @@ function ClientCard({ client, onPress }: Readonly<ClientCardProps>) {
   const pal = clientsPalette(theme);
 
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
-      style={({ pressed }) => [
-        surfaceStyle(pal, {
-          borderRadius: radii["2xl"],
-          minHeight: 62,
-          paddingHorizontal: spacing.md,
-          paddingVertical: spacing.sm,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.sm,
-          opacity: pressed ? 0.84 : 1,
-        }),
-      ]}
+      style={surfaceStyle(pal, {
+        borderRadius: radii["2xl"],
+        minHeight: 62,
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: spacing.sm,
+      })}
     >
       <Avatar label={client.name} />
       <View style={{ flex: 1, gap: spacing.xs }}>
@@ -221,7 +219,7 @@ function ClientCard({ client, onPress }: Readonly<ClientCardProps>) {
         </View>
       </View>
       <Ionicons name="chevron-forward" size={22} color={pal.muted} />
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -345,12 +343,10 @@ function ClientsListScreen({
               {group.letter}
             </Typography>
             <View style={{ gap: spacing.sm }}>
-              {group.data.map((client) => (
-                <ClientCard
-                  key={client.id}
-                  client={client}
-                  onPress={() => onClientPress(client.id)}
-                />
+              {group.data.map((client, i) => (
+                <AnimatedListItem key={client.id} index={i}>
+                  <ClientCard client={client} onPress={() => onClientPress(client.id)} />
+                </AnimatedListItem>
               ))}
             </View>
           </View>
