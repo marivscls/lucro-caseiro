@@ -56,6 +56,151 @@ const PATTERN_OPTIONS: {
   { key: "stripes", icon: "reorder-three-outline", label: "Listras" },
 ];
 
+const INTRO_BENEFITS: {
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  desc: string;
+}[] = [
+  {
+    icon: "sparkles-outline",
+    title: "Página linda e pronta",
+    desc: "Seus produtos com foto, descrição e preço.",
+  },
+  {
+    icon: "share-social-outline",
+    title: "Um link só seu",
+    desc: "Compartilhe no Instagram, no status e em grupos.",
+  },
+  {
+    icon: "logo-whatsapp",
+    title: "Pedidos no WhatsApp",
+    desc: "O cliente escolhe e já chama você direto.",
+  },
+];
+
+/** Estado inicial (catálogo desativado): foca em explicar o valor e ativar. */
+function CatalogIntro({
+  onActivate,
+  pending,
+}: Readonly<{ onActivate: () => void; pending: boolean }>) {
+  const { theme } = useTheme();
+  return (
+    <Card padding="lg">
+      <View style={{ gap: spacing.lg }}>
+        {INTRO_BENEFITS.map((b) => (
+          <View
+            key={b.title}
+            style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
+          >
+            <View
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: radii.lg,
+                backgroundColor: theme.colors.successBg,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Ionicons name={b.icon} size={22} color={theme.colors.success} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Typography variant="bodyBold">{b.title}</Typography>
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                {b.desc}
+              </Typography>
+            </View>
+          </View>
+        ))}
+
+        <Pressable
+          onPress={onActivate}
+          disabled={pending}
+          accessibilityRole="button"
+          accessibilityLabel="Ativar meu catálogo"
+          style={({ pressed }) => ({
+            minHeight: 56,
+            borderRadius: radii.lg,
+            backgroundColor: theme.colors.primary,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: spacing.sm,
+            opacity: pressed || pending ? 0.85 : 1,
+            marginTop: spacing.xs,
+          })}
+        >
+          <Ionicons name="rocket-outline" size={22} color={theme.colors.textOnPrimary} />
+          <Typography
+            variant="bodyBold"
+            color={theme.colors.textOnPrimary}
+            style={{ fontSize: 18 }}
+          >
+            {pending ? "Ativando..." : "Ativar meu catálogo"}
+          </Typography>
+        </Pressable>
+        <Typography
+          variant="caption"
+          color={theme.colors.textSecondary}
+          style={{ textAlign: "center" }}
+        >
+          É grátis. Você personaliza tudo depois.
+        </Typography>
+      </View>
+    </Card>
+  );
+}
+
+/** Teaser de personalização (free): mostra o que o Premium libera, sem expor os controles. */
+function AppearancePremiumTeaser({ onUnlock }: Readonly<{ onUnlock: () => void }>) {
+  const { theme } = useTheme();
+  const perks = [
+    "Foto de capa e logo",
+    "Cores do seu jeito",
+    "Estampas no topo",
+    "Frase de apresentação",
+  ];
+  return (
+    <View style={{ gap: spacing.md }}>
+      <Typography variant="caption" color={theme.colors.textSecondary}>
+        Deixe o catálogo com a sua cara:
+      </Typography>
+      {perks.map((perk) => (
+        <View
+          key={perk}
+          style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
+        >
+          <Ionicons name="checkmark-circle" size={18} color={theme.colors.premium} />
+          <Typography variant="body" style={{ flex: 1 }}>
+            {perk}
+          </Typography>
+        </View>
+      ))}
+      <Pressable
+        onPress={onUnlock}
+        accessibilityRole="button"
+        accessibilityLabel="Desbloquear personalização com Premium"
+        style={({ pressed }) => ({
+          minHeight: 52,
+          borderRadius: radii.lg,
+          backgroundColor: theme.colors.premium,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: spacing.sm,
+          opacity: pressed ? 0.85 : 1,
+          marginTop: spacing.xs,
+        })}
+      >
+        <Ionicons name="diamond" size={18} color="#fff" />
+        <Typography variant="bodyBold" color="#fff" style={{ fontSize: 16 }}>
+          Desbloquear com Premium
+        </Typography>
+      </Pressable>
+    </View>
+  );
+}
+
 function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
   const { theme } = useTheme();
   const update = useUpdateCatalogSettings();
@@ -252,450 +397,490 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
         />
       </View>
 
-      {/* Link compartilhável */}
+      {!settings.enabled && (
+        <CatalogIntro
+          onActivate={() => void handleToggle(true)}
+          pending={update.isPending}
+        />
+      )}
+
       {settings.enabled && (
-        <Card padding="lg" style={{ backgroundColor: heroBg }}>
-          <View style={{ gap: spacing.md }}>
-            <Typography variant="label">SEU LINK</Typography>
-            <Pressable
-              onPress={() => void handleShare()}
-              accessibilityRole="button"
-              accessibilityLabel="Compartilhar link do catálogo"
-              style={({ pressed }) => [
-                {
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: spacing.sm,
-                  backgroundColor: isDark
-                    ? "rgba(255,255,255,0.06)"
-                    : theme.colors.surface,
-                  borderWidth: 1,
-                  borderColor: isDark
-                    ? "rgba(245, 225, 219, 0.14)"
-                    : "rgba(74, 50, 40, 0.1)",
-                  borderRadius: radii.xl,
-                  paddingVertical: spacing.md,
-                  paddingHorizontal: spacing.lg,
-                  opacity: pressed ? 0.8 : 1,
-                },
-              ]}
-            >
-              <Ionicons name="link-outline" size={20} color={theme.colors.primaryLight} />
-              <Typography
-                variant="caption"
-                style={{ flex: 1 }}
-                numberOfLines={1}
-                color={theme.colors.text}
-              >
-                {url.replace(/^https?:\/\//, "")}
-              </Typography>
-              <Ionicons
-                name="share-social-outline"
-                size={20}
-                color={theme.colors.primaryLight}
-              />
-            </Pressable>
-            <Button
-              title="Compartilhar com clientes"
-              onPress={() => void handleShare()}
-            />
-          </View>
-        </Card>
-      )}
-
-      {/* Gatilho de upgrade: free mostra ate 5 produtos no catalogo */}
-      {!isPremium && (
-        <Card
-          padding="lg"
-          onPress={() => showPaywall("catalog")}
-          style={{
-            borderLeftWidth: 3,
-            borderLeftColor: theme.colors.premium,
-          }}
-        >
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-            <Ionicons name="diamond-outline" size={24} color={theme.colors.premium} />
-            <View style={{ flex: 1 }}>
-              <Typography variant="bodyBold">
-                Seu catálogo mostra até 5 produtos
-              </Typography>
-              <Typography variant="caption">
-                Mostre seu catálogo completo e personalize as cores com o Premium.
-              </Typography>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={18}
-              color={theme.colors.textSecondary}
-            />
-          </View>
-        </Card>
-      )}
-
-      {/* Ativação */}
-      <Card padding="lg">
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: spacing.md,
-          }}
-        >
-          <View
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: radii.lg,
-              backgroundColor: settings.enabled
-                ? theme.colors.successBg
-                : theme.colors.surface,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Ionicons
-              name={settings.enabled ? "globe-outline" : "eye-off-outline"}
-              size={22}
-              color={settings.enabled ? theme.colors.success : theme.colors.textSecondary}
-            />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Typography variant="h3">Catálogo ativo</Typography>
-            <Typography variant="caption">
-              {settings.enabled
-                ? "Qualquer pessoa com o link pode ver seus produtos."
-                : "Ative para compartilhar com seus clientes."}
-            </Typography>
-          </View>
-          <Switch
-            value={settings.enabled}
-            onValueChange={(value) => void handleToggle(value)}
-            trackColor={{ true: theme.colors.primary }}
-            accessibilityLabel="Ativar catálogo"
-          />
-        </View>
-      </Card>
-
-      {/* Configurações */}
-      <Card padding="lg">
-        <View style={{ gap: spacing.md }}>
-          <Typography variant="label">PERSONALIZAR</Typography>
-          <Input
-            label="Endereço do catálogo"
-            value={slug}
-            onChangeText={setSlug}
-            autoCapitalize="none"
-            autoCorrect={false}
-            placeholder="doces-da-maria"
-          />
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            Só letras minúsculas, números e hífens.
-          </Typography>
-          <Input
-            label="WhatsApp para pedidos"
-            value={whatsapp}
-            onChangeText={setWhatsapp}
-            keyboardType="phone-pad"
-            placeholder="11 99999-8888"
-          />
-        </View>
-      </Card>
-
-      {/* Aparência (Premium) */}
-      <Card padding="lg">
-        <View style={{ gap: spacing.md }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-            <Typography variant="label" style={{ flex: 1 }}>
-              APARÊNCIA
-            </Typography>
-            <Badge label="Premium" variant="premium" />
-          </View>
-
-          {/* Capa */}
-          <Pressable
-            onPress={() => void handlePickCover()}
-            accessibilityRole="button"
-            accessibilityLabel="Foto de capa do catálogo"
-            style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
-          >
-            {(settings.coverUrl ?? coverPreview) ? (
-              <Image
-                source={{ uri: settings.coverUrl ?? coverPreview! }}
-                style={{
-                  width: "100%",
-                  height: 120,
-                  borderRadius: radii.xl,
-                  backgroundColor: theme.colors.surface,
-                }}
-              />
-            ) : (
-              <View
-                style={{
-                  height: 120,
-                  borderRadius: radii.xl,
-                  borderWidth: 1.5,
-                  borderStyle: "dashed",
-                  borderColor:
-                    theme.mode === "dark"
-                      ? "rgba(245, 225, 219, 0.25)"
-                      : "rgba(74, 50, 40, 0.2)",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: spacing.xs,
-                }}
-              >
-                {uploadingCover ? (
-                  <ActivityIndicator color={theme.colors.primary} />
-                ) : (
-                  <>
-                    <Ionicons
-                      name="image-outline"
-                      size={28}
-                      color={theme.colors.primaryLight}
-                    />
-                    <Typography variant="caption">
-                      Adicionar foto de fundo do topo
-                    </Typography>
-                  </>
-                )}
+        <>
+          {/* Link compartilhável */}
+          {settings.enabled && (
+            <Card padding="lg" style={{ backgroundColor: heroBg }}>
+              <View style={{ gap: spacing.md }}>
+                <Typography variant="label">SEU LINK</Typography>
+                <Pressable
+                  onPress={() => void handleShare()}
+                  accessibilityRole="button"
+                  accessibilityLabel="Compartilhar link do catálogo"
+                  style={({ pressed }) => [
+                    {
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: spacing.sm,
+                      backgroundColor: isDark
+                        ? "rgba(255,255,255,0.06)"
+                        : theme.colors.surface,
+                      borderWidth: 1,
+                      borderColor: isDark
+                        ? "rgba(245, 225, 219, 0.14)"
+                        : "rgba(74, 50, 40, 0.1)",
+                      borderRadius: radii.xl,
+                      paddingVertical: spacing.md,
+                      paddingHorizontal: spacing.lg,
+                      opacity: pressed ? 0.8 : 1,
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name="link-outline"
+                    size={20}
+                    color={theme.colors.primaryLight}
+                  />
+                  <Typography
+                    variant="caption"
+                    style={{ flex: 1 }}
+                    numberOfLines={1}
+                    color={theme.colors.text}
+                  >
+                    {url.replace(/^https?:\/\//, "")}
+                  </Typography>
+                  <Ionicons
+                    name="share-social-outline"
+                    size={20}
+                    color={theme.colors.primaryLight}
+                  />
+                </Pressable>
+                <Button
+                  title="Compartilhar com clientes"
+                  onPress={() => void handleShare()}
+                />
               </View>
-            )}
-          </Pressable>
-          {settings.coverUrl && (
-            <Pressable
-              onPress={() => void handleRemoveCover()}
-              accessibilityRole="button"
-            >
-              <Typography variant="caption" color={theme.colors.alert}>
-                Remover capa
-              </Typography>
-            </Pressable>
+            </Card>
           )}
 
-          {/* Foto de perfil / logo */}
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            Foto de perfil (aparece no topo do catálogo)
-          </Typography>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-            <Pressable
-              onPress={() => void handlePickLogo()}
-              accessibilityRole="button"
-              accessibilityLabel="Foto de perfil do catálogo"
-              style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
+          {/* Gatilho de upgrade: free mostra ate 5 produtos no catalogo */}
+          {!isPremium && (
+            <Card
+              padding="lg"
+              onPress={() => showPaywall("catalog")}
+              style={{
+                borderLeftWidth: 3,
+                borderLeftColor: theme.colors.premium,
+              }}
             >
-              {(settings.logoUrl ?? logoPreview) ? (
-                <Image
-                  source={{ uri: settings.logoUrl ?? logoPreview! }}
-                  style={{
-                    width: 72,
-                    height: 72,
-                    borderRadius: 36,
-                    backgroundColor: theme.colors.surface,
-                  }}
-                />
-              ) : (
-                <View
-                  style={{
-                    width: 72,
-                    height: 72,
-                    borderRadius: 36,
-                    borderWidth: 1.5,
-                    borderStyle: "dashed",
-                    borderColor:
-                      theme.mode === "dark"
-                        ? "rgba(245, 225, 219, 0.25)"
-                        : "rgba(74, 50, 40, 0.2)",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  {uploadingLogo ? (
-                    <ActivityIndicator color={theme.colors.primary} />
-                  ) : (
-                    <Ionicons
-                      name="person-circle-outline"
-                      size={32}
-                      color={theme.colors.primaryLight}
-                    />
-                  )}
-                </View>
-              )}
-            </Pressable>
-            <View style={{ flex: 1, gap: spacing.xs }}>
-              <Typography variant="caption">
-                {settings.logoUrl
-                  ? "Toque na foto para trocar."
-                  : "Toque para adicionar sua logo ou uma foto sua."}
-              </Typography>
-              {settings.logoUrl && (
-                <Pressable
-                  onPress={() => void handleRemoveLogo()}
-                  accessibilityRole="button"
-                >
-                  <Typography variant="caption" color={theme.colors.alert}>
-                    Remover foto de perfil
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
+              >
+                <Ionicons name="diamond-outline" size={24} color={theme.colors.premium} />
+                <View style={{ flex: 1 }}>
+                  <Typography variant="bodyBold">
+                    Seu catálogo mostra até 5 produtos
                   </Typography>
-                </Pressable>
-              )}
-            </View>
-          </View>
+                  <Typography variant="caption">
+                    Mostre seu catálogo completo e personalize as cores com o Premium.
+                  </Typography>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={18}
+                  color={theme.colors.textSecondary}
+                />
+              </View>
+            </Card>
+          )}
 
-          {/* Cor do tema */}
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            Cor do catálogo
-          </Typography>
-          <View style={{ flexDirection: "row", gap: spacing.md, flexWrap: "wrap" }}>
-            {ACCENT_SWATCHES.map((swatch) => {
-              const selected = (settings.accentColor ?? "brown") === swatch.key;
-              return (
-                <Pressable
-                  key={swatch.key}
-                  onPress={() => void handlePickColor(swatch.key)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Cor ${swatch.label}`}
-                  style={{ alignItems: "center", gap: spacing.xs }}
-                >
-                  <View
-                    style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 22,
-                      backgroundColor: swatch.color,
-                      borderWidth: selected ? 3 : 0,
-                      borderColor: theme.colors.text,
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {selected && <Ionicons name="checkmark" size={20} color="#fff" />}
-                  </View>
-                  <Typography variant="caption">{swatch.label}</Typography>
-                </Pressable>
-              );
-            })}
-
-            {/* Cor personalizada: bolinha "+" abre o seletor de cores */}
-            <Pressable
-              onPress={handleOpenColorModal}
-              accessibilityRole="button"
-              accessibilityLabel="Escolher cor personalizada"
-              style={{ alignItems: "center", gap: spacing.xs }}
+          {/* Ativação */}
+          <Card padding="lg">
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: spacing.md,
+              }}
             >
               <View
                 style={{
                   width: 44,
                   height: 44,
-                  borderRadius: 22,
-                  backgroundColor: isCustomColor
-                    ? settings.accentColor!
+                  borderRadius: radii.lg,
+                  backgroundColor: settings.enabled
+                    ? theme.colors.successBg
                     : theme.colors.surface,
-                  borderWidth: isCustomColor ? 3 : 1.5,
-                  borderStyle: isCustomColor ? "solid" : "dashed",
-                  borderColor: customCircleBorderColor,
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
                 <Ionicons
-                  name={isCustomColor ? "checkmark" : "add"}
+                  name={settings.enabled ? "globe-outline" : "eye-off-outline"}
                   size={22}
-                  color={isCustomColor ? "#fff" : theme.colors.primaryLight}
+                  color={
+                    settings.enabled ? theme.colors.success : theme.colors.textSecondary
+                  }
                 />
               </View>
-              <Typography variant="caption">
-                {isCustomColor ? "Sua cor" : "Outra"}
-              </Typography>
-            </Pressable>
-          </View>
+              <View style={{ flex: 1 }}>
+                <Typography variant="h3">Catálogo ativo</Typography>
+                <Typography variant="caption">
+                  {settings.enabled
+                    ? "Qualquer pessoa com o link pode ver seus produtos."
+                    : "Ative para compartilhar com seus clientes."}
+                </Typography>
+              </View>
+              <Switch
+                value={settings.enabled}
+                onValueChange={(value) => void handleToggle(value)}
+                trackColor={{ true: theme.colors.primary }}
+                accessibilityLabel="Ativar catálogo"
+              />
+            </View>
+          </Card>
 
-          {/* Pattern decorativo */}
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            Estampa do topo
-          </Typography>
-          <View style={{ flexDirection: "row", gap: spacing.md, flexWrap: "wrap" }}>
-            {PATTERN_OPTIONS.map((option) => {
-              const selected = (settings.pattern ?? null) === option.key;
-              return (
-                <Pressable
-                  key={option.label}
-                  onPress={() => void handlePickPattern(option.key)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Estampa ${option.label}`}
-                  style={{ alignItems: "center", gap: spacing.xs }}
-                >
+          {/* Configurações */}
+          <Card padding="lg">
+            <View style={{ gap: spacing.md }}>
+              <Typography variant="label">PERSONALIZAR</Typography>
+              <Input
+                label="Endereço do catálogo"
+                value={slug}
+                onChangeText={setSlug}
+                autoCapitalize="none"
+                autoCorrect={false}
+                placeholder="doces-da-maria"
+              />
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                Só letras minúsculas, números e hífens.
+              </Typography>
+              <Input
+                label="WhatsApp para pedidos"
+                value={whatsapp}
+                onChangeText={setWhatsapp}
+                keyboardType="phone-pad"
+                placeholder="11 99999-8888"
+              />
+            </View>
+          </Card>
+
+          {/* Aparência (Premium) */}
+          <Card padding="lg">
+            <View style={{ gap: spacing.md }}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
+              >
+                <Typography variant="label" style={{ flex: 1 }}>
+                  APARÊNCIA
+                </Typography>
+                {!isPremium && <Badge label="Premium" variant="premium" />}
+              </View>
+
+              {!isPremium ? (
+                <AppearancePremiumTeaser onUnlock={() => showPaywall("catalog")} />
+              ) : (
+                <>
+                  {/* Capa */}
+                  <Pressable
+                    onPress={() => void handlePickCover()}
+                    accessibilityRole="button"
+                    accessibilityLabel="Foto de capa do catálogo"
+                    style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
+                  >
+                    {(settings.coverUrl ?? coverPreview) ? (
+                      <Image
+                        source={{ uri: settings.coverUrl ?? coverPreview! }}
+                        style={{
+                          width: "100%",
+                          height: 120,
+                          borderRadius: radii.xl,
+                          backgroundColor: theme.colors.surface,
+                        }}
+                      />
+                    ) : (
+                      <View
+                        style={{
+                          height: 120,
+                          borderRadius: radii.xl,
+                          borderWidth: 1.5,
+                          borderStyle: "dashed",
+                          borderColor:
+                            theme.mode === "dark"
+                              ? "rgba(245, 225, 219, 0.25)"
+                              : "rgba(74, 50, 40, 0.2)",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: spacing.xs,
+                        }}
+                      >
+                        {uploadingCover ? (
+                          <ActivityIndicator color={theme.colors.primary} />
+                        ) : (
+                          <>
+                            <Ionicons
+                              name="image-outline"
+                              size={28}
+                              color={theme.colors.primaryLight}
+                            />
+                            <Typography variant="caption">
+                              Adicionar foto de fundo do topo
+                            </Typography>
+                          </>
+                        )}
+                      </View>
+                    )}
+                  </Pressable>
+                  {settings.coverUrl && (
+                    <Pressable
+                      onPress={() => void handleRemoveCover()}
+                      accessibilityRole="button"
+                    >
+                      <Typography variant="caption" color={theme.colors.alert}>
+                        Remover capa
+                      </Typography>
+                    </Pressable>
+                  )}
+
+                  {/* Foto de perfil / logo */}
+                  <Typography variant="caption" color={theme.colors.textSecondary}>
+                    Foto de perfil (aparece no topo do catálogo)
+                  </Typography>
                   <View
                     style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 22,
-                      backgroundColor: theme.colors.primary,
-                      borderWidth: selected ? 3 : 0,
-                      borderColor: theme.colors.text,
+                      flexDirection: "row",
                       alignItems: "center",
-                      justifyContent: "center",
+                      gap: spacing.md,
                     }}
                   >
-                    <Ionicons name={option.icon} size={20} color="#fff" />
+                    <Pressable
+                      onPress={() => void handlePickLogo()}
+                      accessibilityRole="button"
+                      accessibilityLabel="Foto de perfil do catálogo"
+                      style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
+                    >
+                      {(settings.logoUrl ?? logoPreview) ? (
+                        <Image
+                          source={{ uri: settings.logoUrl ?? logoPreview! }}
+                          style={{
+                            width: 72,
+                            height: 72,
+                            borderRadius: 36,
+                            backgroundColor: theme.colors.surface,
+                          }}
+                        />
+                      ) : (
+                        <View
+                          style={{
+                            width: 72,
+                            height: 72,
+                            borderRadius: 36,
+                            borderWidth: 1.5,
+                            borderStyle: "dashed",
+                            borderColor:
+                              theme.mode === "dark"
+                                ? "rgba(245, 225, 219, 0.25)"
+                                : "rgba(74, 50, 40, 0.2)",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          {uploadingLogo ? (
+                            <ActivityIndicator color={theme.colors.primary} />
+                          ) : (
+                            <Ionicons
+                              name="person-circle-outline"
+                              size={32}
+                              color={theme.colors.primaryLight}
+                            />
+                          )}
+                        </View>
+                      )}
+                    </Pressable>
+                    <View style={{ flex: 1, gap: spacing.xs }}>
+                      <Typography variant="caption">
+                        {settings.logoUrl
+                          ? "Toque na foto para trocar."
+                          : "Toque para adicionar sua logo ou uma foto sua."}
+                      </Typography>
+                      {settings.logoUrl && (
+                        <Pressable
+                          onPress={() => void handleRemoveLogo()}
+                          accessibilityRole="button"
+                        >
+                          <Typography variant="caption" color={theme.colors.alert}>
+                            Remover foto de perfil
+                          </Typography>
+                        </Pressable>
+                      )}
+                    </View>
                   </View>
-                  <Typography variant="caption">{option.label}</Typography>
-                </Pressable>
-              );
-            })}
+
+                  {/* Cor do tema */}
+                  <Typography variant="caption" color={theme.colors.textSecondary}>
+                    Cor do catálogo
+                  </Typography>
+                  <View
+                    style={{ flexDirection: "row", gap: spacing.md, flexWrap: "wrap" }}
+                  >
+                    {ACCENT_SWATCHES.map((swatch) => {
+                      const selected = (settings.accentColor ?? "brown") === swatch.key;
+                      return (
+                        <Pressable
+                          key={swatch.key}
+                          onPress={() => void handlePickColor(swatch.key)}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Cor ${swatch.label}`}
+                          style={{ alignItems: "center", gap: spacing.xs }}
+                        >
+                          <View
+                            style={{
+                              width: 44,
+                              height: 44,
+                              borderRadius: 22,
+                              backgroundColor: swatch.color,
+                              borderWidth: selected ? 3 : 0,
+                              borderColor: theme.colors.text,
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            {selected && (
+                              <Ionicons name="checkmark" size={20} color="#fff" />
+                            )}
+                          </View>
+                          <Typography variant="caption">{swatch.label}</Typography>
+                        </Pressable>
+                      );
+                    })}
+
+                    {/* Cor personalizada: bolinha "+" abre o seletor de cores */}
+                    <Pressable
+                      onPress={handleOpenColorModal}
+                      accessibilityRole="button"
+                      accessibilityLabel="Escolher cor personalizada"
+                      style={{ alignItems: "center", gap: spacing.xs }}
+                    >
+                      <View
+                        style={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: 22,
+                          backgroundColor: isCustomColor
+                            ? settings.accentColor!
+                            : theme.colors.surface,
+                          borderWidth: isCustomColor ? 3 : 1.5,
+                          borderStyle: isCustomColor ? "solid" : "dashed",
+                          borderColor: customCircleBorderColor,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Ionicons
+                          name={isCustomColor ? "checkmark" : "add"}
+                          size={22}
+                          color={isCustomColor ? "#fff" : theme.colors.primaryLight}
+                        />
+                      </View>
+                      <Typography variant="caption">
+                        {isCustomColor ? "Sua cor" : "Outra"}
+                      </Typography>
+                    </Pressable>
+                  </View>
+
+                  {/* Pattern decorativo */}
+                  <Typography variant="caption" color={theme.colors.textSecondary}>
+                    Estampa do topo
+                  </Typography>
+                  <View
+                    style={{ flexDirection: "row", gap: spacing.md, flexWrap: "wrap" }}
+                  >
+                    {PATTERN_OPTIONS.map((option) => {
+                      const selected = (settings.pattern ?? null) === option.key;
+                      return (
+                        <Pressable
+                          key={option.label}
+                          onPress={() => void handlePickPattern(option.key)}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Estampa ${option.label}`}
+                          style={{ alignItems: "center", gap: spacing.xs }}
+                        >
+                          <View
+                            style={{
+                              width: 44,
+                              height: 44,
+                              borderRadius: 22,
+                              backgroundColor: theme.colors.primary,
+                              borderWidth: selected ? 3 : 0,
+                              borderColor: theme.colors.text,
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <Ionicons name={option.icon} size={20} color="#fff" />
+                          </View>
+                          <Typography variant="caption">{option.label}</Typography>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+
+                  {/* Previa do topo (cor + estampa) */}
+                  <Typography variant="caption" color={theme.colors.textSecondary}>
+                    Prévia do topo do catálogo
+                  </Typography>
+                  <HeroPreview
+                    baseColor={resolvedBaseColor}
+                    pattern={settings.pattern ?? null}
+                    businessName={profile?.businessName ?? profile?.name ?? "Seu negócio"}
+                    tagline={tagline}
+                  />
+
+                  <ColorPickerModal
+                    visible={colorModalVisible}
+                    initialColor={isCustomColor ? settings.accentColor! : "#8c5a45"}
+                    onConfirm={(hex) => void handleConfirmCustomColor(hex)}
+                    onCancel={() => setColorModalVisible(false)}
+                  />
+
+                  {/* Frase de apresentação */}
+                  <Input
+                    label="Frase de apresentação"
+                    value={tagline}
+                    onChangeText={setTagline}
+                    placeholder="Bolos artesanais feitos com amor 🧁"
+                    maxLength={120}
+                  />
+                </>
+              )}
+            </View>
+          </Card>
+
+          {/* Salvar geral (endereco, whatsapp e frase) */}
+          <Button
+            title={update.isPending ? "Salvando..." : "Salvar"}
+            onPress={() => void handleSave()}
+            disabled={update.isPending}
+          />
+
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: spacing.sm,
+              paddingHorizontal: spacing.sm,
+            }}
+          >
+            <Ionicons
+              name="information-circle-outline"
+              size={18}
+              color={theme.colors.textSecondary}
+            />
+            <Typography variant="caption" style={{ flex: 1 }}>
+              Aparecem no catálogo todos os seus produtos ativos, com foto, descrição e
+              preço.
+            </Typography>
           </View>
-
-          {/* Previa do topo (cor + estampa) */}
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            Prévia do topo do catálogo
-          </Typography>
-          <HeroPreview
-            baseColor={resolvedBaseColor}
-            pattern={settings.pattern ?? null}
-            businessName={profile?.businessName ?? profile?.name ?? "Seu negócio"}
-            tagline={tagline}
-          />
-
-          <ColorPickerModal
-            visible={colorModalVisible}
-            initialColor={isCustomColor ? settings.accentColor! : "#8c5a45"}
-            onConfirm={(hex) => void handleConfirmCustomColor(hex)}
-            onCancel={() => setColorModalVisible(false)}
-          />
-
-          {/* Frase de apresentação */}
-          <Input
-            label="Frase de apresentação"
-            value={tagline}
-            onChangeText={setTagline}
-            placeholder="Bolos artesanais feitos com amor 🧁"
-            maxLength={120}
-          />
-        </View>
-      </Card>
-
-      {/* Salvar geral (endereco, whatsapp e frase) */}
-      <Button
-        title={update.isPending ? "Salvando..." : "Salvar"}
-        onPress={() => void handleSave()}
-        disabled={update.isPending}
-      />
-
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.sm,
-          paddingHorizontal: spacing.sm,
-        }}
-      >
-        <Ionicons
-          name="information-circle-outline"
-          size={18}
-          color={theme.colors.textSecondary}
-        />
-        <Typography variant="caption" style={{ flex: 1 }}>
-          Aparecem no catálogo todos os seus produtos ativos, com foto, descrição e preço.
-        </Typography>
-      </View>
+        </>
+      )}
     </KeyboardAwareScrollView>
   );
 }
