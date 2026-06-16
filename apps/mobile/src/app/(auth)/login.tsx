@@ -242,21 +242,6 @@ export default function LoginScreen() {
             </Pressable>
           </View>
 
-          <Pressable
-            style={{ alignSelf: "flex-end", minHeight: 44, justifyContent: "center" }}
-            disabled={resetLoading}
-            accessibilityRole="button"
-            onPress={handleForgotPassword}
-          >
-            <Typography
-              variant="bodyBold"
-              color={theme.colors.primary}
-              style={{ fontSize: 14 }}
-            >
-              {resetLoading ? "Enviando..." : "Esqueci minha senha"}
-            </Typography>
-          </Pressable>
-
           <Button
             title="Entrar"
             size="lg"
@@ -272,6 +257,21 @@ export default function LoginScreen() {
             }}
             loading={loading}
           />
+
+          <Pressable
+            style={{ alignSelf: "center", minHeight: 44, justifyContent: "center" }}
+            disabled={resetLoading}
+            accessibilityRole="button"
+            onPress={handleForgotPassword}
+          >
+            <Typography
+              variant="bodyBold"
+              color={theme.colors.primary}
+              style={{ fontSize: 14 }}
+            >
+              {resetLoading ? "Enviando..." : "Esqueci minha senha"}
+            </Typography>
+          </Pressable>
         </View>
 
         <View style={{ flexDirection: "row", justifyContent: "center", gap: spacing.xs }}>
