@@ -6,6 +6,7 @@ import {
   Typography,
   useTheme,
   spacing,
+  radii,
 } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
@@ -569,14 +570,34 @@ export default function SettingsScreen() {
                     size={20}
                     color={theme.colors.textSecondary}
                   />
-                  <Typography
-                    variant="body"
-                    color={theme.colors.text}
-                    style={{ flexShrink: 1 }}
-                  >
-                    {item.label}
-                  </Typography>
-                  {item.premium ? <Badge label="Premium" variant="premium" /> : null}
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Typography variant="body" color={theme.colors.text}>
+                      {item.label}
+                    </Typography>
+                    {item.premium ? (
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 4,
+                          alignSelf: "flex-start",
+                          paddingHorizontal: 8,
+                          paddingVertical: 2,
+                          borderRadius: radii.full,
+                          backgroundColor: `${theme.colors.premium}26`,
+                        }}
+                      >
+                        <Ionicons name="diamond" size={11} color={theme.colors.premium} />
+                        <Typography
+                          variant="caption"
+                          color={theme.colors.premium}
+                          style={{ fontSize: 11, fontWeight: "800", letterSpacing: 0.3 }}
+                        >
+                          PREMIUM
+                        </Typography>
+                      </View>
+                    ) : null}
+                  </View>
                 </View>
                 {locked ? (
                   <Pressable
