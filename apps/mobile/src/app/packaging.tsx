@@ -65,8 +65,8 @@ function SummaryCard({
       <Typography
         variant="caption"
         color={theme.colors.textSecondary}
-        numberOfLines={1}
-        style={{ textAlign: "center" }}
+        numberOfLines={2}
+        style={{ textAlign: "center", minHeight: 34 }}
       >
         {label}
       </Typography>
@@ -283,24 +283,16 @@ export default function PackagingScreen() {
           accessibilityRole="button"
           accessibilityLabel="Nova embalagem"
           style={({ pressed }) => ({
-            flexDirection: "row",
-            alignItems: "center",
-            gap: spacing.xs,
-            paddingHorizontal: spacing.md,
-            paddingVertical: spacing.sm,
+            width: 44,
+            height: 44,
             borderRadius: radii.full,
+            alignItems: "center",
+            justifyContent: "center",
             backgroundColor: theme.colors.primary,
             opacity: pressed ? 0.85 : 1,
           })}
         >
-          <Ionicons name="add" size={20} color={theme.colors.textOnPrimary} />
-          <Typography
-            variant="bodyBold"
-            color={theme.colors.textOnPrimary}
-            style={{ fontSize: 14 }}
-          >
-            Nova embalagem
-          </Typography>
+          <Ionicons name="add" size={26} color={theme.colors.textOnPrimary} />
         </Pressable>
       </View>
 

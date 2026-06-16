@@ -489,35 +489,46 @@ export function RecipeCostCard({
       >
         <Ionicons name="cash-outline" size={22} color={theme.colors.primary} />
       </View>
-      <View style={{ flex: 1, alignItems: "center", gap: 2 }}>
-        <Typography variant="caption" color={theme.colors.textSecondary}>
+      <View
+        style={{ flex: 1, alignItems: "center", gap: 2, paddingHorizontal: spacing.xs }}
+      >
+        <Typography
+          variant="caption"
+          color={theme.colors.textSecondary}
+          numberOfLines={1}
+        >
           Custo total
         </Typography>
-        <Typography variant="h2" color={theme.colors.primary} style={{ fontSize: 24 }}>
+        <Typography
+          variant="h2"
+          color={theme.colors.primary}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          style={{ fontSize: 24 }}
+        >
           {formatCurrency(totalCost)}
         </Typography>
       </View>
       <View style={{ width: 1, alignSelf: "stretch", backgroundColor: pal.border }} />
-      <View style={{ flex: 1, alignItems: "center", gap: 2 }}>
-        <Typography variant="caption" color={theme.colors.textSecondary}>
-          Custo por unidade
+      <View
+        style={{ flex: 1, alignItems: "center", gap: 2, paddingHorizontal: spacing.xs }}
+      >
+        <Typography
+          variant="caption"
+          color={theme.colors.textSecondary}
+          numberOfLines={1}
+        >
+          Custo/unidade
         </Typography>
-        <Typography variant="h2" color={theme.colors.success} style={{ fontSize: 24 }}>
+        <Typography
+          variant="h2"
+          color={theme.colors.success}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          style={{ fontSize: 24 }}
+        >
           {formatCurrency(costPerUnit)}
         </Typography>
-      </View>
-      <View
-        style={{
-          width: 44,
-          height: 44,
-          borderRadius: 22,
-          borderWidth: 1,
-          borderColor: `${theme.colors.success}66`,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Ionicons name="pricetag-outline" size={20} color={theme.colors.success} />
       </View>
     </View>
   );
