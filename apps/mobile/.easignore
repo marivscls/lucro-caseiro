@@ -6,3 +6,9 @@ node_modules
 dist
 *.log
 .env
+
+# Pastas nativas: o EAS regenera via prebuild (CNG) a partir do app.json.
+# Mantê-las fora do upload garante que os config plugins (camera, notifications,
+# ads, etc.) sempre apliquem — e evita subir ~200MB de android/ a cada build.
+android
+ios
