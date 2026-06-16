@@ -52,7 +52,14 @@ function StatCard({
         <Ionicons name={icon} size={22} color={iconColor} />
       </View>
       <Typography variant="label">{label}</Typography>
-      <Typography variant="moneyLg" color={valueColor ?? theme.colors.text}>
+      <Typography
+        variant="moneyLg"
+        color={valueColor ?? theme.colors.text}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.6}
+        style={{ fontSize: 26 }}
+      >
         {value}
       </Typography>
     </Card>
