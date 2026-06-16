@@ -71,6 +71,8 @@ export function FinanceDashboard({
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateEntry, setShowCreateEntry] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<FinanceEntry | null>(null);
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
+  const [pickerYear, setPickerYear] = useState(now.getFullYear());
 
   const { data: summary, isLoading, error } = useFinanceSummary({ month, year });
   const { data: prevSummary } = useFinanceSummary({
@@ -208,9 +210,10 @@ export function FinanceDashboard({
           </Text>
           <Pressable
             accessibilityRole="button"
+            accessibilityLabel="Escolher mês"
             onPress={() => {
-              setMonth(now.getMonth() + 1);
-              setYear(now.getFullYear());
+              setPickerYear(year);
+              setShowMonthPicker(true);
             }}
             hitSlop={12}
             style={styles.calendarButton}
@@ -519,6 +522,136 @@ export function FinanceDashboard({
             </View>
           )}
         </View>
+      </Modal>
+
+      {/* Seletor de mês/ano */}
+      <Modal
+        visible={showMonthPicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowMonthPicker(false)}
+      >
+        <Pressable
+          onPress={() => setShowMonthPicker(false)}
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.6)",
+            justifyContent: "center",
+            padding: spacing.xl,
+          }}
+        >
+          <Pressable
+            style={{
+              backgroundColor: theme.colors.surfaceElevated,
+              borderRadius: 24,
+              padding: spacing.lg,
+              gap: spacing.md,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <Text
+                style={[styles.monthText, { color: theme.colors.text, fontSize: 18 }]}
+              >
+                Escolher mês
+              </Text>
+              <Pressable
+                onPress={() => setShowMonthPicker(false)}
+                hitSlop={10}
+                accessibilityLabel="Fechar"
+              >
+                <Ionicons name="close" size={26} color={theme.colors.textSecondary} />
+              </Pressable>
+            </View>
+
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => setPickerYear((y) => y - 1)}
+                hitSlop={12}
+                accessibilityLabel="Ano anterior"
+              >
+                <Ionicons name="chevron-back" size={28} color={theme.colors.text} />
+              </TouchableOpacity>
+              <Text style={[styles.monthText, { color: theme.colors.primary }]}>
+                {pickerYear}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setPickerYear((y) => y + 1)}
+                hitSlop={12}
+                accessibilityLabel="Próximo ano"
+              >
+                <Ionicons name="chevron-forward" size={28} color={theme.colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+              {MONTH_NAMES.map((name, i) => {
+                const m = i + 1;
+                const isSel = m === month && pickerYear === year;
+                return (
+                  <Pressable
+                    key={name}
+                    onPress={() => {
+                      setMonth(m);
+                      setYear(pickerYear);
+                      setShowMonthPicker(false);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isSel }}
+                    style={{
+                      width: "30%",
+                      flexGrow: 1,
+                      minHeight: 48,
+                      borderRadius: 12,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: isSel
+                        ? theme.colors.primary
+                        : theme.colors.surface,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        fontWeight: "700",
+                        color: isSel ? theme.colors.textOnPrimary : theme.colors.text,
+                      }}
+                    >
+                      {name.slice(0, 3)}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <Pressable
+              onPress={() => {
+                setMonth(now.getMonth() + 1);
+                setYear(now.getFullYear());
+                setShowMonthPicker(false);
+              }}
+              accessibilityRole="button"
+              style={{ alignItems: "center", paddingVertical: spacing.sm }}
+            >
+              <Text
+                style={{ color: theme.colors.primary, fontWeight: "700", fontSize: 15 }}
+              >
+                Ir para o mês atual
+              </Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
       </Modal>
     </>
   );
