@@ -49,6 +49,12 @@
         }
       ],
       [
+        "expo-camera",
+        {
+          "cameraPermission": "O app usa a camera para escanear o codigo de barras dos produtos."
+        }
+      ],
+      [
         "react-native-google-mobile-ads",
         {
           "androidAppId": "ca-app-pub-8304398247631710~5581735015",

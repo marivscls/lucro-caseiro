@@ -1,6 +1,6 @@
 import type { Product, ProductComponent } from "@lucro-caseiro/contracts";
 import { productComponents, products } from "@lucro-caseiro/database/schema";
-import { and, avg, count, eq, ilike, inArray, sql } from "drizzle-orm";
+import { and, avg, count, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { calculateCompositeCost } from "./products.domain";
 import type { AppDatabase } from "../../shared/db";
 import type {
@@ -30,6 +30,7 @@ export class ProductsRepoPg implements IProductsRepo {
         description: data.description ?? null,
         category: data.category,
         photoUrl: data.photoUrl ?? null,
+        code: data.code ?? null,
         salePrice: String(data.salePrice),
         saleUnit: data.saleUnit ?? "unit",
         costPrice: data.costPrice != null ? String(data.costPrice) : null,
@@ -77,7 +78,8 @@ export class ProductsRepoPg implements IProductsRepo {
     }
 
     if (opts.search) {
-      conditions.push(ilike(products.name, `%${opts.search}%`));
+      const term = `%${opts.search}%`;
+      conditions.push(or(ilike(products.name, term), ilike(products.code, term))!);
     }
 
     const where = and(...conditions);
@@ -118,6 +120,7 @@ export class ProductsRepoPg implements IProductsRepo {
     if (data.description !== undefined) updateData.description = data.description;
     if (data.category !== undefined) updateData.category = data.category;
     if (data.photoUrl !== undefined) updateData.photoUrl = data.photoUrl;
+    if (data.code !== undefined) updateData.code = data.code;
     if (data.salePrice !== undefined) updateData.salePrice = String(data.salePrice);
     if (data.saleUnit !== undefined) updateData.saleUnit = data.saleUnit;
     if (data.costPrice !== undefined)
@@ -261,6 +264,7 @@ export class ProductsRepoPg implements IProductsRepo {
       description: row.description,
       category: row.category,
       photoUrl: row.photoUrl,
+      code: row.code,
       salePrice: Number(row.salePrice),
       saleUnit: row.saleUnit === "kg" ? "kg" : "unit",
       costPrice,

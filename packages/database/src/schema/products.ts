@@ -22,6 +22,8 @@ export const products = pgTable(
     description: text("description"),
     category: text("category").notNull(),
     photoUrl: text("photo_url"),
+    // Código/SKU/código de barras (opcional) para buscar/escanear o produto.
+    code: text("code"),
     salePrice: decimal("sale_price", { precision: 10, scale: 2 }).notNull(),
     // Unidade de venda: "unit" (por unidade) ou "kg" (por quilo). Quando "kg",
     // salePrice representa o preco por quilo (R$/kg).
@@ -39,5 +41,6 @@ export const products = pgTable(
   (table) => [
     index("idx_products_user").on(table.userId),
     index("idx_products_user_name").on(table.userId, table.name),
+    index("idx_products_user_code").on(table.userId, table.code),
   ],
 );

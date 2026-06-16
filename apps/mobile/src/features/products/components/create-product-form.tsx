@@ -30,6 +30,7 @@ import { CompositeToggle } from "./composite-toggle";
 import { SaleUnitToggle } from "./sale-unit-toggle";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
 import { showAlert } from "../../../shared/components/alert-store";
+import { BarcodeScanner } from "../../../shared/components/barcode-scanner";
 import {
   maskCurrencyInput,
   parseCurrencyInput,
@@ -425,6 +426,8 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
   const [salePrice, setSalePrice] = useState("");
   const [saleUnit, setSaleUnit] = useState<SaleUnit>("unit");
   const [description, setDescription] = useState("");
+  const [code, setCode] = useState("");
+  const [showScanner, setShowScanner] = useState(false);
   const [stockQuantity, setStockQuantity] = useState("");
   const [stockAlert, setStockAlert] = useState("");
   const [isComposite, setIsComposite] = useState(false);
@@ -486,6 +489,7 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
         saleUnit,
         description: description.trim() || undefined,
         photoUrl,
+        code: code.trim() || undefined,
         // Estoque por unidades nao se aplica a venda por peso (kg).
         stockQuantity:
           saleUnit === "kg" || !stockQuantity ? undefined : parseInt(stockQuantity, 10),
@@ -507,111 +511,160 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
   const loading = createProduct.isPending || uploading;
 
   return (
-    <KeyboardAwareScrollView
-      contentContainerStyle={{
-        padding: spacing.xl,
-        paddingBottom: spacing["5xl"],
-        gap: spacing.xl,
-      }}
-    >
-      <View>
-        <FieldLabel label="Nome do produto" required />
-        <TextFieldCard
-          icon="pricetag-outline"
-          placeholder="Ex: Brigadeiro, Bolo de chocolate..."
-          value={name}
-          onChangeText={setName}
-          autoFocus
-        />
-      </View>
-
-      <View>
-        <FieldLabel label="Categoria" required />
-        <CategoryField value={category} onChange={setCategory} categories={categories} />
-      </View>
-
-      <CompositeToggle value={isComposite} onChange={setIsComposite} />
-
-      {isComposite && <ComponentPicker value={components} onChange={setComponents} />}
-
-      {/* Venda por peso (kg) so faz sentido para produto simples. */}
-      {!isComposite && <SaleUnitToggle value={saleUnit} onChange={setSaleUnit} />}
-
-      <View>
-        <FieldLabel label={isKg ? "Preço por kg (R$)" : "Preço de venda (R$)"} required />
-        <TextFieldCard
-          icon="cash-outline"
-          placeholder={isKg ? "Ex: 80,00" : "Ex: 3,50"}
-          value={salePrice}
-          onChangeText={(value) => setSalePrice(maskCurrencyInput(value))}
-          keyboardType="numeric"
-        />
-      </View>
-
-      <PhotoField imageUri={imageUri} onPress={showPicker} />
-
-      <DescriptionField value={description} onChange={setDescription} />
-
-      {saleUnit === "unit" && !isComposite && (
-        <>
-          <View>
-            <FieldLabel label="Quantidade em estoque (opcional)" />
-            <TextFieldCard
-              icon="albums-outline"
-              placeholder="Ex: 50"
-              value={stockQuantity}
-              onChangeText={setStockQuantity}
-              keyboardType="number-pad"
-            />
-          </View>
-
-          <View>
-            <FieldLabel label="Alerta de estoque baixo (opcional)" />
-            <TextFieldCard
-              icon="notifications-outline"
-              placeholder="Ex: 10"
-              value={stockAlert}
-              onChangeText={setStockAlert}
-              keyboardType="number-pad"
-            />
-          </View>
-        </>
-      )}
-
-      <Pressable
-        onPress={() => {
-          void handleSubmit();
+    <>
+      <KeyboardAwareScrollView
+        contentContainerStyle={{
+          padding: spacing.xl,
+          paddingBottom: spacing["5xl"],
+          gap: spacing.xl,
         }}
-        disabled={loading}
-        accessibilityRole="button"
-        style={({ pressed }) => ({
-          minHeight: 58,
-          borderRadius: radii.lg,
-          backgroundColor: theme.colors.primary,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: spacing.sm,
-          opacity: pressed || loading ? 0.85 : 1,
-        })}
       >
-        {loading ? (
-          <ActivityIndicator color={theme.colors.textOnPrimary} />
-        ) : (
-          <Ionicons
-            name="checkmark-circle-outline"
-            size={24}
-            color={theme.colors.textOnPrimary}
+        <View>
+          <FieldLabel label="Nome do produto" required />
+          <TextFieldCard
+            icon="pricetag-outline"
+            placeholder="Ex: Brigadeiro, Bolo de chocolate..."
+            value={name}
+            onChangeText={setName}
+            autoFocus
           />
+        </View>
+
+        <View>
+          <FieldLabel label="Categoria" required />
+          <CategoryField
+            value={category}
+            onChange={setCategory}
+            categories={categories}
+          />
+        </View>
+
+        <CompositeToggle value={isComposite} onChange={setIsComposite} />
+
+        {isComposite && <ComponentPicker value={components} onChange={setComponents} />}
+
+        {/* Venda por peso (kg) so faz sentido para produto simples. */}
+        {!isComposite && <SaleUnitToggle value={saleUnit} onChange={setSaleUnit} />}
+
+        <View>
+          <FieldLabel
+            label={isKg ? "Preço por kg (R$)" : "Preço de venda (R$)"}
+            required
+          />
+          <TextFieldCard
+            icon="cash-outline"
+            placeholder={isKg ? "Ex: 80,00" : "Ex: 3,50"}
+            value={salePrice}
+            onChangeText={(value) => setSalePrice(maskCurrencyInput(value))}
+            keyboardType="numeric"
+          />
+        </View>
+
+        <PhotoField imageUri={imageUri} onPress={showPicker} />
+
+        <DescriptionField value={description} onChange={setDescription} />
+
+        <View>
+          <FieldLabel label="Código de barras (opcional)" />
+          <View style={{ flexDirection: "row", gap: spacing.sm }}>
+            <View style={{ flex: 1 }}>
+              <TextFieldCard
+                icon="barcode-outline"
+                placeholder="Ex: 789..."
+                value={code}
+                onChangeText={setCode}
+              />
+            </View>
+            <Pressable
+              onPress={() => setShowScanner(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Escanear código"
+              style={{
+                width: 60,
+                borderRadius: radii.lg,
+                backgroundColor: theme.colors.primary,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Ionicons
+                name="scan-outline"
+                size={24}
+                color={theme.colors.textOnPrimary}
+              />
+            </Pressable>
+          </View>
+        </View>
+
+        {saleUnit === "unit" && !isComposite && (
+          <>
+            <View>
+              <FieldLabel label="Quantidade em estoque (opcional)" />
+              <TextFieldCard
+                icon="albums-outline"
+                placeholder="Ex: 50"
+                value={stockQuantity}
+                onChangeText={setStockQuantity}
+                keyboardType="number-pad"
+              />
+            </View>
+
+            <View>
+              <FieldLabel label="Alerta de estoque baixo (opcional)" />
+              <TextFieldCard
+                icon="notifications-outline"
+                placeholder="Ex: 10"
+                value={stockAlert}
+                onChangeText={setStockAlert}
+                keyboardType="number-pad"
+              />
+            </View>
+          </>
         )}
-        <Typography
-          variant="bodyBold"
-          color={theme.colors.textOnPrimary}
-          style={{ fontSize: 18 }}
+
+        <Pressable
+          onPress={() => {
+            void handleSubmit();
+          }}
+          disabled={loading}
+          accessibilityRole="button"
+          style={({ pressed }) => ({
+            minHeight: 58,
+            borderRadius: radii.lg,
+            backgroundColor: theme.colors.primary,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: spacing.sm,
+            opacity: pressed || loading ? 0.85 : 1,
+          })}
         >
-          {uploading ? "Enviando foto..." : "Cadastrar produto"}
-        </Typography>
-      </Pressable>
-    </KeyboardAwareScrollView>
+          {loading ? (
+            <ActivityIndicator color={theme.colors.textOnPrimary} />
+          ) : (
+            <Ionicons
+              name="checkmark-circle-outline"
+              size={24}
+              color={theme.colors.textOnPrimary}
+            />
+          )}
+          <Typography
+            variant="bodyBold"
+            color={theme.colors.textOnPrimary}
+            style={{ fontSize: 18 }}
+          >
+            {uploading ? "Enviando foto..." : "Cadastrar produto"}
+          </Typography>
+        </Pressable>
+      </KeyboardAwareScrollView>
+      <BarcodeScanner
+        visible={showScanner}
+        onClose={() => setShowScanner(false)}
+        onScanned={(scanned) => {
+          setShowScanner(false);
+          setCode(scanned);
+        }}
+      />
+    </>
   );
 }

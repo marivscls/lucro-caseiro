@@ -26,6 +26,7 @@ import { CreateProductForm } from "../features/products/components/create-produc
 import { ProductList } from "../features/products/components/product-list";
 import { SaleUnitToggle } from "../features/products/components/sale-unit-toggle";
 import { showAlert } from "../shared/components/alert-store";
+import { BarcodeScanner } from "../shared/components/barcode-scanner";
 import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
 import {
   useDeleteProduct,
@@ -104,6 +105,8 @@ function ProductDetailModal({
   const [stockAlert, setStockAlert] = useState("");
   const [isComposite, setIsComposite] = useState(false);
   const [components, setComponents] = useState<ComponentDraft[]>([]);
+  const [code, setCode] = useState("");
+  const [showScanner, setShowScanner] = useState(false);
 
   function startEditing(p: Product) {
     setName(p.name);
@@ -111,6 +114,7 @@ function ProductDetailModal({
     setSalePrice(currencyInput(p.salePrice));
     setSaleUnit(p.saleUnit);
     setDescription(p.description ?? "");
+    setCode(p.code ?? "");
     setStockQuantity(p.stockQuantity !== null ? String(p.stockQuantity) : "");
     setStockAlert(p.stockAlertThreshold !== null ? String(p.stockAlertThreshold) : "");
     setIsComposite(p.isComposite);
@@ -172,6 +176,7 @@ function ProductDetailModal({
           saleUnit,
           description: description.trim() || undefined,
           photoUrl,
+          code: code.trim() || undefined,
           // Estoque por unidades nao se aplica a venda por peso (kg) nem a kits.
           stockQuantity:
             saleUnit === "kg" || isComposite || !stockQuantity.trim()
@@ -338,6 +343,37 @@ function ProductDetailModal({
               numberOfLines={3}
               style={{ height: 100, textAlignVertical: "top", paddingTop: 12 }}
             />
+            <View
+              style={{ flexDirection: "row", alignItems: "flex-end", gap: spacing.sm }}
+            >
+              <View style={{ flex: 1 }}>
+                <Input
+                  label="Código de barras (opcional)"
+                  placeholder="Ex: 789..."
+                  value={code}
+                  onChangeText={setCode}
+                />
+              </View>
+              <Pressable
+                onPress={() => setShowScanner(true)}
+                accessibilityRole="button"
+                accessibilityLabel="Escanear código"
+                style={{
+                  width: 56,
+                  height: 52,
+                  borderRadius: radii.md,
+                  backgroundColor: theme.colors.primary,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Ionicons
+                  name="scan-outline"
+                  size={24}
+                  color={theme.colors.textOnPrimary}
+                />
+              </Pressable>
+            </View>
             {saleUnit === "unit" && !isComposite && (
               <>
                 <Input
@@ -368,6 +404,14 @@ function ProductDetailModal({
               title="Cancelar"
               variant="secondary"
               onPress={() => setEditing(false)}
+            />
+            <BarcodeScanner
+              visible={showScanner}
+              onClose={() => setShowScanner(false)}
+              onScanned={(scanned) => {
+                setShowScanner(false);
+                setCode(scanned);
+              }}
             />
           </KeyboardAwareScrollView>
         )}

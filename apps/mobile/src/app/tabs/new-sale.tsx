@@ -42,6 +42,7 @@ import { usePaywall } from "../../shared/hooks/use-paywall";
 import { ApiError } from "../../shared/utils/api-client";
 import { Illustration } from "../../shared/components/illustrations";
 import { showAlert } from "../../shared/components/alert-store";
+import { BarcodeScanner } from "../../shared/components/barcode-scanner";
 import { alertValidation, alertError } from "../../shared/utils/alerts";
 
 type Step = 1 | 2 | 3 | 4;
@@ -294,6 +295,7 @@ export default function NewSaleScreen() {
   const [productSearch, setProductSearch] = useState("");
   const [showCreateProduct, setShowCreateProduct] = useState(false);
   const [showBarcodeSearch, setShowBarcodeSearch] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
   const [showClientFilter, setShowClientFilter] = useState(false);
   const [clientFilter, setClientFilter] = useState<ClientFilter>("all");
   const [barcodeInput, setBarcodeInput] = useState("");
@@ -591,7 +593,7 @@ export default function NewSaleScreen() {
               placeholder="Buscar produto..."
               value={productSearch}
               onChangeText={setProductSearch}
-              onTrailingPress={() => setShowBarcodeSearch(true)}
+              onTrailingPress={() => setShowScanner(true)}
             />
             <Typography
               variant="caption"
@@ -620,7 +622,7 @@ export default function NewSaleScreen() {
                 icon="barcode-outline"
                 title="Usar código"
                 subtitle="Escanear produto"
-                onPress={() => setShowBarcodeSearch(true)}
+                onPress={() => setShowScanner(true)}
               />
             </View>
             <View
@@ -1501,6 +1503,18 @@ export default function NewSaleScreen() {
           />
         </View>
       )}
+      <BarcodeScanner
+        visible={showScanner}
+        onClose={() => setShowScanner(false)}
+        onScanned={(scanned) => {
+          setShowScanner(false);
+          setProductSearch(scanned);
+        }}
+        onManual={() => {
+          setShowScanner(false);
+          setShowBarcodeSearch(true);
+        }}
+      />
       <Modal
         visible={showBarcodeSearch}
         animationType="slide"

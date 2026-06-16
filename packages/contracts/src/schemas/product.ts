@@ -18,6 +18,8 @@ const ProductBaseDto = z.object({
   description: z.string().max(1000).optional(),
   category: z.string().min(1).max(100),
   photoUrl: z.string().url().optional(),
+  // Código/SKU/código de barras (opcional) para buscar/escanear o produto.
+  code: z.string().max(100).optional(),
   salePrice: z.number().positive().max(MAX_MONEY),
   saleUnit: SaleUnit.optional(),
   recipeId: z.string().uuid().optional(),
@@ -71,6 +73,7 @@ export const ProductDto = z.object({
   description: z.string().nullable(),
   category: z.string(),
   photoUrl: z.string().nullable(),
+  code: z.string().nullable(),
   salePrice: z.number(),
   saleUnit: SaleUnit,
   costPrice: z.number().nullable(),

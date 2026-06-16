@@ -53,6 +53,7 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 - Wizard de 4 steps:
   1. **Selecionar produtos:** grid 2 colunas com busca, tap para adicionar ao carrinho, long press para remover. Badge de quantidade. Barra de total no rodape.
      - Produtos por peso (`saleUnit === "kg"`): tap abre um modal com campo de **peso em kg** (decimal-pad) e preview do subtotal; preco exibido como "R$X/kg"; badge mostra o peso (ex.: "1,5 kg"); long press remove a linha inteira (nao faz "−1 kg"). Itens do carrinho carregam `saleUnit` para calcular/exibir corretamente.
+     - **Escanear / buscar por código:** o ícone de scan na busca e o atalho "Usar código" abrem a câmera (`BarcodeScanner`); o código lido vira o termo de busca (o back casa por nome OU código). Fallback "Digitar à mão" abre o campo de digitação manual.
   2. **Selecionar cliente:** opcao "Sem cliente (avulso)", busca de clientes, selecao com borda destacada.
   3. **Forma de pagamento:** opcoes Pix, Dinheiro, Cartao, Fiado, Transferencia com icones.
   4. **Revisar e confirmar:** resumo de itens, cliente, pagamento, total. Botao "Registrar venda".
@@ -143,4 +144,5 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 - 2026-06-10: vislumbre pro free — "Recibo em PDF" abre `ReceiptPreviewModal`
   (miniatura do recibo real com cadeado + CTA Premium) em vez de paywall seco.
 - 2026-06-10: lembrete de fiado antigo — useFiadoNotifier (use-fiado-notifier.ts, montado em app/\_layout) notifica localmente quando ha vendas pendentes ha mais de 7 dias, com cooldown de 3 dias (AsyncStorage fiadoNotifiedAt). Toque roteia para /fiado (PENDING_SALES). Regra pura em oldFiadoSummary (fiado.ts).
+- 2026-06-16: **escanear código de barras na venda** — o ícone de scan da busca e o atalho "Usar código" (passo 1) abrem a câmera (`shared/components/barcode-scanner.tsx`, `expo-camera`); o código lido alimenta a busca de produtos (o back casa por nome OU código, via campo `products.code`). Fallback "Digitar à mão" mantém o modal de digitação. Requer build com o módulo nativo da câmera (ver feature products).
 - 2026-06-15: menu de acoes por cliente no card de fiado — os 3 pontinhos (`ellipsis-vertical`) viraram botao que abre um action sheet (Modal bottom-sheet) com "Marcar tudo como recebido" (marca todas as vendas pendentes do cliente como pagas via `Promise.all` de `updateSaleStatus`; com 1 venda cai no fluxo unitario), "Cobrar no WhatsApp" e "Ligar para o cliente" (`tel:`, so quando ha telefone valido). Antes o icone era decorativo (sem `onPress`). O botao "Recebi" de cada venda ganhou estilo de pilula (borda/fundo verde) para ficar obviamente tocavel ao publico nao-tech.

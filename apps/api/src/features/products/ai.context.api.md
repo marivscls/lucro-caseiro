@@ -42,6 +42,7 @@ Gerenciar o catalogo de produtos do negocio caseiro, incluindo nome, descricao, 
 | description         | text      | nullable                                  |
 | category            | varchar   | NOT NULL                                  |
 | photoUrl            | varchar   | nullable                                  |
+| code                | text      | nullable (SKU/código de barras)           |
 | salePrice           | decimal   | NOT NULL                                  |
 | saleUnit            | text      | NOT NULL, default 'unit' ('unit' \| 'kg') |
 | costPrice           | decimal   | nullable                                  |
@@ -129,6 +130,7 @@ db:
     - (userId, id)
     - (userId, isActive, createdAt DESC)
     - (userId, category)
+    - (userId, code)
     - product_components(productId)
 invariants:
   - name.trim().length > 0
@@ -152,12 +154,12 @@ invariants:
 
 ## Contracts (Zod/DTO)
 
-- **CreateProductDto**: `{ name, description?, category, photoUrl?, salePrice, saleUnit?, recipeId?, stockQuantity?, stockAlertThreshold?, isComposite?, components? }`
+- **CreateProductDto**: `{ name, description?, category, photoUrl?, code?, salePrice, saleUnit?, recipeId?, stockQuantity?, stockAlertThreshold?, isComposite?, components? }`
   - `refine`: quando `isComposite`, `components` precisa ter >= 1 item.
 - **UpdateProductDto**: `Partial<CreateProductDto>` (com o mesmo refine de composto)
 - **ProductComponentInputDto**: `{ componentProductId: uuid, quantity: number > 0 }` (entrada)
 - **ProductComponentDto**: `{ componentProductId: uuid, name, costPrice: number|null, quantity }` (saida/display)
-- **Product**: `{ id, userId, name, description, category, photoUrl, salePrice, saleUnit, costPrice, recipeId, stockQuantity, stockAlertThreshold, isComposite, components?, isActive, createdAt }`
+- **Product**: `{ id, userId, name, description, category, photoUrl, code, salePrice, saleUnit, costPrice, recipeId, stockQuantity, stockAlertThreshold, isComposite, components?, isActive, createdAt }`
   - `components` presente apenas quando `isComposite = true`.
 - **SaleUnit**: `"unit" | "kg"` (default `"unit"`)
 
@@ -180,7 +182,7 @@ invariants:
 ## Performance
 
 - Listagem filtra por `isActive = true` por padrao
-- Busca por nome via `ILIKE`
+- Busca por nome **ou código** via `ILIKE` (OR entre `name` e `code`)
 - Filtro por categoria via `eq`
 - `countByUser` conta apenas ativos
 
@@ -258,3 +260,7 @@ POST /api/v1/products  (produto composto / kit / caixinha)
   Validacoes: >= 1 componente, qty > 0, sem auto-referencia (dominio); componente do mesmo
   usuario e nao-composto, **sem aninhamento no MVP** (usecases via `findComponentCandidates`).
   Decisao: kit nao tem estoque proprio por unidade no MVP.
+- 2026-06-16: **código do produto (SKU/código de barras)** — coluna `products.code` (text, nullable,
+  migration `019_product_code.sql`) + índice `(user_id, code)`. Threaded em CreateProductData/
+  UpdateProductDto/Product e no repo. A **busca** (`?search=`) passou a casar por **nome OU código**
+  (`ILIKE` em ambos), habilitando o scanner de câmera do mobile (escaneia → filtra a lista por código).

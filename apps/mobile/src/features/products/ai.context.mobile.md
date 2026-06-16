@@ -34,6 +34,7 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 | `apps/mobile/src/features/products/components/product-list.tsx`        | Lista de produtos                                                                             |
 | `apps/mobile/src/features/products/use-low-stock-notifier.ts`          | Hook que dispara notificacao local de estoque baixo (montado no root layout)                  |
 | `apps/mobile/src/app/products.tsx`                                     | Screen (rota `/products`) com banner de estoque baixo + modal de detalhe/edicao inline        |
+| `apps/mobile/src/shared/components/barcode-scanner.tsx`                | Scanner de codigo de barras/QR (expo-camera) — usado na criacao/edicao e na Nova Venda        |
 
 ## Components
 
@@ -71,7 +72,7 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 ### `CreateProductForm`
 
 - **Props:** `{ onSuccess?: () => void }`
-- Campos: nome (obrigatorio), categoria (obrigatorio), **tipo (toggle simples/kit)**, **unidade de venda (toggle por unidade/kg)**, preco de venda (obrigatorio, > 0; label vira "Preço por kg (R$)" quando kg), foto, descricao, quantidade em estoque, alerta de estoque baixo.
+- Campos: nome (obrigatorio), categoria (obrigatorio), **tipo (toggle simples/kit)**, **unidade de venda (toggle por unidade/kg)**, preco de venda (obrigatorio, > 0; label vira "Preço por kg (R$)" quando kg), foto, descricao, **código de barras (opcional, com botão de escanear via câmera)**, quantidade em estoque, alerta de estoque baixo.
 - Campos de estoque ficam ocultos quando "Por quilo (kg)" (estoque por unidade nao se aplica).
 - Quando **kit** (`isComposite`): mostra o `ComponentPicker`; oculta o toggle de unidade de venda e os campos de estoque. O preco de venda continua sendo pedido (preco do kit). Validacao local: pelo menos um componente.
 
@@ -80,7 +81,7 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 - Modal inline no arquivo `products.tsx` com visualizacao e edicao do produto.
 - Exibe avatar, nome (com badge "Kit" quando composto), categoria, preco, estoque atual (oculto para kits; com cor de alerta quando baixo), limite de alerta e descricao.
 - Kits: exibe "Custo do kit" (rollup vindo do back) e um card **"O que vem no kit"** com `quantidade x nome` e custo por linha.
-- Modo edicao com campos editaveis, incluindo o toggle simples/kit + `ComponentPicker`, quantidade em estoque e alerta de estoque baixo.
+- Modo edicao com campos editaveis, incluindo o toggle simples/kit + `ComponentPicker`, código de barras (com botão de escanear), quantidade em estoque e alerta de estoque baixo.
 - Botao de excluir com confirmacao.
 
 ### `LowStockBanner` (definido no screen)
@@ -112,8 +113,8 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 
 ## Contracts
 
-- `Product` — produto (id, name, category, salePrice, saleUnit, costPrice, description, photoUrl, stockQuantity, stockAlertThreshold, isComposite, components?).
-- `CreateProduct` — payload de criacao (name, category, salePrice, saleUnit?, description?, stockQuantity?, stockAlertThreshold?, isComposite?, components?).
+- `Product` — produto (id, name, category, salePrice, saleUnit, costPrice, description, photoUrl, code, stockQuantity, stockAlertThreshold, isComposite, components?).
+- `CreateProduct` — payload de criacao (name, category, salePrice, saleUnit?, description?, photoUrl?, code?, stockQuantity?, stockAlertThreshold?, isComposite?, components?).
 - `UpdateProduct` — payload de edicao.
 - `ProductComponentInput` — `{ componentProductId, quantity }` (entrada do kit).
 - `ProductComponent` — `{ componentProductId, name, costPrice, quantity }` (componente resolvido para exibicao).
@@ -160,4 +161,5 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 - 2026-05-30: **venda por peso (R$/kg)** — `SaleUnitToggle` na criacao e edicao. Quando "kg", o preco vira "Preço por kg" e os campos de estoque ficam ocultos. Card e detalhe do produto exibem "R$X/kg" e ocultam estoque para produtos por peso.
 - 2026-05-30: **produto composto / kit / caixinha** — `CompositeToggle` (simples/kit) + `ComponentPicker` (escolhe produtos simples + quantidade, mostra custo total ao vivo) na criacao e edicao. Card e detalhe exibem badge "Kit"; detalhe mostra "Custo do kit" e a lista "O que vem no kit". Kits ocultam unidade de venda e estoque por unidade. Custo do kit e calculado no backend (rollup) e exibido via `product.costPrice`/`product.components`. Sem aninhamento (kit dentro de kit) no MVP.
 - 2026-06-15: **logica pura do kit extraida** — `draftsToComponents`, `kitTotalCost`, `chipLabel` e `validateProductDraft` movidos para `kit.ts` (puro, sem React Native) e cobertos por `kit.test.ts`. `component-picker.tsx` re-exporta `draftsToComponents`/`ComponentDraft` (imports existentes seguem funcionando). `CreateProductForm.handleSubmit` agora usa `validateProductDraft`. `kitTotalCost` espelha `calculateCompositeCost` do backend (custo nulo conta 0); o `costPrice` vem na listagem (`findAll` -> `toProduct`), entao produtos sem custo definido (sem receita) somam 0.
+- 2026-06-16: **código de barras + scanner de câmera** — produtos ganharam o campo opcional `code` (SKU/código de barras). `CreateProductForm` e o modal de edição têm o campo "Código de barras" com botão de **escanear** (`BarcodeScanner` em `shared/components/barcode-scanner.tsx`, via `expo-camera`). Na **Nova Venda**, "Usar código"/o ícone de scan abrem a câmera; o código lido vai pra busca (o back casa por **nome OU código**), com fallback "Digitar à mão". **Requer dev/prod build novo** (módulo nativo da câmera); permissão no `app.json` (plugin `expo-camera`).
 - 2026-06-15: **redesign do "Novo produto"** — `CreateProductForm` reescrito com campos estilizados (label acima + box com icone rosa: nome=pricetag, preco=cash, descricao=document com contador 0/300, estoque=cube/notifications), `CategoryField` (campo dropdown com icone grid + chevron que abre um bottom-sheet com as categorias ja usadas + digitar nova), foto em area full-width com borda tracejada ("Adicionar foto / PNG, JPG até 5MB"), e botao rosa "Cadastrar produto" com icone de check. Header do modal (em `products.tsx`) ganhou seta de voltar alem do "Fechar". `CompositeToggle`/`SaleUnitToggle` viraram dois botoes com icone (cube/gift e cube/scale), selecionado em rosa. `ComponentPicker` agora mostra os itens como **chips removiveis** (com "+N" quando ha mais de 2) + link "Adicionar produto" que abre um bottom-sheet de selecao (checkbox + stepper de quantidade); card "Custo total do kit" ganhou icone de calculadora e subtitulo "Soma dos produtos selecionados". Categorias derivadas de `useProducts`. As mudancas nos toggles e no picker tambem refletem no modal de edicao.
