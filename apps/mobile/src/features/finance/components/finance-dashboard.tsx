@@ -1,7 +1,7 @@
 import type { FinanceEntry, FinanceEntryType } from "@lucro-caseiro/contracts";
 import { Ionicons } from "@expo/vector-icons";
 import { formatCurrency } from "../../../shared/utils/format";
-import { Button, spacing, useTheme } from "@lucro-caseiro/ui";
+import { Button, spacing, useTheme, type Theme } from "@lucro-caseiro/ui";
 import * as FileSystem from "expo-file-system/legacy";
 import { router } from "expo-router";
 import * as Sharing from "expo-sharing";
@@ -61,6 +61,7 @@ export function FinanceDashboard({
   onAddPress,
 }: Readonly<FinanceDashboardProps>) {
   const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const { token } = useAuth();
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
@@ -266,6 +267,8 @@ export function FinanceDashboard({
             value={formatCurrency(income)}
             description={entryCountLabel(incomeCount)}
             tone="green"
+            theme={theme}
+            styles={styles}
           />
           <SummaryCard
             icon="arrow-up-circle-outline"
@@ -273,6 +276,8 @@ export function FinanceDashboard({
             value={formatCurrency(expenses)}
             description={entryCountLabel(expenseCount)}
             tone="red"
+            theme={theme}
+            styles={styles}
           />
         </View>
 
@@ -285,6 +290,8 @@ export function FinanceDashboard({
               loading={exporting === "pdf"}
               disabled={exporting !== null}
               onPress={() => void handleExport("pdf")}
+              theme={theme}
+              styles={styles}
             />
             <ExportButton
               icon="document-attach-outline"
@@ -292,6 +299,8 @@ export function FinanceDashboard({
               loading={exporting === "xlsx"}
               disabled={exporting !== null}
               onPress={() => void handleExport("xlsx")}
+              theme={theme}
+              styles={styles}
             />
           </View>
         </View>
@@ -303,7 +312,7 @@ export function FinanceDashboard({
             onPress={() => setShowSearch((visible) => !visible)}
             style={[styles.searchButton, showSearch && styles.searchButtonActive]}
           >
-            <Ionicons name="search-outline" size={23} color="#F4E6E1" />
+            <Ionicons name="search-outline" size={23} color={theme.colors.text} />
           </Pressable>
         </View>
 
@@ -312,32 +321,39 @@ export function FinanceDashboard({
             label="Tudo"
             selected={filter === "all"}
             onPress={() => setFilter("all")}
+            styles={styles}
           />
           <FilterPill
             label="Entradas"
             selected={filter === "income"}
             onPress={() => setFilter("income")}
+            styles={styles}
           />
           <FilterPill
             label="Saídas"
             selected={filter === "expense"}
             onPress={() => setFilter("expense")}
+            styles={styles}
           />
         </View>
 
         {showSearch && (
           <View style={styles.searchField}>
-            <Ionicons name="search-outline" size={25} color="#CDBBB4" />
+            <Ionicons
+              name="search-outline"
+              size={25}
+              color={theme.colors.textSecondary}
+            />
             <TextInput
               value={searchTerm}
               onChangeText={setSearchTerm}
               placeholder="Buscar lançamento..."
-              placeholderTextColor="#8F7D77"
+              placeholderTextColor={theme.colors.textSecondary}
               style={styles.searchInput}
             />
             {searchTerm.length > 0 && (
               <TouchableOpacity onPress={() => setSearchTerm("")} hitSlop={10}>
-                <Ionicons name="close-circle" size={24} color="#D6748B" />
+                <Ionicons name="close-circle" size={24} color={theme.colors.primary} />
               </TouchableOpacity>
             )}
           </View>
@@ -352,6 +368,8 @@ export function FinanceDashboard({
                 key={entry.id}
                 entry={entry}
                 isLast={index === filteredEntries.length - 1}
+                theme={theme}
+                styles={styles}
                 onPress={() => {
                   if (onEntryPress) {
                     onEntryPress(entry.id);
@@ -435,15 +453,20 @@ export function FinanceDashboard({
                   style={[
                     styles.detailIcon,
                     {
-                      backgroundColor:
-                        selectedEntry.type === "income" ? "#173B2A" : "#49252D",
+                      backgroundColor: toneColors(
+                        theme,
+                        selectedEntry.type === "income" ? "green" : "red",
+                      ).iconBg,
                     },
                   ]}
                 >
                   <Ionicons
                     name={selectedEntry.type === "income" ? "add" : "remove"}
                     size={28}
-                    color={selectedEntry.type === "income" ? "#6ED0A1" : "#E07188"}
+                    color={
+                      toneColors(theme, selectedEntry.type === "income" ? "green" : "red")
+                        .fg
+                    }
                   />
                 </View>
                 <View style={styles.detailTitleWrap}>
@@ -456,7 +479,7 @@ export function FinanceDashboard({
                   </Text>
                 </View>
                 <TouchableOpacity onPress={() => setSelectedEntry(null)} hitSlop={12}>
-                  <Ionicons name="close" size={28} color="#E6D4CC" />
+                  <Ionicons name="close" size={28} color={theme.colors.textSecondary} />
                 </TouchableOpacity>
               </View>
 
@@ -467,7 +490,12 @@ export function FinanceDashboard({
                 <Text
                   style={[
                     styles.detailAmount,
-                    { color: selectedEntry.type === "income" ? "#6ED0A1" : "#E07188" },
+                    {
+                      color: toneColors(
+                        theme,
+                        selectedEntry.type === "income" ? "green" : "red",
+                      ).fg,
+                    },
                   ]}
                 >
                   {selectedEntry.type === "income" ? "+ " : "- "}
@@ -515,7 +543,7 @@ export function FinanceDashboard({
                     );
                   }}
                 >
-                  <Ionicons name="trash-outline" size={20} color="#FF7B8A" />
+                  <Ionicons name="trash-outline" size={20} color={theme.colors.alert} />
                   <Text style={styles.detailDeleteText}>Excluir</Text>
                 </Pressable>
               </View>
@@ -678,32 +706,35 @@ function SummaryCard({
   value,
   description,
   tone,
+  theme,
+  styles,
 }: Readonly<{
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   value: string;
   description: string;
   tone: "green" | "red";
+  theme: Theme;
+  styles: FinanceStyles;
 }>) {
-  const color = tone === "green" ? "#6ED0A1" : "#E07188";
-  const background =
-    tone === "green" ? "rgba(38, 120, 78, 0.26)" : "rgba(120, 42, 55, 0.28)";
-  const border =
-    tone === "green" ? "rgba(96, 196, 143, 0.32)" : "rgba(224, 113, 136, 0.45)";
+  const tc = toneColors(theme, tone);
 
   return (
     <View
-      style={[styles.summaryCard, { borderColor: border, backgroundColor: background }]}
+      style={[
+        styles.summaryCard,
+        { borderColor: tc.cardBorder, backgroundColor: tc.cardBg },
+      ]}
     >
-      <View style={[styles.summaryIcon, { backgroundColor: color + "1F" }]}>
-        <Ionicons name={icon} size={37} color={color} />
+      <View style={[styles.summaryIcon, { backgroundColor: tc.fg + "1F" }]}>
+        <Ionicons name={icon} size={37} color={tc.fg} />
       </View>
       <View style={styles.summaryCopy}>
         <Text style={styles.summaryLabel} numberOfLines={1} adjustsFontSizeToFit>
           {label}
         </Text>
         <Text
-          style={[styles.summaryValue, { color }]}
+          style={[styles.summaryValue, { color: tc.fg }]}
           numberOfLines={1}
           adjustsFontSizeToFit
           minimumFontScale={0.72}
@@ -729,12 +760,16 @@ function ExportButton({
   loading,
   disabled,
   onPress,
+  theme,
+  styles,
 }: Readonly<{
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   loading: boolean;
   disabled: boolean;
   onPress: () => void;
+  theme: Theme;
+  styles: FinanceStyles;
 }>) {
   return (
     <Pressable
@@ -748,10 +783,10 @@ function ExportButton({
       ]}
     >
       {loading ? (
-        <ActivityIndicator color="#D6748B" />
+        <ActivityIndicator color={theme.colors.primary} />
       ) : (
         <>
-          <Ionicons name={icon} size={28} color="#D6748B" />
+          <Ionicons name={icon} size={28} color={theme.colors.primary} />
           <Text style={styles.exportLabel}>{label}</Text>
         </>
       )}
@@ -763,7 +798,13 @@ function FilterPill({
   label,
   selected,
   onPress,
-}: Readonly<{ label: string; selected: boolean; onPress: () => void }>) {
+  styles,
+}: Readonly<{
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+  styles: FinanceStyles;
+}>) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -781,9 +822,17 @@ function EntryRow({
   entry,
   isLast,
   onPress,
-}: Readonly<{ entry: FinanceEntry; isLast: boolean; onPress?: () => void }>) {
+  theme,
+  styles,
+}: Readonly<{
+  entry: FinanceEntry;
+  isLast: boolean;
+  onPress?: () => void;
+  theme: Theme;
+  styles: FinanceStyles;
+}>) {
   const isIncome = entry.type === "income";
-  const color = isIncome ? "#6ED0A1" : "#E07188";
+  const tc = toneColors(theme, isIncome ? "green" : "red");
   const sign = isIncome ? "+" : "-";
 
   return (
@@ -792,10 +841,8 @@ function EntryRow({
       onPress={onPress}
       style={[styles.entryRow, !isLast && styles.entryDivider]}
     >
-      <View
-        style={[styles.entryIcon, { backgroundColor: isIncome ? "#173B2A" : "#49252D" }]}
-      >
-        <Ionicons name={isIncome ? "add" : "remove"} size={30} color={color} />
+      <View style={[styles.entryIcon, { backgroundColor: tc.iconBg }]}>
+        <Ionicons name={isIncome ? "add" : "remove"} size={30} color={tc.fg} />
       </View>
       <View style={styles.entryMiddle}>
         <Text style={styles.entryTitle} numberOfLines={1}>
@@ -812,14 +859,14 @@ function EntryRow({
       </View>
       <View style={styles.entryRight}>
         <Text
-          style={[styles.entryAmount, { color }]}
+          style={[styles.entryAmount, { color: tc.fg }]}
           numberOfLines={1}
           adjustsFontSizeToFit
           minimumFontScale={0.78}
         >
           {sign} {formatCurrency(entry.amount)}
         </Text>
-        <Ionicons name="chevron-forward" size={26} color="#E6D4CC" />
+        <Ionicons name="chevron-forward" size={26} color={theme.colors.textSecondary} />
       </View>
     </Pressable>
   );
@@ -844,507 +891,542 @@ function formatEntryDate(value: string) {
   return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
-const styles = StyleSheet.create({
-  addButtonWrap: {
-    alignItems: "center",
-    gap: 2,
-    width: 96,
-  },
-  addCircle: {
-    alignItems: "center",
-    backgroundColor: "#CF6F88",
-    borderRadius: 30,
-    elevation: 10,
-    height: 60,
-    justifyContent: "center",
-    shadowColor: "#CF6F88",
-    shadowOpacity: 0.45,
-    shadowRadius: 18,
-    width: 60,
-  },
-  addLabel: {
-    color: "#F6E9E5",
-    fontSize: 12,
-    fontWeight: "800",
-    textAlign: "center",
-    width: "100%",
-  },
-  bodyText: {
-    fontSize: 16,
-  },
-  calendarButton: {
-    alignItems: "center",
-    borderRadius: 15,
-    borderColor: "rgba(255,255,255,0.10)",
-    borderWidth: 1,
-    height: 48,
-    justifyContent: "center",
-    marginLeft: "auto",
-    width: 48,
-  },
-  centered: {
-    alignItems: "center",
-    flex: 1,
-    justifyContent: "center",
-  },
-  content: {
-    gap: 18,
-    paddingBottom: 34,
-    paddingHorizontal: 22,
-    paddingTop: 18,
-  },
-  disabled: {
-    opacity: 0.6,
-  },
-  detailActions: {
-    flexDirection: "row",
-    gap: 12,
-    marginTop: 18,
-  },
-  detailAmount: {
-    fontSize: 30,
-    fontWeight: "900",
-  },
-  detailAmountLabel: {
-    color: "#D6C2BA",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  detailAmountRow: {
-    backgroundColor: "rgba(255,255,255,0.04)",
-    borderColor: "rgba(255,255,255,0.08)",
-    borderRadius: 18,
-    borderWidth: 1,
-    gap: 6,
-    marginTop: 18,
-    padding: 16,
-  },
-  detailBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  detailCard: {
-    backgroundColor: "rgba(44, 35, 32, 0.98)",
-    borderColor: "rgba(255,255,255,0.10)",
-    borderRadius: 24,
-    borderWidth: 1,
-    marginHorizontal: 22,
-    padding: 18,
-  },
-  detailDeleteButton: {
-    alignItems: "center",
-    borderColor: "rgba(255, 123, 138, 0.45)",
-    borderRadius: 16,
-    borderWidth: 1,
-    flex: 1,
-    flexDirection: "row",
-    gap: 8,
-    height: 52,
-    justifyContent: "center",
-  },
-  detailDeleteText: {
-    color: "#FF7B8A",
-    fontSize: 16,
-    fontWeight: "900",
-  },
-  detailHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 12,
-  },
-  detailIcon: {
-    alignItems: "center",
-    borderRadius: 26,
-    height: 52,
-    justifyContent: "center",
-    width: 52,
-  },
-  detailOverlay: {
-    backgroundColor: "rgba(0,0,0,0.62)",
-    flex: 1,
-    justifyContent: "center",
-  },
-  detailSecondaryButton: {
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.06)",
-    borderRadius: 16,
-    flex: 1,
-    height: 52,
-    justifyContent: "center",
-  },
-  detailSecondaryText: {
-    color: "#F6EAE6",
-    fontSize: 16,
-    fontWeight: "900",
-  },
-  detailSubtitle: {
-    color: "#CDBBB4",
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  detailTitle: {
-    color: "#F6EAE6",
-    fontSize: 22,
-    fontWeight: "900",
-  },
-  detailTitleWrap: {
-    flex: 1,
-    gap: 4,
-  },
-  emptyState: {
-    alignItems: "center",
-    gap: 7,
-    padding: 28,
-  },
-  emptyText: {
-    color: "#C5ADA6",
-    fontSize: 15,
-    textAlign: "center",
-  },
-  emptyTitle: {
-    color: "#F3E7E3",
-    fontSize: 19,
-    fontWeight: "800",
-  },
-  entriesHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 8,
-  },
-  entryAmount: {
-    fontSize: 16,
-    fontWeight: "900",
-  },
-  entryBadge: {
-    backgroundColor: "rgba(121, 49, 61, 0.55)",
-    borderRadius: 9,
-    color: "#EF8DA1",
-    fontSize: 13,
-    fontWeight: "800",
-    maxWidth: 94,
-    overflow: "hidden",
-    paddingHorizontal: 9,
-    paddingVertical: 3,
-  },
-  entryCount: {
-    color: "#CDBBB4",
-    fontSize: 16,
-    marginTop: -8,
-  },
-  entryDate: {
-    color: "#C7B4AD",
-    fontSize: 15,
-  },
-  entryDivider: {
-    borderBottomColor: "rgba(255,255,255,0.08)",
-    borderBottomWidth: 1,
-  },
-  entryIcon: {
-    alignItems: "center",
-    borderRadius: 26,
-    height: 52,
-    justifyContent: "center",
-    width: 52,
-  },
-  entryListCard: {
-    backgroundColor: "rgba(44, 35, 32, 0.82)",
-    borderColor: "rgba(255,255,255,0.08)",
-    borderRadius: 26,
-    borderWidth: 1,
-    overflow: "hidden",
-  },
-  entryMetaRow: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 8,
-  },
-  entryMiddle: {
-    flex: 1,
-    gap: 7,
-    minWidth: 0,
-  },
-  entryRight: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 6,
-    justifyContent: "flex-end",
-    width: 124,
-  },
-  entryRow: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 12,
-    minHeight: 82,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-  },
-  entryTitle: {
-    color: "#F7ECE8",
-    fontSize: 18,
-    fontWeight: "900",
-  },
-  exportButton: {
-    alignItems: "center",
-    borderColor: "#D6748B",
-    borderRadius: 15,
-    borderWidth: 1.5,
-    flex: 1,
-    flexDirection: "row",
-    gap: 12,
-    height: 55,
-    justifyContent: "center",
-  },
-  exportLabel: {
-    color: "#D6748B",
-    fontSize: 18,
-    fontWeight: "900",
-  },
-  exportRow: {
-    flexDirection: "row",
-    gap: 14,
-  },
-  filterPill: {
-    alignItems: "center",
-    backgroundColor: "rgba(45, 38, 35, 0.82)",
-    borderColor: "rgba(255,255,255,0.07)",
-    borderRadius: 22,
-    borderWidth: 1,
-    height: 48,
-    justifyContent: "center",
-    paddingHorizontal: 22,
-  },
-  filterPillSelected: {
-    backgroundColor: "#CF6F88",
-  },
-  filterRow: {
-    flexDirection: "row",
-    gap: 10,
-    marginTop: -8,
-  },
-  filterText: {
-    color: "#D6C3BB",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  filterTextSelected: {
-    color: "#FFFFFF",
-    fontWeight: "900",
-  },
-  footerRow: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 12,
-    justifyContent: "space-between",
-    marginTop: 12,
-  },
-  header: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 18,
-  },
-  headerIcon: {
-    alignItems: "center",
-    height: 44,
-    justifyContent: "center",
-    width: 30,
-  },
-  headerTitle: {
-    fontSize: 27,
-    fontWeight: "900",
-  },
-  heroCard: {
-    backgroundColor: "rgba(44, 35, 32, 0.94)",
-    borderRadius: 24,
-    borderColor: "rgba(112, 70, 62, 0.85)",
-    borderWidth: 1.5,
-    height: 178,
-    overflow: "hidden",
-    padding: 24,
-  },
-  heroContent: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  heroImage: {
-    bottom: 0,
-    height: "118%",
-    opacity: 0.56,
-    position: "absolute",
-    right: -44,
-    width: "72%",
-  },
-  heroLabel: {
-    color: "#D0C0B7",
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  heroScrim: {
-    backgroundColor: "rgba(42, 30, 27, 0.32)",
-    bottom: 0,
-    left: 0,
-    position: "absolute",
-    right: 0,
-    top: 0,
-  },
-  heroValue: {
-    color: "#6ED0A1",
-    fontSize: 54,
-    fontWeight: "900",
-    marginTop: 10,
-  },
-  modal: {
-    flex: 1,
-  },
-  modalClose: {
-    fontSize: 18,
-    fontWeight: "800",
-  },
-  modalHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 22,
-    paddingTop: 10,
-  },
-  modalTitle: {
-    color: "#F6EAE6",
-    fontSize: 24,
-    fontWeight: "900",
-  },
-  monthSelector: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 34,
-    justifyContent: "center",
-    marginVertical: 8,
-  },
-  monthText: {
-    fontSize: 23,
-    fontWeight: "900",
-  },
-  percentBadge: {
-    alignItems: "center",
-    alignSelf: "flex-start",
-    backgroundColor: "rgba(255,255,255,0.08)",
-    borderRadius: 10,
-    flexDirection: "row",
-    gap: 7,
-    marginTop: 12,
-    paddingHorizontal: 11,
-    paddingVertical: 7,
-  },
-  percentText: {
-    color: "#FFFFFF",
-    fontSize: 15,
-    fontWeight: "900",
-  },
-  pressed: {
-    opacity: 0.82,
-  },
-  searchButton: {
-    alignItems: "center",
-    backgroundColor: "rgba(45, 38, 35, 0.82)",
-    borderColor: "rgba(255,255,255,0.08)",
-    borderRadius: 15,
-    borderWidth: 1,
-    height: 42,
-    justifyContent: "center",
-    width: 42,
-  },
-  searchButtonActive: {
-    borderColor: "#D6748B",
-  },
-  searchField: {
-    alignItems: "center",
-    backgroundColor: "rgba(44, 35, 32, 0.88)",
-    borderColor: "rgba(255,255,255,0.08)",
-    borderRadius: 18,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: 10,
-    height: 56,
-    paddingHorizontal: 16,
-  },
-  searchInput: {
-    color: "#F6EAE6",
-    flex: 1,
-    fontSize: 17,
-    fontWeight: "700",
-    padding: 0,
-  },
-  section: {
-    gap: 14,
-    marginTop: 4,
-  },
-  sectionTitle: {
-    color: "#F8EEE9",
-    fontSize: 24,
-    fontWeight: "900",
-  },
-  summaryCard: {
-    alignItems: "center",
-    borderRadius: 20,
-    borderWidth: 1.5,
-    flex: 1,
-    flexDirection: "row",
-    gap: 11,
-    minHeight: 104,
-    padding: 14,
-  },
-  summaryCopy: {
-    flex: 1,
-    gap: 5,
-  },
-  summaryDescription: {
-    color: "#D2C0B9",
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  summaryIcon: {
-    alignItems: "center",
-    borderRadius: 28,
-    height: 56,
-    justifyContent: "center",
-    width: 56,
-  },
-  summaryLabel: {
-    color: "#F3E6E1",
-    fontSize: 15,
-    fontWeight: "700",
-  },
-  summaryRow: {
-    flexDirection: "row",
-    gap: 14,
-  },
-  summaryValue: {
-    fontSize: 23,
-    fontWeight: "900",
-  },
-  tipCard: {
-    alignItems: "center",
-    backgroundColor: "rgba(44, 35, 32, 0.88)",
-    borderColor: "rgba(255,255,255,0.08)",
-    borderRadius: 18,
-    borderWidth: 1,
-    flex: 1,
-    flexDirection: "row",
-    gap: 12,
-    minHeight: 88,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  tipIcon: {
-    alignItems: "center",
-    backgroundColor: "rgba(118, 54, 66, 0.42)",
-    borderRadius: 22,
-    height: 44,
-    justifyContent: "center",
-    width: 44,
-  },
-  tipText: {
-    color: "#D6C2BA",
-    flex: 1,
-    fontSize: 13,
-    lineHeight: 18,
-  },
-});
+type FinanceStyles = ReturnType<typeof createStyles>;
+
+/** Cores de entrada (verde) e saída (vermelho/rosa) ajustadas por tema. */
+function toneColors(theme: Theme, tone: "green" | "red") {
+  const isDark = theme.mode === "dark";
+  if (tone === "green") {
+    return {
+      fg: isDark ? "#6ED0A1" : "#2E7D52",
+      iconBg: isDark ? "#173B2A" : "rgba(107, 191, 150, 0.18)",
+      cardBg: isDark ? "rgba(38, 120, 78, 0.26)" : "rgba(107, 191, 150, 0.16)",
+      cardBorder: isDark ? "rgba(96, 196, 143, 0.32)" : "rgba(107, 191, 150, 0.5)",
+    };
+  }
+  return {
+    fg: isDark ? "#E07188" : "#B04559",
+    iconBg: isDark ? "#49252D" : "rgba(176, 69, 89, 0.14)",
+    cardBg: isDark ? "rgba(120, 42, 55, 0.28)" : "rgba(176, 69, 89, 0.1)",
+    cardBorder: isDark ? "rgba(224, 113, 136, 0.45)" : "rgba(176, 69, 89, 0.4)",
+  };
+}
+
+function createStyles(theme: Theme) {
+  const isDark = theme.mode === "dark";
+  const c = theme.colors;
+  const cardBg = c.surfaceElevated;
+  const cardBorder = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(74, 50, 40, 0.1)";
+  const subtleFill = isDark ? "rgba(255, 255, 255, 0.06)" : "rgba(74, 50, 40, 0.05)";
+  const chipBg = isDark ? "rgba(45, 38, 35, 0.82)" : c.surface;
+  const badgeBg = isDark ? "rgba(121, 49, 61, 0.55)" : "rgba(196, 112, 126, 0.16)";
+  const badgeFg = isDark ? "#EF8DA1" : c.primary;
+  const tipIconBg = isDark ? "rgba(118, 54, 66, 0.42)" : "rgba(196, 112, 126, 0.16)";
+  const deleteBorder = isDark ? "rgba(255, 123, 138, 0.45)" : "rgba(176, 69, 89, 0.45)";
+
+  return StyleSheet.create({
+    addButtonWrap: {
+      alignItems: "center",
+      gap: 2,
+      width: 96,
+    },
+    addCircle: {
+      alignItems: "center",
+      backgroundColor: c.primary,
+      borderRadius: 30,
+      elevation: 10,
+      height: 60,
+      justifyContent: "center",
+      shadowColor: c.primary,
+      shadowOpacity: 0.45,
+      shadowRadius: 18,
+      width: 60,
+    },
+    addLabel: {
+      color: c.text,
+      fontSize: 12,
+      fontWeight: "800",
+      textAlign: "center",
+      width: "100%",
+    },
+    bodyText: {
+      fontSize: 16,
+    },
+    calendarButton: {
+      alignItems: "center",
+      borderRadius: 15,
+      borderColor: cardBorder,
+      borderWidth: 1,
+      height: 48,
+      justifyContent: "center",
+      marginLeft: "auto",
+      width: 48,
+    },
+    centered: {
+      alignItems: "center",
+      flex: 1,
+      justifyContent: "center",
+    },
+    content: {
+      gap: 18,
+      paddingBottom: 34,
+      paddingHorizontal: 22,
+      paddingTop: 18,
+    },
+    disabled: {
+      opacity: 0.6,
+    },
+    detailActions: {
+      flexDirection: "row",
+      gap: 12,
+      marginTop: 18,
+    },
+    detailAmount: {
+      fontSize: 30,
+      fontWeight: "900",
+    },
+    detailAmountLabel: {
+      color: c.textSecondary,
+      fontSize: 16,
+      fontWeight: "700",
+    },
+    detailAmountRow: {
+      backgroundColor: subtleFill,
+      borderColor: cardBorder,
+      borderRadius: 18,
+      borderWidth: 1,
+      gap: 6,
+      marginTop: 18,
+      padding: 16,
+    },
+    detailBackdrop: {
+      ...StyleSheet.absoluteFillObject,
+    },
+    detailCard: {
+      backgroundColor: cardBg,
+      borderColor: cardBorder,
+      borderRadius: 24,
+      borderWidth: 1,
+      marginHorizontal: 22,
+      padding: 18,
+    },
+    detailDeleteButton: {
+      alignItems: "center",
+      borderColor: deleteBorder,
+      borderRadius: 16,
+      borderWidth: 1,
+      flex: 1,
+      flexDirection: "row",
+      gap: 8,
+      height: 52,
+      justifyContent: "center",
+    },
+    detailDeleteText: {
+      color: c.alert,
+      fontSize: 16,
+      fontWeight: "900",
+    },
+    detailHeader: {
+      alignItems: "center",
+      flexDirection: "row",
+      gap: 12,
+    },
+    detailIcon: {
+      alignItems: "center",
+      borderRadius: 26,
+      height: 52,
+      justifyContent: "center",
+      width: 52,
+    },
+    detailOverlay: {
+      backgroundColor: "rgba(0,0,0,0.62)",
+      flex: 1,
+      justifyContent: "center",
+    },
+    detailSecondaryButton: {
+      alignItems: "center",
+      backgroundColor: subtleFill,
+      borderRadius: 16,
+      flex: 1,
+      height: 52,
+      justifyContent: "center",
+    },
+    detailSecondaryText: {
+      color: c.text,
+      fontSize: 16,
+      fontWeight: "900",
+    },
+    detailSubtitle: {
+      color: c.textSecondary,
+      fontSize: 15,
+      fontWeight: "700",
+    },
+    detailTitle: {
+      color: c.text,
+      fontSize: 22,
+      fontWeight: "900",
+    },
+    detailTitleWrap: {
+      flex: 1,
+      gap: 4,
+    },
+    emptyState: {
+      alignItems: "center",
+      gap: 7,
+      padding: 28,
+    },
+    emptyText: {
+      color: c.textSecondary,
+      fontSize: 15,
+      textAlign: "center",
+    },
+    emptyTitle: {
+      color: c.text,
+      fontSize: 19,
+      fontWeight: "800",
+    },
+    entriesHeader: {
+      alignItems: "center",
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: 8,
+    },
+    entryAmount: {
+      fontSize: 16,
+      fontWeight: "900",
+    },
+    entryBadge: {
+      backgroundColor: badgeBg,
+      borderRadius: 9,
+      color: badgeFg,
+      fontSize: 13,
+      fontWeight: "800",
+      maxWidth: 94,
+      overflow: "hidden",
+      paddingHorizontal: 9,
+      paddingVertical: 3,
+    },
+    entryCount: {
+      color: c.textSecondary,
+      fontSize: 16,
+      marginTop: -8,
+    },
+    entryDate: {
+      color: c.textSecondary,
+      fontSize: 15,
+    },
+    entryDivider: {
+      borderBottomColor: cardBorder,
+      borderBottomWidth: 1,
+    },
+    entryIcon: {
+      alignItems: "center",
+      borderRadius: 26,
+      height: 52,
+      justifyContent: "center",
+      width: 52,
+    },
+    entryListCard: {
+      backgroundColor: cardBg,
+      borderColor: cardBorder,
+      borderRadius: 26,
+      borderWidth: 1,
+      overflow: "hidden",
+    },
+    entryMetaRow: {
+      alignItems: "center",
+      flexDirection: "row",
+      gap: 8,
+    },
+    entryMiddle: {
+      flex: 1,
+      gap: 7,
+      minWidth: 0,
+    },
+    entryRight: {
+      alignItems: "center",
+      flexDirection: "row",
+      gap: 6,
+      justifyContent: "flex-end",
+      width: 124,
+    },
+    entryRow: {
+      alignItems: "center",
+      flexDirection: "row",
+      gap: 12,
+      minHeight: 82,
+      paddingHorizontal: 14,
+      paddingVertical: 14,
+    },
+    entryTitle: {
+      color: c.text,
+      fontSize: 18,
+      fontWeight: "900",
+    },
+    exportButton: {
+      alignItems: "center",
+      borderColor: c.primary,
+      borderRadius: 15,
+      borderWidth: 1.5,
+      flex: 1,
+      flexDirection: "row",
+      gap: 12,
+      height: 55,
+      justifyContent: "center",
+    },
+    exportLabel: {
+      color: c.primary,
+      fontSize: 18,
+      fontWeight: "900",
+    },
+    exportRow: {
+      flexDirection: "row",
+      gap: 14,
+    },
+    filterPill: {
+      alignItems: "center",
+      backgroundColor: chipBg,
+      borderColor: cardBorder,
+      borderRadius: 22,
+      borderWidth: 1,
+      height: 48,
+      justifyContent: "center",
+      paddingHorizontal: 22,
+    },
+    filterPillSelected: {
+      backgroundColor: c.primary,
+      borderColor: c.primary,
+    },
+    filterRow: {
+      flexDirection: "row",
+      gap: 10,
+      marginTop: -8,
+    },
+    filterText: {
+      color: c.text,
+      fontSize: 16,
+      fontWeight: "700",
+    },
+    filterTextSelected: {
+      color: c.textOnPrimary,
+      fontWeight: "900",
+    },
+    footerRow: {
+      alignItems: "center",
+      flexDirection: "row",
+      gap: 12,
+      justifyContent: "space-between",
+      marginTop: 12,
+    },
+    header: {
+      alignItems: "center",
+      flexDirection: "row",
+      gap: 18,
+    },
+    headerIcon: {
+      alignItems: "center",
+      height: 44,
+      justifyContent: "center",
+      width: 30,
+    },
+    headerTitle: {
+      fontSize: 27,
+      fontWeight: "900",
+    },
+    heroCard: {
+      backgroundColor: "rgba(44, 35, 32, 0.94)",
+      borderRadius: 24,
+      borderColor: "rgba(112, 70, 62, 0.85)",
+      borderWidth: 1.5,
+      height: 178,
+      overflow: "hidden",
+      padding: 24,
+    },
+    heroContent: {
+      flex: 1,
+      justifyContent: "center",
+    },
+    heroImage: {
+      bottom: 0,
+      height: "118%",
+      opacity: 0.56,
+      position: "absolute",
+      right: -44,
+      width: "72%",
+    },
+    heroLabel: {
+      color: "#D0C0B7",
+      fontSize: 18,
+      fontWeight: "600",
+    },
+    heroScrim: {
+      backgroundColor: "rgba(42, 30, 27, 0.32)",
+      bottom: 0,
+      left: 0,
+      position: "absolute",
+      right: 0,
+      top: 0,
+    },
+    heroValue: {
+      color: "#6ED0A1",
+      fontSize: 54,
+      fontWeight: "900",
+      marginTop: 10,
+    },
+    modal: {
+      flex: 1,
+    },
+    modalClose: {
+      fontSize: 18,
+      fontWeight: "800",
+    },
+    modalHeader: {
+      alignItems: "center",
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingHorizontal: 22,
+      paddingTop: 10,
+    },
+    modalTitle: {
+      color: c.text,
+      fontSize: 24,
+      fontWeight: "900",
+    },
+    monthSelector: {
+      alignItems: "center",
+      flexDirection: "row",
+      gap: 34,
+      justifyContent: "center",
+      marginVertical: 8,
+    },
+    monthText: {
+      fontSize: 23,
+      fontWeight: "900",
+    },
+    percentBadge: {
+      alignItems: "center",
+      alignSelf: "flex-start",
+      backgroundColor: "rgba(255,255,255,0.08)",
+      borderRadius: 10,
+      flexDirection: "row",
+      gap: 7,
+      marginTop: 12,
+      paddingHorizontal: 11,
+      paddingVertical: 7,
+    },
+    percentText: {
+      color: "#FFFFFF",
+      fontSize: 15,
+      fontWeight: "900",
+    },
+    pressed: {
+      opacity: 0.82,
+    },
+    searchButton: {
+      alignItems: "center",
+      backgroundColor: chipBg,
+      borderColor: cardBorder,
+      borderRadius: 15,
+      borderWidth: 1,
+      height: 42,
+      justifyContent: "center",
+      width: 42,
+    },
+    searchButtonActive: {
+      borderColor: c.primary,
+    },
+    searchField: {
+      alignItems: "center",
+      backgroundColor: cardBg,
+      borderColor: cardBorder,
+      borderRadius: 18,
+      borderWidth: 1,
+      flexDirection: "row",
+      gap: 10,
+      height: 56,
+      paddingHorizontal: 16,
+    },
+    searchInput: {
+      color: c.text,
+      flex: 1,
+      fontSize: 17,
+      fontWeight: "700",
+      padding: 0,
+    },
+    section: {
+      gap: 14,
+      marginTop: 4,
+    },
+    sectionTitle: {
+      color: c.text,
+      fontSize: 24,
+      fontWeight: "900",
+    },
+    summaryCard: {
+      alignItems: "center",
+      borderRadius: 20,
+      borderWidth: 1.5,
+      flex: 1,
+      flexDirection: "row",
+      gap: 11,
+      minHeight: 104,
+      padding: 14,
+    },
+    summaryCopy: {
+      flex: 1,
+      gap: 5,
+    },
+    summaryDescription: {
+      color: c.textSecondary,
+      fontSize: 13,
+      fontWeight: "600",
+    },
+    summaryIcon: {
+      alignItems: "center",
+      borderRadius: 28,
+      height: 56,
+      justifyContent: "center",
+      width: 56,
+    },
+    summaryLabel: {
+      color: c.text,
+      fontSize: 15,
+      fontWeight: "700",
+    },
+    summaryRow: {
+      flexDirection: "row",
+      gap: 14,
+    },
+    summaryValue: {
+      fontSize: 23,
+      fontWeight: "900",
+    },
+    tipCard: {
+      alignItems: "center",
+      backgroundColor: cardBg,
+      borderColor: cardBorder,
+      borderRadius: 18,
+      borderWidth: 1,
+      flex: 1,
+      flexDirection: "row",
+      gap: 12,
+      minHeight: 88,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+    },
+    tipIcon: {
+      alignItems: "center",
+      backgroundColor: tipIconBg,
+      borderRadius: 22,
+      height: 44,
+      justifyContent: "center",
+      width: 44,
+    },
+    tipText: {
+      color: c.textSecondary,
+      flex: 1,
+      fontSize: 13,
+      lineHeight: 18,
+    },
+  });
+}
