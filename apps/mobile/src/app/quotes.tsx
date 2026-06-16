@@ -338,7 +338,9 @@ function QuoteDetail({
   }
 
   return (
-    <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
+    <ScrollView
+      contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg, flexGrow: 1 }}
+    >
       <View
         style={{
           flexDirection: "row",
@@ -401,14 +403,40 @@ function QuoteDetail({
       </Card>
 
       {quote.validUntil && (
-        <Typography variant="caption">
-          Válido até {quote.validUntil.split("-").reverse().join("/")}
-        </Typography>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>
+          <Ionicons
+            name="calendar-outline"
+            size={16}
+            color={theme.colors.textSecondary}
+          />
+          <Typography variant="caption">
+            Válido até {quote.validUntil.split("-").reverse().join("/")}
+          </Typography>
+        </View>
       )}
-      {quote.notes && <Typography variant="body">{quote.notes}</Typography>}
+      {quote.notes && (
+        <Card variant="surface">
+          <View style={{ flexDirection: "row", gap: spacing.sm }}>
+            <Ionicons
+              name="chatbubble-ellipses-outline"
+              size={18}
+              color={theme.colors.primary}
+            />
+            <View style={{ flex: 1, gap: 2 }}>
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                Observações
+              </Typography>
+              <Typography variant="body" color={theme.colors.text}>
+                {quote.notes}
+              </Typography>
+            </View>
+          </View>
+        </Card>
+      )}
 
-      {/* Ação primária + ações relevantes por status; o resto vai no menu "Mais ações" */}
-      <View style={{ gap: spacing.md }}>
+      {/* Ação primária + ações relevantes por status; o resto vai no menu "Mais ações".
+          marginTop auto fixa o bloco no rodapé quando o conteúdo é curto. */}
+      <View style={{ gap: spacing.md, marginTop: "auto" }}>
         <Button
           title="Enviar no WhatsApp"
           variant="success"

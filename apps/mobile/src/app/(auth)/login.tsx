@@ -27,7 +27,7 @@ export default function LoginScreen() {
   const [passwordError, setPasswordError] = useState<string>();
 
   const isDark = theme.mode === "dark";
-  const cardBg = isDark ? "rgba(44, 36, 32, 0.72)" : theme.colors.surfaceElevated;
+  const cardBg = isDark ? "rgba(44, 36, 32, 0.92)" : theme.colors.surfaceElevated;
   const cardBorder = isDark ? "rgba(245, 225, 219, 0.1)" : "rgba(74, 50, 40, 0.08)";
 
   function validateForm(): boolean {
@@ -171,7 +171,12 @@ export default function LoginScreen() {
               void handleGoogleLogin();
             }}
             loading={loading}
-            style={{ width: "100%" }}
+            style={{
+              width: "100%",
+              backgroundColor: theme.colors.surfaceElevated,
+              borderWidth: 1.5,
+              borderColor: cardBorder,
+            }}
           />
 
           <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
