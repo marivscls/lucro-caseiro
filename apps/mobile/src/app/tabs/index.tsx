@@ -27,6 +27,8 @@ import { useTodaySummary } from "../../features/sales/hooks";
 import { LimitBanner } from "../../features/subscription/components/limit-banner";
 import { useProfile } from "../../features/subscription/hooks";
 import { AdBanner } from "../../shared/components/ad-banner";
+import { useNotificationEnabled } from "../../shared/hooks/notification-prefs";
+import { NOTIFICATION_TYPES } from "../../shared/hooks/notification-types";
 import { usePaywall } from "../../shared/hooks/use-paywall";
 
 function getMonthName(): string {
@@ -280,6 +282,7 @@ export default function HomeScreen() {
   const { data: prolaboreData, isLoading: loadingGoal } = useProlaboreStatus();
   const { data: birthdays } = useBirthdays();
   const { data: lowStockProducts } = useLowStockProducts();
+  const lowStockEnabled = useNotificationEnabled(NOTIFICATION_TYPES.LOW_STOCK);
   const { data: orders } = useOrders();
   const { data: financeSummary } = useFinanceSummary();
   const monthProfit = financeSummary?.profit ?? 0;
@@ -602,130 +605,136 @@ export default function HomeScreen() {
                 </View>
               </Card>
 
-              <Card
-                variant="surface"
-                padding="lg"
-                onPress={() => router.push("/products")}
-                style={{
-                  ...cardStyle,
-                  flex: 1,
-                  borderLeftWidth: 2,
-                  borderLeftColor: theme.colors.primary,
-                }}
-              >
-                <View style={{ minHeight: 230 }}>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      marginBottom: spacing.sm,
-                    }}
-                  >
-                    <Typography variant="label">ESTOQUE BAIXO</Typography>
-                    <ChevronButton onPress={() => router.push("/products")} />
-                  </View>
+              {lowStockEnabled && (
+                <Card
+                  variant="surface"
+                  padding="lg"
+                  onPress={() => router.push("/products")}
+                  style={{
+                    ...cardStyle,
+                    flex: 1,
+                    borderLeftWidth: 2,
+                    borderLeftColor: theme.colors.primary,
+                  }}
+                >
+                  <View style={{ minHeight: 230 }}>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        marginBottom: spacing.sm,
+                      }}
+                    >
+                      <Typography variant="label">ESTOQUE BAIXO</Typography>
+                      <ChevronButton onPress={() => router.push("/products")} />
+                    </View>
 
-                  {lowStockProducts && lowStockProducts.length > 0 ? (
-                    lowStockProducts.slice(0, 3).map((product, index) => (
+                    {lowStockProducts && lowStockProducts.length > 0 ? (
+                      lowStockProducts.slice(0, 3).map((product, index) => (
+                        <View
+                          key={product.id}
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: spacing.md,
+                            paddingVertical: spacing.sm,
+                            borderBottomWidth: index === 2 ? 0 : 1,
+                            borderBottomColor:
+                              theme.mode === "dark"
+                                ? "rgba(245, 225, 219, 0.08)"
+                                : "rgba(74, 50, 40, 0.08)",
+                          }}
+                        >
+                          {product.photoUrl ? (
+                            <Image
+                              source={{ uri: product.photoUrl }}
+                              style={{
+                                width: 44,
+                                height: 44,
+                                borderRadius: radii.md,
+                                backgroundColor: theme.colors.surface,
+                              }}
+                            />
+                          ) : (
+                            <View
+                              style={{
+                                width: 44,
+                                height: 44,
+                                borderRadius: radii.md,
+                                backgroundColor: theme.colors.surface,
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <Typography variant="bodyBold" color={theme.colors.primary}>
+                                {product.name.charAt(0).toUpperCase()}
+                              </Typography>
+                            </View>
+                          )}
+                          <Typography
+                            variant="bodyBold"
+                            style={{ flex: 1 }}
+                            numberOfLines={2}
+                          >
+                            {product.name}
+                          </Typography>
+                          <Typography
+                            variant="bodyBold"
+                            color={
+                              product.stockQuantity === 0
+                                ? theme.colors.alert
+                                : theme.colors.premium
+                            }
+                            style={{ textAlign: "right" }}
+                          >
+                            {product.stockQuantity === 0
+                              ? "Sem estoque"
+                              : `${product.stockQuantity} un.`}
+                          </Typography>
+                        </View>
+                      ))
+                    ) : (
                       <View
-                        key={product.id}
                         style={{
-                          flexDirection: "row",
+                          flex: 1,
                           alignItems: "center",
-                          gap: spacing.md,
-                          paddingVertical: spacing.sm,
-                          borderBottomWidth: index === 2 ? 0 : 1,
-                          borderBottomColor:
-                            theme.mode === "dark"
-                              ? "rgba(245, 225, 219, 0.08)"
-                              : "rgba(74, 50, 40, 0.08)",
+                          justifyContent: "center",
                         }}
                       >
-                        {product.photoUrl ? (
-                          <Image
-                            source={{ uri: product.photoUrl }}
-                            style={{
-                              width: 44,
-                              height: 44,
-                              borderRadius: radii.md,
-                              backgroundColor: theme.colors.surface,
-                            }}
-                          />
-                        ) : (
-                          <View
-                            style={{
-                              width: 44,
-                              height: 44,
-                              borderRadius: radii.md,
-                              backgroundColor: theme.colors.surface,
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <Typography variant="bodyBold" color={theme.colors.primary}>
-                              {product.name.charAt(0).toUpperCase()}
-                            </Typography>
-                          </View>
-                        )}
+                        <Ionicons
+                          name="cube-outline"
+                          size={34}
+                          color={theme.colors.textSecondary}
+                        />
                         <Typography
-                          variant="bodyBold"
-                          style={{ flex: 1 }}
-                          numberOfLines={2}
+                          variant="caption"
+                          style={{ marginTop: spacing.sm, textAlign: "center" }}
                         >
-                          {product.name}
-                        </Typography>
-                        <Typography
-                          variant="bodyBold"
-                          color={
-                            product.stockQuantity === 0
-                              ? theme.colors.alert
-                              : theme.colors.premium
-                          }
-                          style={{ textAlign: "right" }}
-                        >
-                          {product.stockQuantity === 0
-                            ? "Sem estoque"
-                            : `${product.stockQuantity} un.`}
+                          Nenhum produto em alerta
                         </Typography>
                       </View>
-                    ))
-                  ) : (
-                    <View
-                      style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-                    >
-                      <Ionicons
-                        name="cube-outline"
-                        size={34}
-                        color={theme.colors.textSecondary}
-                      />
-                      <Typography
-                        variant="caption"
-                        style={{ marginTop: spacing.sm, textAlign: "center" }}
-                      >
-                        Nenhum produto em alerta
-                      </Typography>
-                    </View>
-                  )}
+                    )}
 
-                  <View
-                    style={{
-                      marginTop: spacing.sm,
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: spacing.xs,
-                    }}
-                  >
-                    <Typography variant="bodyBold">Ver todos os produtos</Typography>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={18}
-                      color={theme.colors.primary}
-                    />
+                    <View
+                      style={{
+                        marginTop: spacing.sm,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: spacing.xs,
+                      }}
+                    >
+                      <Typography variant="bodyBold">Ver todos os produtos</Typography>
+                      <Ionicons
+                        name="chevron-forward"
+                        size={18}
+                        color={theme.colors.primary}
+                      />
+                    </View>
                   </View>
-                </View>
-              </Card>
+                </Card>
+              )}
             </View>
 
             {birthdays && birthdays.length > 0 && (
