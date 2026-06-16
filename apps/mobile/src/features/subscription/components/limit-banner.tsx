@@ -55,13 +55,13 @@ export function LimitBanner({ resource, onUpgrade }: LimitBannerProps) {
       >
         <View style={{ gap: 6 }}>
           <Typography variant="h3" color={bannerAccent}>
-            {isAtLimit ? "Limite atingido!" : "Quase no limite"}
+            {isAtLimit ? "Hora de crescer! 🚀" : "Quase no limite"}
           </Typography>
           <Typography variant="body" color={bannerAccent}>
             {current}/{max} {RESOURCE_NAMES[resource]}
             {isAtLimit
-              ? ". Assine o Premium para continuar."
-              : ". Considere assinar o Premium."}
+              ? " — você usou tudo do plano gratuito. Desbloqueie ilimitado no Premium."
+              : ". Considere o Premium para continuar crescendo."}
           </Typography>
 
           {/* Progress bar */}

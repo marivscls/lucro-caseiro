@@ -68,6 +68,7 @@ import { ServiceUnavailableError } from "./shared/errors";
 import { isPremiumActive } from "./features/subscription/subscription.domain";
 import { errorHandler } from "./shared/middleware/error-handler";
 import { freemiumGuard } from "./shared/middleware/freemium-guard";
+import { rateLimit } from "./shared/middleware/rate-limit";
 import { healthRouter } from "./shared/health";
 import { setDb } from "./shared/db";
 import { createClient } from "@lucro-caseiro/database";
@@ -192,6 +193,8 @@ const stripeUseCases = new StripeUseCases(stripeClient, subscriptionUseCases, {
 // App
 const app: Express = express();
 app.disable("x-powered-by");
+// Railway fica atrás de 1 proxy → req.ip vira o IP real do cliente (essencial p/ rate limit).
+app.set("trust proxy", 1);
 
 app.use(cors({ origin: config.corsOrigin }));
 app.use(
@@ -202,6 +205,9 @@ app.use(
   }),
 );
 app.use(express.json());
+
+// Barreira contra abuso/rajada (webhook do Stripe fica de fora — montado antes do json).
+app.use(rateLimit({ windowMs: 60_000, max: 300 }));
 
 // Health check
 app.use("/api/v1/health", healthRouter);

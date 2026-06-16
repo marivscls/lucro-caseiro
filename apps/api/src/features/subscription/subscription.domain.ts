@@ -68,11 +68,11 @@ export function isLimitExceeded(
 }
 
 const LIMIT_MESSAGES: Record<ResourceType, string> = {
-  sales: `Você atingiu o limite de ${FREE_PLAN_LIMITS.maxSalesPerMonth} vendas por mês do plano gratuito. Assine o Premium para vendas ilimitadas!`,
-  clients: `Você atingiu o limite de ${FREE_PLAN_LIMITS.maxClients} clientes do plano gratuito. Assine o Premium para clientes ilimitados!`,
-  recipes: `Você atingiu o limite de ${FREE_PLAN_LIMITS.maxRecipes} receitas do plano gratuito. Assine o Premium para receitas ilimitadas!`,
-  packaging: `Você atingiu o limite de ${FREE_PLAN_LIMITS.maxPackaging} embalagens do plano gratuito. Assine o Premium para embalagens ilimitadas!`,
-  products: `Você atingiu o limite de ${FREE_PLAN_LIMITS.maxProducts} produtos do plano gratuito. Assine o Premium para produtos ilimitados!`,
+  sales: `🚀 Você está vendendo muito! Chegou às ${FREE_PLAN_LIMITS.maxSalesPerMonth} vendas do mês no plano gratuito. Desbloqueie vendas ilimitadas no Premium.`,
+  clients: `🤝 Sua carteira de clientes está crescendo! Você usou os ${FREE_PLAN_LIMITS.maxClients} clientes do plano gratuito. Faça upgrade para clientes ilimitados.`,
+  recipes: `🧁 Suas receitas estão fazendo sucesso! Você atingiu as ${FREE_PLAN_LIMITS.maxRecipes} receitas do plano gratuito. Desbloqueie receitas ilimitadas e continue crescendo.`,
+  packaging: `📦 Você atingiu as ${FREE_PLAN_LIMITS.maxPackaging} embalagens do plano gratuito. Desbloqueie embalagens e rótulos ilimitados no Premium.`,
+  products: `🎉 Sua loja está crescendo! Você usou os ${FREE_PLAN_LIMITS.maxProducts} produtos do plano gratuito. Desbloqueie produtos ilimitados e expanda seu catálogo.`,
 };
 
 export function getLimitMessage(resourceType: ResourceType): string {

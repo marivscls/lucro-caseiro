@@ -29,7 +29,7 @@ const BENEFITS = [
 ];
 
 export function Paywall({
-  title = "Seu negócio merece mais!",
+  title = "Seu negócio está crescendo!",
   message,
   currentUsage,
   onSubscribe,
@@ -125,7 +125,7 @@ export function Paywall({
         >
           <Ionicons name="arrow-up-circle" size={20} color={theme.colors.premium} />
           <Typography variant="body" color={theme.colors.premium} style={{ flex: 1 }}>
-            Quero ter limite ilimitado agora para não perder vendas!
+            Continue organizando pedidos, clientes, receitas e produtos — sem limites.
           </Typography>
         </Card>
 
