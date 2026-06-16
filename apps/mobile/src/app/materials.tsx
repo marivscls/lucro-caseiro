@@ -25,6 +25,8 @@ import { MaterialForm } from "../features/materials/components/material-form";
 import { buildShoppingList, isLowStock } from "../features/materials/domain";
 import { useLowStockMaterials, useMaterials } from "../features/materials/hooks";
 import { Illustration } from "../shared/components/illustrations";
+import { useNotificationEnabled } from "../shared/hooks/notification-prefs";
+import { NOTIFICATION_TYPES } from "../shared/hooks/notification-types";
 
 function FormModalHeader({
   title,
@@ -81,7 +83,9 @@ function FormModalHeader({
 function LowStockBanner() {
   const { theme } = useTheme();
   const { data } = useLowStockMaterials();
-  if (!data || data.length === 0) return null;
+  const enabled = useNotificationEnabled(NOTIFICATION_TYPES.LOW_STOCK);
+  // Respeita a preferência "Estoque baixo" das configurações (igual a Produtos).
+  if (!enabled || !data || data.length === 0) return null;
 
   function shareList() {
     if (!data) return;

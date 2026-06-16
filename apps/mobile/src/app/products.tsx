@@ -41,6 +41,8 @@ import {
   useUpdateProduct,
 } from "../features/products/hooks";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
+import { useNotificationEnabled } from "../shared/hooks/notification-prefs";
+import { NOTIFICATION_TYPES } from "../shared/hooks/notification-types";
 import { uploadProductImage } from "../shared/utils/upload-image";
 import { alertValidation, alertError } from "../shared/utils/alerts";
 import {
@@ -494,8 +496,11 @@ function ProductDetailModal({
 function LowStockBanner() {
   const { theme } = useTheme();
   const { data } = useLowStockProducts();
+  const enabled = useNotificationEnabled(NOTIFICATION_TYPES.LOW_STOCK);
 
-  if (!data || data.length === 0) return null;
+  // O aviso de estoque baixo respeita a preferência de "Estoque baixo" das
+  // configurações: desligou, some também o alerta visual (não só a notificação).
+  if (!enabled || !data || data.length === 0) return null;
 
   return (
     <View
