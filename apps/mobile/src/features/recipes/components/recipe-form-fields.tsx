@@ -402,7 +402,6 @@ export function RecipePhotoField({
               PNG, JPG até 5MB
             </Typography>
           </View>
-          <Ionicons name="image-outline" size={32} color={`${theme.colors.primary}66`} />
         </View>
       )}
     </Pressable>
