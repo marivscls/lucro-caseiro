@@ -81,7 +81,7 @@ export function Button({
         if (!reduced) animateTo(1);
         onPressOut?.(e);
       }}
-      style={({ pressed }) => [
+      style={[
         {
           height: s.height,
           paddingHorizontal: s.px,
@@ -91,7 +91,7 @@ export function Button({
           alignItems: "center",
           justifyContent: "center",
           gap: spacing.sm,
-          opacity: isDisabled ? 0.5 : pressed ? 0.9 : 1,
+          opacity: isDisabled ? 0.5 : 1,
           borderWidth: v.border ? 1.5 : 0,
           borderColor: v.border,
         },
