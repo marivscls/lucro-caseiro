@@ -24,15 +24,15 @@ export function IconBadge({ icon }: Readonly<{ icon: keyof typeof Ionicons.glyph
   return (
     <View
       style={{
-        width: 52,
-        height: 52,
-        borderRadius: 26,
-        backgroundColor: `${theme.colors.primary}30`,
+        width: 40,
+        height: 40,
+        borderRadius: radii.full,
+        backgroundColor: `${theme.colors.primary}1f`,
         alignItems: "center",
         justifyContent: "center",
       }}
     >
-      <Ionicons name={icon} size={24} color={theme.colors.primary} />
+      <Ionicons name={icon} size={20} color={theme.colors.primary} />
     </View>
   );
 }

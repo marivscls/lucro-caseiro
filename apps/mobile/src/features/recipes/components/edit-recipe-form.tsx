@@ -167,37 +167,57 @@ export function EditRecipeForm({ recipe, onSuccess }: EditRecipeFormProps) {
         <CategoryField value={category} onChange={setCategory} />
       </FieldRow>
 
-      <FieldRow icon="image-outline" label="Foto da receita" optional align="top">
+      <View style={{ gap: spacing.sm }}>
+        <Typography variant="bodyBold" color={theme.colors.text} style={{ fontSize: 15 }}>
+          Foto da receita{" "}
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            (opcional)
+          </Typography>
+        </Typography>
         <RecipePhotoField imageUri={imageUri} onPick={showPicker} />
-      </FieldRow>
+      </View>
 
       <FieldRow icon="document-text-outline" label="Modo de preparo" optional align="top">
         <InstructionsField value={instructions} onChange={setInstructions} />
       </FieldRow>
 
-      <View style={{ flexDirection: "row", gap: spacing.md }}>
-        <View style={{ flex: 1 }}>
-          <FieldRow icon="restaurant-outline" label="Rendimento">
+      <View style={{ gap: spacing.sm }}>
+        <View style={{ flexDirection: "row", gap: spacing.md }}>
+          <View style={{ flex: 1, gap: spacing.sm }}>
+            <Typography
+              variant="bodyBold"
+              color={theme.colors.text}
+              style={{ fontSize: 15 }}
+            >
+              Rendimento
+            </Typography>
             <TextBox
               value={yieldQuantity}
               onChangeText={setYieldQuantity}
               placeholder="Ex: 30 ou 1,5"
               keyboardType="decimal-pad"
             />
-          </FieldRow>
-        </View>
-        <View style={{ flex: 1 }}>
-          <FieldRow icon="beaker-outline" label="Unidade">
+          </View>
+          <View style={{ flex: 1, gap: spacing.sm }}>
+            <Typography
+              variant="bodyBold"
+              color={theme.colors.text}
+              style={{ fontSize: 15 }}
+            >
+              Unidade
+            </Typography>
             <TextBox
               value={yieldUnit}
               onChangeText={setYieldUnit}
-              placeholder="Ex: unidades, fatias"
+              placeholder="Ex: unidades"
             />
-          </FieldRow>
+          </View>
         </View>
+        <Typography variant="caption" color={theme.colors.textSecondary}>
+          Ex: 30 unidades ou 1,5 kg
+        </Typography>
+        <YieldUnitChips value={yieldUnit} onChange={setYieldUnit} />
       </View>
-
-      <YieldUnitChips value={yieldUnit} onChange={setYieldUnit} />
 
       <RecipeCostCard totalCost={totalCost} costPerUnit={costPerUnit} />
 
