@@ -60,19 +60,21 @@ Calculadora de precificacao guiada (wizard de 5 passos) que ajuda o usuario a de
 
 ## Hooks
 
-| Hook                           | Tipo          | Descricao                                                                         |
-| ------------------------------ | ------------- | --------------------------------------------------------------------------------- |
-| `useCalculatePricing()`        | `useMutation` | Salva calculo no backend.                                                         |
-| `usePricingHistory(productId)` | `useQuery`    | Historico de calculos por produto. Query key: `["pricing", "history", productId]` |
-| `usePricing(id)`               | `useQuery`    | Detalhe de um calculo. Query key: `["pricing", id]`                               |
+| Hook                           | Tipo          | Descricao                                                                                                                        |
+| ------------------------------ | ------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `useCalculatePricing()`        | `useMutation` | Salva calculo no backend.                                                                                                        |
+| `usePricingList(opts?)`        | `useQuery`    | Lista completa dos calculos do usuario (filtro opcional `productId`). Usado no Historico. Query key: `["pricing", "list", opts]` |
+| `usePricingHistory(productId)` | `useQuery`    | Historico por produto (endpoint dedicado). Query key: `["pricing", "history", productId]`                                        |
+| `usePricing(id)`               | `useQuery`    | Detalhe de um calculo. Query key: `["pricing", id]`                                                                              |
 
 ## API Integration
 
-| Endpoint                                     | Verbo | Funcao                | Parametros             |
-| -------------------------------------------- | ----- | --------------------- | ---------------------- |
-| `/api/v1/pricing/calculate`                  | POST  | `calculatePricing`    | body: `CreatePricing`  |
-| `/api/v1/pricing/product/:productId/history` | GET   | `fetchPricingHistory` | path param `productId` |
-| `/api/v1/pricing/:id`                        | GET   | `fetchPricing`        | path param `id`        |
+| Endpoint                                     | Verbo | Funcao                | Parametros                             |
+| -------------------------------------------- | ----- | --------------------- | -------------------------------------- |
+| `/api/v1/pricing/calculate`                  | POST  | `calculatePricing`    | body: `CreatePricing`                  |
+| `/api/v1/pricing`                            | GET   | `fetchPricingList`    | `?page&limit&productId?` (lista geral) |
+| `/api/v1/pricing/product/:productId/history` | GET   | `fetchPricingHistory` | path param `productId`                 |
+| `/api/v1/pricing/:id`                        | GET   | `fetchPricing`        | path param `id`                        |
 
 ## Contracts
 
@@ -115,3 +117,5 @@ Calculadora de precificacao guiada (wizard de 5 passos) que ajuda o usuario a de
   o preço de venda para preservar a margem. Inspirado em reviews do concorrente
   (`tasks/prd-melhorias-concorrente.md`).
 - 2026-06-15: **redesign do wizard** (`pricing-calculator.tsx`): círculos numerados com check + "Etapa X de 5", título fora do card, cards ricos com ícone, **stepper** no tempo de mão de obra (step 3) e na produção mensal (step 4), cards de valor calculado (mão de obra/unidade, custo fixo/unidade) e caixas de dica (verde/azul). **Step 4 mudou**: agora pede **custos fixos mensais** + **produção mensal** e calcula `fixedCostShare = mensal ÷ produção` (antes era valor/unidade direto). Step 5 ganhou "Margem selecionada" + **Resumo do cálculo** (custo total, margem, preço base, taxas, preço final). Step 1 mostra card "Produto selecionado" + "Valor importado da receita"; step 2 mostra **sugestão = média do custo das embalagens cadastradas** (`usePackagingList`). Campos de dinheiro têm **mini-calculadora** (`shared/components/calculator-modal.tsx`). Top bar (em `pricing.tsx`): voltar + "Precificação" + Histórico. `PricingResult`: badges de % por item na composição, "margem sobre o preço" e projeção usando `monthlyUnits`.
+- 2026-06-15: **Histórico passou a listar o histórico completo** (corrige histórico vazio). Antes exigia selecionar um produto e usava só `usePricingHistory(productId)` — cálculos salvos **sem produto** (custo digitado na mão) nunca apareciam. Agora o modal usa `usePricingList()` (GET `/api/v1/pricing`), lista geral com **filtro por produto** (chip "tudo" + um por produto + "Cálculo avulso") e cada card mostra o nome do produto (ou "Cálculo avulso"), data, preço final, custo e margem.
+- 2026-06-15: **resultado** (`pricing-result.tsx`): valores grandes em 1 linha (`adjustsFontSizeToFit`) e ícones em círculo nos títulos (Composição/Margem/Projeção). Mini-calculadora (`calculator-modal.tsx`): operadores em rosa sólido (visíveis) + prévia da operação pendente ("3 ×") + operador ativo destacado.

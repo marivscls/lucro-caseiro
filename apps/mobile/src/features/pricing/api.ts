@@ -25,3 +25,25 @@ export async function fetchPricingHistory(
 export async function fetchPricing(token: string, id: string): Promise<Pricing> {
   return apiClient<Pricing>(`${BASE}/${id}`, { token });
 }
+
+interface PaginatedPricing {
+  items: Pricing[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+/** Lista todos os cálculos do usuário (opcionalmente filtrando por produto). */
+export async function fetchPricingList(
+  token: string,
+  opts?: { page?: number; limit?: number; productId?: string },
+): Promise<PaginatedPricing> {
+  const params = new URLSearchParams();
+  if (opts?.page) params.set("page", String(opts.page));
+  if (opts?.limit) params.set("limit", String(opts.limit));
+  if (opts?.productId) params.set("productId", opts.productId);
+  const qs = params.toString();
+  const suffix = qs ? `?${qs}` : "";
+  return apiClient<PaginatedPricing>(`${BASE}${suffix}`, { token });
+}
