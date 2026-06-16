@@ -106,17 +106,20 @@ export function CalculatorModal({ visible, onClose, onResult }: CalculatorModalP
     onPress,
     tone = "default",
     icon,
+    active = false,
   }: Readonly<{
     label?: string;
     onPress: () => void;
     tone?: "default" | "op" | "danger";
     icon?: keyof typeof Ionicons.glyphMap;
+    active?: boolean;
   }>) {
     let bg = keyBg;
     let fg = theme.colors.text;
     if (tone === "op") {
-      bg = `${theme.colors.primary}26`;
-      fg = theme.colors.primary;
+      // Operadores em rosa sólido (alto contraste); o operador pendente fica com anel claro.
+      bg = theme.colors.primary;
+      fg = theme.colors.textOnPrimary;
     } else if (tone === "danger") {
       fg = theme.colors.alert;
     }
@@ -125,11 +128,14 @@ export function CalculatorModal({ visible, onClose, onResult }: CalculatorModalP
         onPress={onPress}
         accessibilityRole="button"
         accessibilityLabel={label ?? icon}
+        accessibilityState={{ selected: active }}
         style={({ pressed }) => ({
           flex: 1,
           minHeight: 56,
           borderRadius: radii.md,
           backgroundColor: bg,
+          borderWidth: active ? 2 : 0,
+          borderColor: active ? theme.colors.textOnPrimary : "transparent",
           alignItems: "center",
           justifyContent: "center",
           opacity: pressed ? 0.7 : 1,
@@ -145,6 +151,10 @@ export function CalculatorModal({ visible, onClose, onResult }: CalculatorModalP
       </Pressable>
     );
   }
+
+  // Operador aguardando o próximo número (para destaque + prévia "3 ×").
+  const pendingOp = fresh ? op : null;
+  const expression = acc != null && op ? `${formatNumber(acc)} ${op}` : "";
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -184,17 +194,29 @@ export function CalculatorModal({ visible, onClose, onResult }: CalculatorModalP
 
           <View
             style={{
-              minHeight: 64,
+              minHeight: 72,
               borderRadius: radii.lg,
               backgroundColor: keyBg,
               justifyContent: "center",
               alignItems: "flex-end",
               paddingHorizontal: spacing.lg,
+              paddingVertical: spacing.sm,
+              gap: 2,
             }}
           >
             <Typography
+              variant="caption"
+              color={theme.colors.primary}
+              style={{ fontSize: 14, minHeight: 18, fontWeight: "700" }}
+            >
+              {expression}
+            </Typography>
+            <Typography
               variant="moneyLg"
               color={theme.colors.text}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.5}
               style={{ fontSize: 32 }}
             >
               {display}
@@ -204,20 +226,40 @@ export function CalculatorModal({ visible, onClose, onResult }: CalculatorModalP
           <View style={{ flexDirection: "row", gap: spacing.sm }}>
             <Key label="C" tone="danger" onPress={clearAll} />
             <Key icon="backspace-outline" onPress={backspace} />
-            <Key label="÷" tone="op" onPress={() => pressOp("÷")} />
-            <Key label="×" tone="op" onPress={() => pressOp("×")} />
+            <Key
+              label="÷"
+              tone="op"
+              active={pendingOp === "÷"}
+              onPress={() => pressOp("÷")}
+            />
+            <Key
+              label="×"
+              tone="op"
+              active={pendingOp === "×"}
+              onPress={() => pressOp("×")}
+            />
           </View>
           <View style={{ flexDirection: "row", gap: spacing.sm }}>
             <Key label="7" onPress={() => pressDigit("7")} />
             <Key label="8" onPress={() => pressDigit("8")} />
             <Key label="9" onPress={() => pressDigit("9")} />
-            <Key label="−" tone="op" onPress={() => pressOp("-")} />
+            <Key
+              label="−"
+              tone="op"
+              active={pendingOp === "-"}
+              onPress={() => pressOp("-")}
+            />
           </View>
           <View style={{ flexDirection: "row", gap: spacing.sm }}>
             <Key label="4" onPress={() => pressDigit("4")} />
             <Key label="5" onPress={() => pressDigit("5")} />
             <Key label="6" onPress={() => pressDigit("6")} />
-            <Key label="+" tone="op" onPress={() => pressOp("+")} />
+            <Key
+              label="+"
+              tone="op"
+              active={pendingOp === "+"}
+              onPress={() => pressOp("+")}
+            />
           </View>
           <View style={{ flexDirection: "row", gap: spacing.sm }}>
             <Key label="1" onPress={() => pressDigit("1")} />
