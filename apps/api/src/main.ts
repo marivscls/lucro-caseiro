@@ -216,8 +216,10 @@ app.use(
   "/api/v1/clients",
   createClientsRouter(clientsUseCases, freemiumGuard(subscriptionRepo, "clients")),
 );
-// Vendas ilimitadas no free — sem guard (registrar venda é a ação central diária).
-app.use("/api/v1/sales", createSalesRouter(salesUseCases));
+app.use(
+  "/api/v1/sales",
+  createSalesRouter(salesUseCases, freemiumGuard(subscriptionRepo, "sales")),
+);
 app.use("/api/v1/finance", createFinanceRouter(financeUseCases));
 app.use("/api/v1/goals", createGoalsRouter(goalsUseCases));
 app.use("/api/v1/orders", createOrdersRouter(ordersUseCases));
