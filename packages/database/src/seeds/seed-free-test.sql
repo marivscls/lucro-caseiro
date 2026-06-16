@@ -129,7 +129,7 @@ BEGIN
     v_status := CASE WHEN v_r < 0.7 THEN 'paid' WHEN v_r < 0.9 THEN 'pending' ELSE 'cancelled' END;
     v_when := date_trunc('month', now()) + random() * (now() - date_trunc('month', now()));
     INSERT INTO sales (user_id, client_id, status, payment_method, total, notes, sold_at, created_at)
-      VALUES (v_user, v_cid, v_status, pays[1 + floor(random() * 5)::int], v_total, '[demo]', v_when, v_when)
+      VALUES (v_user, v_cid, v_status::sale_status, (pays[1 + floor(random() * 5)::int])::payment_method, v_total, '[demo]', v_when, v_when)
       RETURNING id INTO v_sale;
     INSERT INTO sale_items (sale_id, product_id, quantity, unit_price, subtotal)
       VALUES (v_sale, v_pid, v_qty, v_price, v_total);
@@ -148,7 +148,7 @@ BEGIN
     v_total := round((v_price * v_qty)::numeric, 2);
     v_when := (date_trunc('month', now()) - (interval '1 month' * (1 + floor(random() * 3)::int))) + (random() * interval '25 days');
     INSERT INTO sales (user_id, client_id, status, payment_method, total, notes, sold_at, created_at)
-      VALUES (v_user, v_cid, 'paid', pays[1 + floor(random() * 5)::int], v_total, '[demo]', v_when, v_when)
+      VALUES (v_user, v_cid, 'paid'::sale_status, (pays[1 + floor(random() * 5)::int])::payment_method, v_total, '[demo]', v_when, v_when)
       RETURNING id INTO v_sale;
     INSERT INTO sale_items (sale_id, product_id, quantity, unit_price, subtotal)
       VALUES (v_sale, v_pid, v_qty, v_price, v_total);
