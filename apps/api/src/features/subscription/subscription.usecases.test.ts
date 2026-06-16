@@ -24,6 +24,7 @@ function makeProfile(overrides: Partial<UserProfile> = {}): UserProfile {
     phone: null,
     businessName: "Doces da Maria",
     businessType: "food",
+    avatarUrl: null,
     plan: "free",
     planExpiresAt: null,
     createdAt: new Date().toISOString(),

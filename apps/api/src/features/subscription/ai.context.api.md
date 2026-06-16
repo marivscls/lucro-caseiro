@@ -162,3 +162,4 @@ Content-Type: application/json
 - Stripe is the active checkout/webhook integration in `features/payments`.
 - Google Play validation remains as a provider fallback for Android store flows.
 - Downgrade on failed Google Play sync is intentionally conservative to avoid removing Stripe-granted Premium.
+- 2026-06-15: **avatar do perfil** (migration `018_user_avatar.sql`): coluna `users.avatar_url` (NULLABLE). `UserProfile.avatarUrl` + `UpdateProfile.avatarUrl?` no contrato; propagado por `upsertProfile`/`updateProfile` (merge mantém o atual quando não enviado). Sem ela, o app mostra a inicial do nome.

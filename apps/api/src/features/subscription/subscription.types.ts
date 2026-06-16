@@ -17,6 +17,7 @@ export interface UpsertProfileData {
   phone?: string;
   businessName?: string;
   businessType?: string;
+  avatarUrl?: string | null;
 }
 
 export interface ResourceCounts {

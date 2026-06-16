@@ -17,6 +17,7 @@ export const users = pgTable("users", {
   phone: text("phone"),
   businessName: text("business_name"),
   businessType: businessTypeEnum("business_type"),
+  avatarUrl: text("avatar_url"),
   plan: planTypeEnum("plan").notNull().default("free"),
   planExpiresAt: timestamp("plan_expires_at", { withTimezone: true }),
   isActive: boolean("is_active").notNull().default(true),

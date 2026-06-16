@@ -30,7 +30,10 @@ export class SubscriptionUseCases {
   async updateProfile(
     userId: string,
     data: Partial<
-      Pick<UpsertProfileData, "name" | "phone" | "businessName" | "businessType">
+      Pick<
+        UpsertProfileData,
+        "name" | "phone" | "businessName" | "businessType" | "avatarUrl"
+      >
     >,
   ): Promise<UserProfile> {
     const existing = await this.repo.getProfile(userId);
@@ -44,6 +47,7 @@ export class SubscriptionUseCases {
       phone: data.phone ?? existing.phone ?? undefined,
       businessName: data.businessName ?? existing.businessName ?? undefined,
       businessType: data.businessType ?? existing.businessType ?? undefined,
+      avatarUrl: data.avatarUrl ?? existing.avatarUrl ?? undefined,
     });
   }
 

@@ -8,6 +8,7 @@ export const UserProfileDto = z.object({
   phone: z.string().nullable(),
   businessName: z.string().nullable(),
   businessType: z.string().nullable(),
+  avatarUrl: z.string().nullable(),
   plan: PlanType,
   planExpiresAt: z.string().datetime().nullable(),
   createdAt: z.string().datetime(),
@@ -20,6 +21,7 @@ export const UpdateProfileDto = z.object({
   phone: z.string().max(20).optional(),
   businessName: z.string().max(200).optional(),
   businessType: z.string().optional(),
+  avatarUrl: z.string().url().nullable().optional(),
 });
 
 export type UpdateProfile = z.infer<typeof UpdateProfileDto>;

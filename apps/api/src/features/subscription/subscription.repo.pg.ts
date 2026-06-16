@@ -39,6 +39,7 @@ export class SubscriptionRepoPg implements ISubscriptionRepo {
           | "services"
           | "other"
           | undefined,
+        avatarUrl: data.avatarUrl ?? null,
       })
       .onConflictDoUpdate({
         target: users.id,
@@ -53,6 +54,7 @@ export class SubscriptionRepoPg implements ISubscriptionRepo {
             | "services"
             | "other"
             | undefined,
+          avatarUrl: data.avatarUrl ?? null,
         },
       })
       .returning();
@@ -108,6 +110,7 @@ export class SubscriptionRepoPg implements ISubscriptionRepo {
       phone: row.phone,
       businessName: row.businessName,
       businessType: row.businessType,
+      avatarUrl: row.avatarUrl,
       plan: row.plan,
       planExpiresAt: row.planExpiresAt?.toISOString() ?? null,
       createdAt: row.createdAt.toISOString(),
