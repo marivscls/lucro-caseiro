@@ -134,3 +134,4 @@ Importados de `@lucro-caseiro/contracts`.
 
 - Historico de compras no detalhe do cliente importa `useSales` da feature `sales` (cross-feature via hook, nao via arquivo interno).
 - Tags limitadas a 10 por cliente para manter UX simples.
+- 2026-06-15: `useBirthdayNotifier(isPremium)` — notificacao local quando um cliente faz aniversario hoje (1x/dia via AsyncStorage). Recurso **Premium**, respeita a preferencia (`notification-prefs`, tipo `CLIENT_BIRTHDAY`). Helper puro `isBirthdayToday` coberto por teste. Montado no `app/_layout.tsx`.

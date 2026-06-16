@@ -6,9 +6,13 @@ import React, { useEffect, useRef, useState } from "react";
 import { Modal, Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { useBirthdayNotifier } from "../features/clients/use-birthday-notifier";
 import { useDeliveryNotifier } from "../features/orders/use-delivery-notifier";
 import { useLowStockNotifier } from "../features/products/use-low-stock-notifier";
 import { useFiadoNotifier } from "../features/sales/use-fiado-notifier";
+import { useDailyReminderNotifier } from "../shared/hooks/use-daily-reminder-notifier";
+import { useNotificationPrefs } from "../shared/hooks/notification-prefs";
+import { useWeeklySummaryNotifier } from "../shared/hooks/use-weekly-summary-notifier";
 import { BrandIntro } from "../shared/components/brand-intro";
 import { OfflineBanner } from "../shared/components/offline-banner";
 import { ToastHost } from "../shared/components/toast";
@@ -37,17 +41,27 @@ function AppContent() {
   } = usePremiumSuccess();
   const [introDone, setIntroDone] = useState(false);
 
+  const isPremium = profile?.plan === "premium";
+
   // Registers for push notifications once the user is authenticated.
   useNotifications();
 
-  // Dispara notificacao local quando algum produto entra em estoque baixo.
-  useLowStockNotifier();
+  // Carrega as preferências de notificação salvas no aparelho (uma vez).
+  useEffect(() => {
+    void useNotificationPrefs.getState().hydrate();
+  }, []);
 
-  // Dispara notificacao local quando ha entregas proximas na agenda.
+  // Free: estoque baixo + fiado parado (respeitam a preferência do usuário).
+  useLowStockNotifier();
+  useFiadoNotifier();
+
+  // Notificacao local quando ha entregas proximas na agenda.
   useDeliveryNotifier();
 
-  // Lembra de cobrar fiado parado ha mais de uma semana (com cooldown).
-  useFiadoNotifier();
+  // Premium: aniversário de cliente, lembrete diário e resumo semanal.
+  useBirthdayNotifier(isPremium);
+  useDailyReminderNotifier(isPremium);
+  useWeeklySummaryNotifier(isPremium);
 
   // Comemora quando o plano vira Premium (cobre Google Play e Stripe).
   // Guarda o plano inicial para não comemorar quem já abre o app como Premium.

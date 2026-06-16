@@ -4,6 +4,7 @@ import * as Notifications from "expo-notifications";
 import { useEffect } from "react";
 
 import { NOTIFICATION_TYPES } from "../../shared/hooks/notification-types";
+import { useNotificationEnabled } from "../../shared/hooks/notification-prefs";
 import { useLowStockProducts } from "./hooks";
 
 // Guarda os IDs de produtos que já geraram alerta de estoque baixo, para não
@@ -61,9 +62,10 @@ async function syncAndNotify(lowStock: Product[]): Promise<void> {
  */
 export function useLowStockNotifier(): void {
   const { data: lowStock } = useLowStockProducts();
+  const enabled = useNotificationEnabled(NOTIFICATION_TYPES.LOW_STOCK);
 
   useEffect(() => {
-    if (!lowStock) return;
+    if (!enabled || !lowStock) return;
     void syncAndNotify(lowStock);
-  }, [lowStock]);
+  }, [lowStock, enabled]);
 }

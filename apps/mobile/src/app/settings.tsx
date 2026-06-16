@@ -25,6 +25,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "../shared/hooks/use-auth";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
+import {
+  NOTIFICATION_TYPES,
+  type NotificationType,
+} from "../shared/hooks/notification-types";
+import { useNotificationPrefs, isPrefEnabled } from "../shared/hooks/notification-prefs";
 import { uploadProfilePhoto } from "../shared/utils/upload-image";
 import { maskPhoneBR } from "../shared/utils/phone";
 import { useDeleteAccount } from "../features/account/hooks";
@@ -49,16 +54,41 @@ const BUSINESS_TYPES = [
 ] as const;
 
 const NOTIFICATIONS: {
-  key: string;
+  type: NotificationType;
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
   premium?: boolean;
 }[] = [
-  { key: "sales", label: "Vendas pendentes", icon: "receipt-outline" },
-  { key: "birthdays", label: "Aniversários de clientes", icon: "gift-outline" },
-  { key: "stock", label: "Estoque baixo", icon: "alert-circle-outline" },
-  { key: "weekly", label: "Resumo semanal", icon: "bar-chart-outline", premium: true },
-  { key: "daily", label: "Lembretes diários", icon: "notifications-outline" },
+  // Free
+  {
+    type: NOTIFICATION_TYPES.PENDING_SALES,
+    label: "Vendas pendentes",
+    icon: "receipt-outline",
+  },
+  {
+    type: NOTIFICATION_TYPES.LOW_STOCK,
+    label: "Estoque baixo",
+    icon: "alert-circle-outline",
+  },
+  // Premium
+  {
+    type: NOTIFICATION_TYPES.CLIENT_BIRTHDAY,
+    label: "Aniversários de clientes",
+    icon: "gift-outline",
+    premium: true,
+  },
+  {
+    type: NOTIFICATION_TYPES.DAILY_REMINDER,
+    label: "Lembretes diários",
+    icon: "notifications-outline",
+    premium: true,
+  },
+  {
+    type: NOTIFICATION_TYPES.WEEKLY_SUMMARY,
+    label: "Resumo semanal",
+    icon: "bar-chart-outline",
+    premium: true,
+  },
 ];
 
 function businessTypeLabel(value: string): string {
@@ -98,6 +128,8 @@ export default function SettingsScreen() {
     clear: clearPickedAvatar,
   } = useImagePicker();
   const [savingAvatar, setSavingAvatar] = useState(false);
+  const notifPrefs = useNotificationPrefs((s) => s.prefs);
+  const setNotifPref = useNotificationPrefs((s) => s.setPref);
 
   const userName = profile?.name ?? "...";
   const businessName = profile?.businessName ?? "Meu negócio";
@@ -516,7 +548,7 @@ export default function SettingsScreen() {
             const locked = !!item.premium && !isPremium;
             return (
               <View
-                key={item.key}
+                key={item.type}
                 style={{
                   flexDirection: "row",
                   justifyContent: "space-between",
@@ -570,7 +602,8 @@ export default function SettingsScreen() {
                       true: theme.colors.primary,
                     }}
                     thumbColor={theme.colors.textOnPrimary}
-                    value={true}
+                    value={isPrefEnabled(notifPrefs, item.type)}
+                    onValueChange={(v) => setNotifPref(item.type, v)}
                   />
                 )}
               </View>

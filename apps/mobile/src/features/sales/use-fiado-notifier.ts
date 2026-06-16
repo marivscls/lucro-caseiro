@@ -3,6 +3,7 @@ import * as Notifications from "expo-notifications";
 import { useEffect } from "react";
 
 import { NOTIFICATION_TYPES } from "../../shared/hooks/notification-types";
+import { useNotificationEnabled } from "../../shared/hooks/notification-prefs";
 import { formatCurrency } from "../../shared/utils/format";
 import { oldFiadoSummary } from "./fiado";
 import { useSales } from "./hooks";
@@ -44,10 +45,11 @@ async function maybeNotify(count: number, total: number): Promise<void> {
  */
 export function useFiadoNotifier(): void {
   const { data } = useSales({ status: "pending" });
+  const enabled = useNotificationEnabled(NOTIFICATION_TYPES.PENDING_SALES);
 
   useEffect(() => {
-    if (!data) return;
+    if (!enabled || !data) return;
     const { count, total } = oldFiadoSummary(data.items, new Date(), MIN_AGE_DAYS);
     void maybeNotify(count, total);
-  }, [data]);
+  }, [data, enabled]);
 }
