@@ -48,6 +48,19 @@ const BUSINESS_TYPES = [
   { value: "other", label: "Outro" },
 ] as const;
 
+const NOTIFICATIONS: {
+  key: string;
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  premium?: boolean;
+}[] = [
+  { key: "sales", label: "Vendas pendentes", icon: "receipt-outline" },
+  { key: "birthdays", label: "Aniversários de clientes", icon: "gift-outline" },
+  { key: "stock", label: "Estoque baixo", icon: "alert-circle-outline" },
+  { key: "weekly", label: "Resumo semanal", icon: "bar-chart-outline", premium: true },
+  { key: "daily", label: "Lembretes diários", icon: "notifications-outline" },
+];
+
 function businessTypeLabel(value: string): string {
   return BUSINESS_TYPES.find((type) => type.value === value)?.label ?? value;
 }
@@ -499,52 +512,70 @@ export default function SettingsScreen() {
           </View>
 
           {/* Notifications */}
-          {(
-            [
-              { key: "sales", label: "Vendas pendentes", icon: "receipt-outline" },
-              {
-                key: "birthdays",
-                label: "Aniversários de clientes",
-                icon: "gift-outline",
-              },
-              { key: "stock", label: "Estoque baixo", icon: "alert-circle-outline" },
-              { key: "weekly", label: "Resumo semanal", icon: "bar-chart-outline" },
-              { key: "daily", label: "Lembretes diários", icon: "notifications-outline" },
-            ] as const
-          ).map((item) => (
-            <View
-              key={item.key}
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: spacing.md,
-              }}
-            >
+          {NOTIFICATIONS.map((item) => {
+            const locked = !!item.premium && !isPremium;
+            return (
               <View
+                key={item.key}
                 style={{
                   flexDirection: "row",
+                  justifyContent: "space-between",
                   alignItems: "center",
                   gap: spacing.md,
-                  flex: 1,
                 }}
               >
-                <Ionicons name={item.icon} size={20} color={theme.colors.textSecondary} />
-                <Typography variant="body" color={theme.colors.text} style={{ flex: 1 }}>
-                  {item.label}
-                </Typography>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: spacing.md,
+                    flex: 1,
+                  }}
+                >
+                  <Ionicons
+                    name={item.icon}
+                    size={20}
+                    color={theme.colors.textSecondary}
+                  />
+                  <Typography
+                    variant="body"
+                    color={theme.colors.text}
+                    style={{ flexShrink: 1 }}
+                  >
+                    {item.label}
+                  </Typography>
+                  {item.premium ? <Badge label="Premium" variant="premium" /> : null}
+                </View>
+                {locked ? (
+                  <Pressable
+                    onPress={() => router.push("/plans")}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${item.label} — recurso Premium`}
+                    hitSlop={8}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: spacing.xs,
+                      paddingHorizontal: spacing.sm,
+                      paddingVertical: 6,
+                    }}
+                  >
+                    <Ionicons name="lock-closed" size={18} color={theme.colors.premium} />
+                  </Pressable>
+                ) : (
+                  <Switch
+                    accessibilityLabel={item.label}
+                    trackColor={{
+                      false: theme.colors.surface,
+                      true: theme.colors.primary,
+                    }}
+                    thumbColor={theme.colors.textOnPrimary}
+                    value={true}
+                  />
+                )}
               </View>
-              <Switch
-                accessibilityLabel={item.label}
-                trackColor={{
-                  false: theme.colors.surface,
-                  true: theme.colors.primary,
-                }}
-                thumbColor={theme.colors.textOnPrimary}
-                value={true}
-              />
-            </View>
-          ))}
+            );
+          })}
         </Card>
 
         {/* Legal Card */}
