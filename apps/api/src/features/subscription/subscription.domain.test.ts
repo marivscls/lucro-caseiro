@@ -39,13 +39,8 @@ describe("isLimitExceeded", () => {
     expect(isLimitExceeded("sales", makeCounts({ salesThisMonth: 5 }))).toBe(false);
   });
 
-  it("returns true when at sales limit", () => {
-    expect(
-      isLimitExceeded(
-        "sales",
-        makeCounts({ salesThisMonth: FREE_PLAN_LIMITS.maxSalesPerMonth }),
-      ),
-    ).toBe(true);
+  it("never exceeds for sales (unlimited on free)", () => {
+    expect(isLimitExceeded("sales", makeCounts({ salesThisMonth: 9999 }))).toBe(false);
   });
 
   it("returns true when at clients limit", () => {

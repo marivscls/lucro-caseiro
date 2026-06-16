@@ -3,7 +3,10 @@ import type { FreemiumLimits } from "@lucro-caseiro/contracts";
 import type { FreemiumConfig, ResourceCounts } from "./subscription.types";
 
 export const FREE_PLAN_LIMITS: FreemiumConfig = {
-  maxSalesPerMonth: 30,
+  // Vendas são ILIMITADAS no free: registrar venda é a ação central do dia a dia —
+  // bloquear isso frustra mais do que converte. O free fica "básico" pelos outros
+  // limites (clientes/produtos/receitas/embalagens) + as features Premium.
+  maxSalesPerMonth: Infinity,
   maxClients: 20,
   maxRecipes: 5,
   maxPackaging: 3,

@@ -10,7 +10,7 @@ import { showAlert } from "../shared/components/alert-store";
 import { usePaywall } from "../shared/hooks/use-paywall";
 
 const FREE_LIMITS = {
-  "Vendas/mês": "30",
+  "Vendas/mês": "Ilimitado",
   Clientes: "20",
   Produtos: "20",
   Receitas: "5",
@@ -152,46 +152,48 @@ export default function PlansScreen() {
                   current: limits.currentPackaging,
                   max: limits.maxPackaging,
                 },
-              ].map((item) => {
-                const pct = Math.min((item.current / item.max) * 100, 100);
-                const isNear = pct >= 80;
-                return (
-                  <View key={item.label} style={{ gap: 6 }}>
-                    <View
-                      style={{ flexDirection: "row", justifyContent: "space-between" }}
-                    >
-                      <Typography variant="bodyBold" style={{ fontSize: 15 }}>
-                        {item.label}
-                      </Typography>
-                      <Typography
-                        variant="bodyBold"
-                        style={{ fontSize: 15 }}
-                        color={isNear ? theme.colors.alert : theme.colors.textSecondary}
+              ]
+                .filter((item) => Number.isFinite(item.max))
+                .map((item) => {
+                  const pct = Math.min((item.current / item.max) * 100, 100);
+                  const isNear = pct >= 80;
+                  return (
+                    <View key={item.label} style={{ gap: 6 }}>
+                      <View
+                        style={{ flexDirection: "row", justifyContent: "space-between" }}
                       >
-                        {item.current}/{item.max}
-                      </Typography>
-                    </View>
-                    <View
-                      style={{
-                        height: 8,
-                        backgroundColor: theme.colors.surface,
-                        borderRadius: radii.full,
-                      }}
-                    >
+                        <Typography variant="bodyBold" style={{ fontSize: 15 }}>
+                          {item.label}
+                        </Typography>
+                        <Typography
+                          variant="bodyBold"
+                          style={{ fontSize: 15 }}
+                          color={isNear ? theme.colors.alert : theme.colors.textSecondary}
+                        >
+                          {item.current}/{item.max}
+                        </Typography>
+                      </View>
                       <View
                         style={{
                           height: 8,
-                          width: `${pct}%`,
-                          backgroundColor: isNear
-                            ? theme.colors.alert
-                            : theme.colors.success,
+                          backgroundColor: theme.colors.surface,
                           borderRadius: radii.full,
                         }}
-                      />
+                      >
+                        <View
+                          style={{
+                            height: 8,
+                            width: `${pct}%`,
+                            backgroundColor: isNear
+                              ? theme.colors.alert
+                              : theme.colors.success,
+                            borderRadius: radii.full,
+                          }}
+                        />
+                      </View>
                     </View>
-                  </View>
-                );
-              })}
+                  );
+                })}
             </View>
           </Card>
         )}

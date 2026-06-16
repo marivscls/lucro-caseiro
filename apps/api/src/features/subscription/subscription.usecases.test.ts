@@ -105,7 +105,7 @@ describe("SubscriptionUseCases", () => {
     it("returns limits with current counts for free user", async () => {
       const { sut } = makeSut();
       const result = await sut.getLimits(USER_ID);
-      expect(result.maxSalesPerMonth).toBe(30);
+      expect(result.maxSalesPerMonth).toBe(Infinity);
       expect(result.currentSalesThisMonth).toBe(10);
       expect(result.currentClients).toBe(5);
     });

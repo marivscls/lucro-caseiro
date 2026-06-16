@@ -36,7 +36,7 @@
 
 | Recurso    | Free          | Premium             |
 | ---------- | ------------- | ------------------- |
-| Vendas/mes | 30            | Ilimitado           |
+| Vendas/mes | Ilimitado     | Ilimitado           |
 | Clientes   | 20            | Ilimitado           |
 | Produtos   | 20            | Ilimitado           |
 | Receitas   | 5             | Ilimitado           |
