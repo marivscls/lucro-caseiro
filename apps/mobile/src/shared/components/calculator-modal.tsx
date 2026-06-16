@@ -42,9 +42,12 @@ export function CalculatorModal({ visible, onClose, onResult }: CalculatorModalP
   const [acc, setAcc] = useState<number | null>(null);
   const [op, setOp] = useState<Op | null>(null);
   const [fresh, setFresh] = useState(true);
+  // Linha de cima: "3 ×" ao montar e "3 × 3" depois do "=".
+  const [topLine, setTopLine] = useState("");
 
   function pressDigit(d: string) {
     if (fresh) {
+      if (op == null) setTopLine(""); // número novo (após resultado/limpar)
       setDisplay(d);
       setFresh(false);
     } else {
@@ -54,6 +57,7 @@ export function CalculatorModal({ visible, onClose, onResult }: CalculatorModalP
 
   function pressDecimal() {
     if (fresh) {
+      if (op == null) setTopLine("");
       setDisplay("0,");
       setFresh(false);
     } else if (!display.includes(",")) {
@@ -63,20 +67,22 @@ export function CalculatorModal({ visible, onClose, onResult }: CalculatorModalP
 
   function pressOp(next: Op) {
     const cur = parseDisplay(display);
+    let accVal = cur;
     if (acc != null && op && !fresh) {
-      const result = apply(acc, cur, op);
-      setAcc(result);
-      setDisplay(formatNumber(result));
-    } else {
-      setAcc(cur);
+      accVal = apply(acc, cur, op);
+      setDisplay(formatNumber(accVal));
     }
+    setAcc(accVal);
     setOp(next);
     setFresh(true);
+    setTopLine(`${formatNumber(accVal)} ${next}`);
   }
 
   function pressEquals() {
     if (acc != null && op) {
-      const result = apply(acc, parseDisplay(display), op);
+      const operand = parseDisplay(display);
+      const result = apply(acc, operand, op);
+      setTopLine(`${formatNumber(acc)} ${op} ${formatNumber(operand)}`);
       setDisplay(formatNumber(result));
       setAcc(null);
       setOp(null);
@@ -89,6 +95,7 @@ export function CalculatorModal({ visible, onClose, onResult }: CalculatorModalP
     setAcc(null);
     setOp(null);
     setFresh(true);
+    setTopLine("");
   }
 
   function backspace() {
@@ -152,9 +159,8 @@ export function CalculatorModal({ visible, onClose, onResult }: CalculatorModalP
     );
   }
 
-  // Operador aguardando o próximo número (para destaque + prévia "3 ×").
+  // Operador aguardando o próximo número (para destaque do botão).
   const pendingOp = fresh ? op : null;
-  const expression = acc != null && op ? `${formatNumber(acc)} ${op}` : "";
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -207,9 +213,10 @@ export function CalculatorModal({ visible, onClose, onResult }: CalculatorModalP
             <Typography
               variant="caption"
               color={theme.colors.primary}
-              style={{ fontSize: 14, minHeight: 18, fontWeight: "700" }}
+              numberOfLines={1}
+              style={{ fontSize: 16, minHeight: 20, fontWeight: "700" }}
             >
-              {expression}
+              {topLine}
             </Typography>
             <Typography
               variant="moneyLg"
