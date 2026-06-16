@@ -13,6 +13,7 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Linking,
   Modal,
   Pressable,
@@ -23,6 +24,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "../shared/hooks/use-auth";
+import { useImagePicker } from "../shared/hooks/use-image-picker";
+import { uploadProfilePhoto } from "../shared/utils/upload-image";
 import { maskPhoneBR } from "../shared/utils/phone";
 import { useDeleteAccount } from "../features/account/hooks";
 import { ProlaboreGoalForm } from "../features/goals/components/prolabore-goal-form";
@@ -76,10 +79,17 @@ export default function SettingsScreen() {
   const [editBusinessName, setEditBusinessName] = useState("");
   const [editBusinessType, setEditBusinessType] = useState("");
   const [editPhone, setEditPhone] = useState("");
+  const {
+    imageUri: pickedAvatar,
+    showPicker: pickAvatar,
+    clear: clearPickedAvatar,
+  } = useImagePicker();
+  const [savingAvatar, setSavingAvatar] = useState(false);
 
   const userName = profile?.name ?? "...";
   const businessName = profile?.businessName ?? "Meu negócio";
   const businessType = profile?.businessType ?? "";
+  const avatarUrl = profile?.avatarUrl ?? null;
   const isPremium = profile?.plan === "premium";
   const appVersion = "v1.0.0";
 
@@ -88,6 +98,7 @@ export default function SettingsScreen() {
     setEditBusinessName(profile?.businessName ?? "");
     setEditBusinessType(profile?.businessType ?? "");
     setEditPhone(profile?.phone ?? "");
+    clearPickedAvatar();
     setShowEditProfile(true);
   }
 
@@ -96,12 +107,30 @@ export default function SettingsScreen() {
       alertValidation("O nome é obrigatório");
       return;
     }
+
+    // Sobe a foto nova (se escolhida); se falhar, salva o resto sem trocar a foto.
+    let avatarUrl: string | undefined;
+    if (pickedAvatar) {
+      try {
+        setSavingAvatar(true);
+        avatarUrl = await uploadProfilePhoto(pickedAvatar);
+      } catch {
+        Alert.alert(
+          "Foto não enviada",
+          "Não consegui enviar a foto agora. Vou salvar o resto do perfil — tente a foto depois.",
+        );
+      } finally {
+        setSavingAvatar(false);
+      }
+    }
+
     try {
       await updateProfile.mutateAsync({
         name: editName.trim(),
         businessName: editBusinessName.trim() || undefined,
         businessType: businessTypeValue(editBusinessType),
         phone: editPhone.trim() || undefined,
+        ...(avatarUrl ? { avatarUrl } : {}),
       });
       Alert.alert("Perfil atualizado!");
       setShowEditProfile(false);
@@ -240,11 +269,16 @@ export default function SettingsScreen() {
                 backgroundColor: theme.colors.surfaceElevated,
                 alignItems: "center",
                 justifyContent: "center",
+                overflow: "hidden",
               }}
             >
-              <Typography variant="h2" color={theme.colors.primary}>
-                {userName.charAt(0)}
-              </Typography>
+              {avatarUrl ? (
+                <Image source={{ uri: avatarUrl }} style={{ width: 56, height: 56 }} />
+              ) : (
+                <Typography variant="h2" color={theme.colors.primary}>
+                  {userName.charAt(0)}
+                </Typography>
+              )}
             </View>
 
             <View style={{ flex: 1, gap: 4 }}>
@@ -670,6 +704,67 @@ export default function SettingsScreen() {
               gap: spacing.lg,
             }}
           >
+            {/* Foto do negócio */}
+            <View style={{ alignItems: "center", gap: spacing.sm }}>
+              <Pressable
+                onPress={pickAvatar}
+                accessibilityRole="button"
+                accessibilityLabel="Adicionar foto do negócio"
+                style={{ alignItems: "center" }}
+              >
+                <View
+                  style={{
+                    width: 96,
+                    height: 96,
+                    borderRadius: 48,
+                    backgroundColor: theme.colors.surfaceElevated,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    overflow: "hidden",
+                  }}
+                >
+                  {pickedAvatar || avatarUrl ? (
+                    <Image
+                      source={{ uri: pickedAvatar ?? avatarUrl ?? undefined }}
+                      style={{ width: 96, height: 96 }}
+                    />
+                  ) : (
+                    <Typography variant="h1" color={theme.colors.primary}>
+                      {editName.charAt(0) || "?"}
+                    </Typography>
+                  )}
+                  <View
+                    style={{
+                      position: "absolute",
+                      right: 0,
+                      bottom: 0,
+                      width: 32,
+                      height: 32,
+                      borderRadius: 16,
+                      backgroundColor: theme.colors.primary,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderWidth: 2,
+                      borderColor: theme.colors.background,
+                    }}
+                  >
+                    <Ionicons
+                      name="camera"
+                      size={16}
+                      color={theme.colors.textOnPrimary}
+                    />
+                  </View>
+                </View>
+                <Typography
+                  variant="bodyBold"
+                  color={theme.colors.primary}
+                  style={{ fontSize: 14, marginTop: spacing.sm }}
+                >
+                  {pickedAvatar || avatarUrl ? "Alterar foto" : "Adicionar foto"}
+                </Typography>
+              </Pressable>
+            </View>
+
             <View>
               <FieldLabel label="Nome" required />
               <TextFieldCard
@@ -721,12 +816,12 @@ export default function SettingsScreen() {
               />
             </View>
             <Button
-              title="Salvar"
+              title={savingAvatar ? "Enviando foto..." : "Salvar"}
               size="lg"
               onPress={() => {
                 void handleSaveProfile();
               }}
-              loading={updateProfile.isPending}
+              loading={updateProfile.isPending || savingAvatar}
             />
           </KeyboardAwareScrollView>
         </SafeAreaView>

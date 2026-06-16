@@ -2,7 +2,7 @@ import { Card, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
-import { ScrollView, View } from "react-native";
+import { Image, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useProfile } from "../../features/subscription/hooks";
@@ -108,11 +108,19 @@ export default function MoreScreen() {
                 backgroundColor: theme.colors.primary,
                 alignItems: "center",
                 justifyContent: "center",
+                overflow: "hidden",
               }}
             >
-              <Typography variant="h3" color={theme.colors.textOnPrimary}>
-                {userName.charAt(0).toUpperCase()}
-              </Typography>
+              {profile?.avatarUrl ? (
+                <Image
+                  source={{ uri: profile.avatarUrl }}
+                  style={{ width: 48, height: 48 }}
+                />
+              ) : (
+                <Typography variant="h3" color={theme.colors.textOnPrimary}>
+                  {userName.charAt(0).toUpperCase()}
+                </Typography>
+              )}
             </View>
             <View style={{ flex: 1 }}>
               <Typography variant="h3">{userName}</Typography>

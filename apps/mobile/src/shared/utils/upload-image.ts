@@ -54,3 +54,7 @@ export function uploadCatalogCover(localUri: string): Promise<string> {
 export function uploadCatalogLogo(localUri: string): Promise<string> {
   return uploadImage(localUri, "catalog-logo-");
 }
+
+export function uploadProfilePhoto(localUri: string): Promise<string> {
+  return uploadImage(localUri, "profile-");
+}

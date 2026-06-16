@@ -119,3 +119,4 @@ await createStripeCheckout(token, "monthly");
 - iOS/Web use hosted Stripe Checkout; backend webhooks own Premium activation.
 - Google Play Billing also powers the "restore purchase" action.
 - Prices are display-only in mobile and must match both the Stripe Dashboard and the Google Play products.
+- 2026-06-15: **foto/avatar do negócio** — `UserProfile.avatarUrl`. No "Editar perfil" (settings) há um seletor de foto (`useImagePicker` → `uploadProfilePhoto`, prefixo `profile-`) que envia `avatarUrl` no `updateProfile`. Os avatares em Configurações e "Mais opções" mostram a foto quando existe, senão a inicial do nome. Requer migration `018_user_avatar.sql` no Supabase.
