@@ -85,7 +85,11 @@ function getCardStyle(theme: ReturnType<typeof useTheme>["theme"]): ViewStyle {
   };
 }
 
-function AvatarCircle({ name, color }: Readonly<{ name: string; color: string }>) {
+function AvatarCircle({
+  name,
+  color,
+  avatarUrl,
+}: Readonly<{ name: string; color: string; avatarUrl?: string | null }>) {
   const { theme } = useTheme();
   const initial = name ? name.charAt(0).toUpperCase() : "?";
 
@@ -100,6 +104,7 @@ function AvatarCircle({ name, color }: Readonly<{ name: string; color: string }>
         borderColor: "rgba(255, 255, 255, 0.22)",
         alignItems: "center",
         justifyContent: "center",
+        overflow: "hidden",
         shadowColor: color,
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.25,
@@ -107,9 +112,13 @@ function AvatarCircle({ name, color }: Readonly<{ name: string; color: string }>
         elevation: 4,
       }}
     >
-      <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
-        {initial}
-      </Typography>
+      {avatarUrl ? (
+        <Image source={{ uri: avatarUrl }} style={{ width: 44, height: 44 }} />
+      ) : (
+        <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
+          {initial}
+        </Typography>
+      )}
     </View>
   );
 }
@@ -347,6 +356,7 @@ export default function HomeScreen() {
             <AvatarCircle
               name={profile?.name ?? firstName}
               color={theme.colors.primary}
+              avatarUrl={profile?.avatarUrl}
             />
           </Pressable>
         </View>
