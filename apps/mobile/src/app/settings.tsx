@@ -3,7 +3,6 @@ import {
   Button,
   Card,
   Chip,
-  Input,
   Typography,
   useTheme,
   spacing,
@@ -32,6 +31,7 @@ import { useProlaboreStatus } from "../features/goals/hooks";
 import { useProfile, useUpdateProfile } from "../features/subscription/hooks";
 import { useSubscription } from "../features/subscription/use-subscription";
 import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
+import { FieldLabel, TextFieldCard } from "../shared/components/form-field";
 import { alertValidation, alertError } from "../shared/utils/alerts";
 
 const PRIVACY_POLICY_URL =
@@ -670,13 +670,24 @@ export default function SettingsScreen() {
               gap: spacing.lg,
             }}
           >
-            <Input label="Nome" value={editName} onChangeText={setEditName} />
-            <Input
-              label="Nome do negócio"
-              placeholder="Ex: Doces da Maria"
-              value={editBusinessName}
-              onChangeText={setEditBusinessName}
-            />
+            <View>
+              <FieldLabel label="Nome" required />
+              <TextFieldCard
+                icon="person-outline"
+                placeholder="Seu nome"
+                value={editName}
+                onChangeText={setEditName}
+              />
+            </View>
+            <View>
+              <FieldLabel label="Nome do negócio" />
+              <TextFieldCard
+                icon="storefront-outline"
+                placeholder="Ex: Doces da Maria"
+                value={editBusinessName}
+                onChangeText={setEditBusinessName}
+              />
+            </View>
             <View style={{ gap: spacing.sm }}>
               <Typography
                 variant="bodyBold"
@@ -699,13 +710,16 @@ export default function SettingsScreen() {
                 ))}
               </View>
             </View>
-            <Input
-              label="Telefone"
-              placeholder="Ex: (11) 99999-9999"
-              value={editPhone}
-              onChangeText={(v) => setEditPhone(maskPhoneBR(v))}
-              keyboardType="phone-pad"
-            />
+            <View>
+              <FieldLabel label="Telefone" />
+              <TextFieldCard
+                icon="call-outline"
+                placeholder="Ex: (11) 99999-9999"
+                value={editPhone}
+                onChangeText={(v: string) => setEditPhone(maskPhoneBR(v))}
+                keyboardType="phone-pad"
+              />
+            </View>
             <Button
               title="Salvar"
               size="lg"
