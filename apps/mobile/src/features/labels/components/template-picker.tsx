@@ -1,4 +1,5 @@
-import { Card, Typography } from "@lucro-caseiro/ui";
+import { Card, Typography, useTheme } from "@lucro-caseiro/ui";
+import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { FlatList, Pressable, View } from "react-native";
 
@@ -18,6 +19,7 @@ const TEMPLATE_COLORS: Record<string, { bg: string; accent: string }> = {
 };
 
 export function TemplatePicker({ selected, onSelect }: Readonly<TemplatePickerProps>) {
+  const { theme } = useTheme();
   const { data: templates } = useTemplates();
 
   return (
@@ -28,40 +30,67 @@ export function TemplatePicker({ selected, onSelect }: Readonly<TemplatePickerPr
         horizontal
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ gap: 12 }}
+        contentContainerStyle={{ gap: 12, paddingVertical: 4 }}
         renderItem={({ item }) => {
           const colors = TEMPLATE_COLORS[item.id] ?? { bg: "#F3F4F6", accent: "#4B5563" };
           const isSelected = selected === item.id;
           return (
-            <Pressable onPress={() => onSelect(item.id)}>
+            <Pressable
+              onPress={() => onSelect(item.id)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isSelected }}
+              accessibilityLabel={item.name}
+            >
               <Card
                 style={{
-                  width: 120,
-                  height: 140,
+                  width: 116,
+                  height: 132,
                   backgroundColor: colors.bg,
                   borderWidth: isSelected ? 3 : 1,
-                  borderColor: isSelected ? "#22C55E" : "#E5E7EB",
+                  borderColor: isSelected ? theme.colors.primary : "#E5E7EB",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: 8,
+                  gap: 10,
                 }}
               >
                 <View
                   style={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: 8,
+                    width: 56,
+                    height: 56,
+                    borderRadius: 10,
                     backgroundColor: colors.accent,
-                    opacity: 0.15,
+                    opacity: 0.16,
                   }}
                 />
                 <Typography
                   variant="caption"
-                  color={isSelected ? "#22C55E" : colors.accent}
-                  style={{ fontWeight: isSelected ? "700" : "500" }}
+                  color={colors.accent}
+                  numberOfLines={1}
+                  style={{ fontWeight: "700", maxWidth: 96, textAlign: "center" }}
                 >
                   {item.name}
                 </Typography>
+                {isSelected ? (
+                  <View
+                    style={{
+                      position: "absolute",
+                      top: 8,
+                      right: 8,
+                      width: 22,
+                      height: 22,
+                      borderRadius: 11,
+                      backgroundColor: theme.colors.primary,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Ionicons
+                      name="checkmark"
+                      size={14}
+                      color={theme.colors.textOnPrimary}
+                    />
+                  </View>
+                ) : null}
               </Card>
             </Pressable>
           );

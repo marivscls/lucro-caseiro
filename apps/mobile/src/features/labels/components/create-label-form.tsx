@@ -191,18 +191,16 @@ export function CreateLabelForm({
         icon="calendar-outline"
         initiallyOpen
       >
-        <View style={{ flexDirection: "row", gap: 12 }}>
+        <View style={{ gap: 12 }}>
           <DateField
             label="Fabricação"
             value={labelData.manufacturingDate ?? ""}
             onChange={handleManufacturingChange}
-            containerStyle={{ flex: 1 }}
           />
           <DateField
             label="Validade"
             value={labelData.expirationDate ?? ""}
             onChange={(v) => updateField("expirationDate", v)}
-            containerStyle={{ flex: 1 }}
           />
         </View>
         <Input

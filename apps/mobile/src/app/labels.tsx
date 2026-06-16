@@ -272,14 +272,13 @@ function LabelDetailModal({
             <Typography variant="h3" style={{ marginTop: spacing.xs }}>
               Datas
             </Typography>
-            <View style={{ flexDirection: "row", gap: 12 }}>
+            <View style={{ gap: 12 }}>
               <Input
-                label="Fabricacao"
+                label="Fabricação"
                 placeholder="DD/MM/AAAA"
                 value={labelData.manufacturingDate ?? ""}
                 onChangeText={handleManufacturingChange}
                 keyboardType="number-pad"
-                containerStyle={{ flex: 1 }}
               />
               <Input
                 label="Validade"
@@ -287,7 +286,6 @@ function LabelDetailModal({
                 value={labelData.expirationDate ?? ""}
                 onChangeText={(v) => updateField("expirationDate", maskDateBR(v))}
                 keyboardType="number-pad"
-                containerStyle={{ flex: 1 }}
               />
             </View>
             <Input
