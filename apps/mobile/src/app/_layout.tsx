@@ -29,7 +29,7 @@ import { useStripeCheckout } from "../features/subscription/use-stripe";
 
 function AppContent() {
   const { theme } = useTheme();
-  const { initialize, isLoading, token } = useAuth();
+  const { initialize, isLoading, token, userId } = useAuth();
   const { visible: paywallVisible, hide: hidePaywall } = usePaywall();
   const { subscribe, restore, loading: subscriptionLoading } = useSubscription();
   const { checkout: payWithStripe, loading: stripeLoading } = useStripeCheckout();
@@ -94,6 +94,19 @@ function AppContent() {
       },
     );
   }, [token, appQueryClient]);
+
+  // Ao trocar de conta (ou sair), descarta o cache da conta anterior. Sem isso,
+  // o React Query (gcTime infinito) continua servindo dados do usuario antigo
+  // ate o app ser reaberto. Tambem reseta o "comemorar premium" para nao
+  // parabenizar quem acabou de entrar numa conta que ja era Premium.
+  const prevUserId = useRef<string | null>(null);
+  useEffect(() => {
+    if (prevUserId.current !== null && prevUserId.current !== userId) {
+      appQueryClient.clear();
+      prevPlan.current = undefined;
+    }
+    prevUserId.current = userId;
+  }, [userId, appQueryClient]);
 
   // Abertura da marca: visivel durante o initialize() da auth, some quando a
   // sessao esta pronta (e apos o tempo minimo de exibicao).
