@@ -11,8 +11,17 @@ import {
   radii,
 } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
+import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Alert, Image, Modal, Pressable, ScrollView, View } from "react-native";
+import {
+  Alert,
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  TextInput,
+  View,
+} from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
@@ -513,44 +522,141 @@ function LowStockBanner() {
 
 export default function ProductsScreen() {
   const { theme } = useTheme();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const [showCreate, setShowCreate] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: theme.colors.background }}
-      edges={["bottom"]}
+      edges={["top", "bottom"]}
     >
+      <Stack.Screen options={{ headerShown: false }} />
+
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.md,
+          paddingHorizontal: spacing.lg,
+          paddingTop: spacing.sm,
+          paddingBottom: spacing.sm,
+        }}
+      >
+        <Pressable
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="Voltar"
+          hitSlop={10}
+          style={{ width: 32, height: 40, justifyContent: "center" }}
+        >
+          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
+        </Pressable>
+        <Typography
+          variant="h1"
+          color={theme.colors.text}
+          style={{ flex: 1, fontSize: 28, fontWeight: "800" }}
+        >
+          Produtos
+        </Typography>
+        <Pressable
+          onPress={() => {
+            setSearchOpen((v) => !v);
+            if (searchOpen) setSearch("");
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="Buscar"
+          hitSlop={10}
+          style={{
+            width: 40,
+            height: 40,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Ionicons name="search" size={24} color={theme.colors.text} />
+        </Pressable>
+      </View>
+
+      {searchOpen ? (
+        <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.sm }}>
+          <View
+            style={{
+              minHeight: 48,
+              borderRadius: radii.md,
+              borderWidth: 1,
+              borderColor: `${theme.colors.text}1f`,
+              flexDirection: "row",
+              alignItems: "center",
+              paddingHorizontal: spacing.md,
+              gap: spacing.sm,
+            }}
+          >
+            <Ionicons
+              name="search-outline"
+              size={20}
+              color={theme.colors.textSecondary}
+            />
+            <TextInput
+              value={search}
+              onChangeText={setSearch}
+              placeholder="Buscar produto"
+              placeholderTextColor={theme.colors.textSecondary}
+              autoFocus
+              style={{
+                flex: 1,
+                color: theme.colors.text,
+                fontSize: 16,
+                paddingVertical: 0,
+              }}
+            />
+          </View>
+        </View>
+      ) : null}
+
       <View style={{ flex: 1 }}>
         <LowStockBanner />
         <ProductList
+          search={search.trim() || undefined}
           onProductPress={(id) => setSelectedProductId(id)}
           onAddPress={() => setShowCreate(true)}
         />
       </View>
 
-      {/* FAB - Novo produto */}
       <View
         style={{
-          position: "absolute",
-          bottom: spacing.xl + insets.bottom,
-          right: spacing.xl,
+          paddingHorizontal: spacing.xl,
+          paddingTop: spacing.sm,
+          paddingBottom: spacing.sm + insets.bottom,
         }}
       >
-        <Button
-          title="+ Novo produto"
+        <Pressable
           onPress={() => setShowCreate(true)}
-          size="md"
-          style={{
-            borderRadius: 28,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.15,
-            shadowRadius: 8,
-            elevation: 6,
-          }}
-        />
+          accessibilityRole="button"
+          accessibilityLabel="Novo produto"
+          style={({ pressed }) => ({
+            minHeight: 56,
+            borderRadius: radii.lg,
+            backgroundColor: theme.colors.primary,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: spacing.sm,
+            opacity: pressed ? 0.85 : 1,
+          })}
+        >
+          <Ionicons name="add" size={24} color={theme.colors.textOnPrimary} />
+          <Typography
+            variant="bodyBold"
+            color={theme.colors.textOnPrimary}
+            style={{ fontSize: 18 }}
+          >
+            Novo produto
+          </Typography>
+        </Pressable>
       </View>
 
       {/* Modal - Criar produto */}
