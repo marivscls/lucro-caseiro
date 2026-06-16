@@ -11,6 +11,7 @@ import {
   spacing,
 } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
+import { Stack, useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -760,28 +761,6 @@ function ModernOrderDetail({
   );
 }
 
-function AgendaHeader() {
-  const { theme } = useTheme();
-
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "flex-start",
-      }}
-    >
-      <Typography
-        variant="h1"
-        color={theme.colors.text}
-        style={{ fontSize: 29, fontWeight: "800" }}
-      >
-        Agenda
-      </Typography>
-    </View>
-  );
-}
-
 function OrdersSummaryHeader({
   selectedDate,
   onOpenFilter,
@@ -964,7 +943,6 @@ function OrdersList({
         gap: spacing.lg,
       }}
     >
-      <AgendaHeader />
       <OrdersSummaryHeader selectedDate={selectedDate} onOpenFilter={onOpenDayFilter} />
       {groups.map((group) => {
         const meta = GROUP_META[group.key] ?? {
@@ -1192,6 +1170,7 @@ function DayFilterModal({
 
 export default function AgendaScreen() {
   const { theme } = useTheme();
+  const router = useRouter();
   const agColors = agendaPalette(theme);
   const insets = useSafeAreaInsets();
   const { data: orders, isLoading, error } = useOrders();
@@ -1276,7 +1255,40 @@ export default function AgendaScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      edges={["top"]}
+    >
+      <Stack.Screen options={{ headerShown: false }} />
+
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.md,
+          paddingHorizontal: spacing.lg,
+          paddingTop: spacing.sm,
+          paddingBottom: spacing.sm,
+        }}
+      >
+        <Pressable
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="Voltar"
+          hitSlop={10}
+          style={{ width: 32, height: 40, justifyContent: "center" }}
+        >
+          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
+        </Pressable>
+        <Typography
+          variant="h1"
+          color={theme.colors.text}
+          style={{ flex: 1, fontSize: 28, fontWeight: "800" }}
+        >
+          Agenda
+        </Typography>
+      </View>
+
       {renderContent()}
 
       {/* Criar */}
@@ -1395,6 +1407,6 @@ export default function AgendaScreen() {
           {renderDetail()}
         </SafeAreaView>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
