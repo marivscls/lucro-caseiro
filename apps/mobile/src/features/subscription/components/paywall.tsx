@@ -205,7 +205,7 @@ export function Paywall({
               }}
             >
               <Typography variant="caption" color={theme.colors.textOnPrimary}>
-                -37%
+                -16%
               </Typography>
             </View>
             <Typography variant="caption">Anual</Typography>
@@ -215,9 +215,9 @@ export function Paywall({
               numberOfLines={1}
               adjustsFontSizeToFit
             >
-              R$ 149,90
+              R$ 199,90
             </Typography>
-            <Typography variant="caption">R$ 12,49/mês</Typography>
+            <Typography variant="caption">/ano</Typography>
           </Pressable>
         </View>
 
