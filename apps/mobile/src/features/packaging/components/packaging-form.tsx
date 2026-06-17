@@ -12,6 +12,8 @@ import {
   useFieldPalette,
 } from "../../../shared/components/form-field";
 import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
+import { usePaywall } from "../../../shared/hooks/use-paywall";
+import { ApiError } from "../../../shared/utils/api-client";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
 import {
   currencyInput,
@@ -201,6 +203,7 @@ export function PackagingForm({ packaging, onSuccess, onCancel }: PackagingFormP
   const createPackaging = useCreatePackaging();
   const updatePackaging = useUpdatePackaging();
   const { checkAndBlock: checkPackagingLimit } = useLimitCheck("packaging");
+  const showPaywall = usePaywall((s) => s.show);
   const saving = createPackaging.isPending || updatePackaging.isPending;
 
   const costPreview = unitCost.trim() ? parseCurrencyInput(unitCost) : NaN;
@@ -231,6 +234,10 @@ export function PackagingForm({ packaging, onSuccess, onCancel }: PackagingFormP
       }
       onSuccess?.();
     } catch (e: unknown) {
+      if (e instanceof ApiError && e.code === "LIMIT_EXCEEDED") {
+        showPaywall("packaging");
+        return;
+      }
       const msg = e instanceof Error ? e.message : "Tente novamente.";
       alertError(msg);
     }

@@ -3,6 +3,8 @@ import React, { useState } from "react";
 
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
+import { usePaywall } from "../../../shared/hooks/use-paywall";
+import { ApiError } from "../../../shared/utils/api-client";
 import { brToIso, maskDateBR } from "../../../shared/utils/date";
 import { isValidBrazilPhone, maskPhoneBR } from "../../../shared/utils/phone";
 import { useCreateClient } from "../hooks";
@@ -24,6 +26,7 @@ export function CreateClientForm({ onSuccess }: Readonly<CreateClientFormProps>)
 
   const createClient = useCreateClient();
   const { checkAndBlock: checkClientLimit } = useLimitCheck("clients");
+  const showPaywall = usePaywall((s) => s.show);
 
   async function handleSubmit() {
     if (checkClientLimit()) return;
@@ -54,6 +57,10 @@ export function CreateClientForm({ onSuccess }: Readonly<CreateClientFormProps>)
       });
       onSuccess?.();
     } catch (e: unknown) {
+      if (e instanceof ApiError && e.code === "LIMIT_EXCEEDED") {
+        showPaywall("clients");
+        return;
+      }
       const message =
         e instanceof Error
           ? e.message

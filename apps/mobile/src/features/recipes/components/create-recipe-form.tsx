@@ -7,6 +7,8 @@ import { showAlert } from "../../../shared/components/alert-store";
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
+import { usePaywall } from "../../../shared/hooks/use-paywall";
+import { ApiError } from "../../../shared/utils/api-client";
 import { uploadRecipeImage } from "../../../shared/utils/upload-image";
 import { useCreateRecipe } from "../hooks";
 import {
@@ -41,6 +43,7 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
 
   const createRecipe = useCreateRecipe();
   const { checkAndBlock: checkRecipeLimit } = useLimitCheck("recipes");
+  const showPaywall = usePaywall((s) => s.show);
   const loading = createRecipe.isPending || uploading;
 
   async function handleSubmit() {
@@ -101,7 +104,11 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
       });
       showAlert({ title: "Receita cadastrada!", message: `${name} foi adicionada` });
       onSuccess?.();
-    } catch {
+    } catch (e) {
+      if (e instanceof ApiError && e.code === "LIMIT_EXCEEDED") {
+        showPaywall("recipes");
+        return;
+      }
       alertError("Não foi possível cadastrar a receita. Tente novamente.");
     }
   }
