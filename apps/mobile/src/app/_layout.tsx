@@ -24,6 +24,7 @@ import { usePaywall } from "../shared/hooks/use-paywall";
 import { usePremiumSuccess } from "../shared/hooks/use-premium-success";
 import { Paywall } from "../features/subscription/components/paywall";
 import { PremiumSuccess } from "../features/subscription/components/premium-success";
+import { getPaywallCopy } from "../features/subscription/limit-copy";
 import { useProfile } from "../features/subscription/hooks";
 import { useSubscription } from "../features/subscription/use-subscription";
 import { useStripeCheckout } from "../features/subscription/use-stripe";
@@ -31,7 +32,12 @@ import { useStripeCheckout } from "../features/subscription/use-stripe";
 function AppContent() {
   const { theme } = useTheme();
   const { initialize, isLoading, token, userId } = useAuth();
-  const { visible: paywallVisible, hide: hidePaywall } = usePaywall();
+  const {
+    visible: paywallVisible,
+    hide: hidePaywall,
+    resource: paywallResource,
+  } = usePaywall();
+  const paywallCopy = getPaywallCopy(paywallResource);
   const { subscribe, restore, loading: subscriptionLoading } = useSubscription();
   const { checkout: payWithStripe, loading: stripeLoading } = useStripeCheckout();
   const { data: profile } = useProfile();
@@ -129,6 +135,8 @@ function AppContent() {
         onRequestClose={hidePaywall}
       >
         <Paywall
+          title={paywallCopy.title}
+          message={paywallCopy.message}
           onClose={hidePaywall}
           onSubscribe={(period) => {
             // Android must use Google Play Billing (Play Store policy);

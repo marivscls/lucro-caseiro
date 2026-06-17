@@ -18,13 +18,13 @@ interface PaywallProps {
 
 const BENEFITS = [
   "Vendas ilimitadas",
+  "Produtos ilimitados",
   "Clientes ilimitados",
   "Receitas ilimitadas",
   "Embalagens e rótulos ilimitados",
+  "Catálogo completo",
   "Relatórios completos com gráficos",
   "Exportar PDF e Excel",
-  "Templates premium",
-  "Suporte prioritário",
   "Sem anúncios",
 ];
 
@@ -125,7 +125,7 @@ export function Paywall({
         >
           <Ionicons name="arrow-up-circle" size={20} color={theme.colors.premium} />
           <Typography variant="body" color={theme.colors.premium} style={{ flex: 1 }}>
-            Continue organizando pedidos, clientes, receitas e produtos — sem limites.
+            Desbloqueie todos os recursos do Lucro Caseiro e continue crescendo.
           </Typography>
         </Card>
 
@@ -233,7 +233,7 @@ export function Paywall({
         {/* Actions */}
         <View style={{ gap: 12, paddingBottom: 16 }}>
           <Button
-            title="Começar teste grátis"
+            title="Desbloquear Premium"
             variant="premium"
             size="lg"
             loading={loading}
