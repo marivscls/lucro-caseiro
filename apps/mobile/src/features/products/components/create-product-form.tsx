@@ -32,6 +32,8 @@ import { alertValidation, alertError } from "../../../shared/utils/alerts";
 import { showAlert } from "../../../shared/components/alert-store";
 import { BarcodeScanner } from "../../../shared/components/barcode-scanner";
 import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
+import { usePaywall } from "../../../shared/hooks/use-paywall";
+import { ApiError } from "../../../shared/utils/api-client";
 import {
   maskCurrencyInput,
   parseCurrencyInput,
@@ -438,6 +440,7 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
 
   const createProduct = useCreateProduct();
   const { checkAndBlock: checkProductLimit } = useLimitCheck("products");
+  const showPaywall = usePaywall((s) => s.show);
   const { data: productsData } = useProducts();
 
   const categories = useMemo(() => {
@@ -507,7 +510,12 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
         message: `${name} foi adicionado ao seu catálogo`,
       });
       onSuccess?.();
-    } catch {
+    } catch (e) {
+      // Limite do plano gratuito atingido → abre o paywall (em vez de erro genérico).
+      if (e instanceof ApiError && e.code === "LIMIT_EXCEEDED") {
+        showPaywall("products");
+        return;
+      }
       alertError("Não foi possível cadastrar o produto. Tente novamente.");
     }
   }

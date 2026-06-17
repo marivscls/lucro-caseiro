@@ -47,6 +47,8 @@ export function useCreateClient() {
     mutationFn: (data: CreateClient) => createClient(token!, data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: CLIENTS_KEY });
+      // Atualiza a contagem de limites do plano (clientes) pra o gate bloquear na hora certa.
+      void queryClient.invalidateQueries({ queryKey: ["subscription"] });
     },
   });
 }
@@ -70,6 +72,7 @@ export function useDeleteClient() {
     mutationFn: (id: string) => deleteClient(token!, id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: CLIENTS_KEY });
+      void queryClient.invalidateQueries({ queryKey: ["subscription"] });
     },
   });
 }

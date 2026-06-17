@@ -38,6 +38,8 @@ export function useCreatePackaging() {
     mutationFn: (data: CreatePackaging) => createPackaging(token!, data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: PACKAGING_KEY });
+      // Atualiza a contagem de limites do plano (embalagens) pra o gate bloquear na hora certa.
+      void queryClient.invalidateQueries({ queryKey: ["subscription"] });
     },
   });
 }
@@ -61,6 +63,7 @@ export function useDeletePackaging() {
     mutationFn: (id: string) => deletePackaging(token!, id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: PACKAGING_KEY });
+      void queryClient.invalidateQueries({ queryKey: ["subscription"] });
     },
   });
 }

@@ -44,6 +44,8 @@ export function useCreateProduct() {
     mutationFn: (data: CreateProduct) => createProduct(token!, data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: PRODUCTS_KEY });
+      // Atualiza a contagem de limites do plano (produtos) pra o gate bloquear na hora certa.
+      void queryClient.invalidateQueries({ queryKey: ["subscription"] });
     },
   });
 }
@@ -78,6 +80,7 @@ export function useDeleteProduct() {
     mutationFn: (id: string) => deleteProduct(token!, id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: PRODUCTS_KEY });
+      void queryClient.invalidateQueries({ queryKey: ["subscription"] });
     },
   });
 }
