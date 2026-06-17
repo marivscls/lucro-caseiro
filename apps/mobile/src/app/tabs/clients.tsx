@@ -20,7 +20,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ClientDetail } from "../../features/clients/components/client-detail";
 import { EditClientForm } from "../../features/clients/components/edit-client-form";
 import { useClient, useClients, useCreateClient } from "../../features/clients/hooks";
+import { LimitBanner } from "../../features/subscription/components/limit-banner";
 import { useLimitCheck } from "../../shared/hooks/use-limit-check";
+import { usePaywall } from "../../shared/hooks/use-paywall";
+import { ApiError } from "../../shared/utils/api-client";
 import { brToIso, maskDateBR } from "../../shared/utils/date";
 import { isValidBrazilPhone, maskPhoneBR } from "../../shared/utils/phone";
 import { alertValidation } from "../../shared/utils/alerts";
@@ -302,6 +305,7 @@ function ClientsListScreen({
 }: Readonly<ClientsListScreenProps>) {
   const { theme } = useTheme();
   const pal = clientsPalette(theme);
+  const showPaywall = usePaywall((s) => s.show);
   const [showTip, setShowTip] = useState(true);
   const { data, isLoading, error, refetch, isRefetching } = useClients({
     search: search.trim() || undefined,
@@ -440,6 +444,8 @@ function ClientsListScreen({
             });
           }}
         />
+
+        <LimitBanner resource="clients" onUpgrade={() => showPaywall("clients")} />
 
         {clientsContent}
       </ScrollView>
@@ -829,6 +835,7 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
   const [calendarVisible, setCalendarVisible] = useState(false);
   const createClient = useCreateClient();
   const { checkAndBlock: checkClientLimit } = useLimitCheck("clients");
+  const showPaywall = usePaywall((s) => s.show);
 
   const reset = useCallback(() => {
     setName("");
@@ -872,6 +879,10 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
       });
       close();
     } catch (error: unknown) {
+      if (error instanceof ApiError && error.code === "LIMIT_EXCEEDED") {
+        showPaywall("clients");
+        return;
+      }
       showAlert({
         title: "Erro",
         message:

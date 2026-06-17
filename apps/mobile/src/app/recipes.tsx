@@ -10,6 +10,8 @@ import { EditRecipeForm } from "../features/recipes/components/edit-recipe-form"
 import { RecipeDetail } from "../features/recipes/components/recipe-detail";
 import { RecipeList } from "../features/recipes/components/recipe-list";
 import { useRecipe } from "../features/recipes/hooks";
+import { LimitBanner } from "../features/subscription/components/limit-banner";
+import { usePaywall } from "../shared/hooks/use-paywall";
 
 type ModalState =
   | { type: "none" }
@@ -97,6 +99,7 @@ export default function RecipesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [modal, setModal] = useState<ModalState>({ type: "none" });
+  const showPaywall = usePaywall((s) => s.show);
 
   const editingRecipeId = modal.type === "edit" ? modal.recipeId : "";
   const { data: editingRecipe } = useRecipe(editingRecipeId);
@@ -159,6 +162,11 @@ export default function RecipesScreen() {
       </View>
 
       <View style={{ flex: 1 }}>
+        <LimitBanner
+          resource="recipes"
+          onUpgrade={() => showPaywall("recipes")}
+          containerStyle={{ marginHorizontal: spacing.lg, marginTop: spacing.sm }}
+        />
         <RecipeList
           onRecipePress={(id) => setModal({ type: "detail", recipeId: id })}
           onAddPress={() => setModal({ type: "create" })}

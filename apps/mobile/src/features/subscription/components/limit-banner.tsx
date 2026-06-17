@@ -1,12 +1,13 @@
 import { Card, Typography, useTheme } from "@lucro-caseiro/ui";
 import React from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, View, type StyleProp, type ViewStyle } from "react-native";
 
 import { useLimits } from "../hooks";
 
 interface LimitBannerProps {
   readonly resource: "sales" | "clients" | "recipes" | "packaging" | "products";
   readonly onUpgrade?: () => void;
+  readonly containerStyle?: StyleProp<ViewStyle>;
 }
 
 const LABELS: Record<string, { current: string; max: string }> = {
@@ -25,7 +26,7 @@ const RESOURCE_NAMES: Record<string, string> = {
   products: "produtos",
 };
 
-export function LimitBanner({ resource, onUpgrade }: LimitBannerProps) {
+export function LimitBanner({ resource, onUpgrade, containerStyle }: LimitBannerProps) {
   const { theme } = useTheme();
   const { data: limits } = useLimits();
 
@@ -37,17 +38,22 @@ export function LimitBanner({ resource, onUpgrade }: LimitBannerProps) {
 
   if (!isFinite(max)) return null;
 
-  const percentage = Math.min((current / max) * 100, 100);
-  const isNearLimit = percentage >= 80;
-  const isAtLimit = current >= max;
+  const remaining = max - current;
+  const threshold = Math.max(1, Math.ceil(max * 0.2));
 
-  if (!isNearLimit) return null;
+  // Só aparece na reta final (últimos ~20% do limite, no mínimo 1 restante).
+  if (remaining > threshold) return null;
+
+  const isAtLimit = current >= max;
+  const percentage = Math.min((current / max) * 100, 100);
+  const recurso = RESOURCE_NAMES[resource];
+  const remainingText = remaining === 1 ? "Falta só 1" : `Faltam ${remaining}`;
 
   const bannerBg = isAtLimit ? theme.colors.alertBg : theme.colors.premiumBg;
   const bannerAccent = isAtLimit ? theme.colors.alert : theme.colors.premium;
 
   return (
-    <Pressable onPress={onUpgrade}>
+    <Pressable onPress={onUpgrade} style={containerStyle}>
       <Card
         style={{
           backgroundColor: bannerBg,
@@ -55,13 +61,12 @@ export function LimitBanner({ resource, onUpgrade }: LimitBannerProps) {
       >
         <View style={{ gap: 6 }}>
           <Typography variant="h3" color={bannerAccent}>
-            {isAtLimit ? "Hora de crescer! 🚀" : "Quase no limite"}
+            {isAtLimit ? "🚀 Seu negócio está crescendo!" : "🎉 Você está quase lá!"}
           </Typography>
           <Typography variant="body" color={bannerAccent}>
-            {current}/{max} {RESOURCE_NAMES[resource]}
             {isAtLimit
-              ? " — você usou tudo do plano gratuito. Desbloqueie ilimitado no Premium."
-              : ". Considere o Premium para continuar crescendo."}
+              ? `Você atingiu o limite de ${recurso} do plano gratuito. Desbloqueie ilimitado no Premium e continue crescendo.`
+              : `Você já usou ${current} de ${max} ${recurso}. ${remainingText} para o limite do plano gratuito.`}
           </Typography>
 
           {/* Progress bar */}

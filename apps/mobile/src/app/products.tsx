@@ -25,6 +25,7 @@ import { CompositeToggle } from "../features/products/components/composite-toggl
 import { CreateProductForm } from "../features/products/components/create-product-form";
 import { ProductList } from "../features/products/components/product-list";
 import { SaleUnitToggle } from "../features/products/components/sale-unit-toggle";
+import { LimitBanner } from "../features/subscription/components/limit-banner";
 import { showAlert } from "../shared/components/alert-store";
 import { BarcodeScanner } from "../shared/components/barcode-scanner";
 import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
@@ -35,6 +36,7 @@ import {
   useUpdateProduct,
 } from "../features/products/hooks";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
+import { usePaywall } from "../shared/hooks/use-paywall";
 import { useNotificationEnabled } from "../shared/hooks/notification-prefs";
 import { NOTIFICATION_TYPES } from "../shared/hooks/notification-types";
 import { uploadProductImage } from "../shared/utils/upload-image";
@@ -575,6 +577,7 @@ export default function ProductsScreen() {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const showPaywall = usePaywall((s) => s.show);
 
   return (
     <SafeAreaView
@@ -665,6 +668,11 @@ export default function ProductsScreen() {
       ) : null}
 
       <View style={{ flex: 1 }}>
+        <LimitBanner
+          resource="products"
+          onUpgrade={() => showPaywall("products")}
+          containerStyle={{ marginHorizontal: spacing.lg, marginTop: spacing.sm }}
+        />
         <LowStockBanner />
         <ProductList
           search={search.trim() || undefined}

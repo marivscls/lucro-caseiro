@@ -18,8 +18,10 @@ import { PackagingDetail } from "../features/packaging/components/packaging-deta
 import { PackagingForm } from "../features/packaging/components/packaging-form";
 import { PACKAGING_TYPES, totalStockCost, typeColor } from "../features/packaging/domain";
 import { useDeletePackaging, usePackagingList } from "../features/packaging/hooks";
+import { LimitBanner } from "../features/subscription/components/limit-banner";
 import { showAlert } from "../shared/components/alert-store";
 import { Illustration } from "../shared/components/illustrations";
+import { usePaywall } from "../shared/hooks/use-paywall";
 import { alertError } from "../shared/utils/alerts";
 
 function SummaryCard({
@@ -89,6 +91,7 @@ export default function PackagingScreen() {
   const router = useRouter();
   const { data, isLoading, error } = usePackagingList();
   const deletePackaging = useDeletePackaging();
+  const showPaywall = usePaywall((s) => s.show);
 
   const [showCreate, setShowCreate] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -420,7 +423,14 @@ export default function PackagingScreen() {
         </View>
       ) : null}
 
-      <View style={{ flex: 1 }}>{renderList()}</View>
+      <View style={{ flex: 1 }}>
+        <LimitBanner
+          resource="packaging"
+          onUpgrade={() => showPaywall("packaging")}
+          containerStyle={{ marginHorizontal: spacing.lg, marginTop: spacing.sm }}
+        />
+        {renderList()}
+      </View>
 
       {/* Modal: criar */}
       <Modal
