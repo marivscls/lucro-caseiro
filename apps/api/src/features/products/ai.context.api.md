@@ -266,5 +266,5 @@ POST /api/v1/products  (produto composto / kit / caixinha)
   (`ILIKE` em ambos), habilitando o scanner de câmera do mobile (escaneia → filtra a lista por código).
 - 2026-06-16: **limite freemium de produtos (20 no free)** — `POST /products` agora passa pelo
   `freemiumGuard("products")`; `ResourceCounts.products` conta produtos **ativos** (`is_active = true`);
-  `FreemiumConfig.maxProducts = 20`; `FreemiumLimits` ganhou `maxProducts`/`currentProducts`.
-  (O catálogo público continua limitado a 5 itens no free — coisa separada do cadastro.)
+  `FreemiumConfig.maxProducts = 15` (recalibrado de 20→15 em 2026-06-16); `FreemiumLimits` ganhou `maxProducts`/`currentProducts`.
+  (O catálogo público continua limitado a 3 itens no free — coisa separada do cadastro.)

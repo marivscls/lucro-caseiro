@@ -99,9 +99,9 @@ export class CatalogUseCases {
     // Personalizacao so aparece enquanto o dono for Premium (se a assinatura
     // cair, a pagina volta ao tema padrao sem apagar o que foi salvo).
     const isPremium = owner.plan === "premium";
-    // Plano free exibe no maximo 5 produtos (gatilho de conversao; o app mostra
+    // Plano free exibe no maximo 3 produtos (gatilho de conversao; o app mostra
     // o aviso "Mostre seu catalogo completo com o Premium").
-    const products = isPremium ? allProducts : allProducts.slice(0, 5);
+    const products = isPremium ? allProducts : allProducts.slice(0, 3);
     return {
       businessName: owner.businessName,
       whatsapp: owner.whatsapp ?? owner.phone,

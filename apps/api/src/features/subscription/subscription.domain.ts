@@ -3,15 +3,14 @@ import type { FreemiumLimits } from "@lucro-caseiro/contracts";
 import type { FreemiumConfig, ResourceCounts } from "./subscription.types";
 
 export const FREE_PLAN_LIMITS: FreemiumConfig = {
-  // Vendas: teto alto (200/mês ≈ 7/dia) — folgado o bastante pra não atrapalhar o
-  // uso diário (registrar venda é a ação central), mas finito: gatilho suave pra
-  // quem vende muito + barreira contra abuso. O free fica "básico" pelos outros
-  // limites (clientes/produtos/receitas/embalagens) + as features Premium.
-  maxSalesPerMonth: 200,
+  // Free enxuto: limites que mordem cedo (gatilho de conversão) e mantêm o custo
+  // de servir baixo. O caro (catálogo público, exportação, relatórios completos)
+  // fica no Premium; aqui ficam só as contagens.
+  maxSalesPerMonth: 50,
   maxClients: 20,
   maxRecipes: 5,
   maxPackaging: 3,
-  maxProducts: 20,
+  maxProducts: 15,
 };
 
 export function buildFreemiumLimits(

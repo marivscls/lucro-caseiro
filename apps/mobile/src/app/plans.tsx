@@ -10,13 +10,13 @@ import { showAlert } from "../shared/components/alert-store";
 import { usePaywall } from "../shared/hooks/use-paywall";
 
 const FREE_LIMITS = {
-  "Vendas/mês": "200/mês",
+  "Vendas/mês": "50/mês",
   Clientes: "20",
-  Produtos: "20",
+  Produtos: "15",
   Receitas: "5",
   Embalagens: "3",
   Rótulos: "1 template",
-  "Catálogo público": "5 produtos",
+  "Catálogo público": "3 produtos",
   Relatórios: "Básico mensal",
   Exportação: "Não",
 };
