@@ -68,6 +68,7 @@ import { ServiceUnavailableError } from "./shared/errors";
 import { isPremiumActive } from "./features/subscription/subscription.domain";
 import { errorHandler } from "./shared/middleware/error-handler";
 import { freemiumGuard } from "./shared/middleware/freemium-guard";
+import { requirePremium } from "./shared/middleware/require-premium";
 import { rateLimit } from "./shared/middleware/rate-limit";
 import { healthRouter } from "./shared/health";
 import { setDb } from "./shared/db";
@@ -180,6 +181,10 @@ const goalsUseCases = new GoalsUseCases(
 );
 const ordersUseCases = new OrdersUseCases(ordersRepo, financeUseCases);
 const insightsUseCases = new InsightsUseCases(insightsRepo);
+const isPremiumUser = async (userId: string) => {
+  const profile = await subscriptionRepo.getProfile(userId);
+  return !!profile && isPremiumActive(profile.plan, profile.planExpiresAt);
+};
 
 // Payments (Stripe)
 const stripeClient = config.stripeSecretKey ? new Stripe(config.stripeSecretKey) : null;
@@ -226,11 +231,14 @@ app.use(
   "/api/v1/sales",
   createSalesRouter(salesUseCases, freemiumGuard(subscriptionRepo, "sales")),
 );
-app.use("/api/v1/finance", createFinanceRouter(financeUseCases));
+app.use(
+  "/api/v1/finance",
+  createFinanceRouter(financeUseCases, requirePremium(subscriptionRepo)),
+);
 app.use("/api/v1/goals", createGoalsRouter(goalsUseCases));
 app.use("/api/v1/orders", createOrdersRouter(ordersUseCases));
 app.use("/api/v1/materials", createMaterialsRouter(materialsUseCases));
-app.use("/api/v1/insights", createInsightsRouter(insightsUseCases));
+app.use("/api/v1/insights", createInsightsRouter(insightsUseCases, isPremiumUser));
 app.use(
   "/api/v1/recipes",
   createRecipesRouter(recipesUseCases, freemiumGuard(subscriptionRepo, "recipes")),

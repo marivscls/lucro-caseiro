@@ -199,3 +199,4 @@ GET /api/v1/finance/export/pdf?month=2026-03
 - Adicionado exportacao PDF e Excel
 - `createFromSale` permite Sales criar lancamentos automaticos
 - Adicionado `isFixed` (migration 005) para separar gastos fixos x variaveis; filtro `?fixed=` na listagem e split `fixedExpenses`/`variableExpenses` no summary
+- 2026-06-16: **exportação é Premium** — `GET /export/pdf` e `/export/xlsx` passam por `requirePremium(subscriptionRepo)` (wired no main); plano free recebe `LimitExceededError` (403 LIMIT_EXCEEDED). `createFinanceRouter(useCases, exportGuard?)` aplica o guard só nas rotas de export. Lançar/listar/summary seguem livres (o app trava navegação de meses passados no front).

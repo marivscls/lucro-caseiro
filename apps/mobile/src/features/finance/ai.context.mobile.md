@@ -112,3 +112,4 @@ Dashboard financeiro do usuario: visualizar resumo mensal (entradas, saidas, luc
 - Exportacao PDF/Excel depende do backend retornar arquivo via download (header Authorization).
 - Dashboard mostra lucro = entradas - saidas (calculo feito no front a partir do summary).
 - Adicionado `isFixed`: toggle Variavel/Fixo no form (so para despesas), tag na lista e cards de gastos fixos x variaveis no dashboard.
+- 2026-06-16: **gating Premium** — exportar PDF/Excel (free → `showPaywall("export")`, badge "Premium" na seção) e navegar meses passados (free → `showPaywall("reports")`, trava no mês atual) viraram Premium. Lançar e ver o lucro do mês continuam free. Premium-check via `useProfile().plan`; enforcement real no backend (`requirePremium` nas rotas de export).

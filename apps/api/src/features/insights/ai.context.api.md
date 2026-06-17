@@ -140,3 +140,4 @@ GET /api/v1/insights?months=6
 - Sem tabela própria: lê `sales`/`sale_items`/`products`/`clients` direto no repo.
 - `monthlyRevenue` preenche meses vazios na camada de usecase (domínio puro `monthKeys`)
   para o gráfico ser contínuo, em vez de depender do banco retornar cada mês da janela.
+- 2026-06-16: **janela é Premium (free = mês atual)** — `createInsightsRouter(useCases, isPremium?)`; quando o usuário não é Premium, a rota força `months = 1` (ignora `?months=`), entregando só o mês corrente. Enforcement no backend (o app já mostra só os cards do mês + teaser de Premium para gráficos/rankings). Premium escolhe 3/6/12.

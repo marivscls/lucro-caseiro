@@ -22,6 +22,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import financeHero from "../../../assets/finance-hero.png";
 import { useAuth } from "../../../shared/hooks/use-auth";
+import { usePaywall } from "../../../shared/hooks/use-paywall";
+import { useProfile } from "../../subscription/hooks";
 import { getExportUrl } from "../api";
 import {
   countByType,
@@ -63,6 +65,9 @@ export function FinanceDashboard({
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { token } = useAuth();
+  const { data: profile } = useProfile();
+  const isPremium = profile?.plan === "premium";
+  const showPaywall = usePaywall((s) => s.show);
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
@@ -110,6 +115,10 @@ export function FinanceDashboard({
 
   const handleExport = useCallback(
     async (format: "pdf" | "xlsx") => {
+      if (!isPremium) {
+        showPaywall("export");
+        return;
+      }
       if (!token) return;
       setExporting(format);
 
@@ -144,10 +153,14 @@ export function FinanceDashboard({
         setExporting(null);
       }
     },
-    [token, year, month],
+    [token, year, month, isPremium, showPaywall],
   );
 
   function handlePrevMonth() {
+    if (!isPremium) {
+      showPaywall("reports");
+      return;
+    }
     if (month === 1) {
       setMonth(12);
       setYear((currentYear) => currentYear - 1);
@@ -157,6 +170,10 @@ export function FinanceDashboard({
   }
 
   function handleNextMonth() {
+    if (!isPremium) {
+      showPaywall("reports");
+      return;
+    }
     if (month === 12) {
       setMonth(1);
       setYear((currentYear) => currentYear + 1);
@@ -213,6 +230,10 @@ export function FinanceDashboard({
             accessibilityRole="button"
             accessibilityLabel="Escolher mês"
             onPress={() => {
+              if (!isPremium) {
+                showPaywall("reports");
+                return;
+              }
               setPickerYear(year);
               setShowMonthPicker(true);
             }}
@@ -282,7 +303,33 @@ export function FinanceDashboard({
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Exportar</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+            <Text style={styles.sectionTitle}>Exportar</Text>
+            {!isPremium && (
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 4,
+                  backgroundColor: theme.colors.premiumBg,
+                  paddingHorizontal: 8,
+                  paddingVertical: 3,
+                  borderRadius: 8,
+                }}
+              >
+                <Ionicons name="diamond" size={13} color={theme.colors.premium} />
+                <Text
+                  style={{
+                    color: theme.colors.premium,
+                    fontWeight: "800",
+                    fontSize: 12,
+                  }}
+                >
+                  Premium
+                </Text>
+              </View>
+            )}
+          </View>
           <View style={styles.exportRow}>
             <ExportButton
               icon="document-text-outline"

@@ -3,15 +3,20 @@ import {
   PaginationDto,
   UpdateFinanceEntryDto,
 } from "@lucro-caseiro/contracts";
-import { Router } from "express";
+import { Router, type RequestHandler } from "express";
 
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
 import { generateFinanceExcel, generateFinancePdf } from "./finance.export";
 import type { FinanceUseCases } from "./finance.usecases";
 
-export function createFinanceRouter(useCases: FinanceUseCases): Router {
+export function createFinanceRouter(
+  useCases: FinanceUseCases,
+  exportGuard?: RequestHandler,
+): Router {
   const router = Router();
   router.use(authMiddleware);
+  // Exportação PDF/Excel é Premium (tabela freemium). Guard opcional (testes sem ele).
+  const guards = exportGuard ? [exportGuard] : [];
 
   router.post("/", async (req, res, next) => {
     try {
@@ -73,7 +78,7 @@ export function createFinanceRouter(useCases: FinanceUseCases): Router {
     }
   });
 
-  router.get("/export/pdf", async (req, res, next) => {
+  router.get("/export/pdf", ...guards, async (req, res, next) => {
     try {
       const userId = getUserId(req);
       const monthParam = req.query.month as string | undefined;
@@ -117,7 +122,7 @@ export function createFinanceRouter(useCases: FinanceUseCases): Router {
     }
   });
 
-  router.get("/export/xlsx", async (req, res, next) => {
+  router.get("/export/xlsx", ...guards, async (req, res, next) => {
     try {
       const userId = getUserId(req);
       const monthParam = req.query.month as string | undefined;

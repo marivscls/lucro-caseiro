@@ -17,7 +17,9 @@ import { MonthlyBars } from "../features/insights/components/monthly-bars";
 import { RankBars, type RankRow } from "../features/insights/components/rank-bars";
 import { formatMoney } from "../features/insights/domain";
 import { useInsights } from "../features/insights/hooks";
+import { useProfile } from "../features/subscription/hooks";
 import { Illustration } from "../shared/components/illustrations";
+import { usePaywall } from "../shared/hooks/use-paywall";
 
 const WINDOWS = [3, 6, 12] as const;
 
@@ -144,7 +146,35 @@ function WindowSelector({
   );
 }
 
-function InsightsContent({ data }: Readonly<{ data: Insights }>) {
+function ReportsPremiumTeaser({ onUpgrade }: Readonly<{ onUpgrade: () => void }>) {
+  const { theme } = useTheme();
+  return (
+    <Card variant="surface" padding="xl" onPress={onUpgrade} style={{ gap: spacing.md }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+        <Ionicons name="bar-chart" size={22} color={theme.colors.premium} />
+        <Typography variant="h3" color={theme.colors.premium}>
+          Relatórios completos
+        </Typography>
+      </View>
+      <Typography variant="body" color={theme.colors.textSecondary}>
+        Veja seu faturamento mês a mês, os produtos mais vendidos e seus melhores
+        clientes.
+      </Typography>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+        <Ionicons name="diamond-outline" size={18} color={theme.colors.premium} />
+        <Typography variant="bodyBold" color={theme.colors.premium}>
+          Desbloquear no Premium
+        </Typography>
+      </View>
+    </Card>
+  );
+}
+
+function InsightsContent({
+  data,
+  isPremium,
+  onUpgrade,
+}: Readonly<{ data: Insights; isPremium: boolean; onUpgrade: () => void }>) {
   const { theme } = useTheme();
   const averageTicket = data.totalSales > 0 ? data.totalRevenue / data.totalSales : 0;
 
@@ -189,38 +219,44 @@ function InsightsContent({ data }: Readonly<{ data: Insights }>) {
         iconColor={theme.colors.blue}
       />
 
-      <Card variant="surface" padding="xl">
-        <SectionTitle
-          icon="bar-chart-outline"
-          title="Faturamento por mês"
-          tint={`${theme.colors.primary}26`}
-          iconColor={theme.colors.primary}
-        />
-        <MonthlyBars series={data.monthlyRevenue} />
-      </Card>
+      {isPremium ? (
+        <>
+          <Card variant="surface" padding="xl">
+            <SectionTitle
+              icon="bar-chart-outline"
+              title="Faturamento por mês"
+              tint={`${theme.colors.primary}26`}
+              iconColor={theme.colors.primary}
+            />
+            <MonthlyBars series={data.monthlyRevenue} />
+          </Card>
 
-      {productRows.length > 0 && (
-        <Card variant="surface" padding="xl">
-          <SectionTitle
-            icon="flame-outline"
-            title="Mais vendidos"
-            tint={`${theme.colors.primary}26`}
-            iconColor={theme.colors.primary}
-          />
-          <RankBars rows={productRows} color={theme.colors.primary} />
-        </Card>
-      )}
+          {productRows.length > 0 && (
+            <Card variant="surface" padding="xl">
+              <SectionTitle
+                icon="flame-outline"
+                title="Mais vendidos"
+                tint={`${theme.colors.primary}26`}
+                iconColor={theme.colors.primary}
+              />
+              <RankBars rows={productRows} color={theme.colors.primary} />
+            </Card>
+          )}
 
-      {clientRows.length > 0 && (
-        <Card variant="surface" padding="xl">
-          <SectionTitle
-            icon="trophy-outline"
-            title="Melhores clientes"
-            tint={theme.colors.premiumBg}
-            iconColor={theme.colors.premium}
-          />
-          <RankBars rows={clientRows} color={theme.colors.premium} />
-        </Card>
+          {clientRows.length > 0 && (
+            <Card variant="surface" padding="xl">
+              <SectionTitle
+                icon="trophy-outline"
+                title="Melhores clientes"
+                tint={theme.colors.premiumBg}
+                iconColor={theme.colors.premium}
+              />
+              <RankBars rows={clientRows} color={theme.colors.premium} />
+            </Card>
+          )}
+        </>
+      ) : (
+        <ReportsPremiumTeaser onUpgrade={onUpgrade} />
       )}
     </>
   );
@@ -231,7 +267,11 @@ export default function InsightsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [months, setMonths] = useState<number>(6);
-  const { data, isLoading } = useInsights(months);
+  const { data: profile } = useProfile();
+  const isPremium = profile?.plan === "premium";
+  const showPaywall = usePaywall((s) => s.show);
+  // Free vê só o mês atual ("básico mensal"); Premium escolhe a janela.
+  const { data, isLoading } = useInsights(isPremium ? months : 1);
 
   return (
     <SafeAreaView
@@ -283,10 +323,14 @@ export default function InsightsScreen() {
           }}
           showsVerticalScrollIndicator={false}
         >
-          <WindowSelector months={months} onChange={setMonths} />
+          {isPremium && <WindowSelector months={months} onChange={setMonths} />}
 
           {data && data.totalSales > 0 ? (
-            <InsightsContent data={data} />
+            <InsightsContent
+              data={data}
+              isPremium={isPremium}
+              onUpgrade={() => showPaywall("reports")}
+            />
           ) : (
             <EmptyState
               icon={<Illustration name="chart" />}

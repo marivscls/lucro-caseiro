@@ -88,3 +88,4 @@ const { data } = useInsights(6);
 - Decisão: gráficos em `View` (barras) em vez de lib de chart nativa, para manter o dev build
   atual sem rebuild e o bundle leve.
 - Janela default de 6 meses (pills 3/6/12); top 5 vem pronto do backend.
+- 2026-06-16: **gating Premium** — free vê só os 3 cards do mês atual (`useInsights(isPremium ? months : 1)`); seletor de janela some e gráfico + rankings viram `ReportsPremiumTeaser` (toque → `showPaywall("reports")`). Premium-check via `useProfile().plan`. Backend também força `months=1` no free (não confiar no front).

@@ -84,7 +84,29 @@ export function getBannerCopy(
   };
 }
 
-/** Título + mensagem do paywall (limite atingido) conforme o recurso de origem. */
+// Paywalls de feature (não-contagem): exportação, relatórios, catálogo, rótulos.
+const FEATURE_COPY: Record<string, { title: string; message: string }> = {
+  reports: {
+    title: "📊 Relatórios completos",
+    message:
+      "Veja seu faturamento mês a mês, os produtos mais vendidos e seus melhores clientes. Desbloqueie no Premium.",
+  },
+  export: {
+    title: "📄 Exportar PDF e Excel",
+    message: "Baixe seus relatórios pra contabilidade e MEI — recurso Premium.",
+  },
+  catalog: {
+    title: "📖 Catálogo profissional",
+    message:
+      "Mostre todos os produtos e personalize sua vitrine pros clientes. Desbloqueie no Premium.",
+  },
+  labels: {
+    title: "🏷️ Rótulos ilimitados",
+    message: "Crie quantos templates de rótulo quiser com o Premium.",
+  },
+};
+
+/** Título + mensagem do paywall conforme o recurso/feature de origem. */
 export function getPaywallCopy(resource: string | null): {
   title: string;
   message: string;
@@ -92,6 +114,9 @@ export function getPaywallCopy(resource: string | null): {
   if (resource && resource in LIMIT_COPY) {
     const copy = LIMIT_COPY[resource as LimitResource];
     return { title: copy.atLimit.title, message: copy.atLimit.body };
+  }
+  if (resource && resource in FEATURE_COPY) {
+    return FEATURE_COPY[resource];
   }
   return {
     title: "🚀 Seu negócio está crescendo!",
