@@ -1,0 +1,47 @@
+# 17 — Configurações: abrir editar perfil e salvar. Edita dado real (conta de teste).
+appId: br.com.orionseven.lucrocaseiro
+name: 17 - Editar perfil
+tags:
+  - crud
+---
+- runFlow:
+    file: ../subflows/open-app.yaml
+    env:
+      EMAIL: "${EMAIL}"
+      PASSWORD: "${PASSWORD}"
+
+# Mais -> Configurações
+- tapOn:
+    point: "90%,94%"
+- assertVisible: "Mais opções"
+- scrollUntilVisible:
+    element:
+      text: "Configurações"
+    direction: DOWN
+- tapOn: "Configurações"
+
+# Abre o editor de perfil
+- extendedWaitUntil:
+    visible:
+      text: "Editar perfil"
+    timeout: 8000
+- tapOn: "Editar perfil"
+
+# Modal de edição -> define o nome do negócio e salva
+- extendedWaitUntil:
+    visible:
+      text: "Salvar"
+    timeout: 8000
+- tapOn:
+    below:
+      text: "Nome do negócio"
+- eraseText
+- inputText: "[e2e] Negocio Teste"
+- tapOn: "Salvar"
+
+# Volta pra Configurações
+- extendedWaitUntil:
+    visible:
+      text: "Editar perfil"
+    timeout: 8000
+- takeScreenshot: .maestro/screenshots/17-perfil

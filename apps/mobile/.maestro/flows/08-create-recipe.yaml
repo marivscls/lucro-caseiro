@@ -1,0 +1,88 @@
+# 08 — Criar receita (CRUD) + limite freemium (free = 5). Usa o insumo do flow 07.
+appId: br.com.orionseven.lucrocaseiro
+name: 08 - Criar receita
+tags:
+  - crud
+---
+- runFlow:
+    file: ../subflows/open-app.yaml
+    env:
+      EMAIL: "${EMAIL}"
+      PASSWORD: "${PASSWORD}"
+
+# Mais -> Receitas
+- tapOn:
+    point: "90%,94%"
+- assertVisible: "Mais opções"
+- scrollUntilVisible:
+    element:
+      text: "Receitas"
+    direction: DOWN
+- tapOn: "Receitas"
+- scrollUntilVisible:
+    element:
+      text: "Nova receita"
+    direction: DOWN
+- tapOn: "Nova receita"
+
+# Nome (autoFocus)
+- extendedWaitUntil:
+    visible:
+      text: "Nome da receita"
+    timeout: 8000
+- inputText: "[e2e] Receita Teste"
+
+# Categoria (mesmo modal do produto)
+- scrollUntilVisible:
+    element:
+      text: "Escolher categoria"
+    direction: DOWN
+- tapOn: "Escolher categoria"
+- assertVisible: "Usar categoria"
+- inputText: "Doces"
+- tapOn: "Usar categoria"
+
+# Rendimento + Unidade
+- scrollUntilVisible:
+    element:
+      text: "Rendimento"
+    direction: DOWN
+- tapOn:
+    below:
+      text: "Rendimento"
+- inputText: "10"
+# Unidade: usa o chip "unidades" (o TextBox lado a lado é difícil de focar)
+- scrollUntilVisible:
+    element:
+      text: "unidades"
+    direction: DOWN
+- tapOn: "unidades"
+
+# Ingrediente: seleciona o insumo e põe a quantidade
+- scrollUntilVisible:
+    element:
+      text: "Selecionar [e2e] Insumo Teste"
+    direction: DOWN
+- tapOn: "Selecionar [e2e] Insumo Teste"
+- scrollUntilVisible:
+    element:
+      text: ".*Quantidade.*"
+    direction: DOWN
+- tapOn:
+    below:
+      text: ".*Quantidade.*"
+- inputText: "2"
+
+# Salvar
+- scrollUntilVisible:
+    element:
+      text: "Salvar receita"
+    direction: DOWN
+- tapOn: "Salvar receita"
+
+# Resultado: criada OU paywall de limite (free = 5)
+- extendedWaitUntil:
+    visible:
+      text: ".*(Receita cadastrada|Receita Teste|Limite de|Premium).*"
+    timeout: 12000
+- takeScreenshot: .maestro/screenshots/08-receita

@@ -11,3 +11,10 @@ dist
 *.log
 .env
 apps/mobile/.env
+
+# Pastas nativas: o EAS regenera via prebuild (CNG). Nunca subir o android/ios
+# local (gerado por expo prebuild/run) — o EAS usa ESTE .easignore da raiz.
+apps/mobile/android
+apps/mobile/ios
+**/android/.gradle
+**/android/build

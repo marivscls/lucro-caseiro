@@ -1,0 +1,66 @@
+# 09 — Registrar venda (4 steps). Usa o produto criado no 05. Gera dado real.
+# Steps: 1 produtos -> 2 cliente -> 3 pagamento -> 4 revisar/confirmar.
+appId: br.com.orionseven.lucrocaseiro
+name: 09 - Registrar venda
+tags:
+  - crud
+---
+- runFlow:
+    file: ../subflows/open-app.yaml
+    env:
+      EMAIL: "${EMAIL}"
+      PASSWORD: "${PASSWORD}"
+
+# Atalho "Venda" na home -> fluxo de nova venda
+- tapOn: "Venda"
+- assertVisible: "O que você vai vender?"
+
+# Step 1: adiciona o produto ao carrinho e avança
+- tapOn: "[e2e] Brigadeiro teste"
+- tapOn: "Próximo"
+
+# Step 2: cliente -> sem cliente (avulso)
+- assertVisible: "Selecione o cliente"
+- tapOn: "Sem cliente (avulso)"
+- runFlow:
+    when:
+      notVisible: "Forma de pagamento"
+    commands:
+      - tapOn: "Próximo"
+
+# Step 3: pagamento -> Pix
+- assertVisible: "Forma de pagamento"
+- tapOn: "Pix"
+- runFlow:
+    when:
+      notVisible: "Registrar venda"
+    commands:
+      - tapOn: "Próximo"
+
+# Step 4: confirmar
+- assertVisible: "Registrar venda"
+- tapOn: "Registrar venda"
+
+# Free tier mostra um anúncio intersticial (AdMob, "Test Ad" no emulador) após a venda,
+# cobrindo o alerta de sucesso. Espera o anúncio OU o alerta, e fecha o anúncio no X
+# (canto sup. direito ~94%,3%) — `repeat` re-tenta até o "Test Ad" sumir.
+- extendedWaitUntil:
+    visible:
+      text: "Venda registrada!|Test Ad"
+    timeout: 20000
+- repeat:
+    times: 8
+    commands:
+      - runFlow:
+          when:
+            visible: "Test Ad"
+          commands:
+            - tapOn:
+                point: "94%,3%"
+# Sucesso (atrás do anúncio): "Venda registrada!"
+- extendedWaitUntil:
+    visible:
+      text: "Venda registrada!"
+    timeout: 12000
+- tapOn: "OK"
+- takeScreenshot: .maestro/screenshots/09-venda

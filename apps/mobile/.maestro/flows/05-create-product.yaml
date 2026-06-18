@@ -1,0 +1,53 @@
+# 05 — Criar produto (CRUD). Gera dado real na conta (free, sem limpeza).
+# Inputs focados por seletor RELATIVO (`below: "<label>"`) — placeholders de TextInput
+# nem sempre são matcháveis. Categoria abre um modal (digita + "Usar categoria").
+appId: br.com.orionseven.lucrocaseiro
+name: 05 - Criar produto
+tags:
+  - crud
+---
+- runFlow:
+    file: ../subflows/open-app.yaml
+    env:
+      EMAIL: "${EMAIL}"
+      PASSWORD: "${PASSWORD}"
+
+# Atalho "Produtos" na home (área central, fora da tab bar/LogBox)
+- tapOn: "Produtos"
+- assertVisible: "Novo produto"
+- tapOn: "Novo produto"
+- assertVisible: "Nome do produto"
+
+# Nome
+- tapOn:
+    below:
+      text: "Nome do produto"
+- inputText: "[e2e] Brigadeiro teste"
+
+# Categoria (abre modal -> digita -> "Usar categoria")
+- tapOn: "Escolher categoria"
+- assertVisible: "Usar categoria"
+- inputText: "Doces"
+- tapOn: "Usar categoria"
+
+# Preço de venda (rola até o campo e foca o input abaixo do label)
+- scrollUntilVisible:
+    element:
+      text: "Preço de venda (R$)"
+    direction: DOWN
+- tapOn:
+    below:
+      text: "Preço de venda (R$)"
+- inputText: "5,00"
+
+# Salvar (rola até o botão no rodapé)
+- scrollUntilVisible:
+    element:
+      text: "Cadastrar produto"
+    direction: DOWN
+- tapOn: "Cadastrar produto"
+
+# Sucesso
+- assertVisible: "Produto cadastrado!"
+- tapOn: "OK"
+- takeScreenshot: .maestro/screenshots/05-produto

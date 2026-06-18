@@ -1,0 +1,57 @@
+# 14 — Criar rótulo (CRUD) + limite freemium (free = 1).
+# Form longo; preenche o obrigatório "Nome do produto" e salva. No SAVE: ou cria, ou
+# (se no limite free) abre o paywall. Ambos válidos.
+appId: br.com.orionseven.lucrocaseiro
+name: 14 - Criar rotulo
+tags:
+  - crud
+---
+- runFlow:
+    file: ../subflows/open-app.yaml
+    env:
+      EMAIL: "${EMAIL}"
+      PASSWORD: "${PASSWORD}"
+
+# Mais -> Rótulos
+- tapOn:
+    point: "90%,94%"
+- assertVisible: "Mais opções"
+- scrollUntilVisible:
+    element:
+      text: "Rótulos"
+    direction: DOWN
+- tapOn: "Rótulos"
+- scrollUntilVisible:
+    element:
+      text: "Novo rótulo"
+    direction: DOWN
+- tapOn: "Novo rótulo"
+
+# Form
+- extendedWaitUntil:
+    visible:
+      text: "Nome do rótulo"
+    timeout: 8000
+- tapOn:
+    below:
+      text: "Nome do rótulo"
+- inputText: "[e2e] Rotulo Teste"
+- tapOn: "Escolha um modelo"
+# Nome do produto também é obrigatório
+- tapOn:
+    below:
+      text: "Nome do produto"
+- inputText: "Brigadeiro Gourmet"
+- tapOn: "Ingredientes"
+- scrollUntilVisible:
+    element:
+      text: "Criar rótulo"
+    direction: DOWN
+- tapOn: "Criar rótulo"
+
+# Resultado: criado OU paywall de limite
+- extendedWaitUntil:
+    visible:
+      text: ".*(Rótulo criado|Rotulo|Limite de|Premium).*"
+    timeout: 12000
+- takeScreenshot: .maestro/screenshots/14-rotulo

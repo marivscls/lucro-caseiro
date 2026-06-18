@@ -1,0 +1,89 @@
+# 15 — Precificação: calculadora de 5 etapas + salvar cálculo. Gera dado real.
+appId: br.com.orionseven.lucrocaseiro
+name: 15 - Precificacao
+tags:
+  - crud
+---
+- runFlow:
+    file: ../subflows/open-app.yaml
+    env:
+      EMAIL: "${EMAIL}"
+      PASSWORD: "${PASSWORD}"
+
+# Mais -> Precificação
+- tapOn:
+    point: "90%,94%"
+- assertVisible: "Mais opções"
+- scrollUntilVisible:
+    element:
+      text: "Precificação"
+    direction: DOWN
+- tapOn: "Precificação"
+
+# Etapa 1 — insumos
+- extendedWaitUntil:
+    visible:
+      text: "Valor dos insumos (R$)"
+    timeout: 8000
+- tapOn:
+    below:
+      text: "Valor dos insumos (R$)"
+- inputText: "10,00"
+- scrollUntilVisible:
+    element:
+      text: "Próximo"
+    direction: DOWN
+- tapOn: "Próximo"
+
+# Etapa 2 — embalagem
+- tapOn:
+    below:
+      text: "Valor da embalagem (R$)"
+- inputText: "2,00"
+- scrollUntilVisible:
+    element:
+      text: "Próximo"
+    direction: DOWN
+- tapOn: "Próximo"
+
+# Etapa 3 — mão de obra (valor da hora)
+- tapOn:
+    below:
+      text: "Valor da sua hora de trabalho (R$)"
+- inputText: "20,00"
+- scrollUntilVisible:
+    element:
+      text: "Próximo"
+    direction: DOWN
+- tapOn: "Próximo"
+
+# Etapa 4 — custos fixos
+- tapOn:
+    below:
+      text: "Custos fixos mensais (R$)"
+- inputText: "300,00"
+- scrollUntilVisible:
+    element:
+      text: "Próximo"
+    direction: DOWN
+- tapOn: "Próximo"
+
+# Etapa 5 — margem -> resultado
+- tapOn: "50%"
+- scrollUntilVisible:
+    element:
+      text: "Ver resultado"
+    direction: DOWN
+- tapOn: "Ver resultado"
+
+# Resultado -> salvar
+- scrollUntilVisible:
+    element:
+      text: "Salvar cálculo"
+    direction: DOWN
+- tapOn: "Salvar cálculo"
+- extendedWaitUntil:
+    visible:
+      text: ".*(Cálculo salvo|salvo).*"
+    timeout: 10000
+- takeScreenshot: .maestro/screenshots/15-precificacao

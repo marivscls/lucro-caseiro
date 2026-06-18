@@ -1,0 +1,17 @@
+# 01 — Smoke: o app abre e renderiza a UI React Native.
+# Não precisa de credenciais. Valida build + emulador + Metro + Maestro.
+#
+# Dev client: `launchApp` cai no menu do expo-dev-client. Pra CARREGAR o app a
+# partir do Metro, abrimos via deep link do dev-client (porta 8083 = Metro local).
+appId: br.com.orionseven.lucrocaseiro
+name: 01 - Smoke (app abre)
+tags:
+  - smoke
+---
+- stopApp
+- openLink: "lucrocaseiro://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8083"
+- extendedWaitUntil:
+    visible:
+      text: "Que bom te ver!|Início"
+    timeout: 90000
+- takeScreenshot: .maestro/screenshots/01-app-aberto

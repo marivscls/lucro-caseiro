@@ -1,0 +1,62 @@
+# 04 — Navegação pelas telas do menu "Mais".
+# Abre algumas telas empilhadas (Stack) e volta, conferindo o título (header) de cada uma.
+# Cada tela tem header próprio (em src/app/_layout.tsx); "Mais opções" some ao entrar
+# e reaparece ao voltar — é o que prova a navegação.
+appId: br.com.orionseven.lucrocaseiro
+name: 04 - Navegacao telas do menu Mais
+tags:
+  - navigation
+---
+- runFlow:
+    file: ../subflows/open-app.yaml
+    env:
+      EMAIL: "${EMAIL}"
+      PASSWORD: "${PASSWORD}"
+
+# Aba "Mais" por coordenada (ícone ~90% x, ~94% y) — ver nota em 03-tabs-navigation.yaml.
+# `repeat` limitado lida com o LogBox do IAP (dev) que reaparece e intercepta o toque.
+- repeat:
+    times: 8
+    commands:
+      - runFlow:
+          when:
+            visible: "Dismiss"
+          commands:
+            - tapOn: "Dismiss"
+      - runFlow:
+          when:
+            notVisible: "Mais opções"
+          commands:
+            - tapOn:
+                point: "90%,94%"
+- assertVisible: "Mais opções"
+
+# Produtos
+- tapOn: "Produtos"
+- assertNotVisible: "Mais opções"
+- assertVisible: "Produtos"
+- back
+- assertVisible: "Mais opções"
+
+# Financeiro
+- tapOn: "Financeiro"
+- assertNotVisible: "Mais opções"
+- assertVisible: "Financeiro"
+- back
+- assertVisible: "Mais opções"
+
+# Receitas (mais abaixo na lista do menu -> rola até aparecer)
+- scrollUntilVisible:
+    element:
+      text: "Receitas"
+    direction: DOWN
+- tapOn: "Receitas"
+- assertNotVisible: "Mais opções"
+- assertVisible: "Receitas"
+- back
+# A lista ficou rolada pra baixo; volta ao topo pra confirmar o header "Mais opções".
+- scrollUntilVisible:
+    element:
+      text: "Mais opções"
+    direction: UP
+- assertVisible: "Mais opções"

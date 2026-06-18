@@ -57,5 +57,10 @@ lucro-caseiro-*.json
 # tooling cache
 *.tsbuildinfo
 
+# maestro e2e — credenciais (.env já coberto acima) e screenshots (artefatos de teste).
+# `**/` pra pegar também em apps/mobile/.maestro/ (não só na raiz).
+**/.maestro/.env
+**/.maestro/screenshots/
+
 # accidental root expo init
 /app.json

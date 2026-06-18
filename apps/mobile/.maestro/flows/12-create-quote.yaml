@@ -1,0 +1,62 @@
+# 12 — Criar orçamento (CRUD). Gera dado real.
+appId: br.com.orionseven.lucrocaseiro
+name: 12 - Criar orcamento
+tags:
+  - crud
+---
+- runFlow:
+    file: ../subflows/open-app.yaml
+    env:
+      EMAIL: "${EMAIL}"
+      PASSWORD: "${PASSWORD}"
+
+# Mais -> Orçamentos
+- tapOn:
+    point: "90%,94%"
+- assertVisible: "Mais opções"
+- scrollUntilVisible:
+    element:
+      text: "Orçamentos"
+    direction: DOWN
+- tapOn: "Orçamentos"
+- scrollUntilVisible:
+    element:
+      text: "Novo orçamento"
+    direction: DOWN
+- tapOn: "Novo orçamento"
+
+# Form
+- extendedWaitUntil:
+    visible:
+      text: "Criar orçamento"
+    timeout: 8000
+- tapOn:
+    below:
+      text: "Título"
+- inputText: "[e2e] Orcamento Teste"
+# Item 1: descrição (abaixo de "Itens"), depois Qtd (abaixo da descrição) e Preço
+# (à direita da Qtd) — esses inputs não têm label, só placeholder não-matchável.
+- tapOn:
+    below:
+      text: "Itens"
+- inputText: "Item teste"
+# Dispensa o teclado (toca o h3 "Itens") pra revelar a linha Qtd/Preço.
+# Qtd já vem com default 1; só preciso do preço (o input expõe o texto "Preço un.").
+- tapOn: "Itens"
+- tapOn: "Preço un."
+- inputText: "10,00"
+- tapOn: "Itens"
+
+# Salvar
+- scrollUntilVisible:
+    element:
+      text: "Criar orçamento"
+    direction: DOWN
+- tapOn: "Criar orçamento"
+
+# Sucesso: toast "Orçamento criado!" ou o item na lista (texto completo -> .*)
+- extendedWaitUntil:
+    visible:
+      text: ".*(Orcamento|Orçamento criado).*"
+    timeout: 12000
+- takeScreenshot: .maestro/screenshots/12-orcamento

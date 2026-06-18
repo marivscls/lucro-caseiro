@@ -1,0 +1,36 @@
+# 06 — Criar cliente (CRUD). Gera dado real na conta.
+# O campo "Nome do cliente" tem autoFocus -> dá pra digitar direto.
+appId: br.com.orionseven.lucrocaseiro
+name: 06 - Criar cliente
+tags:
+  - crud
+---
+- runFlow:
+    file: ../subflows/open-app.yaml
+    env:
+      EMAIL: "${EMAIL}"
+      PASSWORD: "${PASSWORD}"
+
+# Atalho "Cliente" na home -> tela de Clientes
+- tapOn: "Cliente"
+- assertVisible: "Novo cliente"
+- tapOn: "Novo cliente"
+
+# Modal (slide) -> espera assentar; o campo Nome já vem focado (autoFocus)
+- extendedWaitUntil:
+    visible:
+      text: "Cadastrar cliente"
+    timeout: 8000
+- inputText: "[e2e] Cliente Teste"
+
+# Salvar
+- scrollUntilVisible:
+    element:
+      text: "Cadastrar cliente"
+    direction: DOWN
+- tapOn: "Cadastrar cliente"
+
+# Sucesso
+- assertVisible: "Cliente cadastrado!"
+- tapOn: "OK"
+- takeScreenshot: .maestro/screenshots/06-cliente

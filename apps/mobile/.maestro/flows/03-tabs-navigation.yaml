@@ -1,0 +1,93 @@
+# 03 — Navegação entre as abas (Início, Vendas, Clientes, Mais).
+# Reaproveita a sessão se já estiver logado; senão faz login.
+#
+# Abas tocadas por COORDENADA (ícone, ~94% da altura): o rótulo fica na faixa de gesto
+# do sistema e não registra o toque. Centros x: Início 10%, Vendas 30%, (+) 50%,
+# Clientes 70%, Mais 90%.
+#
+# O LogBox de erro do IAP (dev/emulador, sem Google Play billing) é intermitente e
+# REAPARECE, sobrepondo a tab bar e interceptando o toque (expande pra tela cheia,
+# botão "Dismiss"). Por isso cada aba usa um `repeat` limitado: a cada iteração fecha o
+# LogBox se estiver aberto e toca a aba se ainda não chegou no destino — converge numa
+# janela limpa. (Numa tela limpa o point-tap navega — validado.)
+appId: br.com.orionseven.lucrocaseiro
+name: 03 - Navegacao entre abas
+tags:
+  - navigation
+---
+- runFlow:
+    file: ../subflows/open-app.yaml
+    env:
+      EMAIL: "${EMAIL}"
+      PASSWORD: "${PASSWORD}"
+
+# Vendas -> filtro "Todas" é exclusivo dessa tela
+- repeat:
+    times: 8
+    commands:
+      - runFlow:
+          when:
+            visible: "Dismiss"
+          commands:
+            - tapOn: "Dismiss"
+      - runFlow:
+          when:
+            notVisible: "Todas"
+          commands:
+            - tapOn:
+                point: "30%,94%"
+- assertVisible: "Todas"
+- takeScreenshot: .maestro/screenshots/03-vendas
+
+# Clientes -> busca exclusiva dessa tela
+- repeat:
+    times: 8
+    commands:
+      - runFlow:
+          when:
+            visible: "Dismiss"
+          commands:
+            - tapOn: "Dismiss"
+      - runFlow:
+          when:
+            notVisible: "Buscar por nome ou telefone..."
+          commands:
+            - tapOn:
+                point: "70%,94%"
+- assertVisible: "Buscar por nome ou telefone..."
+- takeScreenshot: .maestro/screenshots/03-clientes
+
+# Mais -> cabeçalho "Mais opções"
+- repeat:
+    times: 8
+    commands:
+      - runFlow:
+          when:
+            visible: "Dismiss"
+          commands:
+            - tapOn: "Dismiss"
+      - runFlow:
+          when:
+            notVisible: "Mais opções"
+          commands:
+            - tapOn:
+                point: "90%,94%"
+- assertVisible: "Mais opções"
+- takeScreenshot: .maestro/screenshots/03-mais
+
+# Volta pra Início -> card "VENDAS DE HOJE" (âncora estável da home, sem acento)
+- repeat:
+    times: 8
+    commands:
+      - runFlow:
+          when:
+            visible: "Dismiss"
+          commands:
+            - tapOn: "Dismiss"
+      - runFlow:
+          when:
+            notVisible: "VENDAS DE HOJE"
+          commands:
+            - tapOn:
+                point: "10%,94%"
+- assertVisible: "VENDAS DE HOJE"

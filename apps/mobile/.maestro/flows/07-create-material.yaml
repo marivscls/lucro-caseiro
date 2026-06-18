@@ -1,0 +1,51 @@
+# 07 — Criar insumo (CRUD). Gera dado real. Nome tem autoFocus; unidade é chip.
+appId: br.com.orionseven.lucrocaseiro
+name: 07 - Criar insumo
+tags:
+  - crud
+---
+- runFlow:
+    file: ../subflows/open-app.yaml
+    env:
+      EMAIL: "${EMAIL}"
+      PASSWORD: "${PASSWORD}"
+
+# Mais -> Insumos
+- tapOn:
+    point: "90%,94%"
+- assertVisible: "Mais opções"
+- scrollUntilVisible:
+    element:
+      text: "Insumos"
+    direction: DOWN
+- tapOn: "Insumos"
+- assertVisible: "Novo insumo"
+- tapOn: "Novo insumo"
+
+# Form (nome autoFocus)
+- extendedWaitUntil:
+    visible:
+      text: "Nome do insumo"
+    timeout: 8000
+- inputText: "[e2e] Insumo Teste"
+# Unidade (chip "un")
+- scrollUntilVisible:
+    element:
+      text: "Unidade"
+    direction: DOWN
+- tapOn:
+    text: "^un$"
+
+# Salvar
+- scrollUntilVisible:
+    element:
+      text: "Salvar insumo"
+    direction: DOWN
+- tapOn: "Salvar insumo"
+
+# Sucesso: o insumo aparece na lista
+- extendedWaitUntil:
+    visible:
+      text: "[e2e] Insumo Teste"
+    timeout: 10000
+- takeScreenshot: .maestro/screenshots/07-insumo

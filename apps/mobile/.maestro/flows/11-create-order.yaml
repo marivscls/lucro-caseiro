@@ -1,0 +1,48 @@
+# 11 — Criar encomenda (agenda). Gera dado real.
+appId: br.com.orionseven.lucrocaseiro
+name: 11 - Criar encomenda
+tags:
+  - crud
+---
+- runFlow:
+    file: ../subflows/open-app.yaml
+    env:
+      EMAIL: "${EMAIL}"
+      PASSWORD: "${PASSWORD}"
+
+# Atalho "Agenda" na home
+- tapOn: "Agenda"
+- assertVisible: "Agenda"
+- scrollUntilVisible:
+    element:
+      text: "Nova encomenda"
+    direction: DOWN
+- tapOn: "Nova encomenda"
+
+# Form: âncora "Fechar" (header fixo, sempre visível). O título tem autoFocus -> digita
+# direto. Labels com "*" aninhado não casam como visíveis; por isso não asserto neles.
+- extendedWaitUntil:
+    visible:
+      text: "Fechar"
+    timeout: 8000
+- inputText: "[e2e] Bolo teste"
+# Data de entrega -> chip "Hoje" (rola até aparecer acima do teclado)
+- scrollUntilVisible:
+    element:
+      text: "Hoje"
+    direction: DOWN
+- tapOn: "Hoje"
+
+# Salvar
+- scrollUntilVisible:
+    element:
+      text: "Salvar encomenda"
+    direction: DOWN
+- tapOn: "Salvar encomenda"
+
+# Sucesso: a encomenda aparece na agenda
+- extendedWaitUntil:
+    visible:
+      text: "[e2e] Bolo teste"
+    timeout: 10000
+- takeScreenshot: .maestro/screenshots/11-encomenda

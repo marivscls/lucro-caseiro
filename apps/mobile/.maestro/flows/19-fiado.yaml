@@ -1,0 +1,63 @@
+# 19 — Registra uma venda FIADO (com cliente + pagamento "Fiado"). Gera dado real.
+# NOTA: a ação de "receber" o fiado (tela Fiado "Recebi" / marcar a pendente como paga)
+# está PENDENTE: a venda fiado criada aqui não apareceu nem na tela Fiado nem na aba
+# Pendentes — é uma questão de domínio (status/visibilidade da venda fiado) a investigar.
+# Este flow cobre o caminho de PAGAMENTO fiado no fluxo de venda.
+appId: br.com.orionseven.lucrocaseiro
+name: 19 - Venda fiado
+tags:
+  - crud
+---
+- runFlow:
+    file: ../subflows/open-app.yaml
+    env:
+      EMAIL: "${EMAIL}"
+      PASSWORD: "${PASSWORD}"
+
+# 1) Registra uma venda fiado (com cliente)
+- tapOn: "Venda"
+- assertVisible: "O que você vai vender?"
+- tapOn: "[e2e] Brigadeiro teste"
+- tapOn: "Próximo"
+- assertVisible: "Selecione o cliente"
+- tapOn: "[e2e] Cliente Teste"
+- runFlow:
+    when:
+      notVisible: "Forma de pagamento"
+    commands:
+      - tapOn: "Próximo"
+- assertVisible: "Forma de pagamento"
+- tapOn: "Fiado"
+- runFlow:
+    when:
+      notVisible: "Registrar venda"
+    commands:
+      - tapOn: "Próximo"
+- tapOn: "Registrar venda"
+# anúncio intersticial (free) cobre o sucesso -> fecha no X. Espera o resultado
+# (sucesso, anúncio, ou a tela já resetada) e fecha o que aparecer.
+- extendedWaitUntil:
+    visible:
+      text: "Venda registrada!|Test Ad|Nova Venda"
+    timeout: 20000
+- repeat:
+    times: 8
+    commands:
+      - runFlow:
+          when:
+            visible: "Test Ad"
+          commands:
+            - tapOn:
+                point: "94%,3%"
+- runFlow:
+    when:
+      visible: "OK"
+    commands:
+      - tapOn: "OK"
+
+# 2) Confirma que a venda fiado foi registrada (o fluxo reseta pra etapa 1 "Nova Venda")
+- extendedWaitUntil:
+    visible:
+      text: ".*(Nova Venda|O que você vai vender).*"
+    timeout: 10000
+- takeScreenshot: .maestro/screenshots/19-venda-fiado

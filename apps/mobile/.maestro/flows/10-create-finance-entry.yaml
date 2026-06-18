@@ -1,0 +1,64 @@
+# 10 — Lançar financeiro (entrada). Gera dado real.
+appId: br.com.orionseven.lucrocaseiro
+name: 10 - Lancar financeiro
+tags:
+  - crud
+---
+- runFlow:
+    file: ../subflows/open-app.yaml
+    env:
+      EMAIL: "${EMAIL}"
+      PASSWORD: "${PASSWORD}"
+
+# Atalho "Finanças" na home
+- tapOn: "Finanças"
+- assertVisible: "Financeiro"
+# O botão de criar mostra "Novo" e "lançamento" em dois Texts; "lançamento" também
+# aparece em "Nenhum lançamento". Mira no "Novo" exato (único na tela).
+- scrollUntilVisible:
+    element:
+      text: "^Novo$"
+    direction: DOWN
+- tapOn:
+    text: "^Novo$"
+- extendedWaitUntil:
+    visible:
+      text: "Entrada"
+    timeout: 8000
+
+# Tipo de lançamento
+- tapOn: "Entrada"
+# Valor
+- tapOn:
+    below:
+      text: "Valor (R$)"
+- inputText: "25,00"
+# Descrição
+- scrollUntilVisible:
+    element:
+      text: "Descrição"
+    direction: DOWN
+- tapOn:
+    below:
+      text: "Descrição"
+- inputText: "[e2e] Lancamento teste"
+# Categoria
+- scrollUntilVisible:
+    element:
+      text: "Material"
+    direction: DOWN
+- tapOn: "Material"
+
+# Salvar
+- scrollUntilVisible:
+    element:
+      text: "Registrar lançamento"
+    direction: DOWN
+- tapOn: "Registrar lançamento"
+
+# Sucesso: o lançamento aparece na lista
+- extendedWaitUntil:
+    visible:
+      text: "[e2e] Lancamento teste"
+    timeout: 10000
+- takeScreenshot: .maestro/screenshots/10-financeiro

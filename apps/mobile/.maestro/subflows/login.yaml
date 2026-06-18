@@ -1,0 +1,21 @@
+# Subflow reutilizável: faz login com e-mail e senha.
+# Pré-condição: o app já está na tela de login ("Que bom te ver!").
+# Requer as variáveis EMAIL e PASSWORD (passadas via -e ou .maestro/.env).
+appId: br.com.orionseven.lucrocaseiro
+---
+- assertVisible: "Que bom te ver!"
+- tapOn: "seu@email.com"
+- inputText: "${EMAIL}"
+- tapOn: "Sua senha"
+- inputText: "${PASSWORD}"
+# Dispensa o teclado tocando no título — `hideKeyboard` manda Back e SAI do app
+# nesta tela. Isso revela o botão "Entrar", que fica sob o teclado.
+- tapOn: "Que bom te ver!"
+# Regex ancorada pra não bater no botão "Entrar com Google".
+- tapOn:
+    text: "^Entrar$"
+# Login faz request de rede + busca de perfil; espera a home aparecer.
+- extendedWaitUntil:
+    visible:
+      text: "Início"
+    timeout: 45000

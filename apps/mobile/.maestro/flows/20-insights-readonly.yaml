@@ -1,0 +1,21 @@
+# 20 — Insights (tela read-only; relatórios são gated no Premium no free).
+# Só valida que a tela carrega (dados básicos e/ou o upsell de Premium).
+appId: br.com.orionseven.lucrocaseiro
+name: 20 - Insights (read-only)
+tags:
+  - readonly
+---
+- runFlow:
+    file: ../subflows/open-app.yaml
+    env:
+      EMAIL: "${EMAIL}"
+      PASSWORD: "${PASSWORD}"
+
+# Atalho "Insights" na home
+- tapOn: "Insights"
+# Maestro casa o texto completo -> usa .* pra trecho
+- extendedWaitUntil:
+    visible:
+      text: ".*(FATURAMENTO|Desbloquear|Premium|Ticket|TICKET).*"
+    timeout: 10000
+- takeScreenshot: .maestro/screenshots/20-insights

@@ -1,0 +1,35 @@
+# 16 — Catálogo online: ativar (se inativo) e ver a tela de configuração.
+appId: br.com.orionseven.lucrocaseiro
+name: 16 - Catalogo
+tags:
+  - crud
+---
+- runFlow:
+    file: ../subflows/open-app.yaml
+    env:
+      EMAIL: "${EMAIL}"
+      PASSWORD: "${PASSWORD}"
+
+# Mais -> Catálogo online
+- tapOn:
+    point: "90%,94%"
+- assertVisible: "Mais opções"
+- scrollUntilVisible:
+    element:
+      text: "Catálogo online"
+    direction: DOWN
+- tapOn: "Catálogo online"
+
+# Se ainda inativo, ativa
+- runFlow:
+    when:
+      visible: "Ativar meu catálogo"
+    commands:
+      - tapOn: "Ativar meu catálogo"
+
+# Catálogo ativo: mostra o endereço/compartilhar (texto completo -> .*)
+- extendedWaitUntil:
+    visible:
+      text: ".*(Endereço do catálogo|WhatsApp|Compartilhar|catálogo).*"
+    timeout: 12000
+- takeScreenshot: .maestro/screenshots/16-catalogo

@@ -1,0 +1,7 @@
+# Configuração do workspace Maestro (E2E mobile — Lucro Caseiro).
+# Roda com: `maestro test apps/mobile/.maestro` (ou `pnpm e2e` dentro de apps/mobile).
+#
+# Os flows ficam em flows/ e rodam em ordem alfabética (por isso o prefixo 01-, 02-...).
+# Os reutilizáveis ficam em subflows/ e NÃO entram na suíte direto — são chamados via runFlow.
+flows:
+  - "flows/*.yaml"

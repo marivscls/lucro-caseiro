@@ -1,0 +1,23 @@
+# Subflow reutilizável: abre o app (via Metro), loga se necessário e deixa a home
+# pronta pra interagir (fecha o LogBox de erro do IAP, que sobrepõe a tab bar).
+# Dev client: `launchApp` cai no menu do expo-dev-client; por isso abrimos via deep
+# link apontando pro Metro (8083). Sem clearState (apagaria a URL do Metro / sessão).
+appId: br.com.orionseven.lucrocaseiro
+---
+- stopApp
+- openLink: "lucrocaseiro://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8083"
+- extendedWaitUntil:
+    visible:
+      text: "Que bom te ver!|Início"
+    timeout: 90000
+# Se caiu na tela de login, loga. Se a sessão já existe, segue pra home.
+- runFlow:
+    when:
+      visible: "Que bom te ver!"
+    file: login.yaml
+    env:
+      EMAIL: "${EMAIL}"
+      PASSWORD: "${PASSWORD}"
+- assertVisible: "Início"
+# Obs.: o LogBox de erro do IAP (dev/emulador) sobrepõe só a tab bar e é intermitente;
+# o tratamento fica nos flows que tocam abas (03/04), após cada toque.

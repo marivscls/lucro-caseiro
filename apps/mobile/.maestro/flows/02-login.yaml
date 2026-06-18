@@ -1,0 +1,24 @@
+# 02 — Login com e-mail e senha -> home.
+# Requer EMAIL e PASSWORD (veja .maestro/.env.example).
+# Dev client: abre via deep link (Metro 8083), sem clearState. Se já estiver logado
+# (sessão de uma run anterior), pula o login e confere a home mesmo assim.
+appId: br.com.orionseven.lucrocaseiro
+name: 02 - Login com e-mail
+tags:
+  - auth
+---
+- stopApp
+- openLink: "lucrocaseiro://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8083"
+- extendedWaitUntil:
+    visible:
+      text: "Que bom te ver!|Início"
+    timeout: 90000
+- runFlow:
+    when:
+      visible: "Que bom te ver!"
+    file: ../subflows/login.yaml
+    env:
+      EMAIL: "${EMAIL}"
+      PASSWORD: "${PASSWORD}"
+- assertVisible: "Início"
+- takeScreenshot: .maestro/screenshots/02-home
