@@ -36,9 +36,18 @@ function makeSale(overrides: Partial<Sale> = {}): Sale {
 
 function makeRepo(overrides: Partial<ISalesRepo> = {}): ISalesRepo {
   return {
-    create: (_userId: string, data: CreateSaleData, total: number) =>
+    create: (
+      _userId: string,
+      data: CreateSaleData,
+      total: number,
+      status: Sale["status"],
+    ) =>
       Promise.resolve(
-        makeSale({ total, paymentMethod: data.paymentMethod as Sale["paymentMethod"] }),
+        makeSale({
+          total,
+          paymentMethod: data.paymentMethod as Sale["paymentMethod"],
+          status,
+        }),
       ),
     findById: () => Promise.resolve(makeSale()),
     findAll: () => Promise.resolve({ items: [makeSale()], total: 1 }),
@@ -106,6 +115,27 @@ describe("SalesUseCases", () => {
       });
 
       expect(result.total).toBe(30);
+    });
+
+    it("cria venda fiado (credit) como pendente -> aparece no Fiado", async () => {
+      const { sut } = makeSut();
+      const result = await sut.createSale(USER_ID, {
+        paymentMethod: "credit",
+        items: [{ productId: "prod-1", quantity: 3, unitPrice: 10 }],
+      });
+
+      expect(result.status).toBe("pending");
+    });
+
+    it("cria venda paga (pix/cash/card/transfer) como paid", async () => {
+      const { sut } = makeSut();
+      for (const paymentMethod of ["pix", "cash", "card", "transfer"]) {
+        const result = await sut.createSale(USER_ID, {
+          paymentMethod,
+          items: [{ productId: "prod-1", quantity: 3, unitPrice: 10 }],
+        });
+        expect(result.status).toBe("paid");
+      }
     });
 
     it("throws ValidationError for empty items", async () => {

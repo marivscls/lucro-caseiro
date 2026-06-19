@@ -53,7 +53,12 @@ export interface IMaterialStockAdjuster {
 }
 
 export interface ISalesRepo {
-  create(userId: string, data: CreateSaleData, total: number): Promise<Sale>;
+  create(
+    userId: string,
+    data: CreateSaleData,
+    total: number,
+    status: SaleStatus,
+  ): Promise<Sale>;
   findById(userId: string, id: string): Promise<Sale | null>;
   findAll(
     userId: string,

@@ -15,13 +15,19 @@ type PaymentMethodColumn = "pix" | "cash" | "card" | "credit" | "transfer";
 export class SalesRepoPg implements ISalesRepo {
   constructor(private db: AppDatabase) {}
 
-  async create(userId: string, data: CreateSaleData, total: number): Promise<Sale> {
+  async create(
+    userId: string,
+    data: CreateSaleData,
+    total: number,
+    status: SaleStatus,
+  ): Promise<Sale> {
     const [saleRow] = await this.db
       .insert(sales)
       .values({
         userId,
         clientId: data.clientId ?? null,
         paymentMethod: data.paymentMethod as PaymentMethodColumn,
+        status,
         total: String(total),
         notes: data.notes ?? null,
         soldAt: data.soldAt ? new Date(data.soldAt) : new Date(),

@@ -3,7 +3,12 @@ import type { Sale, SaleStatus } from "@lucro-caseiro/contracts";
 import { NotFoundError, ValidationError } from "../../shared/errors";
 import { paginationMeta } from "../../shared/helpers/paginate";
 import type { IProductsRepo } from "../products/products.types";
-import { calculateSaleTotal, canCancelSale, validateSaleItems } from "./sales.domain";
+import {
+  calculateSaleTotal,
+  canCancelSale,
+  initialSaleStatus,
+  validateSaleItems,
+} from "./sales.domain";
 import type {
   CreateSaleData,
   DaySummary,
@@ -80,7 +85,9 @@ export class SalesUseCases {
       }
     }
 
-    const sale = await this.repo.create(userId, data, total);
+    // "credit" (fiado) nasce pendente -> aparece no Fiado; demais formas, pagas.
+    const status = initialSaleStatus(data.paymentMethod);
+    const sale = await this.repo.create(userId, data, total, status);
     await this.consumeMaterials(userId, data.items);
     return sale;
   }

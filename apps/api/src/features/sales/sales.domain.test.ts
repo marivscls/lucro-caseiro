@@ -4,6 +4,7 @@ import {
   buildDaySummary,
   calculateSaleTotal,
   canCancelSale,
+  initialSaleStatus,
   validateSaleItems,
 } from "./sales.domain";
 import type { SaleItemData } from "./sales.types";
@@ -125,5 +126,18 @@ describe("buildDaySummary", () => {
       totalAmount: 0,
       averageTicket: 0,
     });
+  });
+});
+
+describe("initialSaleStatus", () => {
+  it("fiado (credit) nasce pendente", () => {
+    expect(initialSaleStatus("credit")).toBe("pending");
+  });
+
+  it("demais formas de pagamento nascem pagas", () => {
+    expect(initialSaleStatus("pix")).toBe("paid");
+    expect(initialSaleStatus("cash")).toBe("paid");
+    expect(initialSaleStatus("card")).toBe("paid");
+    expect(initialSaleStatus("transfer")).toBe("paid");
   });
 });

@@ -33,6 +33,15 @@ export function canCancelSale(status: SaleStatus): boolean {
   return status !== "cancelled";
 }
 
+/**
+ * Status inicial da venda a partir da forma de pagamento. "credit" (fiado / pagar
+ * depois) nasce PENDENTE — é uma dívida em aberto que aparece na tela Fiado; as demais
+ * formas (pix, dinheiro, cartão, transferência) já entram como pagas.
+ */
+export function initialSaleStatus(paymentMethod: string): SaleStatus {
+  return paymentMethod === "credit" ? "pending" : "paid";
+}
+
 export function buildDaySummary(totalSales: number, totalAmount: number): DaySummary {
   return {
     totalSales,

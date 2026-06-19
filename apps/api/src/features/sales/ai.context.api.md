@@ -33,17 +33,17 @@ Gerenciar vendas do negocio caseiro, incluindo registro de itens vendidos, forma
 
 ### Tabela: `sales`
 
-| Coluna        | Tipo      | Constraints                                         |
-| ------------- | --------- | --------------------------------------------------- |
-| id            | uuid      | PK                                                  |
-| userId        | uuid      | FK users, NOT NULL                                  |
-| clientId      | uuid      | nullable, FK clients                                |
-| status        | enum      | "pending" \| "paid" \| "cancelled", default "paid"  |
-| paymentMethod | enum      | "pix" \| "cash" \| "card" \| "credit" \| "transfer" |
-| total         | decimal   | NOT NULL                                            |
-| notes         | text      | nullable                                            |
-| soldAt        | timestamp | default now()                                       |
-| createdAt     | timestamp | default now()                                       |
+| Coluna        | Tipo      | Constraints                                                              |
+| ------------- | --------- | ------------------------------------------------------------------------ |
+| id            | uuid      | PK                                                                       |
+| userId        | uuid      | FK users, NOT NULL                                                       |
+| clientId      | uuid      | nullable, FK clients                                                     |
+| status        | enum      | "pending" \| "paid" \| "cancelled" (DB default "paid"; ver regra abaixo) |
+| paymentMethod | enum      | "pix" \| "cash" \| "card" \| "credit" \| "transfer"                      |
+| total         | decimal   | NOT NULL                                                                 |
+| notes         | text      | nullable                                                                 |
+| soldAt        | timestamp | default now()                                                            |
+| createdAt     | timestamp | default now()                                                            |
 
 ### Tabela: `sale_items`
 
@@ -149,6 +149,10 @@ invariants:
 
 ## Events / Side effects
 
+- **Status inicial (invariante)**: `createSale` define o `status` a partir do `paymentMethod`
+  via `initialSaleStatus` (domínio) — `credit` (fiado / pagar depois) → `pending` (dívida em
+  aberto, aparece na tela Fiado e em Vendas > Pendentes); demais formas (pix/cash/card/transfer)
+  → `paid`. O default do schema (`paid`) é só fallback; a criação sempre passa o status explícito.
 - Ao criar venda: decrementa estoque dos produtos que tem `stockQuantity !== null` **e** `saleUnit !== 'kg'`
   (produtos por peso nao usam estoque por unidade — validacao e baixa sao puladas)
 - **Decimal quantity**: `sale_items.quantity` e `numeric(10,3)`; Drizzle retorna como string,
