@@ -23,7 +23,7 @@
       },
       "package": "br.com.orionseven.lucrocaseiro",
       "softwareKeyboardLayoutMode": "resize",
-      "permissions": ["android.permission.RECORD_AUDIO"]
+      "permissions": []
     },
     "web": {
       "bundler": "metro",
