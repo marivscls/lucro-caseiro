@@ -1,10 +1,8 @@
-# 19 — Registra uma venda FIADO (com cliente + pagamento "Fiado"). Gera dado real.
-# NOTA: a ação de "receber" o fiado (tela Fiado "Recebi" / marcar a pendente como paga)
-# está PENDENTE: a venda fiado criada aqui não apareceu nem na tela Fiado nem na aba
-# Pendentes — é uma questão de domínio (status/visibilidade da venda fiado) a investigar.
-# Este flow cobre o caminho de PAGAMENTO fiado no fluxo de venda.
+# 19 — Fiado: registra venda FIADO (com cliente) e marca "Recebi" na tela Fiado.
+# Depende do fix de backend (credit -> status "pending"): com ele, a venda fiado vira
+# dívida em aberto e aparece na tela Fiado. Requer a API (Railway) com o fix deployado.
 appId: br.com.orionseven.lucrocaseiro
-name: 19 - Venda fiado
+name: 19 - Fiado recebi
 tags:
   - crud
 ---
@@ -55,9 +53,30 @@ tags:
     commands:
       - tapOn: "OK"
 
-# 2) Confirma que a venda fiado foi registrada (o fluxo reseta pra etapa 1 "Nova Venda")
+# 2) Recarrega o app (refetch) e vai pro Fiado — com o fix, a venda credit vira pendente
+- runFlow:
+    file: ../subflows/open-app.yaml
+    env:
+      EMAIL: "${EMAIL}"
+      PASSWORD: "${PASSWORD}"
+- tapOn:
+    point: "90%,94%"
+- assertVisible: "Mais opções"
+- scrollUntilVisible:
+    element:
+      text: "Fiado"
+    direction: DOWN
+- tapOn: "Fiado"
+
+# 3) A dívida do cliente aparece -> marca "Recebi"
 - extendedWaitUntil:
     visible:
-      text: ".*(Nova Venda|O que você vai vender).*"
-    timeout: 10000
-- takeScreenshot: .maestro/screenshots/19-venda-fiado
+      text: "Recebi"
+    timeout: 12000
+- tapOn: "Recebi"
+- runFlow:
+    when:
+      visible: "Sim, recebi"
+    commands:
+      - tapOn: "Sim, recebi"
+- takeScreenshot: .maestro/screenshots/19-fiado

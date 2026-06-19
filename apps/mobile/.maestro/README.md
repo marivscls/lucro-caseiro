@@ -125,12 +125,14 @@ Funcionais (testados no emulador, geram dado real na conta free):
 05 produto · 06 cliente · 07 insumo · 08 receita (categoria modal + ingrediente + unidade) ·
 09 venda (4 steps + fecha anúncio AdMob) · 10 financeiro · 11 encomenda · 12 orçamento ·
 13 embalagem (+ valida limite freemium) · 14 rótulo · 15 precificação (wizard 5 etapas) ·
-16 catálogo · 17 editar perfil · 18 ações de venda (cancelar) · 19 venda fiado · 20 insights.
+16 catálogo · 17 editar perfil · 18 ações de venda (cancelar) ·
+19 fiado (registra venda fiado → aparece no Fiado → "Recebi") · 20 insights.
 
-**Gap conhecido:** o flow 19 cobre o REGISTRO da venda fiado, mas não a ação de "receber" o
-fiado (tela Fiado "Recebi" / marcar pendente como paga). A venda fiado criada não aparece nem
-na tela Fiado nem na aba Pendentes — é uma questão de domínio (status/visibilidade de venda
-fiado) a investigar em tabs/new-sale.tsx + a tela Fiado.
+**Bug encontrado e corrigido pelo E2E:** o flow 19 expôs que vendas com pagamento "Fiado"
+(`credit`) nasciam como `"paid"` (default do schema) em vez de `"pending"`, então **nunca
+apareciam na tela Fiado**. Corrigido em `fix(sales): credit (fiado) sales start as pending`
+(`initialSaleStatus` no domínio da API) e **verificado na tela** — a dívida aparece no Fiado
+e o "Recebi" funciona.
 
 App: o filtro dev-only do LogBox-IAP em [src/app/\_layout.tsx](../src/app/_layout.tsx) é
 necessário (senão o overlay vermelho do IAP trava a UI no emulador).
