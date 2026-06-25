@@ -404,4 +404,60 @@ describe("SalesUseCases", () => {
       expect(result).toBe(5);
     });
   });
+
+  describe("venda → caixa (financePoster)", () => {
+    function makeFinance() {
+      const poster = {
+        posted: [] as string[],
+        removed: [] as string[],
+        postSaleIncome: vi.fn((_u: string, saleId: string) => {
+          poster.posted.push(saleId);
+          return Promise.resolve();
+        }),
+        removeSaleIncome: vi.fn((_u: string, saleId: string) => {
+          poster.removed.push(saleId);
+          return Promise.resolve();
+        }),
+      };
+      return poster;
+    }
+
+    const items = [{ productId: "prod-1", quantity: 1, unitPrice: 10 }];
+
+    it("posts income when a paid sale is created", async () => {
+      const finance = makeFinance();
+      const sut = new SalesUseCases(makeRepo(), undefined, undefined, undefined, finance);
+      await sut.createSale(USER_ID, { paymentMethod: "pix", items });
+      expect(finance.posted).toEqual(["sale-1"]);
+    });
+
+    it("does NOT post income for a fiado (credit) sale", async () => {
+      const finance = makeFinance();
+      const sut = new SalesUseCases(makeRepo(), undefined, undefined, undefined, finance);
+      await sut.createSale(USER_ID, { paymentMethod: "credit", items });
+      expect(finance.posted).toEqual([]);
+    });
+
+    it("posts income when a pending sale is marked paid", async () => {
+      const finance = makeFinance();
+      const repo = makeRepo({
+        findById: () => Promise.resolve(makeSale({ status: "pending" })),
+        updateStatus: (_u, _i, status) => Promise.resolve(makeSale({ status })),
+      });
+      const sut = new SalesUseCases(repo, undefined, undefined, undefined, finance);
+      await sut.updateStatus(USER_ID, "sale-1", "paid");
+      expect(finance.posted).toEqual(["sale-1"]);
+    });
+
+    it("removes income when a paid sale is cancelled", async () => {
+      const finance = makeFinance();
+      const repo = makeRepo({
+        findById: () => Promise.resolve(makeSale({ status: "paid" })),
+        updateStatus: (_u, _i, status) => Promise.resolve(makeSale({ status })),
+      });
+      const sut = new SalesUseCases(repo, undefined, undefined, undefined, finance);
+      await sut.updateStatus(USER_ID, "sale-1", "cancelled");
+      expect(finance.removed).toEqual(["sale-1"]);
+    });
+  });
 });

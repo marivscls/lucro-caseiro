@@ -15,6 +15,7 @@ import type {
   FindAllSalesOpts,
   IMaterialStockAdjuster,
   IRecipeConsumptionProvider,
+  ISaleFinancePoster,
   ISalesRepo,
   SaleItemData,
   UpdateSaleData,
@@ -26,7 +27,37 @@ export class SalesUseCases {
     private productsRepo?: IProductsRepo,
     private recipeConsumption?: IRecipeConsumptionProvider,
     private materialStock?: IMaterialStockAdjuster,
+    private financePoster?: ISaleFinancePoster,
   ) {}
+
+  private saleDescription(sale: Sale): string {
+    return sale.clientName ? `Venda — ${sale.clientName}` : "Venda";
+  }
+
+  /** Entrada no caixa para uma venda paga. Best-effort: nunca bloqueia a venda. */
+  private async postIncome(userId: string, sale: Sale): Promise<void> {
+    if (!this.financePoster) return;
+    try {
+      await this.financePoster.postSaleIncome(
+        userId,
+        sale.id,
+        Number(sale.total),
+        this.saleDescription(sale),
+        sale.soldAt.slice(0, 10),
+      );
+    } catch {
+      // O lançamento no caixa nunca deve derrubar o registro/atualização da venda.
+    }
+  }
+
+  private async removeIncome(userId: string, saleId: string): Promise<void> {
+    if (!this.financePoster) return;
+    try {
+      await this.financePoster.removeSaleIncome(userId, saleId);
+    } catch {
+      // best-effort
+    }
+  }
 
   /**
    * Baixa automática dos insumos da receita de cada produto vendido
@@ -89,6 +120,10 @@ export class SalesUseCases {
     const status = initialSaleStatus(data.paymentMethod);
     const sale = await this.repo.create(userId, data, total, status);
     await this.consumeMaterials(userId, data.items);
+    // Venda paga já entra no caixa; fiado (pending) só quando for paga.
+    if (sale.status === "paid") {
+      await this.postIncome(userId, sale);
+    }
     return sale;
   }
 
@@ -139,6 +174,13 @@ export class SalesUseCases {
     if (!updated) {
       throw new NotFoundError("Venda não encontrada");
     }
+
+    // Se a venda está paga, re-sincroniza a entrada no caixa (total/cliente podem ter mudado).
+    if (updated.status === "paid") {
+      await this.removeIncome(userId, updated.id);
+      await this.postIncome(userId, updated);
+    }
+
     return updated;
   }
 
@@ -156,6 +198,14 @@ export class SalesUseCases {
     if (!updated) {
       throw new NotFoundError("Venda não encontrada");
     }
+
+    // Fiado pago agora entra no caixa; venda paga que é cancelada sai do caixa.
+    if (status === "paid" && existing.status !== "paid") {
+      await this.postIncome(userId, updated);
+    } else if (status === "cancelled" && existing.status === "paid") {
+      await this.removeIncome(userId, updated.id);
+    }
+
     return updated;
   }
 

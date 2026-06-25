@@ -122,6 +122,7 @@ const productsUseCases = new ProductsUseCases(productsRepo, {
 const clientsUseCases = new ClientsUseCases(clientsRepo);
 const suppliersUseCases = new SuppliersUseCases(suppliersRepo);
 const materialsUseCases = new MaterialsUseCases(materialsRepo);
+const financeUseCases = new FinanceUseCases(financeRepo);
 const salesUseCases = new SalesUseCases(
   salesRepo,
   productsRepo,
@@ -144,6 +145,8 @@ const salesUseCases = new SalesUseCases(
       await materialsUseCases.adjust(userId, materialId, delta);
     },
   },
+  // Venda paga → entrada automática no caixa (idempotente por saleId).
+  financeUseCases,
 );
 // Exclusao de conta: usa um client Supabase com service-role key para remover
 // o usuario do Auth. A key e opcional no boot; se ausente, deleteAuthUser lanca
@@ -173,7 +176,6 @@ const accountUseCases = new AccountUseCases(accountRepo, {
 const catalogUseCases = new CatalogUseCases(new CatalogRepoPg(db));
 // Conversao orcamento -> encomenda reusa o usecase de orders (injetado adiante).
 
-const financeUseCases = new FinanceUseCases(financeRepo);
 const purchasesUseCases = new PurchasesUseCases(purchasesRepo, financeUseCases);
 const ingredientsUseCases = new IngredientsUseCases(ingredientsRepo);
 const labelsUseCases = new LabelsUseCases(labelsRepo, async (userId) => {

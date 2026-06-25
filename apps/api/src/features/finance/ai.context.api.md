@@ -198,6 +198,10 @@ GET /api/v1/finance/export/pdf?month=2026-03
 - Criacao inicial com CRUD + summary mensal
 - Adicionado exportacao PDF e Excel
 - `createFromSale` permite Sales criar lancamentos automaticos
+- **venda→caixa automatico**: `postSaleIncome` (idempotente por `saleId` via `findBySaleId`) e
+  `removeSaleIncome` (`deleteBySaleId`) sao a porta usada por Sales (`ISaleFinancePoster`): venda
+  paga entra, fiado pago entra, venda paga cancelada sai. Antes o `createFromSale` existia mas
+  nao era chamado; agora Sales o aciona via essa porta.
 - `createFromPurchase` (Fase 3 de Fornecedores): Purchases cria um lancamento de **despesa**
   (type expense, categoria da compra) quando uma compra e paga. Sem `saleId`; a compra guarda o
   id retornado (`financeEntryId`) para idempotencia. Injetado via interface `IFinancePoster`.

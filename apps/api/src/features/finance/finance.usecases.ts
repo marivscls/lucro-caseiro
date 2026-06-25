@@ -111,6 +111,25 @@ export class FinanceUseCases {
     });
   }
 
+  // Venda → caixa (entrada). Idempotente: se já existe lançamento para a venda,
+  // não cria outro. Usado quando uma venda é paga (na criação ou no fiado→pago).
+  async postSaleIncome(
+    userId: string,
+    saleId: string,
+    amount: number,
+    description: string,
+    date: string,
+  ): Promise<void> {
+    const existing = await this.repo.findBySaleId(userId, saleId);
+    if (existing) return;
+    await this.createFromSale(userId, saleId, amount, description, date);
+  }
+
+  // Remove a entrada de uma venda (cancelamento de venda paga).
+  async removeSaleIncome(userId: string, saleId: string): Promise<void> {
+    await this.repo.deleteBySaleId(userId, saleId);
+  }
+
   // Lançamento de despesa gerado quando uma compra de fornecedor é paga.
   // A `purchases` feature guarda o id retornado para idempotência.
   async createFromPurchase(

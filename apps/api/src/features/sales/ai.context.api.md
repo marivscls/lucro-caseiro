@@ -11,12 +11,12 @@ Gerenciar vendas do negocio caseiro, incluindo registro de itens vendidos, forma
 - Nao emite nota fiscal ou recibo formal
 - Nao faz cobranca automatica (Pix, boleto, etc.)
 - Nao gerencia entregas ou logistica
-- Nao cria lancamento financeiro automaticamente (precisa ser chamado explicitamente via Finance.createFromSale)
+- Nao calcula precificacao nem fluxo de caixa projetado (so registra a entrada real no caixa)
 
 ## Boundaries & Ownership
 
 - **Depende de**: `@lucro-caseiro/contracts` (CreateSaleDto, UpdateSaleDto, UpdateSaleStatusDto, PaginationDto, Sale, SaleStatus), `@lucro-caseiro/database/schema` (sales, saleItems, products, clients), `IProductsRepo` de Products (para estoque)
-- **Dependentes**: Finance (pode receber lancamento via createFromSale), Subscription (conta vendas/mes para limites freemium)
+- **Dependentes**: Finance (recebe a ENTRADA no caixa automaticamente via `ISaleFinancePoster`), Subscription (conta vendas/mes para limites freemium)
 - **Cross-feature**: usa `IProductsRepo` diretamente para validar estoque e decrementar; recebe `IRecipeConsumptionProvider` (recipes) e `IMaterialStockAdjuster` (materials) para a baixa de insumos
 
 ## Code pointers
@@ -149,6 +149,11 @@ invariants:
 
 ## Events / Side effects
 
+- **Venda → caixa (entrada automatica)**: via `ISaleFinancePoster` injetado (FinanceUseCases).
+  Venda **paga** gera um lancamento de ENTRADA no caixa (idempotente por `saleId`, data = `soldAt`,
+  descricao "Venda — {cliente}"); **fiado/pending** NAO entra ate ser pago. `updateStatus`
+  pending→paid posta a entrada; paid→cancelled remove-a; `updateSale` em venda paga re-sincroniza.
+  Best-effort: falha no caixa nunca derruba a venda.
 - **Status inicial (invariante)**: `createSale` define o `status` a partir do `paymentMethod`
   via `initialSaleStatus` (domínio) — `credit` (fiado / pagar depois) → `pending` (dívida em
   aberto, aparece na tela Fiado e em Vendas > Pendentes); demais formas (pix/cash/card/transfer)

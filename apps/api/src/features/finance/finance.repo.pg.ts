@@ -117,6 +117,24 @@ export class FinanceRepoPg implements IFinanceRepo {
     return !!row;
   }
 
+  async findBySaleId(userId: string, saleId: string): Promise<FinanceEntry | null> {
+    const [row] = await this.db
+      .select()
+      .from(financeEntries)
+      .where(and(eq(financeEntries.userId, userId), eq(financeEntries.saleId, saleId)));
+
+    return row ? this.toFinanceEntry(row) : null;
+  }
+
+  async deleteBySaleId(userId: string, saleId: string): Promise<boolean> {
+    const rows = await this.db
+      .delete(financeEntries)
+      .where(and(eq(financeEntries.userId, userId), eq(financeEntries.saleId, saleId)))
+      .returning({ id: financeEntries.id });
+
+    return rows.length > 0;
+  }
+
   async getSummary(
     userId: string,
     startDate: string,

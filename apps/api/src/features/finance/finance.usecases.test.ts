@@ -39,6 +39,8 @@ function makeRepo(overrides: Partial<IFinanceRepo> = {}): IFinanceRepo {
     update: (_userId: string, _id: string, data: Partial<CreateFinanceEntryData>) =>
       Promise.resolve(makeEntry({ ...data })),
     delete: () => Promise.resolve(true),
+    findBySaleId: () => Promise.resolve(null),
+    deleteBySaleId: () => Promise.resolve(true),
     getSummary: () =>
       Promise.resolve({
         totalIncome: 1000,

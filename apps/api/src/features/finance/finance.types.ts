@@ -13,6 +13,9 @@ export interface IFinanceRepo {
     data: Partial<CreateFinanceEntryData>,
   ): Promise<FinanceEntry | null>;
   delete(userId: string, id: string): Promise<boolean>;
+  /** Lançamento de entrada vinculado a uma venda (idempotência de venda→caixa). */
+  findBySaleId(userId: string, saleId: string): Promise<FinanceEntry | null>;
+  deleteBySaleId(userId: string, saleId: string): Promise<boolean>;
   getSummary(
     userId: string,
     startDate: string,

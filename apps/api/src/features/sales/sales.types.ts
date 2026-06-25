@@ -52,6 +52,18 @@ export interface IMaterialStockAdjuster {
   adjustStock(userId: string, materialId: string, delta: number): Promise<void>;
 }
 
+/** Porta para o caixa (injetada da feature finance): venda paga → entrada. */
+export interface ISaleFinancePoster {
+  postSaleIncome(
+    userId: string,
+    saleId: string,
+    amount: number,
+    description: string,
+    date: string,
+  ): Promise<void>;
+  removeSaleIncome(userId: string, saleId: string): Promise<void>;
+}
+
 export interface ISalesRepo {
   create(
     userId: string,
