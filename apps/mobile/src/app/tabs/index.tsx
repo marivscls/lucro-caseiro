@@ -1,5 +1,5 @@
 import { formatCurrency } from "../../shared/utils/format";
-import { Card, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import { Badge, Card, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -289,6 +289,8 @@ export default function HomeScreen() {
   const monthProfit = financeSummary?.profit ?? 0;
   const upcomingDeliveries = orders ? upcomingCount(orders, new Date()) : 0;
   const hasSalesToday = (todaySummary?.totalSales ?? 0) > 0;
+  const isPremium = profile?.plan === "premium";
+  const birthdayCount = birthdays?.length ?? 0;
 
   const isWide = width >= 390;
   const isLoading = loadingSales || loadingGoal;
@@ -738,7 +740,7 @@ export default function HomeScreen() {
               )}
             </View>
 
-            {birthdaysEnabled && birthdays && birthdays.length > 0 && (
+            {birthdayCount > 0 && isPremium && birthdaysEnabled && birthdays && (
               <Card
                 variant="surface"
                 padding="xl"
@@ -765,6 +767,58 @@ export default function HomeScreen() {
                     {client.name} - {client.birthday}
                   </Typography>
                 ))}
+              </Card>
+            )}
+
+            {birthdayCount > 0 && !isPremium && (
+              <Card
+                variant="surface"
+                padding="xl"
+                onPress={() => showPaywall("birthdays")}
+                style={{
+                  ...cardStyle,
+                  borderLeftWidth: 3,
+                  borderLeftColor: theme.colors.premium,
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: spacing.sm,
+                  }}
+                >
+                  <Typography variant="h3" color={theme.colors.premium}>
+                    Aniversariantes do mês
+                  </Typography>
+                  <Badge label="Premium" variant="premium" />
+                </View>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: spacing.sm,
+                  }}
+                >
+                  <Ionicons name="lock-closed" size={18} color={theme.colors.premium} />
+                  <Typography
+                    variant="body"
+                    color={theme.colors.text}
+                    style={{ flex: 1 }}
+                  >
+                    {birthdayCount === 1
+                      ? "1 cliente faz aniversário este mês"
+                      : `${birthdayCount} clientes fazem aniversário este mês`}
+                  </Typography>
+                </View>
+                <Typography
+                  variant="bodyBold"
+                  color={theme.colors.primaryLight}
+                  style={{ marginTop: spacing.sm }}
+                >
+                  Desbloqueie pra ver e parabenizar →
+                </Typography>
               </Card>
             )}
 
