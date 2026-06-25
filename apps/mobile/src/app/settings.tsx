@@ -243,7 +243,7 @@ export default function SettingsScreen() {
               buttons: [
                 { text: "Cancelar", style: "cancel" },
                 {
-                  text: "Excluir minha conta",
+                  text: "Sim, excluir",
                   style: "destructive",
                   onPress: () => {
                     void runDeleteAccount();
