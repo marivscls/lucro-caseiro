@@ -1,7 +1,7 @@
 import { useLimits } from "../../features/subscription/hooks";
 import { usePaywall } from "./use-paywall";
 
-type Resource = "sales" | "clients" | "recipes" | "packaging" | "products";
+type Resource = "sales" | "clients" | "recipes" | "packaging" | "products" | "suppliers";
 
 const LIMIT_MAP: Record<Resource, { current: string; max: string }> = {
   sales: { current: "currentSalesThisMonth", max: "maxSalesPerMonth" },
@@ -9,6 +9,7 @@ const LIMIT_MAP: Record<Resource, { current: string; max: string }> = {
   recipes: { current: "currentRecipes", max: "maxRecipes" },
   packaging: { current: "currentPackaging", max: "maxPackaging" },
   products: { current: "currentProducts", max: "maxProducts" },
+  suppliers: { current: "currentSuppliers", max: "maxSuppliers" },
 };
 
 export function useLimitCheck(resource: Resource) {

@@ -15,3 +15,4 @@ export * from "./schemas/material";
 export * from "./schemas/insights";
 export * from "./schemas/catalog";
 export * from "./schemas/quote";
+export * from "./schemas/supplier";

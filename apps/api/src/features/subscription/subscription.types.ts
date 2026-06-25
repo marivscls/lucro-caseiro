@@ -26,6 +26,7 @@ export interface ResourceCounts {
   recipes: number;
   packaging: number;
   products: number;
+  suppliers: number;
 }
 
 export interface FreemiumConfig {
@@ -34,6 +35,7 @@ export interface FreemiumConfig {
   maxRecipes: number;
   maxPackaging: number;
   maxProducts: number;
+  maxSuppliers: number;
 }
 
 export interface AndroidPurchaseData {

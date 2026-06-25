@@ -1,7 +1,13 @@
 // Fonte da verdade das copys de limite/Premium (banner + paywall).
 // Tom: conquista, não restrição ("seu negócio está crescendo").
 
-export type LimitResource = "sales" | "clients" | "recipes" | "packaging" | "products";
+export type LimitResource =
+  | "sales"
+  | "clients"
+  | "recipes"
+  | "packaging"
+  | "products"
+  | "suppliers";
 
 interface ResourceCopy {
   /** Nome no plural usado na contagem ("Faltam 5 vendas"). */
@@ -68,6 +74,17 @@ const LIMIT_COPY: Record<LimitResource, ResourceCopy> = {
       body: "Continue organizando seus clientes sem limites.",
     },
   },
+  suppliers: {
+    plural: "fornecedores",
+    lastOne: {
+      title: "🤝 Falta apenas 1 fornecedor",
+      body: "Cadastre fornecedores ilimitados.",
+    },
+    atLimit: {
+      title: "🤝 Limite de fornecedores atingido",
+      body: "Organize todos os seus fornecedores sem limites.",
+    },
+  },
 };
 
 /** Copy do banner conforme quantos itens ainda restam no plano gratuito. */
@@ -103,6 +120,11 @@ const FEATURE_COPY: Record<string, { title: string; message: string }> = {
   labels: {
     title: "🏷️ Rótulos ilimitados",
     message: "Crie quantos templates de rótulo quiser com o Premium.",
+  },
+  birthdays: {
+    title: "🎂 Aniversários dos clientes",
+    message:
+      "Veja quem faz aniversário no mês e parabenize na hora certa pra fidelizar. Desbloqueie no Premium.",
   },
 };
 

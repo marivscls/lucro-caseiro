@@ -16,6 +16,9 @@ import { CatalogUseCases } from "./features/catalog/catalog.usecases";
 import { createClientsRouter } from "./features/clients/clients.routes";
 import { ClientsRepoPg } from "./features/clients/clients.repo.pg";
 import { ClientsUseCases } from "./features/clients/clients.usecases";
+import { createSuppliersRouter } from "./features/suppliers/suppliers.routes";
+import { SuppliersRepoPg } from "./features/suppliers/suppliers.repo.pg";
+import { SuppliersUseCases } from "./features/suppliers/suppliers.usecases";
 import { createFinanceRouter } from "./features/finance/finance.routes";
 import { FinanceRepoPg } from "./features/finance/finance.repo.pg";
 import { FinanceUseCases } from "./features/finance/finance.usecases";
@@ -81,6 +84,7 @@ setDb(db);
 // Repos
 const productsRepo = new ProductsRepoPg(db);
 const clientsRepo = new ClientsRepoPg(db);
+const suppliersRepo = new SuppliersRepoPg(db);
 const salesRepo = new SalesRepoPg(db);
 const financeRepo = new FinanceRepoPg(db);
 const recipesRepo = new RecipesRepoPg(db);
@@ -112,6 +116,7 @@ const productsUseCases = new ProductsUseCases(productsRepo, {
   },
 });
 const clientsUseCases = new ClientsUseCases(clientsRepo);
+const suppliersUseCases = new SuppliersUseCases(suppliersRepo);
 const materialsUseCases = new MaterialsUseCases(materialsRepo);
 const salesUseCases = new SalesUseCases(
   salesRepo,
@@ -226,6 +231,10 @@ app.use(
 app.use(
   "/api/v1/clients",
   createClientsRouter(clientsUseCases, freemiumGuard(subscriptionRepo, "clients")),
+);
+app.use(
+  "/api/v1/suppliers",
+  createSuppliersRouter(suppliersUseCases, freemiumGuard(subscriptionRepo, "suppliers")),
 );
 app.use(
   "/api/v1/sales",

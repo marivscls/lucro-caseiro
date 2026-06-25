@@ -17,6 +17,7 @@ const LABELS: Record<LimitResource, { current: string; max: string }> = {
   recipes: { current: "currentRecipes", max: "maxRecipes" },
   packaging: { current: "currentPackaging", max: "maxPackaging" },
   products: { current: "currentProducts", max: "maxProducts" },
+  suppliers: { current: "currentSuppliers", max: "maxSuppliers" },
 };
 
 export function LimitBanner({ resource, onUpgrade, containerStyle }: LimitBannerProps) {

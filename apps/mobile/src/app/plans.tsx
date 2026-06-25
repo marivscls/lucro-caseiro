@@ -152,6 +152,11 @@ export default function PlansScreen() {
                   current: limits.currentPackaging,
                   max: limits.maxPackaging,
                 },
+                {
+                  label: "Fornecedores",
+                  current: limits.currentSuppliers,
+                  max: limits.maxSuppliers,
+                },
               ]
                 .filter((item) => Number.isFinite(item.max))
                 .map((item) => {

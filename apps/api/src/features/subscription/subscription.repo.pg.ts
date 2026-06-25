@@ -5,6 +5,7 @@ import {
   products,
   recipes,
   sales,
+  suppliers,
   users,
 } from "@lucro-caseiro/database/schema";
 import { and, count, eq, gte } from "drizzle-orm";
@@ -82,29 +83,33 @@ export class SubscriptionRepoPg implements ISubscriptionRepo {
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    const [salesCount, clientsCount, recipesCount, packagingCount, productsCount] =
-      await Promise.all([
-        this.db
-          .select({ value: count() })
-          .from(sales)
-          .where(and(eq(sales.userId, userId), gte(sales.soldAt, startOfMonth))),
-        this.db
-          .select({ value: count() })
-          .from(clients)
-          .where(eq(clients.userId, userId)),
-        this.db
-          .select({ value: count() })
-          .from(recipes)
-          .where(eq(recipes.userId, userId)),
-        this.db
-          .select({ value: count() })
-          .from(packaging)
-          .where(eq(packaging.userId, userId)),
-        this.db
-          .select({ value: count() })
-          .from(products)
-          .where(and(eq(products.userId, userId), eq(products.isActive, true))),
-      ]);
+    const [
+      salesCount,
+      clientsCount,
+      recipesCount,
+      packagingCount,
+      productsCount,
+      suppliersCount,
+    ] = await Promise.all([
+      this.db
+        .select({ value: count() })
+        .from(sales)
+        .where(and(eq(sales.userId, userId), gte(sales.soldAt, startOfMonth))),
+      this.db.select({ value: count() }).from(clients).where(eq(clients.userId, userId)),
+      this.db.select({ value: count() }).from(recipes).where(eq(recipes.userId, userId)),
+      this.db
+        .select({ value: count() })
+        .from(packaging)
+        .where(eq(packaging.userId, userId)),
+      this.db
+        .select({ value: count() })
+        .from(products)
+        .where(and(eq(products.userId, userId), eq(products.isActive, true))),
+      this.db
+        .select({ value: count() })
+        .from(suppliers)
+        .where(eq(suppliers.userId, userId)),
+    ]);
 
     return {
       salesThisMonth: salesCount[0]?.value ?? 0,
@@ -112,6 +117,7 @@ export class SubscriptionRepoPg implements ISubscriptionRepo {
       recipes: recipesCount[0]?.value ?? 0,
       packaging: packagingCount[0]?.value ?? 0,
       products: productsCount[0]?.value ?? 0,
+      suppliers: suppliersCount[0]?.value ?? 0,
     };
   }
 
