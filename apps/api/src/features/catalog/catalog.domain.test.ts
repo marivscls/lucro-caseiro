@@ -44,9 +44,34 @@ describe("renderCatalogHtml", () => {
     name: "Bolo de Pote",
     description: "Chocolate com morango",
     photoUrl: null,
+    extraPhotos: [] as string[],
     salePrice: 12.5,
     saleUnit: "unit",
   };
+
+  it("renderiza galeria (scroll) quando o produto tem mais de uma foto", () => {
+    const html = renderCatalogHtml({
+      ...baseCatalog,
+      products: [
+        {
+          ...product,
+          photoUrl: "https://cdn.x/a.jpg",
+          extraPhotos: ["https://cdn.x/b.jpg", "https://cdn.x/c.jpg"],
+        },
+      ],
+    });
+    expect(html).toContain('class="gallery"');
+    expect(html).toContain("https://cdn.x/b.jpg");
+    expect(html).toContain("https://cdn.x/c.jpg");
+  });
+
+  it("sem foto extra usa imagem única (sem galeria)", () => {
+    const html = renderCatalogHtml({
+      ...baseCatalog,
+      products: [{ ...product, photoUrl: "https://cdn.x/a.jpg" }],
+    });
+    expect(html).not.toContain('class="gallery"');
+  });
   const baseCatalog = {
     businessName: "Doces",
     whatsapp: null,

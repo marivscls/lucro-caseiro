@@ -153,3 +153,7 @@ invariants:
   opcional renderizado como tira no topo da página pública (`.promo`, cor `palette.dark`).
   Mesmo gate Premium dos demais campos de personalização (`wantsCustomization` + null no
   público quando o dono não é premium).
+- 2026-06-25: **galeria de fotos do produto** — `PublicCatalogProduct.extraPhotos` (lido de
+  `products.extra_photos`); quando o produto tem mais de uma foto, o card renderiza um carrossel
+  horizontal `.gallery` (scroll-snap CSS puro, sem JS) com `[photoUrl, ...extraPhotos]`. Fotos
+  extras são geradas/limitadas na feature `products` (1 grátis / 3 Premium).

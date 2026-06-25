@@ -63,6 +63,8 @@ export const PublicCatalogProductDto = z.object({
   name: z.string(),
   description: z.string().nullable(),
   photoUrl: z.string().nullable(),
+  // Fotos adicionais (galeria) além da principal.
+  extraPhotos: z.array(z.string()),
   salePrice: z.number(),
   saleUnit: z.string(),
 });

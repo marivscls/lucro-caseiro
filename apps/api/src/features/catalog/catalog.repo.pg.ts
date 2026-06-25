@@ -82,6 +82,7 @@ export class CatalogRepoPg implements ICatalogRepo {
         name: products.name,
         description: products.description,
         photoUrl: products.photoUrl,
+        extraPhotos: products.extraPhotos,
         salePrice: products.salePrice,
         saleUnit: products.saleUnit,
       })
@@ -94,6 +95,7 @@ export class CatalogRepoPg implements ICatalogRepo {
       name: row.name,
       description: row.description,
       photoUrl: row.photoUrl,
+      extraPhotos: row.extraPhotos ?? [],
       salePrice: Number(row.salePrice),
       saleUnit: row.saleUnit,
     }));

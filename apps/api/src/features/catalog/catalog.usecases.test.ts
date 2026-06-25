@@ -39,6 +39,7 @@ function makeProduct(): PublicCatalogProduct {
     name: "Bolo de Pote",
     description: null,
     photoUrl: null,
+    extraPhotos: [],
     salePrice: 12.5,
     saleUnit: "unit",
   };

@@ -33,11 +33,12 @@ function escapeHtml(text: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function whatsappLink(phone: string, productName?: string): string {
+function whatsappLink(phone: string, productName?: string, priceLabel?: string): string {
   const digits = phone.replace(/\D/g, "");
   const number = digits.startsWith("55") ? digits : `55${digits}`;
+  const priceSuffix = priceLabel ? ` — ${priceLabel}` : "";
   const message = productName
-    ? `Olá! 😊 Vi seu catálogo e adorei. Gostaria de encomendar: *${productName}* 🛍️`
+    ? `Olá! 😊 Vi seu catálogo e adorei. Gostaria de encomendar: *${productName}${priceSuffix}* 🛍️`
     : "Olá! 😊 Vi seu catálogo e gostaria de fazer um pedido. 🛍️";
   return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
 }
@@ -45,15 +46,27 @@ function whatsappLink(phone: string, productName?: string): string {
 const WHATSAPP_ICON = `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.2 14.2c-.2.6-1.2 1.2-1.7 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.4l.9 2.2c.1.2.1.4 0 .6l-.4.6-.5.5c-.2.2-.3.4-.1.7.2.3.9 1.5 2 2.4 1.4 1.2 2.5 1.6 2.8 1.7.3.1.5.1.7-.1l1-1.1c.2-.3.4-.2.7-.1l2.1 1c.3.2.5.3.6.4 0 .1 0 .7-.2 1.3Z"/></svg>`;
 
 function productCard(product: PublicCatalogProduct, whatsapp: string | null): string {
-  const photo = product.photoUrl
-    ? `<img src="${escapeHtml(product.photoUrl)}" alt="${escapeHtml(product.name)}" loading="lazy">`
-    : `<div class="placeholder"><span>${escapeHtml(product.name.charAt(0).toUpperCase())}</span></div>`;
+  const allPhotos = [product.photoUrl, ...product.extraPhotos].filter(
+    (url): url is string => !!url,
+  );
+  const img = (url: string) =>
+    `<img src="${escapeHtml(url)}" alt="${escapeHtml(product.name)}" loading="lazy">`;
+  let photo: string;
+  if (allPhotos.length === 0) {
+    photo = `<div class="placeholder"><span>${escapeHtml(product.name.charAt(0).toUpperCase())}</span></div>`;
+  } else if (allPhotos.length === 1) {
+    photo = img(allPhotos[0]!);
+  } else {
+    // Tira de miniaturas: carrossel horizontal com scroll-snap (CSS puro, sem JS).
+    photo = `<div class="gallery">${allPhotos.map(img).join("")}</div>`;
+  }
   const unit = product.saleUnit === "kg" ? "/kg" : "";
   const description = product.description
     ? `<p class="desc">${escapeHtml(product.description)}</p>`
     : "";
+  const priceLabel = `${formatPrice(product.salePrice)}${unit}`;
   const orderButton = whatsapp
-    ? `<a class="order" href="${whatsappLink(whatsapp, product.name)}">${WHATSAPP_ICON}Pedir no WhatsApp</a>`
+    ? `<a class="order" href="${whatsappLink(whatsapp, product.name, priceLabel)}">${WHATSAPP_ICON}Pedir no WhatsApp</a>`
     : "";
   return `<article class="card"><div class="photo">${photo}</div><div class="info"><h2>${escapeHtml(product.name)}</h2>${description}<div class="bottom"><p class="price">${formatPrice(product.salePrice)}<span class="unit">${unit}</span></p>${orderButton}</div></div></article>`;
 }
@@ -197,6 +210,9 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   .card { background: #fffdfb; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(61, 43, 34, 0.12), 0 2px 6px rgba(61, 43, 34, 0.06); border: 1px solid rgba(140, 90, 69, 0.08); display: flex; flex-direction: column; transition: transform 0.15s ease; }
   .card:hover { transform: translateY(-2px); }
   .photo img { width: 100%; height: 200px; object-fit: cover; display: block; }
+  .gallery { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .gallery::-webkit-scrollbar { display: none; }
+  .gallery img { flex: 0 0 100%; scroll-snap-align: center; }
   .placeholder { width: 100%; height: 200px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f3e6dd, #e9d5c8); }
   .placeholder span { font-family: Georgia, serif; font-size: 64px; color: #b08368; }
   .info { padding: 18px 18px 20px; display: flex; flex-direction: column; flex: 1; }
