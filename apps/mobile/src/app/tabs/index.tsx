@@ -2,7 +2,7 @@ import { formatCurrency } from "../../shared/utils/format";
 import { Badge, Card, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -22,13 +22,14 @@ import { prolaboreMessage } from "../../features/goals/domain";
 import { useProlaboreStatus } from "../../features/goals/hooks";
 import { upcomingCount } from "../../features/orders/domain";
 import { useOrders } from "../../features/orders/hooks";
-import { useLowStockProducts } from "../../features/products/hooks";
-import { useTodaySummary } from "../../features/sales/hooks";
+import { useLowStockProducts, useProducts } from "../../features/products/hooks";
+import { useSales, useTodaySummary } from "../../features/sales/hooks";
 import { LimitBanner } from "../../features/subscription/components/limit-banner";
 import { useProfile } from "../../features/subscription/hooks";
 import { AdBanner } from "../../shared/components/ad-banner";
 import { useNotificationEnabled } from "../../shared/hooks/notification-prefs";
 import { NOTIFICATION_TYPES } from "../../shared/hooks/notification-types";
+import { useOnboarding } from "../../shared/hooks/use-onboarding";
 import { usePaywall } from "../../shared/hooks/use-paywall";
 
 function getMonthName(): string {
@@ -271,6 +272,133 @@ function TrendBadge() {
   );
 }
 
+/** Passo do checklist "Comece por aqui": marca sozinho quando a pessoa conclui. */
+function StartStep({
+  done,
+  index,
+  label,
+  onPress,
+}: Readonly<{ done: boolean; index: number; label: string; onPress: () => void }>) {
+  const { theme } = useTheme();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ checked: done }}
+      style={({ pressed }) => ({
+        flexDirection: "row",
+        alignItems: "center",
+        gap: spacing.md,
+        minHeight: 48,
+        opacity: pressed ? 0.7 : 1,
+      })}
+    >
+      <View
+        style={{
+          width: 30,
+          height: 30,
+          borderRadius: radii.full,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: done ? theme.colors.success : "transparent",
+          borderWidth: done ? 0 : 1.5,
+          borderColor: theme.colors.primaryLight,
+        }}
+      >
+        {done ? (
+          <Ionicons name="checkmark" size={18} color={theme.colors.textOnPrimary} />
+        ) : (
+          <Typography variant="bodyBold" color={theme.colors.primaryLight}>
+            {index}
+          </Typography>
+        )}
+      </View>
+      <Typography
+        variant="bodyBold"
+        numberOfLines={2}
+        style={{ flex: 1, textDecorationLine: done ? "line-through" : "none" }}
+        color={done ? theme.colors.textSecondary : theme.colors.text}
+      >
+        {label}
+      </Typography>
+      {!done && (
+        <Ionicons name="chevron-forward" size={20} color={theme.colors.primary} />
+      )}
+    </Pressable>
+  );
+}
+
+/** Onboarding leve da home: 2 passos pra ativar o usuário novo (estilo Kyte). */
+function GettingStartedCard({
+  hasProduct,
+  hasSale,
+  onDismiss,
+}: Readonly<{ hasProduct: boolean; hasSale: boolean; onDismiss: () => void }>) {
+  const { theme } = useTheme();
+  const router = useRouter();
+  return (
+    <Card
+      variant="surface"
+      padding="xl"
+      style={{
+        ...getCardStyle(theme),
+        borderLeftWidth: 3,
+        borderLeftColor: theme.colors.primary,
+        gap: spacing.md,
+      }}
+    >
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: spacing.sm,
+        }}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: spacing.sm,
+            flex: 1,
+          }}
+        >
+          <Ionicons name="sparkles" size={20} color={theme.colors.primary} />
+          <Typography variant="h3">Comece por aqui</Typography>
+        </View>
+        <Pressable
+          onPress={onDismiss}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Pular o guia"
+          style={{ minHeight: 48, justifyContent: "center" }}
+        >
+          <Typography variant="bodyBold" color={theme.colors.textSecondary}>
+            Pular
+          </Typography>
+        </Pressable>
+      </View>
+      <Typography variant="caption">
+        Dois passos rápidos pra deixar tudo pronto.
+      </Typography>
+      <View>
+        <StartStep
+          done={hasProduct}
+          index={1}
+          label="Cadastre seu primeiro produto"
+          onPress={() => router.push("/products")}
+        />
+        <StartStep
+          done={hasSale}
+          index={2}
+          label="Registre sua primeira venda"
+          onPress={() => router.push("/tabs/new-sale")}
+        />
+      </View>
+    </Card>
+  );
+}
+
 export default function HomeScreen() {
   const { theme } = useTheme();
   const router = useRouter();
@@ -282,6 +410,13 @@ export default function HomeScreen() {
   const { data: prolaboreData, isLoading: loadingGoal } = useProlaboreStatus();
   const { data: birthdays } = useBirthdays();
   const { data: lowStockProducts } = useLowStockProducts();
+  // ponytail: checklist de ativação reusa as listas (cacheadas) de produtos/vendas
+  // pra saber se cada passo já foi feito; um endpoint de contagem dedicado seria
+  // mais barato se a home ficar pesada.
+  const { data: productsData, isLoading: loadingProducts } = useProducts();
+  const { data: salesData, isLoading: loadingSalesList } = useSales();
+  const dismissedGettingStarted = useOnboarding((s) => s.dismissedGettingStarted);
+  const dismissGettingStarted = useOnboarding((s) => s.dismissGettingStarted);
   const lowStockEnabled = useNotificationEnabled(NOTIFICATION_TYPES.LOW_STOCK);
   const birthdaysEnabled = useNotificationEnabled(NOTIFICATION_TYPES.CLIENT_BIRTHDAY);
   const { data: orders } = useOrders();
@@ -291,6 +426,19 @@ export default function HomeScreen() {
   const hasSalesToday = (todaySummary?.totalSales ?? 0) > 0;
   const isPremium = profile?.plan === "premium";
   const birthdayCount = birthdays?.length ?? 0;
+
+  const hasProduct = (productsData?.items?.length ?? 0) > 0;
+  const hasSale = (salesData?.items?.length ?? 0) > 0;
+  const startSettled = !loadingProducts && !loadingSalesList;
+  const startDone = hasProduct && hasSale;
+  const showGettingStarted = !dismissedGettingStarted && startSettled && !startDone;
+
+  // Concluiu os dois passos → fecha o guia pra sempre (sem reaparecer).
+  useEffect(() => {
+    if (!dismissedGettingStarted && startSettled && startDone) {
+      dismissGettingStarted();
+    }
+  }, [dismissedGettingStarted, startSettled, startDone, dismissGettingStarted]);
 
   const isWide = width >= 390;
   const isLoading = loadingSales || loadingGoal;
@@ -368,6 +516,14 @@ export default function HomeScreen() {
         </View>
 
         <LimitBanner resource="sales" onUpgrade={() => showPaywall("sales")} />
+
+        {showGettingStarted && (
+          <GettingStartedCard
+            hasProduct={hasProduct}
+            hasSale={hasSale}
+            onDismiss={dismissGettingStarted}
+          />
+        )}
 
         <View style={{ flexDirection: "row", gap: spacing.md }}>
           <QuickAction
