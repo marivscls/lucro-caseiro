@@ -121,6 +121,11 @@ const FEATURE_COPY: Record<string, { title: string; message: string }> = {
     title: "🏷️ Rótulos ilimitados",
     message: "Crie quantos templates de rótulo quiser com o Premium.",
   },
+  productPhotos: {
+    title: "📸 Mais fotos do produto",
+    message:
+      "Mostre seu produto de vários ângulos com até 3 fotos. Desbloqueie no Premium.",
+  },
   birthdays: {
     title: "🎂 Aniversários dos clientes",
     message:

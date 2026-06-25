@@ -20,6 +20,7 @@ import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-awa
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { uploadProductImage } from "../../../shared/utils/upload-image";
 import { useCreateProduct, useProducts } from "../hooks";
+import { useProfile } from "../../subscription/hooks";
 import {
   ComponentPicker,
   draftsToComponents,
@@ -422,6 +423,88 @@ function DescriptionField({
   );
 }
 
+/** Fotos extras (galeria) além da principal. Total = principal + MAX_EXTRA_PHOTOS. */
+const MAX_EXTRA_PHOTOS = 2;
+
+function ExtraPhotosField({
+  uris,
+  onAdd,
+  onRemove,
+  max,
+  isPremium,
+}: Readonly<{
+  uris: string[];
+  onAdd: () => void;
+  onRemove: (index: number) => void;
+  max: number;
+  isPremium: boolean;
+}>) {
+  const { theme } = useTheme();
+  const pal = useFieldPalette();
+
+  return (
+    <View style={{ marginTop: spacing.md }}>
+      <FieldLabel label="Mais fotos" />
+      <Typography
+        variant="caption"
+        color={theme.colors.textSecondary}
+        style={{ marginTop: -spacing.xs, marginBottom: spacing.sm }}
+      >
+        {isPremium
+          ? `Mostre seu produto de vários ângulos (até ${max + 1} fotos no total).`
+          : `Adicione até ${max + 1} fotos por produto com o Premium.`}
+      </Typography>
+      <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
+        {uris.map((uri, index) => (
+          <View key={uri} style={{ position: "relative" }}>
+            <Image
+              source={{ uri }}
+              style={{ width: 80, height: 80, borderRadius: radii.md }}
+            />
+            <Pressable
+              onPress={() => onRemove(index)}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Remover foto"
+              style={{ position: "absolute", top: -8, right: -8 }}
+            >
+              <Ionicons name="close-circle" size={24} color={theme.colors.alert} />
+            </Pressable>
+          </View>
+        ))}
+        {uris.length < max && (
+          <Pressable
+            onPress={onAdd}
+            accessibilityRole="button"
+            accessibilityLabel="Adicionar mais uma foto"
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: radii.md,
+              borderWidth: 1.5,
+              borderStyle: "dashed",
+              borderColor: pal.border,
+              backgroundColor: pal.fieldBg,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Ionicons name="add" size={28} color={theme.colors.textSecondary} />
+            {!isPremium && (
+              <Ionicons
+                name="lock-closed"
+                size={12}
+                color={theme.colors.premium}
+                style={{ position: "absolute", top: 6, right: 6 }}
+              />
+            )}
+          </Pressable>
+        )}
+      </View>
+    </View>
+  );
+}
+
 export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
   const { theme } = useTheme();
   const [name, setName] = useState("");
@@ -437,6 +520,24 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
   const [components, setComponents] = useState<ComponentDraft[]>([]);
   const { imageUri, showPicker } = useImagePicker();
   const [uploading, setUploading] = useState(false);
+  const extraPicker = useImagePicker();
+  const [extraUris, setExtraUris] = useState<string[]>([]);
+  const { data: profile } = useProfile();
+  const isPremium = profile?.plan === "premium";
+
+  async function addExtraPhoto() {
+    if (!isPremium) {
+      showPaywall("productPhotos");
+      return;
+    }
+    if (extraUris.length >= MAX_EXTRA_PHOTOS) return;
+    const uri = await extraPicker.pickFromGallery();
+    if (uri) setExtraUris((prev) => [...prev, uri].slice(0, MAX_EXTRA_PHOTOS));
+  }
+
+  function removeExtraPhoto(index: number) {
+    setExtraUris((prev) => prev.filter((_, i) => i !== index));
+  }
 
   const createProduct = useCreateProduct();
   const { checkAndBlock: checkProductLimit } = useLimitCheck("products");
@@ -488,6 +589,24 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
       }
     }
 
+    // Sobe as fotos extras (galeria). Mantém as que subirem; se nenhuma subir,
+    // salva sem elas (o produto fica com a foto principal).
+    let extraPhotos: string[] | undefined;
+    if (extraUris.length > 0) {
+      try {
+        setUploading(true);
+        const settled = await Promise.allSettled(
+          extraUris.map((uri) => uploadProductImage(uri)),
+        );
+        const uploaded = settled
+          .filter((r): r is PromiseFulfilledResult<string> => r.status === "fulfilled")
+          .map((r) => r.value);
+        extraPhotos = uploaded.length > 0 ? uploaded : undefined;
+      } finally {
+        setUploading(false);
+      }
+    }
+
     try {
       await createProduct.mutateAsync({
         name: name.trim(),
@@ -496,6 +615,7 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
         saleUnit,
         description: description.trim() || undefined,
         photoUrl,
+        extraPhotos,
         code: code.trim() || undefined,
         // Estoque por unidades nao se aplica a venda por peso (kg).
         stockQuantity:
@@ -573,6 +693,14 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
         </View>
 
         <PhotoField imageUri={imageUri} onPress={showPicker} />
+
+        <ExtraPhotosField
+          uris={extraUris}
+          onAdd={() => void addExtraPhoto()}
+          onRemove={removeExtraPhoto}
+          max={MAX_EXTRA_PHOTOS}
+          isPremium={isPremium}
+        />
 
         <DescriptionField value={description} onChange={setDescription} />
 
