@@ -126,6 +126,9 @@ function PricingHistoryModal({
     if (all.length === 0) {
       return (
         <EmptyState
+          icon={
+            <Ionicons name="calculator-outline" size={48} color={theme.colors.primary} />
+          }
           title="Nenhum cálculo ainda"
           description="Faça uma precificação e toque em 'Salvar cálculo' para ver o histórico aqui."
         />
