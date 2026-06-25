@@ -67,6 +67,7 @@ export class CatalogRepoPg implements ICatalogRepo {
           accentColor: values.accentColor,
           pattern: values.pattern,
           tagline: values.tagline,
+          promoBanner: values.promoBanner,
           updatedAt: values.updatedAt,
         },
       })
@@ -133,6 +134,7 @@ export class CatalogRepoPg implements ICatalogRepo {
         ? (row.pattern as CatalogSettings["pattern"])
         : null,
       tagline: row.tagline,
+      promoBanner: row.promoBanner,
       updatedAt: row.updatedAt.toISOString(),
     };
   }

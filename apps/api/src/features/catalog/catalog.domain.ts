@@ -157,6 +157,9 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   const tagline = catalog.tagline
     ? `<p class="bio">${escapeHtml(catalog.tagline)}</p>`
     : "";
+  const promoStrip = catalog.promoBanner
+    ? `<div class="promo">${escapeHtml(catalog.promoBanner)}</div>`
+    : "";
   const hiddenCount = catalog.totalProducts - count;
   const moreNote =
     hiddenCount > 0
@@ -179,6 +182,7 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   :root { color-scheme: light; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: ${palette.bg}; color: #3d2b22; -webkit-font-smoothing: antialiased; }
+  .promo { background: ${palette.dark}; color: #fff; text-align: center; font-size: 14px; font-weight: 700; padding: 11px 16px; letter-spacing: 0.3px; }
   .hero-bg { ${heroBackground} padding: 44px 20px 72px; text-align: center; color: #fff; position: relative; overflow: hidden; }
   .bio { margin-top: 10px; font-size: 15px; line-height: 1.5; opacity: 0.92; max-width: 480px; margin-left: auto; margin-right: auto; position: relative; z-index: 1; }
   .hero-bg::before { content: ""; position: absolute; top: -60px; right: -60px; width: 220px; height: 220px; border-radius: 50%; background: rgba(255,255,255,0.06); }
@@ -217,6 +221,7 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
 </style>
 </head>
 <body>
+${promoStrip}
 <div class="hero-bg">
   ${patternOverlay}
   ${avatar}

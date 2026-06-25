@@ -207,6 +207,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
   const [slug, setSlug] = useState(settings.slug);
   const [whatsapp, setWhatsapp] = useState(settings.whatsapp ?? "");
   const [tagline, setTagline] = useState(settings.tagline ?? "");
+  const [promo, setPromo] = useState(settings.promoBanner ?? "");
   const isCustomColor = !!settings.accentColor && settings.accentColor.startsWith("#");
   const [colorModalVisible, setColorModalVisible] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
@@ -230,7 +231,8 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
     setSlug(settings.slug);
     setWhatsapp(settings.whatsapp ?? "");
     setTagline(settings.tagline ?? "");
-  }, [settings.slug, settings.whatsapp, settings.tagline]);
+    setPromo(settings.promoBanner ?? "");
+  }, [settings.slug, settings.whatsapp, settings.tagline, settings.promoBanner]);
 
   const url = publicCatalogUrl(settings.slug);
 
@@ -329,8 +331,11 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
     const ok = await save({
       slug: slug.trim().toLowerCase(),
       whatsapp: whatsapp.trim() || null,
-      // Tagline so entra no payload para premium (o backend bloqueia no free).
-      ...(isPremium ? { tagline: tagline.trim() || null } : {}),
+      // Tagline e faixa promocional so entram no payload para premium (o backend
+      // bloqueia no free).
+      ...(isPremium
+        ? { tagline: tagline.trim() || null, promoBanner: promo.trim() || null }
+        : {}),
     });
     if (ok) {
       showToast("Configurações salvas!");
@@ -848,6 +853,15 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                     onChangeText={setTagline}
                     placeholder="Bolos artesanais feitos com amor 🧁"
                     maxLength={120}
+                  />
+
+                  {/* Faixa promocional (topo do catálogo) */}
+                  <Input
+                    label="Faixa promocional"
+                    value={promo}
+                    onChangeText={setPromo}
+                    placeholder="Frete grátis hoje 🚚"
+                    maxLength={60}
                   />
                 </>
               )}

@@ -14,7 +14,8 @@ function wantsCustomization(data: UpdateCatalogSettings): boolean {
     data.logoUrl !== undefined ||
     data.accentColor !== undefined ||
     data.pattern !== undefined ||
-    data.tagline !== undefined
+    data.tagline !== undefined ||
+    data.promoBanner !== undefined
   );
 }
 
@@ -46,6 +47,7 @@ export class CatalogUseCases {
       accentColor: null,
       pattern: null,
       tagline: null,
+      promoBanner: null,
     });
   }
 
@@ -85,6 +87,8 @@ export class CatalogUseCases {
         data.accentColor === undefined ? current.accentColor : data.accentColor,
       pattern: data.pattern === undefined ? current.pattern : data.pattern,
       tagline: data.tagline === undefined ? current.tagline : data.tagline,
+      promoBanner:
+        data.promoBanner === undefined ? current.promoBanner : data.promoBanner,
     });
   }
 
@@ -110,6 +114,7 @@ export class CatalogUseCases {
       accentColor: isPremium ? owner.accentColor : null,
       pattern: isPremium ? owner.pattern : null,
       tagline: isPremium ? owner.tagline : null,
+      promoBanner: isPremium ? owner.promoBanner : null,
       products,
       totalProducts: allProducts.length,
     };

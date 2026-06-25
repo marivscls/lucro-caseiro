@@ -18,6 +18,7 @@ export const catalogSettings = pgTable(
     accentColor: text("accent_color"),
     pattern: text("pattern"),
     tagline: text("tagline"),
+    promoBanner: text("promo_banner"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("idx_catalog_settings_slug").on(table.slug)],

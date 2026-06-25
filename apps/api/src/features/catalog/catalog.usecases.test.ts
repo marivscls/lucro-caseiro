@@ -17,6 +17,7 @@ function makeSettings(overrides: Partial<CatalogSettings> = {}): CatalogSettings
     pattern: null,
     accentColor: null,
     tagline: null,
+    promoBanner: null,
     updatedAt: new Date().toISOString(),
     ...overrides,
   };
@@ -142,6 +143,9 @@ describe("CatalogUseCases.updateSettings", () => {
     await expect(
       sut.updateSettings(USER_ID, { tagline: "Feito com amor" }),
     ).rejects.toBeInstanceOf(LimitExceededError);
+    await expect(
+      sut.updateSettings(USER_ID, { promoBanner: "Frete grátis hoje" }),
+    ).rejects.toBeInstanceOf(LimitExceededError);
   });
 
   it("permite personalizacao para plano premium", async () => {
@@ -155,11 +159,13 @@ describe("CatalogUseCases.updateSettings", () => {
       accentColor: "rose",
       tagline: "Bolos artesanais",
       coverUrl: "https://cdn.x/capa.jpg",
+      promoBanner: "Frete grátis hoje",
     });
 
     expect(settings.accentColor).toBe("rose");
     expect(settings.tagline).toBe("Bolos artesanais");
     expect(settings.coverUrl).toBe("https://cdn.x/capa.jpg");
+    expect(settings.promoBanner).toBe("Frete grátis hoje");
   });
 
   it("campos basicos (slug/enabled/whatsapp) seguem livres no plano free", async () => {
@@ -236,6 +242,7 @@ describe("CatalogUseCases.getPublicCatalog", () => {
               coverUrl: "https://cdn.x/capa.jpg",
               accentColor: "rose",
               tagline: "Feito com amor",
+              promoBanner: "Frete grátis hoje",
             }),
             ...makeOwner({ plan: "free" }),
           }),
@@ -247,6 +254,7 @@ describe("CatalogUseCases.getPublicCatalog", () => {
     expect(catalog.coverUrl).toBeNull();
     expect(catalog.accentColor).toBeNull();
     expect(catalog.tagline).toBeNull();
+    expect(catalog.promoBanner).toBeNull();
   });
 
   it("exibe personalizacao quando o dono e premium", async () => {
@@ -254,7 +262,11 @@ describe("CatalogUseCases.getPublicCatalog", () => {
       makeRepo({
         findOwnerBySlug: () =>
           Promise.resolve({
-            ...makeSettings({ accentColor: "rose", tagline: "Feito com amor" }),
+            ...makeSettings({
+              accentColor: "rose",
+              tagline: "Feito com amor",
+              promoBanner: "Frete grátis hoje",
+            }),
             ...makeOwner({ plan: "premium" }),
           }),
       }),
@@ -264,6 +276,7 @@ describe("CatalogUseCases.getPublicCatalog", () => {
 
     expect(catalog.accentColor).toBe("rose");
     expect(catalog.tagline).toBe("Feito com amor");
+    expect(catalog.promoBanner).toBe("Frete grátis hoje");
   });
 
   it("404 quando slug nao existe", async () => {

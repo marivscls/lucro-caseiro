@@ -36,6 +36,8 @@ export const CatalogSettingsDto = z.object({
   accentColor: CatalogAccentColor.nullable(),
   pattern: CatalogPattern.nullable(),
   tagline: z.string().nullable(),
+  // Faixa promocional opcional no topo do catalogo (ex.: "Frete gratis hoje").
+  promoBanner: z.string().nullable(),
   updatedAt: z.string().datetime(),
 });
 
@@ -51,6 +53,7 @@ export const UpdateCatalogSettingsDto = z.object({
   accentColor: CatalogAccentColor.nullable().optional(),
   pattern: CatalogPattern.nullable().optional(),
   tagline: z.string().max(120).nullable().optional(),
+  promoBanner: z.string().max(60).nullable().optional(),
 });
 
 export type UpdateCatalogSettings = z.infer<typeof UpdateCatalogSettingsDto>;
@@ -72,6 +75,7 @@ export const PublicCatalogDto = z.object({
   accentColor: CatalogAccentColor.nullable(),
   pattern: CatalogPattern.nullable(),
   tagline: z.string().nullable(),
+  promoBanner: z.string().nullable(),
   products: z.array(PublicCatalogProductDto),
   // Total real de produtos ativos (free mostra so os primeiros 5).
   totalProducts: z.number(),

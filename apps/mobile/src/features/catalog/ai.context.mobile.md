@@ -105,3 +105,5 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
   entre as estampas e a frase.
 - 2026-06-09: banner de upgrade para free ("Seu catálogo mostra até 3 produtos") com
   CTA para o paywall, refletindo o limite de 3 produtos aplicado no backend (reduzido de 5→3 em 2026-06-16).
+- 2026-06-25: campo "Faixa promocional" (máx 60) no card Aparência, abaixo da frase —
+  salva junto no payload só se premium (`promoBanner`); vira tira no topo do catálogo público.

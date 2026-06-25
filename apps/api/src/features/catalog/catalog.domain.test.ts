@@ -55,9 +55,23 @@ describe("renderCatalogHtml", () => {
     accentColor: null,
     pattern: null,
     tagline: null,
+    promoBanner: null,
     products: [] as (typeof product)[],
     totalProducts: 0,
   };
+
+  it("renderiza a faixa promocional quando definida", () => {
+    const html = renderCatalogHtml({
+      ...baseCatalog,
+      promoBanner: "Frete grátis hoje 🚚",
+    });
+    expect(html).toContain('<div class="promo">Frete grátis hoje 🚚</div>');
+  });
+
+  it("omite a faixa promocional quando ausente", () => {
+    const html = renderCatalogHtml(baseCatalog);
+    expect(html).not.toContain('class="promo"');
+  });
 
   it("mostra aviso quando ha mais produtos do que os exibidos (plano free)", () => {
     const html = renderCatalogHtml({

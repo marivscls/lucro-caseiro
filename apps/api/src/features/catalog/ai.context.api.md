@@ -85,9 +85,9 @@ invariants:
 
 ## Contracts (Zod/DTO)
 
-- `CatalogSettingsDto` — `{ slug, enabled, whatsapp, updatedAt }`
-- `UpdateCatalogSettingsDto` — `{ slug?, enabled?, whatsapp? }` (slug validado por regex)
-- `PublicCatalogDto` — `{ businessName, whatsapp, products[] }`
+- `CatalogSettingsDto` — `{ slug, enabled, whatsapp, coverUrl, logoUrl, accentColor, pattern, tagline, promoBanner, updatedAt }`
+- `UpdateCatalogSettingsDto` — `{ slug?, enabled?, whatsapp?, coverUrl?, logoUrl?, accentColor?, pattern?, tagline? (máx 120), promoBanner? (máx 60) }` (campos de personalização exigem Premium; slug validado por regex)
+- `PublicCatalogDto` — `{ businessName, whatsapp, coverUrl, logoUrl, accentColor, pattern, tagline, promoBanner, products[], totalProducts }`
 
 ## Errors
 
@@ -149,3 +149,7 @@ invariants:
   Rodapé ganhou a logo do app embutida em base64 (`catalog-logo.ts`).
 - 2026-06-10: estado vazio da página com cesta SVG inline da marca (antes emoji 🧺,
   que renderizava diferente por aparelho); logo do rodapé em chip claro com sombra.
+- 2026-06-25: **faixa promocional** (`promo_banner`, migration 023; máx 60 chars) — texto
+  opcional renderizado como tira no topo da página pública (`.promo`, cor `palette.dark`).
+  Mesmo gate Premium dos demais campos de personalização (`wantsCustomization` + null no
+  público quando o dono não é premium).

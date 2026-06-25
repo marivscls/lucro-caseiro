@@ -21,6 +21,7 @@ export interface CatalogSettingsData {
   accentColor: CatalogAccentColorValue | null;
   pattern: CatalogPatternKey | null;
   tagline: string | null;
+  promoBanner: string | null;
 }
 
 export interface ICatalogRepo {
