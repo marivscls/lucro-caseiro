@@ -1,8 +1,11 @@
 import type {
   CreateFinanceEntry,
+  CreateRecurringExpense,
   FinanceEntry,
   FinanceSummary,
+  RecurringExpense,
   UpdateFinanceEntry,
+  UpdateRecurringExpense,
 } from "@lucro-caseiro/contracts";
 
 import { apiClient } from "../../shared/utils/api-client";
@@ -68,6 +71,39 @@ export async function updateEntry(
 
 export async function deleteEntry(token: string, id: string): Promise<void> {
   await apiClient(`${BASE}/${id}`, { method: "DELETE", token });
+}
+
+// --- Gastos recorrentes ---
+
+export async function fetchRecurring(token: string): Promise<RecurringExpense[]> {
+  return apiClient<RecurringExpense[]>(`${BASE}/recurring`, { token });
+}
+
+export async function createRecurring(
+  token: string,
+  data: CreateRecurringExpense,
+): Promise<RecurringExpense> {
+  return apiClient<RecurringExpense>(`${BASE}/recurring`, {
+    method: "POST",
+    body: data,
+    token,
+  });
+}
+
+export async function updateRecurring(
+  token: string,
+  id: string,
+  data: UpdateRecurringExpense,
+): Promise<RecurringExpense> {
+  return apiClient<RecurringExpense>(`${BASE}/recurring/${id}`, {
+    method: "PATCH",
+    body: data,
+    token,
+  });
+}
+
+export async function deleteRecurring(token: string, id: string): Promise<void> {
+  await apiClient(`${BASE}/recurring/${id}`, { method: "DELETE", token });
 }
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3001";

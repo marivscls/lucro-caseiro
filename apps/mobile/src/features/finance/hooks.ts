@@ -1,10 +1,26 @@
-import type { CreateFinanceEntry, UpdateFinanceEntry } from "@lucro-caseiro/contracts";
+import type {
+  CreateFinanceEntry,
+  CreateRecurringExpense,
+  UpdateFinanceEntry,
+  UpdateRecurringExpense,
+} from "@lucro-caseiro/contracts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "../../shared/hooks/use-auth";
-import { createEntry, deleteEntry, fetchEntries, fetchSummary, updateEntry } from "./api";
+import {
+  createEntry,
+  createRecurring,
+  deleteEntry,
+  deleteRecurring,
+  fetchEntries,
+  fetchRecurring,
+  fetchSummary,
+  updateEntry,
+  updateRecurring,
+} from "./api";
 
 const FINANCE_KEY = ["finance"];
+const RECURRING_KEY = ["finance", "recurring"];
 
 export function useFinanceEntries(opts?: {
   page?: number;
@@ -57,6 +73,51 @@ export function useDeleteFinanceEntry() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => deleteEntry(token!, id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: FINANCE_KEY });
+    },
+  });
+}
+
+// --- Gastos recorrentes ---
+
+export function useRecurringExpenses() {
+  const { token } = useAuth();
+  return useQuery({
+    queryKey: RECURRING_KEY,
+    queryFn: () => fetchRecurring(token!),
+    enabled: !!token,
+  });
+}
+
+export function useCreateRecurring() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateRecurringExpense) => createRecurring(token!, data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: FINANCE_KEY });
+    },
+  });
+}
+
+export function useUpdateRecurring() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateRecurringExpense }) =>
+      updateRecurring(token!, id, data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: FINANCE_KEY });
+    },
+  });
+}
+
+export function useDeleteRecurring() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deleteRecurring(token!, id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: FINANCE_KEY });
     },

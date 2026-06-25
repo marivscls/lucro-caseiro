@@ -126,6 +126,11 @@ const FEATURE_COPY: Record<string, { title: string; message: string }> = {
     message:
       "Mostre seu produto de vários ângulos com até 3 fotos. Desbloqueie no Premium.",
   },
+  recurring: {
+    title: "🔁 Gastos fixos no automático",
+    message:
+      "Cadastre aluguel, internet e outros custos mensais e deixe o app lançar sozinho no seu caixa. Desbloqueie no Premium.",
+  },
   birthdays: {
     title: "🎂 Aniversários dos clientes",
     message:

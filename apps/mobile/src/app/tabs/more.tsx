@@ -21,6 +21,12 @@ const menuItems = [
     route: "/finance" as const,
   },
   {
+    title: "Gastos fixos",
+    description: "Custos mensais no automático",
+    icon: "repeat-outline" as const,
+    route: "/recurring-expenses" as const,
+  },
+  {
     title: "Orçamentos",
     description: "Monte, envie e aprove propostas",
     icon: "reader-outline" as const,
