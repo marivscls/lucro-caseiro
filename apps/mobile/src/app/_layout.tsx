@@ -1,9 +1,9 @@
-import { ThemeProvider, useTheme } from "@lucro-caseiro/ui";
+import { ThemeProvider, useTheme, type ThemeMode } from "@lucro-caseiro/ui";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useRef, useState } from "react";
-import { Modal, Platform } from "react-native";
+import { Modal, Platform, useColorScheme } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { useBirthdayNotifier } from "../features/clients/use-birthday-notifier";
@@ -12,6 +12,7 @@ import { useLowStockNotifier } from "../features/products/use-low-stock-notifier
 import { useFiadoNotifier } from "../features/sales/use-fiado-notifier";
 import { useDailyReminderNotifier } from "../shared/hooks/use-daily-reminder-notifier";
 import { useNotificationPrefs } from "../shared/hooks/notification-prefs";
+import { useThemePref } from "../shared/hooks/theme-pref";
 import { useWeeklySummaryNotifier } from "../shared/hooks/use-weekly-summary-notifier";
 import { AlertHost } from "../shared/components/alert-host";
 import { BrandIntro } from "../shared/components/brand-intro";
@@ -136,7 +137,7 @@ function AppContent() {
 
   return (
     <>
-      <StatusBar style="light" />
+      <StatusBar style={theme.mode === "dark" ? "light" : "dark"} />
       <OfflineBanner />
       <ToastHost />
       <AlertHost />
@@ -325,9 +326,26 @@ export default function RootLayout() {
       }),
   );
 
+  // Tema salvo no aparelho: hidrata antes de montar o ThemeProvider para não
+  // montar com o modo errado e trocar depois (flash). Default = segue o sistema.
+  const themeLoaded = useThemePref((s) => s.loaded);
+  const storedMode = useThemePref((s) => s.mode);
+  const systemScheme = useColorScheme();
+  useEffect(() => {
+    void useThemePref.getState().hydrate();
+  }, []);
+
+  if (!themeLoaded) return null;
+
+  const initialMode: ThemeMode =
+    storedMode ?? (systemScheme === "light" ? "light" : "dark");
+
   return (
     <SafeAreaProvider>
-      <ThemeProvider initialMode="dark">
+      <ThemeProvider
+        initialMode={initialMode}
+        onModeChange={(m) => useThemePref.getState().setMode(m)}
+      >
         <QueryClientProvider client={queryClient}>
           <AppContent />
         </QueryClientProvider>

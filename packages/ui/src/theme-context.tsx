@@ -19,14 +19,21 @@ const ThemeContext = createContext<ThemeContextValue>({
 export function ThemeProvider({
   children,
   initialMode = "dark",
+  onModeChange,
 }: {
   children: ReactNode;
   initialMode?: ThemeMode;
+  /** Notifica cada troca de tema — use para persistir a escolha. */
+  onModeChange?: (mode: ThemeMode) => void;
 }) {
-  const [mode, setMode] = useState<ThemeMode>(initialMode);
+  const [mode, setModeState] = useState<ThemeMode>(initialMode);
   const theme = mode === "dark" ? darkTheme : lightTheme;
 
-  const toggleTheme = () => setMode((m) => (m === "dark" ? "light" : "dark"));
+  const setMode = (next: ThemeMode) => {
+    setModeState(next);
+    onModeChange?.(next);
+  };
+  const toggleTheme = () => setMode(mode === "dark" ? "light" : "dark");
 
   return (
     <ThemeContext.Provider value={{ theme, mode, toggleTheme, setMode }}>

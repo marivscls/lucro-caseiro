@@ -16,7 +16,7 @@ Gerenciar lancamentos financeiros (entradas e saidas) do negocio caseiro, com re
 ## Boundaries & Ownership
 
 - **Depende de**: `@lucro-caseiro/contracts` (CreateFinanceEntryDto, UpdateFinanceEntryDto, PaginationDto, FinanceEntry, FinanceSummary), `@lucro-caseiro/database/schema` (financeEntries), `pdfkit`, `exceljs`
-- **Dependentes**: Sales pode criar lancamentos via `createFromSale`
+- **Dependentes**: Sales pode criar lancamentos via `createFromSale`; Purchases cria lancamentos de despesa via `createFromPurchase` (porta `IFinancePoster`)
 - **Nao importa**: nenhuma outra feature interna
 
 ## Code pointers
@@ -198,5 +198,8 @@ GET /api/v1/finance/export/pdf?month=2026-03
 - Criacao inicial com CRUD + summary mensal
 - Adicionado exportacao PDF e Excel
 - `createFromSale` permite Sales criar lancamentos automaticos
+- `createFromPurchase` (Fase 3 de Fornecedores): Purchases cria um lancamento de **despesa**
+  (type expense, categoria da compra) quando uma compra e paga. Sem `saleId`; a compra guarda o
+  id retornado (`financeEntryId`) para idempotencia. Injetado via interface `IFinancePoster`.
 - Adicionado `isFixed` (migration 005) para separar gastos fixos x variaveis; filtro `?fixed=` na listagem e split `fixedExpenses`/`variableExpenses` no summary
 - 2026-06-16: **exportação é Premium** — `GET /export/pdf` e `/export/xlsx` passam por `requirePremium(subscriptionRepo)` (wired no main); plano free recebe `LimitExceededError` (403 LIMIT_EXCEEDED). `createFinanceRouter(useCases, exportGuard?)` aplica o guard só nas rotas de export. Lançar/listar/summary seguem livres (o app trava navegação de meses passados no front).

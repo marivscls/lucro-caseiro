@@ -57,6 +57,12 @@ const menuItems = [
     route: "/suppliers" as const,
   },
   {
+    title: "Compras",
+    description: "Contas a pagar e gastos",
+    icon: "cart-outline" as const,
+    route: "/purchases" as const,
+  },
+  {
     title: "Receitas",
     description: "Suas receitas e ingredientes",
     icon: "document-text-outline" as const,

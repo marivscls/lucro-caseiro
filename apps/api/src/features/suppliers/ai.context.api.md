@@ -16,7 +16,7 @@ Gerenciar o cadastro de fornecedores do negocio caseiro (nome, telefone, email, 
 ## Boundaries & Ownership
 
 - **Depende de**: `@lucro-caseiro/contracts` (CreateSupplierDto, UpdateSupplierDto, PaginationDto, Supplier), `@lucro-caseiro/database/schema` (suppliers table)
-- **Dependentes**: Subscription (conta fornecedores para limites freemium); Materials e Packaging referenciam `supplierId` (FK opcional, ON DELETE SET NULL — migration `021`); Purchases (fase futura)
+- **Dependentes**: Subscription (conta fornecedores para limites freemium); Materials e Packaging referenciam `supplierId` (FK opcional, ON DELETE SET NULL — migration `021`); Purchases referencia `supplierId` (FK opcional — migration `022`)
 - **Nao importa**: nenhuma outra feature interna
 
 ## Code pointers

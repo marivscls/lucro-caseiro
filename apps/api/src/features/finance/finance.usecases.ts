@@ -3,7 +3,12 @@ import type { FinanceEntry, FinanceSummary } from "@lucro-caseiro/contracts";
 import { NotFoundError, ValidationError } from "../../shared/errors";
 import { paginationMeta } from "../../shared/helpers/paginate";
 import { calculateProfit, validateFinanceEntry } from "./finance.domain";
-import type { CreateFinanceEntryData, FindAllOpts, IFinanceRepo } from "./finance.types";
+import type {
+  CreateFinanceEntryData,
+  FinanceCategory,
+  FindAllOpts,
+  IFinanceRepo,
+} from "./finance.types";
 
 export class FinanceUseCases {
   constructor(private repo: IFinanceRepo) {}
@@ -103,6 +108,24 @@ export class FinanceUseCases {
       description,
       date,
       saleId,
+    });
+  }
+
+  // Lançamento de despesa gerado quando uma compra de fornecedor é paga.
+  // A `purchases` feature guarda o id retornado para idempotência.
+  async createFromPurchase(
+    userId: string,
+    amount: number,
+    description: string,
+    date: string,
+    category: FinanceCategory,
+  ): Promise<FinanceEntry> {
+    return this.repo.create(userId, {
+      type: "expense",
+      category,
+      amount,
+      description,
+      date,
     });
   }
 }

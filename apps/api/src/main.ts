@@ -19,6 +19,9 @@ import { ClientsUseCases } from "./features/clients/clients.usecases";
 import { createSuppliersRouter } from "./features/suppliers/suppliers.routes";
 import { SuppliersRepoPg } from "./features/suppliers/suppliers.repo.pg";
 import { SuppliersUseCases } from "./features/suppliers/suppliers.usecases";
+import { createPurchasesRouter } from "./features/purchases/purchases.routes";
+import { PurchasesRepoPg } from "./features/purchases/purchases.repo.pg";
+import { PurchasesUseCases } from "./features/purchases/purchases.usecases";
 import { createFinanceRouter } from "./features/finance/finance.routes";
 import { FinanceRepoPg } from "./features/finance/finance.repo.pg";
 import { FinanceUseCases } from "./features/finance/finance.usecases";
@@ -85,6 +88,7 @@ setDb(db);
 const productsRepo = new ProductsRepoPg(db);
 const clientsRepo = new ClientsRepoPg(db);
 const suppliersRepo = new SuppliersRepoPg(db);
+const purchasesRepo = new PurchasesRepoPg(db);
 const salesRepo = new SalesRepoPg(db);
 const financeRepo = new FinanceRepoPg(db);
 const recipesRepo = new RecipesRepoPg(db);
@@ -170,6 +174,7 @@ const catalogUseCases = new CatalogUseCases(new CatalogRepoPg(db));
 // Conversao orcamento -> encomenda reusa o usecase de orders (injetado adiante).
 
 const financeUseCases = new FinanceUseCases(financeRepo);
+const purchasesUseCases = new PurchasesUseCases(purchasesRepo, financeUseCases);
 const ingredientsUseCases = new IngredientsUseCases(ingredientsRepo);
 const labelsUseCases = new LabelsUseCases(labelsRepo, async (userId) => {
   const profile = await subscriptionRepo.getProfile(userId);
@@ -236,6 +241,7 @@ app.use(
   "/api/v1/suppliers",
   createSuppliersRouter(suppliersUseCases, freemiumGuard(subscriptionRepo, "suppliers")),
 );
+app.use("/api/v1/purchases", createPurchasesRouter(purchasesUseCases));
 app.use(
   "/api/v1/sales",
   createSalesRouter(salesUseCases, freemiumGuard(subscriptionRepo, "sales")),
