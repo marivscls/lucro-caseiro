@@ -31,6 +31,36 @@ export const FinanceEntryDto = z.object({
 
 export type FinanceEntry = z.infer<typeof FinanceEntryDto>;
 
+// --- Gastos recorrentes (despesa fixa que se repete todo mês) ---
+
+export const CreateRecurringExpenseDto = z.object({
+  category: ExpenseCategory,
+  amount: z.number().positive().max(MAX_MONEY),
+  description: z.string().min(1).max(500),
+  // Dia do mês em que o gasto cai. 1–28 (evita meses curtos).
+  dayOfMonth: z.number().int().min(1).max(28).optional().default(1),
+});
+
+export type CreateRecurringExpense = z.infer<typeof CreateRecurringExpenseDto>;
+
+export const UpdateRecurringExpenseDto = CreateRecurringExpenseDto.partial().extend({
+  active: z.boolean().optional(),
+});
+export type UpdateRecurringExpense = z.infer<typeof UpdateRecurringExpenseDto>;
+
+export const RecurringExpenseDto = z.object({
+  id: z.string().uuid(),
+  userId: z.string().uuid(),
+  category: ExpenseCategory,
+  amount: z.number(),
+  description: z.string(),
+  dayOfMonth: z.number().int(),
+  active: z.boolean(),
+  createdAt: z.string().datetime(),
+});
+
+export type RecurringExpense = z.infer<typeof RecurringExpenseDto>;
+
 export const FinanceSummaryDto = z.object({
   totalIncome: z.number(),
   totalExpenses: z.number(),

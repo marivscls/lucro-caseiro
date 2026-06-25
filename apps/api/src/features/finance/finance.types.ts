@@ -1,4 +1,8 @@
-import type { FinanceEntry, FinanceSummary } from "@lucro-caseiro/contracts";
+import type {
+  FinanceEntry,
+  FinanceSummary,
+  RecurringExpense,
+} from "@lucro-caseiro/contracts";
 
 export interface IFinanceRepo {
   create(userId: string, data: CreateFinanceEntryData): Promise<FinanceEntry>;
@@ -21,6 +25,28 @@ export interface IFinanceRepo {
     startDate: string,
     endDate: string,
   ): Promise<Omit<FinanceSummary, "period">>;
+
+  // --- Gastos recorrentes ---
+  createRecurring(
+    userId: string,
+    data: CreateRecurringExpenseData,
+  ): Promise<RecurringExpense>;
+  findAllRecurring(userId: string): Promise<RecurringExpense[]>;
+  findRecurringById(userId: string, id: string): Promise<RecurringExpense | null>;
+  updateRecurring(
+    userId: string,
+    id: string,
+    data: Partial<CreateRecurringExpenseData> & { active?: boolean },
+  ): Promise<RecurringExpense | null>;
+  deleteRecurring(userId: string, id: string): Promise<boolean>;
+  /** Recorrências ativas do usuário (para gerar os lançamentos do mês). */
+  findActiveRecurring(userId: string): Promise<RecurringExpense[]>;
+  /** Ids de recorrências que já geraram lançamento no intervalo (idempotência). */
+  findGeneratedRecurringIds(
+    userId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<string[]>;
 }
 
 export type FinanceCategory =
@@ -41,6 +67,15 @@ export interface CreateFinanceEntryData {
   /** Apenas para despesas: fixo (recorrente) x variavel. Default false. */
   isFixed?: boolean;
   saleId?: string;
+  /** Quando o lançamento foi gerado por um gasto recorrente. */
+  recurringExpenseId?: string;
+}
+
+export interface CreateRecurringExpenseData {
+  category: FinanceCategory;
+  amount: number;
+  description: string;
+  dayOfMonth: number;
 }
 
 export interface FindAllOpts {

@@ -39,6 +39,8 @@ export const financeEntries = pgTable(
     // Apenas para despesas (type = "expense"): fixo (recorrente) x variavel.
     isFixed: boolean("is_fixed").notNull().default(false),
     saleId: uuid("sale_id").references(() => sales.id, { onDelete: "set null" }),
+    // Quando o lançamento foi gerado por um gasto recorrente (idempotência mensal).
+    recurringExpenseId: uuid("recurring_expense_id"),
     date: date("date").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },

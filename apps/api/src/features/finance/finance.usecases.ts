@@ -1,10 +1,20 @@
-import type { FinanceEntry, FinanceSummary } from "@lucro-caseiro/contracts";
+import type {
+  FinanceEntry,
+  FinanceSummary,
+  RecurringExpense,
+} from "@lucro-caseiro/contracts";
 
 import { NotFoundError, ValidationError } from "../../shared/errors";
 import { paginationMeta } from "../../shared/helpers/paginate";
-import { calculateProfit, validateFinanceEntry } from "./finance.domain";
+import {
+  calculateProfit,
+  recurringEntryDate,
+  validateFinanceEntry,
+  validateRecurringExpense,
+} from "./finance.domain";
 import type {
   CreateFinanceEntryData,
+  CreateRecurringExpenseData,
   FinanceCategory,
   FindAllOpts,
   IFinanceRepo,
@@ -85,6 +95,13 @@ export class FinanceUseCases {
     const lastDay = new Date(year, month, 0).getDate();
     const endDate = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
 
+    // Ao abrir o mês corrente, materializa os gastos recorrentes que ainda não
+    // caíram (idempotente). Só o mês corrente para não gerar em meses passados/futuros.
+    const now = new Date();
+    if (month === now.getMonth() + 1 && year === now.getFullYear()) {
+      await this.applyDueRecurring(userId, year, month);
+    }
+
     const summary = await this.repo.getSummary(userId, startDate, endDate);
 
     return {
@@ -146,5 +163,76 @@ export class FinanceUseCases {
       description,
       date,
     });
+  }
+
+  // --- Gastos recorrentes ---
+
+  async createRecurring(
+    userId: string,
+    data: CreateRecurringExpenseData,
+  ): Promise<RecurringExpense> {
+    const errors = validateRecurringExpense(data);
+    if (errors.length > 0) throw new ValidationError(errors);
+    return this.repo.createRecurring(userId, data);
+  }
+
+  async listRecurring(userId: string): Promise<RecurringExpense[]> {
+    return this.repo.findAllRecurring(userId);
+  }
+
+  async updateRecurring(
+    userId: string,
+    id: string,
+    data: Partial<CreateRecurringExpenseData> & { active?: boolean },
+  ): Promise<RecurringExpense> {
+    const existing = await this.repo.findRecurringById(userId, id);
+    if (!existing) throw new NotFoundError("Gasto recorrente não encontrado");
+
+    const errors = validateRecurringExpense({
+      amount: data.amount ?? existing.amount,
+      description: data.description ?? existing.description,
+      dayOfMonth: data.dayOfMonth ?? existing.dayOfMonth,
+    });
+    if (errors.length > 0) throw new ValidationError(errors);
+
+    const updated = await this.repo.updateRecurring(userId, id, data);
+    if (!updated) throw new NotFoundError("Gasto recorrente não encontrado");
+    return updated;
+  }
+
+  async removeRecurring(userId: string, id: string): Promise<void> {
+    const deleted = await this.repo.deleteRecurring(userId, id);
+    if (!deleted) throw new NotFoundError("Gasto recorrente não encontrado");
+  }
+
+  /**
+   * Materializa, no mês dado, os gastos recorrentes ativos que ainda não geraram
+   * lançamento. Idempotente: cada recorrência cai no máximo uma vez por mês
+   * (checado por `recurringExpenseId` no intervalo).
+   */
+  async applyDueRecurring(userId: string, year: number, month: number): Promise<void> {
+    const active = await this.repo.findActiveRecurring(userId);
+    if (active.length === 0) return;
+
+    const startDate = `${year}-${String(month).padStart(2, "0")}-01`;
+    const lastDay = new Date(year, month, 0).getDate();
+    const endDate = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+
+    const generated = new Set(
+      await this.repo.findGeneratedRecurringIds(userId, startDate, endDate),
+    );
+
+    for (const r of active) {
+      if (generated.has(r.id)) continue;
+      await this.repo.create(userId, {
+        type: "expense",
+        category: r.category,
+        amount: r.amount,
+        description: r.description,
+        date: recurringEntryDate(year, month, r.dayOfMonth),
+        isFixed: true,
+        recurringExpenseId: r.id,
+      });
+    }
   }
 }

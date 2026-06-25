@@ -255,7 +255,11 @@ app.use(
 );
 app.use(
   "/api/v1/finance",
-  createFinanceRouter(financeUseCases, requirePremium(subscriptionRepo)),
+  createFinanceRouter(
+    financeUseCases,
+    requirePremium(subscriptionRepo),
+    requirePremium(subscriptionRepo),
+  ),
 );
 app.use("/api/v1/goals", createGoalsRouter(goalsUseCases));
 app.use("/api/v1/orders", createOrdersRouter(ordersUseCases));

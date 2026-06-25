@@ -9,7 +9,7 @@ Gerenciar lancamentos financeiros (entradas e saidas) do negocio caseiro, com re
 ## Non-goals
 
 - Nao faz integracao bancaria ou leitura de extratos
-- Nao gerencia contas a receber/pagar com vencimentos
+- Nao gerencia contas a receber/pagar com vencimentos (mas suporta **gastos recorrentes mensais** — ver Data Model)
 - Nao faz conciliacao automatica
 - Nao calcula impostos
 
@@ -34,18 +34,38 @@ Gerenciar lancamentos financeiros (entradas e saidas) do negocio caseiro, com re
 
 ### Tabela: `finance_entries`
 
-| Coluna      | Tipo      | Constraints                                                                                   |
-| ----------- | --------- | --------------------------------------------------------------------------------------------- |
-| id          | uuid      | PK                                                                                            |
-| userId      | uuid      | FK users, NOT NULL                                                                            |
-| type        | enum      | "income" \| "expense", NOT NULL                                                               |
-| category    | enum      | "sale" \| "material" \| "packaging" \| "transport" \| "fee" \| "utility" \| "other", NOT NULL |
-| amount      | decimal   | NOT NULL                                                                                      |
-| description | varchar   | NOT NULL                                                                                      |
-| isFixed     | boolean   | NOT NULL DEFAULT false (so faz sentido para type="expense")                                   |
-| date        | varchar   | NOT NULL (formato YYYY-MM-DD)                                                                 |
-| saleId      | uuid      | nullable, FK sales                                                                            |
-| createdAt   | timestamp | default now()                                                                                 |
+| Coluna             | Tipo      | Constraints                                                                                   |
+| ------------------ | --------- | --------------------------------------------------------------------------------------------- |
+| id                 | uuid      | PK                                                                                            |
+| userId             | uuid      | FK users, NOT NULL                                                                            |
+| type               | enum      | "income" \| "expense", NOT NULL                                                               |
+| category           | enum      | "sale" \| "material" \| "packaging" \| "transport" \| "fee" \| "utility" \| "other", NOT NULL |
+| amount             | decimal   | NOT NULL                                                                                      |
+| description        | varchar   | NOT NULL                                                                                      |
+| isFixed            | boolean   | NOT NULL DEFAULT false (so faz sentido para type="expense")                                   |
+| date               | varchar   | NOT NULL (formato YYYY-MM-DD)                                                                 |
+| saleId             | uuid      | nullable, FK sales                                                                            |
+| recurringExpenseId | uuid      | nullable, FK recurring_expenses (set null) — lançamento gerado por recorrência                |
+| createdAt          | timestamp | default now()                                                                                 |
+
+### Tabela: `recurring_expenses` (migration 025) — gastos fixos mensais recorrentes
+
+| Coluna      | Tipo      | Constraints                  |
+| ----------- | --------- | ---------------------------- |
+| id          | uuid      | PK                           |
+| userId      | uuid      | FK users (cascade), NOT NULL |
+| category    | enum      | expense_category, NOT NULL   |
+| amount      | decimal   | NOT NULL                     |
+| description | text      | NOT NULL                     |
+| dayOfMonth  | integer   | NOT NULL DEFAULT 1 (1–28)    |
+| active      | boolean   | NOT NULL DEFAULT true        |
+| createdAt   | timestamp | default now()                |
+
+- Index `idx_recurring_expenses_user` em `(user_id)`.
+- **Geração automática**: ao carregar o summary do **mês corrente** (`getMonthlySummary`),
+  `applyDueRecurring` materializa em `finance_entries` (type expense, `isFixed=true`,
+  `recurring_expense_id` setado, data = dia clampado ao mês) cada recorrência ativa que ainda
+  não caiu no mês. Idempotente: checa por `recurring_expense_id` no intervalo do mês.
 
 ## Invariants
 
@@ -79,7 +99,21 @@ api:
     - method: GET
       path: /summary
       query: month, year
-      response: FinanceSummary
+      response: FinanceSummary  # ao abrir o mês corrente, gera os gastos recorrentes pendentes
+    - method: POST
+      path: /recurring
+      dto: CreateRecurringExpenseDto
+      response: RecurringExpense (201)  # Premium (requirePremium)
+    - method: GET
+      path: /recurring
+      response: RecurringExpense[]
+    - method: PATCH
+      path: /recurring/:id
+      dto: UpdateRecurringExpenseDto
+      response: RecurringExpense
+    - method: DELETE
+      path: /recurring/:id
+      response: 204
     - method: GET
       path: /export/pdf
       query: month (YYYY-MM)
@@ -101,10 +135,12 @@ api:
 db:
   tables:
     - financeEntries
+    - recurringExpenses
   indexes:
     - (userId, id)
     - (userId, date DESC)
     - (userId, type)
+    - recurring_expenses(userId)
 invariants:
   - amount > 0
   - description.trim().length > 0
@@ -126,6 +162,9 @@ invariants:
 - **UpdateFinanceEntryDto**: `Partial<CreateFinanceEntryDto>`
 - **FinanceEntry**: `{ id, userId, type, category, amount, description, isFixed, date, saleId, createdAt }`
 - **FinanceSummary**: `{ totalIncome, totalExpenses, fixedExpenses, variableExpenses, profit, period }`
+- **CreateRecurringExpenseDto**: `{ category, amount, description, dayOfMonth?=1 (1–28) }`
+- **UpdateRecurringExpenseDto**: `Partial<CreateRecurringExpenseDto> & { active? }`
+- **RecurringExpense**: `{ id, userId, category, amount, description, dayOfMonth, active, createdAt }`
 
 ## Errors
 
@@ -207,3 +246,10 @@ GET /api/v1/finance/export/pdf?month=2026-03
   id retornado (`financeEntryId`) para idempotencia. Injetado via interface `IFinancePoster`.
 - Adicionado `isFixed` (migration 005) para separar gastos fixos x variaveis; filtro `?fixed=` na listagem e split `fixedExpenses`/`variableExpenses` no summary
 - 2026-06-16: **exportação é Premium** — `GET /export/pdf` e `/export/xlsx` passam por `requirePremium(subscriptionRepo)` (wired no main); plano free recebe `LimitExceededError` (403 LIMIT_EXCEEDED). `createFinanceRouter(useCases, exportGuard?)` aplica o guard só nas rotas de export. Lançar/listar/summary seguem livres (o app trava navegação de meses passados no front).
+- 2026-06-25: **gastos recorrentes (Premium)** — nova tabela `recurring_expenses` (migration 025) +
+  coluna `finance_entries.recurring_expense_id`. CRUD em `/finance/recurring` (criar é Premium via
+  `requirePremium`, 3º arg de `createFinanceRouter`). Geração automática e idempotente: ao abrir o
+  **mês corrente**, `getMonthlySummary` chama `applyDueRecurring`, que materializa cada recorrência
+  ativa ainda não gerada como despesa `isFixed=true` com `recurring_expense_id` (checagem por
+  `findGeneratedRecurringIds` no intervalo do mês). Dia 1–28 (`recurringEntryDate` clampa ao mês).
+  Tabela freemium do CLAUDE.md atualizada (Recorrência de gastos = Premium).

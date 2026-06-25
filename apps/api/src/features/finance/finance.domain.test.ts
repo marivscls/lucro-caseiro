@@ -6,9 +6,51 @@ import {
   calculateProfit,
   formatCurrency,
   groupByCategory,
+  recurringEntryDate,
   validateFinanceEntry,
+  validateRecurringExpense,
 } from "./finance.domain";
 import type { CreateFinanceEntryData } from "./finance.types";
+
+describe("validateRecurringExpense", () => {
+  const valid = { amount: 800, description: "Aluguel", dayOfMonth: 5 };
+
+  it("aceita dados válidos", () => {
+    expect(validateRecurringExpense(valid)).toEqual([]);
+  });
+
+  it("rejeita valor <= 0", () => {
+    expect(validateRecurringExpense({ ...valid, amount: 0 })).toContain(
+      "Valor deve ser maior que zero",
+    );
+  });
+
+  it("rejeita descrição vazia", () => {
+    expect(validateRecurringExpense({ ...valid, description: "  " })).toContain(
+      "Descrição é obrigatória",
+    );
+  });
+
+  it("rejeita dia fora de 1–28", () => {
+    expect(validateRecurringExpense({ ...valid, dayOfMonth: 0 }).length).toBeGreaterThan(
+      0,
+    );
+    expect(validateRecurringExpense({ ...valid, dayOfMonth: 31 }).length).toBeGreaterThan(
+      0,
+    );
+  });
+});
+
+describe("recurringEntryDate", () => {
+  it("monta a data YYYY-MM-DD com o dia do mês", () => {
+    expect(recurringEntryDate(2026, 6, 5)).toBe("2026-06-05");
+  });
+
+  it("limita o dia ao tamanho do mês", () => {
+    // Fevereiro de 2026 tem 28 dias; dia 30 cai no 28.
+    expect(recurringEntryDate(2026, 2, 28)).toBe("2026-02-28");
+  });
+});
 
 function makeEntryData(
   overrides: Partial<CreateFinanceEntryData> = {},

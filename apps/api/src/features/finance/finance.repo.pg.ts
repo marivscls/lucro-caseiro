@@ -1,8 +1,17 @@
-import type { FinanceEntry, FinanceSummary } from "@lucro-caseiro/contracts";
-import { financeEntries } from "@lucro-caseiro/database/schema";
-import { and, count, eq, gte, lte, sql, sum } from "drizzle-orm";
+import type {
+  FinanceEntry,
+  FinanceSummary,
+  RecurringExpense,
+} from "@lucro-caseiro/contracts";
+import { financeEntries, recurringExpenses } from "@lucro-caseiro/database/schema";
+import { and, asc, count, eq, gte, isNotNull, lte, sql, sum } from "drizzle-orm";
 import type { AppDatabase } from "../../shared/db";
-import type { CreateFinanceEntryData, FindAllOpts, IFinanceRepo } from "./finance.types";
+import type {
+  CreateFinanceEntryData,
+  CreateRecurringExpenseData,
+  FindAllOpts,
+  IFinanceRepo,
+} from "./finance.types";
 
 export class FinanceRepoPg implements IFinanceRepo {
   constructor(private db: AppDatabase) {}
@@ -19,6 +28,7 @@ export class FinanceRepoPg implements IFinanceRepo {
         isFixed: data.isFixed ?? false,
         date: data.date,
         saleId: data.saleId ?? null,
+        recurringExpenseId: data.recurringExpenseId ?? null,
       })
       .returning();
 
@@ -184,6 +194,116 @@ export class FinanceRepoPg implements IFinanceRepo {
       fixedExpenses,
       variableExpenses,
       profit: totalIncome - totalExpenses,
+    };
+  }
+
+  // --- Gastos recorrentes ---
+
+  async createRecurring(
+    userId: string,
+    data: CreateRecurringExpenseData,
+  ): Promise<RecurringExpense> {
+    const [row] = await this.db
+      .insert(recurringExpenses)
+      .values({
+        userId,
+        category: data.category,
+        amount: String(data.amount),
+        description: data.description,
+        dayOfMonth: data.dayOfMonth,
+      })
+      .returning();
+    return this.toRecurring(row!);
+  }
+
+  async findAllRecurring(userId: string): Promise<RecurringExpense[]> {
+    const rows = await this.db
+      .select()
+      .from(recurringExpenses)
+      .where(eq(recurringExpenses.userId, userId))
+      .orderBy(asc(recurringExpenses.dayOfMonth));
+    return rows.map((r) => this.toRecurring(r));
+  }
+
+  async findRecurringById(userId: string, id: string): Promise<RecurringExpense | null> {
+    const [row] = await this.db
+      .select()
+      .from(recurringExpenses)
+      .where(and(eq(recurringExpenses.userId, userId), eq(recurringExpenses.id, id)));
+    return row ? this.toRecurring(row) : null;
+  }
+
+  async updateRecurring(
+    userId: string,
+    id: string,
+    data: Partial<CreateRecurringExpenseData> & { active?: boolean },
+  ): Promise<RecurringExpense | null> {
+    const updateData: Record<string, unknown> = {};
+    if (data.category !== undefined) updateData.category = data.category;
+    if (data.amount !== undefined) updateData.amount = String(data.amount);
+    if (data.description !== undefined) updateData.description = data.description;
+    if (data.dayOfMonth !== undefined) updateData.dayOfMonth = data.dayOfMonth;
+    if (data.active !== undefined) updateData.active = data.active;
+
+    if (Object.keys(updateData).length === 0) {
+      return this.findRecurringById(userId, id);
+    }
+
+    const [row] = await this.db
+      .update(recurringExpenses)
+      .set(updateData)
+      .where(and(eq(recurringExpenses.userId, userId), eq(recurringExpenses.id, id)))
+      .returning();
+    return row ? this.toRecurring(row) : null;
+  }
+
+  async deleteRecurring(userId: string, id: string): Promise<boolean> {
+    const [row] = await this.db
+      .delete(recurringExpenses)
+      .where(and(eq(recurringExpenses.userId, userId), eq(recurringExpenses.id, id)))
+      .returning({ id: recurringExpenses.id });
+    return !!row;
+  }
+
+  async findActiveRecurring(userId: string): Promise<RecurringExpense[]> {
+    const rows = await this.db
+      .select()
+      .from(recurringExpenses)
+      .where(
+        and(eq(recurringExpenses.userId, userId), eq(recurringExpenses.active, true)),
+      );
+    return rows.map((r) => this.toRecurring(r));
+  }
+
+  async findGeneratedRecurringIds(
+    userId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<string[]> {
+    const rows = await this.db
+      .selectDistinct({ id: financeEntries.recurringExpenseId })
+      .from(financeEntries)
+      .where(
+        and(
+          eq(financeEntries.userId, userId),
+          isNotNull(financeEntries.recurringExpenseId),
+          gte(financeEntries.date, startDate),
+          lte(financeEntries.date, endDate),
+        ),
+      );
+    return rows.map((r) => r.id).filter((id): id is string => id !== null);
+  }
+
+  private toRecurring(row: typeof recurringExpenses.$inferSelect): RecurringExpense {
+    return {
+      id: row.id,
+      userId: row.userId,
+      category: row.category,
+      amount: Number(row.amount),
+      description: row.description,
+      dayOfMonth: row.dayOfMonth,
+      active: row.active,
+      createdAt: row.createdAt.toISOString(),
     };
   }
 

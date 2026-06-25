@@ -1,4 +1,4 @@
-import type { FinanceEntry } from "@lucro-caseiro/contracts";
+import type { FinanceEntry, RecurringExpense } from "@lucro-caseiro/contracts";
 import { describe, expect, it } from "vitest";
 
 import { NotFoundError, ValidationError } from "../../shared/errors";
@@ -6,6 +6,20 @@ import { FinanceUseCases } from "./finance.usecases";
 import type { CreateFinanceEntryData, IFinanceRepo } from "./finance.types";
 
 const USER_ID = "user-123";
+
+function makeRecurring(overrides: Partial<RecurringExpense> = {}): RecurringExpense {
+  return {
+    id: "rec-1",
+    userId: USER_ID,
+    category: "utility",
+    amount: 800,
+    description: "Aluguel",
+    dayOfMonth: 5,
+    active: true,
+    createdAt: new Date().toISOString(),
+    ...overrides,
+  };
+}
 
 function makeEntry(overrides: Partial<FinanceEntry> = {}): FinanceEntry {
   return {
@@ -49,6 +63,13 @@ function makeRepo(overrides: Partial<IFinanceRepo> = {}): IFinanceRepo {
         variableExpenses: 400,
         profit: 400,
       }),
+    createRecurring: (_userId, data) => Promise.resolve(makeRecurring({ ...data })),
+    findAllRecurring: () => Promise.resolve([makeRecurring()]),
+    findRecurringById: () => Promise.resolve(makeRecurring()),
+    updateRecurring: (_userId, _id, data) => Promise.resolve(makeRecurring({ ...data })),
+    deleteRecurring: () => Promise.resolve(true),
+    findActiveRecurring: () => Promise.resolve([]),
+    findGeneratedRecurringIds: () => Promise.resolve([]),
     ...overrides,
   };
 }
@@ -265,6 +286,88 @@ describe("FinanceUseCases", () => {
       expect(result.saleId).toBe("sale-1");
       expect(capturedData!.type).toBe("income");
       expect(capturedData!.saleId).toBe("sale-1");
+    });
+  });
+
+  describe("gastos recorrentes", () => {
+    it("cria recorrência com dados válidos", async () => {
+      const { sut } = makeSut();
+      const result = await sut.createRecurring(USER_ID, {
+        category: "utility",
+        amount: 800,
+        description: "Aluguel",
+        dayOfMonth: 5,
+      });
+      expect(result.amount).toBe(800);
+      expect(result.dayOfMonth).toBe(5);
+    });
+
+    it("rejeita recorrência com dia inválido", async () => {
+      const { sut } = makeSut();
+      await expect(
+        sut.createRecurring(USER_ID, {
+          category: "utility",
+          amount: 800,
+          description: "Aluguel",
+          dayOfMonth: 31,
+        }),
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it("applyDueRecurring gera um lançamento por recorrência ativa não gerada", async () => {
+      const created: CreateFinanceEntryData[] = [];
+      const { sut } = makeSut({
+        findActiveRecurring: () =>
+          Promise.resolve([makeRecurring({ id: "rec-1", dayOfMonth: 5 })]),
+        findGeneratedRecurringIds: () => Promise.resolve([]),
+        create: (_userId, data) => {
+          created.push(data);
+          return Promise.resolve(makeEntry({ ...data }));
+        },
+      });
+
+      await sut.applyDueRecurring(USER_ID, 2026, 6);
+
+      expect(created).toHaveLength(1);
+      expect(created[0]).toMatchObject({
+        type: "expense",
+        category: "utility",
+        amount: 800,
+        isFixed: true,
+        recurringExpenseId: "rec-1",
+        date: "2026-06-05",
+      });
+    });
+
+    it("applyDueRecurring pula recorrências já geradas no mês (idempotente)", async () => {
+      const created: CreateFinanceEntryData[] = [];
+      const { sut } = makeSut({
+        findActiveRecurring: () => Promise.resolve([makeRecurring({ id: "rec-1" })]),
+        findGeneratedRecurringIds: () => Promise.resolve(["rec-1"]),
+        create: (_userId, data) => {
+          created.push(data);
+          return Promise.resolve(makeEntry({ ...data }));
+        },
+      });
+
+      await sut.applyDueRecurring(USER_ID, 2026, 6);
+
+      expect(created).toHaveLength(0);
+    });
+
+    it("applyDueRecurring não faz nada sem recorrências ativas", async () => {
+      let createCalls = 0;
+      const { sut } = makeSut({
+        findActiveRecurring: () => Promise.resolve([]),
+        create: (_userId, data) => {
+          createCalls += 1;
+          return Promise.resolve(makeEntry({ ...data }));
+        },
+      });
+
+      await sut.applyDueRecurring(USER_ID, 2026, 6);
+
+      expect(createCalls).toBe(0);
     });
   });
 });

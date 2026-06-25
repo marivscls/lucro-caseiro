@@ -1,7 +1,9 @@
 import {
   CreateFinanceEntryDto,
+  CreateRecurringExpenseDto,
   PaginationDto,
   UpdateFinanceEntryDto,
+  UpdateRecurringExpenseDto,
 } from "@lucro-caseiro/contracts";
 import { Router, type RequestHandler } from "express";
 
@@ -12,11 +14,57 @@ import type { FinanceUseCases } from "./finance.usecases";
 export function createFinanceRouter(
   useCases: FinanceUseCases,
   exportGuard?: RequestHandler,
+  recurringGuard?: RequestHandler,
 ): Router {
   const router = Router();
   router.use(authMiddleware);
   // Exportação PDF/Excel é Premium (tabela freemium). Guard opcional (testes sem ele).
   const guards = exportGuard ? [exportGuard] : [];
+
+  // --- Gastos recorrentes (criar é Premium) ---
+  router.post(
+    "/recurring",
+    ...(recurringGuard ? [recurringGuard] : []),
+    async (req, res, next) => {
+      try {
+        const userId = getUserId(req);
+        const data = CreateRecurringExpenseDto.parse(req.body);
+        const created = await useCases.createRecurring(userId, data);
+        res.status(201).json(created);
+      } catch (err) {
+        next(err);
+      }
+    },
+  );
+
+  router.get("/recurring", async (req, res, next) => {
+    try {
+      const userId = getUserId(req);
+      res.json(await useCases.listRecurring(userId));
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.patch("/recurring/:id", async (req, res, next) => {
+    try {
+      const userId = getUserId(req);
+      const data = UpdateRecurringExpenseDto.parse(req.body);
+      res.json(await useCases.updateRecurring(userId, req.params.id, data));
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.delete("/recurring/:id", async (req, res, next) => {
+    try {
+      const userId = getUserId(req);
+      await useCases.removeRecurring(userId, req.params.id);
+      res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
+  });
 
   router.post("/", async (req, res, next) => {
     try {
