@@ -30,6 +30,7 @@ export class ProductsRepoPg implements IProductsRepo {
         description: data.description ?? null,
         category: data.category,
         photoUrl: data.photoUrl ?? null,
+        extraPhotos: data.extraPhotos ?? [],
         code: data.code ?? null,
         salePrice: String(data.salePrice),
         saleUnit: data.saleUnit ?? "unit",
@@ -120,6 +121,7 @@ export class ProductsRepoPg implements IProductsRepo {
     if (data.description !== undefined) updateData.description = data.description;
     if (data.category !== undefined) updateData.category = data.category;
     if (data.photoUrl !== undefined) updateData.photoUrl = data.photoUrl;
+    if (data.extraPhotos !== undefined) updateData.extraPhotos = data.extraPhotos;
     if (data.code !== undefined) updateData.code = data.code;
     if (data.salePrice !== undefined) updateData.salePrice = String(data.salePrice);
     if (data.saleUnit !== undefined) updateData.saleUnit = data.saleUnit;
@@ -264,6 +266,7 @@ export class ProductsRepoPg implements IProductsRepo {
       description: row.description,
       category: row.category,
       photoUrl: row.photoUrl,
+      extraPhotos: row.extraPhotos ?? [],
       code: row.code,
       salePrice: Number(row.salePrice),
       saleUnit: row.saleUnit === "kg" ? "kg" : "unit",

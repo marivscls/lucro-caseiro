@@ -15,6 +15,7 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
     description: null,
     category: "doces",
     photoUrl: null,
+    extraPhotos: [],
     code: null,
     salePrice: 3.5,
     saleUnit: "unit",
@@ -120,6 +121,28 @@ describe("ProductsUseCases", () => {
 
       expect(captured?.code).toBe("7891234567890");
       expect(result.code).toBe("7891234567890");
+    });
+
+    it("repassa as fotos extras (galeria) para o repo", async () => {
+      let captured: CreateProductData | undefined;
+      const repo = makeRepo({
+        create: (_userId: string, data: CreateProductData) => {
+          captured = data;
+          return Promise.resolve(makeProduct({ extraPhotos: data.extraPhotos ?? [] }));
+        },
+      });
+      const sut = new ProductsUseCases(repo);
+
+      const extraPhotos = ["https://cdn.x/b.jpg", "https://cdn.x/c.jpg"];
+      const result = await sut.create(USER_ID, {
+        name: "Bolo",
+        category: "bolos",
+        salePrice: 50,
+        extraPhotos,
+      });
+
+      expect(captured?.extraPhotos).toEqual(extraPhotos);
+      expect(result.extraPhotos).toEqual(extraPhotos);
     });
 
     it("preenche o costPrice a partir da receita quando há recipeId", async () => {

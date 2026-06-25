@@ -18,6 +18,8 @@ const ProductBaseDto = z.object({
   description: z.string().max(1000).optional(),
   category: z.string().min(1).max(100),
   photoUrl: z.string().url().optional(),
+  // Fotos adicionais (galeria) além da principal. Máx 2 (total 3); só Premium.
+  extraPhotos: z.array(z.string().url()).max(2).optional(),
   // Código/SKU/código de barras (opcional) para buscar/escanear o produto.
   code: z.string().max(100).optional(),
   salePrice: z.number().positive().max(MAX_MONEY),
@@ -73,6 +75,7 @@ export const ProductDto = z.object({
   description: z.string().nullable(),
   category: z.string(),
   photoUrl: z.string().nullable(),
+  extraPhotos: z.array(z.string()),
   code: z.string().nullable(),
   salePrice: z.number(),
   saleUnit: SaleUnit,

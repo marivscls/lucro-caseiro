@@ -75,6 +75,7 @@ import { isPremiumActive } from "./features/subscription/subscription.domain";
 import { errorHandler } from "./shared/middleware/error-handler";
 import { freemiumGuard } from "./shared/middleware/freemium-guard";
 import { requirePremium } from "./shared/middleware/require-premium";
+import { requirePremiumForExtraPhotos } from "./shared/middleware/require-premium-photos";
 import { rateLimit } from "./shared/middleware/rate-limit";
 import { healthRouter } from "./shared/health";
 import { setDb } from "./shared/db";
@@ -233,7 +234,11 @@ app.use("/api/v1/health", healthRouter);
 app.use("/api/v1/account", createAccountRouter(accountUseCases));
 app.use(
   "/api/v1/products",
-  createProductsRouter(productsUseCases, freemiumGuard(subscriptionRepo, "products")),
+  createProductsRouter(
+    productsUseCases,
+    freemiumGuard(subscriptionRepo, "products"),
+    requirePremiumForExtraPhotos(subscriptionRepo),
+  ),
 );
 app.use(
   "/api/v1/clients",

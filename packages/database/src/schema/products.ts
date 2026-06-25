@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   boolean,
   decimal,
@@ -22,6 +23,12 @@ export const products = pgTable(
     description: text("description"),
     category: text("category").notNull(),
     photoUrl: text("photo_url"),
+    // Fotos adicionais (galeria), além da principal `photoUrl`. Máx 2 (total 3);
+    // exclusivo do plano Premium (gate na rota).
+    extraPhotos: text("extra_photos")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     // Código/SKU/código de barras (opcional) para buscar/escanear o produto.
     code: text("code"),
     salePrice: decimal("sale_price", { precision: 10, scale: 2 }).notNull(),

@@ -34,24 +34,25 @@ Gerenciar o catalogo de produtos do negocio caseiro, incluindo nome, descricao, 
 
 ### Tabela: `products`
 
-| Coluna              | Tipo      | Constraints                               |
-| ------------------- | --------- | ----------------------------------------- |
-| id                  | uuid      | PK                                        |
-| userId              | uuid      | FK users, NOT NULL                        |
-| name                | varchar   | NOT NULL                                  |
-| description         | text      | nullable                                  |
-| category            | varchar   | NOT NULL                                  |
-| photoUrl            | varchar   | nullable                                  |
-| code                | text      | nullable (SKU/código de barras)           |
-| salePrice           | decimal   | NOT NULL                                  |
-| saleUnit            | text      | NOT NULL, default 'unit' ('unit' \| 'kg') |
-| costPrice           | decimal   | nullable                                  |
-| recipeId            | uuid      | nullable, FK recipes                      |
-| stockQuantity       | integer   | nullable                                  |
-| stockAlertThreshold | integer   | nullable                                  |
-| isComposite         | boolean   | NOT NULL, default false                   |
-| isActive            | boolean   | default true                              |
-| createdAt           | timestamp | default now()                             |
+| Coluna              | Tipo      | Constraints                                      |
+| ------------------- | --------- | ------------------------------------------------ |
+| id                  | uuid      | PK                                               |
+| userId              | uuid      | FK users, NOT NULL                               |
+| name                | varchar   | NOT NULL                                         |
+| description         | text      | nullable                                         |
+| category            | varchar   | NOT NULL                                         |
+| photoUrl            | varchar   | nullable (foto principal)                        |
+| extraPhotos         | text[]    | NOT NULL, default '{}' (galeria, máx 2; Premium) |
+| code                | text      | nullable (SKU/código de barras)                  |
+| salePrice           | decimal   | NOT NULL                                         |
+| saleUnit            | text      | NOT NULL, default 'unit' ('unit' \| 'kg')        |
+| costPrice           | decimal   | nullable                                         |
+| recipeId            | uuid      | nullable, FK recipes                             |
+| stockQuantity       | integer   | nullable                                         |
+| stockAlertThreshold | integer   | nullable                                         |
+| isComposite         | boolean   | NOT NULL, default false                          |
+| isActive            | boolean   | default true                                     |
+| createdAt           | timestamp | default now()                                    |
 
 ### Tabela: `product_components` (junção do kit)
 
@@ -154,12 +155,13 @@ invariants:
 
 ## Contracts (Zod/DTO)
 
-- **CreateProductDto**: `{ name, description?, category, photoUrl?, code?, salePrice, saleUnit?, recipeId?, stockQuantity?, stockAlertThreshold?, isComposite?, components? }`
+- **CreateProductDto**: `{ name, description?, category, photoUrl?, extraPhotos?, code?, salePrice, saleUnit?, recipeId?, stockQuantity?, stockAlertThreshold?, isComposite?, components? }`
   - `refine`: quando `isComposite`, `components` precisa ter >= 1 item.
+  - `extraPhotos`: array de URLs, **máx 2** (galeria além da principal). Anexar fotos extras exige Premium (gate na rota).
 - **UpdateProductDto**: `Partial<CreateProductDto>` (com o mesmo refine de composto)
 - **ProductComponentInputDto**: `{ componentProductId: uuid, quantity: number > 0 }` (entrada)
 - **ProductComponentDto**: `{ componentProductId: uuid, name, costPrice: number|null, quantity }` (saida/display)
-- **Product**: `{ id, userId, name, description, category, photoUrl, code, salePrice, saleUnit, costPrice, recipeId, stockQuantity, stockAlertThreshold, isComposite, components?, isActive, createdAt }`
+- **Product**: `{ id, userId, name, description, category, photoUrl, extraPhotos, code, salePrice, saleUnit, costPrice, recipeId, stockQuantity, stockAlertThreshold, isComposite, components?, isActive, createdAt }`
   - `components` presente apenas quando `isComposite = true`.
 - **SaleUnit**: `"unit" | "kg"` (default `"unit"`)
 
@@ -268,3 +270,10 @@ POST /api/v1/products  (produto composto / kit / caixinha)
   `freemiumGuard("products")`; `ResourceCounts.products` conta produtos **ativos** (`is_active = true`);
   `FreemiumConfig.maxProducts = 15` (recalibrado de 20→15 em 2026-06-16); `FreemiumLimits` ganhou `maxProducts`/`currentProducts`.
   (O catálogo público continua limitado a 3 itens no free — coisa separada do cadastro.)
+- 2026-06-25: **fotos extras (galeria) — 1 grátis / 3 Premium** — coluna `products.extra_photos`
+  (`text[]`, NOT NULL default `'{}'`, migration `024_product_extra_photos.sql`). `photoUrl` segue
+  como foto principal (inalterado); `extraPhotos` (máx 2 via Zod) é a galeria. Gate: `POST`/`PATCH`
+  passam por `requirePremiumForExtraPhotos(subscriptionRepo)` — só barra (LIMIT_EXCEEDED) se o body
+  trouxer `extraPhotos` não-vazio e o plano não for Premium; free segue criando/editando produtos
+  normalmente com 1 foto. Threaded em CreateProductData/Product e no repo. O catálogo público
+  exibe a galeria (`PublicCatalogProduct.extraPhotos`) como tira de miniaturas (scroll-snap, sem JS).

@@ -39,6 +39,7 @@ export interface CreateProductData {
   description?: string;
   category: string;
   photoUrl?: string;
+  extraPhotos?: string[];
   code?: string;
   salePrice: number;
   saleUnit?: SaleUnit;

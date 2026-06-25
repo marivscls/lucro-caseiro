@@ -70,6 +70,7 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
     description: null,
     category: "Doces",
     photoUrl: null,
+    extraPhotos: [],
     code: null,
     salePrice: 10,
     saleUnit: "unit",
