@@ -14,6 +14,8 @@ export const CreateMaterialDto = z.object({
   // Ícone (emoji) escolhido pelo usuário. Nullable: sem ele, o avatar é
   // resolvido automaticamente pelo nome.
   icon: z.string().max(32).nullable().optional(),
+  // Fornecedor de quem o insumo é comprado (opcional). FK -> suppliers.
+  supplierId: z.string().uuid().nullable().optional(),
 });
 
 export type CreateMaterial = z.infer<typeof CreateMaterialDto>;
@@ -39,6 +41,7 @@ export const MaterialDto = z.object({
   contentUnit: z.string().nullable(),
   notes: z.string().nullable(),
   icon: z.string().nullable(),
+  supplierId: z.string().uuid().nullable(),
   createdAt: z.string().datetime(),
 });
 

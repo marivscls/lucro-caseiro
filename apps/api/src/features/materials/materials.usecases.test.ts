@@ -20,6 +20,7 @@ function makeMaterial(overrides: Partial<Material> = {}): Material {
     contentUnit: null,
     notes: null,
     icon: null,
+    supplierId: null,
     createdAt: new Date().toISOString(),
     ...overrides,
   };

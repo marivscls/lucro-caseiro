@@ -10,6 +10,7 @@ export interface CreateMaterialData {
   contentUnit?: string | null;
   notes?: string;
   icon?: string | null;
+  supplierId?: string | null;
 }
 
 export type UpdateMaterialData = Partial<CreateMaterialData>;

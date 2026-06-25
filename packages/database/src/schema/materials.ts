@@ -1,5 +1,6 @@
 import { decimal, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
+import { suppliers } from "./suppliers";
 import { users } from "./users";
 
 // Insumos / matéria-prima — catálogo + estoque (separado dos produtos acabados).
@@ -23,10 +24,15 @@ export const materials = pgTable(
     notes: text("notes"),
     // Ícone (emoji) escolhido pelo usuário; nullable -> avatar automático pelo nome.
     icon: text("icon"),
+    // Fornecedor de quem este insumo é comprado (opcional). FK -> suppliers.
+    supplierId: uuid("supplier_id").references(() => suppliers.id, {
+      onDelete: "set null",
+    }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
     index("idx_materials_user").on(table.userId),
     index("idx_materials_user_name").on(table.userId, table.name),
+    index("idx_materials_user_supplier").on(table.userId, table.supplierId),
   ],
 );

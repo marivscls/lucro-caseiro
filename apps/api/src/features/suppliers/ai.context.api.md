@@ -16,7 +16,7 @@ Gerenciar o cadastro de fornecedores do negocio caseiro (nome, telefone, email, 
 ## Boundaries & Ownership
 
 - **Depende de**: `@lucro-caseiro/contracts` (CreateSupplierDto, UpdateSupplierDto, PaginationDto, Supplier), `@lucro-caseiro/database/schema` (suppliers table)
-- **Dependentes**: Subscription (conta fornecedores para limites freemium); Purchases e Materials/Packaging poderao referenciar `supplierId` (fase futura)
+- **Dependentes**: Subscription (conta fornecedores para limites freemium); Materials e Packaging referenciam `supplierId` (FK opcional, ON DELETE SET NULL — migration `021`); Purchases (fase futura)
 - **Nao importa**: nenhuma outra feature interna
 
 ## Code pointers
@@ -164,3 +164,6 @@ GET /api/v1/suppliers?page=1&limit=20&search=atacad
 
 - Criacao inicial da feature com CRUD completo
 - Limite freemium: 3 fornecedores no plano gratuito, ilimitado no Premium
+- Fase 2 (migration `021_supplier_links.sql`): `materials.supplier_id` e `packaging.supplier_id`
+  passam a referenciar suppliers (FK opcional, ON DELETE SET NULL). Excluir um fornecedor solta
+  os vínculos, não bloqueia. O mobile usa um `SupplierSelector` reutilizável nos forms de insumo/embalagem.

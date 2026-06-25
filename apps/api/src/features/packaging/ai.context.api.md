@@ -14,7 +14,7 @@ Gerenciar o catalogo de embalagens usadas no negocio caseiro (caixas, sacolas, p
 
 ## Boundaries & Ownership
 
-- **Depende de**: `@lucro-caseiro/contracts` (CreatePackagingDto, UpdatePackagingDto, PaginationDto, Packaging), `@lucro-caseiro/database/schema` (packaging, productPackaging)
+- **Depende de**: `@lucro-caseiro/contracts` (CreatePackagingDto, UpdatePackagingDto, PaginationDto, Packaging), `@lucro-caseiro/database/schema` (packaging, productPackaging, suppliers via FK `supplier_id`)
 - **Dependentes**: Pricing (usa custo de embalagem), Products (vinculo produto-embalagem), Subscription (conta embalagens para limites freemium)
 - **Nao importa**: nenhuma outra feature interna
 
@@ -32,16 +32,17 @@ Gerenciar o catalogo de embalagens usadas no negocio caseiro (caixas, sacolas, p
 
 ### Tabela: `packaging`
 
-| Coluna    | Tipo      | Constraints                                                       |
-| --------- | --------- | ----------------------------------------------------------------- |
-| id        | uuid      | PK                                                                |
-| userId    | uuid      | FK users, NOT NULL                                                |
-| name      | varchar   | NOT NULL                                                          |
-| type      | enum      | "box" \| "bag" \| "pot" \| "film" \| "label" \| "other", NOT NULL |
-| unitCost  | decimal   | NOT NULL                                                          |
-| supplier  | varchar   | nullable                                                          |
-| photoUrl  | varchar   | nullable                                                          |
-| createdAt | timestamp | default now()                                                     |
+| Coluna     | Tipo      | Constraints                                                       |
+| ---------- | --------- | ----------------------------------------------------------------- |
+| id         | uuid      | PK                                                                |
+| userId     | uuid      | FK users, NOT NULL                                                |
+| name       | varchar   | NOT NULL                                                          |
+| type       | enum      | "box" \| "bag" \| "pot" \| "film" \| "label" \| "other", NOT NULL |
+| unitCost   | decimal   | NOT NULL                                                          |
+| supplier   | varchar   | nullable (legado: nome do fornecedor como texto livre)            |
+| supplierId | uuid      | nullable, FK suppliers ON DELETE SET NULL                         |
+| photoUrl   | varchar   | nullable                                                          |
+| createdAt  | timestamp | default now()                                                     |
 
 ### Tabela: `product_packaging` (associacao N:N)
 
@@ -116,9 +117,9 @@ invariants:
 
 ## Contracts (Zod/DTO)
 
-- **CreatePackagingDto**: `{ name, type: "box"|"bag"|"pot"|"film"|"label"|"other", unitCost, supplier?, photoUrl? }`
+- **CreatePackagingDto**: `{ name, type: "box"|"bag"|"pot"|"film"|"label"|"other", unitCost, supplier?, supplierId?, photoUrl? }` (`supplierId` uuid nullable)
 - **UpdatePackagingDto**: `Partial<CreatePackagingDto>`
-- **Packaging**: `{ id, userId, name, type, unitCost, supplier, photoUrl, createdAt }`
+- **Packaging**: `{ id, userId, name, type, unitCost, supplier, supplierId, photoUrl, createdAt }`
 
 ## Errors
 
@@ -175,3 +176,7 @@ DELETE /api/v1/packaging/pkg-1/products/prod-1
 
 - Criacao inicial com CRUD + link/unlink produto-embalagem
 - Tipos de embalagem definidos como enum: box, bag, pot, film, label, other
+- **Vínculo de fornecedor** (migration `021_supplier_links.sql`): coluna `supplier_id uuid`
+  (NULLABLE, FK → suppliers ON DELETE SET NULL) + índice `(user_id, supplier_id)`. O mobile passou
+  a usar um seletor de fornecedor cadastrado (escreve `supplierId`); o campo texto livre `supplier`
+  é mantido como legado (não perde dados antigos). Repassado direto no create/update.

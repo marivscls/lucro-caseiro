@@ -127,6 +127,7 @@ Gerenciar embalagens utilizadas nos produtos: cadastrar, listar, editar e exclui
   Novos: `domain.ts` (+ testes), `packaging-card.tsx`, `packaging-form.tsx` (criar+editar unificado),
   `packaging-detail.tsx`, `packaging-avatar.tsx`. Removido `create-packaging-form.tsx`.
   Lista ganhou busca, filtro por tipo, 2 cards de resumo (total + `totalStockCost`) e CTA tracejado.
+- **Fornecedor (Fase 2)**: o campo de fornecedor (antes texto livre) virou o `SupplierSelector` da feature `suppliers` (escreve `supplierId`). O detalhe mostra o nome do fornecedor vinculado (via `useSupplierName`), com fallback pro texto legado `supplier`.
   Cada tipo tem cor propria (Caixa=blue, Sacola/Rotulo=premium, Pote=lavender, Filme=success, Outro=neutro).
   **Pendencia de backend:** "usado em X produtos" e "historico de uso" (vistos nos mockups) nao existem
   no contrato atual — omitidos para nao inventar dados. Reintroduzir quando houver endpoint de uso.

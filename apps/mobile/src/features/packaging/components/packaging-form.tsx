@@ -28,6 +28,7 @@ import {
 } from "../domain";
 import { useCreatePackaging, useUpdatePackaging } from "../hooks";
 import { PackagingAvatar } from "./packaging-avatar";
+import { SupplierSelector } from "../../suppliers/components/supplier-selector";
 
 interface PackagingFormProps {
   readonly packaging?: Packaging | null;
@@ -198,7 +199,9 @@ export function PackagingForm({ packaging, onSuccess, onCancel }: PackagingFormP
   const [unitCost, setUnitCost] = useState(
     packaging?.unitCost != null ? currencyInput(packaging.unitCost) : "",
   );
-  const [supplier, setSupplier] = useState(packaging?.supplier ?? "");
+  const [supplierId, setSupplierId] = useState<string | null>(
+    packaging?.supplierId ?? null,
+  );
 
   const createPackaging = useCreatePackaging();
   const updatePackaging = useUpdatePackaging();
@@ -224,7 +227,7 @@ export function PackagingForm({ packaging, onSuccess, onCancel }: PackagingFormP
       name: name.trim(),
       type,
       unitCost: cost,
-      supplier: supplier.trim() || undefined,
+      supplierId,
     };
     try {
       if (isEditing && packaging) {
@@ -340,7 +343,7 @@ export function PackagingForm({ packaging, onSuccess, onCancel }: PackagingFormP
         </View>
       </View>
 
-      {/* Custo + Fornecedor */}
+      {/* Custo */}
       <View style={{ flexDirection: "row", gap: spacing.md }}>
         <IconInputCard
           icon="cash-outline"
@@ -351,14 +354,12 @@ export function PackagingForm({ packaging, onSuccess, onCancel }: PackagingFormP
           onChangeText={(v: string) => setUnitCost(maskCurrencyInput(v))}
           keyboardType="numeric"
         />
-        <IconInputCard
-          icon="storefront-outline"
-          iconColor={theme.colors.lavender}
-          label="Fornecedor (opcional)"
-          placeholder="Ex: Embalagens Brasil"
-          value={supplier}
-          onChangeText={setSupplier}
-        />
+      </View>
+
+      {/* Fornecedor */}
+      <View style={{ gap: spacing.md }}>
+        <SectionHeader icon="business-outline" title="Fornecedor (opcional)" />
+        <SupplierSelector value={supplierId} onChange={setSupplierId} />
       </View>
 
       {/* Pré-visualização do custo */}

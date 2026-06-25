@@ -9,6 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { products } from "./products";
+import { suppliers } from "./suppliers";
 import { users } from "./users";
 
 export const packagingTypeEnum = pgEnum("packaging_type", [
@@ -30,11 +31,19 @@ export const packaging = pgTable(
     name: text("name").notNull(),
     type: packagingTypeEnum("type").notNull(),
     unitCost: decimal("unit_cost", { precision: 10, scale: 2 }).notNull(),
+    // Legado: nome do fornecedor como texto livre. Mantido p/ não perder dados.
     supplier: text("supplier"),
+    // Fornecedor cadastrado (opcional). FK -> suppliers; substitui o texto livre.
+    supplierId: uuid("supplier_id").references(() => suppliers.id, {
+      onDelete: "set null",
+    }),
     photoUrl: text("photo_url"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index("idx_packaging_user").on(table.userId)],
+  (table) => [
+    index("idx_packaging_user").on(table.userId),
+    index("idx_packaging_user_supplier").on(table.userId, table.supplierId),
+  ],
 );
 
 export const productPackaging = pgTable("product_packaging", {

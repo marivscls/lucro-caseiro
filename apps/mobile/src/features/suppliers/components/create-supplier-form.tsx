@@ -1,3 +1,4 @@
+import type { Supplier } from "@lucro-caseiro/contracts";
 import { Button, Input, Typography } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
 
@@ -12,7 +13,8 @@ import { isValidBrazilPhone, maskPhoneBR } from "../../../shared/utils/phone";
 import { useCreateSupplier } from "../hooks";
 
 interface CreateSupplierFormProps {
-  onSuccess?: () => void;
+  // Recebe o fornecedor criado para quem quiser auto-selecioná-lo (ex.: SupplierSelector).
+  onSuccess?: (supplier?: Supplier) => void;
 }
 
 export function CreateSupplierForm({ onSuccess }: Readonly<CreateSupplierFormProps>) {
@@ -47,7 +49,7 @@ export function CreateSupplierForm({ onSuccess }: Readonly<CreateSupplierFormPro
     }
 
     try {
-      await createSupplier.mutateAsync({
+      const created = await createSupplier.mutateAsync({
         name: name.trim(),
         phone: trimmedPhone || undefined,
         email: trimmedEmail || undefined,
@@ -58,7 +60,7 @@ export function CreateSupplierForm({ onSuccess }: Readonly<CreateSupplierFormPro
         title: "Fornecedor cadastrado!",
         message: `${name} foi adicionado à sua lista de fornecedores`,
       });
-      onSuccess?.();
+      onSuccess?.(created);
     } catch (e: unknown) {
       if (e instanceof ApiError && e.code === "LIMIT_EXCEEDED") {
         showPaywall("suppliers");

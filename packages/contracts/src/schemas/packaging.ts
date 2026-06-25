@@ -6,6 +6,7 @@ export const CreatePackagingDto = z.object({
   type: PackagingType,
   unitCost: z.number().positive().max(MAX_MONEY),
   supplier: z.string().max(200).optional(),
+  supplierId: z.string().uuid().nullable().optional(),
   photoUrl: z.string().url().optional(),
 });
 
@@ -21,6 +22,7 @@ export const PackagingDto = z.object({
   type: PackagingType,
   unitCost: z.number(),
   supplier: z.string().nullable(),
+  supplierId: z.string().uuid().nullable(),
   photoUrl: z.string().nullable(),
   createdAt: z.string().datetime(),
 });

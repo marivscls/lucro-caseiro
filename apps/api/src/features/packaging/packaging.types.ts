@@ -23,6 +23,7 @@ export interface CreatePackagingData {
   type: "box" | "bag" | "pot" | "film" | "label" | "other";
   unitCost: number;
   supplier?: string;
+  supplierId?: string | null;
   photoUrl?: string;
 }
 

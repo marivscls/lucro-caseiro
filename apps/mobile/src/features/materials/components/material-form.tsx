@@ -14,6 +14,7 @@ import {
 } from "../../../shared/components/form-field";
 import { IngredientAvatar } from "../../../shared/ingredient-image/ingredient-avatar";
 import { MaterialIconField } from "./material-icon-field";
+import { SupplierSelector } from "../../suppliers/components/supplier-selector";
 import { formatCost } from "../domain";
 import { useCreateMaterial, useDeleteMaterial, useUpdateMaterial } from "../hooks";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
@@ -281,6 +282,9 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
   const [contentUnit, setContentUnit] = useState(material?.contentUnit ?? "");
   const [notes, setNotes] = useState(material?.notes ?? "");
   const [icon, setIcon] = useState<string | null>(material?.icon ?? null);
+  const [supplierId, setSupplierId] = useState<string | null>(
+    material?.supplierId ?? null,
+  );
 
   const createMaterial = useCreateMaterial();
   const updateMaterial = useUpdateMaterial();
@@ -334,6 +338,7 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
       contentUnit: contentUnitTrimmed || null,
       notes: notes.trim() || undefined,
       icon,
+      supplierId,
     };
     try {
       if (isEditing && material) {
@@ -528,6 +533,12 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
           keyboardType="numeric"
         />
         <SubLabel>Valor gasto para adquirir 1 unidade.</SubLabel>
+      </View>
+
+      <View>
+        <FieldLabel label="Fornecedor (opcional)" />
+        <SupplierSelector value={supplierId} onChange={setSupplierId} />
+        <SubLabel>De quem você compra este insumo.</SubLabel>
       </View>
 
       <View>

@@ -57,6 +57,13 @@ Cadastro de fornecedores do usuario: listar, buscar, criar, editar e excluir for
 - **Props:** `{ supplierId: string; onEditPress?: () => void }`
 - Mostra contato e acoes (Editar, WhatsApp quando ha telefone).
 
+### `SupplierSelector`
+
+- **Props:** `{ value: string | null; onChange: (supplierId: string | null) => void }`
+- Campo reutilizavel (bottom-sheet com busca + "Nenhum" + "Cadastrar novo") usado nos forms de
+  insumo (`materials`) e embalagem (`packaging`) para vincular um fornecedor cadastrado. Auto-seleciona
+  o fornecedor criado na hora. Helper `useSupplierName(id)` resolve o nome a partir do cache.
+
 ## Hooks
 
 | Hook                  | Tipo          | Descricao                                                     |
@@ -118,3 +125,6 @@ Cadastro de fornecedores do usuario: listar, buscar, criar, editar e excluir for
 
 - Criacao inicial: CRUD de fornecedores como entidade propria (antes era so um campo de texto livre em insumos/embalagens).
 - Limite freemium: 3 fornecedores no plano gratuito.
+- Fase 2: `SupplierSelector` + `useSupplierName` permitem vincular um fornecedor a um insumo
+  (`materials`) ou embalagem (`packaging`) via `supplierId`. O form de embalagem trocou o campo de
+  texto livre pelo seletor; o de insumo ganhou o campo (antes nao tinha).

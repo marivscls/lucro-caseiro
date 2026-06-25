@@ -16,8 +16,8 @@ estoque (entrada/baixa), alertar quando está baixo. Separado dos **produtos aca
 
 ## Boundaries & Ownership
 
-- **Depende de**: `@lucro-caseiro/contracts` (CreateMaterialDto, UpdateMaterialDto, AdjustMaterialDto, Material, PaginationDto), `@lucro-caseiro/database/schema` (materials).
-- **Dependentes**: nenhum (consumido pelo mobile). Sem acoplamento com outras features.
+- **Depende de**: `@lucro-caseiro/contracts` (CreateMaterialDto, UpdateMaterialDto, AdjustMaterialDto, Material, PaginationDto), `@lucro-caseiro/database/schema` (materials, suppliers via FK `supplier_id`).
+- **Dependentes**: nenhum (consumido pelo mobile). Referencia `suppliers` por FK opcional (`supplier_id`), mas não importa a feature.
 
 ## Code pointers
 
@@ -32,21 +32,23 @@ estoque (entrada/baixa), alertar quando está baixo. Separado dos **produtos aca
 
 ### Tabela: `materials`
 
-| Coluna              | Tipo      | Constraints                    |
-| ------------------- | --------- | ------------------------------ |
-| id                  | uuid      | PK                             |
-| userId              | uuid      | FK users, NOT NULL             |
-| name                | text      | NOT NULL                       |
-| unit                | text      | NOT NULL (kg, g, L, ml, un...) |
-| stockQuantity       | decimal   | NOT NULL default 0 (12,3)      |
-| stockAlertThreshold | decimal   | nullable (12,3)                |
-| costPerUnit         | decimal   | nullable (10,2)                |
-| contentPerUnit      | decimal   | nullable (12,3) — #14          |
-| contentUnit         | text      | nullable — #14                 |
-| notes               | text      | nullable                       |
-| createdAt           | timestamp | default now()                  |
+| Coluna              | Tipo      | Constraints                     |
+| ------------------- | --------- | ------------------------------- |
+| id                  | uuid      | PK                              |
+| userId              | uuid      | FK users, NOT NULL              |
+| name                | text      | NOT NULL                        |
+| unit                | text      | NOT NULL (kg, g, L, ml, un...)  |
+| stockQuantity       | decimal   | NOT NULL default 0 (12,3)       |
+| stockAlertThreshold | decimal   | nullable (12,3)                 |
+| costPerUnit         | decimal   | nullable (10,2)                 |
+| contentPerUnit      | decimal   | nullable (12,3) — #14           |
+| contentUnit         | text      | nullable — #14                  |
+| notes               | text      | nullable                        |
+| icon                | text      | nullable (emoji)                |
+| supplierId          | uuid      | nullable, FK suppliers SET NULL |
+| createdAt           | timestamp | default now()                   |
 
-- Índices: `(userId)`, `(userId, name)`. Schema via `drizzle-kit push`.
+- Índices: `(userId)`, `(userId, name)`, `(userId, supplierId)`. Schema via `drizzle-kit push`.
 
 ## Invariants
 
@@ -105,10 +107,10 @@ db:
 
 ## Contracts (Zod/DTO)
 
-- **CreateMaterialDto**: `{ name, unit, stockQuantity?, stockAlertThreshold?, costPerUnit?, contentPerUnit?, contentUnit?, notes? }` (`contentPerUnit`/`contentUnit` nullable)
+- **CreateMaterialDto**: `{ name, unit, stockQuantity?, stockAlertThreshold?, costPerUnit?, contentPerUnit?, contentUnit?, notes?, icon?, supplierId? }` (`supplierId` uuid nullable)
 - **UpdateMaterialDto**: `Partial<CreateMaterialDto>`
 - **AdjustMaterialDto**: `{ delta: number }`
-- **Material**: `{ id, userId, name, unit, stockQuantity, stockAlertThreshold, costPerUnit, contentPerUnit, contentUnit, notes, createdAt }`
+- **Material**: `{ id, userId, name, unit, stockQuantity, stockAlertThreshold, costPerUnit, contentPerUnit, contentUnit, notes, icon, supplierId, createdAt }`
 
 ## Errors
 
@@ -167,3 +169,7 @@ POST /api/v1/materials/:id/adjust
   Guarda o emoji escolhido pelo usuário; quando NULL, o mobile resolve o avatar pelo nome.
   Repassado direto no create/update (contrato `icon?: string | null`, max 32). Sem validação
   extra de domínio.
+- **Vínculo de fornecedor** (migration `021_supplier_links.sql`): coluna `supplier_id uuid`
+  (NULLABLE, FK → suppliers ON DELETE SET NULL) + índice `(user_id, supplier_id)`. Aponta de
+  qual fornecedor o insumo é comprado. Repassado direto no create/update; sem validação extra
+  (a FK garante integridade). Excluir o fornecedor solta o vínculo, não apaga o insumo.

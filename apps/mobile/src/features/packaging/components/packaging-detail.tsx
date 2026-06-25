@@ -7,6 +7,7 @@ import { Pressable, ScrollView, Share, View } from "react-native";
 
 import { buildPackagingShareText, typeColor, typeLabel } from "../domain";
 import { showAlert } from "../../../shared/components/alert-store";
+import { useSupplierName } from "../../suppliers/hooks";
 
 interface PackagingDetailProps {
   readonly packaging: Packaging;
@@ -87,6 +88,8 @@ export function PackagingDetail({
   const cardBg = isDark ? "rgba(44, 36, 32, 0.55)" : theme.colors.surfaceElevated;
   const border = isDark ? "rgba(245, 225, 219, 0.1)" : "rgba(74, 50, 40, 0.1)";
   const tColor = typeColor(theme, packaging.type);
+  const supplierName = useSupplierName(packaging.supplierId);
+  const supplierDisplay = supplierName ?? packaging.supplier ?? "Nenhum";
 
   function confirmDelete() {
     showAlert({
@@ -244,11 +247,7 @@ export function PackagingDetail({
             paddingHorizontal: spacing.lg,
           }}
         >
-          <InfoRow
-            icon="storefront-outline"
-            label="Fornecedor"
-            value={packaging.supplier ?? "Nenhum"}
-          />
+          <InfoRow icon="storefront-outline" label="Fornecedor" value={supplierDisplay} />
           <View style={{ height: 1, backgroundColor: border }} />
           <InfoRow
             icon="calendar-outline"

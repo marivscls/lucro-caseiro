@@ -16,6 +16,7 @@ export class PackagingRepoPg implements IPackagingRepo {
         type: data.type,
         unitCost: String(data.unitCost),
         supplier: data.supplier ?? null,
+        supplierId: data.supplierId ?? null,
         photoUrl: data.photoUrl ?? null,
       })
       .returning();
@@ -73,6 +74,7 @@ export class PackagingRepoPg implements IPackagingRepo {
     if (data.type !== undefined) updateData.type = data.type;
     if (data.unitCost !== undefined) updateData.unitCost = String(data.unitCost);
     if (data.supplier !== undefined) updateData.supplier = data.supplier;
+    if (data.supplierId !== undefined) updateData.supplierId = data.supplierId ?? null;
     if (data.photoUrl !== undefined) updateData.photoUrl = data.photoUrl;
 
     if (Object.keys(updateData).length === 0) {
@@ -135,6 +137,7 @@ export class PackagingRepoPg implements IPackagingRepo {
       type: row.type,
       unitCost: Number(row.unitCost),
       supplier: row.supplier,
+      supplierId: row.supplierId,
       photoUrl: row.photoUrl,
       createdAt: row.createdAt.toISOString(),
     };

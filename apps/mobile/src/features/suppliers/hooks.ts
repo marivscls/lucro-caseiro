@@ -30,6 +30,13 @@ export function useSupplier(id: string) {
   });
 }
 
+/** Resolve o nome de um fornecedor pelo id, a partir da lista já em cache. */
+export function useSupplierName(id: string | null | undefined): string | null {
+  const { data } = useSuppliers();
+  if (!id) return null;
+  return data?.items.find((s) => s.id === id)?.name ?? null;
+}
+
 export function useCreateSupplier() {
   const { token } = useAuth();
   const queryClient = useQueryClient();

@@ -15,6 +15,7 @@ function makePackaging(overrides: Partial<Packaging> = {}): Packaging {
     type: "box",
     unitCost: 1.5,
     supplier: null,
+    supplierId: null,
     photoUrl: null,
     createdAt: new Date().toISOString(),
     ...overrides,
