@@ -1,5 +1,6 @@
 import type { Insights } from "@lucro-caseiro/contracts";
 import {
+  Button,
   Card,
   EmptyState,
   Typography,
@@ -336,6 +337,19 @@ export default function InsightsScreen() {
               icon={<Illustration name="chart" />}
               title="Ainda sem dados pra mostrar"
               description="Registre algumas vendas e volte aqui para ver seus gráficos e os campeões de venda."
+              action={
+                <Button
+                  title="Adicionar venda"
+                  icon={
+                    <Ionicons
+                      name="add-circle-outline"
+                      size={20}
+                      color={theme.colors.textOnPrimary}
+                    />
+                  }
+                  onPress={() => router.push("/tabs/new-sale")}
+                />
+              }
             />
           )}
         </ScrollView>
