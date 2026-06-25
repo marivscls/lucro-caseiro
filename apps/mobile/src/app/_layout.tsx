@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/reac
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useRef, useState } from "react";
-import { Modal, Platform, useColorScheme } from "react-native";
+import { AppState, Modal, Platform, useColorScheme } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { useBirthdayNotifier } from "../features/clients/use-birthday-notifier";
@@ -114,6 +114,18 @@ function AppContent() {
         void appQueryClient.invalidateQueries();
       },
     );
+  }, [token, appQueryClient]);
+
+  // Ao voltar para o app (ex.: depois de pagar na loja ou no checkout externo),
+  // revalida o plano para o botão de upgrade sumir e a comemoração disparar
+  // assim que a assinatura é confirmada no backend.
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active" && token) {
+        void appQueryClient.invalidateQueries({ queryKey: ["subscription"] });
+      }
+    });
+    return () => sub.remove();
   }, [token, appQueryClient]);
 
   // Ao trocar de conta (ou sair), descarta o cache da conta anterior. Sem isso,

@@ -80,7 +80,7 @@ Mobile ownership for profile, freemium limits, paywall display, and platform-bas
 - Stripe checkout failures show a generic retry alert.
 - Google Play unavailable plans show a "Plano indisponivel" alert.
 - Restore with no purchase shows a "Nenhuma assinatura encontrada" alert.
-- Query invalidation refreshes plan state after returning from checkout.
+- Plan reconciliation after payment is resilient to the async Stripe webhook: returning from checkout invalidates the subscription query AND `use-stripe.ts` polls the profile (`fetchProfile`, up to 6× every 2.5s) until it flips to premium, writing it into the `["subscription","profile"]` cache. `app/_layout.tsx` also revalidates the subscription whenever the app returns to foreground (`AppState` `active`).
 
 ## Performance
 
@@ -94,7 +94,7 @@ Mobile ownership for profile, freemium limits, paywall display, and platform-bas
 - Paywall opens from limits/plans.
 - Paywall routes subscribe to Google Play Billing on Android and to Stripe Checkout on iOS/Web.
 - Stripe checkout sends selected plan and opens returned URL.
-- Subscription query invalidates after browser closes.
+- Subscription query invalidates after browser closes, then polls until the plan flips to premium (covers webhook delay) and revalidates on app foreground.
 - Google Play restore handles no purchase, valid purchase, and provider errors.
 - Free/Premium plan UI switches based on profile.
 
@@ -120,4 +120,5 @@ await createStripeCheckout(token, "monthly");
 - Google Play Billing also powers the "restore purchase" action.
 - Prices are display-only in mobile and must match both the Stripe Dashboard and the Google Play products.
 - 2026-06-15: **foto/avatar do negócio** — `UserProfile.avatarUrl`. No "Editar perfil" (settings) há um seletor de foto (`useImagePicker` → `uploadProfilePhoto`, prefixo `profile-`) que envia `avatarUrl` no `updateProfile`. Os avatares em Configurações e "Mais opções" mostram a foto quando existe, senão a inicial do nome. Requer migration `018_user_avatar.sql` no Supabase.
+- 2026-06-25: **fix — botão de upgrade não sumia após pagar / comemoração não disparava.** Causa: o plano vira premium no backend por webhook assíncrono (Stripe), mas o cliente fazia um único `invalidateQueries` que corria na frente. Agora `use-stripe.ts` faz polling do perfil (até 6× a cada 2,5s) escrevendo no cache, e `app/_layout.tsx` revalida a assinatura no foreground (`AppState`). A tela de comemoração (`PremiumSuccess`, confete) já existia e é disparada pelo watcher de `profile.plan` — passa a aparecer porque o plano agora atualiza de fato.
 - 2026-06-15: **notificações funcionais com preferência por tipo** (`shared/hooks/notification-prefs.ts`, persistido em AsyncStorage; default ligado). Em Configurações, cada tipo tem toggle real. **Split de plano:** free = Vendas pendentes + Estoque baixo; **Premium** = Aniversários, Lembretes diários e Resumo semanal (toggle vira cadeado → /plans pra quem é free). Notificadores: existentes (fiado/`PENDING_SALES`, `LOW_STOCK`) respeitam a preferência; novos `useBirthdayNotifier` (clients), `useDailyReminderNotifier` (19h) e `useWeeklySummaryNotifier` (seg 9h) gatam por `isPremium && pref`. Tudo local (expo-notifications), montado no `app/_layout.tsx`.
