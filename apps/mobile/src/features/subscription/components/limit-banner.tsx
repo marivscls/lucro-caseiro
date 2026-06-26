@@ -30,7 +30,10 @@ export function LimitBanner({ resource, onUpgrade, containerStyle }: LimitBanner
   const current = limits[label.current as keyof typeof limits];
   const max = limits[label.max as keyof typeof limits];
 
-  if (!isFinite(max)) return null;
+  // Premium = ilimitado: o backend manda Infinity, que vira `null` no JSON.
+  // Number.isFinite (não o global isFinite, que coage null→0 e retornaria true)
+  // trata null/Infinity como "sem limite" e esconde o banner.
+  if (!Number.isFinite(max)) return null;
 
   const remaining = max - current;
   const threshold = Math.max(1, Math.ceil(max * 0.2));
