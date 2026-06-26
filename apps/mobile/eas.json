@@ -1,7 +1,7 @@
 {
   "cli": {
     "version": ">= 15.0.0",
-    "appVersionSource": "remote"
+    "appVersionSource": "local"
   },
   "build": {
     "base": {
@@ -37,7 +37,6 @@
     },
     "production": {
       "extends": "base",
-      "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_API_URL": "https://lucro-caseiroapi-production.up.railway.app",
         "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucrocaseiro://",
