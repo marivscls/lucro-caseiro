@@ -1,5 +1,5 @@
 import type { CreatePricing } from "@lucro-caseiro/contracts";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "../../shared/hooks/use-auth";
 import {
@@ -13,8 +13,14 @@ const PRICING_KEY = ["pricing"];
 
 export function useCalculatePricing() {
   const { token } = useAuth();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: CreatePricing) => calculatePricing(token!, data),
+    // Salvar um cálculo persiste no histórico; revalida a lista para o
+    // "Histórico" mostrar o cálculo novo na hora (sem isso ficava stale 5min).
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: PRICING_KEY });
+    },
   });
 }
 
