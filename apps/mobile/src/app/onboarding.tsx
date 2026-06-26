@@ -420,7 +420,7 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const { theme } = useTheme();
   const updateProfile = useUpdateProfile();
-  const { signOut } = useAuth();
+  const { signOut, userId } = useAuth();
   const {
     currentStep,
     businessType,
@@ -443,13 +443,13 @@ export default function OnboardingScreen() {
   }
 
   function handleFinish() {
-    completeOnboarding();
+    completeOnboarding(userId);
     router.replace("/tabs");
   }
 
   // Primeira vitoria: leva direto ao cadastro do 1o produto.
   function handleFirstProduct() {
-    completeOnboarding();
+    completeOnboarding(userId);
     router.replace("/products");
   }
 

@@ -10,6 +10,11 @@ const secureStoreStorage = {
 
 interface OnboardingState {
   completed: boolean;
+  // Contas (userId) que já concluíram o onboarding NESTE aparelho. Diferente de
+  // `completed` (sessão atual, zerado no signOut), esta lista NÃO é apagada ao
+  // sair: garante que quem já concluiu nunca reveja o onboarding ao relogar,
+  // mesmo que não tenha salvo o nome do negócio no servidor.
+  completedUserIds: string[];
   currentStep: number;
   businessType: string | null;
   businessName: string | null;
@@ -18,7 +23,7 @@ interface OnboardingState {
   setStep: (step: number) => void;
   setBusinessType: (type: string) => void;
   setBusinessName: (name: string) => void;
-  completeOnboarding: () => void;
+  completeOnboarding: (userId?: string | null) => void;
   dismissGettingStarted: () => void;
   reset: () => void;
 }
@@ -27,6 +32,7 @@ export const useOnboarding = create<OnboardingState>()(
   persist(
     (set) => ({
       completed: false,
+      completedUserIds: [],
       currentStep: 0,
       businessType: null,
       businessName: null,
@@ -34,8 +40,17 @@ export const useOnboarding = create<OnboardingState>()(
       setStep: (step) => set({ currentStep: step }),
       setBusinessType: (type) => set({ businessType: type }),
       setBusinessName: (name) => set({ businessName: name }),
-      completeOnboarding: () => set({ completed: true }),
+      completeOnboarding: (userId) =>
+        set((state) => ({
+          completed: true,
+          completedUserIds:
+            userId && !state.completedUserIds.includes(userId)
+              ? [...state.completedUserIds, userId]
+              : state.completedUserIds,
+        })),
       dismissGettingStarted: () => set({ dismissedGettingStarted: true }),
+      // Zera só o estado de sessão; `completedUserIds` é preservado de
+      // propósito (memória por conta neste aparelho).
       reset: () =>
         set({
           completed: false,

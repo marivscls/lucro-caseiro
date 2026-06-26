@@ -15,8 +15,8 @@ function Loading() {
 }
 
 export default function Index() {
-  const { isAuthenticated } = useAuth();
-  const { completed } = useOnboarding();
+  const { isAuthenticated, userId } = useAuth();
+  const { completed, completedUserIds } = useOnboarding();
   const hasHydrated = useOnboarding.persist.hasHydrated();
   const { data: profile, isLoading: profileLoading } = useProfile();
 
@@ -28,8 +28,9 @@ export default function Index() {
     return <Loading />;
   }
 
-  // Onboarding ja concluido neste aparelho.
-  if (completed) {
+  // Onboarding ja concluido neste aparelho: na sessao atual (`completed`) ou em
+  // sessao anterior por esta conta (`completedUserIds`, sobrevive ao relogin).
+  if (completed || (userId && completedUserIds.includes(userId))) {
     return <Redirect href="/tabs" />;
   }
 
