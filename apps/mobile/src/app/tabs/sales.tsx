@@ -661,8 +661,13 @@ export default function SalesScreen() {
   const statusParam = activeFilter === "all" ? undefined : activeFilter;
   const { data, isLoading, error, refetch } = useSales({ status: statusParam });
   const { data: selectedSale } = useSale(selectedSaleId ?? "");
+  // Abre o detalhe imediatamente com a venda que a lista já carregou (inclui
+  // itens); o useSale revalida em segundo plano. Sem isso, o modal só abria
+  // depois do round-trip de rede — daí a demora ao tocar na venda.
+  const listSale = data?.items?.find((s) => s.id === selectedSaleId) ?? null;
+  const activeSale = selectedSale ?? listSale;
   const { data: productsData } = useProducts({ limit: 100 });
-  const { data: selectedClient } = useClient(selectedSale?.clientId ?? "");
+  const { data: selectedClient } = useClient(activeSale?.clientId ?? "");
   const updateSale = useUpdateSale();
 
   function handleClearFilters() {
@@ -676,9 +681,9 @@ export default function SalesScreen() {
   }
 
   function handleEditPress() {
-    if (!selectedSale) return;
-    setEditPayment(selectedSale.paymentMethod);
-    setEditNotes(selectedSale.notes ?? "");
+    if (!activeSale) return;
+    setEditPayment(activeSale.paymentMethod);
+    setEditNotes(activeSale.notes ?? "");
     setShowEdit(true);
   }
 
@@ -706,7 +711,7 @@ export default function SalesScreen() {
         ...(data?.items ?? []).flatMap((sale) =>
           sale.items.map((item) => item.productId),
         ),
-        ...(selectedSale?.items ?? []).map((item) => item.productId),
+        ...(activeSale?.items ?? []).map((item) => item.productId),
       ].filter(Boolean),
     ),
   );
@@ -738,8 +743,8 @@ export default function SalesScreen() {
   const salesWithPhotos = data?.items?.map((sale) =>
     addProductPhotosToSale(sale, productPhotosById, productPhotosByName),
   );
-  const selectedSaleWithPhotos = selectedSale
-    ? addProductPhotosToSale(selectedSale, productPhotosById, productPhotosByName)
+  const selectedSaleWithPhotos = activeSale
+    ? addProductPhotosToSale(activeSale, productPhotosById, productPhotosByName)
     : null;
 
   const filteredItems = salesWithPhotos?.filter((sale) => {
