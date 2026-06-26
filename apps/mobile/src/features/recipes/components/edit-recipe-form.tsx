@@ -76,9 +76,14 @@ export function EditRecipeForm({ recipe, onSuccess }: EditRecipeFormProps) {
       alertValidation("Informe a unidade de rendimento");
       return;
     }
-    const validLines = lines.filter((l) => l.materialId && l.quantity.trim());
-    if (validLines.length === 0) {
+    const linesWithMaterial = lines.filter((l) => l.materialId);
+    if (linesWithMaterial.length === 0) {
       alertValidation("Adicione pelo menos um insumo");
+      return;
+    }
+    const validLines = linesWithMaterial.filter((l) => l.quantity.trim());
+    if (validLines.length === 0) {
+      alertValidation("Informe a quantidade do insumo");
       return;
     }
 
