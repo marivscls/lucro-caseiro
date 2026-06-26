@@ -493,8 +493,14 @@ export default function FiadoScreen() {
   const updateStatus = useUpdateSaleStatus();
 
   const sales = data?.items ?? [];
-  const groups = React.useMemo(() => groupFiados(sales), [sales]);
-  const grandTotal = totalOwed(sales.filter((s) => s.status === "pending"));
+  // Fiado só mostra vendas em aberto. Filtrar pelo status aqui faz a linha sair
+  // na hora quando a atualização otimista marca a venda como paga.
+  const pendingSales = React.useMemo(
+    () => sales.filter((s) => s.status === "pending"),
+    [sales],
+  );
+  const groups = React.useMemo(() => groupFiados(pendingSales), [pendingSales]);
+  const grandTotal = totalOwed(pendingSales);
 
   const phoneById = new Map<string, string>();
   for (const client of clientsData?.items ?? []) {

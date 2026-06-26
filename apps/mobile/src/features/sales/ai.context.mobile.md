@@ -63,13 +63,13 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 
 ## Hooks
 
-| Hook                    | Tipo          | Descricao                                                                                                                     |
-| ----------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `useSales(opts?)`       | `useQuery`    | Lista paginada. Query key: `["sales", opts]`                                                                                  |
-| `useSale(id)`           | `useQuery`    | Detalhe. Query key: `["sales", id]`                                                                                           |
-| `useTodaySummary()`     | `useQuery`    | Resumo do dia (totalSales, totalAmount, averageTicket). `refetchInterval: 60_000`. Query key: `["sales", "summary", "today"]` |
-| `useCreateSale()`       | `useMutation` | Cria venda. Invalida `["sales"]` e `["products"]` (a venda da baixa no estoque, entao produtos sao revalidados).              |
-| `useUpdateSaleStatus()` | `useMutation` | Atualiza status. Invalida `["sales"]`.                                                                                        |
+| Hook                    | Tipo          | Descricao                                                                                                                                                            |
+| ----------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `useSales(opts?)`       | `useQuery`    | Lista paginada. Query key: `["sales", opts]`                                                                                                                         |
+| `useSale(id)`           | `useQuery`    | Detalhe. Query key: `["sales", id]`                                                                                                                                  |
+| `useTodaySummary()`     | `useQuery`    | Resumo do dia (totalSales, totalAmount, averageTicket). `refetchInterval: 60_000`. Query key: `["sales", "summary", "today"]`                                        |
+| `useCreateSale()`       | `useMutation` | Cria venda. Invalida `["sales"]` e `["products"]` (a venda da baixa no estoque, entao produtos sao revalidados).                                                     |
+| `useUpdateSaleStatus()` | `useMutation` | Atualiza status com **update otimista** (reflete o novo status em todas as listas `["sales"]` em cache na hora; rollback em erro; `onSettled` invalida `["sales"]`). |
 
 ## API Integration
 
@@ -146,3 +146,4 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 - 2026-06-10: lembrete de fiado antigo — useFiadoNotifier (use-fiado-notifier.ts, montado em app/\_layout) notifica localmente quando ha vendas pendentes ha mais de 7 dias, com cooldown de 3 dias (AsyncStorage fiadoNotifiedAt). Toque roteia para /fiado (PENDING_SALES). Regra pura em oldFiadoSummary (fiado.ts).
 - 2026-06-16: **escanear código de barras na venda** — o ícone de scan da busca e o atalho "Usar código" (passo 1) abrem a câmera (`shared/components/barcode-scanner.tsx`, `expo-camera`); o código lido alimenta a busca de produtos (o back casa por nome OU código, via campo `products.code`). Fallback "Digitar à mão" mantém o modal de digitação. Requer build com o módulo nativo da câmera (ver feature products).
 - 2026-06-15: menu de acoes por cliente no card de fiado — os 3 pontinhos (`ellipsis-vertical`) viraram botao que abre um action sheet (Modal bottom-sheet) com "Marcar tudo como recebido" (marca todas as vendas pendentes do cliente como pagas via `Promise.all` de `updateSaleStatus`; com 1 venda cai no fluxo unitario), "Cobrar no WhatsApp" e "Ligar para o cliente" (`tel:`, so quando ha telefone valido). Antes o icone era decorativo (sem `onPress`). O botao "Recebi" de cada venda ganhou estilo de pilula (borda/fundo verde) para ficar obviamente tocavel ao publico nao-tech.
+- 2026-06-25: **fix — "Recebi" no fiado nao atualizava pra recebido na hora.** `useUpdateSaleStatus` agora faz **update otimista** (reflete o status em todas as listas `["sales"]` do cache imediatamente, com rollback em erro e `onSettled` reconciliando). A tela `/fiado` passou a filtrar `status === "pending"` localmente antes de agrupar (`groupFiados`), entao a venda paga sai da lista no instante do "Sim, recebi", sem depender do tempo do refetch.

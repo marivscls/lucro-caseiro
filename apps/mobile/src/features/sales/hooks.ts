@@ -1,4 +1,4 @@
-import type { CreateSale, SaleStatus } from "@lucro-caseiro/contracts";
+import type { CreateSale, Sale, SaleStatus } from "@lucro-caseiro/contracts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "../../shared/hooks/use-auth";
@@ -59,13 +59,37 @@ export function useCreateSale() {
   });
 }
 
+type SalesListCache = { items: Sale[] } & Record<string, unknown>;
+
 export function useUpdateSaleStatus() {
   const { token } = useAuth();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: SaleStatus }) =>
       updateSaleStatus(token!, id, { status }),
-    onSuccess: () => {
+    // Atualização otimista: reflete o novo status na hora em todas as listas de
+    // vendas em cache (ex.: a venda paga sai do fiado imediatamente), com
+    // rollback se a API falhar. onSettled reconcilia com o servidor.
+    onMutate: async ({ id, status }) => {
+      await queryClient.cancelQueries({ queryKey: SALES_KEY });
+      const snapshots = queryClient.getQueriesData<SalesListCache>({
+        queryKey: SALES_KEY,
+      });
+      for (const [key, data] of snapshots) {
+        if (!data?.items) continue;
+        queryClient.setQueryData<SalesListCache>(key, {
+          ...data,
+          items: data.items.map((sale) => (sale.id === id ? { ...sale, status } : sale)),
+        });
+      }
+      return { snapshots };
+    },
+    onError: (_error, _vars, context) => {
+      for (const [key, data] of context?.snapshots ?? []) {
+        queryClient.setQueryData(key, data);
+      }
+    },
+    onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: SALES_KEY });
     },
   });
