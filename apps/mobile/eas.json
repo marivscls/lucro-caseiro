@@ -20,6 +20,7 @@
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://lucro-caseiroapi-production.up.railway.app",
+        "EXPO_PUBLIC_CATALOG_URL": "https://catalogo.lucrocaseiro.com.br",
         "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucrocaseiro://",
         "EXPO_PUBLIC_SUPABASE_URL": "https://ujwxvpceqigvyxcqolch.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_62oHpKLLLGkVgWqA-aZ9Pg_bLR1UiCq"
@@ -30,6 +31,7 @@
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://lucro-caseiroapi-production.up.railway.app",
+        "EXPO_PUBLIC_CATALOG_URL": "https://catalogo.lucrocaseiro.com.br",
         "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucrocaseiro://",
         "EXPO_PUBLIC_SUPABASE_URL": "https://ujwxvpceqigvyxcqolch.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_62oHpKLLLGkVgWqA-aZ9Pg_bLR1UiCq"
@@ -39,6 +41,7 @@
       "extends": "base",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://lucro-caseiroapi-production.up.railway.app",
+        "EXPO_PUBLIC_CATALOG_URL": "https://catalogo.lucrocaseiro.com.br",
         "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucrocaseiro://",
         "EXPO_PUBLIC_SUPABASE_URL": "https://ujwxvpceqigvyxcqolch.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_62oHpKLLLGkVgWqA-aZ9Pg_bLR1UiCq"
