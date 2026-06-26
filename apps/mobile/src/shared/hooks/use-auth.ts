@@ -84,7 +84,7 @@ interface AuthState {
     password: string,
     name: string,
     businessName?: string,
-  ) => Promise<{ error?: string }>;
+  ) => Promise<{ error?: string; needsConfirmation?: boolean }>;
   signInWithGoogle: (options?: {
     completeOnboardingForExistingAccount?: boolean;
   }) => Promise<{ error?: string }>;
@@ -209,12 +209,15 @@ export const useAuth = create<AuthState>((set) => ({
       return { error: "Erro ao criar conta. Tente novamente." };
     }
 
-    // If email confirmation is disabled, user is logged in immediately
+    // Confirmação de e-mail desativada no Supabase: o signUp já devolve sessão
+    // e o usuário entra na hora. Quando ativada, não há sessão e ele precisa
+    // confirmar pelo e-mail antes de entrar.
     if (data.session) {
       setSession(set, data.session);
+      return {};
     }
 
-    return {};
+    return { needsConfirmation: true };
   },
 
   signInWithGoogle: async (options) => {

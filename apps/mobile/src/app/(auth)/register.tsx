@@ -163,11 +163,18 @@ export default function RegisterScreen() {
 
     if (result.error) {
       showAlert({ title: "Ops!", message: result.error });
-    } else {
+    } else if (result.needsConfirmation) {
       showAlert({
         title: "Conta criada!",
         message: "Verifique seu e-mail para confirmar a conta. Depois e so entrar!",
         buttons: [{ text: "Ok", onPress: () => router.push("/(auth)/login") }],
+      });
+    } else {
+      // Conta já entrou (sem confirmação de e-mail): o gate de auth redireciona
+      // pra dentro do app sozinho. Sem mensagem de "verifique seu e-mail".
+      showAlert({
+        title: "Conta criada! 🎉",
+        message: "Tudo pronto — bora começar!",
       });
     }
   }
