@@ -54,6 +54,12 @@ irreversível e apaga os dados do usuário no servidor.
 - Em erro, exibe a mensagem real do backend via `ApiError`/`Error.message`
   (ex.: 503 "Não foi possível excluir a conta agora. Tente novamente mais
   tarde."). Em sucesso, redireciona para `/(auth)/login`.
+- **401 (`ApiError.status === 401`, "Sessao invalida"):** o `authMiddleware`
+  valida o token via `supabase.auth.getUser` a cada request; se o usuário já
+  não existe no Auth (conta removida numa tentativa anterior) ou a sessão
+  expirou, o request cai em 401. Nesse caso `runDeleteAccount` faz `signOut()`
+  e vai pro login em vez de mostrar erro sem saída (o destino é o login nos dois
+  casos).
 
 ## Performance
 

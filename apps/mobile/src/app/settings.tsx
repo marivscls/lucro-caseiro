@@ -30,6 +30,7 @@ import {
   type NotificationType,
 } from "../shared/hooks/notification-types";
 import { useNotificationPrefs, isPrefEnabled } from "../shared/hooks/notification-prefs";
+import { ApiError } from "../shared/utils/api-client";
 import { uploadProfilePhoto } from "../shared/utils/upload-image";
 import { maskPhoneBR } from "../shared/utils/phone";
 import { useDeleteAccount } from "../features/account/hooks";
@@ -216,6 +217,14 @@ export default function SettingsScreen() {
       // Sucesso: o hook ja encerrou a sessao e limpou o cache.
       router.replace("/(auth)/login");
     } catch (e: unknown) {
+      // 401 = o usuario nao existe mais no Auth (conta ja removida numa tentativa
+      // anterior) ou a sessao expirou. Em ambos os casos o destino e o login —
+      // encerra a sessao local em vez de mostrar um erro sem saida.
+      if (e instanceof ApiError && e.status === 401) {
+        await signOut();
+        router.replace("/(auth)/login");
+        return;
+      }
       const message =
         e instanceof Error
           ? e.message
