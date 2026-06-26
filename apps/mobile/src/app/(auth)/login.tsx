@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BackgroundDecor, BrandMark } from "../../shared/components/auth-decor";
 import { KeyboardAwareScrollView } from "../../shared/components/keyboard-aware-scroll-view";
-import { useAuth } from "../../shared/hooks/use-auth";
+import { getAuthRedirectUrl, useAuth } from "../../shared/hooks/use-auth";
 import { supabase } from "../../shared/utils/supabase";
 import { validateEmail } from "../../shared/utils/validation";
 import { alertError } from "../../shared/utils/alerts";
@@ -98,17 +98,19 @@ export default function LoginScreen() {
       return;
     }
     setResetLoading(true);
-    void supabase.auth.resetPasswordForEmail(trimmed).then(({ error }) => {
-      setResetLoading(false);
-      if (error) {
-        alertError("Não foi possível enviar o e-mail. Tente novamente.");
-        return;
-      }
-      showAlert({
-        title: "E-mail enviado!",
-        message: "Verifique sua caixa de entrada para redefinir sua senha.",
+    void supabase.auth
+      .resetPasswordForEmail(trimmed, { redirectTo: getAuthRedirectUrl() })
+      .then(({ error }) => {
+        setResetLoading(false);
+        if (error) {
+          alertError("Não foi possível enviar o e-mail. Tente novamente.");
+          return;
+        }
+        showAlert({
+          title: "E-mail enviado!",
+          message: "Verifique sua caixa de entrada para redefinir sua senha.",
+        });
       });
-    });
   }
 
   return (

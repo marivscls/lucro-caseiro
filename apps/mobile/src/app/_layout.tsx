@@ -1,6 +1,6 @@
 import { ThemeProvider, useTheme, type ThemeMode } from "@lucro-caseiro/ui";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useRef, useState } from "react";
 import { AppState, Modal, Platform, useColorScheme } from "react-native";
@@ -45,7 +45,8 @@ if (__DEV__) {
 
 function AppContent() {
   const { theme } = useTheme();
-  const { initialize, isLoading, token, userId } = useAuth();
+  const { initialize, isLoading, token, userId, passwordRecovery } = useAuth();
+  const router = useRouter();
   const {
     visible: paywallVisible,
     hide: hidePaywall,
@@ -103,6 +104,14 @@ function AppContent() {
   useEffect(() => {
     void initialize();
   }, []);
+
+  // Link de recuperação de senha → abre a tela de "criar nova senha" (sobrepõe
+  // o roteamento normal de auth). Só navega com o app já montado (introDone).
+  useEffect(() => {
+    if (passwordRecovery && introDone) {
+      router.replace("/reset-password");
+    }
+  }, [passwordRecovery, introDone, router]);
 
   // Auto-sync offline queue when connection is restored. Apos sincronizar,
   // invalida o cache para listas/resumos refletirem as vendas enviadas.
@@ -186,6 +195,7 @@ function AppContent() {
         }}
       >
         <Stack.Screen name="(auth)" />
+        <Stack.Screen name="reset-password" />
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="tabs" />
         <Stack.Screen

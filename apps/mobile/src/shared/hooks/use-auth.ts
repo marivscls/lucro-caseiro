@@ -6,7 +6,7 @@ import { create } from "zustand";
 import { supabase } from "../utils/supabase";
 import { useOnboarding } from "./use-onboarding";
 
-function getAuthRedirectUrl(): string {
+export function getAuthRedirectUrl(): string {
   if (process.env.EXPO_PUBLIC_AUTH_REDIRECT_URL) {
     return process.env.EXPO_PUBLIC_AUTH_REDIRECT_URL;
   }
@@ -76,6 +76,7 @@ interface AuthState {
   session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  passwordRecovery: boolean;
 
   initialize: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<{ error?: string }>;
@@ -89,6 +90,7 @@ interface AuthState {
     completeOnboardingForExistingAccount?: boolean;
   }) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
+  clearPasswordRecovery: () => void;
 }
 
 function setSession(set: (state: Partial<AuthState>) => void, session: Session | null) {
@@ -118,6 +120,7 @@ export const useAuth = create<AuthState>((set) => ({
   session: null,
   isAuthenticated: false,
   isLoading: true,
+  passwordRecovery: false,
 
   initialize: async () => {
     try {
@@ -153,7 +156,13 @@ export const useAuth = create<AuthState>((set) => ({
       // deep link (lucrocaseiro://) em vez de retornar pro browser in-app.
       const handleUrl = (url: string | null) => {
         if (url && (url.includes("code=") || url.includes("access_token="))) {
-          void applySessionFromUrl(url);
+          void applySessionFromUrl(url).then((ok) => {
+            // Link de recuperação de senha chega com type=recovery: marca o modo
+            // recovery para o app abrir a tela de "criar nova senha".
+            if (ok && url.includes("type=recovery")) {
+              set({ passwordRecovery: true });
+            }
+          });
         }
       };
       handleUrl(await Linking.getInitialURL());
@@ -283,6 +292,9 @@ export const useAuth = create<AuthState>((set) => ({
       user: null,
       session: null,
       isAuthenticated: false,
+      passwordRecovery: false,
     });
   },
+
+  clearPasswordRecovery: () => set({ passwordRecovery: false }),
 }));
