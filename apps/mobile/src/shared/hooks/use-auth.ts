@@ -86,9 +86,7 @@ interface AuthState {
     name: string,
     businessName?: string,
   ) => Promise<{ error?: string; needsConfirmation?: boolean }>;
-  signInWithGoogle: (options?: {
-    completeOnboardingForExistingAccount?: boolean;
-  }) => Promise<{ error?: string }>;
+  signInWithGoogle: () => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
   clearPasswordRecovery: () => void;
 }
@@ -190,7 +188,9 @@ export const useAuth = create<AuthState>((set) => ({
       return { error: "Erro ao entrar. Tente novamente." };
     }
 
-    useOnboarding.getState().completeOnboarding();
+    // Não marca onboarding como concluído aqui: quem decide é o index.tsx pelo
+    // businessName do perfil (servidor). Forçar aqui pulava o onboarding de
+    // contas novas que entram por "Entrar" em vez de "Criar conta".
     return {};
   },
 
@@ -229,11 +229,9 @@ export const useAuth = create<AuthState>((set) => ({
     return { needsConfirmation: true };
   },
 
-  signInWithGoogle: async (options) => {
+  signInWithGoogle: async () => {
     try {
       const authRedirectUrl = getAuthRedirectUrl();
-      const completeOnboardingForExistingAccount =
-        options?.completeOnboardingForExistingAccount ?? false;
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -251,9 +249,6 @@ export const useAuth = create<AuthState>((set) => ({
 
       if (result.type === "success" && result.url) {
         const ok = await applySessionFromUrl(result.url);
-        if (ok && completeOnboardingForExistingAccount) {
-          useOnboarding.getState().completeOnboarding();
-        }
         return ok ? {} : { error: "Erro ao finalizar login com Google." };
       }
 
@@ -266,9 +261,6 @@ export const useAuth = create<AuthState>((set) => ({
           await new Promise((resolve) => setTimeout(resolve, 400));
           const { data: after } = await supabase.auth.getSession();
           if (after.session) {
-            if (completeOnboardingForExistingAccount) {
-              useOnboarding.getState().completeOnboarding();
-            }
             return {};
           }
         }

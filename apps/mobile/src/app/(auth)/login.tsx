@@ -70,9 +70,7 @@ export default function LoginScreen() {
 
   async function handleGoogleLogin() {
     setLoading(true);
-    const result = await signInWithGoogle({
-      completeOnboardingForExistingAccount: true,
-    });
+    const result = await signInWithGoogle();
     setLoading(false);
 
     if (result.error) {
