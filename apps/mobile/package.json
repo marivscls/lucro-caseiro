@@ -52,7 +52,6 @@
   },
   "devDependencies": {
     "@lucro-caseiro/config": "workspace:*",
-    "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/react-native": "^13.3.3",
     "@types/qrcode-generator": "^1.0.6",

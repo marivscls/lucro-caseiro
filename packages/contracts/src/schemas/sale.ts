@@ -9,8 +9,6 @@ export const SaleItemDto = z.object({
   unitPrice: z.number().positive().max(MAX_MONEY),
 });
 
-export type SaleItem = z.infer<typeof SaleItemDto>;
-
 export const CreateSaleDto = z.object({
   clientId: z.string().uuid().optional(),
   paymentMethod: PaymentMethod,
@@ -33,8 +31,6 @@ export const UpdateSaleDto = z.object({
   items: z.array(SaleItemDto).min(1).optional(),
   notes: z.string().max(500).optional(),
 });
-
-export type UpdateSale = z.infer<typeof UpdateSaleDto>;
 
 export const SaleDto = z.object({
   id: z.string().uuid(),

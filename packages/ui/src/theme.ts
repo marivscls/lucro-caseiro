@@ -49,16 +49,6 @@ export const colors = {
   overlay: "rgba(30, 24, 20, 0.5)",
 } as const;
 
-export const fonts = {
-  serif: "PlayfairDisplay",
-  serifBold: "PlayfairDisplay-Bold",
-  body: "Quicksand",
-  bodyMedium: "Quicksand-Medium",
-  bodyBold: "Quicksand-Bold",
-  numeric: "Poppins-Bold",
-  numericBlack: "Poppins-Black",
-} as const;
-
 export const fontSizes = {
   // Publico inclui idosos: nada abaixo de 13 (xs so para selos/labels curtos).
   xs: 13,

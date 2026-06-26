@@ -27,8 +27,6 @@ export const AdjustMaterialDto = z.object({
   delta: z.number(),
 });
 
-export type AdjustMaterial = z.infer<typeof AdjustMaterialDto>;
-
 export const MaterialDto = z.object({
   id: z.string().uuid(),
   userId: z.string().uuid(),

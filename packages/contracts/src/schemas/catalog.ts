@@ -15,7 +15,6 @@ export const CatalogAccentPreset = z.enum([
   "blue",
   "amber",
 ]);
-export type CatalogAccentColorKey = z.infer<typeof CatalogAccentPreset>;
 
 export const CatalogAccentColor = z.union([
   CatalogAccentPreset,

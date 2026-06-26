@@ -8,10 +8,7 @@ export const CreateIngredientDto = z.object({
   supplier: z.string().max(200).optional(),
 });
 
-export type CreateIngredient = z.infer<typeof CreateIngredientDto>;
-
 export const UpdateIngredientDto = CreateIngredientDto.partial();
-export type UpdateIngredient = z.infer<typeof UpdateIngredientDto>;
 
 export const IngredientDto = z.object({
   id: z.string().uuid(),

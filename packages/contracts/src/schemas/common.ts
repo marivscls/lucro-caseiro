@@ -9,23 +9,6 @@ export const PaginationDto = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 
-export type Pagination = z.infer<typeof PaginationDto>;
-
-export const PaginatedResponseDto = <T extends z.ZodType>(itemSchema: T) =>
-  z.object({
-    items: z.array(itemSchema),
-    total: z.number(),
-    page: z.number(),
-    limit: z.number(),
-    totalPages: z.number(),
-  });
-
-export const IdParamDto = z.object({
-  id: z.string().uuid(),
-});
-
-export type IdParam = z.infer<typeof IdParamDto>;
-
 export const PaymentMethod = z.enum(["pix", "cash", "card", "credit", "transfer"]);
 export type PaymentMethod = z.infer<typeof PaymentMethod>;
 

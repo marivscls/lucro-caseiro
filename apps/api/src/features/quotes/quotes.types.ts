@@ -1,9 +1,4 @@
-import type {
-  CreateQuote,
-  Quote,
-  QuoteStatusType,
-  UpdateQuote,
-} from "@lucro-caseiro/contracts";
+import type { CreateQuote, Quote, QuoteStatusType } from "@lucro-caseiro/contracts";
 
 export interface FindAllQuotesOpts {
   page: number;
@@ -43,5 +38,3 @@ export interface IOrderCreator {
     },
   ): Promise<{ id: string }>;
 }
-
-export type UpdateQuoteData = UpdateQuote;
