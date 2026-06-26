@@ -87,6 +87,9 @@ function RecipesEmptyState({ onAddPress }: Readonly<{ onAddPress?: () => void }>
       contentContainerStyle={{
         flexGrow: 1,
         padding: spacing.xl,
+        // Espaço extra no fundo pra o "Saiba como funciona" não ficar embaixo
+        // do FAB "Nova receita" (renderizado por cima pela tela).
+        paddingBottom: spacing.xl + 96,
         alignItems: "center",
         justifyContent: "center",
         gap: spacing.lg,
