@@ -1,33 +1,34 @@
 import type { ExpenseCategory } from "@lucro-caseiro/contracts";
-import {
-  Button,
-  Card,
-  EmptyState,
-  IconButton,
-  Input,
-  Typography,
-  radii,
-  spacing,
-  useTheme,
-} from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { router, Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import {
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import recurringHero from "../assets/recurring-expenses-hero.png";
 import { showAlert } from "../shared/components/alert-store";
 import { showToast } from "../shared/components/toast";
-import { ApiError } from "../shared/utils/api-client";
-import { alertError, alertValidation } from "../shared/utils/alerts";
-import { maskCurrencyInput, parseCurrencyInput } from "../shared/utils/currency-input";
-import { usePaywall } from "../shared/hooks/use-paywall";
-import { useProfile } from "../features/subscription/hooks";
 import {
   useCreateRecurring,
   useDeleteRecurring,
   useRecurringExpenses,
 } from "../features/finance/hooks";
+import { useProfile } from "../features/subscription/hooks";
+import { usePaywall } from "../shared/hooks/use-paywall";
+import { ApiError } from "../shared/utils/api-client";
+import { alertError, alertValidation } from "../shared/utils/alerts";
+import { maskCurrencyInput, parseCurrencyInput } from "../shared/utils/currency-input";
 
 const CATEGORIES: {
   key: ExpenseCategory;
@@ -51,13 +52,12 @@ function formatMoney(value: number): string {
 }
 
 export default function RecurringExpensesScreen() {
-  const { theme } = useTheme();
   const { data: items, isLoading } = useRecurringExpenses();
   const remove = useDeleteRecurring();
   const { data: profile } = useProfile();
   const isPremium = profile?.plan === "premium";
   const showPaywall = usePaywall((s) => s.show);
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(true);
 
   function handleAddPress() {
     if (!isPremium) {
@@ -85,116 +85,95 @@ export default function RecurringExpensesScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <SafeAreaView style={styles.safeArea}>
       <Stack.Screen options={{ headerShown: false }} />
+      <StatusBar style="light" />
 
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.sm,
-          paddingHorizontal: spacing.lg,
-          paddingTop: spacing.sm,
-          paddingBottom: spacing.md,
-        }}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardAvoider}
       >
-        <IconButton
-          icon={<Ionicons name="arrow-back" size={24} color={theme.colors.text} />}
-          accessibilityLabel="Voltar"
-          accessibilityRole="button"
-          onPress={() => router.back()}
-        />
-        <Typography variant="h2">Gastos fixos</Typography>
-      </View>
-
-      <ScrollView
-        contentContainerStyle={{
-          paddingHorizontal: spacing.lg,
-          paddingBottom: spacing["4xl"],
-          gap: spacing.md,
-        }}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Typography variant="body" color={theme.colors.textSecondary}>
-          Despesas que se repetem todo mês (aluguel, internet, gás…) caem sozinhas no seu
-          caixa na data certa.
-        </Typography>
-
-        {showForm && (
-          <RecurringForm
-            onClose={() => setShowForm(false)}
-            onPaywall={() => {
-              setShowForm(false);
-              showPaywall("recurring");
-            }}
-          />
-        )}
-
-        {!showForm && (
-          <Button
-            title="Adicionar gasto fixo"
-            icon={
-              <Ionicons
-                name="add-circle-outline"
-                size={20}
-                color={theme.colors.textOnPrimary}
-              />
-            }
-            onPress={handleAddPress}
-          />
-        )}
-
-        {isLoading && (
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            Carregando…
-          </Typography>
-        )}
-
-        {!isLoading && (items?.length ?? 0) === 0 && (
-          <EmptyState
-            icon={
-              <Ionicons
-                name="repeat-outline"
-                size={48}
-                color={theme.colors.textSecondary}
-              />
-            }
-            title="Nenhum gasto fixo ainda"
-            description="Cadastre seus custos mensais e deixe o app lançar pra você."
-          />
-        )}
-
-        {!isLoading &&
-          (items ?? []).map((item) => (
-            <Card key={item.id} style={{ gap: spacing.xs }}>
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.hero}>
+            <View style={styles.header}>
+              <Pressable
+                accessibilityLabel="Voltar"
+                accessibilityRole="button"
+                hitSlop={12}
+                onPress={() => router.back()}
+                style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}
               >
-                <View style={{ flex: 1 }}>
-                  <Typography variant="bodyBold">{item.description}</Typography>
-                  <Typography variant="caption" color={theme.colors.textSecondary}>
-                    {categoryLabel(item.category)} · todo dia {item.dayOfMonth}
-                  </Typography>
+                <Ionicons name="arrow-back" size={24} color="#F7E7DF" />
+              </Pressable>
+              <Text style={styles.title}>Gastos fixos</Text>
+            </View>
+
+            <Text style={styles.subtitle}>
+              Despesas que se repetem todo mês (aluguel, internet, gás...) caem sozinhas
+              no seu caixa na data certa.
+            </Text>
+
+            <Image
+              source={recurringHero}
+              resizeMode="contain"
+              style={styles.heroImage}
+              accessibilityIgnoresInvertColors
+            />
+          </View>
+
+          <Pressable
+            accessibilityRole="button"
+            onPress={handleAddPress}
+            style={({ pressed }) => [styles.addButton, pressed && styles.pressed]}
+          >
+            <Ionicons name="add-circle-outline" size={22} color="#FFFFFF" />
+            <Text style={styles.addButtonText}>Adicionar gasto fixo</Text>
+          </Pressable>
+
+          {showForm && (
+            <RecurringForm
+              onClose={() => setShowForm(false)}
+              onPaywall={() => {
+                setShowForm(false);
+                showPaywall("recurring");
+              }}
+            />
+          )}
+
+          {isLoading && <Text style={styles.loadingText}>Carregando...</Text>}
+
+          {!isLoading && (items?.length ?? 0) === 0 && <EmptyRecurringState />}
+
+          {!isLoading &&
+            (items ?? []).map((item) => (
+              <View key={item.id} style={styles.expenseCard}>
+                <View style={styles.expenseIcon}>
+                  <Ionicons name="calendar-outline" size={20} color="#E56D91" />
                 </View>
-                <Typography variant="bodyBold" color={theme.colors.alert}>
-                  {formatMoney(item.amount)}
-                </Typography>
+                <View style={styles.expenseInfo}>
+                  <Text style={styles.expenseTitle}>{item.description}</Text>
+                  <Text style={styles.expenseMeta}>
+                    {categoryLabel(item.category)} · todo dia {item.dayOfMonth}
+                  </Text>
+                </View>
+                <Text style={styles.expenseAmount}>{formatMoney(item.amount)}</Text>
                 <Pressable
-                  onPress={() => confirmDelete(item.id, item.description)}
-                  hitSlop={10}
-                  accessibilityRole="button"
                   accessibilityLabel={`Remover ${item.description}`}
+                  accessibilityRole="button"
+                  hitSlop={10}
+                  onPress={() => confirmDelete(item.id, item.description)}
+                  style={({ pressed }) => pressed && styles.pressed}
                 >
-                  <Ionicons
-                    name="trash-outline"
-                    size={22}
-                    color={theme.colors.textSecondary}
-                  />
+                  <Ionicons name="trash-outline" size={20} color="#CDB6A8" />
                 </Pressable>
               </View>
-            </Card>
-          ))}
-      </ScrollView>
+            ))}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -203,7 +182,6 @@ function RecurringForm({
   onClose,
   onPaywall,
 }: Readonly<{ onClose: () => void; onPaywall: () => void }>) {
-  const { theme } = useTheme();
   const create = useCreateRecurring();
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
@@ -246,17 +224,33 @@ function RecurringForm({
   }
 
   return (
-    <Card style={{ gap: spacing.md }}>
-      <Typography variant="bodyBold">Novo gasto fixo</Typography>
+    <View style={styles.formCard}>
+      <View style={styles.formHeader}>
+        <View style={styles.formHeaderLeft}>
+          <Ionicons name="calendar-outline" size={24} color="#E87496" />
+          <Text style={styles.formTitle}>Novo gasto fixo</Text>
+        </View>
+        <Pressable
+          accessibilityLabel="Fechar formulário"
+          accessibilityRole="button"
+          hitSlop={12}
+          onPress={onClose}
+          style={({ pressed }) => pressed && styles.pressed}
+        >
+          <Ionicons name="chevron-up" size={22} color="#F7D7CF" />
+        </Pressable>
+      </View>
 
-      <Input
+      <FormField
+        icon="receipt-outline"
         label="Descrição"
         value={description}
         onChangeText={setDescription}
         placeholder="Ex: Aluguel da cozinha"
         maxLength={120}
       />
-      <Input
+      <FormField
+        icon="cash-outline"
         label="Valor (R$)"
         value={amount}
         onChangeText={(v) => setAmount(maskCurrencyInput(v))}
@@ -264,52 +258,44 @@ function RecurringForm({
         keyboardType="decimal-pad"
       />
 
-      <View>
-        <Typography variant="caption" style={{ marginBottom: spacing.xs }}>
-          Categoria
-        </Typography>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+      <View style={styles.fieldBlock}>
+        <View style={styles.labelRow}>
+          <Ionicons name="grid-outline" size={20} color="#E87496" />
+          <Text style={styles.fieldLabel}>Categoria</Text>
+        </View>
+        <View style={styles.categoryWrap}>
           {CATEGORIES.map((c) => {
             const selected = c.key === category;
             return (
               <Pressable
                 key={c.key}
-                onPress={() => setCategory(c.key)}
                 accessibilityRole="button"
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: spacing.xs,
-                  paddingHorizontal: spacing.md,
-                  paddingVertical: spacing.sm,
-                  borderRadius: radii.full,
-                  borderWidth: 1.5,
-                  borderColor: selected ? theme.colors.primary : theme.colors.surface,
-                  backgroundColor: selected
-                    ? theme.colors.primary
-                    : theme.colors.surfaceElevated,
-                }}
+                onPress={() => setCategory(c.key)}
+                style={({ pressed }) => [
+                  styles.categoryPill,
+                  selected && styles.categoryPillSelected,
+                  pressed && styles.pressed,
+                ]}
               >
                 <Ionicons
                   name={c.icon}
-                  size={16}
-                  color={
-                    selected ? theme.colors.textOnPrimary : theme.colors.textSecondary
-                  }
+                  size={17}
+                  color={selected ? "#FFFFFF" : "#F4D8CC"}
                 />
-                <Typography
-                  variant="caption"
-                  color={selected ? theme.colors.textOnPrimary : theme.colors.text}
+                <Text
+                  numberOfLines={1}
+                  style={[styles.categoryText, selected && styles.categoryTextSelected]}
                 >
                   {c.label}
-                </Typography>
+                </Text>
               </Pressable>
             );
           })}
         </View>
       </View>
 
-      <Input
+      <FormField
+        icon="calendar-outline"
         label="Dia do mês (1–28)"
         value={day}
         onChangeText={(v) => setDay(v.replace(/\D/g, "").slice(0, 2))}
@@ -318,18 +304,340 @@ function RecurringForm({
         maxLength={2}
       />
 
-      <View style={{ flexDirection: "row", gap: spacing.sm }}>
-        <View style={{ flex: 1 }}>
-          <Button title="Cancelar" variant="secondary" onPress={onClose} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Button
-            title={create.isPending ? "Salvando…" : "Salvar"}
-            onPress={() => void handleSave()}
-            disabled={create.isPending}
-          />
-        </View>
+      <View style={styles.actionRow}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={onClose}
+          style={({ pressed }) => [styles.cancelButton, pressed && styles.pressed]}
+        >
+          <Text style={styles.cancelText}>Cancelar</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          disabled={create.isPending}
+          onPress={() => void handleSave()}
+          style={({ pressed }) => [
+            styles.saveButton,
+            create.isPending && styles.disabled,
+            pressed && !create.isPending && styles.pressed,
+          ]}
+        >
+          <Text style={styles.saveText}>
+            {create.isPending ? "Salvando..." : "Salvar"}
+          </Text>
+        </Pressable>
       </View>
-    </Card>
+    </View>
   );
 }
+
+function FormField({
+  icon,
+  label,
+  ...inputProps
+}: Readonly<
+  React.ComponentProps<typeof TextInput> & {
+    icon: keyof typeof Ionicons.glyphMap;
+    label: string;
+  }
+>) {
+  return (
+    <View style={styles.fieldBlock}>
+      <View style={styles.labelRow}>
+        <Ionicons name={icon} size={20} color="#E87496" />
+        <Text style={styles.fieldLabel}>{label}</Text>
+      </View>
+      <TextInput
+        {...inputProps}
+        placeholderTextColor="rgba(246, 226, 216, 0.44)"
+        style={styles.textInput}
+      />
+    </View>
+  );
+}
+
+function EmptyRecurringState() {
+  return (
+    <View style={styles.emptyState}>
+      <View style={styles.emptyIconCircle}>
+        <Ionicons name="receipt-outline" size={34} color="#FF8FA6" />
+      </View>
+      <Text style={styles.emptyTitle}>Nenhum gasto fixo ainda</Text>
+      <Text style={styles.emptyDescription}>
+        Cadastre seus custos mensais e deixe o app lançar pra você.
+      </Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  actionRow: {
+    flexDirection: "row",
+    gap: 14,
+    marginTop: 1,
+  },
+  addButton: {
+    alignItems: "center",
+    backgroundColor: "#D3627C",
+    borderColor: "rgba(255, 170, 190, 0.5)",
+    borderRadius: 12,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 10,
+    height: 49,
+    justifyContent: "center",
+    shadowColor: "#D3627C",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.24,
+    shadowRadius: 11,
+  },
+  addButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  backButton: {
+    alignItems: "center",
+    backgroundColor: "rgba(45, 38, 34, 0.76)",
+    borderColor: "rgba(255,255,255,0.04)",
+    borderRadius: 24,
+    borderWidth: 1,
+    height: 48,
+    justifyContent: "center",
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.28,
+    shadowRadius: 9,
+    width: 48,
+  },
+  cancelButton: {
+    alignItems: "center",
+    backgroundColor: "rgba(58, 49, 44, 0.88)",
+    borderColor: "rgba(255, 235, 225, 0.11)",
+    borderRadius: 12,
+    borderWidth: 1,
+    flex: 1,
+    height: 41,
+    justifyContent: "center",
+  },
+  cancelText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  categoryPill: {
+    alignItems: "center",
+    backgroundColor: "rgba(58, 49, 44, 0.78)",
+    borderColor: "rgba(255, 235, 225, 0.11)",
+    borderRadius: 16,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 7,
+    height: 34,
+    justifyContent: "center",
+    minWidth: "30%",
+    paddingHorizontal: 11,
+  },
+  categoryPillSelected: {
+    backgroundColor: "#D3627C",
+    borderColor: "rgba(255, 168, 189, 0.86)",
+  },
+  categoryText: {
+    color: "#F7E6DE",
+    fontSize: 13,
+    fontWeight: "500",
+  },
+  categoryTextSelected: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+  },
+  categoryWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 7,
+    paddingLeft: 1,
+  },
+  content: {
+    gap: 18,
+    paddingBottom: 36,
+    paddingHorizontal: 17,
+    paddingTop: 11,
+  },
+  disabled: {
+    opacity: 0.58,
+  },
+  emptyDescription: {
+    color: "#D9BDAE",
+    fontSize: 14,
+    lineHeight: 20,
+    maxWidth: 275,
+    textAlign: "center",
+  },
+  emptyIconCircle: {
+    alignItems: "center",
+    backgroundColor: "rgba(52, 44, 40, 0.92)",
+    borderRadius: 27,
+    height: 54,
+    justifyContent: "center",
+    marginBottom: 1,
+    width: 54,
+  },
+  emptyState: {
+    alignItems: "center",
+    gap: 7,
+    justifyContent: "center",
+    paddingHorizontal: 9,
+    paddingTop: 0,
+  },
+  emptyTitle: {
+    color: "#FFF2EE",
+    fontFamily: "serif",
+    fontSize: 22,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  expenseAmount: {
+    color: "#E87496",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  expenseCard: {
+    alignItems: "center",
+    backgroundColor: "rgba(31, 26, 23, 0.93)",
+    borderColor: "rgba(255, 236, 226, 0.12)",
+    borderRadius: 13,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 8,
+    padding: 10,
+  },
+  expenseIcon: {
+    alignItems: "center",
+    backgroundColor: "rgba(229, 109, 145, 0.14)",
+    borderRadius: 12,
+    height: 36,
+    justifyContent: "center",
+    width: 36,
+  },
+  expenseInfo: {
+    flex: 1,
+    gap: 3,
+  },
+  expenseMeta: {
+    color: "#CDB6A8",
+    fontSize: 12,
+  },
+  expenseTitle: {
+    color: "#FFF2EE",
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  fieldBlock: {
+    gap: 7,
+  },
+  fieldLabel: {
+    color: "#D9BDAE",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  formCard: {
+    backgroundColor: "rgba(28, 24, 21, 0.88)",
+    borderColor: "rgba(255, 235, 225, 0.11)",
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 15,
+    paddingBottom: 17,
+    paddingHorizontal: 21,
+    paddingTop: 18,
+  },
+  formHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  formHeaderLeft: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 11,
+  },
+  formTitle: {
+    color: "#FFFFFF",
+    fontSize: 17,
+    fontWeight: "800",
+  },
+  header: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 12,
+  },
+  hero: {
+    minHeight: 150,
+    position: "relative",
+  },
+  heroImage: {
+    height: 111,
+    position: "absolute",
+    right: -10,
+    top: 37,
+    width: 130,
+  },
+  keyboardAvoider: {
+    flex: 1,
+  },
+  labelRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 10,
+  },
+  loadingText: {
+    color: "#D9BDAE",
+    fontSize: 14,
+    textAlign: "center",
+  },
+  pressed: {
+    opacity: 0.82,
+  },
+  safeArea: {
+    backgroundColor: "#11100E",
+    flex: 1,
+  },
+  saveButton: {
+    alignItems: "center",
+    backgroundColor: "#D3627C",
+    borderColor: "rgba(255, 170, 190, 0.55)",
+    borderRadius: 12,
+    borderWidth: 1,
+    flex: 1,
+    height: 41,
+    justifyContent: "center",
+  },
+  saveText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  subtitle: {
+    color: "#D9BDAE",
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 30,
+    maxWidth: 245,
+  },
+  textInput: {
+    backgroundColor: "rgba(58, 49, 44, 0.64)",
+    borderColor: "rgba(255, 235, 225, 0.11)",
+    borderRadius: 9,
+    borderWidth: 1,
+    color: "#FFF8F5",
+    fontSize: 14,
+    height: 42,
+    paddingHorizontal: 31,
+  },
+  title: {
+    color: "#FFF2EE",
+    flex: 1,
+    fontFamily: "serif",
+    fontSize: 25,
+    fontWeight: "700",
+  },
+});
