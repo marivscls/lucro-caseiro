@@ -14,7 +14,7 @@ import { Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useUpdateProfile } from "../features/subscription/hooks";
-import { BackgroundDecor, BrandMark } from "../shared/components/auth-decor";
+import { BrandMark } from "../shared/components/auth-decor";
 import { Illustration } from "../shared/components/illustrations";
 import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
 import { useAuth } from "../shared/hooks/use-auth";
@@ -455,7 +455,6 @@ export default function OnboardingScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <BackgroundDecor />
       {currentStep === 0 && (
         <WelcomeStep
           onNext={() => setStep(1)}
