@@ -1,4 +1,5 @@
 import type { ExpenseCategory } from "@lucro-caseiro/contracts";
+import { IconButton } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { router, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -100,15 +101,14 @@ export default function RecurringExpensesScreen() {
         >
           <View style={styles.hero}>
             <View style={styles.header}>
-              <Pressable
+              <IconButton
                 accessibilityLabel="Voltar"
                 accessibilityRole="button"
-                hitSlop={12}
+                icon={<Ionicons name="arrow-back" size={24} color="#F7E7DF" />}
                 onPress={() => router.back()}
-                style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}
-              >
-                <Ionicons name="arrow-back" size={24} color="#F7E7DF" />
-              </Pressable>
+                size={48}
+                style={styles.backButton}
+              />
               <Text style={styles.title}>Gastos fixos</Text>
             </View>
 
