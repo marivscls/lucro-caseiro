@@ -1,4 +1,4 @@
-import type { ExpenseCategory } from "@lucro-caseiro/contracts";
+import type { ExpenseCategory, RecurringExpense } from "@lucro-caseiro/contracts";
 import { IconButton, colors } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { router, Stack } from "expo-router";
@@ -24,6 +24,7 @@ import {
   useCreateRecurring,
   useDeleteRecurring,
   useRecurringExpenses,
+  useUpdateRecurring,
 } from "../features/finance/hooks";
 import { useProfile } from "../features/subscription/hooks";
 import { usePaywall } from "../shared/hooks/use-paywall";
@@ -56,6 +57,10 @@ function formatMoney(value: number): string {
   return `R$ ${value.toFixed(2).replace(".", ",")}`;
 }
 
+function moneyInputValue(value: number): string {
+  return value.toFixed(2).replace(".", ",");
+}
+
 export default function RecurringExpensesScreen() {
   const { data: items, isLoading } = useRecurringExpenses();
   const remove = useDeleteRecurring();
@@ -63,12 +68,16 @@ export default function RecurringExpensesScreen() {
   const isPremium = profile?.plan === "premium";
   const showPaywall = usePaywall((s) => s.show);
   const [showForm, setShowForm] = useState(true);
+  const [selectedExpense, setSelectedExpense] = useState<RecurringExpense | null>(null);
+  const [editingExpense, setEditingExpense] = useState<RecurringExpense | null>(null);
 
   function handleAddPress() {
     if (!isPremium) {
       showPaywall("recurring");
       return;
     }
+    setSelectedExpense(null);
+    setEditingExpense(null);
     setShowForm(true);
   }
 
@@ -83,6 +92,8 @@ export default function RecurringExpensesScreen() {
           style: "destructive",
           onPress: () => {
             remove.mutate(id);
+            setSelectedExpense(null);
+            setEditingExpense(null);
           },
         },
       ],
@@ -140,10 +151,20 @@ export default function RecurringExpensesScreen() {
 
           {showForm && (
             <RecurringForm
-              onClose={() => setShowForm(false)}
+              key={editingExpense?.id ?? "new"}
+              item={editingExpense}
+              onClose={() => {
+                setShowForm(false);
+                setEditingExpense(null);
+              }}
               onPaywall={() => {
                 setShowForm(false);
+                setEditingExpense(null);
                 showPaywall("recurring");
+              }}
+              onSaved={(saved) => {
+                setSelectedExpense(saved);
+                setEditingExpense(null);
               }}
             />
           )}
@@ -154,27 +175,48 @@ export default function RecurringExpensesScreen() {
 
           {!isLoading &&
             (items ?? []).map((item) => (
-              <View key={item.id} style={styles.expenseCard}>
-                <View style={styles.expenseIcon}>
-                  <Ionicons name="calendar-outline" size={20} color={BRAND_PINK} />
-                </View>
-                <View style={styles.expenseInfo}>
-                  <Text style={styles.expenseTitle}>{item.description}</Text>
-                  <Text style={styles.expenseMeta}>
-                    {categoryLabel(item.category)} · todo dia {item.dayOfMonth}
-                  </Text>
-                </View>
-                <Text style={styles.expenseAmount}>{formatMoney(item.amount)}</Text>
+              <React.Fragment key={item.id}>
                 <Pressable
-                  accessibilityLabel={`Remover ${item.description}`}
+                  accessibilityLabel={`Ver detalhes de ${item.description}`}
                   accessibilityRole="button"
-                  hitSlop={10}
-                  onPress={() => confirmDelete(item.id, item.description)}
-                  style={({ pressed }) => pressed && styles.pressed}
+                  onPress={() => {
+                    setSelectedExpense(item);
+                    setShowForm(false);
+                    setEditingExpense(null);
+                  }}
+                  style={({ pressed }) => [
+                    styles.expenseCard,
+                    selectedExpense?.id === item.id && styles.expenseCardSelected,
+                    pressed && styles.pressed,
+                  ]}
                 >
-                  <Ionicons name="trash-outline" size={20} color="#CDB6A8" />
+                  <View style={styles.expenseIcon}>
+                    <Ionicons name="calendar-outline" size={20} color={BRAND_PINK} />
+                  </View>
+                  <View style={styles.expenseInfo}>
+                    <Text style={styles.expenseTitle}>{item.description}</Text>
+                    <Text style={styles.expenseMeta}>
+                      {categoryLabel(item.category)} · todo dia {item.dayOfMonth}
+                    </Text>
+                  </View>
+                  <Text style={styles.expenseAmount}>{formatMoney(item.amount)}</Text>
+                  <Ionicons name="chevron-forward" size={20} color="#CDB6A8" />
                 </Pressable>
-              </View>
+
+                {selectedExpense?.id === item.id && !showForm && (
+                  <RecurringDetails
+                    item={selectedExpense}
+                    onClose={() => setSelectedExpense(null)}
+                    onDelete={() =>
+                      confirmDelete(selectedExpense.id, selectedExpense.description)
+                    }
+                    onEdit={() => {
+                      setEditingExpense(selectedExpense);
+                      setShowForm(true);
+                    }}
+                  />
+                )}
+              </React.Fragment>
             ))}
         </ScrollView>
       </KeyboardAvoidingView>
@@ -183,14 +225,24 @@ export default function RecurringExpensesScreen() {
 }
 
 function RecurringForm({
+  item,
   onClose,
   onPaywall,
-}: Readonly<{ onClose: () => void; onPaywall: () => void }>) {
+  onSaved,
+}: Readonly<{
+  item?: RecurringExpense | null;
+  onClose: () => void;
+  onPaywall: () => void;
+  onSaved?: (item: RecurringExpense) => void;
+}>) {
   const create = useCreateRecurring();
-  const [description, setDescription] = useState("");
-  const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState<ExpenseCategory>("utility");
-  const [day, setDay] = useState("1");
+  const update = useUpdateRecurring();
+  const isEditing = !!item;
+  const isSaving = create.isPending || update.isPending;
+  const [description, setDescription] = useState(item?.description ?? "");
+  const [amount, setAmount] = useState(item ? moneyInputValue(item.amount) : "");
+  const [category, setCategory] = useState<ExpenseCategory>(item?.category ?? "utility");
+  const [day, setDay] = useState(String(item?.dayOfMonth ?? 1));
 
   async function handleSave() {
     const parsedAmount = parseCurrencyInput(amount);
@@ -210,13 +262,17 @@ function RecurringForm({
     }
 
     try {
-      await create.mutateAsync({
+      const payload = {
         category,
         amount: parsedAmount,
         description: description.trim(),
         dayOfMonth: parsedDay,
-      });
-      showToast("Gasto fixo cadastrado!");
+      };
+      const saved = item
+        ? await update.mutateAsync({ id: item.id, data: payload })
+        : await create.mutateAsync(payload);
+      showToast(item ? "Gasto fixo atualizado!" : "Gasto fixo cadastrado!");
+      onSaved?.(saved);
       onClose();
     } catch (e) {
       if (e instanceof ApiError && e.code === "LIMIT_EXCEEDED") {
@@ -232,7 +288,9 @@ function RecurringForm({
       <View style={styles.formHeader}>
         <View style={styles.formHeaderLeft}>
           <Ionicons name="calendar-outline" size={24} color={BRAND_PINK} />
-          <Text style={styles.formTitle}>Novo gasto fixo</Text>
+          <Text style={styles.formTitle}>
+            {isEditing ? "Editar gasto fixo" : "Novo gasto fixo"}
+          </Text>
         </View>
         <Pressable
           accessibilityLabel="Fechar formulário"
@@ -318,17 +376,15 @@ function RecurringForm({
         </Pressable>
         <Pressable
           accessibilityRole="button"
-          disabled={create.isPending}
+          disabled={isSaving}
           onPress={() => void handleSave()}
           style={({ pressed }) => [
             styles.saveButton,
-            create.isPending && styles.disabled,
-            pressed && !create.isPending && styles.pressed,
+            isSaving && styles.disabled,
+            pressed && !isSaving && styles.pressed,
           ]}
         >
-          <Text style={styles.saveText}>
-            {create.isPending ? "Salvando..." : "Salvar"}
-          </Text>
+          <Text style={styles.saveText}>{isSaving ? "Salvando..." : "Salvar"}</Text>
         </Pressable>
       </View>
     </View>
@@ -356,6 +412,98 @@ function FormField({
         placeholderTextColor="rgba(246, 226, 216, 0.44)"
         style={styles.textInput}
       />
+    </View>
+  );
+}
+
+function RecurringDetails({
+  item,
+  onClose,
+  onDelete,
+  onEdit,
+}: Readonly<{
+  item: RecurringExpense;
+  onClose: () => void;
+  onDelete: () => void;
+  onEdit: () => void;
+}>) {
+  return (
+    <View style={styles.detailCard}>
+      <View style={styles.formHeader}>
+        <View style={styles.formHeaderLeft}>
+          <Ionicons name="receipt-outline" size={24} color={BRAND_PINK} />
+          <Text style={styles.formTitle}>Detalhes do gasto</Text>
+        </View>
+        <Pressable
+          accessibilityLabel="Fechar detalhes"
+          accessibilityRole="button"
+          hitSlop={12}
+          onPress={onClose}
+          style={({ pressed }) => pressed && styles.pressed}
+        >
+          <Ionicons name="close" size={22} color="#F7D7CF" />
+        </Pressable>
+      </View>
+
+      <Text style={styles.detailTitle}>{item.description}</Text>
+
+      <View style={styles.detailGrid}>
+        <DetailItem icon="cash-outline" label="Valor" value={formatMoney(item.amount)} />
+        <DetailItem
+          icon="grid-outline"
+          label="Categoria"
+          value={categoryLabel(item.category)}
+        />
+        <DetailItem
+          icon="calendar-outline"
+          label="Dia do mês"
+          value={`Todo dia ${item.dayOfMonth}`}
+        />
+        <DetailItem
+          icon="checkmark-circle-outline"
+          label="Status"
+          value={item.active ? "Ativo" : "Inativo"}
+        />
+      </View>
+
+      <View style={styles.actionRow}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={onDelete}
+          style={({ pressed }) => [styles.deleteButton, pressed && styles.pressed]}
+        >
+          <Ionicons name="trash-outline" size={18} color="#FFFFFF" />
+          <Text style={styles.cancelText}>Remover</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          onPress={onEdit}
+          style={({ pressed }) => [styles.saveButton, pressed && styles.pressed]}
+        >
+          <Ionicons name="create-outline" size={18} color="#FFFFFF" />
+          <Text style={styles.saveText}>Editar</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+function DetailItem({
+  icon,
+  label,
+  value,
+}: Readonly<{
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  value: string;
+}>) {
+  return (
+    <View style={styles.detailItem}>
+      <Ionicons name={icon} size={18} color={BRAND_PINK} />
+      <View style={styles.detailTextBlock}>
+        <Text style={styles.detailLabel}>{label}</Text>
+        <Text style={styles.detailValue}>{value}</Text>
+      </View>
     </View>
   );
 }
@@ -470,6 +618,63 @@ const styles = StyleSheet.create({
   disabled: {
     opacity: 0.58,
   },
+  deleteButton: {
+    alignItems: "center",
+    backgroundColor: "rgba(176, 69, 69, 0.9)",
+    borderColor: "rgba(255, 235, 225, 0.11)",
+    borderRadius: 12,
+    borderWidth: 1,
+    flex: 1,
+    flexDirection: "row",
+    gap: 7,
+    height: 41,
+    justifyContent: "center",
+  },
+  detailCard: {
+    backgroundColor: "rgba(28, 24, 21, 0.88)",
+    borderColor: BRAND_PINK_BORDER,
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 15,
+    paddingBottom: 17,
+    paddingHorizontal: 21,
+    paddingTop: 18,
+  },
+  detailGrid: {
+    gap: 9,
+  },
+  detailItem: {
+    alignItems: "center",
+    backgroundColor: "rgba(58, 49, 44, 0.64)",
+    borderColor: "rgba(255, 235, 225, 0.11)",
+    borderRadius: 12,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 10,
+    minHeight: 48,
+    paddingHorizontal: 13,
+    paddingVertical: 8,
+  },
+  detailLabel: {
+    color: "#CDB6A8",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  detailTextBlock: {
+    flex: 1,
+    gap: 2,
+  },
+  detailTitle: {
+    color: "#FFF2EE",
+    fontFamily: "serif",
+    fontSize: 22,
+    fontWeight: "700",
+  },
+  detailValue: {
+    color: "#FFF8F5",
+    fontSize: 15,
+    fontWeight: "800",
+  },
   emptyDescription: {
     color: "#D9BDAE",
     fontSize: 14,
@@ -514,6 +719,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
     padding: 10,
+  },
+  expenseCardSelected: {
+    borderColor: BRAND_PINK_BORDER,
   },
   expenseIcon: {
     alignItems: "center",
