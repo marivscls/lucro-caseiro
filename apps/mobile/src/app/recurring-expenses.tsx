@@ -1,5 +1,5 @@
 import type { ExpenseCategory } from "@lucro-caseiro/contracts";
-import { IconButton } from "@lucro-caseiro/ui";
+import { IconButton, colors } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { router, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -43,6 +43,10 @@ const CATEGORIES: {
   { key: "fee", label: "Taxa", icon: "pricetag-outline" },
   { key: "other", label: "Outro", icon: "ellipsis-horizontal-circle-outline" },
 ];
+
+const BRAND_PINK = colors.primary;
+const BRAND_PINK_BORDER = "rgba(196, 112, 126, 0.55)";
+const BRAND_PINK_SOFT = "rgba(196, 112, 126, 0.14)";
 
 function categoryLabel(key: string): string {
   return CATEGORIES.find((c) => c.key === key)?.label ?? "Outro";
@@ -152,7 +156,7 @@ export default function RecurringExpensesScreen() {
             (items ?? []).map((item) => (
               <View key={item.id} style={styles.expenseCard}>
                 <View style={styles.expenseIcon}>
-                  <Ionicons name="calendar-outline" size={20} color="#E56D91" />
+                  <Ionicons name="calendar-outline" size={20} color={BRAND_PINK} />
                 </View>
                 <View style={styles.expenseInfo}>
                   <Text style={styles.expenseTitle}>{item.description}</Text>
@@ -227,7 +231,7 @@ function RecurringForm({
     <View style={styles.formCard}>
       <View style={styles.formHeader}>
         <View style={styles.formHeaderLeft}>
-          <Ionicons name="calendar-outline" size={24} color="#E87496" />
+          <Ionicons name="calendar-outline" size={24} color={BRAND_PINK} />
           <Text style={styles.formTitle}>Novo gasto fixo</Text>
         </View>
         <Pressable
@@ -260,7 +264,7 @@ function RecurringForm({
 
       <View style={styles.fieldBlock}>
         <View style={styles.labelRow}>
-          <Ionicons name="grid-outline" size={20} color="#E87496" />
+          <Ionicons name="grid-outline" size={20} color={BRAND_PINK} />
           <Text style={styles.fieldLabel}>Categoria</Text>
         </View>
         <View style={styles.categoryWrap}>
@@ -344,7 +348,7 @@ function FormField({
   return (
     <View style={styles.fieldBlock}>
       <View style={styles.labelRow}>
-        <Ionicons name={icon} size={20} color="#E87496" />
+        <Ionicons name={icon} size={20} color={BRAND_PINK} />
         <Text style={styles.fieldLabel}>{label}</Text>
       </View>
       <TextInput
@@ -360,7 +364,7 @@ function EmptyRecurringState() {
   return (
     <View style={styles.emptyState}>
       <View style={styles.emptyIconCircle}>
-        <Ionicons name="receipt-outline" size={34} color="#FF8FA6" />
+        <Ionicons name="receipt-outline" size={34} color={BRAND_PINK} />
       </View>
       <Text style={styles.emptyTitle}>Nenhum gasto fixo ainda</Text>
       <Text style={styles.emptyDescription}>
@@ -378,15 +382,15 @@ const styles = StyleSheet.create({
   },
   addButton: {
     alignItems: "center",
-    backgroundColor: "#D3627C",
-    borderColor: "rgba(255, 170, 190, 0.5)",
+    backgroundColor: BRAND_PINK,
+    borderColor: BRAND_PINK_BORDER,
     borderRadius: 12,
     borderWidth: 1,
     flexDirection: "row",
     gap: 10,
     height: 49,
     justifyContent: "center",
-    shadowColor: "#D3627C",
+    shadowColor: BRAND_PINK,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.24,
     shadowRadius: 11,
@@ -439,8 +443,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 11,
   },
   categoryPillSelected: {
-    backgroundColor: "#D3627C",
-    borderColor: "rgba(255, 168, 189, 0.86)",
+    backgroundColor: BRAND_PINK,
+    borderColor: BRAND_PINK_BORDER,
   },
   categoryText: {
     color: "#F7E6DE",
@@ -497,7 +501,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   expenseAmount: {
-    color: "#E87496",
+    color: BRAND_PINK,
     fontSize: 14,
     fontWeight: "800",
   },
@@ -513,7 +517,7 @@ const styles = StyleSheet.create({
   },
   expenseIcon: {
     alignItems: "center",
-    backgroundColor: "rgba(229, 109, 145, 0.14)",
+    backgroundColor: BRAND_PINK_SOFT,
     borderRadius: 12,
     height: 36,
     justifyContent: "center",
@@ -603,8 +607,8 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     alignItems: "center",
-    backgroundColor: "#D3627C",
-    borderColor: "rgba(255, 170, 190, 0.55)",
+    backgroundColor: BRAND_PINK,
+    borderColor: BRAND_PINK_BORDER,
     borderRadius: 12,
     borderWidth: 1,
     flex: 1,
