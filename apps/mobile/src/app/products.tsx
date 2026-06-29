@@ -33,6 +33,7 @@ import {
   useDeleteProduct,
   useLowStockProducts,
   useProduct,
+  useProducts,
   useUpdateProduct,
 } from "../features/products/hooks";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
@@ -578,6 +579,8 @@ export default function ProductsScreen() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
   const showPaywall = usePaywall((s) => s.show);
+  const { data: products } = useProducts();
+  const hasProducts = (products?.total ?? 0) > 0;
 
   return (
     <SafeAreaView
@@ -681,38 +684,40 @@ export default function ProductsScreen() {
         />
       </View>
 
-      <View
-        style={{
-          paddingHorizontal: spacing.xl,
-          paddingTop: spacing.sm,
-          paddingBottom: spacing.sm + insets.bottom,
-        }}
-      >
-        <Pressable
-          onPress={() => setShowCreate(true)}
-          accessibilityRole="button"
-          accessibilityLabel="Novo produto"
-          style={({ pressed }) => ({
-            minHeight: 56,
-            borderRadius: radii.lg,
-            backgroundColor: theme.colors.primary,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: spacing.sm,
-            opacity: pressed ? 0.85 : 1,
-          })}
+      {hasProducts ? (
+        <View
+          style={{
+            paddingHorizontal: spacing.xl,
+            paddingTop: spacing.sm,
+            paddingBottom: spacing.sm + insets.bottom,
+          }}
         >
-          <Ionicons name="add" size={24} color={theme.colors.textOnPrimary} />
-          <Typography
-            variant="bodyBold"
-            color={theme.colors.textOnPrimary}
-            style={{ fontSize: 18 }}
+          <Pressable
+            onPress={() => setShowCreate(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Novo produto"
+            style={({ pressed }) => ({
+              minHeight: 56,
+              borderRadius: radii.lg,
+              backgroundColor: theme.colors.primary,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: spacing.sm,
+              opacity: pressed ? 0.85 : 1,
+            })}
           >
-            Novo produto
-          </Typography>
-        </Pressable>
-      </View>
+            <Ionicons name="add" size={24} color={theme.colors.textOnPrimary} />
+            <Typography
+              variant="bodyBold"
+              color={theme.colors.textOnPrimary}
+              style={{ fontSize: 18 }}
+            >
+              Novo produto
+            </Typography>
+          </Pressable>
+        </View>
+      ) : null}
 
       {/* Modal - Criar produto */}
       <Modal
