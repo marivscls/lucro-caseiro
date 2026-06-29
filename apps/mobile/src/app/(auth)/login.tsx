@@ -2,16 +2,16 @@ import { Button, Input, Typography, useTheme, radii, spacing } from "@lucro-case
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Pressable, View } from "react-native";
+import { Image, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { BackgroundDecor, BrandMark } from "../../shared/components/auth-decor";
 import { KeyboardAwareScrollView } from "../../shared/components/keyboard-aware-scroll-view";
 import { getAuthRedirectUrl, useAuth } from "../../shared/hooks/use-auth";
 import { supabase } from "../../shared/utils/supabase";
 import { validateEmail } from "../../shared/utils/validation";
 import { alertError } from "../../shared/utils/alerts";
 import { showAlert } from "../../shared/components/alert-store";
+import onboardingHouse from "../../assets/onboarding-house.png";
 
 export default function LoginScreen() {
   const { theme } = useTheme();
@@ -113,7 +113,6 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <BackgroundDecor />
       <KeyboardAwareScrollView
         contentContainerStyle={{
           flexGrow: 1,
@@ -126,7 +125,11 @@ export default function LoginScreen() {
       >
         {/* Marca + boas-vindas */}
         <View style={{ alignItems: "center", gap: spacing.md }}>
-          <BrandMark />
+          <Image
+            source={onboardingHouse}
+            resizeMode="contain"
+            style={{ width: 112, height: 112 }}
+          />
           <Typography
             variant="caption"
             color={theme.colors.primaryLight}
