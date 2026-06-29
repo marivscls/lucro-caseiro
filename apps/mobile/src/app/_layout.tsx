@@ -26,7 +26,7 @@ import { usePremiumSuccess } from "../shared/hooks/use-premium-success";
 import { Paywall } from "../features/subscription/components/paywall";
 import { PremiumSuccess } from "../features/subscription/components/premium-success";
 import { getPaywallCopy } from "../features/subscription/limit-copy";
-import { useProfile } from "../features/subscription/hooks";
+import { isProfilePremiumActive, useProfile } from "../features/subscription/hooks";
 import { useSubscription } from "../features/subscription/use-subscription";
 import { useStripeCheckout } from "../features/subscription/use-stripe";
 
@@ -63,7 +63,7 @@ function AppContent() {
   } = usePremiumSuccess();
   const [introDone, setIntroDone] = useState(false);
 
-  const isPremium = profile?.plan === "premium";
+  const isPremium = isProfilePremiumActive(profile);
 
   // Registers for push notifications once the user is authenticated.
   useNotifications();
@@ -84,6 +84,12 @@ function AppContent() {
   useBirthdayNotifier(isPremium);
   useDailyReminderNotifier(isPremium);
   useWeeklySummaryNotifier(isPremium);
+
+  useEffect(() => {
+    if (isPremium && paywallVisible) {
+      hidePaywall();
+    }
+  }, [hidePaywall, isPremium, paywallVisible]);
 
   // Comemora quando o plano vira Premium (cobre Google Play e Stripe).
   // Guarda o plano inicial para não comemorar quem já abre o app como Premium.

@@ -1,30 +1,14 @@
-import {
-  isProfilePremiumActive,
-  useLimits,
-  useProfile,
-} from "../../features/subscription/hooks";
+import type { LimitResource } from "../../features/subscription/limit-copy";
+import { getLimitUsage, isLimitBlocked } from "../../features/subscription/limits";
+import { useLimits, useProfile } from "../../features/subscription/hooks";
 import { usePaywall } from "./use-paywall";
 
-type Resource = "sales" | "clients" | "recipes" | "packaging" | "products" | "suppliers";
-
-const LIMIT_MAP: Record<Resource, { current: string; max: string }> = {
-  sales: { current: "currentSalesThisMonth", max: "maxSalesPerMonth" },
-  clients: { current: "currentClients", max: "maxClients" },
-  recipes: { current: "currentRecipes", max: "maxRecipes" },
-  packaging: { current: "currentPackaging", max: "maxPackaging" },
-  products: { current: "currentProducts", max: "maxProducts" },
-  suppliers: { current: "currentSuppliers", max: "maxSuppliers" },
-};
-
-export function useLimitCheck(resource: Resource) {
+export function useLimitCheck(resource: LimitResource) {
   const { data: limits } = useLimits();
   const { data: profile } = useProfile();
   const showPaywall = usePaywall((s) => s.show);
-
-  const map = LIMIT_MAP[resource];
-  const current = (limits?.[map.current as keyof typeof limits] as number) ?? 0;
-  const max = (limits?.[map.max as keyof typeof limits] as number) ?? Infinity;
-  const isAtLimit = !isProfilePremiumActive(profile) && current >= max;
+  const { current, max } = getLimitUsage(limits, resource);
+  const isAtLimit = isLimitBlocked(limits, profile, resource);
 
   function checkAndBlock(): boolean {
     if (isAtLimit) {

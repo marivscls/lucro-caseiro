@@ -19,6 +19,7 @@ const PRODUCT_IDS: Record<"monthly" | "annual", PremiumProductId> = {
   monthly: "lucrocaseiro_premium_monthly",
   annual: "lucrocaseiro_premium_annual",
 };
+const SUBSCRIPTION_PROFILE_KEY = ["subscription", "profile"] as const;
 
 function isPremiumProduct(productId: string): productId is PremiumProductId {
   return productId === PRODUCT_IDS.monthly || productId === PRODUCT_IDS.annual;
@@ -61,11 +62,12 @@ export function useSubscription() {
       const purchaseToken = getPurchaseToken(purchase);
       if (!purchaseToken) return false;
 
-      await syncPlan(token, {
+      const profile = await syncPlan(token, {
         platform: "android",
         productId: purchase.productId,
         purchaseToken,
       });
+      queryClient.setQueryData(SUBSCRIPTION_PROFILE_KEY, profile);
       await queryClient.invalidateQueries({ queryKey: ["subscription"] });
       await finishTransactionRef.current?.({ purchase, isConsumable: false });
 

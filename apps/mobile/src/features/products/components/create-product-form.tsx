@@ -20,7 +20,7 @@ import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-awa
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { uploadProductImage } from "../../../shared/utils/upload-image";
 import { useCreateProduct, useProducts } from "../hooks";
-import { useProfile } from "../../subscription/hooks";
+import { isProfilePremiumActive, useProfile } from "../../subscription/hooks";
 import {
   ComponentPicker,
   draftsToComponents,
@@ -523,7 +523,7 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
   const extraPicker = useImagePicker();
   const [extraUris, setExtraUris] = useState<string[]>([]);
   const { data: profile } = useProfile();
-  const isPremium = profile?.plan === "premium";
+  const isPremium = isProfilePremiumActive(profile);
 
   async function addExtraPhoto() {
     if (!isPremium) {
