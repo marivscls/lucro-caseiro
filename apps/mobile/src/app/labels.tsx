@@ -39,7 +39,6 @@ import { maskPhoneBR } from "../shared/utils/phone";
 import { uploadLabelLogo } from "../shared/utils/upload-image";
 import { Ionicons } from "@expo/vector-icons";
 import { showAlert } from "../shared/components/alert-store";
-import { Illustration } from "../shared/components/illustrations";
 import {
   useDeleteLabel,
   useLabel,
@@ -47,6 +46,7 @@ import {
   useUpdateLabel,
 } from "../features/labels/hooks";
 import { alertValidation, alertError } from "../shared/utils/alerts";
+import labelsEmpty from "../assets/labels-empty.png";
 
 function LabelDetailModal({
   labelId,
@@ -466,7 +466,13 @@ export default function LabelsScreen() {
     if (!data?.items.length) {
       return (
         <EmptyState
-          icon={<Illustration name="tag" />}
+          icon={
+            <Image
+              source={labelsEmpty}
+              resizeMode="contain"
+              style={{ width: 132, height: 132 }}
+            />
+          }
           title="Nenhum rótulo ainda"
           description="Crie rótulos para seus produtos"
           action={<Button title="Criar rótulo" onPress={() => setShowCreate(true)} />}

@@ -10,11 +10,12 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { Image, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import onboardingHouse from "../assets/onboarding-house.png";
+import salesEmpty from "../assets/sales-empty.png";
 import { useUpdateProfile } from "../features/subscription/hooks";
-import { BrandMark } from "../shared/components/auth-decor";
 import { Illustration } from "../shared/components/illustrations";
 import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
 import { useAuth } from "../shared/hooks/use-auth";
@@ -137,7 +138,11 @@ function WelcomeStep({
       </View>
 
       <View style={{ alignItems: "center", gap: spacing.xl }}>
-        <BrandMark size={120} />
+        <Image
+          source={onboardingHouse}
+          resizeMode="contain"
+          style={{ width: 150, height: 150 }}
+        />
         <Typography variant="display" style={{ textAlign: "center" }}>
           Sua paixão, seu negócio organizado.
         </Typography>
@@ -387,7 +392,11 @@ function DoneStep({
         gap: spacing.xl,
       }}
     >
-      <Illustration name="basket" size={150} />
+      <Image
+        source={salesEmpty}
+        resizeMode="contain"
+        style={{ width: 158, height: 158 }}
+      />
 
       <Typography variant="display" style={{ textAlign: "center" }}>
         Tudo pronto!
