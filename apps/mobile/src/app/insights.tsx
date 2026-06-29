@@ -11,15 +11,15 @@ import {
 } from "@lucro-caseiro/ui";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
+import { ActivityIndicator, Image, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
+import insightsEmpty from "../assets/insights-empty.png";
 import { MonthlyBars } from "../features/insights/components/monthly-bars";
 import { RankBars, type RankRow } from "../features/insights/components/rank-bars";
 import { formatMoney } from "../features/insights/domain";
 import { useInsights } from "../features/insights/hooks";
 import { useProfile } from "../features/subscription/hooks";
-import { Illustration } from "../shared/components/illustrations";
 import { usePaywall } from "../shared/hooks/use-paywall";
 
 function StatCard({
@@ -294,7 +294,13 @@ export default function InsightsScreen() {
             />
           ) : (
             <EmptyState
-              icon={<Illustration name="chart" />}
+              icon={
+                <Image
+                  source={insightsEmpty}
+                  resizeMode="contain"
+                  style={{ width: 146, height: 146 }}
+                />
+              }
               title="Ainda sem dados pra mostrar"
               description="Registre algumas vendas e volte aqui para ver seus gráficos e os campeões de venda."
               action={

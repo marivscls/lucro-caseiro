@@ -10,9 +10,17 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { ActivityIndicator, Modal, Pressable, ScrollView, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import purchasesEmpty from "../assets/purchases-empty.png";
 import { CreatePurchaseForm } from "../features/purchases/components/create-purchase-form";
 import { PurchaseCard } from "../features/purchases/components/purchase-card";
 import { pendingTotal } from "../features/purchases/domain";
@@ -95,7 +103,13 @@ export default function PurchasesScreen() {
     if (items.length === 0) {
       return (
         <EmptyState
-          icon={<Ionicons name="cart-outline" size={48} color={theme.colors.primary} />}
+          icon={
+            <Image
+              source={purchasesEmpty}
+              resizeMode="contain"
+              style={{ width: 146, height: 146 }}
+            />
+          }
           title="Nenhuma compra aqui"
           description="Registre o que você compra dos fornecedores para acompanhar suas contas a pagar e o caixa."
           action={<Button title="Registrar compra" onPress={() => setShowCreate(true)} />}
