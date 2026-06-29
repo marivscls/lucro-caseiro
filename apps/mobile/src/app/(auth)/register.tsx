@@ -2,10 +2,9 @@ import { Button, Input, Typography, useTheme, radii, spacing } from "@lucro-case
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Pressable, View } from "react-native";
+import { Image, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { BackgroundDecor, BrandMark } from "../../shared/components/auth-decor";
 import { KeyboardAwareScrollView } from "../../shared/components/keyboard-aware-scroll-view";
 import { useAuth } from "../../shared/hooks/use-auth";
 import {
@@ -15,6 +14,7 @@ import {
   validatePassword,
 } from "../../shared/utils/validation";
 import { showAlert } from "../../shared/components/alert-store";
+import onboardingHouse from "../../assets/onboarding-house.png";
 
 function PasswordStrengthBar({ password }: Readonly<{ password: string }>) {
   const { theme } = useTheme();
@@ -195,7 +195,6 @@ export default function RegisterScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <BackgroundDecor />
       <KeyboardAwareScrollView
         contentContainerStyle={{
           flexGrow: 1,
@@ -207,7 +206,11 @@ export default function RegisterScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={{ alignItems: "center", gap: spacing.md }}>
-          <BrandMark size={76} />
+          <Image
+            source={onboardingHouse}
+            resizeMode="contain"
+            style={{ width: 104, height: 104 }}
+          />
           <Typography
             variant="caption"
             color={theme.colors.primaryLight}
