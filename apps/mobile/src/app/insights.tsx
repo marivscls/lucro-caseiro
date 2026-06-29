@@ -277,6 +277,7 @@ export default function InsightsScreen() {
       ) : (
         <ScrollView
           contentContainerStyle={{
+            flexGrow: 1,
             padding: spacing.xl,
             paddingTop: spacing.md,
             paddingBottom: spacing["2xl"] + insets.bottom,
