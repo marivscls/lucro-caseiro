@@ -1,4 +1,5 @@
 import type { Insights } from "@lucro-caseiro/contracts";
+import { Ionicons } from "@expo/vector-icons";
 import {
   Button,
   Card,
@@ -8,7 +9,6 @@ import {
   spacing,
   radii,
 } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
@@ -21,8 +21,6 @@ import { useInsights } from "../features/insights/hooks";
 import { useProfile } from "../features/subscription/hooks";
 import { Illustration } from "../shared/components/illustrations";
 import { usePaywall } from "../shared/hooks/use-paywall";
-
-const WINDOWS = [3, 6, 12] as const;
 
 function StatCard({
   label,
@@ -106,47 +104,6 @@ function SectionTitle({
   );
 }
 
-function WindowSelector({
-  months,
-  onChange,
-}: Readonly<{ months: number; onChange: (m: number) => void }>) {
-  const { theme } = useTheme();
-  return (
-    <View style={{ flexDirection: "row", gap: spacing.sm }}>
-      {WINDOWS.map((w) => {
-        const active = months === w;
-        return (
-          <Pressable
-            key={w}
-            onPress={() => onChange(w)}
-            accessibilityRole="button"
-            accessibilityState={{ selected: active }}
-            accessibilityLabel={`Últimos ${w} meses`}
-            style={({ pressed }) => ({
-              flex: 1,
-              minHeight: 42,
-              alignItems: "center",
-              justifyContent: "center",
-              paddingHorizontal: spacing.lg,
-              borderRadius: radii.full,
-              backgroundColor: active ? theme.colors.primary : theme.colors.surface,
-              opacity: pressed ? 0.7 : 1,
-            })}
-          >
-            <Typography
-              variant="bodyBold"
-              color={active ? theme.colors.textOnPrimary : theme.colors.textSecondary}
-              style={{ fontSize: 14 }}
-            >
-              {w} meses
-            </Typography>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
-
 function ReportsPremiumTeaser({ onUpgrade }: Readonly<{ onUpgrade: () => void }>) {
   const { theme } = useTheme();
   return (
@@ -175,7 +132,15 @@ function InsightsContent({
   data,
   isPremium,
   onUpgrade,
-}: Readonly<{ data: Insights; isPremium: boolean; onUpgrade: () => void }>) {
+  months,
+  onMonthsChange,
+}: Readonly<{
+  data: Insights;
+  isPremium: boolean;
+  onUpgrade: () => void;
+  months: number;
+  onMonthsChange: (months: number) => void;
+}>) {
   const { theme } = useTheme();
   const averageTicket = data.totalSales > 0 ? data.totalRevenue / data.totalSales : 0;
 
@@ -222,15 +187,11 @@ function InsightsContent({
 
       {isPremium ? (
         <>
-          <Card variant="surface" padding="xl">
-            <SectionTitle
-              icon="bar-chart-outline"
-              title="Faturamento por mês"
-              tint={`${theme.colors.primary}26`}
-              iconColor={theme.colors.primary}
-            />
-            <MonthlyBars series={data.monthlyRevenue} />
-          </Card>
+          <MonthlyBars
+            series={data.monthlyRevenue}
+            windowMonths={months}
+            onWindowChange={onMonthsChange}
+          />
 
           {productRows.length > 0 && (
             <Card variant="surface" padding="xl">
@@ -267,7 +228,7 @@ export default function InsightsScreen() {
   const { theme } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [months, setMonths] = useState<number>(6);
+  const [months, setMonths] = useState<number>(12);
   const { data: profile } = useProfile();
   const isPremium = profile?.plan === "premium";
   const showPaywall = usePaywall((s) => s.show);
@@ -281,7 +242,6 @@ export default function InsightsScreen() {
     >
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* Top bar */}
       <View
         style={{
           flexDirection: "row",
@@ -304,7 +264,7 @@ export default function InsightsScreen() {
         <Typography
           variant="h1"
           color={theme.colors.text}
-          style={{ flex: 1, fontSize: 26, fontWeight: "800" }}
+          style={{ flex: 1, fontSize: 26, fontWeight: "800", letterSpacing: 0 }}
         >
           Insights
         </Typography>
@@ -324,13 +284,13 @@ export default function InsightsScreen() {
           }}
           showsVerticalScrollIndicator={false}
         >
-          {isPremium && <WindowSelector months={months} onChange={setMonths} />}
-
           {data && data.totalSales > 0 ? (
             <InsightsContent
               data={data}
               isPremium={isPremium}
               onUpgrade={() => showPaywall("reports")}
+              months={months}
+              onMonthsChange={setMonths}
             />
           ) : (
             <EmptyState
