@@ -1,9 +1,9 @@
 import type { Supplier } from "@lucro-caseiro/contracts";
 import { Button, EmptyState, useTheme, spacing } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { ActivityIndicator, FlatList, RefreshControl, View } from "react-native";
+import { ActivityIndicator, FlatList, Image, RefreshControl, View } from "react-native";
 
+import suppliersEmpty from "../../../assets/suppliers-empty.png";
 import { useSuppliers } from "../hooks";
 import { SupplierCard } from "./supplier-card";
 
@@ -41,7 +41,13 @@ export function SupplierList({
   if (!data?.items.length) {
     return (
       <EmptyState
-        icon={<Ionicons name="business-outline" size={48} color={theme.colors.primary} />}
+        icon={
+          <Image
+            source={suppliersEmpty}
+            resizeMode="contain"
+            style={{ width: 146, height: 146 }}
+          />
+        }
         title="Nenhum fornecedor ainda"
         description="Cadastre de quem você compra seus insumos e embalagens para organizar seus gastos."
         action={

@@ -11,6 +11,7 @@ import { Stack, useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -24,7 +25,7 @@ import { MaterialCard } from "../features/materials/components/material-card";
 import { MaterialForm } from "../features/materials/components/material-form";
 import { buildShoppingList, isLowStock } from "../features/materials/domain";
 import { useLowStockMaterials, useMaterials } from "../features/materials/hooks";
-import { Illustration } from "../shared/components/illustrations";
+import materialsEmpty from "../assets/materials-empty.png";
 import { useNotificationEnabled } from "../shared/hooks/notification-prefs";
 import { NOTIFICATION_TYPES } from "../shared/hooks/notification-types";
 
@@ -196,7 +197,13 @@ export default function MaterialsScreen() {
     if (items.length === 0) {
       return (
         <EmptyState
-          icon={<Illustration name="jars" />}
+          icon={
+            <Image
+              source={materialsEmpty}
+              resizeMode="contain"
+              style={{ width: 146, height: 146 }}
+            />
+          }
           title="Nenhum insumo ainda"
           description="Cadastre seus insumos (farinha, açúcar, embalagens...) para controlar o estoque."
           action={<Button title="Novo insumo" onPress={() => setShowCreate(true)} />}
