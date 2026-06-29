@@ -20,6 +20,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import financeEmpty from "../../../assets/finance-empty.png";
 import financeHero from "../../../assets/finance-hero.png";
 import { useAuth } from "../../../shared/hooks/use-auth";
 import { usePaywall } from "../../../shared/hooks/use-paywall";
@@ -31,7 +32,6 @@ import {
   profitDeltaPct as computeProfitDeltaPct,
 } from "../calc";
 import { useDeleteFinanceEntry, useFinanceEntries, useFinanceSummary } from "../hooks";
-import { Illustration } from "../../../shared/components/illustrations";
 import { CreateFinanceEntry } from "./create-finance-entry";
 import { alertError } from "../../../shared/utils/alerts";
 import { showAlert } from "../../../shared/components/alert-store";
@@ -428,7 +428,11 @@ export function FinanceDashboard({
             ))
           ) : (
             <View style={styles.emptyState}>
-              <Illustration name="coins" size={110} />
+              <Image
+                source={financeEmpty}
+                style={styles.emptyImage}
+                resizeMode="contain"
+              />
               <Text style={styles.emptyTitle}>Nenhum lançamento por aqui</Text>
               <Text style={styles.emptyText}>
                 Registre entradas e saídas para acompanhar o lucro do mês.
@@ -1122,6 +1126,10 @@ function createStyles(theme: Theme) {
       alignItems: "center",
       gap: 7,
       padding: 28,
+    },
+    emptyImage: {
+      height: 118,
+      width: 118,
     },
     emptyText: {
       color: c.textSecondary,
