@@ -867,6 +867,8 @@ function createStyles(theme: Theme) {
       borderRadius: 12,
       borderWidth: 1,
       flex: 1,
+      flexDirection: "row",
+      gap: 7,
       height: 41,
       justifyContent: "center",
     },

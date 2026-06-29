@@ -1,4 +1,8 @@
-import { useLimits } from "../../features/subscription/hooks";
+import {
+  isProfilePremiumActive,
+  useLimits,
+  useProfile,
+} from "../../features/subscription/hooks";
 import { usePaywall } from "./use-paywall";
 
 type Resource = "sales" | "clients" | "recipes" | "packaging" | "products" | "suppliers";
@@ -14,12 +18,13 @@ const LIMIT_MAP: Record<Resource, { current: string; max: string }> = {
 
 export function useLimitCheck(resource: Resource) {
   const { data: limits } = useLimits();
+  const { data: profile } = useProfile();
   const showPaywall = usePaywall((s) => s.show);
 
   const map = LIMIT_MAP[resource];
   const current = (limits?.[map.current as keyof typeof limits] as number) ?? 0;
   const max = (limits?.[map.max as keyof typeof limits] as number) ?? Infinity;
-  const isAtLimit = current >= max;
+  const isAtLimit = !isProfilePremiumActive(profile) && current >= max;
 
   function checkAndBlock(): boolean {
     if (isAtLimit) {

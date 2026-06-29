@@ -111,12 +111,12 @@ describe("SubscriptionUseCases", () => {
       expect(result.currentClients).toBe(5);
     });
 
-    it("returns infinite limits for premium user", async () => {
+    it("returns null limits for premium user", async () => {
       const { sut } = makeSut({
         getProfile: () => Promise.resolve(makeProfile({ plan: "premium" })),
       });
       const result = await sut.getLimits(USER_ID);
-      expect(result.maxSalesPerMonth).toBe(Infinity);
+      expect(result.maxSalesPerMonth).toBeNull();
     });
 
     it("throws NotFoundError when profile not found", async () => {

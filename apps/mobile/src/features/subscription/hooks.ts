@@ -1,10 +1,16 @@
-import type { UpdateProfile } from "@lucro-caseiro/contracts";
+import type { UpdateProfile, UserProfile } from "@lucro-caseiro/contracts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "../../shared/hooks/use-auth";
 import { fetchLimits, fetchProfile, updateProfile } from "./api";
 
 const SUBSCRIPTION_KEY = ["subscription"];
+
+export function isProfilePremiumActive(profile?: UserProfile | null): boolean {
+  if (profile?.plan !== "premium") return false;
+  if (!profile.planExpiresAt) return true;
+  return new Date(profile.planExpiresAt) > new Date();
+}
 
 export function useProfile() {
   const { token } = useAuth();

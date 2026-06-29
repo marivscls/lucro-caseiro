@@ -20,7 +20,10 @@ async function pollForPremium(token: string, queryClient: QueryClient) {
     try {
       const profile = await fetchProfile(token);
       queryClient.setQueryData(PROFILE_KEY, profile);
-      if (profile.plan === "premium") return;
+      if (profile.plan === "premium") {
+        await queryClient.invalidateQueries({ queryKey: ["subscription", "limits"] });
+        return;
+      }
     } catch {
       // Falha de rede momentânea: tenta de novo na próxima volta.
     }

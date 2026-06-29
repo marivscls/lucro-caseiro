@@ -20,12 +20,12 @@ export function buildFreemiumLimits(
 ): FreemiumLimits {
   if (isPremium) {
     return {
-      maxSalesPerMonth: Infinity,
-      maxClients: Infinity,
-      maxRecipes: Infinity,
-      maxPackaging: Infinity,
-      maxProducts: Infinity,
-      maxSuppliers: Infinity,
+      maxSalesPerMonth: null,
+      maxClients: null,
+      maxRecipes: null,
+      maxPackaging: null,
+      maxProducts: null,
+      maxSuppliers: null,
       currentSalesThisMonth: counts.salesThisMonth,
       currentClients: counts.clients,
       currentRecipes: counts.recipes,

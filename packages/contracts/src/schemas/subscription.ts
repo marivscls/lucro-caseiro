@@ -27,12 +27,12 @@ export const UpdateProfileDto = z.object({
 export type UpdateProfile = z.infer<typeof UpdateProfileDto>;
 
 export const FreemiumLimitsDto = z.object({
-  maxSalesPerMonth: z.number(),
-  maxClients: z.number(),
-  maxRecipes: z.number(),
-  maxPackaging: z.number(),
-  maxProducts: z.number(),
-  maxSuppliers: z.number(),
+  maxSalesPerMonth: z.number().nullable(),
+  maxClients: z.number().nullable(),
+  maxRecipes: z.number().nullable(),
+  maxPackaging: z.number().nullable(),
+  maxProducts: z.number().nullable(),
+  maxSuppliers: z.number().nullable(),
   currentSalesThisMonth: z.number(),
   currentClients: z.number(),
   currentRecipes: z.number(),

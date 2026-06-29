@@ -28,10 +28,10 @@ describe("buildFreemiumLimits", () => {
     expect(result.currentSalesThisMonth).toBe(5);
   });
 
-  it("returns infinite limits for premium user", () => {
+  it("returns null limits for premium user", () => {
     const result = buildFreemiumLimits(makeCounts(), true);
-    expect(result.maxSalesPerMonth).toBe(Infinity);
-    expect(result.maxClients).toBe(Infinity);
+    expect(result.maxSalesPerMonth).toBeNull();
+    expect(result.maxClients).toBeNull();
   });
 });
 

@@ -3,7 +3,7 @@ import React from "react";
 import { Pressable, View, type StyleProp, type ViewStyle } from "react-native";
 
 import { getBannerCopy, type LimitResource } from "../limit-copy";
-import { useLimits } from "../hooks";
+import { isProfilePremiumActive, useLimits, useProfile } from "../hooks";
 
 interface LimitBannerProps {
   readonly resource: LimitResource;
@@ -23,17 +23,19 @@ const LABELS: Record<LimitResource, { current: string; max: string }> = {
 export function LimitBanner({ resource, onUpgrade, containerStyle }: LimitBannerProps) {
   const { theme } = useTheme();
   const { data: limits } = useLimits();
+  const { data: profile } = useProfile();
 
   if (!limits) return null;
+  if (isProfilePremiumActive(profile)) return null;
 
   const label = LABELS[resource];
-  const current = limits[label.current as keyof typeof limits];
+  const current = Number(limits[label.current as keyof typeof limits] ?? 0);
   const max = limits[label.max as keyof typeof limits];
 
   // Premium = ilimitado: o backend manda Infinity, que vira `null` no JSON.
   // Number.isFinite (não o global isFinite, que coage null→0 e retornaria true)
   // trata null/Infinity como "sem limite" e esconde o banner.
-  if (!Number.isFinite(max)) return null;
+  if (typeof max !== "number" || !Number.isFinite(max)) return null;
 
   const remaining = max - current;
   const threshold = Math.max(1, Math.ceil(max * 0.2));

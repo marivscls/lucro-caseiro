@@ -5,7 +5,11 @@ import React from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useProfile, useLimits } from "../features/subscription/hooks";
+import {
+  isProfilePremiumActive,
+  useLimits,
+  useProfile,
+} from "../features/subscription/hooks";
 import { showAlert } from "../shared/components/alert-store";
 import { usePaywall } from "../shared/hooks/use-paywall";
 
@@ -45,7 +49,7 @@ export default function PlansScreen() {
   const { data: profile } = useProfile();
   const { data: limits } = useLimits();
   const showPaywall = usePaywall((state) => state.show);
-  const isPremium = profile?.plan === "premium";
+  const isPremium = isProfilePremiumActive(profile);
 
   return (
     <SafeAreaView
@@ -158,7 +162,13 @@ export default function PlansScreen() {
                   max: limits.maxSuppliers,
                 },
               ]
-                .filter((item) => Number.isFinite(item.max))
+                .filter(
+                  (
+                    item,
+                  ): item is typeof item & {
+                    max: number;
+                  } => typeof item.max === "number" && Number.isFinite(item.max),
+                )
                 .map((item) => {
                   const pct = Math.min((item.current / item.max) * 100, 100);
                   const isNear = pct >= 80;
