@@ -5,6 +5,7 @@ import { Stack, useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -13,6 +14,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import packagingEmpty from "../assets/packaging-empty.png";
 import { PackagingCard } from "../features/packaging/components/packaging-card";
 import { PackagingDetail } from "../features/packaging/components/packaging-detail";
 import { PackagingForm } from "../features/packaging/components/packaging-form";
@@ -20,7 +22,6 @@ import { PACKAGING_TYPES, totalStockCost, typeColor } from "../features/packagin
 import { useDeletePackaging, usePackagingList } from "../features/packaging/hooks";
 import { LimitBanner } from "../features/subscription/components/limit-banner";
 import { showAlert } from "../shared/components/alert-store";
-import { Illustration } from "../shared/components/illustrations";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { alertError } from "../shared/utils/alerts";
 
@@ -156,7 +157,13 @@ export default function PackagingScreen() {
     if (items.length === 0) {
       return (
         <EmptyState
-          icon={<Illustration name="box" />}
+          icon={
+            <Image
+              source={packagingEmpty}
+              resizeMode="contain"
+              style={{ width: 146, height: 146 }}
+            />
+          }
           title="Nenhuma embalagem ainda"
           description="Cadastre suas embalagens para facilitar a precificação."
         />

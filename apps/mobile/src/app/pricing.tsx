@@ -14,6 +14,7 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -21,6 +22,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import pricingEmpty from "../assets/pricing-empty.png";
 import { PricingCalculator } from "../features/pricing/components/pricing-calculator";
 import { usePricingList } from "../features/pricing/hooks";
 import { showAlert } from "../shared/components/alert-store";
@@ -127,7 +129,11 @@ function PricingHistoryModal({
       return (
         <EmptyState
           icon={
-            <Ionicons name="calculator-outline" size={48} color={theme.colors.primary} />
+            <Image
+              source={pricingEmpty}
+              resizeMode="contain"
+              style={{ width: 146, height: 146 }}
+            />
           }
           title="Nenhum cálculo ainda"
           description="Faça uma precificação e toque em 'Salvar cálculo' para ver o histórico aqui."
