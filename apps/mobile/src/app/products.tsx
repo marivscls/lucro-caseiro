@@ -11,7 +11,7 @@ import {
   radii,
 } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Image, Modal, Pressable, ScrollView, TextInput, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -573,6 +573,7 @@ function LowStockBanner() {
 export default function ProductsScreen() {
   const { theme } = useTheme();
   const router = useRouter();
+  const { from } = useLocalSearchParams<{ from?: string }>();
   const insets = useSafeAreaInsets();
   const [showCreate, setShowCreate] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
@@ -581,6 +582,15 @@ export default function ProductsScreen() {
   const showPaywall = usePaywall((s) => s.show);
   const { data: products } = useProducts();
   const hasProducts = (products?.total ?? 0) > 0;
+  const backToHome = from === "onboarding" || !router.canGoBack();
+
+  function handleBack() {
+    if (backToHome) {
+      router.replace("/tabs");
+      return;
+    }
+    router.back();
+  }
 
   return (
     <SafeAreaView
@@ -600,9 +610,9 @@ export default function ProductsScreen() {
         }}
       >
         <Pressable
-          onPress={() => router.back()}
+          onPress={handleBack}
           accessibilityRole="button"
-          accessibilityLabel="Voltar"
+          accessibilityLabel={backToHome ? "Ir para o início" : "Voltar"}
           hitSlop={10}
           style={{ width: 32, height: 40, justifyContent: "center" }}
         >

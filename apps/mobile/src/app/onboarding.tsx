@@ -463,7 +463,7 @@ export default function OnboardingScreen() {
   // Primeira vitoria: leva direto ao cadastro do 1o produto.
   function handleFirstProduct() {
     completeOnboarding(userId);
-    router.replace("/products");
+    router.replace("/products?from=onboarding");
   }
 
   return (
