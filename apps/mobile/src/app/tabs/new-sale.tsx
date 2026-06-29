@@ -43,7 +43,7 @@ import { ApiError } from "../../shared/utils/api-client";
 import { showAlert } from "../../shared/components/alert-store";
 import { BarcodeScanner } from "../../shared/components/barcode-scanner";
 import { alertValidation, alertError } from "../../shared/utils/alerts";
-import salesEmpty from "../../assets/sales-empty.png";
+import productsEmpty from "../../assets/products-empty.png";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -671,14 +671,14 @@ export default function NewSaleScreen() {
               <EmptyState
                 icon={
                   <Image
-                    source={salesEmpty}
+                    source={productsEmpty}
                     resizeMode="contain"
                     style={{ width: 118, height: 118 }}
                   />
                 }
                 title="Nenhum produto cadastrado"
                 description="Cadastre produtos antes de registrar uma venda"
-                style={{ flex: 0, padding: spacing.lg, marginTop: spacing.xl }}
+                style={{ flex: 0, padding: spacing.md, marginTop: spacing.md }}
               />
               <Button
                 title="Cadastrar produto"

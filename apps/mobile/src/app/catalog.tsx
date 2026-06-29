@@ -31,6 +31,7 @@ import { ApiError } from "../shared/utils/api-client";
 import { showToast } from "../shared/components/toast";
 import { uploadCatalogCover, uploadCatalogLogo } from "../shared/utils/upload-image";
 import { alertError } from "../shared/utils/alerts";
+import onboardingHouse from "../assets/onboarding-house.png";
 
 // Mesmas chaves/cores dos presets do backend (CATALOG_ACCENT_PRESETS).
 const ACCENT_SWATCHES: { key: CatalogAccentColorValue; color: string; label: string }[] =
@@ -368,23 +369,11 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
           paddingVertical: spacing.lg,
         }}
       >
-        <View
-          style={{
-            width: 84,
-            height: 84,
-            borderRadius: 42,
-            backgroundColor: theme.colors.primary,
-            alignItems: "center",
-            justifyContent: "center",
-            shadowColor: theme.colors.primary,
-            shadowOffset: { width: 0, height: 10 },
-            shadowOpacity: 0.35,
-            shadowRadius: 18,
-            elevation: 6,
-          }}
-        >
-          <Ionicons name="storefront" size={40} color={theme.colors.textOnPrimary} />
-        </View>
+        <Image
+          source={onboardingHouse}
+          resizeMode="contain"
+          style={{ width: 118, height: 118 }}
+        />
         <Typography variant="h1" serif style={{ marginTop: spacing.sm }}>
           Sua vitrine online
         </Typography>

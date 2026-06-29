@@ -15,6 +15,7 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   Modal,
   Pressable,
   TextInput,
@@ -36,6 +37,7 @@ import { KeyboardAwareScrollView } from "../../shared/components/keyboard-aware-
 import { showAlert } from "../../shared/components/alert-store";
 import { AnimatedListItem } from "../../shared/components/animated-list-item";
 import { alertError } from "../../shared/utils/alerts";
+import salesEmpty from "../../assets/sales-empty.png";
 
 type FilterTab = "all" | "paid" | "pending" | "cancelled";
 
@@ -282,99 +284,8 @@ function GroupHeader({ title, count }: Readonly<{ title: string; count: number }
 }
 
 function EmptySalesIllustration() {
-  const { theme } = useTheme();
   return (
-    <View
-      style={{
-        width: 148,
-        height: 148,
-        borderRadius: 74,
-        backgroundColor: "rgba(196, 112, 126, 0.14)",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <View
-        style={{
-          width: 82,
-          height: 96,
-          borderRadius: radii.lg,
-          backgroundColor: "#F8D8D4",
-          borderWidth: 2,
-          borderColor: "#FFE9E5",
-          transform: [{ rotate: "8deg" }],
-          shadowColor: theme.colors.primary,
-          shadowOffset: { width: 0, height: 12 },
-          shadowOpacity: 0.35,
-          shadowRadius: 18,
-          elevation: 5,
-        }}
-      >
-        <View
-          style={{
-            position: "absolute",
-            top: -14,
-            left: 18,
-            width: 48,
-            height: 22,
-            borderRadius: 10,
-            backgroundColor: theme.colors.primaryLight,
-          }}
-        />
-        {[24, 40, 56, 72].map((top, index) => (
-          <View
-            key={top}
-            style={{
-              position: "absolute",
-              top,
-              left: 14,
-              width: index === 1 ? 40 : 54,
-              height: 4,
-              borderRadius: 2,
-              backgroundColor: "#E98B93",
-            }}
-          />
-        ))}
-      </View>
-      <View
-        style={{
-          position: "absolute",
-          right: 24,
-          bottom: 30,
-          width: 46,
-          height: 46,
-          borderRadius: 23,
-          borderWidth: 7,
-          borderColor: "#EE94A0",
-          backgroundColor: "rgba(255, 255, 255, 0.3)",
-        }}
-      />
-      <View
-        style={{
-          position: "absolute",
-          right: 16,
-          bottom: 20,
-          width: 30,
-          height: 8,
-          borderRadius: 5,
-          backgroundColor: "#D96E83",
-          transform: [{ rotate: "48deg" }],
-        }}
-      />
-      {[
-        { top: 36, left: 34 },
-        { top: 20, right: 38 },
-        { bottom: 34, left: 54 },
-      ].map((position, index) => (
-        <Ionicons
-          key={index}
-          name="sparkles"
-          size={18}
-          color="#F39CA8"
-          style={{ position: "absolute", ...position }}
-        />
-      ))}
-    </View>
+    <Image source={salesEmpty} resizeMode="contain" style={{ width: 184, height: 184 }} />
   );
 }
 
