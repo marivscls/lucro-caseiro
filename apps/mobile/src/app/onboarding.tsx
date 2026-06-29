@@ -14,9 +14,9 @@ import { Image, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import onboardingHouse from "../assets/onboarding-house.png";
+import labelsEmpty from "../assets/labels-empty.png";
 import salesEmpty from "../assets/sales-empty.png";
 import { useUpdateProfile } from "../features/subscription/hooks";
-import { Illustration } from "../shared/components/illustrations";
 import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
 import { useAuth } from "../shared/hooks/use-auth";
 import { useOnboarding } from "../shared/hooks/use-onboarding";
@@ -327,7 +327,11 @@ function BusinessNameStep({
         keyboardShouldPersistTaps="handled"
       >
         <View style={{ alignItems: "center" }}>
-          <Illustration name="tag" size={140} />
+          <Image
+            source={labelsEmpty}
+            resizeMode="contain"
+            style={{ width: 150, height: 150 }}
+          />
         </View>
         <Typography variant="display" style={{ textAlign: "center" }}>
           Qual o nome do seu negócio?
