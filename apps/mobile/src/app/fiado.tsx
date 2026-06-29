@@ -784,17 +784,6 @@ export default function FiadoScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: pal.screenBg }}>
       <Stack.Screen options={{ headerShown: false }} />
-      <Image
-        source={fiadoHero}
-        resizeMode="cover"
-        blurRadius={18}
-        style={{
-          position: "absolute",
-          width: "100%",
-          height: "100%",
-          opacity: theme.mode === "dark" ? 0.08 : 0.04,
-        }}
-      />
 
       <View
         style={{
