@@ -317,6 +317,7 @@ export default function InsightsScreen() {
                   onPress={() => router.push("/tabs/new-sale")}
                 />
               }
+              style={{ transform: [{ translateY: spacing["3xl"] }] }}
             />
           )}
         </ScrollView>
