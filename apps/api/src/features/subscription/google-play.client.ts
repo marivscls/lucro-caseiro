@@ -25,8 +25,28 @@ interface GooglePlaySubscriptionPurchase {
   lineItems?: Array<{
     productId?: string;
     expiryTime?: string;
+    offerDetails?: {
+      basePlanId?: string;
+      offerId?: string;
+    };
   }>;
 }
+
+const PREMIUM_PRODUCT_IDS = new Set([
+  "lucrocaseiro_premium",
+  "premium",
+  "lucrocaseiro_premium_monthly",
+  "lucrocaseiro_premium_annual",
+]);
+
+const PREMIUM_BASE_PLAN_IDS = new Set([
+  "monthly",
+  "annual",
+  "premium_monthly",
+  "premium_annual",
+  "lucrocaseiro_premium_monthly",
+  "lucrocaseiro_premium_annual",
+]);
 
 function parseServiceAccount(raw: string): Record<string, unknown> {
   try {
@@ -60,6 +80,20 @@ function isPremiumState(state: SubscriptionState | undefined, expiresAt: Date | 
     "SUBSCRIPTION_STATE_IN_GRACE_PERIOD",
     "SUBSCRIPTION_STATE_CANCELED",
   ].includes(state);
+}
+
+function isPremiumLineItem(
+  item: NonNullable<GooglePlaySubscriptionPurchase["lineItems"]>[number],
+  purchase: AndroidPurchaseData,
+) {
+  const productId = item.productId;
+  const basePlanId = item.offerDetails?.basePlanId;
+
+  return (
+    productId === purchase.productId ||
+    (productId !== undefined && PREMIUM_PRODUCT_IDS.has(productId)) ||
+    (basePlanId !== undefined && PREMIUM_BASE_PLAN_IDS.has(basePlanId))
+  );
 }
 
 export class GooglePlayClient implements ISubscriptionStatusProvider {
@@ -97,8 +131,8 @@ export class GooglePlayClient implements ISubscriptionStatusProvider {
     }
 
     const subscription = response.data;
-    const hasProduct = subscription.lineItems?.some(
-      (item) => item.productId === purchase.productId,
+    const hasProduct = subscription.lineItems?.some((item) =>
+      isPremiumLineItem(item, purchase),
     );
 
     if (!hasProduct) {

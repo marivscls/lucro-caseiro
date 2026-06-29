@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Platform } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import {
+  getAvailablePurchases as fetchAvailablePurchases,
   useIAP,
   type ProductSubscription,
   type ProductSubscriptionAndroid,
@@ -20,9 +21,50 @@ const PRODUCT_IDS: Record<"monthly" | "annual", PremiumProductId> = {
   annual: "lucrocaseiro_premium_annual",
 };
 const SUBSCRIPTION_PROFILE_KEY = ["subscription", "profile"] as const;
+const SUBSCRIPTION_LIMITS_KEY = ["subscription", "limits"] as const;
+
+const PREMIUM_PRODUCT_IDS = new Set<string>([
+  "lucrocaseiro_premium",
+  "premium",
+  PRODUCT_IDS.monthly,
+  PRODUCT_IDS.annual,
+]);
+const PREMIUM_PLAN_IDS = new Set<string>([
+  "monthly",
+  "annual",
+  "premium_monthly",
+  "premium_annual",
+  PRODUCT_IDS.monthly,
+  PRODUCT_IDS.annual,
+]);
 
 function isPremiumProduct(productId: string): productId is PremiumProductId {
   return productId === PRODUCT_IDS.monthly || productId === PRODUCT_IDS.annual;
+}
+
+function resolvePremiumProductId(purchase: Purchase): PremiumProductId | null {
+  if (isPremiumProduct(purchase.productId)) return purchase.productId;
+
+  const ids = purchase.ids ?? [];
+  const knownId = ids.find(isPremiumProduct);
+  if (knownId) return knownId;
+
+  const planId = purchase.currentPlanId?.toLowerCase() ?? "";
+  if (!PREMIUM_PRODUCT_IDS.has(purchase.productId) && !PREMIUM_PLAN_IDS.has(planId)) {
+    return null;
+  }
+
+  if (planId.includes("annual") || planId.includes("year")) {
+    return PRODUCT_IDS.annual;
+  }
+
+  return PRODUCT_IDS.monthly;
+}
+
+function isSyncablePremiumPurchase(purchase: Purchase): boolean {
+  if (purchase.purchaseState && purchase.purchaseState !== "purchased") return false;
+  if ("isSuspendedAndroid" in purchase && purchase.isSuspendedAndroid) return false;
+  return resolvePremiumProductId(purchase) !== null;
 }
 
 function isAndroidSubscription(
@@ -55,7 +97,8 @@ export function useSubscription() {
 
   const verifyPurchase = useCallback(
     async (purchase: Purchase) => {
-      if (!token || Platform.OS !== "android" || !isPremiumProduct(purchase.productId)) {
+      const productId = resolvePremiumProductId(purchase);
+      if (!token || Platform.OS !== "android" || !productId) {
         return false;
       }
 
@@ -64,11 +107,12 @@ export function useSubscription() {
 
       const profile = await syncPlan(token, {
         platform: "android",
-        productId: purchase.productId,
+        productId,
         purchaseToken,
       });
       queryClient.setQueryData(SUBSCRIPTION_PROFILE_KEY, profile);
       await queryClient.invalidateQueries({ queryKey: ["subscription"] });
+      await queryClient.invalidateQueries({ queryKey: SUBSCRIPTION_LIMITS_KEY });
       await finishTransactionRef.current?.({ purchase, isConsumable: false });
 
       // A comemoracao (tela + confete) e disparada pelo watcher global de plano
@@ -110,7 +154,7 @@ export function useSubscription() {
     if (!token || Platform.OS !== "android") return;
 
     for (const purchase of availablePurchases) {
-      if (isPremiumProduct(purchase.productId)) {
+      if (isSyncablePremiumPurchase(purchase)) {
         void verifyPurchase(purchase);
       }
     }
@@ -180,9 +224,13 @@ export function useSubscription() {
 
     setLoading(true);
     try {
+      const purchases = await fetchAvailablePurchases({
+        includeSuspendedAndroid: false,
+      });
       await getAvailablePurchases({ includeSuspendedAndroid: false });
-      const premiumPurchases = availablePurchases.filter((purchase) =>
-        isPremiumProduct(purchase.productId),
+
+      const premiumPurchases = purchases.filter((purchase) =>
+        isSyncablePremiumPurchase(purchase),
       );
 
       if (premiumPurchases.length === 0) {
@@ -208,7 +256,7 @@ export function useSubscription() {
     } finally {
       setLoading(false);
     }
-  }, [availablePurchases, getAvailablePurchases, token, verifyPurchase]);
+  }, [getAvailablePurchases, token, verifyPurchase]);
 
   return { subscribe, restore, loading };
 }

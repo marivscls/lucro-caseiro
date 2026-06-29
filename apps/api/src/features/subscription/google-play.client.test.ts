@@ -55,6 +55,30 @@ describe("GooglePlayClient", () => {
     expect(result.plan).toBe("premium");
   });
 
+  it("accepts Google Play parent subscription id with base plan details", async () => {
+    const expiry = new Date(Date.now() + 86400000).toISOString();
+    request.mockResolvedValue({
+      data: {
+        subscriptionState: "SUBSCRIPTION_STATE_ACTIVE",
+        lineItems: [
+          {
+            productId: "lucrocaseiro_premium",
+            expiryTime: expiry,
+            offerDetails: { basePlanId: "monthly" },
+          },
+        ],
+      },
+    });
+
+    const client = new GooglePlayClient("br.com.orionseven.lucrocaseiro", serviceAccount);
+    const result = await client.getPremiumState("user-1", {
+      productId: "lucrocaseiro_premium_monthly",
+      purchaseToken: "token-1",
+    });
+
+    expect(result.plan).toBe("premium");
+  });
+
   it("returns free for expired or mismatched subscriptions", async () => {
     request.mockResolvedValue({
       data: {
@@ -63,6 +87,28 @@ describe("GooglePlayClient", () => {
           {
             productId: "lucrocaseiro_premium_monthly",
             expiryTime: new Date(Date.now() - 86400000).toISOString(),
+          },
+        ],
+      },
+    });
+
+    const client = new GooglePlayClient("br.com.orionseven.lucrocaseiro", serviceAccount);
+    await expect(
+      client.getPremiumState("user-1", {
+        productId: "lucrocaseiro_premium_monthly",
+        purchaseToken: "token-1",
+      }),
+    ).resolves.toEqual({ plan: "free", expiresAt: null });
+  });
+
+  it("returns free for active non-premium subscription ids", async () => {
+    request.mockResolvedValue({
+      data: {
+        subscriptionState: "SUBSCRIPTION_STATE_ACTIVE",
+        lineItems: [
+          {
+            productId: "other_subscription",
+            expiryTime: new Date(Date.now() + 86400000).toISOString(),
           },
         ],
       },
