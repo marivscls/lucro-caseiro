@@ -1,9 +1,9 @@
 import type { ExpenseCategory, RecurringExpense } from "@lucro-caseiro/contracts";
-import { IconButton, colors } from "@lucro-caseiro/ui";
+import { IconButton, colors, useTheme, type Theme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { router, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -49,6 +49,12 @@ const BRAND_PINK = colors.primary;
 const BRAND_PINK_BORDER = "rgba(196, 112, 126, 0.55)";
 const BRAND_PINK_SOFT = "rgba(196, 112, 126, 0.14)";
 
+function useRecurringTheme() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  return { theme, styles };
+}
+
 function categoryLabel(key: string): string {
   return CATEGORIES.find((c) => c.key === key)?.label ?? "Outro";
 }
@@ -62,6 +68,7 @@ function moneyInputValue(value: number): string {
 }
 
 export default function RecurringExpensesScreen() {
+  const { theme, styles } = useRecurringTheme();
   const { data: items, isLoading } = useRecurringExpenses();
   const remove = useDeleteRecurring();
   const { data: profile } = useProfile();
@@ -103,7 +110,7 @@ export default function RecurringExpensesScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <Stack.Screen options={{ headerShown: false }} />
-      <StatusBar style="light" />
+      <StatusBar style={theme.mode === "dark" ? "light" : "dark"} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -119,7 +126,7 @@ export default function RecurringExpensesScreen() {
               <IconButton
                 accessibilityLabel="Voltar"
                 accessibilityRole="button"
-                icon={<Ionicons name="arrow-back" size={24} color="#F7E7DF" />}
+                icon={<Ionicons name="arrow-back" size={24} color={theme.colors.text} />}
                 onPress={() => router.back()}
                 size={48}
                 style={styles.backButton}
@@ -200,7 +207,11 @@ export default function RecurringExpensesScreen() {
                     </Text>
                   </View>
                   <Text style={styles.expenseAmount}>{formatMoney(item.amount)}</Text>
-                  <Ionicons name="chevron-forward" size={20} color="#CDB6A8" />
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color={theme.colors.textSecondary}
+                  />
                 </Pressable>
 
                 {selectedExpense?.id === item.id && !showForm && (
@@ -237,6 +248,7 @@ function RecurringForm({
 }>) {
   const create = useCreateRecurring();
   const update = useUpdateRecurring();
+  const { theme, styles } = useRecurringTheme();
   const isEditing = !!item;
   const isSaving = create.isPending || update.isPending;
   const [description, setDescription] = useState(item?.description ?? "");
@@ -299,7 +311,7 @@ function RecurringForm({
           onPress={onClose}
           style={({ pressed }) => pressed && styles.pressed}
         >
-          <Ionicons name="chevron-up" size={22} color="#F7D7CF" />
+          <Ionicons name="chevron-up" size={22} color={theme.colors.text} />
         </Pressable>
       </View>
 
@@ -342,7 +354,9 @@ function RecurringForm({
                 <Ionicons
                   name={c.icon}
                   size={17}
-                  color={selected ? "#FFFFFF" : "#F4D8CC"}
+                  color={
+                    selected ? theme.colors.textOnPrimary : theme.colors.textSecondary
+                  }
                 />
                 <Text
                   numberOfLines={1}
@@ -401,6 +415,8 @@ function FormField({
     label: string;
   }
 >) {
+  const { theme, styles } = useRecurringTheme();
+
   return (
     <View style={styles.fieldBlock}>
       <View style={styles.labelRow}>
@@ -409,7 +425,7 @@ function FormField({
       </View>
       <TextInput
         {...inputProps}
-        placeholderTextColor="rgba(246, 226, 216, 0.44)"
+        placeholderTextColor={`${theme.colors.textSecondary}88`}
         style={styles.textInput}
       />
     </View>
@@ -427,6 +443,8 @@ function RecurringDetails({
   onDelete: () => void;
   onEdit: () => void;
 }>) {
+  const { theme, styles } = useRecurringTheme();
+
   return (
     <View style={styles.detailCard}>
       <View style={styles.formHeader}>
@@ -441,7 +459,7 @@ function RecurringDetails({
           onPress={onClose}
           style={({ pressed }) => pressed && styles.pressed}
         >
-          <Ionicons name="close" size={22} color="#F7D7CF" />
+          <Ionicons name="close" size={22} color={theme.colors.text} />
         </Pressable>
       </View>
 
@@ -473,7 +491,7 @@ function RecurringDetails({
           style={({ pressed }) => [styles.deleteButton, pressed && styles.pressed]}
         >
           <Ionicons name="trash-outline" size={18} color="#FFFFFF" />
-          <Text style={styles.cancelText}>Remover</Text>
+          <Text style={styles.deleteText}>Remover</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
@@ -497,6 +515,8 @@ function DetailItem({
   label: string;
   value: string;
 }>) {
+  const { styles } = useRecurringTheme();
+
   return (
     <View style={styles.detailItem}>
       <Ionicons name={icon} size={18} color={BRAND_PINK} />
@@ -509,6 +529,8 @@ function DetailItem({
 }
 
 function EmptyRecurringState() {
+  const { styles } = useRecurringTheme();
+
   return (
     <View style={styles.emptyState}>
       <View style={styles.emptyIconCircle}>
@@ -522,334 +544,360 @@ function EmptyRecurringState() {
   );
 }
 
-const styles = StyleSheet.create({
-  actionRow: {
-    flexDirection: "row",
-    gap: 14,
-    marginTop: 1,
-  },
-  addButton: {
-    alignItems: "center",
-    backgroundColor: BRAND_PINK,
-    borderColor: BRAND_PINK_BORDER,
-    borderRadius: 12,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: 10,
-    height: 49,
-    justifyContent: "center",
-    shadowColor: BRAND_PINK,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.24,
-    shadowRadius: 11,
-  },
-  addButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "800",
-  },
-  backButton: {
-    alignItems: "center",
-    backgroundColor: "rgba(45, 38, 34, 0.76)",
-    borderColor: "rgba(255,255,255,0.04)",
-    borderRadius: 24,
-    borderWidth: 1,
-    height: 48,
-    justifyContent: "center",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.28,
-    shadowRadius: 9,
-    width: 48,
-  },
-  cancelButton: {
-    alignItems: "center",
-    backgroundColor: "rgba(58, 49, 44, 0.88)",
-    borderColor: "rgba(255, 235, 225, 0.11)",
-    borderRadius: 12,
-    borderWidth: 1,
-    flex: 1,
-    height: 41,
-    justifyContent: "center",
-  },
-  cancelText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "800",
-  },
-  categoryPill: {
-    alignItems: "center",
-    backgroundColor: "rgba(58, 49, 44, 0.78)",
-    borderColor: "rgba(255, 235, 225, 0.11)",
-    borderRadius: 16,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: 7,
-    height: 34,
-    justifyContent: "center",
-    minWidth: "30%",
-    paddingHorizontal: 11,
-  },
-  categoryPillSelected: {
-    backgroundColor: BRAND_PINK,
-    borderColor: BRAND_PINK_BORDER,
-  },
-  categoryText: {
-    color: "#F7E6DE",
-    fontSize: 13,
-    fontWeight: "500",
-  },
-  categoryTextSelected: {
-    color: "#FFFFFF",
-    fontWeight: "700",
-  },
-  categoryWrap: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 7,
-    paddingLeft: 1,
-  },
-  content: {
-    gap: 18,
-    paddingBottom: 36,
-    paddingHorizontal: 17,
-    paddingTop: 11,
-  },
-  disabled: {
-    opacity: 0.58,
-  },
-  deleteButton: {
-    alignItems: "center",
-    backgroundColor: "rgba(176, 69, 69, 0.9)",
-    borderColor: "rgba(255, 235, 225, 0.11)",
-    borderRadius: 12,
-    borderWidth: 1,
-    flex: 1,
-    flexDirection: "row",
-    gap: 7,
-    height: 41,
-    justifyContent: "center",
-  },
-  detailCard: {
-    backgroundColor: "rgba(28, 24, 21, 0.88)",
-    borderColor: BRAND_PINK_BORDER,
-    borderRadius: 16,
-    borderWidth: 1,
-    gap: 15,
-    paddingBottom: 17,
-    paddingHorizontal: 21,
-    paddingTop: 18,
-  },
-  detailGrid: {
-    gap: 9,
-  },
-  detailItem: {
-    alignItems: "center",
-    backgroundColor: "rgba(58, 49, 44, 0.64)",
-    borderColor: "rgba(255, 235, 225, 0.11)",
-    borderRadius: 12,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: 10,
-    minHeight: 48,
-    paddingHorizontal: 13,
-    paddingVertical: 8,
-  },
-  detailLabel: {
-    color: "#CDB6A8",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  detailTextBlock: {
-    flex: 1,
-    gap: 2,
-  },
-  detailTitle: {
-    color: "#FFF2EE",
-    fontFamily: "serif",
-    fontSize: 22,
-    fontWeight: "700",
-  },
-  detailValue: {
-    color: "#FFF8F5",
-    fontSize: 15,
-    fontWeight: "800",
-  },
-  emptyDescription: {
-    color: "#D9BDAE",
-    fontSize: 14,
-    lineHeight: 20,
-    maxWidth: 275,
-    textAlign: "center",
-  },
-  emptyIconCircle: {
-    alignItems: "center",
-    backgroundColor: "rgba(52, 44, 40, 0.92)",
-    borderRadius: 27,
-    height: 54,
-    justifyContent: "center",
-    marginBottom: 1,
-    width: 54,
-  },
-  emptyState: {
-    alignItems: "center",
-    gap: 7,
-    justifyContent: "center",
-    paddingHorizontal: 9,
-    paddingTop: 0,
-  },
-  emptyTitle: {
-    color: "#FFF2EE",
-    fontFamily: "serif",
-    fontSize: 22,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  expenseAmount: {
-    color: BRAND_PINK,
-    fontSize: 14,
-    fontWeight: "800",
-  },
-  expenseCard: {
-    alignItems: "center",
-    backgroundColor: "rgba(31, 26, 23, 0.93)",
-    borderColor: "rgba(255, 236, 226, 0.12)",
-    borderRadius: 13,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: 8,
-    padding: 10,
-  },
-  expenseCardSelected: {
-    borderColor: BRAND_PINK_BORDER,
-  },
-  expenseIcon: {
-    alignItems: "center",
-    backgroundColor: BRAND_PINK_SOFT,
-    borderRadius: 12,
-    height: 36,
-    justifyContent: "center",
-    width: 36,
-  },
-  expenseInfo: {
-    flex: 1,
-    gap: 3,
-  },
-  expenseMeta: {
-    color: "#CDB6A8",
-    fontSize: 12,
-  },
-  expenseTitle: {
-    color: "#FFF2EE",
-    fontSize: 15,
-    fontWeight: "800",
-  },
-  fieldBlock: {
-    gap: 7,
-  },
-  fieldLabel: {
-    color: "#D9BDAE",
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  formCard: {
-    backgroundColor: "rgba(28, 24, 21, 0.88)",
-    borderColor: "rgba(255, 235, 225, 0.11)",
-    borderRadius: 16,
-    borderWidth: 1,
-    gap: 15,
-    paddingBottom: 17,
-    paddingHorizontal: 21,
-    paddingTop: 18,
-  },
-  formHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  formHeaderLeft: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 11,
-  },
-  formTitle: {
-    color: "#FFFFFF",
-    fontSize: 17,
-    fontWeight: "800",
-  },
-  header: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 12,
-  },
-  hero: {
-    minHeight: 150,
-    position: "relative",
-  },
-  heroImage: {
-    height: 111,
-    position: "absolute",
-    right: -10,
-    top: 37,
-    width: 130,
-  },
-  keyboardAvoider: {
-    flex: 1,
-  },
-  labelRow: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 10,
-  },
-  loadingText: {
-    color: "#D9BDAE",
-    fontSize: 14,
-    textAlign: "center",
-  },
-  pressed: {
-    opacity: 0.82,
-  },
-  safeArea: {
-    backgroundColor: "#11100E",
-    flex: 1,
-  },
-  saveButton: {
-    alignItems: "center",
-    backgroundColor: BRAND_PINK,
-    borderColor: BRAND_PINK_BORDER,
-    borderRadius: 12,
-    borderWidth: 1,
-    flex: 1,
-    height: 41,
-    justifyContent: "center",
-  },
-  saveText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "800",
-  },
-  subtitle: {
-    color: "#D9BDAE",
-    fontSize: 14,
-    lineHeight: 20,
-    marginTop: 30,
-    maxWidth: 245,
-  },
-  textInput: {
-    backgroundColor: "rgba(58, 49, 44, 0.64)",
-    borderColor: "rgba(255, 235, 225, 0.11)",
-    borderRadius: 9,
-    borderWidth: 1,
-    color: "#FFF8F5",
-    fontSize: 14,
-    height: 42,
-    paddingHorizontal: 31,
-  },
-  title: {
-    color: "#FFF2EE",
-    flex: 1,
-    fontFamily: "serif",
-    fontSize: 25,
-    fontWeight: "700",
-  },
-});
+function recurringPalette(theme: Theme) {
+  const isDark = theme.mode === "dark";
+  return {
+    background: theme.colors.background,
+    backButton: isDark ? "rgba(45, 38, 34, 0.76)" : theme.colors.surfaceElevated,
+    border: isDark ? "rgba(255, 235, 225, 0.11)" : "rgba(74, 50, 40, 0.12)",
+    card: isDark ? "rgba(28, 24, 21, 0.88)" : theme.colors.surfaceElevated,
+    cardStrong: isDark ? "rgba(31, 26, 23, 0.93)" : theme.colors.surfaceElevated,
+    input: isDark ? "rgba(58, 49, 44, 0.64)" : theme.colors.surface,
+    chip: isDark ? "rgba(58, 49, 44, 0.78)" : theme.colors.surface,
+    muted: theme.colors.textSecondary,
+    shadow: isDark ? "#000000" : "rgba(74, 50, 40, 0.12)",
+    text: theme.colors.text,
+    title: theme.colors.text,
+  };
+}
+
+function createStyles(theme: Theme) {
+  const pal = recurringPalette(theme);
+
+  return StyleSheet.create({
+    actionRow: {
+      flexDirection: "row",
+      gap: 14,
+      marginTop: 1,
+    },
+    addButton: {
+      alignItems: "center",
+      backgroundColor: BRAND_PINK,
+      borderColor: BRAND_PINK_BORDER,
+      borderRadius: 12,
+      borderWidth: 1,
+      flexDirection: "row",
+      gap: 10,
+      height: 49,
+      justifyContent: "center",
+      shadowColor: BRAND_PINK,
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.24,
+      shadowRadius: 11,
+    },
+    addButtonText: {
+      color: "#FFFFFF",
+      fontSize: 16,
+      fontWeight: "800",
+    },
+    backButton: {
+      alignItems: "center",
+      backgroundColor: pal.backButton,
+      borderColor: pal.border,
+      borderRadius: 24,
+      borderWidth: 1,
+      height: 48,
+      justifyContent: "center",
+      shadowColor: pal.shadow,
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.28,
+      shadowRadius: 9,
+      width: 48,
+    },
+    cancelButton: {
+      alignItems: "center",
+      backgroundColor: pal.chip,
+      borderColor: pal.border,
+      borderRadius: 12,
+      borderWidth: 1,
+      flex: 1,
+      height: 41,
+      justifyContent: "center",
+    },
+    cancelText: {
+      color: pal.text,
+      fontSize: 14,
+      fontWeight: "800",
+    },
+    categoryPill: {
+      alignItems: "center",
+      backgroundColor: pal.chip,
+      borderColor: pal.border,
+      borderRadius: 16,
+      borderWidth: 1,
+      flexDirection: "row",
+      gap: 7,
+      height: 34,
+      justifyContent: "center",
+      minWidth: "30%",
+      paddingHorizontal: 11,
+    },
+    categoryPillSelected: {
+      backgroundColor: BRAND_PINK,
+      borderColor: BRAND_PINK_BORDER,
+    },
+    categoryText: {
+      color: pal.text,
+      fontSize: 13,
+      fontWeight: "500",
+    },
+    categoryTextSelected: {
+      color: "#FFFFFF",
+      fontWeight: "700",
+    },
+    categoryWrap: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 7,
+      paddingLeft: 1,
+    },
+    content: {
+      gap: 18,
+      paddingBottom: 36,
+      paddingHorizontal: 17,
+      paddingTop: 11,
+    },
+    disabled: {
+      opacity: 0.58,
+    },
+    deleteButton: {
+      alignItems: "center",
+      backgroundColor: "rgba(176, 69, 69, 0.9)",
+      borderColor: pal.border,
+      borderRadius: 12,
+      borderWidth: 1,
+      flex: 1,
+      flexDirection: "row",
+      gap: 7,
+      height: 41,
+      justifyContent: "center",
+    },
+    deleteText: {
+      color: "#FFFFFF",
+      fontSize: 14,
+      fontWeight: "800",
+    },
+    detailCard: {
+      backgroundColor: pal.card,
+      borderColor: BRAND_PINK_BORDER,
+      borderRadius: 16,
+      borderWidth: 1,
+      gap: 15,
+      paddingBottom: 17,
+      paddingHorizontal: 21,
+      paddingTop: 18,
+    },
+    detailGrid: {
+      gap: 9,
+    },
+    detailItem: {
+      alignItems: "center",
+      backgroundColor: pal.input,
+      borderColor: pal.border,
+      borderRadius: 12,
+      borderWidth: 1,
+      flexDirection: "row",
+      gap: 10,
+      minHeight: 48,
+      paddingHorizontal: 13,
+      paddingVertical: 8,
+    },
+    detailLabel: {
+      color: pal.muted,
+      fontSize: 12,
+      fontWeight: "600",
+    },
+    detailTextBlock: {
+      flex: 1,
+      gap: 2,
+    },
+    detailTitle: {
+      color: pal.title,
+      fontFamily: "serif",
+      fontSize: 22,
+      fontWeight: "700",
+    },
+    detailValue: {
+      color: pal.text,
+      fontSize: 15,
+      fontWeight: "800",
+    },
+    emptyDescription: {
+      color: pal.muted,
+      fontSize: 14,
+      lineHeight: 20,
+      maxWidth: 275,
+      textAlign: "center",
+    },
+    emptyIconCircle: {
+      alignItems: "center",
+      backgroundColor: pal.cardStrong,
+      borderRadius: 27,
+      height: 54,
+      justifyContent: "center",
+      marginBottom: 1,
+      width: 54,
+    },
+    emptyState: {
+      alignItems: "center",
+      gap: 7,
+      justifyContent: "center",
+      paddingHorizontal: 9,
+      paddingTop: 0,
+    },
+    emptyTitle: {
+      color: pal.title,
+      fontFamily: "serif",
+      fontSize: 22,
+      fontWeight: "700",
+      textAlign: "center",
+    },
+    expenseAmount: {
+      color: BRAND_PINK,
+      fontSize: 14,
+      fontWeight: "800",
+    },
+    expenseCard: {
+      alignItems: "center",
+      backgroundColor: pal.cardStrong,
+      borderColor: pal.border,
+      borderRadius: 13,
+      borderWidth: 1,
+      flexDirection: "row",
+      gap: 8,
+      padding: 10,
+    },
+    expenseCardSelected: {
+      borderColor: BRAND_PINK_BORDER,
+    },
+    expenseIcon: {
+      alignItems: "center",
+      backgroundColor: BRAND_PINK_SOFT,
+      borderRadius: 12,
+      height: 36,
+      justifyContent: "center",
+      width: 36,
+    },
+    expenseInfo: {
+      flex: 1,
+      gap: 3,
+    },
+    expenseMeta: {
+      color: pal.muted,
+      fontSize: 12,
+    },
+    expenseTitle: {
+      color: pal.text,
+      fontSize: 15,
+      fontWeight: "800",
+    },
+    fieldBlock: {
+      gap: 7,
+    },
+    fieldLabel: {
+      color: pal.muted,
+      fontSize: 14,
+      fontWeight: "500",
+    },
+    formCard: {
+      backgroundColor: pal.card,
+      borderColor: pal.border,
+      borderRadius: 16,
+      borderWidth: 1,
+      gap: 15,
+      paddingBottom: 17,
+      paddingHorizontal: 21,
+      paddingTop: 18,
+    },
+    formHeader: {
+      alignItems: "center",
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    formHeaderLeft: {
+      alignItems: "center",
+      flexDirection: "row",
+      gap: 11,
+    },
+    formTitle: {
+      color: pal.text,
+      fontSize: 17,
+      fontWeight: "800",
+    },
+    header: {
+      alignItems: "center",
+      flexDirection: "row",
+      gap: 12,
+    },
+    hero: {
+      minHeight: 150,
+      position: "relative",
+    },
+    heroImage: {
+      height: 111,
+      position: "absolute",
+      right: -10,
+      top: 37,
+      width: 130,
+    },
+    keyboardAvoider: {
+      flex: 1,
+    },
+    labelRow: {
+      alignItems: "center",
+      flexDirection: "row",
+      gap: 10,
+    },
+    loadingText: {
+      color: pal.muted,
+      fontSize: 14,
+      textAlign: "center",
+    },
+    pressed: {
+      opacity: 0.82,
+    },
+    safeArea: {
+      backgroundColor: pal.background,
+      flex: 1,
+    },
+    saveButton: {
+      alignItems: "center",
+      backgroundColor: BRAND_PINK,
+      borderColor: BRAND_PINK_BORDER,
+      borderRadius: 12,
+      borderWidth: 1,
+      flex: 1,
+      height: 41,
+      justifyContent: "center",
+    },
+    saveText: {
+      color: "#FFFFFF",
+      fontSize: 14,
+      fontWeight: "800",
+    },
+    subtitle: {
+      color: pal.muted,
+      fontSize: 14,
+      lineHeight: 20,
+      marginTop: 30,
+      maxWidth: 245,
+    },
+    textInput: {
+      backgroundColor: pal.input,
+      borderColor: pal.border,
+      borderRadius: 9,
+      borderWidth: 1,
+      color: pal.text,
+      fontSize: 14,
+      height: 42,
+      paddingHorizontal: 31,
+    },
+    title: {
+      color: pal.title,
+      flex: 1,
+      fontFamily: "serif",
+      fontSize: 25,
+      fontWeight: "700",
+    },
+  });
+}

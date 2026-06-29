@@ -1,7 +1,8 @@
 import { Button, EmptyState, Typography, useTheme } from "@lucro-caseiro/ui";
 import React from "react";
-import { ActivityIndicator, FlatList, View } from "react-native";
+import { ActivityIndicator, FlatList, Image, View } from "react-native";
 
+import productsEmpty from "../../../assets/products-empty.png";
 import {
   AD_ITEM_MARKER,
   AdBanner,
@@ -48,6 +49,13 @@ export function ProductList({
   if (!data?.items.length) {
     return (
       <EmptyState
+        icon={
+          <Image
+            source={productsEmpty}
+            resizeMode="contain"
+            style={{ width: 146, height: 146 }}
+          />
+        }
         title="Nenhum produto ainda"
         description="Cadastre seu primeiro produto para começar a vender"
         action={
