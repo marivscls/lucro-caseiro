@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -29,6 +30,7 @@ import { isValidBrazilPhone, maskPhoneBR } from "../../shared/utils/phone";
 import { alertValidation } from "../../shared/utils/alerts";
 import { showAlert } from "../../shared/components/alert-store";
 import { AnimatedListItem } from "../../shared/components/animated-list-item";
+import clientsEmpty from "../../assets/clients-empty.png";
 
 type Screen =
   | { name: "list" }
@@ -241,18 +243,11 @@ function EmptyClients({ onCreatePress }: Readonly<{ onCreatePress: () => void }>
         }),
       ]}
     >
-      <View
-        style={{
-          width: 92,
-          height: 92,
-          borderRadius: 46,
-          backgroundColor: "rgba(196, 112, 126, 0.16)",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Ionicons name="people-outline" size={48} color={theme.colors.primaryLight} />
-      </View>
+      <Image
+        source={clientsEmpty}
+        resizeMode="contain"
+        style={{ width: 146, height: 146 }}
+      />
       <Typography variant="h2" color={theme.colors.text}>
         Nenhum cliente ainda
       </Typography>

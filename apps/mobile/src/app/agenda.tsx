@@ -23,6 +23,7 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
+import agendaEmpty from "../assets/agenda-empty.png";
 import { useClient } from "../features/clients/hooks";
 import { OrderCard } from "../features/orders/components/order-card";
 import { OrderForm } from "../features/orders/components/order-form";
@@ -41,7 +42,6 @@ import {
 } from "../features/orders/hooks";
 import { openWhatsApp, waMessages } from "../shared/utils/whatsapp";
 import { showAlert } from "../shared/components/alert-store";
-import { Illustration } from "../shared/components/illustrations";
 
 const PIPELINE: OrderStatus[] = ["pending", "in_production", "ready"];
 // Paleta da agenda derivada do tema ativo (antes eram constantes fixas de dark,
@@ -1218,7 +1218,13 @@ export default function AgendaScreen() {
     if (groups.length === 0) {
       return (
         <EmptyState
-          icon={<Illustration name="calendar" />}
+          icon={
+            <Image
+              source={agendaEmpty}
+              resizeMode="contain"
+              style={{ width: 142, height: 142 }}
+            />
+          }
           title="Sua agenda está vazia"
           description="Cadastre uma encomenda com data de entrega para começar a se organizar."
           action={<Button title="Nova encomenda" onPress={() => setShowCreate(true)} />}

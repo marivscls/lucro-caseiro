@@ -20,7 +20,6 @@ import { useSales, useUpdateSaleStatus } from "../features/sales/hooks";
 import { buildChargeMessage, groupFiados, totalOwed } from "../features/sales/fiado";
 import type { FiadoGroup } from "../features/sales/fiado";
 import { showAlert } from "../shared/components/alert-store";
-import { Illustration } from "../shared/components/illustrations";
 import { showToast } from "../shared/components/toast";
 import { alertError } from "../shared/utils/alerts";
 import { formatCurrency } from "../shared/utils/format";
@@ -644,7 +643,11 @@ export default function FiadoScreen() {
           }}
         >
           <View style={{ alignItems: "center" }}>
-            <Illustration name="coins" />
+            <Image
+              source={fiadoHero}
+              resizeMode="contain"
+              style={{ width: 138, height: 138 }}
+            />
           </View>
           <Typography variant="h2" color={pal.text} style={{ textAlign: "center" }}>
             Ninguém te deve
@@ -674,7 +677,11 @@ export default function FiadoScreen() {
             gap: spacing.md,
           }}
         >
-          <Illustration name="coins" />
+          <Image
+            source={fiadoHero}
+            resizeMode="contain"
+            style={{ width: 126, height: 126 }}
+          />
           <Typography variant="h2" color={pal.text} style={{ textAlign: "center" }}>
             Nada encontrado
           </Typography>

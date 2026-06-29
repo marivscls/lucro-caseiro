@@ -678,7 +678,7 @@ export default function NewSaleScreen() {
                 }
                 title="Nenhum produto cadastrado"
                 description="Cadastre produtos antes de registrar uma venda"
-                style={{ flex: 0, padding: spacing.lg }}
+                style={{ flex: 0, padding: spacing.lg, marginTop: spacing.xl }}
               />
               <Button
                 title="Cadastrar produto"

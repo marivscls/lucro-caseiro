@@ -13,9 +13,17 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { ActivityIndicator, Modal, Pressable, ScrollView, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  View,
+} from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
+import quotesEmpty from "../assets/quotes-empty.png";
 import { QuoteForm } from "../features/quotes/components/quote-form";
 import { showAlert } from "../shared/components/alert-store";
 import {
@@ -28,7 +36,6 @@ import { buildQuoteMessage } from "../features/quotes/message";
 import { exportQuotePdf } from "../features/quotes/quote-pdf";
 import { useProfile } from "../features/subscription/hooks";
 import { DateField } from "../shared/components/date-field";
-import { Illustration } from "../shared/components/illustrations";
 import { showToast } from "../shared/components/toast";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { brToIso } from "../shared/utils/date";
@@ -583,7 +590,13 @@ export default function QuotesScreen() {
 
         {!isLoading && quotes.length === 0 && (
           <EmptyState
-            icon={<Illustration name="clipboard" />}
+            icon={
+              <Image
+                source={quotesEmpty}
+                resizeMode="contain"
+                style={{ width: 142, height: 142 }}
+              />
+            }
             title="Nenhum orçamento ainda"
             description="Monte o orçamento, envie no WhatsApp e, quando aprovar, vire encomenda com um toque."
           />
