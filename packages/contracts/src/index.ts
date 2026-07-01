@@ -8,6 +8,7 @@ export * from "./schemas/ingredient";
 export * from "./schemas/pricing";
 export * from "./schemas/packaging";
 export * from "./schemas/label";
+export * from "./schemas/plans";
 export * from "./schemas/subscription";
 export * from "./schemas/goal";
 export * from "./schemas/order";

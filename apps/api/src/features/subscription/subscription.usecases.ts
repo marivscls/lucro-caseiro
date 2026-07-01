@@ -1,7 +1,7 @@
-import type { FreemiumLimits, UserProfile } from "@lucro-caseiro/contracts";
+import type { FreemiumLimits, PlanType, UserProfile } from "@lucro-caseiro/contracts";
 
 import { NotFoundError, ServiceUnavailableError } from "../../shared/errors";
-import { buildFreemiumLimits, isPremiumActive } from "./subscription.domain";
+import { buildFreemiumLimits, resolvePlan } from "./subscription.domain";
 import type {
   AndroidPurchaseData,
   ISubscriptionRepo,
@@ -57,26 +57,31 @@ export class SubscriptionUseCases {
       throw new NotFoundError("Perfil não encontrado");
     }
 
-    const premium = isPremiumActive(profile.plan, profile.planExpiresAt);
+    const plan = resolvePlan(profile.plan, profile.planExpiresAt);
     const counts = await this.repo.getResourceCounts(userId);
-    return buildFreemiumLimits(counts, premium);
+    return buildFreemiumLimits(counts, plan);
   }
 
-  async isPremium(userId: string): Promise<boolean> {
+  /** Plano efetivo (já normalizado e considerando expiração). */
+  async getActivePlan(userId: string): Promise<PlanType> {
     const profile = await this.repo.getProfile(userId);
-    if (!profile) return false;
-    return isPremiumActive(profile.plan, profile.planExpiresAt);
+    if (!profile) return "free";
+    return resolvePlan(profile.plan, profile.planExpiresAt);
   }
 
-  async activatePremium(userId: string, expiresAt: Date | null): Promise<UserProfile> {
-    const updated = await this.repo.updatePlan(userId, "premium", expiresAt);
+  async activatePlan(
+    userId: string,
+    plan: PlanType,
+    expiresAt: Date | null,
+  ): Promise<UserProfile> {
+    const updated = await this.repo.updatePlan(userId, plan, expiresAt);
     if (!updated) {
       throw new NotFoundError("Perfil não encontrado");
     }
     return updated;
   }
 
-  async deactivatePremium(userId: string): Promise<UserProfile> {
+  async deactivatePlan(userId: string): Promise<UserProfile> {
     const updated = await this.repo.updatePlan(userId, "free", null);
     if (!updated) {
       throw new NotFoundError("Perfil não encontrado");
@@ -84,7 +89,7 @@ export class SubscriptionUseCases {
     return updated;
   }
 
-  async syncPremiumFromProvider(
+  async syncPlanFromProvider(
     userId: string,
     purchase: AndroidPurchaseData,
   ): Promise<UserProfile> {
@@ -94,10 +99,10 @@ export class SubscriptionUseCases {
       );
     }
 
-    const state = await this.statusProvider.getPremiumState(userId, purchase);
+    const state = await this.statusProvider.getPlanState(userId, purchase);
 
-    if (state.plan === "premium") {
-      return this.activatePremium(userId, state.expiresAt);
+    if (state.plan !== "free") {
+      return this.activatePlan(userId, state.plan, state.expiresAt);
     }
 
     return this.getProfile(userId);

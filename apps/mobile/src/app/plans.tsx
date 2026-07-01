@@ -1,47 +1,50 @@
 import { Button, Card, Typography, spacing, radii, useTheme } from "@lucro-caseiro/ui";
+import type { PaidPlan, PlanType } from "@lucro-caseiro/contracts";
+import { PLAN_LABELS, PLAN_PRICING } from "@lucro-caseiro/contracts";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import React from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import {
-  isProfilePremiumActive,
-  useLimits,
-  useProfile,
-} from "../features/subscription/hooks";
+import { activePlan, useLimits, useProfile } from "../features/subscription/hooks";
 import { showAlert } from "../shared/components/alert-store";
 import { usePaywall } from "../shared/hooks/use-paywall";
 
-const FREE_LIMITS = {
-  "Vendas/mês": "50/mês",
-  Clientes: "20",
-  Produtos: "15",
-  Receitas: "5",
-  Embalagens: "3",
-  Rótulos: "1 template",
-  "Catálogo público": "3 produtos",
-  Relatórios: "Básico mensal",
-  Exportação: "Não",
+const PLAN_FEATURES: Record<PlanType, readonly string[]> = {
+  free: [
+    "30 vendas por mês",
+    "20 clientes e 15 produtos",
+    "5 receitas e 3 embalagens",
+    "Agenda, fiado e catálogo básico",
+  ],
+  essential: [
+    "Vendas ilimitadas",
+    "Clientes e produtos ilimitados",
+    "Receitas e embalagens ilimitadas",
+    "Agenda, fiado e catálogo online",
+    "Sem anúncios",
+  ],
+  professional: [
+    "Tudo do Essencial",
+    "Catálogo completo e personalizado",
+    "Relatórios completos + exportar PDF/Excel",
+    "Fornecedores, compras e gastos fixos",
+    "Rótulos personalizados e orçamentos em PDF",
+  ],
 };
 
-const PREMIUM_LIMITS = {
-  "Vendas/mês": "Ilimitado",
-  Clientes: "Ilimitado",
-  Produtos: "Ilimitado",
-  Receitas: "Ilimitado",
-  Embalagens: "Ilimitado",
-  Rótulos: "Ilimitado",
-  "Catálogo público": "Ilimitado + visual",
-  Relatórios: "Completo + gráficos",
-  Exportação: "PDF/Excel",
-};
+const PLAN_ORDER: PlanType[] = ["free", "essential", "professional"];
+const RANK: Record<PlanType, number> = { free: 0, essential: 1, professional: 2 };
 
-const PREMIUM_BENEFITS: { icon: keyof typeof Ionicons.glyphMap; text: string }[] = [
-  { icon: "infinite", text: "Vendas, clientes e receitas ilimitados" },
-  { icon: "bar-chart", text: "Relatórios completos com gráficos" },
-  { icon: "download-outline", text: "Exportação em PDF e Excel" },
-];
+function priceLabel(plan: PlanType): string {
+  if (plan === "free") return "Grátis";
+  return `R$ ${PLAN_PRICING[plan].monthly.toFixed(2).replace(".", ",")}`;
+}
+
+function annualLabel(plan: PaidPlan): string {
+  return `ou R$ ${PLAN_PRICING[plan].annual.toFixed(2).replace(".", ",")}/ano (2 meses grátis)`;
+}
 
 export default function PlansScreen() {
   const { theme } = useTheme();
@@ -49,7 +52,7 @@ export default function PlansScreen() {
   const { data: profile } = useProfile();
   const { data: limits } = useLimits();
   const showPaywall = usePaywall((state) => state.show);
-  const isPremium = isProfilePremiumActive(profile);
+  const current = activePlan(profile);
 
   return (
     <SafeAreaView
@@ -95,36 +98,8 @@ export default function PlansScreen() {
           paddingBottom: spacing["3xl"],
         }}
       >
-        {/* Current plan */}
-        <Card
-          style={{ alignItems: "center", gap: spacing.md, paddingVertical: spacing.xl }}
-        >
-          <View
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: 28,
-              backgroundColor: isPremium ? theme.colors.premiumBg : theme.colors.surface,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Ionicons
-              name={isPremium ? "diamond" : "diamond-outline"}
-              size={28}
-              color={isPremium ? theme.colors.premium : theme.colors.textSecondary}
-            />
-          </View>
-          <Typography variant="h1">{isPremium ? "Premium" : "Plano Gratuito"}</Typography>
-          {isPremium && profile?.planExpiresAt && (
-            <Typography variant="body" color={theme.colors.textSecondary}>
-              Válido até {new Date(profile.planExpiresAt).toLocaleDateString("pt-BR")}
-            </Typography>
-          )}
-        </Card>
-
-        {/* Usage */}
-        {limits && !isPremium && (
+        {/* Uso atual (só no plano gratuito) */}
+        {limits && current === "free" && (
           <Card>
             <Typography variant="h3" style={{ marginBottom: spacing.md }}>
               Seu uso atual
@@ -133,44 +108,28 @@ export default function PlansScreen() {
               {[
                 {
                   label: "Vendas este mês",
-                  current: limits.currentSalesThisMonth,
+                  cur: limits.currentSalesThisMonth,
                   max: limits.maxSalesPerMonth,
                 },
-                {
-                  label: "Clientes",
-                  current: limits.currentClients,
-                  max: limits.maxClients,
-                },
+                { label: "Clientes", cur: limits.currentClients, max: limits.maxClients },
                 {
                   label: "Produtos",
-                  current: limits.currentProducts,
+                  cur: limits.currentProducts,
                   max: limits.maxProducts,
                 },
-                {
-                  label: "Receitas",
-                  current: limits.currentRecipes,
-                  max: limits.maxRecipes,
-                },
+                { label: "Receitas", cur: limits.currentRecipes, max: limits.maxRecipes },
                 {
                   label: "Embalagens",
-                  current: limits.currentPackaging,
+                  cur: limits.currentPackaging,
                   max: limits.maxPackaging,
-                },
-                {
-                  label: "Fornecedores",
-                  current: limits.currentSuppliers,
-                  max: limits.maxSuppliers,
                 },
               ]
                 .filter(
-                  (
-                    item,
-                  ): item is typeof item & {
-                    max: number;
-                  } => typeof item.max === "number" && Number.isFinite(item.max),
+                  (item): item is typeof item & { max: number } =>
+                    typeof item.max === "number" && Number.isFinite(item.max),
                 )
                 .map((item) => {
-                  const pct = Math.min((item.current / item.max) * 100, 100);
+                  const pct = Math.min((item.cur / item.max) * 100, 100);
                   const isNear = pct >= 80;
                   return (
                     <View key={item.label} style={{ gap: 6 }}>
@@ -185,7 +144,7 @@ export default function PlansScreen() {
                           style={{ fontSize: 15 }}
                           color={isNear ? theme.colors.alert : theme.colors.textSecondary}
                         >
-                          {item.current}/{item.max}
+                          {item.cur}/{item.max}
                         </Typography>
                       </View>
                       <View
@@ -213,99 +172,120 @@ export default function PlansScreen() {
           </Card>
         )}
 
-        {/* Comparison table */}
-        <Card>
-          <Typography variant="h3" style={{ marginBottom: spacing.md }}>
-            Comparativo
-          </Typography>
-          <View
-            style={{ flexDirection: "row", marginBottom: spacing.sm, gap: spacing.sm }}
-          >
-            <View style={{ flex: 1.3 }} />
-            <Typography
-              variant="bodyBold"
-              style={{ flex: 1, textAlign: "center", fontSize: 15 }}
-            >
-              Free
-            </Typography>
-            <Typography
-              variant="bodyBold"
-              color={theme.colors.premium}
-              style={{ flex: 1, textAlign: "center", fontSize: 15 }}
-            >
-              Premium
-            </Typography>
-          </View>
-          {Object.keys(FREE_LIMITS).map((key) => (
-            <View
-              key={key}
+        {/* Cards dos planos */}
+        {PLAN_ORDER.map((plan) => {
+          const isCurrent = plan === current;
+          const isUpgrade = RANK[plan] > RANK[current];
+          const isPaid = plan !== "free";
+          const highlight = plan === "professional";
+          return (
+            <Card
+              key={plan}
               style={{
-                flexDirection: "row",
-                paddingVertical: spacing.md,
-                borderTopWidth: 1,
-                borderTopColor: theme.colors.surface,
-                alignItems: "center",
-                gap: spacing.sm,
+                gap: spacing.md,
+                borderWidth: highlight ? 2 : 1,
+                borderColor: highlight ? theme.colors.premium : theme.colors.surface,
+                backgroundColor: highlight
+                  ? theme.colors.premiumBg
+                  : theme.colors.surfaceElevated,
               }}
             >
-              <Typography
-                variant="bodyBold"
-                color={theme.colors.text}
-                style={{ flex: 1.3, fontSize: 15 }}
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
               >
-                {key}
-              </Typography>
-              <Typography
-                variant="body"
-                color={theme.colors.textSecondary}
-                style={{ flex: 1, textAlign: "center", fontSize: 14 }}
-              >
-                {FREE_LIMITS[key as keyof typeof FREE_LIMITS]}
-              </Typography>
-              <Typography
-                variant="bodyBold"
-                color={theme.colors.success}
-                style={{ flex: 1, textAlign: "center", fontSize: 14 }}
-              >
-                {PREMIUM_LIMITS[key as keyof typeof PREMIUM_LIMITS]}
-              </Typography>
-            </View>
-          ))}
-        </Card>
-
-        {/* Benefits + CTA */}
-        {!isPremium ? (
-          <View style={{ gap: spacing.lg }}>
-            <Card style={{ gap: spacing.md, backgroundColor: theme.colors.premiumBg }}>
-              <Typography variant="h3" color={theme.colors.premium}>
-                Vantagens do Premium
-              </Typography>
-              {PREMIUM_BENEFITS.map((b) => (
-                <View
-                  key={b.text}
-                  style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
+                <Typography
+                  variant="h2"
+                  color={highlight ? theme.colors.premium : theme.colors.text}
                 >
-                  <Ionicons name={b.icon} size={22} color={theme.colors.premium} />
+                  {PLAN_LABELS[plan]}
+                </Typography>
+                {isCurrent && (
+                  <View
+                    style={{
+                      backgroundColor: theme.colors.success,
+                      paddingHorizontal: spacing.sm,
+                      paddingVertical: 2,
+                      borderRadius: radii.full,
+                    }}
+                  >
+                    <Typography
+                      variant="caption"
+                      color={theme.colors.textOnPrimary}
+                      style={{ fontSize: 11, fontWeight: "800" }}
+                    >
+                      PLANO ATUAL
+                    </Typography>
+                  </View>
+                )}
+              </View>
+
+              <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 4 }}>
+                <Typography variant="moneyLg" color={theme.colors.text}>
+                  {priceLabel(plan)}
+                </Typography>
+                {isPaid && (
                   <Typography
                     variant="body"
-                    color={theme.colors.text}
-                    style={{ flex: 1, fontSize: 15 }}
+                    color={theme.colors.textSecondary}
+                    style={{ marginBottom: 4 }}
                   >
-                    {b.text}
+                    /mês
                   </Typography>
-                </View>
-              ))}
+                )}
+              </View>
+              {isPaid && (
+                <Typography variant="caption" color={theme.colors.textSecondary}>
+                  {annualLabel(plan as PaidPlan)}
+                </Typography>
+              )}
+
+              <View style={{ gap: spacing.sm, marginTop: spacing.xs }}>
+                {PLAN_FEATURES[plan].map((f) => (
+                  <View
+                    key={f}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: spacing.sm,
+                    }}
+                  >
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={20}
+                      color={theme.colors.success}
+                    />
+                    <Typography
+                      variant="body"
+                      color={theme.colors.text}
+                      style={{ flex: 1, fontSize: 15 }}
+                    >
+                      {f}
+                    </Typography>
+                  </View>
+                ))}
+              </View>
+
+              {isUpgrade && (
+                <Button
+                  title={
+                    current === "free"
+                      ? `Assinar ${PLAN_LABELS[plan]}`
+                      : `Fazer upgrade para o ${PLAN_LABELS[plan]}`
+                  }
+                  variant={highlight ? "premium" : "primary"}
+                  size="lg"
+                  onPress={() => showPaywall("plans", plan as PaidPlan)}
+                />
+              )}
             </Card>
-            <Button
-              title="Assinar Premium - R$ 19,90/mês"
-              variant="premium"
-              size="lg"
-              onPress={() => {
-                showPaywall("plans");
-              }}
-            />
-          </View>
-        ) : (
+          );
+        })}
+
+        {current !== "free" && (
           <Button
             title="Cancelar assinatura"
             variant="outline"

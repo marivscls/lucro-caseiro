@@ -1,4 +1,5 @@
-import type { UserProfile } from "@lucro-caseiro/contracts";
+import type { PlanType, UserProfile } from "@lucro-caseiro/contracts";
+import { normalizePlan } from "@lucro-caseiro/contracts";
 import {
   clients,
   packaging,
@@ -66,7 +67,7 @@ export class SubscriptionRepoPg implements ISubscriptionRepo {
 
   async updatePlan(
     userId: string,
-    plan: "free" | "premium",
+    plan: PlanType,
     expiresAt: Date | null,
   ): Promise<UserProfile | null> {
     const [row] = await this.db
@@ -130,7 +131,7 @@ export class SubscriptionRepoPg implements ISubscriptionRepo {
       businessName: row.businessName,
       businessType: row.businessType,
       avatarUrl: row.avatarUrl,
-      plan: row.plan,
+      plan: normalizePlan(row.plan),
       planExpiresAt: row.planExpiresAt?.toISOString() ?? null,
       createdAt: row.createdAt.toISOString(),
     };

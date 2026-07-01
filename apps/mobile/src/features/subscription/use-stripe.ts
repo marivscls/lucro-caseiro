@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { type QueryClient, useQueryClient } from "@tanstack/react-query";
 import * as WebBrowser from "expo-web-browser";
+import type { BillingPeriod, PaidPlan } from "@lucro-caseiro/contracts";
 
 import { useAuth } from "../../shared/hooks/use-auth";
 import { createStripeCheckout, fetchProfile } from "./api";
@@ -20,7 +21,7 @@ async function pollForPremium(token: string, queryClient: QueryClient) {
     try {
       const profile = await fetchProfile(token);
       queryClient.setQueryData(PROFILE_KEY, profile);
-      if (profile.plan === "premium") {
+      if (profile.plan !== "free") {
         await queryClient.invalidateQueries({ queryKey: ["subscription", "limits"] });
         return;
       }
@@ -36,7 +37,7 @@ export function useStripeCheckout() {
   const [loading, setLoading] = useState(false);
 
   const checkout = useCallback(
-    async (plan: "monthly" | "annual") => {
+    async (tier: PaidPlan, period: BillingPeriod) => {
       if (!token) {
         alertError("Faça login antes de assinar.");
         return;
@@ -44,7 +45,7 @@ export function useStripeCheckout() {
 
       setLoading(true);
       try {
-        const { url } = await createStripeCheckout(token, plan);
+        const { url } = await createStripeCheckout(token, tier, period);
         await WebBrowser.openBrowserAsync(url);
         await queryClient.invalidateQueries({ queryKey: ["subscription"] });
         void pollForPremium(token, queryClient);

@@ -167,5 +167,6 @@ GET /api/v1/labels/templates
 - `buildLabelContent` permite merge de ingredientes de receita
 - 2026-05-30: `UpdateLabelDto.logoUrl`/`qrCodeUrl` agora aceitam `null` para limpar o campo (mobile permite remover o logo na edicao). Repo ja persistia `null`; `CreateLabelData.logoUrl?/qrCodeUrl?` widened para `string | null`.
 - 2026-06-09: `data.style` (`LabelStyleDto`: accentColor/bgColor hex, font, borderStyle,
-  corner) — personalização exclusiva Premium; `LabelsUseCases` recebe `isPremiumUser`
-  (wired no main com `isPremiumActive`) e lança LimitExceededError no free (create/update).
+  corner) — personalização exclusiva do Profissional; `LabelsUseCases` recebe um checker
+  `hasLabelsPremium` (wired no main com `userHasFeature("labelsPremium")`) e lança
+  LimitExceededError quando o plano não tem a feature (create/update).

@@ -1,47 +1,37 @@
-import type { FreemiumLimits } from "@lucro-caseiro/contracts";
+import type { FreemiumLimits, PlanType } from "@lucro-caseiro/contracts";
+import {
+  planLimit,
+  PLAN_LIMITS,
+  resolveActivePlan,
+  type LimitResource,
+} from "@lucro-caseiro/contracts";
 
-import type { FreemiumConfig, ResourceCounts } from "./subscription.types";
+import type { ResourceCounts } from "./subscription.types";
 
-export const FREE_PLAN_LIMITS: FreemiumConfig = {
-  // Free enxuto: limites que mordem cedo (gatilho de conversão) e mantêm o custo
-  // de servir baixo. O caro (catálogo público, exportação, relatórios completos)
-  // fica no Premium; aqui ficam só as contagens.
-  maxSalesPerMonth: 50,
-  maxClients: 20,
-  maxRecipes: 5,
-  maxPackaging: 3,
-  maxProducts: 15,
-  maxSuppliers: 3,
-};
+// Resolvedor de plano/feature vive em contracts (compartilhado com o mobile).
+// Reexportado aqui como fachada da feature subscription para os callers da API.
+export { hasActiveFeature } from "@lucro-caseiro/contracts";
+
+export function resolvePlan(plan: string, expiresAt: string | null): PlanType {
+  return resolveActivePlan(plan, expiresAt);
+}
+
+export function isPaidPlanActive(plan: string, expiresAt: string | null): boolean {
+  return resolvePlan(plan, expiresAt) !== "free";
+}
 
 export function buildFreemiumLimits(
   counts: ResourceCounts,
-  isPremium: boolean,
+  plan: PlanType,
 ): FreemiumLimits {
-  if (isPremium) {
-    return {
-      maxSalesPerMonth: null,
-      maxClients: null,
-      maxRecipes: null,
-      maxPackaging: null,
-      maxProducts: null,
-      maxSuppliers: null,
-      currentSalesThisMonth: counts.salesThisMonth,
-      currentClients: counts.clients,
-      currentRecipes: counts.recipes,
-      currentPackaging: counts.packaging,
-      currentProducts: counts.products,
-      currentSuppliers: counts.suppliers,
-    };
-  }
-
+  const limits = PLAN_LIMITS[plan];
   return {
-    maxSalesPerMonth: FREE_PLAN_LIMITS.maxSalesPerMonth,
-    maxClients: FREE_PLAN_LIMITS.maxClients,
-    maxRecipes: FREE_PLAN_LIMITS.maxRecipes,
-    maxPackaging: FREE_PLAN_LIMITS.maxPackaging,
-    maxProducts: FREE_PLAN_LIMITS.maxProducts,
-    maxSuppliers: FREE_PLAN_LIMITS.maxSuppliers,
+    maxSalesPerMonth: limits.maxSalesPerMonth,
+    maxClients: limits.maxClients,
+    maxRecipes: limits.maxRecipes,
+    maxPackaging: limits.maxPackaging,
+    maxProducts: limits.maxProducts,
+    maxSuppliers: limits.maxSuppliers,
     currentSalesThisMonth: counts.salesThisMonth,
     currentClients: counts.clients,
     currentRecipes: counts.recipes,
@@ -51,49 +41,48 @@ export function buildFreemiumLimits(
   };
 }
 
-export type ResourceType =
-  | "sales"
-  | "clients"
-  | "recipes"
-  | "packaging"
-  | "products"
-  | "suppliers";
+export type ResourceType = LimitResource;
 
 export function isLimitExceeded(
   resourceType: ResourceType,
   counts: ResourceCounts,
+  plan: PlanType,
 ): boolean {
-  switch (resourceType) {
+  const max = planLimit(plan, resourceType);
+  if (max === null) return false;
+  return currentCount(resourceType, counts) >= max;
+}
+
+function currentCount(resource: ResourceType, counts: ResourceCounts): number {
+  switch (resource) {
     case "sales":
-      return counts.salesThisMonth >= FREE_PLAN_LIMITS.maxSalesPerMonth;
+      return counts.salesThisMonth;
     case "clients":
-      return counts.clients >= FREE_PLAN_LIMITS.maxClients;
+      return counts.clients;
     case "recipes":
-      return counts.recipes >= FREE_PLAN_LIMITS.maxRecipes;
+      return counts.recipes;
     case "packaging":
-      return counts.packaging >= FREE_PLAN_LIMITS.maxPackaging;
+      return counts.packaging;
     case "products":
-      return counts.products >= FREE_PLAN_LIMITS.maxProducts;
+      return counts.products;
     case "suppliers":
-      return counts.suppliers >= FREE_PLAN_LIMITS.maxSuppliers;
+      return counts.suppliers;
   }
 }
 
+const FREE = PLAN_LIMITS.free;
+
+// Vendas/clientes/produtos/receitas/embalagens já ficam ilimitados no Essencial,
+// então o upsell é para o Essencial. Fornecedores só liberam no Profissional.
 const LIMIT_MESSAGES: Record<ResourceType, string> = {
-  sales: `🚀 Você está vendendo muito! Chegou às ${FREE_PLAN_LIMITS.maxSalesPerMonth} vendas do mês no plano gratuito. Desbloqueie vendas ilimitadas no Premium.`,
-  clients: `🤝 Sua carteira de clientes está crescendo! Você usou os ${FREE_PLAN_LIMITS.maxClients} clientes do plano gratuito. Faça upgrade para clientes ilimitados.`,
-  recipes: `🧁 Suas receitas estão fazendo sucesso! Você atingiu as ${FREE_PLAN_LIMITS.maxRecipes} receitas do plano gratuito. Desbloqueie receitas ilimitadas e continue crescendo.`,
-  packaging: `📦 Você atingiu as ${FREE_PLAN_LIMITS.maxPackaging} embalagens do plano gratuito. Desbloqueie embalagens e rótulos ilimitados no Premium.`,
-  products: `🎉 Sua loja está crescendo! Você usou os ${FREE_PLAN_LIMITS.maxProducts} produtos do plano gratuito. Desbloqueie produtos ilimitados e expanda seu catálogo.`,
-  suppliers: `🤝 Sua rede de fornecedores está crescendo! Você atingiu os ${FREE_PLAN_LIMITS.maxSuppliers} fornecedores do plano gratuito. Desbloqueie fornecedores ilimitados no Premium.`,
+  sales: `🚀 Você está vendendo muito! Chegou às ${FREE.maxSalesPerMonth} vendas do mês do plano gratuito. Assine o Essencial e tenha vendas ilimitadas.`,
+  clients: `🤝 Sua carteira está crescendo! Você usou os ${FREE.maxClients} clientes do plano gratuito. Assine o Essencial para clientes ilimitados.`,
+  recipes: `🧁 Suas receitas fazem sucesso! Você atingiu as ${FREE.maxRecipes} receitas do plano gratuito. Assine o Essencial para receitas ilimitadas.`,
+  packaging: `📦 Você atingiu as ${FREE.maxPackaging} embalagens do plano gratuito. Assine o Essencial para embalagens ilimitadas.`,
+  products: `🎉 Sua loja está crescendo! Você usou os ${FREE.maxProducts} produtos do plano gratuito. Assine o Essencial e expanda seu catálogo sem limites.`,
+  suppliers: `🤝 Você atingiu os ${FREE.maxSuppliers} fornecedores. Fornecedores ilimitados e controle de compras fazem parte do plano Profissional.`,
 };
 
 export function getLimitMessage(resourceType: ResourceType): string {
   return LIMIT_MESSAGES[resourceType];
-}
-
-export function isPremiumActive(plan: string, expiresAt: string | null): boolean {
-  if (plan !== "premium") return false;
-  if (!expiresAt) return true;
-  return new Date(expiresAt) > new Date();
 }

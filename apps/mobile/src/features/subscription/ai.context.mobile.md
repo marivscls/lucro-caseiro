@@ -39,7 +39,7 @@ Mobile ownership for profile, freemium limits, paywall display, and platform-bas
 
 ## Components
 
-- `Paywall`: shows Premium benefits, monthly/annual selection, subscribe CTA, restore action, and close action. Its `onSubscribe` is platform-routed in `app/_layout.tsx`.
+- `Paywall`: shows tier selection (Essencial/Profissional), monthly/annual period, tier benefits, subscribe CTA, restore action, and close action. `onSubscribe(tier, period)` is platform-routed in `app/_layout.tsx`. Accepts `recommendedTier` to preselect (passed via `usePaywall.show(resource, tier)` or derived from the triggering resource).
 - `LimitBanner`: shows free-plan usage and prompts upgrade near/at limits.
 - Plans screen: displays current plan, usage, comparison table, and opens the paywall.
 - Settings screen: displays current plan and restore action.
@@ -66,12 +66,13 @@ Mobile ownership for profile, freemium limits, paywall display, and platform-bas
 
 ## Contracts
 
-- Stripe checkout body: `{ plan: "monthly" | "annual" }`.
+- Stripe checkout body: `{ tier: "essential" | "professional", period: "monthly" | "annual" }`.
 - Stripe checkout response: `{ url: string }`.
 - Android sync body:
   - `platform: "android"`
-  - `productId: "lucrocaseiro_premium_monthly" | "lucrocaseiro_premium_annual"`
+  - `productId`: one of `lucrocaseiro_{essential,professional}_{monthly,annual}` (legacy `lucrocaseiro_premium_*` still accepted).
   - `purchaseToken: string`
+- Plan matrix (labels, prices, limits, feature flags) comes from `@lucro-caseiro/contracts` — mobile never hardcodes plan rules. `activePlan(profile)` / `isProfilePremiumActive(profile)` in `hooks.ts` resolve the effective plan (any paid plan is "premium-active").
 - Profile update uses `UpdateProfile` from contracts.
 
 ## Error Handling
@@ -101,13 +102,15 @@ Mobile ownership for profile, freemium limits, paywall display, and platform-bas
 ## Examples
 
 ```ts
-await createStripeCheckout(token, "monthly");
+await createStripeCheckout(token, "essential", "monthly");
 ```
 
 ```tsx
 <Paywall
-  onSubscribe={(period) =>
-    Platform.OS === "android" ? void subscribe(period) : void payWithStripe(period)
+  onSubscribe={(tier, period) =>
+    Platform.OS === "android"
+      ? void subscribe(tier, period)
+      : void payWithStripe(tier, period)
   }
 />
 ```
@@ -120,6 +123,7 @@ await createStripeCheckout(token, "monthly");
 - Google Play Billing also powers the "restore purchase" action.
 - 2026-06-29: Google Play restore uses the direct `react-native-iap` `getAvailablePurchases()` result instead of the hook's possibly stale `availablePurchases` state. Premium detection accepts parent subscription ids plus monthly/annual `currentPlanId`, and restored Android purchases may prove "purchased" via native `purchaseStateAndroid === 1` even when normalized `purchaseState` is `"unknown"`.
 - Prices are display-only in mobile and must match both the Stripe Dashboard and the Google Play products.
+- 2026-07-01: **planos comerciais — free/premium → free/essential/professional** (ver `docs/planos-comerciais.md`). `purchases.ts` passa a 4 SKUs (`ALL_PRODUCT_IDS`, `productIdFor(tier, period)`, `resolvePaidProductId`, `isSyncablePaidPurchase`; substitui `PRODUCT_IDS`/`resolvePremiumProductId`/`isSyncablePremiumPurchase`). `subscribe(tier, period)` e `checkout(tier, period)`; o checkout do Stripe manda `{tier, period}`. O `Paywall` ganhou seletor de tier + período e o `plans.tsx` virou 3 cards (Gratuito/Essencial/Profissional). `limits.ts` passou a decidir "ilimitado" por `planLimit(resolveActivePlan(...), resource)` (reflete a compra na hora e mantém **fornecedores limitados a 3 no Essencial**). `usePaywall.show(resource, recommendedTier?)` preseleciona o plano. Preços exibidos: Essencial R$ 29,90/mês (R$ 299/ano) · Profissional R$ 69,90/mês (R$ 699/ano). Recursos do Profissional (catálogo completo, relatórios, exportação, fornecedores/compras, gastos recorrentes, rótulos, orçamentos) continuam gateados no backend.
 - 2026-06-15: **foto/avatar do negócio** — `UserProfile.avatarUrl`. No "Editar perfil" (settings) há um seletor de foto (`useImagePicker` → `uploadProfilePhoto`, prefixo `profile-`) que envia `avatarUrl` no `updateProfile`. Os avatares em Configurações e "Mais opções" mostram a foto quando existe, senão a inicial do nome. Requer migration `018_user_avatar.sql` no Supabase.
 - 2026-06-25: **fix — botão de upgrade não sumia após pagar / comemoração não disparava.** Causa: o plano vira premium no backend por webhook assíncrono (Stripe), mas o cliente fazia um único `invalidateQueries` que corria na frente. Agora `use-stripe.ts` faz polling do perfil (até 6× a cada 2,5s) escrevendo no cache, e `app/_layout.tsx` revalida a assinatura no foreground (`AppState`). A tela de comemoração (`PremiumSuccess`, confete) já existia e é disparada pelo watcher de `profile.plan` — passa a aparecer porque o plano agora atualiza de fato.
 - 2026-06-15: **notificações funcionais com preferência por tipo** (`shared/hooks/notification-prefs.ts`, persistido em AsyncStorage; default ligado). Em Configurações, cada tipo tem toggle real. **Split de plano:** free = Vendas pendentes + Estoque baixo; **Premium** = Aniversários, Lembretes diários e Resumo semanal (toggle vira cadeado → /plans pra quem é free). Notificadores: existentes (fiado/`PENDING_SALES`, `LOW_STOCK`) respeitam a preferência; novos `useBirthdayNotifier` (clients), `useDailyReminderNotifier` (19h) e `useWeeklySummaryNotifier` (seg 9h) gatam por `isPremium && pref`. Tudo local (expo-notifications), montado no `app/_layout.tsx`.

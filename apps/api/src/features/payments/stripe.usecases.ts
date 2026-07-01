@@ -5,14 +5,15 @@ import type { CheckoutUrlInput } from "./payments.types";
 import {
   deriveStripePremiumStateChange,
   getStripeSubscriptionUserId,
+  resolveStripePlanTier,
   selectStripePriceId,
+  type StripePrices,
 } from "./stripe.domain";
 
 type StripeClient = Pick<Stripe, "checkout" | "subscriptions">;
 
 export interface StripePaymentsConfig {
-  monthlyPriceId: string;
-  annualPriceId: string;
+  prices: StripePrices;
   successUrl: string;
   cancelUrl: string;
 }
@@ -24,21 +25,18 @@ export class StripeUseCases {
     private cfg: StripePaymentsConfig,
   ) {}
 
-  async createCheckoutUrl({ userId, plan }: CheckoutUrlInput): Promise<string> {
+  async createCheckoutUrl({ userId, tier, period }: CheckoutUrlInput): Promise<string> {
     if (!this.stripe) {
       throw new Error("Stripe não configurado");
     }
 
-    const priceId = selectStripePriceId(
-      plan,
-      this.cfg.monthlyPriceId,
-      this.cfg.annualPriceId,
-    );
+    const priceId = selectStripePriceId(tier, period, this.cfg.prices);
 
     if (!priceId) {
       throw new Error("Preço Stripe não configurado");
     }
 
+    const metadata = { userId, tier, period };
     const session = await this.stripe.checkout.sessions.create({
       mode: "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
@@ -46,8 +44,8 @@ export class StripeUseCases {
       success_url: this.cfg.successUrl,
       cancel_url: this.cfg.cancelUrl,
       allow_promotion_codes: true,
-      metadata: { userId, plan },
-      subscription_data: { metadata: { userId, plan } },
+      metadata,
+      subscription_data: { metadata },
     });
 
     if (!session.url) {
@@ -99,9 +97,12 @@ export class StripeUseCases {
     const change = deriveStripePremiumStateChange(stripeSubscription);
 
     if (change.action === "activate") {
-      await this.subscription.activatePremium(userId, change.expiresAt);
+      // Sem tier inferível (ex.: assinatura Premium legada) → Profissional.
+      const tier =
+        resolveStripePlanTier(stripeSubscription, this.cfg.prices) ?? "professional";
+      await this.subscription.activatePlan(userId, tier, change.expiresAt);
     } else if (change.action === "deactivate") {
-      await this.subscription.deactivatePremium(userId);
+      await this.subscription.deactivatePlan(userId);
     }
   }
 }

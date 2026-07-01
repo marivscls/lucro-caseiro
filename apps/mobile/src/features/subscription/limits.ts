@@ -1,7 +1,20 @@
 import type { FreemiumLimits, UserProfile } from "@lucro-caseiro/contracts";
+import { planLimit, resolveActivePlan } from "@lucro-caseiro/contracts";
 
 import type { LimitResource } from "./limit-copy";
-import { isProfilePremiumActive } from "./hooks";
+
+// Um recurso é ilimitado no plano ativo (ex.: vendas no Essencial)? Deriva do
+// próprio plano — reflete a compra na hora, sem esperar o refetch de /limits.
+// Fornecedores no Essencial NÃO são ilimitados (teto 3), então usa o payload.
+function resourceUnlimited(
+  profile: UserProfile | null | undefined,
+  resource: LimitResource,
+): boolean {
+  if (!profile) return false;
+  return (
+    planLimit(resolveActivePlan(profile.plan, profile.planExpiresAt), resource) === null
+  );
+}
 
 const LIMIT_FIELDS: Record<LimitResource, { current: string; max: string }> = {
   sales: { current: "currentSalesThisMonth", max: "maxSalesPerMonth" },
@@ -45,7 +58,8 @@ export function isLimitBlocked(
   profile: UserProfile | null | undefined,
   resource: LimitResource,
 ): boolean {
-  if (isProfilePremiumActive(profile)) return false;
+  if (!profile) return false;
+  if (resourceUnlimited(profile, resource)) return false;
 
   const { current, max } = getLimitUsage(limits, resource);
   return max !== null && current >= max;
@@ -56,7 +70,8 @@ export function getLimitBannerState(
   profile: UserProfile | null | undefined,
   resource: LimitResource,
 ): LimitBannerState | null {
-  if (isProfilePremiumActive(profile)) return null;
+  if (!profile) return null;
+  if (resourceUnlimited(profile, resource)) return null;
 
   const { current, max } = getLimitUsage(limits, resource);
   if (max === null) return null;

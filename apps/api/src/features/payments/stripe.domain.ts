@@ -1,6 +1,7 @@
+import type { BillingPeriod, PaidPlan } from "@lucro-caseiro/contracts";
 import type Stripe from "stripe";
 
-import type { PaymentPlan } from "./payments.types";
+export type StripePrices = Record<PaidPlan, Record<BillingPeriod, string>>;
 
 export interface PremiumStateChange {
   action: "activate" | "deactivate" | "ignore";
@@ -8,17 +9,40 @@ export interface PremiumStateChange {
 }
 
 export function selectStripePriceId(
-  plan: PaymentPlan,
-  monthlyId: string,
-  annualId: string,
+  tier: PaidPlan,
+  period: BillingPeriod,
+  prices: StripePrices,
 ): string {
-  return plan === "annual" ? annualId : monthlyId;
+  return prices[tier][period];
 }
 
 export function getStripeSubscriptionUserId(
   subscription: Stripe.Subscription,
 ): string | null {
   return subscription.metadata.userId || null;
+}
+
+/**
+ * Descobre a que plano pago a assinatura corresponde: primeiro pela metadata
+ * `tier` (gravada no checkout), depois casando o price id com a config. Retorna
+ * null quando não dá para inferir (o caller decide o fallback).
+ */
+export function resolveStripePlanTier(
+  subscription: Stripe.Subscription,
+  prices: StripePrices,
+): PaidPlan | null {
+  const meta = subscription.metadata.tier;
+  if (meta === "essential" || meta === "professional") return meta;
+
+  const priceId = subscription.items.data[0]?.price?.id;
+  if (priceId) {
+    for (const tier of ["essential", "professional"] as PaidPlan[]) {
+      for (const period of ["monthly", "annual"] as BillingPeriod[]) {
+        if (prices[tier][period] && prices[tier][period] === priceId) return tier;
+      }
+    }
+  }
+  return null;
 }
 
 export function deriveStripePremiumStateChange(

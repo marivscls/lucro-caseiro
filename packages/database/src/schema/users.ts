@@ -8,7 +8,14 @@ export const businessTypeEnum = pgEnum("business_type", [
   "other",
 ]);
 
-export const planTypeEnum = pgEnum("plan_type", ["free", "premium"]);
+// "premium" é legado (assinantes antigos) — mantido no enum porque valores de
+// enum não são removíveis no Postgres; o repo normaliza premium → professional.
+export const planTypeEnum = pgEnum("plan_type", [
+  "free",
+  "premium",
+  "essential",
+  "professional",
+]);
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),

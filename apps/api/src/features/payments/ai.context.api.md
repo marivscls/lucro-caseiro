@@ -4,14 +4,14 @@
 
 ## Purpose
 
-Stripe Billing integration for Premium subscriptions. The backend creates Stripe Checkout Sessions and processes signed Stripe webhooks to activate/deactivate Premium.
+Stripe Billing integration for paid subscriptions (Essencial/Profissional). The backend creates Stripe Checkout Sessions and processes signed Stripe webhooks to activate/deactivate the plan.
 
 ## Non-goals
 
 - Does not store payment history locally.
 - Does not process card data directly; Checkout is hosted by Stripe.
 - Does not create Products or Prices; those are configured in Stripe Dashboard and referenced by env vars.
-- Does not manage plan state directly beyond calling `SubscriptionUseCases.activatePremium` / `deactivatePremium`.
+- Does not manage plan state directly beyond calling `SubscriptionUseCases.activatePlan` / `deactivatePlan`.
 
 ## Boundaries & Ownership
 
@@ -27,7 +27,7 @@ Stripe Billing integration for Premium subscriptions. The backend creates Stripe
 
 | File                      | Description                                                    |
 | ------------------------- | -------------------------------------------------------------- |
-| `payments.types.ts`       | Shared `PaymentPlan` and legacy payment types                  |
+| `payments.types.ts`       | Shared checkout input (`tier` + `period`) types                |
 | `stripe.domain.ts`        | Pure Stripe subscription state helpers                         |
 | `stripe.domain.test.ts`   | Domain tests                                                   |
 | `stripe.usecases.ts`      | Creates checkout URL and applies webhook subscription state    |
@@ -40,17 +40,17 @@ Stripe Billing integration for Premium subscriptions. The backend creates Stripe
 No payment tables. Mapping is derived from Stripe metadata:
 
 - Checkout Session `client_reference_id` = Lucro Caseiro `userId`
-- Subscription `metadata.userId` = Lucro Caseiro `userId`
-- Premium state stays in `users.plan` / `users.planExpiresAt`
+- Subscription `metadata` = `{ userId, tier, period }` (tier drives which paid plan is activated)
+- Plan state stays in `users.plan` / `users.planExpiresAt`
 
 ## Invariants
 
 - Checkout requires auth; `userId` comes from JWT, never request body.
-- Checkout uses `mode: "subscription"` and one recurring Price.
+- Checkout uses `mode: "subscription"` and one recurring Price (selected by `tier` + `period`).
 - Webhook signature verification uses `Stripe-Signature` + `STRIPE_WEBHOOK_SECRET`.
 - Stripe webhook route must receive raw request body before `express.json()`.
-- `active` and `trialing` subscriptions activate Premium.
-- `canceled`, `incomplete_expired`, `paused`, and `unpaid` subscriptions deactivate Premium.
+- `active` and `trialing` subscriptions activate the plan; the tier comes from `subscription.metadata.tier` (fallback: match the price id; last resort `professional`, covering legacy Premium subs).
+- `canceled`, `incomplete_expired`, `paused`, and `unpaid` subscriptions deactivate the plan (back to Free).
 - `past_due` is ignored so Stripe retry settings can run without immediate downgrade.
 
 ## Operations
@@ -65,7 +65,7 @@ api:
     - method: POST
       path: /checkout
       auth: required
-      body: { plan: "monthly" | "annual" }
+      body: { tier: "essential" | "professional", period: "monthly" | "annual" }
       response: { url: string }
   webhook_base: /api/v1/webhooks
   webhook_endpoints:
@@ -79,8 +79,10 @@ external_apis:
 env:
   - STRIPE_SECRET_KEY
   - STRIPE_WEBHOOK_SECRET
-  - STRIPE_PRICE_MONTHLY_ID
-  - STRIPE_PRICE_ANNUAL_ID
+  - STRIPE_PRICE_ESSENTIAL_MONTHLY_ID
+  - STRIPE_PRICE_ESSENTIAL_ANNUAL_ID
+  - STRIPE_PRICE_PROFESSIONAL_MONTHLY_ID
+  - STRIPE_PRICE_PROFESSIONAL_ANNUAL_ID
   - STRIPE_SUCCESS_URL
   - STRIPE_CANCEL_URL
 ```
@@ -94,7 +96,7 @@ env:
 
 ## Contracts (Zod/DTO)
 
-- **Checkout body**: `{ plan: "monthly" | "annual" }`
+- **Checkout body**: `{ tier: "essential" | "professional", period: "monthly" | "annual" }`
 - **Checkout response**: `{ url: string }`
 - **Webhook events handled**:
   - `checkout.session.completed`
@@ -106,7 +108,8 @@ env:
 
 | Status | When                                     | Message/code                   |
 | ------ | ---------------------------------------- | ------------------------------ |
-| 400    | Invalid checkout plan                    | `INVALID_PLAN`                 |
+| 400    | Invalid checkout tier                    | `INVALID_PLAN`                 |
+| 400    | Invalid checkout period                  | `INVALID_PERIOD`               |
 | 500    | Stripe secret key missing                | `Stripe nao configurado`       |
 | 500    | Stripe Price ID missing                  | `Preco Stripe nao configurado` |
 | 400    | Stripe webhook signature invalid/missing | `INVALID_STRIPE_SIGNATURE`     |
@@ -135,7 +138,8 @@ env:
 
 ### Domain
 
-- Price selection for monthly/annual.
+- Price selection for tier + period.
+- Tier resolution from metadata/price id (fallback professional).
 - Subscription user ID extraction from metadata.
 - Active/trialing activation.
 - Canceled deactivation.
@@ -156,7 +160,7 @@ POST /api/v1/payments/stripe/checkout
 Authorization: Bearer <jwt>
 Content-Type: application/json
 
-{ "plan": "monthly" }
+{ "tier": "essential", "period": "monthly" }
 
 => 200 { "url": "https://checkout.stripe.com/c/pay/cs_..." }
 ```
@@ -175,4 +179,5 @@ Stripe-Signature: t=...,v1=...
 - Stripe is the active hosted checkout path.
 - Products/Prices are dashboard-managed and referenced by env vars.
 - Mobile opens Stripe Checkout in the system browser.
-- Webhooks are the source of truth for Premium activation.
+- Webhooks are the source of truth for plan activation.
+- 2026-07-01: **três planos** — checkout passou de `{plan}` para `{tier, period}` e o config de 2 price ids para 4 (`STRIPE_PRICE_{ESSENTIAL,PROFESSIONAL}_{MONTHLY,ANNUAL}_ID`). O tier ativado vem de `subscription.metadata.tier` (ou casando o price id; fallback `professional` p/ assinaturas Premium legadas). Webhook chama `activatePlan(userId, tier, expiresAt)` / `deactivatePlan`.

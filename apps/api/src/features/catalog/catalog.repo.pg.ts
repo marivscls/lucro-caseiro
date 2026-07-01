@@ -1,4 +1,5 @@
 import type { CatalogSettings, PublicCatalogProduct } from "@lucro-caseiro/contracts";
+import { normalizePlan } from "@lucro-caseiro/contracts";
 import { catalogSettings, products, users } from "@lucro-caseiro/database/schema";
 import { and, asc, eq, ne } from "drizzle-orm";
 
@@ -26,6 +27,7 @@ export class CatalogRepoPg implements ICatalogRepo {
         businessName: users.businessName,
         phone: users.phone,
         plan: users.plan,
+        planExpiresAt: users.planExpiresAt,
       })
       .from(catalogSettings)
       .innerJoin(users, eq(catalogSettings.userId, users.id))
@@ -37,7 +39,8 @@ export class CatalogRepoPg implements ICatalogRepo {
       userId: row.settings.userId,
       businessName: row.businessName ?? row.name,
       phone: row.phone,
-      plan: row.plan,
+      plan: normalizePlan(row.plan),
+      planExpiresAt: row.planExpiresAt?.toISOString() ?? null,
     };
   }
 
@@ -108,6 +111,7 @@ export class CatalogRepoPg implements ICatalogRepo {
         businessName: users.businessName,
         phone: users.phone,
         plan: users.plan,
+        planExpiresAt: users.planExpiresAt,
       })
       .from(users)
       .where(eq(users.id, userId));
@@ -116,7 +120,8 @@ export class CatalogRepoPg implements ICatalogRepo {
       userId,
       businessName: row.businessName ?? row.name,
       phone: row.phone,
-      plan: row.plan,
+      plan: normalizePlan(row.plan),
+      planExpiresAt: row.planExpiresAt?.toISOString() ?? null,
     };
   }
 

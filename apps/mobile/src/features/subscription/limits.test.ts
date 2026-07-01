@@ -38,12 +38,39 @@ function makeLimits(overrides: Partial<FreemiumLimits> = {}): FreemiumLimits {
 }
 
 describe("subscription limits", () => {
-  it("does not block or show banners for premium profiles", () => {
-    const profile = makeProfile({ plan: "premium" });
+  it("does not block or show banners for professional profiles", () => {
+    const profile = makeProfile({ plan: "professional" });
     const limits = makeLimits({ currentProducts: 15, maxProducts: 15 });
 
     expect(isLimitBlocked(limits, profile, "products")).toBe(false);
     expect(getLimitBannerState(limits, profile, "products")).toBeNull();
+  });
+
+  it("treats legacy premium profiles as professional (unlimited)", () => {
+    // Simula um valor legado vindo do banco (fora do tipo PlanType atual).
+    const profile = makeProfile({ plan: "premium" as unknown as UserProfile["plan"] });
+    const limits = makeLimits({ currentProducts: 15, maxProducts: 15 });
+
+    expect(isLimitBlocked(limits, profile, "products")).toBe(false);
+    expect(getLimitBannerState(limits, profile, "products")).toBeNull();
+  });
+
+  it("frees volume limits for essential but still caps suppliers at 3", () => {
+    const profile = makeProfile({ plan: "essential" });
+
+    // Vendas/produtos: ilimitados no Essencial, mesmo com payload antigo.
+    const volumeLimits = makeLimits({ currentProducts: 999, maxProducts: 15 });
+    expect(isLimitBlocked(volumeLimits, profile, "products")).toBe(false);
+    expect(getLimitBannerState(volumeLimits, profile, "products")).toBeNull();
+
+    // Fornecedores: ainda limitados (max 3).
+    const supplierLimits = makeLimits({ currentSuppliers: 3, maxSuppliers: 3 });
+    expect(isLimitBlocked(supplierLimits, profile, "suppliers")).toBe(true);
+    expect(getLimitBannerState(supplierLimits, profile, "suppliers")).toMatchObject({
+      current: 3,
+      max: 3,
+      isAtLimit: true,
+    });
   });
 
   it("treats null limits as unlimited even when profile is stale", () => {
@@ -53,6 +80,13 @@ describe("subscription limits", () => {
     expect(getLimitUsage(limits, "packaging")).toEqual({ current: 20, max: null });
     expect(isLimitBlocked(limits, profile, "packaging")).toBe(false);
     expect(getLimitBannerState(limits, profile, "packaging")).toBeNull();
+  });
+
+  it("does not block or show stale free limits before profile loads", () => {
+    const limits = makeLimits({ currentProducts: 15, maxProducts: 15 });
+
+    expect(isLimitBlocked(limits, undefined, "products")).toBe(false);
+    expect(getLimitBannerState(limits, undefined, "products")).toBeNull();
   });
 
   it("blocks and shows the at-limit banner for free profiles with a numeric limit", () => {

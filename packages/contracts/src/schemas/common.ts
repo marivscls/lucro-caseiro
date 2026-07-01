@@ -47,5 +47,5 @@ export type RecurrenceFrequency = z.infer<typeof RecurrenceFrequency>;
 export const BusinessType = z.enum(["food", "beauty", "crafts", "services", "other"]);
 export type BusinessType = z.infer<typeof BusinessType>;
 
-export const PlanType = z.enum(["free", "premium"]);
+export const PlanType = z.enum(["free", "essential", "professional"]);
 export type PlanType = z.infer<typeof PlanType>;

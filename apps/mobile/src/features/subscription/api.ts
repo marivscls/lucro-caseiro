@@ -1,10 +1,13 @@
 import type {
+  BillingPeriod,
   FreemiumLimits,
+  PaidPlan,
   UpdateProfile,
   UserProfile,
 } from "@lucro-caseiro/contracts";
 
 import { apiClient } from "../../shared/utils/api-client";
+import type { AcceptedProductId } from "./purchases";
 
 const BASE = "/api/v1/subscription";
 
@@ -31,7 +34,7 @@ export async function syncPlan(
   token: string,
   data: {
     platform: "android";
-    productId: "lucrocaseiro_premium_monthly" | "lucrocaseiro_premium_annual";
+    productId: AcceptedProductId;
     purchaseToken: string;
   },
 ): Promise<UserProfile> {
@@ -44,11 +47,12 @@ export async function syncPlan(
 
 export async function createStripeCheckout(
   token: string,
-  plan: "monthly" | "annual",
+  tier: PaidPlan,
+  period: BillingPeriod,
 ): Promise<{ url: string }> {
   return apiClient<{ url: string }>(`/api/v1/payments/stripe/checkout`, {
     method: "POST",
-    body: { plan },
+    body: { tier, period },
     token,
   });
 }

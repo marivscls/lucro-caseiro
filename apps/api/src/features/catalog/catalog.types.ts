@@ -2,6 +2,7 @@ import type {
   CatalogAccentColorValue,
   CatalogPatternKey,
   CatalogSettings,
+  PlanType,
   PublicCatalogProduct,
 } from "@lucro-caseiro/contracts";
 
@@ -9,7 +10,8 @@ export interface CatalogOwner {
   userId: string;
   businessName: string;
   phone: string | null;
-  plan: "free" | "premium";
+  plan: PlanType;
+  planExpiresAt: string | null;
 }
 
 export interface CatalogSettingsData {

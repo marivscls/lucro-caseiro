@@ -1,26 +1,89 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Platform } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  getAvailablePurchases as fetchAvailablePurchases,
-  useIAP,
-  type ProductSubscription,
-  type ProductSubscriptionAndroid,
-  type Purchase,
+import type {
+  ProductSubscription,
+  ProductSubscriptionAndroid,
+  Purchase,
 } from "react-native-iap";
+
+import type { BillingPeriod, PaidPlan } from "@lucro-caseiro/contracts";
 
 import { useAuth } from "../../shared/hooks/use-auth";
 import { syncPlan } from "./api";
 import { alertError } from "../../shared/utils/alerts";
 import { showAlert } from "../../shared/components/alert-store";
 import {
-  PRODUCT_IDS,
-  isSyncablePremiumPurchase,
-  resolvePremiumProductId,
+  ALL_PRODUCT_IDS,
+  isSyncablePaidPurchase,
+  productIdFor,
+  resolvePaidProductId,
 } from "./purchases";
 
 const SUBSCRIPTION_PROFILE_KEY = ["subscription", "profile"] as const;
 const SUBSCRIPTION_LIMITS_KEY = ["subscription", "limits"] as const;
+
+type IapHookArgs = {
+  onPurchaseSuccess: (purchase: Purchase) => void;
+  onPurchaseError: () => void;
+};
+
+type IapHookResult = {
+  connected: boolean;
+  subscriptions: ProductSubscription[];
+  availablePurchases: Purchase[];
+  fetchProducts: (args: { skus: string[]; type: "subs" }) => Promise<void>;
+  requestPurchase: (args: {
+    type: "subs";
+    request: {
+      google: {
+        skus: string[];
+        obfuscatedAccountId?: string;
+        subscriptionOffers: { sku: string; offerToken: string }[];
+      };
+    };
+  }) => Promise<void>;
+  finishTransaction: (args: {
+    purchase: Purchase;
+    isConsumable?: boolean;
+  }) => Promise<void>;
+  getAvailablePurchases: (args: {
+    includeSuspendedAndroid: boolean;
+  }) => Promise<Purchase[]>;
+};
+
+type IapModule = {
+  useIAP: (args: IapHookArgs) => IapHookResult;
+  getAvailablePurchases: (args: {
+    includeSuspendedAndroid: boolean;
+  }) => Promise<Purchase[]>;
+};
+
+function unavailableIap(): IapHookResult {
+  return {
+    connected: false,
+    subscriptions: [],
+    availablePurchases: [],
+    fetchProducts: () => Promise.resolve(),
+    requestPurchase: () => Promise.resolve(),
+    finishTransaction: () => Promise.resolve(),
+    getAvailablePurchases: () => Promise.resolve([]),
+  };
+}
+
+function loadIapModule(): IapModule | null {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy native load keeps stale dev builds from crashing on startup.
+    return require("react-native-iap") as IapModule;
+  } catch {
+    return null;
+  }
+}
+
+const iapModule = loadIapModule();
+const useSafeIAP = iapModule?.useIAP ?? (() => unavailableIap());
+const fetchAvailablePurchases =
+  iapModule?.getAvailablePurchases ?? (() => Promise.resolve([] as Purchase[]));
 
 function isAndroidSubscription(
   subscription: ProductSubscription,
@@ -52,7 +115,7 @@ export function useSubscription() {
 
   const verifyPurchase = useCallback(
     async (purchase: Purchase) => {
-      const productId = resolvePremiumProductId(purchase);
+      const productId = resolvePaidProductId(purchase);
       if (!token || Platform.OS !== "android" || !productId) {
         return false;
       }
@@ -78,6 +141,21 @@ export function useSubscription() {
     [token, queryClient],
   );
 
+  const syncPaidPurchases = useCallback(
+    async (purchases: Purchase[]) => {
+      const paidPurchases = purchases.filter((purchase) =>
+        isSyncablePaidPurchase(purchase),
+      );
+      if (paidPurchases.length === 0) return false;
+
+      const synced = await Promise.all(
+        paidPurchases.map((purchase) => verifyPurchase(purchase)),
+      );
+      return synced.some(Boolean);
+    },
+    [verifyPurchase],
+  );
+
   const {
     connected,
     subscriptions,
@@ -86,7 +164,7 @@ export function useSubscription() {
     requestPurchase,
     finishTransaction,
     getAvailablePurchases,
-  } = useIAP({
+  } = useSafeIAP({
     onPurchaseSuccess: (purchase) => {
       void verifyPurchase(purchase).finally(() => setLoading(false));
     },
@@ -100,23 +178,21 @@ export function useSubscription() {
   }, [finishTransaction]);
 
   useEffect(() => {
-    if (Platform.OS !== "android" || !connected) return;
-    void fetchProducts({ skus: Object.values(PRODUCT_IDS), type: "subs" });
-    void getAvailablePurchases({ includeSuspendedAndroid: false });
-  }, [connected, fetchProducts, getAvailablePurchases]);
+    if (!token || Platform.OS !== "android" || !connected) return;
+    void fetchProducts({ skus: [...ALL_PRODUCT_IDS], type: "subs" });
+    void getAvailablePurchases({ includeSuspendedAndroid: false })
+      .then(syncPaidPurchases)
+      .catch(() => {});
+  }, [connected, fetchProducts, getAvailablePurchases, syncPaidPurchases, token]);
 
   useEffect(() => {
     if (!token || Platform.OS !== "android") return;
 
-    for (const purchase of availablePurchases) {
-      if (isSyncablePremiumPurchase(purchase)) {
-        void verifyPurchase(purchase);
-      }
-    }
-  }, [availablePurchases, token, verifyPurchase]);
+    void syncPaidPurchases(availablePurchases);
+  }, [availablePurchases, token, syncPaidPurchases]);
 
   const subscribe = useCallback(
-    async (period: "monthly" | "annual") => {
+    async (tier: PaidPlan, period: BillingPeriod) => {
       if (Platform.OS !== "android") {
         showAlert({
           title: "Em breve",
@@ -130,7 +206,7 @@ export function useSubscription() {
         return;
       }
 
-      const productId = PRODUCT_IDS[period];
+      const productId = productIdFor(tier, period);
       const subscription = subscriptions.find((item) => item.id === productId);
       const offerToken = subscription ? getOfferToken(subscription) : null;
 
@@ -184,11 +260,11 @@ export function useSubscription() {
       });
       await getAvailablePurchases({ includeSuspendedAndroid: false });
 
-      const premiumPurchases = purchases.filter((purchase) =>
-        isSyncablePremiumPurchase(purchase),
+      const paidPurchases = purchases.filter((purchase) =>
+        isSyncablePaidPurchase(purchase),
       );
 
-      if (premiumPurchases.length === 0) {
+      if (paidPurchases.length === 0) {
         showAlert({
           title: "Nenhuma assinatura encontrada",
           message: "Não encontramos uma assinatura ativa vinculada a esta conta.",
@@ -196,14 +272,10 @@ export function useSubscription() {
         return;
       }
 
-      const restored = await Promise.all(
-        premiumPurchases.map((purchase) => verifyPurchase(purchase)),
-      );
-
-      if (restored.some(Boolean)) {
+      if (await syncPaidPurchases(paidPurchases)) {
         showAlert({
           title: "Restaurado!",
-          message: "Sua assinatura Premium foi restaurada.",
+          message: "Sua assinatura foi restaurada.",
         });
       }
     } catch {
@@ -211,7 +283,7 @@ export function useSubscription() {
     } finally {
       setLoading(false);
     }
-  }, [getAvailablePurchases, token, verifyPurchase]);
+  }, [getAvailablePurchases, syncPaidPurchases, token]);
 
   return { subscribe, restore, loading };
 }

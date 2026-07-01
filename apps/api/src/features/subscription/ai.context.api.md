@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Backend ownership for user profile, Free/Premium plan state, freemium limits, and provider-backed Premium validation.
+Backend ownership for user profile, plan state (Free / Essencial / Profissional), freemium limits, and provider-backed plan validation.
 
 ## Non-goals
 
@@ -21,8 +21,8 @@ Backend ownership for user profile, Free/Premium plan state, freemium limits, an
   - `google-play.client.ts` for Android purchase-token validation fallback.
 - **Dependents:**
   - Mobile profile/settings/plans screens.
-  - Payments use cases call `activatePremium` / `deactivatePremium`.
-  - Feature limit guards call `getLimits` / `isPremium`.
+  - Payments use cases call `activatePlan(userId, plan, expiresAt)` / `deactivatePlan`.
+  - Limit guards call `getLimits` and `freemiumGuard`; feature guards call `requireFeature` / `hasActiveFeature`.
 
 ## Code pointers
 
@@ -41,18 +41,19 @@ Backend ownership for user profile, Free/Premium plan state, freemium limits, an
 ## Data Model
 
 - User profile and plan state live on the users table.
-- Premium state is represented by `users.plan = "premium"` and optional `users.planExpiresAt`.
-- `planExpiresAt = null` means Premium has no known expiry from the provider.
-- Freemium usage counts are read from feature tables and converted into limits.
+- `users.plan` is the enum `plan_type = free | essential | professional` (+ legacy `premium`, kept in the enum but normalized to `professional` on read). Optional `users.planExpiresAt`.
+- `planExpiresAt = null` means the paid plan has no known expiry from the provider.
+- The plan matrix (limits + feature flags) is the single source of truth in `@lucro-caseiro/contracts` (`PLAN_LIMITS`, `PLAN_FEATURES`, `planLimit`, `planHasFeature`, `resolveActivePlan`, `hasActiveFeature`). Free volume limits: sales 30/mês, clients 20, products 15, recipes 5, packaging 3, suppliers 3. Essencial removes volume limits but keeps suppliers capped at 3. Profissional unlocks everything (all premium features + suppliers/compras).
+- Freemium usage counts are read from feature tables and converted into limits per active plan.
 
 ## Invariants
 
 - `userId` always comes from the Supabase JWT via `authMiddleware`.
-- Client cannot set `plan = premium` through profile update.
-- `isPremiumActive` returns false when `planExpiresAt` is in the past.
-- Provider sync activates Premium only after server-side validation.
+- Client cannot set a paid `plan` through profile update.
+- `resolvePlan(plan, expiresAt)` (via contracts `resolveActivePlan`) falls back to `free` when `planExpiresAt` is in the past, and normalizes legacy `premium` → `professional`.
+- Provider sync activates a paid plan only after server-side validation; the tier comes from the purchased product id.
 - If Google Play returns free/inactive, `/sync-plan` returns the current profile instead of downgrading other payment channels.
-- Canceled but unexpired Google Play subscriptions remain Premium until their expiry time.
+- Canceled but unexpired Google Play subscriptions remain paid until their expiry time.
 
 ## Operations
 
@@ -80,7 +81,7 @@ api:
       auth: required
       body:
         platform: android
-        productId: lucrocaseiro_premium_monthly | lucrocaseiro_premium_annual
+        productId: lucrocaseiro_essential_monthly | lucrocaseiro_essential_annual | lucrocaseiro_professional_monthly | lucrocaseiro_professional_annual | (legacy) lucrocaseiro_premium_monthly | lucrocaseiro_premium_annual
         purchaseToken: string
       response: UserProfile
 ```
@@ -95,7 +96,7 @@ api:
 
 - `UpdateProfileDto` from `@lucro-caseiro/contracts` validates profile updates.
 - `AndroidPurchaseDto` validates `/sync-plan`.
-- `productId` must be `lucrocaseiro_premium_monthly` or `lucrocaseiro_premium_annual`.
+- `productId` must be one of the four tier SKUs (`lucrocaseiro_{essential,professional}_{monthly,annual}`) or a legacy `lucrocaseiro_premium_{monthly,annual}`.
 - `purchaseToken` must be a non-empty string.
 
 ## Errors
@@ -109,10 +110,10 @@ api:
 
 ## Events / Side effects
 
-- `activatePremium` writes Premium plan state.
-- `deactivatePremium` writes Free plan state.
-- `syncPremiumFromProvider` may update plan state after provider validation.
-- `getLimits` reads usage counters and returns current free/premium limits.
+- `activatePlan(userId, plan, expiresAt)` writes the paid plan state.
+- `deactivatePlan` writes Free plan state.
+- `syncPlanFromProvider` may update plan state after provider validation.
+- `getLimits` reads usage counters and returns the active plan's limits.
 
 ## Performance
 
@@ -151,7 +152,7 @@ Content-Type: application/json
 
 {
   "platform": "android",
-  "productId": "lucrocaseiro_premium_monthly",
+  "productId": "lucrocaseiro_essential_monthly",
   "purchaseToken": "<GOOGLE_PLAY_PURCHASE_TOKEN>"
 }
 ```
@@ -167,3 +168,4 @@ Content-Type: application/json
 - 2026-06-16: **limite de produtos (20 no free)** — `products` adicionado a `ResourceCounts`/`ResourceType`/`FreemiumConfig` (`maxProducts = 20`) e os campos `maxProducts`/`currentProducts` ao contrato `FreemiumLimits`. `getResourceCounts` conta produtos ativos; `freemiumGuard("products")` aplicado no `POST /api/v1/products`. Mensagem de limite em `LIMIT_MESSAGES.products`.
 - 2026-06-16: **vendas com teto alto no free (200/mês)** — `FREE_PLAN_LIMITS.maxSalesPerMonth = 200` (era 30; chegou a ser Infinity por algumas horas na mesma data). Teto folgado (~7/dia) pra não atrapalhar o uso diário, mas finito (gatilho suave + barreira de abuso). `freemiumGuard("sales")` mantido no `POST /api/v1/sales`. O app filtra o "uso atual" por limite finito (`Number.isFinite`), então qualquer recurso ilimitado não aparece lá.
 - 2026-06-16: **free enxuto (recalibração)** — `maxSalesPerMonth` 200→**50**/mês e `maxProducts` 20→**15**; catálogo público free 5→**3** produtos. Motivo: dev solo bootstrapped — o free precisa converter cedo e ser barato de servir (o caro — catálogo público, exportação, relatórios completos — fica no Premium). `maxClients` (20), `maxRecipes` (5) e `maxPackaging` (3) mantidos.
+- 2026-07-01: **planos comerciais — free/premium → free/essential/professional** (migration `029_commercial_plans.sql`; ver `docs/planos-comerciais.md`). O enum `plan_type` ganha `essential` e `professional`; assinantes `premium` migram para `professional` (o legado `premium` continua no enum, mas o repo normaliza para `professional` na leitura). A matriz de planos (limites + features) vira fonte única em `@lucro-caseiro/contracts` (`PLAN_LIMITS`, `PLAN_FEATURES`, `planLimit`, `planHasFeature`, `resolveActivePlan`, `hasActiveFeature`). **Limites:** `maxSalesPerMonth` free 50→**30**; Essencial remove os limites de volume (vendas/clientes/produtos/receitas/embalagens ilimitados) mas mantém **fornecedores em 3** (Fornecedores/Compras são diferenciais do Profissional); Profissional é ilimitado. **Gates de feature** (exclusivos do Profissional): `require-premium.ts`/`require-premium-photos.ts` foram substituídos por `require-feature.ts` (`requireFeature(repo, feature)` + `requireFeatureForExtraPhotos`); features: extraPhotos, catalogPremium, catalogCustomization, advancedReports, export, purchases, recurringExpenses, labelsPremium, quotesPdf, compositeProducts. Catálogo/labels passam a usar `hasActiveFeature`. Domínio: `resolvePlan`/`isPaidPlanActive`/`buildFreemiumLimits(counts, plan)`/`isLimitExceeded(resource, counts, plan)`. Usecases: `activatePlan(userId, plan, expiresAt)`/`deactivatePlan`/`getActivePlan`/`syncPlanFromProvider`; provider `getPlanState` retorna o tier pelo product id. Stripe: 4 price ids (`STRIPE_PRICE_{ESSENTIAL,PROFESSIONAL}_{MONTHLY,ANNUAL}_ID`), checkout recebe `{tier, period}` e o webhook resolve o tier pela metadata/price (fallback `professional`). Preços: Essencial R$ 29,90/mês (R$ 299/ano), Profissional R$ 69,90/mês (R$ 699/ano). **Pendências externas (fora do código):** criar os produtos/preços no painel Stripe e no Google Play e preencher os ids no `.env`.

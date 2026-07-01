@@ -15,8 +15,10 @@ const envSchema = z.object({
   GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: z.string().default(""),
   STRIPE_SECRET_KEY: z.string().default(""),
   STRIPE_WEBHOOK_SECRET: z.string().default(""),
-  STRIPE_PRICE_MONTHLY_ID: z.string().default(""),
-  STRIPE_PRICE_ANNUAL_ID: z.string().default(""),
+  STRIPE_PRICE_ESSENTIAL_MONTHLY_ID: z.string().default(""),
+  STRIPE_PRICE_ESSENTIAL_ANNUAL_ID: z.string().default(""),
+  STRIPE_PRICE_PROFESSIONAL_MONTHLY_ID: z.string().default(""),
+  STRIPE_PRICE_PROFESSIONAL_ANNUAL_ID: z.string().default(""),
   STRIPE_SUCCESS_URL: z.string().default("https://lucrocaseiro.app/checkout/success"),
   STRIPE_CANCEL_URL: z.string().default("https://lucrocaseiro.app/checkout/cancel"),
 });
@@ -40,8 +42,16 @@ export const config = {
   googlePlayServiceAccountJson: parsed.data.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON,
   stripeSecretKey: parsed.data.STRIPE_SECRET_KEY,
   stripeWebhookSecret: parsed.data.STRIPE_WEBHOOK_SECRET,
-  stripePriceMonthlyId: parsed.data.STRIPE_PRICE_MONTHLY_ID,
-  stripePriceAnnualId: parsed.data.STRIPE_PRICE_ANNUAL_ID,
+  stripePrices: {
+    essential: {
+      monthly: parsed.data.STRIPE_PRICE_ESSENTIAL_MONTHLY_ID,
+      annual: parsed.data.STRIPE_PRICE_ESSENTIAL_ANNUAL_ID,
+    },
+    professional: {
+      monthly: parsed.data.STRIPE_PRICE_PROFESSIONAL_MONTHLY_ID,
+      annual: parsed.data.STRIPE_PRICE_PROFESSIONAL_ANNUAL_ID,
+    },
+  },
   stripeSuccessUrl: parsed.data.STRIPE_SUCCESS_URL,
   stripeCancelUrl: parsed.data.STRIPE_CANCEL_URL,
 };

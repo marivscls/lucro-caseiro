@@ -71,11 +71,14 @@ import {
 } from "./features/payments/stripe.routes";
 import { StripeUseCases } from "./features/payments/stripe.usecases";
 import { ServiceUnavailableError } from "./shared/errors";
-import { isPremiumActive } from "./features/subscription/subscription.domain";
+import type { PlanFeature } from "@lucro-caseiro/contracts";
+import { hasActiveFeature } from "./features/subscription/subscription.domain";
 import { errorHandler } from "./shared/middleware/error-handler";
 import { freemiumGuard } from "./shared/middleware/freemium-guard";
-import { requirePremium } from "./shared/middleware/require-premium";
-import { requirePremiumForExtraPhotos } from "./shared/middleware/require-premium-photos";
+import {
+  requireFeature,
+  requireFeatureForExtraPhotos,
+} from "./shared/middleware/require-feature";
 import { rateLimit } from "./shared/middleware/rate-limit";
 import { healthRouter } from "./shared/health";
 import { setDb } from "./shared/db";
@@ -179,10 +182,14 @@ const catalogUseCases = new CatalogUseCases(new CatalogRepoPg(db));
 
 const purchasesUseCases = new PurchasesUseCases(purchasesRepo, financeUseCases);
 const ingredientsUseCases = new IngredientsUseCases(ingredientsRepo);
-const labelsUseCases = new LabelsUseCases(labelsRepo, async (userId) => {
-  const profile = await subscriptionRepo.getProfile(userId);
-  return !!profile && isPremiumActive(profile.plan, profile.planExpiresAt);
-});
+// Gate de plano por feature (usado onde o gate vive no usecase, não em middleware).
+const userHasFeature =
+  (feature: PlanFeature) =>
+  async (userId: string): Promise<boolean> => {
+    const profile = await subscriptionRepo.getProfile(userId);
+    return !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, feature);
+  };
+const labelsUseCases = new LabelsUseCases(labelsRepo, userHasFeature("labelsPremium"));
 const packagingUseCases = new PackagingUseCases(packagingRepo);
 const pricingUseCases = new PricingUseCases(pricingRepo);
 const subscriptionUseCases = new SubscriptionUseCases(subscriptionRepo, googlePlayClient);
@@ -194,16 +201,11 @@ const goalsUseCases = new GoalsUseCases(
 );
 const ordersUseCases = new OrdersUseCases(ordersRepo, financeUseCases);
 const insightsUseCases = new InsightsUseCases(insightsRepo);
-const isPremiumUser = async (userId: string) => {
-  const profile = await subscriptionRepo.getProfile(userId);
-  return !!profile && isPremiumActive(profile.plan, profile.planExpiresAt);
-};
 
 // Payments (Stripe)
 const stripeClient = config.stripeSecretKey ? new Stripe(config.stripeSecretKey) : null;
 const stripeUseCases = new StripeUseCases(stripeClient, subscriptionUseCases, {
-  monthlyPriceId: config.stripePriceMonthlyId,
-  annualPriceId: config.stripePriceAnnualId,
+  prices: config.stripePrices,
   successUrl: config.stripeSuccessUrl,
   cancelUrl: config.stripeCancelUrl,
 });
@@ -237,7 +239,7 @@ app.use(
   createProductsRouter(
     productsUseCases,
     freemiumGuard(subscriptionRepo, "products"),
-    requirePremiumForExtraPhotos(subscriptionRepo),
+    requireFeatureForExtraPhotos(subscriptionRepo),
   ),
 );
 app.use(
@@ -257,14 +259,17 @@ app.use(
   "/api/v1/finance",
   createFinanceRouter(
     financeUseCases,
-    requirePremium(subscriptionRepo),
-    requirePremium(subscriptionRepo),
+    requireFeature(subscriptionRepo, "export"),
+    requireFeature(subscriptionRepo, "recurringExpenses"),
   ),
 );
 app.use("/api/v1/goals", createGoalsRouter(goalsUseCases));
 app.use("/api/v1/orders", createOrdersRouter(ordersUseCases));
 app.use("/api/v1/materials", createMaterialsRouter(materialsUseCases));
-app.use("/api/v1/insights", createInsightsRouter(insightsUseCases, isPremiumUser));
+app.use(
+  "/api/v1/insights",
+  createInsightsRouter(insightsUseCases, userHasFeature("advancedReports")),
+);
 app.use(
   "/api/v1/recipes",
   createRecipesRouter(recipesUseCases, freemiumGuard(subscriptionRepo, "recipes")),

@@ -1,11 +1,11 @@
-import type { UserProfile } from "@lucro-caseiro/contracts";
+import type { PlanType, UserProfile } from "@lucro-caseiro/contracts";
 
 export interface ISubscriptionRepo {
   getProfile(userId: string): Promise<UserProfile | null>;
   upsertProfile(userId: string, data: UpsertProfileData): Promise<UserProfile>;
   updatePlan(
     userId: string,
-    plan: "free" | "premium",
+    plan: PlanType,
     expiresAt: Date | null,
   ): Promise<UserProfile | null>;
   getResourceCounts(userId: string): Promise<ResourceCounts>;
@@ -29,28 +29,16 @@ export interface ResourceCounts {
   suppliers: number;
 }
 
-export interface FreemiumConfig {
-  maxSalesPerMonth: number;
-  maxClients: number;
-  maxRecipes: number;
-  maxPackaging: number;
-  maxProducts: number;
-  maxSuppliers: number;
-}
-
 export interface AndroidPurchaseData {
   productId: string;
   purchaseToken: string;
 }
 
-export interface ProviderPremiumState {
-  plan: "free" | "premium";
+export interface ProviderPlanState {
+  plan: PlanType;
   expiresAt: Date | null;
 }
 
 export interface ISubscriptionStatusProvider {
-  getPremiumState(
-    userId: string,
-    purchase: AndroidPurchaseData,
-  ): Promise<ProviderPremiumState>;
+  getPlanState(userId: string, purchase: AndroidPurchaseData): Promise<ProviderPlanState>;
 }

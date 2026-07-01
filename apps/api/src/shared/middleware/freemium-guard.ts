@@ -1,10 +1,12 @@
 import type { NextFunction, Request, Response } from "express";
 
+import { planLimit } from "@lucro-caseiro/contracts";
+
 import { LimitExceededError } from "../errors";
 import {
   getLimitMessage,
   isLimitExceeded,
-  isPremiumActive,
+  resolvePlan,
   type ResourceType,
 } from "../../features/subscription/subscription.domain";
 import type { ISubscriptionRepo } from "../../features/subscription/subscription.types";
@@ -16,13 +18,16 @@ export function freemiumGuard(repo: ISubscriptionRepo, resourceType: ResourceTyp
       const userId = getUserId(req);
 
       const profile = await repo.getProfile(userId);
-      if (profile && isPremiumActive(profile.plan, profile.planExpiresAt)) {
+      const plan = profile ? resolvePlan(profile.plan, profile.planExpiresAt) : "free";
+
+      // Ilimitado nesse plano: nem consulta as contagens.
+      if (planLimit(plan, resourceType) === null) {
         next();
         return;
       }
 
       const counts = await repo.getResourceCounts(userId);
-      if (isLimitExceeded(resourceType, counts)) {
+      if (isLimitExceeded(resourceType, counts, plan)) {
         throw new LimitExceededError(getLimitMessage(resourceType));
       }
 

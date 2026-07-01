@@ -23,66 +23,66 @@ const LIMIT_COPY: Record<LimitResource, ResourceCopy> = {
     plural: "vendas",
     lastOne: {
       title: "⚠️ Última venda disponível",
-      body: "Desbloqueie o Premium para continuar sem limites.",
+      body: "Assine o Essencial para vender sem limites.",
     },
     atLimit: {
       title: "🚀 Limite atingido!",
-      body: "Continue registrando vendas com o Premium.",
+      body: "Continue registrando vendas com o plano Essencial.",
     },
   },
   products: {
     plural: "produtos",
     lastOne: {
       title: "📦 Falta apenas 1 produto",
-      body: "Desbloqueie produtos ilimitados.",
+      body: "Assine o Essencial e tenha produtos ilimitados.",
     },
     atLimit: {
       title: "📦 Limite de produtos atingido",
-      body: "Cadastre quantos produtos quiser com o Premium.",
+      body: "Cadastre quantos produtos quiser com o Essencial.",
     },
   },
   recipes: {
     plural: "receitas",
     lastOne: {
       title: "🧁 Falta apenas 1 receita",
-      body: "Continue criando receitas sem limites.",
+      body: "Assine o Essencial e crie receitas sem limites.",
     },
     atLimit: {
       title: "🧁 Limite de receitas atingido",
-      body: "Desbloqueie receitas ilimitadas.",
+      body: "Desbloqueie receitas ilimitadas no Essencial.",
     },
   },
   packaging: {
     plural: "embalagens",
     lastOne: {
       title: "📦 Falta apenas 1 embalagem",
-      body: "Desbloqueie embalagens ilimitadas.",
+      body: "Assine o Essencial e tenha embalagens ilimitadas.",
     },
     atLimit: {
       title: "📦 Limite de embalagens atingido",
-      body: "Crie embalagens sem restrições.",
+      body: "Crie embalagens sem restrições no Essencial.",
     },
   },
   clients: {
     plural: "clientes",
     lastOne: {
       title: "🤝 Falta apenas 1 cliente",
-      body: "Cadastre clientes ilimitados.",
+      body: "Assine o Essencial e cadastre clientes ilimitados.",
     },
     atLimit: {
       title: "🤝 Limite de clientes atingido",
-      body: "Continue organizando seus clientes sem limites.",
+      body: "Organize seus clientes sem limites com o Essencial.",
     },
   },
   suppliers: {
     plural: "fornecedores",
     lastOne: {
       title: "🤝 Falta apenas 1 fornecedor",
-      body: "Cadastre fornecedores ilimitados.",
+      body: "Fornecedores ilimitados fazem parte do plano Profissional.",
     },
     atLimit: {
       title: "🤝 Limite de fornecedores atingido",
-      body: "Organize todos os seus fornecedores sem limites.",
+      body: "Assine o Profissional para fornecedores ilimitados e controle de compras.",
     },
   },
 };
@@ -101,40 +101,40 @@ export function getBannerCopy(
   };
 }
 
-// Paywalls de feature (não-contagem): exportação, relatórios, catálogo, rótulos.
+// Paywalls de feature (não-contagem): recursos do plano Profissional.
 const FEATURE_COPY: Record<string, { title: string; message: string }> = {
   reports: {
     title: "📊 Relatórios completos",
     message:
-      "Veja seu faturamento mês a mês, os produtos mais vendidos e seus melhores clientes. Desbloqueie no Premium.",
+      "Veja seu faturamento mês a mês, os produtos mais vendidos e seus melhores clientes. Desbloqueie no Profissional.",
   },
   export: {
     title: "📄 Exportar PDF e Excel",
-    message: "Baixe seus relatórios pra contabilidade e MEI — recurso Premium.",
+    message: "Baixe seus relatórios pra contabilidade e MEI. Recurso do Profissional.",
   },
   catalog: {
     title: "📖 Catálogo profissional",
     message:
-      "Mostre todos os produtos e personalize sua vitrine pros clientes. Desbloqueie no Premium.",
+      "Mostre todos os produtos e personalize sua vitrine pros clientes. Desbloqueie no Profissional.",
   },
   labels: {
-    title: "🏷️ Rótulos ilimitados",
-    message: "Crie quantos templates de rótulo quiser com o Premium.",
+    title: "🏷️ Rótulos personalizados",
+    message: "Crie rótulos com a cara do seu negócio no plano Profissional.",
   },
   productPhotos: {
     title: "📸 Mais fotos do produto",
     message:
-      "Mostre seu produto de vários ângulos com até 3 fotos. Desbloqueie no Premium.",
+      "Mostre seu produto de vários ângulos com várias fotos. Desbloqueie no Profissional.",
   },
   recurring: {
     title: "🔁 Gastos fixos no automático",
     message:
-      "Cadastre aluguel, internet e outros custos mensais e deixe o app lançar sozinho no seu caixa. Desbloqueie no Premium.",
+      "Cadastre aluguel, internet e outros custos mensais e deixe o app lançar sozinho no seu caixa. Desbloqueie no Profissional.",
   },
   birthdays: {
     title: "🎂 Aniversários dos clientes",
     message:
-      "Veja quem faz aniversário no mês e parabenize na hora certa pra fidelizar. Desbloqueie no Premium.",
+      "Veja quem faz aniversário no mês e parabenize na hora certa pra fidelizar. Desbloqueie no Profissional.",
   },
 };
 

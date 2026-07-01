@@ -13,16 +13,16 @@ function hasCustomStyle(style?: LabelStyle): boolean {
 export class LabelsUseCases {
   constructor(
     private repo: ILabelsRepo,
-    // Estilo customizado e exclusivo do Premium; sem wiring explicito, nega.
-    private isPremiumUser: (userId: string) => Promise<boolean> = () =>
+    // Estilo customizado e exclusivo do Profissional; sem wiring explicito, nega.
+    private hasLabelsPremium: (userId: string) => Promise<boolean> = () =>
       Promise.resolve(false),
   ) {}
 
   private async assertStyleAllowed(userId: string, style?: LabelStyle): Promise<void> {
     if (!hasCustomStyle(style)) return;
-    if (await this.isPremiumUser(userId)) return;
+    if (await this.hasLabelsPremium(userId)) return;
     throw new LimitExceededError(
-      "A personalização do rótulo é exclusiva do plano Premium.",
+      "A personalização do rótulo faz parte do plano Profissional.",
     );
   }
 

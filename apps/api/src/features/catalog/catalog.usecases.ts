@@ -3,6 +3,7 @@ import type {
   PublicCatalog,
   UpdateCatalogSettings,
 } from "@lucro-caseiro/contracts";
+import { hasActiveFeature } from "@lucro-caseiro/contracts";
 
 import { LimitExceededError, NotFoundError, ValidationError } from "../../shared/errors";
 import { isValidSlug, slugify } from "./catalog.domain";
@@ -67,12 +68,15 @@ export class CatalogUseCases {
       throw new ValidationError(["Este endereço já está em uso. Escolha outro."]);
     }
 
-    // Personalizacao (capa/cor/frase) e exclusiva do plano Premium.
+    // Personalizacao (capa/cor/frase) e exclusiva do plano Profissional.
     if (wantsCustomization(data)) {
       const owner = await this.repo.getOwnerDefaults(userId);
-      if (owner?.plan !== "premium") {
+      if (
+        !owner ||
+        !hasActiveFeature(owner.plan, owner.planExpiresAt, "catalogCustomization")
+      ) {
         throw new LimitExceededError(
-          "A personalização do catálogo é exclusiva do plano Premium.",
+          "A personalização do catálogo faz parte do plano Profissional.",
         );
       }
     }
@@ -100,11 +104,11 @@ export class CatalogUseCases {
     }
 
     const allProducts = await this.repo.listPublicProducts(owner.userId);
-    // Personalizacao so aparece enquanto o dono for Premium (se a assinatura
-    // cair, a pagina volta ao tema padrao sem apagar o que foi salvo).
-    const isPremium = owner.plan === "premium";
-    // Plano free exibe no maximo 3 produtos (gatilho de conversao; o app mostra
-    // o aviso "Mostre seu catalogo completo com o Premium").
+    // Catalogo completo + personalizacao so aparecem no Profissional (se a
+    // assinatura cair, a pagina volta ao tema padrao sem apagar o que foi salvo).
+    const isPremium = hasActiveFeature(owner.plan, owner.planExpiresAt, "catalogPremium");
+    // Planos sem catalogo premium exibem no maximo 3 produtos na vitrine
+    // (gatilho de conversao; o app mostra "Mostre seu catalogo completo").
     const products = isPremium ? allProducts : allProducts.slice(0, 3);
     return {
       businessName: owner.businessName,

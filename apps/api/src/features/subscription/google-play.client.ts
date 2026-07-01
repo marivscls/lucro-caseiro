@@ -1,10 +1,12 @@
+import type { PaidPlan } from "@lucro-caseiro/contracts";
+import { planFromProductId } from "@lucro-caseiro/contracts";
 import { GoogleAuth } from "google-auth-library";
 
 import { ServiceUnavailableError } from "../../shared/errors";
 import type {
   AndroidPurchaseData,
   ISubscriptionStatusProvider,
-  ProviderPremiumState,
+  ProviderPlanState,
 } from "./subscription.types";
 
 const ANDROID_PUBLISHER_SCOPE = "https://www.googleapis.com/auth/androidpublisher";
@@ -32,22 +34,6 @@ interface GooglePlaySubscriptionPurchase {
   }>;
 }
 
-const PREMIUM_PRODUCT_IDS = new Set([
-  "lucrocaseiro_premium",
-  "premium",
-  "lucrocaseiro_premium_monthly",
-  "lucrocaseiro_premium_annual",
-]);
-
-const PREMIUM_BASE_PLAN_IDS = new Set([
-  "monthly",
-  "annual",
-  "premium_monthly",
-  "premium_annual",
-  "lucrocaseiro_premium_monthly",
-  "lucrocaseiro_premium_annual",
-]);
-
 function parseServiceAccount(raw: string): Record<string, unknown> {
   try {
     const credentials = JSON.parse(raw) as Record<string, unknown>;
@@ -73,7 +59,7 @@ function getLatestExpiry(purchase: GooglePlaySubscriptionPurchase): Date | null 
   return new Date(Math.max(...dates.map((date) => date.getTime())));
 }
 
-function isPremiumState(state: SubscriptionState | undefined, expiresAt: Date | null) {
+function isActiveState(state: SubscriptionState | undefined, expiresAt: Date | null) {
   if (!state || !expiresAt || expiresAt <= new Date()) return false;
   return [
     "SUBSCRIPTION_STATE_ACTIVE",
@@ -82,18 +68,21 @@ function isPremiumState(state: SubscriptionState | undefined, expiresAt: Date | 
   ].includes(state);
 }
 
-function isPremiumLineItem(
+/** Plano pago associado a um line item (productId, basePlanId ou o id do request). */
+function resolveLineItemPlan(
   item: NonNullable<GooglePlaySubscriptionPurchase["lineItems"]>[number],
   purchase: AndroidPurchaseData,
-) {
-  const productId = item.productId;
-  const basePlanId = item.offerDetails?.basePlanId;
-
-  return (
-    productId === purchase.productId ||
-    (productId !== undefined && PREMIUM_PRODUCT_IDS.has(productId)) ||
-    (basePlanId !== undefined && PREMIUM_BASE_PLAN_IDS.has(basePlanId))
-  );
+): PaidPlan | null {
+  const candidates = [
+    item.productId,
+    item.offerDetails?.basePlanId,
+    item.productId === purchase.productId ? purchase.productId : undefined,
+  ];
+  for (const candidate of candidates) {
+    const plan = candidate ? planFromProductId(candidate) : null;
+    if (plan) return plan;
+  }
+  return null;
 }
 
 export class GooglePlayClient implements ISubscriptionStatusProvider {
@@ -102,10 +91,10 @@ export class GooglePlayClient implements ISubscriptionStatusProvider {
     private serviceAccountJson: string,
   ) {}
 
-  async getPremiumState(
+  async getPlanState(
     _userId: string,
     purchase: AndroidPurchaseData,
-  ): Promise<ProviderPremiumState> {
+  ): Promise<ProviderPlanState> {
     if (!this.serviceAccountJson) {
       throw new ServiceUnavailableError(
         "GOOGLE_PLAY_SERVICE_ACCOUNT_JSON não configurado no servidor",
@@ -131,19 +120,19 @@ export class GooglePlayClient implements ISubscriptionStatusProvider {
     }
 
     const subscription = response.data;
-    const hasProduct = subscription.lineItems?.some((item) =>
-      isPremiumLineItem(item, purchase),
-    );
+    const plan = subscription.lineItems
+      ?.map((item) => resolveLineItemPlan(item, purchase))
+      .find((resolved): resolved is PaidPlan => resolved !== null);
 
-    if (!hasProduct) {
+    if (!plan) {
       return { plan: "free", expiresAt: null };
     }
 
     const expiresAt = getLatestExpiry(subscription);
-    if (!isPremiumState(subscription.subscriptionState, expiresAt)) {
+    if (!isActiveState(subscription.subscriptionState, expiresAt)) {
       return { plan: "free", expiresAt: null };
     }
 
-    return { plan: "premium", expiresAt };
+    return { plan, expiresAt };
   }
 }

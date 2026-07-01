@@ -1,36 +1,36 @@
+import type { BillingPeriod, PaidPlan, StoreProductId } from "@lucro-caseiro/contracts";
+import { planFromProductId, STORE_PRODUCT_IDS } from "@lucro-caseiro/contracts";
 import type { Purchase } from "react-native-iap";
 
-export type PremiumProductId =
+// Product ids aceitos pelo backend (4 novos SKUs + os legados do Premium).
+export type AcceptedProductId =
+  | StoreProductId
   | "lucrocaseiro_premium_monthly"
   | "lucrocaseiro_premium_annual";
 
-export const PRODUCT_IDS: Record<"monthly" | "annual", PremiumProductId> = {
-  monthly: "lucrocaseiro_premium_monthly",
-  annual: "lucrocaseiro_premium_annual",
-};
+export const ALL_PRODUCT_IDS: StoreProductId[] = [
+  STORE_PRODUCT_IDS.essential.monthly,
+  STORE_PRODUCT_IDS.essential.annual,
+  STORE_PRODUCT_IDS.professional.monthly,
+  STORE_PRODUCT_IDS.professional.annual,
+];
 
-const PREMIUM_PRODUCT_IDS = new Set<string>([
-  "lucrocaseiro_premium",
-  "premium",
-  PRODUCT_IDS.monthly,
-  PRODUCT_IDS.annual,
+const ACCEPTED_PRODUCT_IDS = new Set<string>([
+  ...ALL_PRODUCT_IDS,
+  "lucrocaseiro_premium_monthly",
+  "lucrocaseiro_premium_annual",
 ]);
 
-const PREMIUM_PLAN_IDS = new Set<string>([
-  "monthly",
-  "annual",
-  "premium_monthly",
-  "premium_annual",
-  PRODUCT_IDS.monthly,
-  PRODUCT_IDS.annual,
-]);
+export function productIdFor(tier: PaidPlan, period: BillingPeriod): StoreProductId {
+  return STORE_PRODUCT_IDS[tier][period];
+}
 
 type AndroidPurchaseState = Purchase & {
   readonly purchaseStateAndroid?: number | null;
 };
 
-function isPremiumProduct(productId: string): productId is PremiumProductId {
-  return productId === PRODUCT_IDS.monthly || productId === PRODUCT_IDS.annual;
+function accepted(id: string | undefined | null): AcceptedProductId | null {
+  return id && ACCEPTED_PRODUCT_IDS.has(id) ? (id as AcceptedProductId) : null;
 }
 
 function isPurchasedState(purchase: AndroidPurchaseState): boolean {
@@ -46,27 +46,32 @@ function isPurchasedState(purchase: AndroidPurchaseState): boolean {
   return false;
 }
 
-export function resolvePremiumProductId(purchase: Purchase): PremiumProductId | null {
-  if (isPremiumProduct(purchase.productId)) return purchase.productId;
+/**
+ * Product id (aceito pelo backend) da compra. Tenta o productId direto e os
+ * `ids`; se só vier o basePlan/currentPlanId, deriva tier+period e monta o SKU.
+ * O backend re-verifica a assinatura no Google Play, então o importante é enviar
+ * um id válido + o token.
+ */
+export function resolvePaidProductId(purchase: Purchase): AcceptedProductId | null {
+  const direct = accepted(purchase.productId);
+  if (direct) return direct;
 
-  const ids = purchase.ids ?? [];
-  const knownId = ids.find(isPremiumProduct);
-  if (knownId) return knownId;
+  const fromIds = (purchase.ids ?? []).map(accepted).find(Boolean);
+  if (fromIds) return fromIds;
 
-  const planId = purchase.currentPlanId?.toLowerCase() ?? "";
-  if (!PREMIUM_PRODUCT_IDS.has(purchase.productId) && !PREMIUM_PLAN_IDS.has(planId)) {
-    return null;
+  const planId = (purchase.currentPlanId ?? "").toLowerCase();
+  const tier = planFromProductId(planId) ?? planFromProductId(purchase.productId ?? "");
+  if (tier) {
+    const period: BillingPeriod =
+      planId.includes("annual") || planId.includes("year") ? "annual" : "monthly";
+    return STORE_PRODUCT_IDS[tier][period];
   }
 
-  if (planId.includes("annual") || planId.includes("year")) {
-    return PRODUCT_IDS.annual;
-  }
-
-  return PRODUCT_IDS.monthly;
+  return null;
 }
 
-export function isSyncablePremiumPurchase(purchase: Purchase): boolean {
+export function isSyncablePaidPurchase(purchase: Purchase): boolean {
   if (!isPurchasedState(purchase as AndroidPurchaseState)) return false;
   if ("isSuspendedAndroid" in purchase && purchase.isSuspendedAndroid) return false;
-  return resolvePremiumProductId(purchase) !== null;
+  return resolvePaidProductId(purchase) !== null;
 }

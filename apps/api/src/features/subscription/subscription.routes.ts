@@ -7,7 +7,15 @@ import type { SubscriptionUseCases } from "./subscription.usecases";
 
 const AndroidPurchaseDto = z.object({
   platform: z.literal("android"),
-  productId: z.enum(["lucrocaseiro_premium_monthly", "lucrocaseiro_premium_annual"]),
+  productId: z.enum([
+    "lucrocaseiro_essential_monthly",
+    "lucrocaseiro_essential_annual",
+    "lucrocaseiro_professional_monthly",
+    "lucrocaseiro_professional_annual",
+    // SKUs legados do Premium antigo (assinantes migram para Profissional).
+    "lucrocaseiro_premium_monthly",
+    "lucrocaseiro_premium_annual",
+  ]),
   purchaseToken: z.string().min(1),
 });
 
@@ -50,7 +58,7 @@ export function createSubscriptionRouter(useCases: SubscriptionUseCases): Router
     try {
       const userId = getUserId(req);
       const purchase = AndroidPurchaseDto.parse(req.body);
-      const profile = await useCases.syncPremiumFromProvider(userId, purchase);
+      const profile = await useCases.syncPlanFromProvider(userId, purchase);
       res.json(profile);
     } catch (err) {
       next(err);

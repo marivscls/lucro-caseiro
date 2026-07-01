@@ -51,6 +51,7 @@ function AppContent() {
     visible: paywallVisible,
     hide: hidePaywall,
     resource: paywallResource,
+    recommendedTier: paywallRecommendedTier,
   } = usePaywall();
   const paywallCopy = getPaywallCopy(paywallResource);
   const { subscribe, restore, loading: subscriptionLoading } = useSubscription();
@@ -91,8 +92,8 @@ function AppContent() {
     }
   }, [hidePaywall, isPremium, paywallVisible]);
 
-  // Comemora quando o plano vira Premium (cobre Google Play e Stripe).
-  // Guarda o plano inicial para não comemorar quem já abre o app como Premium.
+  // Comemora quando o plano vira pago (cobre Google Play e Stripe).
+  // Guarda o plano inicial para não comemorar quem já abre o app pagante.
   const prevPlan = useRef<string | undefined>(undefined);
   useEffect(() => {
     const plan = profile?.plan;
@@ -101,7 +102,7 @@ function AppContent() {
       prevPlan.current = plan;
       return;
     }
-    if (prevPlan.current !== "premium" && plan === "premium") {
+    if (prevPlan.current === "free" && plan !== "free") {
       showPremiumSuccess();
     }
     prevPlan.current = plan;
@@ -178,14 +179,23 @@ function AppContent() {
         <Paywall
           title={paywallCopy.title}
           message={paywallCopy.message}
+          recommendedTier={
+            paywallRecommendedTier ??
+            (paywallResource &&
+            ["sales", "clients", "products", "recipes", "packaging"].includes(
+              paywallResource,
+            )
+              ? "essential"
+              : "professional")
+          }
           onClose={hidePaywall}
-          onSubscribe={(period) => {
+          onSubscribe={(tier, period) => {
             // Android must use Google Play Billing (Play Store policy);
             // iOS/Web use hosted Stripe Checkout.
             if (Platform.OS === "android") {
-              void subscribe(period);
+              void subscribe(tier, period);
             } else {
-              void payWithStripe(period);
+              void payWithStripe(tier, period);
             }
           }}
           onRestore={() => {

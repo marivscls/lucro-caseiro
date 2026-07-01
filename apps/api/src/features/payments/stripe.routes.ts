@@ -3,7 +3,7 @@ import type Stripe from "stripe";
 
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
 import type { StripeUseCases } from "./stripe.usecases";
-import type { PaymentPlan } from "./payments.types";
+import type { BillingPeriod, PaidPlan } from "./payments.types";
 
 export interface StripeRouterOptions {
   stripe: Pick<Stripe, "webhooks"> | null;
@@ -17,14 +17,22 @@ export function createStripeCheckoutRouter(useCases: StripeUseCases): Router {
   router.post("/checkout", async (req, res, next) => {
     try {
       const userId = getUserId(req);
-      const { plan } = req.body as { plan: PaymentPlan };
+      const { tier, period } = req.body as { tier?: string; period?: string };
 
-      if (plan !== "monthly" && plan !== "annual") {
+      if (tier !== "essential" && tier !== "professional") {
         res.status(400).json({ error: "INVALID_PLAN" });
         return;
       }
+      if (period !== "monthly" && period !== "annual") {
+        res.status(400).json({ error: "INVALID_PERIOD" });
+        return;
+      }
 
-      const url = await useCases.createCheckoutUrl({ userId, plan });
+      const url = await useCases.createCheckoutUrl({
+        userId,
+        tier: tier as PaidPlan,
+        period: period as BillingPeriod,
+      });
       res.json({ url });
     } catch (err) {
       next(err);

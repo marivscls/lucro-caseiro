@@ -14,21 +14,23 @@ Alternativas equivalentes: **Fly.io** (free tier maior, exige `flyctl`), **Rende
 
 Lista completa em [apps/api/.env.example](../apps/api/.env.example). Resumo:
 
-| Variavel                           | Obrigatoria | Descricao                                                    |
-| ---------------------------------- | ----------- | ------------------------------------------------------------ |
-| `DATABASE_URL`                     | sim         | Postgres connection string (Supabase pooler, porta 5432)     |
-| `SUPABASE_URL`                     | sim         | URL do projeto Supabase                                      |
-| `SUPABASE_ANON_KEY`                | sim         | Anon key (publica) do Supabase                               |
-| `API_PORT`                         | nao         | Porta interna (default 3001 — Railway/Fly mapeiam pra fora)  |
-| `CORS_ORIGIN`                      | nao         | Origens permitidas (comma-separated, default `*`)            |
-| `GOOGLE_PLAY_PACKAGE_NAME`         | sim         | Package name Android (`br.com.orionseven.lucrocaseiro`)      |
-| `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` | sim         | JSON da service account para validar assinaturas Google Play |
-| `STRIPE_SECRET_KEY`                | sim         | Secret key live da Stripe (`sk_live_...`)                    |
-| `STRIPE_WEBHOOK_SECRET`            | sim         | Signing secret do webhook Stripe (`whsec_...`)               |
-| `STRIPE_PRICE_MONTHLY_ID`          | sim         | ID do Price mensal recorrente (`price_...`)                  |
-| `STRIPE_PRICE_ANNUAL_ID`           | sim         | ID do Price anual recorrente (`price_...`)                   |
-| `STRIPE_SUCCESS_URL`               | sim         | URL de retorno apos checkout aprovado                        |
-| `STRIPE_CANCEL_URL`                | sim         | URL de retorno apos checkout cancelado                       |
+| Variavel                               | Obrigatoria | Descricao                                                    |
+| -------------------------------------- | ----------- | ------------------------------------------------------------ |
+| `DATABASE_URL`                         | sim         | Postgres connection string (Supabase pooler, porta 5432)     |
+| `SUPABASE_URL`                         | sim         | URL do projeto Supabase                                      |
+| `SUPABASE_ANON_KEY`                    | sim         | Anon key (publica) do Supabase                               |
+| `API_PORT`                             | nao         | Porta interna (default 3001 — Railway/Fly mapeiam pra fora)  |
+| `CORS_ORIGIN`                          | nao         | Origens permitidas (comma-separated, default `*`)            |
+| `GOOGLE_PLAY_PACKAGE_NAME`             | sim         | Package name Android (`br.com.orionseven.lucrocaseiro`)      |
+| `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`     | sim         | JSON da service account para validar assinaturas Google Play |
+| `STRIPE_SECRET_KEY`                    | sim         | Secret key live da Stripe (`sk_live_...`)                    |
+| `STRIPE_WEBHOOK_SECRET`                | sim         | Signing secret do webhook Stripe (`whsec_...`)               |
+| `STRIPE_PRICE_ESSENTIAL_MONTHLY_ID`    | sim         | Price mensal do Essencial (`price_...`)                      |
+| `STRIPE_PRICE_ESSENTIAL_ANNUAL_ID`     | sim         | Price anual do Essencial (`price_...`)                       |
+| `STRIPE_PRICE_PROFESSIONAL_MONTHLY_ID` | sim         | Price mensal do Profissional (`price_...`)                   |
+| `STRIPE_PRICE_PROFESSIONAL_ANNUAL_ID`  | sim         | Price anual do Profissional (`price_...`)                    |
+| `STRIPE_SUCCESS_URL`                   | sim         | URL de retorno apos checkout aprovado                        |
+| `STRIPE_CANCEL_URL`                    | sim         | URL de retorno apos checkout cancelado                       |
 
 ---
 
