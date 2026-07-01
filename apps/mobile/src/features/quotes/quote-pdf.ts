@@ -1,6 +1,4 @@
 import type { Quote } from "@lucro-caseiro/contracts";
-import * as Print from "expo-print";
-import * as Sharing from "expo-sharing";
 
 export interface QuoteBusiness {
   name: string;
@@ -136,6 +134,10 @@ export async function exportQuotePdf(
   business: QuoteBusiness,
 ): Promise<void> {
   const html = buildQuoteHtml(quote, business);
+  const [Print, Sharing] = await Promise.all([
+    import("expo-print"),
+    import("expo-sharing"),
+  ]);
   const { uri } = await Print.printToFileAsync({ html });
 
   if (await Sharing.isAvailableAsync()) {

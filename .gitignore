@@ -56,6 +56,10 @@ lucro-caseiro-*.json
 
 # tooling cache
 *.tsbuildinfo
+*TEMPknip.txt
+
+# concurrent agent runtime logs / metro cache — never commit
+.codex-logs/
 
 # maestro e2e — credenciais (.env já coberto acima) e screenshots (artefatos de teste).
 # `**/` pra pegar também em apps/mobile/.maestro/ (não só na raiz).

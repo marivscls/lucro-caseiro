@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { addDaysToBR, brToIso, isoToBR, maskDateBR } from "./date";
+import {
+  addDaysToBR,
+  brToIso,
+  isoToBR,
+  isValidTimeBR,
+  maskDateBR,
+  maskTimeBR,
+} from "./date";
 
 describe("isoToBR", () => {
   it("converts ISO to DD/MM/AAAA", () => {
@@ -41,6 +48,33 @@ describe("maskDateBR", () => {
   });
   it("ignores extra digits and non-digits", () => {
     expect(maskDateBR("30/05/2026999")).toBe("30/05/2026");
+  });
+});
+
+describe("maskTimeBR", () => {
+  it("formats digits progressively as HH:MM", () => {
+    expect(maskTimeBR("1")).toBe("1");
+    expect(maskTimeBR("14")).toBe("14");
+    expect(maskTimeBR("143")).toBe("14:3");
+    expect(maskTimeBR("1430")).toBe("14:30");
+  });
+  it("ignores extra digits and non-digits", () => {
+    expect(maskTimeBR("14:30")).toBe("14:30");
+    expect(maskTimeBR("143099")).toBe("14:30");
+  });
+});
+
+describe("isValidTimeBR", () => {
+  it("accepts valid 24h times", () => {
+    expect(isValidTimeBR("00:00")).toBe(true);
+    expect(isValidTimeBR("14:30")).toBe(true);
+    expect(isValidTimeBR("23:59")).toBe(true);
+  });
+  it("rejects out-of-range or malformed times", () => {
+    expect(isValidTimeBR("24:00")).toBe(false);
+    expect(isValidTimeBR("14:60")).toBe(false);
+    expect(isValidTimeBR("1430")).toBe(false);
+    expect(isValidTimeBR("9:30")).toBe(false);
   });
 });
 

@@ -14,6 +14,15 @@ export class PackagingUseCases {
       throw new ValidationError(errors);
     }
 
+    const duplicate = await this.repo.findDuplicateByNameType(
+      userId,
+      data.name,
+      data.type,
+    );
+    if (duplicate) {
+      throw new ValidationError(["Essa embalagem já está cadastrada com esse tipo."]);
+    }
+
     return this.repo.create(userId, data);
   }
 
@@ -54,6 +63,16 @@ export class PackagingUseCases {
 
     if (errors.length > 0) {
       throw new ValidationError(errors);
+    }
+
+    const duplicate = await this.repo.findDuplicateByNameType(
+      userId,
+      merged.name,
+      merged.type,
+      id,
+    );
+    if (duplicate) {
+      throw new ValidationError(["Essa embalagem já está cadastrada com esse tipo."]);
     }
 
     const updated = await this.repo.update(userId, id, data);

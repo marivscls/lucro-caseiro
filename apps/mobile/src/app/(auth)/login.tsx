@@ -11,7 +11,7 @@ import { supabase } from "../../shared/utils/supabase";
 import { validateEmail } from "../../shared/utils/validation";
 import { alertError } from "../../shared/utils/alerts";
 import { showAlert } from "../../shared/components/alert-store";
-import onboardingHouse from "../../assets/onboarding-house.png";
+import authHouse from "../../assets/auth-house.png";
 
 export default function LoginScreen() {
   const { theme } = useTheme();
@@ -126,7 +126,7 @@ export default function LoginScreen() {
         {/* Marca + boas-vindas */}
         <View style={{ alignItems: "center", gap: spacing.md }}>
           <Image
-            source={onboardingHouse}
+            source={authHouse}
             resizeMode="contain"
             style={{ width: 112, height: 112 }}
           />

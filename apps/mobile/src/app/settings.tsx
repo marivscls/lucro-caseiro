@@ -37,7 +37,11 @@ import { useDeleteAccount } from "../features/account/hooks";
 import { ProlaboreGoalForm } from "../features/goals/components/prolabore-goal-form";
 import { formatCurrency } from "../features/goals/domain";
 import { useProlaboreStatus } from "../features/goals/hooks";
-import { useProfile, useUpdateProfile } from "../features/subscription/hooks";
+import {
+  isProfilePremiumActive,
+  useProfile,
+  useUpdateProfile,
+} from "../features/subscription/hooks";
 import { useSubscription } from "../features/subscription/use-subscription";
 import { showAlert } from "../shared/components/alert-store";
 import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
@@ -142,7 +146,7 @@ export default function SettingsScreen() {
   const businessName = profile?.businessName ?? "Meu negócio";
   const businessType = profile?.businessType ?? "";
   const avatarUrl = profile?.avatarUrl ?? null;
-  const isPremium = profile?.plan === "premium";
+  const isPremium = isProfilePremiumActive(profile);
   const appVersion = "v1.0.0";
 
   function openEditProfile() {
@@ -170,7 +174,7 @@ export default function SettingsScreen() {
         showAlert({
           title: "Foto não enviada",
           message:
-            "Não consegui enviar a foto agora. Vou salvar o resto do perfil — tente a foto depois.",
+            "Não consegui enviar a foto agora. Vou salvar o resto do perfil. Tente a foto depois.",
         });
       } finally {
         setSavingAvatar(false);
@@ -624,7 +628,7 @@ export default function SettingsScreen() {
                   <Pressable
                     onPress={() => router.push("/plans")}
                     accessibilityRole="button"
-                    accessibilityLabel={`${item.label} — recurso Premium`}
+                    accessibilityLabel={`${item.label}, recurso Premium`}
                     hitSlop={8}
                     style={{
                       flexDirection: "row",

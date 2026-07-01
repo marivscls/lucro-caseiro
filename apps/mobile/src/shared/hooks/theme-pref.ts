@@ -1,6 +1,7 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { type ThemeMode } from "@lucro-caseiro/ui";
 import { create } from "zustand";
+
+import { asyncStorage } from "../utils/async-storage";
 
 const STORAGE_KEY = "themeMode";
 
@@ -22,7 +23,7 @@ export const useThemePref = create<ThemePrefState>((set) => ({
   loaded: false,
   hydrate: async () => {
     try {
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
+      const raw = await asyncStorage.getItem(STORAGE_KEY);
       set({ mode: raw === "light" || raw === "dark" ? raw : null, loaded: true });
     } catch {
       set({ loaded: true });
@@ -30,6 +31,6 @@ export const useThemePref = create<ThemePrefState>((set) => ({
   },
   setMode: (mode) => {
     set({ mode });
-    void AsyncStorage.setItem(STORAGE_KEY, mode);
+    void asyncStorage.setItem(STORAGE_KEY, mode);
   },
 }));

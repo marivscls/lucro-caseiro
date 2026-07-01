@@ -14,6 +14,13 @@ export class SuppliersUseCases {
       throw new ValidationError(errors);
     }
 
+    const duplicate = await this.repo.findDuplicate(userId, data);
+    if (duplicate) {
+      throw new ValidationError([
+        "Esse fornecedor já existe ou usa um contato já cadastrado.",
+      ]);
+    }
+
     return this.repo.create(userId, data);
   }
 
@@ -54,6 +61,21 @@ export class SuppliersUseCases {
 
     if (errors.length > 0) {
       throw new ValidationError(errors);
+    }
+
+    const duplicate = await this.repo.findDuplicate(
+      userId,
+      {
+        name: merged.name,
+        phone: merged.phone ?? undefined,
+        email: merged.email ?? undefined,
+      },
+      id,
+    );
+    if (duplicate) {
+      throw new ValidationError([
+        "Esse fornecedor já existe ou usa um contato já cadastrado.",
+      ]);
     }
 
     const updated = await this.repo.update(userId, id, data);

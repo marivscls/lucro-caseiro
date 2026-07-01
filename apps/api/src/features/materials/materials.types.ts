@@ -24,6 +24,12 @@ export interface FindAllMaterialsOpts {
 export interface IMaterialsRepo {
   create(userId: string, data: CreateMaterialData): Promise<Material>;
   findById(userId: string, id: string): Promise<Material | null>;
+  findDuplicateByNameUnit(
+    userId: string,
+    name: string,
+    unit: string,
+    excludeId?: string,
+  ): Promise<Material | null>;
   findAll(
     userId: string,
     opts: FindAllMaterialsOpts,

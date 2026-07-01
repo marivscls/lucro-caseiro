@@ -26,7 +26,7 @@ import {
   useRecurringExpenses,
   useUpdateRecurring,
 } from "../features/finance/hooks";
-import { useProfile } from "../features/subscription/hooks";
+import { isProfilePremiumActive, useProfile } from "../features/subscription/hooks";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { ApiError } from "../shared/utils/api-client";
 import { alertError, alertValidation } from "../shared/utils/alerts";
@@ -72,7 +72,7 @@ export default function RecurringExpensesScreen() {
   const { data: items, isLoading } = useRecurringExpenses();
   const remove = useDeleteRecurring();
   const { data: profile } = useProfile();
-  const isPremium = profile?.plan === "premium";
+  const isPremium = isProfilePremiumActive(profile);
   const showPaywall = usePaywall((s) => s.show);
   const [showForm, setShowForm] = useState(true);
   const [selectedExpense, setSelectedExpense] = useState<RecurringExpense | null>(null);
@@ -372,7 +372,7 @@ function RecurringForm({
 
       <FormField
         icon="calendar-outline"
-        label="Dia do mês (1–28)"
+        label="Dia do mês (1 a 28)"
         value={day}
         onChangeText={(v) => setDay(v.replace(/\D/g, "").slice(0, 2))}
         placeholder="1"

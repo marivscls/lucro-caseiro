@@ -474,6 +474,7 @@ export default function PackagingScreen() {
             </Typography>
           </View>
           <PackagingForm
+            existingPackaging={items}
             onSuccess={() => setShowCreate(false)}
             onCancel={() => setShowCreate(false)}
           />
@@ -587,6 +588,7 @@ export default function PackagingScreen() {
               </View>
               <PackagingForm
                 packaging={selected}
+                existingPackaging={items}
                 onSuccess={() => setEditing(false)}
                 onCancel={() => setEditing(false)}
               />

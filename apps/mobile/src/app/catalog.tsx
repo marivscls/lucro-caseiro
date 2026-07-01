@@ -24,14 +24,14 @@ import { ColorPickerModal } from "../shared/components/color-picker-modal";
 import { HeroPreview } from "../features/catalog/components/hero-preview";
 import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
 import { useCatalogSettings, useUpdateCatalogSettings } from "../features/catalog/hooks";
-import { useProfile } from "../features/subscription/hooks";
+import { isProfilePremiumActive, useProfile } from "../features/subscription/hooks";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { ApiError } from "../shared/utils/api-client";
 import { showToast } from "../shared/components/toast";
 import { uploadCatalogCover, uploadCatalogLogo } from "../shared/utils/upload-image";
 import { alertError } from "../shared/utils/alerts";
-import onboardingHouse from "../assets/onboarding-house.png";
+import authHouse from "../assets/auth-house.png";
 
 // Mesmas chaves/cores dos presets do backend (CATALOG_ACCENT_PRESETS).
 const ACCENT_SWATCHES: { key: CatalogAccentColorValue; color: string; label: string }[] =
@@ -219,7 +219,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
   const { data: profile } = useProfile();
   const showPaywall = usePaywall((s) => s.show);
   const { pickFromGallery } = useImagePicker();
-  const isPremium = profile?.plan === "premium";
+  const isPremium = isProfilePremiumActive(profile);
   const dashedBorder =
     theme.mode === "dark" ? "rgba(245, 225, 219, 0.35)" : "rgba(74, 50, 40, 0.3)";
   const customCircleBorderColor = isCustomColor ? theme.colors.text : dashedBorder;
@@ -345,7 +345,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
 
   async function handleShare() {
     await Share.share({
-      message: `Oi! 😊 Dá uma olhada no meu catálogo de produtos — é só escolher e me chamar no WhatsApp:\n\n${url}`,
+      message: `Oi! 😊 Dá uma olhada no meu catálogo de produtos. É só escolher e me chamar no WhatsApp:\n\n${url}`,
     });
   }
 
@@ -370,7 +370,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
         }}
       >
         <Image
-          source={onboardingHouse}
+          source={authHouse}
           resizeMode="contain"
           style={{ width: 118, height: 118 }}
         />

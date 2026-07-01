@@ -39,6 +39,7 @@ import {
   maskCurrencyInput,
   parseCurrencyInput,
 } from "../../../shared/utils/currency-input";
+import { confirmPossibleDuplicate, duplicateKey } from "../../../shared/utils/duplicates";
 
 interface CreateProductFormProps {
   readonly onSuccess?: () => void;
@@ -570,6 +571,17 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
       return;
     }
 
+    const duplicatedName = productsData?.items.some(
+      (product) => duplicateKey(product.name) === duplicateKey(name),
+    );
+    if (duplicatedName) {
+      const shouldContinue = await confirmPossibleDuplicate(
+        "Produto parecido",
+        "Já existe um produto com esse nome. Confira se não é melhor editar o existente.",
+      );
+      if (!shouldContinue) return;
+    }
+
     const componentsPayload = isComposite ? draftsToComponents(components) : undefined;
 
     // Sobe a foto (se houver) e usa a URL pública. Se falhar, salva sem a foto.
@@ -582,7 +594,7 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
         showAlert({
           title: "Foto não enviada",
           message:
-            "Não consegui enviar a foto agora. Vou salvar o produto sem ela — você pode adicionar depois.",
+            "Não consegui enviar a foto agora. Vou salvar o produto sem ela. Você pode adicionar depois.",
         });
       } finally {
         setUploading(false);
@@ -636,7 +648,11 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
         showPaywall("products");
         return;
       }
-      alertError("Não foi possível cadastrar o produto. Tente novamente.");
+      alertError(
+        e instanceof Error
+          ? e.message
+          : "Não foi possível cadastrar o produto. Tente novamente.",
+      );
     }
   }
 

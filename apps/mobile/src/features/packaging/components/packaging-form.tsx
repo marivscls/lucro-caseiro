@@ -20,18 +20,20 @@ import {
   maskCurrencyInput,
   parseCurrencyInput,
 } from "../../../shared/utils/currency-input";
+import { duplicateKey } from "../../../shared/utils/duplicates";
 import {
   PACKAGING_TYPES,
   type PackagingTypeValue,
   typeColor,
   typeLabel,
 } from "../domain";
-import { useCreatePackaging, useUpdatePackaging } from "../hooks";
+import { useCreatePackaging, usePackagingList, useUpdatePackaging } from "../hooks";
 import { PackagingAvatar } from "./packaging-avatar";
 import { SupplierSelector } from "../../suppliers/components/supplier-selector";
 
 interface PackagingFormProps {
   readonly packaging?: Packaging | null;
+  readonly existingPackaging?: Packaging[];
   readonly onSuccess?: () => void;
   readonly onCancel?: () => void;
 }
@@ -187,7 +189,12 @@ function IconInputCard({
 
 const COMPOSITION_BAR = ["#E0A84E", "#7FB3D5", "#B8A9D4", "#C4707E"];
 
-export function PackagingForm({ packaging, onSuccess, onCancel }: PackagingFormProps) {
+export function PackagingForm({
+  packaging,
+  existingPackaging = [],
+  onSuccess,
+  onCancel,
+}: PackagingFormProps) {
   const { theme } = useTheme();
   const pal = useFieldPalette();
   const isEditing = !!packaging;
@@ -205,6 +212,11 @@ export function PackagingForm({ packaging, onSuccess, onCancel }: PackagingFormP
 
   const createPackaging = useCreatePackaging();
   const updatePackaging = useUpdatePackaging();
+  const { data: matchingPackaging, refetch: refetchMatchingPackaging } = usePackagingList(
+    {
+      search: name.trim() || "__sem_nome__",
+    },
+  );
   const { checkAndBlock: checkPackagingLimit } = useLimitCheck("packaging");
   const showPaywall = usePaywall((s) => s.show);
   const saving = createPackaging.isPending || updatePackaging.isPending;
@@ -223,6 +235,22 @@ export function PackagingForm({ packaging, onSuccess, onCancel }: PackagingFormP
       alertValidation("O custo precisa ser maior que zero");
       return;
     }
+    const refreshedPackaging = await refetchMatchingPackaging();
+    const duplicateCandidates = [
+      ...existingPackaging,
+      ...(refreshedPackaging.data?.items ?? matchingPackaging?.items ?? []),
+    ];
+    const duplicate = duplicateCandidates.find(
+      (item) =>
+        item.id !== packaging?.id &&
+        duplicateKey(item.name) === duplicateKey(name) &&
+        item.type === type,
+    );
+    if (duplicate) {
+      alertValidation("Essa embalagem já está cadastrada com esse tipo.");
+      return;
+    }
+
     const data = {
       name: name.trim(),
       type,

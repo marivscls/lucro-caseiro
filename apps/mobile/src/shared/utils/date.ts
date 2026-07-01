@@ -51,6 +51,21 @@ export function maskDateBR(input: string): string {
   return out;
 }
 
+/**
+ * Aplica máscara HH:MM progressiva enquanto o usuário digita (só dígitos, 24h).
+ * Ex.: "1430" -> "14:30". Posicional como `maskDateBR` (digite HHMM).
+ */
+export function maskTimeBR(input: string): string {
+  const digits = input.replace(/\D/g, "").slice(0, 4);
+  if (digits.length <= 2) return digits;
+  return `${digits.slice(0, 2)}:${digits.slice(2, 4)}`;
+}
+
+/** Valida HH:MM em formato 24h (00:00–23:59). */
+export function isValidTimeBR(value: string): boolean {
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(value.trim());
+}
+
 /** Soma `days` a uma data DD/MM/AAAA completa e devolve DD/MM/AAAA. */
 export function addDaysToBR(brDate: string, days: number): string | undefined {
   const iso = brToIso(brDate);

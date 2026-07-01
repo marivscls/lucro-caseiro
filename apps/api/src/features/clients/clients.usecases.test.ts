@@ -28,6 +28,7 @@ function makeRepo(overrides: Partial<IClientsRepo> = {}): IClientsRepo {
     create: (_userId: string, data: CreateClientData) =>
       Promise.resolve(makeClient({ name: data.name, phone: data.phone ?? null })),
     findById: () => Promise.resolve(makeClient()),
+    findDuplicateByPhone: () => Promise.resolve(null),
     findAll: () => Promise.resolve({ items: [makeClient()], total: 1 }),
     update: (_userId: string, _id: string, data: Partial<CreateClientData>) =>
       Promise.resolve(makeClient({ ...data, phone: data.phone ?? null })),
@@ -62,6 +63,32 @@ describe("ClientsUseCases", () => {
       await expect(sut.create(USER_ID, { name: "", phone: "123" })).rejects.toThrow(
         ValidationError,
       );
+    });
+
+    it("rejects a duplicated phone", async () => {
+      const { sut } = makeSut({
+        findDuplicateByPhone: () => Promise.resolve(makeClient()),
+      });
+
+      await expect(
+        sut.create(USER_ID, { name: "Maria", phone: "11999887766" }),
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it("maps concurrent duplicated phone insert to ValidationError", async () => {
+      const { sut } = makeSut({
+        create: () =>
+          Promise.reject(
+            Object.assign(new Error("duplicate key value violates unique constraint"), {
+              code: "23505",
+              constraint: "idx_clients_user_phone_digits_unique",
+            }),
+          ),
+      });
+
+      await expect(
+        sut.create(USER_ID, { name: "Maria", phone: "11999887766" }),
+      ).rejects.toThrow(ValidationError);
     });
   });
 
@@ -119,6 +146,33 @@ describe("ClientsUseCases", () => {
       await expect(sut.update(USER_ID, "client-1", { name: "" })).rejects.toThrow(
         ValidationError,
       );
+    });
+
+    it("rejects an update with duplicated phone", async () => {
+      const { sut } = makeSut({
+        findDuplicateByPhone: () =>
+          Promise.resolve(makeClient({ id: "client-2", phone: "11999887766" })),
+      });
+
+      await expect(
+        sut.update(USER_ID, "client-1", { phone: "(11) 99988-7766" }),
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it("maps concurrent duplicated phone update to ValidationError", async () => {
+      const { sut } = makeSut({
+        update: () =>
+          Promise.reject(
+            Object.assign(new Error("duplicate key value violates unique constraint"), {
+              code: "23505",
+              constraint: "idx_clients_user_phone_digits_unique",
+            }),
+          ),
+      });
+
+      await expect(
+        sut.update(USER_ID, "client-1", { phone: "(11) 99988-7766" }),
+      ).rejects.toThrow(ValidationError);
     });
   });
 

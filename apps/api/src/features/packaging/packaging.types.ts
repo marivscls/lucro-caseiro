@@ -3,6 +3,12 @@ import type { Packaging } from "@lucro-caseiro/contracts";
 export interface IPackagingRepo {
   create(userId: string, data: CreatePackagingData): Promise<Packaging>;
   findById(userId: string, id: string): Promise<Packaging | null>;
+  findDuplicateByNameType(
+    userId: string,
+    name: string,
+    type: CreatePackagingData["type"],
+    excludeId?: string,
+  ): Promise<Packaging | null>;
   findAll(
     userId: string,
     opts: FindAllOpts,

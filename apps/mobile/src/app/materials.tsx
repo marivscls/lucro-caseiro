@@ -411,7 +411,10 @@ export default function MaterialsScreen() {
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
           <FormModalHeader title="Novo insumo" onClose={() => setShowCreate(false)} />
-          <MaterialForm onSuccess={() => setShowCreate(false)} />
+          <MaterialForm
+            existingMaterials={items}
+            onSuccess={() => setShowCreate(false)}
+          />
         </SafeAreaView>
       </Modal>
 
@@ -424,7 +427,11 @@ export default function MaterialsScreen() {
         <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
           <FormModalHeader title="Editar insumo" onClose={() => setSelectedId(null)} />
           {selected ? (
-            <MaterialForm material={selected} onSuccess={() => setSelectedId(null)} />
+            <MaterialForm
+              material={selected}
+              existingMaterials={items}
+              onSuccess={() => setSelectedId(null)}
+            />
           ) : null}
         </SafeAreaView>
       </Modal>

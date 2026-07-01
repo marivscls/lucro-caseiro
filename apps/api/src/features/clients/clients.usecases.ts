@@ -5,6 +5,10 @@ import { paginationMeta } from "../../shared/helpers/paginate";
 import { validateClientData } from "./clients.domain";
 import type { CreateClientData, FindAllOpts, IClientsRepo } from "./clients.types";
 
+const CLIENT_PHONE_UNIQUE_INDEX = "idx_clients_user_phone_digits_unique";
+const CLIENT_PHONE_DUPLICATE_MESSAGE =
+  "Esse telefone já está cadastrado em outro cliente.";
+
 export class ClientsUseCases {
   constructor(private repo: IClientsRepo) {}
 
@@ -14,7 +18,21 @@ export class ClientsUseCases {
       throw new ValidationError(errors);
     }
 
-    return this.repo.create(userId, data);
+    if (data.phone?.trim()) {
+      const duplicate = await this.repo.findDuplicateByPhone(userId, data.phone);
+      if (duplicate) {
+        throw new ValidationError([CLIENT_PHONE_DUPLICATE_MESSAGE]);
+      }
+    }
+
+    try {
+      return await this.repo.create(userId, data);
+    } catch (error) {
+      if (isClientPhoneUniqueViolation(error)) {
+        throw new ValidationError([CLIENT_PHONE_DUPLICATE_MESSAGE]);
+      }
+      throw error;
+    }
   }
 
   async getById(userId: string, id: string): Promise<Client> {
@@ -57,7 +75,22 @@ export class ClientsUseCases {
       throw new ValidationError(errors);
     }
 
-    const updated = await this.repo.update(userId, id, data);
+    if (merged.phone?.trim()) {
+      const duplicate = await this.repo.findDuplicateByPhone(userId, merged.phone, id);
+      if (duplicate) {
+        throw new ValidationError([CLIENT_PHONE_DUPLICATE_MESSAGE]);
+      }
+    }
+
+    let updated: Awaited<ReturnType<IClientsRepo["update"]>>;
+    try {
+      updated = await this.repo.update(userId, id, data);
+    } catch (error) {
+      if (isClientPhoneUniqueViolation(error)) {
+        throw new ValidationError([CLIENT_PHONE_DUPLICATE_MESSAGE]);
+      }
+      throw error;
+    }
     if (!updated) {
       throw new NotFoundError("Cliente não encontrado");
     }
@@ -75,4 +108,22 @@ export class ClientsUseCases {
     const currentMonth = new Date().getMonth() + 1;
     return this.repo.findBirthdaysInMonth(userId, currentMonth);
   }
+}
+
+function isClientPhoneUniqueViolation(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+
+  const err = error as {
+    code?: unknown;
+    constraint?: unknown;
+    constraint_name?: unknown;
+    constraintName?: unknown;
+    message?: unknown;
+  };
+
+  if (err.code !== "23505") return false;
+
+  return [err.constraint, err.constraint_name, err.constraintName, err.message].some(
+    (value) => typeof value === "string" && value.includes(CLIENT_PHONE_UNIQUE_INDEX),
+  );
 }

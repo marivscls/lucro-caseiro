@@ -13,7 +13,7 @@ import {
 
 const PACKAGING_KEY = ["packaging"];
 
-export function usePackagingList(opts?: { page?: number }) {
+export function usePackagingList(opts?: { page?: number; search?: string }) {
   const { token } = useAuth();
   return useQuery({
     queryKey: [...PACKAGING_KEY, opts],

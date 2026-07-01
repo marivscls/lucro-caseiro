@@ -7,14 +7,15 @@ import { Image, Pressable, View } from "react-native";
 import { showAlert } from "../../../shared/components/alert-store";
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
+import { confirmPossibleDuplicate, duplicateKey } from "../../../shared/utils/duplicates";
 import { maskPhoneBR } from "../../../shared/utils/phone";
 import { uploadLabelLogo } from "../../../shared/utils/upload-image";
 import { addDaysToBR, brToIso, maskDateBR } from "../dates";
 import { exportLabelPdfWithChoice } from "../label-export";
 import { cleanNutrition } from "../nutrition";
 import { normalizeLink } from "../qr";
-import { useCreateLabel } from "../hooks";
-import { useProfile } from "../../subscription/hooks";
+import { useCreateLabel, useLabels } from "../hooks";
+import { isProfilePremiumActive, useProfile } from "../../subscription/hooks";
 import { DateField } from "../../../shared/components/date-field";
 import { FormSection } from "../../../shared/components/form-section";
 import { usePaywall } from "../../../shared/hooks/use-paywall";
@@ -36,7 +37,7 @@ export function CreateLabelForm({
   const { theme } = useTheme();
   const { data: profile } = useProfile();
   const showPaywall = usePaywall((st) => st.show);
-  const isPremium = profile?.plan === "premium";
+  const isPremium = isProfilePremiumActive(profile);
   const [name, setName] = useState("");
   const [templateId, setTemplateId] = useState("classico");
   const [labelData, setLabelData] = useState<LabelData>({
@@ -50,6 +51,7 @@ export function CreateLabelForm({
 
   const qrUrl = normalizeLink(qrLink);
   const createLabel = useCreateLabel();
+  const { data: labelsData } = useLabels(productId ? { productId } : undefined);
 
   function updateField<K extends keyof LabelData>(key: K, value: LabelData[K]) {
     setLabelData((prev) => ({ ...prev, [key]: value }));
@@ -105,6 +107,20 @@ export function CreateLabelForm({
       return;
     }
 
+    const duplicatedLabel = labelsData?.items.some(
+      (label) =>
+        duplicateKey(label.name) === duplicateKey(name) &&
+        label.templateId === templateId &&
+        (label.productId ?? null) === (productId ?? null),
+    );
+    if (duplicatedLabel) {
+      const shouldContinue = await confirmPossibleDuplicate(
+        "Rótulo parecido",
+        "Já existe um rótulo com esse nome, produto e modelo. Confira se não é melhor editar o existente.",
+      );
+      if (!shouldContinue) return;
+    }
+
     // Sobe o logo (se houver) e usa a URL pública. Se falhar, salva sem o logo.
     let logoUrl: string | undefined;
     if (logoUri) {
@@ -115,7 +131,7 @@ export function CreateLabelForm({
         showAlert({
           title: "Logo não enviado",
           message:
-            "Não consegui enviar o logo agora. Vou salvar o rótulo sem ele — você pode adicionar depois.",
+            "Não consegui enviar o logo agora. Vou salvar o rótulo sem ele. Você pode adicionar depois.",
         });
       } finally {
         setUploading(false);
@@ -217,7 +233,7 @@ export function CreateLabelForm({
         </View>
         <Input
           label="Validade em dias (opcional)"
-          placeholder="Ex: 7 — preenche a validade sozinho"
+          placeholder="Ex: 7, preenche a validade sozinho"
           value={shelfDays}
           onChangeText={handleShelfDaysChange}
           keyboardType="number-pad"
@@ -226,7 +242,7 @@ export function CreateLabelForm({
 
       <FormSection
         title="Informação nutricional"
-        subtitle="Opcional — tabela de nutrientes"
+        subtitle="Opcional: tabela de nutrientes"
         icon="nutrition-outline"
       >
         <NutritionFields
@@ -237,7 +253,7 @@ export function CreateLabelForm({
 
       <FormSection
         title="Estilo do rótulo"
-        subtitle="Premium — cores, fonte, borda e cantos"
+        subtitle="Premium: cores, fonte, borda e cantos"
         icon="color-palette-outline"
       >
         <LabelStyleEditor
@@ -254,7 +270,7 @@ export function CreateLabelForm({
 
       <FormSection
         title="Contato e marca"
-        subtitle="Opcional — seu nome, telefone, QR Code e logo"
+        subtitle="Opcional: seu nome, telefone, QR Code e logo"
         icon="person-circle-outline"
       >
         <Input

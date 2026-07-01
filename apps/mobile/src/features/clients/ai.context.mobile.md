@@ -135,3 +135,4 @@ Importados de `@lucro-caseiro/contracts`.
 - Historico de compras no detalhe do cliente importa `useSales` da feature `sales` (cross-feature via hook, nao via arquivo interno).
 - Tags limitadas a 10 por cliente para manter UX simples.
 - 2026-06-15: `useBirthdayNotifier(isPremium)` — notificacao local quando um cliente faz aniversario hoje (1x/dia via AsyncStorage). Recurso **Premium**, respeita a preferencia (`notification-prefs`, tipo `CLIENT_BIRTHDAY`). Helper puro `isBirthdayToday` coberto por teste. Montado no `app/_layout.tsx`.
+- 2026-06-17: card "Aniversariantes do mes" na home (`app/tabs/index`) agora e **Premium**. Premium ve os nomes (respeitando `CLIENT_BIRTHDAY` pref); free ve um teaser com cadeado + selo Premium (so a contagem, sem nomes) que abre o paywall (`showPaywall("birthdays")`, copy em `subscription/limit-copy.ts`). Antes o card aparecia com os nomes para qualquer usuario (free e premium) — inconsistente com a notificacao, que ja era Premium.

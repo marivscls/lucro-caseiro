@@ -3,6 +3,11 @@ import type { Supplier } from "@lucro-caseiro/contracts";
 export interface ISuppliersRepo {
   create(userId: string, data: CreateSupplierData): Promise<Supplier>;
   findById(userId: string, id: string): Promise<Supplier | null>;
+  findDuplicate(
+    userId: string,
+    data: Pick<CreateSupplierData, "name" | "phone" | "email">,
+    excludeId?: string,
+  ): Promise<Supplier | null>;
   findAll(
     userId: string,
     opts: FindAllOpts,

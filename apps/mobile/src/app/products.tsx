@@ -467,7 +467,7 @@ function ProductDetailModal({
                     <Typography variant="bodyBold">
                       {product.costPrice != null
                         ? formatCurrency(product.costPrice)
-                        : "—"}
+                        : "Sem custo"}
                     </Typography>
                   </View>
                 )}
@@ -517,7 +517,7 @@ function ProductDetailModal({
                       <Typography variant="caption" color={theme.colors.textSecondary}>
                         {c.costPrice != null
                           ? formatCurrency(c.costPrice * c.quantity)
-                          : "—"}
+                          : "Sem custo"}
                       </Typography>
                     </View>
                   ))}

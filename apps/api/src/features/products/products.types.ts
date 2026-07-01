@@ -9,6 +9,11 @@ export interface ComponentCandidate {
 export interface IProductsRepo {
   create(userId: string, data: CreateProductData): Promise<Product>;
   findById(userId: string, id: string): Promise<Product | null>;
+  findDuplicateByCode(
+    userId: string,
+    code: string,
+    excludeId?: string,
+  ): Promise<Product | null>;
   findAll(
     userId: string,
     opts: FindAllOpts,

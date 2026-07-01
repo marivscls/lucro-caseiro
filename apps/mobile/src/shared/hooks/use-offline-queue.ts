@@ -1,8 +1,8 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 import { apiClient } from "../utils/api-client";
+import { asyncStorage } from "../utils/async-storage";
 import { useNetwork } from "./use-network";
 
 export interface OfflineOperation {
@@ -71,7 +71,7 @@ export const useOfflineQueue = create<OfflineQueueState>()(
     }),
     {
       name: "offline-queue",
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() => asyncStorage),
       partialize: (state) => ({ operations: state.operations }),
     },
   ),

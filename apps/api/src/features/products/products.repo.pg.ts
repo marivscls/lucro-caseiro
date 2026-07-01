@@ -64,6 +64,30 @@ export class ProductsRepoPg implements IProductsRepo {
     return this.toProduct(row, componentRows);
   }
 
+  async findDuplicateByCode(
+    userId: string,
+    code: string,
+    excludeId?: string,
+  ): Promise<Product | null> {
+    const conditions = [
+      eq(products.userId, userId),
+      eq(products.isActive, true),
+      sql`${products.code} is not null`,
+      sql`lower(trim(${products.code})) = lower(trim(${code}))`,
+    ];
+    if (excludeId) conditions.push(sql`${products.id} <> ${excludeId}`);
+
+    const [row] = await this.db
+      .select()
+      .from(products)
+      .where(and(...conditions))
+      .limit(1);
+
+    if (!row) return null;
+    const componentRows = row.isComposite ? await this.fetchComponents(row.id) : [];
+    return this.toProduct(row, componentRows);
+  }
+
   async findAll(
     userId: string,
     opts: FindAllOpts,

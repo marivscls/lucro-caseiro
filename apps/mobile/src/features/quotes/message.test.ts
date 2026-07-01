@@ -27,11 +27,11 @@ function makeQuote(overrides: Partial<Quote> = {}): Quote {
 describe("buildQuoteMessage", () => {
   it("monta cabecalho, itens com subtotal e total", () => {
     const msg = buildQuoteMessage(makeQuote(), "Doceria da Ana");
-    expect(msg).toContain("*Orçamento — Bolo de aniversário*");
+    expect(msg).toContain("*Orçamento: Bolo de aniversário*");
     expect(msg).toContain("Doceria da Ana");
-    expect(msg).toContain("• 1x Bolo recheado — R$ 80,00");
+    expect(msg).toContain("• 1x Bolo recheado: R$ 80,00");
     // 20 x 2,50 = 50,00
-    expect(msg).toContain("• 20x Brigadeiro — R$ 50,00");
+    expect(msg).toContain("• 20x Brigadeiro: R$ 50,00");
     expect(msg).toContain("*Total: R$ 130,00*");
     expect(msg).toContain("Qualquer dúvida é só chamar! 😊");
   });
@@ -55,6 +55,6 @@ describe("buildQuoteMessage", () => {
       }),
       "X",
     );
-    expect(msg).toContain("• 1,5x Doce a granel — R$ 60,00");
+    expect(msg).toContain("• 1,5x Doce a granel: R$ 60,00");
   });
 });

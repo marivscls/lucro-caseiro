@@ -1,6 +1,4 @@
 import type { LabelData } from "@lucro-caseiro/contracts";
-import * as Print from "expo-print";
-import * as Sharing from "expo-sharing";
 
 import { showAlert } from "../../shared/components/alert-store";
 import { resolveLabelStyle } from "./components/label-preview";
@@ -195,6 +193,10 @@ export async function exportLabelPdf(
   copies = 1,
 ): Promise<void> {
   const html = buildLabelHtml(data, templateId, logoUrl, qrUrl, copies);
+  const [Print, Sharing] = await Promise.all([
+    import("expo-print"),
+    import("expo-sharing"),
+  ]);
   const { uri } = await Print.printToFileAsync({ html });
 
   if (await Sharing.isAvailableAsync()) {

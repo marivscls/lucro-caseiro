@@ -41,7 +41,7 @@ export async function openWhatsApp(phone: string, message?: string): Promise<boo
     showAlert({
       title: "Telefone inválido",
       message:
-        "Confira o número do cliente — precisa de DDD + número (ex: (11) 99999-9999).",
+        "Confira o número do cliente. Precisa de DDD + número (ex: (11) 99999-9999).",
     });
     return false;
   }

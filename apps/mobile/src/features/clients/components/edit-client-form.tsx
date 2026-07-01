@@ -1,13 +1,15 @@
 import type { Client } from "@lucro-caseiro/contracts";
 import { Button, Input, Typography, spacing } from "@lucro-caseiro/ui";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { KeyboardAvoidingView, Platform, View } from "react-native";
 
 import { brToIso, isoToBR, maskDateBR } from "../../../shared/utils/date";
+import { phoneDuplicateKey } from "../../../shared/utils/duplicates";
 import { isValidBrazilPhone, maskPhoneBR } from "../../../shared/utils/phone";
-import { useUpdateClient } from "../hooks";
+import { useClients, useUpdateClient } from "../hooks";
 import { showToast } from "../../../shared/components/toast";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
+import { ApiError } from "../../../shared/utils/api-client";
 
 interface EditClientFormProps {
   client: Client;
@@ -20,40 +22,86 @@ export function EditClientForm({ client, onSuccess }: Readonly<EditClientFormPro
   const [address, setAddress] = useState(client.address ?? "");
   const [birthday, setBirthday] = useState(isoToBR(client.birthday));
   const [notes, setNotes] = useState(client.notes ?? "");
+  const submittingRef = useRef(false);
 
   const updateClient = useUpdateClient();
+  const { data: matchingClients, refetch: refetchMatchingClients } = useClients({
+    search: phone.trim() || "__sem_telefone__",
+  });
 
   async function handleSubmit() {
-    if (!name.trim()) {
-      alertValidation("Coloque o nome do cliente.");
-      return;
-    }
-
-    const trimmedPhone = phone.trim();
-    if (trimmedPhone && !isValidBrazilPhone(trimmedPhone)) {
-      alertValidation("Telefone inválido. Use DDD + número, ex: (11) 99999-9999.");
-      return;
-    }
+    if (submittingRef.current || updateClient.isPending) return;
+    submittingRef.current = true;
 
     try {
-      await updateClient.mutateAsync({
-        id: client.id,
-        data: {
-          name: name.trim(),
-          phone: trimmedPhone || undefined,
-          address: address.trim() || undefined,
-          birthday: brToIso(birthday),
-          notes: notes.trim() || undefined,
-        },
-      });
-      showToast(`${name} atualizado!`);
-      onSuccess?.();
-    } catch (e: unknown) {
-      const message =
-        e instanceof Error
-          ? e.message
-          : "Não foi possível atualizar o cliente. Tente novamente.";
-      alertError(message);
+      if (!name.trim()) {
+        alertValidation("Coloque o nome do cliente.");
+        return;
+      }
+
+      const trimmedPhone = phone.trim();
+      if (trimmedPhone && !isValidBrazilPhone(trimmedPhone)) {
+        alertValidation("Telefone inválido. Use DDD + número, ex: (11) 99999-9999.");
+        return;
+      }
+
+      const phoneDigits = phoneDuplicateKey(trimmedPhone);
+      let duplicateCandidates = matchingClients?.items ?? [];
+      if (phoneDigits) {
+        const refreshedClients = await refetchMatchingClients();
+        duplicateCandidates = refreshedClients.data?.items ?? duplicateCandidates;
+      }
+      const duplicate = duplicateCandidates.find(
+        (item) => item.id !== client.id && phoneDuplicateKey(item.phone) === phoneDigits,
+      );
+      if (duplicate) {
+        alertValidation(
+          "Esse telefone já está cadastrado em outro cliente. Abra o cadastro existente para editar.",
+        );
+        return;
+      }
+
+      try {
+        await updateClient.mutateAsync({
+          id: client.id,
+          data: {
+            name: name.trim(),
+            phone: trimmedPhone || undefined,
+            address: address.trim() || undefined,
+            birthday: brToIso(birthday),
+            notes: notes.trim() || undefined,
+          },
+        });
+        showToast(`${name} atualizado!`);
+        onSuccess?.();
+      } catch (e: unknown) {
+        let duplicateAfterFailure = false;
+        if (phoneDigits) {
+          try {
+            const refreshedClients = await refetchMatchingClients();
+            duplicateAfterFailure =
+              refreshedClients.data?.items.some(
+                (item) =>
+                  item.id !== client.id && phoneDuplicateKey(item.phone) === phoneDigits,
+              ) ?? false;
+          } catch {
+            duplicateAfterFailure = false;
+          }
+        }
+        if (duplicateAfterFailure || isClientDuplicateError(e)) {
+          alertValidation(
+            "Esse telefone já está cadastrado em outro cliente. Abra o cadastro existente para editar.",
+          );
+          return;
+        }
+        const message =
+          e instanceof Error
+            ? e.message
+            : "Não foi possível atualizar o cliente. Tente novamente.";
+        alertError(message);
+      }
+    } finally {
+      submittingRef.current = false;
     }
   }
 
@@ -127,5 +175,16 @@ export function EditClientForm({ client, onSuccess }: Readonly<EditClientFormPro
         />
       </View>
     </KeyboardAvoidingView>
+  );
+}
+
+function isClientDuplicateError(error: unknown): boolean {
+  if (!(error instanceof ApiError)) return false;
+
+  const message = error.message.toLowerCase();
+  return (
+    error.code === "VALIDATION_ERROR" &&
+    message.includes("telefone") &&
+    message.includes("cadastrado")
   );
 }

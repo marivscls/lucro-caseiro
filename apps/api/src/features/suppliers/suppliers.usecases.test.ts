@@ -26,6 +26,7 @@ function makeRepo(overrides: Partial<ISuppliersRepo> = {}): ISuppliersRepo {
     create: (_userId: string, data: CreateSupplierData) =>
       Promise.resolve(makeSupplier({ name: data.name })),
     findById: () => Promise.resolve(makeSupplier()),
+    findDuplicate: () => Promise.resolve(null),
     findAll: () => Promise.resolve({ items: [makeSupplier()], total: 1 }),
     update: (_userId: string, _id: string, data: Partial<CreateSupplierData>) =>
       Promise.resolve(makeSupplier({ ...data })),
@@ -46,6 +47,16 @@ describe("SuppliersUseCases", () => {
     it("throws ValidationError for an empty name", async () => {
       const sut = new SuppliersUseCases(makeRepo());
       await expect(sut.create(USER_ID, { name: "" })).rejects.toThrow(ValidationError);
+    });
+
+    it("rejects a duplicated supplier", async () => {
+      const sut = new SuppliersUseCases(
+        makeRepo({ findDuplicate: () => Promise.resolve(makeSupplier()) }),
+      );
+
+      await expect(sut.create(USER_ID, { name: "AtacadÃ£o da Festa" })).rejects.toThrow(
+        ValidationError,
+      );
     });
   });
 

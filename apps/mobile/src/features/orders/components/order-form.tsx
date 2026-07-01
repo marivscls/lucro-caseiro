@@ -16,7 +16,13 @@ import {
 
 import { showAlert } from "../../../shared/components/alert-store";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
-import { brToIso, isoToBR, maskDateBR } from "../../../shared/utils/date";
+import {
+  brToIso,
+  isoToBR,
+  isValidTimeBR,
+  maskDateBR,
+  maskTimeBR,
+} from "../../../shared/utils/date";
 import { uploadOrderImage } from "../../../shared/utils/upload-image";
 import { useCreateOrder, useDeleteOrder, useUpdateOrder } from "../hooks";
 import { FormSection } from "../../../shared/components/form-section";
@@ -184,7 +190,7 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
       alertValidation("Data inválida. Use o formato DD/MM/AAAA.");
       return;
     }
-    if (time.trim() && !/^\d{2}:\d{2}$/.test(time.trim())) {
+    if (time.trim() && !isValidTimeBR(time)) {
       alertValidation("Horário inválido. Use HH:MM, ex.: 14:30.");
       return;
     }
@@ -516,11 +522,11 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
             </Typography>
             <Field
               icon="time-outline"
-              trailingIcon="chevron-down"
               placeholder="Ex: 14:30"
               value={time}
-              onChangeText={setTime}
-              keyboardType="numbers-and-punctuation"
+              onChangeText={(v) => setTime(maskTimeBR(v))}
+              keyboardType="number-pad"
+              maxLength={5}
             />
           </View>
 
@@ -543,7 +549,7 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
             </Typography>
             <Field
               icon="wallet-outline"
-              placeholder="Ex: 60,00 — entrada já paga"
+              placeholder="Ex: 60,00, entrada já paga"
               value={deposit}
               onChangeText={(value) => setDeposit(maskCurrencyInput(value))}
               keyboardType="numeric"
@@ -558,19 +564,19 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
           >
             <Field
               icon="balloon-outline"
-              placeholder="Tema — ex.: Safari, Princesas"
+              placeholder="Tema, ex.: Safari, Princesas"
               value={orderTheme}
               onChangeText={setOrderTheme}
             />
             <Field
               icon="person-outline"
-              placeholder="Nome e idade — ex.: Alice, 5 anos"
+              placeholder="Nome e idade, ex.: Alice, 5 anos"
               value={honoree}
               onChangeText={setHonoree}
             />
             <Field
               icon="color-palette-outline"
-              placeholder="Cores — ex.: rosa e dourado"
+              placeholder="Cores, ex.: rosa e dourado"
               value={colors}
               onChangeText={setColors}
             />

@@ -122,3 +122,5 @@ receita ao entregar.
   FormSection "Personalização" (tema/homenageado/cores). Card mostra "Falta R$X";
   detalhe na agenda mostra faixa de sinal e bloco de personalização.
 - 2026-06-10: campo de data de entrega ganhou seletor nativo de data (icone de calendario abre @react-native-community/datetimepicker); digitacao mascarada continua valendo. Conversao de orcamento em quotes.tsx usa o DateField compartilhado.
+- 2026-06-17: campo "Horario (opcional)" agora aplica mascara progressiva `maskTimeBR` ("1430" -> "14:30") e valida 24h via `isValidTimeBR` (00:00–23:59) — antes aceitava qualquer `\d{2}:\d{2}`. Removido o chevron sem acao do campo.
+- 2026-06-17: fix `useUpdateOrder.onMutate` — o `getQueriesData({ queryKey: ["orders"] })` casa por prefixo tambem com `["orders","summary"]` (objeto, nao array); ao editar uma encomenda isso quebrava com `orders.map is not a function`. Agora pula caches que nao sao array (`Array.isArray`).

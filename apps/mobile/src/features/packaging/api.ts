@@ -18,10 +18,11 @@ interface PaginatedPackaging {
 
 export async function fetchPackagingList(
   token: string,
-  opts?: { page?: number },
+  opts?: { page?: number; search?: string },
 ): Promise<PaginatedPackaging> {
   const params = new URLSearchParams();
   if (opts?.page) params.set("page", String(opts.page));
+  if (opts?.search) params.set("search", opts.search);
   const query = params.toString();
   const queryString = query ? `?${query}` : "";
   return apiClient<PaginatedPackaging>(`${BASE}${queryString}`, { token });

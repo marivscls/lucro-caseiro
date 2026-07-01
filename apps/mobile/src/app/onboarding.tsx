@@ -10,11 +10,30 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Image, Pressable, ScrollView, View } from "react-native";
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  useWindowDimensions,
+  View,
+  type ImageSourcePropType,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import authHouse from "../assets/auth-house.png";
 import onboardingHouse from "../assets/onboarding-house.png";
+import nicheArtesanato from "../assets/onboarding-niche-artesanato.png";
+import nicheBeleza from "../assets/onboarding-niche-beleza.png";
+import nicheConfeitaria from "../assets/onboarding-niche-confeitaria.png";
+import nicheFotografia from "../assets/onboarding-niche-fotografia.png";
+import nicheLimpeza from "../assets/onboarding-niche-limpeza.png";
+import nicheOutro from "../assets/onboarding-niche-outro.png";
+import nichePapelaria from "../assets/onboarding-niche-papelaria.png";
+import nichePlantas from "../assets/onboarding-niche-plantas.png";
+import nichePresentes from "../assets/onboarding-niche-presentes.png";
+import nicheSalgados from "../assets/onboarding-niche-salgados.png";
 import labelsEmpty from "../assets/labels-empty.png";
+import pricingEmpty from "../assets/pricing-empty.png";
 import salesEmpty from "../assets/sales-empty.png";
 import { useUpdateProfile } from "../features/subscription/hooks";
 import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
@@ -60,11 +79,109 @@ const NICHES = [
     emoji: "🧶",
   },
   {
+    id: "presentes",
+    db: "crafts",
+    label: "Presentes e personalizados",
+    description: "Canecas, produtos personalizados e afins.",
+  },
+  {
+    id: "limpeza",
+    db: "other",
+    label: "Produtos de limpeza",
+    description: "Saboes, detergentes, produtos de limpeza.",
+  },
+  {
+    id: "plantas",
+    db: "other",
+    label: "Plantas e jardinagem",
+    description: "Vasos, suculentas, mudas e cuidados.",
+  },
+  {
+    id: "fotografia",
+    db: "other",
+    label: "Fotografia e design",
+    description: "Fotos, artes digitais, logos e convites.",
+  },
+  {
     id: "outro",
     db: "other",
     label: "Outro negócio",
     description: "Todo negócio caseiro é bem-vindo!",
     emoji: "✨",
+  },
+];
+
+const NICHE_ICONS: Record<string, ImageSourcePropType> = {
+  confeitaria: nicheConfeitaria,
+  salgados: nicheSalgados,
+  papelaria: nichePapelaria,
+  beleza: nicheBeleza,
+  artesanato: nicheArtesanato,
+  presentes: nichePresentes,
+  limpeza: nicheLimpeza,
+  plantas: nichePlantas,
+  fotografia: nicheFotografia,
+  outro: nicheOutro,
+};
+
+const NICHE_COPY: Record<string, { label: string; description: string }> = {
+  confeitaria: {
+    label: "Confeitaria e bolos",
+    description: "Bolos, doces e sobremesas.",
+  },
+  salgados: {
+    label: "Salgados e marmitas",
+    description: "Salgadinhos, quentinhas e festas.",
+  },
+  papelaria: {
+    label: "Papelaria e festas",
+    description: "Convites, topos de bolo e lembrancinhas.",
+  },
+  beleza: {
+    label: "Beleza e unhas",
+    description: "Manicure, cilios, sobrancelhas e afins.",
+  },
+  artesanato: {
+    label: "Artesanato",
+    description: "Croche, costura, velas, sabonetes e mais.",
+  },
+  presentes: {
+    label: "Presentes e personalizados",
+    description: "Canecas, produtos personalizados e afins.",
+  },
+  limpeza: {
+    label: "Produtos de limpeza",
+    description: "Saboes, detergentes, produtos de limpeza.",
+  },
+  plantas: {
+    label: "Plantas e jardinagem",
+    description: "Vasos, suculentas, mudas e cuidados.",
+  },
+  fotografia: {
+    label: "Fotografia e design",
+    description: "Fotos, artes digitais, logos e convites.",
+  },
+  outro: {
+    label: "Outro negocio",
+    description: "Todo negocio caseiro e bem-vindo!",
+  },
+};
+
+const WELCOME_SLIDES = [
+  {
+    image: authHouse,
+    title: "Sua paixão,\nseu negócio organizado.",
+    description: "Vendas, encomendas, orçamentos e lucro, tudo num lugar só.",
+  },
+  {
+    image: salesEmpty,
+    title: "Venda sem\nperder controle.",
+    description: "Registre pedidos, acompanhe pagamentos e saiba o que falta entregar.",
+  },
+  {
+    image: pricingEmpty,
+    title: "Preço certo,\nlucro claro.",
+    description: "Calcule custos, margem e lucro antes de vender.",
   },
 ];
 
@@ -88,8 +205,12 @@ function ProgressDots({ current, total }: Readonly<{ current: number; total: num
   );
 }
 
-function StepHeader({ onBack }: Readonly<{ onBack: () => void }>) {
+function StepHeader({
+  onBack,
+  dark = false,
+}: Readonly<{ onBack: () => void; dark?: boolean }>) {
   const { theme } = useTheme();
+  const textColor = dark ? "#F5E1DB" : theme.colors.text;
   return (
     <View style={{ flexDirection: "row", alignItems: "center", padding: spacing.lg }}>
       <Pressable
@@ -99,11 +220,13 @@ function StepHeader({ onBack }: Readonly<{ onBack: () => void }>) {
         style={{
           width: 48,
           height: 48,
+          borderRadius: radii.md,
+          backgroundColor: dark ? "rgba(245, 225, 219, 0.06)" : "transparent",
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+        <Ionicons name="arrow-back" size={24} color={textColor} />
       </Pressable>
       <View style={{ flex: 1, alignItems: "center" }}>
         <Typography
@@ -122,8 +245,12 @@ function StepHeader({ onBack }: Readonly<{ onBack: () => void }>) {
 function WelcomeStep({
   onNext,
   onLogin,
-}: Readonly<{ onNext: () => void; onLogin: () => void }>) {
+  switchingAccount,
+}: Readonly<{ onNext: () => void; onLogin: () => void; switchingAccount: boolean }>) {
   const { theme } = useTheme();
+  const { width } = useWindowDimensions();
+  const [slide, setSlide] = useState(0);
+  const slideWidth = Math.max(280, width - spacing["2xl"] * 2);
 
   return (
     <View style={{ flex: 1, justifyContent: "space-between", padding: spacing["2xl"] }}>
@@ -137,24 +264,46 @@ function WelcomeStep({
         </Typography>
       </View>
 
-      <View style={{ alignItems: "center", gap: spacing.xl }}>
-        <Image
-          source={onboardingHouse}
-          resizeMode="contain"
-          style={{ width: 150, height: 150 }}
-        />
-        <Typography variant="display" style={{ textAlign: "center" }}>
-          Sua paixão, seu negócio organizado.
-        </Typography>
-        <Typography
-          variant="body"
-          color={theme.colors.textSecondary}
-          style={{ textAlign: "center", maxWidth: 300 }}
+      <View style={{ alignItems: "center", gap: spacing.lg }}>
+        <ScrollView
+          horizontal
+          pagingEnabled
+          bounces={false}
+          showsHorizontalScrollIndicator={false}
+          style={{ width: slideWidth }}
+          onMomentumScrollEnd={(event) => {
+            setSlide(Math.round(event.nativeEvent.contentOffset.x / slideWidth));
+          }}
         >
-          Vendas, encomendas, orçamentos e lucro — tudo num lugar só, do seu jeito.
-        </Typography>
+          {WELCOME_SLIDES.map((item) => (
+            <View
+              key={item.title}
+              style={{
+                width: slideWidth,
+                alignItems: "center",
+                gap: spacing.lg,
+              }}
+            >
+              <Image
+                source={item.image}
+                resizeMode="contain"
+                style={{ width: 168, height: 168 }}
+              />
+              <Typography variant="display" style={{ textAlign: "center" }}>
+                {item.title}
+              </Typography>
+              <Typography
+                variant="body"
+                color={theme.colors.textSecondary}
+                style={{ textAlign: "center", maxWidth: 320 }}
+              >
+                {item.description}
+              </Typography>
+            </View>
+          ))}
+        </ScrollView>
 
-        <ProgressDots current={0} total={3} />
+        <ProgressDots current={slide} total={WELCOME_SLIDES.length} />
       </View>
 
       <View style={{ gap: spacing.md, paddingBottom: spacing.lg }}>
@@ -165,14 +314,16 @@ function WelcomeStep({
             <Ionicons name="arrow-forward" size={20} color={theme.colors.textOnPrimary} />
           }
           onPress={onNext}
+          disabled={switchingAccount}
           style={{ width: "100%" }}
         />
         <Pressable
           onPress={onLogin}
+          disabled={switchingAccount}
           style={{ alignItems: "center", minHeight: 44, justifyContent: "center" }}
         >
           <Typography variant="body" color={theme.colors.textSecondary}>
-            Já tenho uma conta
+            {switchingAccount ? "Saindo..." : "Já tenho uma conta"}
           </Typography>
         </Pressable>
       </View>
@@ -192,79 +343,121 @@ function NicheStep({
   onBack: () => void;
 }>) {
   const { theme } = useTheme();
-  const selectedBg =
-    theme.mode === "dark" ? "rgba(196, 112, 126, 0.14)" : "rgba(196, 112, 126, 0.08)";
+  const pagePadding = spacing.lg;
+  const cardGap = spacing.md;
+  const background = "#1E1814";
+  const cardBackground = "rgba(44, 36, 32, 0.72)";
+  const selectedBg = "rgba(196, 112, 126, 0.12)";
+  const mutedText = "#B8A090";
 
   return (
-    <View style={{ flex: 1 }}>
-      <StepHeader onBack={onBack} />
+    <View style={{ flex: 1, backgroundColor: background }}>
+      <StepHeader onBack={onBack} dark />
 
       <ScrollView
         contentContainerStyle={{
-          padding: spacing["2xl"],
-          gap: spacing.lg,
-          paddingBottom: 140,
+          paddingHorizontal: pagePadding,
+          paddingTop: 0,
+          paddingBottom: 172,
         }}
       >
-        <Typography variant="display">O que você faz?</Typography>
-        <Typography variant="body" color={theme.colors.textSecondary}>
-          Escolha o que mais combina com o seu negócio.
-        </Typography>
+        <View style={{ alignItems: "center", gap: 0, marginBottom: spacing.md }}>
+          <Image
+            source={onboardingHouse}
+            resizeMode="contain"
+            style={{ width: 168, height: 96 }}
+          />
+          <Typography
+            variant="display"
+            style={{
+              textAlign: "center",
+              color: "#F5E1DB",
+              fontSize: 34,
+              letterSpacing: 0,
+            }}
+          >
+            O que você faz?
+          </Typography>
+          <Typography
+            variant="body"
+            color={mutedText}
+            style={{ textAlign: "center", maxWidth: 340, lineHeight: 24 }}
+          >
+            Escolha o que mais combina com o seu negócio para personalizarmos sua
+            experiência.
+          </Typography>
+        </View>
 
-        <View style={{ gap: spacing.md, marginTop: spacing.sm }}>
+        <View
+          style={{
+            gap: cardGap,
+          }}
+        >
           {NICHES.map((niche) => {
             const isSelected = selected === niche.id;
+            const copy = NICHE_COPY[niche.id] ?? niche;
             return (
               <Pressable
                 key={niche.id}
                 onPress={() => onSelect(niche.id)}
                 accessibilityRole="button"
                 accessibilityState={{ selected: isSelected }}
+                style={{ width: "100%" }}
               >
                 <Card
+                  padding="md"
                   style={{
                     flexDirection: "row",
                     alignItems: "center",
-                    gap: spacing.lg,
-                    borderWidth: 2,
+                    minHeight: 96,
+                    gap: spacing.md,
+                    borderWidth: 1.25,
                     borderColor: isSelected ? theme.colors.primary : "transparent",
-                    backgroundColor: isSelected ? selectedBg : undefined,
+                    backgroundColor: isSelected ? selectedBg : cardBackground,
                   }}
                 >
                   <View
                     style={{
-                      width: 52,
-                      height: 52,
-                      borderRadius: radii.lg,
-                      backgroundColor: theme.colors.surfaceElevated,
+                      width: 54,
+                      height: 54,
+                      borderRadius: radii.md,
+                      backgroundColor: "rgba(245, 225, 219, 0.05)",
                       alignItems: "center",
                       justifyContent: "center",
+                      overflow: "hidden",
                     }}
                   >
-                    <Typography variant="h2" style={{ fontSize: 26 }}>
-                      {niche.emoji}
-                    </Typography>
+                    <Image
+                      source={NICHE_ICONS[niche.id]}
+                      resizeMode="contain"
+                      style={{ width: 48, height: 48 }}
+                    />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Typography variant="h3">{niche.label}</Typography>
+                    <Typography
+                      variant="bodyBold"
+                      color="#F5E1DB"
+                      numberOfLines={2}
+                      style={{ fontSize: 15, lineHeight: 19 }}
+                    >
+                      {copy.label}
+                    </Typography>
                     <Typography
                       variant="body"
-                      color={theme.colors.textSecondary}
-                      style={{ fontSize: 14 }}
+                      color={mutedText}
+                      numberOfLines={3}
+                      style={{ fontSize: 13, lineHeight: 18, marginTop: 3 }}
                     >
-                      {niche.description}
+                      {copy.description}
                     </Typography>
                   </View>
                   <View
                     style={{
-                      width: 30,
-                      height: 30,
-                      borderRadius: 15,
+                      width: 24,
+                      height: 24,
+                      borderRadius: 12,
                       borderWidth: isSelected ? 0 : 2,
-                      borderColor:
-                        theme.mode === "dark"
-                          ? "rgba(245, 225, 219, 0.25)"
-                          : "rgba(74, 50, 40, 0.18)",
+                      borderColor: "rgba(245, 225, 219, 0.32)",
                       backgroundColor: isSelected ? theme.colors.primary : "transparent",
                       alignItems: "center",
                       justifyContent: "center",
@@ -273,7 +466,7 @@ function NicheStep({
                     {isSelected && (
                       <Ionicons
                         name="checkmark"
-                        size={20}
+                        size={18}
                         color={theme.colors.textOnPrimary}
                       />
                     )}
@@ -287,16 +480,40 @@ function NicheStep({
 
       <View
         style={{
-          padding: spacing["2xl"],
+          paddingHorizontal: pagePadding,
+          paddingBottom: spacing.lg,
           paddingTop: spacing.md,
           gap: spacing.md,
-          backgroundColor: theme.colors.background,
+          backgroundColor: background,
         }}
       >
-        <Button title="Próximo" size="lg" onPress={onNext} disabled={!selected} />
-        <Typography variant="caption" style={{ textAlign: "center" }}>
-          Você poderá mudar isso depois nas configurações.
-        </Typography>
+        <Button
+          title="Próximo"
+          size="lg"
+          onPress={onNext}
+          disabled={!selected}
+          icon={
+            <Ionicons name="arrow-forward" size={22} color={theme.colors.textOnPrimary} />
+          }
+          style={{ borderRadius: radii.lg }}
+        />
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: spacing.sm,
+          }}
+        >
+          <Ionicons name="lock-closed" size={14} color={theme.colors.primaryLight} />
+          <Typography
+            variant="caption"
+            color={theme.colors.primaryLight}
+            style={{ textAlign: "center" }}
+          >
+            Você poderá mudar isso depois nas configurações.
+          </Typography>
+        </View>
         <ProgressDots current={1} total={3} />
       </View>
     </View>
@@ -410,8 +627,8 @@ function DoneStep({
         color={theme.colors.textSecondary}
         style={{ textAlign: "center", maxWidth: 300 }}
       >
-        Que tal começar cadastrando seu primeiro produto? Leva menos de 1 minuto — e
-        depois é só registrar a primeira venda!
+        Que tal começar cadastrando seu primeiro produto? Leva menos de 1 minuto, e depois
+        é só registrar a primeira venda!
       </Typography>
 
       <View style={{ gap: spacing.md, width: "100%", marginTop: spacing.sm }}>
@@ -434,6 +651,7 @@ export default function OnboardingScreen() {
   const { theme } = useTheme();
   const updateProfile = useUpdateProfile();
   const { signOut, userId } = useAuth();
+  const [switchingAccount, setSwitchingAccount] = useState(false);
   const {
     currentStep,
     businessType,
@@ -466,16 +684,26 @@ export default function OnboardingScreen() {
     router.replace("/products?from=onboarding");
   }
 
+  async function handleSwitchAccount() {
+    if (switchingAccount) return;
+    setSwitchingAccount(true);
+    try {
+      await signOut();
+      router.replace("/(auth)/login");
+    } finally {
+      setSwitchingAccount(false);
+    }
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       {currentStep === 0 && (
         <WelcomeStep
           onNext={() => setStep(1)}
           onLogin={() => {
-            // Aqui o usuario ja esta logado (onboarding vem depois do login);
-            // "ja tenho conta" = trocar de conta -> desloga e vai pro login.
-            void signOut().then(() => router.replace("/(auth)/login"));
+            void handleSwitchAccount();
           }}
+          switchingAccount={switchingAccount}
         />
       )}
 

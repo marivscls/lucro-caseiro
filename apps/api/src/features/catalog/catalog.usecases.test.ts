@@ -29,6 +29,7 @@ function makeOwner(overrides: Partial<CatalogOwner> = {}): CatalogOwner {
     businessName: "Doces da Maria",
     phone: "11988887777",
     plan: "free",
+    planExpiresAt: null,
     ...overrides,
   };
 }
@@ -149,10 +150,22 @@ describe("CatalogUseCases.updateSettings", () => {
     ).rejects.toBeInstanceOf(LimitExceededError);
   });
 
-  it("permite personalizacao para plano premium", async () => {
+  it("bloqueia personalizacao para plano essential (personalizacao e do profissional)", async () => {
     const sut = new CatalogUseCases(
       makeRepo({
-        getOwnerDefaults: () => Promise.resolve(makeOwner({ plan: "premium" })),
+        getOwnerDefaults: () => Promise.resolve(makeOwner({ plan: "essential" })),
+      }),
+    );
+
+    await expect(
+      sut.updateSettings(USER_ID, { accentColor: "rose" }),
+    ).rejects.toBeInstanceOf(LimitExceededError);
+  });
+
+  it("permite personalizacao para plano profissional", async () => {
+    const sut = new CatalogUseCases(
+      makeRepo({
+        getOwnerDefaults: () => Promise.resolve(makeOwner({ plan: "professional" })),
       }),
     );
 
@@ -195,19 +208,35 @@ describe("CatalogUseCases.getPublicCatalog", () => {
     expect(catalog.totalProducts).toBe(8);
   });
 
-  it("plano premium exibe todos os produtos", async () => {
+  it("plano profissional exibe todos os produtos", async () => {
     const many = Array.from({ length: 8 }, () => makeProduct());
     const sut = new CatalogUseCases(
       makeRepo({
         listPublicProducts: () => Promise.resolve(many),
         findOwnerBySlug: () =>
-          Promise.resolve({ ...makeSettings(), ...makeOwner({ plan: "premium" }) }),
+          Promise.resolve({ ...makeSettings(), ...makeOwner({ plan: "professional" }) }),
       }),
     );
 
     const catalog = await sut.getPublicCatalog("doces-da-maria");
 
     expect(catalog.products).toHaveLength(8);
+    expect(catalog.totalProducts).toBe(8);
+  });
+
+  it("plano essential ainda limita a vitrine a 3 produtos (catalogo completo e do profissional)", async () => {
+    const many = Array.from({ length: 8 }, () => makeProduct());
+    const sut = new CatalogUseCases(
+      makeRepo({
+        listPublicProducts: () => Promise.resolve(many),
+        findOwnerBySlug: () =>
+          Promise.resolve({ ...makeSettings(), ...makeOwner({ plan: "essential" }) }),
+      }),
+    );
+
+    const catalog = await sut.getPublicCatalog("doces-da-maria");
+
+    expect(catalog.products).toHaveLength(3);
     expect(catalog.totalProducts).toBe(8);
   });
 
@@ -234,7 +263,7 @@ describe("CatalogUseCases.getPublicCatalog", () => {
     expect(catalog.whatsapp).toBe("11988887777");
   });
 
-  it("oculta personalizacao quando o dono nao e premium", async () => {
+  it("oculta personalizacao quando o dono nao e profissional", async () => {
     const sut = new CatalogUseCases(
       makeRepo({
         findOwnerBySlug: () =>
@@ -258,7 +287,7 @@ describe("CatalogUseCases.getPublicCatalog", () => {
     expect(catalog.promoBanner).toBeNull();
   });
 
-  it("exibe personalizacao quando o dono e premium", async () => {
+  it("exibe personalizacao quando o dono e profissional", async () => {
     const sut = new CatalogUseCases(
       makeRepo({
         findOwnerBySlug: () =>
@@ -268,7 +297,7 @@ describe("CatalogUseCases.getPublicCatalog", () => {
               tagline: "Feito com amor",
               promoBanner: "Frete grátis hoje",
             }),
-            ...makeOwner({ plan: "premium" }),
+            ...makeOwner({ plan: "professional" }),
           }),
       }),
     );

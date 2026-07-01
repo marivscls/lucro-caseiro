@@ -27,6 +27,7 @@ function makeRepo(overrides: Partial<IPackagingRepo> = {}): IPackagingRepo {
     create: (_userId: string, data: CreatePackagingData) =>
       Promise.resolve(makePackaging({ name: data.name, unitCost: data.unitCost })),
     findById: () => Promise.resolve(makePackaging()),
+    findDuplicateByNameType: () => Promise.resolve(null),
     findAll: () => Promise.resolve({ items: [makePackaging()], total: 1 }),
     update: (_userId: string, _id: string, data: Partial<CreatePackagingData>) =>
       Promise.resolve(makePackaging({ ...data })),
@@ -62,6 +63,16 @@ describe("PackagingUseCases", () => {
       const { sut } = makeSut();
       await expect(
         sut.create(USER_ID, { name: "", type: "box", unitCost: -1 }),
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it("rejects duplicate packaging name and type", async () => {
+      const { sut } = makeSut({
+        findDuplicateByNameType: () => Promise.resolve(makePackaging()),
+      });
+
+      await expect(
+        sut.create(USER_ID, { name: "Caixa Kraft", type: "box", unitCost: 1.5 }),
       ).rejects.toThrow(ValidationError);
     });
   });
@@ -117,6 +128,17 @@ describe("PackagingUseCases", () => {
       await expect(sut.update(USER_ID, "pkg-1", { unitCost: -5 })).rejects.toThrow(
         ValidationError,
       );
+    });
+
+    it("rejects an update with duplicate name and type", async () => {
+      const { sut } = makeSut({
+        findDuplicateByNameType: () =>
+          Promise.resolve(makePackaging({ id: "pkg-2", name: "Caixa Premium" })),
+      });
+
+      await expect(
+        sut.update(USER_ID, "pkg-1", { name: "Caixa Premium", type: "box" }),
+      ).rejects.toThrow(ValidationError);
     });
   });
 

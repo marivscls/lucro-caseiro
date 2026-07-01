@@ -1,10 +1,10 @@
 import type { Product } from "@lucro-caseiro/contracts";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import { useEffect } from "react";
 
 import { NOTIFICATION_TYPES } from "../../shared/hooks/notification-types";
 import { useNotificationEnabled } from "../../shared/hooks/notification-prefs";
+import { asyncStorage } from "../../shared/utils/async-storage";
 import { useLowStockProducts } from "./hooks";
 
 // Guarda os IDs de produtos que já geraram alerta de estoque baixo, para não
@@ -35,7 +35,7 @@ async function syncAndNotify(lowStock: Product[]): Promise<void> {
 
   let notified: string[] = [];
   try {
-    const raw = await AsyncStorage.getItem(NOTIFIED_KEY);
+    const raw = await asyncStorage.getItem(NOTIFIED_KEY);
     if (raw) notified = JSON.parse(raw) as string[];
   } catch {
     notified = [];
@@ -52,7 +52,7 @@ async function syncAndNotify(lowStock: Product[]): Promise<void> {
 
   // Persiste apenas os IDs ainda baixos: produtos repostos saem da lista e
   // poderao alertar de novo quando o estoque cair outra vez.
-  await AsyncStorage.setItem(NOTIFIED_KEY, JSON.stringify(currentIds));
+  await asyncStorage.setItem(NOTIFIED_KEY, JSON.stringify(currentIds));
 }
 
 /**

@@ -89,6 +89,7 @@ function makeProductsRepo(overrides: Partial<IProductsRepo> = {}): IProductsRepo
   return {
     create: vi.fn(),
     findById: vi.fn(() => Promise.resolve(makeProduct())),
+    findDuplicateByCode: vi.fn(() => Promise.resolve(null)),
     findAll: vi.fn(() => Promise.resolve({ items: [], total: 0 })),
     update: vi.fn(() => Promise.resolve(makeProduct())),
     delete: vi.fn(() => Promise.resolve(true)),

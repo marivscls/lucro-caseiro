@@ -68,7 +68,7 @@ export function buildChargeMessage(group: FiadoGroup): string {
   lines.push(`${hello} Passando para lembrar do valor em aberto:`);
   lines.push("");
   for (const sale of group.sales) {
-    lines.push(`• ${dateBR(sale.soldAt)} — ${formatCurrency(sale.total)}`);
+    lines.push(`• ${dateBR(sale.soldAt)}: ${formatCurrency(sale.total)}`);
   }
   lines.push("");
   lines.push(`*Total: ${formatCurrency(group.total)}*`);

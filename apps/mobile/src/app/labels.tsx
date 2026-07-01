@@ -27,7 +27,7 @@ import { LabelStyleEditor } from "../features/labels/components/label-style-edit
 import { LabelPreview } from "../features/labels/components/label-preview";
 import { TemplatePicker } from "../features/labels/components/template-picker";
 import { exportLabelPdfWithChoice } from "../features/labels/label-export";
-import { useProfile } from "../features/subscription/hooks";
+import { isProfilePremiumActive, useProfile } from "../features/subscription/hooks";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { addDaysToBR, brToIso, isoToBR, maskDateBR } from "../features/labels/dates";
 import { cleanNutrition } from "../features/labels/nutrition";
@@ -60,7 +60,7 @@ function LabelDetailModal({
   const { theme } = useTheme();
   const { data: profile } = useProfile();
   const showPaywall = usePaywall((st) => st.show);
-  const isPremium = profile?.plan === "premium";
+  const isPremium = isProfilePremiumActive(profile);
   const { data: label, isLoading } = useLabel(labelId);
   const updateLabel = useUpdateLabel();
   const deleteLabel = useDeleteLabel();
@@ -295,7 +295,7 @@ function LabelDetailModal({
             </View>
             <Input
               label="Validade em dias (opcional)"
-              placeholder="Ex: 7 — preenche a validade sozinho"
+              placeholder="Ex: 7, preenche a validade sozinho"
               value={shelfDays}
               onChangeText={handleShelfDaysChange}
               keyboardType="number-pad"

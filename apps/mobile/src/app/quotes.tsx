@@ -34,7 +34,7 @@ import {
 } from "../features/quotes/hooks";
 import { buildQuoteMessage } from "../features/quotes/message";
 import { exportQuotePdf } from "../features/quotes/quote-pdf";
-import { useProfile } from "../features/subscription/hooks";
+import { isProfilePremiumActive, useProfile } from "../features/subscription/hooks";
 import { DateField } from "../shared/components/date-field";
 import { showToast } from "../shared/components/toast";
 import { usePaywall } from "../shared/hooks/use-paywall";
@@ -262,7 +262,7 @@ function QuoteDetail({
   }
 
   async function handlePdf() {
-    if (profile?.plan !== "premium") {
+    if (!isProfilePremiumActive(profile)) {
       showPaywall("export");
       return;
     }

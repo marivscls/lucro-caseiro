@@ -11,12 +11,12 @@ function qty(value: number): string {
 /** Texto do orçamento para enviar no WhatsApp. */
 export function buildQuoteMessage(quote: Quote, businessName: string): string {
   const lines = [
-    `*Orçamento — ${quote.title}*`,
+    `*Orçamento: ${quote.title}*`,
     businessName,
     "",
     ...quote.items.map(
       (item) =>
-        `• ${qty(item.quantity)}x ${item.description} — ${money(
+        `• ${qty(item.quantity)}x ${item.description}: ${money(
           item.quantity * item.unitPrice,
         )}`,
     ),

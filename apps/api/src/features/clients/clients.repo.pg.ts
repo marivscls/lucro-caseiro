@@ -4,6 +4,23 @@ import { and, count, eq, ilike, or, sql } from "drizzle-orm";
 import type { AppDatabase } from "../../shared/db";
 import type { CreateClientData, FindAllOpts, IClientsRepo } from "./clients.types";
 
+function normalizedPhoneDigits(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  if ((digits.length === 12 || digits.length === 13) && digits.startsWith("55")) {
+    return digits.slice(2);
+  }
+  return digits;
+}
+
+function normalizedPhoneSql(phoneColumn: typeof clients.phone) {
+  const digits = sql<string>`regexp_replace(coalesce(${phoneColumn}, ''), '\\D', '', 'g')`;
+  return sql<string>`case
+    when length(${digits}) in (12, 13) and left(${digits}, 2) = '55'
+    then substring(${digits} from 3)
+    else ${digits}
+  end`;
+}
+
 export class ClientsRepoPg implements IClientsRepo {
   constructor(private db: AppDatabase) {}
 
@@ -33,6 +50,29 @@ export class ClientsRepoPg implements IClientsRepo {
     return row ? this.toClient(row) : null;
   }
 
+  async findDuplicateByPhone(
+    userId: string,
+    phone: string,
+    excludeId?: string,
+  ): Promise<Client | null> {
+    const digits = normalizedPhoneDigits(phone);
+    if (!digits) return null;
+
+    const conditions = [
+      eq(clients.userId, userId),
+      sql`${normalizedPhoneSql(clients.phone)} = ${digits}`,
+    ];
+    if (excludeId) conditions.push(sql`${clients.id} <> ${excludeId}`);
+
+    const [row] = await this.db
+      .select()
+      .from(clients)
+      .where(and(...conditions))
+      .limit(1);
+
+    return row ? this.toClient(row) : null;
+  }
+
   async findAll(
     userId: string,
     opts: FindAllOpts,
@@ -40,12 +80,19 @@ export class ClientsRepoPg implements IClientsRepo {
     const conditions = [eq(clients.userId, userId)];
 
     if (opts.search) {
-      conditions.push(
-        or(
-          ilike(clients.name, `%${opts.search}%`),
-          ilike(clients.phone, `%${opts.search}%`),
-        )!,
-      );
+      const searchDigits = opts.search.replace(/\D/g, "");
+      const searchConditions = [
+        ilike(clients.name, `%${opts.search}%`),
+        ilike(clients.phone, `%${opts.search}%`),
+      ];
+      if (searchDigits) {
+        const searchDigitsPattern = `%${searchDigits}%`;
+        searchConditions.push(
+          sql`regexp_replace(coalesce(${clients.phone}, ''), '\\D', '', 'g') like ${searchDigitsPattern}`,
+        );
+      }
+
+      conditions.push(or(...searchConditions)!);
     }
 
     const where = and(...conditions);

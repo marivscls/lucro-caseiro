@@ -1,6 +1,4 @@
 import type { Recipe } from "@lucro-caseiro/contracts";
-import * as Print from "expo-print";
-import * as Sharing from "expo-sharing";
 
 import { formatCurrency } from "../../shared/utils/format";
 
@@ -118,6 +116,10 @@ export function buildRecipeHtml(recipe: Recipe): string {
  */
 export async function exportRecipePdf(recipe: Recipe): Promise<void> {
   const html = buildRecipeHtml(recipe);
+  const [Print, Sharing] = await Promise.all([
+    import("expo-print"),
+    import("expo-sharing"),
+  ]);
   const { uri } = await Print.printToFileAsync({ html });
 
   if (await Sharing.isAvailableAsync()) {

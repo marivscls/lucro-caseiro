@@ -9,8 +9,9 @@ import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
 import { usePaywall } from "../../../shared/hooks/use-paywall";
 import { ApiError } from "../../../shared/utils/api-client";
+import { confirmPossibleDuplicate, duplicateKey } from "../../../shared/utils/duplicates";
 import { uploadRecipeImage } from "../../../shared/utils/upload-image";
-import { useCreateRecipe } from "../hooks";
+import { useCreateRecipe, useRecipes } from "../hooks";
 import {
   CategoryField,
   FieldRow,
@@ -42,6 +43,7 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
   const [uploading, setUploading] = useState(false);
 
   const createRecipe = useCreateRecipe();
+  const { data: recipesData } = useRecipes();
   const { checkAndBlock: checkRecipeLimit } = useLimitCheck("recipes");
   const showPaywall = usePaywall((s) => s.show);
   const loading = createRecipe.isPending || uploading;
@@ -76,6 +78,17 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
       return;
     }
 
+    const duplicatedName = recipesData?.items.some(
+      (recipe) => duplicateKey(recipe.name) === duplicateKey(name),
+    );
+    if (duplicatedName) {
+      const shouldContinue = await confirmPossibleDuplicate(
+        "Receita parecida",
+        "Já existe uma receita com esse nome. Confira se não é melhor editar ou duplicar a existente.",
+      );
+      if (!shouldContinue) return;
+    }
+
     // Sobe a foto (se houver); se falhar, salva sem ela.
     let photoUrl: string | undefined;
     if (imageUri) {
@@ -86,7 +99,7 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
         showAlert({
           title: "Foto não enviada",
           message:
-            "Não consegui enviar a foto agora. Vou salvar a receita sem ela — você pode adicionar depois.",
+            "Não consegui enviar a foto agora. Vou salvar a receita sem ela. Você pode adicionar depois.",
         });
       } finally {
         setUploading(false);

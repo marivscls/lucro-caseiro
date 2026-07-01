@@ -5,6 +5,13 @@ import { useShowAds } from "./use-show-ads";
 const mockUseProfile = vi.fn();
 
 vi.mock("../../features/subscription/hooks", () => ({
+  isProfilePremiumActive: (
+    profile?: { plan?: string; planExpiresAt?: string | null } | null,
+  ) => {
+    if (profile?.plan !== "premium") return false;
+    if (!profile.planExpiresAt) return true;
+    return new Date(profile.planExpiresAt) > new Date();
+  },
   useProfile: () => mockUseProfile(),
 }));
 
@@ -23,13 +30,13 @@ describe("useShowAds", () => {
     expect(useShowAds()).toBe(false);
   });
 
-  it("returns true when profile is undefined (loading)", () => {
+  it("returns false when profile is undefined (loading)", () => {
     mockUseProfile.mockReturnValue({ data: undefined });
-    expect(useShowAds()).toBe(true);
+    expect(useShowAds()).toBe(false);
   });
 
-  it("returns true when profile is null (error)", () => {
+  it("returns false when profile is null (error)", () => {
     mockUseProfile.mockReturnValue({ data: null });
-    expect(useShowAds()).toBe(true);
+    expect(useShowAds()).toBe(false);
   });
 });

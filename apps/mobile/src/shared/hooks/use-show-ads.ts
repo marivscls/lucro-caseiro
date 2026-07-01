@@ -1,4 +1,4 @@
-import { useProfile } from "../../features/subscription/hooks";
+import { isProfilePremiumActive, useProfile } from "../../features/subscription/hooks";
 
 /**
  * Centralized hook to determine if ads should be shown.
@@ -6,5 +6,5 @@ import { useProfile } from "../../features/subscription/hooks";
  */
 export function useShowAds(): boolean {
   const { data: profile } = useProfile();
-  return profile?.plan !== "premium";
+  return profile ? !isProfilePremiumActive(profile) : false;
 }

@@ -4,7 +4,6 @@ import { formatCurrency } from "../../../shared/utils/format";
 import { Button, spacing, useTheme, type Theme } from "@lucro-caseiro/ui";
 import * as FileSystem from "expo-file-system/legacy";
 import { router } from "expo-router";
-import * as Sharing from "expo-sharing";
 import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -24,7 +23,7 @@ import financeEmpty from "../../../assets/finance-empty.png";
 import financeHero from "../../../assets/finance-hero.png";
 import { useAuth } from "../../../shared/hooks/use-auth";
 import { usePaywall } from "../../../shared/hooks/use-paywall";
-import { useProfile } from "../../subscription/hooks";
+import { isProfilePremiumActive, useProfile } from "../../subscription/hooks";
 import { getExportUrl } from "../api";
 import {
   countByType,
@@ -66,7 +65,7 @@ export function FinanceDashboard({
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { token } = useAuth();
   const { data: profile } = useProfile();
-  const isPremium = profile?.plan === "premium";
+  const isPremium = isProfilePremiumActive(profile);
   const showPaywall = usePaywall((s) => s.show);
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
@@ -135,6 +134,7 @@ export function FinanceDashboard({
 
         if (result.status !== 200) throw new Error("Falha ao baixar arquivo");
 
+        const Sharing = await import("expo-sharing");
         const canShare = await Sharing.isAvailableAsync();
         if (canShare) {
           await Sharing.shareAsync(result.uri, {
@@ -261,7 +261,14 @@ export function FinanceDashboard({
           <View style={styles.heroScrim} />
           <View style={styles.heroContent}>
             <Text style={styles.heroLabel}>Seu lucro</Text>
-            <Text style={styles.heroValue}>{formatCurrency(profit)}</Text>
+            <Text
+              style={styles.heroValue}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.5}
+            >
+              {formatCurrency(profit)}
+            </Text>
             {profitDeltaPct !== null && (
               <View style={styles.percentBadge}>
                 <Ionicons
@@ -1294,7 +1301,7 @@ function createStyles(theme: Theme) {
       borderRadius: 24,
       borderColor: "rgba(112, 70, 62, 0.85)",
       borderWidth: 1.5,
-      height: 178,
+      minHeight: 178,
       overflow: "hidden",
       padding: 24,
     },

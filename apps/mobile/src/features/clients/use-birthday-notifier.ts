@@ -1,9 +1,9 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import { useEffect } from "react";
 
 import { NOTIFICATION_TYPES } from "../../shared/hooks/notification-types";
 import { useNotificationEnabled } from "../../shared/hooks/notification-prefs";
+import { asyncStorage } from "../../shared/utils/async-storage";
 import { useClients } from "./hooks";
 
 // Avisa no máximo uma vez por dia (guarda a data YYYY-MM-DD do último aviso).
@@ -29,7 +29,7 @@ async function maybeNotify(names: string[], today: Date): Promise<void> {
   if (names.length === 0) return;
   const tk = dayKey(today);
   try {
-    const last = await AsyncStorage.getItem(KEY);
+    const last = await asyncStorage.getItem(KEY);
     if (last === tk) return; // já avisou hoje
   } catch {
     // sem registro: segue e avisa.
@@ -48,7 +48,7 @@ async function maybeNotify(names: string[], today: Date): Promise<void> {
   });
 
   try {
-    await AsyncStorage.setItem(KEY, tk);
+    await asyncStorage.setItem(KEY, tk);
   } catch {
     // ignora falha de persistência.
   }

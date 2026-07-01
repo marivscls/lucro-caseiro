@@ -16,6 +16,16 @@ export class MaterialsUseCases {
   async create(userId: string, data: CreateMaterialData): Promise<Material> {
     const errors = validateMaterial(data);
     if (errors.length > 0) throw new ValidationError(errors);
+    const duplicate = await this.repo.findDuplicateByNameUnit(
+      userId,
+      data.name,
+      data.unit,
+    );
+    if (duplicate) {
+      throw new ValidationError([
+        "Esse insumo já existe. Abra o cadastro existente para ajustar o estoque.",
+      ]);
+    }
     return this.repo.create(userId, data);
   }
 
@@ -40,6 +50,13 @@ export class MaterialsUseCases {
 
     const errors = validateMaterial(data, true);
     if (errors.length > 0) throw new ValidationError(errors);
+
+    const name = data.name ?? existing.name;
+    const unit = data.unit ?? existing.unit;
+    const duplicate = await this.repo.findDuplicateByNameUnit(userId, name, unit, id);
+    if (duplicate) {
+      throw new ValidationError(["Já existe outro insumo com esse nome e unidade."]);
+    }
 
     const updated = await this.repo.update(userId, id, data);
     if (!updated) throw new NotFoundError("Insumo nao encontrado");

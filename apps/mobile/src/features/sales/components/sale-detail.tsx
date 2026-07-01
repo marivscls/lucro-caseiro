@@ -7,7 +7,7 @@ import { Image, ScrollView, View } from "react-native";
 import { formatCurrency } from "../../../shared/utils/format";
 import { isValidBrazilPhone } from "../../../shared/utils/phone";
 import { openWhatsApp, openWhatsAppShare } from "../../../shared/utils/whatsapp";
-import { useProfile } from "../../subscription/hooks";
+import { isProfilePremiumActive, useProfile } from "../../subscription/hooks";
 import { usePaywall } from "../../../shared/hooks/use-paywall";
 import { useUpdateSaleStatus } from "../hooks";
 import { paymentLabel } from "../payment";
@@ -61,7 +61,7 @@ export function SaleDetail({
   // Recibo em PDF e recurso de exportacao — exclusivo do Premium.
   // Free ve um vislumbre do recibo (com cadeado) antes do paywall.
   async function handleReceiptPdf() {
-    if (profile?.plan !== "premium") {
+    if (!isProfilePremiumActive(profile)) {
       setPreviewVisible(true);
       return;
     }

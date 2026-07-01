@@ -32,6 +32,36 @@ export class SuppliersRepoPg implements ISuppliersRepo {
     return row ? this.toSupplier(row) : null;
   }
 
+  async findDuplicate(
+    userId: string,
+    data: Pick<CreateSupplierData, "name" | "phone" | "email">,
+    excludeId?: string,
+  ): Promise<Supplier | null> {
+    const matchers = [sql`lower(trim(${suppliers.name})) = lower(trim(${data.name}))`];
+    const phoneDigits = data.phone?.replace(/\D/g, "") ?? "";
+    if (phoneDigits) {
+      matchers.push(
+        sql`regexp_replace(coalesce(${suppliers.phone}, ''), '\\D', '', 'g') = ${phoneDigits}`,
+      );
+    }
+    if (data.email?.trim()) {
+      matchers.push(
+        sql`lower(trim(coalesce(${suppliers.email}, ''))) = lower(trim(${data.email}))`,
+      );
+    }
+
+    const conditions = [eq(suppliers.userId, userId), or(...matchers)!];
+    if (excludeId) conditions.push(sql`${suppliers.id} <> ${excludeId}`);
+
+    const [row] = await this.db
+      .select()
+      .from(suppliers)
+      .where(and(...conditions))
+      .limit(1);
+
+    return row ? this.toSupplier(row) : null;
+  }
+
   async findAll(
     userId: string,
     opts: FindAllOpts,

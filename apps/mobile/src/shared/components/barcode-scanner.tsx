@@ -1,13 +1,23 @@
 import { Button, Typography, radii, spacing } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  CameraView,
-  useCameraPermissions,
-  type BarcodeScanningResult,
-} from "expo-camera";
 import React, { useEffect, useRef } from "react";
 import { Linking, Modal, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+type BarcodeScanningResult = { data?: string | null };
+
+type CameraModule = {
+  CameraView: React.ComponentType<{
+    style?: unknown;
+    facing?: "front" | "back";
+    barcodeScannerSettings?: { barcodeTypes: string[] };
+    onBarcodeScanned?: (result: BarcodeScanningResult) => void;
+  }>;
+  useCameraPermissions: () => [
+    { granted?: boolean; canAskAgain?: boolean } | null,
+    () => Promise<unknown>,
+  ];
+};
 
 interface BarcodeScannerProps {
   visible: boolean;
@@ -17,6 +27,8 @@ interface BarcodeScannerProps {
   /** Ação alternativa: digitar o código à mão (some quando ausente). */
   onManual?: () => void;
 }
+
+type BarcodeScannerRuntimeProps = Omit<BarcodeScannerProps, "visible">;
 
 /**
  * Leitor de código de barras/QR via câmera (expo-camera). Requer um dev/prod
@@ -29,19 +41,52 @@ export function BarcodeScanner({
   onScanned,
   onManual,
 }: Readonly<BarcodeScannerProps>) {
+  if (!visible) return null;
+
+  const camera = loadCameraModule();
+  if (!camera) {
+    return <BarcodeScannerUnavailable onClose={onClose} onManual={onManual} />;
+  }
+
+  return (
+    <BarcodeScannerNative
+      camera={camera}
+      onClose={onClose}
+      onScanned={onScanned}
+      onManual={onManual}
+    />
+  );
+}
+
+function loadCameraModule(): CameraModule | null {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- lazy native load prevents route import crashes on stale dev builds.
+    return require("expo-camera") as CameraModule;
+  } catch {
+    return null;
+  }
+}
+
+function BarcodeScannerNative({
+  camera,
+  onClose,
+  onScanned,
+  onManual,
+}: Readonly<BarcodeScannerRuntimeProps & { camera: CameraModule }>) {
   const insets = useSafeAreaInsets();
+  const { CameraView, useCameraPermissions } = camera;
   const [permission, requestPermission] = useCameraPermissions();
   const handledRef = useRef(false);
 
   useEffect(() => {
-    if (visible) handledRef.current = false;
-  }, [visible]);
+    handledRef.current = false;
+  }, []);
 
   useEffect(() => {
-    if (visible && !permission?.granted && permission?.canAskAgain !== false) {
+    if (!permission?.granted && permission?.canAskAgain !== false) {
       void requestPermission();
     }
-  }, [visible, permission?.granted, permission?.canAskAgain, requestPermission]);
+  }, [permission?.granted, permission?.canAskAgain, requestPermission]);
 
   function handleScan(result: BarcodeScanningResult) {
     if (handledRef.current) return;
@@ -52,12 +97,7 @@ export function BarcodeScanner({
   }
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      onRequestClose={onClose}
-      statusBarTranslucent
-    >
+    <Modal visible animationType="slide" onRequestClose={onClose} statusBarTranslucent>
       <View style={{ flex: 1, backgroundColor: "#000" }}>
         {permission?.granted ? (
           <CameraView
@@ -155,6 +195,69 @@ export function BarcodeScanner({
             <Button title="Digitar à mão" variant="secondary" onPress={onManual} />
           </View>
         ) : null}
+      </View>
+    </Modal>
+  );
+}
+
+function BarcodeScannerUnavailable({
+  onClose,
+  onManual,
+}: Readonly<Pick<BarcodeScannerRuntimeProps, "onClose" | "onManual">>) {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <Modal visible animationType="slide" onRequestClose={onClose} statusBarTranslucent>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "#000",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: spacing.xl,
+          gap: spacing.lg,
+        }}
+      >
+        <Ionicons name="camera-outline" size={64} color="#FFFFFF" />
+        <Typography variant="h3" color="#FFFFFF" style={{ textAlign: "center" }}>
+          Câmera indisponível
+        </Typography>
+        <Typography
+          variant="body"
+          color="rgba(255,255,255,0.8)"
+          style={{ textAlign: "center" }}
+        >
+          Esta build do app ainda não tem o módulo de câmera. Digite o código à mão ou
+          gere uma nova build do app.
+        </Typography>
+        {onManual ? (
+          <Button title="Digitar à mão" variant="secondary" onPress={onManual} />
+        ) : null}
+        <Button title="Fechar" onPress={onClose} />
+        <View
+          style={{
+            position: "absolute",
+            top: insets.top + spacing.md,
+            right: spacing.lg,
+          }}
+        >
+          <Pressable
+            onPress={onClose}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Fechar scanner"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: radii.full,
+              backgroundColor: "rgba(0,0,0,0.5)",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Ionicons name="close" size={24} color="#FFFFFF" />
+          </Pressable>
+        </View>
       </View>
     </Modal>
   );

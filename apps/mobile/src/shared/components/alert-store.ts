@@ -10,6 +10,7 @@ export interface AppAlertOptions {
   title: string;
   message?: string;
   buttons?: AppAlertButton[];
+  variant?: "default" | "account-created";
 }
 
 interface AppAlertState {

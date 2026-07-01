@@ -1,6 +1,6 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 
+import { asyncStorage } from "../utils/async-storage";
 import { type NotificationType } from "./notification-types";
 
 const STORAGE_KEY = "notificationPrefs";
@@ -24,7 +24,7 @@ export const useNotificationPrefs = create<NotificationPrefsState>((set, get) =>
   loaded: false,
   hydrate: async () => {
     try {
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
+      const raw = await asyncStorage.getItem(STORAGE_KEY);
       set({ prefs: raw ? (JSON.parse(raw) as Prefs) : {}, loaded: true });
     } catch {
       set({ loaded: true });
@@ -33,7 +33,7 @@ export const useNotificationPrefs = create<NotificationPrefsState>((set, get) =>
   setPref: (type, value) => {
     const prefs = { ...get().prefs, [type]: value };
     set({ prefs });
-    void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
+    void asyncStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
   },
 }));
 

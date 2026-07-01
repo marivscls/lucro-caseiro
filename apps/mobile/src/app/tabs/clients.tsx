@@ -1,7 +1,7 @@
 import type { Client } from "@lucro-caseiro/contracts";
 import { PressableScale, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -26,6 +26,7 @@ import { useLimitCheck } from "../../shared/hooks/use-limit-check";
 import { usePaywall } from "../../shared/hooks/use-paywall";
 import { ApiError } from "../../shared/utils/api-client";
 import { brToIso, maskDateBR } from "../../shared/utils/date";
+import { phoneDuplicateKey } from "../../shared/utils/duplicates";
 import { isValidBrazilPhone, maskPhoneBR } from "../../shared/utils/phone";
 import { alertValidation } from "../../shared/utils/alerts";
 import { showAlert } from "../../shared/components/alert-store";
@@ -73,8 +74,12 @@ function surfaceStyle(
 
 function groupClientsByInitial(items: Client[]): ClientGroup[] {
   const map = new Map<string, Client[]>();
+  const seen = new Set<string>();
 
   for (const item of items) {
+    if (seen.has(item.id)) continue;
+    seen.add(item.id);
+
     const letter = (item.name.trim().charAt(0) || "#").toUpperCase();
     const current = map.get(letter) ?? [];
     current.push(item);
@@ -307,7 +312,7 @@ function ClientsListScreen({
   });
 
   const groups = useMemo(() => groupClientsByInitial(data?.items ?? []), [data?.items]);
-  const totalClients = data?.total ?? 0;
+  const totalClients = groups.reduce((sum, group) => sum + group.data.length, 0);
   let clientsContent: React.ReactNode;
 
   if (isLoading) {
@@ -828,9 +833,13 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
   const [birthday, setBirthday] = useState("");
   const [notes, setNotes] = useState("");
   const [calendarVisible, setCalendarVisible] = useState(false);
+  const submittingRef = useRef(false);
   const createClient = useCreateClient();
   const { checkAndBlock: checkClientLimit } = useLimitCheck("clients");
   const showPaywall = usePaywall((s) => s.show);
+  const { data: matchingClients, refetch: refetchMatchingClients } = useClients({
+    search: phone.trim() || "__sem_telefone__",
+  });
 
   const reset = useCallback(() => {
     setName("");
@@ -846,45 +855,90 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
   }, [onClose, reset]);
 
   async function handleCreate() {
-    if (checkClientLimit()) return;
-
-    const trimmedName = name.trim();
-    const trimmedPhone = phone.trim();
-    if (!trimmedName) {
-      alertValidation("Coloque o nome do cliente.");
-      return;
-    }
-
-    if (trimmedPhone && !isValidBrazilPhone(trimmedPhone)) {
-      alertValidation("Telefone inválido. Use DDD + número, ex: (11) 99999-9999.");
-      return;
-    }
+    if (submittingRef.current || createClient.isPending) return;
+    submittingRef.current = true;
 
     try {
-      await createClient.mutateAsync({
-        name: trimmedName,
-        phone: trimmedPhone || undefined,
-        address: address.trim() || undefined,
-        birthday: brToIso(birthday),
-        notes: notes.trim() || undefined,
-      });
-      showAlert({
-        title: "Cliente cadastrado!",
-        message: `${trimmedName} foi adicionado à sua lista.`,
-      });
-      close();
-    } catch (error: unknown) {
-      if (error instanceof ApiError && error.code === "LIMIT_EXCEEDED") {
-        showPaywall("clients");
+      if (checkClientLimit()) return;
+
+      const trimmedName = name.trim();
+      const trimmedPhone = phone.trim();
+      if (!trimmedName) {
+        alertValidation("Coloque o nome do cliente.");
         return;
       }
-      showAlert({
-        title: "Erro",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Não foi possível cadastrar o cliente. Tente novamente.",
-      });
+
+      if (trimmedPhone && !isValidBrazilPhone(trimmedPhone)) {
+        alertValidation("Telefone inválido. Use DDD + número, ex: (11) 99999-9999.");
+        return;
+      }
+
+      const phoneDigits = phoneDuplicateKey(trimmedPhone);
+      let duplicateCandidates = matchingClients?.items ?? [];
+      if (phoneDigits) {
+        const refreshedClients = await refetchMatchingClients();
+        duplicateCandidates = refreshedClients.data?.items ?? duplicateCandidates;
+      }
+      const duplicate = duplicateCandidates.find(
+        (client) => !!phoneDigits && phoneDuplicateKey(client.phone) === phoneDigits,
+      );
+      if (duplicate) {
+        showAlert({
+          title: "Cliente já cadastrado",
+          message:
+            "Esse telefone já está cadastrado em outro cliente. Abra o cadastro existente para editar.",
+        });
+        return;
+      }
+
+      try {
+        await createClient.mutateAsync({
+          name: trimmedName,
+          phone: trimmedPhone || undefined,
+          address: address.trim() || undefined,
+          birthday: brToIso(birthday),
+          notes: notes.trim() || undefined,
+        });
+        showAlert({
+          title: "Cliente cadastrado!",
+          message: `${trimmedName} foi adicionado à sua lista.`,
+        });
+        close();
+      } catch (error: unknown) {
+        if (error instanceof ApiError && error.code === "LIMIT_EXCEEDED") {
+          showPaywall("clients");
+          return;
+        }
+        let duplicateAfterFailure = false;
+        if (phoneDigits) {
+          try {
+            const refreshedClients = await refetchMatchingClients();
+            duplicateAfterFailure =
+              refreshedClients.data?.items.some(
+                (client) => phoneDuplicateKey(client.phone) === phoneDigits,
+              ) ?? false;
+          } catch {
+            duplicateAfterFailure = false;
+          }
+        }
+        if (duplicateAfterFailure || isClientDuplicateError(error)) {
+          showAlert({
+            title: "Cliente já cadastrado",
+            message:
+              "Esse telefone já está cadastrado em outro cliente. Abra o cadastro existente para editar.",
+          });
+          return;
+        }
+        showAlert({
+          title: "Erro",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Não foi possível cadastrar o cliente. Tente novamente.",
+        });
+      }
+    } finally {
+      submittingRef.current = false;
     }
   }
 
@@ -1090,6 +1144,17 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
         />
       </SafeAreaView>
     </Modal>
+  );
+}
+
+function isClientDuplicateError(error: unknown): boolean {
+  if (!(error instanceof ApiError)) return false;
+
+  const message = error.message.toLowerCase();
+  return (
+    error.code === "VALIDATION_ERROR" &&
+    message.includes("telefone") &&
+    message.includes("cadastrado")
   );
 }
 

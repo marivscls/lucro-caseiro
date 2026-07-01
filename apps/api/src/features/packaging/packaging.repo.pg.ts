@@ -33,6 +33,28 @@ export class PackagingRepoPg implements IPackagingRepo {
     return row ? this.toPackaging(row) : null;
   }
 
+  async findDuplicateByNameType(
+    userId: string,
+    name: string,
+    type: CreatePackagingData["type"],
+    excludeId?: string,
+  ): Promise<Packaging | null> {
+    const conditions = [
+      eq(packaging.userId, userId),
+      eq(packaging.type, type),
+      sql`lower(trim(${packaging.name})) = lower(trim(${name}))`,
+    ];
+    if (excludeId) conditions.push(sql`${packaging.id} <> ${excludeId}`);
+
+    const [row] = await this.db
+      .select()
+      .from(packaging)
+      .where(and(...conditions))
+      .limit(1);
+
+    return row ? this.toPackaging(row) : null;
+  }
+
   async findAll(
     userId: string,
     opts: FindAllOpts,

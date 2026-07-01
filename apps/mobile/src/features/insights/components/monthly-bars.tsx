@@ -7,7 +7,7 @@ import { formatMoney, formatMoneyShort, maxRevenue, monthLabel } from "../domain
 import type { MonthlyRevenue } from "../types";
 
 const WINDOWS = [3, 6, 12] as const;
-const CHART_HEIGHT = 268;
+const CHART_HEIGHT = 288;
 const BAR_HEADROOM = 16;
 const STEPS = 4;
 const MONTH_FULL = [
@@ -45,6 +45,11 @@ function monthWithYear(key: string): string {
   return `${monthName(key)} de ${year}`;
 }
 
+function chartMonthLabel(key: string, months: number): string {
+  const label = monthLabel(key);
+  return months >= 12 ? label.slice(0, 1).toUpperCase() : label;
+}
+
 function periodDelta(series: MonthlyRevenue[]): number | null {
   if (series.length < 2) return null;
   const midpoint = Math.floor(series.length / 2);
@@ -69,26 +74,30 @@ function CompactWindowSelector({
       accessibilityLabel={`Últimos ${months} meses`}
       accessibilityHint="Toque para alternar o período do gráfico"
       style={({ pressed }) => ({
-        minHeight: 46,
+        minHeight: 54,
+        width: 166,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        gap: spacing.sm,
+        gap: spacing.xs,
         borderWidth: 1,
         borderColor:
-          theme.mode === "dark" ? "rgba(245,225,219,0.18)" : "rgba(74,50,40,0.16)",
-        borderRadius: radii.md,
-        paddingHorizontal: spacing.lg,
+          theme.mode === "dark" ? "rgba(196,112,126,0.72)" : theme.colors.primary,
+        borderRadius: radii.lg,
+        paddingHorizontal: spacing.md,
         backgroundColor:
           theme.mode === "dark" ? "rgba(30,24,20,0.44)" : "rgba(255,250,248,0.58)",
         opacity: pressed ? 0.72 : 1,
       })}
     >
+      <Ionicons name="calendar-clear-outline" size={18} color={theme.colors.text} />
       <Typography
         variant="bodyBold"
         color={theme.colors.text}
         numberOfLines={1}
-        style={{ fontSize: 15 }}
+        adjustsFontSizeToFit
+        minimumFontScale={0.72}
+        style={{ flex: 1, fontSize: 13, textAlign: "center" }}
       >
         Últimos {months} meses
       </Typography>
@@ -116,17 +125,16 @@ function StatPanel({
     <View
       style={{
         flex: 1,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: spacing.sm,
+        alignItems: "flex-start",
+        gap: spacing.xs,
         paddingHorizontal: spacing.md,
         paddingVertical: spacing.md,
       }}
     >
       <View
         style={{
-          width: 44,
-          height: 44,
+          width: 40,
+          height: 40,
           borderRadius: radii.full,
           alignItems: "center",
           justifyContent: "center",
@@ -135,13 +143,14 @@ function StatPanel({
           borderColor: `${tint}3f`,
         }}
       >
-        <Ionicons name={icon} size={25} color={tint} />
+        <Ionicons name={icon} size={23} color={tint} />
       </View>
-      <View style={{ flex: 1, gap: 4 }}>
+      <View style={{ width: "100%", gap: 4 }}>
         <Typography
           variant="body"
           color={theme.colors.textSecondary}
-          style={{ fontSize: 15 }}
+          numberOfLines={2}
+          style={{ fontSize: 14, lineHeight: 17 }}
         >
           {label}
         </Typography>
@@ -206,7 +215,7 @@ export function MonthlyBars({
     <View
       style={{
         gap: spacing.xl,
-        padding: spacing.xl,
+        padding: spacing.lg,
         borderWidth: 1,
         borderColor,
         borderRadius: radii["2xl"],
@@ -227,12 +236,12 @@ export function MonthlyBars({
         }}
       >
         <View
-          style={{ flexDirection: "row", alignItems: "center", gap: spacing.md, flex: 1 }}
+          style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm, flex: 1 }}
         >
           <View
             style={{
-              width: 64,
-              height: 64,
+              width: 50,
+              height: 50,
               borderRadius: radii.full,
               alignItems: "center",
               justifyContent: "center",
@@ -241,17 +250,14 @@ export function MonthlyBars({
               borderColor: `${theme.colors.primary}28`,
             }}
           >
-            <Ionicons name="bar-chart-outline" size={38} color={theme.colors.primary} />
+            <Ionicons name="bar-chart-outline" size={30} color={theme.colors.primary} />
           </View>
           <Typography
-            variant="h1"
+            variant="bodyBold"
             color={theme.colors.text}
-            numberOfLines={2}
-            adjustsFontSizeToFit
-            minimumFontScale={0.72}
-            style={{ flex: 1, fontSize: 28, fontWeight: "800", letterSpacing: 0 }}
+            style={{ width: 92, fontSize: 13, lineHeight: 16 }}
           >
-            Faturamento por mês
+            Faturamento{"\n"}mensal
           </Typography>
         </View>
         <CompactWindowSelector months={windowMonths} onChange={onWindowChange} />
@@ -269,13 +275,33 @@ export function MonthlyBars({
         }}
       >
         <View style={{ gap: spacing.sm }}>
-          <Typography
-            variant="label"
-            color={theme.colors.primaryLight}
-            style={{ fontSize: 12, fontWeight: "800", letterSpacing: 0 }}
-          >
-            EVOLUÇÃO DO FATURAMENTO
-          </Typography>
+          <View style={{ gap: spacing.xs }}>
+            <View
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: radii.full,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: `${theme.colors.primary}24`,
+                borderWidth: 1,
+                borderColor: `${theme.colors.primary}42`,
+              }}
+            >
+              <Ionicons
+                name="trending-up-outline"
+                size={22}
+                color={theme.colors.primary}
+              />
+            </View>
+            <Typography
+              variant="label"
+              color={theme.colors.primaryLight}
+              style={{ fontSize: 12, fontWeight: "800", letterSpacing: 0 }}
+            >
+              EVOLUÇÃO DO FATURAMENTO
+            </Typography>
+          </View>
           <Typography
             variant="moneyHero"
             color={theme.colors.text}
@@ -286,12 +312,14 @@ export function MonthlyBars({
           >
             {formatMoney(total)}
           </Typography>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+          <View style={{ gap: spacing.xs }}>
             <Typography variant="body" color={theme.colors.text} style={{ fontSize: 15 }}>
               Total no período
             </Typography>
             {delta !== null && (
-              <>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}
+              >
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
                   <Ionicons
                     name={delta >= 0 ? "arrow-up" : "arrow-down"}
@@ -305,11 +333,12 @@ export function MonthlyBars({
                 <Typography
                   variant="body"
                   color={theme.colors.textSecondary}
-                  style={{ fontSize: 15 }}
+                  numberOfLines={1}
+                  style={{ flexShrink: 1, fontSize: 13 }}
                 >
                   vs. período anterior
                 </Typography>
-              </>
+              </View>
             )}
           </View>
         </View>
@@ -489,20 +518,46 @@ export function MonthlyBars({
               )}
             </View>
 
-            <View
-              style={{ flexDirection: "row", gap: spacing.xs, marginTop: spacing.sm }}
-            >
-              {series.map((m) => (
-                <Typography
-                  key={m.month}
-                  variant="caption"
-                  color={theme.colors.text}
-                  numberOfLines={1}
-                  style={{ flex: 1, textAlign: "center", fontSize: 14 }}
-                >
-                  {monthLabel(m.month)}
-                </Typography>
-              ))}
+            <View style={{ flexDirection: "row", gap: 0, marginTop: spacing.sm }}>
+              {series.map((m) =>
+                windowMonths >= 12 ? (
+                  <View
+                    key={m.month}
+                    style={{
+                      flex: 1,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      minHeight: 14,
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: 5,
+                        height: 5,
+                        borderRadius: radii.full,
+                        backgroundColor: theme.colors.primaryLight,
+                      }}
+                    />
+                  </View>
+                ) : (
+                  <Typography
+                    key={m.month}
+                    variant="caption"
+                    color={theme.colors.text}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.7}
+                    style={{
+                      flex: 1,
+                      textAlign: "center",
+                      fontSize: 13,
+                      lineHeight: 14,
+                    }}
+                  >
+                    {chartMonthLabel(m.month, windowMonths)}
+                  </Typography>
+                ),
+              )}
             </View>
           </View>
         </View>

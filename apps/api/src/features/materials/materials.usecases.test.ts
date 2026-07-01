@@ -31,6 +31,7 @@ function makeRepo(overrides: Partial<IMaterialsRepo> = {}): IMaterialsRepo {
     create: (_userId: string, data: CreateMaterialData) =>
       Promise.resolve(makeMaterial({ name: data.name, unit: data.unit })),
     findById: () => Promise.resolve(makeMaterial()),
+    findDuplicateByNameUnit: () => Promise.resolve(null),
     findAll: () => Promise.resolve({ items: [makeMaterial()], total: 1 }),
     findLowStock: () => Promise.resolve([makeMaterial({ stockQuantity: 2 })]),
     update: (_userId: string, _id: string, data) =>
@@ -58,6 +59,16 @@ describe("MaterialsUseCases", () => {
   it("throws ValidationError on invalid create", async () => {
     const { sut } = makeSut();
     await expect(sut.create(USER_ID, { name: "", unit: "" })).rejects.toThrow(
+      ValidationError,
+    );
+  });
+
+  it("rejects duplicate material name and unit", async () => {
+    const { sut } = makeSut({
+      findDuplicateByNameUnit: () => Promise.resolve(makeMaterial()),
+    });
+
+    await expect(sut.create(USER_ID, { name: "Farinha", unit: "kg" })).rejects.toThrow(
       ValidationError,
     );
   });

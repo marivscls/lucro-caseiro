@@ -144,7 +144,7 @@ export function ReceiptPreviewModal({
             color={theme.colors.textSecondary}
             style={{ textAlign: "center" }}
           >
-            Envie recibos em PDF com o nome do seu negócio e visual profissional — sua
+            Envie recibos em PDF com o nome do seu negócio e visual profissional. Sua
             cliente vai notar a diferença.
           </Typography>
 

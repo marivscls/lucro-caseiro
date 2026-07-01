@@ -45,6 +45,7 @@ export function useCreateClient() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: CreateClient) => createClient(token!, data),
+    scope: { id: "create-client" },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: CLIENTS_KEY });
       // Atualiza a contagem de limites do plano (clientes) pra o gate bloquear na hora certa.

@@ -111,6 +111,34 @@ function setSession(set: (state: Partial<AuthState>) => void, session: Session |
   }
 }
 
+function signUpErrorMessage(error: { message: string; code?: string; status?: number }) {
+  const message = error.message.toLowerCase();
+
+  if (message.includes("already registered") || message.includes("already exists")) {
+    return "Esse e-mail já tem uma conta. Tente entrar.";
+  }
+  if (message.includes("password should be") || message.includes("weak password")) {
+    return "Senha muito fraca. Use pelo menos 8 caracteres com letras e numeros.";
+  }
+  if (message.includes("invalid email")) {
+    return "Confira o e-mail digitado e tente novamente.";
+  }
+  if (message.includes("email rate limit") || error.status === 429) {
+    return "Muitas tentativas seguidas. Espere um pouco e tente novamente.";
+  }
+  if (message.includes("signups not allowed")) {
+    return "Cadastro indisponível no momento. Ative novos cadastros no Supabase.";
+  }
+  if (message.includes("confirmation") || message.includes("sending")) {
+    return "Não consegui enviar o e-mail de confirmação. Verifique a configuração de e-mail no Supabase.";
+  }
+  if (message.includes("database error") || message.includes("saving new user")) {
+    return "Não consegui preparar sua conta no banco. Verifique o trigger de criação de usuário no Supabase.";
+  }
+
+  return `Não foi possível criar a conta: ${error.message}`;
+}
+
 export const useAuth = create<AuthState>((set) => ({
   token: null,
   userId: null,
@@ -207,15 +235,14 @@ export const useAuth = create<AuthState>((set) => ({
     });
 
     if (error) {
-      if (error.message.includes("already registered")) {
-        return { error: "Esse e-mail já tem uma conta. Tente entrar." };
+      if (__DEV__) {
+        console.warn("[auth] signUpWithEmail failed", {
+          code: error.code,
+          message: error.message,
+          status: error.status,
+        });
       }
-      if (error.message.includes("Password should be")) {
-        return {
-          error: "Senha muito fraca. Use pelo menos 8 caracteres com letras e numeros.",
-        };
-      }
-      return { error: "Erro ao criar conta. Tente novamente." };
+      return { error: signUpErrorMessage(error) };
     }
 
     // Confirmação de e-mail desativada no Supabase: o signUp já devolve sessão

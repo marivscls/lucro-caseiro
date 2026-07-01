@@ -8,9 +8,10 @@ import { usePaywall } from "../../../shared/hooks/use-paywall";
 import { showAlert } from "../../../shared/components/alert-store";
 import { ApiError } from "../../../shared/utils/api-client";
 import { alertError, alertValidation } from "../../../shared/utils/alerts";
+import { digitsOnly, duplicateKey } from "../../../shared/utils/duplicates";
 import { isValidEmail } from "../../../shared/utils/email";
 import { isValidBrazilPhone, maskPhoneBR } from "../../../shared/utils/phone";
-import { useCreateSupplier } from "../hooks";
+import { useCreateSupplier, useSuppliers } from "../hooks";
 
 interface CreateSupplierFormProps {
   // Recebe o fornecedor criado para quem quiser auto-selecioná-lo (ex.: SupplierSelector).
@@ -27,6 +28,9 @@ export function CreateSupplierForm({ onSuccess }: Readonly<CreateSupplierFormPro
   const createSupplier = useCreateSupplier();
   const { checkAndBlock: checkSupplierLimit } = useLimitCheck("suppliers");
   const showPaywall = usePaywall((s) => s.show);
+  const { data: matchingSuppliers } = useSuppliers({
+    search: name.trim() || phone.trim() || "__sem_nome__",
+  });
 
   async function handleSubmit() {
     if (checkSupplierLimit()) return;
@@ -45,6 +49,25 @@ export function CreateSupplierForm({ onSuccess }: Readonly<CreateSupplierFormPro
     const trimmedEmail = email.trim();
     if (trimmedEmail && !isValidEmail(trimmedEmail)) {
       alertValidation("Email inválido. Confira o endereço digitado.");
+      return;
+    }
+
+    const normalizedName = duplicateKey(name);
+    const phoneDigits = digitsOnly(trimmedPhone);
+    const normalizedEmail = duplicateKey(trimmedEmail);
+    const duplicate = matchingSuppliers?.items.find((supplier) => {
+      const sameName = duplicateKey(supplier.name) === normalizedName;
+      const samePhone = !!phoneDigits && digitsOnly(supplier.phone) === phoneDigits;
+      const sameEmail =
+        !!normalizedEmail && duplicateKey(supplier.email) === normalizedEmail;
+      return sameName || samePhone || sameEmail;
+    });
+    if (duplicate) {
+      showAlert({
+        title: "Fornecedor já cadastrado",
+        message:
+          "Esse fornecedor já existe ou usa um contato já cadastrado. Abra o cadastro existente para editar.",
+      });
       return;
     }
 

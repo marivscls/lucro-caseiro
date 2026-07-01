@@ -76,6 +76,13 @@ export class ProductsUseCases {
       throw new ValidationError(errors);
     }
 
+    if (data.code?.trim()) {
+      const duplicate = await this.repo.findDuplicateByCode(userId, data.code);
+      if (duplicate) {
+        throw new ValidationError(["Esse código já está em outro produto."]);
+      }
+    }
+
     if (data.isComposite) {
       await this.validateComponents(userId, undefined, data.components);
       // Custo do kit e calculado a partir dos componentes (no repo, na leitura).
@@ -126,6 +133,13 @@ export class ProductsUseCases {
 
     if (errors.length > 0) {
       throw new ValidationError(errors);
+    }
+
+    if (data.code !== undefined && data.code.trim()) {
+      const duplicate = await this.repo.findDuplicateByCode(userId, data.code, id);
+      if (duplicate) {
+        throw new ValidationError(["Esse código já está em outro produto."]);
+      }
     }
 
     // Estado final de composicao apos o merge.

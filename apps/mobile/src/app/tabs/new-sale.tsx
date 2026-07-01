@@ -462,7 +462,7 @@ export default function NewSaleScreen() {
         });
         showAlert({
           title: "Venda salva no aparelho",
-          message: `Total: ${formatCurrency(cartTotal)}. Você está sem internet — a venda será enviada automaticamente quando a conexão voltar.`,
+          message: `Total: ${formatCurrency(cartTotal)}. Você está sem internet. A venda será enviada automaticamente quando a conexão voltar.`,
         });
         resetForm();
         return;

@@ -16,16 +16,23 @@ import { IngredientAvatar } from "../../../shared/ingredient-image/ingredient-av
 import { MaterialIconField } from "./material-icon-field";
 import { SupplierSelector } from "../../suppliers/components/supplier-selector";
 import { formatCost } from "../domain";
-import { useCreateMaterial, useDeleteMaterial, useUpdateMaterial } from "../hooks";
+import {
+  useCreateMaterial,
+  useDeleteMaterial,
+  useMaterials,
+  useUpdateMaterial,
+} from "../hooks";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
 import {
   currencyInput,
   maskCurrencyInput,
   parseCurrencyInput,
 } from "../../../shared/utils/currency-input";
+import { duplicateKey } from "../../../shared/utils/duplicates";
 
 interface MaterialFormProps {
   readonly material?: Material | null;
+  readonly existingMaterials?: Material[];
   readonly onSuccess?: () => void;
 }
 
@@ -258,7 +265,11 @@ function NotesField({
   );
 }
 
-export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
+export function MaterialForm({
+  material,
+  existingMaterials = [],
+  onSuccess,
+}: MaterialFormProps) {
   const { theme } = useTheme();
   const pal = useFieldPalette();
   const [name, setName] = useState(material?.name ?? "");
@@ -289,6 +300,9 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
   const createMaterial = useCreateMaterial();
   const updateMaterial = useUpdateMaterial();
   const deleteMaterial = useDeleteMaterial();
+  const { data: matchingMaterials } = useMaterials({
+    search: name.trim() || "__sem_nome__",
+  });
   const isEditing = !!material;
   const saving = createMaterial.isPending || updateMaterial.isPending;
 
@@ -328,6 +342,27 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
       return;
     }
 
+    const normalizedName = duplicateKey(name);
+    const normalizedUnit = duplicateKey(unit);
+    const duplicateCandidates = [
+      ...existingMaterials,
+      ...(matchingMaterials?.items ?? []),
+    ];
+    const duplicate = duplicateCandidates.find(
+      (item) =>
+        item.id !== material?.id &&
+        duplicateKey(item.name) === normalizedName &&
+        duplicateKey(item.unit) === normalizedUnit,
+    );
+    if (duplicate) {
+      showAlert({
+        title: "Insumo já cadastrado",
+        message:
+          "Esse insumo já existe. Abra o cadastro existente para ajustar o estoque.",
+      });
+      return;
+    }
+
     const data = {
       name: name.trim(),
       unit: unit.trim() || "un",
@@ -347,7 +382,11 @@ export function MaterialForm({ material, onSuccess }: MaterialFormProps) {
         await createMaterial.mutateAsync(data);
       }
       onSuccess?.();
-    } catch {
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        alertError(e.message);
+        return;
+      }
       alertError("Não foi possível salvar o insumo. Tente novamente.");
     }
   }

@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Platform, View } from "react-native";
 
+import { ensureAdsInitialized } from "../ads-init";
 import { useShowAds } from "../hooks/use-show-ads";
 import type { AdBannerProps } from "./ad-banner.shared";
 export { AD_ITEM_MARKER, interleaveAds } from "./ad-banner.shared";
@@ -70,11 +71,24 @@ function getBannerUnitId(): string | null {
 
 export function AdBanner({ style }: AdBannerProps) {
   const showAds = useShowAds();
-  // Em dev, o banner adaptativo do react-native-google-mobile-ads pode crashar
-  // nativamente (IndexOutOfBounds no createViewInstance) quando o JS do Metro
-  // diverge do nativo do dev build. Ads so renderizam em builds de producao.
+  // Só renderiza o banner DEPOIS que o SDK do AdMob inicializar. Renderizar antes
+  // disso crasha nativamente em produção (e em dev o banner adaptativo também
+  // crashava — por isso ads só aparecem em builds de produção, com o SDK pronto).
+  const [adsReady, setAdsReady] = useState(false);
+  useEffect(() => {
+    if (__DEV__ || !showAds) return;
+    let active = true;
+    void ensureAdsInitialized().then((ok) => {
+      if (active && ok) setAdsReady(true);
+    });
+    return () => {
+      active = false;
+    };
+  }, [showAds]);
+
   if (__DEV__) return null;
   if (!showAds) return null;
+  if (!adsReady) return null;
 
   const mod = getAdMob();
   if (!mod) return null;
@@ -86,7 +100,7 @@ export function AdBanner({ style }: AdBannerProps) {
 
   return (
     <View style={[{ alignItems: "center", paddingVertical: 8 }, style]}>
-      <BannerAd unitId={unitId} size={BannerAdSize.ADAPTIVE_BANNER} />
+      <BannerAd unitId={unitId} size={BannerAdSize.BANNER} />
     </View>
   );
 }

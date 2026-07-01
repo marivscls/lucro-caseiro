@@ -8,8 +8,6 @@
     "userInterfaceStyle": "automatic",
     "scheme": "lucrocaseiro",
     "splash": {
-      "image": "./assets/icon.png",
-      "resizeMode": "contain",
       "backgroundColor": "#1E1814"
     },
     "ios": {
@@ -18,10 +16,11 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#1E1814"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#F7DFD6"
       },
       "package": "br.com.orionseven.lucrocaseiro",
+      "versionCode": 12,
       "softwareKeyboardLayoutMode": "resize",
       "permissions": []
     },
@@ -61,7 +60,9 @@
           "iosAppId": "ca-app-pub-3940256099942544~1458002511"
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-font",
+      "expo-web-browser"
     ],
     "extra": {
       "router": {},

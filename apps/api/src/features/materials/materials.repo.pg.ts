@@ -45,6 +45,27 @@ export class MaterialsRepoPg implements IMaterialsRepo {
     return row ? this.toMaterial(row) : null;
   }
 
+  async findDuplicateByNameUnit(
+    userId: string,
+    name: string,
+    unit: string,
+    excludeId?: string,
+  ): Promise<Material | null> {
+    const conditions = [
+      eq(materials.userId, userId),
+      sql`lower(trim(${materials.name})) = lower(trim(${name}))`,
+      sql`lower(trim(${materials.unit})) = lower(trim(${unit}))`,
+    ];
+    if (excludeId) conditions.push(sql`${materials.id} <> ${excludeId}`);
+
+    const [row] = await this.db
+      .select()
+      .from(materials)
+      .where(and(...conditions))
+      .limit(1);
+    return row ? this.toMaterial(row) : null;
+  }
+
   async findAll(
     userId: string,
     opts: FindAllMaterialsOpts,

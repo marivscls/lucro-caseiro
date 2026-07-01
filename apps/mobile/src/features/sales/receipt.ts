@@ -22,7 +22,7 @@ export function buildReceiptMessage(sale: Sale): string {
 
   for (const item of sale.items) {
     lines.push(
-      `• ${item.quantity}x ${item.productName} — ${formatCurrency(item.subtotal)}`,
+      `• ${item.quantity}x ${item.productName}: ${formatCurrency(item.subtotal)}`,
     );
   }
 

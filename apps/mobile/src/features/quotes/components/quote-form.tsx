@@ -180,7 +180,7 @@ export function QuoteForm({ quote, onSuccess }: QuoteFormProps) {
           }}
         >
           <Input
-            placeholder={`Item ${index + 1} — ex.: Convite personalizado`}
+            placeholder={`Item ${index + 1}, ex.: Convite personalizado`}
             value={item.description}
             onChangeText={(v) => setItem(index, { description: v })}
           />

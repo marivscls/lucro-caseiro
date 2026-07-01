@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { Platform } from "react-native";
 
+import { ensureAdsInitialized } from "../ads-init";
 import { useShowAds } from "./use-show-ads";
 
 interface AdMobConfig {
@@ -83,34 +84,48 @@ export function useInterstitial() {
   useEffect(() => {
     if (!showAds) return;
 
-    const mod = getAdMob();
-    if (!mod) return;
+    let active = true;
+    let cleanup: (() => void) | undefined;
 
-    const unitId = getInterstitialUnitId();
-    if (!unitId) return;
+    // Espera o SDK do AdMob inicializar antes de criar/carregar o interstitial —
+    // criar antes disso pode crashar nativamente em produção.
+    void ensureAdsInitialized().then((ok) => {
+      if (!active || !ok) return;
 
-    const ad = mod.InterstitialAd.createForAdRequest(unitId, {
-      requestNonPersonalizedAdsOnly: true,
-    });
-    adRef.current = ad;
+      const mod = getAdMob();
+      if (!mod) return;
 
-    const unsubLoaded = ad.addAdEventListener(mod.AdEventType.LOADED, () => {
-      isLoadedRef.current = true;
-    });
-    const unsubClosed = ad.addAdEventListener(mod.AdEventType.CLOSED, () => {
-      isLoadedRef.current = false;
+      const unitId = getInterstitialUnitId();
+      if (!unitId) return;
+
+      const ad = mod.InterstitialAd.createForAdRequest(unitId, {
+        requestNonPersonalizedAdsOnly: true,
+      });
+      adRef.current = ad;
+
+      const unsubLoaded = ad.addAdEventListener(mod.AdEventType.LOADED, () => {
+        isLoadedRef.current = true;
+      });
+      const unsubClosed = ad.addAdEventListener(mod.AdEventType.CLOSED, () => {
+        isLoadedRef.current = false;
+        ad.load();
+      });
+      const unsubError = ad.addAdEventListener(mod.AdEventType.ERROR, () => {
+        isLoadedRef.current = false;
+      });
+
       ad.load();
-    });
-    const unsubError = ad.addAdEventListener(mod.AdEventType.ERROR, () => {
-      isLoadedRef.current = false;
-    });
 
-    ad.load();
+      cleanup = () => {
+        unsubLoaded();
+        unsubClosed();
+        unsubError();
+      };
+    });
 
     return () => {
-      unsubLoaded();
-      unsubClosed();
-      unsubError();
+      active = false;
+      cleanup?.();
     };
   }, [showAds]);
 

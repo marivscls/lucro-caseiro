@@ -66,7 +66,9 @@ export function useUpdateOrder() {
       const snapshots = queryClient.getQueriesData<Order[]>({ queryKey: ORDERS_KEY });
 
       for (const [queryKey, orders] of snapshots) {
-        if (!orders) continue;
+        // O prefixo ["orders"] tambem casa com ["orders","summary"], cujo cache
+        // e um objeto (OrdersSummary), nao um array — pular o que nao for lista.
+        if (!Array.isArray(orders)) continue;
         queryClient.setQueryData<Order[]>(
           queryKey,
           orders.map((order) => (order.id === id ? { ...order, ...data } : order)),

@@ -54,7 +54,7 @@ export function MaterialIconField({ name, value, onChange }: MaterialIconFieldPr
             {value ? "Ícone escolhido" : "Ícone automático"}
           </Typography>
           <Typography variant="caption" color={theme.colors.textSecondary}>
-            {value ? "Toque para trocar" : "Definido pelo nome — toque para escolher"}
+            {value ? "Toque para trocar" : "Definido pelo nome. Toque para escolher"}
           </Typography>
         </View>
         <Ionicons name="chevron-down" size={20} color={theme.colors.textSecondary} />

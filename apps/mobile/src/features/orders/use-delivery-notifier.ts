@@ -1,9 +1,9 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import { useEffect } from "react";
 
 import { NOTIFICATION_TYPES } from "../../shared/hooks/notification-types";
 import { useNotificationEnabled } from "../../shared/hooks/notification-prefs";
+import { asyncStorage } from "../../shared/utils/async-storage";
 import { upcomingCount } from "./domain";
 import { useOrders } from "./hooks";
 import { cancelOrderReminder, scheduleOrderReminder } from "./reminders";
@@ -24,7 +24,7 @@ async function maybeNotify(count: number): Promise<void> {
   const today = todayStr();
   let last: string | null = null;
   try {
-    last = await AsyncStorage.getItem(KEY);
+    last = await asyncStorage.getItem(KEY);
   } catch {
     last = null;
   }
@@ -41,7 +41,7 @@ async function maybeNotify(count: number): Promise<void> {
     },
     trigger: null,
   });
-  await AsyncStorage.setItem(KEY, today);
+  await asyncStorage.setItem(KEY, today);
 }
 
 /**

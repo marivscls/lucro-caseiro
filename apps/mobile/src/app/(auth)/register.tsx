@@ -14,7 +14,7 @@ import {
   validatePassword,
 } from "../../shared/utils/validation";
 import { showAlert } from "../../shared/components/alert-store";
-import onboardingHouse from "../../assets/onboarding-house.png";
+import authHouse from "../../assets/auth-house.png";
 
 function PasswordStrengthBar({ password }: Readonly<{ password: string }>) {
   const { theme } = useTheme();
@@ -170,11 +170,12 @@ export default function RegisterScreen() {
         buttons: [{ text: "Ok", onPress: () => router.push("/(auth)/login") }],
       });
     } else {
-      // Conta já entrou (sem confirmação de e-mail): o gate de auth redireciona
-      // pra dentro do app sozinho. Sem mensagem de "verifique seu e-mail".
       showAlert({
-        title: "Conta criada! 🎉",
-        message: "Tudo pronto — bora começar!",
+        title: "Conta criada com sucesso! 🎉",
+        message:
+          "Tudo pronto para você organizar, vender e lucrar mais com o que faz de melhor.",
+        buttons: [{ text: "Continuar", onPress: () => router.replace("/") }],
+        variant: "account-created",
       });
     }
   }
@@ -207,7 +208,7 @@ export default function RegisterScreen() {
       >
         <View style={{ alignItems: "center", gap: spacing.md }}>
           <Image
-            source={onboardingHouse}
+            source={authHouse}
             resizeMode="contain"
             style={{ width: 104, height: 104 }}
           />
@@ -226,7 +227,7 @@ export default function RegisterScreen() {
             color={theme.colors.textSecondary}
             style={{ textAlign: "center" }}
           >
-            Leva menos de um minuto — e é grátis.
+            Leva menos de um minuto, e é grátis.
           </Typography>
         </View>
 

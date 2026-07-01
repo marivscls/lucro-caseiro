@@ -19,7 +19,7 @@ import { MonthlyBars } from "../features/insights/components/monthly-bars";
 import { RankBars, type RankRow } from "../features/insights/components/rank-bars";
 import { formatMoney } from "../features/insights/domain";
 import { useInsights } from "../features/insights/hooks";
-import { useProfile } from "../features/subscription/hooks";
+import { isProfilePremiumActive, useProfile } from "../features/subscription/hooks";
 import { usePaywall } from "../shared/hooks/use-paywall";
 
 function StatCard({
@@ -160,6 +160,14 @@ function InsightsContent({
 
   return (
     <>
+      {isPremium && (
+        <MonthlyBars
+          series={data.monthlyRevenue}
+          windowMonths={months}
+          onWindowChange={onMonthsChange}
+        />
+      )}
+
       <View style={{ flexDirection: "row", gap: spacing.md }}>
         <StatCard
           label="FATURAMENTO"
@@ -187,12 +195,6 @@ function InsightsContent({
 
       {isPremium ? (
         <>
-          <MonthlyBars
-            series={data.monthlyRevenue}
-            windowMonths={months}
-            onWindowChange={onMonthsChange}
-          />
-
           {productRows.length > 0 && (
             <Card variant="surface" padding="xl">
               <SectionTitle
@@ -229,11 +231,11 @@ export default function InsightsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [months, setMonths] = useState<number>(12);
-  const { data: profile } = useProfile();
-  const isPremium = profile?.plan === "premium";
+  const { data: profile, isLoading: loadingProfile } = useProfile();
+  const isPremium = isProfilePremiumActive(profile);
   const showPaywall = usePaywall((s) => s.show);
   // Free vê só o mês atual ("básico mensal"); Premium escolhe a janela.
-  const { data, isLoading } = useInsights(isPremium ? months : 1);
+  const { data, isLoading } = useInsights(isPremium ? months : 1, !!profile);
 
   return (
     <SafeAreaView
@@ -270,7 +272,7 @@ export default function InsightsScreen() {
         </Typography>
       </View>
 
-      {isLoading ? (
+      {loadingProfile || isLoading ? (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>

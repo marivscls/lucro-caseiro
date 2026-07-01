@@ -1,9 +1,9 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import { useEffect } from "react";
 
 import { NOTIFICATION_TYPES } from "../../shared/hooks/notification-types";
 import { useNotificationEnabled } from "../../shared/hooks/notification-prefs";
+import { asyncStorage } from "../../shared/utils/async-storage";
 import { formatCurrency } from "../../shared/utils/format";
 import { oldFiadoSummary } from "./fiado";
 import { useSales } from "./hooks";
@@ -18,7 +18,7 @@ async function maybeNotify(count: number, total: number): Promise<void> {
 
   const now = Date.now();
   try {
-    const raw = await AsyncStorage.getItem(KEY);
+    const raw = await asyncStorage.getItem(KEY);
     const last = raw ? Number(raw) : 0;
     if (now - last < COOLDOWN_DAYS * 24 * 60 * 60 * 1000) return;
   } catch {
@@ -36,7 +36,7 @@ async function maybeNotify(count: number, total: number): Promise<void> {
     },
     trigger: null,
   });
-  await AsyncStorage.setItem(KEY, String(now));
+  await asyncStorage.setItem(KEY, String(now));
 }
 
 /**

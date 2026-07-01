@@ -600,7 +600,7 @@ export default function FiadoScreen() {
       message: `Marcar as ${count} vendas de ${group.clientName} como pagas?`,
       buttons: [
         { text: "Cancelar", style: "cancel" },
-        { text: "Sim, recebi tudo", onPress: () => runMarkAllPaid(group) },
+        { text: "Recebi tudo", onPress: () => runMarkAllPaid(group) },
       ],
     });
   }

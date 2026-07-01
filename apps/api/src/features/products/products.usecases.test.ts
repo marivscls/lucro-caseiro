@@ -35,6 +35,7 @@ function makeRepo(overrides: Partial<IProductsRepo> = {}): IProductsRepo {
     create: (_userId: string, data: CreateProductData) =>
       Promise.resolve(makeProduct({ name: data.name, salePrice: data.salePrice })),
     findById: () => Promise.resolve(makeProduct()),
+    findDuplicateByCode: () => Promise.resolve(null),
     findAll: () => Promise.resolve({ items: [makeProduct()], total: 1 }),
     update: (_userId: string, _id: string, data: Partial<CreateProductData>) => {
       // `components` tem shape de input (sem name/costPrice); nao se aplica ao Product.
@@ -121,6 +122,21 @@ describe("ProductsUseCases", () => {
 
       expect(captured?.code).toBe("7891234567890");
       expect(result.code).toBe("7891234567890");
+    });
+
+    it("rejects a duplicated product code", async () => {
+      const { sut } = makeSut({
+        findDuplicateByCode: () => Promise.resolve(makeProduct({ code: "789" })),
+      });
+
+      await expect(
+        sut.create(USER_ID, {
+          name: "Beijinho",
+          category: "doces",
+          salePrice: 3.5,
+          code: "789",
+        }),
+      ).rejects.toThrow(ValidationError);
     });
 
     it("repassa as fotos extras (galeria) para o repo", async () => {

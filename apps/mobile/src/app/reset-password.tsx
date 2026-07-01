@@ -38,7 +38,7 @@ export default function ResetPasswordScreen() {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) {
         alertError(
-          "Não foi possível alterar a senha. O link pode ter expirado — peça um novo.",
+          "Não foi possível alterar a senha. O link pode ter expirado. Peça um novo.",
         );
         return;
       }

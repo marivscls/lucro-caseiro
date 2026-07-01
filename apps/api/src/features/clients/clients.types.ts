@@ -3,6 +3,11 @@ import type { Client } from "@lucro-caseiro/contracts";
 export interface IClientsRepo {
   create(userId: string, data: CreateClientData): Promise<Client>;
   findById(userId: string, id: string): Promise<Client | null>;
+  findDuplicateByPhone(
+    userId: string,
+    phone: string,
+    excludeId?: string,
+  ): Promise<Client | null>;
   findAll(userId: string, opts: FindAllOpts): Promise<{ items: Client[]; total: number }>;
   update(
     userId: string,

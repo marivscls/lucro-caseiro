@@ -25,7 +25,7 @@ import { useOrders } from "../../features/orders/hooks";
 import { useLowStockProducts, useProducts } from "../../features/products/hooks";
 import { useSales, useTodaySummary } from "../../features/sales/hooks";
 import { LimitBanner } from "../../features/subscription/components/limit-banner";
-import { useProfile } from "../../features/subscription/hooks";
+import { isProfilePremiumActive, useProfile } from "../../features/subscription/hooks";
 import { AdBanner } from "../../shared/components/ad-banner";
 import { useNotificationEnabled } from "../../shared/hooks/notification-prefs";
 import { NOTIFICATION_TYPES } from "../../shared/hooks/notification-types";
@@ -69,7 +69,7 @@ function getFormattedDate(): string {
 
 /** Texto humano da contagem de vendas do dia (sem "(s)" de programador). */
 function todaySalesLabel(count: number): string {
-  if (count === 0) return "Nenhuma venda ainda — bora registrar a primeira?";
+  if (count === 0) return "Nenhuma venda ainda. Bora registrar a primeira?";
   if (count === 1) return "1 venda registrada";
   return `${count} vendas registradas`;
 }
@@ -424,7 +424,7 @@ export default function HomeScreen() {
   const monthProfit = financeSummary?.profit ?? 0;
   const upcomingDeliveries = orders ? upcomingCount(orders, new Date()) : 0;
   const hasSalesToday = (todaySummary?.totalSales ?? 0) > 0;
-  const isPremium = profile?.plan === "premium";
+  const isPremium = isProfilePremiumActive(profile);
   const birthdayCount = birthdays?.length ?? 0;
 
   const hasProduct = (productsData?.items?.length ?? 0) > 0;
