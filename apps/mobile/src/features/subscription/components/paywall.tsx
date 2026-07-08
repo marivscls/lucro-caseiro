@@ -15,6 +15,7 @@ import { Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { showAlert } from "../../../shared/components/alert-store";
+import { TIER_BENEFITS } from "../plan-benefits";
 
 interface PaywallProps {
   readonly title?: string;
@@ -26,23 +27,6 @@ interface PaywallProps {
   readonly loading?: boolean;
   readonly onClose?: () => void;
 }
-
-const TIER_BENEFITS: Record<PaidPlan, readonly string[]> = {
-  essential: [
-    "Vendas ilimitadas",
-    "Clientes e produtos ilimitados",
-    "Receitas e embalagens ilimitadas",
-    "Agenda, fiado e catálogo online",
-    "Sem anúncios",
-  ],
-  professional: [
-    "Tudo do Essencial",
-    "Catálogo completo e personalizado",
-    "Relatórios completos + exportar PDF/Excel",
-    "Fornecedores, compras e gastos fixos",
-    "Rótulos personalizados e orçamentos em PDF",
-  ],
-};
 
 function formatBRL(value: number): string {
   return `R$ ${value.toFixed(2).replace(".", ",")}`;
