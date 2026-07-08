@@ -177,6 +177,15 @@ export function useSubscription() {
     finishTransactionRef.current = finishTransaction;
   }, [finishTransaction]);
 
+  // Rede de segurança: o Google nem sempre devolve o callback de compra
+  // (cancelada/reembolsada/já possuída). Sem isso o botão fica em loading
+  // infinito. Se seguir carregando por 45s, libera o botão de volta.
+  useEffect(() => {
+    if (!loading) return;
+    const timeout = setTimeout(() => setLoading(false), 45000);
+    return () => clearTimeout(timeout);
+  }, [loading]);
+
   useEffect(() => {
     if (!token || Platform.OS !== "android" || !connected) return;
     void fetchProducts({ skus: [...ALL_PRODUCT_IDS], type: "subs" });
