@@ -59,15 +59,16 @@ export function validateOrder(
 
 /**
  * Monta o resumo agregado das encomendas a partir das linhas por status.
- * `cancelled` e ignorado (nao conta como receita/total).
- * `pending` = ativas (pending/in_production/ready); `delivered` = `done`.
+ * `cancelled` e ignorado (nao conta como receita/total). Semantica de PAGAMENTO:
+ * `received` = soma dos sinais (deposit); `toReceive` = soma de (valor - sinal).
+ * O sinal e validado para nunca exceder o valor, entao (amount - deposit) >= 0.
  */
 export function buildOrdersSummary(rows: OrdersStatusAggregate[]): OrdersSummary {
   const summary: OrdersSummary = {
     totalOrders: 0,
     totalAmount: 0,
-    pending: { count: 0, amount: 0 },
-    delivered: { count: 0, amount: 0 },
+    received: 0,
+    toReceive: 0,
   };
 
   for (const row of rows) {
@@ -75,10 +76,8 @@ export function buildOrdersSummary(rows: OrdersStatusAggregate[]): OrdersSummary
 
     summary.totalOrders += row.count;
     summary.totalAmount += row.amount;
-
-    const bucket = row.status === "done" ? summary.delivered : summary.pending;
-    bucket.count += row.count;
-    bucket.amount += row.amount;
+    summary.received += row.deposit;
+    summary.toReceive += Math.max(row.amount - row.deposit, 0);
   }
 
   return summary;

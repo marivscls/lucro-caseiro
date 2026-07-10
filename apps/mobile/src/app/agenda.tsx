@@ -853,13 +853,13 @@ function OrdersSummaryHeader({
         {[
           [
             "A receber",
-            summary.pending.amount,
+            summary.toReceive,
             "apps-outline" as const,
             theme.colors.primaryLight,
           ],
           [
             "Recebido",
-            summary.delivered.amount,
+            summary.received,
             "analytics-outline" as const,
             theme.colors.success,
           ],

@@ -108,6 +108,7 @@ export class OrdersRepoPg implements IOrdersRepo {
         status: orders.status,
         count: count(),
         amount: sum(orders.amount),
+        deposit: sum(orders.deposit),
       })
       .from(orders)
       .where(and(...conditions))
@@ -117,6 +118,7 @@ export class OrdersRepoPg implements IOrdersRepo {
       status: r.status,
       count: Number(r.count ?? 0),
       amount: Number(r.amount ?? 0),
+      deposit: Number(r.deposit ?? 0),
     }));
   }
 

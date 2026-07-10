@@ -109,9 +109,9 @@ describe("OrdersUseCases", () => {
         repo: {
           summarize: () =>
             Promise.resolve([
-              { status: "pending", count: 2, amount: 100 },
-              { status: "done", count: 1, amount: 80 },
-              { status: "cancelled", count: 3, amount: 500 },
+              { status: "pending", count: 2, amount: 100, deposit: 25 },
+              { status: "done", count: 1, amount: 80, deposit: 30 },
+              { status: "cancelled", count: 3, amount: 500, deposit: 100 },
             ]),
         },
       });
@@ -120,8 +120,8 @@ describe("OrdersUseCases", () => {
 
       expect(result.totalOrders).toBe(3);
       expect(result.totalAmount).toBe(180);
-      expect(result.pending).toEqual({ count: 2, amount: 100 });
-      expect(result.delivered).toEqual({ count: 1, amount: 80 });
+      expect(result.received).toBe(55);
+      expect(result.toReceive).toBe(125);
     });
 
     it("forwards filter opts to the repo", async () => {

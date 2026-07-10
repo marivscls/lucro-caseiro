@@ -84,7 +84,7 @@ receita ao entregar.
 - `CreateOrder` / `UpdateOrder` — payloads de criação/edição.
 - `DeliverOrder` — `{ registerIncome, paymentMethod? }`.
 - `OrderStatus` — `"pending"|"in_production"|"ready"|"done"|"cancelled"`.
-- `OrdersSummary` — `{ totalOrders, totalAmount, pending: { count, amount }, delivered: { count, amount } }`.
+- `OrdersSummary` — `{ totalOrders, totalAmount, received, toReceive }`. Semântica de **pagamento**: `received` = soma dos sinais (`deposit`); `toReceive` = soma de (`amount − deposit`) das não canceladas. Casa com o "Falta" do card de detalhe.
 
 ## Error Handling
 

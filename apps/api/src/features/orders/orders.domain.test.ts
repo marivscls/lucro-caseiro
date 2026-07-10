@@ -81,35 +81,45 @@ describe("buildOrdersSummary", () => {
     expect(buildOrdersSummary([])).toEqual({
       totalOrders: 0,
       totalAmount: 0,
-      pending: { count: 0, amount: 0 },
-      delivered: { count: 0, amount: 0 },
+      received: 0,
+      toReceive: 0,
     });
   });
 
-  it("buckets active statuses into pending and done into delivered", () => {
+  it("received = soma dos sinais; a receber = soma de (valor - sinal)", () => {
     const summary = buildOrdersSummary([
-      { status: "pending", count: 2, amount: 100 },
-      { status: "in_production", count: 1, amount: 50 },
-      { status: "ready", count: 1, amount: 30 },
-      { status: "done", count: 3, amount: 300 },
+      { status: "pending", count: 2, amount: 100, deposit: 20 },
+      { status: "in_production", count: 1, amount: 50, deposit: 0 },
+      { status: "ready", count: 1, amount: 30, deposit: 10 },
+      { status: "done", count: 3, amount: 300, deposit: 90 },
     ]);
 
     expect(summary.totalOrders).toBe(7);
     expect(summary.totalAmount).toBe(480);
-    expect(summary.pending).toEqual({ count: 4, amount: 180 });
-    expect(summary.delivered).toEqual({ count: 3, amount: 300 });
+    expect(summary.received).toBe(120);
+    expect(summary.toReceive).toBe(360);
   });
 
-  it("ignores cancelled orders in totals and buckets", () => {
+  it("nao desconta o sinal de encomenda entregue do a receber (sinal parcial)", () => {
+    // Espelha o caso da usuaria: 1 encomenda entregue de 1200 com sinal 60.
     const summary = buildOrdersSummary([
-      { status: "pending", count: 1, amount: 100 },
-      { status: "cancelled", count: 5, amount: 999 },
+      { status: "done", count: 1, amount: 1200, deposit: 60 },
+    ]);
+
+    expect(summary.received).toBe(60);
+    expect(summary.toReceive).toBe(1140);
+  });
+
+  it("ignores cancelled orders in totals and payment sums", () => {
+    const summary = buildOrdersSummary([
+      { status: "pending", count: 1, amount: 100, deposit: 30 },
+      { status: "cancelled", count: 5, amount: 999, deposit: 500 },
     ]);
 
     expect(summary.totalOrders).toBe(1);
     expect(summary.totalAmount).toBe(100);
-    expect(summary.pending).toEqual({ count: 1, amount: 100 });
-    expect(summary.delivered).toEqual({ count: 0, amount: 0 });
+    expect(summary.received).toBe(30);
+    expect(summary.toReceive).toBe(70);
   });
 });
 

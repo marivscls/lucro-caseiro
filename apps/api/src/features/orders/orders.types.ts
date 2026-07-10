@@ -29,21 +29,16 @@ export interface OrdersSummaryOpts {
   endDate?: string;
 }
 
-/** Contagem + soma de valores por bucket de status. */
-export interface OrdersSummaryBucket {
-  count: number;
-  amount: number;
-}
-
 /**
- * Agregado das encomendas do usuario (exclui `cancelled`).
- * `pending` = ativas (pending/in_production/ready); `delivered` = `done`.
+ * Agregado das encomendas do usuario (exclui `cancelled`). Semantica de
+ * PAGAMENTO (nao de status): `received` = soma dos sinais ja recebidos;
+ * `toReceive` = soma de (valor - sinal) ainda em aberto.
  */
 export interface OrdersSummary {
   totalOrders: number;
   totalAmount: number;
-  pending: OrdersSummaryBucket;
-  delivered: OrdersSummaryBucket;
+  received: number;
+  toReceive: number;
 }
 
 /** Agregacao crua vinda do repo (uma linha por status). */
@@ -51,6 +46,7 @@ export interface OrdersStatusAggregate {
   status: OrderStatus;
   count: number;
   amount: number;
+  deposit: number;
 }
 
 export interface IOrdersRepo {

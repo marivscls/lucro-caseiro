@@ -143,7 +143,7 @@ db:
 - isTerminal: done/cancelled vs ativos
 - todayISO: formatação
 
-- buildOrdersSummary: vazio (zeros), buckets pending/delivered, ignora cancelled
+- buildOrdersSummary: vazio (zeros), received/toReceive por pagamento (Σ sinal / Σ (valor−sinal)), sinal parcial em entregue, ignora cancelled
 
 ### UseCases (orders.usecases.test.ts)
 
@@ -172,3 +172,7 @@ POST /api/v1/orders/:id/deliver
 - 2026-06-10: **sinal e personalização** (migration 015): `deposit` (entrada recebida,
   validada ≤ amount), `theme`, `honoree`, `colors` (personalização de festas/papelaria).
   Sinal é informativo no MVP (não muda o fluxo de registrar receita na entrega).
+- 2026-07-10: `GET /summary` passou de buckets por **status** (pending/delivered) para
+  semântica de **pagamento**: `received` = Σ `deposit`; `toReceive` = Σ (`amount − deposit`)
+  das não canceladas (o repo agora soma `deposit` também). Antes o resumo ignorava o sinal
+  e mostrava o valor cheio da entregue como "Recebido"; agora casa com o "Falta" do card.

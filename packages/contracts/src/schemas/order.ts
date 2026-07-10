@@ -56,16 +56,13 @@ export const OrderDto = z.object({
 
 export type Order = z.infer<typeof OrderDto>;
 
-const OrdersSummaryBucketDto = z.object({
-  count: z.number(),
-  amount: z.number(),
-});
-
 export const OrdersSummaryDto = z.object({
   totalOrders: z.number(),
   totalAmount: z.number(),
-  pending: OrdersSummaryBucketDto,
-  delivered: OrdersSummaryBucketDto,
+  // "Recebido": soma dos sinais (deposit) ja recebidos das encomendas nao canceladas.
+  received: z.number(),
+  // "A receber": soma de (valor - sinal) das encomendas nao canceladas.
+  toReceive: z.number(),
 });
 
 export type OrdersSummary = z.infer<typeof OrdersSummaryDto>;
