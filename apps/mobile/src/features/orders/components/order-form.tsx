@@ -15,6 +15,7 @@ import {
 } from "react-native";
 
 import { showAlert } from "../../../shared/components/alert-store";
+import { CalendarModal } from "../../../shared/components/calendar-modal";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import {
   brToIso,
@@ -32,23 +33,6 @@ import {
   maskCurrencyInput,
   parseCurrencyInput,
 } from "../../../shared/utils/currency-input";
-
-type DateTimePickerEvent = { type?: string };
-type NativeDatePicker = React.ComponentType<{
-  value: Date;
-  mode: "date";
-  display: "spinner" | "default";
-  onChange: (event: DateTimePickerEvent, date?: Date) => void;
-}>;
-
-function getNativeDatePicker(): NativeDatePicker | null {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    return require("@react-native-community/datetimepicker").default as NativeDatePicker;
-  } catch {
-    return null;
-  }
-}
 
 interface OrderFormProps {
   readonly order?: Order | null;
@@ -324,7 +308,6 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
   );
   const [time, setTime] = useState(order?.deliveryTime ?? "");
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const DateTimePicker = showDatePicker ? getNativeDatePicker() : null;
   const [amount, setAmount] = useState(
     order?.amount != null ? currencyInput(order.amount) : "",
   );
@@ -348,13 +331,6 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
     createOrder.isPending || updateOrder.isPending || deleteOrder.isPending || uploading;
 
   function openDatePicker() {
-    if (!getNativeDatePicker()) {
-      showAlert({
-        title: "Calendario indisponivel",
-        message: "Digite a data no formato DD/MM/AAAA.",
-      });
-      return;
-    }
     setShowDatePicker(true);
   }
 
@@ -675,23 +651,12 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
               keyboardType="number-pad"
               placeholder="DD/MM/AAAA"
             />
-            {showDatePicker && DateTimePicker && (
-              <DateTimePicker
-                value={(() => {
-                  const iso = brToIso(dateText);
-                  return iso ? new Date(`${iso}T12:00:00`) : new Date();
-                })()}
-                mode="date"
-                display={Platform.OS === "ios" ? "spinner" : "default"}
-                onChange={(event, picked) => {
-                  setShowDatePicker(false);
-                  if (event.type === "dismissed" || !picked) return;
-                  setDateText(
-                    `${pad(picked.getDate())}/${pad(picked.getMonth() + 1)}/${picked.getFullYear()}`,
-                  );
-                }}
-              />
-            )}
+            <CalendarModal
+              visible={showDatePicker}
+              value={dateText}
+              onSelect={setDateText}
+              onClose={() => setShowDatePicker(false)}
+            />
           </View>
 
           <View style={{ gap: spacing.sm }}>
