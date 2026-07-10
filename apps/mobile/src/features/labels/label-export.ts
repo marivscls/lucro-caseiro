@@ -1,3 +1,5 @@
+import * as FileSystem from "expo-file-system/legacy";
+
 import type { LabelData } from "@lucro-caseiro/contracts";
 
 import { showAlert } from "../../shared/components/alert-store";
@@ -95,6 +97,9 @@ function buildLabelHtml(
   const card = buildLabelCard(data, logoUrl, qrUrl);
   const cards = `<div class="label-card">${card}</div>`.repeat(count);
   const sheet = count > 1;
+  // Etiqueta única fica maior pra aproveitar a folha A4 (a folha cheia já usa 2 colunas).
+  const scale = sheet ? 1 : 1.4;
+  const sz = (n: number) => Math.round(n * scale);
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -106,7 +111,7 @@ function buildLabelHtml(
     @page { size: A4; margin: 10mm; }
     body {
       margin: 0;
-      padding: ${sheet ? "0" : "32px"};
+      padding: ${sheet ? "0" : "24px"};
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
@@ -116,62 +121,62 @@ function buildLabelHtml(
       background: #ffffff;
     }
     .label-card {
-      width: ${sheet ? "47%" : "320px"};
+      width: ${sheet ? "47%" : "460px"};
       break-inside: avoid;
       background: ${style.bg};
       border: ${borderCss};
       border-radius: ${radiusCss};
-      padding: 24px;
+      padding: ${sz(24)}px;
       color: ${style.accent};
     }
     .logo {
       display: block;
-      width: 64px;
-      height: 64px;
+      width: ${sz(64)}px;
+      height: ${sz(64)}px;
       object-fit: contain;
-      margin: 0 auto 12px;
+      margin: 0 auto ${sz(18)}px;
       border-radius: 8px;
     }
     .title {
       text-align: center;
-      font-size: 24px;
+      font-size: ${sz(24)}px;
       font-weight: 700;
-      margin: 0 0 14px;
+      margin: 0 0 ${sz(16)}px;
     }
-    .block { margin-bottom: 12px; }
-    .label { font-size: 12px; font-weight: 700; }
-    .value { font-size: 12px; line-height: 1.4; }
+    .block { margin-bottom: ${sz(12)}px; }
+    .label { font-size: ${sz(12)}px; font-weight: 700; }
+    .value { font-size: ${sz(12)}px; line-height: 1.4; }
     .dates {
       display: flex;
       justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 12px;
+      gap: ${sz(16)}px;
+      margin-bottom: ${sz(12)}px;
     }
     .producer {
       border-top: 1px solid ${style.border};
-      padding-top: 10px;
-      margin-top: 6px;
+      padding-top: ${sz(12)}px;
+      margin-top: ${sz(6)}px;
       text-align: center;
-      font-size: 13px;
+      font-size: ${sz(13)}px;
     }
-    .producer .phone { font-size: 12px; }
+    .producer .phone { font-size: ${sz(12)}px; }
     .nutrition {
       border: 1px solid ${style.accent};
       border-radius: 8px;
-      padding: 8px 10px;
-      margin-bottom: 12px;
+      padding: ${sz(8)}px ${sz(10)}px;
+      margin-bottom: ${sz(12)}px;
     }
-    .nutrition-title { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+    .nutrition-title { font-size: ${sz(12)}px; font-weight: 700; margin-bottom: 4px; }
     .nutrition table { width: 100%; border-collapse: collapse; }
-    .nutrition td { font-size: 11px; padding: 1px 0; }
+    .nutrition td { font-size: ${sz(11)}px; padding: 1px 0; }
     .nutrition td.v { text-align: right; font-weight: 700; }
     .qr {
-      margin-top: 12px;
+      margin-top: ${sz(12)}px;
       text-align: center;
     }
     .qr svg {
-      width: 96px;
-      height: 96px;
+      width: ${sz(96)}px;
+      height: ${sz(96)}px;
     }
   </style>
 </head>
@@ -179,6 +184,17 @@ function buildLabelHtml(
   ${cards}
 </body>
 </html>`;
+}
+
+/** Nome de arquivo amigável a partir do nome do produto (sem acento/símbolo). */
+function labelFileName(productName?: string): string {
+  const slug = (productName ?? "")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "") // remove acentos (combining marks)
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .toLowerCase();
+  return `rotulo-${slug || "produto"}.pdf`;
 }
 
 /**
@@ -199,8 +215,21 @@ export async function exportLabelPdf(
   ]);
   const { uri } = await Print.printToFileAsync({ html });
 
+  // printToFileAsync gera um nome tipo "<uuid>.pdf"; copia pra um nome legível
+  // (ex.: "rotulo-brigadeiro-gourmet.pdf") antes de compartilhar. Se a cópia
+  // falhar, compartilha o original — não bloqueia o download.
+  let shareUri = uri;
+  try {
+    const dest = `${FileSystem.cacheDirectory}${labelFileName(data.productName)}`;
+    await FileSystem.deleteAsync(dest, { idempotent: true });
+    await FileSystem.copyAsync({ from: uri, to: dest });
+    shareUri = dest;
+  } catch {
+    shareUri = uri;
+  }
+
   if (await Sharing.isAvailableAsync()) {
-    await Sharing.shareAsync(uri, {
+    await Sharing.shareAsync(shareUri, {
       mimeType: "application/pdf",
       dialogTitle: "Baixar ou compartilhar rótulo",
       UTI: "com.adobe.pdf",
