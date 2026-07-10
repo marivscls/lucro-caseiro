@@ -1077,8 +1077,10 @@ export default function NewSaleScreen() {
             if (theme.mode === "dark") {
               cardBackgroundColor = "rgba(44, 36, 32, 0.84)";
             }
+            // Selecionado: fundo OPACO (nunca translúcido) — bg translúcido + a
+            // elevation do surface faz o Android pintar uma "caixa branca" atrás.
             if (isSelected) {
-              cardBackgroundColor = "rgba(196, 112, 126, 0.18)";
+              cardBackgroundColor = theme.mode === "dark" ? "#3A2D2A" : "#F6E5EA";
             }
             const subtitles: Record<PaymentMethod, string> = {
               pix: "Pagamento instantâneo",
@@ -1101,9 +1103,9 @@ export default function NewSaleScreen() {
                   paddingVertical: spacing.md,
                   paddingHorizontal: spacing.lg,
                   borderRadius: radii.xl,
+                  ...getSurfaceStyle(theme),
                   borderWidth: isSelected ? 2 : 1,
                   borderColor: isSelected ? theme.colors.primary : theme.colors.surface,
-                  ...getSurfaceStyle(theme),
                   backgroundColor: cardBackgroundColor,
                 }}
               >
