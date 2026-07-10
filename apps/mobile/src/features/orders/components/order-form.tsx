@@ -137,6 +137,184 @@ function Field({
   );
 }
 
+const THEME_SUGGESTIONS = [
+  "Safari",
+  "Princesas",
+  "Super-heróis",
+  "Unicórnio",
+  "Futebol",
+  "Jardim encantado",
+  "Astronauta",
+  "Fazendinha",
+];
+
+const COLOR_PALETTE: { name: string; hex: string }[] = [
+  { name: "Rosa", hex: "#E8A0BF" },
+  { name: "Azul", hex: "#7FA9D1" },
+  { name: "Dourado", hex: "#D4A054" },
+  { name: "Verde", hex: "#7FC29B" },
+  { name: "Lilás", hex: "#B79BD1" },
+  { name: "Vermelho", hex: "#D96B6B" },
+  { name: "Amarelo", hex: "#EBC55C" },
+  { name: "Branco", hex: "#F2EDE7" },
+];
+
+/** Lista de cores digitadas ("rosa, dourado") -> nomes normalizados. */
+function parseColorNames(value: string): string[] {
+  return value
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function isColorSelected(value: string, name: string): boolean {
+  return parseColorNames(value).some((c) => c.toLowerCase() === name.toLowerCase());
+}
+
+/** Adiciona/remove uma cor da lista, preservando o que a pessoa digitou à mão. */
+function toggleColorName(value: string, name: string): string {
+  const parts = parseColorNames(value);
+  const idx = parts.findIndex((c) => c.toLowerCase() === name.toLowerCase());
+  if (idx >= 0) parts.splice(idx, 1);
+  else parts.push(name);
+  return parts.join(", ");
+}
+
+function FieldLabel({ text }: Readonly<{ text: string }>) {
+  const { theme } = useTheme();
+  return (
+    <Typography variant="bodyBold" color={theme.colors.text} style={{ fontSize: 15 }}>
+      {text}
+    </Typography>
+  );
+}
+
+/**
+ * Campos de personalização enriquecidos: rótulos + chips de tema sugeridos
+ * (toque preenche) + paleta de cores visual (toque adiciona/remove a cor).
+ */
+function PersonalizationFields({
+  orderTheme,
+  setOrderTheme,
+  honoree,
+  setHonoree,
+  colors,
+  setColors,
+}: Readonly<{
+  orderTheme: string;
+  setOrderTheme: (v: string) => void;
+  honoree: string;
+  setHonoree: (v: string) => void;
+  colors: string;
+  setColors: (v: string) => void;
+}>) {
+  const { theme } = useTheme();
+  const pal = formPalette(theme);
+
+  return (
+    <View style={{ gap: spacing.lg }}>
+      <View style={{ gap: spacing.sm }}>
+        <FieldLabel text="Tema da festa" />
+        <Field
+          icon="balloon-outline"
+          placeholder="Ex.: Safari, Princesas"
+          value={orderTheme}
+          onChangeText={setOrderTheme}
+        />
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+          {THEME_SUGGESTIONS.map((suggestion) => {
+            const active = orderTheme.trim().toLowerCase() === suggestion.toLowerCase();
+            return (
+              <Pressable
+                key={suggestion}
+                accessibilityRole="button"
+                onPress={() => setOrderTheme(active ? "" : suggestion)}
+                style={{
+                  minHeight: 38,
+                  justifyContent: "center",
+                  paddingHorizontal: spacing.md,
+                  borderRadius: radii.full,
+                  backgroundColor: active ? theme.colors.primary : pal.surface,
+                  borderWidth: 1,
+                  borderColor: active ? theme.colors.primary : pal.border,
+                }}
+              >
+                <Typography
+                  variant="caption"
+                  color={active ? theme.colors.textOnPrimary : pal.muted}
+                  style={{ fontSize: 14, fontWeight: "700" }}
+                >
+                  {suggestion}
+                </Typography>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+
+      <View style={{ gap: spacing.sm }}>
+        <FieldLabel text="Homenageado" />
+        <Field
+          icon="person-outline"
+          placeholder="Nome e idade, ex.: Alice, 5 anos"
+          value={honoree}
+          onChangeText={setHonoree}
+        />
+      </View>
+
+      <View style={{ gap: spacing.sm }}>
+        <FieldLabel text="Cores" />
+        <Field
+          icon="color-palette-outline"
+          placeholder="Ex.: rosa e dourado"
+          value={colors}
+          onChangeText={setColors}
+        />
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
+          {COLOR_PALETTE.map((color) => {
+            const selected = isColorSelected(colors, color.name);
+            return (
+              <Pressable
+                key={color.name}
+                accessibilityRole="button"
+                accessibilityLabel={color.name}
+                accessibilityState={{ selected }}
+                onPress={() => setColors(toggleColorName(colors, color.name))}
+                style={{ alignItems: "center", gap: 4, width: 54 }}
+              >
+                <View
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 19,
+                    backgroundColor: color.hex,
+                    borderWidth: selected ? 3 : 1,
+                    borderColor: selected ? theme.colors.primary : pal.border,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {selected ? (
+                    <Ionicons name="checkmark" size={20} color="#4A3228" />
+                  ) : null}
+                </View>
+                <Typography
+                  variant="caption"
+                  color={selected ? theme.colors.text : pal.muted}
+                  numberOfLines={1}
+                  style={{ fontSize: 11 }}
+                >
+                  {color.name}
+                </Typography>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+    </View>
+  );
+}
+
 export function OrderForm({ order, onSuccess }: OrderFormProps) {
   const { theme } = useTheme();
   const pal = formPalette(theme);
@@ -562,23 +740,13 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
             icon="sparkles-outline"
             initiallyOpen={!!(orderTheme || honoree || colors)}
           >
-            <Field
-              icon="balloon-outline"
-              placeholder="Tema, ex.: Safari, Princesas"
-              value={orderTheme}
-              onChangeText={setOrderTheme}
-            />
-            <Field
-              icon="person-outline"
-              placeholder="Nome e idade, ex.: Alice, 5 anos"
-              value={honoree}
-              onChangeText={setHonoree}
-            />
-            <Field
-              icon="color-palette-outline"
-              placeholder="Cores, ex.: rosa e dourado"
-              value={colors}
-              onChangeText={setColors}
+            <PersonalizationFields
+              orderTheme={orderTheme}
+              setOrderTheme={setOrderTheme}
+              honoree={honoree}
+              setHonoree={setHonoree}
+              colors={colors}
+              setColors={setColors}
             />
           </FormSection>
         </View>
