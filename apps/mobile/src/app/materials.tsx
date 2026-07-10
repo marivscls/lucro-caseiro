@@ -211,6 +211,7 @@ export default function MaterialsScreen() {
       );
     }
     if (visible.length === 0) {
+      const lowFilterEmpty = lowOnly && !search.trim();
       return (
         <View
           style={{
@@ -218,6 +219,7 @@ export default function MaterialsScreen() {
             justifyContent: "center",
             alignItems: "center",
             padding: spacing.xl,
+            gap: spacing.md,
           }}
         >
           <Typography
@@ -225,8 +227,17 @@ export default function MaterialsScreen() {
             color={theme.colors.textSecondary}
             style={{ textAlign: "center" }}
           >
-            Nenhum insumo encontrado. Ajuste a busca ou o filtro.
+            {lowFilterEmpty
+              ? "Nenhum insumo com estoque baixo. Está tudo em dia! 🎉"
+              : "Nenhum insumo encontrado. Ajuste a busca ou o filtro."}
           </Typography>
+          {lowOnly ? (
+            <Button
+              title="Ver todos os insumos"
+              variant="secondary"
+              onPress={() => setLowOnly(false)}
+            />
+          ) : null}
         </View>
       );
     }
@@ -355,6 +366,36 @@ export default function MaterialsScreen() {
               }}
             />
           </View>
+        </View>
+      ) : null}
+
+      {lowOnly ? (
+        <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.sm }}>
+          <Pressable
+            onPress={() => setLowOnly(false)}
+            accessibilityRole="button"
+            accessibilityLabel="Remover filtro de estoque baixo"
+            style={{
+              alignSelf: "flex-start",
+              flexDirection: "row",
+              alignItems: "center",
+              gap: spacing.xs,
+              minHeight: 36,
+              paddingHorizontal: spacing.md,
+              borderRadius: radii.full,
+              backgroundColor: theme.colors.primary,
+            }}
+          >
+            <Ionicons name="funnel" size={14} color={theme.colors.textOnPrimary} />
+            <Typography
+              variant="caption"
+              color={theme.colors.textOnPrimary}
+              style={{ fontWeight: "700" }}
+            >
+              Estoque baixo
+            </Typography>
+            <Ionicons name="close" size={16} color={theme.colors.textOnPrimary} />
+          </Pressable>
         </View>
       ) : null}
 
