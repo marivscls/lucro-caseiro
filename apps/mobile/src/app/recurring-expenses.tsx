@@ -147,88 +147,94 @@ export default function RecurringExpensesScreen() {
             />
           </View>
 
-          <Pressable
-            accessibilityRole="button"
-            onPress={handleAddPress}
-            style={({ pressed }) => [styles.addButton, pressed && styles.pressed]}
-          >
-            <Ionicons name="add-circle-outline" size={22} color="#FFFFFF" />
-            <Text style={styles.addButtonText}>Adicionar gasto fixo</Text>
-          </Pressable>
+          {!isPremium ? (
+            <RecurringPremiumGate onUnlock={() => showPaywall("recurring")} />
+          ) : (
+            <>
+              <Pressable
+                accessibilityRole="button"
+                onPress={handleAddPress}
+                style={({ pressed }) => [styles.addButton, pressed && styles.pressed]}
+              >
+                <Ionicons name="add-circle-outline" size={22} color="#FFFFFF" />
+                <Text style={styles.addButtonText}>Adicionar gasto fixo</Text>
+              </Pressable>
 
-          {showForm && (
-            <RecurringForm
-              key={editingExpense?.id ?? "new"}
-              item={editingExpense}
-              onClose={() => {
-                setShowForm(false);
-                setEditingExpense(null);
-              }}
-              onPaywall={() => {
-                setShowForm(false);
-                setEditingExpense(null);
-                showPaywall("recurring");
-              }}
-              onSaved={(saved) => {
-                setSelectedExpense(saved);
-                setEditingExpense(null);
-              }}
-            />
-          )}
-
-          {isLoading && <Text style={styles.loadingText}>Carregando...</Text>}
-
-          {!isLoading && (items?.length ?? 0) === 0 && <EmptyRecurringState />}
-
-          {!isLoading &&
-            (items ?? []).map((item) => (
-              <React.Fragment key={item.id}>
-                <Pressable
-                  accessibilityLabel={`Ver detalhes de ${item.description}`}
-                  accessibilityRole="button"
-                  onPress={() => {
-                    setSelectedExpense(item);
+              {showForm && (
+                <RecurringForm
+                  key={editingExpense?.id ?? "new"}
+                  item={editingExpense}
+                  onClose={() => {
                     setShowForm(false);
                     setEditingExpense(null);
                   }}
-                  style={({ pressed }) => [
-                    styles.expenseCard,
-                    selectedExpense?.id === item.id && styles.expenseCardSelected,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <View style={styles.expenseIcon}>
-                    <Ionicons name="calendar-outline" size={20} color={BRAND_PINK} />
-                  </View>
-                  <View style={styles.expenseInfo}>
-                    <Text style={styles.expenseTitle}>{item.description}</Text>
-                    <Text style={styles.expenseMeta}>
-                      {categoryLabel(item.category)} · todo dia {item.dayOfMonth}
-                    </Text>
-                  </View>
-                  <Text style={styles.expenseAmount}>{formatMoney(item.amount)}</Text>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={20}
-                    color={theme.colors.textSecondary}
-                  />
-                </Pressable>
+                  onPaywall={() => {
+                    setShowForm(false);
+                    setEditingExpense(null);
+                    showPaywall("recurring");
+                  }}
+                  onSaved={(saved) => {
+                    setSelectedExpense(saved);
+                    setEditingExpense(null);
+                  }}
+                />
+              )}
 
-                {selectedExpense?.id === item.id && !showForm && (
-                  <RecurringDetails
-                    item={selectedExpense}
-                    onClose={() => setSelectedExpense(null)}
-                    onDelete={() =>
-                      confirmDelete(selectedExpense.id, selectedExpense.description)
-                    }
-                    onEdit={() => {
-                      setEditingExpense(selectedExpense);
-                      setShowForm(true);
-                    }}
-                  />
-                )}
-              </React.Fragment>
-            ))}
+              {isLoading && <Text style={styles.loadingText}>Carregando...</Text>}
+
+              {!isLoading && (items?.length ?? 0) === 0 && <EmptyRecurringState />}
+
+              {!isLoading &&
+                (items ?? []).map((item) => (
+                  <React.Fragment key={item.id}>
+                    <Pressable
+                      accessibilityLabel={`Ver detalhes de ${item.description}`}
+                      accessibilityRole="button"
+                      onPress={() => {
+                        setSelectedExpense(item);
+                        setShowForm(false);
+                        setEditingExpense(null);
+                      }}
+                      style={({ pressed }) => [
+                        styles.expenseCard,
+                        selectedExpense?.id === item.id && styles.expenseCardSelected,
+                        pressed && styles.pressed,
+                      ]}
+                    >
+                      <View style={styles.expenseIcon}>
+                        <Ionicons name="calendar-outline" size={20} color={BRAND_PINK} />
+                      </View>
+                      <View style={styles.expenseInfo}>
+                        <Text style={styles.expenseTitle}>{item.description}</Text>
+                        <Text style={styles.expenseMeta}>
+                          {categoryLabel(item.category)} · todo dia {item.dayOfMonth}
+                        </Text>
+                      </View>
+                      <Text style={styles.expenseAmount}>{formatMoney(item.amount)}</Text>
+                      <Ionicons
+                        name="chevron-forward"
+                        size={20}
+                        color={theme.colors.textSecondary}
+                      />
+                    </Pressable>
+
+                    {selectedExpense?.id === item.id && !showForm && (
+                      <RecurringDetails
+                        item={selectedExpense}
+                        onClose={() => setSelectedExpense(null)}
+                        onDelete={() =>
+                          confirmDelete(selectedExpense.id, selectedExpense.description)
+                        }
+                        onEdit={() => {
+                          setEditingExpense(selectedExpense);
+                          setShowForm(true);
+                        }}
+                      />
+                    )}
+                  </React.Fragment>
+                ))}
+            </>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -528,6 +534,47 @@ function DetailItem({
   );
 }
 
+/**
+ * Tela de apresentação do recurso pra quem está no plano gratuito: explica o que
+ * Gastos fixos faz + CTA de upgrade, sem exibir o formulário (que não salvaria).
+ */
+function RecurringPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) {
+  const { theme, styles } = useRecurringTheme();
+  const benefits = [
+    "Aluguel, internet, gás e outros custos caem sozinhos no caixa todo mês.",
+    "Você não esquece nenhuma conta — o app lança na data certa.",
+    "Enxergue o lucro real, já com os custos fixos descontados.",
+  ];
+
+  return (
+    <View style={styles.gateCard}>
+      <View style={styles.gateBadge}>
+        <Ionicons name="diamond-outline" size={16} color={theme.colors.premium} />
+        <Text style={styles.gateBadgeText}>Recurso Profissional</Text>
+      </View>
+      <Text style={styles.gateTitle}>Gastos fixos no automático</Text>
+      <Text style={styles.gateSubtitle}>
+        Cadastre uma vez e deixe o app lançar seus custos mensais sozinho, sempre na data
+        certa.
+      </Text>
+      {benefits.map((benefit) => (
+        <View key={benefit} style={styles.gateBullet}>
+          <Ionicons name="checkmark-circle" size={20} color={theme.colors.premium} />
+          <Text style={styles.gateBulletText}>{benefit}</Text>
+        </View>
+      ))}
+      <Pressable
+        accessibilityRole="button"
+        onPress={onUnlock}
+        style={({ pressed }) => [styles.gateCta, pressed && styles.pressed]}
+      >
+        <Ionicons name="lock-open-outline" size={20} color="#FFFFFF" />
+        <Text style={styles.gateCtaText}>Desbloquear no Profissional</Text>
+      </Pressable>
+    </View>
+  );
+}
+
 function EmptyRecurringState() {
   const { styles } = useRecurringTheme();
 
@@ -823,6 +870,66 @@ function createStyles(theme: Theme) {
       color: pal.text,
       fontSize: 17,
       fontWeight: "800",
+    },
+    gateBadge: {
+      alignItems: "center",
+      alignSelf: "flex-start",
+      backgroundColor: "rgba(212, 160, 84, 0.14)",
+      borderRadius: 999,
+      flexDirection: "row",
+      gap: 6,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+    },
+    gateBadgeText: {
+      color: theme.colors.premium,
+      fontSize: 12,
+      fontWeight: "800",
+    },
+    gateBullet: {
+      alignItems: "flex-start",
+      flexDirection: "row",
+      gap: 10,
+    },
+    gateBulletText: {
+      color: pal.text,
+      flex: 1,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+    gateCard: {
+      backgroundColor: pal.card,
+      borderColor: BRAND_PINK_BORDER,
+      borderRadius: 16,
+      borderWidth: 1,
+      gap: 14,
+      padding: 20,
+    },
+    gateCta: {
+      alignItems: "center",
+      backgroundColor: theme.colors.premium,
+      borderRadius: 12,
+      flexDirection: "row",
+      gap: 8,
+      height: 50,
+      justifyContent: "center",
+      marginTop: 4,
+    },
+    gateCtaText: {
+      color: "#FFFFFF",
+      fontSize: 16,
+      fontWeight: "800",
+    },
+    gateSubtitle: {
+      color: pal.muted,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+    gateTitle: {
+      color: pal.title,
+      fontFamily: "serif",
+      fontSize: 22,
+      fontWeight: "700",
     },
     header: {
       alignItems: "center",
