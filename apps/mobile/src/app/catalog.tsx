@@ -31,7 +31,7 @@ import { ApiError } from "../shared/utils/api-client";
 import { showToast } from "../shared/components/toast";
 import { uploadCatalogCover, uploadCatalogLogo } from "../shared/utils/upload-image";
 import { alertError } from "../shared/utils/alerts";
-import authHouse from "../assets/auth-house.png";
+import appLogo from "../../assets/icon.png";
 
 // Mesmas chaves/cores dos presets do backend (CATALOG_ACCENT_PRESETS).
 const ACCENT_SWATCHES: { key: CatalogAccentColorValue; color: string; label: string }[] =
@@ -370,9 +370,9 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
         }}
       >
         <Image
-          source={authHouse}
+          source={appLogo}
           resizeMode="contain"
-          style={{ width: 118, height: 118 }}
+          style={{ width: 118, height: 118, borderRadius: 26 }}
         />
         <Typography variant="h1" serif style={{ marginTop: spacing.sm }}>
           Sua vitrine online
