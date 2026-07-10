@@ -205,12 +205,8 @@ function ProgressDots({ current, total }: Readonly<{ current: number; total: num
   );
 }
 
-function StepHeader({
-  onBack,
-  dark = false,
-}: Readonly<{ onBack: () => void; dark?: boolean }>) {
+function StepHeader({ onBack }: Readonly<{ onBack: () => void }>) {
   const { theme } = useTheme();
-  const textColor = dark ? "#F5E1DB" : theme.colors.text;
   return (
     <View style={{ flexDirection: "row", alignItems: "center", padding: spacing.lg }}>
       <Pressable
@@ -221,12 +217,12 @@ function StepHeader({
           width: 48,
           height: 48,
           borderRadius: radii.md,
-          backgroundColor: dark ? "rgba(245, 225, 219, 0.06)" : "transparent",
+          backgroundColor: "transparent",
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <Ionicons name="arrow-back" size={24} color={textColor} />
+        <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
       </Pressable>
       <View style={{ flex: 1, alignItems: "center" }}>
         <Typography
@@ -345,14 +341,14 @@ function NicheStep({
   const { theme } = useTheme();
   const pagePadding = spacing.lg;
   const cardGap = spacing.md;
-  const background = "#1E1814";
-  const cardBackground = "rgba(44, 36, 32, 0.72)";
-  const selectedBg = "rgba(196, 112, 126, 0.12)";
-  const mutedText = "#B8A090";
+  const background = theme.colors.background;
+  const cardBackground = theme.colors.surfaceElevated;
+  const selectedBg = `${theme.colors.primary}1f`;
+  const mutedText = theme.colors.textSecondary;
 
   return (
     <View style={{ flex: 1, backgroundColor: background }}>
-      <StepHeader onBack={onBack} dark />
+      <StepHeader onBack={onBack} />
 
       <ScrollView
         contentContainerStyle={{
@@ -371,7 +367,7 @@ function NicheStep({
             variant="display"
             style={{
               textAlign: "center",
-              color: "#F5E1DB",
+              color: theme.colors.text,
               fontSize: 34,
               letterSpacing: 0,
             }}
@@ -421,7 +417,7 @@ function NicheStep({
                       width: 54,
                       height: 54,
                       borderRadius: radii.md,
-                      backgroundColor: "rgba(245, 225, 219, 0.05)",
+                      backgroundColor: theme.colors.surface,
                       alignItems: "center",
                       justifyContent: "center",
                       overflow: "hidden",
@@ -436,7 +432,7 @@ function NicheStep({
                   <View style={{ flex: 1 }}>
                     <Typography
                       variant="bodyBold"
-                      color="#F5E1DB"
+                      color={theme.colors.text}
                       numberOfLines={2}
                       style={{ fontSize: 15, lineHeight: 19 }}
                     >
@@ -457,7 +453,7 @@ function NicheStep({
                       height: 24,
                       borderRadius: 12,
                       borderWidth: isSelected ? 0 : 2,
-                      borderColor: "rgba(245, 225, 219, 0.32)",
+                      borderColor: theme.colors.textSecondary,
                       backgroundColor: isSelected ? theme.colors.primary : "transparent",
                       alignItems: "center",
                       justifyContent: "center",
