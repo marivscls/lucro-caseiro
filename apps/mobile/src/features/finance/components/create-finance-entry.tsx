@@ -1,10 +1,10 @@
 import type { ExpenseCategory, FinanceEntryType } from "@lucro-caseiro/contracts";
+import { useTheme, type Theme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -20,6 +20,7 @@ import {
   maskCurrencyInput,
   parseCurrencyInput,
 } from "../../../shared/utils/currency-input";
+import { CalendarModal } from "../../../shared/components/calendar-modal";
 import { useCreateFinanceEntry } from "../hooks";
 import { showToast } from "../../../shared/components/toast";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
@@ -48,32 +49,23 @@ const CATEGORIES: {
   },
 ];
 
-const MONTH_NAMES = [
-  "Janeiro",
-  "Fevereiro",
-  "Março",
-  "Abril",
-  "Maio",
-  "Junho",
-  "Julho",
-  "Agosto",
-  "Setembro",
-  "Outubro",
-  "Novembro",
-  "Dezembro",
-];
+function useEntryStyles() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  return { theme, styles };
+}
 
 export function CreateFinanceEntry({
   onClose,
   onSuccess,
 }: Readonly<CreateFinanceEntryProps>) {
+  const { theme, styles } = useEntryStyles();
   const [type, setType] = useState<FinanceEntryType>("income");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<ExpenseCategory | "">("");
   const [date, setDate] = useState("");
   const [calendarVisible, setCalendarVisible] = useState(false);
-  const [calendarMonth, setCalendarMonth] = useState(() => new Date());
   const scrollRef = useRef<ScrollView>(null);
 
   const createEntry = useCreateFinanceEntry();
@@ -126,11 +118,6 @@ export function CreateFinanceEntry({
     }, 180);
   }
 
-  function openCalendar() {
-    setCalendarMonth(dateToCalendarMonth(date));
-    setCalendarVisible(true);
-  }
-
   return (
     <>
       <KeyboardAvoidingView
@@ -145,7 +132,7 @@ export function CreateFinanceEntry({
         >
           <View style={styles.header}>
             <TouchableOpacity onPress={onClose} hitSlop={12} style={styles.backButton}>
-              <Ionicons name="arrow-back" size={32} color="#F8ECE8" />
+              <Ionicons name="arrow-back" size={32} color={theme.colors.text} />
             </TouchableOpacity>
             <Text style={styles.title}>Novo lançamento</Text>
             <TouchableOpacity onPress={onClose} hitSlop={12}>
@@ -177,7 +164,6 @@ export function CreateFinanceEntry({
           <FormCard label="Valor (R$)">
             <Field
               icon="cash-outline"
-              iconTone="green"
               placeholder="Ex: 25,00"
               value={amount}
               onChangeText={(value) => setAmount(maskCurrencyInput(value))}
@@ -188,7 +174,6 @@ export function CreateFinanceEntry({
           <FormCard label="Descrição">
             <Field
               icon="document-text-outline"
-              iconTone="green"
               placeholder="Ex: Venda de brigadeiros, Compra de leite condensado"
               value={description}
               onChangeText={setDescription}
@@ -228,14 +213,13 @@ export function CreateFinanceEntry({
           <FormCard label="Data (opcional)">
             <Field
               icon="calendar-outline"
-              iconTone="green"
               placeholder="DD/MM/AAAA"
               value={date}
               onChangeText={(value) => setDate(maskDateBR(value))}
               onFocus={focusDateField}
               keyboardType="number-pad"
               trailingIcon="calendar-outline"
-              onTrailingPress={openCalendar}
+              onTrailingPress={() => setCalendarVisible(true)}
             />
           </FormCard>
 
@@ -250,10 +234,14 @@ export function CreateFinanceEntry({
             ]}
           >
             {createEntry.isPending ? (
-              <ActivityIndicator color="#FFFFFF" />
+              <ActivityIndicator color={theme.colors.textOnPrimary} />
             ) : (
               <>
-                <Ionicons name="checkmark-circle-outline" size={29} color="#FFFFFF" />
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={29}
+                  color={theme.colors.textOnPrimary}
+                />
                 <Text style={styles.submitText}>Registrar lançamento</Text>
               </>
             )}
@@ -264,7 +252,7 @@ export function CreateFinanceEntry({
             onPress={onClose}
             style={styles.viewEntries}
           >
-            <Ionicons name="clipboard-outline" size={22} color="#D6748B" />
+            <Ionicons name="clipboard-outline" size={22} color={theme.colors.primary} />
             <Text style={styles.viewEntriesText}>Ver lançamentos</Text>
           </Pressable>
         </ScrollView>
@@ -272,12 +260,10 @@ export function CreateFinanceEntry({
 
       <CalendarModal
         visible={calendarVisible}
-        month={calendarMonth}
         value={date}
-        onChangeMonth={setCalendarMonth}
         onClose={() => setCalendarVisible(false)}
         onSelect={(selectedDate) => {
-          setDate(formatDateBR(selectedDate));
+          setDate(selectedDate);
           setCalendarVisible(false);
           focusDateField();
         }}
@@ -299,8 +285,9 @@ function TypeButton({
   tone: "green" | "muted";
   onPress: () => void;
 }>) {
-  const activeBg = tone === "green" ? "#68D0A0" : "#CF6F88";
-  const color = selected ? "#FFFFFF" : "#BBAAA3";
+  const { theme, styles } = useEntryStyles();
+  const activeBg = tone === "green" ? theme.colors.success : theme.colors.primary;
+  const color = selected ? "#FFFFFF" : theme.colors.textSecondary;
 
   return (
     <Pressable
@@ -318,6 +305,7 @@ function FormCard({
   label,
   children,
 }: Readonly<{ label: string; children: React.ReactNode }>) {
+  const { styles } = useEntryStyles();
   return (
     <View style={styles.formCard}>
       <Text style={styles.fieldLabel}>{label}</Text>
@@ -328,7 +316,6 @@ function FormCard({
 
 function Field({
   icon,
-  iconTone,
   trailingIcon,
   onTrailingPress,
   multiline,
@@ -336,22 +323,21 @@ function Field({
 }: Readonly<
   React.ComponentProps<typeof TextInput> & {
     icon: keyof typeof Ionicons.glyphMap;
-    iconTone: "green";
     trailingIcon?: keyof typeof Ionicons.glyphMap;
     onTrailingPress?: () => void;
   }
 >) {
-  const color = iconTone === "green" ? "#68D0A0" : "#D6748B";
+  const { theme, styles } = useEntryStyles();
 
   return (
     <View style={styles.inputWrap}>
       <View style={styles.inputIcon}>
-        <Ionicons name={icon} size={24} color={color} />
+        <Ionicons name={icon} size={24} color={theme.colors.success} />
       </View>
       <TextInput
         {...inputProps}
         multiline={multiline}
-        placeholderTextColor="#8E807A"
+        placeholderTextColor={theme.colors.textSecondary}
         style={[styles.input, multiline && styles.multilineInput]}
       />
       {trailingIcon ? (
@@ -361,372 +347,182 @@ function Field({
           disabled={!onTrailingPress}
           hitSlop={12}
         >
-          <Ionicons name={trailingIcon} size={25} color="#BBAAA3" />
+          <Ionicons name={trailingIcon} size={25} color={theme.colors.textSecondary} />
         </TouchableOpacity>
       ) : null}
     </View>
   );
 }
 
-function CalendarModal({
-  visible,
-  month,
-  value,
-  onChangeMonth,
-  onClose,
-  onSelect,
-}: Readonly<{
-  visible: boolean;
-  month: Date;
-  value: string;
-  onChangeMonth: (date: Date) => void;
-  onClose: () => void;
-  onSelect: (date: Date) => void;
-}>) {
-  const selectedIso = brToIso(value);
-  const days = useMemo(() => buildCalendarDays(month), [month]);
-  const title = `${MONTH_NAMES[month.getMonth()]} ${month.getFullYear()}`;
+function createStyles(theme: Theme) {
+  const isDark = theme.mode === "dark";
+  const border = isDark ? "rgba(255,255,255,0.10)" : "rgba(74,50,40,0.10)";
+  const card = isDark ? "rgba(44, 35, 32, 0.88)" : theme.colors.surfaceElevated;
+  const inputBg = isDark ? "rgba(255,255,255,0.05)" : theme.colors.surface;
 
-  function changeMonth(offset: number) {
-    onChangeMonth(new Date(month.getFullYear(), month.getMonth() + offset, 1));
-  }
-
-  return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.calendarOverlay}>
-        <Pressable style={styles.calendarBackdrop} onPress={onClose} />
-        <View style={styles.calendarCard}>
-          <View style={styles.calendarHeader}>
-            <TouchableOpacity onPress={() => changeMonth(-1)} hitSlop={12}>
-              <Ionicons name="chevron-back" size={27} color="#F8ECE8" />
-            </TouchableOpacity>
-            <Text style={styles.calendarTitle}>{title}</Text>
-            <TouchableOpacity onPress={() => changeMonth(1)} hitSlop={12}>
-              <Ionicons name="chevron-forward" size={27} color="#F8ECE8" />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.weekRow}>
-            {["D", "S", "T", "Q", "Q", "S", "S"].map((label, index) => (
-              <Text key={`${label}-${index}`} style={styles.weekLabel}>
-                {label}
-              </Text>
-            ))}
-          </View>
-
-          <View style={styles.daysGrid}>
-            {days.map((day) => {
-              const iso = formatIsoDate(day.date);
-              const selected = selectedIso === iso;
-              return (
-                <Pressable
-                  key={iso}
-                  accessibilityRole="button"
-                  onPress={() => onSelect(day.date)}
-                  style={[
-                    styles.dayButton,
-                    !day.inMonth && styles.dayMuted,
-                    selected && styles.daySelected,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.dayText,
-                      !day.inMonth && styles.dayTextMuted,
-                      selected && styles.dayTextSelected,
-                    ]}
-                  >
-                    {day.date.getDate()}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-
-          <TouchableOpacity onPress={onClose} style={styles.calendarCloseButton}>
-            <Text style={styles.calendarCloseText}>Fechar</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
-  );
-}
-
-function dateToCalendarMonth(value: string) {
-  const iso = brToIso(value);
-  if (!iso) return new Date();
-  const [year, month, day] = iso.split("-").map(Number);
-  return new Date(year, month - 1, day);
-}
-
-function buildCalendarDays(month: Date) {
-  const firstDay = new Date(month.getFullYear(), month.getMonth(), 1);
-  const start = new Date(firstDay);
-  start.setDate(firstDay.getDate() - firstDay.getDay());
-
-  return Array.from({ length: 42 }, (_, index) => {
-    const date = new Date(start);
-    date.setDate(start.getDate() + index);
-    return {
-      date,
-      inMonth: date.getMonth() === month.getMonth(),
-    };
+  return StyleSheet.create({
+    backButton: {
+      marginLeft: -4,
+    },
+    categoryButton: {
+      alignItems: "center",
+      borderColor: border,
+      borderRadius: 14,
+      borderWidth: 1,
+      flexDirection: "row",
+      gap: 8,
+      height: 46,
+      paddingHorizontal: 12,
+      width: "48.2%",
+    },
+    categoryButtonSelected: {
+      backgroundColor: `${theme.colors.primary}26`,
+      borderColor: theme.colors.primary,
+    },
+    categoryGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
+    },
+    categoryText: {
+      color: theme.colors.textSecondary,
+      flex: 1,
+      fontSize: 14,
+      fontWeight: "700",
+    },
+    categoryTextSelected: {
+      color: theme.colors.text,
+    },
+    closeText: {
+      color: theme.colors.primary,
+      fontSize: 15,
+      fontWeight: "900",
+    },
+    content: {
+      gap: 12,
+      paddingBottom: 18,
+      paddingHorizontal: 22,
+      paddingTop: 8,
+    },
+    disabled: {
+      opacity: 0.6,
+    },
+    fieldLabel: {
+      color: theme.colors.text,
+      fontSize: 16,
+      fontWeight: "900",
+      marginBottom: 10,
+    },
+    formCard: {
+      backgroundColor: card,
+      borderColor: border,
+      borderRadius: 20,
+      borderWidth: 1,
+      padding: 13,
+    },
+    header: {
+      alignItems: "center",
+      flexDirection: "row",
+      gap: 14,
+    },
+    input: {
+      color: theme.colors.text,
+      flex: 1,
+      fontSize: 16,
+      fontWeight: "700",
+      minHeight: 40,
+      padding: 0,
+    },
+    inputIcon: {
+      alignItems: "center",
+      backgroundColor: theme.colors.successBg,
+      borderRadius: 11,
+      height: 44,
+      justifyContent: "center",
+      width: 44,
+    },
+    inputWrap: {
+      alignItems: "center",
+      backgroundColor: inputBg,
+      borderColor: border,
+      borderRadius: 16,
+      borderWidth: 1,
+      flexDirection: "row",
+      gap: 11,
+      minHeight: 56,
+      paddingHorizontal: 12,
+      paddingVertical: 7,
+    },
+    keyboardAvoider: {
+      flex: 1,
+    },
+    multilineInput: {
+      minHeight: 50,
+      textAlignVertical: "center",
+    },
+    pressed: {
+      opacity: 0.86,
+    },
+    submitButton: {
+      alignItems: "center",
+      backgroundColor: theme.colors.primary,
+      borderRadius: 16,
+      flexDirection: "row",
+      gap: 10,
+      height: 62,
+      justifyContent: "center",
+      marginTop: 4,
+    },
+    submitText: {
+      color: theme.colors.textOnPrimary,
+      fontSize: 18,
+      fontWeight: "900",
+    },
+    subtitle: {
+      color: theme.colors.textSecondary,
+      fontSize: 15,
+      lineHeight: 22,
+      marginTop: 4,
+      width: "86%",
+    },
+    title: {
+      color: theme.colors.text,
+      flex: 1,
+      fontSize: 25,
+      fontWeight: "900",
+    },
+    typeButton: {
+      alignItems: "center",
+      borderRadius: 16,
+      flex: 1,
+      flexDirection: "row",
+      gap: 10,
+      height: 62,
+      justifyContent: "center",
+    },
+    typeSwitch: {
+      backgroundColor: card,
+      borderColor: border,
+      borderRadius: 20,
+      borderWidth: 1,
+      flexDirection: "row",
+      overflow: "hidden",
+      padding: 4,
+    },
+    typeText: {
+      fontSize: 17,
+      fontWeight: "900",
+    },
+    viewEntries: {
+      alignItems: "center",
+      flexDirection: "row",
+      gap: 9,
+      justifyContent: "center",
+    },
+    viewEntriesText: {
+      color: theme.colors.primary,
+      fontSize: 15,
+      fontWeight: "900",
+    },
   });
 }
-
-function formatDateBR(date: Date) {
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  return `${day}/${month}/${date.getFullYear()}`;
-}
-
-function formatIsoDate(date: Date) {
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${date.getFullYear()}-${month}-${day}`;
-}
-
-const styles = StyleSheet.create({
-  backButton: {
-    marginLeft: -4,
-  },
-  calendarBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  calendarCard: {
-    backgroundColor: "rgba(44, 35, 32, 0.98)",
-    borderColor: "rgba(255,255,255,0.10)",
-    borderRadius: 24,
-    borderWidth: 1,
-    marginHorizontal: 22,
-    padding: 16,
-  },
-  calendarCloseButton: {
-    alignItems: "center",
-    backgroundColor: "#CF6F88",
-    borderRadius: 15,
-    height: 48,
-    justifyContent: "center",
-    marginTop: 12,
-  },
-  calendarCloseText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "900",
-  },
-  calendarHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 14,
-  },
-  calendarOverlay: {
-    backgroundColor: "rgba(0,0,0,0.62)",
-    flex: 1,
-    justifyContent: "center",
-  },
-  calendarTitle: {
-    color: "#F8ECE8",
-    fontSize: 20,
-    fontWeight: "900",
-  },
-  categoryButton: {
-    alignItems: "center",
-    borderColor: "rgba(255,255,255,0.12)",
-    borderRadius: 14,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: 8,
-    height: 46,
-    paddingHorizontal: 12,
-    width: "48.2%",
-  },
-  categoryButtonSelected: {
-    backgroundColor: "rgba(207, 111, 136, 0.16)",
-    borderColor: "#D6748B",
-  },
-  categoryGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  categoryText: {
-    color: "#CDBBB4",
-    flex: 1,
-    fontSize: 14,
-    fontWeight: "700",
-  },
-  categoryTextSelected: {
-    color: "#F8ECE8",
-  },
-  closeText: {
-    color: "#D6748B",
-    fontSize: 15,
-    fontWeight: "900",
-  },
-  content: {
-    gap: 12,
-    paddingBottom: 18,
-    paddingHorizontal: 22,
-    paddingTop: 8,
-  },
-  disabled: {
-    opacity: 0.6,
-  },
-  fieldLabel: {
-    color: "#F8ECE8",
-    fontSize: 16,
-    fontWeight: "900",
-    marginBottom: 10,
-  },
-  formCard: {
-    backgroundColor: "rgba(44, 35, 32, 0.88)",
-    borderColor: "rgba(255,255,255,0.10)",
-    borderRadius: 20,
-    borderWidth: 1,
-    padding: 13,
-  },
-  header: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 14,
-  },
-  input: {
-    color: "#F8ECE8",
-    flex: 1,
-    fontSize: 16,
-    fontWeight: "700",
-    minHeight: 40,
-    padding: 0,
-  },
-  inputIcon: {
-    alignItems: "center",
-    backgroundColor: "rgba(84, 141, 104, 0.32)",
-    borderRadius: 11,
-    height: 44,
-    justifyContent: "center",
-    width: 44,
-  },
-  inputWrap: {
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.05)",
-    borderColor: "rgba(255,255,255,0.10)",
-    borderRadius: 16,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: 11,
-    minHeight: 56,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-  },
-  keyboardAvoider: {
-    flex: 1,
-  },
-  dayButton: {
-    alignItems: "center",
-    borderRadius: 14,
-    height: 40,
-    justifyContent: "center",
-    width: "14.28%",
-  },
-  dayMuted: {
-    opacity: 0.32,
-  },
-  daySelected: {
-    backgroundColor: "#CF6F88",
-  },
-  daysGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-  },
-  dayText: {
-    color: "#F8ECE8",
-    fontSize: 16,
-    fontWeight: "800",
-  },
-  dayTextMuted: {
-    color: "#BBAAA3",
-  },
-  dayTextSelected: {
-    color: "#FFFFFF",
-  },
-  multilineInput: {
-    minHeight: 50,
-    textAlignVertical: "center",
-  },
-  pressed: {
-    opacity: 0.86,
-  },
-  submitButton: {
-    alignItems: "center",
-    backgroundColor: "#CF6F88",
-    borderRadius: 16,
-    flexDirection: "row",
-    gap: 10,
-    height: 62,
-    justifyContent: "center",
-    marginTop: 4,
-  },
-  submitText: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    fontWeight: "900",
-  },
-  subtitle: {
-    color: "#CDBBB4",
-    fontSize: 15,
-    lineHeight: 22,
-    marginTop: 4,
-    width: "86%",
-  },
-  title: {
-    color: "#F8ECE8",
-    flex: 1,
-    fontSize: 25,
-    fontWeight: "900",
-  },
-  typeButton: {
-    alignItems: "center",
-    borderRadius: 16,
-    flex: 1,
-    flexDirection: "row",
-    gap: 10,
-    height: 62,
-    justifyContent: "center",
-  },
-  typeSwitch: {
-    backgroundColor: "rgba(44, 35, 32, 0.9)",
-    borderColor: "rgba(255,255,255,0.10)",
-    borderRadius: 20,
-    borderWidth: 1,
-    flexDirection: "row",
-    overflow: "hidden",
-    padding: 4,
-  },
-  typeText: {
-    fontSize: 17,
-    fontWeight: "900",
-  },
-  viewEntries: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 9,
-    justifyContent: "center",
-  },
-  viewEntriesText: {
-    color: "#D6748B",
-    fontSize: 15,
-    fontWeight: "900",
-  },
-  weekLabel: {
-    color: "#D6748B",
-    fontSize: 13,
-    fontWeight: "900",
-    textAlign: "center",
-    width: "14.28%",
-  },
-  weekRow: {
-    flexDirection: "row",
-    marginBottom: 8,
-  },
-});
