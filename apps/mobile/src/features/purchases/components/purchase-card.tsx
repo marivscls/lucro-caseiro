@@ -55,7 +55,7 @@ export function PurchaseCard({ purchase, onPay, onDelete, isPaying }: PurchaseCa
           </View>
         </View>
 
-        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
           {!isPaid ? (
             <View style={{ flex: 1 }}>
               <Button
@@ -66,17 +66,30 @@ export function PurchaseCard({ purchase, onPay, onDelete, isPaying }: PurchaseCa
                 loading={isPaying}
               />
             </View>
-          ) : (
-            <View style={{ flex: 1 }} />
-          )}
+          ) : null}
           <Pressable
             onPress={onDelete}
             accessibilityRole="button"
             accessibilityLabel="Excluir compra"
             hitSlop={8}
-            style={{ padding: spacing.sm }}
+            style={{
+              marginLeft: "auto",
+              flexDirection: "row",
+              alignItems: "center",
+              gap: spacing.xs,
+              minHeight: 36,
+              paddingVertical: spacing.xs,
+              paddingHorizontal: spacing.sm,
+            }}
           >
-            <Ionicons name="trash-outline" size={20} color={theme.colors.alert} />
+            <Ionicons name="trash-outline" size={18} color={theme.colors.alert} />
+            <Typography
+              variant="caption"
+              color={theme.colors.alert}
+              style={{ fontWeight: "700" }}
+            >
+              Excluir
+            </Typography>
           </Pressable>
         </View>
       </View>
