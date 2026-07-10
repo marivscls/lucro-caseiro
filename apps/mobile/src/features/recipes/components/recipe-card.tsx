@@ -61,11 +61,19 @@ export function RecipeCard({ recipe, onPress }: RecipeCardProps) {
             <Badge label={recipe.category} variant="neutral" />
           </View>
 
-          <View style={{ flexDirection: "row", gap: spacing.lg }}>
-            <Typography variant="caption" color={theme.colors.textSecondary}>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
+            <Typography
+              variant="caption"
+              color={theme.colors.textSecondary}
+              style={{ flexShrink: 1 }}
+            >
               Custo: {formatCurrency(recipe.costPerUnit)}/{recipe.yieldUnit}
             </Typography>
-            <Typography variant="caption" color={theme.colors.textSecondary}>
+            <Typography
+              variant="caption"
+              color={theme.colors.textSecondary}
+              style={{ flexShrink: 1 }}
+            >
               Rende: {recipe.yieldQuantity} {recipe.yieldUnit}
             </Typography>
           </View>
