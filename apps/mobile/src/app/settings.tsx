@@ -657,6 +657,46 @@ export default function SettingsScreen() {
           })}
         </Card>
 
+        {/* Suporte prioritário (plano pago) */}
+        {isPremium && (
+          <Card>
+            <Pressable
+              onPress={() => router.push("/support")}
+              accessibilityRole="button"
+              accessibilityLabel="Suporte prioritário"
+              style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
+            >
+              <View
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: `${theme.colors.premium}26`,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Ionicons
+                  name="chatbubble-ellipses-outline"
+                  size={20}
+                  color={theme.colors.premium}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Typography variant="h3">Suporte prioritário</Typography>
+                <Typography variant="caption">
+                  Fale direto com a gente e tenha prioridade
+                </Typography>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={theme.colors.textSecondary}
+              />
+            </Pressable>
+          </Card>
+        )}
+
         {/* Legal Card */}
         <Card style={{ gap: 16 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
