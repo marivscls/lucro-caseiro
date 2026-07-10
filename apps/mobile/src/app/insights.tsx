@@ -29,6 +29,7 @@ function StatCard({
   tint,
   iconColor,
   valueColor,
+  horizontal,
 }: Readonly<{
   label: string;
   value: string;
@@ -36,22 +37,26 @@ function StatCard({
   tint: string;
   iconColor: string;
   valueColor?: string;
+  /** Layout compacto (ícone à esquerda) — evita card alto/vazio em largura cheia. */
+  horizontal?: boolean;
 }>) {
   const { theme } = useTheme();
-  return (
-    <Card variant="surface" padding="lg" style={{ flex: 1, gap: spacing.sm }}>
-      <View
-        style={{
-          width: 40,
-          height: 40,
-          borderRadius: radii.full,
-          backgroundColor: tint,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Ionicons name={icon} size={22} color={iconColor} />
-      </View>
+  const iconCircle = (
+    <View
+      style={{
+        width: 40,
+        height: 40,
+        borderRadius: radii.full,
+        backgroundColor: tint,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Ionicons name={icon} size={22} color={iconColor} />
+    </View>
+  );
+  const texts = (
+    <>
       <Typography variant="label">{label}</Typography>
       <Typography
         variant="moneyLg"
@@ -63,6 +68,26 @@ function StatCard({
       >
         {value}
       </Typography>
+    </>
+  );
+
+  if (horizontal) {
+    return (
+      <Card
+        variant="surface"
+        padding="lg"
+        style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
+      >
+        {iconCircle}
+        <View style={{ flex: 1, gap: 2 }}>{texts}</View>
+      </Card>
+    );
+  }
+
+  return (
+    <Card variant="surface" padding="lg" style={{ flex: 1, gap: spacing.sm }}>
+      {iconCircle}
+      {texts}
     </Card>
   );
 }
@@ -191,6 +216,7 @@ function InsightsContent({
         icon="pricetag-outline"
         tint={theme.colors.blueBg}
         iconColor={theme.colors.blue}
+        horizontal
       />
 
       {isPremium ? (
