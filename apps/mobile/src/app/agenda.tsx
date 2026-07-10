@@ -722,9 +722,16 @@ function ModernOrderDetail({
       <View style={{ height: 1, backgroundColor: agColors.border }} />
 
       {isFinished ? (
-        <Typography variant="h3" color={agColors.muted} style={{ fontSize: 19 }}>
-          Encomenda {STATUS_LABEL[order.status].toLowerCase()}.
-        </Typography>
+        <View style={{ gap: spacing.sm }}>
+          <Typography variant="h3" color={agColors.muted} style={{ fontSize: 19 }}>
+            Encomenda {STATUS_LABEL[order.status].toLowerCase()}.
+          </Typography>
+          <Button
+            title="Reabrir encomenda"
+            variant="secondary"
+            onPress={() => setStatus("pending")}
+          />
+        </View>
       ) : (
         <View style={{ gap: spacing.sm }}>
           <Typography variant="caption">Status</Typography>
