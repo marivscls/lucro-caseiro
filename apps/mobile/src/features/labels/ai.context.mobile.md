@@ -171,3 +171,6 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 - 2026-06-10: `LabelStyleEditor` ganhou prop `locked` (free): opções visíveis com leve
   opacidade + cadeado; tocar abre o paywall. Vislumbre converte mais que esconder.
 - 2026-06-10: datas de fabricacao/validade usam DateField compartilhado (shared/components/date-field.tsx): mascara DD/MM/AAAA + seletor nativo (@react-native-community/datetimepicker) pelo icone de calendario.
+- 2026-07-11: PDF do rótulo ganhou um crédito discreto "Lucro Caseiro" (sem link, só o
+  nome, fonte minúscula) no rodapé do card — etiqueta é área pequena/impressa, então sem
+  link como nos outros PDFs.

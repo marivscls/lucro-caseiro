@@ -1,6 +1,7 @@
 import type { Recipe } from "@lucro-caseiro/contracts";
 
 import { formatCurrency } from "../../shared/utils/format";
+import { playStoreUrl } from "../../shared/utils/store-link";
 
 function escapeHtml(value: string): string {
   return value
@@ -70,6 +71,8 @@ export function buildRecipeHtml(recipe: Recipe): string {
     .total-value.cost { color: #dc2626; }
     .total-value.unit { color: #16a34a; }
     .instructions { font-size: 13px; line-height: 1.5; white-space: pre-wrap; }
+    .brand-footer { margin-top: 28px; text-align: center; font-size: 10px; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 10px; }
+    .brand-footer a { color: #9ca3af; text-decoration: none; }
   </style>
 </head>
 <body>
@@ -105,6 +108,8 @@ export function buildRecipeHtml(recipe: Recipe): string {
   </div>
 
   ${instructions}
+
+  <div class="brand-footer"><a href="${playStoreUrl("pdf")}">Feito com Lucro Caseiro</a></div>
 </body>
 </html>`;
 }

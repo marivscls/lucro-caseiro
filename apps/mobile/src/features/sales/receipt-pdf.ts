@@ -1,5 +1,7 @@
 import type { Sale } from "@lucro-caseiro/contracts";
 
+import { playStoreUrl } from "../../shared/utils/store-link";
+
 import { paymentLabel } from "./payment";
 
 export interface ReceiptBusiness {
@@ -90,6 +92,8 @@ export function buildReceiptHtml(sale: Sale, business: ReceiptBusiness): string 
   } }
   footer { margin-top: 26px; text-align: center; font-size: 11px; color: #9b8275; border-top: 1px solid #e7d9cf; padding-top: 12px; }
   footer strong { color: #8c5a45; }
+  .brand-footer { margin-top: 6px; font-size: 10px; color: #b8a89d; }
+  .brand-footer a { color: #b8a89d; text-decoration: none; }
 </style>
 </head>
 <body>
@@ -123,7 +127,10 @@ export function buildReceiptHtml(sale: Sale, business: ReceiptBusiness): string 
   </div>
   <span class="badge">${paid ? "✓ Pagamento recebido" : "Pagamento pendente"}</span>
 
-  <footer>Recibo gerado pelo <strong>Lucro Caseiro</strong> · sem valor fiscal</footer>
+  <footer>
+    Recibo gerado pelo <strong>Lucro Caseiro</strong> · sem valor fiscal
+    <div class="brand-footer"><a href="${playStoreUrl("pdf")}">Feito com Lucro Caseiro</a></div>
+  </footer>
 </body>
 </html>`;
 }

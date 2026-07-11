@@ -79,7 +79,8 @@ function buildLabelCard(
     ${nutrition}
     ${dates}
     ${producer}
-    ${qr}`;
+    ${qr}
+    <div class="brand-credit">Lucro Caseiro</div>`;
 }
 
 function buildLabelHtml(
@@ -177,6 +178,12 @@ function buildLabelHtml(
     .qr svg {
       width: ${sz(96)}px;
       height: ${sz(96)}px;
+    }
+    .brand-credit {
+      margin-top: ${sz(8)}px;
+      text-align: center;
+      font-size: ${sz(8)}px;
+      opacity: 0.45;
     }
   </style>
 </head>

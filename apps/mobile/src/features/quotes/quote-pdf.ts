@@ -1,5 +1,7 @@
 import type { Quote } from "@lucro-caseiro/contracts";
 
+import { playStoreUrl } from "../../shared/utils/store-link";
+
 export interface QuoteBusiness {
   name: string;
   phone?: string | null;
@@ -90,6 +92,8 @@ export function buildQuoteHtml(quote: Quote, business: QuoteBusiness): string {
   .notes { margin-top: 12px; font-size: 12px; color: #7d6354; background: #faf5f0; border-radius: 8px; padding: 10px 12px; }
   footer { margin-top: 26px; text-align: center; font-size: 11px; color: #9b8275; border-top: 1px solid #e7d9cf; padding-top: 12px; }
   footer strong { color: #8c5a45; }
+  .brand-footer { margin-top: 6px; font-size: 10px; color: #b8a89d; }
+  .brand-footer a { color: #b8a89d; text-decoration: none; }
 </style>
 </head>
 <body>
@@ -124,7 +128,10 @@ export function buildQuoteHtml(quote: Quote, business: QuoteBusiness): string {
   </div>
   ${notes}
 
-  <footer>Orçamento gerado pelo <strong>Lucro Caseiro</strong> · valores sujeitos a confirmação</footer>
+  <footer>
+    Orçamento gerado pelo <strong>Lucro Caseiro</strong> · valores sujeitos a confirmação
+    <div class="brand-footer"><a href="${playStoreUrl("pdf")}">Feito com Lucro Caseiro</a></div>
+  </footer>
 </body>
 </html>`;
 }

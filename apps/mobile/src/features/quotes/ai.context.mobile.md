@@ -93,3 +93,5 @@ aprovado em encomenda na agenda (com sinal opcional).
 
 - 2026-06-10: criação. Cliente é texto livre (orçamento chega antes do cadastro);
   PDF é Premium (exportação); ilustração `clipboard` no estado vazio.
+- 2026-07-11: `quote-pdf.ts` ganhou rodapé discreto "Feito com Lucro Caseiro" linkando
+  pra ficha da Play Store (UTM `pdf`), mesmo padrão do catálogo público.
