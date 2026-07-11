@@ -1,9 +1,7 @@
 import * as Notifications from "expo-notifications";
 import { useEffect, useRef } from "react";
 import { Platform } from "react-native";
-import { create } from "zustand";
 
-import { apiClient } from "../utils/api-client";
 import { useAuth } from "./use-auth";
 import { handleNotificationResponse } from "./notification-types";
 
@@ -22,9 +20,9 @@ Notifications.setNotificationHandler({
 });
 
 // ---------------------------------------------------------------------------
-// Registration helper
+// Permission helper — ensures local notifications can be shown/scheduled
 // ---------------------------------------------------------------------------
-async function registerForPushNotificationsAsync(): Promise<string | null> {
+async function ensureNotificationPermissionsAsync(): Promise<void> {
   if (Platform.OS === "android") {
     await Notifications.setNotificationChannelAsync("default", {
       name: "default",
@@ -33,47 +31,9 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
   }
 
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
-  let finalStatus = existingStatus;
 
   if (String(existingStatus) !== "granted") {
-    const { status } = await Notifications.requestPermissionsAsync();
-    finalStatus = status;
-  }
-
-  if (String(finalStatus) !== "granted") return null;
-
-  const token = await Notifications.getExpoPushTokenAsync();
-  return token.data;
-}
-
-// ---------------------------------------------------------------------------
-// Zustand store for the push token
-// ---------------------------------------------------------------------------
-interface NotificationState {
-  expoPushToken: string | null;
-  setExpoPushToken: (token: string | null) => void;
-}
-
-export const useNotificationStore = create<NotificationState>((set) => ({
-  expoPushToken: null,
-  setExpoPushToken: (token) => set({ expoPushToken: token }),
-}));
-
-// ---------------------------------------------------------------------------
-// Save push token to backend
-// ---------------------------------------------------------------------------
-async function savePushTokenToBackend(
-  pushToken: string,
-  authToken: string,
-): Promise<void> {
-  try {
-    await apiClient("/users/push-token", {
-      method: "POST",
-      body: { pushToken },
-      token: authToken,
-    });
-  } catch {
-    // Silently fail — the token will be retried on next app launch
+    await Notifications.requestPermissionsAsync();
   }
 }
 
@@ -81,8 +41,7 @@ async function savePushTokenToBackend(
 // Hook
 // ---------------------------------------------------------------------------
 export function useNotifications() {
-  const { token: authToken, isAuthenticated } = useAuth();
-  const { expoPushToken, setExpoPushToken } = useNotificationStore();
+  const { isAuthenticated } = useAuth();
 
   const notificationListener = useRef<{ remove(): void } | null>(null);
   const responseListener = useRef<{ remove(): void } | null>(null);
@@ -90,15 +49,7 @@ export function useNotifications() {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    void registerForPushNotificationsAsync().then((pushToken) => {
-      if (pushToken) {
-        setExpoPushToken(pushToken);
-
-        if (authToken) {
-          void savePushTokenToBackend(pushToken, authToken);
-        }
-      }
-    });
+    void ensureNotificationPermissionsAsync();
 
     notificationListener.current = Notifications.addNotificationReceivedListener(
       (_notification) => {
@@ -118,7 +69,5 @@ export function useNotifications() {
         responseListener.current.remove();
       }
     };
-  }, [isAuthenticated, authToken]);
-
-  return { pushToken: expoPushToken, expoPushToken };
+  }, [isAuthenticated]);
 }
