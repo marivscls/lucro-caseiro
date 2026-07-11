@@ -3,6 +3,13 @@ import { CATALOG_SLUG_REGEX } from "@lucro-caseiro/contracts";
 
 import { LUCRO_CASEIRO_LOGO_B64 } from "./catalog-logo";
 
+const ANDROID_PACKAGE = "br.com.orionseven.lucrocaseiro";
+
+/** Link da ficha do app na Play Store, com UTM pra medir instalacoes vindas do catalogo. */
+function catalogPlayStoreUrl(): string {
+  return `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE}&referrer=utm_source%3Dcatalogo`;
+}
+
 /** Gera um slug a partir do nome do negocio (ex.: "Doces da Má" -> "doces-da-ma"). */
 export function slugify(name: string): string {
   const slug = name
@@ -231,9 +238,13 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   .empty p { font-size: 16px; font-weight: 600; color: #4a3228; }
   .empty .empty-sub { margin-top: 6px; font-size: 14px; font-weight: 400; color: #9b8275; }
   .more-note { grid-column: 1 / -1; text-align: center; font-size: 13px; color: #9b8275; padding: 4px 0 8px; }
-  footer { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 32px 16px 44px; font-size: 13px; color: #9b8275; }
+  footer { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 32px 16px 44px; font-size: 13px; color: #9b8275; text-align: center; }
+  footer .footer-brand { display: flex; align-items: center; gap: 10px; }
   footer img { width: 30px; height: 30px; border-radius: 9px; background: #fffdfb; padding: 3px; box-shadow: 0 2px 6px rgba(61,43,34,0.15); }
   footer strong { color: ${palette.base}; }
+  footer a.footer-link { color: ${palette.base}; text-decoration: none; }
+  footer .footer-cta { font-size: 13px; }
+  footer .footer-cta a { color: #fff; background: ${palette.base}; text-decoration: none; font-weight: 700; padding: 8px 16px; border-radius: 999px; display: inline-block; margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -248,7 +259,10 @@ ${promoStrip}
   ${headerButton}
 </div>
 <main>${cards}${moreNote}${empty}</main>
-<footer><img src="data:image/png;base64,${LUCRO_CASEIRO_LOGO_B64}" alt="Lucro Caseiro"><span>Feito com carinho no <strong>Lucro Caseiro</strong> 🧡</span></footer>
+<footer>
+  <div class="footer-brand"><img src="data:image/png;base64,${LUCRO_CASEIRO_LOGO_B64}" alt="Lucro Caseiro"><span>Feito com carinho no <a class="footer-link" href="${catalogPlayStoreUrl()}"><strong>Lucro Caseiro</strong></a> 🧡</span></div>
+  <div class="footer-cta"><a href="${catalogPlayStoreUrl()}">Crie sua vitrine grátis</a></div>
+</footer>
 </body>
 </html>`;
 }

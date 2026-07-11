@@ -157,3 +157,6 @@ invariants:
   `products.extra_photos`); quando o produto tem mais de uma foto, o card renderiza um carrossel
   horizontal `.gallery` (scroll-snap CSS puro, sem JS) com `[photoUrl, ...extraPhotos]`. Fotos
   extras são geradas/limitadas na feature `products` (1 grátis / 3 Premium).
+- 2026-07-11: rodapé virou CTA — "Feito com carinho no Lucro Caseiro" agora linka pra
+  ficha da Play Store (UTM `catalogo`) e ganhou um botão extra "Crie sua vitrine grátis"
+  com o mesmo link, pra converter visitantes do catálogo em instalações.
