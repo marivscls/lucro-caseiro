@@ -3,6 +3,7 @@ import {
   Button,
   EmptyState,
   Typography,
+  fonts,
   useTheme,
   spacing,
   radii,
@@ -247,11 +248,7 @@ export default function PackagingScreen() {
         >
           <Ionicons name="add-circle-outline" size={28} color={theme.colors.primary} />
           <View style={{ flex: 1 }}>
-            <Typography
-              variant="bodyBold"
-              color={theme.colors.primary}
-              style={{ fontSize: 16 }}
-            >
+            <Typography variant="bodyBold" color={theme.colors.primary}>
               Adicionar nova embalagem
             </Typography>
             <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -294,7 +291,7 @@ export default function PackagingScreen() {
           variant="h1"
           color={theme.colors.text}
           numberOfLines={1}
-          style={{ flex: 1, fontSize: 26, fontWeight: "800" }}
+          style={{ flex: 1 }}
         >
           Embalagens
         </Typography>
@@ -392,7 +389,6 @@ export default function PackagingScreen() {
           <Typography
             variant="bodyBold"
             color={typeFilter ? theme.colors.primary : theme.colors.text}
-            style={{ fontSize: 15 }}
           >
             Filtros
           </Typography>
@@ -429,7 +425,7 @@ export default function PackagingScreen() {
                   <Typography
                     variant="caption"
                     color={active ? chipColor : theme.colors.textSecondary}
-                    style={{ fontWeight: "700" }}
+                    style={{ fontFamily: fonts.bold }}
                   >
                     {t.label}
                   </Typography>
@@ -478,7 +474,7 @@ export default function PackagingScreen() {
             <Typography
               variant="h1"
               color={theme.colors.text}
-              style={{ flex: 1, fontSize: 24, fontWeight: "800" }}
+              style={{ flex: 1, fontSize: 24 }}
             >
               Nova embalagem
             </Typography>
@@ -512,20 +508,12 @@ export default function PackagingScreen() {
                 }}
               >
                 <Pressable onPress={() => setSelectedId(null)} hitSlop={10}>
-                  <Typography
-                    variant="bodyBold"
-                    color={theme.colors.primary}
-                    style={{ fontSize: 17 }}
-                  >
+                  <Typography variant="bodyBold" color={theme.colors.primary}>
                     Fechar
                   </Typography>
                 </Pressable>
                 <Pressable onPress={() => setEditing(true)} hitSlop={10}>
-                  <Typography
-                    variant="bodyBold"
-                    color={theme.colors.primary}
-                    style={{ fontSize: 17 }}
-                  >
+                  <Typography variant="bodyBold" color={theme.colors.primary}>
                     Editar
                   </Typography>
                 </Pressable>
@@ -562,7 +550,7 @@ export default function PackagingScreen() {
                   variant="h1"
                   color={theme.colors.text}
                   numberOfLines={1}
-                  style={{ flex: 1, fontSize: 22, fontWeight: "800" }}
+                  style={{ flex: 1, fontSize: 22 }}
                 >
                   Editar embalagem
                 </Typography>
@@ -587,11 +575,7 @@ export default function PackagingScreen() {
                   style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}
                 >
                   <Ionicons name="trash-outline" size={20} color={theme.colors.alert} />
-                  <Typography
-                    variant="bodyBold"
-                    color={theme.colors.alert}
-                    style={{ fontSize: 15 }}
-                  >
+                  <Typography variant="bodyBold" color={theme.colors.alert}>
                     Excluir
                   </Typography>
                 </Pressable>

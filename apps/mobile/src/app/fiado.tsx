@@ -1,5 +1,12 @@
 import type { Sale } from "@lucro-caseiro/contracts";
-import { Typography, radii, spacing, useTheme, type Theme } from "@lucro-caseiro/ui";
+import {
+  Typography,
+  fonts,
+  radii,
+  spacing,
+  useTheme,
+  type Theme,
+} from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import React from "react";
@@ -112,23 +119,15 @@ function OpenSaleRow({
           marginRight: spacing.md,
         }}
       >
-        <Typography
-          variant="bodyBold"
-          color={pal.text}
-          style={{ fontSize: 18, lineHeight: 20 }}
-        >
+        <Typography variant="h3" color={pal.text} style={{ lineHeight: 20 }}>
           {day}
         </Typography>
-        <Typography variant="caption" color={pal.textSecondary} style={{ fontSize: 11 }}>
+        <Typography variant="label" color={pal.textSecondary}>
           {month}
         </Typography>
       </View>
 
-      <Typography
-        variant="h3"
-        color={pal.text}
-        style={{ flex: 1, fontSize: 18, fontWeight: "700" }}
-      >
+      <Typography variant="h3" color={pal.text} style={{ flex: 1 }}>
         {formatCurrency(sale.total)}
       </Typography>
 
@@ -150,7 +149,7 @@ function OpenSaleRow({
         })}
       >
         <Ionicons name="checkmark-circle" size={20} color={pal.received} />
-        <Typography variant="bodyBold" color={pal.received} style={{ fontSize: 16 }}>
+        <Typography variant="bodyBold" color={pal.received}>
           Recebi
         </Typography>
       </Pressable>
@@ -188,7 +187,7 @@ function ActionSheetRow({
       })}
     >
       <Ionicons name={icon} size={24} color={resolvedColor} />
-      <Typography variant="bodyBold" color={resolvedColor} style={{ fontSize: 16 }}>
+      <Typography variant="bodyBold" color={resolvedColor}>
         {label}
       </Typography>
     </Pressable>
@@ -266,12 +265,7 @@ function FiadoGroupCard({
         </View>
 
         <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
-          <Typography
-            variant="h3"
-            color={pal.text}
-            numberOfLines={1}
-            style={{ fontSize: 19, fontWeight: "800" }}
-          >
+          <Typography variant="h3" color={pal.text} numberOfLines={1}>
             {group.clientName}
           </Typography>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
@@ -293,11 +287,7 @@ function FiadoGroupCard({
             paddingHorizontal: spacing.md,
           }}
         >
-          <Typography
-            variant="bodyBold"
-            color={pal.amountChipFg}
-            style={{ fontSize: 15 }}
-          >
+          <Typography variant="bodyBold" color={pal.amountChipFg}>
             {formatCurrency(group.total)}
           </Typography>
         </View>
@@ -354,11 +344,7 @@ function FiadoGroupCard({
         })}
       >
         <Ionicons name="logo-whatsapp" size={22} color={theme.colors.textOnPrimary} />
-        <Typography
-          variant="bodyBold"
-          color={theme.colors.textOnPrimary}
-          style={{ fontSize: 17 }}
-        >
+        <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
           Cobrar no WhatsApp
         </Typography>
       </Pressable>
@@ -403,7 +389,6 @@ function FiadoGroupCard({
               color={pal.text}
               numberOfLines={1}
               style={{
-                fontSize: 18,
                 paddingHorizontal: spacing.md,
                 marginBottom: spacing.xs,
               }}
@@ -818,11 +803,7 @@ export default function FiadoScreen() {
         >
           <Ionicons name="arrow-back" size={29} color={pal.text} />
         </Pressable>
-        <Typography
-          variant="h1"
-          color={pal.text}
-          style={{ flex: 1, fontSize: 28, fontWeight: "800" }}
-        >
+        <Typography variant="h1" color={pal.text} style={{ flex: 1 }}>
           Fiado
         </Typography>
         <Pressable
@@ -950,7 +931,7 @@ export default function FiadoScreen() {
                 <Typography
                   variant="caption"
                   color={selected ? theme.colors.textOnPrimary : pal.text}
-                  style={{ fontWeight: "700" }}
+                  style={{ fontFamily: fonts.bold }}
                 >
                   {option.label}
                 </Typography>

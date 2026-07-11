@@ -183,7 +183,7 @@ export default function PurchasesScreen() {
             variant="h1"
             color={theme.colors.text}
             numberOfLines={1}
-            style={{ flex: 1, fontSize: 26, fontWeight: "800" }}
+            style={{ flex: 1 }}
           >
             Compras
           </Typography>
@@ -227,7 +227,7 @@ export default function PurchasesScreen() {
           variant="h1"
           color={theme.colors.text}
           numberOfLines={1}
-          style={{ flex: 1, fontSize: 26, fontWeight: "800" }}
+          style={{ flex: 1 }}
         >
           Compras
         </Typography>
@@ -267,7 +267,7 @@ export default function PurchasesScreen() {
           <Typography variant="caption" color={theme.colors.textSecondary}>
             Total a pagar
           </Typography>
-          <Typography variant="h3" color={theme.colors.text} style={{ fontSize: 22 }}>
+          <Typography variant="money" color={theme.colors.text}>
             {formatCurrency(toPay)}
           </Typography>
         </View>
@@ -324,7 +324,7 @@ export default function PurchasesScreen() {
             <Typography
               variant="h1"
               color={theme.colors.text}
-              style={{ flex: 1, fontSize: 24, fontWeight: "800" }}
+              style={{ flex: 1, fontSize: 24 }}
             >
               Nova compra
             </Typography>

@@ -2,6 +2,7 @@ import {
   Button,
   EmptyState,
   Typography,
+  fonts,
   useTheme,
   spacing,
   radii,
@@ -58,7 +59,7 @@ function FormModalHeader({
         variant="h1"
         color={theme.colors.text}
         numberOfLines={1}
-        style={{ flex: 1, fontSize: 24, fontWeight: "800" }}
+        style={{ flex: 1, fontSize: 24 }}
       >
         {title}
       </Typography>
@@ -69,11 +70,7 @@ function FormModalHeader({
         hitSlop={10}
         style={{ minHeight: 44, justifyContent: "center" }}
       >
-        <Typography
-          variant="bodyBold"
-          color={theme.colors.primary}
-          style={{ fontSize: 17 }}
-        >
+        <Typography variant="bodyBold" color={theme.colors.primary}>
           Fechar
         </Typography>
       </Pressable>
@@ -289,11 +286,7 @@ export default function MaterialsScreen() {
         >
           <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
         </Pressable>
-        <Typography
-          variant="h1"
-          color={theme.colors.text}
-          style={{ flex: 1, fontSize: 28, fontWeight: "800" }}
-        >
+        <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
           Insumos
         </Typography>
         <Pressable
@@ -390,7 +383,7 @@ export default function MaterialsScreen() {
             <Typography
               variant="caption"
               color={theme.colors.textOnPrimary}
-              style={{ fontWeight: "700" }}
+              style={{ fontFamily: fonts.bold }}
             >
               Estoque baixo
             </Typography>
@@ -424,11 +417,7 @@ export default function MaterialsScreen() {
           })}
         >
           <Ionicons name="add" size={24} color={theme.colors.textOnPrimary} />
-          <Typography
-            variant="bodyBold"
-            color={theme.colors.textOnPrimary}
-            style={{ fontSize: 18 }}
-          >
+          <Typography variant="h3" color={theme.colors.textOnPrimary}>
             Novo insumo
           </Typography>
         </Pressable>

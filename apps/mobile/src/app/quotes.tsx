@@ -108,7 +108,7 @@ function ModalHeader({
         variant="h1"
         color={theme.colors.text}
         numberOfLines={1}
-        style={{ flex: 1, fontSize: 22, fontWeight: "800" }}
+        style={{ flex: 1, fontSize: 22 }}
       >
         {title}
       </Typography>
@@ -119,11 +119,7 @@ function ModalHeader({
           hitSlop={10}
           style={{ minHeight: 44, justifyContent: "center" }}
         >
-          <Typography
-            variant="bodyBold"
-            color={theme.colors.primary}
-            style={{ fontSize: 16 }}
-          >
+          <Typography variant="bodyBold" color={theme.colors.primary}>
             {rightLabel}
           </Typography>
         </Pressable>
@@ -533,11 +529,7 @@ export default function QuotesScreen() {
         >
           <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
         </Pressable>
-        <Typography
-          variant="h1"
-          color={theme.colors.text}
-          style={{ flex: 1, fontSize: 26, fontWeight: "800" }}
-        >
+        <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
           Orçamentos
         </Typography>
       </View>
@@ -569,7 +561,6 @@ export default function QuotesScreen() {
                 <Typography
                   variant="bodyBold"
                   color={active ? theme.colors.textOnPrimary : theme.colors.text}
-                  style={{ fontSize: 15 }}
                 >
                   {f.label}
                 </Typography>
@@ -641,11 +632,7 @@ export default function QuotesScreen() {
           })}
         >
           <Ionicons name="add" size={24} color={theme.colors.textOnPrimary} />
-          <Typography
-            variant="bodyBold"
-            color={theme.colors.textOnPrimary}
-            style={{ fontSize: 18 }}
-          >
+          <Typography variant="h3" color={theme.colors.textOnPrimary}>
             Novo orçamento
           </Typography>
         </Pressable>

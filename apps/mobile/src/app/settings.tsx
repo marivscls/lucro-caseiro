@@ -320,11 +320,7 @@ export default function SettingsScreen() {
         >
           <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
         </Pressable>
-        <Typography
-          variant="h1"
-          color={theme.colors.text}
-          style={{ flex: 1, fontSize: 26, fontWeight: "800" }}
-        >
+        <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
           Configurações
         </Typography>
       </View>
@@ -383,11 +379,7 @@ export default function SettingsScreen() {
                 backgroundColor: theme.colors.surfaceElevated,
               }}
             >
-              <Typography
-                variant="bodyBold"
-                color={theme.colors.text}
-                style={{ fontSize: 14 }}
-              >
+              <Typography variant="bodyBold" color={theme.colors.text}>
                 Editar
               </Typography>
             </Pressable>
@@ -501,11 +493,7 @@ export default function SettingsScreen() {
                 backgroundColor: theme.colors.surfaceElevated,
               }}
             >
-              <Typography
-                variant="bodyBold"
-                color={theme.colors.text}
-                style={{ fontSize: 14 }}
-              >
+              <Typography variant="bodyBold" color={theme.colors.text}>
                 {prolabore?.config ? "Editar" : "Definir"}
               </Typography>
             </Pressable>
@@ -613,11 +601,7 @@ export default function SettingsScreen() {
                         }}
                       >
                         <Ionicons name="diamond" size={11} color={theme.colors.premium} />
-                        <Typography
-                          variant="caption"
-                          color={theme.colors.premium}
-                          style={{ fontSize: 11, fontWeight: "800", letterSpacing: 0.3 }}
-                        >
+                        <Typography variant="label" color={theme.colors.premium}>
                           PREMIUM
                         </Typography>
                       </View>
@@ -801,7 +785,7 @@ export default function SettingsScreen() {
             <Typography
               variant="h1"
               color={theme.colors.text}
-              style={{ flex: 1, fontSize: 24, fontWeight: "800" }}
+              style={{ flex: 1, fontSize: 24 }}
             >
               Meta de pro-labore
             </Typography>
@@ -842,7 +826,7 @@ export default function SettingsScreen() {
             <Typography
               variant="h1"
               color={theme.colors.text}
-              style={{ flex: 1, fontSize: 24, fontWeight: "800" }}
+              style={{ flex: 1, fontSize: 24 }}
             >
               Editar perfil
             </Typography>
@@ -908,7 +892,7 @@ export default function SettingsScreen() {
                 <Typography
                   variant="bodyBold"
                   color={theme.colors.primary}
-                  style={{ fontSize: 14, marginTop: spacing.sm }}
+                  style={{ marginTop: spacing.sm }}
                 >
                   {pickedAvatar || avatarUrl ? "Alterar foto" : "Adicionar foto"}
                 </Typography>
@@ -934,11 +918,7 @@ export default function SettingsScreen() {
               />
             </View>
             <View style={{ gap: spacing.sm }}>
-              <Typography
-                variant="bodyBold"
-                color={theme.colors.text}
-                style={{ fontSize: 15 }}
-              >
+              <Typography variant="bodyBold" color={theme.colors.text}>
                 Tipo de negócio
               </Typography>
               <Typography variant="caption" color={theme.colors.textSecondary}>

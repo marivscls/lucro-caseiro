@@ -132,11 +132,7 @@ function CatalogIntro({
           })}
         >
           <Ionicons name="rocket-outline" size={22} color={theme.colors.textOnPrimary} />
-          <Typography
-            variant="bodyBold"
-            color={theme.colors.textOnPrimary}
-            style={{ fontSize: 18 }}
-          >
+          <Typography variant="h3" color={theme.colors.textOnPrimary}>
             {pending ? "Ativando..." : "Ativar meu catálogo"}
           </Typography>
         </Pressable>
@@ -194,7 +190,7 @@ function AppearancePremiumTeaser({ onUnlock }: Readonly<{ onUnlock: () => void }
         })}
       >
         <Ionicons name="diamond" size={18} color="#fff" />
-        <Typography variant="bodyBold" color="#fff" style={{ fontSize: 16 }}>
+        <Typography variant="bodyBold" color="#fff">
           Desbloquear com Premium
         </Typography>
       </Pressable>
@@ -949,11 +945,7 @@ export default function CatalogScreen() {
         >
           <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
         </Pressable>
-        <Typography
-          variant="h1"
-          color={theme.colors.text}
-          style={{ flex: 1, fontSize: 26, fontWeight: "800" }}
-        >
+        <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
           Catálogo
         </Typography>
       </View>

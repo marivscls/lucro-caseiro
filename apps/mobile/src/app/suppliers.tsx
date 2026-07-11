@@ -74,7 +74,7 @@ export default function SuppliersScreen() {
           variant="h1"
           color={theme.colors.text}
           numberOfLines={1}
-          style={{ flex: 1, fontSize: 26, fontWeight: "800" }}
+          style={{ flex: 1 }}
         >
           Fornecedores
         </Typography>
@@ -189,7 +189,7 @@ export default function SuppliersScreen() {
             <Typography
               variant="h1"
               color={theme.colors.text}
-              style={{ flex: 1, fontSize: 24, fontWeight: "800" }}
+              style={{ flex: 1, fontSize: 24 }}
             >
               Novo fornecedor
             </Typography>
@@ -219,11 +219,7 @@ export default function SuppliersScreen() {
                 }}
               >
                 <Pressable onPress={closeDetail} hitSlop={10}>
-                  <Typography
-                    variant="bodyBold"
-                    color={theme.colors.primary}
-                    style={{ fontSize: 17 }}
-                  >
+                  <Typography variant="bodyBold" color={theme.colors.primary}>
                     Fechar
                   </Typography>
                 </Pressable>
@@ -279,7 +275,7 @@ export default function SuppliersScreen() {
                   variant="h1"
                   color={theme.colors.text}
                   numberOfLines={1}
-                  style={{ flex: 1, fontSize: 22, fontWeight: "800" }}
+                  style={{ flex: 1, fontSize: 22 }}
                 >
                   Editar fornecedor
                 </Typography>

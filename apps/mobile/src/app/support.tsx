@@ -72,11 +72,7 @@ export default function SupportScreen() {
         >
           <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
         </Pressable>
-        <Typography
-          variant="h1"
-          color={theme.colors.text}
-          style={{ flex: 1, fontSize: 26, fontWeight: "800" }}
-        >
+        <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
           Suporte
         </Typography>
       </View>
@@ -134,11 +130,7 @@ export default function SupportScreen() {
         )}
 
         <View style={{ gap: spacing.sm }}>
-          <Typography
-            variant="bodyBold"
-            color={theme.colors.text}
-            style={{ fontSize: 17 }}
-          >
+          <Typography variant="bodyBold" color={theme.colors.text}>
             Perguntas frequentes
           </Typography>
           {FAQ.map((item) => (

@@ -1,5 +1,5 @@
 import type { ExpenseCategory, RecurringExpense } from "@lucro-caseiro/contracts";
-import { IconButton, colors, useTheme, type Theme } from "@lucro-caseiro/ui";
+import { IconButton, colors, fonts, useTheme, type Theme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { router, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -639,7 +639,7 @@ function createStyles(theme: Theme) {
     addButtonText: {
       color: theme.colors.textOnPrimary,
       fontSize: 16,
-      fontWeight: "800",
+      fontFamily: fonts.extraBold,
     },
     backButton: {
       alignItems: "center",
@@ -668,7 +668,7 @@ function createStyles(theme: Theme) {
     cancelText: {
       color: pal.text,
       fontSize: 14,
-      fontWeight: "800",
+      fontFamily: fonts.extraBold,
     },
     categoryPill: {
       alignItems: "center",
@@ -690,11 +690,11 @@ function createStyles(theme: Theme) {
     categoryText: {
       color: pal.text,
       fontSize: 13,
-      fontWeight: "500",
+      fontFamily: fonts.semiBold,
     },
     categoryTextSelected: {
       color: theme.colors.textOnPrimary,
-      fontWeight: "700",
+      fontFamily: fonts.bold,
     },
     categoryWrap: {
       flexDirection: "row",
@@ -726,7 +726,7 @@ function createStyles(theme: Theme) {
     deleteText: {
       color: theme.colors.textOnPrimary,
       fontSize: 14,
-      fontWeight: "800",
+      fontFamily: fonts.extraBold,
     },
     detailCard: {
       backgroundColor: pal.card,
@@ -756,7 +756,7 @@ function createStyles(theme: Theme) {
     detailLabel: {
       color: pal.muted,
       fontSize: 12,
-      fontWeight: "600",
+      fontFamily: fonts.semiBold,
     },
     detailTextBlock: {
       flex: 1,
@@ -764,14 +764,13 @@ function createStyles(theme: Theme) {
     },
     detailTitle: {
       color: pal.title,
-      fontFamily: "serif",
+      fontFamily: fonts.displayBold,
       fontSize: 22,
-      fontWeight: "700",
     },
     detailValue: {
       color: pal.text,
       fontSize: 15,
-      fontWeight: "800",
+      fontFamily: fonts.extraBold,
     },
     emptyDescription: {
       color: pal.muted,
@@ -798,15 +797,14 @@ function createStyles(theme: Theme) {
     },
     emptyTitle: {
       color: pal.title,
-      fontFamily: "serif",
+      fontFamily: fonts.displayBold,
       fontSize: 22,
-      fontWeight: "700",
       textAlign: "center",
     },
     expenseAmount: {
       color: BRAND_PINK,
       fontSize: 14,
-      fontWeight: "800",
+      fontFamily: fonts.extraBold,
     },
     expenseCard: {
       alignItems: "center",
@@ -840,7 +838,7 @@ function createStyles(theme: Theme) {
     expenseTitle: {
       color: pal.text,
       fontSize: 15,
-      fontWeight: "800",
+      fontFamily: fonts.extraBold,
     },
     fieldBlock: {
       gap: 7,
@@ -848,7 +846,7 @@ function createStyles(theme: Theme) {
     fieldLabel: {
       color: pal.muted,
       fontSize: 14,
-      fontWeight: "500",
+      fontFamily: fonts.semiBold,
     },
     formCard: {
       backgroundColor: pal.card,
@@ -873,7 +871,7 @@ function createStyles(theme: Theme) {
     formTitle: {
       color: pal.text,
       fontSize: 17,
-      fontWeight: "800",
+      fontFamily: fonts.extraBold,
     },
     gateBadge: {
       alignItems: "center",
@@ -888,7 +886,7 @@ function createStyles(theme: Theme) {
     gateBadgeText: {
       color: theme.colors.premium,
       fontSize: 12,
-      fontWeight: "800",
+      fontFamily: fonts.extraBold,
     },
     gateBullet: {
       alignItems: "flex-start",
@@ -922,7 +920,7 @@ function createStyles(theme: Theme) {
     gateCtaText: {
       color: theme.colors.textOnPrimary,
       fontSize: 16,
-      fontWeight: "800",
+      fontFamily: fonts.extraBold,
     },
     gateSubtitle: {
       color: pal.muted,
@@ -931,9 +929,8 @@ function createStyles(theme: Theme) {
     },
     gateTitle: {
       color: pal.title,
-      fontFamily: "serif",
+      fontFamily: fonts.displayBold,
       fontSize: 22,
-      fontWeight: "700",
     },
     header: {
       alignItems: "center",
@@ -986,7 +983,7 @@ function createStyles(theme: Theme) {
     saveText: {
       color: theme.colors.textOnPrimary,
       fontSize: 14,
-      fontWeight: "800",
+      fontFamily: fonts.extraBold,
     },
     subtitle: {
       color: pal.muted,
@@ -1008,9 +1005,8 @@ function createStyles(theme: Theme) {
     title: {
       color: pal.title,
       flex: 1,
-      fontFamily: "serif",
+      fontFamily: fonts.displayBold,
       fontSize: 25,
-      fontWeight: "700",
     },
   });
 }

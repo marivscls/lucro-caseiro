@@ -136,11 +136,7 @@ export default function PlansScreen() {
         >
           <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
         </Pressable>
-        <Typography
-          variant="h1"
-          color={theme.colors.text}
-          style={{ flex: 1, fontSize: 26, fontWeight: "800" }}
-        >
+        <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
           Planos
         </Typography>
       </View>
@@ -164,15 +160,11 @@ export default function PlansScreen() {
           >
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
               <Ionicons name="warning-outline" size={22} color={theme.colors.alert} />
-              <Typography
-                variant="h3"
-                color={theme.colors.alert}
-                style={{ flex: 1, fontSize: 17 }}
-              >
+              <Typography variant="h3" color={theme.colors.alert} style={{ flex: 1 }}>
                 {warning.title}
               </Typography>
             </View>
-            <Typography variant="body" color={theme.colors.text} style={{ fontSize: 15 }}>
+            <Typography variant="body" color={theme.colors.text}>
               {warning.message}
             </Typography>
           </Card>
@@ -234,12 +226,9 @@ export default function PlansScreen() {
                       <View
                         style={{ flexDirection: "row", justifyContent: "space-between" }}
                       >
-                        <Typography variant="bodyBold" style={{ fontSize: 15 }}>
-                          {item.label}
-                        </Typography>
+                        <Typography variant="bodyBold">{item.label}</Typography>
                         <Typography
                           variant="bodyBold"
-                          style={{ fontSize: 15 }}
                           color={isNear ? theme.colors.alert : theme.colors.textSecondary}
                         >
                           {item.cur}/{item.max}
@@ -310,11 +299,7 @@ export default function PlansScreen() {
                       borderRadius: radii.full,
                     }}
                   >
-                    <Typography
-                      variant="caption"
-                      color={theme.colors.textOnPrimary}
-                      style={{ fontSize: 11, fontWeight: "800" }}
-                    >
+                    <Typography variant="label" color={theme.colors.textOnPrimary}>
                       PLANO ATUAL
                     </Typography>
                   </View>
@@ -328,11 +313,7 @@ export default function PlansScreen() {
                       borderRadius: radii.full,
                     }}
                   >
-                    <Typography
-                      variant="caption"
-                      color={theme.colors.premium}
-                      style={{ fontSize: 11, fontWeight: "800" }}
-                    >
+                    <Typography variant="label" color={theme.colors.premium}>
                       MAIS COMPLETO
                     </Typography>
                   </View>
@@ -377,7 +358,7 @@ export default function PlansScreen() {
                     <Typography
                       variant="body"
                       color={theme.colors.text}
-                      style={{ flex: 1, fontSize: 15 }}
+                      style={{ flex: 1 }}
                     >
                       {f}
                     </Typography>

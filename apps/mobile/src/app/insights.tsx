@@ -64,7 +64,6 @@ function StatCard({
         numberOfLines={1}
         adjustsFontSizeToFit
         minimumFontScale={0.6}
-        style={{ fontSize: 26 }}
       >
         {value}
       </Typography>
@@ -292,7 +291,7 @@ export default function InsightsScreen() {
         <Typography
           variant="h1"
           color={theme.colors.text}
-          style={{ flex: 1, fontSize: 26, fontWeight: "800", letterSpacing: 0 }}
+          style={{ flex: 1, letterSpacing: 0 }}
         >
           Insights
         </Typography>

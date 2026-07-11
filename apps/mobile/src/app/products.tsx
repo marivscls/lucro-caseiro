@@ -632,11 +632,7 @@ export default function ProductsScreen() {
         >
           <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
         </Pressable>
-        <Typography
-          variant="h1"
-          color={theme.colors.text}
-          style={{ flex: 1, fontSize: 28, fontWeight: "800" }}
-        >
+        <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
           Produtos
         </Typography>
         <Pressable
@@ -732,11 +728,7 @@ export default function ProductsScreen() {
             })}
           >
             <Ionicons name="add" size={24} color={theme.colors.textOnPrimary} />
-            <Typography
-              variant="bodyBold"
-              color={theme.colors.textOnPrimary}
-              style={{ fontSize: 18 }}
-            >
+            <Typography variant="h3" color={theme.colors.textOnPrimary}>
               Novo produto
             </Typography>
           </Pressable>
@@ -774,7 +766,7 @@ export default function ProductsScreen() {
               variant="h1"
               color={theme.colors.text}
               numberOfLines={1}
-              style={{ flex: 1, fontSize: 24, fontWeight: "800" }}
+              style={{ flex: 1, fontSize: 24 }}
             >
               Novo produto
             </Typography>
@@ -785,11 +777,7 @@ export default function ProductsScreen() {
               hitSlop={10}
               style={{ minHeight: 44, justifyContent: "center" }}
             >
-              <Typography
-                variant="bodyBold"
-                color={theme.colors.primary}
-                style={{ fontSize: 17 }}
-              >
+              <Typography variant="bodyBold" color={theme.colors.primary}>
                 Fechar
               </Typography>
             </Pressable>

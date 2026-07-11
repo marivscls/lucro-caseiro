@@ -82,11 +82,7 @@ function RecipeModalHeader({
         hitSlop={10}
         style={{ minHeight: 44, justifyContent: "center" }}
       >
-        <Typography
-          variant="bodyBold"
-          color={theme.colors.primary}
-          style={{ fontSize: 17 }}
-        >
+        <Typography variant="bodyBold" color={theme.colors.primary}>
           Fechar
         </Typography>
       </Pressable>
@@ -136,11 +132,7 @@ export default function RecipesScreen() {
         >
           <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
         </Pressable>
-        <Typography
-          variant="h2"
-          color={theme.colors.text}
-          style={{ flex: 1, fontSize: 22, fontWeight: "800" }}
-        >
+        <Typography variant="h2" color={theme.colors.text} style={{ flex: 1 }}>
           Receitas
         </Typography>
         <Pressable
@@ -151,11 +143,7 @@ export default function RecipesScreen() {
           style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
         >
           <Ionicons name="stats-chart" size={20} color={theme.colors.primary} />
-          <Typography
-            variant="bodyBold"
-            color={theme.colors.primary}
-            style={{ fontSize: 16 }}
-          >
+          <Typography variant="bodyBold" color={theme.colors.primary}>
             Estatísticas
           </Typography>
         </Pressable>
@@ -198,11 +186,7 @@ export default function RecipesScreen() {
         })}
       >
         <Ionicons name="add" size={26} color={theme.colors.textOnPrimary} />
-        <Typography
-          variant="bodyBold"
-          color={theme.colors.textOnPrimary}
-          style={{ fontSize: 17 }}
-        >
+        <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
           Nova receita
         </Typography>
       </Pressable>

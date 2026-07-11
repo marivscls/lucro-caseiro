@@ -534,11 +534,7 @@ export default function LabelsScreen() {
         >
           <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
         </Pressable>
-        <Typography
-          variant="h1"
-          color={theme.colors.text}
-          style={{ flex: 1, fontSize: 26, fontWeight: "800" }}
-        >
+        <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
           Rótulos
         </Typography>
       </View>
@@ -568,11 +564,7 @@ export default function LabelsScreen() {
           })}
         >
           <Ionicons name="add" size={24} color={theme.colors.textOnPrimary} />
-          <Typography
-            variant="bodyBold"
-            color={theme.colors.textOnPrimary}
-            style={{ fontSize: 18 }}
-          >
+          <Typography variant="h3" color={theme.colors.textOnPrimary}>
             Novo rótulo
           </Typography>
         </Pressable>
@@ -607,7 +599,7 @@ export default function LabelsScreen() {
             <Typography
               variant="h1"
               color={theme.colors.text}
-              style={{ flex: 1, fontSize: 24, fontWeight: "800" }}
+              style={{ flex: 1, fontSize: 24 }}
             >
               Novo rótulo
             </Typography>
