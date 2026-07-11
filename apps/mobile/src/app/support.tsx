@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { isProfilePremiumActive, useProfile } from "../features/subscription/hooks";
 
-const SUPPORT_EMAIL = "lazuria.design@gmail.com";
+const SUPPORT_EMAIL = "contato@orionseven.com.br";
 
 const FAQ: { question: string; answer: string }[] = [
   {
