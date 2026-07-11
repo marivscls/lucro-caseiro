@@ -33,13 +33,14 @@ import { useClients } from "../../features/clients/hooks";
 import { CreateProductForm } from "../../features/products/components/create-product-form";
 import { useProducts } from "../../features/products/hooks";
 import { cartTotal as computeCartTotal, formatWeight } from "../../features/sales/cart";
-import { useCreateSale } from "../../features/sales/hooks";
+import { useCreateSale, useSales } from "../../features/sales/hooks";
 import { PAYMENT_LABELS } from "../../features/sales/payment";
 import { useInterstitial } from "../../shared/hooks/use-interstitial";
 import { useLimitCheck } from "../../shared/hooks/use-limit-check";
 import { useOfflineQueue } from "../../shared/hooks/use-offline-queue";
 import { usePaywall } from "../../shared/hooks/use-paywall";
 import { ApiError } from "../../shared/utils/api-client";
+import { maybeAskForReview } from "../../shared/utils/store-review";
 import { showAlert } from "../../shared/components/alert-store";
 import { BarcodeScanner } from "../../shared/components/barcode-scanner";
 import { alertValidation, alertError } from "../../shared/utils/alerts";
@@ -307,6 +308,9 @@ export default function NewSaleScreen() {
   const { data: clientsData, isLoading: loadingClients } = useClients({
     search: clientSearch || undefined,
   });
+  // Mesma query (sem filtros) usada na home: reaproveita o cache pra saber o
+  // total de vendas sem chamada extra, usado no gatilho de avaliacao na loja.
+  const { data: salesData } = useSales();
   const createSale = useCreateSale();
 
   const cartTotal = computeCartTotal(cart);
@@ -445,6 +449,10 @@ export default function NewSaleScreen() {
       });
       showInterstitial();
       resetForm();
+      // Dispara em segundo plano (nao bloqueia o feedback de sucesso). O
+      // total ainda nao reflete a venda recem-criada (cache pre-invalidacao),
+      // entao soma 1 pra contar a venda atual.
+      void maybeAskForReview((salesData?.total ?? 0) + 1);
     } catch (e: unknown) {
       // Limite do plano gratuito esgotado: abre o paywall em vez de erro generico.
       // (Fallback do gate client-side, que pode estar com a contagem defasada.)
