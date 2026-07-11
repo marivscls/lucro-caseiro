@@ -657,7 +657,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                           style={{
                             width: 72,
                             height: 72,
-                            borderRadius: 36,
+                            borderRadius: radii.full,
                             backgroundColor: theme.colors.surface,
                           }}
                         />
@@ -666,7 +666,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                           style={{
                             width: 72,
                             height: 72,
-                            borderRadius: 36,
+                            borderRadius: radii.full,
                             borderWidth: 1.5,
                             borderStyle: "dashed",
                             borderColor:
@@ -729,7 +729,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                             style={{
                               width: 44,
                               height: 44,
-                              borderRadius: 22,
+                              borderRadius: radii.full,
                               backgroundColor: swatch.color,
                               borderWidth: selected ? 3 : 0,
                               borderColor: theme.colors.text,
@@ -757,7 +757,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                         style={{
                           width: 44,
                           height: 44,
-                          borderRadius: 22,
+                          borderRadius: radii.full,
                           backgroundColor: isCustomColor
                             ? settings.accentColor!
                             : theme.colors.surface,
@@ -801,7 +801,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                             style={{
                               width: 44,
                               height: 44,
-                              borderRadius: 22,
+                              borderRadius: radii.full,
                               backgroundColor: theme.colors.primary,
                               borderWidth: selected ? 3 : 0,
                               borderColor: theme.colors.text,

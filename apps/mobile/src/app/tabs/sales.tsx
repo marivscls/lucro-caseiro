@@ -102,6 +102,7 @@ function groupSalesByDate(items: Sale[]): SaleGroup[] {
   return groups;
 }
 
+// Cards flat com borda sutil, no padrao canonico da home (sem sombra hardcoded).
 function getSurfaceStyle(theme: ReturnType<typeof useTheme>["theme"]): ViewStyle {
   return {
     backgroundColor:
@@ -109,11 +110,6 @@ function getSurfaceStyle(theme: ReturnType<typeof useTheme>["theme"]): ViewStyle
     borderWidth: 1,
     borderColor:
       theme.mode === "dark" ? "rgba(245, 225, 219, 0.1)" : "rgba(74, 50, 40, 0.08)",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: theme.mode === "dark" ? 0.22 : 0.06,
-    shadowRadius: 18,
-    elevation: 3,
   };
 }
 
@@ -179,11 +175,6 @@ function FilterPill({
           alignItems: "center",
           justifyContent: "center",
           opacity: pressed ? 0.84 : 1,
-          shadowColor: selected ? theme.colors.primary : "#000000",
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: selected ? 0.25 : 0.08,
-          shadowRadius: 14,
-          elevation: selected ? 3 : 1,
         },
       ]}
     >
@@ -296,15 +287,10 @@ function AvatarCircle({ name }: Readonly<{ name: string }>) {
       style={{
         width: 52,
         height: 52,
-        borderRadius: 26,
+        borderRadius: radii.full,
         backgroundColor: theme.colors.primary,
         alignItems: "center",
         justifyContent: "center",
-        shadowColor: theme.colors.primary,
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.24,
-        shadowRadius: 14,
-        elevation: 4,
       }}
     >
       <Typography variant="h3" color={theme.colors.textOnPrimary}>
@@ -349,7 +335,7 @@ function StatusSummary({
             style={{
               width: 44,
               height: 44,
-              borderRadius: 22,
+              borderRadius: radii.full,
               borderWidth: 2,
               borderColor: accent,
               alignItems: "center",
@@ -385,7 +371,7 @@ function StatusSummary({
             style={{
               width: 44,
               height: 44,
-              borderRadius: 22,
+              borderRadius: radii.full,
               borderWidth: 2,
               borderColor: accent,
               alignItems: "center",
@@ -517,11 +503,6 @@ function SalesContent({
               justifyContent: "center",
               gap: spacing.sm,
               opacity: pressed ? 0.86 : 1,
-              shadowColor: theme.colors.primary,
-              shadowOffset: { width: 0, height: 10 },
-              shadowOpacity: 0.28,
-              shadowRadius: 18,
-              elevation: 4,
             },
           ]}
         >
