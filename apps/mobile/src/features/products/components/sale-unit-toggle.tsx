@@ -30,7 +30,7 @@ export function SaleUnitToggle({ value, onChange }: SaleUnitToggleProps) {
 
   return (
     <View style={{ gap: spacing.sm }}>
-      <Typography variant="bodyBold" color={theme.colors.text} style={{ fontSize: 15 }}>
+      <Typography variant="bodyBold" color={theme.colors.text}>
         Como você vende?
       </Typography>
       <View style={{ flexDirection: "row", gap: spacing.sm }}>

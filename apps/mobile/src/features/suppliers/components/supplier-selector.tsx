@@ -65,7 +65,7 @@ export function SupplierSelector({ value, onChange }: SupplierSelectorProps) {
           variant="body"
           color={selected ? theme.colors.text : pal.placeholder}
           numberOfLines={1}
-          style={{ flex: 1, fontSize: 16 }}
+          style={{ flex: 1 }}
         >
           {selected ? selected.name : "Selecionar fornecedor (opcional)"}
         </Typography>
@@ -109,7 +109,7 @@ export function SupplierSelector({ value, onChange }: SupplierSelectorProps) {
               maxHeight: "75%",
             }}
           >
-            <Typography variant="h3" color={theme.colors.text} style={{ fontSize: 18 }}>
+            <Typography variant="h3" color={theme.colors.text}>
               Fornecedor
             </Typography>
 
@@ -266,11 +266,7 @@ export function SupplierSelector({ value, onChange }: SupplierSelectorProps) {
             >
               <Ionicons name="close" size={28} color={theme.colors.text} />
             </Pressable>
-            <Typography
-              variant="h1"
-              color={theme.colors.text}
-              style={{ flex: 1, fontSize: 24, fontWeight: "800" }}
-            >
+            <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
               Novo fornecedor
             </Typography>
           </View>

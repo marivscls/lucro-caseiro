@@ -1,5 +1,12 @@
 import type { Material } from "@lucro-caseiro/contracts";
-import { Typography, useTheme, spacing, radii, type Theme } from "@lucro-caseiro/ui";
+import {
+  Typography,
+  useTheme,
+  spacing,
+  radii,
+  fonts,
+  type Theme,
+} from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Pressable, View } from "react-native";
@@ -83,7 +90,11 @@ export function MaterialCard({ material, onPress }: MaterialCardProps) {
                 borderRadius: radii.full,
               }}
             >
-              <Typography variant="caption" color={c.fg} style={{ fontWeight: "700" }}>
+              <Typography
+                variant="caption"
+                color={c.fg}
+                style={{ fontFamily: fonts.bold }}
+              >
                 {badge.label}
               </Typography>
             </View>
@@ -112,7 +123,7 @@ export function MaterialCard({ material, onPress }: MaterialCardProps) {
           <Typography variant="caption" color={theme.colors.textSecondary}>
             Estoque atual
           </Typography>
-          <Typography variant="bodyBold" color={stockColor} style={{ fontSize: 18 }}>
+          <Typography variant="h3" color={stockColor}>
             {currentStockLabel(material)}
           </Typography>
         </View>

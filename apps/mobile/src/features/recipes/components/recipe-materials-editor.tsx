@@ -1,6 +1,6 @@
 import { formatCurrency as formatMoney } from "../../../shared/utils/format";
 import type { Material } from "@lucro-caseiro/contracts";
-import { Input, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import { Input, Typography, fonts, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef } from "react";
@@ -214,7 +214,7 @@ export function RecipeMaterialsEditor({
                     <Typography
                       variant="caption"
                       color={active ? theme.colors.textOnPrimary : theme.colors.text}
-                      style={{ fontWeight: "600" }}
+                      style={{ fontFamily: fonts.semiBold }}
                     >
                       {m.name}
                     </Typography>

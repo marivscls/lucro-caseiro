@@ -41,7 +41,7 @@ export function CompositeToggle({
 
   return (
     <View style={{ gap: spacing.sm }}>
-      <Typography variant="bodyBold" color={theme.colors.text} style={{ fontSize: 15 }}>
+      <Typography variant="bodyBold" color={theme.colors.text}>
         Que tipo de produto é?
       </Typography>
       <View style={{ flexDirection: "row", gap: spacing.sm }}>

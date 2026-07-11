@@ -1,5 +1,5 @@
 import type { LabelData } from "@lucro-caseiro/contracts";
-import { Card, Typography } from "@lucro-caseiro/ui";
+import { Card, Typography, fonts } from "@lucro-caseiro/ui";
 import React from "react";
 import { Image, View } from "react-native";
 import { SvgXml } from "react-native-svg";
@@ -131,7 +131,7 @@ export function LabelPreview({
             <Typography
               variant="caption"
               color={style.accent}
-              style={{ fontWeight: "700", fontSize: 10 * scale }}
+              style={{ fontFamily: fonts.bold, fontSize: 10 * scale }}
             >
               Ingredientes:
             </Typography>
@@ -158,7 +158,7 @@ export function LabelPreview({
             <Typography
               variant="caption"
               color={style.accent}
-              style={{ fontWeight: "700", fontSize: 10 * scale }}
+              style={{ fontFamily: fonts.bold, fontSize: 10 * scale }}
             >
               Informação nutricional
             </Typography>
@@ -177,7 +177,7 @@ export function LabelPreview({
                 <Typography
                   variant="caption"
                   color={style.accent}
-                  style={{ fontSize: 9 * scale, fontWeight: "700" }}
+                  style={{ fontSize: 9 * scale, fontFamily: fonts.bold }}
                 >
                   {data.nutrition?.[f.key]}
                 </Typography>
@@ -198,7 +198,7 @@ export function LabelPreview({
               <Typography
                 variant="caption"
                 color={style.accent}
-                style={{ fontSize: 9 * scale, fontWeight: "700" }}
+                style={{ fontSize: 9 * scale, fontFamily: fonts.bold }}
               >
                 Fabricacao
               </Typography>
@@ -216,7 +216,7 @@ export function LabelPreview({
               <Typography
                 variant="caption"
                 color={style.accent}
-                style={{ fontSize: 9 * scale, fontWeight: "700" }}
+                style={{ fontSize: 9 * scale, fontFamily: fonts.bold }}
               >
                 Validade
               </Typography>

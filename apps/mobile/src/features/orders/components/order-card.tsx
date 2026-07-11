@@ -82,12 +82,12 @@ export function OrderCard({ order, onPress }: OrderCardProps) {
         <Typography
           variant="bodyBold"
           numberOfLines={1}
-          style={{ fontSize: 17, color: theme.colors.text }}
+          style={{ color: theme.colors.text }}
         >
           {order.title}
         </Typography>
         {order.clientName ? (
-          <Typography variant="caption" numberOfLines={1} style={{ fontSize: 14 }}>
+          <Typography variant="caption" numberOfLines={1}>
             {order.clientName}
           </Typography>
         ) : null}
@@ -97,7 +97,7 @@ export function OrderCard({ order, onPress }: OrderCardProps) {
             size={14}
             color={theme.colors.textSecondary}
           />
-          <Typography variant="caption" numberOfLines={1} style={{ fontSize: 13 }}>
+          <Typography variant="caption" numberOfLines={1}>
             {formatDateBR(order.deliveryDate)}
             {order.deliveryTime ? ` · ${order.deliveryTime}` : ""}
           </Typography>
@@ -106,11 +106,7 @@ export function OrderCard({ order, onPress }: OrderCardProps) {
 
       <View style={{ alignItems: "flex-end", gap: 7 }}>
         {order.amount != null ? (
-          <Typography
-            variant="bodyBold"
-            color={theme.colors.success}
-            style={{ fontSize: 17 }}
-          >
+          <Typography variant="bodyBold" color={theme.colors.success}>
             {formatMoney(order.amount)}
           </Typography>
         ) : null}

@@ -1,4 +1,11 @@
-import { EmptyState, Typography, spacing, radii, useTheme } from "@lucro-caseiro/ui";
+import {
+  EmptyState,
+  Typography,
+  fonts,
+  spacing,
+  radii,
+  useTheme,
+} from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
@@ -50,9 +57,9 @@ function FeatureCol({
         <Ionicons name={icon} size={22} color="#FFFFFF" />
       </View>
       <Typography
-        variant="bodyBold"
+        variant="caption"
         color={theme.colors.text}
-        style={{ fontSize: 14, textAlign: "center" }}
+        style={{ fontFamily: fonts.bold, textAlign: "center" }}
       >
         {title}
       </Typography>
@@ -136,11 +143,7 @@ function RecipesEmptyState({ onAddPress }: Readonly<{ onAddPress?: () => void }>
           size={22}
           color={theme.colors.textOnPrimary}
         />
-        <Typography
-          variant="bodyBold"
-          color={theme.colors.textOnPrimary}
-          style={{ fontSize: 17 }}
-        >
+        <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
           Cadastrar receita
         </Typography>
       </Pressable>

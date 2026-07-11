@@ -1,4 +1,4 @@
-import { Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import { Typography, fonts, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Image, Modal, Pressable, TextInput, View } from "react-native";
@@ -64,7 +64,7 @@ export function FieldRow({
         <IconBadge icon={icon} />
       </View>
       <View style={{ flex: 1, gap: spacing.sm }}>
-        <Typography variant="bodyBold" color={theme.colors.text} style={{ fontSize: 15 }}>
+        <Typography variant="bodyBold" color={theme.colors.text}>
           {label}
           {optional ? (
             <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -176,7 +176,7 @@ export function CategoryField({
           variant="body"
           color={value ? theme.colors.text : pal.placeholder}
           numberOfLines={1}
-          style={{ flex: 1, fontSize: 16 }}
+          style={{ flex: 1 }}
         >
           {value || "Ex: Doces, Salgados, Bolos..."}
         </Typography>
@@ -208,7 +208,7 @@ export function CategoryField({
               gap: spacing.md,
             }}
           >
-            <Typography variant="h3" color={theme.colors.text} style={{ fontSize: 18 }}>
+            <Typography variant="h3" color={theme.colors.text}>
               Categoria
             </Typography>
             <View
@@ -279,11 +279,7 @@ export function CategoryField({
                 };
               }}
             >
-              <Typography
-                variant="bodyBold"
-                color={theme.colors.textOnPrimary}
-                style={{ fontSize: 16 }}
-              >
+              <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
                 Usar categoria
               </Typography>
             </Pressable>
@@ -391,9 +387,9 @@ export function RecipePhotoField({
           </View>
           <View style={{ flex: 1 }}>
             <Typography
-              variant="bodyBold"
+              variant="caption"
               color={theme.colors.text}
-              style={{ fontSize: 14 }}
+              style={{ fontFamily: fonts.bold }}
             >
               Adicionar foto
             </Typography>
@@ -444,7 +440,7 @@ export function YieldUnitChips({
             <Typography
               variant="caption"
               color={active ? theme.colors.textOnPrimary : theme.colors.text}
-              style={{ fontWeight: "700" }}
+              style={{ fontFamily: fonts.bold }}
             >
               {preset}
             </Typography>
@@ -499,11 +495,10 @@ export function RecipeCostCard({
           Custo total
         </Typography>
         <Typography
-          variant="h2"
+          variant="money"
           color={theme.colors.primary}
           numberOfLines={1}
           adjustsFontSizeToFit
-          style={{ fontSize: 24 }}
         >
           {formatCurrency(totalCost)}
         </Typography>
@@ -520,11 +515,10 @@ export function RecipeCostCard({
           Custo/unidade
         </Typography>
         <Typography
-          variant="h2"
+          variant="money"
           color={theme.colors.success}
           numberOfLines={1}
           adjustsFontSizeToFit
-          style={{ fontSize: 24 }}
         >
           {formatCurrency(costPerUnit)}
         </Typography>

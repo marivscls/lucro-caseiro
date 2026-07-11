@@ -1,5 +1,12 @@
 import { formatCurrency } from "../../../shared/utils/format";
-import { Typography, spacing, radii, useTheme, type Theme } from "@lucro-caseiro/ui";
+import {
+  Typography,
+  fonts,
+  spacing,
+  radii,
+  useTheme,
+  type Theme,
+} from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useState } from "react";
 import { Pressable, ScrollView, TextInput, View } from "react-native";
@@ -87,11 +94,7 @@ function StepTitle({ title, subtitle }: Readonly<{ title: string; subtitle: stri
   const { theme } = useTheme();
   return (
     <View style={{ gap: spacing.sm }}>
-      <Typography
-        variant="h1"
-        color={theme.colors.text}
-        style={{ fontSize: 30, fontWeight: "800" }}
-      >
+      <Typography variant="h1" color={theme.colors.text}>
         {title}
       </Typography>
       <Typography
@@ -108,11 +111,7 @@ function StepTitle({ title, subtitle }: Readonly<{ title: string; subtitle: stri
 function FieldLabel({ children }: Readonly<{ children: string }>) {
   const { theme } = useTheme();
   return (
-    <Typography
-      variant="body"
-      color={theme.colors.textSecondary}
-      style={{ fontSize: 15 }}
-    >
+    <Typography variant="body" color={theme.colors.textSecondary}>
       {children}
     </Typography>
   );
@@ -187,7 +186,12 @@ function MoneyField({
         placeholderTextColor={pal.placeholder}
         keyboardType="numeric"
         autoFocus={autoFocus}
-        style={{ flex: 1, color: theme.colors.text, fontSize: 26, fontWeight: "700" }}
+        style={{
+          flex: 1,
+          color: theme.colors.text,
+          fontSize: 26,
+          fontFamily: fonts.bold,
+        }}
       />
       <Pressable
         onPress={onCalc}
@@ -254,7 +258,7 @@ function Stepper({
           gap: spacing.xs,
         }}
       >
-        <Typography variant="h2" color={theme.colors.text} style={{ fontSize: 26 }}>
+        <Typography variant="h1" color={theme.colors.text}>
           {value}
         </Typography>
         <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -334,7 +338,7 @@ function ComputedCard({
         <Typography variant="caption" color={theme.colors.success}>
           {label}
         </Typography>
-        <Typography variant="h2" color={theme.colors.success} style={{ fontSize: 24 }}>
+        <Typography variant="h2" color={theme.colors.success}>
           {value}
         </Typography>
         {sublabel ? (
@@ -584,11 +588,7 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
                     <Typography variant="caption" color={theme.colors.textSecondary}>
                       Produto selecionado
                     </Typography>
-                    <Typography
-                      variant="h2"
-                      color={theme.colors.text}
-                      style={{ fontSize: 22 }}
-                    >
+                    <Typography variant="h2" color={theme.colors.text}>
                       {selectedProduct.name}
                     </Typography>
                   </View>
@@ -598,11 +598,7 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
                   <Typography variant="caption" color={theme.colors.textSecondary}>
                     Custo da receita
                   </Typography>
-                  <Typography
-                    variant="h2"
-                    color={theme.colors.primary}
-                    style={{ fontSize: 24 }}
-                  >
+                  <Typography variant="money" color={theme.colors.primary}>
                     {formatCurrency(selectedProduct.costPrice ?? 0)}
                   </Typography>
                 </View>
@@ -674,11 +670,7 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
                       <Typography variant="caption" color={theme.colors.textSecondary}>
                         Produto selecionado
                       </Typography>
-                      <Typography
-                        variant="h2"
-                        color={theme.colors.text}
-                        style={{ fontSize: 22 }}
-                      >
+                      <Typography variant="h2" color={theme.colors.text}>
                         {selectedProduct.name}
                       </Typography>
                     </View>
@@ -693,11 +685,7 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
                       <Typography variant="caption" color={theme.colors.textSecondary}>
                         Sugestão baseada nas suas embalagens
                       </Typography>
-                      <Typography
-                        variant="h2"
-                        color={theme.colors.success}
-                        style={{ fontSize: 24 }}
-                      >
+                      <Typography variant="money" color={theme.colors.success}>
                         {formatCurrency(packagingSuggestion)}
                       </Typography>
                     </View>
@@ -720,7 +708,7 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
               <Typography
                 variant="caption"
                 color={theme.colors.success}
-                style={{ fontWeight: "700" }}
+                style={{ fontFamily: fonts.bold }}
               >
                 Dica:{" "}
                 <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -767,7 +755,7 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
               <Typography
                 variant="caption"
                 color={theme.colors.blue}
-                style={{ fontWeight: "700" }}
+                style={{ fontFamily: fonts.bold }}
               >
                 Dica:{" "}
                 <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -815,7 +803,7 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
               <Typography
                 variant="caption"
                 color={theme.colors.blue}
-                style={{ fontWeight: "700" }}
+                style={{ fontFamily: fonts.bold }}
               >
                 Dica:{" "}
                 <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -1040,11 +1028,7 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
             {step === 5 ? (
               <Ionicons name="stats-chart" size={20} color={theme.colors.textOnPrimary} />
             ) : null}
-            <Typography
-              variant="bodyBold"
-              color={theme.colors.textOnPrimary}
-              style={{ fontSize: 17 }}
-            >
+            <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
               {step === 5 ? "Ver resultado" : "Próximo"}
             </Typography>
             {step !== 5 ? (

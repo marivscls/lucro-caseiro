@@ -1,5 +1,5 @@
 import type { Material } from "@lucro-caseiro/contracts";
-import { Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import { Typography, useTheme, spacing, radii, fonts } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { ActivityIndicator, Modal, Pressable, TextInput, View } from "react-native";
@@ -84,12 +84,7 @@ function SummaryCard({
     >
       <IngredientAvatar name={name} emoji={icon} size={56} />
       <View style={{ flex: 1, gap: 6 }}>
-        <Typography
-          variant="h3"
-          color={theme.colors.text}
-          numberOfLines={1}
-          style={{ fontSize: 19, fontWeight: "800" }}
-        >
+        <Typography variant="h3" color={theme.colors.text} numberOfLines={1}>
           {name}
         </Typography>
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
@@ -455,11 +450,7 @@ export function MaterialForm({
             marginBottom: spacing.sm,
           }}
         >
-          <Typography
-            variant="bodyBold"
-            color={theme.colors.text}
-            style={{ fontSize: 15 }}
-          >
+          <Typography variant="bodyBold" color={theme.colors.text}>
             Unidade
           </Typography>
           {isEditing ? (
@@ -475,11 +466,7 @@ export function MaterialForm({
               />
             </Pressable>
           ) : (
-            <Typography
-              variant="bodyBold"
-              color={theme.colors.primary}
-              style={{ fontSize: 15 }}
-            >
+            <Typography variant="bodyBold" color={theme.colors.primary}>
               *
             </Typography>
           )}
@@ -589,11 +576,7 @@ export function MaterialForm({
             marginBottom: spacing.sm,
           }}
         >
-          <Typography
-            variant="bodyBold"
-            color={theme.colors.text}
-            style={{ fontSize: 15 }}
-          >
+          <Typography variant="bodyBold" color={theme.colors.text}>
             Conteúdo por unidade (opcional)
           </Typography>
           <Pressable
@@ -653,7 +636,7 @@ export function MaterialForm({
             <Typography
               variant="caption"
               color={theme.colors.success}
-              style={{ fontWeight: "700" }}
+              style={{ fontFamily: fonts.bold }}
             >
               Ex.: 1 {unit.trim() || "kg"} = {contentPerUnit.trim() || "350"}{" "}
               {contentUnit.trim() || "ml"}

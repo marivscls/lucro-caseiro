@@ -91,11 +91,7 @@ export function ComponentPicker({
         }}
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>
-          <Typography
-            variant="bodyBold"
-            color={theme.colors.text}
-            style={{ fontSize: 15 }}
-          >
+          <Typography variant="bodyBold" color={theme.colors.text}>
             Produtos que compõem o kit
           </Typography>
           <Pressable onPress={showInfo} hitSlop={8} accessibilityLabel="O que é um kit">
@@ -113,11 +109,7 @@ export function ComponentPicker({
           hitSlop={8}
           style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}
         >
-          <Typography
-            variant="bodyBold"
-            color={theme.colors.primary}
-            style={{ fontSize: 14 }}
-          >
+          <Typography variant="bodyBold" color={theme.colors.primary}>
             Adicionar produto
           </Typography>
           <Ionicons name="add-circle" size={20} color={theme.colors.primary} />
@@ -169,7 +161,7 @@ export function ComponentPicker({
                     variant="body"
                     color={theme.colors.text}
                     numberOfLines={1}
-                    style={{ fontSize: 14, flexShrink: 1 }}
+                    style={{ flexShrink: 1 }}
                   >
                     {chipLabel(name, c.quantity)}
                   </Typography>
@@ -231,11 +223,7 @@ export function ComponentPicker({
           <Ionicons name="calculator-outline" size={24} color={theme.colors.primary} />
         </View>
         <View style={{ flex: 1 }}>
-          <Typography
-            variant="bodyBold"
-            color={theme.colors.text}
-            style={{ fontSize: 15 }}
-          >
+          <Typography variant="bodyBold" color={theme.colors.text}>
             Custo total do kit
           </Typography>
           <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -281,7 +269,7 @@ export function ComponentPicker({
                 marginBottom: spacing.xs,
               }}
             >
-              <Typography variant="h3" color={theme.colors.text} style={{ fontSize: 18 }}>
+              <Typography variant="h3" color={theme.colors.text}>
                 Adicionar ao kit
               </Typography>
               <Pressable
@@ -435,11 +423,7 @@ export function ComponentPicker({
                 opacity: pressed ? 0.85 : 1,
               })}
             >
-              <Typography
-                variant="bodyBold"
-                color={theme.colors.textOnPrimary}
-                style={{ fontSize: 16 }}
-              >
+              <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
                 Concluir
               </Typography>
             </Pressable>

@@ -1,5 +1,13 @@
 import { formatCurrency } from "../../../shared/utils/format";
-import { Button, Card, Typography, spacing, radii, useTheme } from "@lucro-caseiro/ui";
+import {
+  Button,
+  Card,
+  Typography,
+  fonts,
+  spacing,
+  radii,
+  useTheme,
+} from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { ScrollView, View } from "react-native";
@@ -222,7 +230,7 @@ export function PricingResult({
                   <Typography
                     variant="caption"
                     color={item.color}
-                    style={{ fontWeight: "700" }}
+                    style={{ fontFamily: fonts.bold }}
                   >
                     {pct}%
                   </Typography>
@@ -246,11 +254,7 @@ export function PricingResult({
             tint={`${theme.colors.success}33`}
             color={theme.colors.success}
           />
-          <Typography
-            variant="bodyBold"
-            color={theme.colors.success}
-            style={{ fontSize: 16 }}
-          >
+          <Typography variant="bodyBold" color={theme.colors.success}>
             Margem de lucro
           </Typography>
         </View>

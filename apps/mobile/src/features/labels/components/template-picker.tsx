@@ -1,4 +1,4 @@
-import { Card, Typography, useTheme } from "@lucro-caseiro/ui";
+import { Card, Typography, fonts, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { FlatList, Pressable, View } from "react-native";
@@ -66,7 +66,7 @@ export function TemplatePicker({ selected, onSelect }: Readonly<TemplatePickerPr
                   variant="caption"
                   color={colors.accent}
                   numberOfLines={1}
-                  style={{ fontWeight: "700", maxWidth: 96, textAlign: "center" }}
+                  style={{ fontFamily: fonts.bold, maxWidth: 96, textAlign: "center" }}
                 >
                   {item.name}
                 </Typography>

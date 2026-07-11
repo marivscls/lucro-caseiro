@@ -1,5 +1,5 @@
 import type { ExpenseCategory, FinanceEntryType } from "@lucro-caseiro/contracts";
-import { useTheme, type Theme } from "@lucro-caseiro/ui";
+import { fonts, Typography, useTheme, type Theme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo, useRef, useState } from "react";
 import {
@@ -134,15 +134,19 @@ export function CreateFinanceEntry({
             <TouchableOpacity onPress={onClose} hitSlop={12} style={styles.backButton}>
               <Ionicons name="arrow-back" size={32} color={theme.colors.text} />
             </TouchableOpacity>
-            <Text style={styles.title}>Novo lançamento</Text>
+            <Typography variant="h1" style={styles.title}>
+              Novo lançamento
+            </Typography>
             <TouchableOpacity onPress={onClose} hitSlop={12}>
-              <Text style={styles.closeText}>Fechar</Text>
+              <Typography variant="bodyBold" color={theme.colors.primary}>
+                Fechar
+              </Typography>
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.subtitle} numberOfLines={2}>
+          <Typography variant="body" style={styles.subtitle} numberOfLines={2}>
             Registre uma entrada ou saída para manter suas finanças organizadas.
-          </Text>
+          </Typography>
 
           <View style={styles.typeSwitch}>
             <TypeButton
@@ -183,7 +187,9 @@ export function CreateFinanceEntry({
           </FormCard>
 
           <View style={styles.formCard}>
-            <Text style={styles.fieldLabel}>Categoria</Text>
+            <Typography variant="bodyBold" style={styles.fieldLabel}>
+              Categoria
+            </Typography>
             <View style={styles.categoryGrid}>
               {CATEGORIES.map((item) => (
                 <Pressable
@@ -242,7 +248,9 @@ export function CreateFinanceEntry({
                   size={29}
                   color={theme.colors.textOnPrimary}
                 />
-                <Text style={styles.submitText}>Registrar lançamento</Text>
+                <Typography variant="h3" color={theme.colors.textOnPrimary}>
+                  Registrar lançamento
+                </Typography>
               </>
             )}
           </Pressable>
@@ -253,7 +261,9 @@ export function CreateFinanceEntry({
             style={styles.viewEntries}
           >
             <Ionicons name="clipboard-outline" size={22} color={theme.colors.primary} />
-            <Text style={styles.viewEntriesText}>Ver lançamentos</Text>
+            <Typography variant="bodyBold" color={theme.colors.primary}>
+              Ver lançamentos
+            </Typography>
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -296,7 +306,9 @@ function TypeButton({
       style={[styles.typeButton, selected && { backgroundColor: activeBg }]}
     >
       <Ionicons name={icon} size={25} color={color} />
-      <Text style={[styles.typeText, { color }]}>{label}</Text>
+      <Typography variant="bodyBold" color={color}>
+        {label}
+      </Typography>
     </Pressable>
   );
 }
@@ -308,7 +320,9 @@ function FormCard({
   const { styles } = useEntryStyles();
   return (
     <View style={styles.formCard}>
-      <Text style={styles.fieldLabel}>{label}</Text>
+      <Typography variant="bodyBold" style={styles.fieldLabel}>
+        {label}
+      </Typography>
       {children}
     </View>
   );
@@ -388,15 +402,10 @@ function createStyles(theme: Theme) {
       color: theme.colors.textSecondary,
       flex: 1,
       fontSize: 14,
-      fontWeight: "700",
+      fontFamily: fonts.bold,
     },
     categoryTextSelected: {
       color: theme.colors.text,
-    },
-    closeText: {
-      color: theme.colors.primary,
-      fontSize: 15,
-      fontWeight: "900",
     },
     content: {
       gap: 12,
@@ -408,9 +417,6 @@ function createStyles(theme: Theme) {
       opacity: 0.6,
     },
     fieldLabel: {
-      color: theme.colors.text,
-      fontSize: 16,
-      fontWeight: "900",
       marginBottom: 10,
     },
     formCard: {
@@ -429,7 +435,7 @@ function createStyles(theme: Theme) {
       color: theme.colors.text,
       flex: 1,
       fontSize: 16,
-      fontWeight: "700",
+      fontFamily: fonts.bold,
       minHeight: 40,
       padding: 0,
     },
@@ -473,23 +479,12 @@ function createStyles(theme: Theme) {
       justifyContent: "center",
       marginTop: 4,
     },
-    submitText: {
-      color: theme.colors.textOnPrimary,
-      fontSize: 18,
-      fontWeight: "900",
-    },
     subtitle: {
-      color: theme.colors.textSecondary,
-      fontSize: 15,
-      lineHeight: 22,
       marginTop: 4,
       width: "86%",
     },
     title: {
-      color: theme.colors.text,
       flex: 1,
-      fontSize: 25,
-      fontWeight: "900",
     },
     typeButton: {
       alignItems: "center",
@@ -509,20 +504,11 @@ function createStyles(theme: Theme) {
       overflow: "hidden",
       padding: 4,
     },
-    typeText: {
-      fontSize: 17,
-      fontWeight: "900",
-    },
     viewEntries: {
       alignItems: "center",
       flexDirection: "row",
       gap: 9,
       justifyContent: "center",
-    },
-    viewEntriesText: {
-      color: theme.colors.primary,
-      fontSize: 15,
-      fontWeight: "900",
     },
   });
 }

@@ -161,7 +161,7 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
       </FieldRow>
 
       <View style={{ gap: spacing.sm }}>
-        <Typography variant="bodyBold" color={theme.colors.text} style={{ fontSize: 15 }}>
+        <Typography variant="bodyBold" color={theme.colors.text}>
           Foto da receita{" "}
           <Typography variant="caption" color={theme.colors.textSecondary}>
             (opcional)
@@ -177,11 +177,7 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
       <View style={{ gap: spacing.sm }}>
         <View style={{ flexDirection: "row", gap: spacing.md }}>
           <View style={{ flex: 1, gap: spacing.sm }}>
-            <Typography
-              variant="bodyBold"
-              color={theme.colors.text}
-              style={{ fontSize: 15 }}
-            >
+            <Typography variant="bodyBold" color={theme.colors.text}>
               Rendimento
             </Typography>
             <TextBox
@@ -192,11 +188,7 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
             />
           </View>
           <View style={{ flex: 1, gap: spacing.sm }}>
-            <Typography
-              variant="bodyBold"
-              color={theme.colors.text}
-              style={{ fontSize: 15 }}
-            >
+            <Typography variant="bodyBold" color={theme.colors.text}>
               Unidade
             </Typography>
             <TextBox
@@ -236,11 +228,7 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
         ) : (
           <Ionicons name="save-outline" size={22} color={theme.colors.textOnPrimary} />
         )}
-        <Typography
-          variant="bodyBold"
-          color={theme.colors.textOnPrimary}
-          style={{ fontSize: 18 }}
-        >
+        <Typography variant="h3" color={theme.colors.textOnPrimary}>
           {uploading ? "Enviando foto..." : "Salvar receita"}
         </Typography>
       </Pressable>

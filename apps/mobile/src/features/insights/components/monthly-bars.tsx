@@ -160,7 +160,7 @@ function StatPanel({
           numberOfLines={1}
           adjustsFontSizeToFit
           minimumFontScale={0.62}
-          style={{ fontSize: 28, fontWeight: "800" }}
+          style={{ fontSize: 28 }}
         >
           {value}
         </Typography>
@@ -297,7 +297,7 @@ export function MonthlyBars({
             <Typography
               variant="label"
               color={theme.colors.primaryLight}
-              style={{ fontSize: 12, fontWeight: "800", letterSpacing: 0 }}
+              style={{ fontSize: 12, letterSpacing: 0 }}
             >
               EVOLUÇÃO DO FATURAMENTO
             </Typography>
@@ -308,7 +308,7 @@ export function MonthlyBars({
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.58}
-            style={{ fontSize: 42, fontWeight: "800" }}
+            style={{ fontSize: 42 }}
           >
             {formatMoney(total)}
           </Typography>
@@ -510,7 +510,7 @@ export function MonthlyBars({
                   <Typography
                     variant="bodyBold"
                     color={theme.colors.primary}
-                    style={{ fontSize: 18, fontWeight: "800" }}
+                    style={{ fontSize: 18 }}
                   >
                     {formatMoneyShort(active.revenue)}
                   </Typography>

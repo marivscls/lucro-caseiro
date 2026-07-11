@@ -46,11 +46,7 @@ export function MaterialIconField({ name, value, onChange }: MaterialIconFieldPr
       >
         <IngredientAvatar name={name || "Insumo"} emoji={value} size={48} />
         <View style={{ flex: 1 }}>
-          <Typography
-            variant="bodyBold"
-            color={theme.colors.text}
-            style={{ fontSize: 15 }}
-          >
+          <Typography variant="bodyBold" color={theme.colors.text}>
             {value ? "Ícone escolhido" : "Ícone automático"}
           </Typography>
           <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -125,11 +121,7 @@ export function MaterialIconField({ name, value, onChange }: MaterialIconFieldPr
             >
               <IngredientAvatar name={name || "Insumo"} size={40} />
               <View style={{ flex: 1 }}>
-                <Typography
-                  variant="bodyBold"
-                  color={theme.colors.text}
-                  style={{ fontSize: 15 }}
-                >
+                <Typography variant="bodyBold" color={theme.colors.text}>
                   Automático
                 </Typography>
                 <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -174,9 +166,7 @@ export function MaterialIconField({ name, value, onChange }: MaterialIconFieldPr
                       justifyContent: "center",
                     }}
                   >
-                    <Typography variant="h2" style={{ fontSize: 26 }}>
-                      {emoji}
-                    </Typography>
+                    <Typography variant="h2">{emoji}</Typography>
                   </Pressable>
                 );
               })}

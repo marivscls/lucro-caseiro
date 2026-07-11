@@ -1,6 +1,6 @@
 import { formatCurrency } from "../../../shared/utils/format";
 import type { Packaging } from "@lucro-caseiro/contracts";
-import { Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import { Typography, useTheme, spacing, radii, fonts } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { ActivityIndicator, Pressable, TextInput, View } from "react-native";
@@ -70,12 +70,7 @@ function SummaryHero({
         size={64}
       />
       <View style={{ flex: 1, gap: 6 }}>
-        <Typography
-          variant="h3"
-          color={theme.colors.text}
-          numberOfLines={1}
-          style={{ fontSize: 20, fontWeight: "800" }}
-        >
+        <Typography variant="h3" color={theme.colors.text} numberOfLines={1}>
           {name || "Embalagem"}
         </Typography>
         <View
@@ -87,7 +82,7 @@ function SummaryHero({
             borderRadius: radii.full,
           }}
         >
-          <Typography variant="caption" color={tColor} style={{ fontWeight: "700" }}>
+          <Typography variant="caption" color={tColor} style={{ fontFamily: fonts.bold }}>
             Tipo: {typeLabel(type)}
           </Typography>
         </View>
@@ -116,7 +111,7 @@ function SectionHeader({
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
       <Ionicons name={icon} size={20} color={theme.colors.primary} />
-      <Typography variant="bodyBold" color={theme.colors.text} style={{ fontSize: 16 }}>
+      <Typography variant="bodyBold" color={theme.colors.text}>
         {title}
       </Typography>
     </View>
@@ -177,7 +172,7 @@ function IconInputCard({
           style={{
             color: theme.colors.text,
             fontSize: 18,
-            fontWeight: "700",
+            fontFamily: fonts.bold,
             padding: 0,
           }}
           {...inputProps}
@@ -340,7 +335,6 @@ export function PackagingForm({
                 <Typography
                   variant="bodyBold"
                   color={active ? theme.colors.text : theme.colors.textSecondary}
-                  style={{ fontSize: 15 }}
                 >
                   {t.label}
                 </Typography>
@@ -422,11 +416,7 @@ export function PackagingForm({
             <Typography variant="caption" color={theme.colors.textSecondary}>
               Impacto no custo total
             </Typography>
-            <Typography
-              variant="bodyBold"
-              color={theme.colors.success}
-              style={{ fontSize: 18 }}
-            >
+            <Typography variant="h3" color={theme.colors.success}>
               {hasCost ? `+ ${formatCurrency(costPreview)}` : "+ R$ 0,00"}
             </Typography>
           </View>
@@ -474,11 +464,7 @@ export function PackagingForm({
           ) : (
             <Ionicons name="save-outline" size={22} color={theme.colors.textOnPrimary} />
           )}
-          <Typography
-            variant="bodyBold"
-            color={theme.colors.textOnPrimary}
-            style={{ fontSize: 18 }}
-          >
+          <Typography variant="h3" color={theme.colors.textOnPrimary}>
             {isEditing ? "Salvar" : "Cadastrar embalagem"}
           </Typography>
         </Pressable>
@@ -495,11 +481,7 @@ export function PackagingForm({
             opacity: pressed ? 0.7 : 1,
           })}
         >
-          <Typography
-            variant="bodyBold"
-            color={theme.colors.text}
-            style={{ fontSize: 16 }}
-          >
+          <Typography variant="bodyBold" color={theme.colors.text}>
             Cancelar
           </Typography>
         </Pressable>

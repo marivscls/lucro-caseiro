@@ -64,15 +64,11 @@ function FieldLabel({
   const { theme } = useTheme();
   return (
     <View style={{ flexDirection: "row", gap: 4, marginBottom: spacing.sm }}>
-      <Typography variant="bodyBold" color={theme.colors.text} style={{ fontSize: 15 }}>
+      <Typography variant="bodyBold" color={theme.colors.text}>
         {label}
       </Typography>
       {required ? (
-        <Typography
-          variant="bodyBold"
-          color={theme.colors.primary}
-          style={{ fontSize: 15 }}
-        >
+        <Typography variant="bodyBold" color={theme.colors.primary}>
           *
         </Typography>
       ) : null}
@@ -159,7 +155,7 @@ function CategoryField({
           variant="body"
           color={value ? theme.colors.text : pal.placeholder}
           numberOfLines={1}
-          style={{ flex: 1, fontSize: 16 }}
+          style={{ flex: 1 }}
         >
           {value || "Ex: Doces, Salgados, Bolos..."}
         </Typography>
@@ -196,7 +192,7 @@ function CategoryField({
                 gap: spacing.md,
               }}
             >
-              <Typography variant="h3" color={theme.colors.text} style={{ fontSize: 18 }}>
+              <Typography variant="h3" color={theme.colors.text}>
                 Categoria
               </Typography>
 
@@ -279,11 +275,7 @@ function CategoryField({
                   };
                 }}
               >
-                <Typography
-                  variant="bodyBold"
-                  color={theme.colors.textOnPrimary}
-                  style={{ fontSize: 16 }}
-                >
+                <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
                   Usar categoria
                 </Typography>
               </Pressable>
@@ -352,11 +344,7 @@ function PhotoField({
               <Ionicons name="camera-outline" size={28} color={theme.colors.primary} />
             </View>
             <View style={{ flex: 1 }}>
-              <Typography
-                variant="bodyBold"
-                color={theme.colors.text}
-                style={{ fontSize: 15 }}
-              >
+              <Typography variant="bodyBold" color={theme.colors.text}>
                 Adicionar foto
               </Typography>
               <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -817,11 +805,7 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
               color={theme.colors.textOnPrimary}
             />
           )}
-          <Typography
-            variant="bodyBold"
-            color={theme.colors.textOnPrimary}
-            style={{ fontSize: 18 }}
-          >
+          <Typography variant="h3" color={theme.colors.textOnPrimary}>
             {uploading ? "Enviando foto..." : "Cadastrar produto"}
           </Typography>
         </Pressable>

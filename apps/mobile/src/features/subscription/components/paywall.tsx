@@ -5,6 +5,7 @@ import {
   useTheme,
   spacing,
   radii,
+  fonts,
   type Theme,
 } from "@lucro-caseiro/ui";
 import type { BillingPeriod, PaidPlan } from "@lucro-caseiro/contracts";
@@ -81,7 +82,7 @@ function TierCard({
         <Typography
           variant="caption"
           color={isPro ? theme.colors.premium : theme.colors.textSecondary}
-          style={{ fontSize: 12, fontWeight: "800" }}
+          style={{ fontSize: 12, fontFamily: fonts.extraBold }}
         >
           {isPro ? "COMPLETO" : "MAIS ESCOLHIDO"}
         </Typography>
@@ -154,7 +155,7 @@ function PeriodCard({
           <Typography
             variant="caption"
             color={theme.colors.premium}
-            style={{ fontSize: 12, fontWeight: "800" }}
+            style={{ fontSize: 12, fontFamily: fonts.extraBold }}
           >
             {badge}
           </Typography>
@@ -202,10 +203,10 @@ function BenefitItem({ text, theme }: Readonly<{ text: string; theme: Theme }>) 
     <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
       <Ionicons name="checkmark-circle" size={20} color={theme.colors.success} />
       <Typography
-        variant="body"
+        variant="caption"
         color={theme.colors.text}
         numberOfLines={2}
-        style={{ flex: 1, fontSize: 14 }}
+        style={{ flex: 1 }}
       >
         {text}
       </Typography>
@@ -290,7 +291,7 @@ export function Paywall({
           <Typography
             variant="h1"
             color={theme.colors.text}
-            style={{ textAlign: "center", fontSize: 30, lineHeight: 36 }}
+            style={{ textAlign: "center" }}
           >
             {title}
           </Typography>

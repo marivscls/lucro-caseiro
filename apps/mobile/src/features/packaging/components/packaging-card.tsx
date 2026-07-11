@@ -1,6 +1,6 @@
 import { formatCurrency } from "../../../shared/utils/format";
 import type { Packaging } from "@lucro-caseiro/contracts";
-import { Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import { Typography, useTheme, spacing, radii, fonts } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Pressable, View } from "react-native";
@@ -75,7 +75,7 @@ export function PackagingCard({
             variant="bodyBold"
             color={theme.colors.text}
             numberOfLines={1}
-            style={{ fontSize: 16, flexShrink: 1 }}
+            style={{ flexShrink: 1 }}
           >
             {packaging.name}
           </Typography>
@@ -87,7 +87,11 @@ export function PackagingCard({
               borderRadius: radii.full,
             }}
           >
-            <Typography variant="caption" color={tColor} style={{ fontWeight: "700" }}>
+            <Typography
+              variant="caption"
+              color={tColor}
+              style={{ fontFamily: fonts.bold }}
+            >
               {typeLabel(packaging.type)}
             </Typography>
           </View>
@@ -119,11 +123,7 @@ export function PackagingCard({
           />
         </Pressable>
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>
-          <Typography
-            variant="bodyBold"
-            color={theme.colors.text}
-            style={{ fontSize: 16 }}
-          >
+          <Typography variant="bodyBold" color={theme.colors.text}>
             {formatCurrency(packaging.unitCost)}
           </Typography>
           <Pressable onPress={onPress} hitSlop={8} accessibilityLabel="Ver detalhes">

@@ -1,5 +1,5 @@
 import type { Order } from "@lucro-caseiro/contracts";
-import { Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
+import { Typography, fonts, radii, spacing, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
@@ -261,7 +261,7 @@ function ClientPickerModal({
             gap: spacing.md,
           }}
         >
-          <Typography variant="h3" color={theme.colors.text} style={{ fontSize: 19 }}>
+          <Typography variant="h3" color={theme.colors.text}>
             Selecionar cliente
           </Typography>
           <Field
@@ -312,11 +312,7 @@ function ClientPickerModal({
                     borderBottomColor: pal.border,
                   }}
                 >
-                  <Typography
-                    variant="body"
-                    color={theme.colors.text}
-                    style={{ fontSize: 17 }}
-                  >
+                  <Typography variant="body" color={theme.colors.text}>
                     {item.name}
                   </Typography>
                 </Pressable>
@@ -356,7 +352,7 @@ function ClientPickerModal({
 function FieldLabel({ text }: Readonly<{ text: string }>) {
   const { theme } = useTheme();
   return (
-    <Typography variant="bodyBold" color={theme.colors.text} style={{ fontSize: 15 }}>
+    <Typography variant="bodyBold" color={theme.colors.text}>
       {text}
     </Typography>
   );
@@ -415,7 +411,7 @@ function PersonalizationFields({
                 <Typography
                   variant="caption"
                   color={active ? theme.colors.textOnPrimary : pal.muted}
-                  style={{ fontSize: 14, fontWeight: "700" }}
+                  style={{ fontFamily: fonts.bold }}
                 >
                   {suggestion}
                 </Typography>
@@ -658,11 +654,10 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
               numberOfLines={1}
               adjustsFontSizeToFit
               minimumFontScale={0.75}
-              style={{ fontSize: 36, lineHeight: 42, fontWeight: "800" }}
             >
               {isEditing ? "Editar encomenda" : "Nova encomenda"}
             </Typography>
-            <Typography variant="body" color={pal.muted} style={{ fontSize: 17 }}>
+            <Typography variant="body" color={pal.muted}>
               Preencha os dados da encomenda
             </Typography>
           </View>
@@ -679,7 +674,7 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
           }}
         >
           <View style={{ gap: spacing.md }}>
-            <Typography variant="h3" color={theme.colors.text} style={{ fontSize: 19 }}>
+            <Typography variant="h3" color={theme.colors.text}>
               Imagem da encomenda (opcional)
             </Typography>
             <View style={{ flexDirection: "row", gap: spacing.md, alignItems: "center" }}>
@@ -739,16 +734,11 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
                     color={theme.colors.primaryLight}
                     numberOfLines={1}
                     adjustsFontSizeToFit
-                    style={{ fontSize: 15 }}
                   >
                     {currentPhotoUrl ? "Trocar imagem" : "Adicionar imagem"}
                   </Typography>
                 </Pressable>
-                <Typography
-                  variant="caption"
-                  color={pal.muted}
-                  style={{ fontSize: 13, lineHeight: 17 }}
-                >
+                <Typography variant="caption" color={pal.muted}>
                   Foto opcional para identificar a encomenda.
                 </Typography>
                 {currentPhotoUrl ? (
@@ -770,7 +760,7 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
           <View style={{ height: 1, backgroundColor: pal.border }} />
 
           <View style={{ gap: spacing.sm }}>
-            <Typography variant="h3" color={theme.colors.text} style={{ fontSize: 18 }}>
+            <Typography variant="h3" color={theme.colors.text}>
               O que é? (encomenda){" "}
               <Typography variant="bodyBold" color={theme.colors.primaryLight}>
                 *
@@ -786,7 +776,7 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
           </View>
 
           <View style={{ gap: spacing.sm }}>
-            <Typography variant="h3" color={theme.colors.text} style={{ fontSize: 18 }}>
+            <Typography variant="h3" color={theme.colors.text}>
               Cliente (opcional)
             </Typography>
             <ClientField
@@ -808,7 +798,7 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
           </View>
 
           <View style={{ gap: spacing.sm }}>
-            <Typography variant="h3" color={theme.colors.text} style={{ fontSize: 18 }}>
+            <Typography variant="h3" color={theme.colors.text}>
               Data de entrega{" "}
               <Typography variant="bodyBold" color={theme.colors.primaryLight}>
                 *
@@ -851,7 +841,6 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
                     <Typography
                       variant="bodyBold"
                       color={active ? theme.colors.textOnPrimary : pal.muted}
-                      style={{ fontSize: 17 }}
                     >
                       {chip.label}
                     </Typography>
@@ -877,7 +866,7 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
           </View>
 
           <View style={{ gap: spacing.sm }}>
-            <Typography variant="h3" color={theme.colors.text} style={{ fontSize: 18 }}>
+            <Typography variant="h3" color={theme.colors.text}>
               Horário (opcional)
             </Typography>
             <Field
@@ -891,7 +880,7 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
           </View>
 
           <View style={{ gap: spacing.sm }}>
-            <Typography variant="h3" color={theme.colors.text} style={{ fontSize: 18 }}>
+            <Typography variant="h3" color={theme.colors.text}>
               Valor combinado (opcional)
             </Typography>
             <Field
@@ -904,7 +893,7 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
           </View>
 
           <View style={{ gap: spacing.sm }}>
-            <Typography variant="h3" color={theme.colors.text} style={{ fontSize: 18 }}>
+            <Typography variant="h3" color={theme.colors.text}>
               Sinal recebido (opcional)
             </Typography>
             <Field
@@ -933,7 +922,7 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
           </FormSection>
 
           <View style={{ gap: spacing.sm }}>
-            <Typography variant="h3" color={theme.colors.text} style={{ fontSize: 18 }}>
+            <Typography variant="h3" color={theme.colors.text}>
               Observações (opcional)
             </Typography>
             <Field
@@ -990,7 +979,7 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
           }}
         >
           <Ionicons name="shield-checkmark-outline" size={17} color={pal.muted} />
-          <Typography variant="caption" color={pal.muted} style={{ fontSize: 14 }}>
+          <Typography variant="caption" color={pal.muted}>
             Seus dados estão seguros
           </Typography>
         </View>

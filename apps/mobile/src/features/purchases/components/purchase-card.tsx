@@ -1,5 +1,13 @@
 import type { Purchase } from "@lucro-caseiro/contracts";
-import { Badge, Button, Card, Typography, useTheme, spacing } from "@lucro-caseiro/ui";
+import {
+  Badge,
+  Button,
+  Card,
+  Typography,
+  fonts,
+  useTheme,
+  spacing,
+} from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Pressable, View } from "react-native";
@@ -86,7 +94,7 @@ export function PurchaseCard({ purchase, onPay, onDelete, isPaying }: PurchaseCa
             <Typography
               variant="caption"
               color={theme.colors.alert}
-              style={{ fontWeight: "700" }}
+              style={{ fontFamily: fonts.bold }}
             >
               Excluir
             </Typography>

@@ -1,6 +1,6 @@
 import { formatCurrency } from "../../../shared/utils/format";
 import type { Packaging } from "@lucro-caseiro/contracts";
-import { Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import { Typography, useTheme, spacing, radii, fonts } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Pressable, ScrollView, Share, View } from "react-native";
@@ -42,7 +42,7 @@ function StatCol({
         variant="bodyBold"
         color={theme.colors.text}
         numberOfLines={1}
-        style={{ textAlign: "center", fontSize: 15 }}
+        style={{ textAlign: "center" }}
       >
         {value}
       </Typography>
@@ -70,7 +70,7 @@ function InfoRow({
         <Typography variant="caption" color={theme.colors.textSecondary}>
           {label}
         </Typography>
-        <Typography variant="bodyBold" color={theme.colors.text} style={{ fontSize: 15 }}>
+        <Typography variant="bodyBold" color={theme.colors.text}>
           {value}
         </Typography>
       </View>
@@ -115,7 +115,7 @@ export function PackagingDetail({
       }}
       showsVerticalScrollIndicator={false}
     >
-      <Typography variant="h1" color={theme.colors.text} style={{ fontSize: 30 }}>
+      <Typography variant="h1" color={theme.colors.text}>
         {typeLabel(packaging.type)}
       </Typography>
 
@@ -141,11 +141,7 @@ export function PackagingDetail({
             <Typography variant="caption" color={theme.colors.textSecondary}>
               Tipo
             </Typography>
-            <Typography
-              variant="bodyBold"
-              color={theme.colors.text}
-              style={{ fontSize: 16 }}
-            >
+            <Typography variant="bodyBold" color={theme.colors.text}>
               {typeLabel(packaging.type)}
             </Typography>
           </View>
@@ -157,7 +153,11 @@ export function PackagingDetail({
               borderRadius: radii.full,
             }}
           >
-            <Typography variant="caption" color={tColor} style={{ fontWeight: "700" }}>
+            <Typography
+              variant="caption"
+              color={tColor}
+              style={{ fontFamily: fonts.bold }}
+            >
               {typeLabel(packaging.type)}
             </Typography>
           </View>
@@ -172,7 +172,7 @@ export function PackagingDetail({
           <Typography variant="caption" color={theme.colors.textSecondary}>
             Custo unitário
           </Typography>
-          <Typography variant="h3" color={theme.colors.success} style={{ fontSize: 22 }}>
+          <Typography variant="money" color={theme.colors.success}>
             {formatCurrency(packaging.unitCost)}
           </Typography>
         </View>
@@ -204,7 +204,7 @@ export function PackagingDetail({
 
       {/* Resumo */}
       <View style={{ gap: spacing.md }}>
-        <Typography variant="bodyBold" color={theme.colors.text} style={{ fontSize: 17 }}>
+        <Typography variant="bodyBold" color={theme.colors.text}>
           Resumo
         </Typography>
         <View
@@ -235,7 +235,7 @@ export function PackagingDetail({
 
       {/* Informações adicionais */}
       <View style={{ gap: spacing.sm }}>
-        <Typography variant="bodyBold" color={theme.colors.text} style={{ fontSize: 17 }}>
+        <Typography variant="bodyBold" color={theme.colors.text}>
           Informações adicionais
         </Typography>
         <View
@@ -273,11 +273,7 @@ export function PackagingDetail({
         })}
       >
         <Ionicons name="share-outline" size={22} color={theme.colors.textOnPrimary} />
-        <Typography
-          variant="bodyBold"
-          color={theme.colors.textOnPrimary}
-          style={{ fontSize: 17 }}
-        >
+        <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
           Baixar / Compartilhar
         </Typography>
       </Pressable>
