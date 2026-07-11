@@ -1,4 +1,5 @@
 import type { FinanceEntry, FinanceEntryType } from "@lucro-caseiro/contracts";
+import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import { Ionicons } from "@expo/vector-icons";
 import { formatCurrency } from "../../../shared/utils/format";
 import { Button, spacing, useTheme, type Theme } from "@lucro-caseiro/ui";
@@ -66,6 +67,12 @@ export function FinanceDashboard({
   const { token } = useAuth();
   const { data: profile } = useProfile();
   const isPremium = isProfilePremiumActive(profile);
+  const canExportBasic = profile
+    ? hasActiveFeature(profile.plan, profile.planExpiresAt, "exportBasic")
+    : false;
+  const canExportFull = profile
+    ? hasActiveFeature(profile.plan, profile.planExpiresAt, "export")
+    : false;
   const showPaywall = usePaywall((s) => s.show);
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
@@ -114,8 +121,12 @@ export function FinanceDashboard({
 
   const handleExport = useCallback(
     async (format: "pdf" | "xlsx") => {
-      if (!isPremium) {
-        showPaywall("export");
+      if (format === "pdf" && !canExportBasic) {
+        showPaywall("export", "essential");
+        return;
+      }
+      if (format === "xlsx" && !canExportFull) {
+        showPaywall("export", "professional");
         return;
       }
       if (!token) return;
@@ -153,7 +164,7 @@ export function FinanceDashboard({
         setExporting(null);
       }
     },
-    [token, year, month, isPremium, showPaywall],
+    [token, year, month, canExportBasic, canExportFull, showPaywall],
   );
 
   function handlePrevMonth() {
@@ -312,7 +323,7 @@ export function FinanceDashboard({
         <View style={styles.section}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
             <Text style={styles.sectionTitle}>Exportar</Text>
-            {!isPremium && (
+            {!canExportFull && (
               <View
                 style={{
                   flexDirection: "row",
@@ -332,7 +343,7 @@ export function FinanceDashboard({
                     fontSize: 12,
                   }}
                 >
-                  Premium
+                  {canExportBasic ? "Excel no Profissional" : "Premium"}
                 </Text>
               </View>
             )}

@@ -8,10 +8,14 @@ import type { ISubscriptionRepo } from "../../features/subscription/subscription
 import { getUserId } from "./auth";
 
 const FEATURE_MESSAGE: Partial<Record<PlanFeature, string>> = {
-  export: "A exportação em PDF/Excel faz parte do plano Profissional.",
+  exportBasic: "A exportação do resumo mensal em PDF faz parte do plano Essencial.",
+  export:
+    "A exportação em Excel e os relatórios avançados fazem parte do plano Profissional.",
   advancedReports: "Os relatórios completos fazem parte do plano Profissional.",
   extraPhotos: "Fotos adicionais do produto fazem parte do plano Profissional.",
   catalogCustomization: "A personalização do catálogo faz parte do plano Profissional.",
+  purchases: "Registrar compras de fornecedores faz parte do plano Profissional.",
+  compositeProducts: "Produtos compostos (kits) fazem parte do plano Profissional.",
 };
 
 function featureMessage(feature: PlanFeature): string {
@@ -67,6 +71,38 @@ export function requireFeatureForExtraPhotos(repo: ISubscriptionRepo) {
       }
 
       throw new LimitExceededError(featureMessage("extraPhotos"));
+    } catch (err) {
+      next(err);
+    }
+  };
+}
+
+/**
+ * Produto composto (kit) só no Profissional. Só barra quando o request cria ou
+ * transforma o produto em composto (`isComposite: true`) — editar/excluir um
+ * produto simples segue liberado em qualquer plano.
+ */
+export function requireFeatureForComposite(repo: ISubscriptionRepo) {
+  return async (req: Request, _res: Response, next: NextFunction) => {
+    try {
+      const isComposite = (req.body as { isComposite?: unknown } | undefined)
+        ?.isComposite;
+      if (isComposite !== true) {
+        next();
+        return;
+      }
+
+      const userId = getUserId(req);
+      const profile = await repo.getProfile(userId);
+      if (
+        profile &&
+        hasActiveFeature(profile.plan, profile.planExpiresAt, "compositeProducts")
+      ) {
+        next();
+        return;
+      }
+
+      throw new LimitExceededError(featureMessage("compositeProducts"));
     } catch (err) {
       next(err);
     }

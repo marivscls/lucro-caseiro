@@ -77,6 +77,7 @@ import { errorHandler } from "./shared/middleware/error-handler";
 import { freemiumGuard } from "./shared/middleware/freemium-guard";
 import {
   requireFeature,
+  requireFeatureForComposite,
   requireFeatureForExtraPhotos,
 } from "./shared/middleware/require-feature";
 import { rateLimit } from "./shared/middleware/rate-limit";
@@ -240,6 +241,7 @@ app.use(
     productsUseCases,
     freemiumGuard(subscriptionRepo, "products"),
     requireFeatureForExtraPhotos(subscriptionRepo),
+    requireFeatureForComposite(subscriptionRepo),
   ),
 );
 app.use(
@@ -250,7 +252,10 @@ app.use(
   "/api/v1/suppliers",
   createSuppliersRouter(suppliersUseCases, freemiumGuard(subscriptionRepo, "suppliers")),
 );
-app.use("/api/v1/purchases", createPurchasesRouter(purchasesUseCases));
+app.use(
+  "/api/v1/purchases",
+  createPurchasesRouter(purchasesUseCases, requireFeature(subscriptionRepo, "purchases")),
+);
 app.use(
   "/api/v1/sales",
   createSalesRouter(salesUseCases, freemiumGuard(subscriptionRepo, "sales")),
@@ -259,6 +264,7 @@ app.use(
   "/api/v1/finance",
   createFinanceRouter(
     financeUseCases,
+    requireFeature(subscriptionRepo, "exportBasic"),
     requireFeature(subscriptionRepo, "export"),
     requireFeature(subscriptionRepo, "recurringExpenses"),
   ),

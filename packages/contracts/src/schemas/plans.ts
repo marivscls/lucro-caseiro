@@ -74,18 +74,22 @@ export function planLimit(plan: PlanType, resource: LimitResource): number | nul
 // ---------------------------------------------------------------------------
 
 export type PlanFeature =
+  | "exportBasic" // exportar resumo mensal em PDF simples (fechamento do mês)
   | "extraPhotos" // várias fotos por produto
   | "catalogPremium" // catálogo completo na vitrine (sem teto de 3 produtos)
   | "catalogCustomization" // capa/cor/logo/frase/banner do catálogo público
   | "advancedReports" // relatórios completos com gráficos (insights)
-  | "export" // exportar PDF/XLSX
+  | "export" // exportar PDF/XLSX completo (relatórios avançados, histórico)
   | "purchases" // registrar compras de fornecedores
   | "recurringExpenses" // gastos recorrentes
   | "labelsPremium" // rótulos personalizados
   | "quotesPdf" // orçamentos em PDF
   | "compositeProducts"; // produtos compostos / kits
 
-// Essencial só remove limites de volume; toda feature premium é do Profissional.
+// Essencial ganha 1 diferencial qualitativo sobre o free: PDF básico do resumo
+// mensal (ADR-0005). Toda outra feature premium segue exclusiva do Profissional.
+const ESSENTIAL_FEATURES: readonly PlanFeature[] = ["exportBasic"];
+
 const PROFESSIONAL_FEATURES: readonly PlanFeature[] = [
   "extraPhotos",
   "catalogPremium",
@@ -101,8 +105,8 @@ const PROFESSIONAL_FEATURES: readonly PlanFeature[] = [
 
 export const PLAN_FEATURES: Record<PlanType, ReadonlySet<PlanFeature>> = {
   free: new Set<PlanFeature>(),
-  essential: new Set<PlanFeature>(),
-  professional: new Set<PlanFeature>(PROFESSIONAL_FEATURES),
+  essential: new Set<PlanFeature>(ESSENTIAL_FEATURES),
+  professional: new Set<PlanFeature>([...ESSENTIAL_FEATURES, ...PROFESSIONAL_FEATURES]),
 };
 
 export function planHasFeature(plan: PlanType, feature: PlanFeature): boolean {

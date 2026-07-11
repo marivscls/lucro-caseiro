@@ -117,11 +117,11 @@ api:
     - method: GET
       path: /export/pdf
       query: month (YYYY-MM)
-      response: application/pdf (binary)
+      response: application/pdf (binary)  # feature exportBasic (Essencial+)
     - method: GET
       path: /export/xlsx
       query: month (YYYY-MM)
-      response: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet (binary)
+      response: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet (binary)  # feature export (Profissional)
     - method: GET
       path: /:id
       response: FinanceEntry
@@ -246,6 +246,7 @@ GET /api/v1/finance/export/pdf?month=2026-03
   id retornado (`financeEntryId`) para idempotencia. Injetado via interface `IFinancePoster`.
 - Adicionado `isFixed` (migration 005) para separar gastos fixos x variaveis; filtro `?fixed=` na listagem e split `fixedExpenses`/`variableExpenses` no summary
 - 2026-06-16: **exportação é Premium** — `GET /export/pdf` e `/export/xlsx` passam por `requirePremium(subscriptionRepo)` (wired no main); plano free recebe `LimitExceededError` (403 LIMIT_EXCEEDED). `createFinanceRouter(useCases, exportGuard?)` aplica o guard só nas rotas de export. Lançar/listar/summary seguem livres (o app trava navegação de meses passados no front).
+- 2026-07-11: **PDF do resumo mensal vira Essencial (`exportBasic`)** — PRD melhorias pré-lançamento item 2.1, ADR-0005. `GET /export/pdf` passa a exigir a feature `exportBasic` (Essencial e Profissional); `GET /export/xlsx` continua exigindo `export` (só Profissional). `createFinanceRouter(useCases, exportBasicGuard?, exportGuard?, recurringGuard?)` — assinatura mudou (novo 2º arg `exportBasicGuard`, `recurringGuard` passou a ser o 4º). O PDF em si não mudou (mesmo `generateFinancePdf`); só o gate. Fronteira a manter: se o PDF ganhar gráficos extras ou período custom, migra para `export`/Profissional.
 - 2026-06-25: **gastos recorrentes (Premium)** — nova tabela `recurring_expenses` (migration 025) +
   coluna `finance_entries.recurring_expense_id`. CRUD em `/finance/recurring` (criar é Premium via
   `requirePremium`, 3º arg de `createFinanceRouter`). Geração automática e idempotente: ao abrir o

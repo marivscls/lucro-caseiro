@@ -67,6 +67,7 @@ Deve incluir:
 - Estoque basico.
 - Catalogo online basico.
 - Recibo simples.
+- Exportar resumo mensal em PDF simples (feature `exportBasic`, ver ADR-0005).
 - 1 usuario.
 - 1 foto por produto.
 
@@ -124,8 +125,9 @@ Usar a logica de 2 meses gratis:
 | Fiado                   | Basico         | Completo                | Completo                    |
 | Financeiro              | Resumo simples | Basico                  | Completo                    |
 | Relatorios avancados    | Nao            | Nao                     | Sim                         |
-| Exportacao PDF/XLSX     | Nao            | Nao                     | Sim                         |
+| Exportacao PDF/XLSX     | Nao            | PDF basico (resumo mes) | Sim (PDF completo + XLSX)   |
 | Recibos                 | Simples        | Simples                 | Personalizados              |
+| Exportar resumo em PDF  | Nao            | Sim (PDF basico do mes) | Sim (PDF completo)          |
 | Orcamentos em PDF       | Nao            | Nao                     | Sim                         |
 | Rotulos premium         | Nao            | Nao                     | Sim                         |
 | Produtos compostos/kits | Nao            | Nao                     | Sim                         |

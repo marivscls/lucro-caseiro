@@ -13,12 +13,16 @@ import type { FinanceUseCases } from "./finance.usecases";
 
 export function createFinanceRouter(
   useCases: FinanceUseCases,
+  exportBasicGuard?: RequestHandler,
   exportGuard?: RequestHandler,
   recurringGuard?: RequestHandler,
 ): Router {
   const router = Router();
   router.use(authMiddleware);
-  // Exportação PDF/Excel é Premium (tabela freemium). Guard opcional (testes sem ele).
+  // PDF do resumo mensal é Essencial+ (ADR-0005: feature `exportBasic`). Excel e
+  // relatórios avançados seguem exclusivos do Profissional (`export`). Guards
+  // opcionais (testes sem eles).
+  const basicGuards = exportBasicGuard ? [exportBasicGuard] : [];
   const guards = exportGuard ? [exportGuard] : [];
 
   // --- Gastos recorrentes (criar é Premium) ---
@@ -126,7 +130,7 @@ export function createFinanceRouter(
     }
   });
 
-  router.get("/export/pdf", ...guards, async (req, res, next) => {
+  router.get("/export/pdf", ...basicGuards, async (req, res, next) => {
     try {
       const userId = getUserId(req);
       const monthParam = req.query.month as string | undefined;
