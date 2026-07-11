@@ -1,5 +1,13 @@
 import type { Client } from "@lucro-caseiro/contracts";
-import { PressableScale, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import {
+  Button,
+  EmptyState,
+  PressableScale,
+  Typography,
+  useTheme,
+  spacing,
+  radii,
+} from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
@@ -235,59 +243,20 @@ function ClientCard({ client, onPress }: Readonly<ClientCardProps>) {
 }
 
 function EmptyClients({ onCreatePress }: Readonly<{ onCreatePress: () => void }>) {
-  const { theme } = useTheme();
-  const pal = clientsPalette(theme);
-
   return (
-    <View
-      style={[
-        surfaceStyle(pal, {
-          borderRadius: radii["2xl"],
-          padding: spacing["2xl"],
-          alignItems: "center",
-          gap: spacing.md,
-        }),
-      ]}
-    >
-      <Image
-        source={clientsEmpty}
-        resizeMode="contain"
-        style={{ width: 146, height: 146 }}
-      />
-      <Typography variant="h2" color={theme.colors.text}>
-        Nenhum cliente ainda
-      </Typography>
-      <Typography
-        variant="body"
-        color={pal.muted}
-        style={{ textAlign: "center", lineHeight: 24 }}
-      >
-        Cadastre seu primeiro cliente para organizar contatos e vendas.
-      </Typography>
-      <Pressable
-        onPress={onCreatePress}
-        style={{
-          marginTop: spacing.sm,
-          minHeight: 54,
-          borderRadius: radii.full,
-          backgroundColor: theme.colors.primary,
-          alignItems: "center",
-          justifyContent: "center",
-          paddingHorizontal: spacing["2xl"],
-          flexDirection: "row",
-          gap: spacing.sm,
-        }}
-      >
-        <Ionicons
-          name="person-add-outline"
-          size={20}
-          color={theme.colors.textOnPrimary}
+    <EmptyState
+      icon={
+        <Image
+          source={clientsEmpty}
+          resizeMode="contain"
+          style={{ width: 146, height: 146 }}
         />
-        <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
-          Novo cliente
-        </Typography>
-      </Pressable>
-    </View>
+      }
+      title="Nenhum cliente ainda"
+      description="Cadastre seu primeiro cliente pra acompanhar pedidos e aniversários"
+      action={<Button title="Novo cliente" onPress={onCreatePress} />}
+      style={{ flex: undefined }}
+    />
   );
 }
 

@@ -1,5 +1,12 @@
 import { formatCurrency } from "../shared/utils/format";
-import { EmptyState, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import {
+  Button,
+  EmptyState,
+  Typography,
+  useTheme,
+  spacing,
+  radii,
+} from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
@@ -165,7 +172,10 @@ export default function PackagingScreen() {
             />
           }
           title="Nenhuma embalagem ainda"
-          description="Cadastre suas embalagens para facilitar a precificação."
+          description="Cadastre sua primeira embalagem pra calcular o custo certinho dos seus produtos"
+          action={
+            <Button title="Cadastrar embalagem" onPress={() => setShowCreate(true)} />
+          }
         />
       );
     }
