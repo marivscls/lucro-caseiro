@@ -108,13 +108,22 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="agenda"
+        options={{
+          title: "Agenda",
+          tabBarLabel: "Agenda",
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="calendar-outline" size={21} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="clients"
         options={{
+          // Clientes sai da tab bar (ADR-0006): acessível via "Mais" e atalhos
+          // da home, mas a rota /tabs/clients continua funcionando.
+          href: null,
           title: "Clientes",
-          tabBarLabel: "Clientes",
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="people-outline" size={21} color={color} />
-          ),
         }}
       />
       <Tabs.Screen

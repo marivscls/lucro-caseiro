@@ -43,7 +43,7 @@ export function handleNotificationResponse(response: NotificationResponse): void
       router.push("/products");
       break;
     case NOTIFICATION_TYPES.DELIVERY:
-      router.push("/agenda");
+      router.push("/tabs/agenda");
       break;
     case NOTIFICATION_TYPES.WEEKLY_SUMMARY:
     case NOTIFICATION_TYPES.DAILY_REMINDER:

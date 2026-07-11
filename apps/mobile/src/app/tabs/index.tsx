@@ -202,7 +202,7 @@ const HOME_SHORTCUT_CATEGORIES = [
   {
     title: "Dia a dia",
     items: [
-      { icon: "calendar-outline", label: "Agenda", route: "/agenda" },
+      { icon: "calendar-outline", label: "Agenda", route: "/tabs/agenda" },
       { icon: "wallet-outline", label: "Finanças", route: "/finance" },
       { icon: "bar-chart-outline", label: "Insights", route: "/insights" },
       { icon: "cash-outline", label: "Fiado", route: "/fiado" },
@@ -285,7 +285,7 @@ function MetricCard({
           <Typography
             variant="label"
             color={color}
-            style={{ flex: 1, fontSize: 11 }}
+            style={{ flex: 1, fontSize: 12 }}
             numberOfLines={2}
           >
             {title}
@@ -378,7 +378,7 @@ function ProgressRing({ value }: Readonly<{ value: number }>) {
         <Typography
           variant="caption"
           color={theme.colors.primary}
-          style={{ fontSize: 10 }}
+          style={{ fontSize: 12 }}
         >
           da meta
         </Typography>
@@ -790,7 +790,7 @@ export default function HomeScreen() {
               <Card
                 variant="surface"
                 padding="lg"
-                onPress={() => router.push("/agenda")}
+                onPress={() => router.push("/tabs/agenda")}
                 style={cardStyle}
               >
                 <View

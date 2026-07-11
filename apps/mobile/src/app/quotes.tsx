@@ -466,7 +466,7 @@ function QuoteDetail({
             size="lg"
             onPress={() => {
               onClose();
-              router.push("/agenda");
+              router.push("/tabs/agenda");
             }}
           />
         )}

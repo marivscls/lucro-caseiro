@@ -7,19 +7,31 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useProfile } from "../../features/subscription/hooks";
 
-const menuItems = [
-  {
-    title: "Agenda",
-    description: "Encomendas e entregas",
-    icon: "calendar-outline" as const,
-    route: "/agenda" as const,
-  },
+// Destaque no topo do "Mais" (ADR-0006): funções de uso diário que perderam
+// atalho na tab bar (Clientes) ou que merecem acesso rápido (Financeiro,
+// Fiado) ficam em evidência antes da lista comum.
+const dailyItems = [
   {
     title: "Financeiro",
     description: "Entradas, saídas e lucro",
     icon: "wallet-outline" as const,
     route: "/finance" as const,
   },
+  {
+    title: "Fiado",
+    description: "Quem te deve e cobrança",
+    icon: "cash-outline" as const,
+    route: "/fiado" as const,
+  },
+  {
+    title: "Clientes",
+    description: "Contatos e aniversários",
+    icon: "people-outline" as const,
+    route: "/tabs/clients" as const,
+  },
+];
+
+const menuItems = [
   {
     title: "Gastos fixos",
     description: "Custos mensais no automático",
@@ -31,12 +43,6 @@ const menuItems = [
     description: "Monte, envie e aprove propostas",
     icon: "reader-outline" as const,
     route: "/quotes" as const,
-  },
-  {
-    title: "Fiado",
-    description: "Quem te deve e cobrança",
-    icon: "cash-outline" as const,
-    route: "/fiado" as const,
   },
   {
     title: "Produtos",
@@ -157,6 +163,73 @@ export default function MoreScreen() {
             />
           </View>
         </Card>
+
+        <Typography
+          variant="caption"
+          color={theme.colors.textSecondary}
+          style={{
+            marginTop: spacing.sm,
+            textTransform: "uppercase",
+            letterSpacing: 0.4,
+          }}
+        >
+          Do dia a dia
+        </Typography>
+
+        {dailyItems.map((item) => (
+          <Card key={item.title} onPress={() => router.push(item.route)}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 14,
+                minHeight: 56,
+              }}
+            >
+              <View
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: 16,
+                  backgroundColor: "rgba(196, 112, 126, 0.14)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Ionicons name={item.icon} size={28} color={theme.colors.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Typography variant="h3" style={{ fontSize: 18 }}>
+                  {item.title}
+                </Typography>
+                <Typography
+                  variant="body"
+                  color={theme.colors.textSecondary}
+                  style={{ fontSize: 14 }}
+                >
+                  {item.description}
+                </Typography>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={22}
+                color={theme.colors.textSecondary}
+              />
+            </View>
+          </Card>
+        ))}
+
+        <Typography
+          variant="caption"
+          color={theme.colors.textSecondary}
+          style={{
+            marginTop: spacing.sm,
+            textTransform: "uppercase",
+            letterSpacing: 0.4,
+          }}
+        >
+          Tudo
+        </Typography>
 
         {menuItems.map((item) => (
           <Card key={item.title} onPress={() => router.push(item.route)}>

@@ -126,7 +126,7 @@ Importados de `@lucro-caseiro/contracts`.
 
 ## Examples
 
-- Tela acessada via tab "Clientes" no bottom tab bar.
+- Tela acessada via "Mais" (secao "Do dia a dia") e atalhos da home; a rota `/tabs/clients` continua ativa, mas desde 2026-07-11 (ADR-0006) o `Tabs.Screen` usa `href: null` e nao aparece mais no bottom tab bar (o lugar foi para "Agenda").
 - Navegacao interna: lista -> detalhe (inline) -> editar (modal).
 - Criacao via modal (FAB ou botao do EmptyState).
 
@@ -136,3 +136,4 @@ Importados de `@lucro-caseiro/contracts`.
 - Tags limitadas a 10 por cliente para manter UX simples.
 - 2026-06-15: `useBirthdayNotifier(isPremium)` — notificacao local quando um cliente faz aniversario hoje (1x/dia via AsyncStorage). Recurso **Premium**, respeita a preferencia (`notification-prefs`, tipo `CLIENT_BIRTHDAY`). Helper puro `isBirthdayToday` coberto por teste. Montado no `app/_layout.tsx`.
 - 2026-06-17: card "Aniversariantes do mes" na home (`app/tabs/index`) agora e **Premium**. Premium ve os nomes (respeitando `CLIENT_BIRTHDAY` pref); free ve um teaser com cadeado + selo Premium (so a contagem, sem nomes) que abre o paywall (`showPaywall("birthdays")`, copy em `subscription/limit-copy.ts`). Antes o card aparecia com os nomes para qualquer usuario (free e premium) — inconsistente com a notificacao, que ja era Premium.
+- 2026-07-11: Clientes saiu do bottom tab bar, substituido por Agenda (ADR-0006). `tabs/_layout.tsx` mantem o `Tabs.Screen name="clients"` com `href: null` para preservar a rota `/tabs/clients` (usada por `new-sale.tsx`, `notification-types.ts` e o novo destaque "Do dia a dia" em `tabs/more.tsx`) sem exibir o item na tab bar.

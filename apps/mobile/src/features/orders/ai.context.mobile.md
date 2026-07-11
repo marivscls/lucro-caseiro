@@ -17,8 +17,8 @@ receita ao entregar.
 ## Boundaries & Ownership
 
 - **Depende de:** `@lucro-caseiro/contracts` (Order, CreateOrder, UpdateOrder, DeliverOrder, OrderStatus), `@lucro-caseiro/ui`, `shared/hooks/use-auth`, `shared/utils/api-client`, `shared/hooks/notification-types`, `features/clients/hooks` (`useClients`, só leitura — para o seletor de cliente do formulário).
-- **Dependentes:** `app/agenda` (tela), `app/tabs/index` (card + quick-access), `app/tabs/more` (entrada), `app/_layout` (monta `useDeliveryNotifier`).
-- **Tensão de boundary:** não existe um componente de seletor de cliente compartilhado no repo — a venda rápida (`app/tabs/new-sale.tsx`) resolve isso com lógica inline (não é um componente exportável). `OrderForm` implementa seu próprio `ClientField`/`ClientPickerModal` local, reaproveitando apenas o hook público `useClients` de `features/clients/hooks` (mesmo hook já usado por `agenda.tsx` e `fiado.tsx`).
+- **Dependentes:** `app/tabs/agenda` (tela, tab da tab bar desde ADR-0006), `app/agenda` (redirect legado para `/tabs/agenda`), `app/tabs/index` (card + quick-access), `app/_layout` (monta `useDeliveryNotifier`).
+- **Tensão de boundary:** não existe um componente de seletor de cliente compartilhado no repo — a venda rápida (`app/tabs/new-sale.tsx`) resolve isso com lógica inline (não é um componente exportável). `OrderForm` implementa seu próprio `ClientField`/`ClientPickerModal` local, reaproveitando apenas o hook público `useClients` de `features/clients/hooks` (mesmo hook já usado por `tabs/agenda.tsx` e `fiado.tsx`).
 
 ## Code pointers
 
@@ -33,7 +33,8 @@ receita ao entregar.
 | `apps/mobile/src/features/orders/components/order-form.tsx` | Formulario criar/editar                                                            |
 | `apps/mobile/src/features/orders/use-delivery-notifier.ts`  | Notificacao local de entregas proximas (1x/dia) + sync dos lembretes por encomenda |
 | `apps/mobile/src/features/orders/reminders.ts`              | Agenda/cancela lembrete local por encomenda (vespera 9h)                           |
-| `apps/mobile/src/app/agenda.tsx`                            | Tela `/agenda` (lista agrupada + detalhe/edicao)                                   |
+| `apps/mobile/src/app/tabs/agenda.tsx`                       | Tab `/tabs/agenda` (lista agrupada + detalhe/edicao)                               |
+| `apps/mobile/src/app/agenda.tsx`                            | Redirect legado `/agenda` -> `/tabs/agenda` (deep links antigos)                   |
 
 ## Components
 
@@ -48,13 +49,13 @@ receita ao entregar.
 - Cria ou edita. Campos: o que é (título), cliente (opcional — `ClientField` abre `ClientPickerModal` com busca via `useClients`), data (chips Hoje/Amanhã + DD/MM/AAAA), horário, valor, sinal, personalização (tema/homenageado/cores) e observações (opcional, multiline, até 500 chars).
 - `clientId` e `notes` são opcionais e enviados como `undefined` quando vazios (nunca string vazia), casando com `CreateOrderDto`/`UpdateOrderDto` (`clientId: z.string().uuid().optional()`, `notes: z.string().max(500).optional()`).
 
-### `OrderDetail` / `ModernOrderDetail` (definido na tela `agenda.tsx`)
+### `OrderDetail` / `ModernOrderDetail` (definido na tela `tabs/agenda.tsx`)
 
 - Detalhe com troca rápida de status (a fazer/produzindo/pronto), "Marcar como entregue"
   (pergunta se registra receita), Editar e Excluir.
 - Mostra `order.clientName` (resolvido pelo backend) no cabeçalho quando `clientId` está setado, e `order.notes` na linha "Observações" (fallback "Nenhuma observação adicionada.").
 
-### `OrdersSummaryHeader` (definido na tela `agenda.tsx`)
+### `OrdersSummaryHeader` (definido na tela `tabs/agenda.tsx`)
 
 - Card no topo da lista: "Total dos pedidos: R$ X" + linha "A receber: R$ Y · Recebido: R$ Z".
 - Usa `useOrdersSummary()`; oculto quando não há pedidos (`totalOrders === 0`).
@@ -110,7 +111,7 @@ receita ao entregar.
 
 ## Examples
 
-- Home → quick-access "Agenda" ou card "Agenda" → tela `/agenda`.
+- Home → quick-access "Agenda" ou card "Agenda" → tab `/tabs/agenda`.
 - FAB "Nova encomenda" → form → salvar. Tap no card → detalhe → status / entregar / editar.
 
 ## Change log / Decisions
@@ -118,7 +119,8 @@ receita ao entregar.
 - Criação inicial: agenda de encomendas/entregas unificada.
 - v1 sem itens de produto nem seleção de cliente no form (só título+data+valor).
 - "Entregar" pode registrar a receita no financeiro (back cria lançamento income/sale).
-- Notificação local de entregas próximas (tipo `DELIVERY` → roteia `/agenda`).
+- Notificação local de entregas próximas (tipo `DELIVERY` → roteia `/tabs/agenda`).
+- 2026-07-11: Agenda virou tab na tab bar no lugar de Clientes (ADR-0006); tela movida de `app/agenda.tsx` para `app/tabs/agenda.tsx`. Rota antiga `/agenda` mantida como redirect (`<Redirect href="/tabs/agenda" />`) para não quebrar deep links/notificações existentes. Cabeçalho perdeu o botão "Voltar" (agora é tab, não empilha sobre outra tela).
 - 2026-05-30: lembrete agendado por encomenda (véspera 9h) via `reminders.ts`, complementar ao resumo diário. Chega com o app fechado; ligado ao ciclo de vida nos hooks + sync em `useDeliveryNotifier`.
 - 2026-05-30: resumo de valores (P2 #13) — `useOrdersSummary` + `fetchOrdersSummary` (`GET /summary`) e header `OrdersSummaryHeader` no topo da agenda ("Total dos pedidos" + a receber/recebido). Query key `["orders","summary",opts]` é invalidada automaticamente pelas mutações existentes (criar/entregar/excluir) por prefixo, já que todas invalidam `["orders"]`.
 - 2026-06-10: formulário ganhou "Sinal recebido" (validação local sinal ≤ valor) e
