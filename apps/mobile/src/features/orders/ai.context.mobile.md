@@ -11,13 +11,14 @@ receita ao entregar.
 ## Non-goals
 
 - Não é calendário mensal/grade horária.
-- v1 sem itens de produto e sem seleção de cliente no formulário (só projeta `clientName`).
+- v1 sem itens de produto (linha única título+valor).
 - Não dá baixa de estoque/insumos.
 
 ## Boundaries & Ownership
 
-- **Depende de:** `@lucro-caseiro/contracts` (Order, CreateOrder, UpdateOrder, DeliverOrder, OrderStatus), `@lucro-caseiro/ui`, `shared/hooks/use-auth`, `shared/utils/api-client`, `shared/hooks/notification-types`.
+- **Depende de:** `@lucro-caseiro/contracts` (Order, CreateOrder, UpdateOrder, DeliverOrder, OrderStatus), `@lucro-caseiro/ui`, `shared/hooks/use-auth`, `shared/utils/api-client`, `shared/hooks/notification-types`, `features/clients/hooks` (`useClients`, só leitura — para o seletor de cliente do formulário).
 - **Dependentes:** `app/agenda` (tela), `app/tabs/index` (card + quick-access), `app/tabs/more` (entrada), `app/_layout` (monta `useDeliveryNotifier`).
+- **Tensão de boundary:** não existe um componente de seletor de cliente compartilhado no repo — a venda rápida (`app/tabs/new-sale.tsx`) resolve isso com lógica inline (não é um componente exportável). `OrderForm` implementa seu próprio `ClientField`/`ClientPickerModal` local, reaproveitando apenas o hook público `useClients` de `features/clients/hooks` (mesmo hook já usado por `agenda.tsx` e `fiado.tsx`).
 
 ## Code pointers
 
@@ -44,12 +45,14 @@ receita ao entregar.
 ### `OrderForm`
 
 - **Props:** `{ order?: Order | null; onSuccess?: () => void }`
-- Cria ou edita. Campos: o que é (título), data (chips Hoje/Amanhã + DD/MM/AAAA), horário, valor, observações.
+- Cria ou edita. Campos: o que é (título), cliente (opcional — `ClientField` abre `ClientPickerModal` com busca via `useClients`), data (chips Hoje/Amanhã + DD/MM/AAAA), horário, valor, sinal, personalização (tema/homenageado/cores) e observações (opcional, multiline, até 500 chars).
+- `clientId` e `notes` são opcionais e enviados como `undefined` quando vazios (nunca string vazia), casando com `CreateOrderDto`/`UpdateOrderDto` (`clientId: z.string().uuid().optional()`, `notes: z.string().max(500).optional()`).
 
-### `OrderDetail` (definido na tela `agenda.tsx`)
+### `OrderDetail` / `ModernOrderDetail` (definido na tela `agenda.tsx`)
 
 - Detalhe com troca rápida de status (a fazer/produzindo/pronto), "Marcar como entregue"
   (pergunta se registra receita), Editar e Excluir.
+- Mostra `order.clientName` (resolvido pelo backend) no cabeçalho quando `clientId` está setado, e `order.notes` na linha "Observações" (fallback "Nenhuma observação adicionada.").
 
 ### `OrdersSummaryHeader` (definido na tela `agenda.tsx`)
 
@@ -124,3 +127,4 @@ receita ao entregar.
 - 2026-06-10: campo de data de entrega ganhou seletor nativo de data (icone de calendario abre @react-native-community/datetimepicker); digitacao mascarada continua valendo. Conversao de orcamento em quotes.tsx usa o DateField compartilhado.
 - 2026-06-17: campo "Horario (opcional)" agora aplica mascara progressiva `maskTimeBR` ("1430" -> "14:30") e valida 24h via `isValidTimeBR` (00:00–23:59) — antes aceitava qualquer `\d{2}:\d{2}`. Removido o chevron sem acao do campo.
 - 2026-06-17: fix `useUpdateOrder.onMutate` — o `getQueriesData({ queryKey: ["orders"] })` casa por prefixo tambem com `["orders","summary"]` (objeto, nao array); ao editar uma encomenda isso quebrava com `orders.map is not a function`. Agora pula caches que nao sao array (`Array.isArray`).
+- 2026-07-11: `OrderForm` passou a expor `clientId` e `notes` (PRD 4.2) — antes o schema ja aceitava os dois campos mas o formulario nao tinha UI pra eles (`notes` ate tinha estado, mas sem setter). Adicionado `ClientField`/`ClientPickerModal` (locais ao form, reaproveitam `useClients`) e campo "Observacoes (opcional)" multiline reaproveitando o `Field` existente (ganhou suporte a `multiline`). Detalhe da agenda (`ModernOrderDetail`) ja exibia `clientName`/`notes` quando presentes — nao precisou mudar.
