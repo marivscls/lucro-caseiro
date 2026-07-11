@@ -526,6 +526,15 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
   const { data: profile } = useProfile();
   const isPremium = isProfilePremiumActive(profile);
 
+  function handleCompositeChange(next: boolean) {
+    // Kit/produto composto é recurso Profissional: nunca deixa marcar sem plano.
+    if (next && !isPremium) {
+      showPaywall("compositeProducts");
+      return;
+    }
+    setIsComposite(next);
+  }
+
   async function addExtraPhoto() {
     if (!isPremium) {
       showPaywall("productPhotos");
@@ -687,7 +696,11 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
           />
         </View>
 
-        <CompositeToggle value={isComposite} onChange={setIsComposite} />
+        <CompositeToggle
+          value={isComposite}
+          onChange={handleCompositeChange}
+          locked={!isPremium}
+        />
 
         {isComposite && <ComponentPicker value={components} onChange={setComponents} />}
 

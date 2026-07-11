@@ -94,6 +94,8 @@ Gerenciar o catalogo de produtos do negocio caseiro, incluindo nome, descricao, 
   (fica null/ignorado para compostos).
 - Um kit conta como um produto normal no create (mesmo fluxo `create`); nao ha limite
   freemium dedicado a produtos.
+- Produto composto (kit) e feature `compositeProducts`, exclusiva do plano Profissional
+  (ver Authorization & RLS).
 
 ## Operations
 
@@ -152,6 +154,11 @@ invariants:
 - Todas as rotas protegidas por `authMiddleware`
 - `userId` extraido do token JWT
 - Toda query filtra por `userId`
+- `POST /` e `PATCH /:id` passam por `requireFeatureForComposite(subscriptionRepo)`
+  (`apps/api/src/shared/middleware/require-feature.ts`) — só barra (`LimitExceededError`, 403 /
+  `LIMIT_EXCEEDED`) quando o body traz `isComposite: true` e o plano não tem a feature
+  `compositeProducts` (exclusiva do Profissional). Produto simples (`isComposite` ausente/false)
+  segue liberado em qualquer plano, igual ao gate de `extraPhotos`.
 
 ## Contracts (Zod/DTO)
 
@@ -277,3 +284,9 @@ POST /api/v1/products  (produto composto / kit / caixinha)
   trouxer `extraPhotos` não-vazio e o plano não for Premium; free segue criando/editando produtos
   normalmente com 1 foto. Threaded em CreateProductData/Product e no repo. O catálogo público
   exibe a galeria (`PublicCatalogProduct.extraPhotos`) como tira de miniaturas (scroll-snap, sem JS).
+- 2026-07-11: **gate de feature para kit (Profissional)** — `POST /` e `PATCH /:id` ganharam
+  `requireFeatureForComposite(subscriptionRepo)` (antes o backend não gateava `isComposite`, só o
+  freemium de contagem de produtos). Mobile (`create-product-form.tsx`): o toggle "Produto composto
+  (kit)" mostra um cadeado quando o plano não é Profissional e, ao tentar marcar, chama
+  `showPaywall("compositeProducts")` em vez de habilitar o formulário de componentes (não é tela
+  cheia — kit é uma sub-seção do formulário de produto, não uma tela dedicada).

@@ -11,7 +11,8 @@ Registrar compras de fornecedores como **contas a pagar** e **saídas do caixa**
 - Não registra itens de linha (material + qtd + preço) nem dá baixa/entrada de estoque (evolução futura).
 - Não gerencia o cadastro de fornecedores (feature `suppliers`).
 - Não calcula precificação (feature `pricing`).
-- Sem limite freemium (não gating nesta fase).
+- Sem limite freemium de contagem (não gating de volume nesta fase) — mas a feature em si é
+  exclusiva do plano Profissional (ver Authorization & RLS).
 
 ## Boundaries & Ownership
 
@@ -98,6 +99,11 @@ invariants:
 ## Authorization & RLS
 
 - Todas as rotas protegidas por `authMiddleware`; `userId` via `getUserId(req)`. Isolamento por `userId`.
+- `POST /` passa por `requireFeature(subscriptionRepo, "purchases")` (`apps/api/src/shared/middleware/require-feature.ts`)
+  — registrar compra de fornecedor é feature `purchases`, exclusiva do plano Profissional
+  (`PLAN_FEATURES.professional`). Free/Essencial recebem `LimitExceededError` (403 / `LIMIT_EXCEEDED`),
+  o mesmo fluxo que o mobile trata abrindo o paywall. Demais rotas (list/get/pay/delete) seguem sem
+  gate — dados já existentes continuam acessíveis mesmo se o plano cair.
 
 ## Contracts (Zod/DTO)
 
@@ -156,3 +162,7 @@ POST /api/v1/purchases/pur-1/pay
   pagar + saídas do caixa. `pending` não toca o caixa; `paid` cria a despesa em finance (idempotente
   via `financeEntryId`). Sem itens de linha / baixa de estoque (evolução futura). Reusa o enum
   `expense_category`. Injeta `IFinancePoster` (FinanceUseCases) para postar a despesa.
+- 2026-07-11: **gate de feature (Profissional)** — `POST /` passou a exigir `requireFeature(subscriptionRepo,
+"purchases")` (antes não tinha nenhum gate no backend, só no mobile). Mobile (`purchases.tsx`) já
+  tinha o mesmo gap; ganhou tela de apresentação (badge "Recurso Profissional" + benefícios + CTA
+  `showPaywall("purchases")`) igual ao padrão de `recurring-expenses.tsx`.

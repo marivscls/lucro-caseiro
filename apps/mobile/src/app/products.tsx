@@ -26,6 +26,7 @@ import { CreateProductForm } from "../features/products/components/create-produc
 import { ProductList } from "../features/products/components/product-list";
 import { SaleUnitToggle } from "../features/products/components/sale-unit-toggle";
 import { LimitBanner } from "../features/subscription/components/limit-banner";
+import { isProfilePremiumActive, useProfile } from "../features/subscription/hooks";
 import { showAlert } from "../shared/components/alert-store";
 import { BarcodeScanner } from "../shared/components/barcode-scanner";
 import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
@@ -97,6 +98,9 @@ function ProductDetailModal({
   const deleteProduct = useDeleteProduct();
   const { imageUri, showPicker, setImageUri } = useImagePicker();
   const [uploading, setUploading] = useState(false);
+  const { data: profile } = useProfile();
+  const isPremium = isProfilePremiumActive(profile);
+  const showPaywall = usePaywall((s) => s.show);
 
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
@@ -287,7 +291,17 @@ function ProductDetailModal({
           >
             <Input label="Nome do produto" value={name} onChangeText={setName} />
             <Input label="Categoria" value={category} onChangeText={setCategory} />
-            <CompositeToggle value={isComposite} onChange={setIsComposite} />
+            <CompositeToggle
+              value={isComposite}
+              onChange={(next) => {
+                if (next && !isPremium) {
+                  showPaywall("compositeProducts");
+                  return;
+                }
+                setIsComposite(next);
+              }}
+              locked={!isPremium}
+            />
             {isComposite && (
               <ComponentPicker
                 value={components}

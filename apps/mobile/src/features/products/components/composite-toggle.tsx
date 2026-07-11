@@ -7,6 +7,12 @@ interface CompositeToggleProps {
   /** true = produto composto (kit); false = produto simples. */
   readonly value: boolean;
   readonly onChange: (value: boolean) => void;
+  /**
+   * Quando true, a opção "Produto composto (kit)" é exibida com um cadeado
+   * (recurso Profissional). O toque ainda dispara `onChange(true)` — quem
+   * chama decide se abre o paywall em vez de marcar a opção.
+   */
+  readonly locked?: boolean;
 }
 
 const OPTIONS: ReadonlyArray<{
@@ -23,7 +29,11 @@ const OPTIONS: ReadonlyArray<{
  * Um kit e montado a partir de outros produtos; o custo total e a soma dos
  * componentes.
  */
-export function CompositeToggle({ value, onChange }: CompositeToggleProps) {
+export function CompositeToggle({
+  value,
+  onChange,
+  locked = false,
+}: CompositeToggleProps) {
   const { theme } = useTheme();
   const isDark = theme.mode === "dark";
   const border = isDark ? "rgba(245, 225, 219, 0.12)" : "rgba(74, 50, 40, 0.12)";
@@ -37,13 +47,16 @@ export function CompositeToggle({ value, onChange }: CompositeToggleProps) {
       <View style={{ flexDirection: "row", gap: spacing.sm }}>
         {OPTIONS.map((option) => {
           const selected = value === option.value;
+          const isLockedOption = locked && option.value === true;
           return (
             <Pressable
               key={String(option.value)}
               onPress={() => onChange(option.value)}
               accessibilityRole="button"
               accessibilityState={{ selected }}
-              accessibilityLabel={option.label}
+              accessibilityLabel={
+                isLockedOption ? `${option.label} — recurso Profissional` : option.label
+              }
               style={({ pressed }) => ({
                 flex: 1,
                 minHeight: 72,
@@ -60,11 +73,20 @@ export function CompositeToggle({ value, onChange }: CompositeToggleProps) {
                 opacity: pressed ? 0.85 : 1,
               })}
             >
-              <Ionicons
-                name={option.icon}
-                size={22}
-                color={selected ? theme.colors.textOnPrimary : theme.colors.primary}
-              />
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                <Ionicons
+                  name={option.icon}
+                  size={22}
+                  color={selected ? theme.colors.textOnPrimary : theme.colors.primary}
+                />
+                {isLockedOption && (
+                  <Ionicons
+                    name="lock-closed"
+                    size={14}
+                    color={selected ? theme.colors.textOnPrimary : theme.colors.premium}
+                  />
+                )}
+              </View>
               <Typography
                 variant="bodyBold"
                 color={selected ? theme.colors.textOnPrimary : theme.colors.text}

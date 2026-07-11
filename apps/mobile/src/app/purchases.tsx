@@ -1,4 +1,5 @@
 import {
+  Badge,
   Button,
   Chip,
   EmptyState,
@@ -30,6 +31,8 @@ import {
   usePurchases,
 } from "../features/purchases/hooks";
 import { showAlert } from "../shared/components/alert-store";
+import { isProfilePremiumActive, useProfile } from "../features/subscription/hooks";
+import { usePaywall } from "../shared/hooks/use-paywall";
 import { alertError } from "../shared/utils/alerts";
 import { formatCurrency } from "../shared/utils/format";
 
@@ -44,6 +47,9 @@ const FILTERS: { value: Filter; label: string }[] = [
 export default function PurchasesScreen() {
   const { theme } = useTheme();
   const router = useRouter();
+  const { data: profile } = useProfile();
+  const isPremium = isProfilePremiumActive(profile);
+  const showPaywall = usePaywall((s) => s.show);
   const [filter, setFilter] = useState<Filter>("all");
   const [showCreate, setShowCreate] = useState(false);
 
@@ -111,8 +117,8 @@ export default function PurchasesScreen() {
             />
           }
           title="Nenhuma compra aqui"
-          description="Registre o que você compra dos fornecedores para acompanhar suas contas a pagar e o caixa."
-          action={<Button title="Registrar compra" onPress={() => setShowCreate(true)} />}
+          description="Registre sua primeira compra de fornecedor para acompanhar suas contas a pagar e o caixa."
+          action={<Button title="Registrar compra" onPress={openCreate} />}
         />
       );
     }
@@ -134,6 +140,59 @@ export default function PurchasesScreen() {
           />
         ))}
       </ScrollView>
+    );
+  }
+
+  function openCreate() {
+    if (!isPremium) {
+      showPaywall("purchases");
+      return;
+    }
+    setShowCreate(true);
+  }
+
+  if (!isPremium) {
+    return (
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: theme.colors.background }}
+        edges={["top", "bottom"]}
+      >
+        <Stack.Screen options={{ headerShown: false }} />
+
+        {/* Top bar */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: spacing.sm,
+            paddingHorizontal: spacing.lg,
+            paddingTop: spacing.sm,
+            paddingBottom: spacing.sm,
+          }}
+        >
+          <Pressable
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="Voltar"
+            hitSlop={10}
+            style={{ width: 32, height: 40, justifyContent: "center" }}
+          >
+            <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
+          </Pressable>
+          <Typography
+            variant="h1"
+            color={theme.colors.text}
+            numberOfLines={1}
+            style={{ flex: 1, fontSize: 26, fontWeight: "800" }}
+          >
+            Compras
+          </Typography>
+        </View>
+
+        <ScrollView contentContainerStyle={{ padding: spacing.lg }}>
+          <PurchasesPremiumGate onUnlock={() => showPaywall("purchases")} />
+        </ScrollView>
+      </SafeAreaView>
     );
   }
 
@@ -173,7 +232,7 @@ export default function PurchasesScreen() {
           Compras
         </Typography>
         <Pressable
-          onPress={() => setShowCreate(true)}
+          onPress={openCreate}
           accessibilityRole="button"
           accessibilityLabel="Nova compra"
           style={({ pressed }) => ({
@@ -274,5 +333,60 @@ export default function PurchasesScreen() {
         </SafeAreaView>
       </Modal>
     </SafeAreaView>
+  );
+}
+
+/**
+ * Tela de apresentação pra quem não tem o plano Profissional: explica o que
+ * Compras faz + CTA de upgrade, sem exibir o formulário (que não salvaria).
+ */
+function PurchasesPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) {
+  const { theme } = useTheme();
+  const benefits = [
+    "Registre tudo que compra dos fornecedores em um só lugar.",
+    "Acompanhe as contas a pagar sem esquecer nenhuma data.",
+    "Cada compra paga já lança a saída certa no seu caixa.",
+  ];
+
+  return (
+    <View
+      style={{
+        backgroundColor: theme.colors.surfaceElevated,
+        borderColor: theme.colors.primary,
+        borderWidth: 1,
+        borderRadius: radii.xl,
+        gap: spacing.md,
+        padding: spacing.xl,
+      }}
+    >
+      <Badge label="Recurso Profissional" variant="premium" />
+      <Typography variant="h2" color={theme.colors.text}>
+        Compras de fornecedor organizadas
+      </Typography>
+      <Typography variant="body" color={theme.colors.textSecondary}>
+        Registre o que você compra dos fornecedores e acompanhe contas a pagar e caixa
+        automaticamente.
+      </Typography>
+      {benefits.map((benefit) => (
+        <View
+          key={benefit}
+          style={{ flexDirection: "row", alignItems: "flex-start", gap: spacing.sm }}
+        >
+          <Ionicons name="checkmark-circle" size={20} color={theme.colors.premium} />
+          <Typography
+            variant="body"
+            color={theme.colors.text}
+            style={{ flex: 1, lineHeight: 20 }}
+          >
+            {benefit}
+          </Typography>
+        </View>
+      ))}
+      <Button
+        title="Desbloquear no Profissional"
+        icon={<Ionicons name="lock-open-outline" size={20} color="#FFFFFF" />}
+        onPress={onUnlock}
+      />
+    </View>
   );
 }

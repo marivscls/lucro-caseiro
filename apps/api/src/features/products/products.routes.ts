@@ -12,12 +12,15 @@ export function createProductsRouter(
   useCases: ProductsUseCases,
   createGuard?: RequestHandler,
   photoGuard?: RequestHandler,
+  compositeGuard?: RequestHandler,
 ): Router {
   const router = Router();
   router.use(authMiddleware);
 
   const passthrough: RequestHandler = (_req, _res, next) => next();
-  const guards = [createGuard, photoGuard].filter(Boolean) as RequestHandler[];
+  const guards = [createGuard, photoGuard, compositeGuard].filter(
+    Boolean,
+  ) as RequestHandler[];
 
   router.post("/", ...guards, async (req, res, next) => {
     try {
@@ -81,18 +84,24 @@ export function createProductsRouter(
     }
   });
 
-  router.patch("/:id", photoGuard ?? passthrough, async (req, res, next) => {
-    try {
-      const userId = getUserId(req);
-      const data = UpdateProductDto.parse(req.body);
-      // Rota `/:id`: o param é sempre string; o guard antes do handler alarga o
-      // tipo de req.params (quirk do Express), então afirmamos string aqui.
-      const product = await useCases.update(userId, req.params.id as string, data);
-      res.json(product);
-    } catch (err) {
-      next(err);
-    }
-  });
+  const patchGuards = [photoGuard, compositeGuard].filter(Boolean) as RequestHandler[];
+
+  router.patch(
+    "/:id",
+    ...(patchGuards.length ? patchGuards : [passthrough]),
+    async (req, res, next) => {
+      try {
+        const userId = getUserId(req);
+        const data = UpdateProductDto.parse(req.body);
+        // Rota `/:id`: o param é sempre string; o guard antes do handler alarga o
+        // tipo de req.params (quirk do Express), então afirmamos string aqui.
+        const product = await useCases.update(userId, req.params.id as string, data);
+        res.json(product);
+      } catch (err) {
+        next(err);
+      }
+    },
+  );
 
   router.delete("/:id", async (req, res, next) => {
     try {
