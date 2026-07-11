@@ -19,15 +19,15 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          height: (Platform.OS === "ios" ? 82 : 58) + bottomInset,
-          paddingBottom: (Platform.OS === "ios" ? 22 : 4) + bottomInset,
-          paddingTop: 6,
+          // Icone+label centralizados como um bloco: paddings simetricos e o
+          // inset do Android fica FORA do conteudo (senao o label cola na
+          // barra de gestos do sistema).
+          height: (Platform.OS === "ios" ? 82 : 66) + bottomInset,
+          paddingBottom: (Platform.OS === "ios" ? 22 : 10) + bottomInset,
+          paddingTop: 9,
           backgroundColor: theme.colors.surfaceElevated,
           borderTopWidth: 1,
-          borderTopColor:
-            theme.mode === "dark"
-              ? "rgba(245, 225, 219, 0.10)"
-              : "rgba(74, 50, 40, 0.08)",
+          borderTopColor: theme.colors.border,
           elevation: 0,
           shadowOpacity: 0,
         },
@@ -36,8 +36,8 @@ export default function TabLayout() {
           lineHeight: 14,
           fontFamily: fonts.semiBold,
         },
-        tabBarIconStyle: { marginTop: 1 },
-        tabBarItemStyle: { paddingVertical: 1 },
+        tabBarIconStyle: { marginTop: 0 },
+        tabBarItemStyle: { paddingVertical: 0 },
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.textSecondary,
       }}
