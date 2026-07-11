@@ -27,7 +27,12 @@ import { useOrders } from "../../features/orders/hooks";
 import { useLowStockProducts, useProducts } from "../../features/products/hooks";
 import { useSales, useTodaySummary } from "../../features/sales/hooks";
 import { LimitBanner } from "../../features/subscription/components/limit-banner";
-import { isProfilePremiumActive, useProfile } from "../../features/subscription/hooks";
+import {
+  isProfilePremiumActive,
+  useLimits,
+  useProfile,
+} from "../../features/subscription/hooks";
+import { getLimitBannerState } from "../../features/subscription/limits";
 import { AdBanner } from "../../shared/components/ad-banner";
 import { useNotificationEnabled } from "../../shared/hooks/notification-prefs";
 import { NOTIFICATION_TYPES } from "../../shared/hooks/notification-types";
@@ -592,6 +597,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const [showGoalForm, setShowGoalForm] = useState(false);
   const { data: profile } = useProfile();
+  const { data: limits } = useLimits();
   const showPaywall = usePaywall((s) => s.show);
   const { data: todaySummary, isLoading: loadingSales } = useTodaySummary();
   const { data: prolaboreData, isLoading: loadingGoal } = useProlaboreStatus();
@@ -613,6 +619,10 @@ export default function HomeScreen() {
   const hasSalesToday = (todaySummary?.totalSales ?? 0) > 0;
   const isPremium = isProfilePremiumActive(profile);
   const birthdayCount = birthdays?.length ?? 0;
+
+  // 2.5: não mostrar o AdBanner junto do LimitBanner (mensagem "assine" ao lado
+  // de um anúncio canibaliza o upgrade); mesma condição usada pelo LimitBanner.
+  const showSalesLimitBanner = getLimitBannerState(limits, profile, "sales") !== null;
 
   const hasProduct = (productsData?.items?.length ?? 0) > 0;
   const hasSale = (salesData?.items?.length ?? 0) > 0;
@@ -717,7 +727,7 @@ export default function HomeScreen() {
           />
         )}
 
-        <AdBanner size="banner" />
+        {!showSalesLimitBanner && <AdBanner size="banner" />}
 
         <View style={{ gap: spacing.sm }}>
           <Typography variant="label">ACESSO RÁPIDO</Typography>
