@@ -1,4 +1,12 @@
+import { Fraunces_600SemiBold, Fraunces_700Bold } from "@expo-google-fonts/fraunces";
+import {
+  NunitoSans_400Regular,
+  NunitoSans_600SemiBold,
+  NunitoSans_700Bold,
+  NunitoSans_800ExtraBold,
+} from "@expo-google-fonts/nunito-sans";
 import { ThemeProvider, useTheme, type ThemeMode } from "@lucro-caseiro/ui";
+import { useFonts } from "expo-font";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -373,7 +381,19 @@ export default function RootLayout() {
     void useThemePref.getState().hydrate();
   }, []);
 
-  if (!themeLoaded) return null;
+  // Familias oficiais (ADR-0008): os nomes batem com o token `fonts` do
+  // @lucro-caseiro/ui. Segura o mount até carregar pra nao piscar fonte de
+  // sistema (o BrandIntro cobre a espera logo em seguida).
+  const [fontsLoaded] = useFonts({
+    Fraunces_600SemiBold,
+    Fraunces_700Bold,
+    NunitoSans_400Regular,
+    NunitoSans_600SemiBold,
+    NunitoSans_700Bold,
+    NunitoSans_800ExtraBold,
+  });
+
+  if (!themeLoaded || !fontsLoaded) return null;
 
   const initialMode: ThemeMode =
     storedMode ?? (systemScheme === "light" ? "light" : "dark");

@@ -2,7 +2,7 @@ import React from "react";
 import { Pressable, Text, View, type ViewStyle } from "react-native";
 
 import { useTheme } from "../theme-context";
-import { fontSizes, radii, spacing } from "../theme";
+import { fonts, fontSizes, radii, spacing } from "../theme";
 
 interface ChipProps {
   label: string;
@@ -54,7 +54,7 @@ export function Chip({
       ]}
     >
       {icon ? <View>{icon}</View> : null}
-      <Text style={{ fontSize: fontSizes.sm, fontWeight: "600", color: fg }}>{label}</Text>
+      <Text style={{ fontSize: fontSizes.sm, fontFamily: fonts.semiBold, color: fg }}>{label}</Text>
     </Pressable>
   );
 }

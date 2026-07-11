@@ -2,7 +2,7 @@ import React from "react";
 import { Text, View, type ViewStyle } from "react-native";
 
 import { useTheme } from "../theme-context";
-import { fontSizes, spacing } from "../theme";
+import { fonts, fontSizes, spacing } from "../theme";
 
 interface EmptyStateProps {
   icon?: React.ReactNode;
@@ -32,8 +32,8 @@ export function EmptyState({ icon, title, description, action, style }: EmptySta
       <Text
         style={{
           fontSize: fontSizes.xl,
-          fontWeight: "600",
-          fontFamily: "serif",
+          fontFamily: fonts.display,
+          lineHeight: 28,
           color: theme.colors.text,
           textAlign: "center",
         }}
@@ -44,6 +44,8 @@ export function EmptyState({ icon, title, description, action, style }: EmptySta
         <Text
           style={{
             fontSize: fontSizes.md,
+            fontFamily: fonts.regular,
+            lineHeight: 24,
             color: theme.colors.textSecondary,
             textAlign: "center",
             maxWidth: 280,

@@ -62,6 +62,22 @@ export const fontSizes = {
   hero: 64,
 } as const;
 
+/**
+ * Familias tipograficas oficiais (ADR-0008): Fraunces para display/titulos,
+ * Nunito Sans para todo o resto. Os nomes batem com os exports de
+ * `@expo-google-fonts/*` carregados no RootLayout do mobile via `useFonts`.
+ * Nunca use `fontWeight` junto com estas familias (Android ignora/faz faux
+ * bold) — escolha a familia do peso certo.
+ */
+export const fonts = {
+  display: "Fraunces_600SemiBold",
+  displayBold: "Fraunces_700Bold",
+  regular: "NunitoSans_400Regular",
+  semiBold: "NunitoSans_600SemiBold",
+  bold: "NunitoSans_700Bold",
+  extraBold: "NunitoSans_800ExtraBold",
+} as const;
+
 export const spacing = {
   xs: 4,
   sm: 8,

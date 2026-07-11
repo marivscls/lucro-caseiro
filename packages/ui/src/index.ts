@@ -3,6 +3,7 @@ export {
   lightTheme,
   darkTheme,
   colors,
+  fonts,
   fontSizes,
   spacing,
   radii,

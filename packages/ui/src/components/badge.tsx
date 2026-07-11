@@ -2,7 +2,7 @@ import React from "react";
 import { Text, View, type ViewStyle } from "react-native";
 
 import { useTheme } from "../theme-context";
-import { fontSizes, radii, spacing } from "../theme";
+import { fonts, fontSizes, radii, spacing } from "../theme";
 
 type BadgeVariant =
   | "success"
@@ -49,7 +49,7 @@ export function Badge({ label, variant = "neutral", style }: BadgeProps) {
         style,
       ]}
     >
-      <Text style={{ fontSize: fontSizes.xs, fontWeight: "600", color: c.text }}>
+      <Text style={{ fontSize: fontSizes.xs, fontFamily: fonts.bold, color: c.text }}>
         {label}
       </Text>
     </View>

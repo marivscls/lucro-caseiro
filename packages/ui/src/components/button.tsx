@@ -10,7 +10,7 @@ import {
 
 import { useTheme } from "../theme-context";
 import { useReducedMotion } from "../use-reduced-motion";
-import { fontSizes, radii, spacing } from "../theme";
+import { fonts, fontSizes, radii, spacing } from "../theme";
 
 type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "success" | "premium";
 type ButtonSize = "sm" | "md" | "lg";
@@ -109,7 +109,7 @@ export function Button({
             style={{
               color: v.text,
               fontSize: s.fontSize,
-              fontWeight: "600",
+              fontFamily: fonts.bold,
             }}
           >
             {title}

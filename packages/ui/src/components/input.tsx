@@ -2,7 +2,7 @@ import React from "react";
 import { Text, TextInput, View, type TextInputProps, type ViewStyle } from "react-native";
 
 import { useTheme } from "../theme-context";
-import { fontSizes, radii, spacing } from "../theme";
+import { fonts, fontSizes, radii, spacing } from "../theme";
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -27,9 +27,8 @@ export function Input({
         <Text
           style={{
             fontSize: fontSizes.sm,
-            fontWeight: "500",
             color: theme.colors.textSecondary,
-            fontFamily: "serif",
+            fontFamily: fonts.semiBold,
           }}
         >
           {label}
@@ -53,6 +52,7 @@ export function Input({
               flex: 1,
               height: 52,
               fontSize: fontSizes.md,
+              fontFamily: fonts.regular,
               color: theme.colors.text,
             },
             style,
@@ -61,7 +61,9 @@ export function Input({
         />
       </View>
       {error && (
-        <Text style={{ fontSize: fontSizes.sm, color: theme.colors.alert }}>
+        <Text
+          style={{ fontSize: fontSizes.sm, fontFamily: fonts.regular, color: theme.colors.alert }}
+        >
           {error}
         </Text>
       )}

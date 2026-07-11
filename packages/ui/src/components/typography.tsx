@@ -2,7 +2,7 @@ import React from "react";
 import { Text, type TextProps, type TextStyle } from "react-native";
 
 import { useTheme } from "../theme-context";
-import { fontSizes } from "../theme";
+import { fonts, fontSizes } from "../theme";
 
 type TypographyVariant =
   | "display"
@@ -23,6 +23,10 @@ interface TypographyProps extends TextProps {
   serif?: boolean;
 }
 
+// Escala tipografica oficial (ADR-0008). Fraunces em display/h1/h2 (a voz da
+// marca), Nunito Sans no resto. Nao passe fontSize/fontWeight/fontFamily via
+// `style` — escolha a variante certa; o peso vem da familia (faux bold no
+// Android quebra a fonte).
 export function Typography({
   variant = "body",
   color,
@@ -36,65 +40,76 @@ export function Typography({
   const styles: Record<TypographyVariant, TextStyle> = {
     display: {
       fontSize: fontSizes["3xl"],
-      fontWeight: "700",
-      fontFamily: "serif",
+      fontFamily: fonts.displayBold,
+      lineHeight: 42,
       color: theme.colors.text,
       letterSpacing: -0.5,
     },
     h1: {
       fontSize: fontSizes["2xl"],
-      fontWeight: "700",
-      fontFamily: "serif",
+      fontFamily: fonts.displayBold,
+      lineHeight: 34,
       color: theme.colors.text,
       letterSpacing: -0.3,
     },
     h2: {
       fontSize: fontSizes.xl,
-      fontWeight: "600",
-      fontFamily: "serif",
+      fontFamily: fonts.display,
+      lineHeight: 28,
       color: theme.colors.text,
     },
     h3: {
       fontSize: fontSizes.lg,
-      fontWeight: "600",
+      fontFamily: fonts.bold,
+      lineHeight: 24,
       color: theme.colors.text,
     },
     body: {
       fontSize: fontSizes.md,
-      fontWeight: "400",
+      fontFamily: fonts.regular,
+      lineHeight: 24,
       color: theme.colors.textSecondary,
     },
     bodyBold: {
       fontSize: fontSizes.md,
-      fontWeight: "600",
+      fontFamily: fonts.bold,
+      lineHeight: 24,
       color: theme.colors.text,
     },
     caption: {
       fontSize: fontSizes.sm,
-      fontWeight: "400",
+      fontFamily: fonts.regular,
+      lineHeight: 20,
       color: theme.colors.textSecondary,
     },
     label: {
       fontSize: fontSizes.xs,
-      fontWeight: "500",
+      fontFamily: fonts.bold,
+      lineHeight: 18,
       color: theme.colors.textSecondary,
       textTransform: "uppercase",
       letterSpacing: 1,
     },
     money: {
       fontSize: fontSizes.xl,
-      fontWeight: "700",
+      fontFamily: fonts.extraBold,
+      lineHeight: 28,
       color: theme.colors.success,
+      fontVariant: ["tabular-nums"],
     },
     moneyLg: {
       fontSize: fontSizes["2xl"],
-      fontWeight: "700",
+      fontFamily: fonts.extraBold,
+      lineHeight: 34,
       color: theme.colors.success,
+      fontVariant: ["tabular-nums"],
     },
     moneyHero: {
       fontSize: fontSizes["4xl"],
-      fontWeight: "800",
+      fontFamily: fonts.extraBold,
+      lineHeight: 56,
       color: theme.colors.success,
+      fontVariant: ["tabular-nums"],
     },
   };
 
@@ -104,7 +119,7 @@ export function Typography({
     <Text
       style={[
         s,
-        serif ? { fontFamily: "serif" } : undefined,
+        serif ? { fontFamily: fonts.display } : undefined,
         color ? { color } : undefined,
         style,
       ]}

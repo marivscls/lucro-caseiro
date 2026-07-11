@@ -18,6 +18,8 @@
     "e2e:studio": "maestro studio"
   },
   "dependencies": {
+    "@expo-google-fonts/fraunces": "^0.4.1",
+    "@expo-google-fonts/nunito-sans": "^0.4.2",
     "@expo/vector-icons": "~15.1.1",
     "@lucro-caseiro/contracts": "workspace:*",
     "@lucro-caseiro/ui": "workspace:*",
