@@ -1,15 +1,24 @@
 import { Button, Card, Typography, spacing, radii, useTheme } from "@lucro-caseiro/ui";
 import type { PaidPlan, PlanType } from "@lucro-caseiro/contracts";
-import { PLAN_LABELS, PLAN_PRICING } from "@lucro-caseiro/contracts";
+import {
+  PLAN_LABELS,
+  PLAN_PRICING,
+  isPaidPlan,
+  normalizePlan,
+} from "@lucro-caseiro/contracts";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import React from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { Linking, Platform, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { activePlan, useLimits, useProfile } from "../features/subscription/hooks";
+import { activePlan, useProfile, useLimits } from "../features/subscription/hooks";
+import { TIER_BENEFITS } from "../features/subscription/plan-benefits";
 import { showAlert } from "../shared/components/alert-store";
 import { usePaywall } from "../shared/hooks/use-paywall";
+
+// Mesmo package do apps/mobile/app.json (expo.android.package).
+const ANDROID_PACKAGE = "br.com.orionseven.lucrocaseiro";
 
 const PLAN_FEATURES: Record<PlanType, readonly string[]> = {
   free: [
@@ -18,21 +27,62 @@ const PLAN_FEATURES: Record<PlanType, readonly string[]> = {
     "5 receitas e 3 embalagens",
     "Agenda, fiado e catálogo básico",
   ],
-  essential: [
-    "Vendas ilimitadas",
-    "Clientes e produtos ilimitados",
-    "Receitas e embalagens ilimitadas",
-    "Agenda, fiado e catálogo online",
-    "Sem anúncios",
-  ],
-  professional: [
-    "Tudo do Essencial",
-    "Catálogo completo e personalizado",
-    "Relatórios completos + exportar PDF/Excel",
-    "Fornecedores, compras e gastos fixos",
-    "Rótulos personalizados e orçamentos em PDF",
-  ],
+  essential: TIER_BENEFITS.essential,
+  professional: TIER_BENEFITS.professional,
 };
+
+/** Dias até `expiresAt` (negativo se já passou). */
+function daysUntil(expiresAt: string): number {
+  const diffMs = new Date(expiresAt).getTime() - Date.now();
+  return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+}
+
+interface ExpiryWarning {
+  readonly title: string;
+  readonly message: string;
+}
+
+/**
+ * Aviso de expiração derivado de `expiresAt` (sem backend novo — item 2.4 do PRD).
+ * Cobre a assinatura vencendo nos próximos 5 dias ou já vencida há menos de 30 dias
+ * (janela em que o downgrade silencioso ainda confunde quem paga).
+ */
+function expiryWarning(planLabel: string, expiresAt: string): ExpiryWarning | null {
+  const days = daysUntil(expiresAt);
+  if (days >= 0 && days <= 5) {
+    let dayLabel = `em ${days} dias`;
+    if (days === 0) dayLabel = "hoje";
+    else if (days === 1) dayLabel = "em 1 dia";
+    return {
+      title: `Sua assinatura vence ${dayLabel}`,
+      message: `Renove para continuar aproveitando o plano ${planLabel} sem interrupção.`,
+    };
+  }
+  if (days < 0 && days >= -30) {
+    const daysAgo = Math.abs(days);
+    const dayLabel = daysAgo === 1 ? "há 1 dia" : `há ${daysAgo} dias`;
+    return {
+      title: `Sua assinatura venceu ${dayLabel}`,
+      message: `Renove para manter os benefícios do plano ${planLabel}.`,
+    };
+  }
+  return null;
+}
+
+function openStoreSubscriptionManagement() {
+  const url =
+    Platform.OS === "android"
+      ? `https://play.google.com/store/account/subscriptions?package=${ANDROID_PACKAGE}`
+      : "https://apps.apple.com/account/subscriptions";
+
+  Linking.openURL(url).catch(() => {
+    showAlert({
+      title: "Cancelar assinatura",
+      message:
+        "Não foi possível abrir a loja. Entre em contato pelo suporte para cancelar sua assinatura.",
+    });
+  });
+}
 
 const PLAN_ORDER: PlanType[] = ["free", "essential", "professional"];
 const RANK: Record<PlanType, number> = { free: 0, essential: 1, professional: 2 };
@@ -53,6 +103,11 @@ export default function PlansScreen() {
   const { data: limits } = useLimits();
   const showPaywall = usePaywall((state) => state.show);
   const current = activePlan(profile);
+  const rawPlan = profile ? normalizePlan(profile.plan) : "free";
+  const warning =
+    profile && isPaidPlan(rawPlan) && profile.planExpiresAt
+      ? expiryWarning(PLAN_LABELS[rawPlan], profile.planExpiresAt)
+      : null;
 
   return (
     <SafeAreaView
@@ -98,6 +153,31 @@ export default function PlansScreen() {
           paddingBottom: spacing["3xl"],
         }}
       >
+        {warning && (
+          <Card
+            style={{
+              backgroundColor: theme.colors.alertBg,
+              borderWidth: 1,
+              borderColor: theme.colors.alert,
+              gap: spacing.xs,
+            }}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+              <Ionicons name="warning-outline" size={22} color={theme.colors.alert} />
+              <Typography
+                variant="h3"
+                color={theme.colors.alert}
+                style={{ flex: 1, fontSize: 17 }}
+              >
+                {warning.title}
+              </Typography>
+            </View>
+            <Typography variant="body" color={theme.colors.text} style={{ fontSize: 15 }}>
+              {warning.message}
+            </Typography>
+          </Card>
+        )}
+
         <Card
           style={{
             backgroundColor: theme.colors.premiumBg,
@@ -326,13 +406,7 @@ export default function PlansScreen() {
             title="Cancelar assinatura"
             variant="outline"
             size="lg"
-            onPress={() => {
-              showAlert({
-                title: "Cancelar",
-                message:
-                  "Funcionalidade disponível em breve. Entre em contato pelo suporte.",
-              });
-            }}
+            onPress={openStoreSubscriptionManagement}
           />
         )}
       </ScrollView>

@@ -109,6 +109,7 @@ function PeriodCard({
   price,
   period,
   note,
+  badge,
   selected,
   onPress,
   theme,
@@ -117,6 +118,7 @@ function PeriodCard({
   price: string;
   period: string;
   note: string;
+  badge?: string;
   selected: boolean;
   onPress: () => void;
   theme: Theme;
@@ -139,6 +141,25 @@ function PeriodCard({
         gap: spacing.xs,
       }}
     >
+      {badge ? (
+        <View
+          style={{
+            backgroundColor: theme.colors.premiumBg,
+            paddingHorizontal: spacing.sm,
+            paddingVertical: 2,
+            borderRadius: radii.full,
+            marginBottom: 2,
+          }}
+        >
+          <Typography
+            variant="caption"
+            color={theme.colors.premium}
+            style={{ fontSize: 10, fontWeight: "800" }}
+          >
+            {badge}
+          </Typography>
+        </View>
+      ) : null}
       <Typography variant="bodyBold" color={theme.colors.textSecondary}>
         {label}
       </Typography>
@@ -165,7 +186,7 @@ function PeriodCard({
         <Typography
           variant="caption"
           color={theme.colors.textSecondary}
-          numberOfLines={1}
+          numberOfLines={2}
           adjustsFontSizeToFit
           style={{ fontSize: 11 }}
         >
@@ -204,9 +225,13 @@ export function Paywall({
 }: PaywallProps) {
   const { theme } = useTheme();
   const [tier, setTier] = useState<PaidPlan>(recommendedTier);
-  const [period, setPeriod] = useState<BillingPeriod>("monthly");
+  // Anual pré-selecionado: âncora de venda (item 2.3 do PRD) — o plano anual é o
+  // que mais interessa ao negócio (menos cancelamento, receita adiantada).
+  const [period, setPeriod] = useState<BillingPeriod>("annual");
 
   const pricing = PLAN_PRICING[tier];
+  const annualMonthlyEquivalent = pricing.annual / 12;
+  const annualSavings = pricing.monthly * 12 - pricing.annual;
 
   function handleSubscribe() {
     if (onSubscribe) onSubscribe(tier, period);
@@ -339,7 +364,8 @@ export function Paywall({
             label="Anual"
             price={formatBRL(pricing.annual)}
             period="/ano"
-            note="2 meses grátis"
+            note={`Equivale a ${formatBRL(annualMonthlyEquivalent)}/mês · economize ${formatBRL(annualSavings)}`}
+            badge="Mais vantajoso"
             selected={period === "annual"}
             onPress={() => setPeriod("annual")}
             theme={theme}
