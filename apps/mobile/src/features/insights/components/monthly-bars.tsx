@@ -45,9 +45,10 @@ function monthWithYear(key: string): string {
   return `${monthName(key)} de ${year}`;
 }
 
-function chartMonthLabel(key: string, months: number): string {
-  const label = monthLabel(key);
-  return months >= 12 ? label.slice(0, 1).toUpperCase() : label;
+/** Com 12 meses não cabe tudo: mostra mês sim, mês não, sempre incluindo o mais recente. */
+function chartMonthLabel(key: string, months: number, index: number): string {
+  if (months >= 12 && index % 2 === 0) return "";
+  return monthLabel(key);
 }
 
 function periodDelta(series: MonthlyRevenue[]): number | null {
@@ -514,45 +515,24 @@ export function MonthlyBars({
             </View>
 
             <View style={{ flexDirection: "row", gap: 0, marginTop: spacing.sm }}>
-              {series.map((m) =>
-                windowMonths >= 12 ? (
-                  <View
-                    key={m.month}
-                    style={{
-                      flex: 1,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      minHeight: 14,
-                    }}
-                  >
-                    <View
-                      style={{
-                        width: 5,
-                        height: 5,
-                        borderRadius: radii.full,
-                        backgroundColor: theme.colors.primaryLight,
-                      }}
-                    />
-                  </View>
-                ) : (
-                  <Typography
-                    key={m.month}
-                    variant="caption"
-                    color={theme.colors.text}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.7}
-                    style={{
-                      flex: 1,
-                      textAlign: "center",
-                      fontSize: 13,
-                      lineHeight: 14,
-                    }}
-                  >
-                    {chartMonthLabel(m.month, windowMonths)}
-                  </Typography>
-                ),
-              )}
+              {series.map((m, index) => (
+                <Typography
+                  key={m.month}
+                  variant="caption"
+                  color={theme.colors.text}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.7}
+                  style={{
+                    flex: 1,
+                    textAlign: "center",
+                    fontSize: 13,
+                    lineHeight: 14,
+                  }}
+                >
+                  {chartMonthLabel(m.month, windowMonths, index)}
+                </Typography>
+              ))}
             </View>
           </View>
         </View>
