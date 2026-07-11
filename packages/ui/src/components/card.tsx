@@ -3,7 +3,7 @@ import { View, type PressableProps, type ViewStyle } from "react-native";
 
 import { PressableScale } from "./pressable-scale";
 import { useTheme } from "../theme-context";
-import { radii, spacing } from "../theme";
+import { elevation, radii, spacing } from "../theme";
 
 interface CardProps {
   children: React.ReactNode;
@@ -29,9 +29,12 @@ export function Card({
   };
 
   const cardStyle: ViewStyle = {
+    // Scar: elevation (Android) + fundo translucido vira "caixa branca" — o
+    // fundo do variant elevated (surfaceElevated) e sempre opaco de proposito.
     backgroundColor: bgColors[variant],
     borderRadius: radii.xl,
     padding: spacing[padding],
+    ...(variant === "elevated" ? elevation.card : null),
     ...style,
   };
 
