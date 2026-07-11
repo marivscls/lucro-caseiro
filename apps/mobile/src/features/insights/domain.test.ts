@@ -1,7 +1,7 @@
 import type { MonthlyRevenue } from "@lucro-caseiro/contracts";
 import { describe, expect, it } from "vitest";
 
-import { formatMoneyShort, maxRevenue, monthLabel } from "./domain";
+import { formatMoneyShort, maxRevenue, monthLabel, monthOverMonthDelta } from "./domain";
 
 function rev(revenue: number, month = "2026-01"): MonthlyRevenue {
   return { month, revenue, salesCount: 0 };
@@ -14,10 +14,28 @@ describe("formatMoneyShort", () => {
     expect(formatMoneyShort(0)).toBe("R$ 0");
   });
 
-  it("encurta para mil com uma casa e virgula a partir de 1000", () => {
-    expect(formatMoneyShort(1000)).toBe("R$ 1,0 mil");
-    expect(formatMoneyShort(1200)).toBe("R$ 1,2 mil");
+  it("mostra valor cheio com ponto de milhar ate 9999", () => {
+    expect(formatMoneyShort(1000)).toBe("R$ 1.000");
+    expect(formatMoneyShort(1200)).toBe("R$ 1.200");
+    expect(formatMoneyShort(9999)).toBe("R$ 9.999");
+  });
+
+  it("encurta para mil com uma casa e virgula a partir de 10 mil", () => {
+    expect(formatMoneyShort(10000)).toBe("R$ 10,0 mil");
     expect(formatMoneyShort(15500)).toBe("R$ 15,5 mil");
+  });
+});
+
+describe("monthOverMonthDelta", () => {
+  it("retorna a variacao % do ultimo mes vs o anterior", () => {
+    expect(monthOverMonthDelta([rev(500, "2026-05"), rev(600, "2026-06")])).toBe(20);
+    expect(monthOverMonthDelta([rev(400, "2026-05"), rev(300, "2026-06")])).toBe(-25);
+  });
+
+  it("retorna null com menos de 2 meses ou mes anterior zerado", () => {
+    expect(monthOverMonthDelta([])).toBeNull();
+    expect(monthOverMonthDelta([rev(500)])).toBeNull();
+    expect(monthOverMonthDelta([rev(0, "2026-05"), rev(600, "2026-06")])).toBeNull();
   });
 });
 

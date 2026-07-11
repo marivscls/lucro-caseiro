@@ -35,7 +35,8 @@ melhores clientes — numa janela de 3, 6 ou 12 meses. Tudo com gráficos simple
 ## Components
 
 - **MonthlyBars** (`{ series: MonthlyRevenue[] }`): barras verticais do faturamento, altura
-  proporcional ao máximo da série; mês sem venda vira barra cinza vazia.
+  proporcional ao máximo da série; mês sem venda vira barra cinza vazia. Eixo X sempre com
+  abreviações de mês (janela de 12 mostra mês sim, mês não, terminando no mais recente).
 - **RankBars** (`{ rows: RankRow[]; color }`): lista ranqueada com barra de preenchimento
   horizontal proporcional ao maior valor. `RankRow = { key, label, caption, value }`.
 - **StatCard / WindowSelector** (locais na tela): cards de resumo e pills 3/6/12 meses.
@@ -72,7 +73,9 @@ melhores clientes — numa janela de 3, 6 ou 12 meses. Tudo com gráficos simple
 ## Test matrix
 
 - Domínio puro (`domain.ts`): `monthLabel("2026-05") === "mai"`; `maxRevenue([]) >= 1`;
-  `formatMoneyShort(1500)` → "R$ 1,5 mil". (cobertura leve; lógica pesada de agregação é da API)
+  `formatMoneyShort(1500)` → "R$ 1.500" (abrevia "mil" só a partir de 10.000);
+  `monthOverMonthDelta` (variação % do último mês vs anterior; null sem base de comparação).
+  (cobertura leve; lógica pesada de agregação é da API)
 
 ## Examples
 
@@ -89,3 +92,4 @@ const { data } = useInsights(6);
   atual sem rebuild e o bundle leve.
 - Janela default de 6 meses (pills 3/6/12); top 5 vem pronto do backend.
 - 2026-06-16: **gating Premium** — free vê só os 3 cards do mês atual (`useInsights(isPremium ? months : 1)`); seletor de janela some e gráfico + rankings viram `ReportsPremiumTeaser` (toque → `showPaywall("reports")`). Premium-check via `useProfile().plan`. Backend também força `months=1` no free (não confiar no front).
+- 2026-07-11: **refinamentos de leitura** — (a) eixo X do gráfico de 12 meses mostra abreviações alternadas em vez de pontinhos; (b) `formatMoneyShort` só abrevia "mil" a partir de R$ 10.000 (eixo Y consistente: "R$ 1.000", não "R$ 1,0 mil"); (c) no Premium, o card "FATURAMENTO" (redundante com o total do gráfico) vira "VS. MÊS ANTERIOR" com a variação % mês a mês (`monthOverMonthDelta`; fallback pro card de faturamento quando não há base de comparação — e o free mantém o card original).

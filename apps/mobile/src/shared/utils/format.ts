@@ -14,6 +14,13 @@ function withThousandsSep(intPart: string): string {
   return out;
 }
 
+/** Inteiro com ponto de milhar (sem centavos): 1234.6 -> "1.235". */
+export function formatIntBR(value: number): string {
+  const rounded = Math.round(Number.isFinite(value) ? value : 0);
+  const sign = rounded < 0 ? "-" : "";
+  return sign + withThousandsSep(String(Math.abs(rounded)));
+}
+
 export function formatCurrency(value: number): string {
   const safe = Number.isFinite(value) ? value : 0;
   const sign = safe < 0 ? "-" : "";

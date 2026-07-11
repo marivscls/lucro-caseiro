@@ -17,7 +17,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import insightsEmpty from "../assets/insights-empty.png";
 import { MonthlyBars } from "../features/insights/components/monthly-bars";
 import { RankBars, type RankRow } from "../features/insights/components/rank-bars";
-import { formatMoney } from "../features/insights/domain";
+import { formatMoney, monthOverMonthDelta } from "../features/insights/domain";
 import { useInsights } from "../features/insights/hooks";
 import { isProfilePremiumActive, useProfile } from "../features/subscription/hooks";
 import { usePaywall } from "../shared/hooks/use-paywall";
@@ -167,6 +167,9 @@ function InsightsContent({
 }>) {
   const { theme } = useTheme();
   const averageTicket = data.totalSales > 0 ? data.totalRevenue / data.totalSales : 0;
+  // Com o gráfico visível o total do período já aparece nele; o card vira
+  // comparação mês a mês (só quando dá pra comparar — mês anterior > 0).
+  const momDelta = isPremium ? monthOverMonthDelta(data.monthlyRevenue) : null;
 
   const productRows: RankRow[] = data.topProducts.map((p) => ({
     key: p.productId,
@@ -193,14 +196,25 @@ function InsightsContent({
       )}
 
       <View style={{ flexDirection: "row", gap: spacing.md }}>
-        <StatCard
-          label="FATURAMENTO"
-          value={formatMoney(data.totalRevenue)}
-          icon="cash-outline"
-          tint={theme.colors.successBg}
-          iconColor={theme.colors.success}
-          valueColor={theme.colors.success}
-        />
+        {momDelta !== null ? (
+          <StatCard
+            label="VS. MÊS ANTERIOR"
+            value={`${momDelta >= 0 ? "+" : "-"}${Math.abs(momDelta).toFixed(0)}%`}
+            icon={momDelta >= 0 ? "trending-up-outline" : "trending-down-outline"}
+            tint={momDelta >= 0 ? theme.colors.successBg : `${theme.colors.alert}26`}
+            iconColor={momDelta >= 0 ? theme.colors.success : theme.colors.alert}
+            valueColor={momDelta >= 0 ? theme.colors.success : theme.colors.alert}
+          />
+        ) : (
+          <StatCard
+            label="FATURAMENTO"
+            value={formatMoney(data.totalRevenue)}
+            icon="cash-outline"
+            tint={theme.colors.successBg}
+            iconColor={theme.colors.success}
+            valueColor={theme.colors.success}
+          />
+        )}
         <StatCard
           label="VENDAS"
           value={String(data.totalSales)}
