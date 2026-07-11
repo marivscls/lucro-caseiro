@@ -3,7 +3,7 @@ import { View, type PressableProps, type ViewStyle } from "react-native";
 
 import { PressableScale } from "./pressable-scale";
 import { useTheme } from "../theme-context";
-import { elevation, radii, spacing } from "../theme";
+import { radii, spacing } from "../theme";
 
 interface CardProps {
   children: React.ReactNode;
@@ -29,12 +29,15 @@ export function Card({
   };
 
   const cardStyle: ViewStyle = {
-    // Scar: elevation (Android) + fundo translucido vira "caixa branca" — o
-    // fundo do variant elevated (surfaceElevated) e sempre opaco de proposito.
+    // Container canonico do app (padrao flat da home): NENHUM card usa sombra.
+    // `elevated` = fundo elevado + borda hairline; sombra so existe em
+    // overlays flutuantes (toast/alerta/modal), nunca em cards de conteudo.
     backgroundColor: bgColors[variant],
     borderRadius: radii.xl,
     padding: spacing[padding],
-    ...(variant === "elevated" ? elevation.card : null),
+    ...(variant === "elevated"
+      ? { borderWidth: 1, borderColor: theme.colors.border }
+      : null),
     ...style,
   };
 

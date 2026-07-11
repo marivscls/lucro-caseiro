@@ -44,6 +44,14 @@ export const colors = {
   yellow: "#E8C555",
   yellowLight: "#FFF8E1",
 
+  // Bordas hairline dos containers (padrao canonico flat da home).
+  border: "rgba(74, 50, 40, 0.08)",
+  borderDark: "rgba(245, 225, 219, 0.11)",
+
+  // Fundo rosado suave (CTAs tracejados, destaques da cor primaria).
+  primarySoft: "#F9E7EA",
+  primarySoftDark: "#3A2B2F",
+
   // Utility
   transparent: "transparent",
   overlay: "rgba(30, 24, 20, 0.5)",
@@ -100,8 +108,10 @@ export const radii = {
 } as const;
 
 /**
- * Token unico de elevacao (design system). Nenhuma tela deve redefinir sombra
- * a mao — usa isto (ou o Card variant="elevated", que ja aplica).
+ * Token unico de elevacao (design system) — SO para overlays flutuantes
+ * (toast, alerta, modal, FAB). Cards de conteudo NUNCA tem sombra: o padrao
+ * canonico e flat (surfaceElevated + borda `colors.border`), via Card
+ * variant="elevated".
  *
  * Scars: no Android, elevation + fundo translucido vira "caixa branca" (o
  * fundo do elemento elevado deve sempre ser opaco); sombra do Android fica
@@ -125,6 +135,8 @@ export interface Theme {
   colors: {
     primary: string;
     primaryLight: string;
+    primaryBg: string;
+    border: string;
     background: string;
     surface: string;
     surfaceElevated: string;
@@ -152,6 +164,8 @@ export const lightTheme: Theme = {
   colors: {
     primary: colors.primary,
     primaryLight: colors.primaryLight,
+    primaryBg: colors.primarySoft,
+    border: colors.border,
     background: colors.background,
     surface: colors.surface,
     surfaceElevated: colors.surfaceElevated,
@@ -180,6 +194,8 @@ export const darkTheme: Theme = {
   colors: {
     primary: colors.primary,
     primaryLight: colors.primaryLight,
+    primaryBg: colors.primarySoftDark,
+    border: colors.borderDark,
     background: colors.backgroundDark,
     surface: colors.surfaceDark,
     surfaceElevated: colors.surfaceElevatedDark,
