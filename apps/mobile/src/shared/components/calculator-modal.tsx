@@ -1,4 +1,4 @@
-import { Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
+import { fonts, Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Modal, Pressable, View } from "react-native";
@@ -214,7 +214,7 @@ export function CalculatorModal({ visible, onClose, onResult }: CalculatorModalP
               variant="caption"
               color={theme.colors.primary}
               numberOfLines={1}
-              style={{ fontSize: 16, minHeight: 20, fontWeight: "700" }}
+              style={{ fontSize: 16, minHeight: 20, fontFamily: fonts.bold }}
             >
               {topLine}
             </Typography>

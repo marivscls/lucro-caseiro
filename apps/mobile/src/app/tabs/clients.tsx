@@ -2,6 +2,7 @@ import type { Client } from "@lucro-caseiro/contracts";
 import {
   Button,
   EmptyState,
+  fonts,
   PressableScale,
   Typography,
   useTheme,
@@ -146,7 +147,7 @@ function SearchBox({
           flex: 1,
           color: theme.colors.text,
           fontSize: 15,
-          fontWeight: "500",
+          fontFamily: fonts.semiBold,
           paddingVertical: 0,
         }}
       />
@@ -185,7 +186,7 @@ function Avatar({ label, size = 44 }: Readonly<AvatarProps>) {
       <Typography
         variant="h2"
         color="#FFF7F4"
-        style={{ fontSize: size * 0.48, fontWeight: "800" }}
+        style={{ fontSize: size * 0.48, fontFamily: fonts.displayBold }}
       >
         {(label.trim().charAt(0) || "?").toUpperCase()}
       </Typography>
@@ -221,7 +222,7 @@ function ClientCard({ client, onPress }: Readonly<ClientCardProps>) {
           variant="h3"
           color={theme.colors.text}
           numberOfLines={1}
-          style={{ fontSize: 15, fontWeight: "800" }}
+          style={{ fontSize: 15 }}
         >
           {client.name}
         </Typography>
@@ -312,7 +313,7 @@ function ClientsListScreen({
             <Typography
               variant="h2"
               color={theme.colors.primaryLight}
-              style={{ fontSize: 17, fontWeight: "800" }}
+              style={{ fontSize: 17, fontFamily: fonts.displayBold }}
             >
               {group.letter}
             </Typography>
@@ -361,14 +362,14 @@ function ClientsListScreen({
             <Typography
               variant="display"
               color={theme.colors.text}
-              style={{ fontSize: 34, fontWeight: "800" }}
+              style={{ fontSize: 34 }}
             >
               Clientes
             </Typography>
             <Typography
               variant="label"
               color={pal.muted}
-              style={{ fontSize: 12, letterSpacing: 2.4, fontWeight: "800" }}
+              style={{ fontSize: 12, letterSpacing: 2.4 }}
             >
               {totalClients} CLIENTES CADASTRADOS
             </Typography>
@@ -743,11 +744,7 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
             >
               <Ionicons name="arrow-back" size={23} color={pal.muted} />
             </Pressable>
-            <Typography
-              variant="h1"
-              color={theme.colors.text}
-              style={{ fontSize: 25, fontWeight: "800" }}
-            >
+            <Typography variant="h1" color={theme.colors.text} style={{ fontSize: 25 }}>
               Novo cliente
             </Typography>
           </View>

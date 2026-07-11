@@ -1,3 +1,4 @@
+import { fonts } from "@lucro-caseiro/ui";
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, StyleSheet, View } from "react-native";
 
@@ -131,10 +132,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   word: {
-    fontFamily: "serif",
+    fontFamily: fonts.displayBold,
     fontSize: 50,
     lineHeight: 54,
-    fontWeight: "700",
     color: CREAM,
     letterSpacing: 0.5,
     textAlign: "center",
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 12,
     letterSpacing: 5,
-    fontWeight: "600",
+    fontFamily: fonts.semiBold,
     color: GREEN,
   },
 });

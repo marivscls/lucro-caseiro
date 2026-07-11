@@ -1,4 +1,4 @@
-import { useTheme } from "@lucro-caseiro/ui";
+import { fonts, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
@@ -34,7 +34,7 @@ export default function TabLayout() {
         tabBarLabelStyle: {
           fontSize: 11,
           lineHeight: 14,
-          fontWeight: "500",
+          fontFamily: fonts.semiBold,
         },
         tabBarIconStyle: { marginTop: 1 },
         tabBarItemStyle: { paddingVertical: 1 },

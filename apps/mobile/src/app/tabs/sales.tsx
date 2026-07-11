@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import {
   Button,
   Chip,
+  fonts,
   Input,
   Typography,
   useTheme,
@@ -222,7 +223,7 @@ function SearchBar({
           height: 46,
           color: theme.colors.text,
           fontSize: 16,
-          fontWeight: "500",
+          fontFamily: fonts.semiBold,
           padding: 0,
         }}
       />

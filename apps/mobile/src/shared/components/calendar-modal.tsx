@@ -1,4 +1,4 @@
-import { Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
+import { fonts, Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useMemo, useState } from "react";
 import { Modal, Pressable, StyleSheet, View } from "react-native";
@@ -224,7 +224,7 @@ export function CalendarModal({ visible, value, onSelect, onClose }: CalendarMod
                     style={{
                       width: `${100 / 7}%`,
                       textAlign: "center",
-                      fontWeight: "800",
+                      fontFamily: fonts.extraBold,
                     }}
                   >
                     {label}
@@ -273,7 +273,7 @@ export function CalendarModal({ visible, value, onSelect, onClose }: CalendarMod
                         <Typography
                           variant="body"
                           color={dayColor}
-                          style={{ fontWeight: "700", opacity: inMonth ? 1 : 0.45 }}
+                          style={{ fontFamily: fonts.bold, opacity: inMonth ? 1 : 0.45 }}
                         >
                           {date.getDate()}
                         </Typography>

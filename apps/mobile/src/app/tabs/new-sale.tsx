@@ -5,6 +5,7 @@ import {
   Button,
   Card,
   EmptyState,
+  fonts,
   Input,
   ModalHeader,
   Typography,
@@ -165,7 +166,7 @@ function SearchBox({
           flex: 1,
           color: theme.colors.text,
           fontSize: 18,
-          fontWeight: "500",
+          fontFamily: fonts.semiBold,
           padding: 0,
         }}
       />
@@ -828,7 +829,7 @@ export default function NewSaleScreen() {
                           <Typography
                             variant="caption"
                             color={theme.colors.textOnPrimary}
-                            style={{ fontWeight: "700" }}
+                            style={{ fontFamily: fonts.bold }}
                           >
                             {cartItem ? cartQuantityLabel(cartItem) : qty}
                           </Typography>

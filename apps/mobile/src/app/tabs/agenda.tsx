@@ -482,7 +482,7 @@ function ModernOrderDetail({
             numberOfLines={2}
             adjustsFontSizeToFit
             minimumFontScale={0.72}
-            style={{ fontSize: 30, lineHeight: 36, fontWeight: "800" }}
+            style={{ fontSize: 30, lineHeight: 36 }}
           >
             {order.title}
           </Typography>
@@ -1294,7 +1294,7 @@ export default function AgendaScreen() {
         <Typography
           variant="h1"
           color={theme.colors.text}
-          style={{ flex: 1, fontSize: 28, fontWeight: "800" }}
+          style={{ flex: 1, fontSize: 28 }}
         >
           Agenda
         </Typography>

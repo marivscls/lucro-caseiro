@@ -27,7 +27,8 @@ export function OfflineBanner() {
       }}
     >
       <Typography
-        style={{ color: theme.colors.alert, fontSize: 14, textAlign: "center" }}
+        variant="caption"
+        style={{ color: theme.colors.alert, textAlign: "center" }}
       >
         Você esta offline.{pendingMessage}
       </Typography>
