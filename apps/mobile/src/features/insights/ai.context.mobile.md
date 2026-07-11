@@ -44,7 +44,8 @@ melhores clientes — numa janela de 3, 6 ou 12 meses. Tudo com gráficos simple
 ## Hooks
 
 - **useInsights(months?)**: React Query (`["insights", months]`), `enabled: !!token`.
-  Reaproveita o cache por janela; troca de janela refaz a query.
+  Reaproveita o cache por janela; troca de janela refaz a query mantendo os dados
+  anteriores na tela (`keepPreviousData` do React Query — sem spinner de tela cheia).
 
 ## API Integration
 

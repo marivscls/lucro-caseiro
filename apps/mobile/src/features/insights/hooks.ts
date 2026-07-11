@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { useAuth } from "../../shared/hooks/use-auth";
 import { fetchInsights } from "./api";
@@ -11,5 +11,8 @@ export function useInsights(months?: number, enabled = true) {
     queryKey: [...INSIGHTS_KEY, months ?? 6],
     queryFn: () => fetchInsights(token!, months),
     enabled: !!token && enabled,
+    // Troca de janela (3/6/12) mantém os dados anteriores na tela em vez de
+    // derrubar tudo pro spinner; o gráfico atualiza quando a resposta chega.
+    placeholderData: keepPreviousData,
   });
 }
