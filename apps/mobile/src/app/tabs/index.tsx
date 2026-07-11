@@ -82,11 +82,10 @@ function todaySalesLabel(count: number): string {
 }
 
 function getCardStyle(theme: ReturnType<typeof useTheme>["theme"]): ViewStyle {
-  const isDark = theme.mode === "dark";
   return {
     backgroundColor: theme.colors.surfaceElevated,
     borderWidth: 1,
-    borderColor: isDark ? "rgba(245, 225, 219, 0.11)" : "rgba(74, 50, 40, 0.08)",
+    borderColor: theme.colors.border,
   };
 }
 
@@ -160,10 +159,7 @@ function ShortcutTile({
               ? "rgba(44, 36, 32, 0.82)"
               : theme.colors.surfaceElevated,
           borderWidth: 1,
-          borderColor:
-            theme.mode === "dark"
-              ? "rgba(245, 225, 219, 0.11)"
-              : "rgba(74, 50, 40, 0.08)",
+          borderColor: theme.colors.border,
         },
       ]}
     >
@@ -425,10 +421,7 @@ function QuickCreateBar() {
             gap: spacing.xs,
             opacity: pressed ? 0.72 : 1,
             borderLeftWidth: index === 0 ? 0 : 1,
-            borderLeftColor:
-              theme.mode === "dark"
-                ? "rgba(245, 225, 219, 0.11)"
-                : "rgba(74, 50, 40, 0.08)",
+            borderLeftColor: theme.colors.border,
           })}
         >
           <View
@@ -981,10 +974,7 @@ export default function HomeScreen() {
                             gap: spacing.md,
                             paddingVertical: spacing.sm,
                             borderBottomWidth: index === 2 ? 0 : 1,
-                            borderBottomColor:
-                              theme.mode === "dark"
-                                ? "rgba(245, 225, 219, 0.08)"
-                                : "rgba(74, 50, 40, 0.08)",
+                            borderBottomColor: theme.colors.border,
                           }}
                         >
                           {product.photoUrl ? (

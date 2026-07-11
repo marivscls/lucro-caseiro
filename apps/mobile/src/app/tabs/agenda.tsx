@@ -50,7 +50,7 @@ function agendaPalette(theme: ReturnType<typeof useTheme>["theme"]) {
   const isDark = theme.mode === "dark";
   return {
     surface: isDark ? "rgba(44, 36, 32, 0.84)" : theme.colors.surfaceElevated,
-    border: isDark ? "rgba(245, 225, 219, 0.1)" : "rgba(74, 50, 40, 0.1)",
+    border: theme.colors.border,
     muted: theme.colors.textSecondary,
     subtleFill: isDark ? "rgba(245, 225, 219, 0.06)" : "rgba(74, 50, 40, 0.05)",
     subtleFillStrong: isDark ? "rgba(245, 225, 219, 0.08)" : "rgba(74, 50, 40, 0.08)",
@@ -1008,13 +1008,13 @@ function OrdersList({
           justifyContent: "center",
           flexDirection: "row",
           gap: spacing.md,
-          backgroundColor: agColors.scrim,
+          backgroundColor: theme.colors.primaryBg,
         }}
       >
-        <Ionicons name="add-circle-outline" size={24} color={theme.colors.primaryLight} />
+        <Ionicons name="add-circle-outline" size={24} color={theme.colors.primary} />
         <Typography
           variant="bodyBold"
-          color={theme.colors.primaryLight}
+          color={theme.colors.primary}
           style={{ fontSize: 17 }}
         >
           Nova encomenda

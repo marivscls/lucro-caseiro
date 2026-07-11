@@ -86,7 +86,7 @@ export function PackagingDetail({
   const { theme } = useTheme();
   const isDark = theme.mode === "dark";
   const cardBg = isDark ? "rgba(44, 36, 32, 0.55)" : theme.colors.surfaceElevated;
-  const border = isDark ? "rgba(245, 225, 219, 0.1)" : "rgba(74, 50, 40, 0.1)";
+  const border = theme.colors.border;
   const tColor = typeColor(theme, packaging.type);
   const supplierName = useSupplierName(packaging.supplierId);
   const supplierDisplay = supplierName ?? packaging.supplier ?? "Nenhum";

@@ -92,7 +92,7 @@ export function CalendarModal({ visible, value, onSelect, onClose }: CalendarMod
   const yearWindowStart = year - (year % 12);
   const years = Array.from({ length: 12 }, (_, i) => yearWindowStart + i);
 
-  const border = isDark ? "rgba(255,255,255,0.10)" : "rgba(74,50,40,0.10)";
+  const border = theme.colors.border;
   const mutedFill = isDark ? "rgba(255,255,255,0.05)" : "rgba(74,50,40,0.04)";
 
   function shiftMonth(offset: number) {

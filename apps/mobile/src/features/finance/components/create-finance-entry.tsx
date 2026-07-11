@@ -370,7 +370,7 @@ function Field({
 
 function createStyles(theme: Theme) {
   const isDark = theme.mode === "dark";
-  const border = isDark ? "rgba(255,255,255,0.10)" : "rgba(74,50,40,0.10)";
+  const border = theme.colors.border;
   const card = isDark ? "rgba(44, 35, 32, 0.88)" : theme.colors.surfaceElevated;
   const inputBg = isDark ? "rgba(255,255,255,0.05)" : theme.colors.surface;
 

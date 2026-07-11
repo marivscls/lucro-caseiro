@@ -28,7 +28,7 @@ export default function LoginScreen() {
 
   const isDark = theme.mode === "dark";
   const cardBg = isDark ? "rgba(44, 36, 32, 0.92)" : theme.colors.surfaceElevated;
-  const cardBorder = isDark ? "rgba(245, 225, 219, 0.1)" : "rgba(74, 50, 40, 0.08)";
+  const cardBorder = theme.colors.border;
 
   function validateForm(): boolean {
     let valid = true;
@@ -158,11 +158,6 @@ export default function LoginScreen() {
             borderRadius: radii["2xl"],
             padding: spacing.xl,
             gap: spacing.lg,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 14 },
-            shadowOpacity: isDark ? 0.3 : 0.08,
-            shadowRadius: 24,
-            elevation: 5,
           }}
         >
           <Button

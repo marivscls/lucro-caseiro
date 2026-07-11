@@ -593,10 +593,8 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                           borderRadius: radii.xl,
                           borderWidth: 1.5,
                           borderStyle: "dashed",
-                          borderColor:
-                            theme.mode === "dark"
-                              ? "rgba(245, 225, 219, 0.25)"
-                              : "rgba(74, 50, 40, 0.2)",
+                          borderColor: theme.colors.primaryLight,
+                          backgroundColor: theme.colors.primaryBg,
                           alignItems: "center",
                           justifyContent: "center",
                           gap: spacing.xs,
@@ -665,10 +663,8 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                             borderRadius: radii.full,
                             borderWidth: 1.5,
                             borderStyle: "dashed",
-                            borderColor:
-                              theme.mode === "dark"
-                                ? "rgba(245, 225, 219, 0.25)"
-                                : "rgba(74, 50, 40, 0.2)",
+                            borderColor: theme.colors.primaryLight,
+                            backgroundColor: theme.colors.primaryBg,
                             alignItems: "center",
                             justifyContent: "center",
                           }}

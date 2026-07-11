@@ -58,9 +58,9 @@ function clientsPalette(theme: { mode: string; colors: Record<string, string> })
   const isDark = theme.mode === "dark";
   return {
     cardBg: isDark ? "rgba(44, 36, 32, 0.82)" : theme.colors.surfaceElevated,
-    cardBorder: isDark ? "rgba(245, 225, 219, 0.1)" : "rgba(74, 50, 40, 0.1)",
+    cardBorder: theme.colors.border,
     muted: theme.colors.textSecondary,
-    divider: isDark ? "rgba(245, 225, 219, 0.08)" : "rgba(74, 50, 40, 0.08)",
+    divider: theme.colors.border,
     subtleFill: isDark ? "rgba(245, 225, 219, 0.06)" : "rgba(74, 50, 40, 0.05)",
   };
 }
@@ -73,11 +73,6 @@ function surfaceStyle(
     backgroundColor: pal.cardBg,
     borderWidth: 1,
     borderColor: pal.cardBorder,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.16,
-    shadowRadius: 18,
-    elevation: 4,
     ...extra,
   };
 }

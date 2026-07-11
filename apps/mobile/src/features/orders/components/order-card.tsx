@@ -52,8 +52,7 @@ export function OrderCard({ order, onPress }: OrderCardProps) {
         backgroundColor:
           theme.mode === "dark" ? "rgba(44, 36, 32, 0.84)" : theme.colors.surfaceElevated,
         borderWidth: 1,
-        borderColor:
-          theme.mode === "dark" ? "rgba(245, 225, 219, 0.1)" : "rgba(74, 50, 40, 0.08)",
+        borderColor: theme.colors.border,
         flexDirection: "row",
         alignItems: "center",
         gap: spacing.md,

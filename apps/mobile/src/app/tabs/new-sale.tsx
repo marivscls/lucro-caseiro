@@ -120,13 +120,7 @@ function getSurfaceStyle(theme: ReturnType<typeof useTheme>["theme"]): ViewStyle
     backgroundColor:
       theme.mode === "dark" ? "rgba(44, 36, 32, 0.84)" : theme.colors.surfaceElevated,
     borderWidth: 1,
-    borderColor:
-      theme.mode === "dark" ? "rgba(245, 225, 219, 0.1)" : "rgba(74, 50, 40, 0.08)",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: theme.mode === "dark" ? 0.24 : 0.07,
-    shadowRadius: 18,
-    elevation: 3,
+    borderColor: theme.colors.border,
   };
 }
 

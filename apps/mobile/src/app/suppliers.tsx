@@ -28,8 +28,7 @@ export default function SuppliersScreen() {
 
   const { data: selected } = useSupplier(selectedId ?? "");
 
-  const isDark = theme.mode === "dark";
-  const border = isDark ? "rgba(245, 225, 219, 0.1)" : "rgba(74, 50, 40, 0.1)";
+  const border = theme.colors.border;
 
   function closeDetail() {
     setSelectedId(null);

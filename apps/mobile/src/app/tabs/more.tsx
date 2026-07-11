@@ -122,7 +122,7 @@ export default function MoreScreen() {
         </Typography>
 
         {/* Account header */}
-        <Card onPress={() => router.push("/settings")}>
+        <Card variant="elevated" onPress={() => router.push("/settings")}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
             <View
               style={{
@@ -177,7 +177,11 @@ export default function MoreScreen() {
         </Typography>
 
         {dailyItems.map((item) => (
-          <Card key={item.title} onPress={() => router.push(item.route)}>
+          <Card
+            key={item.title}
+            variant="elevated"
+            onPress={() => router.push(item.route)}
+          >
             <View
               style={{
                 flexDirection: "row",
@@ -232,7 +236,11 @@ export default function MoreScreen() {
         </Typography>
 
         {menuItems.map((item) => (
-          <Card key={item.title} onPress={() => router.push(item.route)}>
+          <Card
+            key={item.title}
+            variant="elevated"
+            onPress={() => router.push(item.route)}
+          >
             <View
               style={{
                 flexDirection: "row",

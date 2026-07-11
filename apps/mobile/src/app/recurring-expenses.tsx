@@ -606,7 +606,6 @@ function recurringPalette(theme: Theme) {
     input: isDark ? "rgba(58, 49, 44, 0.64)" : theme.colors.surface,
     chip: isDark ? "rgba(58, 49, 44, 0.78)" : theme.colors.surface,
     muted: theme.colors.textSecondary,
-    shadow: isDark ? "#000000" : "rgba(74, 50, 40, 0.12)",
     text: theme.colors.text,
     title: theme.colors.text,
   };
@@ -631,10 +630,6 @@ function createStyles(theme: Theme) {
       gap: 10,
       height: 49,
       justifyContent: "center",
-      shadowColor: BRAND_PINK,
-      shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: 0.24,
-      shadowRadius: 11,
     },
     addButtonText: {
       color: theme.colors.textOnPrimary,
@@ -649,10 +644,6 @@ function createStyles(theme: Theme) {
       borderWidth: 1,
       height: 48,
       justifyContent: "center",
-      shadowColor: pal.shadow,
-      shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: 0.28,
-      shadowRadius: 9,
       width: 48,
     },
     cancelButton: {

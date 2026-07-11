@@ -50,9 +50,9 @@ function fiadoPalette(theme: Theme) {
   return {
     screenBg: c.background,
     cardBg: isDark ? "rgba(47, 42, 35, 0.72)" : c.surfaceElevated,
-    cardBorder: isDark ? "rgba(245, 225, 219, 0.11)" : "rgba(74, 50, 40, 0.1)",
-    innerBorder: isDark ? "rgba(245, 225, 219, 0.1)" : "rgba(74, 50, 40, 0.1)",
-    divider: isDark ? "rgba(245, 225, 219, 0.09)" : "rgba(74, 50, 40, 0.08)",
+    cardBorder: theme.colors.border,
+    innerBorder: theme.colors.border,
+    divider: theme.colors.border,
     text: c.text,
     textSecondary: c.textSecondary,
     subtleFill: isDark ? "rgba(255, 255, 255, 0.06)" : "rgba(74, 50, 40, 0.05)",
@@ -235,11 +235,6 @@ function FiadoGroupCard({
         borderColor: pal.cardBorder,
         backgroundColor: pal.cardBg,
         padding: spacing.md,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 16 },
-        shadowOpacity: theme.mode === "dark" ? 0.28 : 0.08,
-        shadowRadius: 24,
-        elevation: 4,
         gap: spacing.md,
       }}
     >
@@ -908,9 +903,7 @@ export default function FiadoScreen() {
             const selected = activeFilter === option.key;
             const isDark = theme.mode === "dark";
             const idleBg = isDark ? "rgba(255,255,255,0.06)" : theme.colors.surface;
-            const idleBorder = isDark
-              ? "rgba(245, 225, 219, 0.1)"
-              : "rgba(74, 50, 40, 0.1)";
+            const idleBorder = theme.colors.border;
             return (
               <Pressable
                 key={option.key}

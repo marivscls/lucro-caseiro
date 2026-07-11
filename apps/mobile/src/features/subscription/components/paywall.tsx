@@ -34,7 +34,7 @@ function formatBRL(value: number): string {
 }
 
 function cardBorder(theme: Theme): string {
-  return theme.mode === "dark" ? "rgba(245, 225, 219, 0.11)" : "rgba(74, 50, 40, 0.1)";
+  return theme.colors.border;
 }
 
 function TierCard({

@@ -220,11 +220,6 @@ export function MonthlyBars({
         borderColor,
         borderRadius: radii["2xl"],
         backgroundColor: panelBg,
-        shadowColor: "#000000",
-        shadowOpacity: theme.mode === "dark" ? 0.34 : 0.12,
-        shadowRadius: 24,
-        shadowOffset: { width: 0, height: 14 },
-        elevation: 6,
       }}
     >
       <View

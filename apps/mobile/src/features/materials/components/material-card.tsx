@@ -41,7 +41,7 @@ export function MaterialCard({ material, onPress }: MaterialCardProps) {
   const low = isLowStock(material) || material.stockQuantity <= 0;
 
   const cardBg = isDark ? "rgba(44, 36, 32, 0.55)" : theme.colors.surfaceElevated;
-  const border = isDark ? "rgba(245, 225, 219, 0.1)" : "rgba(74, 50, 40, 0.1)";
+  const border = theme.colors.border;
   const stockColor = low ? theme.colors.alert : theme.colors.success;
 
   const step = (delta: number) => adjust.mutate({ id: material.id, delta });

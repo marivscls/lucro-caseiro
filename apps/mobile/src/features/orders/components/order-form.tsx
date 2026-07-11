@@ -50,7 +50,7 @@ function formPalette(theme: { mode: string; colors: Record<string, string> }) {
   return {
     surface: isDark ? "rgba(44, 36, 32, 0.82)" : theme.colors.surfaceElevated,
     panel: isDark ? "rgba(44, 36, 32, 0.6)" : theme.colors.surface,
-    border: isDark ? "rgba(245, 225, 219, 0.1)" : "rgba(74, 50, 40, 0.1)",
+    border: theme.colors.border,
     muted: theme.colors.textSecondary,
     subtleFill: isDark ? "rgba(245, 225, 219, 0.03)" : "rgba(74, 50, 40, 0.03)",
   };
