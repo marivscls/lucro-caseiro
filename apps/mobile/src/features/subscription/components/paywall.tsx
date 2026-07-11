@@ -81,7 +81,7 @@ function TierCard({
         <Typography
           variant="caption"
           color={isPro ? theme.colors.premium : theme.colors.textSecondary}
-          style={{ fontSize: 10, fontWeight: "800" }}
+          style={{ fontSize: 12, fontWeight: "800" }}
         >
           {isPro ? "COMPLETO" : "MAIS ESCOLHIDO"}
         </Typography>
@@ -154,7 +154,7 @@ function PeriodCard({
           <Typography
             variant="caption"
             color={theme.colors.premium}
-            style={{ fontSize: 10, fontWeight: "800" }}
+            style={{ fontSize: 12, fontWeight: "800" }}
           >
             {badge}
           </Typography>
@@ -188,7 +188,7 @@ function PeriodCard({
           color={theme.colors.textSecondary}
           numberOfLines={2}
           adjustsFontSizeToFit
-          style={{ fontSize: 11 }}
+          style={{ fontSize: 13 }}
         >
           {note}
         </Typography>

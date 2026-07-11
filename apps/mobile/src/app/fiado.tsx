@@ -51,11 +51,11 @@ function fiadoPalette(theme: Theme) {
     subtleFill: isDark ? "rgba(255, 255, 255, 0.06)" : "rgba(74, 50, 40, 0.05)",
     dateChipBg: isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(74, 50, 40, 0.05)",
     handle: isDark ? "rgba(245, 225, 219, 0.25)" : "rgba(74, 50, 40, 0.2)",
-    received: isDark ? "#58D18C" : "#2E7D52",
-    receivedBg: isDark ? "rgba(88, 209, 140, 0.16)" : "rgba(46, 125, 82, 0.12)",
-    amountChipBg: isDark ? "rgba(111, 81, 13, 0.42)" : "rgba(126, 102, 15, 0.12)",
-    amountChipFg: isDark ? "#FFD964" : c.yellow,
-    sheetBg: isDark ? "#26201B" : c.surfaceElevated,
+    received: c.success,
+    receivedBg: c.successBg,
+    amountChipBg: c.yellowBg,
+    amountChipFg: c.yellow,
+    sheetBg: c.surfaceElevated,
     totalCardBg: isDark ? "rgba(63, 42, 45, 0.66)" : c.surfaceElevated,
   };
 }
@@ -255,7 +255,12 @@ function FiadoGroupCard({
             justifyContent: "center",
           }}
         >
-          <Typography variant="bodyBold" color="#FFFFFF" serif style={{ fontSize: 18 }}>
+          <Typography
+            variant="bodyBold"
+            color={theme.colors.textOnPrimary}
+            serif
+            style={{ fontSize: 18 }}
+          >
             {initials(group.clientName)}
           </Typography>
         </View>
@@ -348,8 +353,12 @@ function FiadoGroupCard({
           opacity: pressed ? 0.86 : 1,
         })}
       >
-        <Ionicons name="logo-whatsapp" size={22} color="#FFFFFF" />
-        <Typography variant="bodyBold" color="#FFFFFF" style={{ fontSize: 17 }}>
+        <Ionicons name="logo-whatsapp" size={22} color={theme.colors.textOnPrimary} />
+        <Typography
+          variant="bodyBold"
+          color={theme.colors.textOnPrimary}
+          style={{ fontSize: 17 }}
+        >
           Cobrar no WhatsApp
         </Typography>
       </Pressable>
@@ -708,7 +717,7 @@ export default function FiadoScreen() {
                 opacity: pressed ? 0.86 : 1,
               })}
             >
-              <Typography variant="bodyBold" color="#FFFFFF">
+              <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
                 Limpar filtros
               </Typography>
             </Pressable>
@@ -940,7 +949,7 @@ export default function FiadoScreen() {
               >
                 <Typography
                   variant="caption"
-                  color={selected ? "#FFFFFF" : pal.text}
+                  color={selected ? theme.colors.textOnPrimary : pal.text}
                   style={{ fontWeight: "700" }}
                 >
                   {option.label}
@@ -1025,7 +1034,7 @@ export default function FiadoScreen() {
                 elevation: 8,
               })}
             >
-              <Ionicons name="add" size={36} color="#FFFFFF" />
+              <Ionicons name="add" size={36} color={theme.colors.textOnPrimary} />
             </Pressable>
             <Typography variant="caption" color={pal.text} style={{ fontSize: 12 }}>
               Novo lançamento

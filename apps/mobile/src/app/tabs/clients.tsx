@@ -368,7 +368,7 @@ function ClientsListScreen({
             <Typography
               variant="label"
               color={pal.muted}
-              style={{ fontSize: 11, letterSpacing: 2.4, fontWeight: "800" }}
+              style={{ fontSize: 12, letterSpacing: 2.4, fontWeight: "800" }}
             >
               {totalClients} CLIENTES CADASTRADOS
             </Typography>

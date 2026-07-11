@@ -156,7 +156,11 @@ export default function RecurringExpensesScreen() {
                 onPress={handleAddPress}
                 style={({ pressed }) => [styles.addButton, pressed && styles.pressed]}
               >
-                <Ionicons name="add-circle-outline" size={22} color="#FFFFFF" />
+                <Ionicons
+                  name="add-circle-outline"
+                  size={22}
+                  color={theme.colors.textOnPrimary}
+                />
                 <Text style={styles.addButtonText}>Adicionar gasto fixo</Text>
               </Pressable>
 
@@ -496,7 +500,7 @@ function RecurringDetails({
           onPress={onDelete}
           style={({ pressed }) => [styles.deleteButton, pressed && styles.pressed]}
         >
-          <Ionicons name="trash-outline" size={18} color="#FFFFFF" />
+          <Ionicons name="trash-outline" size={18} color={theme.colors.textOnPrimary} />
           <Text style={styles.deleteText}>Remover</Text>
         </Pressable>
         <Pressable
@@ -504,7 +508,7 @@ function RecurringDetails({
           onPress={onEdit}
           style={({ pressed }) => [styles.saveButton, pressed && styles.pressed]}
         >
-          <Ionicons name="create-outline" size={18} color="#FFFFFF" />
+          <Ionicons name="create-outline" size={18} color={theme.colors.textOnPrimary} />
           <Text style={styles.saveText}>Editar</Text>
         </Pressable>
       </View>
@@ -568,7 +572,7 @@ function RecurringPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) 
         onPress={onUnlock}
         style={({ pressed }) => [styles.gateCta, pressed && styles.pressed]}
       >
-        <Ionicons name="lock-open-outline" size={20} color="#FFFFFF" />
+        <Ionicons name="lock-open-outline" size={20} color={theme.colors.textOnPrimary} />
         <Text style={styles.gateCtaText}>Desbloquear no Profissional</Text>
       </Pressable>
     </View>
@@ -633,7 +637,7 @@ function createStyles(theme: Theme) {
       shadowRadius: 11,
     },
     addButtonText: {
-      color: "#FFFFFF",
+      color: theme.colors.textOnPrimary,
       fontSize: 16,
       fontWeight: "800",
     },
@@ -689,7 +693,7 @@ function createStyles(theme: Theme) {
       fontWeight: "500",
     },
     categoryTextSelected: {
-      color: "#FFFFFF",
+      color: theme.colors.textOnPrimary,
       fontWeight: "700",
     },
     categoryWrap: {
@@ -720,7 +724,7 @@ function createStyles(theme: Theme) {
       justifyContent: "center",
     },
     deleteText: {
-      color: "#FFFFFF",
+      color: theme.colors.textOnPrimary,
       fontSize: 14,
       fontWeight: "800",
     },
@@ -916,7 +920,7 @@ function createStyles(theme: Theme) {
       marginTop: 4,
     },
     gateCtaText: {
-      color: "#FFFFFF",
+      color: theme.colors.textOnPrimary,
       fontSize: 16,
       fontWeight: "800",
     },
@@ -980,7 +984,7 @@ function createStyles(theme: Theme) {
       justifyContent: "center",
     },
     saveText: {
-      color: "#FFFFFF",
+      color: theme.colors.textOnPrimary,
       fontSize: 14,
       fontWeight: "800",
     },
