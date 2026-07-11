@@ -64,7 +64,7 @@ function TierCard({
           ? `${theme.colors.primary}14`
           : theme.colors.surfaceElevated,
         alignItems: "center",
-        gap: spacing.xs,
+        gap: 2,
       }}
     >
       <View
@@ -254,18 +254,18 @@ export function Paywall({
         {/* Hero */}
         <Card
           style={{
-            backgroundColor: theme.colors.surfaceElevated,
+            backgroundColor: theme.colors.premiumBg,
             borderWidth: 1,
-            borderColor: cardBorder(theme),
+            borderColor: theme.colors.premium,
             alignItems: "center",
-            gap: spacing.md,
+            gap: spacing.sm,
             paddingVertical: spacing.xl,
           }}
         >
           <Typography
-            variant="display"
+            variant="h1"
             color={theme.colors.text}
-            style={{ textAlign: "center" }}
+            style={{ textAlign: "center", fontSize: 30, lineHeight: 36 }}
           >
             {title}
           </Typography>
@@ -308,7 +308,14 @@ export function Paywall({
         </View>
 
         {/* Benefícios do plano selecionado */}
-        <Card style={{ borderWidth: 1, borderColor: cardBorder(theme), gap: spacing.md }}>
+        <Card
+          style={{
+            borderWidth: 1,
+            borderColor: cardBorder(theme),
+            backgroundColor: theme.colors.surface,
+            gap: spacing.md,
+          }}
+        >
           <Typography variant="h3" color={theme.colors.text}>
             No {PLAN_LABELS[tier]} você tem
           </Typography>

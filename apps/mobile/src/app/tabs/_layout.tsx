@@ -19,18 +19,25 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          height: (Platform.OS === "ios" ? 88 : 64) + bottomInset,
-          paddingBottom: (Platform.OS === "ios" ? 28 : 8) + bottomInset,
-          paddingTop: 8,
-          backgroundColor: theme.colors.surface,
-          borderTopWidth: 0,
+          height: (Platform.OS === "ios" ? 82 : 58) + bottomInset,
+          paddingBottom: (Platform.OS === "ios" ? 22 : 4) + bottomInset,
+          paddingTop: 6,
+          backgroundColor: theme.colors.surfaceElevated,
+          borderTopWidth: 1,
+          borderTopColor:
+            theme.mode === "dark"
+              ? "rgba(245, 225, 219, 0.10)"
+              : "rgba(74, 50, 40, 0.08)",
           elevation: 0,
           shadowOpacity: 0,
         },
         tabBarLabelStyle: {
-          fontSize: 13,
-          fontWeight: "600",
+          fontSize: 11,
+          lineHeight: 14,
+          fontWeight: "500",
         },
+        tabBarIconStyle: { marginTop: 1 },
+        tabBarItemStyle: { paddingVertical: 1 },
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.textSecondary,
       }}
@@ -40,8 +47,8 @@ export default function TabLayout() {
         options={{
           title: "Início",
           tabBarLabel: "Início",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="home-outline" size={21} color={color} />
           ),
         }}
       />
@@ -50,8 +57,8 @@ export default function TabLayout() {
         options={{
           title: "Vendas",
           tabBarLabel: "Vendas",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="receipt-outline" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="receipt-outline" size={21} color={color} />
           ),
         }}
       />
@@ -64,24 +71,24 @@ export default function TabLayout() {
           tabBarIcon: () => (
             <View
               style={{
-                width: 56,
-                height: 56,
-                borderRadius: 28,
+                width: 50,
+                height: 50,
+                borderRadius: 25,
                 backgroundColor: theme.colors.primary,
                 alignItems: "center",
                 justifyContent: "center",
-                marginBottom: Platform.OS === "ios" ? 20 : 24,
+                marginBottom: Platform.OS === "ios" ? 20 : 28,
                 shadowColor: theme.colors.primary,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.4,
-                shadowRadius: 8,
-                elevation: 8,
+                shadowOffset: { width: 0, height: 3 },
+                shadowOpacity: 0.16,
+                shadowRadius: 6,
+                elevation: 4,
               }}
             >
               <View
                 style={{
-                  width: 24,
-                  height: 3,
+                  width: 22,
+                  height: 2.5,
                   backgroundColor: theme.colors.textOnPrimary,
                   borderRadius: 2,
                   position: "absolute",
@@ -89,8 +96,8 @@ export default function TabLayout() {
               />
               <View
                 style={{
-                  width: 3,
-                  height: 24,
+                  width: 2.5,
+                  height: 22,
                   backgroundColor: theme.colors.textOnPrimary,
                   borderRadius: 2,
                   position: "absolute",
@@ -105,8 +112,8 @@ export default function TabLayout() {
         options={{
           title: "Clientes",
           tabBarLabel: "Clientes",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="people-outline" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="people-outline" size={21} color={color} />
           ),
         }}
       />
@@ -115,8 +122,8 @@ export default function TabLayout() {
         options={{
           title: "Mais",
           tabBarLabel: "Mais",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="ellipsis-horizontal" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="ellipsis-horizontal" size={23} color={color} />
           ),
         }}
       />

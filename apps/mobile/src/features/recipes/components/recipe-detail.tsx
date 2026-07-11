@@ -1,5 +1,5 @@
 import { formatCurrency } from "../../../shared/utils/format";
-import { Button, Card, Typography, useTheme } from "@lucro-caseiro/ui";
+import { Button, Card, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { ActivityIndicator, Image, ScrollView, View } from "react-native";
@@ -140,11 +140,20 @@ export function RecipeDetail({
           </Typography>
         </View>
 
-        <Card style={{ gap: 0 }}>
+        <Card
+          style={{
+            gap: 0,
+            paddingHorizontal: 0,
+            paddingVertical: spacing.sm,
+            overflow: "hidden",
+          }}
+        >
           <View
             style={{
               flexDirection: "row",
-              paddingVertical: 8,
+              paddingHorizontal: spacing.lg,
+              paddingVertical: spacing.md,
+              backgroundColor: theme.colors.surface,
               borderBottomWidth: 1,
               borderBottomColor: theme.colors.surface,
             }}
@@ -176,7 +185,8 @@ export function RecipeDetail({
                 key={index}
                 style={{
                   flexDirection: "row",
-                  paddingVertical: 10,
+                  paddingHorizontal: spacing.lg,
+                  paddingVertical: spacing.md,
                   borderBottomWidth: index < ingredients.length - 1 ? 1 : 0,
                   borderBottomColor: theme.colors.surface,
                   alignItems: "center",
@@ -211,9 +221,12 @@ export function RecipeDetail({
           <View
             style={{
               flexDirection: "row",
-              paddingVertical: 10,
+              paddingHorizontal: spacing.lg,
+              paddingTop: spacing.lg,
+              paddingBottom: spacing.md,
               borderTopWidth: 1,
               borderTopColor: theme.colors.surface,
+              backgroundColor: theme.colors.alertBg,
             }}
           >
             <Typography variant="h3" style={{ flex: 2 }}>

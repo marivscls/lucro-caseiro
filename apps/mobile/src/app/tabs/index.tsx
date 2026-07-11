@@ -9,11 +9,13 @@ import {
   Modal,
   Pressable,
   ScrollView,
-  useWindowDimensions,
   View,
   type ViewStyle,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Svg, { Circle } from "react-native-svg";
+
+import agendaDeliveries from "../../../assets/agenda-deliveries.png";
 
 import { useBirthdays } from "../../features/clients/hooks";
 import { useFinanceSummary } from "../../features/finance/hooks";
@@ -77,14 +79,9 @@ function todaySalesLabel(count: number): string {
 function getCardStyle(theme: ReturnType<typeof useTheme>["theme"]): ViewStyle {
   const isDark = theme.mode === "dark";
   return {
-    backgroundColor: isDark ? "rgba(44, 36, 32, 0.82)" : theme.colors.surfaceElevated,
+    backgroundColor: theme.colors.surfaceElevated,
     borderWidth: 1,
     borderColor: isDark ? "rgba(245, 225, 219, 0.11)" : "rgba(74, 50, 40, 0.08)",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: isDark ? 0.32 : 0.08,
-    shadowRadius: 22,
-    elevation: 4,
   };
 }
 
@@ -126,55 +123,6 @@ function AvatarCircle({
   );
 }
 
-function QuickAction({
-  title,
-  icon,
-  active,
-  onPress,
-}: Readonly<{
-  title: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  active?: boolean;
-  onPress: () => void;
-}>) {
-  const { theme } = useTheme();
-  const surface = getCardStyle(theme);
-  const bg = active ? theme.colors.primary : surface.backgroundColor;
-  const fg = active ? theme.colors.textOnPrimary : theme.colors.text;
-
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      style={({ pressed }) => [
-        {
-          flex: 1,
-          height: 58,
-          borderRadius: radii["2xl"],
-          backgroundColor: bg,
-          borderWidth: 1,
-          borderColor: active ? theme.colors.primaryLight : surface.borderColor,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: spacing.md,
-          opacity: pressed ? 0.86 : 1,
-          shadowColor: active ? theme.colors.primary : "#000000",
-          shadowOffset: { width: 0, height: 10 },
-          shadowOpacity: active ? 0.3 : 0.18,
-          shadowRadius: 18,
-          elevation: 4,
-        },
-      ]}
-    >
-      <Ionicons name={icon} size={24} color={fg} />
-      <Typography variant="bodyBold" color={fg}>
-        {title}
-      </Typography>
-    </Pressable>
-  );
-}
-
 function ShortcutTile({
   icon,
   label,
@@ -191,24 +139,34 @@ function ShortcutTile({
       accessibilityRole="button"
       style={({ pressed }) => [
         {
-          flex: 1,
+          width: "48.5%",
           minWidth: 0,
-          height: 106,
+          height: 60,
           borderRadius: radii.xl,
-          padding: spacing.md,
+          paddingHorizontal: spacing.sm,
+          paddingVertical: spacing.sm,
+          flexDirection: "row",
           alignItems: "center",
-          justifyContent: "center",
-          gap: spacing.md,
+          justifyContent: "flex-start",
+          gap: spacing.sm,
           opacity: pressed ? 0.82 : 1,
-          ...getCardStyle(theme),
+          backgroundColor:
+            theme.mode === "dark"
+              ? "rgba(44, 36, 32, 0.82)"
+              : theme.colors.surfaceElevated,
+          borderWidth: 1,
+          borderColor:
+            theme.mode === "dark"
+              ? "rgba(245, 225, 219, 0.11)"
+              : "rgba(74, 50, 40, 0.08)",
         },
       ]}
     >
       <View
         style={{
-          width: 56,
-          height: 56,
-          borderRadius: radii.lg,
+          width: 38,
+          height: 38,
+          borderRadius: radii.md,
           borderWidth: 1,
           borderColor:
             theme.mode === "dark"
@@ -220,14 +178,14 @@ function ShortcutTile({
           justifyContent: "center",
         }}
       >
-        <Ionicons name={icon} size={29} color={theme.colors.primaryLight} />
+        <Ionicons name={icon} size={21} color={theme.colors.primaryLight} />
       </View>
       <Typography
         variant="bodyBold"
-        style={{ textAlign: "center", fontSize: 14 }}
+        style={{ flex: 1, fontSize: 12, lineHeight: 15 }}
         numberOfLines={1}
         adjustsFontSizeToFit
-        minimumFontScale={0.85}
+        minimumFontScale={0.78}
       >
         {label}
       </Typography>
@@ -235,39 +193,269 @@ function ShortcutTile({
   );
 }
 
-function ChevronButton({ onPress }: Readonly<{ onPress?: () => void }>) {
+const HOME_SHORTCUT_CATEGORIES = [
+  {
+    title: "Dia a dia",
+    items: [
+      { icon: "calendar-outline", label: "Agenda", route: "/agenda" },
+      { icon: "wallet-outline", label: "Finanças", route: "/finance" },
+      { icon: "bar-chart-outline", label: "Insights", route: "/insights" },
+      { icon: "cash-outline", label: "Fiado", route: "/fiado" },
+    ],
+  },
+  {
+    title: "Vendas",
+    items: [
+      { icon: "cube-outline", label: "Produtos", route: "/products" },
+      { icon: "reader-outline", label: "Orçamentos", route: "/quotes" },
+      { icon: "storefront-outline", label: "Catálogo", route: "/catalog" },
+      { icon: "cart-outline", label: "Compras", route: "/purchases" },
+    ],
+  },
+  {
+    title: "Produção",
+    items: [
+      { icon: "document-text-outline", label: "Receitas", route: "/recipes" },
+      { icon: "flask-outline", label: "Insumos", route: "/materials" },
+      { icon: "business-outline", label: "Fornecedores", route: "/suppliers" },
+      { icon: "gift-outline", label: "Embalagens", route: "/packaging" },
+    ],
+  },
+  {
+    title: "Ferramentas",
+    items: [
+      { icon: "calculator-outline", label: "Precificação", route: "/pricing" },
+      { icon: "repeat-outline", label: "Gastos fixos", route: "/recurring-expenses" },
+      { icon: "pricetag-outline", label: "Rótulos", route: "/labels" },
+      { icon: "settings-outline", label: "Configurações", route: "/settings" },
+    ],
+  },
+] as const;
+
+function MetricCard({
+  title,
+  amount,
+  description,
+  icon,
+  tone,
+  onPress,
+}: Readonly<{
+  title: string;
+  amount: string;
+  description: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  tone: "success" | "alert";
+  onPress: () => void;
+}>) {
   const { theme } = useTheme();
+  const color = tone === "success" ? theme.colors.success : theme.colors.alert;
+  const softColor = tone === "success" ? theme.colors.successBg : theme.colors.alertBg;
+
   return (
-    <Pressable
+    <Card
+      variant="surface"
+      padding="lg"
       onPress={onPress}
-      hitSlop={12}
-      accessibilityRole="button"
-      style={{ width: 48, height: 48, alignItems: "flex-end", justifyContent: "center" }}
+      style={{
+        ...getCardStyle(theme),
+        flex: 1,
+        minHeight: 170,
+        borderColor: softColor,
+      }}
     >
-      <Ionicons name="chevron-forward" size={22} color={theme.colors.textSecondary} />
-    </Pressable>
+      <View style={{ flex: 1, gap: spacing.sm }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+          <View
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: radii.full,
+              backgroundColor: softColor,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Ionicons name={icon} size={23} color={color} />
+          </View>
+          <Typography
+            variant="label"
+            color={color}
+            style={{ flex: 1, fontSize: 11 }}
+            numberOfLines={2}
+          >
+            {title}
+          </Typography>
+        </View>
+        <Typography
+          variant="moneyLg"
+          color={color}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.62}
+        >
+          {amount}
+        </Typography>
+        <Typography
+          variant="caption"
+          color={theme.colors.textSecondary}
+          style={{ flex: 1, lineHeight: 18 }}
+          numberOfLines={2}
+        >
+          {description}
+        </Typography>
+        <View style={{ alignItems: "flex-end" }}>
+          <View
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: radii.full,
+              backgroundColor: softColor,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Ionicons name="chevron-forward" size={18} color={color} />
+          </View>
+        </View>
+      </View>
+    </Card>
   );
 }
 
-function TrendBadge() {
+function ProgressRing({ value }: Readonly<{ value: number }>) {
   const { theme } = useTheme();
+  const size = 86;
+  const strokeWidth = 6;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const progress = Math.min(Math.max(value, 0), 100);
+
   return (
     <View
       style={{
-        width: 96,
-        height: 96,
-        borderRadius: 48,
-        borderWidth: 1.5,
-        borderStyle: "dashed",
-        borderColor:
-          theme.mode === "dark" ? "rgba(245, 225, 219, 0.22)" : "rgba(74, 50, 40, 0.14)",
+        width: size,
+        height: size,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor:
-          theme.mode === "dark" ? "rgba(107, 191, 150, 0.06)" : theme.colors.successBg,
       }}
     >
-      <Ionicons name="trending-up-outline" size={44} color={theme.colors.success} />
+      <Svg width={size} height={size} style={{ transform: [{ rotate: "-90deg" }] }}>
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={theme.colors.surface}
+          strokeWidth={strokeWidth}
+        />
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={theme.colors.primary}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={`${circumference} ${circumference}`}
+          strokeDashoffset={circumference - (progress / 100) * circumference}
+        />
+      </Svg>
+      <View
+        style={{
+          position: "absolute",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Typography variant="bodyBold" color={theme.colors.primary}>
+          {Math.round(progress)}%
+        </Typography>
+        <Typography
+          variant="caption"
+          color={theme.colors.primary}
+          style={{ fontSize: 10 }}
+        >
+          da meta
+        </Typography>
+      </View>
+    </View>
+  );
+}
+
+function QuickCreateBar() {
+  const router = useRouter();
+  const { theme } = useTheme();
+  const actions = [
+    { icon: "add", label: "Nova venda", route: "/tabs/new-sale", active: true },
+    { icon: "cube-outline", label: "Novo produto", route: "/products", active: false },
+    {
+      icon: "person-add-outline",
+      label: "Novo cliente",
+      route: "/tabs/clients",
+      active: false,
+    },
+    { icon: "cash-outline", label: "Despesas", route: "/finance", active: false },
+  ] as const;
+
+  return (
+    <View
+      style={{
+        ...getCardStyle(theme),
+        flexDirection: "row",
+        borderRadius: radii["2xl"],
+        overflow: "hidden",
+      }}
+    >
+      {actions.map((action, index) => (
+        <Pressable
+          key={action.label}
+          onPress={() => router.push(action.route)}
+          accessibilityRole="button"
+          accessibilityLabel={action.label}
+          style={({ pressed }) => ({
+            flex: 1,
+            minHeight: 76,
+            alignItems: "center",
+            justifyContent: "center",
+            gap: spacing.xs,
+            opacity: pressed ? 0.72 : 1,
+            borderLeftWidth: index === 0 ? 0 : 1,
+            borderLeftColor:
+              theme.mode === "dark"
+                ? "rgba(245, 225, 219, 0.11)"
+                : "rgba(74, 50, 40, 0.08)",
+          })}
+        >
+          <View
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: action.active ? radii.md : radii.full,
+              backgroundColor: action.active ? theme.colors.primary : "transparent",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Ionicons
+              name={action.icon}
+              size={24}
+              color={
+                action.active ? theme.colors.textOnPrimary : theme.colors.textSecondary
+              }
+            />
+          </View>
+          <Typography
+            variant="caption"
+            color={action.active ? theme.colors.primary : theme.colors.text}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.72}
+            style={{ fontSize: 11 }}
+          >
+            {action.label}
+          </Typography>
+        </Pressable>
+      ))}
     </View>
   );
 }
@@ -402,7 +590,6 @@ function GettingStartedCard({
 export default function HomeScreen() {
   const { theme } = useTheme();
   const router = useRouter();
-  const { width } = useWindowDimensions();
   const [showGoalForm, setShowGoalForm] = useState(false);
   const { data: profile } = useProfile();
   const showPaywall = usePaywall((s) => s.show);
@@ -440,7 +627,6 @@ export default function HomeScreen() {
     }
   }, [dismissedGettingStarted, startSettled, startDone, dismissGettingStarted]);
 
-  const isWide = width >= 390;
   const isLoading = loadingSales || loadingGoal;
   const firstName = profile?.name?.trim().split(/\s+/)[0] ?? "Maria";
   const cardStyle = getCardStyle(theme);
@@ -477,11 +663,14 @@ export default function HomeScreen() {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <SafeAreaView
+      edges={["top", "left", "right"]}
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+    >
       <ScrollView
         contentContainerStyle={{
           padding: spacing.xl,
-          paddingBottom: spacing["5xl"],
+          paddingBottom: 0,
           gap: spacing.lg,
         }}
         showsVerticalScrollIndicator={false}
@@ -495,9 +684,12 @@ export default function HomeScreen() {
           }}
         >
           <View style={{ flex: 1, paddingRight: spacing.md }}>
-            <Typography variant="h1" serif>
-              Olá, {firstName}! 👋
-            </Typography>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+              <Typography variant="h1" serif>
+                Olá, {firstName}!
+              </Typography>
+              <Ionicons name="heart" size={20} color={theme.colors.primaryLight} />
+            </View>
             <Typography variant="body" style={{ marginTop: spacing.xs }}>
               {getFormattedDate()}
             </Typography>
@@ -525,41 +717,34 @@ export default function HomeScreen() {
           />
         )}
 
-        <View style={{ flexDirection: "row", gap: spacing.md }}>
-          <QuickAction
-            title="Venda"
-            icon="cart-outline"
-            active
-            onPress={() => router.push("/tabs/new-sale")}
-          />
-          <QuickAction
-            title="Cliente"
-            icon="person-add-outline"
-            onPress={() => router.push("/tabs/clients")}
-          />
-        </View>
+        <AdBanner size="banner" />
 
-        <View style={{ flexDirection: "row", gap: spacing.sm }}>
-          <ShortcutTile
-            icon="calendar-outline"
-            label="Agenda"
-            onPress={() => router.push("/agenda")}
-          />
-          <ShortcutTile
-            icon="wallet-outline"
-            label="Finanças"
-            onPress={() => router.push("/finance")}
-          />
-          <ShortcutTile
-            icon="bar-chart-outline"
-            label="Insights"
-            onPress={() => router.push("/insights")}
-          />
-          <ShortcutTile
-            icon="cube-outline"
-            label="Produtos"
-            onPress={() => router.push("/products")}
-          />
+        <View style={{ gap: spacing.sm }}>
+          <Typography variant="label">ACESSO RÁPIDO</Typography>
+          {HOME_SHORTCUT_CATEGORIES.map((category) => (
+            <View key={category.title} style={{ gap: spacing.sm }}>
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                {category.title}
+              </Typography>
+              <View
+                style={{
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  justifyContent: "space-between",
+                  gap: spacing.sm,
+                }}
+              >
+                {category.items.map((item) => (
+                  <ShortcutTile
+                    key={item.route}
+                    icon={item.icon}
+                    label={item.label}
+                    onPress={() => router.push(item.route)}
+                  />
+                ))}
+              </View>
+            </View>
+          ))}
         </View>
 
         {isLoading ? (
@@ -570,131 +755,79 @@ export default function HomeScreen() {
           />
         ) : (
           <>
-            <Card
-              variant="surface"
-              padding="xl"
-              onPress={() =>
-                router.push(hasSalesToday ? "/tabs/sales" : "/tabs/new-sale")
-              }
-              style={cardStyle}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <View
-                  style={{
-                    flex: 1,
-                    minHeight: hasSalesToday ? 112 : 76,
-                    justifyContent: "center",
-                    gap: spacing.xs,
-                  }}
-                >
-                  <Typography variant="label">VENDAS DE HOJE</Typography>
-                  <Typography
-                    variant={hasSalesToday ? "moneyHero" : "moneyLg"}
-                    color={theme.colors.success}
-                  >
-                    {formatCurrency(todaySummary?.totalAmount ?? 0)}
-                  </Typography>
-                  <Typography
-                    variant="bodyBold"
-                    color={hasSalesToday ? theme.colors.text : theme.colors.primaryLight}
-                  >
-                    {todaySalesLabel(todaySummary?.totalSales ?? 0)}
-                  </Typography>
-                </View>
-                <View style={{ alignItems: "flex-end", gap: spacing.md }}>
-                  <ChevronButton
-                    onPress={() =>
-                      router.push(hasSalesToday ? "/tabs/sales" : "/tabs/new-sale")
-                    }
-                  />
-                  {hasSalesToday && <TrendBadge />}
-                </View>
-              </View>
-            </Card>
-
-            <Card
-              variant="surface"
-              padding="xl"
-              onPress={() => router.push("/finance")}
-              style={cardStyle}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <View style={{ flex: 1, gap: spacing.xs }}>
-                  <Typography variant="label">
-                    QUANTO SOBROU EM {getMonthName().toUpperCase()}
-                  </Typography>
-                  <Typography
-                    variant="moneyLg"
-                    color={monthProfit >= 0 ? theme.colors.success : theme.colors.alert}
-                  >
-                    {formatCurrency(monthProfit)}
-                  </Typography>
-                  <Typography variant="caption">
-                    {formatCurrency(financeSummary?.totalIncome ?? 0)} entradas −{" "}
-                    {formatCurrency(financeSummary?.totalExpenses ?? 0)} despesas
-                  </Typography>
-                </View>
-                <ChevronButton onPress={() => router.push("/finance")} />
-              </View>
-            </Card>
+            <View style={{ flexDirection: "row", gap: spacing.sm }}>
+              <MetricCard
+                title="VENDAS DE HOJE"
+                amount={formatCurrency(todaySummary?.totalAmount ?? 0)}
+                description={todaySalesLabel(todaySummary?.totalSales ?? 0)}
+                icon="bag-handle-outline"
+                tone="success"
+                onPress={() =>
+                  router.push(hasSalesToday ? "/tabs/sales" : "/tabs/new-sale")
+                }
+              />
+              <MetricCard
+                title={`LUCRO EM ${getMonthName().toUpperCase()}`}
+                amount={formatCurrency(monthProfit)}
+                description={`${formatCurrency(financeSummary?.totalIncome ?? 0)} entradas\n${formatCurrency(financeSummary?.totalExpenses ?? 0)} despesas`}
+                icon="trending-up-outline"
+                tone={monthProfit >= 0 ? "success" : "alert"}
+                onPress={() => router.push("/finance")}
+              />
+            </View>
 
             {upcomingDeliveries > 0 && (
               <Card
                 variant="surface"
-                padding="xl"
+                padding="lg"
                 onPress={() => router.push("/agenda")}
-                style={{
-                  ...cardStyle,
-                  borderLeftWidth: 3,
-                  borderLeftColor: theme.colors.primary,
-                }}
+                style={cardStyle}
               >
                 <View
-                  style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
+                  style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
                 >
-                  <Ionicons name="calendar" size={22} color={theme.colors.primary} />
+                  <View
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: radii.full,
+                      backgroundColor: theme.colors.alertBg,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Ionicons name="calendar" size={25} color={theme.colors.primary} />
+                  </View>
                   <View style={{ flex: 1 }}>
                     <Typography variant="h3">Agenda</Typography>
-                    <Typography variant="caption">
+                    <Typography variant="caption" numberOfLines={3}>
                       {upcomingDeliveries === 1
                         ? "1 entrega próxima (hoje/amanhã ou atrasada)"
                         : `${upcomingDeliveries} entregas próximas (hoje/amanhã ou atrasadas)`}
                     </Typography>
                   </View>
+                  <Image
+                    source={agendaDeliveries}
+                    resizeMode="contain"
+                    style={{ width: 82, height: 70 }}
+                  />
                   <Ionicons
                     name="chevron-forward"
-                    size={18}
-                    color={theme.colors.textSecondary}
+                    size={22}
+                    color={theme.colors.primary}
                   />
                 </View>
               </Card>
             )}
 
-            <View style={{ flexDirection: isWide ? "row" : "column", gap: spacing.md }}>
+            <View style={{ gap: spacing.md }}>
               <Card
                 variant="surface"
-                padding="xl"
+                padding="lg"
                 onPress={() => setShowGoalForm(true)}
-                style={{
-                  ...cardStyle,
-                  flex: 1,
-                  borderLeftWidth: 2,
-                  borderLeftColor: theme.colors.primary,
-                }}
+                style={cardStyle}
               >
-                <View style={{ minHeight: 230, gap: spacing.md }}>
+                <View style={{ gap: spacing.lg }}>
                   <View
                     style={{
                       flexDirection: "row",
@@ -702,65 +835,98 @@ export default function HomeScreen() {
                       justifyContent: "space-between",
                     }}
                   >
-                    <Typography variant="label">META DO MÊS</Typography>
-                    <Ionicons
-                      name="create-outline"
-                      size={20}
-                      color={theme.colors.textSecondary}
-                    />
-                  </View>
-                  <View>
-                    <Typography
-                      variant="moneyLg"
-                      color={
-                        goalProgress?.reached ? theme.colors.success : theme.colors.text
-                      }
+                    <Typography variant="label" color={theme.colors.primary}>
+                      META DO MÊS
+                    </Typography>
+                    <View
+                      style={{
+                        width: 38,
+                        height: 38,
+                        borderRadius: radii.md,
+                        backgroundColor: theme.colors.alertBg,
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
                     >
-                      {formatCurrency(goalProgress?.currentRevenue ?? 0)}
-                    </Typography>
-                    <Typography variant="caption" style={{ marginTop: spacing.xs }}>
-                      de {formatCurrency(goalProgress?.requiredRevenue ?? 3000)}{" "}
-                      necessários
-                    </Typography>
+                      <Ionicons
+                        name="create-outline"
+                        size={21}
+                        color={theme.colors.primary}
+                      />
+                    </View>
                   </View>
                   <View
                     style={{
-                      height: 9,
-                      borderRadius: radii.full,
-                      backgroundColor:
-                        theme.mode === "dark"
-                          ? "rgba(245, 225, 219, 0.12)"
-                          : theme.colors.surface,
-                      overflow: "hidden",
                       flexDirection: "row",
+                      alignItems: "center",
+                      gap: spacing.md,
+                    }}
+                  >
+                    <View style={{ flex: 1, gap: spacing.sm }}>
+                      <Typography
+                        variant="moneyLg"
+                        color={
+                          goalProgress?.reached ? theme.colors.success : theme.colors.text
+                        }
+                      >
+                        {formatCurrency(goalProgress?.currentRevenue ?? 0)}
+                      </Typography>
+                      <Typography variant="caption">
+                        de {formatCurrency(goalProgress?.requiredRevenue ?? 3000)}{" "}
+                        necessários
+                      </Typography>
+                    </View>
+                    <ProgressRing value={goalProgress?.progressPct ?? 0} />
+                  </View>
+                  <View
+                    style={{
+                      height: 8,
+                      borderRadius: radii.full,
+                      backgroundColor: theme.colors.surface,
+                      overflow: "hidden",
                     }}
                   >
                     <View
                       style={{
-                        flex: Math.max(goalProgress?.progressPct ?? 0, 0.5),
+                        width: `${Math.min(Math.max(goalProgress?.progressPct ?? 0, 1), 100)}%`,
+                        height: "100%",
+                        borderRadius: radii.full,
                         backgroundColor: goalProgress?.reached
                           ? theme.colors.success
                           : theme.colors.primary,
                       }}
                     />
-                    <View
-                      style={{
-                        flex: Math.max(100 - (goalProgress?.progressPct ?? 0), 0),
-                      }}
-                    />
                   </View>
-                  <Typography
-                    variant="bodyBold"
-                    color={
-                      goalProgress?.reached
-                        ? theme.colors.success
-                        : theme.colors.primaryLight
-                    }
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: spacing.sm,
+                    }}
                   >
-                    {goalProgress
-                      ? prolaboreMessage(goalProgress)
-                      : "Defina sua meta do mês"}
-                  </Typography>
+                    <Ionicons
+                      name="locate-outline"
+                      size={22}
+                      color={
+                        goalProgress?.reached
+                          ? theme.colors.success
+                          : theme.colors.primary
+                      }
+                    />
+                    <Typography
+                      variant="bodyBold"
+                      color={
+                        goalProgress?.reached
+                          ? theme.colors.success
+                          : theme.colors.primary
+                      }
+                      style={{ flex: 1 }}
+                    >
+                      {goalProgress
+                        ? prolaboreMessage(goalProgress)
+                        : "Defina sua meta do mês"}
+                    </Typography>
+                  </View>
                 </View>
               </Card>
 
@@ -769,14 +935,9 @@ export default function HomeScreen() {
                   variant="surface"
                   padding="lg"
                   onPress={() => router.push("/products")}
-                  style={{
-                    ...cardStyle,
-                    flex: 1,
-                    borderLeftWidth: 2,
-                    borderLeftColor: theme.colors.primary,
-                  }}
+                  style={cardStyle}
                 >
-                  <View style={{ minHeight: 230 }}>
+                  <View>
                     <View
                       style={{
                         flexDirection: "row",
@@ -785,8 +946,19 @@ export default function HomeScreen() {
                         marginBottom: spacing.sm,
                       }}
                     >
-                      <Typography variant="label">ESTOQUE BAIXO</Typography>
-                      <ChevronButton onPress={() => router.push("/products")} />
+                      <Typography variant="label" color={theme.colors.primary}>
+                        ESTOQUE BAIXO
+                      </Typography>
+                      <View style={{ flexDirection: "row", alignItems: "center" }}>
+                        <Typography variant="caption" color={theme.colors.primary}>
+                          Ver todos
+                        </Typography>
+                        <Ionicons
+                          name="chevron-forward"
+                          size={18}
+                          color={theme.colors.primaryLight}
+                        />
+                      </View>
                     </View>
 
                     {lowStockProducts && lowStockProducts.length > 0 ? (
@@ -838,19 +1010,31 @@ export default function HomeScreen() {
                           >
                             {product.name}
                           </Typography>
-                          <Typography
-                            variant="bodyBold"
-                            color={
-                              product.stockQuantity === 0
-                                ? theme.colors.alert
-                                : theme.colors.premium
-                            }
-                            style={{ textAlign: "right" }}
+                          <View
+                            style={{
+                              paddingHorizontal: spacing.md,
+                              paddingVertical: spacing.sm,
+                              borderRadius: radii.full,
+                              backgroundColor:
+                                product.stockQuantity === 0
+                                  ? theme.colors.alertBg
+                                  : theme.colors.yellowBg,
+                            }}
                           >
-                            {product.stockQuantity === 0
-                              ? "Sem estoque"
-                              : `${product.stockQuantity} un.`}
-                          </Typography>
+                            <Typography
+                              variant="caption"
+                              color={
+                                product.stockQuantity === 0
+                                  ? theme.colors.alert
+                                  : theme.colors.yellow
+                              }
+                              numberOfLines={1}
+                            >
+                              {product.stockQuantity === 0
+                                ? "Sem estoque"
+                                : `${product.stockQuantity} un.`}
+                            </Typography>
+                          </View>
                         </View>
                       ))
                     ) : (
@@ -874,23 +1058,6 @@ export default function HomeScreen() {
                         </Typography>
                       </View>
                     )}
-
-                    <View
-                      style={{
-                        marginTop: spacing.sm,
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: spacing.xs,
-                      }}
-                    >
-                      <Typography variant="bodyBold">Ver todos os produtos</Typography>
-                      <Ionicons
-                        name="chevron-forward"
-                        size={18}
-                        color={theme.colors.primary}
-                      />
-                    </View>
                   </View>
                 </Card>
               )}
@@ -978,122 +1145,9 @@ export default function HomeScreen() {
               </Card>
             )}
 
-            <Card variant="surface" padding="lg" style={cardStyle}>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: spacing.md,
-                }}
-              >
-                <Typography variant="label">PEDIDOS RECENTES</Typography>
-                <Pressable onPress={() => router.push("/agenda")} hitSlop={12}>
-                  <Typography variant="bodyBold" color={theme.colors.primaryLight}>
-                    Ver todos
-                  </Typography>
-                </Pressable>
-              </View>
-              <View
-                style={{
-                  minHeight: 128,
-                  borderWidth: 1,
-                  borderRadius: radii.xl,
-                  borderColor:
-                    theme.mode === "dark"
-                      ? "rgba(245, 225, 219, 0.12)"
-                      : "rgba(74, 50, 40, 0.08)",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: spacing.xl,
-                }}
-              >
-                <Ionicons
-                  name="clipboard-outline"
-                  size={40}
-                  color={theme.colors.primaryLight}
-                />
-                <Typography
-                  variant="bodyBold"
-                  style={{ marginTop: spacing.md, textAlign: "center" }}
-                >
-                  Nenhum pedido recente
-                </Typography>
-                <Typography
-                  variant="caption"
-                  style={{ marginTop: spacing.xs, textAlign: "center" }}
-                >
-                  Seus pedidos aparecerão aqui.
-                </Typography>
-              </View>
-            </Card>
+            <QuickCreateBar />
 
             {goalModal}
-
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={{ marginHorizontal: -spacing.xl }}
-              contentContainerStyle={{ paddingHorizontal: spacing.xl, gap: spacing.md }}
-            >
-              {[
-                {
-                  icon: "document-text-outline" as const,
-                  label: "Receitas",
-                  route: "/recipes" as const,
-                },
-                {
-                  icon: "calculator-outline" as const,
-                  label: "Precificação",
-                  route: "/pricing" as const,
-                },
-                {
-                  icon: "gift-outline" as const,
-                  label: "Embalagens",
-                  route: "/packaging" as const,
-                },
-                {
-                  icon: "pricetag-outline" as const,
-                  label: "Rótulos",
-                  route: "/labels" as const,
-                },
-                {
-                  icon: "diamond-outline" as const,
-                  label: "Planos",
-                  route: "/plans" as const,
-                },
-              ].map((item) => (
-                <Pressable
-                  key={item.label}
-                  onPress={() => router.push(item.route)}
-                  style={({ pressed }) => [
-                    {
-                      minWidth: 112,
-                      height: 44,
-                      borderRadius: radii.full,
-                      paddingHorizontal: spacing.md,
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: spacing.xs,
-                      opacity: pressed ? 0.84 : 1,
-                      ...cardStyle,
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name={item.icon}
-                    size={16}
-                    color={theme.colors.primaryLight}
-                  />
-                  <Typography variant="caption" numberOfLines={1}>
-                    {item.label}
-                  </Typography>
-                </Pressable>
-              ))}
-            </ScrollView>
-
-            <AdBanner size="banner" />
           </>
         )}
       </ScrollView>

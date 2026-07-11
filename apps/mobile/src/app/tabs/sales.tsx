@@ -489,7 +489,9 @@ function SalesContent({
           alignItems: "center",
           justifyContent: compactEmpty ? "flex-start" : "center",
           paddingHorizontal: spacing["2xl"],
-          paddingTop: compactEmpty ? spacing.md : spacing.xl,
+          // Os status possuem o resumo acima: o estado vazio começa com o mesmo
+          // respiro em todas as abas para a ilustração não parecer colada ao card.
+          paddingTop: spacing.xl,
           paddingBottom: spacing["5xl"],
         }}
       >
@@ -740,7 +742,7 @@ export default function SalesScreen() {
         onSalePress={setSelectedSaleId}
         onClearFilters={handleClearFilters}
         onNewSalePress={() => router.push("/tabs/new-sale")}
-        compactEmpty={activeFilter === "cancelled"}
+        compactEmpty={activeFilter !== "all"}
       />
 
       <Modal

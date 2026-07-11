@@ -98,6 +98,24 @@ export default function PlansScreen() {
           paddingBottom: spacing["3xl"],
         }}
       >
+        <Card
+          style={{
+            backgroundColor: theme.colors.premiumBg,
+            borderWidth: 1,
+            borderColor: theme.colors.premium,
+            gap: spacing.sm,
+          }}
+        >
+          <View>
+            <Typography variant="h2" color={theme.colors.text}>
+              Cresça no seu ritmo
+            </Typography>
+          </View>
+          <Typography variant="body" color={theme.colors.textSecondary}>
+            Escolha o plano que acompanha o momento do seu negócio.
+          </Typography>
+        </Card>
+
         {/* Uso atual (só no plano gratuito) */}
         {limits && current === "free" && (
           <Card>
@@ -218,6 +236,24 @@ export default function PlansScreen() {
                       style={{ fontSize: 11, fontWeight: "800" }}
                     >
                       PLANO ATUAL
+                    </Typography>
+                  </View>
+                )}
+                {highlight && !isCurrent && (
+                  <View
+                    style={{
+                      backgroundColor: theme.colors.surfaceElevated,
+                      paddingHorizontal: spacing.sm,
+                      paddingVertical: 2,
+                      borderRadius: radii.full,
+                    }}
+                  >
+                    <Typography
+                      variant="caption"
+                      color={theme.colors.premium}
+                      style={{ fontSize: 11, fontWeight: "800" }}
+                    >
+                      MAIS COMPLETO
                     </Typography>
                   </View>
                 )}

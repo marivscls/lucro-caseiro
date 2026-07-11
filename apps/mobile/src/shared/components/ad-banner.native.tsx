@@ -26,6 +26,8 @@ function getAdMobConfig(): AdMobConfig {
 interface BannerAdProps {
   unitId: string;
   size: string;
+  onAdLoaded?: () => void;
+  onAdFailedToLoad?: (error: Error) => void;
 }
 
 interface BannerAdSizes {
@@ -75,6 +77,8 @@ export function AdBanner({ style }: AdBannerProps) {
   // disso crasha nativamente em produção (e em dev o banner adaptativo também
   // crashava — por isso ads só aparecem em builds de produção, com o SDK pronto).
   const [adsReady, setAdsReady] = useState(false);
+  const [adLoaded, setAdLoaded] = useState(false);
+  const [adLoadFailed, setAdLoadFailed] = useState(false);
   useEffect(() => {
     if (__DEV__ || !showAds) return;
     let active = true;
@@ -89,6 +93,7 @@ export function AdBanner({ style }: AdBannerProps) {
   if (__DEV__) return null;
   if (!showAds) return null;
   if (!adsReady) return null;
+  if (adLoadFailed) return null;
 
   const mod = getAdMob();
   if (!mod) return null;
@@ -99,8 +104,23 @@ export function AdBanner({ style }: AdBannerProps) {
   const { BannerAd, BannerAdSize } = mod;
 
   return (
-    <View style={[{ alignItems: "center", paddingVertical: 8 }, style]}>
-      <BannerAd unitId={unitId} size={BannerAdSize.BANNER} />
+    <View
+      style={[
+        {
+          alignItems: "center",
+          height: adLoaded ? undefined : 0,
+          overflow: "hidden",
+          paddingVertical: adLoaded ? 8 : 0,
+        },
+        style,
+      ]}
+    >
+      <BannerAd
+        unitId={unitId}
+        size={BannerAdSize.BANNER}
+        onAdLoaded={() => setAdLoaded(true)}
+        onAdFailedToLoad={() => setAdLoadFailed(true)}
+      />
     </View>
   );
 }
