@@ -1326,7 +1326,7 @@ export default function NewSaleScreen() {
                 style={{ flexDirection: "row", gap: spacing.md, alignItems: "center" }}
               >
                 <Typography variant="body">Subtotal</Typography>
-                <Typography variant="moneyLg">{formatCurrency(cartTotal)}</Typography>
+                <Typography variant="money">{formatCurrency(cartTotal)}</Typography>
               </View>
             </View>
           </Card>
@@ -1350,14 +1350,22 @@ export default function NewSaleScreen() {
                 />
               </View>
               <View style={{ flex: 1 }}>
-                <Typography variant="body">Cliente</Typography>
-                <Typography variant="body">Pagamento</Typography>
+                <Typography variant="caption">Cliente</Typography>
+                <Typography variant="caption">Pagamento</Typography>
               </View>
-              <View style={{ alignItems: "flex-end" }}>
-                <Typography variant="bodyBold">
+              <View style={{ alignItems: "flex-end", flexShrink: 1, minWidth: 0 }}>
+                <Typography
+                  variant="caption"
+                  numberOfLines={1}
+                  style={{ fontFamily: fonts.bold }}
+                >
                   {selectedClient?.name ?? "Cliente avulso"}
                 </Typography>
-                <Typography variant="bodyBold">
+                <Typography
+                  variant="caption"
+                  numberOfLines={1}
+                  style={{ fontFamily: fonts.bold }}
+                >
                   {PAYMENT_OPTIONS.find((o) => o.value === paymentMethod)?.label ?? "-"}
                 </Typography>
               </View>
@@ -1399,7 +1407,7 @@ export default function NewSaleScreen() {
                 </View>
                 <Typography variant="h3">Total da venda</Typography>
               </View>
-              <Typography variant="moneyLg" style={{ flexShrink: 0 }}>
+              <Typography variant="money" style={{ flexShrink: 0 }}>
                 {formatCurrency(cartTotal)}
               </Typography>
             </View>

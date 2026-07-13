@@ -16,6 +16,7 @@ import {
   View,
   type TextInputProps,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { showAlert } from "../../../shared/components/alert-store";
 import { CalendarModal } from "../../../shared/components/calendar-modal";
@@ -235,6 +236,7 @@ function ClientPickerModal({
 }>) {
   const { theme } = useTheme();
   const pal = formPalette(theme);
+  const insets = useSafeAreaInsets();
   const [search, setSearch] = useState("");
   const { data, isLoading } = useClients({ search: search.trim() || undefined });
   const clients = data?.items ?? [];
@@ -257,7 +259,9 @@ function ClientPickerModal({
             backgroundColor: theme.colors.surfaceElevated,
             borderWidth: 1,
             borderColor: pal.border,
-            padding: spacing.lg,
+            paddingHorizontal: spacing.lg,
+            paddingTop: spacing.lg,
+            paddingBottom: spacing.lg + insets.bottom,
             gap: spacing.md,
           }}
         >
