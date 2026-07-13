@@ -732,16 +732,20 @@ export default function SalesScreen() {
         transparent
         onRequestClose={() => setShowFilters(false)}
       >
-        <Pressable
+        <View
           style={{
             flex: 1,
             backgroundColor: "rgba(0, 0, 0, 0.45)",
             justifyContent: "flex-end",
           }}
-          onPress={() => setShowFilters(false)}
         >
           <Pressable
-            onPress={(event) => event.stopPropagation()}
+            accessibilityRole="button"
+            accessibilityLabel="Fechar filtros"
+            onPress={() => setShowFilters(false)}
+            style={{ position: "absolute", inset: 0 }}
+          />
+          <View
             style={{
               backgroundColor: theme.colors.surface,
               borderTopLeftRadius: radii["2xl"],
@@ -792,8 +796,8 @@ export default function SalesScreen() {
                 setShowFilters(false);
               }}
             />
-          </Pressable>
-        </Pressable>
+          </View>
+        </View>
       </Modal>
 
       <Modal
