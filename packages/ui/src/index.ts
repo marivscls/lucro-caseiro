@@ -1,14 +1,5 @@
 // Theme
-export {
-  lightTheme,
-  darkTheme,
-  colors,
-  fonts,
-  fontSizes,
-  spacing,
-  radii,
-  elevation,
-} from "./theme";
+export { lightTheme, darkTheme, colors, fonts, fontSizes, spacing, radii } from "./theme";
 export type { Theme, ThemeMode } from "./theme";
 export { ThemeProvider, useTheme } from "./theme-context";
 export { useReducedMotion } from "./use-reduced-motion";

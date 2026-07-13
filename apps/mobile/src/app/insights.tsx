@@ -1,4 +1,5 @@
 import type { Insights } from "@lucro-caseiro/contracts";
+import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import { Ionicons } from "@expo/vector-icons";
 import {
   Button,
@@ -19,7 +20,7 @@ import { MonthlyBars } from "../features/insights/components/monthly-bars";
 import { RankBars, type RankRow } from "../features/insights/components/rank-bars";
 import { formatMoney, monthOverMonthDelta } from "../features/insights/domain";
 import { useInsights } from "../features/insights/hooks";
-import { isProfilePremiumActive, useProfile } from "../features/subscription/hooks";
+import { useProfile } from "../features/subscription/hooks";
 import { usePaywall } from "../shared/hooks/use-paywall";
 
 function StatCard({
@@ -145,7 +146,7 @@ function ReportsPremiumTeaser({ onUpgrade }: Readonly<{ onUpgrade: () => void }>
       <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
         <Ionicons name="diamond-outline" size={18} color={theme.colors.premium} />
         <Typography variant="bodyBold" color={theme.colors.premium}>
-          Desbloquear no Premium
+          Desbloquear no Profissional
         </Typography>
       </View>
     </Card>
@@ -271,7 +272,8 @@ export default function InsightsScreen() {
   const insets = useSafeAreaInsets();
   const [months, setMonths] = useState<number>(12);
   const { data: profile, isLoading: loadingProfile } = useProfile();
-  const isPremium = isProfilePremiumActive(profile);
+  const isPremium =
+    !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "advancedReports");
   const showPaywall = usePaywall((s) => s.show);
   // Free vê só o mês atual ("básico mensal"); Premium escolhe a janela.
   const { data, isLoading } = useInsights(isPremium ? months : 1, !!profile);

@@ -3,6 +3,7 @@ import type {
   CatalogPatternKey,
   CatalogSettings,
 } from "@lucro-caseiro/contracts";
+import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import {
   Badge,
   Button,
@@ -24,7 +25,7 @@ import { ColorPickerModal } from "../shared/components/color-picker-modal";
 import { HeroPreview } from "../features/catalog/components/hero-preview";
 import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
 import { useCatalogSettings, useUpdateCatalogSettings } from "../features/catalog/hooks";
-import { isProfilePremiumActive, useProfile } from "../features/subscription/hooks";
+import { useProfile } from "../features/subscription/hooks";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { ApiError } from "../shared/utils/api-client";
@@ -148,8 +149,8 @@ function CatalogIntro({
   );
 }
 
-/** Teaser de personalização (free): mostra o que o Premium libera, sem expor os controles. */
-function AppearancePremiumTeaser({ onUnlock }: Readonly<{ onUnlock: () => void }>) {
+/** Teaser de personalização: mostra o que o Profissional libera sem expor controles. */
+function AppearanceProfessionalTeaser({ onUnlock }: Readonly<{ onUnlock: () => void }>) {
   const { theme } = useTheme();
   const perks = [
     "Foto de capa e logo",
@@ -176,7 +177,7 @@ function AppearancePremiumTeaser({ onUnlock }: Readonly<{ onUnlock: () => void }
       <Pressable
         onPress={onUnlock}
         accessibilityRole="button"
-        accessibilityLabel="Desbloquear personalização com Premium"
+        accessibilityLabel="Desbloquear personalização com o Profissional"
         style={({ pressed }) => ({
           minHeight: 52,
           borderRadius: radii.lg,
@@ -191,7 +192,7 @@ function AppearancePremiumTeaser({ onUnlock }: Readonly<{ onUnlock: () => void }
       >
         <Ionicons name="diamond" size={18} color="#fff" />
         <Typography variant="bodyBold" color="#fff">
-          Desbloquear com Premium
+          Desbloquear no Profissional
         </Typography>
       </Pressable>
     </View>
@@ -205,7 +206,11 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
   const [whatsapp, setWhatsapp] = useState(settings.whatsapp ?? "");
   const [tagline, setTagline] = useState(settings.tagline ?? "");
   const [promo, setPromo] = useState(settings.promoBanner ?? "");
-  const isCustomColor = !!settings.accentColor && settings.accentColor.startsWith("#");
+  const [accentColor, setAccentColor] = useState<CatalogAccentColorValue | null>(
+    settings.accentColor,
+  );
+  const [pattern, setPattern] = useState<CatalogPatternKey | null>(settings.pattern);
+  const isCustomColor = !!accentColor && accentColor.startsWith("#");
   const [colorModalVisible, setColorModalVisible] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
@@ -215,58 +220,72 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
   const { data: profile } = useProfile();
   const showPaywall = usePaywall((s) => s.show);
   const { pickFromGallery } = useImagePicker();
-  const isPremium = isProfilePremiumActive(profile);
+  const canShowFullCatalog =
+    !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "catalogPremium");
+  const canCustomizeCatalog =
+    !!profile &&
+    hasActiveFeature(profile.plan, profile.planExpiresAt, "catalogCustomization");
   const dashedBorder =
     theme.mode === "dark" ? "rgba(245, 225, 219, 0.35)" : "rgba(74, 50, 40, 0.3)";
   const customCircleBorderColor = isCustomColor ? theme.colors.text : dashedBorder;
   const resolvedBaseColor = isCustomColor
-    ? settings.accentColor!
-    : (ACCENT_SWATCHES.find((sw) => sw.key === (settings.accentColor ?? "brown"))
-        ?.color ?? "#8c5a45");
+    ? accentColor
+    : (ACCENT_SWATCHES.find((sw) => sw.key === (accentColor ?? "brown"))?.color ??
+      "#8c5a45");
 
   useEffect(() => {
     setSlug(settings.slug);
     setWhatsapp(settings.whatsapp ?? "");
     setTagline(settings.tagline ?? "");
     setPromo(settings.promoBanner ?? "");
-  }, [settings.slug, settings.whatsapp, settings.tagline, settings.promoBanner]);
+    setAccentColor(settings.accentColor);
+    setPattern(settings.pattern);
+  }, [
+    settings.slug,
+    settings.whatsapp,
+    settings.tagline,
+    settings.promoBanner,
+    settings.accentColor,
+    settings.pattern,
+  ]);
 
   const url = publicCatalogUrl(settings.slug);
 
-  async function save(data: Parameters<typeof update.mutateAsync>[0]) {
+  async function save(
+    data: Parameters<typeof update.mutateAsync>[0],
+  ): Promise<CatalogSettings | null> {
     try {
-      await update.mutateAsync(data);
-      return true;
+      return await update.mutateAsync(data);
     } catch (err) {
-      // Personalizacao e Premium: o backend devolve LIMIT_EXCEEDED — abre o paywall.
+      // Personalizacao e do Profissional: LIMIT_EXCEEDED abre o paywall.
       if (err instanceof ApiError && err.code === "LIMIT_EXCEEDED") {
         showPaywall("catalog");
-        return false;
+        return null;
       }
       const message =
         err instanceof ApiError && err.status === 400
           ? err.message
           : "Não foi possível salvar. Tente novamente.";
       alertError(message);
-      return false;
+      return null;
     }
   }
 
-  function requirePremium(): boolean {
-    if (isPremium) return false;
+  function requireProfessional(): boolean {
+    if (canCustomizeCatalog) return false;
     showPaywall("catalog");
     return true;
   }
 
   async function handlePickCover() {
-    if (requirePremium()) return;
+    if (requireProfessional()) return;
     const uri = await pickFromGallery();
     if (!uri) return;
     setCoverPreview(uri);
     setUploadingCover(true);
     try {
       const coverUrl = await uploadCatalogCover(uri);
-      await save({ coverUrl });
+      if (!(await save({ coverUrl }))) setCoverPreview(null);
     } catch {
       alertError("Não foi possível enviar a capa. Tente novamente.");
     } finally {
@@ -280,14 +299,14 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
   }
 
   async function handlePickLogo() {
-    if (requirePremium()) return;
+    if (requireProfessional()) return;
     const uri = await pickFromGallery();
     if (!uri) return;
     setLogoPreview(uri);
     setUploadingLogo(true);
     try {
       const logoUrl = await uploadCatalogLogo(uri);
-      await save({ logoUrl });
+      if (!(await save({ logoUrl }))) setLogoPreview(null);
     } catch {
       alertError("Não foi possível enviar a foto de perfil. Tente novamente.");
     } finally {
@@ -300,24 +319,24 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
     await save({ logoUrl: null });
   }
 
-  async function handlePickColor(color: CatalogAccentColorValue) {
-    if (requirePremium()) return;
-    await save({ accentColor: color });
+  function handlePickColor(color: CatalogAccentColorValue) {
+    if (requireProfessional()) return;
+    setAccentColor(color);
   }
 
   function handleOpenColorModal() {
-    if (requirePremium()) return;
+    if (requireProfessional()) return;
     setColorModalVisible(true);
   }
 
-  async function handleConfirmCustomColor(hex: string) {
+  function handleConfirmCustomColor(hex: string) {
     setColorModalVisible(false);
-    await save({ accentColor: hex });
+    setAccentColor(hex);
   }
 
-  async function handlePickPattern(pattern: CatalogPatternKey | null) {
-    if (requirePremium()) return;
-    await save({ pattern });
+  function handlePickPattern(nextPattern: CatalogPatternKey | null) {
+    if (requireProfessional()) return;
+    setPattern(nextPattern);
   }
 
   async function handleToggle(enabled: boolean) {
@@ -325,18 +344,45 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
   }
 
   async function handleSave() {
-    const ok = await save({
-      slug: slug.trim().toLowerCase(),
-      whatsapp: whatsapp.trim() || null,
-      // Tagline e faixa promocional so entram no payload para premium (o backend
-      // bloqueia no free).
-      ...(isPremium
-        ? { tagline: tagline.trim() || null, promoBanner: promo.trim() || null }
-        : {}),
+    const normalizedSlug = slug.trim().toLowerCase();
+    const normalizedWhatsapp = whatsapp.trim() || null;
+    const basicSettings = await save({
+      slug: normalizedSlug,
+      whatsapp: normalizedWhatsapp,
     });
-    if (ok) {
-      showToast("Configurações salvas!");
+    if (!basicSettings) return;
+
+    if (
+      basicSettings.slug !== normalizedSlug ||
+      basicSettings.whatsapp !== normalizedWhatsapp
+    ) {
+      alertError("A API não confirmou o endereço e o WhatsApp. Tente novamente.");
+      return;
     }
+
+    if (canCustomizeCatalog) {
+      const normalizedTagline = tagline.trim() || null;
+      const normalizedPromo = promo.trim() || null;
+      const customizedSettings = await save({
+        accentColor,
+        pattern,
+        tagline: normalizedTagline,
+        promoBanner: normalizedPromo,
+      });
+      if (!customizedSettings) return;
+
+      if (
+        customizedSettings.accentColor !== accentColor ||
+        customizedSettings.pattern !== pattern ||
+        customizedSettings.tagline !== normalizedTagline ||
+        customizedSettings.promoBanner !== normalizedPromo
+      ) {
+        alertError("A API não confirmou as personalizações. Tente novamente.");
+        return;
+      }
+    }
+
+    showToast("Configurações salvas!");
   }
 
   async function handleShare() {
@@ -452,7 +498,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
           )}
 
           {/* Gatilho de upgrade: free mostra ate 3 produtos no catalogo */}
-          {!isPremium && (
+          {!canShowFullCatalog && (
             <Card
               padding="lg"
               onPress={() => showPaywall("catalog")}
@@ -470,7 +516,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                     Seu catálogo mostra até 3 produtos
                   </Typography>
                   <Typography variant="caption">
-                    Mostre seu catálogo completo e personalize as cores com o Premium.
+                    Mostre seu catálogo completo e personalize as cores no Profissional.
                   </Typography>
                 </View>
                 <Ionicons
@@ -553,7 +599,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
             </View>
           </Card>
 
-          {/* Aparência (Premium) */}
+          {/* Aparência (Profissional) */}
           <Card padding="lg">
             <View style={{ gap: spacing.md }}>
               <View
@@ -562,11 +608,13 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                 <Typography variant="label" style={{ flex: 1 }}>
                   APARÊNCIA
                 </Typography>
-                {!isPremium && <Badge label="Premium" variant="premium" />}
+                {!canCustomizeCatalog && <Badge label="Profissional" variant="premium" />}
               </View>
 
-              {!isPremium ? (
-                <AppearancePremiumTeaser onUnlock={() => showPaywall("catalog")} />
+              {!canCustomizeCatalog ? (
+                <AppearanceProfessionalTeaser
+                  onUnlock={() => showPaywall("catalog", "professional")}
+                />
               ) : (
                 <>
                   {/* Capa */}
@@ -708,11 +756,11 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                     style={{ flexDirection: "row", gap: spacing.md, flexWrap: "wrap" }}
                   >
                     {ACCENT_SWATCHES.map((swatch) => {
-                      const selected = (settings.accentColor ?? "brown") === swatch.key;
+                      const selected = (accentColor ?? "brown") === swatch.key;
                       return (
                         <Pressable
                           key={swatch.key}
-                          onPress={() => void handlePickColor(swatch.key)}
+                          onPress={() => handlePickColor(swatch.key)}
                           accessibilityRole="button"
                           accessibilityLabel={`Cor ${swatch.label}`}
                           style={{ alignItems: "center", gap: spacing.xs }}
@@ -751,7 +799,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                           height: 44,
                           borderRadius: radii.full,
                           backgroundColor: isCustomColor
-                            ? settings.accentColor!
+                            ? accentColor
                             : theme.colors.surface,
                           borderWidth: isCustomColor ? 3 : 1.5,
                           borderStyle: isCustomColor ? "solid" : "dashed",
@@ -780,11 +828,11 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                     style={{ flexDirection: "row", gap: spacing.md, flexWrap: "wrap" }}
                   >
                     {PATTERN_OPTIONS.map((option) => {
-                      const selected = (settings.pattern ?? null) === option.key;
+                      const selected = pattern === option.key;
                       return (
                         <Pressable
                           key={option.label}
-                          onPress={() => void handlePickPattern(option.key)}
+                          onPress={() => handlePickPattern(option.key)}
                           accessibilityRole="button"
                           accessibilityLabel={`Estampa ${option.label}`}
                           style={{ alignItems: "center", gap: spacing.xs }}
@@ -815,15 +863,15 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                   </Typography>
                   <HeroPreview
                     baseColor={resolvedBaseColor}
-                    pattern={settings.pattern ?? null}
+                    pattern={pattern}
                     businessName={profile?.businessName ?? profile?.name ?? "Seu negócio"}
                     tagline={tagline}
                   />
 
                   <ColorPickerModal
                     visible={colorModalVisible}
-                    initialColor={isCustomColor ? settings.accentColor! : "#8c5a45"}
-                    onConfirm={(hex) => void handleConfirmCustomColor(hex)}
+                    initialColor={isCustomColor ? accentColor : "#8c5a45"}
+                    onConfirm={handleConfirmCustomColor}
                     onCancel={() => setColorModalVisible(false)}
                   />
 

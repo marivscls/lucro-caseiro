@@ -14,13 +14,22 @@ interface PaginatedProducts {
 
 export async function fetchProducts(
   token: string,
-  opts?: { page?: number; limit?: number; category?: string; search?: string },
+  opts?: {
+    page?: number;
+    limit?: number;
+    category?: string;
+    search?: string;
+    isComposite?: boolean;
+  },
 ): Promise<PaginatedProducts> {
   const params = new URLSearchParams();
   if (opts?.page) params.set("page", String(opts.page));
   if (opts?.limit) params.set("limit", String(opts.limit));
   if (opts?.category) params.set("category", opts.category);
   if (opts?.search) params.set("search", opts.search);
+  if (opts?.isComposite !== undefined) {
+    params.set("isComposite", String(opts.isComposite));
+  }
 
   const query = params.toString();
   const queryString = query ? `?${query}` : "";

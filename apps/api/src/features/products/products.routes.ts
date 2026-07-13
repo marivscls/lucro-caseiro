@@ -39,12 +39,17 @@ export function createProductsRouter(
       const { page, limit } = PaginationDto.parse(req.query);
       const category = req.query.category as string | undefined;
       const search = req.query.search as string | undefined;
+      const isCompositeParam = req.query.isComposite;
+      let isComposite: boolean | undefined;
+      if (isCompositeParam === "true") isComposite = true;
+      if (isCompositeParam === "false") isComposite = false;
 
       const result = await useCases.list(userId, {
         page,
         limit,
         category,
         search,
+        isComposite,
       });
 
       res.json(result);

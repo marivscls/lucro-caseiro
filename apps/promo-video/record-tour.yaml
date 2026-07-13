@@ -1,0 +1,48 @@
+appId: br.com.orionseven.lucrocaseiro
+---
+- assertVisible: "Olá,.*"
+- tapOn: "Finanças"
+- extendedWaitUntil:
+    visible: "Financeiro"
+    timeout: 10000
+- waitForAnimationToEnd
+- swipe:
+    start: "50%,78%"
+    end: "50%,42%"
+    duration: 900
+- waitForAnimationToEnd
+- pressKey: BACK
+- extendedWaitUntil:
+    visible: "Olá,.*"
+    timeout: 10000
+- tapOn: "Agenda"
+- extendedWaitUntil:
+    visible: "Agenda"
+    timeout: 10000
+- swipe:
+    start: "50%,78%"
+    end: "50%,48%"
+    duration: 800
+- waitForAnimationToEnd
+- pressKey: BACK
+- extendedWaitUntil:
+    visible: "Olá,.*"
+    timeout: 10000
+- tapOn: "Catálogo"
+- extendedWaitUntil:
+    visible: "Sua vitrine online"
+    timeout: 10000
+- swipe:
+    start: "50%,78%"
+    end: "50%,45%"
+    duration: 900
+- waitForAnimationToEnd
+- pressKey: BACK
+- extendedWaitUntil:
+    visible: "Olá,.*"
+    timeout: 10000
+- tapOn: "Precificação"
+- extendedWaitUntil:
+    visible: "Custo dos insumos"
+    timeout: 10000
+- waitForAnimationToEnd

@@ -1,4 +1,5 @@
 import type { Label, LabelData } from "@lucro-caseiro/contracts";
+import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import {
   Button,
   Card,
@@ -27,7 +28,7 @@ import { LabelStyleEditor } from "../features/labels/components/label-style-edit
 import { LabelPreview } from "../features/labels/components/label-preview";
 import { TemplatePicker } from "../features/labels/components/template-picker";
 import { exportLabelPdfWithChoice } from "../features/labels/label-export";
-import { isProfilePremiumActive, useProfile } from "../features/subscription/hooks";
+import { useProfile } from "../features/subscription/hooks";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { addDaysToBR, brToIso, isoToBR, maskDateBR } from "../features/labels/dates";
 import { cleanNutrition } from "../features/labels/nutrition";
@@ -60,7 +61,8 @@ function LabelDetailModal({
   const { theme } = useTheme();
   const { data: profile } = useProfile();
   const showPaywall = usePaywall((st) => st.show);
-  const isPremium = isProfilePremiumActive(profile);
+  const isPremium =
+    !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "labelsPremium");
   const { data: label, isLoading } = useLabel(labelId);
   const updateLabel = useUpdateLabel();
   const deleteLabel = useDeleteLabel();

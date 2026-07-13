@@ -107,6 +107,10 @@ export class ProductsRepoPg implements IProductsRepo {
       conditions.push(or(ilike(products.name, term), ilike(products.code, term))!);
     }
 
+    if (opts.isComposite !== undefined) {
+      conditions.push(eq(products.isComposite, opts.isComposite));
+    }
+
     const where = and(...conditions);
     const offset = (opts.page - 1) * opts.limit;
 

@@ -15,6 +15,7 @@ import { ProductCard } from "./product-card";
 interface ProductListProps {
   readonly category?: string;
   readonly search?: string;
+  readonly isComposite?: boolean;
   readonly onProductPress?: (id: string) => void;
   readonly onAddPress?: () => void;
 }
@@ -22,12 +23,13 @@ interface ProductListProps {
 export function ProductList({
   category,
   search,
+  isComposite,
   onProductPress,
   onAddPress,
 }: ProductListProps) {
   const { theme } = useTheme();
   const showAds = useShowAds();
-  const { data, isLoading, error } = useProducts({ category, search });
+  const { data, isLoading, error } = useProducts({ category, search, isComposite });
 
   if (isLoading) {
     return (

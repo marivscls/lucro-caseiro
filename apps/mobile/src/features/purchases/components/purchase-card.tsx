@@ -21,6 +21,7 @@ interface PurchaseCardProps {
   readonly onPay: () => void;
   readonly onDelete: () => void;
   readonly isPaying?: boolean;
+  readonly payDisabled?: boolean;
 }
 
 function formatDate(iso: string): string {
@@ -28,7 +29,13 @@ function formatDate(iso: string): string {
   return `${d}/${m}/${y}`;
 }
 
-export function PurchaseCard({ purchase, onPay, onDelete, isPaying }: PurchaseCardProps) {
+export function PurchaseCard({
+  purchase,
+  onPay,
+  onDelete,
+  isPaying,
+  payDisabled,
+}: PurchaseCardProps) {
   const { theme } = useTheme();
   const supplierName = useSupplierName(purchase.supplierId);
   const isPaid = purchase.paymentStatus === "paid";
@@ -72,6 +79,7 @@ export function PurchaseCard({ purchase, onPay, onDelete, isPaying }: PurchaseCa
                 size="sm"
                 onPress={onPay}
                 loading={isPaying}
+                disabled={payDisabled}
               />
             </View>
           ) : null}

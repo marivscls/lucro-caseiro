@@ -229,14 +229,14 @@ export function RecipeDetail({
               backgroundColor: theme.colors.alertBg,
             }}
           >
-            <Typography variant="h3" style={{ flex: 2 }}>
+            <Typography variant="h3" style={{ flex: 1 }}>
               Total
             </Typography>
-            <View style={{ flex: 1 }} />
             <Typography
               variant="h3"
               color={theme.colors.alert}
-              style={{ flex: 1, textAlign: "right" }}
+              numberOfLines={1}
+              style={{ flexShrink: 0, marginLeft: spacing.md, textAlign: "right" }}
             >
               {formatCurrency(totalCost)}
             </Typography>

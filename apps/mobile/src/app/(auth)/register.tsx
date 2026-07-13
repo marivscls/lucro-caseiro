@@ -6,6 +6,7 @@ import { Image, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { KeyboardAwareScrollView } from "../../shared/components/keyboard-aware-scroll-view";
+import { EmailTypoHint } from "../../shared/components/email-typo-hint";
 import { useAuth } from "../../shared/hooks/use-auth";
 import {
   getPasswordStrength,
@@ -13,6 +14,7 @@ import {
   validateName,
   validatePassword,
 } from "../../shared/utils/validation";
+import { suggestEmailFix } from "../../shared/utils/email";
 import { showAlert } from "../../shared/components/alert-store";
 import authHouse from "../../assets/auth-house.png";
 
@@ -62,8 +64,8 @@ function PasswordRules({ password }: Readonly<{ password: string }>) {
 
   const rules = [
     { label: "Mínimo 8 caracteres", met: password.length >= 8 },
-    { label: "1 letra maiuscula", met: /[A-Z]/.test(password) },
-    { label: "1 letra minuscula", met: /[a-z]/.test(password) },
+    { label: "1 letra maiúscula", met: /[A-Z]/.test(password) },
+    { label: "1 letra minúscula", met: /[a-z]/.test(password) },
     { label: "1 número", met: /\d/.test(password) },
   ];
 
@@ -117,6 +119,7 @@ export default function RegisterScreen() {
 
   const [nameError, setNameError] = useState<string>();
   const [emailError, setEmailError] = useState<string>();
+  const [emailSuggestion, setEmailSuggestion] = useState<string>();
   const [passwordError, setPasswordError] = useState<string>();
 
   function validateForm(): boolean {
@@ -166,7 +169,7 @@ export default function RegisterScreen() {
     } else if (result.needsConfirmation) {
       showAlert({
         title: "Conta criada!",
-        message: "Verifique seu e-mail para confirmar a conta. Depois e so entrar!",
+        message: "Verifique seu e-mail para confirmar a conta. Depois é só entrar!",
         buttons: [{ text: "Ok", onPress: () => router.push("/(auth)/login") }],
       });
     } else {
@@ -281,8 +284,19 @@ export default function RegisterScreen() {
             onChangeText={(text) => {
               setEmail(text);
               if (emailError) setEmailError(undefined);
+              if (emailSuggestion) setEmailSuggestion(undefined);
             }}
+            onBlur={() => setEmailSuggestion(suggestEmailFix(email) ?? undefined)}
             error={emailError}
+          />
+          <EmailTypoHint
+            suggestion={emailSuggestion}
+            onAccept={() => {
+              if (!emailSuggestion) return;
+              setEmail(emailSuggestion);
+              setEmailSuggestion(undefined);
+              setEmailError(undefined);
+            }}
           />
 
           <View style={{ gap: spacing.sm }}>

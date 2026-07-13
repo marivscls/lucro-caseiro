@@ -1,9 +1,11 @@
 import { formatCurrency } from "../shared/utils/format";
 import type { Product, SaleUnit } from "@lucro-caseiro/contracts";
+import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import {
   Badge,
   Button,
   Card,
+  Chip,
   Input,
   Typography,
   useTheme,
@@ -24,9 +26,10 @@ import {
 import { CompositeToggle } from "../features/products/components/composite-toggle";
 import { CreateProductForm } from "../features/products/components/create-product-form";
 import { ProductList } from "../features/products/components/product-list";
+import { productInitial } from "../features/products/display";
 import { SaleUnitToggle } from "../features/products/components/sale-unit-toggle";
 import { LimitBanner } from "../features/subscription/components/limit-banner";
-import { isProfilePremiumActive, useProfile } from "../features/subscription/hooks";
+import { useProfile } from "../features/subscription/hooks";
 import { showAlert } from "../shared/components/alert-store";
 import { BarcodeScanner } from "../shared/components/barcode-scanner";
 import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
@@ -48,6 +51,17 @@ import {
   maskCurrencyInput,
   parseCurrencyInput,
 } from "../shared/utils/currency-input";
+
+type ProductKindFilter = "all" | "product" | "kit";
+
+const PRODUCT_KIND_FILTERS: ReadonlyArray<{
+  value: ProductKindFilter;
+  label: string;
+}> = [
+  { value: "all", label: "Todos" },
+  { value: "product", label: "Produtos" },
+  { value: "kit", label: "Kits" },
+];
 
 /** Preco de venda com sufixo "/kg" quando o produto e vendido por peso. */
 function priceLabel(p: Product): string {
@@ -99,7 +113,9 @@ function ProductDetailModal({
   const { imageUri, showPicker, setImageUri } = useImagePicker();
   const [uploading, setUploading] = useState(false);
   const { data: profile } = useProfile();
-  const isPremium = isProfilePremiumActive(profile);
+  const isPremium =
+    !!profile &&
+    hasActiveFeature(profile.plan, profile.planExpiresAt, "compositeProducts");
   const showPaywall = usePaywall((s) => s.show);
 
   const [editing, setEditing] = useState(false);
@@ -452,16 +468,17 @@ function ProductDetailModal({
                   }}
                 >
                   <Typography variant="display" color={theme.colors.textOnPrimary}>
-                    {product.name.charAt(0).toUpperCase()}
+                    {productInitial(product.name)}
                   </Typography>
                 </View>
               )}
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
+              <Typography
+                variant="h1"
+                style={{ alignSelf: "stretch", textAlign: "center" }}
               >
-                <Typography variant="h1">{product.name}</Typography>
-                {product.isComposite && <Badge label="Kit" variant="lavender" />}
-              </View>
+                {product.name}
+              </Typography>
+              {product.isComposite && <Badge label="Kit" variant="lavender" />}
               <Typography variant="caption">{product.category}</Typography>
             </View>
 
@@ -525,10 +542,18 @@ function ProductDetailModal({
                         justifyContent: "space-between",
                       }}
                     >
-                      <Typography variant="body">
+                      <Typography
+                        variant="body"
+                        style={{ flex: 1, minWidth: 0 }}
+                        numberOfLines={2}
+                      >
                         {c.quantity}x {c.name}
                       </Typography>
-                      <Typography variant="caption" color={theme.colors.textSecondary}>
+                      <Typography
+                        variant="caption"
+                        color={theme.colors.textSecondary}
+                        style={{ flexShrink: 0 }}
+                      >
                         {c.costPrice != null
                           ? formatCurrency(c.costPrice * c.quantity)
                           : "Sem custo"}
@@ -593,6 +618,7 @@ export default function ProductsScreen() {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [kindFilter, setKindFilter] = useState<ProductKindFilter>("all");
   const showPaywall = usePaywall((s) => s.show);
   const { data: products } = useProducts();
   const hasProducts = (products?.total ?? 0) > 0;
@@ -690,6 +716,24 @@ export default function ProductsScreen() {
         </View>
       ) : null}
 
+      <View
+        style={{
+          flexDirection: "row",
+          gap: spacing.sm,
+          paddingHorizontal: spacing.lg,
+          paddingBottom: spacing.sm,
+        }}
+      >
+        {PRODUCT_KIND_FILTERS.map((filter) => (
+          <Chip
+            key={filter.value}
+            label={filter.label}
+            selected={kindFilter === filter.value}
+            onPress={() => setKindFilter(filter.value)}
+          />
+        ))}
+      </View>
+
       <View style={{ flex: 1 }}>
         <LimitBanner
           resource="products"
@@ -699,6 +743,7 @@ export default function ProductsScreen() {
         <LowStockBanner />
         <ProductList
           search={search.trim() || undefined}
+          isComposite={kindFilter === "all" ? undefined : kindFilter === "kit"}
           onProductPress={(id) => setSelectedProductId(id)}
           onAddPress={() => setShowCreate(true)}
         />

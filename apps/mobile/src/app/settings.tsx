@@ -8,6 +8,7 @@ import {
   spacing,
   radii,
 } from "@lucro-caseiro/ui";
+import { hasActiveFeature, PLAN_LABELS } from "@lucro-caseiro/contracts";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -37,11 +38,7 @@ import { useDeleteAccount } from "../features/account/hooks";
 import { ProlaboreGoalForm } from "../features/goals/components/prolabore-goal-form";
 import { formatCurrency } from "../features/goals/domain";
 import { useProlaboreStatus } from "../features/goals/hooks";
-import {
-  isProfilePremiumActive,
-  useProfile,
-  useUpdateProfile,
-} from "../features/subscription/hooks";
+import { activePlan, useProfile, useUpdateProfile } from "../features/subscription/hooks";
 import { useSubscription } from "../features/subscription/use-subscription";
 import { showAlert } from "../shared/components/alert-store";
 import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
@@ -81,7 +78,7 @@ const NOTIFICATIONS: {
     label: "Lembretes de entrega",
     icon: "cube-outline",
   },
-  // Premium
+  // Profissional
   {
     type: NOTIFICATION_TYPES.CLIENT_BIRTHDAY,
     label: "Aniversários de clientes",
@@ -146,7 +143,13 @@ export default function SettingsScreen() {
   const businessName = profile?.businessName ?? "Meu negócio";
   const businessType = profile?.businessType ?? "";
   const avatarUrl = profile?.avatarUrl ?? null;
-  const isPremium = isProfilePremiumActive(profile);
+  const currentPlan = activePlan(profile);
+  const hasPaidPlan = currentPlan !== "free";
+  const canUsePremiumNotifications =
+    !!profile &&
+    hasActiveFeature(profile.plan, profile.planExpiresAt, "premiumNotifications");
+  const hasPrioritySupport =
+    !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "prioritySupport");
   const appVersion = "v1.0.0";
 
   function openEditProfile() {
@@ -411,21 +414,16 @@ export default function SettingsScreen() {
               <View>
                 <Typography variant="h3">Plano Lucro Caseiro</Typography>
                 <Typography variant="caption">
-                  {isPremium ? "Premium ativo" : "Plano gratuito"}
+                  {hasPaidPlan ? `${PLAN_LABELS[currentPlan]} ativo` : "Plano gratuito"}
                 </Typography>
               </View>
             </View>
-
-            <Badge
-              label={isPremium ? "PREMIUM" : "FREE"}
-              variant={isPremium ? "premium" : "primary"}
-            />
           </View>
 
-          {!isPremium && (
+          {!hasPaidPlan && (
             <View style={{ gap: 8, marginTop: 16 }}>
               <Button
-                title="Assinar Premium"
+                title="Conhecer os planos"
                 variant="premium"
                 size="md"
                 onPress={() => router.push("/plans")}
@@ -439,6 +437,16 @@ export default function SettingsScreen() {
                   {subscriptionLoading ? "Restaurando..." : "Restaurar compra anterior"}
                 </Typography>
               </Pressable>
+            </View>
+          )}
+          {hasPaidPlan && (
+            <View style={{ marginTop: 16 }}>
+              <Button
+                title="Gerenciar assinatura"
+                variant="outline"
+                size="md"
+                onPress={() => router.push("/plans")}
+              />
             </View>
           )}
         </Card>
@@ -559,7 +567,7 @@ export default function SettingsScreen() {
 
           {/* Notifications */}
           {NOTIFICATIONS.map((item) => {
-            const locked = !!item.premium && !isPremium;
+            const locked = !!item.premium && !canUsePremiumNotifications;
             return (
               <View
                 key={item.type}
@@ -602,7 +610,7 @@ export default function SettingsScreen() {
                       >
                         <Ionicons name="diamond" size={11} color={theme.colors.premium} />
                         <Typography variant="label" color={theme.colors.premium}>
-                          PREMIUM
+                          PROFISSIONAL
                         </Typography>
                       </View>
                     ) : null}
@@ -612,7 +620,7 @@ export default function SettingsScreen() {
                   <Pressable
                     onPress={() => router.push("/plans")}
                     accessibilityRole="button"
-                    accessibilityLabel={`${item.label}, recurso Premium`}
+                    accessibilityLabel={`${item.label}, recurso Profissional`}
                     hitSlop={8}
                     style={{
                       flexDirection: "row",
@@ -641,8 +649,8 @@ export default function SettingsScreen() {
           })}
         </Card>
 
-        {/* Suporte prioritário (plano pago) */}
-        {isPremium && (
+        {/* Suporte prioritário (Profissional) */}
+        {hasPrioritySupport && (
           <Card>
             <Pressable
               onPress={() => router.push("/support")}

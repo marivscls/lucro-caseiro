@@ -6,6 +6,7 @@ import {
   NunitoSans_800ExtraBold,
 } from "@expo-google-fonts/nunito-sans";
 import { ThemeProvider, useTheme, type ThemeMode } from "@lucro-caseiro/ui";
+import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import { useFonts } from "expo-font";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { Stack, useRouter } from "expo-router";
@@ -33,8 +34,11 @@ import { usePaywall } from "../shared/hooks/use-paywall";
 import { usePremiumSuccess } from "../shared/hooks/use-premium-success";
 import { Paywall } from "../features/subscription/components/paywall";
 import { PremiumSuccess } from "../features/subscription/components/premium-success";
-import { getPaywallCopy } from "../features/subscription/limit-copy";
-import { isProfilePremiumActive, useProfile } from "../features/subscription/hooks";
+import {
+  getPaywallCopy,
+  getPaywallRecommendedTier,
+} from "../features/subscription/limit-copy";
+import { activePlan, useProfile } from "../features/subscription/hooks";
 import { useSubscription } from "../features/subscription/use-subscription";
 import { useStripeCheckout } from "../features/subscription/use-stripe";
 
@@ -72,7 +76,15 @@ function AppContent() {
   } = usePremiumSuccess();
   const [introDone, setIntroDone] = useState(false);
 
-  const isPremium = isProfilePremiumActive(profile);
+  const canUsePremiumNotifications =
+    !!profile &&
+    hasActiveFeature(profile.plan, profile.planExpiresAt, "premiumNotifications");
+  const requiredPaywallTier =
+    paywallRecommendedTier ?? getPaywallRecommendedTier(paywallResource);
+  const currentPlan = activePlan(profile);
+  const hasRequiredPaywallPlan =
+    currentPlan === "professional" ||
+    (requiredPaywallTier === "essential" && currentPlan === "essential");
 
   // Registers for push notifications once the user is authenticated.
   useNotifications();
@@ -90,15 +102,15 @@ function AppContent() {
   useDeliveryNotifier();
 
   // Premium: aniversário de cliente, lembrete diário e resumo semanal.
-  useBirthdayNotifier(isPremium);
-  useDailyReminderNotifier(isPremium);
-  useWeeklySummaryNotifier(isPremium);
+  useBirthdayNotifier(canUsePremiumNotifications);
+  useDailyReminderNotifier(canUsePremiumNotifications);
+  useWeeklySummaryNotifier(canUsePremiumNotifications);
 
   useEffect(() => {
-    if (isPremium && paywallVisible) {
+    if (hasRequiredPaywallPlan && paywallVisible) {
       hidePaywall();
     }
-  }, [hidePaywall, isPremium, paywallVisible]);
+  }, [hasRequiredPaywallPlan, hidePaywall, paywallVisible]);
 
   // Comemora quando o plano vira pago (cobre Google Play e Stripe).
   // Guarda o plano inicial para não comemorar quem já abre o app pagante.

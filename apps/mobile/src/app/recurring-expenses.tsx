@@ -1,4 +1,5 @@
 import type { ExpenseCategory, RecurringExpense } from "@lucro-caseiro/contracts";
+import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import { IconButton, colors, fonts, useTheme, type Theme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { router, Stack } from "expo-router";
@@ -26,7 +27,7 @@ import {
   useRecurringExpenses,
   useUpdateRecurring,
 } from "../features/finance/hooks";
-import { isProfilePremiumActive, useProfile } from "../features/subscription/hooks";
+import { useProfile } from "../features/subscription/hooks";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { ApiError } from "../shared/utils/api-client";
 import { alertError, alertValidation } from "../shared/utils/alerts";
@@ -72,14 +73,16 @@ export default function RecurringExpensesScreen() {
   const { data: items, isLoading } = useRecurringExpenses();
   const remove = useDeleteRecurring();
   const { data: profile } = useProfile();
-  const isPremium = isProfilePremiumActive(profile);
+  const canUseRecurringExpenses =
+    !!profile &&
+    hasActiveFeature(profile.plan, profile.planExpiresAt, "recurringExpenses");
   const showPaywall = usePaywall((s) => s.show);
   const [showForm, setShowForm] = useState(true);
   const [selectedExpense, setSelectedExpense] = useState<RecurringExpense | null>(null);
   const [editingExpense, setEditingExpense] = useState<RecurringExpense | null>(null);
 
   function handleAddPress() {
-    if (!isPremium) {
+    if (!canUseRecurringExpenses) {
       showPaywall("recurring");
       return;
     }
@@ -147,7 +150,7 @@ export default function RecurringExpensesScreen() {
             />
           </View>
 
-          {!isPremium ? (
+          {!canUseRecurringExpenses ? (
             <RecurringPremiumGate onUnlock={() => showPaywall("recurring")} />
           ) : (
             <>
@@ -293,6 +296,14 @@ function RecurringForm({
       const saved = item
         ? await update.mutateAsync({ id: item.id, data: payload })
         : await create.mutateAsync(payload);
+      if (
+        saved.description !== payload.description ||
+        saved.amount !== payload.amount ||
+        saved.category !== payload.category ||
+        saved.dayOfMonth !== payload.dayOfMonth
+      ) {
+        throw new Error("A API não confirmou o gasto fixo enviado.");
+      }
       showToast(item ? "Gasto fixo atualizado!" : "Gasto fixo cadastrado!");
       onSaved?.(saved);
       onClose();
@@ -301,7 +312,11 @@ function RecurringForm({
         onPaywall();
         return;
       }
-      alertError("Não foi possível salvar. Tente novamente.");
+      alertError(
+        e instanceof ApiError && e.status === 400
+          ? e.message
+          : "Não foi possível salvar. Tente novamente.",
+      );
     }
   }
 

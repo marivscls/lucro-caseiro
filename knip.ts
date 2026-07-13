@@ -1,6 +1,7 @@
 import type { KnipConfig } from "knip";
 
 const config: KnipConfig = {
+  ignore: ["apps/promo-video/**"],
   ignoreExportsUsedInFile: true,
   // runner e2e externo (nao instalado como dep).
   ignoreBinaries: ["maestro"],

@@ -1,0 +1,45 @@
+{
+  "compiled_at": "2026-07-12T02:37:20.811329400+00:00",
+  "description": "Materialized from a compile candidate sequence.",
+  "id": "live-read-file-e70ba5657a",
+  "name": "Live read_file fan-out (4->1): email.ts, login.tsx, +2",
+  "origin": "live",
+  "recipe": {
+    "name": "Live read_file fan-out (4->1): email.ts, login.tsx, +2",
+    "outputs": {
+      "item_1": "item_1.output",
+      "item_2": "item_2.output",
+      "item_3": "item_3.output",
+      "item_4": "item_4.output"
+    },
+    "recipe": {
+      "items": [
+        {
+          "path": "C:\\Users\\maria\\Documents\\projects\\lucro-caseiro\\apps\\mobile\\src\\shared\\utils\\email.ts"
+        },
+        {
+          "path": "C:\\Users\\maria\\Documents\\projects\\lucro-caseiro\\apps\\mobile\\src\\app\\(auth)\\login.tsx"
+        },
+        {
+          "path": "C:\\Users\\maria\\Documents\\projects\\lucro-caseiro\\apps\\mobile\\src\\shared\\utils\\validation.ts"
+        },
+        {
+          "path": "C:\\Users\\maria\\Documents\\projects\\lucro-caseiro\\apps\\mobile\\src\\app\\(auth)\\register.tsx"
+        }
+      ],
+      "kind": "fan_out",
+      "node_prefix": "item_",
+      "tool": "read_file"
+    },
+    "tools": {
+      "read_file": {
+        "adapter": "fs"
+      }
+    },
+    "version": "0"
+  },
+  "schema": 2,
+  "source": "workspace",
+  "status": "ready",
+  "version": 7
+}

@@ -20,6 +20,9 @@ export function useUpdateCatalogSettings() {
   const queryClient = useQueryClient();
   const settingsKey = [...CATALOG_KEY, "settings"];
   return useMutation({
+    // Evita que salvamentos rapidos (imagem, switch e formulario) leiam o mesmo
+    // estado antigo no backend e o ultimo sobrescreva campos do anterior.
+    scope: { id: "update-catalog-settings" },
     mutationFn: (data: UpdateCatalogSettings) => updateCatalogSettings(token!, data),
     // Atualizacao otimista: a selecao (cor/estampa/switch) aparece na hora;
     // se o servidor rejeitar, reverte para o estado anterior.
@@ -39,8 +42,8 @@ export function useUpdateCatalogSettings() {
         queryClient.setQueryData(settingsKey, context.previous);
       }
     },
-    onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: CATALOG_KEY });
+    onSuccess: (settings) => {
+      queryClient.setQueryData(settingsKey, settings);
     },
   });
 }

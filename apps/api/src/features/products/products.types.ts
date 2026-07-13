@@ -61,5 +61,6 @@ export interface FindAllOpts {
   limit: number;
   category?: string;
   search?: string;
+  isComposite?: boolean;
   activeOnly?: boolean;
 }

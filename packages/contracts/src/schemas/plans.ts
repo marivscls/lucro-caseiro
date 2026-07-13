@@ -84,6 +84,8 @@ export type PlanFeature =
   | "recurringExpenses" // gastos recorrentes
   | "labelsPremium" // rótulos personalizados
   | "quotesPdf" // orçamentos em PDF
+  | "premiumNotifications" // aniversários, lembretes diários e resumo semanal
+  | "prioritySupport" // atendimento prioritário
   | "compositeProducts"; // produtos compostos / kits
 
 // Essencial ganha 1 diferencial qualitativo sobre o free: PDF básico do resumo
@@ -100,6 +102,8 @@ const PROFESSIONAL_FEATURES: readonly PlanFeature[] = [
   "recurringExpenses",
   "labelsPremium",
   "quotesPdf",
+  "premiumNotifications",
+  "prioritySupport",
   "compositeProducts",
 ];
 

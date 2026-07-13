@@ -1,11 +1,12 @@
 import { Button, Card, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
+import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import React from "react";
 import { Linking, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { isProfilePremiumActive, useProfile } from "../features/subscription/hooks";
+import { useProfile } from "../features/subscription/hooks";
 
 const SUPPORT_EMAIL = "contato@orionseven.com.br";
 
@@ -44,7 +45,8 @@ export default function SupportScreen() {
   const { theme } = useTheme();
   const router = useRouter();
   const { data: profile } = useProfile();
-  const isPremium = isProfilePremiumActive(profile);
+  const isPremium =
+    !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "prioritySupport");
 
   return (
     <SafeAreaView

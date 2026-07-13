@@ -12,6 +12,11 @@ dist
 .env
 apps/mobile/.env
 
+# Conteúdo de apoio que não faz parte do aplicativo nem das dependências do workspace.
+apps/promo-video
+imagens
+.aerofortress
+
 # Pastas nativas: o EAS regenera via prebuild (CNG). Nunca subir o android/ios
 # local (gerado por expo prebuild/run) — o EAS usa ESTE .easignore da raiz.
 apps/mobile/android

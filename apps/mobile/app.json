@@ -1,4 +1,4 @@
-﻿{
+{
   "expo": {
     "name": "Lucro Caseiro: Negocio em Casa",
     "slug": "lucro-caseiro-dev",
@@ -20,7 +20,7 @@
         "backgroundColor": "#F7DFD6"
       },
       "package": "br.com.orionseven.lucrocaseiro",
-      "versionCode": 15,
+      "versionCode": 18,
       "softwareKeyboardLayoutMode": "resize",
       "permissions": []
     },

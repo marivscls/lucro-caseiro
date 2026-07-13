@@ -1,4 +1,5 @@
 import type { SaleUnit } from "@lucro-caseiro/contracts";
+import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import { Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo, useState } from "react";
@@ -20,7 +21,7 @@ import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-awa
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { uploadProductImage } from "../../../shared/utils/upload-image";
 import { useCreateProduct, useProducts } from "../hooks";
-import { isProfilePremiumActive, useProfile } from "../../subscription/hooks";
+import { useProfile } from "../../subscription/hooks";
 import {
   ComponentPicker,
   draftsToComponents,
@@ -441,7 +442,7 @@ function ExtraPhotosField({
       >
         {isPremium
           ? `Mostre seu produto de vários ângulos (até ${max + 1} fotos no total).`
-          : `Adicione até ${max + 1} fotos por produto com o Premium.`}
+          : `Adicione até ${max + 1} fotos por produto com o Profissional.`}
       </Typography>
       <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
         {uris.map((uri, index) => (
@@ -512,11 +513,15 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
   const extraPicker = useImagePicker();
   const [extraUris, setExtraUris] = useState<string[]>([]);
   const { data: profile } = useProfile();
-  const isPremium = isProfilePremiumActive(profile);
+  const canUseCompositeProducts =
+    !!profile &&
+    hasActiveFeature(profile.plan, profile.planExpiresAt, "compositeProducts");
+  const canUseExtraPhotos =
+    !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "extraPhotos");
 
   function handleCompositeChange(next: boolean) {
     // Kit/produto composto é recurso Profissional: nunca deixa marcar sem plano.
-    if (next && !isPremium) {
+    if (next && !canUseCompositeProducts) {
       showPaywall("compositeProducts");
       return;
     }
@@ -524,7 +529,7 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
   }
 
   async function addExtraPhoto() {
-    if (!isPremium) {
+    if (!canUseExtraPhotos) {
       showPaywall("productPhotos");
       return;
     }
@@ -687,7 +692,7 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
         <CompositeToggle
           value={isComposite}
           onChange={handleCompositeChange}
-          locked={!isPremium}
+          locked={!canUseCompositeProducts}
         />
 
         {isComposite && <ComponentPicker value={components} onChange={setComponents} />}
@@ -716,7 +721,7 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
           onAdd={() => void addExtraPhoto()}
           onRemove={removeExtraPhoto}
           max={MAX_EXTRA_PHOTOS}
-          isPremium={isPremium}
+          isPremium={canUseExtraPhotos}
         />
 
         <DescriptionField value={description} onChange={setDescription} />

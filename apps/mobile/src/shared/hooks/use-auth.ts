@@ -4,6 +4,7 @@ import * as WebBrowser from "expo-web-browser";
 import { create } from "zustand";
 
 import { supabase } from "../utils/supabase";
+import { getRecoveryLinkError } from "../utils/password-recovery";
 import { useOnboarding } from "./use-onboarding";
 
 export function getAuthRedirectUrl(): string {
@@ -41,7 +42,10 @@ function getAuthParamsFromUrl(rawUrl: string): {
  * (`?code=`) quanto implicit (`#access_token=`). Idempotente: se ja existe
  * sessao, ignora (evita "code already used" quando o callback chega 2x).
  */
-async function applySessionFromUrl(rawUrl: string): Promise<boolean> {
+async function applySessionFromUrl(
+  rawUrl: string,
+  replaceExisting = false,
+): Promise<boolean> {
   let params: ReturnType<typeof getAuthParamsFromUrl>;
   try {
     params = getAuthParamsFromUrl(rawUrl);
@@ -53,7 +57,7 @@ async function applySessionFromUrl(rawUrl: string): Promise<boolean> {
   if (!code && !accessToken) return false;
 
   const { data: existing } = await supabase.auth.getSession();
-  if (existing.session) return true;
+  if (existing.session && !replaceExisting) return true;
 
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
@@ -77,6 +81,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   passwordRecovery: boolean;
+  passwordRecoveryError: string | null;
 
   initialize: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<{ error?: string }>;
@@ -147,6 +152,7 @@ export const useAuth = create<AuthState>((set) => ({
   isAuthenticated: false,
   isLoading: true,
   passwordRecovery: false,
+  passwordRecoveryError: null,
 
   initialize: async () => {
     try {
@@ -161,18 +167,7 @@ export const useAuth = create<AuthState>((set) => ({
         ? (result as { data: { session: Session | null } }).data.session
         : null;
 
-      if (session) {
-        set({
-          token: session.access_token,
-          userId: session.user.id,
-          user: session.user,
-          session,
-          isAuthenticated: true,
-          isLoading: false,
-        });
-      } else {
-        set({ isLoading: false });
-      }
+      setSession(set, session);
 
       supabase.auth.onAuthStateChange((_event, session) => {
         setSession(set, session);
@@ -180,19 +175,24 @@ export const useAuth = create<AuthState>((set) => ({
 
       // Captura o callback do OAuth mesmo quando o Android reabre o app pelo
       // deep link (lucrocaseiro://) em vez de retornar pro browser in-app.
-      const handleUrl = (url: string | null) => {
+      const handleUrl = async (url: string | null) => {
+        const recoveryError = url ? getRecoveryLinkError(url) : null;
+        if (recoveryError) {
+          set({ passwordRecovery: false, passwordRecoveryError: recoveryError });
+          return;
+        }
         if (url && (url.includes("code=") || url.includes("access_token="))) {
-          void applySessionFromUrl(url).then((ok) => {
-            // Link de recuperação de senha chega com type=recovery: marca o modo
-            // recovery para o app abrir a tela de "criar nova senha".
-            if (ok && url.includes("type=recovery")) {
-              set({ passwordRecovery: true });
-            }
-          });
+          const isRecovery = url.includes("type=recovery");
+          const ok = await applySessionFromUrl(url, isRecovery);
+          // Link de recuperação de senha chega com type=recovery: marca o modo
+          // recovery para o app abrir a tela de "criar nova senha".
+          if (ok && isRecovery)
+            set({ passwordRecovery: true, passwordRecoveryError: null });
         }
       };
-      handleUrl(await Linking.getInitialURL());
-      Linking.addEventListener("url", ({ url }) => handleUrl(url));
+      await handleUrl(await Linking.getInitialURL());
+      Linking.addEventListener("url", ({ url }) => void handleUrl(url));
+      set({ isLoading: false });
     } catch {
       set({ isLoading: false });
     }
@@ -227,6 +227,7 @@ export const useAuth = create<AuthState>((set) => ({
       email: email.trim(),
       password,
       options: {
+        emailRedirectTo: getAuthRedirectUrl(),
         data: {
           name,
           business_name: businessName,
@@ -312,6 +313,7 @@ export const useAuth = create<AuthState>((set) => ({
       session: null,
       isAuthenticated: false,
       passwordRecovery: false,
+      passwordRecoveryError: null,
     });
   },
 

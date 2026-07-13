@@ -109,11 +109,11 @@ export function LabelStyleEditor({
       <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
         <Typography variant="caption" style={{ flex: 1 }}>
           {locked
-            ? "Veja como seu rótulo pode ficar. Desbloqueie com o Premium."
+            ? "Veja como seu rótulo pode ficar. Desbloqueie com o Profissional."
             : "Deixe o rótulo com a sua cara ou mantenha o visual do modelo."}
         </Typography>
         {locked && <Ionicons name="lock-closed" size={16} color={theme.colors.premium} />}
-        <Badge label="Premium" variant="premium" />
+        <Badge label="Profissional" variant="premium" />
       </View>
 
       <LockedWrapper locked={locked}>

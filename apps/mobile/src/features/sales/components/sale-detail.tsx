@@ -1,4 +1,5 @@
 ﻿import type { Sale } from "@lucro-caseiro/contracts";
+import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import { Badge, Button, Card, Typography, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
@@ -7,7 +8,7 @@ import { Image, ScrollView, View } from "react-native";
 import { formatCurrency } from "../../../shared/utils/format";
 import { isValidBrazilPhone } from "../../../shared/utils/phone";
 import { openWhatsApp, openWhatsAppShare } from "../../../shared/utils/whatsapp";
-import { isProfilePremiumActive, useProfile } from "../../subscription/hooks";
+import { useProfile } from "../../subscription/hooks";
 import { usePaywall } from "../../../shared/hooks/use-paywall";
 import { useUpdateSaleStatus } from "../hooks";
 import { paymentLabel } from "../payment";
@@ -61,7 +62,7 @@ export function SaleDetail({
   // Recibo em PDF e recurso de exportacao — exclusivo do Premium.
   // Free ve um vislumbre do recibo (com cadeado) antes do paywall.
   async function handleReceiptPdf() {
-    if (!isProfilePremiumActive(profile)) {
+    if (!profile || !hasActiveFeature(profile.plan, profile.planExpiresAt, "export")) {
       setPreviewVisible(true);
       return;
     }

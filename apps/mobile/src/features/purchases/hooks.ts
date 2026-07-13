@@ -32,6 +32,7 @@ export function usePayPurchase() {
   const { token } = useAuth();
   const queryClient = useQueryClient();
   return useMutation({
+    scope: { id: "pay-purchase" },
     mutationFn: (id: string) => payPurchase(token!, id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: PURCHASES_KEY });

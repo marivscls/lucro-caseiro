@@ -93,9 +93,19 @@ describe("PurchasesUseCases", () => {
   describe("pay", () => {
     it("posts to finance and marks paid", async () => {
       const finance = makeFinance();
-      const sut = new PurchasesUseCases(makeRepo(), finance);
-      const result = await sut.pay(USER_ID, "pur-1", "2026-06-26");
+      const update = vi.fn((_userId: string, id: string, data: UpdatePurchaseData) =>
+        Promise.resolve(makePurchase({ id, ...data })),
+      );
+      const sut = new PurchasesUseCases(makeRepo({ update }), finance);
+      const result = await sut.pay(USER_ID, "pur-selected", "2026-06-26");
       expect(finance.calls).toBe(1);
+      expect(update).toHaveBeenCalledOnce();
+      expect(update).toHaveBeenCalledWith(
+        USER_ID,
+        "pur-selected",
+        expect.objectContaining({ paymentStatus: "paid" }),
+      );
+      expect(result.id).toBe("pur-selected");
       expect(result.paymentStatus).toBe("paid");
       expect(result.paidAt).toBe("2026-06-26");
       expect(result.financeEntryId).toBe("fin-1");

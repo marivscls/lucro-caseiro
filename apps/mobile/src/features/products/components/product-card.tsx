@@ -7,6 +7,7 @@ import { Image, View } from "react-native";
 import { useNotificationEnabled } from "../../../shared/hooks/notification-prefs";
 import { NOTIFICATION_TYPES } from "../../../shared/hooks/notification-types";
 import { getStockBadge } from "../stock-badge";
+import { productInitial } from "../display";
 
 interface ProductCardProps {
   readonly product: Product;
@@ -42,15 +43,19 @@ export function ProductCard({ product, onPress }: ProductCardProps) {
           }}
         >
           <Typography variant="h3" color={theme.colors.textSecondary}>
-            {product.name.charAt(0).toUpperCase()}
+            {productInitial(product.name)}
           </Typography>
         </View>
       )}
 
       <View style={{ flex: 1, gap: 4 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <Typography variant="h3">{product.name}</Typography>
-          {product.isComposite && <Badge label="Kit" variant="lavender" />}
+        <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
+          <Typography variant="h3" numberOfLines={2} style={{ flex: 1, minWidth: 0 }}>
+            {product.name}
+          </Typography>
+          {product.isComposite && (
+            <Badge label="Kit" variant="lavender" style={{ flexShrink: 0 }} />
+          )}
         </View>
         <Typography variant="caption">{product.category}</Typography>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>

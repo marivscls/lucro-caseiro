@@ -107,27 +107,6 @@ export const radii = {
   full: 9999,
 } as const;
 
-/**
- * Token unico de elevacao (design system) — SO para overlays flutuantes
- * (toast, alerta, modal, FAB). Cards de conteudo NUNCA tem sombra: o padrao
- * canonico e flat (surfaceElevated + borda `colors.border`), via Card
- * variant="elevated".
- *
- * Scars: no Android, elevation + fundo translucido vira "caixa branca" (o
- * fundo do elemento elevado deve sempre ser opaco); sombra do Android fica
- * quadrada atras de cantos arredondados se a View tiver overflow:"hidden" —
- * nao combine este token com overflow:"hidden" na mesma View.
- */
-export const elevation = {
-  card: {
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-} as const;
-
 export type ThemeMode = "light" | "dark";
 
 export interface Theme {

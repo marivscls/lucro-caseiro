@@ -1,3 +1,5 @@
+import type { PaidPlan } from "@lucro-caseiro/contracts";
+
 // Fonte da verdade das copys de limite/Premium (banner + paywall).
 // Tom: conquista, não restrição ("seu negócio está crescendo").
 
@@ -131,6 +133,15 @@ const FEATURE_COPY: Record<string, { title: string; message: string }> = {
     message:
       "Cadastre aluguel, internet e outros custos mensais e deixe o app lançar sozinho no seu caixa. Desbloqueie no Profissional.",
   },
+  purchases: {
+    title: "Compras de fornecedores",
+    message:
+      "Registre compras, acompanhe contas a pagar e lance as saídas no caixa com o Profissional.",
+  },
+  compositeProducts: {
+    title: "Produtos compostos e kits",
+    message: "Monte kits e produtos formados por outros itens no plano Profissional.",
+  },
   birthdays: {
     title: "🎂 Aniversários dos clientes",
     message:
@@ -154,4 +165,11 @@ export function getPaywallCopy(resource: string | null): {
     title: "🚀 Seu negócio está crescendo!",
     message: "Desbloqueie todos os recursos do Lucro Caseiro.",
   };
+}
+
+/** Tier mínimo do paywall quando o caller não informou um explicitamente. */
+export function getPaywallRecommendedTier(resource: string | null): PaidPlan {
+  if (resource && resource in FEATURE_COPY) return "professional";
+  if (resource === "suppliers") return "professional";
+  return "essential";
 }

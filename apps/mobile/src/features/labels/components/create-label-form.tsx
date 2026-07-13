@@ -1,4 +1,5 @@
 import type { LabelData } from "@lucro-caseiro/contracts";
+import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import { Button, Input, Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
@@ -15,7 +16,7 @@ import { exportLabelPdfWithChoice } from "../label-export";
 import { cleanNutrition } from "../nutrition";
 import { normalizeLink } from "../qr";
 import { useCreateLabel, useLabels } from "../hooks";
-import { isProfilePremiumActive, useProfile } from "../../subscription/hooks";
+import { useProfile } from "../../subscription/hooks";
 import { DateField } from "../../../shared/components/date-field";
 import { FormSection } from "../../../shared/components/form-section";
 import { usePaywall } from "../../../shared/hooks/use-paywall";
@@ -37,7 +38,8 @@ export function CreateLabelForm({
   const { theme } = useTheme();
   const { data: profile } = useProfile();
   const showPaywall = usePaywall((st) => st.show);
-  const isPremium = isProfilePremiumActive(profile);
+  const isPremium =
+    !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "labelsPremium");
   const [name, setName] = useState("");
   const [templateId, setTemplateId] = useState("classico");
   const [labelData, setLabelData] = useState<LabelData>({
@@ -253,7 +255,7 @@ export function CreateLabelForm({
 
       <FormSection
         title="Estilo do rótulo"
-        subtitle="Premium: cores, fonte, borda e cantos"
+        subtitle="Profissional: cores, fonte, borda e cantos"
         icon="color-palette-outline"
       >
         <LabelStyleEditor

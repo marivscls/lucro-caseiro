@@ -1,6 +1,7 @@
 import type {
   CreateFinanceEntry,
   CreateRecurringExpense,
+  RecurringExpense,
   UpdateFinanceEntry,
   UpdateRecurringExpense,
 } from "@lucro-caseiro/contracts";
@@ -94,9 +95,13 @@ export function useCreateRecurring() {
   const { token } = useAuth();
   const queryClient = useQueryClient();
   return useMutation({
+    scope: { id: "create-recurring-expense" },
     mutationFn: (data: CreateRecurringExpense) => createRecurring(token!, data),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: FINANCE_KEY });
+    onSuccess: (created) => {
+      queryClient.setQueryData<RecurringExpense[]>(RECURRING_KEY, (current = []) => [
+        created,
+        ...current.filter((item) => item.id !== created.id),
+      ]);
     },
   });
 }
@@ -105,10 +110,13 @@ export function useUpdateRecurring() {
   const { token } = useAuth();
   const queryClient = useQueryClient();
   return useMutation({
+    scope: { id: "update-recurring-expense" },
     mutationFn: ({ id, data }: { id: string; data: UpdateRecurringExpense }) =>
       updateRecurring(token!, id, data),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: FINANCE_KEY });
+    onSuccess: (updated) => {
+      queryClient.setQueryData<RecurringExpense[]>(RECURRING_KEY, (current = []) =>
+        current.map((item) => (item.id === updated.id ? updated : item)),
+      );
     },
   });
 }
@@ -117,9 +125,12 @@ export function useDeleteRecurring() {
   const { token } = useAuth();
   const queryClient = useQueryClient();
   return useMutation({
+    scope: { id: "delete-recurring-expense" },
     mutationFn: (id: string) => deleteRecurring(token!, id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: FINANCE_KEY });
+    onSuccess: (_result, deletedId) => {
+      queryClient.setQueryData<RecurringExpense[]>(RECURRING_KEY, (current = []) =>
+        current.filter((item) => item.id !== deletedId),
+      );
     },
   });
 }

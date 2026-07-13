@@ -238,9 +238,9 @@ function QuickActionCard({
       style={({ pressed }) => [
         {
           flex: 1,
-          minHeight: 82,
+          minHeight: 90,
           borderRadius: radii.xl,
-          padding: spacing.md,
+          padding: spacing.sm,
           flexDirection: "row",
           alignItems: "center",
           gap: spacing.sm,
@@ -251,21 +251,21 @@ function QuickActionCard({
     >
       <View
         style={{
-          width: 44,
-          height: 44,
+          width: 40,
+          height: 40,
           borderRadius: radii.full,
           backgroundColor: theme.colors.primary,
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <Ionicons name={icon} size={23} color={theme.colors.textOnPrimary} />
+        <Ionicons name={icon} size={22} color={theme.colors.textOnPrimary} />
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Typography variant="bodyBold" color={theme.colors.text} numberOfLines={2}>
           {title}
         </Typography>
-        <Typography variant="caption" numberOfLines={1}>
+        <Typography variant="caption" numberOfLines={2}>
           {subtitle}
         </Typography>
       </View>

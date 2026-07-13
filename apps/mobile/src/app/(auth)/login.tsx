@@ -6,9 +6,11 @@ import { Image, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { KeyboardAwareScrollView } from "../../shared/components/keyboard-aware-scroll-view";
+import { EmailTypoHint } from "../../shared/components/email-typo-hint";
 import { getAuthRedirectUrl, useAuth } from "../../shared/hooks/use-auth";
 import { supabase } from "../../shared/utils/supabase";
 import { validateEmail } from "../../shared/utils/validation";
+import { suggestEmailFix } from "../../shared/utils/email";
 import { alertError } from "../../shared/utils/alerts";
 import { showAlert } from "../../shared/components/alert-store";
 import authHouse from "../../assets/auth-house.png";
@@ -24,6 +26,7 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [emailError, setEmailError] = useState<string>();
+  const [emailSuggestion, setEmailSuggestion] = useState<string>();
   const [passwordError, setPasswordError] = useState<string>();
 
   const isDark = theme.mode === "dark";
@@ -108,6 +111,12 @@ export default function LoginScreen() {
           title: "E-mail enviado!",
           message: "Verifique sua caixa de entrada para redefinir sua senha.",
         });
+      })
+      .catch(() => {
+        setResetLoading(false);
+        alertError(
+          "Não foi possível enviar o e-mail. Verifique sua conexão e tente novamente.",
+        );
       });
   }
 
@@ -193,8 +202,19 @@ export default function LoginScreen() {
             onChangeText={(text) => {
               setEmail(text);
               if (emailError) setEmailError(undefined);
+              if (emailSuggestion) setEmailSuggestion(undefined);
             }}
+            onBlur={() => setEmailSuggestion(suggestEmailFix(email) ?? undefined)}
             error={emailError}
+          />
+          <EmailTypoHint
+            suggestion={emailSuggestion}
+            onAccept={() => {
+              if (!emailSuggestion) return;
+              setEmail(emailSuggestion);
+              setEmailSuggestion(undefined);
+              setEmailError(undefined);
+            }}
           />
           <View>
             <Input

@@ -31,7 +31,7 @@ import financeEmpty from "../../../assets/finance-empty.png";
 import financeHero from "../../../assets/finance-hero.png";
 import { useAuth } from "../../../shared/hooks/use-auth";
 import { usePaywall } from "../../../shared/hooks/use-paywall";
-import { isProfilePremiumActive, useProfile } from "../../subscription/hooks";
+import { useProfile } from "../../subscription/hooks";
 import { getExportUrl } from "../api";
 import {
   countByType,
@@ -73,7 +73,9 @@ export function FinanceDashboard({
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { token } = useAuth();
   const { data: profile } = useProfile();
-  const isPremium = isProfilePremiumActive(profile);
+  const isPremium = profile
+    ? hasActiveFeature(profile.plan, profile.planExpiresAt, "advancedReports")
+    : false;
   const canExportBasic = profile
     ? hasActiveFeature(profile.plan, profile.planExpiresAt, "exportBasic")
     : false;
@@ -352,7 +354,7 @@ export function FinanceDashboard({
                     fontSize: 12,
                   }}
                 >
-                  {canExportBasic ? "Excel no Profissional" : "Premium"}
+                  {canExportBasic ? "Excel no Profissional" : "Profissional"}
                 </Text>
               </View>
             )}
@@ -440,25 +442,36 @@ export function FinanceDashboard({
           {entryCountLabel(filteredEntries.length)}
         </Typography>
 
-        <View style={styles.entryListCard}>
-          {filteredEntries.length > 0 ? (
-            filteredEntries.map((entry, index) => (
-              <EntryRow
-                key={entry.id}
-                entry={entry}
-                isLast={index === filteredEntries.length - 1}
-                theme={theme}
-                styles={styles}
-                onPress={() => {
-                  if (onEntryPress) {
-                    onEntryPress(entry.id);
-                    return;
-                  }
-                  setSelectedEntry(entry);
-                }}
-              />
-            ))
-          ) : (
+        {filteredEntries.length > 0 ? (
+          <View style={styles.entryGroups}>
+            {groupEntriesByDate(filteredEntries).map((group) => (
+              <View key={group.date} style={styles.entryGroup}>
+                <Typography variant="caption" style={styles.entryGroupLabel}>
+                  {formatEntryGroupLabel(group.date)}
+                </Typography>
+                <View style={styles.entryListCard}>
+                  {group.entries.map((entry, index) => (
+                    <EntryRow
+                      key={entry.id}
+                      entry={entry}
+                      isLast={index === group.entries.length - 1}
+                      theme={theme}
+                      styles={styles}
+                      onPress={() => {
+                        if (onEntryPress) {
+                          onEntryPress(entry.id);
+                          return;
+                        }
+                        setSelectedEntry(entry);
+                      }}
+                    />
+                  ))}
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <View style={styles.entryListCard}>
             <View style={styles.emptyState}>
               <Image
                 source={financeEmpty}
@@ -471,8 +484,8 @@ export function FinanceDashboard({
               </Typography>
               <Button title="Registrar lançamento" onPress={openCreateEntry} />
             </View>
-          )}
-        </View>
+          </View>
+        )}
 
         <View style={styles.footerRow}>
           <View style={styles.tipCard}>
@@ -923,11 +936,11 @@ function EntryRow({
       style={[styles.entryRow, !isLast && styles.entryDivider]}
     >
       <View style={[styles.entryIcon, { backgroundColor: tc.iconBg }]}>
-        <Ionicons name={isIncome ? "add" : "remove"} size={30} color={tc.fg} />
+        <Ionicons name={isIncome ? "add" : "remove"} size={22} color={tc.fg} />
       </View>
       <View style={styles.entryMiddle}>
-        <Typography variant="h3" numberOfLines={1}>
-          {entry.description || (isIncome ? "Entrada" : "Saída")}
+        <Typography variant="bodyBold" numberOfLines={2}>
+          {entryDisplayDescription(entry, isIncome)}
         </Typography>
         <View style={styles.entryMetaRow}>
           <Text style={styles.entryBadge} numberOfLines={1} adjustsFontSizeToFit>
@@ -940,15 +953,16 @@ function EntryRow({
       </View>
       <View style={styles.entryRight}>
         <Typography
-          variant="money"
+          variant="bodyBold"
           color={tc.fg}
+          style={styles.entryAmount}
           numberOfLines={1}
           adjustsFontSizeToFit
           minimumFontScale={0.78}
         >
           {sign} {formatCurrency(entry.amount)}
         </Typography>
-        <Ionicons name="chevron-forward" size={26} color={theme.colors.textSecondary} />
+        <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
       </View>
     </Pressable>
   );
@@ -965,6 +979,42 @@ function categoryLabel(category: string) {
     sale: "Venda",
   };
   return labels[category] ?? category;
+}
+
+function entryDisplayDescription(entry: FinanceEntry, isIncome: boolean): string {
+  const cleaned = entry.description
+    .replace(/^Compra:\s*/i, "")
+    .replace(/^\[[^\]]+\]\s*/, "")
+    .trim();
+  return cleaned || (isIncome ? "Entrada" : "Saída");
+}
+
+function groupEntriesByDate(entries: FinanceEntry[]) {
+  const groups = new Map<string, FinanceEntry[]>();
+  for (const entry of entries) {
+    const date = entry.date.slice(0, 10);
+    const group = groups.get(date);
+    if (group) group.push(entry);
+    else groups.set(date, [entry]);
+  }
+  return Array.from(groups, ([date, groupedEntries]) => ({
+    date,
+    entries: groupedEntries,
+  }));
+}
+
+function formatEntryGroupLabel(date: string): string {
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  const localKey = (value: Date) =>
+    `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
+  if (date === localKey(today)) return "Hoje";
+  if (date === localKey(yesterday)) return "Ontem";
+  return new Date(`${date}T12:00:00`).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "long",
+  });
 }
 
 function formatEntryDate(value: string) {
@@ -1149,6 +1199,19 @@ function createStyles(theme: Theme) {
       paddingHorizontal: 9,
       paddingVertical: 3,
     },
+    entryAmount: {
+      textAlign: "right",
+    },
+    entryGroup: {
+      gap: 6,
+    },
+    entryGroupLabel: {
+      marginLeft: 4,
+      textTransform: "capitalize",
+    },
+    entryGroups: {
+      gap: 14,
+    },
     entryCount: {
       marginTop: -8,
     },
@@ -1158,15 +1221,16 @@ function createStyles(theme: Theme) {
     },
     entryIcon: {
       alignItems: "center",
-      borderRadius: 26,
-      height: 52,
+      borderRadius: 18,
+      flexShrink: 0,
+      height: 42,
       justifyContent: "center",
-      width: 52,
+      width: 42,
     },
     entryListCard: {
       backgroundColor: cardBg,
       borderColor: cardBorder,
-      borderRadius: 26,
+      borderRadius: 21,
       borderWidth: 1,
       overflow: "hidden",
     },
@@ -1177,23 +1241,22 @@ function createStyles(theme: Theme) {
     },
     entryMiddle: {
       flex: 1,
-      gap: 7,
+      gap: 5,
       minWidth: 0,
     },
     entryRight: {
-      alignItems: "center",
+      alignItems: "flex-end",
       flexDirection: "row",
-      gap: 6,
-      justifyContent: "flex-end",
-      width: 124,
+      flexShrink: 0,
+      gap: 4,
     },
     entryRow: {
       alignItems: "center",
       flexDirection: "row",
-      gap: 12,
-      minHeight: 82,
-      paddingHorizontal: 14,
-      paddingVertical: 14,
+      gap: 10,
+      minHeight: 84,
+      paddingHorizontal: 12,
+      paddingVertical: 12,
     },
     exportButton: {
       alignItems: "center",

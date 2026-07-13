@@ -1,4 +1,5 @@
 import { formatCurrency } from "../../shared/utils/format";
+import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import { Badge, Card, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -27,11 +28,7 @@ import { useOrders } from "../../features/orders/hooks";
 import { useLowStockProducts, useProducts } from "../../features/products/hooks";
 import { useSales, useTodaySummary } from "../../features/sales/hooks";
 import { LimitBanner } from "../../features/subscription/components/limit-banner";
-import {
-  isProfilePremiumActive,
-  useLimits,
-  useProfile,
-} from "../../features/subscription/hooks";
+import { useLimits, useProfile } from "../../features/subscription/hooks";
 import { getLimitBannerState } from "../../features/subscription/limits";
 import { AdBanner } from "../../shared/components/ad-banner";
 import { useNotificationEnabled } from "../../shared/hooks/notification-prefs";
@@ -610,7 +607,9 @@ export default function HomeScreen() {
   const monthProfit = financeSummary?.profit ?? 0;
   const upcomingDeliveries = orders ? upcomingCount(orders, new Date()) : 0;
   const hasSalesToday = (todaySummary?.totalSales ?? 0) > 0;
-  const isPremium = isProfilePremiumActive(profile);
+  const canUsePremiumNotifications =
+    !!profile &&
+    hasActiveFeature(profile.plan, profile.planExpiresAt, "premiumNotifications");
   const birthdayCount = birthdays?.length ?? 0;
 
   // 2.5: não mostrar o AdBanner junto do LimitBanner (mensagem "assine" ao lado
@@ -1063,37 +1062,40 @@ export default function HomeScreen() {
               )}
             </View>
 
-            {birthdayCount > 0 && isPremium && birthdaysEnabled && birthdays && (
-              <Card
-                variant="surface"
-                padding="xl"
-                style={{
-                  ...cardStyle,
-                  borderLeftWidth: 3,
-                  borderLeftColor: theme.colors.premium,
-                }}
-              >
-                <Typography
-                  variant="h3"
-                  color={theme.colors.premium}
-                  style={{ marginBottom: spacing.sm }}
+            {birthdayCount > 0 &&
+              canUsePremiumNotifications &&
+              birthdaysEnabled &&
+              birthdays && (
+                <Card
+                  variant="surface"
+                  padding="xl"
+                  style={{
+                    ...cardStyle,
+                    borderLeftWidth: 3,
+                    borderLeftColor: theme.colors.premium,
+                  }}
                 >
-                  Aniversariantes do mês
-                </Typography>
-                {birthdays.map((client) => (
                   <Typography
-                    key={client.id}
-                    variant="body"
-                    color={theme.colors.text}
-                    style={{ marginTop: spacing.xs }}
+                    variant="h3"
+                    color={theme.colors.premium}
+                    style={{ marginBottom: spacing.sm }}
                   >
-                    {client.name} - {client.birthday}
+                    Aniversariantes do mês
                   </Typography>
-                ))}
-              </Card>
-            )}
+                  {birthdays.map((client) => (
+                    <Typography
+                      key={client.id}
+                      variant="body"
+                      color={theme.colors.text}
+                      style={{ marginTop: spacing.xs }}
+                    >
+                      {client.name} - {client.birthday}
+                    </Typography>
+                  ))}
+                </Card>
+              )}
 
-            {birthdayCount > 0 && !isPremium && (
+            {birthdayCount > 0 && !canUsePremiumNotifications && (
               <Card
                 variant="surface"
                 padding="xl"
@@ -1115,7 +1117,7 @@ export default function HomeScreen() {
                   <Typography variant="h3" color={theme.colors.premium}>
                     Aniversariantes do mês
                   </Typography>
-                  <Badge label="Premium" variant="premium" />
+                  <Badge label="Profissional" variant="premium" />
                 </View>
                 <View
                   style={{

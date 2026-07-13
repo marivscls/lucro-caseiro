@@ -8,9 +8,10 @@ import {
   spacing,
   radii,
 } from "@lucro-caseiro/ui";
+import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -31,7 +32,7 @@ import {
   usePurchases,
 } from "../features/purchases/hooks";
 import { showAlert } from "../shared/components/alert-store";
-import { isProfilePremiumActive, useProfile } from "../features/subscription/hooks";
+import { useProfile } from "../features/subscription/hooks";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { alertError } from "../shared/utils/alerts";
 import { formatCurrency } from "../shared/utils/format";
@@ -48,10 +49,13 @@ export default function PurchasesScreen() {
   const { theme } = useTheme();
   const router = useRouter();
   const { data: profile } = useProfile();
-  const isPremium = isProfilePremiumActive(profile);
+  const isPremium =
+    !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "purchases");
   const showPaywall = usePaywall((s) => s.show);
   const [filter, setFilter] = useState<Filter>("all");
   const [showCreate, setShowCreate] = useState(false);
+  const [payingId, setPayingId] = useState<string | null>(null);
+  const payingIdRef = useRef<string | null>(null);
 
   const { data, isLoading, error } = usePurchases(
     filter === "all" ? undefined : { status: filter },
@@ -83,9 +87,23 @@ export default function PurchasesScreen() {
   }
 
   function pay(id: string) {
+    // A ref trava de forma sincrona, antes de o React renderizar o estado novo.
+    // Assim, um toque nunca dispara pagamentos de dois cards em sequencia.
+    if (payingIdRef.current) return;
+    payingIdRef.current = id;
+    setPayingId(id);
     payPurchase
       .mutateAsync(id)
-      .catch(() => alertError("Não foi possível marcar a compra como paga."));
+      .then((paid) => {
+        if (paid.id !== id || paid.paymentStatus !== "paid") {
+          throw new Error("A API não confirmou a compra selecionada.");
+        }
+      })
+      .catch(() => alertError("Não foi possível marcar a compra como paga."))
+      .finally(() => {
+        payingIdRef.current = null;
+        setPayingId(null);
+      });
   }
 
   const items = data?.items ?? [];
@@ -136,7 +154,8 @@ export default function PurchasesScreen() {
             purchase={p}
             onPay={() => pay(p.id)}
             onDelete={() => confirmDelete(p.id)}
-            isPaying={payPurchase.isPending}
+            isPaying={payingId === p.id}
+            payDisabled={payingId !== null}
           />
         ))}
       </ScrollView>

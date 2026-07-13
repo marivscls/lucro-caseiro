@@ -18,6 +18,7 @@ export function useProducts(opts?: {
   limit?: number;
   category?: string;
   search?: string;
+  isComposite?: boolean;
 }) {
   const { token } = useAuth();
   return useQuery({

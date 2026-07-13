@@ -1,4 +1,5 @@
 import type { Quote, QuoteStatusType } from "@lucro-caseiro/contracts";
+import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import {
   Badge,
   Button,
@@ -34,7 +35,7 @@ import {
 } from "../features/quotes/hooks";
 import { buildQuoteMessage } from "../features/quotes/message";
 import { exportQuotePdf } from "../features/quotes/quote-pdf";
-import { isProfilePremiumActive, useProfile } from "../features/subscription/hooks";
+import { useProfile } from "../features/subscription/hooks";
 import { DateField } from "../shared/components/date-field";
 import { showToast } from "../shared/components/toast";
 import { usePaywall } from "../shared/hooks/use-paywall";
@@ -52,6 +53,18 @@ const STATUS_META: Record<
   accepted: { label: "Aprovado", variant: "success" },
   rejected: { label: "Recusado", variant: "danger" },
 };
+
+type QuoteStatusMeta = (typeof STATUS_META)[QuoteStatusType];
+
+function quoteStatusMeta(status: string): QuoteStatusMeta {
+  if (status === "expired") return { label: "Expirado", variant: "warning" };
+  return (
+    STATUS_META[status as QuoteStatusType] ?? {
+      label: "Status indisponível",
+      variant: "warning",
+    }
+  );
+}
 
 const FILTERS: { key: QuoteStatusType | "all"; label: string }[] = [
   { key: "all", label: "Todos" },
@@ -130,7 +143,7 @@ function ModalHeader({
 
 function QuoteCard({ quote, onPress }: Readonly<{ quote: Quote; onPress: () => void }>) {
   const { theme } = useTheme();
-  const meta = STATUS_META[quote.status];
+  const meta = quoteStatusMeta(quote.status);
   return (
     <Card onPress={onPress} padding="lg">
       <View style={{ gap: spacing.sm }}>
@@ -250,7 +263,7 @@ function QuoteDetail({
   const removeQuote = useDeleteQuote();
   const [convertVisible, setConvertVisible] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const meta = STATUS_META[quote.status];
+  const meta = quoteStatusMeta(quote.status);
   const businessName = profile?.businessName ?? profile?.name ?? "Meu negócio";
 
   function handleWhatsApp() {
@@ -258,7 +271,7 @@ function QuoteDetail({
   }
 
   async function handlePdf() {
-    if (!isProfilePremiumActive(profile)) {
+    if (!profile || !hasActiveFeature(profile.plan, profile.planExpiresAt, "quotesPdf")) {
       showPaywall("export");
       return;
     }

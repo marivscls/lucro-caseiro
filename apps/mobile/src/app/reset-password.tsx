@@ -1,6 +1,6 @@
 import { Button, Input, Typography, useTheme, spacing } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useRouter } from "expo-router";
+import { Redirect, Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -10,12 +10,20 @@ import { showAlert } from "../shared/components/alert-store";
 import { useAuth } from "../shared/hooks/use-auth";
 import { alertError, alertValidation } from "../shared/utils/alerts";
 import { supabase } from "../shared/utils/supabase";
+import { validatePassword } from "../shared/utils/validation";
+import {
+  CREDENTIAL_RULES,
+  getPasswordUpdateError,
+} from "../shared/utils/password-recovery";
 
 export default function ResetPasswordScreen() {
   const { theme } = useTheme();
   const router = useRouter();
   const signOut = useAuth((s) => s.signOut);
   const clearPasswordRecovery = useAuth((s) => s.clearPasswordRecovery);
+  const passwordRecovery = useAuth((s) => s.passwordRecovery);
+  const session = useAuth((s) => s.session);
+  const isLoading = useAuth((s) => s.isLoading);
 
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -23,8 +31,9 @@ export default function ResetPasswordScreen() {
   const [loading, setLoading] = useState(false);
 
   async function handleSave() {
-    if (password.length < 8) {
-      alertValidation("A senha precisa ter pelo menos 8 caracteres.");
+    const passwordResult = validatePassword(password);
+    if (!passwordResult.valid) {
+      alertValidation(passwordResult.errors.join(". "));
       return;
     }
     // eslint-disable-next-line security/detect-possible-timing-attacks -- comparação de dois campos digitados pelo usuário (não é segredo)
@@ -37,9 +46,8 @@ export default function ResetPasswordScreen() {
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) {
-        alertError(
-          "Não foi possível alterar a senha. O link pode ter expirado. Peça um novo.",
-        );
+        const friendly = getPasswordUpdateError(error);
+        (friendly.kind === "validation" ? alertValidation : alertError)(friendly.message);
         return;
       }
       // Senha trocada: encerra a sessão de recuperação e manda entrar de novo.
@@ -56,6 +64,9 @@ export default function ResetPasswordScreen() {
       setLoading(false);
     }
   }
+
+  if (isLoading) return null;
+  if (!passwordRecovery || !session) return <Redirect href="/(auth)/login" />;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -106,6 +117,9 @@ export default function ResetPasswordScreen() {
             secureTextEntry={!show}
             autoCapitalize="none"
           />
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            {CREDENTIAL_RULES}
+          </Typography>
           <Input
             label="Confirmar nova senha"
             value={confirm}

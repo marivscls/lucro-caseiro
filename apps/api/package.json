@@ -15,9 +15,9 @@
   "dependencies": {
     "@lucro-caseiro/contracts": "workspace:*",
     "@lucro-caseiro/database": "workspace:*",
-    "@supabase/supabase-js": "^2.49.0",
+    "@supabase/supabase-js": "^2.110.2",
     "cors": "^2.8.5",
-    "drizzle-orm": "^0.38.0",
+    "drizzle-orm": "^0.45.2",
     "exceljs": "^4.4.0",
     "express": "^5.0.0",
     "google-auth-library": "10.6.2",
