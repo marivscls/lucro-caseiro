@@ -1098,6 +1098,8 @@ function DayFilterModal({
             borderColor: agColors.border,
             padding: spacing.lg,
             gap: spacing.md,
+            maxHeight: "80%",
+            width: "100%",
           }}
         >
           <View
@@ -1122,7 +1124,12 @@ function DayFilterModal({
             </Pressable>
           </View>
 
-          <View style={{ gap: spacing.sm }}>
+          <ScrollView
+            style={{ flexShrink: 1 }}
+            contentContainerStyle={{ gap: spacing.sm }}
+            nestedScrollEnabled
+            showsVerticalScrollIndicator
+          >
             <Pressable
               onPress={() => {
                 onSelect(null);
@@ -1176,7 +1183,7 @@ function DayFilterModal({
                 </Pressable>
               );
             })}
-          </View>
+          </ScrollView>
         </Pressable>
       </Pressable>
     </Modal>
