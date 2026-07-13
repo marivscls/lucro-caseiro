@@ -26,14 +26,16 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { CreateLabelForm } from "../features/labels/components/create-label-form";
 import { LabelStyleEditor } from "../features/labels/components/label-style-editor";
 import { LabelPreview } from "../features/labels/components/label-preview";
+import { LabelProductPicker } from "../features/labels/components/label-product-picker";
 import { TemplatePicker } from "../features/labels/components/template-picker";
 import { exportLabelPdfWithChoice } from "../features/labels/label-export";
+import { publicCatalogProductUrl } from "../features/catalog/api";
+import { useCatalogSettings } from "../features/catalog/hooks";
 import { useProfile } from "../features/subscription/hooks";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { addDaysToBR, brToIso, isoToBR, maskDateBR } from "../features/labels/dates";
 import { cleanNutrition } from "../features/labels/nutrition";
 import { NutritionFields } from "../features/labels/components/nutrition-fields";
-import { normalizeLink } from "../features/labels/qr";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
 import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
 import { maskPhoneBR } from "../shared/utils/phone";
@@ -64,6 +66,7 @@ function LabelDetailModal({
   const isPremium =
     !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "labelsPremium");
   const { data: label, isLoading } = useLabel(labelId);
+  const { data: catalogSettings } = useCatalogSettings();
   const updateLabel = useUpdateLabel();
   const deleteLabel = useDeleteLabel();
 
@@ -71,21 +74,36 @@ function LabelDetailModal({
   const [name, setName] = useState("");
   const [templateId, setTemplateId] = useState("classico");
   const [labelData, setLabelData] = useState<LabelData>({ productName: "" });
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [logoRemoved, setLogoRemoved] = useState(false);
-  const [qrLink, setQrLink] = useState("");
   const [shelfDays, setShelfDays] = useState("");
   const { imageUri: newLogo, showPicker, clear: clearPickedLogo } = useImagePicker();
 
   // Logo exibido na edição: novo escolhido > existente (a menos que removido).
   const editingLogo = newLogo ?? (logoRemoved ? null : (label?.logoUrl ?? null));
-  const editingQrUrl = normalizeLink(qrLink);
+  const catalogProductUrl = (productId: string | null | undefined) =>
+    catalogSettings && productId
+      ? publicCatalogProductUrl(catalogSettings.slug, productId)
+      : undefined;
+  const editingQrUrl = catalogProductUrl(selectedProductId);
 
   async function handleExport(l: Label) {
+    if (!l.productId) {
+      alertValidation("Edite o rótulo e escolha o produto antes de baixar");
+      return;
+    }
+    const qrUrl = catalogProductUrl(l.productId);
+    if (!qrUrl) {
+      alertError(
+        "Não foi possível carregar o endereço do seu catálogo. Tente novamente.",
+      );
+      return;
+    }
     setExporting(true);
     try {
-      await exportLabelPdfWithChoice(l.data, l.templateId, l.logoUrl, l.qrCodeUrl);
+      await exportLabelPdfWithChoice(l.data, l.templateId, l.logoUrl, qrUrl);
     } catch {
       alertError("Não foi possível gerar o rótulo. Tente novamente.");
     } finally {
@@ -96,6 +114,7 @@ function LabelDetailModal({
   function startEditing(l: Label) {
     setName(l.name);
     setTemplateId(l.templateId);
+    setSelectedProductId(l.productId);
     // datas vêm em ISO do back; no formulário usamos DD/MM/AAAA.
     setLabelData({
       ...l.data,
@@ -104,7 +123,6 @@ function LabelDetailModal({
     });
     setShelfDays("");
     setLogoRemoved(false);
-    setQrLink(l.qrCodeUrl ?? "");
     clearPickedLogo();
     setEditing(true);
   }
@@ -142,6 +160,16 @@ function LabelDetailModal({
       alertValidation("De um nome para o rótulo");
       return;
     }
+    if (!selectedProductId) {
+      alertValidation("Escolha o produto do rótulo");
+      return;
+    }
+    if (!editingQrUrl) {
+      alertError(
+        "Não foi possível carregar o endereço do seu catálogo. Tente novamente.",
+      );
+      return;
+    }
 
     // logoUrl: string (novo upload), null (removido) ou undefined (inalterado).
     let logoUrl: string | null | undefined;
@@ -169,6 +197,7 @@ function LabelDetailModal({
         data: {
           name: name.trim(),
           templateId,
+          productId: selectedProductId,
           data: {
             ...labelData,
             manufacturingDate: brToIso(labelData.manufacturingDate ?? ""),
@@ -255,6 +284,13 @@ function LabelDetailModal({
           >
             <Typography variant="h2">Editar rótulo</Typography>
             <Input label="Nome do rótulo" value={name} onChangeText={setName} />
+            <LabelProductPicker
+              selectedId={selectedProductId}
+              onSelect={(product) => {
+                setSelectedProductId(product.id);
+                updateField("productName", product.name);
+              }}
+            />
             <TemplatePicker selected={templateId} onSelect={setTemplateId} />
             <Typography variant="h3" style={{ marginTop: spacing.xs }}>
               Informações do produto
@@ -315,14 +351,6 @@ function LabelDetailModal({
               value={labelData.producerPhone ?? ""}
               onChangeText={(v) => updateField("producerPhone", maskPhoneBR(v))}
               keyboardType="phone-pad"
-            />
-            <Input
-              label="Link do QR Code (opcional)"
-              placeholder="Ex: instagram.com/seunegocio"
-              value={qrLink}
-              onChangeText={setQrLink}
-              autoCapitalize="none"
-              keyboardType="url"
             />
             <View>
               <Typography variant="caption" style={{ marginBottom: spacing.sm }}>
@@ -408,7 +436,7 @@ function LabelDetailModal({
               data={label.data}
               templateId={label.templateId}
               logoUrl={label.logoUrl}
-              qrUrl={label.qrCodeUrl}
+              qrUrl={catalogProductUrl(label.productId)}
               scale={1.2}
             />
             <View style={{ gap: spacing.md }}>

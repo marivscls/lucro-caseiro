@@ -10,7 +10,7 @@ import {
 } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Pressable, View } from "react-native";
+import { ActivityIndicator, Pressable, View } from "react-native";
 
 import { formatCurrency } from "../../../shared/utils/format";
 import { useSupplierName } from "../../suppliers/hooks";
@@ -22,6 +22,8 @@ interface PurchaseCardProps {
   readonly onDelete: () => void;
   readonly isPaying?: boolean;
   readonly payDisabled?: boolean;
+  readonly isDeleting?: boolean;
+  readonly deleteDisabled?: boolean;
 }
 
 function formatDate(iso: string): string {
@@ -35,6 +37,8 @@ export function PurchaseCard({
   onDelete,
   isPaying,
   payDisabled,
+  isDeleting,
+  deleteDisabled,
 }: PurchaseCardProps) {
   const { theme } = useTheme();
   const supplierName = useSupplierName(purchase.supplierId);
@@ -85,10 +89,11 @@ export function PurchaseCard({
           ) : null}
           <Pressable
             onPress={onDelete}
+            disabled={deleteDisabled}
             accessibilityRole="button"
-            accessibilityLabel="Excluir compra"
+            accessibilityLabel={isDeleting ? "Excluindo compra" : "Excluir compra"}
             hitSlop={8}
-            style={{
+            style={({ pressed }) => ({
               marginLeft: "auto",
               flexDirection: "row",
               alignItems: "center",
@@ -96,15 +101,20 @@ export function PurchaseCard({
               minHeight: 36,
               paddingVertical: spacing.xs,
               paddingHorizontal: spacing.sm,
-            }}
+              opacity: pressed || (deleteDisabled && !isDeleting) ? 0.55 : 1,
+            })}
           >
-            <Ionicons name="trash-outline" size={18} color={theme.colors.alert} />
+            {isDeleting ? (
+              <ActivityIndicator size="small" color={theme.colors.alert} />
+            ) : (
+              <Ionicons name="trash-outline" size={18} color={theme.colors.alert} />
+            )}
             <Typography
               variant="caption"
               color={theme.colors.alert}
               style={{ fontFamily: fonts.bold }}
             >
-              Excluir
+              {isDeleting ? "Excluindo..." : "Excluir"}
             </Typography>
           </Pressable>
         </View>

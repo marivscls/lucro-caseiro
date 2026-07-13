@@ -4,19 +4,15 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
-  FlatList,
   Image,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
-  StyleSheet,
   TextInput,
   View,
   type TextInputProps,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { showAlert } from "../../../shared/components/alert-store";
 import { CalendarModal } from "../../../shared/components/calendar-modal";
@@ -29,7 +25,7 @@ import {
   maskTimeBR,
 } from "../../../shared/utils/date";
 import { uploadOrderImage } from "../../../shared/utils/upload-image";
-import { useClients } from "../../clients/hooks";
+import { ClientPickerModal } from "../../clients/components/client-picker-modal";
 import { useCreateOrder, useDeleteOrder, useUpdateOrder } from "../hooks";
 import { FormSection } from "../../../shared/components/form-section";
 import { alertValidation } from "../../../shared/utils/alerts";
@@ -217,139 +213,6 @@ function ClientField({
       ) : null}
       <Ionicons name="chevron-down" size={20} color={pal.muted} />
     </Pressable>
-  );
-}
-
-/**
- * Modal de busca/seleção de cliente. Reaproveita o hook `useClients`
- * (mesmo usado na venda rápida) — não existe um componente de picker
- * compartilhado hoje, então esta é uma lista simples própria da encomenda.
- */
-function ClientPickerModal({
-  visible,
-  onClose,
-  onSelect,
-}: Readonly<{
-  visible: boolean;
-  onClose: () => void;
-  onSelect: (client: { id: string; name: string } | null) => void;
-}>) {
-  const { theme } = useTheme();
-  const pal = formPalette(theme);
-  const insets = useSafeAreaInsets();
-  const [search, setSearch] = useState("");
-  const { data, isLoading } = useClients({ search: search.trim() || undefined });
-  const clients = data?.items ?? [];
-
-  return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: "rgba(0,0,0,0.55)",
-          justifyContent: "flex-end",
-        }}
-      >
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-        <View
-          style={{
-            maxHeight: "78%",
-            borderTopLeftRadius: radii["2xl"],
-            borderTopRightRadius: radii["2xl"],
-            backgroundColor: theme.colors.surfaceElevated,
-            borderWidth: 1,
-            borderColor: pal.border,
-            paddingHorizontal: spacing.lg,
-            paddingTop: spacing.lg,
-            paddingBottom: spacing.lg + insets.bottom,
-            gap: spacing.md,
-          }}
-        >
-          <Typography variant="h3" color={theme.colors.text}>
-            Selecionar cliente
-          </Typography>
-          <Field
-            icon="search-outline"
-            placeholder="Buscar cliente..."
-            value={search}
-            onChangeText={setSearch}
-          />
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => {
-              onSelect(null);
-              onClose();
-            }}
-            style={{
-              minHeight: 52,
-              borderRadius: radii.lg,
-              borderWidth: 1,
-              borderColor: pal.border,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Typography variant="bodyBold" color={theme.colors.text}>
-              Sem cliente (avulso)
-            </Typography>
-          </Pressable>
-          {isLoading ? (
-            <ActivityIndicator color={theme.colors.primary} />
-          ) : (
-            <FlatList
-              data={clients}
-              keyExtractor={(item) => item.id}
-              style={{ maxHeight: 320 }}
-              keyboardShouldPersistTaps="handled"
-              renderItem={({ item }) => (
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() => {
-                    onSelect({ id: item.id, name: item.name });
-                    onClose();
-                  }}
-                  style={{
-                    minHeight: 52,
-                    paddingHorizontal: spacing.sm,
-                    justifyContent: "center",
-                    borderBottomWidth: 1,
-                    borderBottomColor: pal.border,
-                  }}
-                >
-                  <Typography variant="body" color={theme.colors.text}>
-                    {item.name}
-                  </Typography>
-                </Pressable>
-              )}
-              ListEmptyComponent={
-                <Typography
-                  variant="caption"
-                  color={pal.muted}
-                  style={{ textAlign: "center", padding: spacing.md }}
-                >
-                  Nenhum cliente encontrado
-                </Typography>
-              }
-            />
-          )}
-          <Pressable
-            onPress={onClose}
-            accessibilityRole="button"
-            style={{
-              minHeight: 48,
-              borderRadius: radii.lg,
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: theme.colors.primary,
-            }}
-          >
-            <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
-              Fechar
-            </Typography>
-          </Pressable>
-        </View>
-      </View>
-    </Modal>
   );
 }
 

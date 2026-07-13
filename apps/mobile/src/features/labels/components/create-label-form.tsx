@@ -11,10 +11,11 @@ import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { confirmPossibleDuplicate, duplicateKey } from "../../../shared/utils/duplicates";
 import { maskPhoneBR } from "../../../shared/utils/phone";
 import { uploadLabelLogo } from "../../../shared/utils/upload-image";
+import { publicCatalogProductUrl } from "../../catalog/api";
+import { useCatalogSettings } from "../../catalog/hooks";
 import { addDaysToBR, brToIso, maskDateBR } from "../dates";
 import { exportLabelPdfWithChoice } from "../label-export";
 import { cleanNutrition } from "../nutrition";
-import { normalizeLink } from "../qr";
 import { useCreateLabel, useLabels } from "../hooks";
 import { useProfile } from "../../subscription/hooks";
 import { DateField } from "../../../shared/components/date-field";
@@ -24,6 +25,7 @@ import { LabelStyleEditor } from "./label-style-editor";
 import { LabelPreview } from "./label-preview";
 import { NutritionFields } from "./nutrition-fields";
 import { TemplatePicker } from "./template-picker";
+import { LabelProductPicker } from "./label-product-picker";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
 
 interface CreateLabelFormProps {
@@ -45,15 +47,23 @@ export function CreateLabelForm({
   const [labelData, setLabelData] = useState<LabelData>({
     productName: "",
   });
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(
+    productId ?? null,
+  );
   const [exporting, setExporting] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [qrLink, setQrLink] = useState("");
   const [shelfDays, setShelfDays] = useState("");
   const { imageUri: logoUri, showPicker, clear: clearLogo } = useImagePicker();
 
-  const qrUrl = normalizeLink(qrLink);
+  const { data: catalogSettings } = useCatalogSettings();
+  const qrUrl =
+    catalogSettings && selectedProductId
+      ? publicCatalogProductUrl(catalogSettings.slug, selectedProductId)
+      : undefined;
   const createLabel = useCreateLabel();
-  const { data: labelsData } = useLabels(productId ? { productId } : undefined);
+  const { data: labelsData } = useLabels(
+    selectedProductId ? { productId: selectedProductId } : undefined,
+  );
 
   function updateField<K extends keyof LabelData>(key: K, value: LabelData[K]) {
     setLabelData((prev) => ({ ...prev, [key]: value }));
@@ -82,6 +92,16 @@ export function CreateLabelForm({
   async function handleSubmit() {
     if (!name.trim()) {
       alertValidation("De um nome para o rótulo");
+      return;
+    }
+    if (!selectedProductId) {
+      alertValidation("Escolha o produto do rótulo");
+      return;
+    }
+    if (!qrUrl) {
+      alertError(
+        "Não foi possível carregar o endereço do seu catálogo. Tente novamente.",
+      );
       return;
     }
     if (!labelData.productName.trim()) {
@@ -113,7 +133,7 @@ export function CreateLabelForm({
       (label) =>
         duplicateKey(label.name) === duplicateKey(name) &&
         label.templateId === templateId &&
-        (label.productId ?? null) === (productId ?? null),
+        label.productId === selectedProductId,
     );
     if (duplicatedLabel) {
       const shouldContinue = await confirmPossibleDuplicate(
@@ -144,7 +164,7 @@ export function CreateLabelForm({
       await createLabel.mutateAsync({
         name: name.trim(),
         templateId,
-        productId,
+        productId: selectedProductId,
         logoUrl,
         qrCodeUrl: qrUrl,
         data: {
@@ -171,6 +191,16 @@ export function CreateLabelForm({
   }
 
   async function handleExport() {
+    if (!selectedProductId) {
+      alertValidation("Escolha o produto do rótulo");
+      return;
+    }
+    if (!qrUrl) {
+      alertError(
+        "Não foi possível carregar o endereço do seu catálogo. Tente novamente.",
+      );
+      return;
+    }
     if (!labelData.productName.trim()) {
       alertValidation("Preencha o nome do produto para baixar o rótulo");
       return;
@@ -194,6 +224,14 @@ export function CreateLabelForm({
         placeholder="Ex: Rótulo Brigadeiro 50g"
         value={name}
         onChangeText={setName}
+      />
+
+      <LabelProductPicker
+        selectedId={selectedProductId}
+        onSelect={(product) => {
+          setSelectedProductId(product.id);
+          updateField("productName", product.name);
+        }}
       />
 
       <TemplatePicker selected={templateId} onSelect={setTemplateId} />
@@ -272,7 +310,7 @@ export function CreateLabelForm({
 
       <FormSection
         title="Contato e marca"
-        subtitle="Opcional: seu nome, telefone, QR Code e logo"
+        subtitle="Opcional: seu nome, telefone e logo"
         icon="person-circle-outline"
       >
         <Input
@@ -287,14 +325,6 @@ export function CreateLabelForm({
           value={labelData.producerPhone ?? ""}
           onChangeText={(v) => updateField("producerPhone", maskPhoneBR(v))}
           keyboardType="phone-pad"
-        />
-        <Input
-          label="Link do QR Code (opcional)"
-          placeholder="Ex: instagram.com/seunegocio"
-          value={qrLink}
-          onChangeText={setQrLink}
-          autoCapitalize="none"
-          keyboardType="url"
         />
         <View>
           <Typography variant="caption" style={{ marginBottom: spacing.sm }}>

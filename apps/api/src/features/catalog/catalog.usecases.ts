@@ -97,7 +97,10 @@ export class CatalogUseCases {
   }
 
   /** Catalogo publico por slug. 404 se nao existir ou estiver desativado. */
-  async getPublicCatalog(slug: string): Promise<PublicCatalog> {
+  async getPublicCatalog(
+    slug: string,
+    focusedProductId?: string,
+  ): Promise<PublicCatalog> {
     const owner = await this.repo.findOwnerBySlug(slug);
     if (!owner || !owner.enabled) {
       throw new NotFoundError("Catálogo não encontrado");
@@ -109,7 +112,19 @@ export class CatalogUseCases {
     const isPremium = hasActiveFeature(owner.plan, owner.planExpiresAt, "catalogPremium");
     // Planos sem catalogo premium exibem no maximo 3 produtos na vitrine
     // (gatilho de conversao; o app mostra "Mostre seu catalogo completo").
-    const products = isPremium ? allProducts : allProducts.slice(0, 3);
+    let products = allProducts;
+    if (!isPremium) {
+      products = allProducts.slice(0, 3);
+      const focusedProduct = focusedProductId
+        ? allProducts.find((product) => product.id === focusedProductId)
+        : undefined;
+      if (
+        focusedProduct &&
+        !products.some((product) => product.id === focusedProduct.id)
+      ) {
+        products = [focusedProduct, ...products].slice(0, 3);
+      }
+    }
     return {
       businessName: owner.businessName,
       whatsapp: owner.whatsapp ?? owner.phone,

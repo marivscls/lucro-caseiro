@@ -25,7 +25,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import purchasesEmpty from "../assets/purchases-empty.png";
 import { CreatePurchaseForm } from "../features/purchases/components/create-purchase-form";
 import { PurchaseCard } from "../features/purchases/components/purchase-card";
-import { pendingTotal } from "../features/purchases/domain";
+import { pendingTotal, sortPurchasesPendingFirst } from "../features/purchases/domain";
 import {
   useDeletePurchase,
   usePayPurchase,
@@ -56,6 +56,8 @@ export default function PurchasesScreen() {
   const [showCreate, setShowCreate] = useState(false);
   const [payingId, setPayingId] = useState<string | null>(null);
   const payingIdRef = useRef<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const deletingIdRef = useRef<string | null>(null);
 
   const { data, isLoading, error } = usePurchases(
     filter === "all" ? undefined : { status: filter },
@@ -77,9 +79,16 @@ export default function PurchasesScreen() {
           text: "Excluir",
           style: "destructive",
           onPress: () => {
+            if (deletingIdRef.current) return;
+            deletingIdRef.current = id;
+            setDeletingId(id);
             deletePurchase
               .mutateAsync(id)
-              .catch(() => alertError("Não foi possível excluir a compra."));
+              .catch(() => alertError("Não foi possível excluir a compra."))
+              .finally(() => {
+                deletingIdRef.current = null;
+                setDeletingId(null);
+              });
           },
         },
       ],
@@ -106,7 +115,7 @@ export default function PurchasesScreen() {
       });
   }
 
-  const items = data?.items ?? [];
+  const items = sortPurchasesPendingFirst(data?.items ?? []);
 
   function renderList() {
     if (isLoading) {
@@ -156,6 +165,8 @@ export default function PurchasesScreen() {
             onDelete={() => confirmDelete(p.id)}
             isPaying={payingId === p.id}
             payDisabled={payingId !== null}
+            isDeleting={deletingId === p.id}
+            deleteDisabled={deletingId !== null}
           />
         ))}
       </ScrollView>

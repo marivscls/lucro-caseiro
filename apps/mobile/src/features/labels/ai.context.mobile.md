@@ -18,19 +18,20 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 
 ## Code pointers
 
-| Arquivo                                                            | Descricao                                                                                        |
-| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
-| `apps/mobile/src/features/labels/api.ts`                           | Funcoes HTTP (fetchLabels, fetchLabel, fetchTemplates, createLabel, updateLabel, deleteLabel)    |
-| `apps/mobile/src/features/labels/hooks.ts`                         | React Query hooks                                                                                |
-| `apps/mobile/src/features/labels/components/create-label-form.tsx` | Formulario de criacao com preview ao vivo                                                        |
-| `apps/mobile/src/features/labels/components/label-preview.tsx`     | Componente de pre-visualizacao do rotulo                                                         |
-| `apps/mobile/src/features/labels/components/template-picker.tsx`   | Seletor horizontal de templates                                                                  |
-| `apps/mobile/src/features/labels/label-export.ts`                  | Gera HTML do rotulo -> PDF (expo-print) e abre share/print (expo-sharing)                        |
-| `apps/mobile/src/features/labels/qr.ts`                            | `normalizeLink` (texto -> URL) e `buildQrSvg` (QR como SVG via qrcode-generator, JS puro)        |
-| `apps/mobile/src/features/labels/dates.ts`                         | Datas: `isoToBR`/`brToIso` (exibir vs salvar), `maskDateBR` (mascara) e `addDaysToBR` (validade) |
-| `apps/mobile/src/features/labels/nutrition.ts`                     | `NUTRITION_FIELDS` (config), `hasNutrition`, `cleanNutrition`                                    |
-| `apps/mobile/src/features/labels/components/nutrition-fields.tsx`  | Secao colapsavel de inputs da informacao nutricional (criar/editar)                              |
-| `apps/mobile/src/app/labels.tsx`                                   | Screen (rota `/labels`)                                                                          |
+| Arquivo                                                               | Descricao                                                                                        |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `apps/mobile/src/features/labels/api.ts`                              | Funcoes HTTP (fetchLabels, fetchLabel, fetchTemplates, createLabel, updateLabel, deleteLabel)    |
+| `apps/mobile/src/features/labels/hooks.ts`                            | React Query hooks                                                                                |
+| `apps/mobile/src/features/labels/components/create-label-form.tsx`    | Formulario de criacao com preview ao vivo                                                        |
+| `apps/mobile/src/features/labels/components/label-preview.tsx`        | Componente de pre-visualizacao do rotulo                                                         |
+| `apps/mobile/src/features/labels/components/template-picker.tsx`      | Seletor horizontal de templates                                                                  |
+| `apps/mobile/src/features/labels/components/label-product-picker.tsx` | Seletor do produto vinculado ao QR do catalogo                                                   |
+| `apps/mobile/src/features/labels/label-export.ts`                     | Gera HTML do rotulo -> PDF (expo-print) e abre share/print (expo-sharing)                        |
+| `apps/mobile/src/features/labels/qr.ts`                               | `buildQrSvg` (QR como SVG via qrcode-generator, JS puro)                                         |
+| `apps/mobile/src/features/labels/dates.ts`                            | Datas: `isoToBR`/`brToIso` (exibir vs salvar), `maskDateBR` (mascara) e `addDaysToBR` (validade) |
+| `apps/mobile/src/features/labels/nutrition.ts`                        | `NUTRITION_FIELDS` (config), `hasNutrition`, `cleanNutrition`                                    |
+| `apps/mobile/src/features/labels/components/nutrition-fields.tsx`     | Secao colapsavel de inputs da informacao nutricional (criar/editar)                              |
+| `apps/mobile/src/app/labels.tsx`                                      | Screen (rota `/labels`)                                                                          |
 
 ## Components
 
@@ -42,7 +43,7 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 - Inclui preview ao vivo via `LabelPreview`.
 - Secao "Informacao nutricional" (colapsavel, `NutritionFields`): 9 campos opcionais (porcao, kcal, carboidratos, acucares, proteinas, gorduras totais/saturadas, fibra, sodio). `cleanNutrition` nao envia se vazio. Renderizada como tabela no preview e no PDF. Layout informativo, nao e o template certificado ANVISA.
 - Upload de logo opcional (galeria/camera via `useImagePicker`); sobe pro storage com `uploadLabelLogo` no submit e envia `logoUrl` no `createLabel`. Se o upload falhar, salva sem o logo.
-- Campo "Link do QR Code" opcional: `normalizeLink` converte o texto em URL e envia em `qrCodeUrl`; o QR aparece no preview e no PDF.
+- Produto vinculado obrigatorio: o QR usa `publicCatalogProductUrl(slug, productId)` para abrir diretamente o card desse produto no catalogo da conta; nao ha link manual.
 - Botao "Baixar / Compartilhar" gera PDF do rotulo a partir dos dados atuais (sem precisar salvar) via `exportLabelPdf`, incluindo logo e QR.
 
 ### `LabelPreview`
@@ -76,9 +77,8 @@ Criar e gerenciar rotulos para produtos caseiros: selecionar template visual, pr
 
 - Sobe a imagem local pro bucket `product-photos` do Supabase Storage (path `${userId}/logo-${timestamp}.{ext}`) e devolve a URL publica. Mesma infra de `uploadProductImage` (bucket unico, escopado por usuario).
 
-### `normalizeLink(input)` e `buildQrSvg(text, color?)` (features/labels/qr.ts)
+### `buildQrSvg(text, color?)` (features/labels/qr.ts)
 
-- `normalizeLink`: trim; vazio -> undefined; sem esquema -> prefixa `https://`. Usado para montar o `qrCodeUrl`.
 - `buildQrSvg`: gera o QR como string SVG (modulos pretos sobre fundo branco para maximo contraste/leitura, quiet zone 2; `color` customizavel) com `qrcode-generator` (JS puro, sem Buffer). Mesmo SVG no preview (`react-native-svg`) e no PDF (inline no HTML).
 
 ### Datas (features/labels/dates.ts)

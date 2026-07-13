@@ -2,7 +2,11 @@ import type { Label, LabelStyle } from "@lucro-caseiro/contracts";
 
 import { LimitExceededError, NotFoundError, ValidationError } from "../../shared/errors";
 import { paginationMeta } from "../../shared/helpers/paginate";
-import { getAvailableTemplates, validateLabelData } from "./labels.domain";
+import {
+  getAvailableTemplates,
+  normalizeLabelTemplateId,
+  validateLabelData,
+} from "./labels.domain";
 import type { LabelTemplate } from "./labels.domain";
 import type { CreateLabelData, FindAllOpts, ILabelsRepo } from "./labels.types";
 
@@ -27,13 +31,17 @@ export class LabelsUseCases {
   }
 
   async create(userId: string, data: CreateLabelData): Promise<Label> {
-    const errors = validateLabelData(data);
+    const normalizedData = {
+      ...data,
+      templateId: normalizeLabelTemplateId(data.templateId),
+    };
+    const errors = validateLabelData(normalizedData);
     if (errors.length > 0) {
       throw new ValidationError(errors);
     }
-    await this.assertStyleAllowed(userId, data.data.style);
+    await this.assertStyleAllowed(userId, normalizedData.data.style);
 
-    return this.repo.create(userId, data);
+    return this.repo.create(userId, normalizedData);
   }
 
   async getById(userId: string, id: string): Promise<Label> {
@@ -63,9 +71,10 @@ export class LabelsUseCases {
     }
 
     const merged = { ...existing, ...data };
+    const templateId = normalizeLabelTemplateId(merged.templateId);
     const errors = validateLabelData({
       name: merged.name,
-      templateId: merged.templateId,
+      templateId,
       data: merged.data,
       productId: merged.productId ?? undefined,
       logoUrl: merged.logoUrl ?? undefined,
@@ -77,7 +86,7 @@ export class LabelsUseCases {
     }
     await this.assertStyleAllowed(userId, data.data?.style);
 
-    const updated = await this.repo.update(userId, id, data);
+    const updated = await this.repo.update(userId, id, { ...data, templateId });
     if (!updated) {
       throw new NotFoundError("Rótulo não encontrado");
     }

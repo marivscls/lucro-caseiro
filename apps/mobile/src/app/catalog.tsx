@@ -1,8 +1,4 @@
-import type {
-  CatalogAccentColorValue,
-  CatalogPatternKey,
-  CatalogSettings,
-} from "@lucro-caseiro/contracts";
+import type { CatalogAccentColorValue, CatalogSettings } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import {
   Badge,
@@ -44,19 +40,6 @@ const ACCENT_SWATCHES: { key: CatalogAccentColorValue; color: string; label: str
     { key: "blue", color: "#3f74a0", label: "Azul" },
     { key: "amber", color: "#b3852f", label: "Dourado" },
   ];
-
-// Patterns decorativos do hero (mesmas chaves do backend, HERO_PATTERNS).
-const PATTERN_OPTIONS: {
-  key: CatalogPatternKey | null;
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-}[] = [
-  { key: null, icon: "ban-outline", label: "Nenhum" },
-  { key: "dots", icon: "ellipsis-horizontal", label: "Pontinhos" },
-  { key: "bubbles", icon: "ellipse-outline", label: "Bolinhas" },
-  { key: "grid", icon: "grid-outline", label: "Quadriculado" },
-  { key: "stripes", icon: "reorder-three-outline", label: "Listras" },
-];
 
 const INTRO_BENEFITS: {
   icon: keyof typeof Ionicons.glyphMap;
@@ -152,12 +135,7 @@ function CatalogIntro({
 /** Teaser de personalização: mostra o que o Profissional libera sem expor controles. */
 function AppearanceProfessionalTeaser({ onUnlock }: Readonly<{ onUnlock: () => void }>) {
   const { theme } = useTheme();
-  const perks = [
-    "Foto de capa e logo",
-    "Cores do seu jeito",
-    "Estampas no topo",
-    "Frase de apresentação",
-  ];
+  const perks = ["Foto de capa e logo", "Cores do seu jeito", "Frase de apresentação"];
   return (
     <View style={{ gap: spacing.md }}>
       <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -209,7 +187,6 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
   const [accentColor, setAccentColor] = useState<CatalogAccentColorValue | null>(
     settings.accentColor,
   );
-  const [pattern, setPattern] = useState<CatalogPatternKey | null>(settings.pattern);
   const isCustomColor = !!accentColor && accentColor.startsWith("#");
   const [colorModalVisible, setColorModalVisible] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
@@ -239,14 +216,12 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
     setTagline(settings.tagline ?? "");
     setPromo(settings.promoBanner ?? "");
     setAccentColor(settings.accentColor);
-    setPattern(settings.pattern);
   }, [
     settings.slug,
     settings.whatsapp,
     settings.tagline,
     settings.promoBanner,
     settings.accentColor,
-    settings.pattern,
   ]);
 
   const url = publicCatalogUrl(settings.slug);
@@ -334,11 +309,6 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
     setAccentColor(hex);
   }
 
-  function handlePickPattern(nextPattern: CatalogPatternKey | null) {
-    if (requireProfessional()) return;
-    setPattern(nextPattern);
-  }
-
   async function handleToggle(enabled: boolean) {
     await save({ enabled });
   }
@@ -365,7 +335,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
       const normalizedPromo = promo.trim() || null;
       const customizedSettings = await save({
         accentColor,
-        pattern,
+        pattern: null,
         tagline: normalizedTagline,
         promoBanner: normalizedPromo,
       });
@@ -373,7 +343,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
 
       if (
         customizedSettings.accentColor !== accentColor ||
-        customizedSettings.pattern !== pattern ||
+        customizedSettings.pattern !== null ||
         customizedSettings.tagline !== normalizedTagline ||
         customizedSettings.promoBanner !== normalizedPromo
       ) {
@@ -820,50 +790,12 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                     </Pressable>
                   </View>
 
-                  {/* Pattern decorativo */}
-                  <Typography variant="caption" color={theme.colors.textSecondary}>
-                    Estampa do topo
-                  </Typography>
-                  <View
-                    style={{ flexDirection: "row", gap: spacing.md, flexWrap: "wrap" }}
-                  >
-                    {PATTERN_OPTIONS.map((option) => {
-                      const selected = pattern === option.key;
-                      return (
-                        <Pressable
-                          key={option.label}
-                          onPress={() => handlePickPattern(option.key)}
-                          accessibilityRole="button"
-                          accessibilityLabel={`Estampa ${option.label}`}
-                          style={{ alignItems: "center", gap: spacing.xs }}
-                        >
-                          <View
-                            style={{
-                              width: 44,
-                              height: 44,
-                              borderRadius: radii.full,
-                              backgroundColor: theme.colors.primary,
-                              borderWidth: selected ? 3 : 0,
-                              borderColor: theme.colors.text,
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <Ionicons name={option.icon} size={20} color="#fff" />
-                          </View>
-                          <Typography variant="caption">{option.label}</Typography>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-
-                  {/* Previa do topo (cor + estampa) */}
+                  {/* Previa do topo */}
                   <Typography variant="caption" color={theme.colors.textSecondary}>
                     Prévia do topo do catálogo
                   </Typography>
                   <HeroPreview
                     baseColor={resolvedBaseColor}
-                    pattern={pattern}
                     businessName={profile?.businessName ?? profile?.name ?? "Seu negócio"}
                     tagline={tagline}
                   />

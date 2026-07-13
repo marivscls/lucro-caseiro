@@ -19,14 +19,14 @@ Registrar compras de fornecedores como **contas a pagar** e **saídas do caixa**
 
 ## Code pointers
 
-| Arquivo                                                                  | Descrição                                              |
-| ------------------------------------------------------------------------ | ------------------------------------------------------ |
-| `apps/mobile/src/features/purchases/api.ts`                              | HTTP (fetch, create, pay, delete)                      |
-| `apps/mobile/src/features/purchases/hooks.ts`                            | React Query hooks                                      |
-| `apps/mobile/src/features/purchases/domain.ts`                           | categorias, `categoryLabel`, `pendingTotal` (+ testes) |
-| `apps/mobile/src/features/purchases/components/create-purchase-form.tsx` | Formulário de criação                                  |
-| `apps/mobile/src/features/purchases/components/purchase-card.tsx`        | Card (info + "marcar paga" + excluir)                  |
-| `apps/mobile/src/app/purchases.tsx`                                      | Screen (rota `/purchases`)                             |
+| Arquivo                                                                  | Descrição                                                    |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------ |
+| `apps/mobile/src/features/purchases/api.ts`                              | HTTP (fetch, create, pay, delete)                            |
+| `apps/mobile/src/features/purchases/hooks.ts`                            | React Query hooks                                            |
+| `apps/mobile/src/features/purchases/domain.ts`                           | categorias, total pendente e ordenação por status (+ testes) |
+| `apps/mobile/src/features/purchases/components/create-purchase-form.tsx` | Formulário de criação                                        |
+| `apps/mobile/src/features/purchases/components/purchase-card.tsx`        | Card (info + "marcar paga" + excluir)                        |
+| `apps/mobile/src/app/purchases.tsx`                                      | Screen (rota `/purchases`)                                   |
 
 ## Components
 

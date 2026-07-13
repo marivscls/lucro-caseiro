@@ -42,19 +42,6 @@ import { activePlan, useProfile } from "../features/subscription/hooks";
 import { useSubscription } from "../features/subscription/use-subscription";
 import { useStripeCheckout } from "../features/subscription/use-stripe";
 
-// Dev/emulador: o react-native-iap falha ao iniciar a conexão quando não há Google
-// Play billing (ex.: emulador) e loga via console.error, o que faz o LogBox abrir um
-// overlay vermelho recorrente — atrapalhando o uso e travando os testes E2E. Filtra
-// APENAS esse ruído conhecido do IAP, mantendo o LogBox para os demais erros.
-// Só roda em dev: em produção `__DEV__` é false e o LogBox nem existe.
-if (__DEV__) {
-  const originalError = console.error.bind(console);
-  console.error = (...args: Parameters<typeof console.error>) => {
-    if (typeof args[0] === "string" && args[0].includes("[RN-IAP]")) return;
-    originalError(...args);
-  };
-}
-
 function AppContent() {
   const { theme } = useTheme();
   const { initialize, isLoading, token, userId, passwordRecovery } = useAuth();

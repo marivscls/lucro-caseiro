@@ -336,7 +336,14 @@ export function PricingResult({
               gap: spacing.xs,
             }}
           >
-            <Typography variant="label">LUCRO LÍQUIDO</Typography>
+            <Typography
+              variant="label"
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
+            >
+              LUCRO LÍQUIDO
+            </Typography>
             <Typography
               variant="money"
               color={theme.colors.success}

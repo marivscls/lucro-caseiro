@@ -8,6 +8,7 @@ import { showAlert } from "../../../shared/components/alert-store";
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { showToast } from "../../../shared/components/toast";
 import { formatCurrency } from "../../../shared/utils/format";
+import { ClientPickerModal } from "../../clients/components/client-picker-modal";
 import { computeQuoteTotal } from "../calc";
 import { useCreateQuote, useUpdateQuote } from "../hooks";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
@@ -57,7 +58,9 @@ export function QuoteForm({ quote, onSuccess }: QuoteFormProps) {
   const createQuote = useCreateQuote();
   const updateQuote = useUpdateQuote();
   const [title, setTitle] = useState(quote?.title ?? "");
+  const [clientId, setClientId] = useState<string | null>(quote?.clientId ?? null);
   const [clientName, setClientName] = useState(quote?.clientName ?? "");
+  const [showClientPicker, setShowClientPicker] = useState(false);
   const [validUntil, setValidUntil] = useState(
     quote?.validUntil ? quote.validUntil.split("-").reverse().join("/") : "",
   );
@@ -120,6 +123,7 @@ export function QuoteForm({ quote, onSuccess }: QuoteFormProps) {
 
     const data: CreateQuote = {
       title: title.trim(),
+      clientId,
       clientName: clientName.trim() || null,
       items: parsedItems,
       validUntil: validIso,
@@ -161,7 +165,24 @@ export function QuoteForm({ quote, onSuccess }: QuoteFormProps) {
         label="Cliente (opcional)"
         placeholder="Nome de quem pediu o orçamento"
         value={clientName}
-        onChangeText={setClientName}
+        onChangeText={(value) => {
+          setClientId(null);
+          setClientName(value);
+        }}
+      />
+      <Button
+        title={clientId ? "Trocar cliente cadastrado" : "Selecionar cliente cadastrado"}
+        variant="outline"
+        icon={<Ionicons name="person-outline" size={20} color={theme.colors.primary} />}
+        onPress={() => setShowClientPicker(true)}
+      />
+      <ClientPickerModal
+        visible={showClientPicker}
+        onClose={() => setShowClientPicker(false)}
+        onSelect={(client) => {
+          setClientId(client?.id ?? null);
+          setClientName(client?.name ?? "");
+        }}
       />
 
       <Typography variant="h3">Itens</Typography>

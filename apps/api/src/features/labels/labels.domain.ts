@@ -15,6 +15,12 @@ const TEMPLATES: LabelTemplate[] = [
   { id: "gourmet", name: "Gourmet" },
 ];
 
+export function normalizeLabelTemplateId(templateId: string): string {
+  if (templateId === "classic") return "classico";
+  if (templateId === "minimal") return "minimalista";
+  return templateId;
+}
+
 export function validateLabelData(data: CreateLabelData): string[] {
   const errors: string[] = [];
 
@@ -45,7 +51,8 @@ export function getAvailableTemplates(): LabelTemplate[] {
 }
 
 export function isValidTemplate(templateId: string): boolean {
-  return TEMPLATES.some((t) => t.id === templateId);
+  const normalizedId = normalizeLabelTemplateId(templateId);
+  return TEMPLATES.some((t) => t.id === normalizedId);
 }
 
 export function buildLabelContent(

@@ -219,10 +219,11 @@ BEGIN
   -- ================================= ROTULOS (8) ==================================
   FOR i IN 1..8 LOOP
     INSERT INTO labels (user_id,product_id,template_id,name,data,qr_code_url,created_at)
-    VALUES (v_user,product_ids[i],CASE WHEN i%2=0 THEN 'minimal' ELSE 'classic' END,
+    VALUES (v_user,product_ids[i],CASE WHEN i%2=0 THEN 'minimalista' ELSE 'classico' END,
       '[massa] Rotulo ' || i,
       jsonb_build_object('brand','Delicias da Mariana','product',(SELECT name FROM products WHERE id=product_ids[i]),'validity','5 dias','ingredients','Produzido artesanalmente'),
-      'https://catalogo.lucrocaseiro.com.br/c/mariana-demo',now()-i*interval '4 days');
+      'https://catalogo.lucrocaseiro.com.br/c/mariana-demo?produto=' || product_ids[i]::text || '#produto-' || product_ids[i]::text,
+      now()-i*interval '4 days');
   END LOOP;
 
   -- ============================= VENDAS (72 / 6 MESES) ============================

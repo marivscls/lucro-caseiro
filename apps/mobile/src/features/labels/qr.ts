@@ -1,17 +1,6 @@
 import qrcode from "qrcode-generator";
 
 /**
- * Normaliza o que o usuário digita num link válido (https://...).
- * Retorna undefined se vazio. Ex: "instagram.com/doces" -> "https://instagram.com/doces".
- */
-export function normalizeLink(input: string): string | undefined {
-  const trimmed = input.trim();
-  if (!trimmed) return undefined;
-  if (/^https?:\/\//i.test(trimmed)) return trimmed;
-  return `https://${trimmed}`;
-}
-
-/**
  * Gera o SVG de um QR code (JS puro, offline) a partir de um texto/link.
  * Módulos pretos sobre fundo branco (máximo contraste -> leitura confiável em
  * qualquer leitor, independente do template). Quiet zone de 2 módulos.

@@ -21,3 +21,10 @@ export function pendingTotal(items: Purchase[]): number {
     .filter((p) => p.paymentStatus === "pending")
     .reduce((sum, p) => sum + p.amount, 0);
 }
+
+/** Mantém contas a pagar no topo sem alterar a ordem dentro de cada grupo. */
+export function sortPurchasesPendingFirst(items: readonly Purchase[]): Purchase[] {
+  return [...items].sort(
+    (a, b) => Number(a.paymentStatus === "paid") - Number(b.paymentStatus === "paid"),
+  );
+}

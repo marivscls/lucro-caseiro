@@ -4,6 +4,7 @@ import {
   buildLabelContent,
   getAvailableTemplates,
   isValidTemplate,
+  normalizeLabelTemplateId,
   validateLabelData,
 } from "./labels.domain";
 import type { CreateLabelData } from "./labels.types";
@@ -132,6 +133,23 @@ describe("isValidTemplate", () => {
 
   it("returns false for empty string", () => {
     expect(isValidTemplate("")).toBe(false);
+  });
+
+  it("accepts template ids left by the legacy full seed", () => {
+    expect(isValidTemplate("classic")).toBe(true);
+    expect(isValidTemplate("minimal")).toBe(true);
+  });
+});
+
+describe("normalizeLabelTemplateId", () => {
+  it("maps legacy ids to the canonical templates", () => {
+    expect(normalizeLabelTemplateId("classic")).toBe("classico");
+    expect(normalizeLabelTemplateId("minimal")).toBe("minimalista");
+  });
+
+  it("keeps canonical and unknown ids unchanged", () => {
+    expect(normalizeLabelTemplateId("gourmet")).toBe("gourmet");
+    expect(normalizeLabelTemplateId("inexistente")).toBe("inexistente");
   });
 });
 

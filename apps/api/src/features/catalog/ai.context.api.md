@@ -80,7 +80,7 @@ invariants:
 ## Authorization & RLS
 
 - `/api/v1/catalog/settings`: `authMiddleware` + `getUserId(req)`.
-- `/c/:slug`: público por design (sem auth). Exposição limitada a businessName,
+- `/c/:slug`: público por design (sem auth). `?produto=<id>#produto-<id>` abre diretamente o card do produto e garante sua presenca entre os 3 itens de planos limitados. Exposição limitada a businessName,
   whatsapp escolhido e produtos ativos (nome, descrição, foto, preço).
 
 ## Contracts (Zod/DTO)
@@ -118,7 +118,7 @@ invariants:
 
 ## Examples
 
-- `GET /c/doces-da-maria` → página HTML com produtos e botões `wa.me`.
+- `GET /c/doces-da-maria?produto=<uuid>#produto-<uuid>` → página HTML posicionada no produto, com botões `wa.me`.
 - `PUT /api/v1/catalog/settings` `{ "enabled": true, "slug": "doces-da-maria" }`.
 
 ## Change log / Decisions

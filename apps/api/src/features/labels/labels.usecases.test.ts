@@ -104,6 +104,25 @@ describe("LabelsUseCases", () => {
       expect(result.templateId).toBe("classico");
     });
 
+    it("normalizes a legacy template id before creating", async () => {
+      let received: CreateLabelData | undefined;
+      const { sut } = makeSut({
+        create: (_userId, data) => {
+          received = data;
+          return Promise.resolve(makeLabel({ templateId: data.templateId }));
+        },
+      });
+
+      const result = await sut.create(USER_ID, {
+        name: "Rótulo legado",
+        templateId: "classic",
+        data: { productName: "Macarrão" },
+      });
+
+      expect(received?.templateId).toBe("classico");
+      expect(result.templateId).toBe("classico");
+    });
+
     it("throws ValidationError for invalid data", async () => {
       const { sut } = makeSut();
       await expect(
@@ -167,6 +186,22 @@ describe("LabelsUseCases", () => {
       });
 
       expect(result.name).toBe("Rótulo Gourmet");
+    });
+
+    it("repairs a legacy template id when saving an existing label", async () => {
+      let received: Partial<CreateLabelData> | undefined;
+      const { sut } = makeSut({
+        findById: () => Promise.resolve(makeLabel({ templateId: "minimal" })),
+        update: (_userId, _id, data) => {
+          received = data;
+          return Promise.resolve(makeLabel({ ...data }));
+        },
+      });
+
+      const result = await sut.update(USER_ID, "label-1", { name: "Rótulo atualizado" });
+
+      expect(received?.templateId).toBe("minimalista");
+      expect(result.templateId).toBe("minimalista");
     });
 
     it("throws NotFoundError when label does not exist", async () => {

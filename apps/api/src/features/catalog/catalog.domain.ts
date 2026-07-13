@@ -75,7 +75,7 @@ function productCard(product: PublicCatalogProduct, whatsapp: string | null): st
   const orderButton = whatsapp
     ? `<a class="order" href="${whatsappLink(whatsapp, product.name, priceLabel)}">${WHATSAPP_ICON}Pedir no WhatsApp</a>`
     : "";
-  return `<article class="card"><div class="photo">${photo}</div><div class="info"><h2>${escapeHtml(product.name)}</h2>${description}<div class="bottom"><p class="price">${formatPrice(product.salePrice)}<span class="unit">${unit}</span></p>${orderButton}</div></div></article>`;
+  return `<article class="card" id="produto-${escapeHtml(product.id)}"><div class="photo">${photo}</div><div class="info"><h2>${escapeHtml(product.name)}</h2>${description}<div class="bottom"><p class="price">${formatPrice(product.salePrice)}<span class="unit">${unit}</span></p>${orderButton}</div></div></article>`;
 }
 
 /** Renderiza a pagina HTML publica do catalogo (mobile-first, sem JS). */
@@ -215,6 +215,7 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   .count { display: inline-block; margin-top: 14px; font-size: 13px; background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.25); padding: 6px 14px; border-radius: 999px; position: relative; z-index: 1; }
   main { max-width: 760px; margin: -44px auto 0; padding: 0 16px 16px; display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); position: relative; z-index: 2; }
   .card { background: #fffdfb; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(61, 43, 34, 0.12), 0 2px 6px rgba(61, 43, 34, 0.06); border: 1px solid rgba(140, 90, 69, 0.08); display: flex; flex-direction: column; transition: transform 0.15s ease; }
+  .card:target { scroll-margin-top: 16px; outline: 3px solid ${palette.light}; outline-offset: 3px; }
   .card:hover { transform: translateY(-2px); }
   .photo img { width: 100%; height: 200px; object-fit: cover; display: block; }
   .gallery { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }

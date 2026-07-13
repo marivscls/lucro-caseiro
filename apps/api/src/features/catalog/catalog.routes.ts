@@ -38,7 +38,9 @@ export function createPublicCatalogRouter(useCases: CatalogUseCases): Router {
 
   router.get("/:slug", async (req, res, next) => {
     try {
-      const catalog = await useCases.getPublicCatalog(req.params.slug);
+      const focusedProductId =
+        typeof req.query.produto === "string" ? req.query.produto : undefined;
+      const catalog = await useCases.getPublicCatalog(req.params.slug, focusedProductId);
       res.type("html").send(renderCatalogHtml(catalog));
     } catch (err) {
       next(err);
@@ -47,7 +49,9 @@ export function createPublicCatalogRouter(useCases: CatalogUseCases): Router {
 
   router.get("/:slug/json", async (req, res, next) => {
     try {
-      const catalog = await useCases.getPublicCatalog(req.params.slug);
+      const focusedProductId =
+        typeof req.query.produto === "string" ? req.query.produto : undefined;
+      const catalog = await useCases.getPublicCatalog(req.params.slug, focusedProductId);
       res.json(catalog);
     } catch (err) {
       next(err);

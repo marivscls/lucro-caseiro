@@ -25,6 +25,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import quotesEmpty from "../assets/quotes-empty.png";
+import { useClient } from "../features/clients/hooks";
 import { QuoteForm } from "../features/quotes/components/quote-form";
 import { showAlert } from "../shared/components/alert-store";
 import {
@@ -41,7 +42,8 @@ import { showToast } from "../shared/components/toast";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { brToIso } from "../shared/utils/date";
 import { formatCurrency } from "../shared/utils/format";
-import { openWhatsAppShare } from "../shared/utils/whatsapp";
+import { isValidBrazilPhone } from "../shared/utils/phone";
+import { openWhatsApp, openWhatsAppShare } from "../shared/utils/whatsapp";
 import { alertValidation, alertError } from "../shared/utils/alerts";
 import { maskCurrencyInput, parseCurrencyInput } from "../shared/utils/currency-input";
 
@@ -258,6 +260,7 @@ function QuoteDetail({
   const { theme } = useTheme();
   const router = useRouter();
   const { data: profile } = useProfile();
+  const { data: client, refetch: refetchClient } = useClient(quote.clientId ?? "");
   const showPaywall = usePaywall((s) => s.show);
   const setStatus = useUpdateQuoteStatus();
   const removeQuote = useDeleteQuote();
@@ -266,8 +269,15 @@ function QuoteDetail({
   const meta = quoteStatusMeta(quote.status);
   const businessName = profile?.businessName ?? profile?.name ?? "Meu negócio";
 
-  function handleWhatsApp() {
-    void openWhatsAppShare(buildQuoteMessage(quote, businessName));
+  async function handleWhatsApp() {
+    const message = buildQuoteMessage(quote, businessName);
+    const currentClient =
+      client ?? (quote.clientId ? (await refetchClient()).data : undefined);
+    if (currentClient?.phone && isValidBrazilPhone(currentClient.phone)) {
+      await openWhatsApp(currentClient.phone, message);
+    } else {
+      await openWhatsAppShare(message);
+    }
   }
 
   async function handlePdf() {
@@ -458,7 +468,9 @@ function QuoteDetail({
           variant="success"
           size="lg"
           icon={<Ionicons name="logo-whatsapp" size={20} color="#fff" />}
-          onPress={handleWhatsApp}
+          onPress={() => {
+            void handleWhatsApp();
+          }}
         />
         {quote.status === "pending" && (
           <Button

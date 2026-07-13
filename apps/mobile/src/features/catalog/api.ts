@@ -31,3 +31,9 @@ export function publicCatalogUrl(slug: string): string {
     "http://localhost:3001";
   return `${base}/c/${slug}`;
 }
+
+/** URL que abre o catalogo ja posicionado no card de um produto. */
+export function publicCatalogProductUrl(slug: string, productId: string): string {
+  const encodedProductId = encodeURIComponent(productId);
+  return `${publicCatalogUrl(slug)}?produto=${encodedProductId}#produto-${encodedProductId}`;
+}

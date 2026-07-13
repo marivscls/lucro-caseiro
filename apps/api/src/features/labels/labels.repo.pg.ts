@@ -2,6 +2,7 @@ import type { Label, LabelData } from "@lucro-caseiro/contracts";
 import { labels } from "@lucro-caseiro/database/schema";
 import { and, count, eq, sql } from "drizzle-orm";
 import type { AppDatabase } from "../../shared/db";
+import { normalizeLabelTemplateId } from "./labels.domain";
 import type { CreateLabelData, FindAllOpts, ILabelsRepo } from "./labels.types";
 
 export class LabelsRepoPg implements ILabelsRepo {
@@ -113,7 +114,7 @@ export class LabelsRepoPg implements ILabelsRepo {
       id: row.id,
       userId: row.userId,
       productId: row.productId ?? null,
-      templateId: row.templateId,
+      templateId: normalizeLabelTemplateId(row.templateId),
       name: row.name,
       data: row.data as LabelData,
       logoUrl: row.logoUrl ?? null,

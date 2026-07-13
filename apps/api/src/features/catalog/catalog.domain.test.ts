@@ -124,6 +124,7 @@ describe("renderCatalogHtml", () => {
     expect(html).toContain("Bolo de Pote");
     expect(html).toContain("R$ 12,50");
     expect(html).toContain("https://wa.me/5511999998888");
+    expect(html).toContain(`id="produto-${product.id}"`);
   });
 
   it("mostra sufixo /kg para produtos por peso", () => {
