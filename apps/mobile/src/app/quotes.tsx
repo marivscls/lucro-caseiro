@@ -25,6 +25,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import quotesEmpty from "../assets/quotes-empty.png";
+import { trackAnalyticsAction } from "../features/analytics/tracker";
 import { useClient } from "../features/clients/hooks";
 import { QuoteForm } from "../features/quotes/components/quote-form";
 import { showAlert } from "../shared/components/alert-store";
@@ -40,6 +41,7 @@ import { useProfile } from "../features/subscription/hooks";
 import { DateField } from "../shared/components/date-field";
 import { showToast } from "../shared/components/toast";
 import { usePaywall } from "../shared/hooks/use-paywall";
+import { useAuth } from "../shared/hooks/use-auth";
 import { brToIso } from "../shared/utils/date";
 import { formatCurrency } from "../shared/utils/format";
 import { isValidBrazilPhone } from "../shared/utils/phone";
@@ -288,6 +290,7 @@ function QuoteDetail({
     setExporting(true);
     try {
       await exportQuotePdf(quote, { name: businessName, phone: profile?.phone });
+      void trackAnalyticsAction("quote_pdf_exported", useAuth.getState().token);
     } catch {
       alertError("Não foi possível gerar o PDF. Tente novamente.");
     } finally {

@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { Image, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { trackAnalyticsAction } from "../../features/analytics/tracker";
 import { KeyboardAwareScrollView } from "../../shared/components/keyboard-aware-scroll-view";
 import { EmailTypoHint } from "../../shared/components/email-typo-hint";
 import { useAuth } from "../../shared/hooks/use-auth";
@@ -166,7 +167,11 @@ export default function RegisterScreen() {
 
     if (result.error) {
       showAlert({ title: "Ops!", message: result.error });
-    } else if (result.needsConfirmation) {
+      return;
+    }
+
+    void trackAnalyticsAction("signup_completed", useAuth.getState().token);
+    if (result.needsConfirmation) {
       showAlert({
         title: "Conta criada!",
         message: "Verifique seu e-mail para confirmar a conta. Depois é só entrar!",

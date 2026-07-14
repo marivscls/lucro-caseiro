@@ -17,6 +17,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { useBirthdayNotifier } from "../features/clients/use-birthday-notifier";
 import { useAppMetrics } from "../features/analytics/use-app-metrics";
+import { useScreenMetrics } from "../features/analytics/use-screen-metrics";
 import { useDeliveryNotifier } from "../features/orders/use-delivery-notifier";
 import { useLowStockNotifier } from "../features/products/use-low-stock-notifier";
 import { useFiadoNotifier } from "../features/sales/use-fiado-notifier";
@@ -79,6 +80,7 @@ function AppContent() {
 
   // Funil de produto: instalação observada + um dia ativo, sem bloquear o boot.
   useAppMetrics();
+  useScreenMetrics();
 
   // Carrega as preferências de notificação salvas no aparelho (uma vez).
   useEffect(() => {

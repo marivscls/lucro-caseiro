@@ -1,6 +1,8 @@
 import {
+  bigserial,
   date,
   index,
+  integer,
   pgTable,
   primaryKey,
   text,
@@ -74,5 +76,32 @@ export const analyticsUserActivityDays = pgTable(
   (table) => [
     primaryKey({ columns: [table.userId, table.activityDate] }),
     index("idx_analytics_user_activity_date").on(table.activityDate),
+  ],
+);
+
+export const analyticsEvents = pgTable(
+  "analytics_events",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    installationId: uuid("installation_id")
+      .notNull()
+      .references(() => analyticsInstallations.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+    eventType: text("event_type").notNull(),
+    eventName: text("event_name").notNull(),
+    durationMs: integer("duration_ms"),
+    appVersion: text("app_version").notNull(),
+    appBuild: text("app_build"),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("idx_analytics_events_occurred").on(table.occurredAt),
+    index("idx_analytics_events_type_name_occurred").on(
+      table.eventType,
+      table.eventName,
+      table.occurredAt,
+    ),
+    index("idx_analytics_events_installation").on(table.installationId),
+    index("idx_analytics_events_user").on(table.userId),
   ],
 );

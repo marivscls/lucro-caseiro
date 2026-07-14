@@ -1,29 +1,10 @@
-import Constants from "expo-constants";
 import { useCallback, useEffect, useRef } from "react";
-import { AppState, Platform } from "react-native";
+import { AppState } from "react-native";
 
 import { useAuth } from "../../shared/hooks/use-auth";
 import { recordAppOpen } from "./api";
 import { getOrCreateInstallationId } from "./installation";
-
-function appMetadata() {
-  const config = Constants.expoConfig;
-  let build: number | string | undefined;
-  let platform: "android" | "ios" | "web" = "android";
-
-  if (Platform.OS === "android") build = config?.android?.versionCode;
-  if (Platform.OS === "ios") {
-    platform = "ios";
-    build = config?.ios?.buildNumber;
-  }
-  if (Platform.OS === "web") platform = "web";
-
-  return {
-    platform,
-    appVersion: config?.version ?? "unknown",
-    appBuild: build == null ? undefined : String(build),
-  } as const;
-}
+import { appMetadata } from "./metadata";
 
 export function useAppMetrics(): void {
   const { isLoading, token, userId } = useAuth();

@@ -4,19 +4,19 @@
 
 ## Purpose
 
-Registrar instalações observadas e um único dia ativo por instalação para medir aquisição,
-ativação e retenção sem uma plataforma externa de eventos.
+Registrar instalações, dias ativos e eventos comportamentais canônicos para medir aquisição,
+uso, funil, ativação e retenção sem uma plataforma externa de eventos.
 
 ## Non-goals
 
-- Não rastreia telas, cliques, campanhas, crashes ou conteúdo criado.
+- Não rastreia toques livres, campanhas, crashes, texto digitado ou conteúdo criado.
 - Não substitui métricas de download e aquisição da Google Play.
 - Não oferece endpoint público de relatório; o painel exige autenticação e allowlist.
 
 ## Boundaries & Ownership
 
 - Depende das tabelas `analytics_installations`, `analytics_installation_users`,
-  `analytics_activity_days`, `analytics_user_activity_days` e `users`.
+  `analytics_activity_days`, `analytics_user_activity_days`, `analytics_events` e `users`.
 - O relatório deriva ativação de `pricing_calculations`, `sales` e `orders`.
 - O mobile `features/analytics` envia as aberturas.
 
@@ -28,7 +28,8 @@ ativação e retenção sem uma plataforma externa de eventos.
 - `analytics.repo.pg.ts`: upserts idempotentes e vínculo retroativo.
 - `analytics.report-query.ts`: consulta canônica compartilhada pelo endpoint e pelo comando.
 - `report.ts`: relatório operacional via `pnpm analytics:report`.
-- `packages/database/src/migrations/034_product_analytics.sql`: tabelas e segurança.
+- `packages/database/src/migrations/034_product_analytics.sql`: instalações e atividade.
+- `packages/database/src/migrations/035_analytics_behavior_events.sql`: eventos e segurança.
 
 ## Data Model
 
@@ -37,6 +38,7 @@ ativação e retenção sem uma plataforma externa de eventos.
 - `analytics_installation_users`: vínculos muitos-para-muitos entre instalações e contas.
 - `analytics_activity_days`: chave composta instalação + data UTC; no máximo um dia ativo.
 - `analytics_user_activity_days`: chave composta usuário + data UTC para usuários ativos.
+- `analytics_events`: tela ou ação canônica, instalação/conta, versão e timestamp do servidor.
 
 ## Invariants
 
@@ -48,6 +50,8 @@ ativação e retenção sem uma plataforma externa de eventos.
 
 - `POST /api/v1/analytics/open`: abertura anônima.
 - `POST /api/v1/analytics/identify`: abertura autenticada e vínculo.
+- `POST /api/v1/analytics/events`: lote anônimo de até 25 eventos.
+- `POST /api/v1/analytics/events/identify`: lote autenticado e vínculo.
 - `GET /api/v1/analytics/admin/access`: informa se a conta está em `ADMIN_USER_IDS`.
 - `GET /api/v1/analytics/admin/dashboard`: relatório autenticado e autorizado.
 - `pnpm analytics:report`: consulta agregada com `DATABASE_URL`.
@@ -57,11 +61,13 @@ ativação e retenção sem uma plataforma externa de eventos.
 - `/open` é anônimo e recebe payload estritamente limitado.
 - `/identify` usa `authMiddleware`; o `userId` nunca vem do corpo.
 - `/admin/dashboard` exige `authMiddleware` e UUID presente em `ADMIN_USER_IDS`.
-- As quatro tabelas têm RLS e privilégios de `anon`/`authenticated` revogados.
+- As cinco tabelas têm RLS e privilégios de `anon`/`authenticated` revogados.
 
 ## Contracts (Zod/DTO)
 
-`{ installationId: UUID, platform: android|ios|web, appVersion: 1..32, appBuild?: 1..32 }`.
+O envelope usa `{ installationId, platform, appVersion, appBuild? }`. Eventos são uma união
+discriminada: `screen_view` exige nome permitido e duração de 250 ms a 6 h; `action` aceita apenas
+as dez ações do contrato. Metadata arbitrária é rejeitada.
 
 ## Errors
 
@@ -77,14 +83,14 @@ ativação e retenção sem uma plataforma externa de eventos.
 
 ## Performance
 
-- Uma transação curta por abertura.
+- Uma transação curta por abertura e uma inserção em lote por envio de eventos.
 - Índices por usuário, primeira/última abertura e data de atividade.
 - A chave composta impede crescimento por múltiplas aberturas no mesmo dia.
 
 ## Security
 
 - Não persiste IP, e-mail, telefone, Advertising ID ou modelo do aparelho.
-- O endpoint anônimo não aceita propriedades arbitrárias.
+- Os endpoints anônimos não aceitam propriedades arbitrárias nem nomes livres.
 - Lista administrativa vazia nega o painel a todas as contas.
 - O rate limit global da API também cobre estas rotas.
 
@@ -104,3 +110,5 @@ ativação e retenção sem uma plataforma externa de eventos.
 - 2026-07-13: implementação inicial sem SDK externo; ativação derivada das tabelas canônicas.
 - Retenção usa dia exato D1/D7/D30 e calendário UTC.
 - 2026-07-13: painel interno usa a mesma consulta do comando e autorização por `ADMIN_USER_IDS`.
+- 2026-07-14: eventos comportamentais alimentam uso de telas, funcionalidades, funil temporal,
+  adoção de versão e retenção D7 por comportamento.

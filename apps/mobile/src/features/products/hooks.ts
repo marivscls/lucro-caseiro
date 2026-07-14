@@ -2,6 +2,7 @@ import type { CreateProduct, UpdateProduct } from "@lucro-caseiro/contracts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "../../shared/hooks/use-auth";
+import { trackAnalyticsAction } from "../analytics/tracker";
 import {
   createProduct,
   deleteProduct,
@@ -47,6 +48,7 @@ export function useCreateProduct() {
       void queryClient.invalidateQueries({ queryKey: PRODUCTS_KEY });
       // Atualiza a contagem de limites do plano (produtos) pra o gate bloquear na hora certa.
       void queryClient.invalidateQueries({ queryKey: ["subscription"] });
+      void trackAnalyticsAction("product_created", token);
     },
   });
 }

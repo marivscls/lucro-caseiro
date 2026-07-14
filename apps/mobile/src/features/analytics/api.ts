@@ -1,4 +1,7 @@
-import type { ProductAnalyticsDashboard } from "@lucro-caseiro/contracts";
+import type {
+  ProductAnalyticsDashboard,
+  ProductAnalyticsEvent,
+} from "@lucro-caseiro/contracts";
 
 import { apiClient } from "../../shared/utils/api-client";
 
@@ -18,6 +21,20 @@ export async function recordAppOpen(
     body: payload,
     token: token ?? undefined,
   });
+}
+
+export async function recordProductAnalyticsEvents(
+  payload: AppOpenPayload & { events: ProductAnalyticsEvent[] },
+  token: string | null,
+): Promise<void> {
+  await apiClient(
+    token ? "/api/v1/analytics/events/identify" : "/api/v1/analytics/events",
+    {
+      method: "POST",
+      body: payload,
+      token: token ?? undefined,
+    },
+  );
 }
 
 export function fetchAdminAnalyticsAccess(token: string): Promise<{ allowed: boolean }> {

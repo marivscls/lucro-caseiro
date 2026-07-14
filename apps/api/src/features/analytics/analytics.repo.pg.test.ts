@@ -34,6 +34,34 @@ describe("AnalyticsRepoPg.getDashboard", () => {
           eligible_d30: 0,
           retained_d30: 0,
           retention_d30_percent: null,
+          screen_usage: [
+            {
+              screen: "pricing",
+              visits: 12,
+              people: 5,
+              active_minutes: "18.50",
+              average_active_seconds: "92.50",
+            },
+          ],
+          feature_usage: [{ action: "pricing_completed", events: 7, people: 4 }],
+          funnel: [
+            {
+              stage: "pricing",
+              installations: 4,
+              previous_stage_percent: "80.00",
+            },
+          ],
+          version_adoption: [
+            { app_version: "1.2.0", installations: 8, percent: "80.00" },
+          ],
+          behavior_retention: [
+            {
+              behavior: "pricing_completed",
+              eligible: 4,
+              retained: 2,
+              percent: "50.00",
+            },
+          ],
         },
       ]),
     );
@@ -47,6 +75,21 @@ describe("AnalyticsRepoPg.getDashboard", () => {
         day1: { eligible: 8, retained: 4, percent: 50 },
         day30: { eligible: 0, retained: 0, percent: null },
       },
+      screenUsage: [
+        {
+          screen: "pricing",
+          visits: 12,
+          people: 5,
+          activeMinutes: 18.5,
+          averageActiveSeconds: 92.5,
+        },
+      ],
+      featureUsage: [{ action: "pricing_completed", events: 7, people: 4 }],
+      funnel: [{ stage: "pricing", installations: 4, previousStagePercent: 80 }],
+      versionAdoption: [{ appVersion: "1.2.0", installations: 8, percent: 80 }],
+      behaviorRetention: [
+        { behavior: "pricing_completed", eligible: 4, retained: 2, percent: 50 },
+      ],
     });
     expect(execute).toHaveBeenCalledOnce();
   });

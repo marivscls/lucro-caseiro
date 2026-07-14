@@ -13,12 +13,82 @@ import {
   useTheme,
 } from "@lucro-caseiro/ui";
 import { Stack } from "expo-router";
-import React from "react";
-import { ActivityIndicator, RefreshControl, ScrollView, View } from "react-native";
+import React, { useState } from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAdminAnalyticsDashboard } from "../features/analytics/hooks";
 import { ApiError } from "../shared/utils/api-client";
+
+type DashboardSection = "overview" | "usage" | "funnel" | "retention";
+
+const SECTIONS: { key: DashboardSection; label: string }[] = [
+  { key: "overview", label: "Visão geral" },
+  { key: "usage", label: "Telas e funções" },
+  { key: "funnel", label: "Funil" },
+  { key: "retention", label: "Retenção" },
+];
+
+const SCREEN_LABELS: Record<string, string> = {
+  login: "Login",
+  register: "Cadastro",
+  auth_callback: "Retorno do login",
+  // Chave de evento fixa, não uma credencial.
+  // eslint-disable-next-line sonarjs/no-hardcoded-passwords
+  reset_password: "Redefinir senha",
+  onboarding: "Primeiros passos",
+  home: "Início",
+  sales: "Vendas",
+  new_sale: "Nova venda",
+  agenda: "Agenda",
+  clients: "Clientes",
+  more: "Mais",
+  admin_metrics: "Métricas",
+  catalog: "Catálogo",
+  fiado: "Fiado",
+  finance: "Financeiro",
+  insights: "Insights",
+  labels: "Rótulos",
+  materials: "Insumos",
+  packaging: "Embalagens",
+  plans: "Planos",
+  pricing: "Precificação",
+  products: "Produtos",
+  purchases: "Compras",
+  quotes: "Orçamentos",
+  recipes: "Receitas",
+  recurring_expenses: "Gastos recorrentes",
+  settings: "Configurações",
+  suppliers: "Fornecedores",
+  support: "Suporte",
+};
+
+const ACTION_LABELS: Record<string, string> = {
+  signup_completed: "Cadastro concluído",
+  pricing_completed: "Precificação concluída",
+  product_created: "Produto criado",
+  sale_completed: "Venda concluída",
+  order_created: "Encomenda criada",
+  catalog_shared: "Catálogo compartilhado",
+  quote_created: "Orçamento criado",
+  quote_pdf_exported: "PDF de orçamento exportado",
+  finance_entry_created: "Lançamento financeiro criado",
+  subscription_started: "Assinatura iniciada",
+};
+
+const FUNNEL_LABELS: Record<string, string> = {
+  installation: "Instalação",
+  signup: "Cadastro",
+  pricing: "Precificação",
+  product: "Produto",
+  sale: "Venda",
+};
 
 function formatPercent(value: number | null): string {
   return value == null
@@ -165,7 +235,7 @@ function RetentionRow({
   );
 }
 
-function Dashboard({ data }: Readonly<{ data: ProductAnalyticsDashboard }>) {
+function OverviewSection({ data }: Readonly<{ data: ProductAnalyticsDashboard }>) {
   const { theme } = useTheme();
   const linkedPercent = data.installations.total
     ? (data.installations.linkedToUser / data.installations.total) * 100
@@ -173,13 +243,6 @@ function Dashboard({ data }: Readonly<{ data: ProductAnalyticsDashboard }>) {
 
   return (
     <View style={{ gap: spacing.lg }}>
-      <View>
-        <Typography variant="h1">Métricas do produto</Typography>
-        <Typography variant="body" color={theme.colors.textSecondary}>
-          Instalação, ativação e retorno dos usuários.
-        </Typography>
-      </View>
-
       <View style={{ flexDirection: "row", gap: spacing.md }}>
         <MetricCard
           label="INSTALAÇÕES"
@@ -200,7 +263,7 @@ function Dashboard({ data }: Readonly<{ data: ProductAnalyticsDashboard }>) {
           label="ATIVAÇÃO EM 7 DIAS"
           value={formatPercent(data.activation.rateWithin7DaysPercent)}
           caption={`${data.activation.activatedWithin7Days} de ${data.activation.eligibleWithin7Days} elegíveis`}
-          icon="sparkles-outline"
+          icon="checkmark-circle-outline"
         />
         <MetricCard
           label="VÍNCULO COM CONTA"
@@ -212,6 +275,169 @@ function Dashboard({ data }: Readonly<{ data: ProductAnalyticsDashboard }>) {
 
       <ActivityTable data={data.active} />
 
+      <Card variant="elevated" style={{ gap: spacing.md }}>
+        <Typography variant="h3">Versões em uso</Typography>
+        {data.versionAdoption.length === 0 ? (
+          <Typography variant="body" color={theme.colors.textSecondary}>
+            Ainda não há versões registradas nos últimos 30 dias.
+          </Typography>
+        ) : null}
+        {data.versionAdoption.map((item) => (
+          <View key={item.appVersion} style={{ flexDirection: "row" }}>
+            <Typography variant="bodyBold" style={{ flex: 1 }}>
+              Versão {item.appVersion}
+            </Typography>
+            <Typography variant="body" color={theme.colors.textSecondary}>
+              {item.installations} · {formatPercent(item.percent)}
+            </Typography>
+          </View>
+        ))}
+      </Card>
+
+      <Card variant="surface" style={{ gap: spacing.sm }}>
+        <Typography variant="bodyBold">Como a ativação é calculada</Typography>
+        <Typography variant="body" color={theme.colors.textSecondary}>
+          A primeira precificação, venda ou encomenda concluída conta como ativação. As
+          taxas só usam grupos que já tiveram tempo suficiente para completar cada janela.
+        </Typography>
+      </Card>
+    </View>
+  );
+}
+
+function UsageSection({ data }: Readonly<{ data: ProductAnalyticsDashboard }>) {
+  const { theme } = useTheme();
+  return (
+    <View style={{ gap: spacing.lg }}>
+      <Card variant="elevated" style={{ gap: spacing.md }}>
+        <View style={{ gap: spacing.xs }}>
+          <Typography variant="h3">Telas com mais tempo ativo</Typography>
+          <Typography variant="body" color={theme.colors.textSecondary}>
+            Últimos 30 dias; o tempo para quando o app fica em segundo plano.
+          </Typography>
+        </View>
+        {data.screenUsage.length === 0 ? (
+          <Typography variant="body" color={theme.colors.textSecondary}>
+            Ainda não há visitas registradas nesta versão.
+          </Typography>
+        ) : null}
+        {data.screenUsage.map((item, index) => (
+          <View
+            key={item.screen}
+            style={{
+              gap: spacing.xs,
+              paddingTop: index === 0 ? 0 : spacing.md,
+              borderTopWidth: index === 0 ? 0 : 1,
+              borderTopColor: theme.colors.border,
+            }}
+          >
+            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+              <Typography variant="bodyBold">
+                {index + 1}. {SCREEN_LABELS[item.screen] ?? item.screen}
+              </Typography>
+              <Typography variant="bodyBold" color={theme.colors.primary}>
+                {item.activeMinutes.toLocaleString("pt-BR", {
+                  maximumFractionDigits: 1,
+                })}{" "}
+                min
+              </Typography>
+            </View>
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              {item.visits} visitas · {item.people} pessoas · média de{" "}
+              {item.averageActiveSeconds.toLocaleString("pt-BR", {
+                maximumFractionDigits: 0,
+              })}
+              s
+            </Typography>
+          </View>
+        ))}
+      </Card>
+
+      <Card variant="elevated" style={{ gap: spacing.md }}>
+        <View style={{ gap: spacing.xs }}>
+          <Typography variant="h3">Funcionalidades mais usadas</Typography>
+          <Typography variant="body" color={theme.colors.textSecondary}>
+            Ações confirmadas pelo app nos últimos 30 dias.
+          </Typography>
+        </View>
+        {data.featureUsage.map((item, index) => (
+          <View
+            key={item.action}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              paddingTop: index === 0 ? 0 : spacing.md,
+              borderTopWidth: index === 0 ? 0 : 1,
+              borderTopColor: theme.colors.border,
+            }}
+          >
+            <Typography variant="bodyBold" style={{ flex: 1 }}>
+              {ACTION_LABELS[item.action] ?? item.action}
+            </Typography>
+            <View style={{ alignItems: "flex-end" }}>
+              <Typography variant="bodyBold" color={theme.colors.primary}>
+                {item.events}
+              </Typography>
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                {item.people} pessoas
+              </Typography>
+            </View>
+          </View>
+        ))}
+      </Card>
+    </View>
+  );
+}
+
+function FunnelSection({ data }: Readonly<{ data: ProductAnalyticsDashboard }>) {
+  const { theme } = useTheme();
+  return (
+    <Card variant="elevated" style={{ gap: spacing.lg }}>
+      <View style={{ gap: spacing.xs }}>
+        <Typography variant="h3">Funil principal</Typography>
+        <Typography variant="body" color={theme.colors.textSecondary}>
+          Instalação → cadastro → precificação → produto → venda, sempre nessa ordem.
+        </Typography>
+      </View>
+      {data.funnel.map((item, index) => (
+        <View key={item.stage} style={{ flexDirection: "row", alignItems: "center" }}>
+          <View
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: radii.full,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: theme.colors.primaryBg,
+            }}
+          >
+            <Typography variant="bodyBold" color={theme.colors.primary}>
+              {index + 1}
+            </Typography>
+          </View>
+          <View style={{ flex: 1, marginLeft: spacing.md }}>
+            <Typography variant="bodyBold">
+              {FUNNEL_LABELS[item.stage] ?? item.stage}
+            </Typography>
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              {item.installations} instalações
+            </Typography>
+          </View>
+          {item.previousStagePercent == null ? null : (
+            <Typography variant="bodyBold" color={theme.colors.primary}>
+              {formatPercent(item.previousStagePercent)}
+            </Typography>
+          )}
+        </View>
+      ))}
+    </Card>
+  );
+}
+
+function RetentionSection({ data }: Readonly<{ data: ProductAnalyticsDashboard }>) {
+  const { theme } = useTheme();
+  return (
+    <View style={{ gap: spacing.lg }}>
       <Card variant="elevated" style={{ gap: spacing.xl }}>
         <View style={{ gap: spacing.xs }}>
           <Typography variant="h3">Retenção por instalação</Typography>
@@ -224,14 +450,78 @@ function Dashboard({ data }: Readonly<{ data: ProductAnalyticsDashboard }>) {
         <RetentionRow label="D30 · um mês" metric={data.retention.day30} />
       </Card>
 
-      <Card variant="surface" style={{ gap: spacing.sm }}>
-        <Typography variant="bodyBold">Como a ativação é calculada</Typography>
-        <Typography variant="body" color={theme.colors.textSecondary}>
-          A primeira precificação, venda ou encomenda concluída conta como ativação. As
-          taxas só usam grupos que já tiveram tempo suficiente para completar cada janela.
-        </Typography>
+      <Card variant="elevated" style={{ gap: spacing.xl }}>
+        <View style={{ gap: spacing.xs }}>
+          <Typography variant="h3">Retenção por comportamento</Typography>
+          <Typography variant="body" color={theme.colors.textSecondary}>
+            Retorno no D7 de quem usou uma função importante na primeira semana.
+          </Typography>
+        </View>
+        {data.behaviorRetention.map((item) => (
+          <RetentionRow
+            key={item.behavior}
+            label={
+              item.behavior === "pricing_completed"
+                ? "Fez uma precificação"
+                : "Compartilhou o catálogo"
+            }
+            metric={item}
+          />
+        ))}
       </Card>
+    </View>
+  );
+}
 
+function Dashboard({ data }: Readonly<{ data: ProductAnalyticsDashboard }>) {
+  const { theme } = useTheme();
+  const [section, setSection] = useState<DashboardSection>("overview");
+  let sectionContent: React.ReactNode = <OverviewSection data={data} />;
+  if (section === "usage") sectionContent = <UsageSection data={data} />;
+  if (section === "funnel") sectionContent = <FunnelSection data={data} />;
+  if (section === "retention") sectionContent = <RetentionSection data={data} />;
+
+  return (
+    <View style={{ gap: spacing.lg }}>
+      <View>
+        <Typography variant="h1">Métricas do produto</Typography>
+        <Typography variant="body" color={theme.colors.textSecondary}>
+          Instalação, uso, conversão e retorno dos usuários.
+        </Typography>
+      </View>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <View style={{ flexDirection: "row", gap: spacing.sm }}>
+          {SECTIONS.map((item) => {
+            const selected = section === item.key;
+            return (
+              <Pressable
+                key={item.key}
+                accessibilityRole="tab"
+                accessibilityState={{ selected }}
+                onPress={() => setSection(item.key)}
+                style={{
+                  paddingHorizontal: spacing.md,
+                  paddingVertical: spacing.sm,
+                  borderRadius: radii.full,
+                  backgroundColor: selected
+                    ? theme.colors.primary
+                    : theme.colors.surfaceElevated,
+                }}
+              >
+                <Typography
+                  variant="bodyBold"
+                  color={selected ? theme.colors.textOnPrimary : theme.colors.text}
+                >
+                  {item.label}
+                </Typography>
+              </Pressable>
+            );
+          })}
+        </View>
+      </ScrollView>
+
+      {sectionContent}
       <Typography
         variant="caption"
         color={theme.colors.textSecondary}
@@ -291,7 +581,7 @@ export default function AdminMetricsScreen() {
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: theme.colors.background }}
-      edges={["bottom"]}
+      edges={["top", "bottom"]}
     >
       <Stack.Screen options={{ title: "Métricas", headerBackTitle: "Voltar" }} />
       {content}

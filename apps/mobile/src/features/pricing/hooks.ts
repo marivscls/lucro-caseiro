@@ -2,6 +2,7 @@ import type { CreatePricing } from "@lucro-caseiro/contracts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "../../shared/hooks/use-auth";
+import { trackAnalyticsAction } from "../analytics/tracker";
 import {
   calculatePricing,
   fetchPricing,
@@ -20,6 +21,7 @@ export function useCalculatePricing() {
     // "Histórico" mostrar o cálculo novo na hora (sem isso ficava stale 5min).
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: PRICING_KEY });
+      void trackAnalyticsAction("pricing_completed", token);
     },
   });
 }

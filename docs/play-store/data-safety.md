@@ -125,8 +125,9 @@ Para cada tipo abaixo, marque **collected** e responda os 4 sub-campos:
 - Shared: **No**
 - Required
 - Purposes: ✅ Analytics
-- Detalhe: registra somente que uma instalação abriu o app em determinado dia;
-  não rastreia telas, cliques, buscas ou conteúdo cadastrado.
+- Detalhe: registra abertura diária, telas acessadas, tempo ativo em tela e
+  conclusão de funcionalidades canônicas. Não registra texto digitado, buscas,
+  parâmetros de rota, conteúdo cadastrado, replay de sessão ou toques individuais.
 
 #### In-app search history ❌
 
@@ -178,7 +179,7 @@ Confira o resumo gerado pelo Play Console — deve mostrar:
 - Purchase history, Other financial info
 - Photos (opcional)
 - Other user-generated content
-- App interactions (abertura/atividade diária)
+- App interactions (abertura, telas, tempo ativo e funcionalidades concluídas)
 - Crash logs (opcional)
 - Device or other IDs (push e UUID aleatório de instalação)
 

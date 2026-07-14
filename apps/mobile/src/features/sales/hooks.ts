@@ -2,6 +2,7 @@ import type { CreateSale, Sale, SaleStatus } from "@lucro-caseiro/contracts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "../../shared/hooks/use-auth";
+import { trackAnalyticsAction } from "../analytics/tracker";
 import {
   type UpdateSaleData,
   createSale,
@@ -55,6 +56,7 @@ export function useCreateSale() {
       // Atualiza a contagem de limites (vendas do mes) para o gate do plano
       // gratuito bloquear na hora certa, sem depender de contagem defasada.
       void queryClient.invalidateQueries({ queryKey: ["subscription"] });
+      void trackAnalyticsAction("sale_completed", token);
     },
   });
 }

@@ -29,11 +29,17 @@ const DASHBOARD = {
     day7: { eligible: 5, retained: 2, percent: 40 },
     day30: { eligible: 0, retained: 0, percent: null },
   },
+  screenUsage: [],
+  featureUsage: [],
+  funnel: [],
+  versionAdoption: [],
+  behaviorRetention: [],
 };
 
 function analyticsRepo(overrides: Partial<IAnalyticsRepo> = {}): IAnalyticsRepo {
   return {
     recordOpen: vi.fn(() => Promise.resolve()),
+    recordEvents: vi.fn(() => Promise.resolve()),
     getDashboard: vi.fn(() => Promise.resolve(DASHBOARD)),
     ...overrides,
   };
@@ -61,6 +67,24 @@ describe("AnalyticsUseCases", () => {
 
     await expect(sut.getDashboard()).resolves.toEqual(DASHBOARD);
     expect(getDashboard).toHaveBeenCalledOnce();
+  });
+
+  it("persiste eventos com timestamp e dia UTC definidos pelo servidor", async () => {
+    const occurredAt = new Date("2026-07-14T23:30:00.000Z");
+    const recordEvents = vi.fn(() => Promise.resolve());
+    const sut = new AnalyticsUseCases(analyticsRepo({ recordEvents }), () => occurredAt);
+
+    await sut.recordEvents("user-1", {
+      ...OPEN,
+      events: [{ type: "action", name: "pricing_completed" }],
+    });
+
+    expect(recordEvents).toHaveBeenCalledWith("user-1", {
+      ...OPEN,
+      events: [{ type: "action", name: "pricing_completed" }],
+      occurredAt,
+      activityDate: "2026-07-14",
+    });
   });
 });
 

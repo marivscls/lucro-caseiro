@@ -8,6 +8,7 @@ import type {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "../../shared/hooks/use-auth";
+import { trackAnalyticsAction } from "../analytics/tracker";
 import {
   createEntry,
   createRecurring,
@@ -53,6 +54,7 @@ export function useCreateFinanceEntry() {
     mutationFn: (data: CreateFinanceEntry) => createEntry(token!, data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: FINANCE_KEY });
+      void trackAnalyticsAction("finance_entry_created", token);
     },
   });
 }

@@ -1,19 +1,10 @@
 import { Router, type RequestHandler } from "express";
-import { z } from "zod";
 
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
 import { ForbiddenError } from "../../shared/errors";
 import { isAdminUser } from "./analytics.admin";
 import type { AnalyticsUseCases } from "./analytics.usecases";
-
-const RecordOpenDto = z
-  .object({
-    installationId: z.string().uuid(),
-    platform: z.enum(["android", "ios", "web"]),
-    appVersion: z.string().trim().min(1).max(32),
-    appBuild: z.string().trim().min(1).max(32).optional(),
-  })
-  .strict();
+import { parseRecordEvents, parseRecordOpen } from "./analytics.validation";
 
 function requireAdmin(adminUserIds: ReadonlySet<string>): RequestHandler {
   return (req, _res, next) => {
@@ -34,7 +25,7 @@ export function createAnalyticsRouter(
 
   router.post("/open", async (req, res, next) => {
     try {
-      await useCases.recordOpen(null, RecordOpenDto.parse(req.body));
+      await useCases.recordOpen(null, parseRecordOpen(req.body));
       res.status(204).send();
     } catch (err) {
       next(err);
@@ -43,7 +34,25 @@ export function createAnalyticsRouter(
 
   router.post("/identify", authMiddleware, async (req, res, next) => {
     try {
-      await useCases.recordOpen(getUserId(req), RecordOpenDto.parse(req.body));
+      await useCases.recordOpen(getUserId(req), parseRecordOpen(req.body));
+      res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.post("/events", async (req, res, next) => {
+    try {
+      await useCases.recordEvents(null, parseRecordEvents(req.body));
+      res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.post("/events/identify", authMiddleware, async (req, res, next) => {
+    try {
+      await useCases.recordEvents(getUserId(req), parseRecordEvents(req.body));
       res.status(204).send();
     } catch (err) {
       next(err);

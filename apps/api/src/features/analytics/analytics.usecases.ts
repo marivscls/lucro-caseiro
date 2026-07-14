@@ -1,6 +1,10 @@
 import type { ProductAnalyticsDashboard } from "@lucro-caseiro/contracts";
 
-import type { IAnalyticsRepo, RecordOpenInput } from "./analytics.types";
+import type {
+  IAnalyticsRepo,
+  RecordEventsInput,
+  RecordOpenInput,
+} from "./analytics.types";
 
 export function utcDateKey(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -18,6 +22,15 @@ export class AnalyticsUseCases {
       ...input,
       openedAt,
       activityDate: utcDateKey(openedAt),
+    });
+  }
+
+  async recordEvents(userId: string | null, input: RecordEventsInput): Promise<void> {
+    const occurredAt = this.now();
+    await this.repo.recordEvents(userId, {
+      ...input,
+      occurredAt,
+      activityDate: utcDateKey(occurredAt),
     });
   }
 

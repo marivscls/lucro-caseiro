@@ -10,6 +10,7 @@ import type {
 import type { BillingPeriod, PaidPlan } from "@lucro-caseiro/contracts";
 
 import { useAuth } from "../../shared/hooks/use-auth";
+import { trackAnalyticsAction } from "../analytics/tracker";
 import { syncPlan } from "./api";
 import { alertError } from "../../shared/utils/alerts";
 import { showAlert } from "../../shared/components/alert-store";
@@ -240,6 +241,7 @@ export function useSubscription() {
             },
           },
         });
+        void trackAnalyticsAction("subscription_started", token);
       } catch {
         setLoading(false);
         alertError("Não foi possível iniciar a compra. Tente novamente.");

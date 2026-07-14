@@ -8,6 +8,7 @@ import type {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "../../shared/hooks/use-auth";
+import { trackAnalyticsAction } from "../analytics/tracker";
 import {
   createOrder,
   deleteOrder,
@@ -51,6 +52,7 @@ export function useCreateOrder() {
     onSuccess: (order) => {
       void queryClient.invalidateQueries({ queryKey: ORDERS_KEY });
       void scheduleOrderReminder(order);
+      void trackAnalyticsAction("order_created", token);
     },
   });
 }

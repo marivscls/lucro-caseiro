@@ -4,6 +4,7 @@ import * as WebBrowser from "expo-web-browser";
 import type { BillingPeriod, PaidPlan } from "@lucro-caseiro/contracts";
 
 import { useAuth } from "../../shared/hooks/use-auth";
+import { trackAnalyticsAction } from "../analytics/tracker";
 import { createStripeCheckout, fetchProfile } from "./api";
 import { alertError } from "../../shared/utils/alerts";
 import { showAlert } from "../../shared/components/alert-store";
@@ -47,6 +48,7 @@ export function useStripeCheckout() {
       try {
         const { url } = await createStripeCheckout(token, tier, period);
         await WebBrowser.openBrowserAsync(url);
+        void trackAnalyticsAction("subscription_started", token);
         await queryClient.invalidateQueries({ queryKey: ["subscription"] });
         void pollForPremium(token, queryClient);
       } catch {

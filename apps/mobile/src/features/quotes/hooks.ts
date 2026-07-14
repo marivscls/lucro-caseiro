@@ -1,4 +1,5 @@
 import type {
+  AnalyticsActionName,
   ConvertQuote,
   CreateQuote,
   QuoteStatusType,
@@ -7,6 +8,7 @@ import type {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "../../shared/hooks/use-auth";
+import { trackAnalyticsAction } from "../analytics/tracker";
 import {
   convertQuote,
   createQuote,
@@ -40,6 +42,7 @@ export function useQuote(id: string | null) {
 function useInvalidatingMutation<TArgs, TResult>(
   fn: (token: string, args: TArgs) => Promise<TResult>,
   extraKeys: string[][] = [],
+  analyticsAction?: AnalyticsActionName,
 ) {
   const { token } = useAuth();
   const queryClient = useQueryClient();
@@ -50,12 +53,17 @@ function useInvalidatingMutation<TArgs, TResult>(
       for (const key of extraKeys) {
         void queryClient.invalidateQueries({ queryKey: key });
       }
+      if (analyticsAction) void trackAnalyticsAction(analyticsAction, token);
     },
   });
 }
 
 export function useCreateQuote() {
-  return useInvalidatingMutation((token, data: CreateQuote) => createQuote(token, data));
+  return useInvalidatingMutation(
+    (token, data: CreateQuote) => createQuote(token, data),
+    [],
+    "quote_created",
+  );
 }
 
 export function useUpdateQuote() {

@@ -16,6 +16,7 @@ import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Image, Pressable, Share, Switch, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { trackAnalyticsAction } from "../features/analytics/tracker";
 import { publicCatalogUrl } from "../features/catalog/api";
 import { ColorPickerModal } from "../shared/components/color-picker-modal";
 import { HeroPreview } from "../features/catalog/components/hero-preview";
@@ -23,6 +24,7 @@ import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scr
 import { useCatalogSettings, useUpdateCatalogSettings } from "../features/catalog/hooks";
 import { useProfile } from "../features/subscription/hooks";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
+import { useAuth } from "../shared/hooks/use-auth";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { ApiError } from "../shared/utils/api-client";
 import { showToast } from "../shared/components/toast";
@@ -359,6 +361,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
     await Share.share({
       message: `Oi! 😊 Dá uma olhada no meu catálogo de produtos. É só escolher e me chamar no WhatsApp:\n\n${url}`,
     });
+    void trackAnalyticsAction("catalog_shared", useAuth.getState().token);
   }
 
   const isDark = theme.mode === "dark";

@@ -1,6 +1,13 @@
-import type { ProductAnalyticsDashboard } from "@lucro-caseiro/contracts";
+import type {
+  AnalyticsActionName,
+  AnalyticsScreenName,
+  BehaviorRetentionMetric,
+  FunnelMetric,
+  ProductAnalyticsDashboard,
+} from "@lucro-caseiro/contracts";
 import {
   analyticsActivityDays,
+  analyticsEvents,
   analyticsInstallationUsers,
   analyticsInstallations,
   analyticsUserActivityDays,
@@ -9,7 +16,7 @@ import { sql } from "drizzle-orm";
 
 import type { AppDatabase } from "../../shared/db";
 import { ANALYTICS_DASHBOARD_QUERY } from "./analytics.report-query";
-import type { IAnalyticsRepo, PersistedOpen } from "./analytics.types";
+import type { IAnalyticsRepo, PersistedEvents, PersistedOpen } from "./analytics.types";
 
 type NullableNumber = number | string | null;
 
@@ -40,10 +47,55 @@ interface DashboardRow {
   eligible_d30: number;
   retained_d30: number;
   retention_d30_percent: NullableNumber;
+  screen_usage: unknown;
+  feature_usage: unknown;
+  funnel: unknown;
+  version_adoption: unknown;
+  behavior_retention: unknown;
+}
+
+interface RawScreenUsage {
+  screen: AnalyticsScreenName;
+  visits: number;
+  people: number;
+  active_minutes: NullableNumber;
+  average_active_seconds: NullableNumber;
+}
+
+interface RawFeatureUsage {
+  action: AnalyticsActionName;
+  events: number;
+  people: number;
+}
+
+interface RawFunnel {
+  stage: FunnelMetric["stage"];
+  installations: number;
+  previous_stage_percent: NullableNumber;
+}
+
+interface RawVersionAdoption {
+  app_version: string;
+  installations: number;
+  percent: NullableNumber;
+}
+
+interface RawBehaviorRetention {
+  behavior: BehaviorRetentionMetric["behavior"];
+  eligible: number;
+  retained: number;
+  percent: NullableNumber;
 }
 
 function nullableNumeric(value: NullableNumber): number | null {
   return value == null ? null : Number(value);
+}
+
+function parsedArray<T>(value: unknown): T[] {
+  if (Array.isArray(value)) return value as T[];
+  if (typeof value !== "string") return [];
+  const parsed: unknown = JSON.parse(value);
+  return Array.isArray(parsed) ? (parsed as T[]) : [];
 }
 
 export class AnalyticsRepoPg implements IAnalyticsRepo {
@@ -115,6 +167,30 @@ export class AnalyticsRepoPg implements IAnalyticsRepo {
     });
   }
 
+  async recordEvents(userId: string | null, input: PersistedEvents): Promise<void> {
+    await this.recordOpen(userId, {
+      installationId: input.installationId,
+      platform: input.platform,
+      appVersion: input.appVersion,
+      appBuild: input.appBuild,
+      openedAt: input.occurredAt,
+      activityDate: input.activityDate,
+    });
+
+    await this.db.insert(analyticsEvents).values(
+      input.events.map((event) => ({
+        installationId: input.installationId,
+        userId,
+        eventType: event.type,
+        eventName: event.name,
+        durationMs: event.type === "screen_view" ? event.durationMs : null,
+        appVersion: input.appVersion,
+        appBuild: input.appBuild ?? null,
+        occurredAt: input.occurredAt,
+      })),
+    );
+  }
+
   async getDashboard(): Promise<ProductAnalyticsDashboard> {
     const rows = (await this.db.execute(
       sql.raw(ANALYTICS_DASHBOARD_QUERY),
@@ -170,6 +246,38 @@ export class AnalyticsRepoPg implements IAnalyticsRepo {
           percent: nullableNumeric(row.retention_d30_percent),
         },
       },
+      screenUsage: parsedArray<RawScreenUsage>(row.screen_usage).map((item) => ({
+        screen: item.screen,
+        visits: Number(item.visits),
+        people: Number(item.people),
+        activeMinutes: Number(item.active_minutes),
+        averageActiveSeconds: Number(item.average_active_seconds),
+      })),
+      featureUsage: parsedArray<RawFeatureUsage>(row.feature_usage).map((item) => ({
+        action: item.action,
+        events: Number(item.events),
+        people: Number(item.people),
+      })),
+      funnel: parsedArray<RawFunnel>(row.funnel).map((item) => ({
+        stage: item.stage,
+        installations: Number(item.installations),
+        previousStagePercent: nullableNumeric(item.previous_stage_percent),
+      })),
+      versionAdoption: parsedArray<RawVersionAdoption>(row.version_adoption).map(
+        (item) => ({
+          appVersion: item.app_version,
+          installations: Number(item.installations),
+          percent: nullableNumeric(item.percent),
+        }),
+      ),
+      behaviorRetention: parsedArray<RawBehaviorRetention>(row.behavior_retention).map(
+        (item) => ({
+          behavior: item.behavior,
+          eligible: Number(item.eligible),
+          retained: Number(item.retained),
+          percent: nullableNumeric(item.percent),
+        }),
+      ),
     };
   }
 }
