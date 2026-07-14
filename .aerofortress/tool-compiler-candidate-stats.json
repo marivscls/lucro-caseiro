@@ -1,0 +1,50 @@
+{
+  "patterns": {
+    "run:fs:read_file": {
+      "first_seen_ts": "2026-07-07T12:52:41.850721900+00:00",
+      "last_call_count": 4,
+      "last_candidate_key": "c3fde970325b2352",
+      "last_seen_ts": "2026-07-12T02:33:50.399858700+00:00",
+      "materializable_occurrences": 10,
+      "occurrences": 10,
+      "shape": {
+        "calls": [
+          {
+            "adapter": "fs",
+            "input": {
+              "path": "string"
+            },
+            "tool": "read_file"
+          },
+          {
+            "adapter": "fs",
+            "input": {
+              "path": "string"
+            },
+            "tool": "read_file"
+          },
+          {
+            "adapter": "fs",
+            "input": {
+              "path": "string"
+            },
+            "tool": "read_file"
+          },
+          {
+            "adapter": "fs",
+            "input": {
+              "path": "string"
+            },
+            "tool": "read_file"
+          }
+        ],
+        "count": 4,
+        "kind": "calls"
+      },
+      "structural_key": "run:fs:read_file",
+      "unique_tools": ["read_file"]
+    }
+  },
+  "updated_ts": "2026-07-12T02:33:50.399858700+00:00",
+  "version": 1
+}

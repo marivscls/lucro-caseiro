@@ -10,7 +10,8 @@
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "analytics:report": "tsx --env-file=.env src/features/analytics/report.ts"
   },
   "dependencies": {
     "@lucro-caseiro/contracts": "workspace:*",

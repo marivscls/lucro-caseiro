@@ -7,6 +7,9 @@ import { config } from "./config";
 import { createAccountRouter } from "./features/account/account.routes";
 import { AccountRepoPg } from "./features/account/account.repo.pg";
 import { AccountUseCases } from "./features/account/account.usecases";
+import { createAnalyticsRouter } from "./features/analytics/analytics.routes";
+import { AnalyticsRepoPg } from "./features/analytics/analytics.repo.pg";
+import { AnalyticsUseCases } from "./features/analytics/analytics.usecases";
 import {
   createCatalogRouter,
   createPublicCatalogRouter,
@@ -177,6 +180,7 @@ const accountUseCases = new AccountUseCases(accountRepo, {
     }
   },
 });
+const analyticsUseCases = new AnalyticsUseCases(new AnalyticsRepoPg(db));
 
 const catalogUseCases = new CatalogUseCases(new CatalogRepoPg(db));
 // Conversao orcamento -> encomenda reusa o usecase de orders (injetado adiante).
@@ -235,6 +239,7 @@ app.use("/api/v1/health", healthRouter);
 
 // Feature routes
 app.use("/api/v1/account", createAccountRouter(accountUseCases));
+app.use("/api/v1/analytics", createAnalyticsRouter(analyticsUseCases));
 app.use(
   "/api/v1/products",
   createProductsRouter(

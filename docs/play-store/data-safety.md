@@ -120,7 +120,13 @@ Para cada tipo abaixo, marque **collected** e responda os 4 sub-campos:
 
 ### 📱 App activity
 
-#### App interactions ❌ (nao coletamos analytics de interacao)
+#### App interactions (Yes — required: abertura/atividade diária)
+
+- Shared: **No**
+- Required
+- Purposes: ✅ Analytics
+- Detalhe: registra somente que uma instalação abriu o app em determinado dia;
+  não rastreia telas, cliques, buscas ou conteúdo cadastrado.
 
 #### In-app search history ❌
 
@@ -149,11 +155,14 @@ Para cada tipo abaixo, marque **collected** e responda os 4 sub-campos:
 
 ### 📡 Device or other IDs
 
-#### Device or other IDs (Yes — required, para push notifications)
+#### Device or other IDs (Yes — required, para push e métricas de instalação)
 
 - Shared: **No**
 - Required
-- Purposes: ✅ App functionality (notificacoes push)
+- Purposes: ✅ App functionality (notificacoes push), ✅ Analytics
+- Detalhe: para métricas, o app gera um UUID aleatório local que persiste entre
+  atualizações e muda ao reinstalar/limpar os dados. Não usa Advertising ID nem
+  identificador de hardware.
 
 ---
 
@@ -169,8 +178,9 @@ Confira o resumo gerado pelo Play Console — deve mostrar:
 - Purchase history, Other financial info
 - Photos (opcional)
 - Other user-generated content
+- App interactions (abertura/atividade diária)
 - Crash logs (opcional)
-- Device or other IDs
+- Device or other IDs (push e UUID aleatório de instalação)
 
 **Security practices**:
 

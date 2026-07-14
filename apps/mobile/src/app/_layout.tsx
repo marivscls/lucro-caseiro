@@ -16,6 +16,7 @@ import { AppState, Modal, Platform, useColorScheme } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { useBirthdayNotifier } from "../features/clients/use-birthday-notifier";
+import { useAppMetrics } from "../features/analytics/use-app-metrics";
 import { useDeliveryNotifier } from "../features/orders/use-delivery-notifier";
 import { useLowStockNotifier } from "../features/products/use-low-stock-notifier";
 import { useFiadoNotifier } from "../features/sales/use-fiado-notifier";
@@ -75,6 +76,9 @@ function AppContent() {
 
   // Registers for push notifications once the user is authenticated.
   useNotifications();
+
+  // Funil de produto: instalação observada + um dia ativo, sem bloquear o boot.
+  useAppMetrics();
 
   // Carrega as preferências de notificação salvas no aparelho (uma vez).
   useEffect(() => {
