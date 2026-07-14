@@ -29,7 +29,7 @@
     "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,js,mjs,json,md,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,mjs,json,md,css}\"",
-    "sherif": "sherif",
+    "sherif": "sherif --ignore-dependency react --ignore-dependency react-dom --ignore-dependency @types/react",
     "knip": "knip",
     "knip:full": "knip --include-entry-exports",
     "check": "pnpm lint && pnpm typecheck && pnpm build",

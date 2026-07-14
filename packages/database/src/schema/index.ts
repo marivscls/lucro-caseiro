@@ -18,3 +18,4 @@ export * from "./suppliers";
 export * from "./purchases";
 export * from "./recurring-expenses";
 export * from "./analytics";
+export * from "./marketing";

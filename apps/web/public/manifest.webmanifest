@@ -1,0 +1,13 @@
+{
+  "name": "Central de Marketing — Lucro Caseiro",
+  "short_name": "Marketing LC",
+  "description": "Planejamento, documentos e inteligência de marketing do Lucro Caseiro.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f1e8",
+  "theme_color": "#173f35",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

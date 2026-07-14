@@ -12,6 +12,8 @@ const envSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().default(""),
   // UUIDs do Supabase Auth autorizados a consultar métricas internas.
   ADMIN_USER_IDS: z.string().default(""),
+  MARKETING_USER_IDS: z.string().default(""),
+  GOOGLE_GENERATIVE_AI_API_KEY: z.string().default(""),
   CORS_ORIGIN: z.string().default("*"),
   GOOGLE_PLAY_PACKAGE_NAME: z.string().default("br.com.orionseven.lucrocaseiro"),
   GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: z.string().default(""),
@@ -42,6 +44,11 @@ export const config = {
   adminUserIds: parsed.data.ADMIN_USER_IDS.split(",")
     .map((id) => id.trim())
     .filter(Boolean),
+  marketingUserIds: (parsed.data.MARKETING_USER_IDS || parsed.data.ADMIN_USER_IDS)
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean),
+  googleGenerativeAiApiKey: parsed.data.GOOGLE_GENERATIVE_AI_API_KEY,
   corsOrigin: parsed.data.CORS_ORIGIN,
   googlePlayPackageName: parsed.data.GOOGLE_PLAY_PACKAGE_NAME,
   googlePlayServiceAccountJson: parsed.data.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON,

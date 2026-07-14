@@ -21,6 +21,7 @@ COPY apps/api ./apps/api
 COPY packages/contracts ./packages/contracts
 COPY packages/database ./packages/database
 COPY packages/config ./packages/config
+COPY docs/marketing ./docs/marketing
 
 ENV NODE_ENV=production
 EXPOSE 3001

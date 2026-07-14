@@ -14,9 +14,11 @@
     "analytics:report": "tsx --env-file=.env src/features/analytics/report.ts"
   },
   "dependencies": {
+    "@ai-sdk/google": "^3.0.91",
     "@lucro-caseiro/contracts": "workspace:*",
     "@lucro-caseiro/database": "workspace:*",
     "@supabase/supabase-js": "^2.110.2",
+    "ai": "^6.0.224",
     "cors": "^2.8.5",
     "drizzle-orm": "^0.45.2",
     "exceljs": "^4.4.0",
@@ -32,6 +34,7 @@
     "@lucro-caseiro/config": "workspace:*",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
+    "@types/pdfkit": "^0.17.3",
     "typescript": "^5.7.3",
     "vitest": "^3.0.0"
   }

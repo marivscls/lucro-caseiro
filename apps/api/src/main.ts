@@ -87,6 +87,11 @@ import { rateLimit } from "./shared/middleware/rate-limit";
 import { healthRouter } from "./shared/health";
 import { setDb } from "./shared/db";
 import { createClient } from "@lucro-caseiro/database";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { generateText } from "ai";
+import { createMarketingRouter } from "./features/marketing/marketing.routes";
+import { MarketingRepoPg } from "./features/marketing/marketing.repo.pg";
+import { MarketingUseCases } from "./features/marketing/marketing.usecases";
 
 // Database
 const db = createClient(config.databaseUrl);
@@ -181,6 +186,19 @@ const accountUseCases = new AccountUseCases(accountRepo, {
   },
 });
 const analyticsUseCases = new AnalyticsUseCases(new AnalyticsRepoPg(db));
+const marketingAi = config.googleGenerativeAiApiKey
+  ? createGoogleGenerativeAI({ apiKey: config.googleGenerativeAiApiKey })
+  : null;
+const marketingUseCases = new MarketingUseCases(
+  new MarketingRepoPg(db),
+  marketingAi
+    ? async ({ system, prompt }) => {
+        const model = "gemini-2.5-flash";
+        const result = await generateText({ model: marketingAi(model), system, prompt });
+        return { text: result.text, model };
+      }
+    : undefined,
+);
 
 const catalogUseCases = new CatalogUseCases(new CatalogRepoPg(db));
 // Conversao orcamento -> encomenda reusa o usecase de orders (injetado adiante).
@@ -243,6 +261,7 @@ app.use(
   "/api/v1/analytics",
   createAnalyticsRouter(analyticsUseCases, config.adminUserIds),
 );
+app.use("/api/v1/marketing", createMarketingRouter(marketingUseCases));
 app.use(
   "/api/v1/products",
   createProductsRouter(
