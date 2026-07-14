@@ -1,3 +1,5 @@
+import type { ProductAnalyticsDashboard } from "@lucro-caseiro/contracts";
+
 import type { IAnalyticsRepo, RecordOpenInput } from "./analytics.types";
 
 export function utcDateKey(date: Date): string {
@@ -17,5 +19,9 @@ export class AnalyticsUseCases {
       openedAt,
       activityDate: utcDateKey(openedAt),
     });
+  }
+
+  getDashboard(): Promise<ProductAnalyticsDashboard> {
+    return this.repo.getDashboard();
   }
 }

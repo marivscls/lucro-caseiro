@@ -1,3 +1,5 @@
+import type { ProductAnalyticsDashboard } from "@lucro-caseiro/contracts";
+
 import { apiClient } from "../../shared/utils/api-client";
 
 export interface AppOpenPayload {
@@ -16,4 +18,14 @@ export async function recordAppOpen(
     body: payload,
     token: token ?? undefined,
   });
+}
+
+export function fetchAdminAnalyticsAccess(token: string): Promise<{ allowed: boolean }> {
+  return apiClient("/api/v1/analytics/admin/access", { token });
+}
+
+export function fetchAdminAnalyticsDashboard(
+  token: string,
+): Promise<ProductAnalyticsDashboard> {
+  return apiClient("/api/v1/analytics/admin/dashboard", { token });
 }

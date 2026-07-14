@@ -6,6 +6,7 @@ import { Image, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useProfile } from "../../features/subscription/hooks";
+import { useAdminAnalyticsAccess } from "../../features/analytics/hooks";
 
 // Destaque no topo do "Mais" (ADR-0006): funções de uso diário que perderam
 // atalho na tab bar (Clientes) ou que merecem acesso rápido (Financeiro,
@@ -110,6 +111,7 @@ export default function MoreScreen() {
   const router = useRouter();
   const { theme } = useTheme();
   const { data: profile } = useProfile();
+  const { data: adminAccess } = useAdminAnalyticsAccess();
 
   const userName = profile?.name ?? "Minha conta";
   const businessName = profile?.businessName ?? "Ver perfil e assinatura";
@@ -235,7 +237,19 @@ export default function MoreScreen() {
           Tudo
         </Typography>
 
-        {menuItems.map((item) => (
+        {[
+          ...menuItems,
+          ...(adminAccess?.allowed
+            ? [
+                {
+                  title: "Métricas do produto",
+                  description: "Instalação, ativação e retenção",
+                  icon: "analytics-outline" as const,
+                  route: "/admin-metrics" as const,
+                },
+              ]
+            : []),
+        ].map((item) => (
           <Card
             key={item.title}
             variant="elevated"

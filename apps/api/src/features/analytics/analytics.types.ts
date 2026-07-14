@@ -1,3 +1,5 @@
+import type { ProductAnalyticsDashboard } from "@lucro-caseiro/contracts";
+
 export type AnalyticsPlatform = "android" | "ios" | "web";
 
 export interface RecordOpenInput {
@@ -14,4 +16,5 @@ export interface PersistedOpen extends RecordOpenInput {
 
 export interface IAnalyticsRepo {
   recordOpen(userId: string | null, input: PersistedOpen): Promise<void>;
+  getDashboard(): Promise<ProductAnalyticsDashboard>;
 }

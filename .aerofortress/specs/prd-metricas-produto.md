@@ -1,6 +1,6 @@
 # PRD — Métricas de instalação, ativação e retenção
 
-**Status:** implementado no código; depende da aplicação da migration e do deploy da API/app
+**Status:** implementado no código; migration aplicada; depende do deploy da API/app e da configuração do administrador
 **Data:** 2026-07-13
 **Responsável:** Lucro Caseiro
 
@@ -45,6 +45,9 @@ desnecessários:
 - Vincular a instalação ao usuário quando houver sessão autenticada.
 - Registrar nova atividade ao voltar ao app, com deduplicação diária no servidor.
 - Nunca bloquear boot, login ou navegação se a telemetria falhar.
+- Exibir um atalho para o painel somente quando o backend confirmar que a conta é administradora.
+- Mostrar cards de instalações, cadastros, ativação e atividade, além de barras de retenção
+  D1/D7/D30, com atualização por gesto.
 
 ### Backend e banco
 
@@ -54,6 +57,8 @@ desnecessários:
   pessoa troca de conta no mesmo aparelho.
 - Derivar ativação das tabelas canônicas; não duplicar eventos de precificação, venda ou encomenda.
 - Disponibilizar relatório operacional por comando, usando acesso direto e autorizado ao banco.
+- Disponibilizar o mesmo cálculo em endpoint autenticado e restrito aos UUIDs configurados em
+  `ADMIN_USER_IDS`; uma lista vazia nega acesso a todas as contas.
 
 ## Relatório mínimo
 
@@ -66,6 +71,10 @@ O comando `pnpm analytics:report` deve informar:
 - instalações e usuários ativos em 1, 7 e 30 dias;
 - retenção D1, D7 e D30, com numerador, denominador e percentual.
 
+O painel administrativo no app apresenta esse mesmo relatório em formato visual. O endpoint
+`GET /api/v1/analytics/admin/access` controla a visibilidade do atalho e
+`GET /api/v1/analytics/admin/dashboard` entrega os dados somente após autenticação e autorização.
+
 ## Privacidade e segurança
 
 - Não persistir nome, e-mail, telefone, IP, modelo do aparelho, Advertising ID ou conteúdo criado.
@@ -77,7 +86,8 @@ O comando `pnpm analytics:report` deve informar:
 
 ## Fora de escopo
 
-- Painel administrativo dentro do aplicativo.
+- Gestão de papéis administrativos dentro do aplicativo ou permissão por equipe.
+- Exportação do painel, metas, alertas e comparação entre coortes.
 - Atribuição de campanha, UTM, origem da Play Store ou custo de aquisição.
 - Crash reporting, replay de sessão e rastreamento de telas/cliques.
 - Plataforma genérica de eventos ou integração imediata com PostHog/Firebase/Amplitude.
@@ -92,16 +102,19 @@ O comando `pnpm analytics:report` deve informar:
 - [x] Ativação é derivada de precificação, venda ou encomenda já persistida.
 - [x] O cliente continua funcionando se o endpoint analítico estiver indisponível.
 - [x] Existe um comando reproduzível para consultar o funil e a retenção.
+- [x] Existe um painel visual protegido e invisível para contas comuns.
+- [x] O cálculo do comando e do painel usa uma única consulta canônica.
 - [x] Há testes para identidade persistente e regra de data diária enviada ao repositório.
 - [x] Política de privacidade e orientação de Data Safety refletem a nova coleta.
 
 ## Implantação
 
-1. Aplicar `034_product_analytics.sql` no Supabase.
-2. Publicar a API com `/api/v1/analytics/open` e `/api/v1/analytics/identify`.
-3. Gerar uma atualização do app com a instrumentação.
-4. Após 7 dias, registrar a primeira linha de base de ativação e D1/D7.
-5. Após 30 dias, registrar a primeira linha de base de D30 e decidir metas.
+1. Aplicar `034_product_analytics.sql` no Supabase. **Concluído em 2026-07-13.**
+2. Configurar `ADMIN_USER_IDS` no Railway com o UUID da conta autorizada.
+3. Publicar a API com os endpoints de coleta e painel administrativo.
+4. Gerar uma atualização do app com a instrumentação e o painel.
+5. Após 7 dias, registrar a primeira linha de base de ativação e D1/D7.
+6. Após 30 dias, registrar a primeira linha de base de D30 e decidir metas.
 
 ## Riscos e mitigação
 
@@ -112,3 +125,5 @@ O comando `pnpm analytics:report` deve informar:
 - **Troca de conta:** vínculos e dias ativos autenticados usam chaves compostas, sem apagar a conta
   usada anteriormente na mesma instalação.
 - **Fuso horário:** todos os dias analíticos usam UTC para manter coortes determinísticas.
+- **Acesso indevido:** o atalho oculto não é a barreira de segurança; o endpoint valida o UUID
+  autenticado no servidor e nega todos quando a lista não está configurada.

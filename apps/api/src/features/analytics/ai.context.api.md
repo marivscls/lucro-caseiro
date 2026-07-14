@@ -11,7 +11,7 @@ ativação e retenção sem uma plataforma externa de eventos.
 
 - Não rastreia telas, cliques, campanhas, crashes ou conteúdo criado.
 - Não substitui métricas de download e aquisição da Google Play.
-- Não oferece endpoint público de relatório nem painel administrativo.
+- Não oferece endpoint público de relatório; o painel exige autenticação e allowlist.
 
 ## Boundaries & Ownership
 
@@ -22,9 +22,11 @@ ativação e retenção sem uma plataforma externa de eventos.
 
 ## Code pointers
 
-- `analytics.routes.ts`: abertura anônima e identificação autenticada.
+- `analytics.routes.ts`: abertura anônima, identificação autenticada e painel administrativo.
+- `analytics.admin.ts`: regra pura de autorização por UUID configurado.
 - `analytics.usecases.ts`: relógio e chave de dia UTC.
 - `analytics.repo.pg.ts`: upserts idempotentes e vínculo retroativo.
+- `analytics.report-query.ts`: consulta canônica compartilhada pelo endpoint e pelo comando.
 - `report.ts`: relatório operacional via `pnpm analytics:report`.
 - `packages/database/src/migrations/034_product_analytics.sql`: tabelas e segurança.
 
@@ -46,13 +48,16 @@ ativação e retenção sem uma plataforma externa de eventos.
 
 - `POST /api/v1/analytics/open`: abertura anônima.
 - `POST /api/v1/analytics/identify`: abertura autenticada e vínculo.
+- `GET /api/v1/analytics/admin/access`: informa se a conta está em `ADMIN_USER_IDS`.
+- `GET /api/v1/analytics/admin/dashboard`: relatório autenticado e autorizado.
 - `pnpm analytics:report`: consulta agregada com `DATABASE_URL`.
 
 ## Authorization & RLS
 
 - `/open` é anônimo e recebe payload estritamente limitado.
 - `/identify` usa `authMiddleware`; o `userId` nunca vem do corpo.
-- As duas tabelas têm RLS e privilégios de `anon`/`authenticated` revogados.
+- `/admin/dashboard` exige `authMiddleware` e UUID presente em `ADMIN_USER_IDS`.
+- As quatro tabelas têm RLS e privilégios de `anon`/`authenticated` revogados.
 
 ## Contracts (Zod/DTO)
 
@@ -62,6 +67,7 @@ ativação e retenção sem uma plataforma externa de eventos.
 
 - 400 para payload inválido, via error handler existente.
 - 401 em `/identify` sem sessão válida.
+- 401 no painel sem sessão e 403 para conta fora da allowlist.
 - Erro de banco é propagado ao error handler; o cliente trata telemetria como best effort.
 
 ## Events / Side effects
@@ -79,6 +85,7 @@ ativação e retenção sem uma plataforma externa de eventos.
 
 - Não persiste IP, e-mail, telefone, Advertising ID ou modelo do aparelho.
 - O endpoint anônimo não aceita propriedades arbitrárias.
+- Lista administrativa vazia nega o painel a todas as contas.
 - O rate limit global da API também cobre estas rotas.
 
 ## Test matrix
@@ -86,6 +93,7 @@ ativação e retenção sem uma plataforma externa de eventos.
 - Use case repassa usuário e metadados com timestamp e dia UTC determinísticos.
 - `utcDateKey` independe do fuso local.
 - Typecheck cobre schema, transação, rotas e relatório.
+- Autorização nega conta comum e configuração vazia; mapping normaliza números do Postgres.
 
 ## Examples
 
@@ -95,3 +103,4 @@ ativação e retenção sem uma plataforma externa de eventos.
 
 - 2026-07-13: implementação inicial sem SDK externo; ativação derivada das tabelas canônicas.
 - Retenção usa dia exato D1/D7/D30 e calendário UTC.
+- 2026-07-13: painel interno usa a mesma consulta do comando e autorização por `ADMIN_USER_IDS`.

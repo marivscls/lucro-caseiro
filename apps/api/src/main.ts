@@ -239,7 +239,10 @@ app.use("/api/v1/health", healthRouter);
 
 // Feature routes
 app.use("/api/v1/account", createAccountRouter(accountUseCases));
-app.use("/api/v1/analytics", createAnalyticsRouter(analyticsUseCases));
+app.use(
+  "/api/v1/analytics",
+  createAnalyticsRouter(analyticsUseCases, config.adminUserIds),
+);
 app.use(
   "/api/v1/products",
   createProductsRouter(

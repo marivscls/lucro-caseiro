@@ -5,12 +5,13 @@
 ## Purpose
 
 Registrar abertura e atividade diária do app com um identificador persistente por instalação,
-antes e depois da autenticação, sem bloquear a experiência.
+antes e depois da autenticação, sem bloquear a experiência, e apresentar o funil apenas para uma
+conta autorizada pelo backend.
 
 ## Non-goals
 
 - Não rastreia telas, cliques, conteúdo, crashes ou origem de campanha.
-- Não mostra métricas ao usuário final.
+- Não mostra métricas a contas comuns.
 - Não adiciona SDK ou dependência analítica externa.
 
 ## Boundaries & Ownership
@@ -24,11 +25,14 @@ antes e depois da autenticação, sem bloquear a experiência.
 - `installation.ts`: UUID persistente da instalação.
 - `api.ts`: envio anônimo ou autenticado.
 - `use-app-metrics.ts`: boot, troca de identidade e retorno ao app.
+- `hooks.ts`: acesso administrativo e consulta do painel com React Query.
+- `app/admin-metrics.tsx`: painel visual interno.
 - `installation.test.ts`: persistência e formato do UUID.
 
 ## Components
 
-Nenhum componente visual.
+`admin-metrics.tsx` reutiliza Card, Typography, Button e EmptyState. Exibe cards do funil, tabela de
+atividade e barras acessíveis de retenção, com pull-to-refresh.
 
 ## Hooks
 
@@ -40,6 +44,8 @@ upsert quando o app volta ao estado ativo.
 - Sem token: `POST /api/v1/analytics/open`.
 - Com token: `POST /api/v1/analytics/identify`.
 - Payload: UUID da instalação, plataforma, versão e build.
+- `GET /api/v1/analytics/admin/access`: decide se o item aparece em “Mais”.
+- `GET /api/v1/analytics/admin/dashboard`: carrega os dados; o servidor continua sendo a barreira.
 
 ## Contracts
 
@@ -70,3 +76,4 @@ Uma instalação anônima abre o app, recebe UUID local e chama `/open`; após l
 
 - 2026-07-13: coleta mínima própria, sem SDK externo e sem fila dedicada; falhas tentam novamente
   em uma abertura futura.
+- 2026-07-13: painel administrativo protegido por allowlist do backend, sem dependência de gráficos.
