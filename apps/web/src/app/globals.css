@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --ink: #17332c;
-  --muted: #6d7772;
-  --paper: #f7f3eb;
-  --card: #fffdf8;
-  --line: #ded8cc;
-  --green: #173f35;
-  --green-2: #2f6b59;
-  --amber: #e1a94b;
-  --amber-soft: #fff0c9;
+  --ink: #111411;
+  --muted: #7d8778;
+  --paper: #fafbf7;
+  --card: #ffffff;
+  --line: #e2e7dc;
+  --green: #005c3a;
+  --green-2: #05a66b;
+  --amber: #05a66b;
+  --amber-soft: #c8ff9a;
   --rose: #c46f62;
   --blue: #547c8c;
   --shadow: 0 16px 40px rgba(35, 54, 47, 0.08);
@@ -79,7 +79,7 @@ h2 {
 }
 .sidebar-brand span {
   font-size: 11px;
-  color: #c8d6d1;
+  color: #dcffc4;
   margin-top: 2px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -95,7 +95,7 @@ h2 {
   font-family: var(--font-display);
   font-weight: 800;
   font-size: 22px;
-  box-shadow: inset 0 0 0 1px #173f3518;
+  box-shadow: inset 0 0 0 1px #005c3a18;
   flex: none;
 }
 .brand-mark.small {
@@ -117,7 +117,7 @@ h2 {
   gap: 11px;
   padding: 10px 12px;
   border-radius: 11px;
-  color: #d5e0dc;
+  color: #dcffc4;
   text-decoration: none;
   font-size: 14px;
   font-weight: 600;
@@ -130,9 +130,9 @@ h2 {
   transform: translateX(2px);
 }
 .sidebar nav a.active {
-  background: #f5d281;
-  color: #18392f;
-  box-shadow: 0 8px 20px #0d2a2238;
+  background: #c8ff9a;
+  color: #005c3a;
+  box-shadow: 0 8px 20px #003a2738;
 }
 .sidebar-note {
   margin-top: auto;
@@ -142,7 +142,7 @@ h2 {
   background: #ffffff0d;
   border: 1px solid #ffffff16;
   border-radius: 14px;
-  color: #cdd9d5;
+  color: #dcffc4;
 }
 .sidebar-note p {
   font-size: 11px;
@@ -155,7 +155,7 @@ h2 {
 .sidebar-logout {
   border: 0;
   background: transparent;
-  color: #b9cbc5;
+  color: #dcffc4;
   display: flex;
   align-items: center;
   gap: 9px;
@@ -182,7 +182,7 @@ h2 {
 .page-header h1 {
   font: 700 clamp(34px, 4vw, 54px)/1.04 var(--font-display);
   margin: 4px 0 12px;
-  color: #17382f;
+  color: #005c3a;
 }
 .page-header p:last-child {
   max-width: 690px;
@@ -192,7 +192,7 @@ h2 {
   margin: 0;
 }
 .eyebrow {
-  color: #9b6b1e;
+  color: #006f49;
   text-transform: uppercase;
   letter-spacing: 0.13em;
   font-size: 11px;
@@ -225,7 +225,7 @@ h2 {
 .button.primary {
   background: var(--green);
   color: #fff;
-  box-shadow: 0 8px 18px #173f3524;
+  box-shadow: 0 8px 18px #005c3a24;
 }
 .button.secondary {
   background: var(--card);
@@ -342,12 +342,12 @@ h2 {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  background: #e7eee9;
-  color: #32604f;
+  background: #f1ffe8;
+  color: #006f49;
 }
 .status.idea {
   background: var(--amber-soft);
-  color: #895d13;
+  color: #005c3a;
 }
 .status.planned {
   background: #e3edf2;
@@ -356,8 +356,8 @@ h2 {
 .status.published,
 .status.active,
 .status.ready {
-  background: #dceee5;
-  color: #256247;
+  background: #f1ffe8;
+  color: #006f49;
 }
 .status.archived {
   background: #ece9e3;
@@ -416,7 +416,7 @@ h2 {
   background: var(--amber-soft);
   display: grid;
   place-items: center;
-  color: #93671e;
+  color: #005c3a;
 }
 .skeleton {
   background: linear-gradient(90deg, #f1ede5, #fffdf8, #f1ede5);
@@ -503,8 +503,8 @@ select {
 }
 input:focus,
 textarea:focus {
-  border-color: #659486;
-  box-shadow: 0 0 0 3px #6594861c;
+  border-color: #05a66b;
+  box-shadow: 0 0 0 3px #05a66b1c;
 }
 .form-error {
   color: #a44338;
@@ -521,8 +521,8 @@ textarea:focus {
   color: #8e3b32;
 }
 .notice.success {
-  background: #dceee5;
-  color: #245d46;
+  background: #f1ffe8;
+  color: #006f49;
 }
 .metric-grid {
   display: grid;
@@ -547,12 +547,12 @@ textarea:focus {
   place-items: center;
 }
 .metric-icon.amber {
-  background: #fff0c9;
-  color: #966a1f;
+  background: #c8ff9a;
+  color: #005c3a;
 }
 .metric-icon.green {
-  background: #dceee5;
-  color: #2b674e;
+  background: #f1ffe8;
+  color: #006f49;
 }
 .metric-icon.blue {
   background: #dfedf1;
@@ -664,13 +664,13 @@ textarea:focus {
 .ai-panel > p:not(.eyebrow) {
   font-size: 13px;
   line-height: 1.55;
-  color: #ccdad5;
+  color: #dcffc4;
 }
 .ai-orb {
   width: 54px;
   height: 54px;
   border-radius: 18px;
-  background: #f3ce75;
+  background: #c8ff9a;
   color: var(--green);
   display: grid;
   place-items: center;
@@ -804,10 +804,10 @@ textarea:focus {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #398063;
+  color: #006f49;
 }
 .saving {
-  color: #9a6d21;
+  color: #006f49;
 }
 .document-title-input {
   border: 0;
@@ -985,7 +985,7 @@ textarea:focus {
   cursor: pointer;
 }
 .starter-grid button:hover {
-  border-color: #80a095;
+  border-color: #05a66b;
 }
 .message {
   display: flex;
@@ -1020,7 +1020,7 @@ textarea:focus {
   line-height: 1.6;
 }
 .message.user .bubble {
-  background: #dceee5;
+  background: #f1ffe8;
   border-radius: 15px 4px 15px 15px;
 }
 .bubble p {
@@ -1043,7 +1043,7 @@ textarea:focus {
   gap: 4px;
   align-items: center;
   font-size: 9px;
-  color: #398063;
+  color: #006f49;
 }
 .typing {
   display: flex;
@@ -1112,8 +1112,8 @@ textarea:focus {
   width: 30px;
   height: 30px;
   border-radius: 9px;
-  background: #dceee5;
-  color: #276047;
+  background: #f1ffe8;
+  color: #006f49;
   display: grid;
   place-items: center;
   font-weight: 900;
@@ -1134,7 +1134,7 @@ textarea:focus {
 .guardrail em {
   font-style: normal;
   font-size: 9px;
-  color: #3d755d;
+  color: #006f49;
 }
 .training-tabs {
   display: flex;
@@ -1174,7 +1174,7 @@ textarea:focus {
   background: var(--amber-soft);
   display: grid;
   place-items: center;
-  color: #906219;
+  color: #005c3a;
 }
 .stack-list {
   display: grid;
@@ -1200,7 +1200,7 @@ textarea:focus {
 }
 .score {
   display: block;
-  color: #367157;
+  color: #006f49;
   font-size: 11px;
   margin-top: 6px;
 }
@@ -1268,7 +1268,7 @@ textarea:focus {
   flex-direction: column;
   justify-content: center;
   background:
-    radial-gradient(circle at 20% 20%, #2f6b59 0, transparent 38%), var(--green);
+    radial-gradient(circle at 20% 20%, #05a66b 0, transparent 38%), var(--green);
 }
 .login-story h1 {
   font: 700 clamp(48px, 6vw, 82px)/0.98 var(--font-display);
@@ -1276,7 +1276,7 @@ textarea:focus {
   margin: 18px 0;
 }
 .login-story > p:last-child {
-  color: #c7d8d2;
+  color: #dcffc4;
   max-width: 570px;
   font-size: 17px;
   line-height: 1.6;
