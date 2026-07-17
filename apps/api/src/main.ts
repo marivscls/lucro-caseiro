@@ -194,8 +194,19 @@ const marketingUseCases = new MarketingUseCases(
   marketingAi
     ? async ({ system, prompt }) => {
         const model = "gemini-2.5-flash";
-        const result = await generateText({ model: marketingAi(model), system, prompt });
-        return { text: result.text, model };
+        try {
+          const result = await generateText({
+            model: marketingAi(model),
+            system,
+            prompt,
+          });
+          return { text: result.text, model };
+        } catch (error) {
+          console.error("Marketing AI generation failed:", error);
+          throw new ServiceUnavailableError(
+            "A IA est\u00e1 temporariamente indispon\u00edvel. Tente novamente em instantes.",
+          );
+        }
       }
     : undefined,
 );

@@ -14,6 +14,7 @@ healthRouter.get("/", (_req, res) => {
     config: {
       accountDeletion: Boolean(config.supabaseServiceRoleKey),
       googlePlay: Boolean(config.googlePlayServiceAccountJson),
+      marketingAi: Boolean(config.googleGenerativeAiApiKey),
       stripe: Boolean(config.stripeSecretKey),
     },
   });

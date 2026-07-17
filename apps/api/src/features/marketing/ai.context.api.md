@@ -56,6 +56,7 @@ campanhas e resultados sem expor esses dados às usuárias do app comercial.
 - CRUD `/resources` e `/documents`; anexos em `/documents/:id/attachments`.
 - Export em `/documents/:id/export.md|pdf`.
 - Conversas em `/ai/sessions` e `POST /ai/chat`; feedback em `/ai/feedback`.
+- Rascunhos em `POST /ai/resources/draft`; banco ranqueado em `POST /ai/content/ideas`.
 - Governança em `/ai/training`: instruções, conhecimento, exemplos, avaliações e settings.
 
 ## Authorization & RLS
@@ -70,6 +71,8 @@ campanhas e resultados sem expor esses dados às usuárias do app comercial.
 - `MarketingResourceInputSchema` e patch/query para o agregado por `kind`.
 - `MarketingDocumentInputSchema`, patch e metadados de anexo.
 - `MarketingAiMessageInputSchema`, instrução, conhecimento, feedback e avaliação.
+- `MarketingContentIdeasInputSchema` aceita contexto opcional; a saída valida ideias, indicadores e
+  o briefing aplicável de cada sugestão.
 - `MarketingLearningPolicySchema` mantém A/B ligadas, C desligada, amostra e score limitados.
 
 ## Errors
@@ -101,6 +104,7 @@ campanhas e resultados sem expor esses dados às usuárias do app comercial.
 
 - Seed contém 28 peças únicas em quatro semanas.
 - Instrução mantém regras contra invenção e alterações protegidas.
+- Banco de ideias remove sugestões que repetem título, gancho, CTA ou emoção principal.
 - Score de avaliação compara termos relevantes do esperado com a resposta.
 - Suíte completa da API e builds web/API são gates de entrega.
 
@@ -116,3 +120,5 @@ campanhas e resultados sem expor esses dados às usuárias do app comercial.
 - 2026-07-14: implementação inicial seguindo a arquitetura do Lunoa: Next App Router, Express por
   feature, contratos Zod, Drizzle/Postgres, Supabase Auth, React Query e AI SDK com Gemini.
 - 2026-07-14: aprendizado híbrido A/B/C; automático somente onde o risco permite.
+- 2026-07-17: Banco Inteligente de Ideias passou a gerar ranking estratégico com indicadores
+  heurísticos e briefing pronto para revisão.

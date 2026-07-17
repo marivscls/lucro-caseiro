@@ -1,16 +1,25 @@
 import type {
   MarketingAiResourceDraft,
+  MarketingContentIdeas,
   MarketingDocumentInput,
   MarketingLearningPolicy,
   MarketingResourceInput,
   MarketingResourceKind,
 } from "@lucro-caseiro/contracts";
-import { MarketingAiResourceDraftSchema } from "@lucro-caseiro/contracts";
+import {
+  MarketingAiResourceDraftSchema,
+  MarketingContentIdeasSchema,
+} from "@lucro-caseiro/contracts";
 import { readFile } from "node:fs/promises";
 
 import { NotFoundError, ServiceUnavailableError } from "../../shared/errors";
 import { initialMarketingResources } from "./marketing.seed";
-import { DEFAULT_MARKETING_SYSTEM_PROMPT } from "./marketing.system-prompt";
+import {
+  CONTENT_MARKETING_SYSTEM_PROMPT,
+  DEFAULT_MARKETING_SYSTEM_PROMPT,
+  IDEA_BANK_SYSTEM_PROMPT,
+  REFINE_STRATEGY_SYSTEM_PROMPT,
+} from "./marketing.system-prompt";
 import type { MarketingRepoPg } from "./marketing.repo.pg";
 
 export type MarketingAiGenerator = (input: {
@@ -292,7 +301,7 @@ export class MarketingUseCases {
       `PEDIDO ATUAL:\n${input.message}`,
     ].join("\n\n");
     const result = await this.generate({
-      system: instruction?.body ?? DEFAULT_MARKETING_SYSTEM_PROMPT,
+      system: marketingSystemPrompt(instruction?.body),
       prompt: context,
     });
     const message = await this.repo.addMessage(
@@ -309,6 +318,7 @@ export class MarketingUseCases {
     userId: string,
     input: {
       kind: MarketingResourceKind;
+      intent?: "generate" | "refine";
       prompt: string;
       current?: {
         title: string;
@@ -329,10 +339,12 @@ export class MarketingUseCases {
       this.repo.listExamples(userId),
       this.repo.listResources(userId),
     ]);
+    const intent = input.intent ?? "generate";
     const result = await this.generate({
-      system: `${instruction?.body ?? DEFAULT_MARKETING_SYSTEM_PROMPT}\n\nAo preencher cadastros, responda somente com o JSON solicitado, sem markdown ou comentários.`,
+      system: resourceDraftSystemPrompt(instruction?.body, intent, input.kind),
       prompt: [
         `Crie um único rascunho de ${resourceKindLabel(input.kind)} para o Lucro Caseiro.`,
+        resourceDraftIntentInstructions(intent, input.kind),
         `PEDIDO: ${input.prompt}`,
         `CAMPOS ATUAIS: ${JSON.stringify(input.current ?? {})}`,
         `CONHECIMENTO CANÔNICO: ${knowledge
@@ -351,9 +363,67 @@ export class MarketingUseCases {
         'FORMATO EXATO: {"title":"...","summary":"...","status":"...","scheduledFor":null,"data":{}}',
         `STATUS PERMITIDOS: ${statusOptions(input.kind).join(", ")}.`,
         "Use scheduledFor em ISO 8601 apenas se o pedido definir uma data; caso contrário, use null. Em data, inclua somente contexto estruturado útil e específico para este tipo de item.",
+        resourceDraftDataInstructions(input.kind),
       ].join("\n\n"),
     });
     return parseMarketingResourceDraft(result.text, input.kind);
+  }
+
+  async generateContentIdeas(
+    userId: string,
+    input: {
+      prompt: string;
+      current?: {
+        title: string;
+        summary: string;
+        data: Record<string, unknown>;
+      };
+    },
+  ): Promise<MarketingContentIdeas> {
+    if (!this.generate)
+      throw new ServiceUnavailableError(
+        "Configure GOOGLE_GENERATIVE_AI_API_KEY para usar a IA",
+      );
+    const [instruction, knowledge, examples, resources] = await Promise.all([
+      this.repo.activeInstruction(userId),
+      this.repo.listKnowledge(userId),
+      this.repo.listExamples(userId),
+      this.repo.listResources(userId),
+    ]);
+    const existingContent = resources.filter((item) => item.kind === "content");
+    const relatedContext = resources.filter((item) => item.kind !== "content");
+    const result = await this.generate({
+      system: `${marketingSystemPrompt(instruction?.body)}\n\n${IDEA_BANK_SYSTEM_PROMPT}\n\nResponda somente com o JSON solicitado, sem markdown ou comentários.`,
+      prompt: [
+        "Gere 8 oportunidades de conteúdo distintas e ordenadas da melhor para a pior.",
+        `ENTRADA OPCIONAL: ${input.prompt || "Nenhuma entrada adicional; use o contexto disponível e faça apenas inferências conservadoras."}`,
+        `BRIEFING ATUAL: ${JSON.stringify(input.current ?? {})}`,
+        `CONHECIMENTO CANÔNICO: ${knowledge
+          .slice(0, 12)
+          .map((item) => `${item.title}: ${item.body}`)
+          .join("\n")}`,
+        `EXEMPLOS APROVADOS: ${examples
+          .slice(0, 5)
+          .map((item) => `Entrada: ${item.input}\nSaída: ${item.output}`)
+          .join("\n\n")}`,
+        `CONTEÚDOS E IDEIAS JÁ CADASTRADOS — evite duplicar e use escolhas anteriores apenas como sinal de preferência: ${existingContent
+          .slice(0, 50)
+          .map(
+            (item) => `${item.title}: ${item.summary ?? ""} ${JSON.stringify(item.data)}`,
+          )
+          .join("\n")}`,
+        `PÚBLICOS, PRODUTOS, CAMPANHAS E RESULTADOS DISPONÍVEIS: ${relatedContext
+          .slice(0, 40)
+          .map(
+            (item) =>
+              `[${item.kind}] ${item.title}: ${item.summary ?? ""} ${JSON.stringify(item.data)}`,
+          )
+          .join("\n")}`,
+        'FORMATO EXATO: {"ideas":[{"title":"...","example":"...","category":"...","objective":"...","persona":"...","primaryEmotion":"...","mainPain":"...","mainDesire":"...","bestFormat":"Carrossel|Reels|Stories|Post|Email|Thread|Vídeo|Blog","hook":"...","cta":"...","strategicPotential":5,"justification":"...","scores":{"conversion":0,"sharing":0,"saving":0,"identification":0,"viral":0},"brief":{"theme":"...","category":"...","persona":"...","contentObjective":"...","personaStage":"...","mainPain":"...","mainDesire":"...","transformation":"...","primaryEmotion":"...","hook":"...","mainMessage":"...","cta":"..."}}]}',
+        "Todos os scores devem ser inteiros de 0 a 100. strategicPotential deve ser inteiro de 1 a 5. Não repita título, gancho, CTA ou primaryEmotion.",
+      ].join("\n\n"),
+    });
+    return parseMarketingContentIdeas(result.text);
   }
 
   listSessions(userId: string) {
@@ -421,7 +491,7 @@ export class MarketingUseCases {
     if (!evaluation) throw new NotFoundError("Avaliação não encontrada");
     const instruction = await this.repo.activeInstruction(userId);
     const result = await this.generate({
-      system: instruction?.body ?? DEFAULT_MARKETING_SYSTEM_PROMPT,
+      system: marketingSystemPrompt(instruction?.body),
       prompt: evaluation.prompt,
     });
     const score = overlapScore(evaluation.expected, result.text);
@@ -531,6 +601,107 @@ export function parseMarketingResourceDraft(
       "A IA não conseguiu montar o rascunho. Tente descrever o item de outra forma.",
     );
   }
+}
+
+export function parseMarketingContentIdeas(text: string): MarketingContentIdeas {
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start < 0 || end <= start) {
+    throw new ServiceUnavailableError(
+      "A IA não conseguiu montar as ideias. Tente novamente.",
+    );
+  }
+  try {
+    const parsed = MarketingContentIdeasSchema.parse(
+      JSON.parse(text.slice(start, end + 1)),
+    );
+    const seen = {
+      titles: new Set<string>(),
+      hooks: new Set<string>(),
+      ctas: new Set<string>(),
+      emotions: new Set<string>(),
+    };
+    const ideas = parsed.ideas.filter((idea) => {
+      const values = {
+        title: normalizeIdeaField(idea.title),
+        hook: normalizeIdeaField(idea.hook),
+        cta: normalizeIdeaField(idea.cta),
+        emotion: normalizeIdeaField(idea.primaryEmotion),
+      };
+      if (
+        seen.titles.has(values.title) ||
+        seen.hooks.has(values.hook) ||
+        seen.ctas.has(values.cta) ||
+        seen.emotions.has(values.emotion)
+      )
+        return false;
+      seen.titles.add(values.title);
+      seen.hooks.add(values.hook);
+      seen.ctas.add(values.cta);
+      seen.emotions.add(values.emotion);
+      return true;
+    });
+    if (ideas.length === 0) throw new Error("No unique ideas");
+    return { ideas };
+  } catch {
+    throw new ServiceUnavailableError(
+      "A IA não conseguiu montar as ideias. Tente novamente.",
+    );
+  }
+}
+
+function normalizeIdeaField(value: string) {
+  return value
+    .trim()
+    .toLocaleLowerCase("pt-BR")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function marketingSystemPrompt(activeInstruction?: string) {
+  if (!activeInstruction) return DEFAULT_MARKETING_SYSTEM_PROMPT;
+  if (activeInstruction.includes(CONTENT_MARKETING_SYSTEM_PROMPT)) {
+    return activeInstruction;
+  }
+  return `${activeInstruction}\n\n${CONTENT_MARKETING_SYSTEM_PROMPT}`;
+}
+
+function resourceDraftDataInstructions(kind: MarketingResourceKind) {
+  if (kind !== "content") return "";
+  return [
+    "Para conteúdo, preencha data usando somente estas chaves quando houver informação:",
+    "theme, category, persona, contentObjective, personaStage, mainPain, mainDesire, transformation, hook, primaryEmotion, mentalTriggers, objections, mainMessage, cta, keywords, toneOfVoice, restrictions, proofs, desiredFormats e analysis.",
+    "mentalTriggers, objections, keywords, restrictions, proofs e desiredFormats devem ser arrays de strings; os demais campos do briefing devem ser strings.",
+    'analysis deve seguir exatamente: {"bestFormat":"...","bestFormatReason":"...","actualObjective":"...","viralPotential":0,"viralClassification":"Baixo|Médio|Alto|Muito Alto","viralReason":"...","conversionPotential":0,"sharingPotential":0,"savingPotential":0,"hookStrength":0,"personaClarity":0,"objectiveClarity":0,"emotionalAppeal":0,"messageClarity":0,"engagementPotential":0,"overallScore":0,"diagnosis":{"strengths":["..."],"weaknesses":["..."],"missing":["..."],"excellent":["..."]},"improvements":{"hook":"...","message":"...","cta":"...","persona":"...","pain":"...","transformation":"..."},"naturalTriggers":["..."],"suggestedTriggers":["..."],"unansweredObjection":"...","storytellingOpportunity":"...","socialProofOpportunity":"...","numbersOpportunity":"...","executiveSummary":"..."}.',
+    "Todos os scores devem ser inteiros de 0 a 100, coerentes com o briefing. bestFormat deve recomendar o formato mais adequado ao objetivo e à persona.",
+    "Formatos aceitos: Post para Instagram, Carrossel, Reels, Stories, Threads, Facebook, LinkedIn, E-mail, Artigo, Blog, Push notification, Roteiro de vídeo, Legenda, Título, CTA, Prompt para imagem, Prompt para vídeo e Hashtags.",
+    "Não invente provas. Se uma informação não existir e uma inferência conservadora não for segura, omita a chave.",
+  ].join(" ");
+}
+
+function resourceDraftSystemPrompt(
+  activeInstruction: string | undefined,
+  intent: "generate" | "refine",
+  kind: MarketingResourceKind,
+) {
+  const base = marketingSystemPrompt(activeInstruction);
+  const specialized =
+    intent === "refine" && kind === "content"
+      ? `\n\n${REFINE_STRATEGY_SYSTEM_PROMPT}`
+      : "";
+  return `${base}${specialized}\n\nAo preencher cadastros, responda somente com o JSON solicitado, sem markdown ou comentários.`;
+}
+
+function resourceDraftIntentInstructions(
+  intent: "generate" | "refine",
+  kind: MarketingResourceKind,
+) {
+  if (kind !== "content")
+    return "Preencha os campos usando apenas o contexto disponível.";
+  if (intent === "refine") {
+    return "TAREFA: refine o briefing atual. Preserve fatos e restrições, aumente a especificidade estratégica e otimize CTA, gancho, persona, formato e conversão. Recalcule toda a análise depois das melhorias. Nunca invente fatos, provas ou resultados.";
+  }
+  return "TAREFA: transforme o título, resumo, ideia, texto ou transcrição em um briefing completo. Preencha automaticamente apenas o que o contexto sustentar; quando não houver base segura, deixe o campo de fora. Gere também a análise estratégica e as sugestões de melhoria.";
 }
 
 function statusOptions(kind: MarketingResourceKind) {

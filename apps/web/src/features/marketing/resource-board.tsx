@@ -7,9 +7,19 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { apiClient } from "@/shared/lib/api-client";
 import type {
   MarketingAiResourceDraft,
+  MarketingContentIdea,
+  MarketingContentIdeas,
   MarketingResource,
   ResourceKind,
 } from "@/shared/types";
+import { ContentBriefEditor } from "./content-brief-editor";
+import {
+  contentBriefFromData,
+  emptyContentBrief,
+  mergeContentBriefData,
+  scoreContentBrief,
+  type ContentBrief,
+} from "./content-brief";
 import { PageHeader } from "./page-header";
 
 const labels: Record<
@@ -68,6 +78,9 @@ const audienceIdeas = [
   "Empreendedoras que vendem bem, mas não sabem se cada produto realmente dá lucro",
 ];
 
+type DraftIntent = "generate" | "refine";
+type AppliedIntent = DraftIntent | "idea";
+
 export function ResourceBoard({
   kind,
   initialEditingId,
@@ -85,9 +98,11 @@ export function ResourceBoard({
   const [status, setStatus] = useState(initialStatus(kind));
   const [scheduledFor, setScheduledFor] = useState("");
   const [dataText, setDataText] = useState("{}");
+  const [contentBrief, setContentBrief] = useState<ContentBrief>(emptyContentBrief);
   const [editorTab, setEditorTab] = useState<"manual" | "ai">("manual");
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiApplied, setAiApplied] = useState(false);
+  const [draftIntent, setDraftIntent] = useState<AppliedIntent>();
   const initialEditorOpened = useRef(false);
   const query = useQuery({
     queryKey: ["resources", kind],
@@ -95,7 +110,9 @@ export function ResourceBoard({
   });
   const save = useMutation({
     mutationFn: () => {
-      const data = JSON.parse(dataText) as Record<string, unknown>;
+      const parsedData = JSON.parse(dataText) as Record<string, unknown>;
+      const data =
+        kind === "content" ? mergeContentBriefData(parsedData, contentBrief) : parsedData;
       const body = {
         title,
         summary,
@@ -124,31 +141,51 @@ export function ResourceBoard({
       void queryClient.invalidateQueries({ queryKey: ["resources", kind] }),
   });
   const draft = useMutation({
-    mutationFn: () =>
+    mutationFn: (intent: DraftIntent) =>
       apiClient<MarketingAiResourceDraft>("/ai/resources/draft", {
         method: "POST",
         body: {
           kind,
-          prompt: aiPrompt,
+          intent,
+          prompt: briefingSource(aiPrompt, title, summary, intent),
           current: {
             title,
             summary,
             status,
             scheduledFor: scheduledFor ? new Date(scheduledFor).toISOString() : null,
-            data: parseCurrentData(dataText),
+            data: currentResourceData(kind, dataText, contentBrief),
           },
         },
       }),
+    onMutate: (intent) => setDraftIntent(intent),
     onSuccess: (result) => {
       setTitle(result.title);
       setSummary(result.summary);
       setStatus(result.status);
       setScheduledFor(result.scheduledFor ? toLocalDateTime(result.scheduledFor) : "");
       setDataText(JSON.stringify(result.data, null, 2));
+      setContentBrief(contentBriefFromData(result.data));
       setAiApplied(true);
       setEditorTab("manual");
     },
   });
+  const contentIdeas = useMutation({
+    mutationFn: () =>
+      apiClient<MarketingContentIdeas>("/ai/content/ideas", {
+        method: "POST",
+        body: {
+          prompt: aiPrompt,
+          current: {
+            title,
+            summary,
+            data: currentResourceData(kind, dataText, contentBrief),
+          },
+        },
+      }),
+  });
+  const briefCompletion = scoreContentBrief(contentBrief).overall;
+  const hasBriefingSource =
+    aiPrompt.trim().length >= 2 || title.trim().length >= 2 || summary.trim().length >= 2;
   const items = useMemo(
     () =>
       (query.data ?? []).filter((item) =>
@@ -169,6 +206,7 @@ export function ResourceBoard({
     setStatus(item.status);
     setScheduledFor(item.scheduledFor ? toLocalDateTime(item.scheduledFor) : "");
     setDataText(JSON.stringify(item.data, null, 2));
+    setContentBrief(contentBriefFromData(item.data));
     setEditorTab("manual");
     setCreating(true);
   }, [initialEditingId, query.data]);
@@ -222,7 +260,7 @@ export function ResourceBoard({
       </section>
     );
   }
-  let draftActionLabel = "Preencher campos";
+  let draftActionLabel = kind === "content" ? "Gerar briefing" : "Preencher campos";
   if (draft.isPending) draftActionLabel = "Preparando…";
   else if (draft.isError) draftActionLabel = "Tentar novamente";
 
@@ -254,7 +292,9 @@ export function ResourceBoard({
       {creating && (
         <div className="modal-backdrop" onMouseDown={closeEditor}>
           <form
-            className="modal-card resource-editor-modal"
+            className={`modal-card resource-editor-modal ${
+              kind === "content" ? "content-resource-editor-modal" : ""
+            }`}
             onSubmit={(event) => {
               event.preventDefault();
               save.mutate();
@@ -349,7 +389,7 @@ export function ResourceBoard({
                   type="button"
                   className="button primary"
                   disabled={aiPrompt.trim().length < 2 || draft.isPending}
-                  onClick={() => draft.mutate()}
+                  onClick={() => draft.mutate("generate")}
                 >
                   <Bot size={17} />
                   {draftActionLabel}
@@ -359,14 +399,21 @@ export function ResourceBoard({
               <div role="tabpanel">
                 {aiApplied && (
                   <div className="notice success ai-draft-success">
-                    Campos preenchidos pela IA. Revise antes de salvar.
+                    {appliedNotice(draftIntent)}
                   </div>
                 )}
                 <label>
                   Título
                   <input
                     value={title}
-                    onChange={(event) => setTitle(event.target.value)}
+                    onChange={(event) => {
+                      setTitle(event.target.value);
+                      if (kind === "content")
+                        setContentBrief((current) => ({
+                          ...current,
+                          analysis: undefined,
+                        }));
+                    }}
                     required
                     autoFocus
                   />
@@ -375,7 +422,14 @@ export function ResourceBoard({
                   Resumo
                   <textarea
                     value={summary}
-                    onChange={(event) => setSummary(event.target.value)}
+                    onChange={(event) => {
+                      setSummary(event.target.value);
+                      if (kind === "content")
+                        setContentBrief((current) => ({
+                          ...current,
+                          analysis: undefined,
+                        }));
+                    }}
                     rows={4}
                   />
                 </label>
@@ -402,20 +456,49 @@ export function ResourceBoard({
                     />
                   </label>
                 </div>
-                <details>
-                  <summary>Contexto estruturado</summary>
-                  <p className="field-help">
-                    Use JSON para público, formato, canais, CTA, hipótese, métrica e
-                    outros detalhes que a IA deve considerar.
-                  </p>
-                  <textarea
-                    className="json-editor"
-                    value={dataText}
-                    onChange={(event) => setDataText(event.target.value)}
-                    rows={8}
-                    spellCheck={false}
+                {kind === "content" ? (
+                  <ContentBriefEditor
+                    value={contentBrief}
+                    onChange={setContentBrief}
+                    sourceText={aiPrompt}
+                    onSourceTextChange={(value) => {
+                      setAiPrompt(value);
+                      setContentBrief((current) => ({
+                        ...current,
+                        analysis: undefined,
+                      }));
+                      draft.reset();
+                      contentIdeas.reset();
+                    }}
+                    onGenerate={() => draft.mutate("generate")}
+                    onRefine={() => draft.mutate("refine")}
+                    onGenerateIdeas={() => contentIdeas.mutate()}
+                    onUseIdea={useContentIdea}
+                    ideas={contentIdeas.data?.ideas ?? []}
+                    ideasPending={contentIdeas.isPending}
+                    ideasError={contentIdeas.error?.message}
+                    aiIntent={draftIntent === "idea" ? undefined : draftIntent}
+                    aiPending={draft.isPending}
+                    aiError={draft.error?.message}
+                    canGenerate={hasBriefingSource || briefCompletion > 0}
+                    canRefine={hasBriefingSource || briefCompletion > 0}
                   />
-                </details>
+                ) : (
+                  <details>
+                    <summary>Contexto estruturado</summary>
+                    <p className="field-help">
+                      Use JSON para público, formato, canais, CTA, hipótese, métrica e
+                      outros detalhes que a IA deve considerar.
+                    </p>
+                    <textarea
+                      className="json-editor"
+                      value={dataText}
+                      onChange={(event) => setDataText(event.target.value)}
+                      rows={8}
+                      spellCheck={false}
+                    />
+                  </details>
+                )}
                 {save.error && (
                   <p className="form-error">
                     {save.error instanceof SyntaxError
@@ -441,16 +524,32 @@ export function ResourceBoard({
     setStatus(item?.status ?? initialStatus(kind));
     setScheduledFor(item?.scheduledFor ? toLocalDateTime(item.scheduledFor) : "");
     setDataText(JSON.stringify(item?.data ?? {}, null, 2));
+    setContentBrief(contentBriefFromData(item?.data ?? {}));
     setEditorTab("manual");
     setAiPrompt("");
     setAiApplied(false);
+    setDraftIntent(undefined);
     draft.reset();
+    contentIdeas.reset();
     setCreating(true);
   }
 
   function closeEditor() {
     setCreating(false);
     setEditing(undefined);
+  }
+
+  function useContentIdea(idea: MarketingContentIdea) {
+    setTitle(idea.title);
+    setSummary(idea.justification);
+    setAiPrompt(idea.example || idea.title);
+    setContentBrief({
+      ...emptyContentBrief(),
+      ...idea.brief,
+      desiredFormats: [idea.bestFormat],
+    });
+    setDraftIntent("idea");
+    setAiApplied(true);
   }
 }
 
@@ -539,4 +638,35 @@ function parseCurrentData(value: string) {
   } catch {
     return {};
   }
+}
+
+function currentResourceData(
+  kind: ResourceKind,
+  dataText: string,
+  contentBrief: ContentBrief,
+) {
+  const data = parseCurrentData(dataText);
+  return kind === "content" ? mergeContentBriefData(data, contentBrief) : data;
+}
+
+function briefingSource(
+  sourceText: string,
+  title: string,
+  summary: string,
+  intent: DraftIntent,
+) {
+  const source =
+    sourceText.trim() || [title.trim(), summary.trim()].filter(Boolean).join("\n");
+  if (source.length >= 2) return source;
+  return intent === "refine"
+    ? "Refine o briefing atual sem inventar informações."
+    : "Gere o briefing a partir dos campos atuais.";
+}
+
+function appliedNotice(intent?: AppliedIntent) {
+  if (intent === "refine")
+    return "Estratégia refinada pela IA. Revise o relatório antes de salvar.";
+  if (intent === "idea")
+    return "Ideia aplicada ao briefing. Revise os campos antes de salvar.";
+  return "Briefing preenchido pela IA. Revise antes de salvar.";
 }

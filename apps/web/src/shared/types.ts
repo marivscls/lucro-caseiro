@@ -28,6 +28,47 @@ export interface MarketingAiResourceDraft {
   data: Record<string, unknown>;
 }
 
+export interface MarketingContentIdea {
+  title: string;
+  example: string;
+  category: string;
+  objective: string;
+  persona: string;
+  primaryEmotion: string;
+  mainPain: string;
+  mainDesire: string;
+  bestFormat: string;
+  hook: string;
+  cta: string;
+  strategicPotential: number;
+  justification: string;
+  scores: {
+    conversion: number;
+    sharing: number;
+    saving: number;
+    identification: number;
+    viral: number;
+  };
+  brief: {
+    theme: string;
+    category: string;
+    persona: string;
+    contentObjective: string;
+    personaStage: string;
+    mainPain: string;
+    mainDesire: string;
+    transformation: string;
+    primaryEmotion: string;
+    hook: string;
+    mainMessage: string;
+    cta: string;
+  };
+}
+
+export interface MarketingContentIdeas {
+  ideas: MarketingContentIdea[];
+}
+
 export interface MarketingDocument {
   id: string;
   slug: string;

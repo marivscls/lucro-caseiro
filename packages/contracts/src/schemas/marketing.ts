@@ -87,6 +87,7 @@ export const MarketingAiMessageInputSchema = z.object({
 
 export const MarketingAiResourceDraftInputSchema = z.object({
   kind: MarketingResourceKindSchema,
+  intent: z.enum(["generate", "refine"]).default("generate"),
   prompt: z.string().trim().min(2).max(4_000),
   current: z
     .object({
@@ -105,6 +106,60 @@ export const MarketingAiResourceDraftSchema = z.object({
   status: z.string().trim().min(1).max(40),
   scheduledFor: z.string().datetime().nullable().default(null),
   data: z.record(z.unknown()).default({}),
+});
+
+export const MarketingContentIdeaBriefSchema = z.object({
+  theme: z.string().trim().min(2).max(180),
+  category: z.string().trim().min(2).max(80),
+  persona: z.string().trim().min(2).max(240),
+  contentObjective: z.string().trim().min(2).max(180),
+  personaStage: z.string().trim().min(2).max(120),
+  mainPain: z.string().trim().min(2).max(400),
+  mainDesire: z.string().trim().min(2).max(400),
+  transformation: z.string().trim().min(2).max(500),
+  primaryEmotion: z.string().trim().min(2).max(100),
+  hook: z.string().trim().min(2).max(400),
+  mainMessage: z.string().trim().min(2).max(600),
+  cta: z.string().trim().min(2).max(300),
+});
+
+export const MarketingContentIdeaSchema = z.object({
+  title: z.string().trim().min(2).max(180),
+  example: z.string().trim().min(2).max(600),
+  category: z.string().trim().min(2).max(80),
+  objective: z.string().trim().min(2).max(180),
+  persona: z.string().trim().min(2).max(240),
+  primaryEmotion: z.string().trim().min(2).max(100),
+  mainPain: z.string().trim().min(2).max(400),
+  mainDesire: z.string().trim().min(2).max(400),
+  bestFormat: z.string().trim().min(2).max(80),
+  hook: z.string().trim().min(2).max(400),
+  cta: z.string().trim().min(2).max(300),
+  strategicPotential: z.number().int().min(1).max(5),
+  justification: z.string().trim().min(2).max(800),
+  scores: z.object({
+    conversion: z.number().int().min(0).max(100),
+    sharing: z.number().int().min(0).max(100),
+    saving: z.number().int().min(0).max(100),
+    identification: z.number().int().min(0).max(100),
+    viral: z.number().int().min(0).max(100),
+  }),
+  brief: MarketingContentIdeaBriefSchema,
+});
+
+export const MarketingContentIdeasInputSchema = z.object({
+  prompt: z.string().trim().max(4_000).default(""),
+  current: z
+    .object({
+      title: z.string().trim().max(180).default(""),
+      summary: z.string().trim().max(600).default(""),
+      data: z.record(z.unknown()).default({}),
+    })
+    .optional(),
+});
+
+export const MarketingContentIdeasSchema = z.object({
+  ideas: z.array(MarketingContentIdeaSchema).min(1).max(10),
 });
 
 export const MarketingInstructionInputSchema = z.object({
@@ -145,5 +200,7 @@ export const MarketingLearningPolicySchema = z.object({
 export type MarketingResourceKind = z.infer<typeof MarketingResourceKindSchema>;
 export type MarketingResourceInput = z.infer<typeof MarketingResourceInputSchema>;
 export type MarketingAiResourceDraft = z.infer<typeof MarketingAiResourceDraftSchema>;
+export type MarketingContentIdea = z.infer<typeof MarketingContentIdeaSchema>;
+export type MarketingContentIdeas = z.infer<typeof MarketingContentIdeasSchema>;
 export type MarketingDocumentInput = z.infer<typeof MarketingDocumentInputSchema>;
 export type MarketingLearningPolicy = z.infer<typeof MarketingLearningPolicySchema>;
