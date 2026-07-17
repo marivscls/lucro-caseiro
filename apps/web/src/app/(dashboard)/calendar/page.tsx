@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { CalendarDays, ChevronRight } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 import { PageHeader } from "@/features/marketing/page-header";
@@ -37,7 +38,12 @@ export default function CalendarPage() {
       </div>
       <section className="calendar-list">
         {items.map((item, index) => (
-          <article className="calendar-card" key={item.id}>
+          <Link
+            aria-label={`Abrir ${item.title}`}
+            className="calendar-card"
+            href={`/content?edit=${encodeURIComponent(item.id)}`}
+            key={item.id}
+          >
             <div className="calendar-day">
               <span>{index + 1}</span>
               <strong>{item.title.split(":")[0]}</strong>
@@ -53,7 +59,7 @@ export default function CalendarPage() {
               </p>
             </div>
             <ChevronRight />
-          </article>
+          </Link>
         ))}
       </section>
       {!items.length && (

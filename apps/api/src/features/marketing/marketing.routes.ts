@@ -1,5 +1,6 @@
 import {
   MarketingAiMessageInputSchema,
+  MarketingAiResourceDraftInputSchema,
   MarketingAttachmentInputSchema,
   MarketingDocumentInputSchema,
   MarketingDocumentPatchSchema,
@@ -229,6 +230,19 @@ export function createMarketingRouter(useCases: MarketingUseCases): Router {
         await useCases.chat(
           getUserId(req),
           MarketingAiMessageInputSchema.parse(req.body),
+        ),
+      );
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/ai/resources/draft", async (req, res, next) => {
+    try {
+      res.json(
+        await useCases.draftResource(
+          getUserId(req),
+          MarketingAiResourceDraftInputSchema.parse(req.body),
         ),
       );
     } catch (error) {

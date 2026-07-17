@@ -86,53 +86,59 @@ export default function TodayPage() {
           color="rose"
         />
       </section>
-      <section className="today-grid">
-        <div className="panel span-2">
-          <PanelHeading icon={Flame} title="Próximas peças" link="/content" />
-          {ideas.length ? (
-            <div className="task-list">
-              {ideas.map((item) => (
-                <TaskRow key={item.id} item={item} />
-              ))}
-            </div>
-          ) : (
-            <EmptyInline text="Importe a estratégia inicial para receber 4 semanas de ideias." />
-          )}
-        </div>
-        <div className="panel ai-panel">
-          <div className="ai-orb">
-            <Bot />
+      <section className="dashboard-layout">
+        <div className="dashboard-column dashboard-main">
+          <div className="panel next-panel">
+            <PanelHeading icon={Flame} title="Próximas peças" link="/content" />
+            {ideas.length ? (
+              <div className="task-list">
+                {ideas.map((item) => (
+                  <TaskRow key={item.id} item={item} />
+                ))}
+              </div>
+            ) : (
+              <EmptyInline text="Importe a estratégia inicial para receber 4 semanas de ideias." />
+            )}
           </div>
-          <p className="eyebrow">Consultoria IA</p>
-          <h2>Transforme uma dúvida em plano de ação.</h2>
-          <p>
-            Peça uma semana de posts, um roteiro, uma campanha ou a revisão de uma ideia.
-          </p>
-          <Link className="button light" href="/ai">
-            Conversar com a IA <ArrowRight size={17} />
-          </Link>
+          <div className="panel outreach-panel">
+            <PanelHeading icon={Megaphone} title="Onde chegar" link="/outreach" />
+            {outreach.map((item) => (
+              <div className="mini-row" key={item.id}>
+                <strong>{item.title}</strong>
+                <span>{item.summary}</span>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="panel">
-          <PanelHeading icon={Megaphone} title="Onde chegar" link="/outreach" />
-          {outreach.map((item) => (
-            <div className="mini-row" key={item.id}>
-              <strong>{item.title}</strong>
-              <span>{item.summary}</span>
+        <aside className="dashboard-column dashboard-rail">
+          <div className="panel ai-panel">
+            <div className="ai-orb">
+              <Bot />
             </div>
-          ))}
-        </div>
-        <div className="panel">
-          <PanelHeading icon={FileText} title="Documentos recentes" link="/documents" />
-          {query.data?.documents.slice(0, 3).map((item) => (
-            <div className="mini-row" key={item.id}>
-              <strong>{item.title}</strong>
-              <span>{new Date(item.updatedAt).toLocaleDateString("pt-BR")}</span>
+            <div className="ai-panel-copy">
+              <p className="eyebrow">Consultoria IA</p>
+              <h2>Transforme uma dúvida em plano de ação.</h2>
+              <p>
+                Peça uma semana de posts, um roteiro, uma campanha ou a revisão de uma ideia.
+              </p>
+              <Link className="button light" href="/ai">
+                Conversar com a IA <ArrowRight size={17} />
+              </Link>
             </div>
-          ))}
-          {!query.data?.documents.length && (
-            <EmptyInline text="Centralize aqui briefings, campanhas e pesquisas." />
-          )}
-        </div>
+          </div>
+          <div className="panel documents-panel">
+            <PanelHeading icon={FileText} title="Documentos recentes" link="/documents" />
+            {query.data?.documents.slice(0, 3).map((item) => (
+              <div className="mini-row" key={item.id}>
+                <strong>{item.title}</strong>
+                <span>{new Date(item.updatedAt).toLocaleDateString("pt-BR")}</span>
+              </div>
+            ))}
+            {!query.data?.documents.length && (
+              <EmptyInline text="Centralize aqui briefings, campanhas e pesquisas." />
+            )}
+          </div>
+        </aside>
       </section>
     </>
   );

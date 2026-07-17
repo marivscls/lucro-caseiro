@@ -1,8 +1,8 @@
 # Estratégia de Marketing e Vendas — Lucro Caseiro
 
 **Status:** Diretriz estratégica inicial
-**Versão:** 1.0
-**Data:** 13 de julho de 2026
+**Versão:** 1.1
+**Data:** 16 de julho de 2026
 **Escopo:** Posicionamento, aquisição, ativação, conteúdo, conversão e retenção
 
 ## 1. Resumo executivo
@@ -56,7 +56,9 @@ Os materiais de marketing, vendas e conteúdo devem perseguir três resultados p
 
 ### 3.1 Público prioritário
 
-Mulheres de 25 a 55 anos que produzem e vendem alimentos ou produtos artesanais, principalmente por Instagram e WhatsApp.
+Mulheres de 25 a 55 anos que produzem e vendem alimentos ou produtos artesanais, principalmente por Instagram e WhatsApp, desde operações individuais até negócios estruturados e em crescimento.
+
+Esse recorte orienta a aquisição inicial, mas não limita o produto. O Lucro Caseiro deve acompanhar diferentes estágios de maturidade: começar de forma simples no Gratuito, organizar a operação no Essencial e ganhar controle, produtividade e recursos avançados no Profissional.
 
 Nichos prioritários para a primeira fase de comunicação:
 
@@ -85,7 +87,7 @@ Características recorrentes:
 - costureiras e ateliês;
 - artesãs;
 - prestadoras de serviços;
-- MEIs e pequenos negócios que vendem pelo WhatsApp.
+- MEIs, equipes e negócios estruturados que vendem pelo WhatsApp.
 
 Esses públicos devem receber campanhas próprias, com exemplos, imagens e vocabulário do seu segmento. Um mesmo anúncio não deve tentar falar simultaneamente com doceiras, manicures, costureiras e comerciantes.
 
@@ -120,11 +122,11 @@ Esses públicos devem receber campanhas próprias, com exemplos, imagens e vocab
 
 O Lucro Caseiro deve ser percebido como:
 
-> **O aplicativo que ajuda pequenos negócios a cobrar certo e vender de forma profissional.**
+> **O aplicativo que ajuda quem produz e vende a cobrar certo, organizar a operação e crescer com controle.**
 
 ### 4.2 Declaração de posicionamento
 
-> Para quem trabalha por conta própria e não sabe se o preço realmente dá lucro, o Lucro Caseiro calcula todos os custos, mostra quanto sobra e transforma o resultado em produto, catálogo ou venda sem preencher tudo novamente.
+> Para quem produz ou vende e precisa saber se o preço realmente dá lucro, o Lucro Caseiro calcula todos os custos, mostra quanto sobra e transforma o resultado em produto, catálogo ou venda sem preencher tudo novamente — com recursos que acompanham a evolução da operação.
 
 ### 4.3 Promessa principal
 

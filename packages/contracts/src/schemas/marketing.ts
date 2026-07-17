@@ -85,6 +85,28 @@ export const MarketingAiMessageInputSchema = z.object({
   mode: z.enum(["consult", "generate", "plan", "review"]).default("consult"),
 });
 
+export const MarketingAiResourceDraftInputSchema = z.object({
+  kind: MarketingResourceKindSchema,
+  prompt: z.string().trim().min(2).max(4_000),
+  current: z
+    .object({
+      title: z.string().trim().max(180).default(""),
+      summary: z.string().trim().max(600).default(""),
+      status: z.string().trim().max(40).default(""),
+      scheduledFor: z.string().datetime().nullable().default(null),
+      data: z.record(z.unknown()).default({}),
+    })
+    .optional(),
+});
+
+export const MarketingAiResourceDraftSchema = z.object({
+  title: z.string().trim().min(2).max(180),
+  summary: z.string().trim().max(600).default(""),
+  status: z.string().trim().min(1).max(40),
+  scheduledFor: z.string().datetime().nullable().default(null),
+  data: z.record(z.unknown()).default({}),
+});
+
 export const MarketingInstructionInputSchema = z.object({
   body: z.string().trim().min(100),
   note: z.string().trim().max(300).optional(),
@@ -122,5 +144,6 @@ export const MarketingLearningPolicySchema = z.object({
 
 export type MarketingResourceKind = z.infer<typeof MarketingResourceKindSchema>;
 export type MarketingResourceInput = z.infer<typeof MarketingResourceInputSchema>;
+export type MarketingAiResourceDraft = z.infer<typeof MarketingAiResourceDraftSchema>;
 export type MarketingDocumentInput = z.infer<typeof MarketingDocumentInputSchema>;
 export type MarketingLearningPolicy = z.infer<typeof MarketingLearningPolicySchema>;

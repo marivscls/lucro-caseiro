@@ -3,6 +3,7 @@
 :root {
   --ink: #111411;
   --muted: #7d8778;
+  --muted-strong: #68736f;
   --paper: #fafbf7;
   --card: #ffffff;
   --line: #e2e7dc;
@@ -55,6 +56,7 @@ h2 {
   position: sticky;
   top: 0;
   height: 100vh;
+  overflow: hidden;
   padding: 24px 16px;
   background: var(--green);
   color: #fff;
@@ -105,11 +107,20 @@ h2 {
   font-size: 16px;
 }
 .sidebar nav {
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 3px;
   margin: 22px 0;
-  overflow: auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.sidebar nav::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 .sidebar nav a {
   display: flex;
@@ -186,7 +197,7 @@ h2 {
 }
 .page-header p:last-child {
   max-width: 690px;
-  color: var(--muted);
+  color: var(--muted-strong);
   font-size: 16px;
   line-height: 1.6;
   margin: 0;
@@ -292,6 +303,7 @@ h2 {
   gap: 18px;
 }
 .resource-card {
+  position: relative;
   min-height: 260px;
   padding: 22px;
   background: var(--card);
@@ -321,8 +333,22 @@ h2 {
   justify-content: space-between;
 }
 .card-actions {
+  position: relative;
+  z-index: 1;
   display: flex;
   gap: 5px;
+}
+.resource-card-link {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+.resource-card-link:focus-visible {
+  outline: 3px solid var(--green-2);
+  outline-offset: 3px;
 }
 .resource-card footer {
   margin-top: auto;
@@ -458,6 +484,85 @@ h2 {
   max-height: 92vh;
   overflow: auto;
 }
+.resource-editor-tabs {
+  margin: 20px 0 4px;
+}
+.resource-editor-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ai-draft-panel {
+  margin-top: 16px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: linear-gradient(145deg, #f4fff0, #fffdf8);
+}
+.ai-draft-heading {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.ai-draft-heading h3 {
+  margin: 1px 0 4px;
+  font-size: 15px;
+}
+.ai-draft-heading p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.ai-draft-icon {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border-radius: 12px;
+  background: #c8ff9a;
+  color: var(--green);
+  display: grid;
+  place-items: center;
+}
+.ai-draft-panel .button {
+  width: 100%;
+  justify-content: center;
+}
+.ai-prompt-ideas {
+  margin: -2px 0 16px;
+}
+.ai-prompt-ideas > p {
+  margin: 0 0 9px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.ai-prompt-ideas > div {
+  display: grid;
+  gap: 7px;
+}
+.ai-prompt-idea {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #ffffffb8;
+  color: var(--ink);
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+}
+.ai-prompt-idea:hover,
+.ai-prompt-idea:focus-visible {
+  border-color: var(--green);
+  background: #fff;
+  outline: none;
+}
+.ai-draft-success {
+  margin-top: 16px;
+}
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -527,14 +632,14 @@ textarea:focus {
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+  gap: 12px;
   margin-bottom: 18px;
 }
 .metric {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 16px;
-  padding: 17px;
+  padding: 14px 16px;
   display: flex;
   align-items: center;
   gap: 13px;
@@ -570,22 +675,31 @@ textarea:focus {
   font: 700 24px var(--font-display);
 }
 .metric span:last-child {
-  font-size: 11px;
-  color: var(--muted);
+  font-size: 12px;
+  color: var(--muted-strong);
 }
-.today-grid {
+.dashboard-layout {
+  width: 100%;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  align-items: start;
   gap: 18px;
+}
+.dashboard-column {
+  width: 100%;
+  display: grid;
+  min-width: 0;
+  gap: 18px;
+}
+.dashboard-column > .panel {
+  width: 100%;
+  min-width: 0;
 }
 .panel {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 18px;
   padding: 22px;
-}
-.panel.span-2 {
-  grid-column: span 2;
 }
 .panel-heading {
   display: flex;
@@ -601,12 +715,23 @@ textarea:focus {
   margin: 0;
 }
 .panel-heading a {
-  color: var(--green-2);
-  font-size: 11px;
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 700;
   text-decoration: none;
   display: flex;
   align-items: center;
   gap: 4px;
+  margin: -6px;
+  padding: 6px;
+  border-radius: 8px;
+}
+.panel-heading a:hover {
+  background: #f1ffe8;
+}
+.panel-heading a:focus-visible {
+  outline: 3px solid var(--green-2);
+  outline-offset: 2px;
 }
 .task-list {
   display: grid;
@@ -623,13 +748,13 @@ textarea:focus {
   font-size: 13px;
 }
 .task-row p {
-  font-size: 11px;
-  color: var(--muted);
+  font-size: 12px;
+  color: var(--muted-strong);
   margin: 4px 0;
 }
 .channel {
-  font-size: 10px;
-  color: #8b918e;
+  font-size: 11px;
+  color: var(--muted-strong);
 }
 .mini-row {
   padding: 13px 0;
@@ -643,8 +768,8 @@ textarea:focus {
   font-size: 13px;
 }
 .mini-row span {
-  font-size: 11px;
-  color: var(--muted);
+  font-size: 12px;
+  color: var(--muted-strong);
   margin-top: 4px;
   line-height: 1.45;
 }
@@ -654,17 +779,30 @@ textarea:focus {
   padding: 28px 0;
 }
 .ai-panel {
-  background: var(--green);
+  overflow: hidden;
+  background: radial-gradient(circle at 100% 0, #05a66b66, transparent 45%), var(--green);
   color: #fff;
   border: 0;
+  padding: 28px;
 }
 .ai-panel h2 {
   font: 700 27px/1.1 var(--font-display);
+  margin-bottom: 10px;
 }
-.ai-panel > p:not(.eyebrow) {
+.ai-panel .eyebrow {
+  color: var(--amber-soft);
+}
+.ai-panel-copy > p:not(.eyebrow) {
   font-size: 13px;
   line-height: 1.55;
   color: #dcffc4;
+}
+.ai-panel .button {
+  align-self: flex-start;
+}
+.ai-panel .button:focus-visible {
+  outline: 3px solid var(--amber-soft);
+  outline-offset: 3px;
 }
 .ai-orb {
   width: 54px;
@@ -706,11 +844,23 @@ textarea:focus {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 17px;
+  color: inherit;
+  text-decoration: none;
   padding: 18px;
   display: grid;
   grid-template-columns: 90px 1fr auto;
   gap: 20px;
   align-items: center;
+  transition: 0.2s ease;
+}
+.calendar-card:hover {
+  border-color: #c9c1b2;
+  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+}
+.calendar-card:focus-visible {
+  outline: 3px solid var(--green-2);
+  outline-offset: 3px;
 }
 .calendar-day {
   border-right: 1px solid var(--line);
@@ -751,10 +901,19 @@ textarea:focus {
   flex-direction: column;
   gap: 5px;
 }
-.document-list > button {
+.document-list-item {
   border: 1px solid transparent;
   background: transparent;
   border-radius: 12px;
+  display: flex;
+  align-items: center;
+  color: var(--ink);
+}
+.document-list-select {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  background: transparent;
   padding: 12px;
   text-align: left;
   display: flex;
@@ -762,10 +921,19 @@ textarea:focus {
   color: var(--ink);
   cursor: pointer;
 }
-.document-list > button:hover,
-.document-list > button.active {
+.document-list-select > span {
+  min-width: 0;
+}
+.document-list-item:hover,
+.document-list-item.active {
   background: var(--card);
   border-color: var(--line);
+}
+.document-list-delete {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  margin-right: 8px;
 }
 .document-list strong,
 .document-list small {
@@ -797,6 +965,12 @@ textarea:focus {
 .editor-toolbar > div {
   display: flex;
   gap: 6px;
+}
+.document-file-action {
+  width: 88px;
+  height: 36px;
+  flex: 0 0 88px;
+  margin: 15px 0;
 }
 .saved,
 .saving {
@@ -1241,9 +1415,10 @@ textarea:focus {
   color: #985247;
 }
 .inline-creator {
-  position: absolute;
-  right: 40px;
-  margin-top: 62px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 16px;
@@ -1368,8 +1543,19 @@ textarea:focus {
   .metric-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  .today-grid {
-    grid-template-columns: 1fr 1fr;
+  .dashboard-layout {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+  .ai-panel {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    justify-content: initial;
+    gap: 24px;
+  }
+  .ai-orb {
+    margin-bottom: 0;
   }
   .knowledge-grid {
     grid-template-columns: 1fr 1fr;
@@ -1402,7 +1588,12 @@ textarea:focus {
     display: flex;
     flex-direction: row;
     overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
     gap: 2px;
+  }
+  .sidebar nav::-webkit-scrollbar {
+    display: none;
   }
   .sidebar nav a {
     min-width: 64px;
@@ -1430,13 +1621,16 @@ textarea:focus {
     width: 100%;
   }
   .resource-grid,
-  .today-grid,
+  .dashboard-layout,
   .metric-grid,
   .knowledge-grid {
     grid-template-columns: 1fr;
   }
-  .panel.span-2 {
-    grid-column: auto;
+  .ai-panel {
+    display: block;
+  }
+  .ai-orb {
+    margin-bottom: 20px;
   }
   .toolbar {
     align-items: flex-start;
@@ -1457,7 +1651,7 @@ textarea:focus {
     flex-direction: row;
     overflow: auto;
   }
-  .document-list > button {
+  .document-list-item {
     min-width: 190px;
   }
   .editor-toolbar {
@@ -1509,6 +1703,7 @@ textarea:focus {
   .inline-creator {
     position: fixed;
     inset: 10vh 16px auto;
+    transform: none;
     width: auto;
     max-height: 80vh;
     overflow: auto;

@@ -20,6 +20,14 @@ export interface MarketingResource {
   updatedAt: string;
 }
 
+export interface MarketingAiResourceDraft {
+  title: string;
+  summary: string;
+  status: string;
+  scheduledFor: string | null;
+  data: Record<string, unknown>;
+}
+
 export interface MarketingDocument {
   id: string;
   slug: string;

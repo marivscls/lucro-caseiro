@@ -15,11 +15,19 @@ const routes: Record<string, ResourceKind> = {
 
 export default async function SectionPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ section: string }>;
+  searchParams: Promise<{ edit?: string | string[] }>;
 }) {
   const { section } = await params;
+  const { edit } = await searchParams;
   const kind = routes[section];
   if (!kind) notFound();
-  return <ResourceBoard kind={kind} />;
+  return (
+    <ResourceBoard
+      initialEditingId={typeof edit === "string" ? edit : undefined}
+      kind={kind}
+    />
+  );
 }

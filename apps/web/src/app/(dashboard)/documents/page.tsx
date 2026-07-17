@@ -10,6 +10,7 @@ import {
   RotateCcw,
   Save,
   Trash2,
+  X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -33,6 +34,9 @@ export default function DocumentsPage() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [saved, setSaved] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newBody, setNewBody] = useState("# Novo documento\n\nComece por aqui.");
   const hydratedId = useRef<string | undefined>(undefined);
   useEffect(() => {
     if (!selectedId && query.data?.[0]) setSelectedId(query.data[0].id);
@@ -77,23 +81,28 @@ export default function DocumentsPage() {
       apiClient<MarketingDocument>("/documents", {
         method: "POST",
         body: {
-          title: "Novo documento",
-          slug: `documento-${Date.now()}`,
-          body: "# Novo documento\n\nComece por aqui.",
+          title: newTitle.trim(),
+          slug: `${slugify(newTitle)}-${Date.now()}`,
+          body: newBody,
           tags: [],
           source: "manual",
         },
       }),
     onSuccess: (document) => {
       void client.invalidateQueries({ queryKey: ["documents"] });
+      hydratedId.current = undefined;
       setSelectedId(document.id);
+      setCreating(false);
     },
   });
   const remove = useMutation({
     mutationFn: (id: string) => apiClient(`/documents/${id}`, { method: "DELETE" }),
-    onSuccess: () => {
-      setSelectedId(undefined);
-      hydratedId.current = undefined;
+    onSuccess: (_, deletedId) => {
+      window.localStorage.removeItem(draftKey(deletedId));
+      if (selectedId === deletedId) {
+        setSelectedId(undefined);
+        hydratedId.current = undefined;
+      }
       void client.invalidateQueries({ queryKey: ["documents"] });
     },
   });
@@ -149,7 +158,16 @@ export default function DocumentsPage() {
         title="Documentos de marketing"
         description="Crie briefings, pesquisas, campanhas e playbooks em Markdown, com salvamento e histórico de versões."
         action={
-          <button className="button primary" onClick={() => create.mutate()}>
+          <button
+            type="button"
+            className="button primary"
+            onClick={() => {
+              create.reset();
+              setNewTitle("");
+              setNewBody("# Novo documento\n\nComece por aqui.");
+              setCreating(true);
+            }}
+          >
             <FilePlus2 size={18} />
             Novo documento
           </button>
@@ -158,20 +176,40 @@ export default function DocumentsPage() {
       <section className="documents-layout">
         <aside className="document-list">
           {query.data?.map((document) => (
-            <button
+            <div
               key={document.id}
-              className={selectedId === document.id ? "active" : ""}
-              onClick={() => {
-                setSelectedId(document.id);
-                hydratedId.current = undefined;
-              }}
+              className={`document-list-item${selectedId === document.id ? " active" : ""}`}
             >
-              <FileText size={18} />
-              <span>
-                <strong>{document.title}</strong>
-                <small>{new Date(document.updatedAt).toLocaleDateString("pt-BR")}</small>
-              </span>
-            </button>
+              <button
+                type="button"
+                className="document-list-select"
+                onClick={() => {
+                  setSelectedId(document.id);
+                  hydratedId.current = undefined;
+                }}
+              >
+                <FileText size={18} />
+                <span>
+                  <strong>{document.title}</strong>
+                  <small>
+                    {new Date(document.updatedAt).toLocaleDateString("pt-BR")}
+                  </small>
+                </span>
+              </button>
+              <button
+                type="button"
+                className="icon-button danger document-list-delete"
+                aria-label={`Excluir ${document.title}`}
+                title="Excluir documento"
+                disabled={remove.isPending}
+                onClick={() => {
+                  if (confirm("Excluir este documento e seu histórico?"))
+                    remove.mutate(document.id);
+                }}
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
           ))}
         </aside>
         {detail.data ? (
@@ -182,7 +220,7 @@ export default function DocumentsPage() {
                 {saveLabel}
               </span>
               <div>
-                <label className="button ghost file-button">
+                <label className="button ghost file-button document-file-action">
                   <Paperclip size={16} />
                   Anexar
                   <input
@@ -195,7 +233,7 @@ export default function DocumentsPage() {
                   />
                 </label>
                 <button
-                  className="button ghost"
+                  className="button ghost document-file-action"
                   onClick={() =>
                     void authenticatedDownload(
                       `/documents/${selectedId}/export.md`,
@@ -207,7 +245,7 @@ export default function DocumentsPage() {
                   MD
                 </button>
                 <button
-                  className="button ghost"
+                  className="button ghost document-file-action"
                   onClick={() =>
                     void authenticatedDownload(
                       `/documents/${selectedId}/export.pdf`,
@@ -302,6 +340,73 @@ export default function DocumentsPage() {
           </div>
         )}
       </section>
+      {creating && (
+        <div
+          className="modal-backdrop"
+          onMouseDown={() => {
+            if (!create.isPending) setCreating(false);
+          }}
+        >
+          <form
+            aria-labelledby="new-document-title"
+            aria-modal="true"
+            className="modal-card"
+            role="dialog"
+            onMouseDown={(event) => event.stopPropagation()}
+            onSubmit={(event) => {
+              event.preventDefault();
+              create.mutate();
+            }}
+          >
+            <div className="modal-title">
+              <div>
+                <p className="eyebrow">Adicionar</p>
+                <h2 id="new-document-title">Novo documento</h2>
+              </div>
+              <button
+                type="button"
+                className="icon-button"
+                aria-label="Fechar"
+                disabled={create.isPending}
+                onClick={() => setCreating(false)}
+              >
+                <X />
+              </button>
+            </div>
+            <label>
+              Título
+              <input
+                autoFocus
+                required
+                minLength={2}
+                maxLength={180}
+                value={newTitle}
+                onChange={(event) => setNewTitle(event.target.value)}
+              />
+            </label>
+            <label>
+              Conteúdo inicial
+              <textarea
+                rows={9}
+                value={newBody}
+                onChange={(event) => setNewBody(event.target.value)}
+              />
+            </label>
+            {create.error && (
+              <p className="form-error" role="alert">
+                {create.error.message}
+              </p>
+            )}
+            <button
+              className="button primary"
+              disabled={create.isPending || newTitle.trim().length < 2}
+            >
+              <FilePlus2 size={17} />
+              {create.isPending ? "Criando…" : "Criar documento"}
+            </button>
+          </form>
+        </div>
+      )}
     </>
   );
 }
@@ -325,4 +430,13 @@ function readDraft(documentId: string) {
     window.localStorage.removeItem(draftKey(documentId));
     return null;
   }
+}
+
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }

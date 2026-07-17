@@ -25,7 +25,10 @@ export async function apiClient<T>(
       const cached = window.localStorage.getItem(cacheKey);
       if (cached) return JSON.parse(cached) as T;
     }
-    throw error;
+    throw new Error(
+      "Não foi possível conectar à Central agora. Verifique sua internet e tente novamente.",
+      { cause: error },
+    );
   }
   if (!response.ok) {
     const problem = (await response

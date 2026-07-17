@@ -1,8 +1,11 @@
 import type {
+  MarketingAiResourceDraft,
   MarketingDocumentInput,
   MarketingLearningPolicy,
   MarketingResourceInput,
+  MarketingResourceKind,
 } from "@lucro-caseiro/contracts";
+import { MarketingAiResourceDraftSchema } from "@lucro-caseiro/contracts";
 import { readFile } from "node:fs/promises";
 
 import { NotFoundError, ServiceUnavailableError } from "../../shared/errors";
@@ -14,6 +17,73 @@ export type MarketingAiGenerator = (input: {
   system: string;
   prompt: string;
 }) => Promise<{ text: string; model: string }>;
+
+type InitialMarketingDocumentDefinition = {
+  slug: string;
+  title: string;
+  fileName: string;
+  tags: readonly string[];
+  aiKnowledge: boolean;
+};
+
+export const initialMarketingDocumentDefinitions = [
+  {
+    slug: "estrategia-marketing-vendas",
+    title: "Estratégia de marketing e vendas — Lucro Caseiro",
+    fileName: "estrategia-marketing-vendas.md",
+    tags: ["estratégia", "conteúdo", "vendas", "públicos"],
+    aiKnowledge: false,
+  },
+  {
+    slug: "guia-de-mensagens",
+    title: "Guia de mensagens e copy",
+    fileName: "guia-de-mensagens.md",
+    tags: ["mensagens", "copy", "posicionamento", "cta"],
+    aiKnowledge: true,
+  },
+  {
+    slug: "publicos-e-contextos",
+    title: "Públicos, contextos e linguagem por nicho",
+    fileName: "publicos-e-contextos.md",
+    tags: ["públicos", "nichos", "linguagem", "pesquisa"],
+    aiKnowledge: true,
+  },
+  {
+    slug: "objecoes-e-respostas",
+    title: "Objeções e respostas comerciais",
+    fileName: "objecoes-e-respostas.md",
+    tags: ["vendas", "objeções", "respostas", "conversão"],
+    aiKnowledge: true,
+  },
+  {
+    slug: "playbook-de-conteudo",
+    title: "Playbook de conteúdo por canal",
+    fileName: "playbook-de-conteudo.md",
+    tags: ["conteúdo", "canais", "social", "produção"],
+    aiKnowledge: true,
+  },
+  {
+    slug: "experimentos-e-metricas",
+    title: "Experimentos, funil e métricas",
+    fileName: "experimentos-e-metricas.md",
+    tags: ["growth", "funil", "métricas", "experimentos"],
+    aiKnowledge: true,
+  },
+  {
+    slug: "provas-e-alegacoes",
+    title: "Provas, alegações e autorização de uso",
+    fileName: "provas-e-alegacoes.md",
+    tags: ["provas", "alegações", "governança", "ética"],
+    aiKnowledge: true,
+  },
+  {
+    slug: "briefings-e-qualidade",
+    title: "Briefings e critérios de qualidade para a IA",
+    fileName: "briefings-e-qualidade.md",
+    tags: ["ia", "briefing", "qualidade", "checklist"],
+    aiKnowledge: true,
+  },
+] as const satisfies readonly InitialMarketingDocumentDefinition[];
 
 export class MarketingUseCases {
   constructor(
@@ -71,17 +141,48 @@ export class MarketingUseCases {
       );
       await this.repo.publishInstruction(userId, created.id);
     }
-    const docs = await this.repo.listDocuments(userId);
-    if (!docs.some((doc) => doc.slug === "estrategia-marketing-vendas")) {
-      await this.repo.createDocument(userId, {
-        slug: "estrategia-marketing-vendas",
-        title: "Estratégia de marketing e vendas — Lucro Caseiro",
-        body: await loadInitialStrategyDocument(),
-        tags: ["estratégia", "conteúdo", "vendas", "públicos"],
-        source: "imported",
-      });
-    }
-    return { imported: items.length, instructionReady: true, documentReady: true };
+    const existingDocuments = await this.repo.listDocuments(userId);
+    const seededDocuments = await Promise.all(
+      initialMarketingDocumentDefinitions.map(async (definition) => {
+        const existing = existingDocuments.find((doc) => doc.slug === definition.slug);
+        const document =
+          existing ??
+          (await this.repo.createDocument(userId, {
+            slug: definition.slug,
+            title: definition.title,
+            body: await loadInitialMarketingDocument(definition.fileName),
+            tags: [...definition.tags],
+            source: "imported",
+          }));
+        return { definition, document };
+      }),
+    );
+    const knowledge = await this.repo.listKnowledge(userId);
+    await Promise.all(
+      seededDocuments
+        .filter(({ definition }) => definition.aiKnowledge)
+        .map(async ({ definition, document }) => {
+          const alreadyLinked = knowledge.some(
+            (item) => item.sourceType === "document" && item.sourceId === document.id,
+          );
+          if (alreadyLinked) return;
+          await this.repo.addKnowledge(userId, {
+            title: definition.title,
+            body: document.body,
+            sourceType: "document",
+            sourceId: document.id,
+            tags: [...definition.tags],
+            canonical: true,
+            active: true,
+          });
+        }),
+    );
+    return {
+      imported: items.length,
+      instructionReady: true,
+      documentReady: true,
+      knowledgeReady: true,
+    };
   }
 
   listDocuments(userId: string) {
@@ -202,6 +303,57 @@ export class MarketingUseCases {
       result.model,
     );
     return { sessionId, message };
+  }
+
+  async draftResource(
+    userId: string,
+    input: {
+      kind: MarketingResourceKind;
+      prompt: string;
+      current?: {
+        title: string;
+        summary: string;
+        status: string;
+        scheduledFor: string | null;
+        data: Record<string, unknown>;
+      };
+    },
+  ): Promise<MarketingAiResourceDraft> {
+    if (!this.generate)
+      throw new ServiceUnavailableError(
+        "Configure GOOGLE_GENERATIVE_AI_API_KEY para usar a IA",
+      );
+    const [instruction, knowledge, examples, resources] = await Promise.all([
+      this.repo.activeInstruction(userId),
+      this.repo.listKnowledge(userId),
+      this.repo.listExamples(userId),
+      this.repo.listResources(userId),
+    ]);
+    const result = await this.generate({
+      system: `${instruction?.body ?? DEFAULT_MARKETING_SYSTEM_PROMPT}\n\nAo preencher cadastros, responda somente com o JSON solicitado, sem markdown ou comentários.`,
+      prompt: [
+        `Crie um único rascunho de ${resourceKindLabel(input.kind)} para o Lucro Caseiro.`,
+        `PEDIDO: ${input.prompt}`,
+        `CAMPOS ATUAIS: ${JSON.stringify(input.current ?? {})}`,
+        `CONHECIMENTO CANÔNICO: ${knowledge
+          .slice(0, 12)
+          .map((item) => `${item.title}: ${item.body}`)
+          .join("\n")}`,
+        `EXEMPLOS APROVADOS: ${examples
+          .slice(0, 5)
+          .map((item) => `Entrada: ${item.input}\nSaída: ${item.output}`)
+          .join("\n\n")}`,
+        `ITENS JÁ CADASTRADOS: ${resources
+          .filter((item) => item.kind === input.kind)
+          .slice(0, 30)
+          .map((item) => `${item.title}: ${item.summary ?? ""}`)
+          .join("\n")}`,
+        'FORMATO EXATO: {"title":"...","summary":"...","status":"...","scheduledFor":null,"data":{}}',
+        `STATUS PERMITIDOS: ${statusOptions(input.kind).join(", ")}.`,
+        "Use scheduledFor em ISO 8601 apenas se o pedido definir uma data; caso contrário, use null. Em data, inclua somente contexto estruturado útil e específico para este tipo de item.",
+      ].join("\n\n"),
+    });
+    return parseMarketingResourceDraft(result.text, input.kind);
   }
 
   listSessions(userId: string) {
@@ -351,6 +503,65 @@ export function overlapScore(expected: string, actual: string) {
   return Math.round((hits / wanted.size) * 100);
 }
 
+export function parseMarketingResourceDraft(
+  text: string,
+  kind: MarketingResourceKind,
+): MarketingAiResourceDraft {
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start < 0 || end <= start) {
+    throw new ServiceUnavailableError(
+      "A IA não conseguiu montar o rascunho. Tente descrever o item de outra forma.",
+    );
+  }
+  try {
+    const draft = MarketingAiResourceDraftSchema.parse(
+      JSON.parse(text.slice(start, end + 1)),
+    );
+    const allowedStatuses = statusOptions(kind);
+    const normalizedStatus = allowedStatuses.includes(draft.status)
+      ? draft.status
+      : initialStatus(kind);
+    return {
+      ...draft,
+      status: normalizedStatus,
+    };
+  } catch {
+    throw new ServiceUnavailableError(
+      "A IA não conseguiu montar o rascunho. Tente descrever o item de outra forma.",
+    );
+  }
+}
+
+function statusOptions(kind: MarketingResourceKind) {
+  return kind === "content"
+    ? ["idea", "planned", "producing", "ready", "published", "archived"]
+    : ["active", "planned", "archived"];
+}
+
+function initialStatus(kind: MarketingResourceKind) {
+  return kind === "content" ? "idea" : "active";
+}
+
+function resourceKindLabel(kind: MarketingResourceKind) {
+  switch (kind) {
+    case "content":
+      return "conteúdo";
+    case "audience":
+      return "público";
+    case "feature":
+      return "funcionalidade";
+    case "topic":
+      return "tema";
+    case "outreach":
+      return "canal de prospecção";
+    case "campaign":
+      return "campanha";
+    case "performance":
+      return "resultado";
+  }
+}
+
 function buildInitialStrategyDocument() {
   return `# Estratégia de marketing e vendas — Lucro Caseiro
 
@@ -394,16 +605,66 @@ Mostrar tela e exemplo real; falar de uma dor por peça; adaptar exemplos ao pú
 Testar gancho de dor contra ganho, demonstração falada contra texto na tela, CTA “calcule” contra “organize”, nichos diferentes com o mesmo conceito e prova de fluxo completo contra prova de uma funcionalidade.`;
 }
 
-async function loadInitialStrategyDocument() {
-  try {
-    return await readFile(
-      new URL(
-        "../../../../../docs/marketing/estrategia-marketing-vendas.md",
-        import.meta.url,
-      ),
-      "utf8",
-    );
-  } catch {
-    return buildInitialStrategyDocument();
+/* eslint-disable security/detect-non-literal-fs-filename -- every readable path is
+   explicitly allowlisted below; fileName never reaches the filesystem directly. */
+export async function loadInitialMarketingDocument(fileName: string) {
+  if (fileName === "estrategia-marketing-vendas.md") {
+    try {
+      return await readFile(
+        new URL(
+          "../../../../../docs/marketing/estrategia-marketing-vendas.md",
+          import.meta.url,
+        ),
+        "utf8",
+      );
+    } catch {
+      return buildInitialStrategyDocument();
+    }
+  }
+  switch (fileName) {
+    case "guia-de-mensagens.md":
+      return readFile(
+        new URL("../../../../../docs/marketing/guia-de-mensagens.md", import.meta.url),
+        "utf8",
+      );
+    case "publicos-e-contextos.md":
+      return readFile(
+        new URL("../../../../../docs/marketing/publicos-e-contextos.md", import.meta.url),
+        "utf8",
+      );
+    case "objecoes-e-respostas.md":
+      return readFile(
+        new URL("../../../../../docs/marketing/objecoes-e-respostas.md", import.meta.url),
+        "utf8",
+      );
+    case "playbook-de-conteudo.md":
+      return readFile(
+        new URL("../../../../../docs/marketing/playbook-de-conteudo.md", import.meta.url),
+        "utf8",
+      );
+    case "experimentos-e-metricas.md":
+      return readFile(
+        new URL(
+          "../../../../../docs/marketing/experimentos-e-metricas.md",
+          import.meta.url,
+        ),
+        "utf8",
+      );
+    case "provas-e-alegacoes.md":
+      return readFile(
+        new URL("../../../../../docs/marketing/provas-e-alegacoes.md", import.meta.url),
+        "utf8",
+      );
+    case "briefings-e-qualidade.md":
+      return readFile(
+        new URL(
+          "../../../../../docs/marketing/briefings-e-qualidade.md",
+          import.meta.url,
+        ),
+        "utf8",
+      );
+    default:
+      throw new Error(`Documento inicial de marketing não permitido: ${fileName}`);
   }
 }
+/* eslint-enable security/detect-non-literal-fs-filename */
