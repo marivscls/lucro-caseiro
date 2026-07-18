@@ -109,6 +109,77 @@ export const MarketingAiResourceDraftSchema = z.object({
   data: z.record(z.unknown()).default({}),
 });
 
+export const MarketingCampaignPlanSchema = z.object({
+  name: z.string().trim().min(1),
+  segment: z.enum(["pme", "ecommerce", "agency"]).optional(),
+  goal: z.enum(["sales", "leads", "repurchase", "awareness", "reactivation"]).optional(),
+  audienceSummary: z.string().trim().optional(),
+  offer: z.string().trim().optional(),
+  channels: z.array(z.string().trim().min(1)).default([]),
+  messages: z.record(z.string(), z.string()).default({}),
+  creativeNeeds: z.array(z.string().trim().min(1)).default([]),
+  automation: z.string().trim().optional(),
+  kpis: z
+    .array(
+      z.object({
+        label: z.string().trim().min(1),
+        target: z.string().trim().min(1),
+      }),
+    )
+    .default([]),
+  nextBestAction: z.string().trim().optional(),
+});
+
+export const MarketingCampaignBriefInputSchema = z.object({
+  segment: z.enum(["pme", "ecommerce", "agency"]).default("pme"),
+  goal: z.enum(["sales", "leads", "repurchase", "awareness", "reactivation"]),
+  audience: z.string().trim().min(2).max(2_000),
+  offer: z.string().trim().min(2).max(2_000),
+  budget: z.number().nonnegative().optional(),
+});
+
+export const MarketingCreativeBundleSchema = z.object({
+  variants: z
+    .array(
+      z.object({
+        id: z.string().optional(),
+        channel: z.string().trim().min(1),
+        format: z.string().trim().min(1),
+        headline: z.string().trim().min(1),
+        body: z.string().trim().min(1),
+        cta: z.string().trim().min(1),
+      }),
+    )
+    .min(1),
+  reuseMap: z.array(z.string().trim().min(1)).default([]),
+});
+
+export const MarketingCampaignCopiesInputSchema = z.object({
+  plan: MarketingCampaignPlanSchema,
+  style: z.enum(["promotional", "organic"]).default("promotional"),
+});
+
+export const MarketingPromptTelemetrySchema = z.object({
+  promptId: z.string(),
+  promptVersion: z.string(),
+  model: z.string(),
+  parseSucceeded: z.boolean(),
+});
+
+export const MarketingCampaignPlanGenerationSchema = z.object({
+  plan: MarketingCampaignPlanSchema.nullable(),
+  raw: z.string(),
+  messageId: z.string().uuid(),
+  telemetry: MarketingPromptTelemetrySchema,
+});
+
+export const MarketingCampaignCopiesGenerationSchema = z.object({
+  bundle: MarketingCreativeBundleSchema.nullable(),
+  raw: z.string(),
+  messageId: z.string().uuid(),
+  telemetry: MarketingPromptTelemetrySchema,
+});
+
 export const MarketingContentIdeaBriefSchema = z.object({
   theme: z.string().trim().min(2).max(180),
   category: z.string().trim().min(2).max(80),
@@ -201,6 +272,14 @@ export const MarketingLearningPolicySchema = z.object({
 export type MarketingResourceKind = z.infer<typeof MarketingResourceKindSchema>;
 export type MarketingResourceInput = z.infer<typeof MarketingResourceInputSchema>;
 export type MarketingAiResourceDraft = z.infer<typeof MarketingAiResourceDraftSchema>;
+export type MarketingCampaignPlan = z.infer<typeof MarketingCampaignPlanSchema>;
+export type MarketingCreativeBundle = z.infer<typeof MarketingCreativeBundleSchema>;
+export type MarketingCampaignBriefInput = z.infer<
+  typeof MarketingCampaignBriefInputSchema
+>;
+export type MarketingCampaignCopiesInput = z.infer<
+  typeof MarketingCampaignCopiesInputSchema
+>;
 export type MarketingContentIdea = z.infer<typeof MarketingContentIdeaSchema>;
 export type MarketingContentIdeas = z.infer<typeof MarketingContentIdeasSchema>;
 export type MarketingDocumentInput = z.infer<typeof MarketingDocumentInputSchema>;

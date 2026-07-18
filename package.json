@@ -41,6 +41,7 @@
     "context:lint:changed": "node scripts/context-lint-api.mjs --changed && node scripts/context-lint-mobile.mjs --changed",
     "context:lint:staged": "node scripts/context-lint-api.mjs --staged && node scripts/context-lint-mobile.mjs --staged",
     "analytics:report": "pnpm --filter @lucro-caseiro/api analytics:report",
+    "ai:eval": "pnpm --filter @lucro-caseiro/api ai:eval",
     "prepare": "husky"
   },
   "devDependencies": {

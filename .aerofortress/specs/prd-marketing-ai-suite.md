@@ -257,7 +257,7 @@ refinamento, simulação e agendamento silenciosamente.
 | Banco Inteligente de Ideias | descobrir e priorizar ideias    |                           não | Entregue              |
 | Biblioteca Inteligente      | recuperar componentes aprovados |                           não | Planejado             |
 | Calendário Editorial        | distribuir objetivos e formatos |                           não | Planejado             |
-| Campanhas Inteligentes      | orquestrar peças e sequência    | somente rascunhos posteriores | Planejado             |
+| Campanhas Inteligentes      | orquestrar peças e sequência    | somente rascunhos posteriores | Parcialmente entregue |
 | Analista de Aprendizado     | propor aprendizados             |                           não | Parcialmente entregue |
 | Auditor de Score            | aplicar rubrica consistente     |                           não | Planejado             |
 
@@ -1553,7 +1553,21 @@ riscos, dependências e critérios de decisão.
 | WhatsApp | relação e ação direta           | consentimento e frequência      |
 | Anúncios | aquisição e teste de promessa   | orçamento e aprovação           |
 
-## 10.7 Critérios de aceite
+## 10.7 Slice entregue — Estrategista de anúncios → Copywriter
+
+Estado observado em 2026-07-18: a página Campanhas possui um fluxo guiado em três passos. O
+Estrategista recebe objetivo, público, oferta e orçamento, devolve plano estruturado editável e só
+libera o Copywriter após aprovação explícita. O Copywriter gera variantes promocionais ou orgânicas
+sem alterar público, oferta, promessa ou canais; exemplos são referência de formato e tom, nunca
+conteúdo a copiar.
+
+Cada variante pode ser aprovada como recurso de Conteúdo ou Documento. O plano e o pacote criativo
+permanecem no `data` do recurso `campaign`, sem lifecycle paralelo. Gerações registram prompt, versão,
+modelo e sucesso de parse na sessão/mensagem auditável; falha de parse preserva a resposta bruta e
+oferece regeneração; feedback usa o ciclo de aprendizado já existente. Este slice não entrega ainda
+calendário completo de campanha, matriz canal×peça expandida nem integrações automáticas de métricas.
+
+## 10.8 Critérios de aceite
 
 - campanha possui objetivo único e métrica principal;
 - cada peça possui briefing próprio e função na sequência;
@@ -2239,7 +2253,7 @@ versão ativa precisa ser rastreável.
 | `idea-bank`           | Banco Inteligente       |      7.7 | Entregue   |
 | `library-curator`     | Biblioteca Inteligente  |      8.9 | Planejado  |
 | `calendar-planner`    | Calendário Editorial    |      9.6 | Planejado  |
-| `campaign-architect`  | Campanhas Inteligentes  |     10.5 | Planejado  |
+| `campaign-architect`  | Campanhas Inteligentes  |     10.5 | Parcial    |
 | `learning-analyst`    | Analista de Aprendizado |     11.7 | Parcial    |
 | `score-auditor`       | Auditor de Score        |     12.8 | Planejado  |
 | `context-planner`     | Planejador de Contexto  |     16.4 | Planejado  |
@@ -2500,8 +2514,8 @@ POST /ai/calendars/propose
 POST /ai/calendars/:id/apply
 POST /ai/calendars/:id/revert
 
-POST /ai/campaigns/plan
-POST /ai/campaigns/:id/briefs
+POST /ai/campaigns/strategy
+POST /ai/campaigns/copies
 
 GET  /ai/agents
 GET  /ai/agents/:key/versions

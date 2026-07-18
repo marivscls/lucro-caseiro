@@ -1,5 +1,7 @@
 import type {
   MarketingAiResourceDraft,
+  MarketingCampaignBriefInput,
+  MarketingCampaignCopiesInput,
   MarketingContentIdeas,
   MarketingDocumentInput,
   MarketingLearningPolicy,
@@ -13,6 +15,13 @@ import {
 import { readFile } from "node:fs/promises";
 
 import { NotFoundError, ServiceUnavailableError } from "../../shared/errors";
+import {
+  buildAdCopywriterPrompt,
+  buildCampaignStrategistPrompt,
+  deriveBrandProfile,
+  parseCampaignPlan,
+  parseCreativeBundle,
+} from "./campaign-ai";
 import { initialMarketingResources } from "./marketing.seed";
 import {
   CONTENT_MARKETING_SYSTEM_PROMPT,
@@ -424,6 +433,111 @@ export class MarketingUseCases {
       ].join("\n\n"),
     });
     return parseMarketingContentIdeas(result.text);
+  }
+
+  async generateCampaignPlan(userId: string, input: MarketingCampaignBriefInput) {
+    if (!this.generate)
+      throw new ServiceUnavailableError(
+        "Configure GOOGLE_GENERATIVE_AI_API_KEY para usar a IA",
+      );
+    const [instruction, knowledge, resources] = await Promise.all([
+      this.repo.activeInstruction(userId),
+      this.repo.listKnowledge(userId),
+      this.repo.listResources(userId),
+    ]);
+    const built = buildCampaignStrategistPrompt(input, {
+      instruction: instruction?.body,
+      knowledge,
+      resources,
+    });
+    const result = await this.generate({
+      system: "Siga integralmente as instruções do prompt e responda somente com JSON.",
+      prompt: built.prompt,
+    });
+    const plan = parseCampaignPlan(result.text);
+    const telemetry = {
+      promptId: built.promptId,
+      promptVersion: built.promptVersion,
+      model: result.model,
+      parseSucceeded: Boolean(plan),
+    };
+    const messageId = await this.recordCampaignGeneration(
+      userId,
+      "Estratégia de anúncio",
+      input,
+      result,
+      telemetry,
+    );
+    console.warn("Marketing campaign generation", telemetry);
+    return { plan, raw: result.text, messageId, telemetry };
+  }
+
+  async generateCampaignCopies(userId: string, input: MarketingCampaignCopiesInput) {
+    if (!this.generate)
+      throw new ServiceUnavailableError(
+        "Configure GOOGLE_GENERATIVE_AI_API_KEY para usar a IA",
+      );
+    const [instruction, knowledge, examples, resources] = await Promise.all([
+      this.repo.activeInstruction(userId),
+      this.repo.listKnowledge(userId),
+      this.repo.listExamples(userId),
+      this.repo.listResources(userId),
+    ]);
+    const built = buildAdCopywriterPrompt(
+      input,
+      deriveBrandProfile({
+        instruction: instruction?.body,
+        knowledge,
+        examples,
+        resources,
+      }),
+    );
+    const result = await this.generate({
+      system: "Siga integralmente as instruções do prompt e responda somente com JSON.",
+      prompt: built.prompt,
+    });
+    const bundle = parseCreativeBundle(result.text);
+    const telemetry = {
+      promptId: built.promptId,
+      promptVersion: built.promptVersion,
+      model: result.model,
+      parseSucceeded: Boolean(bundle),
+    };
+    const messageId = await this.recordCampaignGeneration(
+      userId,
+      `Copies ${input.style === "organic" ? "orgânicas" : "promocionais"}`,
+      input,
+      result,
+      telemetry,
+    );
+    console.warn("Marketing copy generation", telemetry);
+    return { bundle, raw: result.text, messageId, telemetry };
+  }
+
+  private async recordCampaignGeneration(
+    userId: string,
+    title: string,
+    input: object,
+    result: { text: string; model: string },
+    telemetry: {
+      promptId: string;
+      promptVersion: string;
+      model: string;
+      parseSucceeded: boolean;
+    },
+  ) {
+    const session = await this.repo.createSession(userId, title);
+    await this.repo.addMessage(session.id, "user", JSON.stringify(input), {
+      source: "campaign-studio",
+    });
+    const message = await this.repo.addMessage(
+      session.id,
+      "assistant",
+      result.text,
+      { source: "campaign-studio", telemetry },
+      result.model,
+    );
+    return message.id;
   }
 
   listSessions(userId: string) {

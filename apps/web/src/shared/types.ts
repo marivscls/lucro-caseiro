@@ -29,6 +29,53 @@ export interface MarketingAiResourceDraft {
   data: Record<string, unknown>;
 }
 
+export interface MarketingCampaignPlan {
+  name: string;
+  segment?: "pme" | "ecommerce" | "agency";
+  goal?: "sales" | "leads" | "repurchase" | "awareness" | "reactivation";
+  audienceSummary?: string;
+  offer?: string;
+  channels: string[];
+  messages: Record<string, string>;
+  creativeNeeds: string[];
+  automation?: string;
+  kpis: Array<{ label: string; target: string }>;
+  nextBestAction?: string;
+}
+
+export interface MarketingCreativeBundle {
+  variants: Array<{
+    id?: string;
+    channel: string;
+    format: string;
+    headline: string;
+    body: string;
+    cta: string;
+  }>;
+  reuseMap: string[];
+}
+
+export interface MarketingPromptTelemetry {
+  promptId: string;
+  promptVersion: string;
+  model: string;
+  parseSucceeded: boolean;
+}
+
+export interface MarketingCampaignPlanGeneration {
+  plan: MarketingCampaignPlan | null;
+  raw: string;
+  messageId: string;
+  telemetry: MarketingPromptTelemetry;
+}
+
+export interface MarketingCampaignCopiesGeneration {
+  bundle: MarketingCreativeBundle | null;
+  raw: string;
+  messageId: string;
+  telemetry: MarketingPromptTelemetry;
+}
+
 export interface MarketingContentIdea {
   title: string;
   example: string;

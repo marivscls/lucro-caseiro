@@ -13,6 +13,7 @@ import type {
   ResourceKind,
 } from "@/shared/types";
 import { ContentBriefEditor } from "./content-brief-editor";
+import { CampaignStudio } from "./campaign-studio";
 import {
   contentBriefFromData,
   emptyContentBrief,
@@ -286,6 +287,7 @@ export function ResourceBoard({
           </button>
         }
       />
+      {kind === "campaign" && query.data && <CampaignStudio campaigns={query.data} />}
       <section className="toolbar">
         <div className="search-box">
           <Search size={18} />

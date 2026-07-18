@@ -57,6 +57,8 @@ campanhas e resultados sem expor esses dados às usuárias do app comercial.
 - Export em `/documents/:id/export.md|pdf`.
 - Conversas em `/ai/sessions` e `POST /ai/chat`; feedback em `/ai/feedback`.
 - Rascunhos em `POST /ai/resources/draft`; banco ranqueado em `POST /ai/content/ideas`.
+- Campanhas guiadas em `POST /ai/campaigns/strategy` e `POST /ai/campaigns/copies`: o plano
+  editável precisa de aprovação explícita antes do handoff para o copywriter.
 - Governança em `/ai/training`: instruções, conhecimento, exemplos, avaliações e settings.
 
 ## Authorization & RLS
@@ -73,6 +75,9 @@ campanhas e resultados sem expor esses dados às usuárias do app comercial.
 - `MarketingAiMessageInputSchema`, instrução, conhecimento, feedback e avaliação.
 - `MarketingContentIdeasInputSchema` aceita contexto opcional; a saída valida ideias, indicadores e
   o briefing aplicável de cada sugestão.
+- `MarketingCampaignBriefInputSchema`, `MarketingCampaignPlanSchema` e
+  `MarketingCampaignCopiesInputSchema` validam briefing, plano aprovado e pacote criativo. Cada
+  geração devolve mensagem auditável e telemetria de prompt/versão/modelo/parse.
 - `MarketingLearningPolicySchema` mantém A/B ligadas, C desligada, amostra e score limitados.
 
 ## Errors

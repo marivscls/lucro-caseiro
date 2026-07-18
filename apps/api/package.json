@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "analytics:report": "tsx --env-file=.env src/features/analytics/report.ts"
+    "analytics:report": "tsx --env-file=.env src/features/analytics/report.ts",
+    "ai:eval": "tsx --env-file=.env src/features/marketing/campaign-ai.eval.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.91",

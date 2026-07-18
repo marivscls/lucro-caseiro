@@ -1,6 +1,8 @@
 import {
   MarketingAiMessageInputSchema,
   MarketingAiResourceDraftInputSchema,
+  MarketingCampaignBriefInputSchema,
+  MarketingCampaignCopiesInputSchema,
   MarketingContentIdeasInputSchema,
   MarketingAttachmentInputSchema,
   MarketingDocumentInputSchema,
@@ -257,6 +259,32 @@ export function createMarketingRouter(useCases: MarketingUseCases): Router {
         await useCases.generateContentIdeas(
           getUserId(req),
           MarketingContentIdeasInputSchema.parse(req.body),
+        ),
+      );
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/ai/campaigns/strategy", async (req, res, next) => {
+    try {
+      res.json(
+        await useCases.generateCampaignPlan(
+          getUserId(req),
+          MarketingCampaignBriefInputSchema.parse(req.body),
+        ),
+      );
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/ai/campaigns/copies", async (req, res, next) => {
+    try {
+      res.json(
+        await useCases.generateCampaignCopies(
+          getUserId(req),
+          MarketingCampaignCopiesInputSchema.parse(req.body),
         ),
       );
     } catch (error) {
