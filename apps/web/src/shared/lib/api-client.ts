@@ -1,11 +1,18 @@
 import { getSupabase } from "./supabase";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+const DEFAULT_API_TIMEOUT_MS = 30_000;
+
+type ApiClientOptions = Omit<RequestInit, "body"> & {
+  body?: unknown;
+  timeoutMs?: number;
+};
 
 export async function apiClient<T>(
   path: string,
-  options: Omit<RequestInit, "body"> & { body?: unknown } = {},
+  options: ApiClientOptions = {},
 ): Promise<T> {
+  const { body, signal, timeoutMs = DEFAULT_API_TIMEOUT_MS, ...requestOptions } = options;
   const { data } = await getSupabase().auth.getSession();
   const headers = new Headers(options.headers);
   headers.set("Content-Type", "application/json");
@@ -13,14 +20,25 @@ export async function apiClient<T>(
     headers.set("Authorization", `Bearer ${data.session.access_token}`);
   const method = options.method ?? "GET";
   const cacheKey = `lucro-marketing-cache:${data.session?.user.id ?? "anonymous"}:${path}`;
+  const timeoutSignal = AbortSignal.timeout(timeoutMs);
+  const requestSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
   let response: Response;
   try {
     response = await fetch(`${API_URL}/api/v1/marketing${path}`, {
-      ...options,
+      ...requestOptions,
       headers,
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      body: body === undefined ? undefined : JSON.stringify(body),
+      signal: requestSignal,
     });
   } catch (error) {
+    if (
+      requestSignal.aborted &&
+      (requestSignal.reason as { name?: string } | undefined)?.name === "TimeoutError"
+    ) {
+      throw new Error("A operação demorou mais que o esperado. Tente novamente.", {
+        cause: error,
+      });
+    }
     if (method === "GET") {
       const cached = window.localStorage.getItem(cacheKey);
       if (cached) return JSON.parse(cached) as T;

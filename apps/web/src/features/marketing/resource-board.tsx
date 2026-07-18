@@ -144,6 +144,7 @@ export function ResourceBoard({
     mutationFn: (intent: DraftIntent) =>
       apiClient<MarketingAiResourceDraft>("/ai/resources/draft", {
         method: "POST",
+        timeoutMs: 55_000,
         body: {
           kind,
           intent,
@@ -173,6 +174,7 @@ export function ResourceBoard({
     mutationFn: () =>
       apiClient<MarketingContentIdeas>("/ai/content/ideas", {
         method: "POST",
+        timeoutMs: 55_000,
         body: {
           prompt: aiPrompt,
           current: {

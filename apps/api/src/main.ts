@@ -199,6 +199,7 @@ const marketingUseCases = new MarketingUseCases(
             model: marketingAi(model),
             system,
             prompt,
+            abortSignal: AbortSignal.timeout(45_000),
           });
           return { text: result.text, model };
         } catch (error) {

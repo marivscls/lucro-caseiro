@@ -1191,6 +1191,13 @@ textarea:focus {
   padding: 14px 0;
   border-top: 1px solid #ebe6dc;
 }
+.task-row .status.idea {
+  justify-content: center;
+  align-items: center;
+  width: 47px;
+  height: 25px;
+  padding: 0;
+}
 .task-row strong {
   font-size: 13px;
 }

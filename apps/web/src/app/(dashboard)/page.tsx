@@ -191,9 +191,11 @@ function PanelHeading({
 function TaskRow({ item }: { item: MarketingResource }) {
   return (
     <div className="task-row">
-      <span className={`status ${item.status}`}>
-        {item.status === "idea" ? "Ideia" : item.status}
-      </span>
+      <div>
+        <span className={`status ${item.status}`}>
+          {item.status === "idea" ? "Ideia" : item.status}
+        </span>
+      </div>
       <div>
         <strong>{item.title}</strong>
         <p>{item.summary}</p>
