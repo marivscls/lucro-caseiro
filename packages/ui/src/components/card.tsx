@@ -3,7 +3,7 @@ import { View, type PressableProps, type ViewStyle } from "react-native";
 
 import { PressableScale } from "./pressable-scale";
 import { useTheme } from "../theme-context";
-import { radii, spacing } from "../theme";
+import { radii, spacing, type Theme } from "../theme";
 
 interface CardProps {
   children: React.ReactNode;
@@ -11,6 +11,11 @@ interface CardProps {
   variant?: "surface" | "elevated" | "transparent";
   style?: ViewStyle;
   padding?: keyof typeof spacing;
+  /**
+   * Elevacao opcional via tokens (`theme.shadows`). Padrao: nenhuma — o app
+   * e flat; reserve sombra para cards que flutuam sobre o conteudo.
+   */
+  shadow?: keyof Theme["shadows"];
 }
 
 export function Card({
@@ -19,6 +24,7 @@ export function Card({
   variant = "surface",
   style,
   padding = "xl",
+  shadow,
 }: CardProps) {
   const { theme } = useTheme();
 
@@ -29,15 +35,16 @@ export function Card({
   };
 
   const cardStyle: ViewStyle = {
-    // Container canonico do app (padrao flat da home): NENHUM card usa sombra.
-    // `elevated` = fundo elevado + borda hairline; sombra so existe em
-    // overlays flutuantes (toast/alerta/modal), nunca em cards de conteudo.
+    // Container canonico do app (padrao flat da home): por padrao NENHUM card
+    // usa sombra. `elevated` = fundo elevado + borda hairline; sombra so
+    // entra pelo prop `shadow` (tokens), nunca com valores manuais na tela.
     backgroundColor: bgColors[variant],
     borderRadius: radii.xl,
     padding: spacing[padding],
     ...(variant === "elevated"
       ? { borderWidth: 1, borderColor: theme.colors.border }
       : null),
+    ...(shadow ? theme.shadows[shadow] : null),
     ...style,
   };
 

@@ -40,6 +40,7 @@ function analyticsRepo(overrides: Partial<IAnalyticsRepo> = {}): IAnalyticsRepo 
   return {
     recordOpen: vi.fn(() => Promise.resolve()),
     recordEvents: vi.fn(() => Promise.resolve()),
+    recordUserAction: vi.fn(() => Promise.resolve()),
     getDashboard: vi.fn(() => Promise.resolve(DASHBOARD)),
     ...overrides,
   };
@@ -85,6 +86,23 @@ describe("AnalyticsUseCases", () => {
       occurredAt,
       activityDate: "2026-07-14",
     });
+  });
+
+  it("persiste ação de negócio autenticada com horário do servidor", async () => {
+    const occurredAt = new Date("2026-07-18T18:30:00.000Z");
+    const recordUserAction = vi.fn(() => Promise.resolve());
+    const sut = new AnalyticsUseCases(
+      analyticsRepo({ recordUserAction }),
+      () => occurredAt,
+    );
+
+    await sut.recordUserAction("user-1", "subscription_completed");
+
+    expect(recordUserAction).toHaveBeenCalledWith(
+      "user-1",
+      "subscription_completed",
+      occurredAt,
+    );
   });
 });
 

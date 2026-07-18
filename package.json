@@ -2,7 +2,7 @@
   "name": "lucro-caseiro",
   "version": "0.0.1",
   "private": true,
-  "description": "Gestao completa para negocios caseiros",
+  "description": "Gestao completa para quem produz, vende ou presta servicos",
   "packageManager": "pnpm@9.15.4",
   "engines": {
     "node": ">=22.0.0"

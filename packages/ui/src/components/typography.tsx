@@ -12,6 +12,7 @@ type TypographyVariant =
   | "body"
   | "bodyBold"
   | "caption"
+  | "captionBold"
   | "label"
   | "money"
   | "moneyLg"
@@ -81,6 +82,12 @@ export function Typography({
       fontFamily: fonts.regular,
       lineHeight: 20,
       color: theme.colors.textSecondary,
+    },
+    captionBold: {
+      fontSize: fontSizes.sm,
+      fontFamily: fonts.bold,
+      lineHeight: 20,
+      color: theme.colors.text,
     },
     label: {
       fontSize: fontSizes.xs,

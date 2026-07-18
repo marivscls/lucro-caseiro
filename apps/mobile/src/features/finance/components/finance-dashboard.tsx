@@ -4,25 +4,27 @@ import { Ionicons } from "@expo/vector-icons";
 import { formatCurrency } from "../../../shared/utils/format";
 import {
   Button,
+  darkTheme,
+  fontSizes,
   fonts,
+  iconSizes,
+  radii,
   spacing,
   Typography,
   useTheme,
   type Theme,
 } from "@lucro-caseiro/ui";
 import * as FileSystem from "expo-file-system/legacy";
-import { router } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
-  Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -42,6 +44,12 @@ import { useDeleteFinanceEntry, useFinanceEntries, useFinanceSummary } from "../
 import { CreateFinanceEntry } from "./create-finance-entry";
 import { alertError } from "../../../shared/utils/alerts";
 import { showAlert } from "../../../shared/components/alert-store";
+import { ScreenHeader } from "../../../shared/components/screen-header";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+import {
+  ResponsiveModal,
+  ResponsiveOverlayModal,
+} from "../../../shared/components/responsive-modal-surface";
 
 const MONTH_NAMES = [
   "Janeiro",
@@ -70,6 +78,7 @@ export function FinanceDashboard({
   onAddPress,
 }: Readonly<FinanceDashboardProps>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { token } = useAuth();
   const { data: profile } = useProfile();
@@ -146,6 +155,24 @@ export function FinanceDashboard({
         const url = getExportUrl(format, monthStr);
         const ext = format === "pdf" ? "pdf" : "xlsx";
         const filename = `relatorio-financeiro-${monthStr}.${ext}`;
+
+        if (Platform.OS === "web") {
+          const response = await fetch(url, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!response.ok) throw new Error("Falha ao baixar arquivo");
+
+          const objectUrl = URL.createObjectURL(await response.blob());
+          const link = document.createElement("a");
+          link.href = objectUrl;
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1_000);
+          return;
+        }
+
         const fileUri = `${FileSystem.cacheDirectory}${filename}`;
 
         const result = await FileSystem.downloadAsync(url, fileUri, {
@@ -202,6 +229,15 @@ export function FinanceDashboard({
     setMonth((currentMonth) => currentMonth + 1);
   }
 
+  function handleOpenMonthPicker() {
+    if (!isPremium) {
+      showPaywall("reports");
+      return;
+    }
+    setPickerYear(year);
+    setShowMonthPicker(true);
+  }
+
   function openCreateEntry() {
     if (onAddPress) {
       onAddPress();
@@ -234,56 +270,82 @@ export function FinanceDashboard({
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
       >
-        <View style={styles.header}>
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => router.back()}
-            hitSlop={12}
-            style={styles.headerIcon}
-          >
-            <Ionicons name="arrow-back" size={31} color={theme.colors.text} />
-          </Pressable>
-          <Typography variant="h1">Financeiro</Typography>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Escolher mês"
-            onPress={() => {
-              if (!isPremium) {
-                showPaywall("reports");
-                return;
-              }
-              setPickerYear(year);
-              setShowMonthPicker(true);
-            }}
-            hitSlop={12}
-            style={styles.calendarButton}
-          >
-            <Ionicons name="calendar-outline" size={28} color={theme.colors.primary} />
-          </Pressable>
-        </View>
+        {!isDesktop && (
+          <ScreenHeader
+            title="Financeiro"
+            style={{ paddingHorizontal: 0 }}
+            right={
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Escolher mês"
+                onPress={handleOpenMonthPicker}
+                hitSlop={12}
+                style={styles.calendarButton}
+              >
+                <Ionicons
+                  name="calendar-outline"
+                  size={iconSizes.md}
+                  color={theme.colors.textSecondary}
+                />
+              </Pressable>
+            }
+          />
+        )}
 
-        <View style={styles.monthSelector}>
-          <TouchableOpacity onPress={handlePrevMonth} hitSlop={12}>
-            <Ionicons name="chevron-back" size={30} color={theme.colors.text} />
-          </TouchableOpacity>
-          <Typography variant="h2" color={theme.colors.primary}>
-            {MONTH_NAMES[month - 1]} {year}
-          </Typography>
-          <TouchableOpacity onPress={handleNextMonth} hitSlop={12}>
-            <Ionicons name="chevron-forward" size={30} color={theme.colors.text} />
-          </TouchableOpacity>
+        <View style={[styles.monthSelector, isDesktop && styles.desktopMonthSelector]}>
+          <View style={styles.monthNavigation}>
+            <Pressable onPress={handlePrevMonth} hitSlop={12} accessibilityRole="button">
+              <Ionicons
+                name="chevron-back"
+                size={iconSizes.lg}
+                color={theme.colors.text}
+              />
+            </Pressable>
+            <Typography variant="h2" color={theme.colors.text}>
+              {MONTH_NAMES[month - 1]} {year}
+            </Typography>
+            <Pressable onPress={handleNextMonth} hitSlop={12} accessibilityRole="button">
+              <Ionicons
+                name="chevron-forward"
+                size={iconSizes.lg}
+                color={theme.colors.text}
+              />
+            </Pressable>
+          </View>
+          {isDesktop && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Escolher mês"
+              onPress={handleOpenMonthPicker}
+              style={({ pressed }) => [
+                styles.desktopCalendarButton,
+                { opacity: pressed ? 0.72 : 1 },
+              ]}
+            >
+              <Ionicons
+                name="calendar-outline"
+                size={20}
+                color={theme.colors.textSecondary}
+              />
+              <Typography variant="bodyBold" color={theme.colors.text}>
+                Escolher mês
+              </Typography>
+            </Pressable>
+          )}
         </View>
 
         <View style={styles.heroCard}>
           <Image source={financeHero} style={styles.heroImage} resizeMode="cover" />
           <View style={styles.heroScrim} />
           <View style={styles.heroContent}>
-            <Typography variant="h3" color="#D0C0B7">
+            {/* Textos sobre o scrim escuro da foto: usam os tokens do tema
+                escuro em ambos os modos (o fundo e sempre escuro). */}
+            <Typography variant="h3" color={darkTheme.colors.textSecondary}>
               Seu lucro
             </Typography>
             <Typography
               variant="moneyHero"
-              color="#6ED0A1"
+              color={darkTheme.colors.success}
               style={styles.heroValue}
               numberOfLines={1}
               adjustsFontSizeToFit
@@ -297,10 +359,10 @@ export function FinanceDashboard({
                   name={
                     profitDeltaPct >= 0 ? "trending-up-outline" : "trending-down-outline"
                   }
-                  size={18}
-                  color="#DDF4E7"
+                  size={iconSizes.sm}
+                  color={darkTheme.colors.success}
                 />
-                <Typography variant="bodyBold" color="#FFFFFF">
+                <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
                   {profitDeltaPct >= 0 ? "+" : ""}
                   {profitDeltaPct}% vs. {MONTH_NAMES[previousMonth(month)]}{" "}
                   {previousYear(month, year)}
@@ -339,19 +401,23 @@ export function FinanceDashboard({
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
-                  gap: 4,
+                  gap: spacing.xs,
                   backgroundColor: theme.colors.premiumBg,
-                  paddingHorizontal: 8,
-                  paddingVertical: 3,
-                  borderRadius: 8,
+                  paddingHorizontal: spacing.sm,
+                  paddingVertical: spacing.xs,
+                  borderRadius: radii.sm,
                 }}
               >
-                <Ionicons name="diamond" size={13} color={theme.colors.premium} />
+                <Ionicons
+                  name="diamond"
+                  size={iconSizes.xs}
+                  color={theme.colors.premium}
+                />
                 <Text
                   style={{
                     color: theme.colors.premium,
                     fontFamily: fonts.extraBold,
-                    fontSize: 12,
+                    fontSize: fontSizes.xs,
                   }}
                 >
                   {canExportBasic ? "Excel no Profissional" : "Profissional"}
@@ -388,7 +454,11 @@ export function FinanceDashboard({
             onPress={() => setShowSearch((visible) => !visible)}
             style={[styles.searchButton, showSearch && styles.searchButtonActive]}
           >
-            <Ionicons name="search-outline" size={23} color={theme.colors.text} />
+            <Ionicons
+              name="search-outline"
+              size={iconSizes.md}
+              color={theme.colors.text}
+            />
           </Pressable>
         </View>
 
@@ -420,7 +490,7 @@ export function FinanceDashboard({
           <View style={styles.searchField}>
             <Ionicons
               name="search-outline"
-              size={25}
+              size={iconSizes.md}
               color={theme.colors.textSecondary}
             />
             <TextInput
@@ -431,9 +501,17 @@ export function FinanceDashboard({
               style={styles.searchInput}
             />
             {searchTerm.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchTerm("")} hitSlop={10}>
-                <Ionicons name="close-circle" size={24} color={theme.colors.primary} />
-              </TouchableOpacity>
+              <Pressable
+                onPress={() => setSearchTerm("")}
+                hitSlop={10}
+                accessibilityRole="button"
+              >
+                <Ionicons
+                  name="close-circle"
+                  size={iconSizes.md}
+                  color={theme.colors.textSecondary}
+                />
+              </Pressable>
             )}
           </View>
         )}
@@ -490,7 +568,11 @@ export function FinanceDashboard({
         <View style={styles.footerRow}>
           <View style={styles.tipCard}>
             <View style={styles.tipIcon}>
-              <Ionicons name="bar-chart-outline" size={27} color="#D6748B" />
+              <Ionicons
+                name="bar-chart-outline"
+                size={iconSizes.md}
+                color={theme.colors.textSecondary}
+              />
             </View>
             <Typography variant="caption" style={styles.tipText}>
               Acompanhe seus resultados e tome decisões para fazer seu negócio crescer
@@ -503,7 +585,11 @@ export function FinanceDashboard({
             style={styles.addButtonWrap}
           >
             <View style={styles.addCircle}>
-              <Ionicons name="add" size={36} color="#FFFFFF" />
+              <Ionicons
+                name="add"
+                size={iconSizes.lg}
+                color={theme.colors.textOnPrimary}
+              />
             </View>
             <Text style={styles.addLabel} numberOfLines={1} adjustsFontSizeToFit>
               Novo
@@ -515,7 +601,8 @@ export function FinanceDashboard({
         </View>
       </ScrollView>
 
-      <Modal
+      <ResponsiveModal
+        desktopMaxWidth={840}
         visible={showCreateEntry}
         animationType="slide"
         presentationStyle="fullScreen"
@@ -529,9 +616,9 @@ export function FinanceDashboard({
             onSuccess={() => setShowCreateEntry(false)}
           />
         </SafeAreaView>
-      </Modal>
+      </ResponsiveModal>
 
-      <Modal
+      <ResponsiveOverlayModal
         visible={selectedEntry !== null}
         transparent
         animationType="fade"
@@ -543,7 +630,7 @@ export function FinanceDashboard({
             onPress={() => setSelectedEntry(null)}
           />
           {selectedEntry && (
-            <View style={styles.detailCard}>
+            <View style={[styles.detailCard, isDesktop && styles.detailCardDesktop]}>
               <View style={styles.detailHeader}>
                 <View
                   style={[
@@ -558,7 +645,7 @@ export function FinanceDashboard({
                 >
                   <Ionicons
                     name={selectedEntry.type === "income" ? "add" : "remove"}
-                    size={28}
+                    size={iconSizes.lg}
                     color={
                       toneColors(theme, selectedEntry.type === "income" ? "green" : "red")
                         .fg
@@ -574,9 +661,17 @@ export function FinanceDashboard({
                     {formatEntryDate(selectedEntry.date)}
                   </Typography>
                 </View>
-                <TouchableOpacity onPress={() => setSelectedEntry(null)} hitSlop={12}>
-                  <Ionicons name="close" size={28} color={theme.colors.textSecondary} />
-                </TouchableOpacity>
+                <Pressable
+                  onPress={() => setSelectedEntry(null)}
+                  hitSlop={12}
+                  accessibilityRole="button"
+                >
+                  <Ionicons
+                    name="close"
+                    size={iconSizes.md}
+                    color={theme.colors.textSecondary}
+                  />
+                </Pressable>
               </View>
 
               <View style={styles.detailAmountRow}>
@@ -636,7 +731,11 @@ export function FinanceDashboard({
                     });
                   }}
                 >
-                  <Ionicons name="trash-outline" size={20} color={theme.colors.alert} />
+                  <Ionicons
+                    name="trash-outline"
+                    size={iconSizes.sm}
+                    color={theme.colors.alert}
+                  />
                   <Typography variant="bodyBold" color={theme.colors.alert}>
                     Excluir
                   </Typography>
@@ -645,10 +744,10 @@ export function FinanceDashboard({
             </View>
           )}
         </View>
-      </Modal>
+      </ResponsiveOverlayModal>
 
       {/* Seletor de mês/ano */}
-      <Modal
+      <ResponsiveOverlayModal
         visible={showMonthPicker}
         transparent
         animationType="fade"
@@ -658,18 +757,23 @@ export function FinanceDashboard({
           onPress={() => setShowMonthPicker(false)}
           style={{
             flex: 1,
-            backgroundColor: "rgba(0,0,0,0.6)",
+            backgroundColor: theme.colors.overlay,
             justifyContent: "center",
             padding: spacing.xl,
           }}
         >
           <Pressable
-            style={{
-              backgroundColor: theme.colors.surfaceElevated,
-              borderRadius: 24,
-              padding: spacing.lg,
-              gap: spacing.md,
-            }}
+            style={[
+              {
+                backgroundColor: theme.colors.surfaceElevated,
+                borderRadius: radii["2xl"],
+                padding: spacing.lg,
+                gap: spacing.md,
+              },
+              isDesktop
+                ? { width: "100%", maxWidth: 560, alignSelf: "center" }
+                : undefined,
+            ]}
           >
             <View
               style={{
@@ -683,8 +787,13 @@ export function FinanceDashboard({
                 onPress={() => setShowMonthPicker(false)}
                 hitSlop={10}
                 accessibilityLabel="Fechar"
+                accessibilityRole="button"
               >
-                <Ionicons name="close" size={26} color={theme.colors.textSecondary} />
+                <Ionicons
+                  name="close"
+                  size={iconSizes.md}
+                  color={theme.colors.textSecondary}
+                />
               </Pressable>
             </View>
 
@@ -695,23 +804,33 @@ export function FinanceDashboard({
                 justifyContent: "space-between",
               }}
             >
-              <TouchableOpacity
+              <Pressable
                 onPress={() => setPickerYear((y) => y - 1)}
                 hitSlop={12}
                 accessibilityLabel="Ano anterior"
+                accessibilityRole="button"
               >
-                <Ionicons name="chevron-back" size={28} color={theme.colors.text} />
-              </TouchableOpacity>
-              <Typography variant="h2" color={theme.colors.primary}>
+                <Ionicons
+                  name="chevron-back"
+                  size={iconSizes.md}
+                  color={theme.colors.text}
+                />
+              </Pressable>
+              <Typography variant="h2" color={theme.colors.text}>
                 {pickerYear}
               </Typography>
-              <TouchableOpacity
+              <Pressable
                 onPress={() => setPickerYear((y) => y + 1)}
                 hitSlop={12}
                 accessibilityLabel="Próximo ano"
+                accessibilityRole="button"
               >
-                <Ionicons name="chevron-forward" size={28} color={theme.colors.text} />
-              </TouchableOpacity>
+                <Ionicons
+                  name="chevron-forward"
+                  size={iconSizes.md}
+                  color={theme.colors.text}
+                />
+              </Pressable>
             </View>
 
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
@@ -732,17 +851,17 @@ export function FinanceDashboard({
                       width: "30%",
                       flexGrow: 1,
                       minHeight: 48,
-                      borderRadius: 12,
+                      borderRadius: radii.md,
                       alignItems: "center",
                       justifyContent: "center",
                       backgroundColor: isSel
-                        ? theme.colors.primary
+                        ? theme.colors.primaryBg
                         : theme.colors.surface,
                     }}
                   >
                     <Typography
                       variant="bodyBold"
-                      color={isSel ? theme.colors.textOnPrimary : theme.colors.text}
+                      color={isSel ? theme.colors.primaryStrong : theme.colors.text}
                     >
                       {name.slice(0, 3)}
                     </Typography>
@@ -760,13 +879,13 @@ export function FinanceDashboard({
               accessibilityRole="button"
               style={{ alignItems: "center", paddingVertical: spacing.sm }}
             >
-              <Typography variant="bodyBold" color={theme.colors.primary}>
+              <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
                 Ir para o mês atual
               </Typography>
             </Pressable>
           </Pressable>
         </Pressable>
-      </Modal>
+      </ResponsiveOverlayModal>
     </>
   );
 }
@@ -813,7 +932,7 @@ function SummaryCard({
       ]}
     >
       <View style={[styles.summaryIcon, { backgroundColor: tc.fg + "1F" }]}>
-        <Ionicons name={icon} size={37} color={tc.fg} />
+        <Ionicons name={icon} size={iconSizes.xl} color={tc.fg} />
       </View>
       <View style={styles.summaryCopy}>
         <Typography variant="bodyBold" numberOfLines={1} adjustsFontSizeToFit>
@@ -873,8 +992,8 @@ function ExportButton({
         <ActivityIndicator color={theme.colors.primary} />
       ) : (
         <>
-          <Ionicons name={icon} size={28} color={theme.colors.primary} />
-          <Typography variant="h3" color={theme.colors.primary}>
+          <Ionicons name={icon} size={iconSizes.md} color={theme.colors.textSecondary} />
+          <Typography variant="h3" color={theme.colors.text}>
             {label}
           </Typography>
         </>
@@ -904,7 +1023,7 @@ function FilterPill({
     >
       <Typography
         variant="bodyBold"
-        color={selected ? theme.colors.textOnPrimary : undefined}
+        color={selected ? theme.colors.primaryStrong : undefined}
       >
         {label}
       </Typography>
@@ -936,7 +1055,7 @@ function EntryRow({
       style={[styles.entryRow, !isLast && styles.entryDivider]}
     >
       <View style={[styles.entryIcon, { backgroundColor: tc.iconBg }]}>
-        <Ionicons name={isIncome ? "add" : "remove"} size={22} color={tc.fg} />
+        <Ionicons name={isIncome ? "add" : "remove"} size={iconSizes.sm} color={tc.fg} />
       </View>
       <View style={styles.entryMiddle}>
         <Typography variant="bodyBold" numberOfLines={2}>
@@ -962,7 +1081,11 @@ function EntryRow({
         >
           {sign} {formatCurrency(entry.amount)}
         </Typography>
-        <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
+        <Ionicons
+          name="chevron-forward"
+          size={iconSizes.sm}
+          color={theme.colors.textSecondary}
+        />
       </View>
     </Pressable>
   );
@@ -1025,65 +1148,61 @@ function formatEntryDate(value: string) {
 
 type FinanceStyles = ReturnType<typeof createStyles>;
 
-/** Cores de entrada (verde) e saída (vermelho/rosa) ajustadas por tema. */
+/** Cores de entrada (verde) e saída (vermelho/rosa), derivadas dos tokens do tema. */
 function toneColors(theme: Theme, tone: "green" | "red") {
-  const isDark = theme.mode === "dark";
+  const c = theme.colors;
   if (tone === "green") {
     return {
-      fg: isDark ? "#6ED0A1" : "#2E7D52",
-      iconBg: isDark ? "#173B2A" : "rgba(107, 191, 150, 0.18)",
-      cardBg: isDark ? "rgba(38, 120, 78, 0.26)" : "rgba(107, 191, 150, 0.16)",
-      cardBorder: isDark ? "rgba(96, 196, 143, 0.32)" : "rgba(107, 191, 150, 0.5)",
+      fg: c.success,
+      iconBg: c.successBg,
+      cardBg: c.successBg,
+      cardBorder: `${c.success}66`,
     };
   }
   return {
-    fg: isDark ? "#E07188" : "#B04559",
-    iconBg: isDark ? "#49252D" : "rgba(176, 69, 89, 0.14)",
-    cardBg: isDark ? "rgba(120, 42, 55, 0.28)" : "rgba(176, 69, 89, 0.1)",
-    cardBorder: isDark ? "rgba(224, 113, 136, 0.45)" : "rgba(176, 69, 89, 0.4)",
+    fg: c.alert,
+    iconBg: c.alertBg,
+    cardBg: c.alertBg,
+    cardBorder: `${c.alert}66`,
   };
 }
 
 function createStyles(theme: Theme) {
-  const isDark = theme.mode === "dark";
   const c = theme.colors;
   const cardBg = c.surfaceElevated;
-  const cardBorder = isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(74, 50, 40, 0.1)";
-  const subtleFill = isDark ? "rgba(255, 255, 255, 0.06)" : "rgba(74, 50, 40, 0.05)";
-  const chipBg = isDark ? "rgba(45, 38, 35, 0.82)" : c.surface;
-  const badgeBg = isDark ? "rgba(121, 49, 61, 0.55)" : "rgba(196, 112, 126, 0.16)";
-  const badgeFg = isDark ? "#EF8DA1" : c.primary;
-  const tipIconBg = isDark ? "rgba(118, 54, 66, 0.42)" : "rgba(196, 112, 126, 0.16)";
-  const deleteBorder = isDark ? "rgba(255, 123, 138, 0.45)" : "rgba(176, 69, 89, 0.45)";
+  const cardBorder = c.border;
+  const subtleFill = c.surface;
+  const chipBg = c.surface;
+  const badgeBg = c.surface;
+  const badgeFg = c.textSecondary;
+  const tipIconBg = c.surface;
+  const deleteBorder = `${c.alert}73`;
 
   return StyleSheet.create({
     addButtonWrap: {
       alignItems: "center",
-      gap: 2,
+      gap: spacing.xs,
       width: 96,
     },
     addCircle: {
       alignItems: "center",
-      backgroundColor: c.primary,
-      borderRadius: 30,
-      elevation: 10,
+      backgroundColor: c.primaryInteractive,
+      borderRadius: radii.full,
       height: 60,
       justifyContent: "center",
-      shadowColor: c.primary,
-      shadowOpacity: 0.45,
-      shadowRadius: 18,
       width: 60,
+      ...theme.shadows.md,
     },
     addLabel: {
       color: c.text,
-      fontSize: 12,
+      fontSize: fontSizes.xs,
       fontFamily: fonts.extraBold,
       textAlign: "center",
       width: "100%",
     },
     calendarButton: {
       alignItems: "center",
-      borderRadius: 15,
+      borderRadius: radii.lg,
       borderColor: cardBorder,
       borderWidth: 1,
       height: 48,
@@ -1097,27 +1216,42 @@ function createStyles(theme: Theme) {
       justifyContent: "center",
     },
     content: {
-      gap: 18,
-      paddingBottom: 34,
-      paddingHorizontal: 22,
-      paddingTop: 18,
+      gap: spacing.xl,
+      paddingBottom: spacing["3xl"],
+      paddingHorizontal: spacing["2xl"],
+      paddingTop: spacing.xl,
     },
     disabled: {
       opacity: 0.6,
     },
     detailActions: {
       flexDirection: "row",
-      gap: 12,
-      marginTop: 18,
+      gap: spacing.md,
+      marginTop: spacing.xl,
+    },
+    desktopCalendarButton: {
+      alignItems: "center",
+      backgroundColor: c.surfaceElevated,
+      borderColor: cardBorder,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      flexDirection: "row",
+      gap: spacing.sm,
+      minHeight: 44,
+      paddingHorizontal: spacing.lg,
+    },
+    desktopMonthSelector: {
+      justifyContent: "space-between",
+      marginVertical: spacing.xs,
     },
     detailAmountRow: {
       backgroundColor: subtleFill,
       borderColor: cardBorder,
-      borderRadius: 18,
+      borderRadius: radii.xl,
       borderWidth: 1,
-      gap: 6,
-      marginTop: 18,
-      padding: 16,
+      gap: spacing.sm,
+      marginTop: spacing.xl,
+      padding: spacing.lg,
     },
     detailBackdrop: {
       ...StyleSheet.absoluteFillObject,
@@ -1125,55 +1259,61 @@ function createStyles(theme: Theme) {
     detailCard: {
       backgroundColor: cardBg,
       borderColor: cardBorder,
-      borderRadius: 24,
+      borderRadius: radii["2xl"],
       borderWidth: 1,
-      marginHorizontal: 22,
-      padding: 18,
+      marginHorizontal: spacing["2xl"],
+      padding: spacing.xl,
+    },
+    detailCardDesktop: {
+      alignSelf: "center",
+      marginHorizontal: 0,
+      maxWidth: 560,
+      width: "100%",
     },
     detailDeleteButton: {
       alignItems: "center",
       borderColor: deleteBorder,
-      borderRadius: 16,
+      borderRadius: radii.lg,
       borderWidth: 1,
       flex: 1,
       flexDirection: "row",
-      gap: 8,
+      gap: spacing.sm,
       height: 52,
       justifyContent: "center",
     },
     detailHeader: {
       alignItems: "center",
       flexDirection: "row",
-      gap: 12,
+      gap: spacing.md,
     },
     detailIcon: {
       alignItems: "center",
-      borderRadius: 26,
+      borderRadius: radii.full,
       height: 52,
       justifyContent: "center",
       width: 52,
     },
     detailOverlay: {
-      backgroundColor: "rgba(0,0,0,0.62)",
+      backgroundColor: c.overlay,
       flex: 1,
       justifyContent: "center",
     },
     detailSecondaryButton: {
       alignItems: "center",
       backgroundColor: subtleFill,
-      borderRadius: 16,
+      borderRadius: radii.lg,
       flex: 1,
       height: 52,
       justifyContent: "center",
     },
     detailTitleWrap: {
       flex: 1,
-      gap: 4,
+      gap: spacing.xs,
     },
     emptyState: {
       alignItems: "center",
-      gap: 7,
-      padding: 28,
+      gap: spacing.sm,
+      padding: spacing["3xl"],
     },
     emptyImage: {
       height: 118,
@@ -1186,34 +1326,34 @@ function createStyles(theme: Theme) {
       alignItems: "center",
       flexDirection: "row",
       justifyContent: "space-between",
-      marginTop: 8,
+      marginTop: spacing.sm,
     },
     entryBadge: {
       backgroundColor: badgeBg,
-      borderRadius: 9,
+      borderRadius: radii.sm,
       color: badgeFg,
-      fontSize: 13,
+      fontSize: fontSizes.xs,
       fontFamily: fonts.extraBold,
       maxWidth: 94,
       overflow: "hidden",
-      paddingHorizontal: 9,
-      paddingVertical: 3,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.xs,
     },
     entryAmount: {
       textAlign: "right",
     },
     entryGroup: {
-      gap: 6,
+      gap: spacing.sm,
     },
     entryGroupLabel: {
-      marginLeft: 4,
+      marginLeft: spacing.xs,
       textTransform: "capitalize",
     },
     entryGroups: {
-      gap: 14,
+      gap: spacing.lg,
     },
     entryCount: {
-      marginTop: -8,
+      marginTop: -spacing.sm,
     },
     entryDivider: {
       borderBottomColor: cardBorder,
@@ -1221,7 +1361,7 @@ function createStyles(theme: Theme) {
     },
     entryIcon: {
       alignItems: "center",
-      borderRadius: 18,
+      borderRadius: radii.xl,
       flexShrink: 0,
       height: 42,
       justifyContent: "center",
@@ -1230,94 +1370,84 @@ function createStyles(theme: Theme) {
     entryListCard: {
       backgroundColor: cardBg,
       borderColor: cardBorder,
-      borderRadius: 21,
+      borderRadius: radii.xl,
       borderWidth: 1,
       overflow: "hidden",
     },
     entryMetaRow: {
       alignItems: "center",
       flexDirection: "row",
-      gap: 8,
+      gap: spacing.sm,
     },
     entryMiddle: {
       flex: 1,
-      gap: 5,
+      gap: spacing.xs,
       minWidth: 0,
     },
     entryRight: {
       alignItems: "flex-end",
       flexDirection: "row",
       flexShrink: 0,
-      gap: 4,
+      gap: spacing.xs,
     },
     entryRow: {
       alignItems: "center",
       flexDirection: "row",
-      gap: 10,
+      gap: spacing.md,
       minHeight: 84,
-      paddingHorizontal: 12,
-      paddingVertical: 12,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.md,
     },
     exportButton: {
       alignItems: "center",
-      borderColor: c.primary,
-      borderRadius: 15,
+      borderColor: cardBorder,
+      borderRadius: radii.lg,
       borderWidth: 1.5,
       flex: 1,
       flexDirection: "row",
-      gap: 12,
-      height: 55,
+      gap: spacing.md,
+      height: 56,
       justifyContent: "center",
     },
     exportRow: {
       flexDirection: "row",
-      gap: 14,
+      gap: spacing.lg,
     },
     filterPill: {
       alignItems: "center",
       backgroundColor: chipBg,
       borderColor: cardBorder,
-      borderRadius: 22,
+      borderRadius: radii.full,
       borderWidth: 1,
       height: 48,
       justifyContent: "center",
-      paddingHorizontal: 22,
+      paddingHorizontal: spacing["2xl"],
     },
     filterPillSelected: {
-      backgroundColor: c.primary,
+      backgroundColor: c.primaryBg,
       borderColor: c.primary,
     },
     filterRow: {
       flexDirection: "row",
-      gap: 10,
-      marginTop: -8,
+      gap: spacing.md,
+      marginTop: -spacing.sm,
     },
     footerRow: {
       alignItems: "center",
       flexDirection: "row",
-      gap: 12,
+      gap: spacing.md,
       justifyContent: "space-between",
-      marginTop: 12,
-    },
-    header: {
-      alignItems: "center",
-      flexDirection: "row",
-      gap: 18,
-    },
-    headerIcon: {
-      alignItems: "center",
-      height: 44,
-      justifyContent: "center",
-      width: 30,
+      marginTop: spacing.md,
     },
     heroCard: {
-      backgroundColor: "rgba(44, 35, 32, 0.94)",
-      borderRadius: 24,
-      borderColor: "rgba(112, 70, 62, 0.85)",
+      // Sempre escuro: a foto + scrim ficam por cima em ambos os temas.
+      backgroundColor: darkTheme.colors.surfaceElevated,
+      borderRadius: radii["2xl"],
+      borderColor: darkTheme.colors.border,
       borderWidth: 1.5,
       minHeight: 178,
       overflow: "hidden",
-      padding: 24,
+      padding: spacing["2xl"],
     },
     heroContent: {
       flex: 1,
@@ -1332,6 +1462,7 @@ function createStyles(theme: Theme) {
       width: "72%",
     },
     heroScrim: {
+      // Scrim constante sobre a foto (nao segue o tema).
       backgroundColor: "rgba(42, 30, 27, 0.32)",
       bottom: 0,
       left: 0,
@@ -1340,44 +1471,34 @@ function createStyles(theme: Theme) {
       top: 0,
     },
     heroValue: {
-      marginTop: 10,
+      marginTop: spacing.md,
     },
     modal: {
       flex: 1,
     },
-    modalClose: {
-      fontSize: 18,
-      fontFamily: fonts.extraBold,
-    },
-    modalHeader: {
-      alignItems: "center",
-      flexDirection: "row",
-      justifyContent: "space-between",
-      paddingHorizontal: 22,
-      paddingTop: 10,
-    },
-    modalTitle: {
-      color: c.text,
-      fontSize: 24,
-      fontFamily: fonts.extraBold,
-    },
     monthSelector: {
       alignItems: "center",
       flexDirection: "row",
-      gap: 34,
+      gap: spacing["3xl"],
       justifyContent: "center",
-      marginVertical: 8,
+      marginVertical: spacing.sm,
+    },
+    monthNavigation: {
+      alignItems: "center",
+      flexDirection: "row",
+      gap: spacing["3xl"],
     },
     percentBadge: {
       alignItems: "center",
       alignSelf: "flex-start",
+      // Selo sobre o scrim da foto: vidro claro constante.
       backgroundColor: "rgba(255,255,255,0.08)",
-      borderRadius: 10,
+      borderRadius: radii.md,
       flexDirection: "row",
-      gap: 7,
-      marginTop: 12,
-      paddingHorizontal: 11,
-      paddingVertical: 7,
+      gap: spacing.sm,
+      marginTop: spacing.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
     },
     pressed: {
       opacity: 0.82,
@@ -1386,7 +1507,7 @@ function createStyles(theme: Theme) {
       alignItems: "center",
       backgroundColor: chipBg,
       borderColor: cardBorder,
-      borderRadius: 15,
+      borderRadius: radii.lg,
       borderWidth: 1,
       height: 42,
       justifyContent: "center",
@@ -1399,66 +1520,66 @@ function createStyles(theme: Theme) {
       alignItems: "center",
       backgroundColor: cardBg,
       borderColor: cardBorder,
-      borderRadius: 18,
+      borderRadius: radii.xl,
       borderWidth: 1,
       flexDirection: "row",
-      gap: 10,
+      gap: spacing.md,
       height: 56,
-      paddingHorizontal: 16,
+      paddingHorizontal: spacing.lg,
     },
     searchInput: {
       color: c.text,
       flex: 1,
-      fontSize: 17,
+      fontSize: fontSizes.md,
       fontFamily: fonts.bold,
       padding: 0,
     },
     section: {
-      gap: 14,
-      marginTop: 4,
+      gap: spacing.lg,
+      marginTop: spacing.xs,
     },
     summaryCard: {
       alignItems: "center",
-      borderRadius: 20,
+      borderRadius: radii.xl,
       borderWidth: 1.5,
       flex: 1,
       flexDirection: "row",
-      gap: 11,
+      gap: spacing.md,
       minHeight: 104,
-      padding: 14,
+      padding: spacing.lg,
     },
     summaryCopy: {
       flex: 1,
-      gap: 5,
+      gap: spacing.xs,
     },
     summaryIcon: {
       alignItems: "center",
-      borderRadius: 28,
+      borderRadius: radii.full,
       height: 56,
       justifyContent: "center",
       width: 56,
     },
     summaryRow: {
       flexDirection: "row",
-      gap: 14,
+      gap: spacing.lg,
     },
     tipCard: {
       alignItems: "center",
       backgroundColor: cardBg,
       borderColor: cardBorder,
-      borderRadius: 18,
+      borderRadius: radii.xl,
       borderWidth: 1,
       flex: 1,
       flexDirection: "row",
-      gap: 12,
+      gap: spacing.md,
       minHeight: 88,
-      paddingHorizontal: 14,
-      paddingVertical: 12,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
     },
     tipIcon: {
       alignItems: "center",
       backgroundColor: tipIconBg,
-      borderRadius: 22,
+      borderRadius: radii.full,
       height: 44,
       justifyContent: "center",
       width: 44,

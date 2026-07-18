@@ -15,6 +15,7 @@ Esta pasta contém as fontes canônicas usadas para planejar marketing, vendas e
 - [objecoes-e-respostas.md](objecoes-e-respostas.md): respostas comerciais e limites para dúvidas recorrentes.
 - [playbook-de-conteudo.md](playbook-de-conteudo.md): produção e adaptação de conteúdo para cada canal.
 - [experimentos-e-metricas.md](experimentos-e-metricas.md): hipóteses, eventos, métricas e critérios de decisão.
+- [entrevistas-clientes.md](entrevistas-clientes.md): amostra, convite, roteiro, registro e critério de pronto das 10 entrevistas.
 - [provas-e-alegacoes.md](provas-e-alegacoes.md): registro de evidências e política de alegações.
 - [briefings-e-qualidade.md](briefings-e-qualidade.md): modelos de pedido e revisão para trabalhos produzidos pela IA.
 

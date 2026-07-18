@@ -112,3 +112,7 @@ as dez ações do contrato. Metadata arbitrária é rejeitada.
 - 2026-07-13: painel interno usa a mesma consulta do comando e autorização por `ADMIN_USER_IDS`.
 - 2026-07-14: eventos comportamentais alimentam uso de telas, funcionalidades, funil temporal,
   adoção de versão e retenção D7 por comportamento.
+- 2026-07-18: a migração `037_activation_funnel_events.sql` completou os marcos de aquisição,
+  paywall e assinatura. Ativação agora exige a sequência `pricing_completed` →
+  `product_created_from_pricing` → (`catalog_published` ou `sale_completed`); eventos do ciclo
+  de assinatura são emitidos no backend apenas quando o plano realmente muda.

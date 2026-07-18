@@ -2,6 +2,7 @@ import type { CatalogSettings, UpdateCatalogSettings } from "@lucro-caseiro/cont
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "../../shared/hooks/use-auth";
+import { trackAnalyticsAction } from "../analytics/tracker";
 import { fetchCatalogSettings, updateCatalogSettings } from "./api";
 
 const CATALOG_KEY = ["catalog"];
@@ -42,8 +43,11 @@ export function useUpdateCatalogSettings() {
         queryClient.setQueryData(settingsKey, context.previous);
       }
     },
-    onSuccess: (settings) => {
+    onSuccess: (settings, data, context) => {
       queryClient.setQueryData(settingsKey, settings);
+      if (data.enabled === true && context?.previous?.enabled === false) {
+        void trackAnalyticsAction("catalog_published", token);
+      }
     },
   });
 }

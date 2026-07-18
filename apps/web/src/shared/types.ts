@@ -1,6 +1,7 @@
 export type ResourceKind =
   | "content"
   | "audience"
+  | "interview"
   | "feature"
   | "topic"
   | "outreach"

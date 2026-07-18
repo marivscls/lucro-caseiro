@@ -5,33 +5,33 @@ Textos prontos pra colar em **Play Console → Main store listing** (Português 
 ## Nome do app (max 30 caracteres)
 
 ```
-Lucro Caseiro: Negocio em Casa
+Lucro Caseiro: Gestao
 ```
 
-(30 caracteres exatos — bate com o que ja esta registrado)
+(21 caracteres — atualizar o titulo cadastrado na proxima revisao da ficha)
 
 ## Descricao curta (max 80 caracteres)
 
 ```
-Gestao completa pro seu negocio caseiro: vendas, clientes, precos e financeiro.
+Precos, vendas, clientes e financeiro para organizar e fazer o negocio crescer.
 ```
 
-(78 caracteres)
+(79 caracteres)
 
 Alternativas:
 
 ```
-Cuide do seu negocio caseiro: vendas, clientes, financeiro e precificacao.
+Cuide do seu negocio: vendas, clientes, financeiro e precificacao.
 ```
 
 ```
-Vendas, clientes, financeiro e precos. Tudo do seu negocio caseiro num so app.
+Vendas, clientes, financeiro e precos. Tudo do seu negocio num so app.
 ```
 
 ## Descricao completa (max 4000 caracteres)
 
 ```
-Lucro Caseiro e o app de gestao completo pro seu negocio caseiro. Foi feito pensando em quem vende doce, marmita, salgado, artesanato, faz unha, costura ou presta qualquer servico em casa — sem complicacao tecnica e em poucos toques.
+Lucro Caseiro e o app de gestao para quem produz, vende ou presta servicos. Ele acompanha desde quem trabalha por conta propria ate negocios estruturados e em crescimento — sem complicacao tecnica e em poucos toques. Doces, marmitas, salgados, artesanato, beleza e costura sao alguns exemplos, nao limites.
 
 VENDAS
 - Registre vendas em segundos, mesmo na correria.
@@ -75,14 +75,19 @@ PLANO GRATUITO
 - 3 embalagens
 - Relatorio basico mensal
 
-PLANO PREMIUM (R$ 19,90/mes ou R$ 199,90/ano)
-- Tudo ilimitado
-- Relatorios completos com graficos
-- Exportar em PDF e Excel
-- Templates premium de etiqueta
-- Sem anuncios
+PLANO ESSENCIAL (R$ 29,90/mes ou R$ 299,00/ano)
+- Vendas, clientes, produtos, receitas e embalagens sem limite de volume
+- Agenda, fiado, financeiro e estoque basico
+- Catalogo online basico
+- Resumo mensal em PDF
+
+PLANO PROFISSIONAL (R$ 69,90/mes ou R$ 699,00/ano)
+- Tudo do Essencial
+- Catalogo personalizado e varias fotos por produto
+- Relatorios e exportacoes avancadas
+- Compras, fornecedores, despesas recorrentes, orcamentos e rotulos
+- Produtos compostos e kits
 - Suporte prioritario
-- 7 dias gratis pra testar
 
 PRA QUEM E
 - Confeitaria caseira
@@ -92,7 +97,7 @@ PRA QUEM E
 - Artesanato e bordado
 - Costura e ateliê
 - Servicos de limpeza
-- Qualquer pequeno negocio domestico
+- Negocios de diferentes segmentos e estagios de crescimento
 
 LINGUAGEM SIMPLES, BOTOES GRANDES
 - Pensado pra todas as idades, inclusive quem nunca usou app de gestao.
@@ -138,5 +143,5 @@ https://orionseven.com.br/apps/lucro-caseiro/privacidade
 ## Conteudo do app
 
 - **Anuncios**: NAO contem (decisao v1)
-- **Compras no app**: SIM (assinaturas Premium)
+- **Compras no app**: SIM (assinaturas Essencial e Profissional)
 - **App contem conteudo gerado pelo usuario**: NAO (clientes/produtos so sao visiveis pra propria conta)

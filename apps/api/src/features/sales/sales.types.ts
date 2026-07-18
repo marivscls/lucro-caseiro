@@ -4,6 +4,8 @@ export interface SaleItemData {
   productId: string;
   quantity: number;
   unitPrice: number;
+  variationId?: string;
+  variationName?: string;
 }
 
 export interface CreateSaleData {

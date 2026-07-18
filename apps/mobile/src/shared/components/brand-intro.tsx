@@ -115,7 +115,7 @@ export function BrandIntro({ authReady, onFinish }: BrandIntroProps) {
 
       {/* Tagline */}
       <Animated.Text style={[styles.tagline, { opacity: tagOpacity }]}>
-        NEGÓCIO EM CASA
+        GESTÃO PARA CRESCER
       </Animated.Text>
     </Animated.View>
   );

@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Calcular e armazenar precificacao de produtos do negocio caseiro, somando custos de ingredientes, embalagem, mao de obra e rateio de custos fixos, aplicando margem de lucro para sugerir preco de venda. Mantem historico de calculos por produto.
+Calcular e armazenar precificacao de produtos do negocio, somando custos de ingredientes, embalagem, mao de obra e rateio de custos fixos, aplicando margem de lucro para sugerir preco de venda. Mantem historico de calculos por produto.
 
 ## Non-goals
 
@@ -14,7 +14,7 @@ Calcular e armazenar precificacao de produtos do negocio caseiro, somando custos
 
 ## Boundaries & Ownership
 
-- **Depende de**: `@lucro-caseiro/contracts` (CreatePricingDto, PaginationDto, Pricing), `@lucro-caseiro/database/schema` (pricingCalculations)
+- **Depende de**: `@lucro-caseiro/contracts` (CreatePricingDto, PaginationDto, Pricing e cálculos puros compartilhados), `@lucro-caseiro/database/schema` (pricingCalculations)
 - **Dependentes**: nenhum diretamente
 - **Cross-feature**: referencia `productId` de Products (opcional)
 
@@ -27,6 +27,7 @@ Calcular e armazenar precificacao de produtos do negocio caseiro, somando custos
 - `apps/api/src/features/pricing/pricing.types.ts` — interfaces e tipos
 - `apps/api/src/features/pricing/pricing.domain.test.ts` — testes de dominio
 - `apps/api/src/features/pricing/pricing.usecases.test.ts` — testes de usecases
+- `packages/contracts/src/pricing-calculator.ts` — fonte única dos cálculos usados pela API, mobile e site
 
 ## Data Model
 
@@ -177,6 +178,9 @@ GET /api/v1/pricing/product/prod-1/history
 
 ## Change log / Decisions
 
+- 2026-07-16: `calculateTotalCost`, `calculateSuggestedPrice`, `calculateProfitPerUnit` e
+  gross-up de taxas passaram a consumir a fonte única em `@lucro-caseiro/contracts`, também usada
+  pela calculadora pública e pelo mobile; validação e persistência continuam no domínio da API.
 - Criacao inicial com calculo + historico
 - Pricing e append-only (sem update/delete) para manter historico
 - Funcao `calculateProfitPerUnit` disponivel no dominio mas nao exposta via API

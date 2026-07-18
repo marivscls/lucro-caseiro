@@ -1,11 +1,14 @@
-﻿import type { Sale } from "@lucro-caseiro/contracts";
+import type { Sale } from "@lucro-caseiro/contracts";
 import { useRouter } from "expo-router";
 import {
   Button,
   Chip,
+  EmptyState,
   fonts,
+  iconSizes,
   Input,
   Typography,
+  useBrand,
   useTheme,
   spacing,
   radii,
@@ -17,8 +20,8 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
-  Modal,
   Pressable,
+  ScrollView,
   TextInput,
   View,
   type ViewStyle,
@@ -26,17 +29,29 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useClient } from "../../features/clients/hooks";
+import { avatarPastel } from "../../features/clients/components/avatar-colors";
 import { fetchProduct } from "../../features/products/api";
 import { useProducts } from "../../features/products/hooks";
 import { SaleCard } from "../../features/sales/components/sale-card";
 import { SaleDetail } from "../../features/sales/components/sale-detail";
 import { useSale, useSales, useUpdateSale } from "../../features/sales/hooks";
-import { PAYMENT_OPTIONS } from "../../features/sales/payment";
+import { paymentLabel, PAYMENT_OPTIONS } from "../../features/sales/payment";
 import { useAuth } from "../../shared/hooks/use-auth";
 import { useProfile } from "../../features/subscription/hooks";
 import { KeyboardAwareScrollView } from "../../shared/components/keyboard-aware-scroll-view";
+import {
+  ResponsiveModal,
+  ResponsiveOverlayModal,
+} from "../../shared/components/responsive-modal-surface";
 import { showAlert } from "../../shared/components/alert-store";
 import { AnimatedListItem } from "../../shared/components/animated-list-item";
+import { DesktopPagination } from "../../shared/components/desktop-pagination";
+import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
+import {
+  desktopAction,
+  desktopContained,
+  desktopModalSurface,
+} from "../../shared/layout/desktop-density";
 import { alertError } from "../../shared/utils/alerts";
 import salesEmpty from "../../assets/sales-empty.png";
 
@@ -117,7 +132,8 @@ function getFilterBg(
   selected: boolean,
   theme: ReturnType<typeof useTheme>["theme"],
 ): string {
-  if (selected) return theme.colors.primary;
+  // Selecao = fundo rosado suave (primaryBg), nunca pilula cheia de rosa.
+  if (selected) return theme.colors.primaryBg;
   if (theme.mode === "dark") return "rgba(44, 36, 32, 0.7)";
   return theme.colors.surface;
 }
@@ -180,7 +196,7 @@ function FilterPill({
     >
       <Typography
         variant="caption"
-        color={selected ? theme.colors.textOnPrimary : theme.colors.textSecondary}
+        color={selected ? theme.colors.primaryStrong : theme.colors.textSecondary}
         numberOfLines={1}
       >
         {label}
@@ -232,7 +248,7 @@ function SearchBar({
         accessibilityRole="button"
         accessibilityLabel="Abrir filtros"
       >
-        <Ionicons name="options-outline" size={25} color={theme.colors.primaryLight} />
+        <Ionicons name="options-outline" size={25} color={theme.colors.textSecondary} />
       </Pressable>
     </View>
   );
@@ -261,12 +277,12 @@ function GroupHeader({ title, count }: Readonly<{ title: string; count: number }
           minHeight: 34,
           paddingHorizontal: spacing.md,
           borderRadius: radii.full,
-          backgroundColor: "rgba(224, 114, 114, 0.15)",
+          backgroundColor: theme.colors.surface,
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <Typography variant="caption" color={theme.colors.primaryLight}>
+        <Typography variant="caption" color={theme.colors.textSecondary}>
           {label}
         </Typography>
       </View>
@@ -282,18 +298,21 @@ function EmptySalesIllustration() {
 
 function AvatarCircle({ name }: Readonly<{ name: string }>) {
   const { theme } = useTheme();
+  const pastel = avatarPastel(name || "?", theme.mode);
   return (
     <View
       style={{
         width: 52,
         height: 52,
         borderRadius: radii.full,
-        backgroundColor: theme.colors.primary,
+        backgroundColor: pastel.bg,
+        borderWidth: 1,
+        borderColor: pastel.bg,
         alignItems: "center",
         justifyContent: "center",
       }}
     >
-      <Typography variant="h3" color={theme.colors.textOnPrimary}>
+      <Typography variant="h3" color={pastel.fg}>
         {(name || "M").charAt(0).toUpperCase()}
       </Typography>
     </View>
@@ -419,12 +438,170 @@ type SalesContentProps = {
   readonly activeFilter: FilterTab;
   readonly hasActiveFilters: boolean;
   readonly groups: SaleGroup[];
+  readonly items: Sale[];
+  readonly isDesktop: boolean;
+  readonly page: number;
+  readonly total: number;
+  readonly totalPages: number;
   readonly primaryColor: string;
   readonly onSalePress: (id: string) => void;
   readonly onClearFilters: () => void;
   readonly onNewSalePress: () => void;
+  readonly onPageChange: (page: number) => void;
   readonly compactEmpty?: boolean;
 };
+
+function saleStatusPresentation(
+  status: Sale["status"],
+  theme: ReturnType<typeof useTheme>["theme"],
+) {
+  if (status === "paid") return { label: "Pago", color: theme.colors.success };
+  if (status === "pending") return { label: "Pendente", color: theme.colors.yellow };
+  return { label: "Cancelado", color: theme.colors.alert };
+}
+
+function DesktopSalesTable({
+  items,
+  page,
+  total,
+  totalPages,
+  onSalePress,
+  onPageChange,
+}: Readonly<{
+  items: Sale[];
+  page: number;
+  total: number;
+  totalPages: number;
+  onSalePress: (id: string) => void;
+  onPageChange: (page: number) => void;
+}>) {
+  const { theme } = useTheme();
+  const headerStyle = {
+    fontFamily: fonts.bold,
+    fontSize: 13,
+    letterSpacing: 0.4,
+  } as const;
+
+  return (
+    <ScrollView
+      style={{ flex: 1 }}
+      contentContainerStyle={{ padding: spacing.xl, paddingTop: spacing.md }}
+    >
+      <View
+        style={{
+          borderWidth: 1,
+          borderColor: theme.colors.border,
+          borderRadius: radii.xl,
+          backgroundColor: theme.colors.surfaceElevated,
+          overflow: "hidden",
+        }}
+      >
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View style={{ minWidth: 920, flex: 1 }}>
+            <View
+              style={{
+                minHeight: 46,
+                paddingHorizontal: spacing.lg,
+                backgroundColor: theme.colors.surface,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: spacing.lg,
+              }}
+            >
+              <Typography variant="caption" style={[headerStyle, { flex: 2 }]}>
+                Venda
+              </Typography>
+              <Typography variant="caption" style={[headerStyle, { flex: 1.4 }]}>
+                Cliente
+              </Typography>
+              <Typography variant="caption" style={[headerStyle, { flex: 1 }]}>
+                Data
+              </Typography>
+              <Typography variant="caption" style={[headerStyle, { flex: 1.1 }]}>
+                Pagamento
+              </Typography>
+              <Typography variant="caption" style={[headerStyle, { flex: 1 }]}>
+                Status
+              </Typography>
+              <Typography
+                variant="caption"
+                style={[headerStyle, { flex: 1, textAlign: "right" }]}
+              >
+                Total
+              </Typography>
+              <View style={{ width: 20 }} />
+            </View>
+
+            {items.map((sale) => {
+              const status = saleStatusPresentation(sale.status, theme);
+              const saleTitle =
+                sale.items
+                  ?.map((item) => item.productName)
+                  .filter(Boolean)
+                  .join(", ") || "Venda";
+              return (
+                <Pressable
+                  key={sale.id}
+                  accessibilityRole="button"
+                  onPress={() => onSalePress(sale.id)}
+                  style={({ pressed }) => ({
+                    minHeight: 62,
+                    paddingHorizontal: spacing.lg,
+                    borderTopWidth: 1,
+                    borderTopColor: theme.colors.border,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: spacing.lg,
+                    backgroundColor: pressed
+                      ? theme.colors.primaryBg
+                      : theme.colors.surfaceElevated,
+                  })}
+                >
+                  <Typography variant="bodyBold" numberOfLines={1} style={{ flex: 2 }}>
+                    {saleTitle}
+                  </Typography>
+                  <Typography variant="body" numberOfLines={1} style={{ flex: 1.4 }}>
+                    {sale.clientName ?? "Cliente avulso"}
+                  </Typography>
+                  <Typography variant="body" style={{ flex: 1 }}>
+                    {new Date(sale.soldAt).toLocaleDateString("pt-BR")}
+                  </Typography>
+                  <Typography variant="body" numberOfLines={1} style={{ flex: 1.1 }}>
+                    {paymentLabel(sale.paymentMethod)}
+                  </Typography>
+                  <Typography variant="bodyBold" color={status.color} style={{ flex: 1 }}>
+                    {status.label}
+                  </Typography>
+                  <Typography
+                    variant="bodyBold"
+                    color={theme.colors.success}
+                    style={{ flex: 1, textAlign: "right" }}
+                  >
+                    {new Intl.NumberFormat("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    }).format(sale.total)}
+                  </Typography>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color={theme.colors.textSecondary}
+                  />
+                </Pressable>
+              );
+            })}
+          </View>
+        </ScrollView>
+        <DesktopPagination
+          page={page}
+          total={total}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+        />
+      </View>
+    </ScrollView>
+  );
+}
 
 function SalesContent({
   isLoading,
@@ -433,13 +610,20 @@ function SalesContent({
   activeFilter,
   hasActiveFilters,
   groups,
+  items,
+  isDesktop,
+  page,
+  total,
+  totalPages,
   primaryColor,
   onSalePress,
   onClearFilters,
   onNewSalePress,
+  onPageChange,
   compactEmpty = false,
 }: SalesContentProps) {
   const { theme } = useTheme();
+  const { copy } = useBrand();
 
   if (isLoading) {
     return (
@@ -469,49 +653,44 @@ function SalesContent({
     const isFiltered = activeFilter !== "all" || hasActiveFilters;
     const emptyCopy = getEmptyStateCopy(isFiltered);
     return (
-      <View
+      <EmptyState
+        icon={<EmptySalesIllustration />}
+        title={emptyCopy.title}
+        description={emptyCopy.description}
         style={{
-          flex: 1,
-          alignItems: "center",
           justifyContent: compactEmpty ? "flex-start" : "center",
-          paddingHorizontal: spacing["2xl"],
           // Os status possuem o resumo acima: o estado vazio começa com o mesmo
           // respiro em todas as abas para a ilustração não parecer colada ao card.
           paddingTop: spacing.xl,
           paddingBottom: spacing["5xl"],
         }}
-      >
-        <EmptySalesIllustration />
-        <Typography variant="h2" style={{ marginTop: spacing.lg, textAlign: "center" }}>
-          {emptyCopy.title}
-        </Typography>
-        <Typography variant="body" style={{ marginTop: spacing.md, textAlign: "center" }}>
-          {emptyCopy.description}
-        </Typography>
-        <Pressable
-          onPress={isFiltered ? onClearFilters : onNewSalePress}
-          accessibilityRole="button"
-          style={({ pressed }) => [
-            {
-              marginTop: spacing.xl,
-              minHeight: 52,
-              paddingHorizontal: spacing["2xl"],
-              borderRadius: radii.full,
-              backgroundColor: theme.colors.primary,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: spacing.sm,
-              opacity: pressed ? 0.86 : 1,
-            },
-          ]}
-        >
-          <Ionicons name={emptyCopy.icon} size={22} color={theme.colors.textOnPrimary} />
-          <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
-            {emptyCopy.button}
-          </Typography>
-        </Pressable>
-      </View>
+        action={
+          <Button
+            title={isFiltered ? emptyCopy.button : copy.saleLabel}
+            size="lg"
+            icon={
+              <Ionicons
+                name={emptyCopy.icon}
+                size={iconSizes.sm}
+                color={theme.colors.textOnPrimary}
+              />
+            }
+            onPress={isFiltered ? onClearFilters : onNewSalePress}
+          />
+        }
+      />
+    );
+  }
+  if (isDesktop) {
+    return (
+      <DesktopSalesTable
+        items={items}
+        page={page}
+        total={total}
+        totalPages={totalPages}
+        onSalePress={onSalePress}
+        onPageChange={onPageChange}
+      />
     );
   }
   return (
@@ -540,6 +719,7 @@ function SalesContent({
 
 export default function SalesScreen() {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { token } = useAuth();
@@ -551,9 +731,13 @@ export default function SalesScreen() {
   const [showEdit, setShowEdit] = useState(false);
   const [editPayment, setEditPayment] = useState("");
   const [editNotes, setEditNotes] = useState("");
+  const [page, setPage] = useState(1);
 
   const statusParam = activeFilter === "all" ? undefined : activeFilter;
-  const { data, isLoading, error, refetch } = useSales({ status: statusParam });
+  const { data, isLoading, error, refetch } = useSales({
+    page: isDesktop ? page : undefined,
+    status: statusParam,
+  });
   const { data: selectedSale } = useSale(selectedSaleId ?? "");
   // Abre o detalhe imediatamente com a venda que a lista já carregou (inclui
   // itens); o useSale revalida em segundo plano. Sem isso, o modal só abria
@@ -657,21 +841,23 @@ export default function SalesScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <View
-        style={{
-          paddingHorizontal: spacing.xl,
-          paddingTop: spacing.xl,
-          paddingBottom: spacing.sm,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <Typography variant="display" serif>
-          Vendas
-        </Typography>
-        <AvatarCircle name={profile?.name ?? "Maria"} />
-      </View>
+      {!isDesktop && (
+        <View
+          style={{
+            paddingHorizontal: spacing.xl,
+            paddingTop: spacing.xl,
+            paddingBottom: spacing.sm,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Typography variant="display" serif>
+            Vendas
+          </Typography>
+          <AvatarCircle name={profile?.name ?? "Maria"} />
+        </View>
+      )}
 
       <View
         style={{
@@ -687,7 +873,10 @@ export default function SalesScreen() {
             key={tab.key}
             label={tab.label}
             selected={activeFilter === tab.key}
-            onPress={() => setActiveFilter(tab.key)}
+            onPress={() => {
+              setActiveFilter(tab.key);
+              setPage(1);
+            }}
           />
         ))}
       </View>
@@ -701,7 +890,10 @@ export default function SalesScreen() {
       >
         <SearchBar
           value={searchQuery}
-          onChangeText={setSearchQuery}
+          onChangeText={(value) => {
+            setSearchQuery(value);
+            setPage(1);
+          }}
           onFilterPress={() => setShowFilters(true)}
         />
       </View>
@@ -719,14 +911,20 @@ export default function SalesScreen() {
         activeFilter={activeFilter}
         hasActiveFilters={!!searchQuery.trim()}
         groups={groups}
+        items={filteredItems ?? []}
+        isDesktop={isDesktop}
+        page={data?.page ?? page}
+        total={data?.total ?? 0}
+        totalPages={data?.totalPages ?? 1}
         primaryColor={theme.colors.primary}
         onSalePress={setSelectedSaleId}
         onClearFilters={handleClearFilters}
         onNewSalePress={() => router.push("/tabs/new-sale")}
+        onPageChange={setPage}
         compactEmpty={activeFilter !== "all"}
       />
 
-      <Modal
+      <ResponsiveOverlayModal
         visible={showFilters}
         animationType="slide"
         transparent
@@ -736,7 +934,8 @@ export default function SalesScreen() {
           style={{
             flex: 1,
             backgroundColor: "rgba(0, 0, 0, 0.45)",
-            justifyContent: "flex-end",
+            justifyContent: isDesktop ? "center" : "flex-end",
+            padding: isDesktop ? spacing.xl : 0,
           }}
         >
           <Pressable
@@ -746,14 +945,19 @@ export default function SalesScreen() {
             style={{ position: "absolute", inset: 0 }}
           />
           <View
-            style={{
-              backgroundColor: theme.colors.surface,
-              borderTopLeftRadius: radii["2xl"],
-              borderTopRightRadius: radii["2xl"],
-              padding: spacing.xl,
-              paddingBottom: Math.max(insets.bottom + spacing["3xl"], spacing["5xl"]),
-              gap: spacing.xl,
-            }}
+            style={[
+              {
+                backgroundColor: theme.colors.surface,
+                borderTopLeftRadius: radii["2xl"],
+                borderTopRightRadius: radii["2xl"],
+                padding: spacing.xl,
+                paddingBottom: isDesktop
+                  ? spacing.xl
+                  : Math.max(insets.bottom + spacing["3xl"], spacing["5xl"]),
+                gap: spacing.xl,
+              },
+              desktopModalSurface(isDesktop, 720),
+            ]}
           >
             <View
               style={{
@@ -798,9 +1002,10 @@ export default function SalesScreen() {
             />
           </View>
         </View>
-      </Modal>
+      </ResponsiveOverlayModal>
 
-      <Modal
+      <ResponsiveModal
+        desktopMaxWidth={1040}
         visible={!!selectedSaleId && !!selectedSaleWithPhotos}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -829,9 +1034,10 @@ export default function SalesScreen() {
             />
           )}
         </SafeAreaView>
-      </Modal>
+      </ResponsiveModal>
 
-      <Modal
+      <ResponsiveModal
+        desktopMaxWidth={840}
         visible={showEdit}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -855,11 +1061,14 @@ export default function SalesScreen() {
             <View style={{ width: 60 }} />
           </View>
           <KeyboardAwareScrollView
-            contentContainerStyle={{
-              padding: spacing.xl,
-              paddingBottom: spacing["3xl"],
-              gap: spacing.lg,
-            }}
+            contentContainerStyle={[
+              {
+                padding: spacing.xl,
+                paddingBottom: spacing["3xl"],
+                gap: spacing.lg,
+              },
+              desktopContained(isDesktop, 720),
+            ]}
           >
             <View style={{ gap: spacing.sm }}>
               <Typography variant="caption">Forma de pagamento</Typography>
@@ -890,10 +1099,11 @@ export default function SalesScreen() {
                 handleSaveEdit().catch(() => {});
               }}
               loading={updateSale.isPending}
+              style={desktopAction(isDesktop)}
             />
           </KeyboardAwareScrollView>
         </SafeAreaView>
-      </Modal>
+      </ResponsiveModal>
     </SafeAreaView>
   );
 }

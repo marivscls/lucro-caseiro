@@ -1,13 +1,23 @@
 import { formatCurrency } from "../../shared/utils/format";
-import { hasActiveFeature } from "@lucro-caseiro/contracts";
-import { Badge, Card, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import { hasActiveFeature, type Client } from "@lucro-caseiro/contracts";
+import {
+  Card,
+  colors,
+  fontSizes,
+  iconSizes,
+  Typography,
+  useBrand,
+  useFeature,
+  useTheme,
+  spacing,
+  radii,
+} from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
-  Modal,
   Pressable,
   ScrollView,
   View,
@@ -18,7 +28,9 @@ import Svg, { Circle } from "react-native-svg";
 
 import agendaDeliveries from "../../../assets/agenda-deliveries.png";
 
+import { avatarPastel } from "../../features/clients/components/avatar-colors";
 import { useBirthdays } from "../../features/clients/hooks";
+import { isBirthdayToday } from "../../features/clients/use-birthday-notifier";
 import { useFinanceSummary } from "../../features/finance/hooks";
 import { ProlaboreGoalForm } from "../../features/goals/components/prolabore-goal-form";
 import { prolaboreMessage } from "../../features/goals/domain";
@@ -31,10 +43,13 @@ import { LimitBanner } from "../../features/subscription/components/limit-banner
 import { useLimits, useProfile } from "../../features/subscription/hooks";
 import { getLimitBannerState } from "../../features/subscription/limits";
 import { AdBanner } from "../../shared/components/ad-banner";
+import { ListCard, ListCardItem } from "../../shared/components/list-card";
+import { ResponsiveModal } from "../../shared/components/responsive-modal-surface";
 import { useNotificationEnabled } from "../../shared/hooks/notification-prefs";
 import { NOTIFICATION_TYPES } from "../../shared/hooks/notification-types";
 import { useOnboarding } from "../../shared/hooks/use-onboarding";
 import { usePaywall } from "../../shared/hooks/use-paywall";
+import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 
 function getMonthName(): string {
   const months = [
@@ -88,11 +103,11 @@ function getCardStyle(theme: ReturnType<typeof useTheme>["theme"]): ViewStyle {
 
 function AvatarCircle({
   name,
-  color,
   avatarUrl,
-}: Readonly<{ name: string; color: string; avatarUrl?: string | null }>) {
+}: Readonly<{ name: string; avatarUrl?: string | null }>) {
   const { theme } = useTheme();
   const initial = name ? name.charAt(0).toUpperCase() : "?";
+  const pastel = avatarPastel(name || "?", theme.mode);
 
   return (
     <View
@@ -100,27 +115,129 @@ function AvatarCircle({
         width: 44,
         height: 44,
         borderRadius: 22,
-        backgroundColor: color,
+        backgroundColor: pastel.bg,
         borderWidth: 1,
-        borderColor: "rgba(255, 255, 255, 0.22)",
+        borderColor: pastel.bg,
         alignItems: "center",
         justifyContent: "center",
         overflow: "hidden",
-        shadowColor: color,
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.25,
-        shadowRadius: 12,
-        elevation: 4,
       }}
     >
       {avatarUrl ? (
         <Image source={{ uri: avatarUrl }} style={{ width: 44, height: 44 }} />
       ) : (
-        <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
+        <Typography variant="bodyBold" color={pastel.fg}>
           {initial}
         </Typography>
       )}
     </View>
+  );
+}
+
+const BIRTHDAYS_PREVIEW_COUNT = 5;
+
+/** Extrai o dia (1-31) de uma data ISO `YYYY-MM-DD` sem risco de fuso horário. */
+function birthdayDayOfMonth(birthday: string | null): number | null {
+  if (!birthday) return null;
+  const parts = birthday.split("T")[0].split("-");
+  if (parts.length < 3) return null;
+  const day = Number(parts[2]);
+  return Number.isFinite(day) && day >= 1 && day <= 31 ? day : null;
+}
+
+/** Texto da pílula de data de cada aniversariante. */
+function birthdayPillLabel(isToday: boolean, day: number | null): string {
+  if (isToday) return "Hoje 🎉";
+  if (day === null) return "—";
+  return `dia ${day}`;
+}
+
+function BirthdaysCard({
+  clients,
+  cardStyle,
+}: Readonly<{ clients: Client[]; cardStyle: ViewStyle }>) {
+  const { theme } = useTheme();
+  const [showAll, setShowAll] = useState(false);
+  const today = new Date();
+  const visibleClients = showAll ? clients : clients.slice(0, BIRTHDAYS_PREVIEW_COUNT);
+  const hasOverflow = clients.length > BIRTHDAYS_PREVIEW_COUNT;
+
+  return (
+    <ListCard
+      title="Aniversariantes do mês"
+      icon="gift-outline"
+      iconColor={theme.colors.premium}
+      iconBg={theme.colors.premiumBg}
+      badge={String(clients.length)}
+      badgeVariant="premium"
+      style={cardStyle}
+      footer={
+        hasOverflow ? (
+          <Pressable
+            onPress={() => setShowAll((current) => !current)}
+            accessibilityRole="button"
+            style={({ pressed }) => ({
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: spacing.xs,
+              opacity: pressed ? 0.7 : 1,
+            })}
+          >
+            <Typography variant="bodyBold" color={theme.colors.primary}>
+              {showAll ? "Ver menos" : `Ver todos os ${clients.length}`}
+            </Typography>
+            <Ionicons
+              name={showAll ? "chevron-up" : "chevron-down"}
+              size={16}
+              color={theme.colors.primary}
+            />
+          </Pressable>
+        ) : undefined
+      }
+    >
+      {visibleClients.map((client, index) => {
+        const isToday = isBirthdayToday(client.birthday, today);
+        const day = birthdayDayOfMonth(client.birthday);
+        return (
+          <ListCardItem
+            key={client.id}
+            first={index === 0}
+            style={{ paddingVertical: spacing.sm }}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+              <AvatarCircle name={client.name} />
+              <Typography
+                variant="bodyBold"
+                color={theme.colors.text}
+                style={{ flex: 1 }}
+                numberOfLines={1}
+              >
+                {client.name}
+              </Typography>
+              <View
+                style={{
+                  paddingHorizontal: spacing.md,
+                  paddingVertical: spacing.xs,
+                  borderRadius: radii.full,
+                  backgroundColor: isToday
+                    ? theme.colors.premiumBg
+                    : theme.colors.surface,
+                }}
+              >
+                <Typography
+                  variant="caption"
+                  color={isToday ? theme.colors.premium : theme.colors.textSecondary}
+                  numberOfLines={1}
+                >
+                  {birthdayPillLabel(isToday, day)}
+                </Typography>
+              </View>
+            </View>
+          </ListCardItem>
+        );
+      })}
+    </ListCard>
   );
 }
 
@@ -151,10 +268,7 @@ function ShortcutTile({
           justifyContent: "flex-start",
           gap: spacing.sm,
           opacity: pressed ? 0.82 : 1,
-          backgroundColor:
-            theme.mode === "dark"
-              ? "rgba(44, 36, 32, 0.82)"
-              : theme.colors.surfaceElevated,
+          backgroundColor: theme.colors.surfaceElevated,
           borderWidth: 1,
           borderColor: theme.colors.border,
         },
@@ -166,24 +280,18 @@ function ShortcutTile({
           height: 38,
           borderRadius: radii.md,
           borderWidth: 1,
-          borderColor:
-            theme.mode === "dark"
-              ? "rgba(245, 225, 219, 0.13)"
-              : "rgba(74, 50, 40, 0.08)",
-          backgroundColor:
-            theme.mode === "dark" ? "rgba(255, 255, 255, 0.04)" : theme.colors.surface,
+          borderColor: theme.colors.border,
+          backgroundColor: theme.colors.surface,
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <Ionicons name={icon} size={21} color={theme.colors.primaryLight} />
+        <Ionicons name={icon} size={iconSizes.md} color={theme.colors.textSecondary} />
       </View>
       <Typography
         variant="bodyBold"
-        style={{ flex: 1, fontSize: 12, lineHeight: 15 }}
+        style={{ flex: 1, fontSize: fontSizes.xs, lineHeight: 17 }}
         numberOfLines={1}
-        adjustsFontSizeToFit
-        minimumFontScale={0.78}
       >
         {label}
       </Typography>
@@ -195,7 +303,12 @@ const HOME_SHORTCUT_CATEGORIES = [
   {
     title: "Dia a dia",
     items: [
-      { icon: "calendar-outline", label: "Agenda", route: "/tabs/agenda" },
+      {
+        icon: "calendar-outline",
+        label: "Agenda",
+        route: "/tabs/agenda",
+        feature: "agendamento",
+      },
       { icon: "wallet-outline", label: "Finanças", route: "/finance" },
       { icon: "bar-chart-outline", label: "Insights", route: "/insights" },
       { icon: "cash-outline", label: "Fiado", route: "/fiado" },
@@ -213,7 +326,12 @@ const HOME_SHORTCUT_CATEGORIES = [
   {
     title: "Produção",
     items: [
-      { icon: "document-text-outline", label: "Receitas", route: "/recipes" },
+      {
+        icon: "document-text-outline",
+        label: "Receitas",
+        route: "/recipes",
+        feature: "fichaTecnica",
+      },
       { icon: "flask-outline", label: "Insumos", route: "/materials" },
       { icon: "business-outline", label: "Fornecedores", route: "/suppliers" },
       { icon: "gift-outline", label: "Embalagens", route: "/packaging" },
@@ -230,91 +348,141 @@ const HOME_SHORTCUT_CATEGORIES = [
   },
 ] as const;
 
-function MetricCard({
-  title,
+/**
+ * Hero "profissional quente": o momento de valor da home em cartao NEUTRO —
+ * o rosa aparece so no label e no CTA (a unica peca preenchida da viewport),
+ * modelo Airbnb. Acao primaria (Nova venda) sempre no topo, ao alcance.
+ */
+function HeroTodayCard({
   amount,
-  description,
-  icon,
-  tone,
+  salesLabel,
+  saleActionLabel,
+  hasSales,
+  onOpenSales,
+  onNewSale,
+}: Readonly<{
+  amount: string;
+  salesLabel: string;
+  saleActionLabel: string;
+  hasSales: boolean;
+  onOpenSales: () => void;
+  onNewSale: () => void;
+}>) {
+  const { theme } = useTheme();
+  return (
+    <Pressable
+      onPress={hasSales ? onOpenSales : onNewSale}
+      accessibilityRole="button"
+      accessibilityLabel={`Vendas de hoje, ${amount}. ${salesLabel}`}
+      style={({ pressed }) => [
+        {
+          backgroundColor: theme.colors.surfaceElevated,
+          borderRadius: radii["2xl"],
+          borderWidth: 1,
+          borderColor: theme.colors.border,
+          padding: spacing["2xl"],
+          opacity: pressed ? 0.95 : 1,
+        },
+        theme.shadows.sm,
+      ]}
+    >
+      <Typography variant="label" color={theme.colors.primaryStrong}>
+        VENDAS DE HOJE
+      </Typography>
+      <Typography
+        variant="moneyHero"
+        color={theme.colors.text}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.55}
+        style={{ marginTop: spacing.xs }}
+      >
+        {amount}
+      </Typography>
+      <Typography
+        variant="body"
+        color={theme.colors.textSecondary}
+        style={{ marginTop: spacing.xs }}
+      >
+        {salesLabel}
+      </Typography>
+      <Pressable
+        onPress={onNewSale}
+        accessibilityRole="button"
+        accessibilityLabel={saleActionLabel}
+        style={({ pressed }) => ({
+          marginTop: spacing.lg,
+          alignSelf: "flex-start",
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.sm,
+          backgroundColor: theme.colors.primaryInteractive,
+          borderRadius: radii.full,
+          paddingHorizontal: spacing.xl,
+          minHeight: 48,
+          justifyContent: "center",
+          opacity: pressed ? 0.85 : 1,
+        })}
+      >
+        <Ionicons name="add" size={iconSizes.sm} color={colors.textOnPrimary} />
+        <Typography variant="bodyBold" color={colors.textOnPrimary}>
+          {saleActionLabel}
+        </Typography>
+      </Pressable>
+    </Pressable>
+  );
+}
+
+/** Lucro do mes em uma linha compacta — numero tabular, tom serio de dinheiro. */
+function LucroHighlightCard({
+  monthName,
+  amount,
+  income,
+  expenses,
   onPress,
 }: Readonly<{
-  title: string;
+  monthName: string;
   amount: string;
-  description: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  tone: "success" | "alert";
+  income: string;
+  expenses: string;
   onPress: () => void;
 }>) {
   const { theme } = useTheme();
-  const color = tone === "success" ? theme.colors.success : theme.colors.alert;
-  const softColor = tone === "success" ? theme.colors.successBg : theme.colors.alertBg;
-
+  const negative = amount.trim().startsWith("-");
+  const tone = negative ? theme.colors.alert : theme.colors.success;
+  const toneBg = negative ? theme.colors.alertBg : theme.colors.successBg;
   return (
     <Card
       variant="surface"
       padding="lg"
       onPress={onPress}
-      style={{
-        ...getCardStyle(theme),
-        flex: 1,
-        minHeight: 170,
-        borderColor: softColor,
-      }}
+      style={{ ...getCardStyle(theme), borderColor: toneBg }}
     >
-      <View style={{ flex: 1, gap: spacing.sm }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-          <View
-            style={{
-              width: 42,
-              height: 42,
-              borderRadius: radii.full,
-              backgroundColor: softColor,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Ionicons name={icon} size={23} color={color} />
-          </View>
-          <Typography
-            variant="label"
-            color={color}
-            style={{ flex: 1, fontSize: 12 }}
-            numberOfLines={2}
-          >
-            {title}
+      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+        <View
+          style={{
+            width: 46,
+            height: 46,
+            borderRadius: radii.full,
+            backgroundColor: toneBg,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Ionicons name="trending-up-outline" size={iconSizes.md} color={tone} />
+        </View>
+        <View style={{ flex: 1, gap: 2 }}>
+          <Typography variant="label" color={tone}>
+            LUCRO EM {monthName}
+          </Typography>
+          <Typography variant="moneyLg" color={tone} numberOfLines={1}>
+            {amount}
+          </Typography>
+          <Typography variant="caption" numberOfLines={1}>
+            {income} entradas · {expenses} despesas
           </Typography>
         </View>
-        <Typography
-          variant="moneyLg"
-          color={color}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.62}
-        >
-          {amount}
-        </Typography>
-        <Typography
-          variant="caption"
-          color={theme.colors.textSecondary}
-          style={{ flex: 1, lineHeight: 18 }}
-          numberOfLines={2}
-        >
-          {description}
-        </Typography>
-        <View style={{ alignItems: "flex-end" }}>
-          <View
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: radii.full,
-              backgroundColor: softColor,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Ionicons name="chevron-forward" size={18} color={color} />
-          </View>
-        </View>
+        <Ionicons name="chevron-forward" size={iconSizes.sm} color={tone} />
       </View>
     </Card>
   );
@@ -371,7 +539,7 @@ function ProgressRing({ value }: Readonly<{ value: number }>) {
         <Typography
           variant="caption"
           color={theme.colors.primary}
-          style={{ fontSize: 12 }}
+          style={{ fontSize: fontSizes.xs }}
         >
           da meta
         </Typography>
@@ -383,9 +551,15 @@ function ProgressRing({ value }: Readonly<{ value: number }>) {
 function QuickCreateBar() {
   const router = useRouter();
   const { theme } = useTheme();
+  const { copy } = useBrand();
   const actions = [
-    { icon: "add", label: "Nova venda", route: "/tabs/new-sale", active: true },
-    { icon: "cube-outline", label: "Novo produto", route: "/products", active: false },
+    { icon: "add", label: copy.saleLabel, route: "/tabs/new-sale", active: true },
+    {
+      icon: "cube-outline",
+      label: "Novo produto",
+      route: "/products",
+      active: false,
+    },
     {
       icon: "person-add-outline",
       label: "Novo cliente",
@@ -426,26 +600,25 @@ function QuickCreateBar() {
               width: 36,
               height: 36,
               borderRadius: action.active ? radii.md : radii.full,
-              backgroundColor: action.active ? theme.colors.primary : "transparent",
+              // Selecao = fundo rosado suave (papel 2), nunca segundo bloco rosa.
+              backgroundColor: action.active ? theme.colors.primaryBg : "transparent",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
             <Ionicons
               name={action.icon}
-              size={24}
+              size={iconSizes.md}
               color={
-                action.active ? theme.colors.textOnPrimary : theme.colors.textSecondary
+                action.active ? theme.colors.primaryStrong : theme.colors.textSecondary
               }
             />
           </View>
           <Typography
             variant="caption"
-            color={action.active ? theme.colors.primary : theme.colors.text}
+            color={action.active ? theme.colors.primaryStrong : theme.colors.text}
             numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.72}
-            style={{ fontSize: 11 }}
+            style={{ fontSize: fontSizes.xs }}
           >
             {action.label}
           </Typography>
@@ -518,6 +691,7 @@ function GettingStartedCard({
   onDismiss,
 }: Readonly<{ hasProduct: boolean; hasSale: boolean; onDismiss: () => void }>) {
   const { theme } = useTheme();
+  const { copy } = useBrand();
   const router = useRouter();
   return (
     <Card
@@ -568,7 +742,7 @@ function GettingStartedCard({
         <StartStep
           done={hasProduct}
           index={1}
-          label="Cadastre seu primeiro produto"
+          label={`Cadastre seu primeiro ${copy.productNoun}`}
           onPress={() => router.push("/products")}
         />
         <StartStep
@@ -584,7 +758,12 @@ function GettingStartedCard({
 
 export default function HomeScreen() {
   const { theme } = useTheme();
+  const { copy } = useBrand();
+  const hasStock = useFeature("estoque");
+  const hasScheduling = useFeature("agendamento");
+  const hasRecipes = useFeature("fichaTecnica");
   const router = useRouter();
+  const isDesktop = useDesktopLayout();
   const [showGoalForm, setShowGoalForm] = useState(false);
   const { data: profile } = useProfile();
   const { data: limits } = useLimits();
@@ -632,11 +811,30 @@ export default function HomeScreen() {
   const isLoading = loadingSales || loadingGoal;
   const firstName = profile?.name?.trim().split(/\s+/)[0] ?? "Maria";
   const cardStyle = getCardStyle(theme);
+  const homeShortcutCategories = HOME_SHORTCUT_CATEGORIES.map((category) => ({
+    ...category,
+    items: category.items
+      .filter((item) => {
+        if (!("feature" in item)) return true;
+        return item.feature === "agendamento" ? hasScheduling : hasRecipes;
+      })
+      .map((item) =>
+        item.route === "/products"
+          ? {
+              ...item,
+              label: copy.productNounPlural.replace(/^./, (letter) =>
+                letter.toUpperCase(),
+              ),
+            }
+          : item,
+      ),
+  }));
   const goalConfig = prolaboreData?.config;
   const goalProgress = prolaboreData?.progress;
 
   const goalModal = (
-    <Modal
+    <ResponsiveModal
+      desktopMaxWidth={840}
       visible={showGoalForm}
       animationType="slide"
       presentationStyle="pageSheet"
@@ -661,7 +859,7 @@ export default function HomeScreen() {
           onSuccess={() => setShowGoalForm(false)}
         />
       </SafeAreaView>
-    </Modal>
+    </ResponsiveModal>
   );
 
   return (
@@ -672,7 +870,7 @@ export default function HomeScreen() {
       <ScrollView
         contentContainerStyle={{
           padding: spacing.xl,
-          paddingBottom: 0,
+          paddingBottom: spacing["3xl"],
           gap: spacing.lg,
         }}
         showsVerticalScrollIndicator={false}
@@ -687,10 +885,10 @@ export default function HomeScreen() {
         >
           <View style={{ flex: 1, paddingRight: spacing.md }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-              <Typography variant="h1" serif>
+              <Typography variant="display" serif>
                 Olá, {firstName}!
               </Typography>
-              <Ionicons name="heart" size={20} color={theme.colors.primaryLight} />
+              <Ionicons name="heart" size={22} color={colors.rose300} />
             </View>
             <Typography variant="body" style={{ marginTop: spacing.xs }}>
               {getFormattedDate()}
@@ -703,7 +901,6 @@ export default function HomeScreen() {
           >
             <AvatarCircle
               name={profile?.name ?? firstName}
-              color={theme.colors.primary}
               avatarUrl={profile?.avatarUrl}
             />
           </Pressable>
@@ -721,34 +918,6 @@ export default function HomeScreen() {
 
         {!showSalesLimitBanner && <AdBanner size="banner" />}
 
-        <View style={{ gap: spacing.sm }}>
-          <Typography variant="label">ACESSO RÁPIDO</Typography>
-          {HOME_SHORTCUT_CATEGORIES.map((category) => (
-            <View key={category.title} style={{ gap: spacing.sm }}>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                {category.title}
-              </Typography>
-              <View
-                style={{
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  justifyContent: "space-between",
-                  gap: spacing.sm,
-                }}
-              >
-                {category.items.map((item) => (
-                  <ShortcutTile
-                    key={item.route}
-                    icon={item.icon}
-                    label={item.label}
-                    onPress={() => router.push(item.route)}
-                  />
-                ))}
-              </View>
-            </View>
-          ))}
-        </View>
-
         {isLoading ? (
           <ActivityIndicator
             size="large"
@@ -757,28 +926,26 @@ export default function HomeScreen() {
           />
         ) : (
           <>
-            <View style={{ flexDirection: "row", gap: spacing.sm }}>
-              <MetricCard
-                title="VENDAS DE HOJE"
-                amount={formatCurrency(todaySummary?.totalAmount ?? 0)}
-                description={todaySalesLabel(todaySummary?.totalSales ?? 0)}
-                icon="bag-handle-outline"
-                tone="success"
-                onPress={() =>
-                  router.push(hasSalesToday ? "/tabs/sales" : "/tabs/new-sale")
-                }
-              />
-              <MetricCard
-                title={`LUCRO EM ${getMonthName().toUpperCase()}`}
-                amount={formatCurrency(monthProfit)}
-                description={`${formatCurrency(financeSummary?.totalIncome ?? 0)} entradas\n${formatCurrency(financeSummary?.totalExpenses ?? 0)} despesas`}
-                icon="trending-up-outline"
-                tone={monthProfit >= 0 ? "success" : "alert"}
-                onPress={() => router.push("/finance")}
-              />
-            </View>
+            <HeroTodayCard
+              amount={formatCurrency(todaySummary?.totalAmount ?? 0)}
+              salesLabel={todaySalesLabel(todaySummary?.totalSales ?? 0)}
+              saleActionLabel={copy.saleLabel}
+              hasSales={hasSalesToday}
+              onOpenSales={() => router.push("/tabs/sales")}
+              onNewSale={() => router.push("/tabs/new-sale")}
+            />
 
-            {upcomingDeliveries > 0 && (
+            <QuickCreateBar />
+
+            <LucroHighlightCard
+              monthName={getMonthName().toUpperCase()}
+              amount={formatCurrency(monthProfit)}
+              income={formatCurrency(financeSummary?.totalIncome ?? 0)}
+              expenses={formatCurrency(financeSummary?.totalExpenses ?? 0)}
+              onPress={() => router.push("/finance")}
+            />
+
+            {hasScheduling && upcomingDeliveries > 0 && (
               <Card
                 variant="surface"
                 padding="lg"
@@ -798,7 +965,11 @@ export default function HomeScreen() {
                       justifyContent: "center",
                     }}
                   >
-                    <Ionicons name="calendar" size={25} color={theme.colors.primary} />
+                    <Ionicons
+                      name="calendar"
+                      size={iconSizes.md}
+                      color={theme.colors.textSecondary}
+                    />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Typography variant="h3">Agenda</Typography>
@@ -815,8 +986,8 @@ export default function HomeScreen() {
                   />
                   <Ionicons
                     name="chevron-forward"
-                    size={22}
-                    color={theme.colors.primary}
+                    size={iconSizes.sm}
+                    color={theme.colors.textSecondary}
                   />
                 </View>
               </Card>
@@ -837,7 +1008,7 @@ export default function HomeScreen() {
                       justifyContent: "space-between",
                     }}
                   >
-                    <Typography variant="label" color={theme.colors.primary}>
+                    <Typography variant="label" color={theme.colors.textSecondary}>
                       META DO MÊS
                     </Typography>
                     <View
@@ -845,15 +1016,15 @@ export default function HomeScreen() {
                         width: 38,
                         height: 38,
                         borderRadius: radii.md,
-                        backgroundColor: theme.colors.alertBg,
+                        backgroundColor: theme.colors.surface,
                         alignItems: "center",
                         justifyContent: "center",
                       }}
                     >
                       <Ionicons
                         name="create-outline"
-                        size={21}
-                        color={theme.colors.primary}
+                        size={iconSizes.sm}
+                        color={theme.colors.textSecondary}
                       />
                     </View>
                   </View>
@@ -908,19 +1079,17 @@ export default function HomeScreen() {
                   >
                     <Ionicons
                       name="locate-outline"
-                      size={22}
+                      size={iconSizes.sm}
                       color={
                         goalProgress?.reached
                           ? theme.colors.success
-                          : theme.colors.primary
+                          : theme.colors.textSecondary
                       }
                     />
                     <Typography
                       variant="bodyBold"
                       color={
-                        goalProgress?.reached
-                          ? theme.colors.success
-                          : theme.colors.primary
+                        goalProgress?.reached ? theme.colors.success : theme.colors.text
                       }
                       style={{ flex: 1 }}
                     >
@@ -932,48 +1101,34 @@ export default function HomeScreen() {
                 </View>
               </Card>
 
-              {lowStockEnabled && (
-                <Card
-                  variant="surface"
-                  padding="lg"
+              {hasStock && lowStockEnabled && (
+                <ListCard
+                  title={`${copy.stockLabel} baixo`}
+                  icon="cube-outline"
+                  iconColor={theme.colors.yellow}
+                  iconBg={theme.colors.yellowBg}
+                  badge={
+                    lowStockProducts && lowStockProducts.length > 0
+                      ? String(lowStockProducts.length)
+                      : undefined
+                  }
+                  badgeVariant="warning"
+                  actionLabel="Ver todos"
                   onPress={() => router.push("/products")}
                   style={cardStyle}
                 >
-                  <View>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        marginBottom: spacing.sm,
-                      }}
-                    >
-                      <Typography variant="label" color={theme.colors.primary}>
-                        ESTOQUE BAIXO
-                      </Typography>
-                      <View style={{ flexDirection: "row", alignItems: "center" }}>
-                        <Typography variant="caption" color={theme.colors.primary}>
-                          Ver todos
-                        </Typography>
-                        <Ionicons
-                          name="chevron-forward"
-                          size={18}
-                          color={theme.colors.primaryLight}
-                        />
-                      </View>
-                    </View>
-
-                    {lowStockProducts && lowStockProducts.length > 0 ? (
-                      lowStockProducts.slice(0, 3).map((product, index) => (
+                  {lowStockProducts && lowStockProducts.length > 0 ? (
+                    lowStockProducts.slice(0, 3).map((product, index) => (
+                      <ListCardItem
+                        key={product.id}
+                        first={index === 0}
+                        style={{ paddingVertical: spacing.sm }}
+                      >
                         <View
-                          key={product.id}
                           style={{
                             flexDirection: "row",
                             alignItems: "center",
                             gap: spacing.md,
-                            paddingVertical: spacing.sm,
-                            borderBottomWidth: index === 2 ? 0 : 1,
-                            borderBottomColor: theme.colors.border,
                           }}
                         >
                           {product.photoUrl ? (
@@ -1035,119 +1190,106 @@ export default function HomeScreen() {
                             </Typography>
                           </View>
                         </View>
-                      ))
-                    ) : (
-                      <View
-                        style={{
-                          flex: 1,
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
+                      </ListCardItem>
+                    ))
+                  ) : (
+                    <View
+                      style={{
+                        alignItems: "center",
+                        justifyContent: "center",
+                        paddingVertical: spacing.md,
+                      }}
+                    >
+                      <Ionicons
+                        name="cube-outline"
+                        size={34}
+                        color={theme.colors.textSecondary}
+                      />
+                      <Typography
+                        variant="caption"
+                        style={{ marginTop: spacing.sm, textAlign: "center" }}
                       >
-                        <Ionicons
-                          name="cube-outline"
-                          size={34}
-                          color={theme.colors.textSecondary}
-                        />
-                        <Typography
-                          variant="caption"
-                          style={{ marginTop: spacing.sm, textAlign: "center" }}
-                        >
-                          Nenhum produto em alerta
-                        </Typography>
-                      </View>
-                    )}
-                  </View>
-                </Card>
+                        Nenhum produto em alerta
+                      </Typography>
+                    </View>
+                  )}
+                </ListCard>
               )}
             </View>
 
             {birthdayCount > 0 &&
               canUsePremiumNotifications &&
               birthdaysEnabled &&
-              birthdays && (
-                <Card
-                  variant="surface"
-                  padding="xl"
-                  style={{
-                    ...cardStyle,
-                    borderLeftWidth: 3,
-                    borderLeftColor: theme.colors.premium,
-                  }}
-                >
-                  <Typography
-                    variant="h3"
-                    color={theme.colors.premium}
-                    style={{ marginBottom: spacing.sm }}
-                  >
-                    Aniversariantes do mês
-                  </Typography>
-                  {birthdays.map((client) => (
-                    <Typography
-                      key={client.id}
-                      variant="body"
-                      color={theme.colors.text}
-                      style={{ marginTop: spacing.xs }}
-                    >
-                      {client.name} - {client.birthday}
-                    </Typography>
-                  ))}
-                </Card>
-              )}
+              birthdays && <BirthdaysCard clients={birthdays} cardStyle={cardStyle} />}
 
             {birthdayCount > 0 && !canUsePremiumNotifications && (
-              <Card
-                variant="surface"
-                padding="xl"
+              <ListCard
+                title="Aniversariantes do mês"
+                icon="gift-outline"
+                iconColor={theme.colors.premium}
+                iconBg={theme.colors.premiumBg}
+                badge="Profissional"
+                badgeVariant="premium"
                 onPress={() => showPaywall("birthdays")}
-                style={{
-                  ...cardStyle,
-                  borderLeftWidth: 3,
-                  borderLeftColor: theme.colors.premium,
-                }}
+                style={cardStyle}
+                footer={
+                  <Typography variant="bodyBold" color={theme.colors.primaryLight}>
+                    Desbloqueie pra ver e parabenizar →
+                  </Typography>
+                }
               >
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    marginBottom: spacing.sm,
-                  }}
-                >
-                  <Typography variant="h3" color={theme.colors.premium}>
-                    Aniversariantes do mês
-                  </Typography>
-                  <Badge label="Profissional" variant="premium" />
-                </View>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: spacing.sm,
-                  }}
-                >
-                  <Ionicons name="lock-closed" size={18} color={theme.colors.premium} />
-                  <Typography
-                    variant="body"
-                    color={theme.colors.text}
-                    style={{ flex: 1 }}
+                <ListCardItem first style={{ paddingVertical: spacing.sm }}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: spacing.sm,
+                    }}
                   >
-                    {birthdayCount === 1
-                      ? "1 cliente faz aniversário este mês"
-                      : `${birthdayCount} clientes fazem aniversário este mês`}
-                  </Typography>
-                </View>
-                <Typography
-                  variant="bodyBold"
-                  color={theme.colors.primaryLight}
-                  style={{ marginTop: spacing.sm }}
-                >
-                  Desbloqueie pra ver e parabenizar →
-                </Typography>
-              </Card>
+                    <Ionicons name="lock-closed" size={18} color={theme.colors.premium} />
+                    <Typography
+                      variant="body"
+                      color={theme.colors.text}
+                      style={{ flex: 1 }}
+                    >
+                      {birthdayCount === 1
+                        ? "1 cliente faz aniversário este mês"
+                        : `${birthdayCount} clientes fazem aniversário este mês`}
+                    </Typography>
+                  </View>
+                </ListCardItem>
+              </ListCard>
             )}
 
-            <QuickCreateBar />
+            {!isDesktop && (
+              <View style={{ gap: spacing.sm }}>
+                <Typography variant="label">TODOS OS RECURSOS</Typography>
+                {homeShortcutCategories.map((category) => (
+                  <View key={category.title} style={{ gap: spacing.sm }}>
+                    <Typography variant="caption" color={theme.colors.textSecondary}>
+                      {category.title}
+                    </Typography>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        flexWrap: "wrap",
+                        justifyContent: "space-between",
+                        gap: spacing.sm,
+                      }}
+                    >
+                      {category.items.map((item) => (
+                        <ShortcutTile
+                          key={item.route}
+                          icon={item.icon}
+                          label={item.label}
+                          onPress={() => router.push(item.route)}
+                        />
+                      ))}
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
 
             {goalModal}
           </>

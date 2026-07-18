@@ -51,6 +51,8 @@ vi.mock("expo-router", () => ({
     Screen: () => null,
   },
   useLocalSearchParams: () => ({}),
+  maybeCompleteAuthSession: vi.fn(),
+  openAuthSessionAsync: vi.fn(),
 }));
 
 // Mock react-native-safe-area-context
@@ -180,6 +182,7 @@ vi.mock("@supabase/supabase-js", () => ({
         .fn()
         .mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
       signInWithPassword: vi.fn(),
+      signInWithOAuth: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
     },

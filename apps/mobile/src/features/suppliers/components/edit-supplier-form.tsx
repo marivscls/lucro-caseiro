@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { KeyboardAvoidingView, Platform, View } from "react-native";
 
 import { showToast } from "../../../shared/components/toast";
+import { desktopAction, desktopContained } from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { alertError, alertValidation } from "../../../shared/utils/alerts";
 import { isValidEmail } from "../../../shared/utils/email";
 import { isValidBrazilPhone, maskPhoneBR } from "../../../shared/utils/phone";
@@ -18,6 +20,7 @@ export function EditSupplierForm({
   supplier,
   onSuccess,
 }: Readonly<EditSupplierFormProps>) {
+  const isDesktop = useDesktopLayout();
   const [name, setName] = useState(supplier.name);
   const [phone, setPhone] = useState(supplier.phone ?? "");
   const [email, setEmail] = useState(supplier.email ?? "");
@@ -72,12 +75,15 @@ export function EditSupplierForm({
       style={{ flex: 1 }}
     >
       <View
-        style={{
-          flex: 1,
-          paddingHorizontal: spacing.xl,
-          paddingBottom: spacing.xl,
-          gap: spacing.md,
-        }}
+        style={[
+          {
+            flex: 1,
+            paddingHorizontal: spacing.xl,
+            paddingBottom: spacing.xl,
+            gap: spacing.md,
+          },
+          desktopContained(isDesktop, 720),
+        ]}
       >
         <Typography variant="h2" style={{ marginBottom: spacing.sm }}>
           Editar fornecedor
@@ -134,6 +140,7 @@ export function EditSupplierForm({
             void handleSubmit();
           }}
           loading={updateSupplier.isPending}
+          style={desktopAction(isDesktop)}
         />
       </View>
     </KeyboardAvoidingView>

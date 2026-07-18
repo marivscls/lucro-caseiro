@@ -7,7 +7,7 @@ const ANDROID_PACKAGE = "br.com.orionseven.lucrocaseiro";
 
 /** Link da ficha do app na Play Store, com UTM pra medir instalacoes vindas do catalogo. */
 function catalogPlayStoreUrl(): string {
-  return `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE}&referrer=utm_source%3Dcatalogo`;
+  return `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE}&referrer=utm_source%3Dcatalogo%26utm_medium%3Dreferral%26utm_campaign%3Dcatalogo_compartilhado`;
 }
 
 /** Gera um slug a partir do nome do negocio (ex.: "Doces da Má" -> "doces-da-ma"). */

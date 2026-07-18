@@ -1,6 +1,7 @@
 import type { Product } from "@lucro-caseiro/contracts";
 import * as Notifications from "expo-notifications";
 import { useEffect } from "react";
+import { Platform } from "react-native";
 
 import { NOTIFICATION_TYPES } from "../../shared/hooks/notification-types";
 import { useNotificationEnabled } from "../../shared/hooks/notification-prefs";
@@ -60,12 +61,12 @@ async function syncAndNotify(lowStock: Product[]): Promise<void> {
  * um produto novo entra na faixa de alerta. O dedupe via AsyncStorage evita
  * repetir o aviso do mesmo produto enquanto ele continua baixo.
  */
-export function useLowStockNotifier(): void {
+export function useLowStockNotifier(brandEnabled = true): void {
   const { data: lowStock } = useLowStockProducts();
   const enabled = useNotificationEnabled(NOTIFICATION_TYPES.LOW_STOCK);
 
   useEffect(() => {
-    if (!enabled || !lowStock) return;
+    if (Platform.OS === "web" || !brandEnabled || !enabled || !lowStock) return;
     void syncAndNotify(lowStock);
-  }, [lowStock, enabled]);
+  }, [lowStock, enabled, brandEnabled]);
 }

@@ -10,7 +10,7 @@ import {
 
 import { useTheme } from "../theme-context";
 import { useReducedMotion } from "../use-reduced-motion";
-import { fonts, fontSizes, radii, spacing } from "../theme";
+import { colors, fonts, fontSizes, radii, spacing } from "../theme";
 
 type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "success" | "premium";
 type ButtonSize = "sm" | "md" | "lg";
@@ -26,9 +26,10 @@ interface ButtonProps extends Omit<PressableProps, "style"> {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
+// Alturas distintas por tamanho; minimo de 44px de alvo de toque (publico idoso).
 const sizeStyles: Record<ButtonSize, { height: number; fontSize: number; px: number }> =
   {
-    sm: { height: 48, fontSize: fontSizes.sm, px: spacing.lg },
+    sm: { height: 44, fontSize: fontSizes.sm, px: spacing.lg },
     md: { height: 48, fontSize: fontSizes.md, px: spacing.xl },
     lg: { height: 56, fontSize: fontSizes.lg, px: spacing["2xl"] },
   };
@@ -60,12 +61,14 @@ export function Button({
     }).start();
 
   const variants: Record<ButtonVariant, { bg: string; text: string; border?: string }> = {
-    primary: { bg: theme.colors.primary, text: theme.colors.textOnPrimary },
+    // Fundos cheios usam tons AA (texto branco >= 4.5:1); `primary` de marca
+    // fica para areas grandes sem texto por cima.
+    primary: { bg: theme.colors.primaryInteractive, text: theme.colors.textOnPrimary },
     secondary: { bg: theme.colors.surface, text: theme.colors.text },
-    outline: { bg: "transparent", text: theme.colors.primary, border: theme.colors.primary },
+    outline: { bg: "transparent", text: theme.colors.primaryStrong, border: theme.colors.primaryStrong },
     ghost: { bg: "transparent", text: theme.colors.textSecondary },
-    success: { bg: theme.colors.success, text: "#FFFFFF" },
-    premium: { bg: theme.colors.premium, text: "#FFFFFF" },
+    success: { bg: colors.successStrong, text: theme.colors.textOnPrimary },
+    premium: { bg: "#8F6620", text: theme.colors.textOnPrimary },
   };
 
   const v = variants[variant];

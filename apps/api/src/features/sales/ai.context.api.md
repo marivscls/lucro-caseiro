@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Gerenciar vendas do negocio caseiro, incluindo registro de itens vendidos, forma de pagamento, vinculo com cliente, status da venda (pendente/pago/cancelado), controle de estoque ao vender e resumo diario. Total da venda e auto-calculado a partir dos itens.
+Gerenciar vendas do negocio, incluindo registro de itens vendidos, forma de pagamento, vinculo com cliente, status da venda (pendente/pago/cancelado), controle de estoque ao vender e resumo diario. Total da venda e auto-calculado a partir dos itens.
 
 ## Non-goals
 

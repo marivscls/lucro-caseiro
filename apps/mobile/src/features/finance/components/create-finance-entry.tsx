@@ -24,6 +24,8 @@ import { CalendarModal } from "../../../shared/components/calendar-modal";
 import { useCreateFinanceEntry } from "../hooks";
 import { showToast } from "../../../shared/components/toast";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
+import { desktopAction, desktopContained } from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 
 interface CreateFinanceEntryProps {
   onClose?: () => void;
@@ -60,6 +62,7 @@ export function CreateFinanceEntry({
   onSuccess,
 }: Readonly<CreateFinanceEntryProps>) {
   const { theme, styles } = useEntryStyles();
+  const isDesktop = useDesktopLayout();
   const [type, setType] = useState<FinanceEntryType>("income");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
@@ -128,7 +131,7 @@ export function CreateFinanceEntry({
           ref={scrollRef}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={styles.content}
+          contentContainerStyle={[styles.content, desktopContained(isDesktop, 720)]}
         >
           <View style={styles.header}>
             <TouchableOpacity onPress={onClose} hitSlop={12} style={styles.backButton}>
@@ -237,6 +240,7 @@ export function CreateFinanceEntry({
               styles.submitButton,
               pressed && !createEntry.isPending && styles.pressed,
               createEntry.isPending && styles.disabled,
+              desktopAction(isDesktop, 240),
             ]}
           >
             {createEntry.isPending ? (
@@ -260,8 +264,12 @@ export function CreateFinanceEntry({
             onPress={onClose}
             style={styles.viewEntries}
           >
-            <Ionicons name="clipboard-outline" size={22} color={theme.colors.primary} />
-            <Typography variant="bodyBold" color={theme.colors.primary}>
+            <Ionicons
+              name="clipboard-outline"
+              size={22}
+              color={theme.colors.primaryStrong}
+            />
+            <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
               Ver lançamentos
             </Typography>
           </Pressable>
@@ -296,14 +304,17 @@ function TypeButton({
   onPress: () => void;
 }>) {
   const { theme, styles } = useEntryStyles();
-  const activeBg = tone === "green" ? theme.colors.success : theme.colors.primary;
-  const color = selected ? "#FFFFFF" : theme.colors.textSecondary;
+  // Selecao = fundo semantico suave + texto forte (verde = entrada, vermelho =
+  // saida); o rosa nao participa — cor semantica carrega o significado.
+  const selectedBg = tone === "green" ? theme.colors.successBg : theme.colors.alertBg;
+  const selectedFg = tone === "green" ? theme.colors.success : theme.colors.alert;
+  const color = selected ? selectedFg : theme.colors.textSecondary;
 
   return (
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
-      style={[styles.typeButton, selected && { backgroundColor: activeBg }]}
+      style={[styles.typeButton, selected && { backgroundColor: selectedBg }]}
     >
       <Ionicons name={icon} size={25} color={color} />
       <Typography variant="bodyBold" color={color}>
@@ -390,7 +401,7 @@ function createStyles(theme: Theme) {
       width: "48.2%",
     },
     categoryButtonSelected: {
-      backgroundColor: `${theme.colors.primary}26`,
+      backgroundColor: theme.colors.primaryBg,
       borderColor: theme.colors.primary,
     },
     categoryGrid: {
@@ -471,7 +482,7 @@ function createStyles(theme: Theme) {
     },
     submitButton: {
       alignItems: "center",
-      backgroundColor: theme.colors.primary,
+      backgroundColor: theme.colors.primaryInteractive,
       borderRadius: 16,
       flexDirection: "row",
       gap: 10,

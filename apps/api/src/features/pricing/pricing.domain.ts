@@ -1,25 +1,13 @@
-export function calculateTotalCost(
-  ingredientCost: number,
-  packagingCost: number,
-  laborCost: number,
-  fixedCostShare: number,
-): number {
-  return ingredientCost + packagingCost + laborCost + fixedCostShare;
-}
+import {
+  finalPriceWithFees,
+  profitPerUnit,
+  suggestedPrice,
+  totalCost,
+} from "@lucro-caseiro/contracts";
 
-export function calculateSuggestedPrice(
-  totalCost: number,
-  marginPercent: number,
-): number {
-  return totalCost * (1 + marginPercent / 100);
-}
-
-export function calculateProfitPerUnit(
-  suggestedPrice: number,
-  totalCost: number,
-): number {
-  return suggestedPrice - totalCost;
-}
+export const calculateTotalCost = totalCost;
+export const calculateSuggestedPrice = suggestedPrice;
+export const calculateProfitPerUnit = profitPerUnit;
 
 /**
  * Aplica taxas percentuais (iFood, cartão, comissão) sobre o PREÇO DE VENDA — não
@@ -34,11 +22,7 @@ export function calculatePriceWithFees(
   suggestedPrice: number,
   feesPercent: number,
 ): { finalPrice: number; feesAmount: number } {
-  if (feesPercent <= 0) {
-    return { finalPrice: suggestedPrice, feesAmount: 0 };
-  }
-  const finalPrice = suggestedPrice / (1 - feesPercent / 100);
-  return { finalPrice, feesAmount: finalPrice - suggestedPrice };
+  return finalPriceWithFees(suggestedPrice, feesPercent);
 }
 
 interface PricingInput {

@@ -44,6 +44,8 @@ export class SalesRepoPg implements ISalesRepo {
           productId: item.productId,
           quantity: String(item.quantity),
           unitPrice: String(item.unitPrice),
+          variationId: item.variationId ?? null,
+          variationName: item.variationName ?? null,
           subtotal: String(item.quantity * item.unitPrice),
         })),
       )
@@ -87,6 +89,8 @@ export class SalesRepoPg implements ISalesRepo {
           productId: item.productId,
           quantity: String(item.quantity),
           unitPrice: String(item.unitPrice),
+          variationId: item.variationId ?? null,
+          variationName: item.variationName ?? null,
           subtotal: String(item.quantity * item.unitPrice),
         })),
       );
@@ -109,6 +113,8 @@ export class SalesRepoPg implements ISalesRepo {
         productId: saleItems.productId,
         quantity: saleItems.quantity,
         unitPrice: saleItems.unitPrice,
+        variationId: saleItems.variationId,
+        variationName: saleItems.variationName,
         subtotal: saleItems.subtotal,
         productName: products.name,
         productPhotoUrl: products.photoUrl,
@@ -184,6 +190,8 @@ export class SalesRepoPg implements ISalesRepo {
         productId: string;
         quantity: string;
         unitPrice: string;
+        variationId: string | null;
+        variationName: string | null;
         subtotal: string;
         productName: string | null;
         productPhotoUrl: string | null;
@@ -198,6 +206,8 @@ export class SalesRepoPg implements ISalesRepo {
           productId: saleItems.productId,
           quantity: saleItems.quantity,
           unitPrice: saleItems.unitPrice,
+          variationId: saleItems.variationId,
+          variationName: saleItems.variationName,
           subtotal: saleItems.subtotal,
           productName: products.name,
           productPhotoUrl: products.photoUrl,
@@ -297,6 +307,8 @@ export class SalesRepoPg implements ISalesRepo {
         productName: "Produto",
         quantity: Number(item.quantity),
         unitPrice: Number(item.unitPrice),
+        ...(item.variationId ? { variationId: item.variationId } : {}),
+        ...(item.variationName ? { variationName: item.variationName } : {}),
         subtotal: Number(item.subtotal),
       })),
       soldAt: row.soldAt.toISOString(),
@@ -311,6 +323,8 @@ export class SalesRepoPg implements ISalesRepo {
       productId: string;
       quantity: string;
       unitPrice: string;
+      variationId: string | null;
+      variationName: string | null;
       subtotal: string;
       productName: string | null;
       productPhotoUrl: string | null;
@@ -333,6 +347,8 @@ export class SalesRepoPg implements ISalesRepo {
         productPhotoUrl: item.productPhotoUrl,
         quantity: Number(item.quantity),
         unitPrice: Number(item.unitPrice),
+        ...(item.variationId ? { variationId: item.variationId } : {}),
+        ...(item.variationName ? { variationName: item.variationName } : {}),
         subtotal: Number(item.subtotal),
       })),
       soldAt: row.soldAt.toISOString(),

@@ -1,7 +1,9 @@
 import { Button, Input, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import React, { useCallback, useEffect, useState } from "react";
-import { Modal, Pressable, View, type LayoutChangeEvent } from "react-native";
+import { Pressable, View, type LayoutChangeEvent } from "react-native";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
+
+import { ResponsiveOverlayModal } from "./responsive-modal-surface";
 
 const SV_HEIGHT = 190;
 const HUE_HEIGHT = 28;
@@ -117,7 +119,12 @@ export function ColorPickerModal({
   const markerTop = (1 - hsv.v) * SV_HEIGHT;
 
   return (
-    <Modal visible={visible} animationType="fade" transparent onRequestClose={onCancel}>
+    <ResponsiveOverlayModal
+      visible={visible}
+      animationType="fade"
+      transparent
+      onRequestClose={onCancel}
+    >
       <View
         style={{
           flex: 1,
@@ -129,6 +136,9 @@ export function ColorPickerModal({
         <View
           style={{
             backgroundColor: theme.colors.surfaceElevated,
+            width: "100%",
+            maxWidth: 560,
+            alignSelf: "center",
             borderRadius: radii["2xl"],
             padding: spacing.xl,
             gap: spacing.md,
@@ -274,6 +284,6 @@ export function ColorPickerModal({
           </Pressable>
         </View>
       </View>
-    </Modal>
+    </ResponsiveOverlayModal>
   );
 }

@@ -705,13 +705,16 @@ function resourceDraftIntentInstructions(
 }
 
 function statusOptions(kind: MarketingResourceKind) {
-  return kind === "content"
-    ? ["idea", "planned", "producing", "ready", "published", "archived"]
-    : ["active", "planned", "archived"];
+  if (kind === "content")
+    return ["idea", "planned", "producing", "ready", "published", "archived"];
+  if (kind === "interview")
+    return ["planned", "recruited", "completed", "declined", "archived"];
+  return ["active", "planned", "archived"];
 }
 
 function initialStatus(kind: MarketingResourceKind) {
-  return kind === "content" ? "idea" : "active";
+  if (kind === "content") return "idea";
+  return kind === "interview" ? "planned" : "active";
 }
 
 function resourceKindLabel(kind: MarketingResourceKind) {
@@ -720,6 +723,8 @@ function resourceKindLabel(kind: MarketingResourceKind) {
       return "conteúdo";
     case "audience":
       return "público";
+    case "interview":
+      return "entrevista";
     case "feature":
       return "funcionalidade";
     case "topic":

@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Gerenciar lancamentos financeiros (entradas e saidas) do negocio caseiro, com resumo mensal de receita, despesas e lucro. Oferece exportacao de relatorios em PDF e Excel.
+Gerenciar lancamentos financeiros (entradas e saidas) do negocio, com resumo mensal de receita, despesas e lucro. Oferece exportacao de relatorios em PDF e Excel.
 
 ## Non-goals
 

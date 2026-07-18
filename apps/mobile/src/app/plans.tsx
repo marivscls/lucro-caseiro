@@ -7,15 +7,18 @@ import {
   normalizePlan,
 } from "@lucro-caseiro/contracts";
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useRouter } from "expo-router";
+import { Stack } from "expo-router";
 import React from "react";
-import { Linking, Platform, Pressable, ScrollView, View } from "react-native";
+import { Linking, Platform, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { activePlan, useProfile, useLimits } from "../features/subscription/hooks";
 import { TIER_BENEFITS } from "../features/subscription/plan-benefits";
 import { showAlert } from "../shared/components/alert-store";
+import { ScreenHeader } from "../shared/components/screen-header";
 import { usePaywall } from "../shared/hooks/use-paywall";
+import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { desktopAction, desktopContained } from "../shared/layout/desktop-density";
 
 // Mesmo package do apps/mobile/app.json (expo.android.package).
 const ANDROID_PACKAGE = "br.com.orionseven.lucrocaseiro";
@@ -98,7 +101,7 @@ function annualLabel(plan: PaidPlan): string {
 
 export default function PlansScreen() {
   const { theme } = useTheme();
-  const router = useRouter();
+  const isDesktop = useDesktopLayout();
   const { data: profile } = useProfile();
   const { data: limits } = useLimits();
   const showPaywall = usePaywall((state) => state.show);
@@ -117,37 +120,18 @@ export default function PlansScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* Top bar */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.md,
-          paddingHorizontal: spacing.lg,
-          paddingTop: spacing.sm,
-          paddingBottom: spacing.sm,
-        }}
-      >
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="Voltar"
-          hitSlop={10}
-          style={{ width: 32, height: 40, justifyContent: "center" }}
-        >
-          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
-        </Pressable>
-        <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
-          Planos
-        </Typography>
-      </View>
+      {!isDesktop && <ScreenHeader title="Planos" />}
 
       <ScrollView
-        contentContainerStyle={{
-          padding: spacing.xl,
-          paddingTop: spacing.sm,
-          gap: spacing.xl,
-          paddingBottom: spacing["3xl"],
-        }}
+        contentContainerStyle={[
+          {
+            padding: spacing.xl,
+            paddingTop: spacing.sm,
+            gap: spacing.xl,
+            paddingBottom: spacing["3xl"],
+          },
+          desktopContained(isDesktop, 960),
+        ]}
       >
         {warning && (
           <Card
@@ -376,6 +360,7 @@ export default function PlansScreen() {
                   variant={highlight ? "premium" : "primary"}
                   size="lg"
                   onPress={() => showPaywall("plans", plan as PaidPlan)}
+                  style={desktopAction(isDesktop, 240)}
                 />
               )}
             </Card>
@@ -388,6 +373,7 @@ export default function PlansScreen() {
             variant="outline"
             size="lg"
             onPress={openStoreSubscriptionManagement}
+            style={desktopAction(isDesktop, 240)}
           />
         )}
       </ScrollView>

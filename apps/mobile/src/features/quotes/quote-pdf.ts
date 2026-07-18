@@ -1,7 +1,6 @@
 import type { Quote } from "@lucro-caseiro/contracts";
-import * as Print from "expo-print";
-import * as Sharing from "expo-sharing";
 
+import { exportHtmlPdf } from "../../shared/utils/export-html";
 import { playStoreUrl } from "../../shared/utils/store-link";
 
 export interface QuoteBusiness {
@@ -143,15 +142,5 @@ export async function exportQuotePdf(
   business: QuoteBusiness,
 ): Promise<void> {
   const html = buildQuoteHtml(quote, business);
-  const { uri } = await Print.printToFileAsync({ html });
-
-  if (await Sharing.isAvailableAsync()) {
-    await Sharing.shareAsync(uri, {
-      mimeType: "application/pdf",
-      dialogTitle: "Enviar orçamento",
-      UTI: "com.adobe.pdf",
-    });
-    return;
-  }
-  await Print.printAsync({ html });
+  await exportHtmlPdf(html, { dialogTitle: "Enviar orçamento" });
 }

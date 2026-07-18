@@ -10,13 +10,12 @@ import {
   spacing,
   useTheme,
 } from "@lucro-caseiro/ui";
-import { Stack, useRouter } from "expo-router";
+import { Stack } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Image,
-  Modal,
   Pressable,
   ScrollView,
   View,
@@ -42,6 +41,10 @@ import { maskPhoneBR } from "../shared/utils/phone";
 import { uploadLabelLogo } from "../shared/utils/upload-image";
 import { Ionicons } from "@expo/vector-icons";
 import { showAlert } from "../shared/components/alert-store";
+import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { ResponsiveModal } from "../shared/components/responsive-modal-surface";
+import { ScreenHeader } from "../shared/components/screen-header";
+import { desktopAction, desktopContained } from "../shared/layout/desktop-density";
 import {
   useDeleteLabel,
   useLabel,
@@ -61,6 +64,7 @@ function LabelDetailModal({
   onClose: () => void;
 }>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const { data: profile } = useProfile();
   const showPaywall = usePaywall((st) => st.show);
   const isPremium =
@@ -239,7 +243,8 @@ function LabelDetailModal({
   }
 
   return (
-    <Modal
+    <ResponsiveModal
+      desktopMaxWidth={1120}
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
@@ -255,13 +260,13 @@ function LabelDetailModal({
           }}
         >
           <Pressable onPress={onClose}>
-            <Typography variant="bodyBold" color={theme.colors.primary}>
+            <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
               Fechar
             </Typography>
           </Pressable>
           {label && !editing && (
             <Pressable onPress={() => startEditing(label)}>
-              <Typography variant="bodyBold" color={theme.colors.primary}>
+              <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
                 Editar
               </Typography>
             </Pressable>
@@ -276,11 +281,14 @@ function LabelDetailModal({
 
         {!isLoading && label && editing && (
           <KeyboardAwareScrollView
-            contentContainerStyle={{
-              padding: spacing.xl,
-              paddingBottom: spacing["3xl"],
-              gap: spacing.lg,
-            }}
+            contentContainerStyle={[
+              {
+                padding: spacing.xl,
+                paddingBottom: spacing["3xl"],
+                gap: spacing.lg,
+              },
+              desktopContained(isDesktop, 960),
+            ]}
           >
             <Typography variant="h2">Editar rótulo</Typography>
             <Input label="Nome do rótulo" value={name} onChangeText={setName} />
@@ -306,7 +314,7 @@ function LabelDetailModal({
               onChangeText={(v) => updateField("ingredients", v)}
               multiline
               numberOfLines={3}
-              style={{ height: 80, textAlignVertical: "top", paddingTop: 12 }}
+              style={{ height: 80, textAlignVertical: "top", paddingTop: spacing.md }}
             />
             <NutritionFields
               value={labelData.nutrition}
@@ -315,7 +323,7 @@ function LabelDetailModal({
             <Typography variant="h3" style={{ marginTop: spacing.xs }}>
               Datas
             </Typography>
-            <View style={{ gap: 12 }}>
+            <View style={{ gap: spacing.md }}>
               <Input
                 label="Fabricação"
                 placeholder="DD/MM/AAAA"
@@ -386,7 +394,7 @@ function LabelDetailModal({
                 </Pressable>
                 {editingLogo && (
                   <Pressable onPress={handleRemoveLogo} hitSlop={8}>
-                    <Typography variant="caption" color={theme.colors.primary}>
+                    <Typography variant="caption" color={theme.colors.alert}>
                       Remover logo
                     </Typography>
                   </Pressable>
@@ -416,17 +424,24 @@ function LabelDetailModal({
                 handleSave().catch(() => {});
               }}
               loading={updateLabel.isPending || uploading}
+              style={desktopAction(isDesktop)}
             />
             <Button
               title="Cancelar"
               variant="secondary"
               onPress={() => setEditing(false)}
+              style={desktopAction(isDesktop)}
             />
           </KeyboardAwareScrollView>
         )}
 
         {!isLoading && label && !editing && (
-          <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
+          <ScrollView
+            contentContainerStyle={[
+              { padding: spacing.xl, gap: spacing.lg },
+              desktopContained(isDesktop, 960),
+            ]}
+          >
             <Typography variant="h1">{label.name}</Typography>
             <Typography variant="caption">
               Template: {label.templateId} · Criado em{" "}
@@ -465,13 +480,13 @@ function LabelDetailModal({
           </ScrollView>
         )}
       </SafeAreaView>
-    </Modal>
+    </ResponsiveModal>
   );
 }
 
 export default function LabelsScreen() {
   const { theme } = useTheme();
-  const router = useRouter();
+  const isDesktop = useDesktopLayout();
   const insets = useSafeAreaInsets();
   const { data, isLoading, error } = useLabels();
   const [showCreate, setShowCreate] = useState(false);
@@ -505,7 +520,13 @@ export default function LabelsScreen() {
           }
           title="Nenhum rótulo ainda"
           description="Crie rótulos para seus produtos"
-          action={<Button title="Criar rótulo" onPress={() => setShowCreate(true)} />}
+          action={
+            <Button
+              title="Criar rótulo"
+              variant="outline"
+              onPress={() => setShowCreate(true)}
+            />
+          }
         />
       );
     }
@@ -545,29 +566,7 @@ export default function LabelsScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* Top bar */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.md,
-          paddingHorizontal: spacing.lg,
-          paddingTop: spacing.sm,
-          paddingBottom: spacing.sm,
-        }}
-      >
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="Voltar"
-          hitSlop={10}
-          style={{ width: 32, height: 40, justifyContent: "center" }}
-        >
-          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
-        </Pressable>
-        <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
-          Rótulos
-        </Typography>
-      </View>
+      {!isDesktop && <ScreenHeader title="Rótulos" />}
 
       <View style={{ flex: 1 }}>{renderContent()}</View>
 
@@ -583,9 +582,11 @@ export default function LabelsScreen() {
           onPress={() => setShowCreate(true)}
           accessibilityRole="button"
           style={({ pressed }) => ({
-            minHeight: 56,
+            alignSelf: isDesktop ? "flex-end" : undefined,
+            width: isDesktop ? 180 : undefined,
+            minHeight: isDesktop ? 44 : 56,
             borderRadius: radii.lg,
-            backgroundColor: theme.colors.primary,
+            backgroundColor: theme.colors.primaryInteractive,
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
@@ -593,15 +594,23 @@ export default function LabelsScreen() {
             opacity: pressed ? 0.85 : 1,
           })}
         >
-          <Ionicons name="add" size={24} color={theme.colors.textOnPrimary} />
-          <Typography variant="h3" color={theme.colors.textOnPrimary}>
+          <Ionicons
+            name="add"
+            size={isDesktop ? 20 : 24}
+            color={theme.colors.textOnPrimary}
+          />
+          <Typography
+            variant={isDesktop ? "bodyBold" : "h3"}
+            color={theme.colors.textOnPrimary}
+          >
             Novo rótulo
           </Typography>
         </Pressable>
       </View>
 
       {/* Modal - Criar rótulo */}
-      <Modal
+      <ResponsiveModal
+        desktopMaxWidth={1120}
         visible={showCreate}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -626,17 +635,13 @@ export default function LabelsScreen() {
             >
               <Ionicons name="close" size={28} color={theme.colors.text} />
             </Pressable>
-            <Typography
-              variant="h1"
-              color={theme.colors.text}
-              style={{ flex: 1, fontSize: 24 }}
-            >
+            <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
               Novo rótulo
             </Typography>
           </View>
           <CreateLabelForm onSuccess={() => setShowCreate(false)} />
         </SafeAreaView>
-      </Modal>
+      </ResponsiveModal>
 
       {/* Modal - Detalhe do rótulo */}
       {selectedId && (

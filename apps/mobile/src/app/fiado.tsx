@@ -1,5 +1,6 @@
 import type { Sale } from "@lucro-caseiro/contracts";
 import {
+  iconSizes,
   Typography,
   fonts,
   radii,
@@ -14,7 +15,6 @@ import {
   ActivityIndicator,
   Image,
   Linking,
-  Modal,
   Pressable,
   ScrollView,
   TextInput,
@@ -33,6 +33,10 @@ import { formatCurrency } from "../shared/utils/format";
 import { isValidBrazilPhone } from "../shared/utils/phone";
 import { openWhatsApp, openWhatsAppShare } from "../shared/utils/whatsapp";
 import fiadoHero from "../assets/fiado-hero.png";
+import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { desktopModalSurface } from "../shared/layout/desktop-density";
+import { ResponsiveOverlayModal } from "../shared/components/responsive-modal-surface";
+import { ScreenHeader } from "../shared/components/screen-header";
 
 type FiadoFilter = "all" | "withPhone" | "withoutPhone" | "overdue";
 
@@ -63,7 +67,7 @@ function fiadoPalette(theme: Theme) {
     amountChipBg: c.yellowBg,
     amountChipFg: c.yellow,
     sheetBg: c.surfaceElevated,
-    totalCardBg: isDark ? "rgba(63, 42, 45, 0.66)" : c.surfaceElevated,
+    totalCardBg: isDark ? "rgba(47, 42, 35, 0.72)" : c.surfaceElevated,
   };
 }
 
@@ -208,6 +212,7 @@ function FiadoGroupCard({
   onMarkAllPaid: (group: FiadoGroup) => void;
 }>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const pal = fiadoPalette(theme);
   const insets = useSafeAreaInsets();
   const [menuOpen, setMenuOpen] = React.useState(false);
@@ -244,14 +249,16 @@ function FiadoGroupCard({
             width: 50,
             height: 50,
             borderRadius: 25,
-            backgroundColor: theme.colors.primary,
+            backgroundColor: theme.colors.primaryBg,
+            borderWidth: 1,
+            borderColor: pal.cardBorder,
             alignItems: "center",
             justifyContent: "center",
           }}
         >
           <Typography
             variant="bodyBold"
-            color={theme.colors.textOnPrimary}
+            color={theme.colors.primaryStrong}
             serif
             style={{ fontSize: 18 }}
           >
@@ -344,7 +351,7 @@ function FiadoGroupCard({
         </Typography>
       </Pressable>
 
-      <Modal
+      <ResponsiveOverlayModal
         visible={menuOpen}
         transparent
         animationType="fade"
@@ -355,19 +362,23 @@ function FiadoGroupCard({
           style={{
             flex: 1,
             backgroundColor: "rgba(0, 0, 0, 0.55)",
-            justifyContent: "flex-end",
+            justifyContent: isDesktop ? "center" : "flex-end",
+            padding: isDesktop ? spacing.xl : 0,
           }}
         >
           <Pressable
-            style={{
-              backgroundColor: pal.sheetBg,
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-              paddingHorizontal: spacing.md,
-              paddingTop: spacing.sm,
-              paddingBottom: spacing.lg + insets.bottom,
-              gap: spacing.xs,
-            }}
+            style={[
+              {
+                backgroundColor: pal.sheetBg,
+                borderTopLeftRadius: 24,
+                borderTopRightRadius: 24,
+                paddingHorizontal: spacing.md,
+                paddingTop: spacing.sm,
+                paddingBottom: isDesktop ? spacing.lg : spacing.lg + insets.bottom,
+                gap: spacing.xs,
+              },
+              desktopModalSurface(isDesktop, 560),
+            ]}
           >
             <View style={{ alignItems: "center", paddingVertical: spacing.sm }}>
               <View
@@ -417,7 +428,7 @@ function FiadoGroupCard({
             />
           </Pressable>
         </Pressable>
-      </Modal>
+      </ResponsiveOverlayModal>
     </View>
   );
 }
@@ -432,7 +443,7 @@ function TotalCard({ total }: Readonly<{ total: number }>) {
         minHeight: 118,
         borderRadius: 20,
         borderWidth: 1,
-        borderColor: `${theme.colors.primary}52`,
+        borderColor: pal.cardBorder,
         backgroundColor: pal.totalCardBg,
         overflow: "hidden",
         padding: spacing.lg,
@@ -457,7 +468,7 @@ function TotalCard({ total }: Readonly<{ total: number }>) {
       </Typography>
       <Typography
         variant="moneyHero"
-        color={theme.colors.primary}
+        color={pal.text}
         serif
         style={{ fontSize: 38, lineHeight: 48 }}
       >
@@ -469,6 +480,7 @@ function TotalCard({ total }: Readonly<{ total: number }>) {
 
 export default function FiadoScreen() {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const pal = fiadoPalette(theme);
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -691,7 +703,7 @@ export default function FiadoScreen() {
               style={({ pressed }) => ({
                 minHeight: 48,
                 borderRadius: radii.md,
-                backgroundColor: theme.colors.primary,
+                backgroundColor: theme.colors.primaryInteractive,
                 alignItems: "center",
                 justifyContent: "center",
                 opacity: pressed ? 0.86 : 1,
@@ -736,9 +748,9 @@ export default function FiadoScreen() {
             flexDirection: "row",
             alignItems: "center",
             gap: spacing.md,
-            backgroundColor: "rgba(196, 112, 126, 0.16)",
+            backgroundColor: pal.cardBg,
             borderWidth: 1,
-            borderColor: "rgba(196, 112, 126, 0.35)",
+            borderColor: pal.cardBorder,
           }}
         >
           <View
@@ -746,7 +758,7 @@ export default function FiadoScreen() {
               width: 40,
               height: 40,
               borderRadius: radii.full,
-              backgroundColor: "rgba(196, 112, 126, 0.2)",
+              backgroundColor: pal.subtleFill,
               alignItems: "center",
               justifyContent: "center",
             }}
@@ -754,7 +766,7 @@ export default function FiadoScreen() {
             <Ionicons
               name="information-circle-outline"
               size={22}
-              color={theme.colors.primaryLight}
+              color={pal.textSecondary}
             />
           </View>
           <View style={{ flex: 1 }}>
@@ -774,76 +786,58 @@ export default function FiadoScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: pal.screenBg }}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      <View
-        style={{
-          paddingHorizontal: spacing.lg,
-          paddingTop: spacing.sm,
-          paddingBottom: spacing.sm,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.md,
-        }}
-      >
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="Voltar"
-          hitSlop={10}
-          style={{
-            width: 36,
-            height: 40,
-            alignItems: "flex-start",
-            justifyContent: "center",
-          }}
-        >
-          <Ionicons name="arrow-back" size={29} color={pal.text} />
-        </Pressable>
-        <Typography variant="h1" color={pal.text} style={{ flex: 1 }}>
-          Fiado
-        </Typography>
-        <Pressable
-          onPress={() => {
-            setSearchOpen((current) => !current);
-            setFilterOpen(false);
-          }}
-          accessibilityRole="button"
-          accessibilityLabel="Buscar"
-          style={{
-            width: 46,
-            height: 46,
-            borderRadius: 23,
-            backgroundColor: pal.subtleFill,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Ionicons name="search-outline" size={25} color={pal.text} />
-        </Pressable>
-        <Pressable
-          onPress={() => {
-            setFilterOpen((current) => !current);
-            setSearchOpen(false);
-          }}
-          accessibilityRole="button"
-          accessibilityLabel="Filtros"
-          hitSlop={10}
-          style={{
-            width: 42,
-            height: 42,
-            borderRadius: 21,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor:
-              activeFilter !== "all" ? "rgba(196, 112, 126, 0.2)" : "transparent",
-          }}
-        >
-          <Ionicons
-            name="options-outline"
-            size={27}
-            color={activeFilter !== "all" ? theme.colors.primaryLight : pal.textSecondary}
-          />
-        </Pressable>
-      </View>
+      <ScreenHeader
+        title="Fiado"
+        hideBack={isDesktop}
+        right={
+          <>
+            <Pressable
+              onPress={() => {
+                setSearchOpen((current) => !current);
+                setFilterOpen(false);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Buscar"
+              style={{
+                width: 46,
+                height: 46,
+                borderRadius: radii.full,
+                backgroundColor: pal.subtleFill,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Ionicons name="search-outline" size={iconSizes.md} color={pal.text} />
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setFilterOpen((current) => !current);
+                setSearchOpen(false);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Filtros"
+              hitSlop={10}
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: radii.full,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor:
+                  activeFilter !== "all" ? theme.colors.primaryBg : "transparent",
+              }}
+            >
+              <Ionicons
+                name="options-outline"
+                size={iconSizes.md}
+                color={
+                  activeFilter !== "all" ? theme.colors.primaryStrong : pal.textSecondary
+                }
+              />
+            </Pressable>
+          </>
+        }
+      />
 
       {searchOpen ? (
         <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.sm }}>
@@ -915,7 +909,7 @@ export default function FiadoScreen() {
                   paddingHorizontal: spacing.md,
                   alignItems: "center",
                   justifyContent: "center",
-                  backgroundColor: selected ? theme.colors.primary : idleBg,
+                  backgroundColor: selected ? theme.colors.primaryBg : idleBg,
                   borderWidth: 1,
                   borderColor: selected ? theme.colors.primary : idleBorder,
                   opacity: pressed ? 0.82 : 1,
@@ -923,7 +917,7 @@ export default function FiadoScreen() {
               >
                 <Typography
                   variant="caption"
-                  color={selected ? theme.colors.textOnPrimary : pal.text}
+                  color={selected ? theme.colors.primaryStrong : pal.text}
                   style={{ fontFamily: fonts.bold }}
                 >
                   {option.label}
@@ -996,21 +990,21 @@ export default function FiadoScreen() {
               style={({ pressed }) => ({
                 width: 66,
                 height: 66,
-                borderRadius: 33,
-                backgroundColor: theme.colors.primary,
+                borderRadius: radii.full,
+                backgroundColor: theme.colors.primaryInteractive,
                 alignItems: "center",
                 justifyContent: "center",
                 opacity: pressed ? 0.86 : 1,
-                shadowColor: theme.colors.primary,
-                shadowOffset: { width: 0, height: 8 },
-                shadowOpacity: 0.35,
-                shadowRadius: 18,
-                elevation: 8,
+                ...theme.shadows.md,
               })}
             >
-              <Ionicons name="add" size={36} color={theme.colors.textOnPrimary} />
+              <Ionicons
+                name="add"
+                size={iconSizes.lg}
+                color={theme.colors.textOnPrimary}
+              />
             </Pressable>
-            <Typography variant="caption" color={pal.text} style={{ fontSize: 12 }}>
+            <Typography variant="caption" color={pal.text}>
               Novo lançamento
             </Typography>
           </View>

@@ -87,4 +87,7 @@ Uma instalação anônima abre o app, recebe UUID local e chama `/open`; após l
 - 2026-07-13: coleta mínima própria, sem SDK externo e sem fila dedicada; falhas tentam novamente
   em uma abertura futura.
 - 2026-07-13: painel administrativo protegido por allowlist do backend, sem dependência de gráficos.
-- 2026-07-14: instrumentação própria cobre telas, dez ações, funil, versões e retenção comportamental.
+- 2026-07-14: instrumentação própria cobre telas, ações, funil, versões e retenção comportamental.
+- 2026-07-18: o funil passou a registrar início de precificação, produto criado pelo CTA do
+  resultado, publicação do catálogo, limite atingido e intenção de recurso pago. Conclusão e
+  cancelamento de assinatura ficam no backend para refletir a transição real do plano.

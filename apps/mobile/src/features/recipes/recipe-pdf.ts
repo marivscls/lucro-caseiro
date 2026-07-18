@@ -1,5 +1,6 @@
 import type { Recipe } from "@lucro-caseiro/contracts";
 
+import { exportHtmlPdf } from "../../shared/utils/export-html";
 import { formatCurrency } from "../../shared/utils/format";
 import { playStoreUrl } from "../../shared/utils/store-link";
 
@@ -121,21 +122,5 @@ export function buildRecipeHtml(recipe: Recipe): string {
  */
 export async function exportRecipePdf(recipe: Recipe): Promise<void> {
   const html = buildRecipeHtml(recipe);
-  const [Print, Sharing] = await Promise.all([
-    import("expo-print"),
-    import("expo-sharing"),
-  ]);
-  const { uri } = await Print.printToFileAsync({ html });
-
-  if (await Sharing.isAvailableAsync()) {
-    await Sharing.shareAsync(uri, {
-      mimeType: "application/pdf",
-      dialogTitle: "Imprimir ou compartilhar receita",
-      UTI: "com.adobe.pdf",
-    });
-    return;
-  }
-
-  // Fallback: abre o diálogo de impressão nativo (inclui "Salvar como PDF").
-  await Print.printAsync({ html });
+  await exportHtmlPdf(html, { dialogTitle: "Imprimir ou compartilhar receita" });
 }

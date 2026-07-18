@@ -3,14 +3,14 @@ id: ec389601-e7c7-48c6-a80b-4c1475a9b5af
 slug: specs
 type: doc
 title: PRD — Analytics comportamental e funis de produto
-tags: prd, analytics, eventos, funil, retencao, versao, privacidade
+tags: prd, analytics, eventos, funil, retencao, versao, privacidade, ativacao
 provenance: observado
-evidence: .aerofortress/specs/prd-analytics-comportamental.md
+evidence: .aerofortress/specs/prd-analytics-comportamental.md; packages/contracts/src/schemas/analytics.ts; apps/api/src/features/analytics/analytics.report-query.ts; packages/database/src/migrations/037_activation_funnel_events.sql
 decay: seasonal
 created: 2026-07-14T03:16:38.620388+00:00
-updated: 2026-07-14T03:34:42.816287600+00:00
-validated: 2026-07-14T03:34:42.816287600+00:00
+updated: 2026-07-18T17:57:19.798182100+00:00
+validated: 2026-07-18T17:57:19.798182100+00:00
 links:
 ---
 
-Implementado em 2026-07-14. A fase 2 mede visitas e tempo ativo de todas as telas, dez ações canônicas, funil instalação→cadastro→precificação→produto→venda, adoção por versão e retenção D7 por precificação/compartilhamento de catálogo. O painel administrativo possui quatro seções, os endpoints usam allowlists estritas sem conteúdo pessoal e a persistência depende da migration `035_analytics_behavior_events.sql`.
+Implementado e ampliado em 2026-07-18. O analytics mede telas, ações canônicas, funil temporal, adoção por versão e retenção; os marcos novos cobrem início de precificação, produto criado pelo resultado, publicação do catálogo, limite de plano, intenção de recurso pago e ciclo real de assinatura. O painel conta negócio ativado somente depois da sequência precificação→produto→catálogo/venda; os endpoints usam allowlists estritas sem conteúdo pessoal e a persistência depende das migrations 035 e 037.

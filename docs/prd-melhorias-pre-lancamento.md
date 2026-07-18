@@ -2,6 +2,8 @@
 
 **Status:** aprovado pela dona do produto em 2026-07-11 · **Origem:** auditoria completa de produto/monetização/growth/design (4 frentes)
 
+> **Posicionamento atualizado em 2026-07-16:** o público abaixo registra o recorte de aquisição do pré-lançamento, não o limite do produto. O Lucro Caseiro atende de profissionais autônomos a negócios estruturados e em crescimento; segmentos caseiros são exemplos de entrada.
+
 ## Contexto
 
 O Lucro Caseiro está às vésperas do lançamento nas lojas (billing 3 tiers no ar, build de produção gerada). A auditoria concluiu que o produto (17 features verticais) está mais maduro que a máquina de conversão e aquisição. Este PRD consolida as correções aprovadas.

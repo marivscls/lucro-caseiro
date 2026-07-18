@@ -3,6 +3,8 @@ import { Button, Input, Typography } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
 
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
+import { desktopAction, desktopContained } from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
 import { usePaywall } from "../../../shared/hooks/use-paywall";
 import { showAlert } from "../../../shared/components/alert-store";
@@ -19,6 +21,7 @@ interface CreateSupplierFormProps {
 }
 
 export function CreateSupplierForm({ onSuccess }: Readonly<CreateSupplierFormProps>) {
+  const isDesktop = useDesktopLayout();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -99,7 +102,10 @@ export function CreateSupplierForm({ onSuccess }: Readonly<CreateSupplierFormPro
 
   return (
     <KeyboardAwareScrollView
-      contentContainerStyle={{ padding: 20, paddingBottom: 80, gap: 16 }}
+      contentContainerStyle={[
+        { padding: 20, paddingBottom: 80, gap: 16 },
+        desktopContained(isDesktop, 720),
+      ]}
     >
       <Typography variant="h2">Novo fornecedor</Typography>
 
@@ -152,6 +158,7 @@ export function CreateSupplierForm({ onSuccess }: Readonly<CreateSupplierFormPro
           void handleSubmit();
         }}
         loading={createSupplier.isPending}
+        style={desktopAction(isDesktop)}
       />
     </KeyboardAwareScrollView>
   );

@@ -1,4 +1,9 @@
-import type { Product, ProductComponentInput, SaleUnit } from "@lucro-caseiro/contracts";
+import type {
+  Product,
+  ProductComponentInput,
+  ProductVariationInput,
+  SaleUnit,
+} from "@lucro-caseiro/contracts";
 
 /** Dados minimos de um candidato a componente (para validar pertencimento/tipo). */
 export interface ComponentCandidate {
@@ -54,6 +59,7 @@ export interface CreateProductData {
   stockAlertThreshold?: number;
   isComposite?: boolean;
   components?: ProductComponentInput[];
+  variations?: ProductVariationInput[];
 }
 
 export interface FindAllOpts {

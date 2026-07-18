@@ -1,12 +1,7 @@
-import * as SecureStore from "expo-secure-store";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-const secureStoreStorage = {
-  getItem: (key: string) => SecureStore.getItemAsync(key),
-  setItem: (key: string, value: string) => SecureStore.setItemAsync(key, value),
-  removeItem: (key: string) => SecureStore.deleteItemAsync(key),
-};
+import { asyncStorage } from "../utils/async-storage";
 
 interface OnboardingState {
   completed: boolean;
@@ -62,7 +57,7 @@ export const useOnboarding = create<OnboardingState>()(
     }),
     {
       name: "onboarding-state",
-      storage: createJSONStorage(() => secureStoreStorage),
+      storage: createJSONStorage(() => asyncStorage),
     },
   ),
 );

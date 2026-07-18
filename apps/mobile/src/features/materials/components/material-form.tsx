@@ -2,11 +2,18 @@ import type { Material } from "@lucro-caseiro/contracts";
 import { Typography, useTheme, spacing, radii, fonts } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { ActivityIndicator, Modal, Pressable, TextInput, View } from "react-native";
+import { ActivityIndicator, Pressable, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { showAlert } from "../../../shared/components/alert-store";
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
+import {
+  desktopAction,
+  desktopContained,
+  desktopModalSurface,
+} from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
 import {
   FieldLabel,
   TextFieldCard,
@@ -120,6 +127,7 @@ function ContentUnitField({
   onChange,
 }: Readonly<{ value: string; onChange: (v: string) => void }>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const pal = useFieldPalette();
   const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
@@ -152,7 +160,7 @@ function ContentUnitField({
         <Ionicons name="chevron-down" size={20} color={theme.colors.textSecondary} />
       </Pressable>
 
-      <Modal
+      <ResponsiveOverlayModal
         visible={open}
         transparent
         animationType="slide"
@@ -163,19 +171,23 @@ function ContentUnitField({
           style={{
             flex: 1,
             backgroundColor: "rgba(0,0,0,0.55)",
-            justifyContent: "flex-end",
+            justifyContent: isDesktop ? "center" : "flex-end",
+            padding: isDesktop ? spacing.xl : 0,
           }}
         >
           <Pressable
-            style={{
-              backgroundColor: pal.sheetBg,
-              borderTopLeftRadius: radii["2xl"],
-              borderTopRightRadius: radii["2xl"],
-              paddingHorizontal: spacing.lg,
-              paddingTop: spacing.md,
-              paddingBottom: spacing.lg + insets.bottom,
-              gap: spacing.sm,
-            }}
+            style={[
+              {
+                backgroundColor: pal.sheetBg,
+                borderTopLeftRadius: radii["2xl"],
+                borderTopRightRadius: radii["2xl"],
+                paddingHorizontal: spacing.lg,
+                paddingTop: spacing.md,
+                paddingBottom: isDesktop ? spacing.lg : spacing.lg + insets.bottom,
+                gap: spacing.sm,
+              },
+              desktopModalSurface(isDesktop, 520),
+            ]}
           >
             <Typography variant="h3" color={theme.colors.text} style={{ fontSize: 18 }}>
               Unidade do conteúdo
@@ -205,7 +217,7 @@ function ContentUnitField({
             ))}
           </Pressable>
         </Pressable>
-      </Modal>
+      </ResponsiveOverlayModal>
     </>
   );
 }
@@ -266,6 +278,7 @@ export function MaterialForm({
   onSuccess,
 }: MaterialFormProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const pal = useFieldPalette();
   const [name, setName] = useState(material?.name ?? "");
   const [unit, setUnit] = useState(material?.unit ?? "kg");
@@ -406,11 +419,14 @@ export function MaterialForm({
 
   return (
     <KeyboardAwareScrollView
-      contentContainerStyle={{
-        padding: spacing.xl,
-        paddingBottom: spacing["5xl"],
-        gap: spacing.xl,
-      }}
+      contentContainerStyle={[
+        {
+          padding: spacing.xl,
+          paddingBottom: spacing["5xl"],
+          gap: spacing.xl,
+        },
+        desktopContained(isDesktop, 960),
+      ]}
     >
       {isEditing ? (
         <SummaryCard name={name} unit={unit} cost={cost} icon={icon} />
@@ -659,16 +675,19 @@ export function MaterialForm({
         }}
         disabled={saving}
         accessibilityRole="button"
-        style={({ pressed }) => ({
-          minHeight: 58,
-          borderRadius: radii.lg,
-          backgroundColor: theme.colors.primary,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: spacing.sm,
-          opacity: pressed || saving ? 0.85 : 1,
-        })}
+        style={({ pressed }) => [
+          {
+            minHeight: 58,
+            borderRadius: radii.lg,
+            backgroundColor: theme.colors.primary,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: spacing.sm,
+            opacity: pressed || saving ? 0.85 : 1,
+          },
+          desktopAction(isDesktop),
+        ]}
       >
         {saving ? (
           <ActivityIndicator color={theme.colors.textOnPrimary} />
@@ -692,13 +711,16 @@ export function MaterialForm({
         <Pressable
           onPress={handleDelete}
           accessibilityRole="button"
-          style={({ pressed }) => ({
-            minHeight: 50,
-            borderRadius: radii.lg,
-            alignItems: "center",
-            justifyContent: "center",
-            opacity: pressed ? 0.7 : 1,
-          })}
+          style={({ pressed }) => [
+            {
+              minHeight: 50,
+              borderRadius: radii.lg,
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: pressed ? 0.7 : 1,
+            },
+            desktopAction(isDesktop),
+          ]}
         >
           <Typography variant="bodyBold" color={theme.colors.alert}>
             Excluir insumo

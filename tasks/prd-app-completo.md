@@ -1,5 +1,7 @@
 # PRD: Lucro Caseiro — Funcionalidades Restantes (Completo)
 
+> **Posicionamento atualizado em 2026-07-16:** a descrição original abaixo é histórica e não limita o produto. O Lucro Caseiro atende de profissionais autônomos a negócios estruturados e em crescimento.
+
 ## Introducao
 
 Este PRD cobre **todas** as funcionalidades que faltam para o Lucro Caseiro atingir a versao 1.0 completa. O app e uma ferramenta de gestao para negocios caseiros (confeitaria, manicure, artesanato, marmitas) voltada para pessoas de todas as idades, incluindo idosos e jovens sem experiencia tech.

@@ -12,7 +12,7 @@ import {
 } from "@lucro-caseiro/ui";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { ActivityIndicator, Image, Pressable, ScrollView, View } from "react-native";
+import { ActivityIndicator, Image, ScrollView, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import insightsEmpty from "../assets/insights-empty.png";
@@ -22,6 +22,8 @@ import { formatMoney, monthOverMonthDelta } from "../features/insights/domain";
 import { useInsights } from "../features/insights/hooks";
 import { useProfile } from "../features/subscription/hooks";
 import { usePaywall } from "../shared/hooks/use-paywall";
+import { ScreenHeader } from "../shared/components/screen-header";
+import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 
 function StatCard({
   label,
@@ -220,8 +222,8 @@ function InsightsContent({
           label="VENDAS"
           value={String(data.totalSales)}
           icon="receipt-outline"
-          tint={`${theme.colors.primary}26`}
-          iconColor={theme.colors.primary}
+          tint={theme.colors.surface}
+          iconColor={theme.colors.textSecondary}
         />
       </View>
       <StatCard
@@ -240,8 +242,8 @@ function InsightsContent({
               <SectionTitle
                 icon="flame-outline"
                 title="Mais vendidos"
-                tint={`${theme.colors.primary}26`}
-                iconColor={theme.colors.primary}
+                tint={theme.colors.surface}
+                iconColor={theme.colors.textSecondary}
               />
               <RankBars rows={productRows} color={theme.colors.primary} />
             </Card>
@@ -252,10 +254,10 @@ function InsightsContent({
               <SectionTitle
                 icon="trophy-outline"
                 title="Melhores clientes"
-                tint={theme.colors.premiumBg}
-                iconColor={theme.colors.premium}
+                tint={theme.colors.surface}
+                iconColor={theme.colors.textSecondary}
               />
-              <RankBars rows={clientRows} color={theme.colors.premium} />
+              <RankBars rows={clientRows} color={theme.colors.success} />
             </Card>
           )}
         </>
@@ -268,6 +270,7 @@ function InsightsContent({
 
 export default function InsightsScreen() {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [months, setMonths] = useState<number>(12);
@@ -285,33 +288,7 @@ export default function InsightsScreen() {
     >
       <Stack.Screen options={{ headerShown: false }} />
 
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.md,
-          paddingHorizontal: spacing.lg,
-          paddingTop: spacing.sm,
-          paddingBottom: spacing.sm,
-        }}
-      >
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="Voltar"
-          hitSlop={10}
-          style={{ width: 32, height: 40, justifyContent: "center" }}
-        >
-          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
-        </Pressable>
-        <Typography
-          variant="h1"
-          color={theme.colors.text}
-          style={{ flex: 1, letterSpacing: 0 }}
-        >
-          Insights
-        </Typography>
-      </View>
+      {!isDesktop && <ScreenHeader title="Insights" />}
 
       {loadingProfile || isLoading ? (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>

@@ -39,7 +39,9 @@ export function Input({
           flexDirection: "row",
           alignItems: "center",
           backgroundColor: theme.colors.surfaceElevated,
-          borderRadius: radii.md,
+          borderRadius: radii.lg,
+          borderWidth: 1,
+          borderColor: theme.colors.border,
           paddingHorizontal: spacing.lg,
           gap: spacing.sm,
         }}
@@ -50,7 +52,8 @@ export function Input({
           style={[
             {
               flex: 1,
-              height: 52,
+              // Altura canonica de campo (56) — mesma do TextFieldCard.
+              height: 56,
               fontSize: fontSizes.md,
               fontFamily: fonts.regular,
               color: theme.colors.text,

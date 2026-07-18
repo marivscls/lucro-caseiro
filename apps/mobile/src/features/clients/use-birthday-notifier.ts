@@ -1,5 +1,6 @@
 import * as Notifications from "expo-notifications";
 import { useEffect } from "react";
+import { Platform } from "react-native";
 
 import { NOTIFICATION_TYPES } from "../../shared/hooks/notification-types";
 import { useNotificationEnabled } from "../../shared/hooks/notification-prefs";
@@ -62,7 +63,7 @@ export function useBirthdayNotifier(isPremium: boolean): void {
   const { data } = useClients();
 
   useEffect(() => {
-    if (!isPremium || !enabled || !data) return;
+    if (Platform.OS === "web" || !isPremium || !enabled || !data) return;
     const today = new Date();
     const names = data.items
       .filter((c) => isBirthdayToday(c.birthday, today))

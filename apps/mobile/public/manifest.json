@@ -1,0 +1,52 @@
+{
+  "id": "/",
+  "name": "Lucro Caseiro: Gestão",
+  "short_name": "Lucro Caseiro",
+  "description": "Precifique, venda e organize o seu negócio em um só lugar.",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FFFAF8",
+  "theme_color": "#C4707E",
+  "categories": ["business", "finance", "productivity"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nova venda",
+      "short_name": "Vender",
+      "description": "Registre uma nova venda",
+      "url": "/tabs/new-sale",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Precificar produto",
+      "short_name": "Precificar",
+      "description": "Calcule o preço ideal de venda",
+      "url": "/pricing",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Ver agenda",
+      "short_name": "Agenda",
+      "description": "Confira pedidos e entregas",
+      "url": "/tabs/agenda",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

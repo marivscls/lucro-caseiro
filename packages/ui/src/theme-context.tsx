@@ -1,6 +1,11 @@
+import {
+  getActiveBrand,
+  type BrandConfig,
+  type BrandFeatures,
+} from "@lucro-caseiro/brands";
 import React, { createContext, useContext, useState, type ReactNode } from "react";
 
-import { darkTheme, lightTheme, type Theme, type ThemeMode } from "./theme";
+import { buildThemes, darkTheme, type Theme, type ThemeMode } from "./theme";
 
 interface ThemeContextValue {
   theme: Theme;
@@ -20,14 +25,16 @@ export function ThemeProvider({
   children,
   initialMode = "dark",
   onModeChange,
+  brand,
 }: {
   children: ReactNode;
   initialMode?: ThemeMode;
-  /** Notifica cada troca de tema — use para persistir a escolha. */
   onModeChange?: (mode: ThemeMode) => void;
+  brand?: BrandConfig;
 }) {
   const [mode, setModeState] = useState<ThemeMode>(initialMode);
-  const theme = mode === "dark" ? darkTheme : lightTheme;
+  const themes = buildThemes(brand?.theme);
+  const theme = mode === "dark" ? themes.dark : themes.light;
 
   const setMode = (next: ThemeMode) => {
     setModeState(next);
@@ -44,4 +51,28 @@ export function ThemeProvider({
 
 export function useTheme() {
   return useContext(ThemeContext);
+}
+
+const BrandContext = createContext<BrandConfig>(getActiveBrand());
+
+export function BrandProvider({
+  children,
+  brand,
+}: {
+  children: ReactNode;
+  brand?: BrandConfig;
+}) {
+  return (
+    <BrandContext.Provider value={brand ?? getActiveBrand()}>
+      {children}
+    </BrandContext.Provider>
+  );
+}
+
+export function useBrand() {
+  return useContext(BrandContext);
+}
+
+export function useFeature(flag: keyof BrandFeatures) {
+  return useBrand().features[flag] ?? false;
 }

@@ -1,5 +1,9 @@
-import type { PlanType, UserProfile } from "@lucro-caseiro/contracts";
-import { describe, expect, it } from "vitest";
+import type {
+  AnalyticsActionName,
+  PlanType,
+  UserProfile,
+} from "@lucro-caseiro/contracts";
+import { describe, expect, it, vi } from "vitest";
 
 import { NotFoundError } from "../../shared/errors";
 import { SubscriptionUseCases } from "./subscription.usecases";
@@ -70,9 +74,13 @@ function makeStatusProvider(
 function makeSut(
   repoOverrides: Partial<ISubscriptionRepo> = {},
   statusProvider?: ISubscriptionStatusProvider,
+  recordLifecycleEvent?: (userId: string, action: AnalyticsActionName) => Promise<void>,
 ) {
   const repo = makeRepo(repoOverrides);
-  return { sut: new SubscriptionUseCases(repo, statusProvider), repo };
+  return {
+    sut: new SubscriptionUseCases(repo, statusProvider, recordLifecycleEvent),
+    repo,
+  };
 }
 
 describe("SubscriptionUseCases", () => {
@@ -201,6 +209,18 @@ describe("SubscriptionUseCases", () => {
       expect(result.plan).toBe("professional");
     });
 
+    it("records completion only when a free account becomes paid", async () => {
+      const recordLifecycleEvent = vi.fn(() => Promise.resolve());
+      const { sut } = makeSut({}, undefined, recordLifecycleEvent);
+
+      await sut.activatePlan(USER_ID, "essential", null);
+
+      expect(recordLifecycleEvent).toHaveBeenCalledWith(
+        USER_ID,
+        "subscription_completed",
+      );
+    });
+
     it("throws NotFoundError when profile not found", async () => {
       const { sut } = makeSut({ updatePlan: () => Promise.resolve(null) });
       await expect(sut.activatePlan(USER_ID, "professional", null)).rejects.toThrow(
@@ -211,9 +231,18 @@ describe("SubscriptionUseCases", () => {
 
   describe("deactivatePlan", () => {
     it("deactivates to free plan", async () => {
-      const { sut } = makeSut();
+      const recordLifecycleEvent = vi.fn(() => Promise.resolve());
+      const { sut } = makeSut(
+        { getProfile: () => Promise.resolve(makeProfile({ plan: "essential" })) },
+        undefined,
+        recordLifecycleEvent,
+      );
       const result = await sut.deactivatePlan(USER_ID);
       expect(result.plan).toBe("free");
+      expect(recordLifecycleEvent).toHaveBeenCalledWith(
+        USER_ID,
+        "subscription_cancelled",
+      );
     });
 
     it("throws NotFoundError when profile not found", async () => {

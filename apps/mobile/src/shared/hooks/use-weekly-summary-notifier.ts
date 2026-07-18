@@ -1,5 +1,6 @@
 import * as Notifications from "expo-notifications";
 import { useEffect } from "react";
+import { Platform } from "react-native";
 
 import { NOTIFICATION_TYPES } from "./notification-types";
 import { useNotificationEnabled } from "./notification-prefs";
@@ -38,6 +39,7 @@ export function useWeeklySummaryNotifier(isPremium: boolean): void {
   const active = isPremium && enabled;
 
   useEffect(() => {
+    if (Platform.OS === "web") return;
     void sync(active);
   }, [active]);
 }

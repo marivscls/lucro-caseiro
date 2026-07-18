@@ -14,6 +14,9 @@ import { ActivityIndicator, ScrollView, View } from "react-native";
 import { openWhatsApp, waMessages } from "../../../shared/utils/whatsapp";
 import { useSales } from "../../sales/hooks";
 import { useClient } from "../hooks";
+import { avatarPastel } from "./avatar-colors";
+import { desktopContained } from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 
 interface ClientDetailProps {
   clientId: string;
@@ -69,6 +72,7 @@ function InfoRow({
 
 export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailProps>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const { data: client, isLoading, error } = useClient(clientId);
   const { data: salesData } = useSales({ clientId });
 
@@ -91,14 +95,18 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
   }
 
   const initial = client.name.charAt(0).toUpperCase();
+  const pastel = avatarPastel(client.name, theme.mode);
 
   return (
     <ScrollView
-      contentContainerStyle={{
-        paddingHorizontal: spacing.xl,
-        paddingBottom: spacing["3xl"],
-        gap: spacing.xl,
-      }}
+      contentContainerStyle={[
+        {
+          paddingHorizontal: spacing.xl,
+          paddingBottom: spacing["3xl"],
+          gap: spacing.xl,
+        },
+        desktopContained(isDesktop, 960),
+      ]}
     >
       {/* Avatar and name header */}
       <View style={{ alignItems: "center", gap: spacing.md, paddingTop: spacing.lg }}>
@@ -107,12 +115,14 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
             width: 80,
             height: 80,
             borderRadius: radii.full,
-            backgroundColor: theme.colors.primaryLight,
+            backgroundColor: pastel.bg,
+            borderWidth: 1,
+            borderColor: pastel.bg,
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <Typography variant="display" color={theme.colors.textOnPrimary}>
+          <Typography variant="display" color={pastel.fg}>
             {initial}
           </Typography>
         </View>
@@ -194,7 +204,7 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
             }}
           >
             <Typography variant="body">{client.phone}</Typography>
-            <Typography variant="caption" color={theme.colors.primary}>
+            <Typography variant="caption" color={theme.colors.textSecondary}>
               WhatsApp
             </Typography>
           </View>

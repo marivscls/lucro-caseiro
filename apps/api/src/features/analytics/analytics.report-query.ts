@@ -1,20 +1,31 @@
 export const ANALYTICS_DASHBOARD_QUERY = `
-  WITH activation_events AS (
-    SELECT user_id, created_at AS activated_at
-    FROM pricing_calculations
-    UNION ALL
-    SELECT user_id, created_at AS activated_at
-    FROM sales
-    WHERE status != 'cancelled'
-    UNION ALL
-    SELECT user_id, created_at AS activated_at
-    FROM orders
-    WHERE status != 'cancelled'
+  WITH first_pricing AS (
+    SELECT user_id, MIN(occurred_at) AS pricing_at
+    FROM analytics_events
+    WHERE user_id IS NOT NULL
+      AND event_type = 'action'
+      AND event_name = 'pricing_completed'
+    GROUP BY user_id
+  ),
+  first_priced_product AS (
+    SELECT pricing.user_id, MIN(event.occurred_at) AS product_at
+    FROM first_pricing pricing
+    JOIN analytics_events event
+      ON event.user_id = pricing.user_id
+      AND event.event_type = 'action'
+      AND event.event_name = 'product_created_from_pricing'
+      AND event.occurred_at >= pricing.pricing_at
+    GROUP BY pricing.user_id
   ),
   first_activation AS (
-    SELECT user_id, MIN(activated_at) AS activated_at
-    FROM activation_events
-    GROUP BY user_id
+    SELECT product.user_id, MIN(event.occurred_at) AS activated_at
+    FROM first_priced_product product
+    JOIN analytics_events event
+      ON event.user_id = product.user_id
+      AND event.event_type = 'action'
+      AND event.event_name IN ('catalog_published', 'sale_completed')
+      AND event.occurred_at >= product.product_at
+    GROUP BY product.user_id
   ),
   retention AS (
     SELECT
@@ -99,15 +110,22 @@ export const ANALYTICS_DASHBOARD_QUERY = `
   action_names(action) AS (
     VALUES
       ('signup_completed'),
+      ('pricing_started'),
       ('pricing_completed'),
       ('product_created'),
+      ('product_created_from_pricing'),
       ('sale_completed'),
       ('order_created'),
+      ('catalog_published'),
       ('catalog_shared'),
       ('quote_created'),
       ('quote_pdf_exported'),
       ('finance_entry_created'),
-      ('subscription_started')
+      ('plan_limit_reached'),
+      ('paid_feature_requested'),
+      ('subscription_started'),
+      ('subscription_completed'),
+      ('subscription_cancelled')
   ),
   action_counts AS (
     SELECT
@@ -134,8 +152,10 @@ export const ANALYTICS_DASHBOARD_QUERY = `
       installation.first_opened_at,
       MIN(event.occurred_at) FILTER (WHERE event.event_name = 'signup_completed') AS signup_at,
       MIN(event.occurred_at) FILTER (WHERE event.event_name = 'pricing_completed') AS pricing_at,
-      MIN(event.occurred_at) FILTER (WHERE event.event_name = 'product_created') AS product_at,
-      MIN(event.occurred_at) FILTER (WHERE event.event_name = 'sale_completed') AS sale_at
+      MIN(event.occurred_at) FILTER (WHERE event.event_name = 'product_created_from_pricing') AS product_at,
+      MIN(event.occurred_at) FILTER (
+        WHERE event.event_name IN ('catalog_published', 'sale_completed')
+      ) AS outcome_at
     FROM analytics_installations installation
     LEFT JOIN analytics_events event
       ON event.installation_id = installation.id AND event.event_type = 'action'
@@ -154,7 +174,7 @@ export const ANALYTICS_DASHBOARD_QUERY = `
     FROM pricing_milestones
   ),
   ordered_milestones AS (
-    SELECT *, CASE WHEN sale_at >= valid_product THEN sale_at END AS valid_sale
+    SELECT *, CASE WHEN outcome_at >= valid_product THEN outcome_at END AS valid_outcome
     FROM product_milestones
   ),
   funnel_counts AS (
@@ -163,7 +183,7 @@ export const ANALYTICS_DASHBOARD_QUERY = `
       COUNT(valid_signup)::int AS signup_count,
       COUNT(valid_pricing)::int AS pricing_count,
       COUNT(valid_product)::int AS product_count,
-      COUNT(valid_sale)::int AS sale_count
+      COUNT(valid_outcome)::int AS outcome_count
     FROM ordered_milestones
   ),
   funnel_rows AS (
@@ -175,7 +195,7 @@ export const ANALYTICS_DASHBOARD_QUERY = `
     UNION ALL
     SELECT 4, 'product', product_count, ROUND(100.0 * product_count / NULLIF(pricing_count, 0), 2) FROM funnel_counts
     UNION ALL
-    SELECT 5, 'sale', sale_count, ROUND(100.0 * sale_count / NULLIF(product_count, 0), 2) FROM funnel_counts
+    SELECT 5, 'catalog_or_sale', outcome_count, ROUND(100.0 * outcome_count / NULLIF(product_count, 0), 2) FROM funnel_counts
   ),
   latest_installation_versions AS (
     SELECT DISTINCT ON (installation_id)

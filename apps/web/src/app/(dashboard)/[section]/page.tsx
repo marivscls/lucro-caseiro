@@ -6,6 +6,7 @@ import type { ResourceKind } from "@/shared/types";
 const routes: Record<string, ResourceKind> = {
   content: "content",
   audiences: "audience",
+  interviews: "interview",
   features: "feature",
   outreach: "outreach",
   campaigns: "campaign",

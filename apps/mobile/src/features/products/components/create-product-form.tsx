@@ -1,13 +1,12 @@
 import type { SaleUnit } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
-import { Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
+import { Typography, useFeature, useTheme, radii, spacing } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -37,13 +36,20 @@ import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
 import { usePaywall } from "../../../shared/hooks/use-paywall";
 import { ApiError } from "../../../shared/utils/api-client";
 import {
+  currencyInput,
   maskCurrencyInput,
   parseCurrencyInput,
 } from "../../../shared/utils/currency-input";
 import { confirmPossibleDuplicate, duplicateKey } from "../../../shared/utils/duplicates";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
+import { trackAnalyticsAction } from "../../analytics/tracker";
+import { useAuth } from "../../../shared/hooks/use-auth";
 
 interface CreateProductFormProps {
   readonly onSuccess?: () => void;
+  readonly initialSalePrice?: number;
+  readonly analyticsSource?: "pricing";
 }
 
 /** Cores derivadas do tema para os campos (funciona em claro e escuro). */
@@ -69,7 +75,7 @@ function FieldLabel({
         {label}
       </Typography>
       {required ? (
-        <Typography variant="bodyBold" color={theme.colors.primary}>
+        <Typography variant="bodyBold" color={theme.colors.text}>
           *
         </Typography>
       ) : null}
@@ -77,16 +83,19 @@ function FieldLabel({
   );
 }
 
-type TextFieldCardProps = Readonly<{ icon: keyof typeof Ionicons.glyphMap }> &
+type TextFieldCardProps = Readonly<{
+  icon: keyof typeof Ionicons.glyphMap;
+  isDesktop?: boolean;
+}> &
   TextInputProps;
 
-function TextFieldCard({ icon, ...inputProps }: TextFieldCardProps) {
+function TextFieldCard({ icon, isDesktop = false, ...inputProps }: TextFieldCardProps) {
   const { theme } = useTheme();
   const pal = useFieldPalette();
   return (
     <View
       style={{
-        minHeight: 60,
+        minHeight: isDesktop ? 48 : 60,
         borderRadius: radii.lg,
         borderWidth: 1,
         borderColor: pal.border,
@@ -97,14 +106,14 @@ function TextFieldCard({ icon, ...inputProps }: TextFieldCardProps) {
         gap: spacing.md,
       }}
     >
-      <Ionicons name={icon} size={22} color={theme.colors.primary} />
+      <Ionicons name={icon} size={22} color={theme.colors.textSecondary} />
       <TextInput
         placeholderTextColor={pal.placeholder}
         style={{
           flex: 1,
           color: theme.colors.text,
           fontSize: 16,
-          paddingVertical: spacing.md,
+          paddingVertical: isDesktop ? spacing.sm : spacing.md,
         }}
         {...inputProps}
       />
@@ -116,7 +125,13 @@ function CategoryField({
   value,
   onChange,
   categories,
-}: Readonly<{ value: string; onChange: (v: string) => void; categories: string[] }>) {
+  isDesktop = false,
+}: Readonly<{
+  value: string;
+  onChange: (v: string) => void;
+  categories: string[];
+  isDesktop?: boolean;
+}>) {
   const { theme } = useTheme();
   const pal = useFieldPalette();
   const insets = useSafeAreaInsets();
@@ -140,7 +155,7 @@ function CategoryField({
         accessibilityRole="button"
         accessibilityLabel="Escolher categoria"
         style={{
-          minHeight: 60,
+          minHeight: isDesktop ? 48 : 60,
           borderRadius: radii.lg,
           borderWidth: 1,
           borderColor: pal.border,
@@ -151,7 +166,7 @@ function CategoryField({
           gap: spacing.md,
         }}
       >
-        <Ionicons name="grid-outline" size={22} color={theme.colors.primary} />
+        <Ionicons name="grid-outline" size={22} color={theme.colors.textSecondary} />
         <Typography
           variant="body"
           color={value ? theme.colors.text : pal.placeholder}
@@ -163,7 +178,7 @@ function CategoryField({
         <Ionicons name="chevron-down" size={20} color={theme.colors.textSecondary} />
       </Pressable>
 
-      <Modal
+      <ResponsiveOverlayModal
         visible={open}
         transparent
         animationType="slide"
@@ -178,17 +193,22 @@ function CategoryField({
             style={{
               flex: 1,
               backgroundColor: "rgba(0,0,0,0.55)",
-              justifyContent: "flex-end",
+              justifyContent: isDesktop ? "center" : "flex-end",
+              alignItems: isDesktop ? "center" : undefined,
+              padding: isDesktop ? spacing.xl : 0,
             }}
           >
             <Pressable
               style={{
                 backgroundColor: pal.sheetBg,
+                borderRadius: isDesktop ? radii["2xl"] : 0,
                 borderTopLeftRadius: radii["2xl"],
                 borderTopRightRadius: radii["2xl"],
+                width: "100%",
+                maxWidth: isDesktop ? 720 : undefined,
                 paddingHorizontal: spacing.lg,
                 paddingTop: spacing.md,
-                paddingBottom: spacing.lg + insets.bottom,
+                paddingBottom: isDesktop ? spacing.lg : spacing.lg + insets.bottom,
                 maxHeight: "80%",
                 gap: spacing.md,
               }}
@@ -199,7 +219,7 @@ function CategoryField({
 
               <View
                 style={{
-                  minHeight: 56,
+                  minHeight: isDesktop ? 48 : 56,
                   borderRadius: radii.lg,
                   borderWidth: 1,
                   borderColor: pal.border,
@@ -210,7 +230,11 @@ function CategoryField({
                   gap: spacing.md,
                 }}
               >
-                <Ionicons name="create-outline" size={22} color={theme.colors.primary} />
+                <Ionicons
+                  name="create-outline"
+                  size={22}
+                  color={theme.colors.textSecondary}
+                />
                 <TextInput
                   value={draft}
                   onChangeText={setDraft}
@@ -267,9 +291,11 @@ function CategoryField({
                   if (!draft.trim()) opacity = 0.5;
                   else if (pressed) opacity = 0.85;
                   return {
-                    minHeight: 52,
+                    alignSelf: isDesktop ? "flex-end" : undefined,
+                    width: isDesktop ? 180 : undefined,
+                    minHeight: isDesktop ? 44 : 52,
                     borderRadius: radii.lg,
-                    backgroundColor: theme.colors.primary,
+                    backgroundColor: theme.colors.primaryInteractive,
                     alignItems: "center",
                     justifyContent: "center",
                     opacity,
@@ -283,7 +309,7 @@ function CategoryField({
             </Pressable>
           </Pressable>
         </KeyboardAvoidingView>
-      </Modal>
+      </ResponsiveOverlayModal>
     </>
   );
 }
@@ -291,7 +317,12 @@ function CategoryField({
 function PhotoField({
   imageUri,
   onPress,
-}: Readonly<{ imageUri: string | null; onPress: () => void }>) {
+  isDesktop = false,
+}: Readonly<{
+  imageUri: string | null;
+  onPress: () => void;
+  isDesktop?: boolean;
+}>) {
   const { theme } = useTheme();
   const pal = useFieldPalette();
 
@@ -321,14 +352,17 @@ function PhotoField({
         }}
       >
         {imageUri ? (
-          <Image source={{ uri: imageUri }} style={{ width: "100%", height: 160 }} />
+          <Image
+            source={{ uri: imageUri }}
+            style={{ width: "100%", height: isDesktop ? 112 : 160 }}
+          />
         ) : (
           <View
             style={{
               flexDirection: "row",
               alignItems: "center",
               paddingHorizontal: spacing.md,
-              paddingVertical: spacing.lg,
+              paddingVertical: isDesktop ? spacing.md : spacing.lg,
               gap: spacing.md,
             }}
           >
@@ -337,12 +371,16 @@ function PhotoField({
                 width: 56,
                 height: 56,
                 borderRadius: radii.md,
-                backgroundColor: `${theme.colors.primary}22`,
+                backgroundColor: pal.border,
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Ionicons name="camera-outline" size={28} color={theme.colors.primary} />
+              <Ionicons
+                name="camera-outline"
+                size={28}
+                color={theme.colors.textSecondary}
+              />
             </View>
             <View style={{ flex: 1 }}>
               <Typography variant="bodyBold" color={theme.colors.text}>
@@ -362,7 +400,12 @@ function PhotoField({
 function DescriptionField({
   value,
   onChange,
-}: Readonly<{ value: string; onChange: (v: string) => void }>) {
+  isDesktop = false,
+}: Readonly<{
+  value: string;
+  onChange: (v: string) => void;
+  isDesktop?: boolean;
+}>) {
   const { theme } = useTheme();
   const pal = useFieldPalette();
   const MAX = 300;
@@ -372,7 +415,7 @@ function DescriptionField({
       <FieldLabel label="Descrição (opcional)" />
       <View
         style={{
-          minHeight: 120,
+          minHeight: isDesktop ? 112 : 120,
           borderRadius: radii.lg,
           borderWidth: 1,
           borderColor: pal.border,
@@ -382,7 +425,11 @@ function DescriptionField({
           gap: spacing.md,
         }}
       >
-        <Ionicons name="document-text-outline" size={22} color={theme.colors.primary} />
+        <Ionicons
+          name="document-text-outline"
+          size={22}
+          color={theme.colors.textSecondary}
+        />
         <View style={{ flex: 1 }}>
           <TextInput
             value={value}
@@ -422,18 +469,20 @@ function ExtraPhotosField({
   onRemove,
   max,
   isPremium,
+  isDesktop = false,
 }: Readonly<{
   uris: string[];
   onAdd: () => void;
   onRemove: (index: number) => void;
   max: number;
   isPremium: boolean;
+  isDesktop?: boolean;
 }>) {
   const { theme } = useTheme();
   const pal = useFieldPalette();
 
   return (
-    <View style={{ marginTop: spacing.md }}>
+    <View style={{ marginTop: isDesktop ? 0 : spacing.md }}>
       <FieldLabel label="Mais fotos" />
       <Typography
         variant="caption"
@@ -495,14 +544,23 @@ function ExtraPhotosField({
   );
 }
 
-export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
+export function CreateProductForm({
+  onSuccess,
+  initialSalePrice,
+  analyticsSource,
+}: CreateProductFormProps) {
   const { theme } = useTheme();
+  const variationsEnabled = useFeature("catalogoCores");
+  const isDesktop = useDesktopLayout();
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
-  const [salePrice, setSalePrice] = useState("");
+  const [salePrice, setSalePrice] = useState(
+    initialSalePrice === undefined ? "" : currencyInput(initialSalePrice),
+  );
   const [saleUnit, setSaleUnit] = useState<SaleUnit>("unit");
   const [description, setDescription] = useState("");
   const [code, setCode] = useState("");
+  const [variationNames, setVariationNames] = useState("");
   const [showScanner, setShowScanner] = useState(false);
   const [stockQuantity, setStockQuantity] = useState("");
   const [stockAlert, setStockAlert] = useState("");
@@ -638,11 +696,24 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
           saleUnit === "kg" || !stockAlert ? undefined : parseInt(stockAlert, 10),
         isComposite,
         components: componentsPayload,
+        variations: variationsEnabled
+          ? variationNames
+              .split(",")
+              .map((variation) => variation.trim())
+              .filter(Boolean)
+              .map((variation) => ({ name: variation }))
+          : undefined,
       });
       showAlert({
         title: "Produto cadastrado!",
         message: `${name} foi adicionado ao seu catálogo`,
       });
+      if (analyticsSource === "pricing") {
+        void trackAnalyticsAction(
+          "product_created_from_pricing",
+          useAuth.getState().token,
+        );
+      }
       onSuccess?.();
     } catch (e) {
       // Limite do plano gratuito atingido → abre o paywall (em vez de erro genérico).
@@ -666,27 +737,39 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
         contentContainerStyle={{
           padding: spacing.xl,
           paddingBottom: spacing["5xl"],
-          gap: spacing.xl,
+          gap: isDesktop ? spacing.lg : spacing.xl,
+          width: "100%",
+          maxWidth: isDesktop ? 1040 : undefined,
+          alignSelf: "center",
         }}
       >
-        <View>
-          <FieldLabel label="Nome do produto" required />
-          <TextFieldCard
-            icon="pricetag-outline"
-            placeholder="Ex: Brigadeiro, Bolo de chocolate..."
-            value={name}
-            onChangeText={setName}
-            autoFocus
-          />
-        </View>
+        <View
+          style={{
+            flexDirection: isDesktop ? "row" : "column",
+            gap: isDesktop ? spacing.lg : spacing.xl,
+          }}
+        >
+          <View style={isDesktop ? { flex: 1 } : undefined}>
+            <FieldLabel label="Nome do produto" required />
+            <TextFieldCard
+              icon="pricetag-outline"
+              placeholder="Ex: Brigadeiro, Bolo de chocolate..."
+              value={name}
+              onChangeText={setName}
+              autoFocus
+              isDesktop={isDesktop}
+            />
+          </View>
 
-        <View>
-          <FieldLabel label="Categoria" required />
-          <CategoryField
-            value={category}
-            onChange={setCategory}
-            categories={categories}
-          />
+          <View style={isDesktop ? { flex: 1 } : undefined}>
+            <FieldLabel label="Categoria" required />
+            <CategoryField
+              value={category}
+              onChange={setCategory}
+              categories={categories}
+              isDesktop={isDesktop}
+            />
+          </View>
         </View>
 
         <CompositeToggle
@@ -697,92 +780,152 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
 
         {isComposite && <ComponentPicker value={components} onChange={setComponents} />}
 
-        {/* Venda por peso (kg) so faz sentido para produto simples. */}
-        {!isComposite && <SaleUnitToggle value={saleUnit} onChange={setSaleUnit} />}
+        {variationsEnabled && !isComposite ? (
+          <View>
+            <FieldLabel label="Variacoes de cor/tamanho (opcional)" />
+            <TextFieldCard
+              icon="color-palette-outline"
+              placeholder="Ex: Azul / A4, Vermelha / A5"
+              value={variationNames}
+              onChangeText={setVariationNames}
+              isDesktop={isDesktop}
+            />
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              Separe cada variacao por virgula.
+            </Typography>
+          </View>
+        ) : null}
 
-        <View>
-          <FieldLabel
-            label={isKg ? "Preço por kg (R$)" : "Preço de venda (R$)"}
-            required
-          />
-          <TextFieldCard
-            icon="cash-outline"
-            placeholder={isKg ? "Ex: 80,00" : "Ex: 3,50"}
-            value={salePrice}
-            onChangeText={(value) => setSalePrice(maskCurrencyInput(value))}
-            keyboardType="numeric"
-          />
-        </View>
-
-        <PhotoField imageUri={imageUri} onPress={showPicker} />
-
-        <ExtraPhotosField
-          uris={extraUris}
-          onAdd={() => void addExtraPhoto()}
-          onRemove={removeExtraPhoto}
-          max={MAX_EXTRA_PHOTOS}
-          isPremium={canUseExtraPhotos}
-        />
-
-        <DescriptionField value={description} onChange={setDescription} />
-
-        <View>
-          <FieldLabel label="Código de barras (opcional)" />
-          <View style={{ flexDirection: "row", gap: spacing.sm }}>
-            <View style={{ flex: 1 }}>
-              <TextFieldCard
-                icon="barcode-outline"
-                placeholder="Ex: 789..."
-                value={code}
-                onChangeText={setCode}
-              />
+        <View
+          style={{
+            flexDirection: isDesktop ? "row" : "column",
+            alignItems: isDesktop ? "flex-end" : undefined,
+            gap: spacing.xl,
+          }}
+        >
+          {/* Venda por peso (kg) so faz sentido para produto simples. */}
+          {!isComposite && (
+            <View style={isDesktop ? { flex: 1, maxWidth: 640 } : undefined}>
+              <SaleUnitToggle value={saleUnit} onChange={setSaleUnit} />
             </View>
-            <Pressable
-              onPress={() => setShowScanner(true)}
-              accessibilityRole="button"
-              accessibilityLabel="Escanear código"
-              style={{
-                width: 60,
-                borderRadius: radii.lg,
-                backgroundColor: theme.colors.primary,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Ionicons
-                name="scan-outline"
-                size={24}
-                color={theme.colors.textOnPrimary}
-              />
-            </Pressable>
+          )}
+
+          <View style={isDesktop ? { width: 360 } : undefined}>
+            <FieldLabel
+              label={isKg ? "Preço por kg (R$)" : "Preço de venda (R$)"}
+              required
+            />
+            <TextFieldCard
+              icon="cash-outline"
+              placeholder={isKg ? "Ex: 80,00" : "Ex: 3,50"}
+              value={salePrice}
+              onChangeText={(value) => setSalePrice(maskCurrencyInput(value))}
+              keyboardType="numeric"
+              isDesktop={isDesktop}
+            />
           </View>
         </View>
 
-        {saleUnit === "unit" && !isComposite && (
-          <>
-            <View>
-              <FieldLabel label="Quantidade em estoque (opcional)" />
-              <TextFieldCard
-                icon="albums-outline"
-                placeholder="Ex: 50"
-                value={stockQuantity}
-                onChangeText={setStockQuantity}
-                keyboardType="number-pad"
-              />
-            </View>
+        <View
+          style={{
+            flexDirection: isDesktop ? "row" : "column",
+            alignItems: isDesktop ? "flex-start" : undefined,
+            gap: spacing.xl,
+          }}
+        >
+          <View style={isDesktop ? { width: 480, gap: spacing.lg } : { gap: spacing.xl }}>
+            <PhotoField imageUri={imageUri} onPress={showPicker} isDesktop={isDesktop} />
 
-            <View>
-              <FieldLabel label="Alerta de estoque baixo (opcional)" />
-              <TextFieldCard
-                icon="notifications-outline"
-                placeholder="Ex: 10"
-                value={stockAlert}
-                onChangeText={setStockAlert}
-                keyboardType="number-pad"
-              />
+            <ExtraPhotosField
+              uris={extraUris}
+              onAdd={() => void addExtraPhoto()}
+              onRemove={removeExtraPhoto}
+              max={MAX_EXTRA_PHOTOS}
+              isPremium={canUseExtraPhotos}
+              isDesktop={isDesktop}
+            />
+          </View>
+
+          <View style={isDesktop ? { flex: 1 } : undefined}>
+            <DescriptionField
+              value={description}
+              onChange={setDescription}
+              isDesktop={isDesktop}
+            />
+          </View>
+        </View>
+
+        <View
+          style={{
+            flexDirection: isDesktop ? "row" : "column",
+            alignItems: isDesktop ? "flex-end" : undefined,
+            gap: isDesktop ? spacing.lg : spacing.xl,
+          }}
+        >
+          <View style={isDesktop ? { flex: 1, maxWidth: 480 } : undefined}>
+            <FieldLabel label="Código de barras (opcional)" />
+            <View style={{ flexDirection: "row", gap: spacing.sm }}>
+              <View style={{ flex: 1 }}>
+                <TextFieldCard
+                  icon="barcode-outline"
+                  placeholder="Ex: 789..."
+                  value={code}
+                  onChangeText={setCode}
+                  isDesktop={isDesktop}
+                />
+              </View>
+              <Pressable
+                onPress={() => setShowScanner(true)}
+                accessibilityRole="button"
+                accessibilityLabel="Escanear código"
+                style={{
+                  width: isDesktop ? 48 : 60,
+                  minHeight: isDesktop ? 48 : 60,
+                  borderRadius: radii.lg,
+                  backgroundColor: theme.colors.surface,
+                  borderWidth: 1,
+                  borderColor: theme.colors.border,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Ionicons
+                  name="scan-outline"
+                  size={24}
+                  color={theme.colors.textSecondary}
+                />
+              </Pressable>
             </View>
-          </>
-        )}
+          </View>
+
+          {saleUnit === "unit" && !isComposite && (
+            <>
+              <View style={isDesktop ? { flex: 1, maxWidth: 260 } : undefined}>
+                <FieldLabel label="Quantidade em estoque (opcional)" />
+                <TextFieldCard
+                  icon="albums-outline"
+                  placeholder="Ex: 50"
+                  value={stockQuantity}
+                  onChangeText={setStockQuantity}
+                  keyboardType="number-pad"
+                  isDesktop={isDesktop}
+                />
+              </View>
+
+              <View style={isDesktop ? { flex: 1, maxWidth: 260 } : undefined}>
+                <FieldLabel label="Alerta de estoque baixo (opcional)" />
+                <TextFieldCard
+                  icon="notifications-outline"
+                  placeholder="Ex: 10"
+                  value={stockAlert}
+                  onChangeText={setStockAlert}
+                  keyboardType="number-pad"
+                  isDesktop={isDesktop}
+                />
+              </View>
+            </>
+          )}
+        </View>
 
         <Pressable
           onPress={() => {
@@ -791,7 +934,9 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
           disabled={loading}
           accessibilityRole="button"
           style={({ pressed }) => ({
-            minHeight: 58,
+            alignSelf: isDesktop ? "flex-end" : undefined,
+            width: isDesktop ? 220 : undefined,
+            minHeight: isDesktop ? 44 : 58,
             borderRadius: radii.lg,
             backgroundColor: theme.colors.primary,
             flexDirection: "row",
@@ -810,7 +955,10 @@ export function CreateProductForm({ onSuccess }: CreateProductFormProps) {
               color={theme.colors.textOnPrimary}
             />
           )}
-          <Typography variant="h3" color={theme.colors.textOnPrimary}>
+          <Typography
+            variant={isDesktop ? "bodyBold" : "h3"}
+            color={theme.colors.textOnPrimary}
+          >
             {uploading ? "Enviando foto..." : "Cadastrar produto"}
           </Typography>
         </Pressable>

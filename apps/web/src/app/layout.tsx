@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Nunito_Sans } from "next/font/google";
 
 import "./globals.css";
+import { BrandProvider } from "./brand-provider";
+import { BrandThemeStyle } from "./brand-theme";
 import { Providers } from "./providers";
 
 // Tipografia canonica (ADR-0008): Fraunces para display/titulos,
@@ -33,7 +35,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR">
       <body className={`${sans.variable} ${display.variable}`}>
-        <Providers>{children}</Providers>
+        {/* Whitelabel (ADR-0009): overrides de CSS vars da marca ativa,
+            aplicados sobre o globals.css (que segue sendo a base). */}
+        <BrandThemeStyle />
+        <BrandProvider>
+          <Providers>{children}</Providers>
+        </BrandProvider>
       </body>
     </html>
   );

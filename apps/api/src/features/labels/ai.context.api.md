@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Gerenciar rotulos personalizados para produtos do negocio caseiro. Permite criar rotulos baseados em templates pre-definidos, vincular a produtos e incluir informacoes como ingredientes, logo e QR code.
+Gerenciar rotulos personalizados para produtos do negocio. Permite criar rotulos baseados em templates pre-definidos, vincular a produtos e incluir informacoes como ingredientes, logo e QR code.
 
 ## Non-goals
 

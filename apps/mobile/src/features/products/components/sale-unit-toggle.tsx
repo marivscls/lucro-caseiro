@@ -4,6 +4,8 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Pressable, View } from "react-native";
 
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+
 interface SaleUnitToggleProps {
   readonly value: SaleUnit;
   readonly onChange: (value: SaleUnit) => void;
@@ -24,12 +26,19 @@ const OPTIONS: ReadonlyArray<{
  */
 export function SaleUnitToggle({ value, onChange }: SaleUnitToggleProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const isDark = theme.mode === "dark";
   const border = isDark ? "rgba(245, 225, 219, 0.12)" : "rgba(74, 50, 40, 0.12)";
   const fieldBg = isDark ? "rgba(58, 50, 45, 0.5)" : theme.colors.surface;
 
   return (
-    <View style={{ gap: spacing.sm }}>
+    <View
+      style={{
+        gap: spacing.sm,
+        width: "100%",
+        maxWidth: isDesktop ? 720 : undefined,
+      }}
+    >
       <Typography variant="bodyBold" color={theme.colors.text}>
         Como você vende?
       </Typography>
@@ -45,13 +54,13 @@ export function SaleUnitToggle({ value, onChange }: SaleUnitToggleProps) {
               accessibilityLabel={option.label}
               style={({ pressed }) => ({
                 flex: 1,
-                minHeight: 72,
-                flexDirection: "column",
+                minHeight: isDesktop ? 48 : 72,
+                flexDirection: isDesktop ? "row" : "column",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: spacing.xs,
                 paddingHorizontal: spacing.sm,
-                paddingVertical: spacing.md,
+                paddingVertical: isDesktop ? spacing.xs : spacing.md,
                 borderRadius: radii.lg,
                 borderWidth: 1,
                 borderColor: selected ? theme.colors.primary : border,

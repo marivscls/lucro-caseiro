@@ -6,6 +6,12 @@ node_modules
 **/.expo
 dist
 **/dist
+.next
+**/.next
+web-build
+**/web-build
+coverage
+**/coverage
 .codex-logs
 .idea
 *.log

@@ -1,8 +1,8 @@
 import {
   Badge,
   Button,
-  Chip,
   EmptyState,
+  iconSizes,
   Typography,
   useTheme,
   spacing,
@@ -10,16 +10,9 @@ import {
 } from "@lucro-caseiro/ui";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useRouter } from "expo-router";
+import { Stack } from "expo-router";
 import React, { useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  Modal,
-  Pressable,
-  ScrollView,
-  View,
-} from "react-native";
+import { ActivityIndicator, Image, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import purchasesEmpty from "../assets/purchases-empty.png";
@@ -36,6 +29,9 @@ import { useProfile } from "../features/subscription/hooks";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { alertError } from "../shared/utils/alerts";
 import { formatCurrency } from "../shared/utils/format";
+import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { ResponsiveModal } from "../shared/components/responsive-modal-surface";
+import { ScreenHeader } from "../shared/components/screen-header";
 
 type Filter = "all" | "pending" | "paid";
 
@@ -47,7 +43,7 @@ const FILTERS: { value: Filter; label: string }[] = [
 
 export default function PurchasesScreen() {
   const { theme } = useTheme();
-  const router = useRouter();
+  const isDesktop = useDesktopLayout();
   const { data: profile } = useProfile();
   const isPremium =
     !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "purchases");
@@ -145,7 +141,9 @@ export default function PurchasesScreen() {
           }
           title="Nenhuma compra aqui"
           description="Registre sua primeira compra de fornecedor para acompanhar suas contas a pagar e o caixa."
-          action={<Button title="Registrar compra" onPress={openCreate} />}
+          action={
+            <Button title="Registrar compra" variant="outline" onPress={openCreate} />
+          }
         />
       );
     }
@@ -190,34 +188,7 @@ export default function PurchasesScreen() {
         <Stack.Screen options={{ headerShown: false }} />
 
         {/* Top bar */}
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: spacing.sm,
-            paddingHorizontal: spacing.lg,
-            paddingTop: spacing.sm,
-            paddingBottom: spacing.sm,
-          }}
-        >
-          <Pressable
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel="Voltar"
-            hitSlop={10}
-            style={{ width: 32, height: 40, justifyContent: "center" }}
-          >
-            <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
-          </Pressable>
-          <Typography
-            variant="h1"
-            color={theme.colors.text}
-            numberOfLines={1}
-            style={{ flex: 1 }}
-          >
-            Compras
-          </Typography>
-        </View>
+        {!isDesktop && <ScreenHeader title="Compras" style={{ gap: spacing.sm }} />}
 
         <ScrollView contentContainerStyle={{ padding: spacing.lg }}>
           <PurchasesPremiumGate onUnlock={() => showPaywall("purchases")} />
@@ -234,50 +205,29 @@ export default function PurchasesScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* Top bar */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.sm,
-          paddingHorizontal: spacing.lg,
-          paddingTop: spacing.sm,
-          paddingBottom: spacing.sm,
-        }}
-      >
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="Voltar"
-          hitSlop={10}
-          style={{ width: 32, height: 40, justifyContent: "center" }}
-        >
-          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
-        </Pressable>
-        <Typography
-          variant="h1"
-          color={theme.colors.text}
-          numberOfLines={1}
-          style={{ flex: 1 }}
-        >
-          Compras
-        </Typography>
-        <Pressable
-          onPress={openCreate}
-          accessibilityRole="button"
-          accessibilityLabel="Nova compra"
-          style={({ pressed }) => ({
-            width: 44,
-            height: 44,
-            borderRadius: radii.full,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: theme.colors.primary,
-            opacity: pressed ? 0.85 : 1,
-          })}
-        >
-          <Ionicons name="add" size={26} color={theme.colors.textOnPrimary} />
-        </Pressable>
-      </View>
+      <ScreenHeader
+        title="Compras"
+        hideBack={isDesktop}
+        style={{ gap: spacing.sm }}
+        right={
+          <Pressable
+            onPress={openCreate}
+            accessibilityRole="button"
+            accessibilityLabel="Nova compra"
+            style={({ pressed }) => ({
+              width: 44,
+              height: 44,
+              borderRadius: radii.full,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: theme.colors.primaryInteractive,
+              opacity: pressed ? 0.85 : 1,
+            })}
+          >
+            <Ionicons name="add" size={iconSizes.md} color={theme.colors.textOnPrimary} />
+          </Pressable>
+        }
+      />
 
       {/* Resumo: a pagar */}
       <View
@@ -312,21 +262,40 @@ export default function PurchasesScreen() {
           paddingBottom: spacing.sm,
         }}
       >
-        {FILTERS.map((f) => (
-          <Chip
-            key={f.value}
-            label={f.label}
-            selected={filter === f.value}
-            onPress={() => setFilter(f.value)}
-          />
-        ))}
+        {FILTERS.map((f) => {
+          const active = filter === f.value;
+          return (
+            <Pressable
+              key={f.value}
+              onPress={() => setFilter(f.value)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+              style={{
+                minHeight: 44,
+                paddingHorizontal: spacing.lg,
+                borderRadius: radii.full,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: active ? theme.colors.primaryBg : theme.colors.surface,
+              }}
+            >
+              <Typography
+                variant="bodyBold"
+                color={active ? theme.colors.primaryStrong : theme.colors.textSecondary}
+              >
+                {f.label}
+              </Typography>
+            </Pressable>
+          );
+        })}
       </View>
 
       {/* Lista */}
       <View style={{ flex: 1 }}>{renderList()}</View>
 
       {/* Modal: criar */}
-      <Modal
+      <ResponsiveModal
+        desktopMaxWidth={840}
         visible={showCreate}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -351,17 +320,13 @@ export default function PurchasesScreen() {
             >
               <Ionicons name="close" size={28} color={theme.colors.text} />
             </Pressable>
-            <Typography
-              variant="h1"
-              color={theme.colors.text}
-              style={{ flex: 1, fontSize: 24 }}
-            >
+            <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
               Nova compra
             </Typography>
           </View>
           <CreatePurchaseForm onSuccess={() => setShowCreate(false)} />
         </SafeAreaView>
-      </Modal>
+      </ResponsiveModal>
     </SafeAreaView>
   );
 }
@@ -382,7 +347,7 @@ function PurchasesPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) 
     <View
       style={{
         backgroundColor: theme.colors.surfaceElevated,
-        borderColor: theme.colors.primary,
+        borderColor: theme.colors.premium,
         borderWidth: 1,
         borderRadius: radii.xl,
         gap: spacing.md,
@@ -414,7 +379,14 @@ function PurchasesPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) 
       ))}
       <Button
         title="Desbloquear no Profissional"
-        icon={<Ionicons name="lock-open-outline" size={20} color="#FFFFFF" />}
+        variant="premium"
+        icon={
+          <Ionicons
+            name="lock-open-outline"
+            size={20}
+            color={theme.colors.textOnPrimary}
+          />
+        }
         onPress={onUnlock}
       />
     </View>

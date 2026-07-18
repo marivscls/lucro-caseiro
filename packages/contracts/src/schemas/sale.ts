@@ -7,6 +7,8 @@ export const SaleItemDto = z.object({
   // Para produtos por unidade o app envia inteiros; aqui so exigimos > 0.
   quantity: z.number().positive().max(MAX_QUANTITY),
   unitPrice: z.number().positive().max(MAX_MONEY),
+  variationId: z.string().uuid().optional(),
+  variationName: z.string().max(100).optional(),
 });
 
 export const CreateSaleDto = z.object({

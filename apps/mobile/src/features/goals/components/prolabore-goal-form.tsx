@@ -3,6 +3,8 @@ import { Button, Input, Typography, useTheme, spacing } from "@lucro-caseiro/ui"
 import React, { useState } from "react";
 
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
+import { desktopAction, desktopContained } from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { useDeleteProlaboreGoal, useUpsertProlaboreGoal } from "../hooks";
 import { showToast } from "../../../shared/components/toast";
 import { showAlert } from "../../../shared/components/alert-store";
@@ -28,6 +30,7 @@ function initial(value: number | null): string {
 
 export function ProlaboreGoalForm({ config, onSuccess }: ProlaboreGoalFormProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const [goal, setGoal] = useState(initial(config?.monthlyProlaboreGoal ?? null));
   const [costs, setCosts] = useState(initial(config?.estimatedMonthlyCosts ?? null));
   const [ticket, setTicket] = useState(initial(config?.avgTicketOverride ?? null));
@@ -83,11 +86,14 @@ export function ProlaboreGoalForm({ config, onSuccess }: ProlaboreGoalFormProps)
 
   return (
     <KeyboardAwareScrollView
-      contentContainerStyle={{
-        padding: spacing.xl,
-        paddingBottom: spacing["3xl"],
-        gap: spacing.lg,
-      }}
+      contentContainerStyle={[
+        {
+          padding: spacing.xl,
+          paddingBottom: spacing["3xl"],
+          gap: spacing.lg,
+        },
+        desktopContained(isDesktop, 720),
+      ]}
     >
       <Typography variant="h2">Meta de pro-labore</Typography>
       <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -125,6 +131,7 @@ export function ProlaboreGoalForm({ config, onSuccess }: ProlaboreGoalFormProps)
           void handleSave();
         }}
         loading={upsert.isPending}
+        style={desktopAction(isDesktop)}
       />
       {config && (
         <Button
@@ -132,6 +139,7 @@ export function ProlaboreGoalForm({ config, onSuccess }: ProlaboreGoalFormProps)
           variant="secondary"
           onPress={handleRemove}
           loading={remove.isPending}
+          style={desktopAction(isDesktop)}
         />
       )}
     </KeyboardAwareScrollView>

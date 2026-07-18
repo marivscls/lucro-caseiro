@@ -3,6 +3,8 @@ import type { Pricing } from "@lucro-caseiro/contracts";
 import {
   Card,
   EmptyState,
+  fontSizes,
+  iconSizes,
   Typography,
   spacing,
   radii,
@@ -15,7 +17,6 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
-  Modal,
   Pressable,
   ScrollView,
   View,
@@ -26,7 +27,10 @@ import pricingEmpty from "../assets/pricing-empty.png";
 import { PricingCalculator } from "../features/pricing/components/pricing-calculator";
 import { usePricingList } from "../features/pricing/hooks";
 import { showAlert } from "../shared/components/alert-store";
+import { ScreenHeader } from "../shared/components/screen-header";
 import { useProducts } from "../features/products/hooks";
+import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { ResponsiveModal } from "../shared/components/responsive-modal-surface";
 
 function PricingHistoryCard({
   item,
@@ -153,7 +157,8 @@ function PricingHistoryModal({
   }
 
   return (
-    <Modal
+    <ResponsiveModal
+      desktopMaxWidth={1120}
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
@@ -170,7 +175,7 @@ function PricingHistoryModal({
         >
           <Typography variant="h2">Histórico</Typography>
           <Pressable onPress={onClose} hitSlop={10}>
-            <Typography variant="bodyBold" color={theme.colors.primary}>
+            <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
               Fechar
             </Typography>
           </Pressable>
@@ -197,16 +202,15 @@ function PricingHistoryModal({
                       paddingVertical: spacing.sm,
                       borderRadius: radii.full,
                       backgroundColor: active
-                        ? theme.colors.primary
+                        ? theme.colors.primaryBg
                         : theme.colors.surface,
                     }}
                   >
                     <Typography
-                      variant="caption"
+                      variant="captionBold"
                       color={
-                        active ? theme.colors.textOnPrimary : theme.colors.textSecondary
+                        active ? theme.colors.primaryStrong : theme.colors.textSecondary
                       }
-                      style={{ fontWeight: "700" }}
                     >
                       {c.label}
                     </Typography>
@@ -219,12 +223,13 @@ function PricingHistoryModal({
 
         {renderBody()}
       </SafeAreaView>
-    </Modal>
+    </ResponsiveModal>
   );
 }
 
 export default function PricingScreen() {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const router = useRouter();
   const [showHistory, setShowHistory] = useState(false);
 
@@ -234,51 +239,40 @@ export default function PricingScreen() {
       edges={["top", "bottom"]}
     >
       <Stack.Screen options={{ headerShown: false }} />
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.md,
-          paddingHorizontal: spacing.lg,
-          paddingTop: spacing.sm,
-          paddingBottom: spacing.sm,
-        }}
-      >
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="Voltar"
-          hitSlop={10}
-          style={{ width: 32, height: 40, justifyContent: "center" }}
-        >
-          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
-        </Pressable>
-        <Typography
-          variant="h2"
-          color={theme.colors.text}
-          style={{ flex: 1, fontSize: 22, fontWeight: "800" }}
-        >
-          Precificação
-        </Typography>
-        <Pressable
-          onPress={() => setShowHistory(true)}
-          accessibilityRole="button"
-          accessibilityLabel="Histórico"
-          hitSlop={10}
-          style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
-        >
-          <Ionicons name="time-outline" size={18} color={theme.colors.primary} />
-          <Typography
-            variant="bodyBold"
-            color={theme.colors.primary}
-            style={{ fontSize: 16 }}
+      <ScreenHeader
+        title="Precificação"
+        hideBack={isDesktop}
+        right={
+          <Pressable
+            onPress={() => setShowHistory(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Histórico"
+            hitSlop={10}
+            style={{ flexDirection: "row", alignItems: "center", gap: 6, minHeight: 44 }}
           >
-            Histórico
-          </Typography>
-        </Pressable>
-      </View>
+            <Ionicons
+              name="time-outline"
+              size={iconSizes.sm}
+              color={theme.colors.primaryStrong}
+            />
+            <Typography
+              variant="bodyBold"
+              color={theme.colors.primaryStrong}
+              style={{ fontSize: fontSizes.md }}
+            >
+              Histórico
+            </Typography>
+          </Pressable>
+        }
+      />
 
       <PricingCalculator
+        onCreateProduct={(salePrice) => {
+          router.push({
+            pathname: "/products",
+            params: { create: "from-pricing", salePrice: String(salePrice) },
+          });
+        }}
         onSave={() => {
           showAlert({
             title: "Cálculo salvo!",

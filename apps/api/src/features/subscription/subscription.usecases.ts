@@ -1,4 +1,9 @@
-import type { FreemiumLimits, PlanType, UserProfile } from "@lucro-caseiro/contracts";
+import type {
+  AnalyticsActionName,
+  FreemiumLimits,
+  PlanType,
+  UserProfile,
+} from "@lucro-caseiro/contracts";
 
 import { NotFoundError, ServiceUnavailableError } from "../../shared/errors";
 import { buildFreemiumLimits, resolvePlan } from "./subscription.domain";
@@ -13,6 +18,10 @@ export class SubscriptionUseCases {
   constructor(
     private repo: ISubscriptionRepo,
     private statusProvider?: ISubscriptionStatusProvider,
+    private recordLifecycleEvent?: (
+      userId: string,
+      action: AnalyticsActionName,
+    ) => Promise<void>,
   ) {}
 
   async getProfile(userId: string): Promise<UserProfile> {
@@ -74,17 +83,29 @@ export class SubscriptionUseCases {
     plan: PlanType,
     expiresAt: Date | null,
   ): Promise<UserProfile> {
+    const previous = await this.repo.getProfile(userId);
     const updated = await this.repo.updatePlan(userId, plan, expiresAt);
     if (!updated) {
       throw new NotFoundError("Perfil não encontrado");
+    }
+    if (
+      previous &&
+      resolvePlan(previous.plan, previous.planExpiresAt) === "free" &&
+      resolvePlan(updated.plan, updated.planExpiresAt) !== "free"
+    ) {
+      await this.recordLifecycleEvent?.(userId, "subscription_completed");
     }
     return updated;
   }
 
   async deactivatePlan(userId: string): Promise<UserProfile> {
+    const previous = await this.repo.getProfile(userId);
     const updated = await this.repo.updatePlan(userId, "free", null);
     if (!updated) {
       throw new NotFoundError("Perfil não encontrado");
+    }
+    if (previous && resolvePlan(previous.plan, previous.planExpiresAt) !== "free") {
+      await this.recordLifecycleEvent?.(userId, "subscription_cancelled");
     }
     return updated;
   }

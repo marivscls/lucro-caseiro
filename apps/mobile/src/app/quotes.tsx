@@ -8,20 +8,14 @@ import {
   Input,
   Typography,
   useTheme,
+  fontSizes,
   radii,
   spacing,
 } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  Modal,
-  Pressable,
-  ScrollView,
-  View,
-} from "react-native";
+import { ActivityIndicator, Image, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import quotesEmpty from "../assets/quotes-empty.png";
@@ -29,6 +23,7 @@ import { trackAnalyticsAction } from "../features/analytics/tracker";
 import { useClient } from "../features/clients/hooks";
 import { QuoteForm } from "../features/quotes/components/quote-form";
 import { showAlert } from "../shared/components/alert-store";
+import { ScreenHeader } from "../shared/components/screen-header";
 import {
   useConvertQuote,
   useDeleteQuote,
@@ -43,6 +38,11 @@ import { showToast } from "../shared/components/toast";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { useAuth } from "../shared/hooks/use-auth";
 import { brToIso } from "../shared/utils/date";
+import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import {
+  ResponsiveModal,
+  ResponsiveOverlayModal,
+} from "../shared/components/responsive-modal-surface";
 import { formatCurrency } from "../shared/utils/format";
 import { isValidBrazilPhone } from "../shared/utils/phone";
 import { openWhatsApp, openWhatsAppShare } from "../shared/utils/whatsapp";
@@ -125,7 +125,7 @@ function ModalHeader({
         variant="h1"
         color={theme.colors.text}
         numberOfLines={1}
-        style={{ flex: 1, fontSize: 22 }}
+        style={{ flex: 1, fontSize: fontSizes.xl }}
       >
         {title}
       </Typography>
@@ -136,7 +136,7 @@ function ModalHeader({
           hitSlop={10}
           style={{ minHeight: 44, justifyContent: "center" }}
         >
-          <Typography variant="bodyBold" color={theme.colors.primary}>
+          <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
             {rightLabel}
           </Typography>
         </Pressable>
@@ -212,11 +212,16 @@ function ConvertModal({
   }
 
   return (
-    <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
+    <ResponsiveOverlayModal
+      visible={visible}
+      animationType="fade"
+      transparent
+      onRequestClose={onClose}
+    >
       <View
         style={{
           flex: 1,
-          backgroundColor: "rgba(0,0,0,0.55)",
+          backgroundColor: theme.colors.overlay,
           justifyContent: "center",
           padding: spacing.xl,
         }}
@@ -224,6 +229,9 @@ function ConvertModal({
         <View
           style={{
             backgroundColor: theme.colors.surfaceElevated,
+            width: "100%",
+            maxWidth: 520,
+            alignSelf: "center",
             borderRadius: radii["2xl"],
             padding: spacing.xl,
             gap: spacing.md,
@@ -250,7 +258,7 @@ function ConvertModal({
           <Button title="Cancelar" variant="ghost" onPress={onClose} />
         </View>
       </View>
-    </Modal>
+    </ResponsiveOverlayModal>
   );
 }
 
@@ -415,10 +423,7 @@ function QuoteDetail({
               flexDirection: "row",
               justifyContent: "space-between",
               borderTopWidth: 1,
-              borderTopColor:
-                theme.mode === "dark"
-                  ? "rgba(245, 225, 219, 0.12)"
-                  : "rgba(74, 50, 40, 0.1)",
+              borderTopColor: theme.colors.border,
               paddingTop: spacing.sm,
               marginTop: spacing.xs,
             }}
@@ -449,7 +454,7 @@ function QuoteDetail({
             <Ionicons
               name="chatbubble-ellipses-outline"
               size={18}
-              color={theme.colors.primary}
+              color={theme.colors.textSecondary}
             />
             <View style={{ flex: 1, gap: 2 }}>
               <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -499,7 +504,11 @@ function QuoteDetail({
           variant="ghost"
           size="lg"
           icon={
-            <Ionicons name="ellipsis-horizontal" size={20} color={theme.colors.primary} />
+            <Ionicons
+              name="ellipsis-horizontal"
+              size={20}
+              color={theme.colors.textSecondary}
+            />
           }
           onPress={openMoreActions}
         />
@@ -517,7 +526,7 @@ function QuoteDetail({
 
 export default function QuotesScreen() {
   const { theme } = useTheme();
-  const router = useRouter();
+  const isDesktop = useDesktopLayout();
   const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState<QuoteStatusType | "all">("all");
   const [showCreate, setShowCreate] = useState(false);
@@ -538,29 +547,7 @@ export default function QuotesScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* Top bar */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.md,
-          paddingHorizontal: spacing.lg,
-          paddingTop: spacing.sm,
-          paddingBottom: spacing.sm,
-        }}
-      >
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="Voltar"
-          hitSlop={10}
-          style={{ width: 32, height: 40, justifyContent: "center" }}
-        >
-          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
-        </Pressable>
-        <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
-          Orçamentos
-        </Typography>
-      </View>
+      {!isDesktop && <ScreenHeader title="Orçamentos" />}
 
       {/* Filtros (chips) */}
       <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.sm }}>
@@ -583,12 +570,12 @@ export default function QuotesScreen() {
                   borderRadius: radii.full,
                   alignItems: "center",
                   justifyContent: "center",
-                  backgroundColor: active ? theme.colors.primary : theme.colors.surface,
+                  backgroundColor: active ? theme.colors.primaryBg : theme.colors.surface,
                 }}
               >
                 <Typography
                   variant="bodyBold"
-                  color={active ? theme.colors.textOnPrimary : theme.colors.text}
+                  color={active ? theme.colors.primaryStrong : theme.colors.text}
                 >
                   {f.label}
                 </Typography>
@@ -649,9 +636,11 @@ export default function QuotesScreen() {
           onPress={() => setShowCreate(true)}
           accessibilityRole="button"
           style={({ pressed }) => ({
-            minHeight: 56,
+            alignSelf: isDesktop ? "flex-end" : undefined,
+            width: isDesktop ? 180 : undefined,
+            minHeight: isDesktop ? 44 : 56,
             borderRadius: radii.lg,
-            backgroundColor: theme.colors.primary,
+            backgroundColor: theme.colors.primaryInteractive,
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
@@ -659,15 +648,23 @@ export default function QuotesScreen() {
             opacity: pressed ? 0.85 : 1,
           })}
         >
-          <Ionicons name="add" size={24} color={theme.colors.textOnPrimary} />
-          <Typography variant="h3" color={theme.colors.textOnPrimary}>
+          <Ionicons
+            name="add"
+            size={isDesktop ? 20 : 24}
+            color={theme.colors.textOnPrimary}
+          />
+          <Typography
+            variant={isDesktop ? "bodyBold" : "h3"}
+            color={theme.colors.textOnPrimary}
+          >
             Novo orçamento
           </Typography>
         </Pressable>
       </View>
 
       {/* Criar */}
-      <Modal
+      <ResponsiveModal
+        desktopMaxWidth={1120}
         visible={showCreate}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -677,10 +674,11 @@ export default function QuotesScreen() {
           <ModalHeader title="Novo orçamento" onClose={() => setShowCreate(false)} />
           <QuoteForm onSuccess={() => setShowCreate(false)} />
         </SafeAreaView>
-      </Modal>
+      </ResponsiveModal>
 
       {/* Detalhe / editar */}
-      <Modal
+      <ResponsiveModal
+        desktopMaxWidth={1120}
         visible={!!selected}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -714,7 +712,7 @@ export default function QuotesScreen() {
             </>
           )}
         </SafeAreaView>
-      </Modal>
+      </ResponsiveModal>
     </SafeAreaView>
   );
 }

@@ -3,6 +3,7 @@ import { z } from "zod";
 export const MarketingResourceKindSchema = z.enum([
   "content",
   "audience",
+  "interview",
   "feature",
   "topic",
   "outreach",

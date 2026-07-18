@@ -10,6 +10,8 @@ import { useClients, useUpdateClient } from "../hooks";
 import { showToast } from "../../../shared/components/toast";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
 import { ApiError } from "../../../shared/utils/api-client";
+import { desktopAction, desktopContained } from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 
 interface EditClientFormProps {
   client: Client;
@@ -17,6 +19,7 @@ interface EditClientFormProps {
 }
 
 export function EditClientForm({ client, onSuccess }: Readonly<EditClientFormProps>) {
+  const isDesktop = useDesktopLayout();
   const [name, setName] = useState(client.name);
   const [phone, setPhone] = useState(client.phone ?? "");
   const [address, setAddress] = useState(client.address ?? "");
@@ -111,12 +114,15 @@ export function EditClientForm({ client, onSuccess }: Readonly<EditClientFormPro
       style={{ flex: 1 }}
     >
       <View
-        style={{
-          flex: 1,
-          paddingHorizontal: spacing.xl,
-          paddingBottom: spacing.xl,
-          gap: spacing.md,
-        }}
+        style={[
+          {
+            flex: 1,
+            paddingHorizontal: spacing.xl,
+            paddingBottom: spacing.xl,
+            gap: spacing.md,
+          },
+          desktopContained(isDesktop, 720),
+        ]}
       >
         <Typography variant="h2" style={{ marginBottom: spacing.sm }}>
           Editar cliente
@@ -172,6 +178,7 @@ export function EditClientForm({ client, onSuccess }: Readonly<EditClientFormPro
             void handleSubmit();
           }}
           loading={updateClient.isPending}
+          style={desktopAction(isDesktop)}
         />
       </View>
     </KeyboardAvoidingView>

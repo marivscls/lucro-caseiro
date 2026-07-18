@@ -44,13 +44,87 @@
       "structural_key": "run:fs:read_file",
       "unique_tools": ["read_file"]
     },
-    "run:harness:scars": {
-      "first_seen_ts": "2026-07-14T02:37:43.252445100+00:00",
+    "run:harness:explore": {
+      "first_seen_ts": "2026-07-17T00:25:14.128185+00:00",
       "last_call_count": 3,
-      "last_candidate_key": "42f75cf3de3ea0b1",
-      "last_seen_ts": "2026-07-14T02:37:43.252445100+00:00",
+      "last_candidate_key": "4b290e88ad007b8c",
+      "last_seen_ts": "2026-07-17T00:25:14.128185+00:00",
       "materializable_occurrences": 1,
       "occurrences": 1,
+      "shape": {
+        "calls": [
+          {
+            "adapter": "harness",
+            "input": {
+              "q": "string"
+            },
+            "tool": "explore"
+          },
+          {
+            "adapter": "harness",
+            "input": {
+              "q": "string"
+            },
+            "tool": "explore"
+          },
+          {
+            "adapter": "harness",
+            "input": {
+              "q": "string"
+            },
+            "tool": "explore"
+          }
+        ],
+        "count": 3,
+        "kind": "calls"
+      },
+      "structural_key": "run:harness:explore",
+      "unique_tools": ["explore"]
+    },
+    "run:harness:read": {
+      "first_seen_ts": "2026-07-17T01:10:18.675180800+00:00",
+      "last_call_count": 3,
+      "last_candidate_key": "5c28c0c9034274f8",
+      "last_seen_ts": "2026-07-18T17:57:19.742151100+00:00",
+      "materializable_occurrences": 2,
+      "occurrences": 2,
+      "shape": {
+        "calls": [
+          {
+            "adapter": "harness",
+            "input": {
+              "id": "string"
+            },
+            "tool": "read"
+          },
+          {
+            "adapter": "harness",
+            "input": {
+              "id": "string"
+            },
+            "tool": "read"
+          },
+          {
+            "adapter": "harness",
+            "input": {
+              "id": "string"
+            },
+            "tool": "read"
+          }
+        ],
+        "count": 3,
+        "kind": "calls"
+      },
+      "structural_key": "run:harness:read",
+      "unique_tools": ["read"]
+    },
+    "run:harness:scars": {
+      "first_seen_ts": "2026-07-14T02:37:43.252445100+00:00",
+      "last_call_count": 4,
+      "last_candidate_key": "37f11d931c628534",
+      "last_seen_ts": "2026-07-18T17:42:18.504270600+00:00",
+      "materializable_occurrences": 2,
+      "occurrences": 2,
       "shape": {
         "calls": [
           {
@@ -73,15 +147,22 @@
               "domain": "string"
             },
             "tool": "scars"
+          },
+          {
+            "adapter": "harness",
+            "input": {
+              "domain": "string"
+            },
+            "tool": "scars"
           }
         ],
-        "count": 3,
+        "count": 4,
         "kind": "calls"
       },
       "structural_key": "run:harness:scars",
       "unique_tools": ["scars"]
     }
   },
-  "updated_ts": "2026-07-14T02:37:43.252445100+00:00",
+  "updated_ts": "2026-07-18T17:57:19.742151100+00:00",
   "version": 1
 }

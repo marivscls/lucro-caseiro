@@ -1,0 +1,35 @@
+{
+  "id": "lucro-manicure",
+  "appName": "Lucro na Manicure",
+  "slug": "lucro-manicure",
+  "scheme": "lucromanicure",
+  "iosBundleId": "com.lucromanicure.app",
+  "androidPackage": "br.com.orionseven.lucromanicure",
+  "easProjectId": "4716a6ec-ed90-43f2-be15-d877cba68101",
+  "theme": {
+    "primary": "#8B3A62",
+    "primaryLight": "#B65D89",
+    "primaryDark": "#652544",
+    "primaryStrong": "#752E52",
+    "primaryInteractive": "#752E52",
+    "primarySoft": "#F5E4EC",
+    "primarySoftDark": "#38252E",
+    "background": "#FCF8FA",
+    "surface": "#F6EFF3",
+    "backgroundDark": "#211A1E",
+    "surfaceDark": "#30262B"
+  },
+  "copy": {
+    "productNoun": "servico",
+    "productNounPlural": "servicos",
+    "saleLabel": "Registrar atendimento",
+    "stockLabel": "Esmaltes",
+    "revenueLabel": "Faturamento"
+  },
+  "features": {
+    "estoque": false,
+    "agendamento": true,
+    "catalogoCores": true,
+    "fichaTecnica": false
+  }
+}

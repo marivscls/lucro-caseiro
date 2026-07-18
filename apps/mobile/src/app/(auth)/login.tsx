@@ -13,10 +13,13 @@ import { validateEmail } from "../../shared/utils/validation";
 import { suggestEmailFix } from "../../shared/utils/email";
 import { alertError } from "../../shared/utils/alerts";
 import { showAlert } from "../../shared/components/alert-store";
+import { desktopContained } from "../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import authHouse from "../../assets/auth-house.png";
 
 export default function LoginScreen() {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const router = useRouter();
   const { signInWithEmail, signInWithGoogle } = useAuth();
   const [resetLoading, setResetLoading] = useState(false);
@@ -24,7 +27,8 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [emailError, setEmailError] = useState<string>();
   const [emailSuggestion, setEmailSuggestion] = useState<string>();
   const [passwordError, setPasswordError] = useState<string>();
@@ -57,7 +61,7 @@ export default function LoginScreen() {
   async function handleLogin() {
     if (!validateForm()) return;
 
-    setLoading(true);
+    setEmailLoading(true);
     try {
       const result = await signInWithEmail(email, password);
       if (result.error) {
@@ -67,17 +71,19 @@ export default function LoginScreen() {
       const message = e instanceof Error ? e.message : "Erro desconhecido ao entrar";
       alertError(message);
     } finally {
-      setLoading(false);
+      setEmailLoading(false);
     }
   }
 
   async function handleGoogleLogin() {
-    setLoading(true);
-    const result = await signInWithGoogle();
-    setLoading(false);
-
-    if (result.error) {
-      showAlert({ title: "Ops!", message: result.error });
+    setGoogleLoading(true);
+    try {
+      const result = await signInWithGoogle();
+      if (result.error) {
+        showAlert({ title: "Ops!", message: result.error });
+      }
+    } finally {
+      setGoogleLoading(false);
     }
   }
 
@@ -123,12 +129,15 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <KeyboardAwareScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          justifyContent: "center",
-          padding: spacing["2xl"],
-          gap: spacing.xl,
-        }}
+        contentContainerStyle={[
+          {
+            flexGrow: 1,
+            justifyContent: "center",
+            padding: spacing["2xl"],
+            gap: spacing.xl,
+          },
+          desktopContained(isDesktop, 480),
+        ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
@@ -177,7 +186,8 @@ export default function LoginScreen() {
             onPress={() => {
               void handleGoogleLogin();
             }}
-            loading={loading}
+            loading={googleLoading}
+            disabled={emailLoading || googleLoading}
             style={{
               width: "100%",
               backgroundColor: theme.colors.surfaceElevated,
@@ -273,7 +283,8 @@ export default function LoginScreen() {
             onPress={() => {
               void handleLogin();
             }}
-            loading={loading}
+            loading={emailLoading}
+            disabled={emailLoading || googleLoading}
           />
 
           <Pressable

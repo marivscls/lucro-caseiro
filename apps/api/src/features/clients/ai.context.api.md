@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Gerenciar o cadastro de clientes do negocio caseiro, permitindo registrar nome, telefone, endereco, aniversario, notas e tags. Tambem oferece busca por aniversariantes do mes e formatacao de telefone para WhatsApp.
+Gerenciar o cadastro de clientes do negocio, permitindo registrar nome, telefone, endereco, aniversario, notas e tags. Tambem oferece busca por aniversariantes do mes e formatacao de telefone para WhatsApp.
 
 ## Non-goals
 

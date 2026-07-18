@@ -1,0 +1,41 @@
+{
+  "compiled_at": "2026-07-18T18:00:42.198309600+00:00",
+  "description": "Materialized from a compile candidate sequence.",
+  "id": "live-read-a5d9714cd3",
+  "name": "Live read fan-out (3->1): 598bb59c-8633-4a42-97f9-092e, 5b0e978b-91d0-4ac9-b609-9f97, +1",
+  "origin": "live",
+  "recipe": {
+    "name": "Live read fan-out (3->1): 598bb59c-8633-4a42-97f9-092e, 5b0e978b-91d0-4ac9-b609-9f97, +1",
+    "outputs": {
+      "item_1": "item_1.output",
+      "item_2": "item_2.output",
+      "item_3": "item_3.output"
+    },
+    "recipe": {
+      "items": [
+        {
+          "id": "598bb59c-8633-4a42-97f9-092e22af8e7d"
+        },
+        {
+          "id": "5b0e978b-91d0-4ac9-b609-9f97aa7a35c8"
+        },
+        {
+          "id": "46967f88-c1d5-402e-99b0-8912793e3dda"
+        }
+      ],
+      "kind": "fan_out",
+      "node_prefix": "item_",
+      "tool": "read"
+    },
+    "tools": {
+      "read": {
+        "adapter": "harness"
+      }
+    },
+    "version": "0"
+  },
+  "schema": 2,
+  "source": "workspace",
+  "status": "ready",
+  "version": 1
+}

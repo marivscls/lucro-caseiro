@@ -11,6 +11,9 @@
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@lucro-caseiro/brands": "workspace:*"
+  },
   "peerDependencies": {
     "react": "19.1.0",
     "react-native": "0.81.5"

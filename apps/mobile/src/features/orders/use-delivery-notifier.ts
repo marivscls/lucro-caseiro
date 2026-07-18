@@ -1,5 +1,6 @@
 import * as Notifications from "expo-notifications";
 import { useEffect } from "react";
+import { Platform } from "react-native";
 
 import { NOTIFICATION_TYPES } from "../../shared/hooks/notification-types";
 import { useNotificationEnabled } from "../../shared/hooks/notification-prefs";
@@ -49,14 +50,14 @@ async function maybeNotify(count: number): Promise<void> {
  * atrasadas), no máximo uma vez por dia. Respeita a preferência "Lembretes de
  * entrega": desligada, cancela os lembretes já agendados e não dispara nada.
  */
-export function useDeliveryNotifier(): void {
+export function useDeliveryNotifier(brandEnabled = true): void {
   const { data: orders } = useOrders();
   const enabled = useNotificationEnabled(NOTIFICATION_TYPES.DELIVERY);
 
   useEffect(() => {
-    if (!orders) return;
+    if (Platform.OS === "web" || !orders) return;
 
-    if (!enabled) {
+    if (!brandEnabled || !enabled) {
       // Desligado: remove os lembretes por encomenda já agendados.
       for (const order of orders) {
         void cancelOrderReminder(order.id);
@@ -70,5 +71,5 @@ export function useDeliveryNotifier(): void {
     for (const order of orders) {
       void scheduleOrderReminder(order);
     }
-  }, [orders, enabled]);
+  }, [orders, enabled, brandEnabled]);
 }

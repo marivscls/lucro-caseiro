@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import { View } from "react-native";
 
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
+import { desktopAction, desktopContained } from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { SupplierSelector } from "../../suppliers/components/supplier-selector";
 import { alertError, alertValidation } from "../../../shared/utils/alerts";
 import {
@@ -24,6 +26,7 @@ function todayBR(): string {
 
 export function CreatePurchaseForm({ onSuccess }: Readonly<CreatePurchaseFormProps>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const [supplierId, setSupplierId] = useState<string | null>(null);
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
@@ -70,7 +73,10 @@ export function CreatePurchaseForm({ onSuccess }: Readonly<CreatePurchaseFormPro
 
   return (
     <KeyboardAwareScrollView
-      contentContainerStyle={{ padding: spacing.xl, paddingBottom: 80, gap: spacing.lg }}
+      contentContainerStyle={[
+        { padding: spacing.xl, paddingBottom: 80, gap: spacing.lg },
+        desktopContained(isDesktop, 720),
+      ]}
     >
       <Typography variant="h2">Nova compra</Typography>
 
@@ -155,6 +161,7 @@ export function CreatePurchaseForm({ onSuccess }: Readonly<CreatePurchaseFormPro
           void handleSubmit();
         }}
         loading={createPurchase.isPending}
+        style={desktopAction(isDesktop)}
       />
     </KeyboardAwareScrollView>
   );

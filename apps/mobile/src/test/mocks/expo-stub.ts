@@ -17,5 +17,7 @@ export function useLocalSearchParams() {
 
 export const Stack = { Screen: () => null };
 export const Link = () => null;
+export const maybeCompleteAuthSession = vi.fn();
+export const openAuthSessionAsync = vi.fn();
 
 export default {};

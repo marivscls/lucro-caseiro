@@ -231,7 +231,77 @@ export const initialMarketingResources: MarketingResourceInput[] = [
       metric: "primeiro produto calculado",
     },
   },
+  {
+    kind: "campaign",
+    slug: "piloto-midia-negocios-ativados",
+    title: "Piloto de mídia: negócios ativados",
+    summary:
+      "Teste pequeno, liberado somente depois de funil, ficha da loja, calculadora e entrevistas estarem validados.",
+    status: "planned",
+    data: {
+      objective: "activated_business",
+      optimizationMetric: "cost_per_activated_business",
+      audience: "confeiteiras-iniciantes",
+      destination: "/landing/calculadora",
+      utm: {
+        source: "meta",
+        medium: "paid_social",
+        campaign: "piloto_negocios_ativados",
+      },
+      budget: "definir antes de ativar",
+      readiness: [
+        "eventos do funil validados em produção",
+        "ficha da Google Play publicada sem Premium antigo",
+        "calculadora pública validada",
+        "10 entrevistas concluídas e sintetizadas",
+      ],
+      stopRule: "não escalar sem negócios ativados atribuídos",
+    },
+  },
 ];
+
+const interviewSegments = [
+  "confeiteiras-iniciantes",
+  "confeiteiras-iniciantes",
+  "marmitas-e-alimentos",
+  "marmitas-e-alimentos",
+  "artesaos-e-personalizados",
+  "artesaos-e-personalizados",
+  "beleza-e-servicos",
+  "beleza-e-servicos",
+  "empreendedoras-organizando-negocio",
+  "empreendedoras-organizando-negocio",
+] as const;
+
+interviewSegments.forEach((audience, index) => {
+  initialMarketingResources.push({
+    kind: "interview",
+    slug: `entrevista-${String(index + 1).padStart(2, "0")}`,
+    title: `Entrevista ${String(index + 1).padStart(2, "0")} — ${audience}`,
+    summary:
+      "Conversa de descoberta sobre preço, organização, linguagem e decisão de teste.",
+    status: "planned",
+    data: {
+      audience,
+      participant: "a recrutar",
+      consent: "pendente",
+      durationMinutes: 30,
+      script: [
+        "Conte sobre a última vez que precisou definir ou revisar um preço.",
+        "Como fez a conta e o que foi mais difícil?",
+        "Que custos costuma esquecer ou ter dúvida se entram?",
+        "O que acontece depois que decide o preço até concluir uma venda?",
+        "Quais ferramentas usa hoje e onde precisa repetir informação?",
+        "O que faria você testar ou abandonar uma solução como o Lucro Caseiro?",
+      ],
+      literalQuotes: [],
+      pains: [],
+      objections: [],
+      currentAlternatives: [],
+      evidence: "",
+    },
+  });
+});
 
 const weeklyIdeas = [
   [

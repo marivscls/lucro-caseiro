@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta
+      name="description"
+      content="Precifique, venda e organize o seu negócio em um só lugar."
+    />
+    <meta name="theme-color" content="#C4707E" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Lucro Caseiro" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="/icon-192.png?favicon=20260718"
+    />
+    <title>%WEB_TITLE%</title>
+    <style id="expo-reset">
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: #fffaf8;
+      }
+
+      input,
+      textarea {
+        margin: 0;
+        border: 0;
+        outline: 0;
+      }
+
+      input:focus-visible,
+      textarea:focus-visible {
+        outline: 2px solid #c4707e;
+        outline-offset: -2px;
+      }
+
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <noscript>Ative o JavaScript para usar o Lucro Caseiro.</noscript>
+    <div id="root"></div>
+    <script>
+      window.addEventListener("load", function () {
+        var isDevelopment = Array.from(document.scripts).some(function (script) {
+          return script.src.includes("dev=true");
+        });
+
+        if ("serviceWorker" in navigator && !isDevelopment) {
+          navigator.serviceWorker.register("/sw.js").catch(function () {
+            // A aplicação continua funcionando online se o navegador bloquear o PWA.
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

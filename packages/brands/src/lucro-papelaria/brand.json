@@ -1,0 +1,31 @@
+{
+  "id": "lucro-papelaria",
+  "appName": "Lucro na Papelaria",
+  "slug": "lucro-papelaria",
+  "scheme": "lucropapelaria",
+  "iosBundleId": "com.lucropapelaria.app",
+  "androidPackage": "br.com.orionseven.lucropapelaria",
+  "easProjectId": "5fdcb3d0-66ab-4d90-99f8-c84f42906cdd",
+  "theme": {
+    "primary": "#2E7D5B",
+    "primaryLight": "#4CAF7D",
+    "primaryDark": "#1F5C41",
+    "primarySoft": "#E4F0E9",
+    "primarySoftDark": "#26332D",
+    "background": "#FAF7F0",
+    "backgroundDark": "#1E2422"
+  },
+  "copy": {
+    "productNoun": "produto",
+    "productNounPlural": "produtos",
+    "saleLabel": "Registrar venda",
+    "stockLabel": "Estoque",
+    "revenueLabel": "Faturamento"
+  },
+  "features": {
+    "estoque": true,
+    "agendamento": false,
+    "catalogoCores": true,
+    "fichaTecnica": false
+  }
+}

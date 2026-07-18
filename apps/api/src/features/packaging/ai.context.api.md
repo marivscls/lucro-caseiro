@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Gerenciar o catalogo de embalagens usadas no negocio caseiro (caixas, sacolas, potes, filmes, etiquetas, etc.), incluindo custo unitario e fornecedor. Permite vincular embalagens a produtos via tabela de associacao.
+Gerenciar o catalogo de embalagens usadas no negocio (caixas, sacolas, potes, filmes, etiquetas, etc.), incluindo custo unitario e fornecedor. Permite vincular embalagens a produtos via tabela de associacao.
 
 ## Non-goals
 

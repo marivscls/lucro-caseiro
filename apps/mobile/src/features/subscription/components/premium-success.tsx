@@ -3,10 +3,11 @@ import type { BillingPeriod, PaidPlan } from "@lucro-caseiro/contracts";
 import { PLAN_LABELS, PLAN_PRICING } from "@lucro-caseiro/contracts";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef } from "react";
-import { Animated, Modal, View } from "react-native";
+import { Animated, View } from "react-native";
 
 import { useProfile } from "../hooks";
 import { TIER_BENEFITS } from "../plan-benefits";
+import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
 
 interface PremiumSuccessProps {
   readonly visible: boolean;
@@ -70,7 +71,12 @@ export function PremiumSuccess({ visible, onClose }: PremiumSuccessProps) {
   }
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <ResponsiveOverlayModal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
       <View
         style={{
           flex: 1,
@@ -176,6 +182,6 @@ export function PremiumSuccess({ visible, onClose }: PremiumSuccessProps) {
           />
         </Animated.View>
       </View>
-    </Modal>
+    </ResponsiveOverlayModal>
   );
 }

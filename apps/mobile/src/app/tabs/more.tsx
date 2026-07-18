@@ -1,12 +1,22 @@
-import { Card, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import {
+  Card,
+  fontSizes,
+  iconSizes,
+  Typography,
+  useTheme,
+  spacing,
+  radii,
+} from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
-import { Image, ScrollView, View } from "react-native";
+import { Image, ScrollView, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { avatarPastel } from "../../features/clients/components/avatar-colors";
 import { useProfile } from "../../features/subscription/hooks";
 import { useAdminAnalyticsAccess } from "../../features/analytics/hooks";
+import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 
 // Destaque no topo do "Mais" (ADR-0006): funções de uso diário que perderam
 // atalho na tab bar (Clientes) ou que merecem acesso rápido (Financeiro,
@@ -110,188 +120,234 @@ const menuItems = [
 export default function MoreScreen() {
   const router = useRouter();
   const { theme } = useTheme();
+  const { width } = useWindowDimensions();
+  const isDesktop = useDesktopLayout();
   const { data: profile } = useProfile();
   const { data: adminAccess } = useAdminAnalyticsAccess();
 
   const userName = profile?.name ?? "Minha conta";
   const businessName = profile?.businessName ?? "Ver perfil e assinatura";
+  const avatarTint = avatarPastel(userName || "?", theme.mode);
+  const usesGrid = width >= 700;
+  const contentWidth = Math.min(width - spacing.xl * 2, 1280);
+  const gridColumns = Math.max(
+    1,
+    Math.min(4, Math.floor((contentWidth + spacing.md) / (280 + spacing.md))),
+  );
+  const dailyColumns = Math.min(gridColumns, dailyItems.length);
+  const dailyCardStyle = usesGrid
+    ? { width: (contentWidth - spacing.md * (dailyColumns - 1)) / dailyColumns }
+    : { width: "100%" as const };
+  const menuCardStyle = usesGrid
+    ? { width: (contentWidth - spacing.md * (gridColumns - 1)) / gridColumns }
+    : { width: "100%" as const };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.md }}>
-        <Typography variant="h1" style={{ marginBottom: spacing.sm }}>
-          Mais opções
-        </Typography>
+      <ScrollView contentContainerStyle={{ padding: spacing.xl, alignItems: "center" }}>
+        <View style={{ width: "100%", maxWidth: 1280, gap: spacing.md }}>
+          {!isDesktop && (
+            <Typography variant="h1" style={{ marginBottom: spacing.sm }}>
+              Mais opções
+            </Typography>
+          )}
 
-        {/* Account header */}
-        <Card variant="elevated" onPress={() => router.push("/settings")}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
-            <View
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: radii.full,
-                backgroundColor: theme.colors.primary,
-                alignItems: "center",
-                justifyContent: "center",
-                overflow: "hidden",
-              }}
-            >
-              {profile?.avatarUrl ? (
-                <Image
-                  source={{ uri: profile.avatarUrl }}
-                  style={{ width: 48, height: 48 }}
-                />
-              ) : (
-                <Typography variant="h3" color={theme.colors.textOnPrimary}>
-                  {userName.charAt(0).toUpperCase()}
-                </Typography>
-              )}
-            </View>
-            <View style={{ flex: 1 }}>
-              <Typography variant="h3">{userName}</Typography>
-              <Typography
-                variant="body"
-                color={theme.colors.textSecondary}
-                style={{ fontSize: 14 }}
+          {/* Account header */}
+          <Card variant="elevated" onPress={() => router.push("/settings")}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+              <View
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: radii.full,
+                  backgroundColor: avatarTint.bg,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  overflow: "hidden",
+                }}
               >
-                {businessName}
-              </Typography>
+                {profile?.avatarUrl ? (
+                  <Image
+                    source={{ uri: profile.avatarUrl }}
+                    style={{ width: 48, height: 48 }}
+                  />
+                ) : (
+                  <Typography variant="h3" color={avatarTint.fg}>
+                    {userName.charAt(0).toUpperCase()}
+                  </Typography>
+                )}
+              </View>
+              <View style={{ flex: 1 }}>
+                <Typography variant="h3">{userName}</Typography>
+                <Typography
+                  variant="body"
+                  color={theme.colors.textSecondary}
+                  style={{ fontSize: fontSizes.sm }}
+                >
+                  {businessName}
+                </Typography>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={iconSizes.sm}
+                color={theme.colors.textSecondary}
+              />
             </View>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={theme.colors.textSecondary}
-            />
+          </Card>
+
+          <Typography
+            variant="caption"
+            color={theme.colors.textSecondary}
+            style={{
+              marginTop: spacing.sm,
+              textTransform: "uppercase",
+              letterSpacing: 0.4,
+            }}
+          >
+            Do dia a dia
+          </Typography>
+
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: spacing.md,
+            }}
+          >
+            {dailyItems.map((item) => (
+              <Card
+                key={item.title}
+                variant="elevated"
+                onPress={() => router.push(item.route)}
+                style={dailyCardStyle}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: spacing.md,
+                    minHeight: 56,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 52,
+                      height: 52,
+                      borderRadius: radii.lg,
+                      backgroundColor: theme.colors.surface,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Ionicons
+                      name={item.icon}
+                      size={iconSizes.md}
+                      color={theme.colors.textSecondary}
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Typography variant="h3" style={{ fontSize: fontSizes.lg }}>
+                      {item.title}
+                    </Typography>
+                    <Typography
+                      variant="body"
+                      color={theme.colors.textSecondary}
+                      style={{ fontSize: fontSizes.sm }}
+                    >
+                      {item.description}
+                    </Typography>
+                  </View>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={iconSizes.md}
+                    color={theme.colors.textSecondary}
+                  />
+                </View>
+              </Card>
+            ))}
           </View>
-        </Card>
 
-        <Typography
-          variant="caption"
-          color={theme.colors.textSecondary}
-          style={{
-            marginTop: spacing.sm,
-            textTransform: "uppercase",
-            letterSpacing: 0.4,
-          }}
-        >
-          Do dia a dia
-        </Typography>
-
-        {dailyItems.map((item) => (
-          <Card
-            key={item.title}
-            variant="elevated"
-            onPress={() => router.push(item.route)}
+          <Typography
+            variant="caption"
+            color={theme.colors.textSecondary}
+            style={{
+              marginTop: spacing.sm,
+              textTransform: "uppercase",
+              letterSpacing: 0.4,
+            }}
           >
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 14,
-                minHeight: 56,
-              }}
-            >
-              <View
-                style={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: 16,
-                  backgroundColor: "rgba(196, 112, 126, 0.14)",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Ionicons name={item.icon} size={28} color={theme.colors.primary} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Typography variant="h3" style={{ fontSize: 18 }}>
-                  {item.title}
-                </Typography>
-                <Typography
-                  variant="body"
-                  color={theme.colors.textSecondary}
-                  style={{ fontSize: 14 }}
-                >
-                  {item.description}
-                </Typography>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={22}
-                color={theme.colors.textSecondary}
-              />
-            </View>
-          </Card>
-        ))}
+            Tudo
+          </Typography>
 
-        <Typography
-          variant="caption"
-          color={theme.colors.textSecondary}
-          style={{
-            marginTop: spacing.sm,
-            textTransform: "uppercase",
-            letterSpacing: 0.4,
-          }}
-        >
-          Tudo
-        </Typography>
-
-        {[
-          ...menuItems,
-          ...(adminAccess?.allowed
-            ? [
-                {
-                  title: "Métricas do produto",
-                  description: "Instalação, ativação e retenção",
-                  icon: "analytics-outline" as const,
-                  route: "/admin-metrics" as const,
-                },
-              ]
-            : []),
-        ].map((item) => (
-          <Card
-            key={item.title}
-            variant="elevated"
-            onPress={() => router.push(item.route)}
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: spacing.md,
+            }}
           >
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 14,
-              }}
-            >
-              <View
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 12,
-                  backgroundColor: theme.colors.surfaceElevated,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
+            {[
+              ...menuItems,
+              ...(adminAccess?.allowed
+                ? [
+                    {
+                      title: "Métricas do produto",
+                      description: "Instalação, ativação e retenção",
+                      icon: "analytics-outline" as const,
+                      route: "/admin-metrics" as const,
+                    },
+                  ]
+                : []),
+            ].map((item) => (
+              <Card
+                key={item.title}
+                variant="elevated"
+                onPress={() => router.push(item.route)}
+                style={menuCardStyle}
               >
-                <Ionicons name={item.icon} size={24} color={theme.colors.primary} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Typography variant="h3">{item.title}</Typography>
-                <Typography
-                  variant="body"
-                  color={theme.colors.textSecondary}
-                  style={{ fontSize: 14 }}
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: spacing.md,
+                  }}
                 >
-                  {item.description}
-                </Typography>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={20}
-                color={theme.colors.textSecondary}
-              />
-            </View>
-          </Card>
-        ))}
+                  <View
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: radii.md,
+                      backgroundColor: theme.colors.surface,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Ionicons
+                      name={item.icon}
+                      size={iconSizes.md}
+                      color={theme.colors.textSecondary}
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Typography variant="h3">{item.title}</Typography>
+                    <Typography
+                      variant="body"
+                      color={theme.colors.textSecondary}
+                      style={{ fontSize: fontSizes.sm }}
+                    >
+                      {item.description}
+                    </Typography>
+                  </View>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={iconSizes.sm}
+                    color={theme.colors.textSecondary}
+                  />
+                </View>
+              </Card>
+            ))}
+          </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

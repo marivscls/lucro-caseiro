@@ -1,14 +1,22 @@
-﻿import { formatCurrency } from "../../shared/utils/format";
-import type { Product, Client, PaymentMethod, SaleUnit } from "@lucro-caseiro/contracts";
+import { formatCurrency } from "../../shared/utils/format";
+import type {
+  Product,
+  ProductVariation,
+  Client,
+  PaymentMethod,
+  SaleUnit,
+} from "@lucro-caseiro/contracts";
 import { useRouter } from "expo-router";
 import {
   Button,
   Card,
   EmptyState,
   fonts,
+  iconSizes,
   Input,
   ModalHeader,
   Typography,
+  useBrand,
   useTheme,
   spacing,
   radii,
@@ -20,7 +28,6 @@ import {
   FlatList,
   Image,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -30,6 +37,7 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { avatarPastel } from "../../features/clients/components/avatar-colors";
 import { useClients } from "../../features/clients/hooks";
 import { CreateProductForm } from "../../features/products/components/create-product-form";
 import { useProducts } from "../../features/products/hooks";
@@ -44,6 +52,15 @@ import { ApiError } from "../../shared/utils/api-client";
 import { maybeAskForReview } from "../../shared/utils/store-review";
 import { showAlert } from "../../shared/components/alert-store";
 import { BarcodeScanner } from "../../shared/components/barcode-scanner";
+import {
+  ResponsiveModal,
+  ResponsiveOverlayModal,
+} from "../../shared/components/responsive-modal-surface";
+import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
+import {
+  desktopContained,
+  desktopModalSurface,
+} from "../../shared/layout/desktop-density";
 import { alertValidation, alertError } from "../../shared/utils/alerts";
 import productsEmpty from "../../assets/products-empty.png";
 
@@ -55,6 +72,8 @@ interface CartItem {
   photoUrl: string | null;
   unitPrice: number;
   quantity: number;
+  variationId?: string;
+  variationName?: string;
   saleUnit: SaleUnit;
 }
 
@@ -124,6 +143,28 @@ function getSurfaceStyle(theme: ReturnType<typeof useTheme>["theme"]): ViewStyle
   };
 }
 
+/** Avatar de cliente no seletor: mesma cor pastel (hash por nome) da lista de clientes. */
+function ClientPickerAvatar({ name }: Readonly<{ name: string }>) {
+  const { theme } = useTheme();
+  const pastel = avatarPastel(name, theme.mode);
+  return (
+    <View
+      style={{
+        width: 48,
+        height: 48,
+        borderRadius: radii.full,
+        backgroundColor: pastel.bg,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Typography variant="bodyBold" color={pastel.fg}>
+        {(name.trim().charAt(0) || "?").toUpperCase()}
+      </Typography>
+    </View>
+  );
+}
+
 function SearchBox({
   placeholder,
   value,
@@ -178,7 +219,7 @@ function SearchBox({
           opacity: onTrailingPress ? 1 : 0.7,
         }}
       >
-        <Ionicons name={trailingIcon} size={24} color={theme.colors.primaryLight} />
+        <Ionicons name={trailingIcon} size={24} color={theme.colors.textSecondary} />
       </Pressable>
     </View>
   );
@@ -254,12 +295,14 @@ function QuickActionCard({
           width: 40,
           height: 40,
           borderRadius: radii.full,
-          backgroundColor: theme.colors.primary,
+          backgroundColor: theme.colors.surface,
+          borderWidth: 1,
+          borderColor: theme.colors.border,
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <Ionicons name={icon} size={22} color={theme.colors.textOnPrimary} />
+        <Ionicons name={icon} size={22} color={theme.colors.textSecondary} />
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Typography variant="bodyBold" color={theme.colors.text} numberOfLines={2}>
@@ -275,6 +318,8 @@ function QuickActionCard({
 
 export default function NewSaleScreen() {
   const { theme } = useTheme();
+  const { copy } = useBrand();
+  const isDesktop = useDesktopLayout();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { show: showInterstitial } = useInterstitial();
@@ -297,7 +342,9 @@ export default function NewSaleScreen() {
   const [barcodeInput, setBarcodeInput] = useState("");
   // Produto por peso (kg) em edicao de quantidade + peso digitado (em kg).
   const [weightProduct, setWeightProduct] = useState<Product | null>(null);
+  const [weightVariation, setWeightVariation] = useState<ProductVariation | null>(null);
   const [weightInput, setWeightInput] = useState("");
+  const [variationProduct, setVariationProduct] = useState<Product | null>(null);
 
   const { data: productsData, isLoading: loadingProducts } = useProducts();
   const { data: clientsData, isLoading: loadingClients } = useClients({
@@ -310,19 +357,28 @@ export default function NewSaleScreen() {
 
   const cartTotal = computeCartTotal(cart);
 
-  function addToCart(product: Product) {
+  function addToCart(product: Product, variation?: ProductVariation) {
+    if ((product.variations?.length ?? 0) > 0 && !variation) {
+      setVariationProduct(product);
+      return;
+    }
     // Produtos por peso (kg) abrem um campo pra digitar o peso em kg.
     if (product.saleUnit === "kg") {
-      const existing = cart.find((i) => i.productId === product.id);
+      const existing = cart.find(
+        (i) => i.productId === product.id && i.variationId === variation?.id,
+      );
       setWeightProduct(product);
+      setWeightVariation(variation ?? null);
       setWeightInput(existing ? String(existing.quantity).replace(".", ",") : "");
       return;
     }
     setCart((prev) => {
-      const existing = prev.find((i) => i.productId === product.id);
+      const existing = prev.find(
+        (i) => i.productId === product.id && i.variationId === variation?.id,
+      );
       if (existing) {
         return prev.map((i) =>
-          i.productId === product.id
+          i.productId === product.id && i.variationId === variation?.id
             ? { ...i, photoUrl: product.photoUrl, quantity: i.quantity + 1 }
             : i,
         );
@@ -336,6 +392,8 @@ export default function NewSaleScreen() {
           unitPrice: product.salePrice,
           quantity: 1,
           saleUnit: "unit",
+          variationId: variation?.id,
+          variationName: variation?.name,
         },
       ];
     });
@@ -350,7 +408,9 @@ export default function NewSaleScreen() {
     }
     const product = weightProduct;
     setCart((prev) => {
-      const others = prev.filter((i) => i.productId !== product.id);
+      const others = prev.filter(
+        (i) => i.productId !== product.id || i.variationId !== weightVariation?.id,
+      );
       return [
         ...others,
         {
@@ -360,10 +420,13 @@ export default function NewSaleScreen() {
           unitPrice: product.salePrice,
           quantity: weight,
           saleUnit: "kg",
+          variationId: weightVariation?.id,
+          variationName: weightVariation?.name,
         },
       ];
     });
     setWeightProduct(null);
+    setWeightVariation(null);
     setWeightInput("");
   }
 
@@ -382,7 +445,9 @@ export default function NewSaleScreen() {
   }
 
   function getCartQuantity(productId: string): number {
-    return cart.find((i) => i.productId === productId)?.quantity ?? 0;
+    return cart
+      .filter((item) => item.productId === productId)
+      .reduce((total, item) => total + item.quantity, 0);
   }
 
   function getCartItem(productId: string): CartItem | undefined {
@@ -409,6 +474,8 @@ export default function NewSaleScreen() {
     setShowClientFilter(false);
     setClientFilter("all");
     setWeightProduct(null);
+    setWeightVariation(null);
+    setVariationProduct(null);
     setWeightInput("");
   }
 
@@ -433,6 +500,8 @@ export default function NewSaleScreen() {
         productId: i.productId,
         quantity: i.quantity,
         unitPrice: i.unitPrice,
+        variationId: i.variationId,
+        variationName: i.variationName,
       })),
     };
 
@@ -525,29 +594,33 @@ export default function NewSaleScreen() {
           justifyContent: "space-between",
         }}
       >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-          <Pressable
-            onPress={() =>
-              step > 1 ? setStep((s) => (s - 1) as Step) : router.push("/tabs/sales")
-            }
-            accessibilityRole="button"
-            accessibilityLabel="Voltar"
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: radii.full,
-              backgroundColor:
-                theme.mode === "dark"
-                  ? "rgba(255, 255, 255, 0.05)"
-                  : theme.colors.surface,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Ionicons name="arrow-back" size={25} color={theme.colors.textSecondary} />
-          </Pressable>
-          <Typography variant="h2">Nova Venda</Typography>
-        </View>
+        {!isDesktop ? (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+            <Pressable
+              onPress={() =>
+                step > 1 ? setStep((s) => (s - 1) as Step) : router.push("/tabs/sales")
+              }
+              accessibilityRole="button"
+              accessibilityLabel="Voltar"
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: radii.full,
+                backgroundColor:
+                  theme.mode === "dark"
+                    ? "rgba(255, 255, 255, 0.05)"
+                    : theme.colors.surface,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Ionicons name="arrow-back" size={25} color={theme.colors.textSecondary} />
+            </Pressable>
+            <Typography variant="h2">Nova Venda</Typography>
+          </View>
+        ) : (
+          <View style={{ flex: 1 }} />
+        )}
         <Pressable
           onPress={handleHelpPress}
           accessibilityRole="button"
@@ -641,7 +714,7 @@ export default function NewSaleScreen() {
                 <Ionicons
                   name="pricetag-outline"
                   size={22}
-                  color={theme.colors.primaryLight}
+                  color={theme.colors.textSecondary}
                 />
                 <Typography variant="bodyBold">Produtos frequentes</Typography>
               </View>
@@ -650,7 +723,7 @@ export default function NewSaleScreen() {
                 accessibilityRole="button"
                 hitSlop={10}
               >
-                <Typography variant="bodyBold" color={theme.colors.primaryLight}>
+                <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
                   Ver todos
                 </Typography>
               </Pressable>
@@ -699,10 +772,14 @@ export default function NewSaleScreen() {
           {!loadingProducts && !!filteredProducts?.length && (
             <ScrollView
               style={{ flex: 1 }}
-              contentContainerStyle={{
-                paddingHorizontal: spacing.xl,
-                paddingBottom: cart.length > 0 ? FIXED_ACTION_SCROLL_PADDING : spacing.lg,
-              }}
+              contentContainerStyle={[
+                {
+                  paddingHorizontal: spacing.xl,
+                  paddingBottom:
+                    cart.length > 0 ? FIXED_ACTION_SCROLL_PADDING : spacing.lg,
+                },
+                desktopContained(isDesktop),
+              ]}
               showsVerticalScrollIndicator={false}
             >
               <View
@@ -777,7 +854,9 @@ export default function NewSaleScreen() {
                           position: "absolute",
                           top: spacing.sm,
                           right: spacing.sm,
-                          backgroundColor: theme.colors.primary,
+                          backgroundColor: theme.colors.surface,
+                          borderWidth: 1,
+                          borderColor: theme.colors.border,
                           borderRadius: radii.full,
                           width: 28,
                           height: 28,
@@ -785,11 +864,7 @@ export default function NewSaleScreen() {
                           justifyContent: "center",
                         }}
                       >
-                        <Ionicons
-                          name="add"
-                          size={18}
-                          color={theme.colors.textOnPrimary}
-                        />
+                        <Ionicons name="add" size={18} color={theme.colors.text} />
                       </Pressable>
                       <Typography
                         variant="bodyBold"
@@ -810,7 +885,7 @@ export default function NewSaleScreen() {
                             position: "absolute",
                             top: spacing.sm,
                             right: 44,
-                            backgroundColor: theme.colors.primary,
+                            backgroundColor: theme.colors.primaryBg,
                             borderRadius: radii.full,
                             minWidth: 24,
                             height: 24,
@@ -822,7 +897,7 @@ export default function NewSaleScreen() {
                         >
                           <Typography
                             variant="caption"
-                            color={theme.colors.textOnPrimary}
+                            color={theme.colors.primaryStrong}
                             style={{ fontFamily: fonts.bold }}
                           >
                             {cartItem ? cartQuantityLabel(cartItem) : qty}
@@ -865,9 +940,7 @@ export default function NewSaleScreen() {
                   flexDirection: "row",
                   alignItems: "center",
                   gap: spacing.sm,
-                  backgroundColor: "rgba(196, 112, 126, 0.16)",
-                  borderWidth: 1,
-                  borderColor: "rgba(196, 112, 126, 0.35)",
+                  ...getSurfaceStyle(theme),
                 }}
               >
                 <View
@@ -875,7 +948,7 @@ export default function NewSaleScreen() {
                     width: 38,
                     height: 38,
                     borderRadius: radii.full,
-                    backgroundColor: "rgba(196, 112, 126, 0.2)",
+                    backgroundColor: theme.colors.surface,
                     alignItems: "center",
                     justifyContent: "center",
                   }}
@@ -883,7 +956,7 @@ export default function NewSaleScreen() {
                   <Ionicons
                     name="sparkles-outline"
                     size={20}
-                    color={theme.colors.primaryLight}
+                    color={theme.colors.textSecondary}
                   />
                 </View>
                 <View style={{ flex: 1 }}>
@@ -916,32 +989,33 @@ export default function NewSaleScreen() {
               flexDirection: "row",
               alignItems: "center",
               gap: spacing.md,
-              backgroundColor: theme.colors.primary,
               opacity: pressed ? 0.86 : 1,
-              shadowColor: theme.colors.primary,
-              shadowOffset: { width: 0, height: 10 },
-              shadowOpacity: 0.22,
-              shadowRadius: 18,
-              elevation: 4,
+              ...getSurfaceStyle(theme),
             })}
           >
-            <Ionicons
-              name="person-outline"
-              size={32}
-              color={theme.colors.textOnPrimary}
-            />
+            <View
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: radii.full,
+                backgroundColor: theme.colors.surface,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Ionicons
+                name="person-outline"
+                size={iconSizes.md}
+                color={theme.colors.textSecondary}
+              />
+            </View>
             <View style={{ flex: 1, minWidth: 0 }}>
-              <Typography
-                variant="bodyBold"
-                color={theme.colors.textOnPrimary}
-                numberOfLines={1}
-              >
+              <Typography variant="bodyBold" color={theme.colors.text} numberOfLines={1}>
                 Sem cliente (avulso)
               </Typography>
               <Typography
                 variant="body"
-                color={theme.colors.textOnPrimary}
-                style={{ opacity: 0.72 }}
+                color={theme.colors.textSecondary}
                 numberOfLines={1}
               >
                 Continuar sem selecionar um cliente
@@ -950,7 +1024,7 @@ export default function NewSaleScreen() {
             <Ionicons
               name="chevron-forward"
               size={24}
-              color={theme.colors.textOnPrimary}
+              color={theme.colors.textSecondary}
             />
           </Pressable>
 
@@ -981,7 +1055,7 @@ export default function NewSaleScreen() {
               accessibilityRole="button"
               hitSlop={10}
             >
-              <Typography variant="bodyBold" color={theme.colors.primaryLight}>
+              <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
                 Ver todos
               </Typography>
             </Pressable>
@@ -993,10 +1067,10 @@ export default function NewSaleScreen() {
             <FlatList
               data={filteredClients}
               keyExtractor={(item) => item.id}
-              contentContainerStyle={{
-                gap: spacing.sm,
-                paddingBottom: FIXED_ACTION_SCROLL_PADDING,
-              }}
+              contentContainerStyle={[
+                { gap: spacing.sm, paddingBottom: FIXED_ACTION_SCROLL_PADDING },
+                desktopContained(isDesktop),
+              ]}
               renderItem={({ item }: { item: Client }) => (
                 <Pressable
                   onPress={() => {
@@ -1021,20 +1095,7 @@ export default function NewSaleScreen() {
                     },
                   ]}
                 >
-                  <View
-                    style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: radii.full,
-                      backgroundColor: theme.colors.primary,
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
-                      {item.name.charAt(0).toUpperCase()}
-                    </Typography>
-                  </View>
+                  <ClientPickerAvatar name={item.name} />
                   <View style={{ flex: 1 }}>
                     <Typography variant="bodyBold">{item.name}</Typography>
                     {item.phone && (
@@ -1068,23 +1129,23 @@ export default function NewSaleScreen() {
       {step === 3 && (
         <ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={{
-            paddingHorizontal: spacing.xl,
-            gap: spacing.sm,
-            paddingBottom: FIXED_ACTION_SCROLL_PADDING,
-          }}
+          contentContainerStyle={[
+            {
+              paddingHorizontal: spacing.xl,
+              gap: spacing.sm,
+              paddingBottom: FIXED_ACTION_SCROLL_PADDING,
+            },
+            desktopContained(isDesktop),
+          ]}
         >
           {PAYMENT_OPTIONS.map((option) => {
             const isSelected = paymentMethod === option.value;
-            let cardBackgroundColor = theme.colors.surfaceElevated;
-            if (theme.mode === "dark") {
-              cardBackgroundColor = "rgba(44, 36, 32, 0.84)";
-            }
             // Selecionado: fundo OPACO (nunca translúcido) — bg translúcido + a
             // elevation do surface faz o Android pintar uma "caixa branca" atrás.
-            if (isSelected) {
-              cardBackgroundColor = theme.mode === "dark" ? "#3A2D2A" : "#F6E5EA";
-            }
+            // Selecao = fundo rosado suave (primaryBg); demais = neutro.
+            const cardBackgroundColor = isSelected
+              ? theme.colors.primaryBg
+              : theme.colors.surfaceElevated;
             const subtitles: Record<PaymentMethod, string> = {
               pix: "Pagamento instantâneo",
               cash: "Pagamento em espécie",
@@ -1118,8 +1179,8 @@ export default function NewSaleScreen() {
                     height: 48,
                     borderRadius: radii.lg,
                     backgroundColor: isSelected
-                      ? theme.colors.primary
-                      : "rgba(196, 112, 126, 0.28)",
+                      ? theme.colors.primaryBg
+                      : theme.colors.surface,
                     alignItems: "center",
                     justifyContent: "center",
                   }}
@@ -1127,7 +1188,9 @@ export default function NewSaleScreen() {
                   <Ionicons
                     name={option.icon as keyof typeof Ionicons.glyphMap}
                     size={24}
-                    color={theme.colors.textOnPrimary}
+                    color={
+                      isSelected ? theme.colors.primaryStrong : theme.colors.textSecondary
+                    }
                   />
                 </View>
                 <View style={{ flex: 1 }}>
@@ -1137,7 +1200,9 @@ export default function NewSaleScreen() {
                 <Ionicons
                   name={isSelected ? "checkmark-circle" : "chevron-forward"}
                   size={24}
-                  color={theme.colors.primaryLight}
+                  color={
+                    isSelected ? theme.colors.primaryStrong : theme.colors.textSecondary
+                  }
                 />
               </Pressable>
             );
@@ -1158,7 +1223,7 @@ export default function NewSaleScreen() {
                 width: 40,
                 height: 40,
                 borderRadius: radii.full,
-                backgroundColor: "rgba(196, 112, 126, 0.18)",
+                backgroundColor: theme.colors.surface,
                 alignItems: "center",
                 justifyContent: "center",
               }}
@@ -1166,7 +1231,7 @@ export default function NewSaleScreen() {
               <Ionicons
                 name="information-circle-outline"
                 size={22}
-                color={theme.colors.primaryLight}
+                color={theme.colors.textSecondary}
               />
             </View>
             <View style={{ flex: 1 }}>
@@ -1183,11 +1248,14 @@ export default function NewSaleScreen() {
       {step === 4 && (
         <ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={{
-            paddingHorizontal: spacing.xl,
-            gap: spacing.lg,
-            paddingBottom: FIXED_ACTION_SCROLL_PADDING,
-          }}
+          contentContainerStyle={[
+            {
+              paddingHorizontal: spacing.xl,
+              gap: spacing.lg,
+              paddingBottom: FIXED_ACTION_SCROLL_PADDING,
+            },
+            desktopContained(isDesktop),
+          ]}
         >
           <Card style={getSurfaceStyle(theme)}>
             <View
@@ -1206,7 +1274,7 @@ export default function NewSaleScreen() {
                     width: 46,
                     height: 46,
                     borderRadius: radii.full,
-                    backgroundColor: "rgba(196, 112, 126, 0.18)",
+                    backgroundColor: theme.colors.surface,
                     alignItems: "center",
                     justifyContent: "center",
                   }}
@@ -1214,7 +1282,7 @@ export default function NewSaleScreen() {
                   <Ionicons
                     name="bag-check-outline"
                     size={24}
-                    color={theme.colors.primaryLight}
+                    color={theme.colors.textSecondary}
                   />
                 </View>
                 <Typography variant="h3">Itens da venda</Typography>
@@ -1229,17 +1297,17 @@ export default function NewSaleScreen() {
                   flexDirection: "row",
                   alignItems: "center",
                   gap: spacing.xs,
-                  backgroundColor: "rgba(196, 112, 126, 0.12)",
+                  backgroundColor: theme.colors.surface,
                   borderWidth: 1,
-                  borderColor: "rgba(196, 112, 126, 0.28)",
+                  borderColor: theme.colors.border,
                 }}
               >
                 <Ionicons
                   name="pencil-outline"
                   size={15}
-                  color={theme.colors.primaryLight}
+                  color={theme.colors.textSecondary}
                 />
-                <Typography variant="caption" color={theme.colors.primaryLight}>
+                <Typography variant="caption" color={theme.colors.textSecondary}>
                   Editar itens
                 </Typography>
               </Pressable>
@@ -1248,7 +1316,7 @@ export default function NewSaleScreen() {
               const photoUrl = getCartItemPhotoUrl(item);
               return (
                 <View
-                  key={item.productId}
+                  key={`${item.productId}:${item.variationId ?? "default"}`}
                   style={{
                     flexDirection: "row",
                     justifyContent: "space-between",
@@ -1276,7 +1344,7 @@ export default function NewSaleScreen() {
                         height: 58,
                         borderRadius: radii.lg,
                         overflow: "hidden",
-                        backgroundColor: "rgba(196, 112, 126, 0.18)",
+                        backgroundColor: theme.colors.surface,
                         alignItems: "center",
                         justifyContent: "center",
                       }}
@@ -1288,7 +1356,7 @@ export default function NewSaleScreen() {
                           resizeMode="cover"
                         />
                       ) : (
-                        <Typography variant="h3" color={theme.colors.primaryLight}>
+                        <Typography variant="h3" color={theme.colors.textSecondary}>
                           {item.productName.charAt(0).toUpperCase()}
                         </Typography>
                       )}
@@ -1297,6 +1365,9 @@ export default function NewSaleScreen() {
                       <Typography variant="bodyBold" numberOfLines={2}>
                         {item.productName}
                       </Typography>
+                      {item.variationName ? (
+                        <Typography variant="caption">{item.variationName}</Typography>
+                      ) : null}
                       <Typography variant="caption">
                         {item.saleUnit === "kg"
                           ? `${formatWeight(item.quantity)} x ${formatCurrency(item.unitPrice)}/kg`
@@ -1338,7 +1409,7 @@ export default function NewSaleScreen() {
                   width: 48,
                   height: 48,
                   borderRadius: radii.full,
-                  backgroundColor: "rgba(196, 112, 126, 0.18)",
+                  backgroundColor: theme.colors.surface,
                   alignItems: "center",
                   justifyContent: "center",
                 }}
@@ -1346,7 +1417,7 @@ export default function NewSaleScreen() {
                 <Ionicons
                   name="person-outline"
                   size={27}
-                  color={theme.colors.primaryLight}
+                  color={theme.colors.textSecondary}
                 />
               </View>
               <View style={{ flex: 1 }}>
@@ -1372,7 +1443,7 @@ export default function NewSaleScreen() {
               <Ionicons
                 name="chevron-forward"
                 size={24}
-                color={theme.colors.primaryLight}
+                color={theme.colors.textSecondary}
               />
             </View>
           </Card>
@@ -1394,7 +1465,7 @@ export default function NewSaleScreen() {
                     width: 48,
                     height: 48,
                     borderRadius: radii.full,
-                    backgroundColor: "rgba(196, 112, 126, 0.18)",
+                    backgroundColor: theme.colors.surface,
                     alignItems: "center",
                     justifyContent: "center",
                   }}
@@ -1402,7 +1473,7 @@ export default function NewSaleScreen() {
                   <Ionicons
                     name="pricetag-outline"
                     size={27}
-                    color={theme.colors.primaryLight}
+                    color={theme.colors.textSecondary}
                   />
                 </View>
                 <Typography variant="h3">Total da venda</Typography>
@@ -1414,7 +1485,7 @@ export default function NewSaleScreen() {
           </Card>
 
           <Button
-            title="Registrar venda"
+            title={copy.saleLabel}
             size="lg"
             style={{ borderRadius: radii.xl }}
             onPress={() => {
@@ -1454,6 +1525,8 @@ export default function NewSaleScreen() {
             left: spacing.xl,
             right: spacing.xl,
             bottom: FIXED_ACTION_BOTTOM_OFFSET,
+            maxWidth: isDesktop ? 1040 : undefined,
+            marginHorizontal: isDesktop ? "auto" : undefined,
             minHeight: 78,
             flexDirection: "row",
             alignItems: "center",
@@ -1491,6 +1564,8 @@ export default function NewSaleScreen() {
             left: spacing.xl,
             right: spacing.xl,
             bottom: FIXED_ACTION_BOTTOM_OFFSET,
+            maxWidth: isDesktop ? 1040 : undefined,
+            marginHorizontal: isDesktop ? "auto" : undefined,
             minHeight: 78,
             flexDirection: "row",
             alignItems: "center",
@@ -1534,7 +1609,7 @@ export default function NewSaleScreen() {
           setShowBarcodeSearch(true);
         }}
       />
-      <Modal
+      <ResponsiveOverlayModal
         visible={showBarcodeSearch}
         animationType="slide"
         transparent
@@ -1549,19 +1624,25 @@ export default function NewSaleScreen() {
             style={{
               flex: 1,
               backgroundColor: "rgba(0, 0, 0, 0.45)",
-              justifyContent: "flex-end",
+              justifyContent: isDesktop ? "center" : "flex-end",
+              padding: isDesktop ? spacing.xl : 0,
             }}
           >
             <Pressable
               onPress={(event) => event.stopPropagation()}
-              style={{
-                backgroundColor: theme.colors.surface,
-                borderTopLeftRadius: radii["2xl"],
-                borderTopRightRadius: radii["2xl"],
-                padding: spacing.xl,
-                paddingBottom: Math.max(insets.bottom + spacing["3xl"], spacing["5xl"]),
-                gap: spacing.lg,
-              }}
+              style={[
+                {
+                  backgroundColor: theme.colors.surface,
+                  borderTopLeftRadius: radii["2xl"],
+                  borderTopRightRadius: radii["2xl"],
+                  padding: spacing.xl,
+                  paddingBottom: isDesktop
+                    ? spacing.xl
+                    : Math.max(insets.bottom + spacing["3xl"], spacing["5xl"]),
+                  gap: spacing.lg,
+                },
+                desktopModalSurface(isDesktop, 640),
+              ]}
             >
               <View
                 style={{
@@ -1606,8 +1687,9 @@ export default function NewSaleScreen() {
             </Pressable>
           </Pressable>
         </KeyboardAvoidingView>
-      </Modal>
-      <Modal
+      </ResponsiveOverlayModal>
+      <ResponsiveModal
+        desktopMaxWidth={1120}
         visible={showCreateProduct}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -1617,8 +1699,8 @@ export default function NewSaleScreen() {
           <ModalHeader title="Novo produto" onClose={() => setShowCreateProduct(false)} />
           <CreateProductForm onSuccess={() => setShowCreateProduct(false)} />
         </SafeAreaView>
-      </Modal>
-      <Modal
+      </ResponsiveModal>
+      <ResponsiveOverlayModal
         visible={showClientFilter}
         animationType="slide"
         transparent
@@ -1629,19 +1711,25 @@ export default function NewSaleScreen() {
           style={{
             flex: 1,
             backgroundColor: "rgba(0, 0, 0, 0.45)",
-            justifyContent: "flex-end",
+            justifyContent: isDesktop ? "center" : "flex-end",
+            padding: isDesktop ? spacing.xl : 0,
           }}
         >
           <Pressable
             onPress={(event) => event.stopPropagation()}
-            style={{
-              backgroundColor: theme.colors.surface,
-              borderTopLeftRadius: radii["2xl"],
-              borderTopRightRadius: radii["2xl"],
-              padding: spacing.xl,
-              paddingBottom: Math.max(insets.bottom + spacing["3xl"], spacing["5xl"]),
-              gap: spacing.md,
-            }}
+            style={[
+              {
+                backgroundColor: theme.colors.surface,
+                borderTopLeftRadius: radii["2xl"],
+                borderTopRightRadius: radii["2xl"],
+                padding: spacing.xl,
+                paddingBottom: isDesktop
+                  ? spacing.xl
+                  : Math.max(insets.bottom + spacing["3xl"], spacing["5xl"]),
+                gap: spacing.md,
+              },
+              desktopModalSurface(isDesktop, 640),
+            ]}
           >
             <View
               style={{
@@ -1691,7 +1779,7 @@ export default function NewSaleScreen() {
                     name={selected ? "radio-button-on" : "radio-button-off"}
                     size={22}
                     color={
-                      selected ? theme.colors.primaryLight : theme.colors.textSecondary
+                      selected ? theme.colors.primaryStrong : theme.colors.textSecondary
                     }
                   />
                   <View style={{ flex: 1 }}>
@@ -1714,10 +1802,57 @@ export default function NewSaleScreen() {
             />
           </Pressable>
         </Pressable>
-      </Modal>
+      </ResponsiveOverlayModal>
+
+      <ResponsiveOverlayModal
+        visible={variationProduct !== null}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setVariationProduct(null)}
+      >
+        <Pressable
+          onPress={() => setVariationProduct(null)}
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.4)",
+            justifyContent: "center",
+            padding: spacing.xl,
+          }}
+        >
+          <Pressable
+            onPress={(event) => event.stopPropagation()}
+            style={[
+              {
+                backgroundColor: theme.colors.background,
+                borderRadius: radii.xl,
+                padding: spacing.xl,
+                gap: spacing.md,
+              },
+              desktopModalSurface(isDesktop, 480),
+            ]}
+          >
+            <Typography variant="h3">Escolha a variacao</Typography>
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              {variationProduct?.name}
+            </Typography>
+            {variationProduct?.variations?.map((variation) => (
+              <Button
+                key={variation.id}
+                title={variation.name}
+                variant="secondary"
+                onPress={() => {
+                  const product = variationProduct;
+                  setVariationProduct(null);
+                  addToCart(product, variation);
+                }}
+              />
+            ))}
+          </Pressable>
+        </Pressable>
+      </ResponsiveOverlayModal>
 
       {/* Peso (kg) para produtos vendidos por quilo */}
-      <Modal
+      <ResponsiveOverlayModal
         visible={weightProduct !== null}
         animationType="fade"
         transparent
@@ -1734,12 +1869,15 @@ export default function NewSaleScreen() {
         >
           <Pressable
             onPress={(e) => e.stopPropagation()}
-            style={{
-              backgroundColor: theme.colors.background,
-              borderRadius: radii.xl,
-              padding: spacing.xl,
-              gap: spacing.lg,
-            }}
+            style={[
+              {
+                backgroundColor: theme.colors.background,
+                borderRadius: radii.xl,
+                padding: spacing.xl,
+                gap: spacing.lg,
+              },
+              desktopModalSurface(isDesktop, 480),
+            ]}
           >
             <Typography variant="h3">{weightProduct?.name}</Typography>
             {weightProduct && (
@@ -1766,7 +1904,7 @@ export default function NewSaleScreen() {
             <Button title="Adicionar" size="lg" onPress={confirmWeight} />
           </Pressable>
         </Pressable>
-      </Modal>
+      </ResponsiveOverlayModal>
     </SafeAreaView>
   );
 }

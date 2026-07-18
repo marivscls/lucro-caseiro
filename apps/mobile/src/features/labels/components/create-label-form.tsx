@@ -7,6 +7,8 @@ import { Image, Pressable, View } from "react-native";
 
 import { showAlert } from "../../../shared/components/alert-store";
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
+import { desktopAction, desktopContained } from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { confirmPossibleDuplicate, duplicateKey } from "../../../shared/utils/duplicates";
 import { maskPhoneBR } from "../../../shared/utils/phone";
@@ -38,6 +40,7 @@ export function CreateLabelForm({
   onSuccess,
 }: Readonly<CreateLabelFormProps>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const { data: profile } = useProfile();
   const showPaywall = usePaywall((st) => st.show);
   const isPremium =
@@ -217,7 +220,10 @@ export function CreateLabelForm({
 
   return (
     <KeyboardAwareScrollView
-      contentContainerStyle={{ padding: 20, paddingBottom: 80, gap: 20 }}
+      contentContainerStyle={[
+        { padding: 20, paddingBottom: 80, gap: 20 },
+        desktopContained(isDesktop, 960),
+      ]}
     >
       <Input
         label="Nome do rótulo"
@@ -389,6 +395,7 @@ export function CreateLabelForm({
             void handleExport();
           }}
           loading={exporting}
+          style={desktopAction(isDesktop)}
         />
         <Button
           title={uploading ? "Enviando logo..." : "Criar rótulo"}
@@ -397,6 +404,7 @@ export function CreateLabelForm({
             void handleSubmit();
           }}
           loading={createLabel.isPending || uploading}
+          style={desktopAction(isDesktop)}
         />
       </View>
     </KeyboardAwareScrollView>

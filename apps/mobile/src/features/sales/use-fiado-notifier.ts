@@ -1,5 +1,6 @@
 import * as Notifications from "expo-notifications";
 import { useEffect } from "react";
+import { Platform } from "react-native";
 
 import { NOTIFICATION_TYPES } from "../../shared/hooks/notification-types";
 import { useNotificationEnabled } from "../../shared/hooks/notification-prefs";
@@ -48,7 +49,7 @@ export function useFiadoNotifier(): void {
   const enabled = useNotificationEnabled(NOTIFICATION_TYPES.PENDING_SALES);
 
   useEffect(() => {
-    if (!enabled || !data) return;
+    if (Platform.OS === "web" || !enabled || !data) return;
     const { count, total } = oldFiadoSummary(data.items, new Date(), MIN_AGE_DAYS);
     void maybeNotify(count, total);
   }, [data, enabled]);

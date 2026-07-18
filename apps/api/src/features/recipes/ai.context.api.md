@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Gerenciar receitas e ingredientes do negocio caseiro. Receitas contem lista de ingredientes com quantidades, rendimento, instrucoes e calculos automaticos de custo total e custo por unidade. Ingredientes sao cadastrados separadamente com preco, quantidade por embalagem e unidade. Suporta escalonamento de receitas (multiplicador).
+Gerenciar receitas e ingredientes do negocio. Receitas contem lista de ingredientes com quantidades, rendimento, instrucoes e calculos automaticos de custo total e custo por unidade. Ingredientes sao cadastrados separadamente com preco, quantidade por embalagem e unidade. Suporta escalonamento de receitas (multiplicador).
 
 ## Non-goals
 

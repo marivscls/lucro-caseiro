@@ -5,14 +5,21 @@ import {
   NunitoSans_700Bold,
   NunitoSans_800ExtraBold,
 } from "@expo-google-fonts/nunito-sans";
-import { ThemeProvider, useTheme, type ThemeMode } from "@lucro-caseiro/ui";
+import {
+  BrandProvider,
+  ThemeProvider,
+  useFeature,
+  useTheme,
+  type ThemeMode,
+} from "@lucro-caseiro/ui";
+import { getActiveBrand } from "@lucro-caseiro/brands";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import { useFonts } from "expo-font";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
-import { Stack, useRouter } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useRef, useState } from "react";
-import { AppState, Modal, Platform, useColorScheme } from "react-native";
+import { AppState, Platform, useColorScheme } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { useBirthdayNotifier } from "../features/clients/use-birthday-notifier";
@@ -27,6 +34,8 @@ import { useThemePref } from "../shared/hooks/theme-pref";
 import { useWeeklySummaryNotifier } from "../shared/hooks/use-weekly-summary-notifier";
 import { AlertHost } from "../shared/components/alert-host";
 import { BrandIntro } from "../shared/components/brand-intro";
+import { DesktopShell } from "../shared/components/desktop-shell";
+import { ResponsiveModal } from "../shared/components/responsive-modal-surface";
 import { OfflineBanner } from "../shared/components/offline-banner";
 import { ToastHost } from "../shared/components/toast";
 import { useAuth } from "../shared/hooks/use-auth";
@@ -34,6 +43,7 @@ import { useNotifications } from "../shared/hooks/use-notifications";
 import { setupAutoSync } from "../shared/hooks/use-offline-queue";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { usePremiumSuccess } from "../shared/hooks/use-premium-success";
+import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { Paywall } from "../features/subscription/components/paywall";
 import { PremiumSuccess } from "../features/subscription/components/premium-success";
 import {
@@ -44,8 +54,21 @@ import { activePlan, useProfile } from "../features/subscription/hooks";
 import { useSubscription } from "../features/subscription/use-subscription";
 import { useStripeCheckout } from "../features/subscription/use-stripe";
 
+const activeBrand = getActiveBrand();
+
 function AppContent() {
   const { theme } = useTheme();
+  const hasStock = useFeature("estoque");
+  const hasScheduling = useFeature("agendamento");
+  const isDesktop = useDesktopLayout();
+  const segments = useSegments();
+  const rootSegment = String(segments[0] ?? "");
+  const showDesktopShell =
+    isDesktop &&
+    rootSegment !== "" &&
+    rootSegment !== "(auth)" &&
+    rootSegment !== "onboarding" &&
+    rootSegment !== "reset-password";
   const { initialize, isLoading, token, userId, passwordRecovery } = useAuth();
   const router = useRouter();
   const {
@@ -88,11 +111,11 @@ function AppContent() {
   }, []);
 
   // Free: estoque baixo + fiado parado (respeitam a preferência do usuário).
-  useLowStockNotifier();
+  useLowStockNotifier(hasStock);
   useFiadoNotifier();
 
   // Entregas próximas na agenda (respeita a preferência "Lembretes de entrega").
-  useDeliveryNotifier();
+  useDeliveryNotifier(hasScheduling);
 
   // Premium: aniversário de cliente, lembrete diário e resumo semanal.
   useBirthdayNotifier(canUsePremiumNotifications);
@@ -183,7 +206,8 @@ function AppContent() {
       <ToastHost />
       <AlertHost />
       <PremiumSuccess visible={successVisible} onClose={hidePremiumSuccess} />
-      <Modal
+      <ResponsiveModal
+        desktopMaxWidth={1120}
         visible={paywallVisible}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -216,144 +240,146 @@ function AppContent() {
           }}
           loading={subscriptionLoading || stripeLoading}
         />
-      </Modal>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: theme.colors.background },
-        }}
-      >
-        <Stack.Screen name="(auth)" />
-        <Stack.Screen name="reset-password" />
-        <Stack.Screen name="onboarding" />
-        <Stack.Screen name="tabs" />
-        <Stack.Screen
-          name="agenda"
-          options={{
-            headerShown: true,
-            title: "Agenda",
-            headerStyle: { backgroundColor: theme.colors.background },
-            headerTintColor: theme.colors.text,
+      </ResponsiveModal>
+      <DesktopShell enabled={showDesktopShell}>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: theme.colors.background },
           }}
-        />
-        <Stack.Screen
-          name="materials"
-          options={{
-            headerShown: true,
-            title: "Insumos",
-            headerStyle: { backgroundColor: theme.colors.background },
-            headerTintColor: theme.colors.text,
-          }}
-        />
-        <Stack.Screen
-          name="finance"
-          options={{
-            headerShown: true,
-            title: "Financeiro",
-            headerStyle: { backgroundColor: theme.colors.background },
-            headerTintColor: theme.colors.text,
-          }}
-        />
-        <Stack.Screen
-          name="quotes"
-          options={{
-            headerShown: true,
-            title: "Orçamentos",
-            headerStyle: { backgroundColor: theme.colors.background },
-            headerTintColor: theme.colors.text,
-          }}
-        />
-        <Stack.Screen
-          name="catalog"
-          options={{
-            headerShown: true,
-            title: "Catálogo online",
-            headerStyle: { backgroundColor: theme.colors.background },
-            headerTintColor: theme.colors.text,
-          }}
-        />
-        <Stack.Screen
-          name="fiado"
-          options={{
-            headerShown: true,
-            title: "Fiado",
-            headerStyle: { backgroundColor: theme.colors.background },
-            headerTintColor: theme.colors.text,
-          }}
-        />
-        <Stack.Screen
-          name="insights"
-          options={{
-            headerShown: true,
-            title: "Insights",
-            headerStyle: { backgroundColor: theme.colors.background },
-            headerTintColor: theme.colors.text,
-          }}
-        />
-        <Stack.Screen
-          name="products"
-          options={{
-            headerShown: true,
-            title: "Produtos",
-            headerStyle: { backgroundColor: theme.colors.background },
-            headerTintColor: theme.colors.text,
-          }}
-        />
-        <Stack.Screen
-          name="recipes"
-          options={{
-            headerShown: true,
-            title: "Receitas",
-            headerStyle: { backgroundColor: theme.colors.background },
-            headerTintColor: theme.colors.text,
-          }}
-        />
-        <Stack.Screen
-          name="pricing"
-          options={{
-            headerShown: true,
-            title: "Precificação",
-            headerStyle: { backgroundColor: theme.colors.background },
-            headerTintColor: theme.colors.text,
-          }}
-        />
-        <Stack.Screen
-          name="plans"
-          options={{
-            headerShown: true,
-            title: "Planos",
-            headerStyle: { backgroundColor: theme.colors.background },
-            headerTintColor: theme.colors.text,
-          }}
-        />
-        <Stack.Screen
-          name="labels"
-          options={{
-            headerShown: true,
-            title: "Rótulos",
-            headerStyle: { backgroundColor: theme.colors.background },
-            headerTintColor: theme.colors.text,
-          }}
-        />
-        <Stack.Screen
-          name="packaging"
-          options={{
-            headerShown: true,
-            title: "Embalagens",
-            headerStyle: { backgroundColor: theme.colors.background },
-            headerTintColor: theme.colors.text,
-          }}
-        />
-        <Stack.Screen
-          name="settings"
-          options={{
-            headerShown: true,
-            title: "Configurações",
-            headerStyle: { backgroundColor: theme.colors.background },
-            headerTintColor: theme.colors.text,
-          }}
-        />
-      </Stack>
+        >
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="reset-password" />
+          <Stack.Screen name="onboarding" />
+          <Stack.Screen name="tabs" />
+          <Stack.Screen
+            name="agenda"
+            options={{
+              headerShown: !showDesktopShell,
+              title: "Agenda",
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="materials"
+            options={{
+              headerShown: !showDesktopShell,
+              title: "Insumos",
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="finance"
+            options={{
+              headerShown: !showDesktopShell,
+              title: "Financeiro",
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="quotes"
+            options={{
+              headerShown: !showDesktopShell,
+              title: "Orçamentos",
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="catalog"
+            options={{
+              headerShown: !showDesktopShell,
+              title: "Catálogo online",
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="fiado"
+            options={{
+              headerShown: !showDesktopShell,
+              title: "Fiado",
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="insights"
+            options={{
+              headerShown: !showDesktopShell,
+              title: "Insights",
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="products"
+            options={{
+              headerShown: !showDesktopShell,
+              title: "Produtos",
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="recipes"
+            options={{
+              headerShown: !showDesktopShell,
+              title: "Receitas",
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="pricing"
+            options={{
+              headerShown: !showDesktopShell,
+              title: "Precificação",
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="plans"
+            options={{
+              headerShown: !showDesktopShell,
+              title: "Planos",
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="labels"
+            options={{
+              headerShown: !showDesktopShell,
+              title: "Rótulos",
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="packaging"
+            options={{
+              headerShown: !showDesktopShell,
+              title: "Embalagens",
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="settings"
+            options={{
+              headerShown: !showDesktopShell,
+              title: "Configurações",
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.text,
+            }}
+          />
+        </Stack>
+      </DesktopShell>
     </>
   );
 }
@@ -406,12 +432,15 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider
+        brand={activeBrand}
         initialMode={initialMode}
         onModeChange={(m) => useThemePref.getState().setMode(m)}
       >
-        <QueryClientProvider client={queryClient}>
-          <AppContent />
-        </QueryClientProvider>
+        <BrandProvider brand={activeBrand}>
+          <QueryClientProvider client={queryClient}>
+            <AppContent />
+          </QueryClientProvider>
+        </BrandProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

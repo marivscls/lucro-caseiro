@@ -122,3 +122,6 @@ campanhas e resultados sem expor esses dados às usuárias do app comercial.
 - 2026-07-14: aprendizado híbrido A/B/C; automático somente onde o risco permite.
 - 2026-07-17: Banco Inteligente de Ideias passou a gerar ranking estratégico com indicadores
   heurísticos e briefing pronto para revisão.
+- 2026-07-18: `interview` entrou como recurso operacional. O seed cria dez fichas de entrevista
+  por segmento e uma campanha-piloto de mídia bloqueada por readiness, otimizada por negócio
+  ativado em vez de clique ou instalação.

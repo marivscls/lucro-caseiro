@@ -8,6 +8,8 @@ import { Pressable, ScrollView, Share, View } from "react-native";
 import { buildPackagingShareText, typeColor, typeLabel } from "../domain";
 import { showAlert } from "../../../shared/components/alert-store";
 import { useSupplierName } from "../../suppliers/hooks";
+import { desktopContained } from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 
 interface PackagingDetailProps {
   readonly packaging: Packaging;
@@ -84,6 +86,7 @@ export function PackagingDetail({
   isDeleting,
 }: PackagingDetailProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const isDark = theme.mode === "dark";
   const cardBg = isDark ? "rgba(44, 36, 32, 0.55)" : theme.colors.surfaceElevated;
   const border = theme.colors.border;
@@ -108,11 +111,14 @@ export function PackagingDetail({
 
   return (
     <ScrollView
-      contentContainerStyle={{
-        padding: spacing.xl,
-        paddingBottom: spacing["3xl"],
-        gap: spacing.xl,
-      }}
+      contentContainerStyle={[
+        {
+          padding: spacing.xl,
+          paddingBottom: spacing["3xl"],
+          gap: spacing.xl,
+        },
+        desktopContained(isDesktop, 960),
+      ]}
       showsVerticalScrollIndicator={false}
     >
       <Typography variant="h1" color={theme.colors.text}>

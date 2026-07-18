@@ -9,6 +9,8 @@ import { IngredientAvatar } from "../../../shared/ingredient-image/ingredient-av
 import { useDeleteRecipe, useDuplicateRecipe, useRecipe, useScaleRecipe } from "../hooks";
 import { exportRecipePdf } from "../recipe-pdf";
 import { alertError } from "../../../shared/utils/alerts";
+import { desktopContained } from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 
 interface RecipeDetailProps {
   readonly recipeId: string;
@@ -26,6 +28,7 @@ export function RecipeDetail({
   onDeleted,
 }: RecipeDetailProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const [multiplier, setMultiplier] = useState(1);
   const { data: recipe, isLoading } = useRecipe(recipeId);
   const { data: scaledRecipe } = useScaleRecipe(recipeId, multiplier);
@@ -52,7 +55,9 @@ export function RecipeDetail({
     displayRecipe.yieldQuantity > 0 ? totalCost / displayRecipe.yieldQuantity : 0;
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 20, gap: 16 }}>
+    <ScrollView
+      contentContainerStyle={[{ padding: 20, gap: 16 }, desktopContained(isDesktop, 960)]}
+    >
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <Ionicons name="ice-cream-outline" size={18} color={theme.colors.primary} />
         <Typography variant="caption" color={theme.colors.textSecondary}>

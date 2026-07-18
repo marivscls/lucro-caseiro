@@ -1,12 +1,18 @@
 import { Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo, useState } from "react";
-import { Modal, Pressable, ScrollView, TextInput, View } from "react-native";
+import { Pressable, ScrollView, TextInput, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useFieldPalette } from "../../../shared/components/form-field";
 import { useSuppliers } from "../hooks";
 import { CreateSupplierForm } from "./create-supplier-form";
+import {
+  ResponsiveModal,
+  ResponsiveOverlayModal,
+} from "../../../shared/components/responsive-modal-surface";
+import { desktopModalSurface } from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 
 interface SupplierSelectorProps {
   /** id do fornecedor selecionado, ou null. */
@@ -20,6 +26,7 @@ interface SupplierSelectorProps {
  */
 export function SupplierSelector({ value, onChange }: SupplierSelectorProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const pal = useFieldPalette();
   const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
@@ -83,7 +90,7 @@ export function SupplierSelector({ value, onChange }: SupplierSelectorProps) {
       </Pressable>
 
       {/* Bottom sheet de seleção */}
-      <Modal
+      <ResponsiveOverlayModal
         visible={open}
         transparent
         animationType="slide"
@@ -94,20 +101,24 @@ export function SupplierSelector({ value, onChange }: SupplierSelectorProps) {
           style={{
             flex: 1,
             backgroundColor: "rgba(0,0,0,0.55)",
-            justifyContent: "flex-end",
+            justifyContent: isDesktop ? "center" : "flex-end",
+            padding: isDesktop ? spacing.xl : 0,
           }}
         >
           <Pressable
-            style={{
-              backgroundColor: pal.sheetBg,
-              borderTopLeftRadius: radii["2xl"],
-              borderTopRightRadius: radii["2xl"],
-              paddingHorizontal: spacing.lg,
-              paddingTop: spacing.md,
-              paddingBottom: spacing.lg + insets.bottom,
-              gap: spacing.sm,
-              maxHeight: "75%",
-            }}
+            style={[
+              {
+                backgroundColor: pal.sheetBg,
+                borderTopLeftRadius: radii["2xl"],
+                borderTopRightRadius: radii["2xl"],
+                paddingHorizontal: spacing.lg,
+                paddingTop: spacing.md,
+                paddingBottom: isDesktop ? spacing.lg : spacing.lg + insets.bottom,
+                gap: spacing.sm,
+                maxHeight: "75%",
+              },
+              desktopModalSurface(isDesktop, 640),
+            ]}
           >
             <Typography variant="h3" color={theme.colors.text}>
               Fornecedor
@@ -239,10 +250,11 @@ export function SupplierSelector({ value, onChange }: SupplierSelectorProps) {
             </Pressable>
           </Pressable>
         </Pressable>
-      </Modal>
+      </ResponsiveOverlayModal>
 
       {/* Modal de criar fornecedor (auto-seleciona o criado) */}
-      <Modal
+      <ResponsiveModal
+        desktopMaxWidth={840}
         visible={creating}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -278,7 +290,7 @@ export function SupplierSelector({ value, onChange }: SupplierSelectorProps) {
             }}
           />
         </SafeAreaView>
-      </Modal>
+      </ResponsiveModal>
     </>
   );
 }

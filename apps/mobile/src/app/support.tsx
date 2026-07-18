@@ -3,10 +3,13 @@ import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import React from "react";
-import { Linking, Pressable, ScrollView, View } from "react-native";
+import { Linking, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useProfile } from "../features/subscription/hooks";
+import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { desktopAction, desktopContained } from "../shared/layout/desktop-density";
+import { ScreenHeader } from "../shared/components/screen-header";
 
 const SUPPORT_EMAIL = "contato@orionseven.com.br";
 
@@ -43,6 +46,7 @@ function openSupportEmail() {
 
 export default function SupportScreen() {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const router = useRouter();
   const { data: profile } = useProfile();
   const isPremium =
@@ -55,36 +59,17 @@ export default function SupportScreen() {
     >
       <Stack.Screen options={{ headerShown: false }} />
 
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.md,
-          paddingHorizontal: spacing.lg,
-          paddingTop: spacing.sm,
-          paddingBottom: spacing.sm,
-        }}
-      >
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="Voltar"
-          hitSlop={10}
-          style={{ width: 32, height: 40, justifyContent: "center" }}
-        >
-          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
-        </Pressable>
-        <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
-          Suporte
-        </Typography>
-      </View>
+      {!isDesktop && <ScreenHeader title="Suporte" />}
 
       <ScrollView
-        contentContainerStyle={{
-          padding: spacing.xl,
-          paddingTop: spacing.md,
-          gap: spacing.lg,
-        }}
+        contentContainerStyle={[
+          {
+            padding: spacing.xl,
+            paddingTop: spacing.md,
+            gap: spacing.lg,
+          },
+          desktopContained(isDesktop, 960),
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {isPremium ? (
@@ -110,6 +95,7 @@ export default function SupportScreen() {
                 />
               }
               onPress={openSupportEmail}
+              style={desktopAction(isDesktop, 240)}
             />
             <Typography variant="caption" style={{ textAlign: "center" }}>
               {SUPPORT_EMAIL}
@@ -127,7 +113,12 @@ export default function SupportScreen() {
               O atendimento com prioridade faz parte do plano pago. Assine pra falar
               direto com a gente sempre que precisar.
             </Typography>
-            <Button title="Ver planos" size="lg" onPress={() => router.push("/plans")} />
+            <Button
+              title="Ver planos"
+              size="lg"
+              onPress={() => router.push("/plans")}
+              style={desktopAction(isDesktop, 240)}
+            />
           </Card>
         )}
 

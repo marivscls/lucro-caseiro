@@ -1,12 +1,15 @@
 import { Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Modal, Pressable, ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useFieldPalette } from "../../../shared/components/form-field";
 import { IngredientAvatar } from "../../../shared/ingredient-image/ingredient-avatar";
 import { MATERIAL_ICONS } from "../icons";
+import { desktopModalSurface } from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
 
 interface MaterialIconFieldProps {
   readonly name: string;
@@ -17,6 +20,7 @@ interface MaterialIconFieldProps {
 /** Seletor do ícone (emoji) do insumo: preview + modal com grade de emojis. */
 export function MaterialIconField({ name, value, onChange }: MaterialIconFieldProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const pal = useFieldPalette();
   const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
@@ -56,7 +60,7 @@ export function MaterialIconField({ name, value, onChange }: MaterialIconFieldPr
         <Ionicons name="chevron-down" size={20} color={theme.colors.textSecondary} />
       </Pressable>
 
-      <Modal
+      <ResponsiveOverlayModal
         visible={open}
         transparent
         animationType="slide"
@@ -67,20 +71,24 @@ export function MaterialIconField({ name, value, onChange }: MaterialIconFieldPr
           style={{
             flex: 1,
             backgroundColor: "rgba(0,0,0,0.55)",
-            justifyContent: "flex-end",
+            justifyContent: isDesktop ? "center" : "flex-end",
+            padding: isDesktop ? spacing.xl : 0,
           }}
         >
           <Pressable
-            style={{
-              backgroundColor: pal.sheetBg,
-              borderTopLeftRadius: radii["2xl"],
-              borderTopRightRadius: radii["2xl"],
-              paddingHorizontal: spacing.lg,
-              paddingTop: spacing.md,
-              paddingBottom: spacing.lg + insets.bottom,
-              gap: spacing.md,
-              maxHeight: "75%",
-            }}
+            style={[
+              {
+                backgroundColor: pal.sheetBg,
+                borderTopLeftRadius: radii["2xl"],
+                borderTopRightRadius: radii["2xl"],
+                paddingHorizontal: spacing.lg,
+                paddingTop: spacing.md,
+                paddingBottom: isDesktop ? spacing.lg : spacing.lg + insets.bottom,
+                gap: spacing.md,
+                maxHeight: "75%",
+              },
+              desktopModalSurface(isDesktop, 640),
+            ]}
           >
             <View
               style={{
@@ -173,7 +181,7 @@ export function MaterialIconField({ name, value, onChange }: MaterialIconFieldPr
             </ScrollView>
           </Pressable>
         </Pressable>
-      </Modal>
+      </ResponsiveOverlayModal>
     </>
   );
 }

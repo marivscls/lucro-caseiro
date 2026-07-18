@@ -2,9 +2,10 @@ import type { Sale } from "@lucro-caseiro/contracts";
 import { Button, Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { Modal, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 
 import { formatCurrency } from "../../../shared/utils/format";
+import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
 import { receiptNumber } from "../receipt-pdf";
 
 interface ReceiptPreviewModalProps {
@@ -30,7 +31,12 @@ export function ReceiptPreviewModal({
   const { theme } = useTheme();
 
   return (
-    <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
+    <ResponsiveOverlayModal
+      visible={visible}
+      animationType="fade"
+      transparent
+      onRequestClose={onClose}
+    >
       <View
         style={{
           flex: 1,
@@ -42,6 +48,9 @@ export function ReceiptPreviewModal({
         <View
           style={{
             backgroundColor: theme.colors.surfaceElevated,
+            width: "100%",
+            maxWidth: 560,
+            alignSelf: "center",
             borderRadius: radii["2xl"],
             padding: spacing.xl,
             gap: spacing.lg,
@@ -168,6 +177,6 @@ export function ReceiptPreviewModal({
           </Pressable>
         </View>
       </View>
-    </Modal>
+    </ResponsiveOverlayModal>
   );
 }

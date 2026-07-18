@@ -1,4 +1,4 @@
-﻿import type { Sale } from "@lucro-caseiro/contracts";
+import type { Sale } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import { Badge, Button, Card, Typography, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,6 +17,8 @@ import { exportReceiptPdf } from "../receipt-pdf";
 import { ReceiptPreviewModal } from "./receipt-preview-modal";
 import { showAlert } from "../../../shared/components/alert-store";
 import { alertError } from "../../../shared/utils/alerts";
+import { desktopContained } from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 
 interface SaleDetailProps {
   readonly sale: Sale;
@@ -52,6 +54,7 @@ export function SaleDetail({
   onEditPress,
 }: SaleDetailProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const updateStatus = useUpdateSaleStatus();
   const { data: profile } = useProfile();
   const showPaywall = usePaywall((st) => st.show);
@@ -141,7 +144,9 @@ export function SaleDetail({
   }
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 20, gap: 16 }}>
+    <ScrollView
+      contentContainerStyle={[{ padding: 20, gap: 16 }, desktopContained(isDesktop, 960)]}
+    >
       <View
         style={{
           flexDirection: "row",
@@ -257,7 +262,7 @@ export function SaleDetail({
               <Ionicons
                 name="document-text-outline"
                 size={20}
-                color={theme.colors.primary}
+                color={theme.colors.text}
               />
             }
             onPress={() => void handleReceiptPdf()}

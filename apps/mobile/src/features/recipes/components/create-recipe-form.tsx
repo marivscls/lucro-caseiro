@@ -5,6 +5,8 @@ import { ActivityIndicator, Pressable, View } from "react-native";
 
 import { showAlert } from "../../../shared/components/alert-store";
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
+import { desktopAction, desktopContained } from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
 import { usePaywall } from "../../../shared/hooks/use-paywall";
@@ -33,6 +35,7 @@ interface CreateRecipeFormProps {
 
 export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [instructions, setInstructions] = useState("");
@@ -133,11 +136,14 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
 
   return (
     <KeyboardAwareScrollView
-      contentContainerStyle={{
-        padding: spacing.xl,
-        paddingBottom: spacing["5xl"],
-        gap: spacing.xl,
-      }}
+      contentContainerStyle={[
+        {
+          padding: spacing.xl,
+          paddingBottom: spacing["5xl"],
+          gap: spacing.xl,
+        },
+        desktopContained(isDesktop, 960),
+      ]}
     >
       <Typography
         variant="body"
@@ -212,16 +218,19 @@ export function CreateRecipeForm({ onSuccess }: CreateRecipeFormProps) {
         }}
         disabled={loading}
         accessibilityRole="button"
-        style={({ pressed }) => ({
-          minHeight: 58,
-          borderRadius: radii.lg,
-          backgroundColor: theme.colors.primary,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: spacing.sm,
-          opacity: pressed || loading ? 0.85 : 1,
-        })}
+        style={({ pressed }) => [
+          {
+            minHeight: 58,
+            borderRadius: radii.lg,
+            backgroundColor: theme.colors.primary,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: spacing.sm,
+            opacity: pressed || loading ? 0.85 : 1,
+          },
+          desktopAction(isDesktop),
+        ]}
       >
         {loading ? (
           <ActivityIndicator color={theme.colors.textOnPrimary} />

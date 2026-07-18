@@ -1,8 +1,15 @@
-import { Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import {
+  fontSizes,
+  iconSizes,
+  Typography,
+  useTheme,
+  spacing,
+  radii,
+} from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useRouter } from "expo-router";
+import { Stack } from "expo-router";
 import React, { useState } from "react";
-import { Modal, Pressable, TextInput, View } from "react-native";
+import { Pressable, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { CreateSupplierForm } from "../features/suppliers/components/create-supplier-form";
@@ -14,10 +21,13 @@ import { LimitBanner } from "../features/subscription/components/limit-banner";
 import { showAlert } from "../shared/components/alert-store";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { alertError } from "../shared/utils/alerts";
+import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { ResponsiveModal } from "../shared/components/responsive-modal-surface";
+import { ScreenHeader } from "../shared/components/screen-header";
 
 export default function SuppliersScreen() {
   const { theme } = useTheme();
-  const router = useRouter();
+  const isDesktop = useDesktopLayout();
   const showPaywall = usePaywall((s) => s.show);
   const deleteSupplier = useDeleteSupplier();
 
@@ -50,50 +60,29 @@ export default function SuppliersScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* Top bar */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.sm,
-          paddingHorizontal: spacing.lg,
-          paddingTop: spacing.sm,
-          paddingBottom: spacing.sm,
-        }}
-      >
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="Voltar"
-          hitSlop={10}
-          style={{ width: 32, height: 40, justifyContent: "center" }}
-        >
-          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
-        </Pressable>
-        <Typography
-          variant="h1"
-          color={theme.colors.text}
-          numberOfLines={1}
-          style={{ flex: 1 }}
-        >
-          Fornecedores
-        </Typography>
-        <Pressable
-          onPress={() => setShowCreate(true)}
-          accessibilityRole="button"
-          accessibilityLabel="Novo fornecedor"
-          style={({ pressed }) => ({
-            width: 44,
-            height: 44,
-            borderRadius: radii.full,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: theme.colors.primary,
-            opacity: pressed ? 0.85 : 1,
-          })}
-        >
-          <Ionicons name="add" size={26} color={theme.colors.textOnPrimary} />
-        </Pressable>
-      </View>
+      <ScreenHeader
+        title="Fornecedores"
+        hideBack={isDesktop}
+        style={{ gap: spacing.sm }}
+        right={
+          <Pressable
+            onPress={() => setShowCreate(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Novo fornecedor"
+            style={({ pressed }) => ({
+              width: 44,
+              height: 44,
+              borderRadius: radii.full,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: theme.colors.primaryInteractive,
+              opacity: pressed ? 0.85 : 1,
+            })}
+          >
+            <Ionicons name="add" size={iconSizes.md} color={theme.colors.textOnPrimary} />
+          </Pressable>
+        }
+      />
 
       {/* Search */}
       <View
@@ -123,7 +112,7 @@ export default function SuppliersScreen() {
             style={{
               flex: 1,
               color: theme.colors.text,
-              fontSize: 16,
+              fontSize: fontSizes.md,
               paddingVertical: 0,
             }}
           />
@@ -160,7 +149,8 @@ export default function SuppliersScreen() {
       </View>
 
       {/* Modal: criar */}
-      <Modal
+      <ResponsiveModal
+        desktopMaxWidth={840}
         visible={showCreate}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -185,20 +175,17 @@ export default function SuppliersScreen() {
             >
               <Ionicons name="close" size={28} color={theme.colors.text} />
             </Pressable>
-            <Typography
-              variant="h1"
-              color={theme.colors.text}
-              style={{ flex: 1, fontSize: 24 }}
-            >
+            <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
               Novo fornecedor
             </Typography>
           </View>
           <CreateSupplierForm onSuccess={() => setShowCreate(false)} />
         </SafeAreaView>
-      </Modal>
+      </ResponsiveModal>
 
       {/* Modal: detalhe / editar */}
-      <Modal
+      <ResponsiveModal
+        desktopMaxWidth={840}
         visible={!!selectedId}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -218,7 +205,7 @@ export default function SuppliersScreen() {
                 }}
               >
                 <Pressable onPress={closeDetail} hitSlop={10}>
-                  <Typography variant="bodyBold" color={theme.colors.primary}>
+                  <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
                     Fechar
                   </Typography>
                 </Pressable>
@@ -274,7 +261,7 @@ export default function SuppliersScreen() {
                   variant="h1"
                   color={theme.colors.text}
                   numberOfLines={1}
-                  style={{ flex: 1, fontSize: 22 }}
+                  style={{ flex: 1, fontSize: fontSizes.xl }}
                 >
                   Editar fornecedor
                 </Typography>
@@ -283,7 +270,7 @@ export default function SuppliersScreen() {
             </>
           ) : null}
         </SafeAreaView>
-      </Modal>
+      </ResponsiveModal>
     </SafeAreaView>
   );
 }

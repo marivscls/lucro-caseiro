@@ -15,6 +15,10 @@
  *   botoes cheios; `--primary` fica para areas grandes, icones e
  *   preenchimentos decorativos sem texto por cima.
  * - Nada abaixo de 13px (`--font-size-xs`, so para selos/labels curtos).
+ *
+ * WHITELABEL (ADR-0009): brand-theme.tsx sobrescreve primary, surfaces e a
+ * escala --rose-50..900 gerada a partir da cor 500 da marca. As cores
+ * semanticas continuam compartilhadas entre todas as marcas.
  */
 :root {
   /* Escala rose (marca). 500 = cor canonica. */

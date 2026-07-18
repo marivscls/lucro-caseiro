@@ -2,6 +2,8 @@ import { formatCurrency } from "../shared/utils/format";
 import {
   Button,
   EmptyState,
+  fontSizes,
+  iconSizes,
   Typography,
   fonts,
   useTheme,
@@ -9,12 +11,11 @@ import {
   radii,
 } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useRouter } from "expo-router";
+import { Stack } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
-  Modal,
   Pressable,
   ScrollView,
   TextInput,
@@ -30,8 +31,11 @@ import { PACKAGING_TYPES, totalStockCost, typeColor } from "../features/packagin
 import { useDeletePackaging, usePackagingList } from "../features/packaging/hooks";
 import { LimitBanner } from "../features/subscription/components/limit-banner";
 import { showAlert } from "../shared/components/alert-store";
+import { ScreenHeader } from "../shared/components/screen-header";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { alertError } from "../shared/utils/alerts";
+import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { ResponsiveModal } from "../shared/components/responsive-modal-surface";
 
 function SummaryCard({
   icon,
@@ -45,8 +49,6 @@ function SummaryCard({
   hint: string;
 }>) {
   const { theme } = useTheme();
-  const isDark = theme.mode === "dark";
-  const cardBg = isDark ? "rgba(44, 36, 32, 0.55)" : theme.colors.surfaceElevated;
   const border = theme.colors.border;
   return (
     <View
@@ -55,7 +57,7 @@ function SummaryCard({
         borderRadius: radii.xl,
         borderWidth: 1,
         borderColor: border,
-        backgroundColor: cardBg,
+        backgroundColor: theme.colors.surfaceElevated,
         padding: spacing.lg,
         gap: spacing.sm,
         alignItems: "center",
@@ -66,12 +68,12 @@ function SummaryCard({
           width: 48,
           height: 48,
           borderRadius: radii.full,
-          backgroundColor: `${theme.colors.primary}26`,
+          backgroundColor: theme.colors.surface,
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <Ionicons name={icon} size={24} color={theme.colors.primary} />
+        <Ionicons name={icon} size={24} color={theme.colors.textSecondary} />
       </View>
       <Typography
         variant="caption"
@@ -84,7 +86,7 @@ function SummaryCard({
       <Typography
         variant="h3"
         color={theme.colors.text}
-        style={{ fontSize: 22, textAlign: "center" }}
+        style={{ fontSize: fontSizes.xl, textAlign: "center" }}
       >
         {value}
       </Typography>
@@ -97,7 +99,7 @@ function SummaryCard({
 
 export default function PackagingScreen() {
   const { theme } = useTheme();
-  const router = useRouter();
+  const isDesktop = useDesktopLayout();
   const { data, isLoading, error } = usePackagingList();
   const deletePackaging = useDeletePackaging();
   const showPaywall = usePaywall((s) => s.show);
@@ -174,7 +176,11 @@ export default function PackagingScreen() {
           title="Nenhuma embalagem ainda"
           description="Cadastre sua primeira embalagem pra calcular o custo certinho dos seus produtos"
           action={
-            <Button title="Cadastrar embalagem" onPress={() => setShowCreate(true)} />
+            <Button
+              title="Cadastrar embalagem"
+              variant="outline"
+              onPress={() => setShowCreate(true)}
+            />
           }
         />
       );
@@ -246,9 +252,13 @@ export default function PackagingScreen() {
             opacity: pressed ? 0.7 : 1,
           })}
         >
-          <Ionicons name="add-circle-outline" size={28} color={theme.colors.primary} />
+          <Ionicons
+            name="add-circle-outline"
+            size={28}
+            color={theme.colors.primaryStrong}
+          />
           <View style={{ flex: 1 }}>
-            <Typography variant="bodyBold" color={theme.colors.primary}>
+            <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
               Adicionar nova embalagem
             </Typography>
             <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -268,50 +278,29 @@ export default function PackagingScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* Top bar */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.sm,
-          paddingHorizontal: spacing.lg,
-          paddingTop: spacing.sm,
-          paddingBottom: spacing.sm,
-        }}
-      >
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="Voltar"
-          hitSlop={10}
-          style={{ width: 32, height: 40, justifyContent: "center" }}
-        >
-          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
-        </Pressable>
-        <Typography
-          variant="h1"
-          color={theme.colors.text}
-          numberOfLines={1}
-          style={{ flex: 1 }}
-        >
-          Embalagens
-        </Typography>
-        <Pressable
-          onPress={() => setShowCreate(true)}
-          accessibilityRole="button"
-          accessibilityLabel="Nova embalagem"
-          style={({ pressed }) => ({
-            width: 44,
-            height: 44,
-            borderRadius: radii.full,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: theme.colors.primary,
-            opacity: pressed ? 0.85 : 1,
-          })}
-        >
-          <Ionicons name="add" size={26} color={theme.colors.textOnPrimary} />
-        </Pressable>
-      </View>
+      <ScreenHeader
+        title="Embalagens"
+        hideBack={isDesktop}
+        style={{ gap: spacing.sm }}
+        right={
+          <Pressable
+            onPress={() => setShowCreate(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Nova embalagem"
+            style={({ pressed }) => ({
+              width: 44,
+              height: 44,
+              borderRadius: radii.full,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: theme.colors.primaryInteractive,
+              opacity: pressed ? 0.85 : 1,
+            })}
+          >
+            <Ionicons name="add" size={iconSizes.md} color={theme.colors.textOnPrimary} />
+          </Pressable>
+        }
+      />
 
       {/* Busca + Filtros */}
       <View
@@ -347,7 +336,7 @@ export default function PackagingScreen() {
             style={{
               flex: 1,
               color: theme.colors.text,
-              fontSize: 16,
+              fontSize: fontSizes.md,
               paddingVertical: 0,
             }}
           />
@@ -374,7 +363,7 @@ export default function PackagingScreen() {
             paddingHorizontal: spacing.md,
             borderRadius: radii.md,
             borderWidth: 1,
-            borderColor: typeFilter ? theme.colors.primary : border,
+            borderColor: typeFilter ? theme.colors.primaryStrong : border,
             flexDirection: "row",
             alignItems: "center",
             gap: spacing.xs,
@@ -384,11 +373,11 @@ export default function PackagingScreen() {
           <Ionicons
             name="funnel-outline"
             size={18}
-            color={typeFilter ? theme.colors.primary : theme.colors.text}
+            color={typeFilter ? theme.colors.primaryStrong : theme.colors.text}
           />
           <Typography
             variant="bodyBold"
-            color={typeFilter ? theme.colors.primary : theme.colors.text}
+            color={typeFilter ? theme.colors.primaryStrong : theme.colors.text}
           >
             Filtros
           </Typography>
@@ -406,7 +395,7 @@ export default function PackagingScreen() {
               const active = typeFilter === t.value;
               const chipColor = t.value
                 ? typeColor(theme, t.value)
-                : theme.colors.primary;
+                : theme.colors.primaryStrong;
               return (
                 <Pressable
                   key={t.label}
@@ -446,7 +435,8 @@ export default function PackagingScreen() {
       </View>
 
       {/* Modal: criar */}
-      <Modal
+      <ResponsiveModal
+        desktopMaxWidth={1120}
         visible={showCreate}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -471,11 +461,7 @@ export default function PackagingScreen() {
             >
               <Ionicons name="close" size={28} color={theme.colors.text} />
             </Pressable>
-            <Typography
-              variant="h1"
-              color={theme.colors.text}
-              style={{ flex: 1, fontSize: 24 }}
-            >
+            <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
               Nova embalagem
             </Typography>
           </View>
@@ -485,10 +471,11 @@ export default function PackagingScreen() {
             onCancel={() => setShowCreate(false)}
           />
         </SafeAreaView>
-      </Modal>
+      </ResponsiveModal>
 
       {/* Modal: detalhe / editar */}
-      <Modal
+      <ResponsiveModal
+        desktopMaxWidth={1120}
         visible={!!selected}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -508,12 +495,12 @@ export default function PackagingScreen() {
                 }}
               >
                 <Pressable onPress={() => setSelectedId(null)} hitSlop={10}>
-                  <Typography variant="bodyBold" color={theme.colors.primary}>
+                  <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
                     Fechar
                   </Typography>
                 </Pressable>
                 <Pressable onPress={() => setEditing(true)} hitSlop={10}>
-                  <Typography variant="bodyBold" color={theme.colors.primary}>
+                  <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
                     Editar
                   </Typography>
                 </Pressable>
@@ -550,7 +537,7 @@ export default function PackagingScreen() {
                   variant="h1"
                   color={theme.colors.text}
                   numberOfLines={1}
-                  style={{ flex: 1, fontSize: 22 }}
+                  style={{ flex: 1, fontSize: fontSizes.xl }}
                 >
                   Editar embalagem
                 </Typography>
@@ -589,7 +576,7 @@ export default function PackagingScreen() {
             </>
           ) : null}
         </SafeAreaView>
-      </Modal>
+      </ResponsiveModal>
     </SafeAreaView>
   );
 }

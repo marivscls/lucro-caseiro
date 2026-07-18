@@ -13,6 +13,26 @@ export const ProductComponentInputDto = z.object({
 
 export type ProductComponentInput = z.infer<typeof ProductComponentInputDto>;
 
+export const ProductVariationInputDto = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string().min(1).max(100),
+  color: z.string().max(60).optional(),
+  size: z.string().max(60).optional(),
+  stockQuantity: z.number().int().min(0).max(MAX_QUANTITY).optional(),
+});
+
+export type ProductVariationInput = z.infer<typeof ProductVariationInputDto>;
+
+export const ProductVariationDto = ProductVariationInputDto.extend({
+  id: z.string().uuid(),
+});
+
+export type ProductVariation = z.infer<typeof ProductVariationDto>;
+
+export const ReplaceProductVariationsDto = z.object({
+  variations: z.array(ProductVariationInputDto).max(100),
+});
+
 const ProductBaseDto = z.object({
   name: z.string().min(1).max(200),
   description: z.string().max(1000).optional(),
@@ -30,6 +50,7 @@ const ProductBaseDto = z.object({
   // Produto composto (kit): quando true, `components` e obrigatorio e nao-vazio.
   isComposite: z.boolean().optional(),
   components: z.array(ProductComponentInputDto).optional(),
+  variations: z.array(ProductVariationInputDto).max(100).optional(),
 });
 
 /** Um produto composto precisa de pelo menos um componente. */
@@ -86,6 +107,7 @@ export const ProductDto = z.object({
   isComposite: z.boolean(),
   // Presente apenas quando isComposite = true.
   components: z.array(ProductComponentDto).optional(),
+  variations: z.array(ProductVariationDto).optional(),
   isActive: z.boolean(),
   createdAt: z.string().datetime(),
 });

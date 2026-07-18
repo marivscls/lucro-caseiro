@@ -61,6 +61,7 @@ interface PricingResultProps {
   readonly monthlyUnits?: number;
   readonly onRecalculate: () => void;
   readonly onSave: () => void;
+  readonly onCreateProduct?: () => void;
   readonly isSaving: boolean;
 }
 
@@ -79,6 +80,7 @@ export function PricingResult({
   monthlyUnits = 200,
   onRecalculate,
   onSave,
+  onCreateProduct,
   isSaving,
 }: PricingResultProps) {
   const { theme } = useTheme();
@@ -374,7 +376,21 @@ export function PricingResult({
 
       {/* Actions */}
       <View style={{ gap: spacing.md }}>
-        <Button title="Salvar cálculo" onPress={onSave} loading={isSaving} size="lg" />
+        {onCreateProduct ? (
+          <Button
+            title="Salvar e criar produto"
+            onPress={onCreateProduct}
+            loading={isSaving}
+            size="lg"
+          />
+        ) : null}
+        <Button
+          title="Salvar somente o cálculo"
+          variant={onCreateProduct ? "outline" : "primary"}
+          onPress={onSave}
+          loading={isSaving}
+          size="lg"
+        />
         <Button title="Recalcular" variant="outline" onPress={onRecalculate} size="lg" />
       </View>
     </ScrollView>

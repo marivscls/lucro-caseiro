@@ -61,9 +61,7 @@ function TierCard({
         borderRadius: radii.xl,
         borderWidth: 2,
         borderColor: selected ? theme.colors.primary : cardBorder(theme),
-        backgroundColor: selected
-          ? `${theme.colors.primary}14`
-          : theme.colors.surfaceElevated,
+        backgroundColor: selected ? theme.colors.primaryBg : theme.colors.surfaceElevated,
         alignItems: "center",
         gap: 2,
       }}
@@ -135,9 +133,7 @@ function PeriodCard({
         borderRadius: radii.xl,
         borderWidth: 2,
         borderColor: selected ? theme.colors.primary : cardBorder(theme),
-        backgroundColor: selected
-          ? `${theme.colors.primary}14`
-          : theme.colors.surfaceElevated,
+        backgroundColor: selected ? theme.colors.primaryBg : theme.colors.surfaceElevated,
         alignItems: "center",
         gap: spacing.xs,
       }}
@@ -395,8 +391,8 @@ export function Paywall({
               paddingVertical: spacing.sm,
             }}
           >
-            <Ionicons name="refresh" size={16} color={theme.colors.primary} />
-            <Typography variant="caption" color={theme.colors.primary}>
+            <Ionicons name="refresh" size={16} color={theme.colors.primaryStrong} />
+            <Typography variant="caption" color={theme.colors.primaryStrong}>
               Restaurar compra anterior
             </Typography>
           </Pressable>

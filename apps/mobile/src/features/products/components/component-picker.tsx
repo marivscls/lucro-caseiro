@@ -3,12 +3,15 @@ import type { Product } from "@lucro-caseiro/contracts";
 import { Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Modal, Pressable, ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { chipLabel, draftsToComponents, kitTotalCost, type ComponentDraft } from "../kit";
 import { showAlert } from "../../../shared/components/alert-store";
 import { useProducts } from "../hooks";
+import { desktopModalSurface } from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
 
 export { draftsToComponents };
 export type { ComponentDraft };
@@ -31,6 +34,7 @@ export function ComponentPicker({
   excludeProductId,
 }: ComponentPickerProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const insets = useSafeAreaInsets();
   const { data, isLoading } = useProducts();
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -235,7 +239,7 @@ export function ComponentPicker({
         </Typography>
       </View>
 
-      <Modal
+      <ResponsiveOverlayModal
         visible={pickerOpen}
         transparent
         animationType="slide"
@@ -246,20 +250,24 @@ export function ComponentPicker({
           style={{
             flex: 1,
             backgroundColor: "rgba(0,0,0,0.55)",
-            justifyContent: "flex-end",
+            justifyContent: isDesktop ? "center" : "flex-end",
+            padding: isDesktop ? spacing.xl : 0,
           }}
         >
           <Pressable
-            style={{
-              backgroundColor: sheetBg,
-              borderTopLeftRadius: radii["2xl"],
-              borderTopRightRadius: radii["2xl"],
-              paddingHorizontal: spacing.lg,
-              paddingTop: spacing.md,
-              paddingBottom: spacing.lg + insets.bottom,
-              maxHeight: "80%",
-              gap: spacing.sm,
-            }}
+            style={[
+              {
+                backgroundColor: sheetBg,
+                borderTopLeftRadius: radii["2xl"],
+                borderTopRightRadius: radii["2xl"],
+                paddingHorizontal: spacing.lg,
+                paddingTop: spacing.md,
+                paddingBottom: isDesktop ? spacing.lg : spacing.lg + insets.bottom,
+                maxHeight: "80%",
+                gap: spacing.sm,
+              },
+              desktopModalSurface(isDesktop, 720),
+            ]}
           >
             <View
               style={{
@@ -429,7 +437,7 @@ export function ComponentPicker({
             </Pressable>
           </Pressable>
         </Pressable>
-      </Modal>
+      </ResponsiveOverlayModal>
     </View>
   );
 }

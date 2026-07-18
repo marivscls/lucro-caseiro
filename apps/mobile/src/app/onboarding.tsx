@@ -38,6 +38,8 @@ import salesEmpty from "../assets/sales-empty.png";
 import { useUpdateProfile } from "../features/subscription/hooks";
 import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
 import { useAuth } from "../shared/hooks/use-auth";
+import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { desktopContained } from "../shared/layout/desktop-density";
 import { useOnboarding } from "../shared/hooks/use-onboarding";
 
 // Nichos cobrindo todos os publicos do app (nao so comida). `db` e o valor
@@ -106,7 +108,7 @@ const NICHES = [
     id: "outro",
     db: "other",
     label: "Outro negócio",
-    description: "Todo negócio caseiro é bem-vindo!",
+    description: "Todo tipo de negócio é bem-vindo!",
     emoji: "✨",
   },
 ];
@@ -163,7 +165,7 @@ const NICHE_COPY: Record<string, { label: string; description: string }> = {
   },
   outro: {
     label: "Outro negocio",
-    description: "Todo negocio caseiro e bem-vindo!",
+    description: "Todo tipo de negocio e bem-vindo!",
   },
 };
 
@@ -245,8 +247,12 @@ function WelcomeStep({
 }: Readonly<{ onNext: () => void; onLogin: () => void; switchingAccount: boolean }>) {
   const { theme } = useTheme();
   const { width } = useWindowDimensions();
+  const isDesktop = useDesktopLayout();
   const [slide, setSlide] = useState(0);
-  const slideWidth = Math.max(280, width - spacing["2xl"] * 2);
+  const slideWidth = Math.max(
+    280,
+    Math.min(width - spacing["2xl"] * 2, isDesktop ? 656 : Number.POSITIVE_INFINITY),
+  );
 
   return (
     <View style={{ flex: 1, justifyContent: "space-between", padding: spacing["2xl"] }}>
@@ -645,6 +651,7 @@ function DoneStep({
 export default function OnboardingScreen() {
   const router = useRouter();
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const updateProfile = useUpdateProfile();
   const { signOut, userId } = useAuth();
   const [switchingAccount, setSwitchingAccount] = useState(false);
@@ -692,40 +699,48 @@ export default function OnboardingScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      {currentStep === 0 && (
-        <WelcomeStep
-          onNext={() => setStep(1)}
-          onLogin={() => {
-            void handleSwitchAccount();
-          }}
-          switchingAccount={switchingAccount}
-        />
-      )}
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor: theme.colors.background,
+        alignItems: isDesktop ? "center" : undefined,
+      }}
+    >
+      <View style={[{ flex: 1 }, desktopContained(isDesktop, 720)]}>
+        {currentStep === 0 && (
+          <WelcomeStep
+            onNext={() => setStep(1)}
+            onLogin={() => {
+              void handleSwitchAccount();
+            }}
+            switchingAccount={switchingAccount}
+          />
+        )}
 
-      {currentStep === 1 && (
-        <NicheStep
-          selected={businessType}
-          onSelect={setBusinessType}
-          onNext={() => setStep(2)}
-          onBack={() => setStep(0)}
-        />
-      )}
+        {currentStep === 1 && (
+          <NicheStep
+            selected={businessType}
+            onSelect={setBusinessType}
+            onNext={() => setStep(2)}
+            onBack={() => setStep(0)}
+          />
+        )}
 
-      {currentStep === 2 && (
-        <BusinessNameStep
-          onNext={(name) => {
-            setBusinessName(name);
-            persistProfile(name);
-            setStep(3);
-          }}
-          onBack={() => setStep(1)}
-        />
-      )}
+        {currentStep === 2 && (
+          <BusinessNameStep
+            onNext={(name) => {
+              setBusinessName(name);
+              persistProfile(name);
+              setStep(3);
+            }}
+            onBack={() => setStep(1)}
+          />
+        )}
 
-      {currentStep === 3 && (
-        <DoneStep onFinish={handleFinish} onFirstProduct={handleFirstProduct} />
-      )}
+        {currentStep === 3 && (
+          <DoneStep onFinish={handleFinish} onFirstProduct={handleFirstProduct} />
+        )}
+      </View>
     </SafeAreaView>
   );
 }

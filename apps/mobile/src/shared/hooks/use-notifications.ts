@@ -8,16 +8,18 @@ import { handleNotificationResponse } from "./notification-types";
 // ---------------------------------------------------------------------------
 // Global notification handler — shows alerts even when app is in foreground
 // ---------------------------------------------------------------------------
-Notifications.setNotificationHandler({
-  handleNotification: () =>
-    Promise.resolve({
-      shouldShowAlert: true,
-      shouldShowBanner: true,
-      shouldShowList: true,
-      shouldPlaySound: true,
-      shouldSetBadge: true,
-    }),
-});
+if (Platform.OS !== "web") {
+  Notifications.setNotificationHandler({
+    handleNotification: () =>
+      Promise.resolve({
+        shouldShowAlert: true,
+        shouldShowBanner: true,
+        shouldShowList: true,
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+      }),
+  });
+}
 
 // ---------------------------------------------------------------------------
 // Permission helper — ensures local notifications can be shown/scheduled
@@ -47,7 +49,7 @@ export function useNotifications() {
   const responseListener = useRef<{ remove(): void } | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || Platform.OS === "web") return;
 
     void ensureNotificationPermissionsAsync();
 

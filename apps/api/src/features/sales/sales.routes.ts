@@ -7,6 +7,7 @@ import {
 import { Router, type RequestHandler } from "express";
 
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
+import { requireBrandFeature } from "../../shared/middleware/brand-feature";
 import type { SalesUseCases } from "./sales.usecases";
 
 export function createSalesRouter(
@@ -15,17 +16,32 @@ export function createSalesRouter(
 ): Router {
   const router = Router();
   router.use(authMiddleware);
-
-  router.post("/", ...(createGuard ? [createGuard] : []), async (req, res, next) => {
-    try {
-      const userId = getUserId(req);
-      const data = CreateSaleDto.parse(req.body);
-      const sale = await useCases.createSale(userId, data);
-      res.status(201).json(sale);
-    } catch (err) {
-      next(err);
+  const variationGuard = requireBrandFeature("catalogoCores");
+  const variationSaleGuard: RequestHandler = (req, res, next) => {
+    const items = (req.body as { items?: Array<{ variationId?: string }> } | undefined)
+      ?.items;
+    if (items?.some((item) => item.variationId)) {
+      variationGuard(req, res, next);
+      return;
     }
-  });
+    next();
+  };
+
+  router.post(
+    "/",
+    ...(createGuard ? [createGuard] : []),
+    variationSaleGuard,
+    async (req, res, next) => {
+      try {
+        const userId = getUserId(req);
+        const data = CreateSaleDto.parse(req.body);
+        const sale = await useCases.createSale(userId, data);
+        res.status(201).json(sale);
+      } catch (err) {
+        next(err);
+      }
+    },
+  );
 
   router.get("/", async (req, res, next) => {
     try {
@@ -74,7 +90,7 @@ export function createSalesRouter(
     }
   });
 
-  router.patch("/:id", async (req, res, next) => {
+  router.patch<{ id: string }>("/:id", variationSaleGuard, async (req, res, next) => {
     try {
       const userId = getUserId(req);
       const data = UpdateSaleDto.parse(req.body);

@@ -28,6 +28,8 @@ import { uploadOrderImage } from "../../../shared/utils/upload-image";
 import { ClientPickerModal } from "../../clients/components/client-picker-modal";
 import { useCreateOrder, useDeleteOrder, useUpdateOrder } from "../hooks";
 import { FormSection } from "../../../shared/components/form-section";
+import { desktopAction, desktopContained } from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { alertValidation } from "../../../shared/utils/alerts";
 import {
   currencyInput,
@@ -353,6 +355,7 @@ function PersonalizationFields({
 
 export function OrderForm({ order, onSuccess }: OrderFormProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const pal = formPalette(theme);
   const [title, setTitle] = useState(order?.title ?? "");
   const [dateText, setDateText] = useState(
@@ -494,12 +497,15 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
     >
       <ScrollView
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{
-          padding: spacing.xl,
-          paddingTop: 0,
-          paddingBottom: spacing["2xl"],
-          gap: spacing.lg,
-        }}
+        contentContainerStyle={[
+          {
+            padding: spacing.xl,
+            paddingTop: 0,
+            paddingBottom: spacing["2xl"],
+            gap: spacing.lg,
+          },
+          desktopContained(isDesktop),
+        ]}
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.lg }}>
           <View
@@ -626,150 +632,171 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
 
           <View style={{ height: 1, backgroundColor: pal.border }} />
 
-          <View style={{ gap: spacing.sm }}>
-            <Typography variant="h3" color={theme.colors.text}>
-              O que é? (encomenda){" "}
-              <Typography variant="bodyBold" color={theme.colors.primaryLight}>
-                *
+          <View
+            style={{
+              flexDirection: isDesktop ? "row" : "column",
+              gap: spacing.lg,
+            }}
+          >
+            <View style={{ flex: 1, gap: spacing.sm }}>
+              <Typography variant="h3" color={theme.colors.text}>
+                O que é? (encomenda){" "}
+                <Typography variant="bodyBold" color={theme.colors.primaryLight}>
+                  *
+                </Typography>
               </Typography>
-            </Typography>
-            <Field
-              icon="cube-outline"
-              placeholder="Ex: Bolo de chocolate 2kg"
-              value={title}
-              onChangeText={setTitle}
-              autoFocus={!isEditing}
-            />
-          </View>
-
-          <View style={{ gap: spacing.sm }}>
-            <Typography variant="h3" color={theme.colors.text}>
-              Cliente (opcional)
-            </Typography>
-            <ClientField
-              clientName={clientName}
-              onPress={() => setShowClientPicker(true)}
-              onClear={() => {
-                setClientId(undefined);
-                setClientName("");
-              }}
-            />
-            <ClientPickerModal
-              visible={showClientPicker}
-              onClose={() => setShowClientPicker(false)}
-              onSelect={(client) => {
-                setClientId(client?.id);
-                setClientName(client?.name ?? "");
-              }}
-            />
-          </View>
-
-          <View style={{ gap: spacing.sm }}>
-            <Typography variant="h3" color={theme.colors.text}>
-              Data de entrega{" "}
-              <Typography variant="bodyBold" color={theme.colors.primaryLight}>
-                *
-              </Typography>
-            </Typography>
-            <View style={{ flexDirection: "row", gap: spacing.sm }}>
-              {[
-                {
-                  label: "Hoje",
-                  value: offsetIsoBr(0),
-                  icon: "calendar-outline" as const,
-                },
-                {
-                  label: "Amanhã",
-                  value: offsetIsoBr(1),
-                  icon: "sunny-outline" as const,
-                },
-              ].map((chip) => {
-                const active = dateText === chip.value;
-                return (
-                  <Pressable
-                    key={chip.label}
-                    onPress={() => setDateText(chip.value)}
-                    style={{
-                      minHeight: 48,
-                      borderRadius: radii.full,
-                      paddingHorizontal: spacing.lg,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexDirection: "row",
-                      gap: spacing.sm,
-                      backgroundColor: active ? theme.colors.primary : pal.surface,
-                    }}
-                  >
-                    <Ionicons
-                      name={chip.icon}
-                      size={21}
-                      color={active ? theme.colors.textOnPrimary : pal.muted}
-                    />
-                    <Typography
-                      variant="bodyBold"
-                      color={active ? theme.colors.textOnPrimary : pal.muted}
-                    >
-                      {chip.label}
-                    </Typography>
-                  </Pressable>
-                );
-              })}
+              <Field
+                icon="cube-outline"
+                placeholder="Ex: Bolo de chocolate 2kg"
+                value={title}
+                onChangeText={setTitle}
+                autoFocus={!isEditing}
+              />
             </View>
-            <Field
-              icon="calendar-outline"
-              trailingIcon="calendar-outline"
-              onTrailingPress={openDatePicker}
-              value={dateText}
-              onChangeText={(v) => setDateText(maskDateBR(v))}
-              keyboardType="number-pad"
-              placeholder="DD/MM/AAAA"
-            />
-            <CalendarModal
-              visible={showDatePicker}
-              value={dateText}
-              onSelect={setDateText}
-              onClose={() => setShowDatePicker(false)}
-            />
+
+            <View style={{ flex: 1, gap: spacing.sm, justifyContent: "flex-end" }}>
+              <Typography variant="h3" color={theme.colors.text}>
+                Cliente (opcional)
+              </Typography>
+              <ClientField
+                clientName={clientName}
+                onPress={() => setShowClientPicker(true)}
+                onClear={() => {
+                  setClientId(undefined);
+                  setClientName("");
+                }}
+              />
+              <ClientPickerModal
+                visible={showClientPicker}
+                onClose={() => setShowClientPicker(false)}
+                onSelect={(client) => {
+                  setClientId(client?.id);
+                  setClientName(client?.name ?? "");
+                }}
+              />
+            </View>
           </View>
 
-          <View style={{ gap: spacing.sm }}>
-            <Typography variant="h3" color={theme.colors.text}>
-              Horário (opcional)
-            </Typography>
-            <Field
-              icon="time-outline"
-              placeholder="Ex: 14:30"
-              value={time}
-              onChangeText={(v) => setTime(maskTimeBR(v))}
-              keyboardType="number-pad"
-              maxLength={5}
-            />
+          <View
+            style={{
+              flexDirection: isDesktop ? "row" : "column",
+              gap: spacing.lg,
+            }}
+          >
+            <View style={{ flex: 1, gap: spacing.sm }}>
+              <Typography variant="h3" color={theme.colors.text}>
+                Data de entrega{" "}
+                <Typography variant="bodyBold" color={theme.colors.primaryLight}>
+                  *
+                </Typography>
+              </Typography>
+              <View style={{ flexDirection: "row", gap: spacing.sm }}>
+                {[
+                  {
+                    label: "Hoje",
+                    value: offsetIsoBr(0),
+                    icon: "calendar-outline" as const,
+                  },
+                  {
+                    label: "Amanhã",
+                    value: offsetIsoBr(1),
+                    icon: "sunny-outline" as const,
+                  },
+                ].map((chip) => {
+                  const active = dateText === chip.value;
+                  return (
+                    <Pressable
+                      key={chip.label}
+                      onPress={() => setDateText(chip.value)}
+                      style={{
+                        minHeight: 48,
+                        borderRadius: radii.full,
+                        paddingHorizontal: spacing.lg,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexDirection: "row",
+                        gap: spacing.sm,
+                        backgroundColor: active ? theme.colors.primary : pal.surface,
+                      }}
+                    >
+                      <Ionicons
+                        name={chip.icon}
+                        size={21}
+                        color={active ? theme.colors.textOnPrimary : pal.muted}
+                      />
+                      <Typography
+                        variant="bodyBold"
+                        color={active ? theme.colors.textOnPrimary : pal.muted}
+                      >
+                        {chip.label}
+                      </Typography>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <Field
+                icon="calendar-outline"
+                trailingIcon="calendar-outline"
+                onTrailingPress={openDatePicker}
+                value={dateText}
+                onChangeText={(v) => setDateText(maskDateBR(v))}
+                keyboardType="number-pad"
+                placeholder="DD/MM/AAAA"
+              />
+              <CalendarModal
+                visible={showDatePicker}
+                value={dateText}
+                onSelect={setDateText}
+                onClose={() => setShowDatePicker(false)}
+              />
+            </View>
+
+            <View style={{ flex: 1, gap: spacing.sm }}>
+              <Typography variant="h3" color={theme.colors.text}>
+                Horário (opcional)
+              </Typography>
+              <Field
+                icon="time-outline"
+                placeholder="Ex: 14:30"
+                value={time}
+                onChangeText={(v) => setTime(maskTimeBR(v))}
+                keyboardType="number-pad"
+                maxLength={5}
+              />
+            </View>
           </View>
 
-          <View style={{ gap: spacing.sm }}>
-            <Typography variant="h3" color={theme.colors.text}>
-              Valor combinado (opcional)
-            </Typography>
-            <Field
-              icon="cash-outline"
-              placeholder="Ex: 120,00"
-              value={amount}
-              onChangeText={(value) => setAmount(maskCurrencyInput(value))}
-              keyboardType="numeric"
-            />
-          </View>
+          <View
+            style={{
+              flexDirection: isDesktop ? "row" : "column",
+              gap: spacing.lg,
+            }}
+          >
+            <View style={{ flex: 1, gap: spacing.sm }}>
+              <Typography variant="h3" color={theme.colors.text}>
+                Valor combinado (opcional)
+              </Typography>
+              <Field
+                icon="cash-outline"
+                placeholder="Ex: 120,00"
+                value={amount}
+                onChangeText={(value) => setAmount(maskCurrencyInput(value))}
+                keyboardType="numeric"
+              />
+            </View>
 
-          <View style={{ gap: spacing.sm }}>
-            <Typography variant="h3" color={theme.colors.text}>
-              Sinal recebido (opcional)
-            </Typography>
-            <Field
-              icon="wallet-outline"
-              placeholder="Ex: 60,00, entrada já paga"
-              value={deposit}
-              onChangeText={(value) => setDeposit(maskCurrencyInput(value))}
-              keyboardType="numeric"
-            />
+            <View style={{ flex: 1, gap: spacing.sm }}>
+              <Typography variant="h3" color={theme.colors.text}>
+                Sinal recebido (opcional)
+              </Typography>
+              <Field
+                icon="wallet-outline"
+                placeholder="Ex: 60,00, entrada já paga"
+                value={deposit}
+                onChangeText={(value) => setDeposit(maskCurrencyInput(value))}
+                keyboardType="numeric"
+              />
+            </View>
           </View>
 
           <FormSection
@@ -808,16 +835,19 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
           onPress={() => {
             void handleSave();
           }}
-          style={({ pressed }) => ({
-            minHeight: 62,
-            borderRadius: radii.xl,
-            backgroundColor: theme.colors.primary,
-            alignItems: "center",
-            justifyContent: "center",
-            flexDirection: "row",
-            gap: spacing.md,
-            opacity: pressed || isSaving ? 0.82 : 1,
-          })}
+          style={({ pressed }) => [
+            {
+              minHeight: 62,
+              borderRadius: radii.xl,
+              backgroundColor: theme.colors.primary,
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: "row",
+              gap: spacing.md,
+              opacity: pressed || isSaving ? 0.82 : 1,
+            },
+            desktopAction(isDesktop, 240),
+          ]}
         >
           {isSaving ? (
             <ActivityIndicator color={theme.colors.textOnPrimary} />

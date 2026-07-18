@@ -8,7 +8,7 @@
       "node": "22.22.3",
       "pnpm": "9.15.4"
     },
-    "development": {
+    "development-base": {
       "extends": "base",
       "developmentClient": true,
       "distribution": "internal",
@@ -20,36 +20,109 @@
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://lucro-caseiroapi-production.up.railway.app",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://ujwxvpceqigvyxcqolch.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_62oHpKLLLGkVgWqA-aZ9Pg_bLR1UiCq"
+      }
+    },
+    "development": {
+      "extends": "development-base",
+      "env": {
         "EXPO_PUBLIC_CATALOG_URL": "https://catalogo.lucrocaseiro.com.br",
-        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucrocaseiro://auth/callback",
+        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucrocaseiro://auth/callback"
+      }
+    },
+    "preview-base": {
+      "extends": "base",
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://lucro-caseiroapi-production.up.railway.app",
         "EXPO_PUBLIC_SUPABASE_URL": "https://ujwxvpceqigvyxcqolch.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_62oHpKLLLGkVgWqA-aZ9Pg_bLR1UiCq"
       }
     },
     "preview": {
+      "extends": "preview-base",
+      "env": {
+        "EXPO_PUBLIC_CATALOG_URL": "https://catalogo.lucrocaseiro.com.br",
+        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucrocaseiro://auth/callback"
+      }
+    },
+    "production-base": {
       "extends": "base",
-      "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://lucro-caseiroapi-production.up.railway.app",
-        "EXPO_PUBLIC_CATALOG_URL": "https://catalogo.lucrocaseiro.com.br",
-        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucrocaseiro://auth/callback",
         "EXPO_PUBLIC_SUPABASE_URL": "https://ujwxvpceqigvyxcqolch.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_62oHpKLLLGkVgWqA-aZ9Pg_bLR1UiCq"
       }
     },
     "production": {
-      "extends": "base",
+      "extends": "production-base",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://lucro-caseiroapi-production.up.railway.app",
         "EXPO_PUBLIC_CATALOG_URL": "https://catalogo.lucrocaseiro.com.br",
-        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucrocaseiro://auth/callback",
-        "EXPO_PUBLIC_SUPABASE_URL": "https://ujwxvpceqigvyxcqolch.supabase.co",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_62oHpKLLLGkVgWqA-aZ9Pg_bLR1UiCq"
+        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucrocaseiro://auth/callback"
+      }
+    },
+    "papelaria-development": {
+      "extends": "development-base",
+      "env": {
+        "BRAND": "lucro-papelaria",
+        "EXPO_PUBLIC_BRAND": "lucro-papelaria",
+        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucropapelaria://auth/callback"
+      }
+    },
+    "papelaria-preview": {
+      "extends": "preview-base",
+      "env": {
+        "BRAND": "lucro-papelaria",
+        "EXPO_PUBLIC_BRAND": "lucro-papelaria",
+        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucropapelaria://auth/callback"
+      }
+    },
+    "papelaria-production": {
+      "extends": "production-base",
+      "env": {
+        "BRAND": "lucro-papelaria",
+        "EXPO_PUBLIC_BRAND": "lucro-papelaria",
+        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucropapelaria://auth/callback"
+      }
+    },
+    "manicure-development": {
+      "extends": "development-base",
+      "env": {
+        "BRAND": "lucro-manicure",
+        "EXPO_PUBLIC_BRAND": "lucro-manicure",
+        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucromanicure://auth/callback"
+      }
+    },
+    "manicure-preview": {
+      "extends": "preview-base",
+      "env": {
+        "BRAND": "lucro-manicure",
+        "EXPO_PUBLIC_BRAND": "lucro-manicure",
+        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucromanicure://auth/callback"
+      }
+    },
+    "manicure-production": {
+      "extends": "production-base",
+      "env": {
+        "BRAND": "lucro-manicure",
+        "EXPO_PUBLIC_BRAND": "lucro-manicure",
+        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucromanicure://auth/callback"
       }
     }
   },
   "submit": {
     "production": {
+      "android": {
+        "track": "internal"
+      }
+    },
+    "papelaria-production": {
+      "android": {
+        "track": "internal"
+      }
+    },
+    "manicure-production": {
       "android": {
         "track": "internal"
       }

@@ -17,7 +17,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#F7DFD6"
+        "backgroundColor": "#1B1917"
       },
       "package": "br.com.orionseven.lucrocaseiro",
       "versionCode": 19,
@@ -70,12 +70,27 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "f1dbfa95-c134-44cd-855c-52fc8bb1c3f3"
+        "projectId": "4716a6ec-ed90-43f2-be15-d877cba68101"
       },
       "admob": {
         "bannerUnitIdAndroid": "ca-app-pub-8304398247631710/6992108312",
         "interstitialUnitIdAndroid": "ca-app-pub-8304398247631710/5985224969"
-      }
+      },
+      "brand": "lucro-manicure",
+      "knownBrands": [
+        "lucro-caseiro",
+        "lucro-manicure",
+        "lucro-papelaria",
+        "lucro-caseiro",
+        "lucro-manicure",
+        "lucro-papelaria",
+        "lucro-caseiro",
+        "lucro-manicure",
+        "lucro-papelaria",
+        "lucro-caseiro",
+        "lucro-manicure",
+        "lucro-papelaria"
+      ]
     },
     "owner": "marivscls5"
   }

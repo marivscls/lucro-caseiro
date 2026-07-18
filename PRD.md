@@ -2,7 +2,7 @@
 
 ## Visao Geral
 
-**Lucro Caseiro** e um app de gestao completa para negocios caseiros: confeitaria, docinhos, chup chup, marmitas, manicure, sobrancelha, artesanato, bolos e qualquer atividade de renda feita em casa.
+**Lucro Caseiro** e um app de gestao completa para quem produz, vende ou presta servicos, desde profissionais autonomos ate negocios estruturados e em crescimento. Confeitaria, alimentacao, beleza, artesanato e costura sao exemplos de segmentos, nao limites do produto.
 
 O objetivo e ser a ferramenta mais simples e completa do mercado para quem empreende de casa, permitindo controlar vendas, clientes, financas, receitas, precificacao e embalagens/rotulos — tudo em um so lugar.
 

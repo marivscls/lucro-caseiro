@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.91",
+    "@lucro-caseiro/brands": "workspace:*",
     "@lucro-caseiro/contracts": "workspace:*",
     "@lucro-caseiro/database": "workspace:*",
     "@supabase/supabase-js": "^2.110.2",

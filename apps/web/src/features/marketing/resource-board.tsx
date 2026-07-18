@@ -39,6 +39,13 @@ const labels: Record<
     description: "Dores, desejos, linguagem, canais e promessa central de cada segmento.",
     singular: "público",
   },
+  interview: {
+    eyebrow: "Voz da cliente",
+    title: "10 conversas antes de acelerar a aquisição",
+    description:
+      "Recrutamento, roteiro, frases literais, objeções e evidências de cada entrevista.",
+    singular: "entrevista",
+  },
   feature: {
     eyebrow: "Produto → mensagem",
     title: "Cada funcionalidade com seu melhor público",
@@ -616,17 +623,23 @@ function statusLabel(value: string) {
         published: "Publicado",
         active: "Ativo",
         archived: "Arquivado",
+        recruited: "Recrutada",
+        completed: "Concluída",
+        declined: "Recusada",
       } as Record<string, string>
     )[value] ?? value
   );
 }
 function initialStatus(kind: ResourceKind) {
-  return kind === "content" ? "idea" : "active";
+  if (kind === "content") return "idea";
+  return kind === "interview" ? "planned" : "active";
 }
 function statusOptions(kind: ResourceKind) {
-  return kind === "content"
-    ? ["idea", "planned", "producing", "ready", "published", "archived"]
-    : ["active", "planned", "archived"];
+  if (kind === "content")
+    return ["idea", "planned", "producing", "ready", "published", "archived"];
+  if (kind === "interview")
+    return ["planned", "recruited", "completed", "declined", "archived"];
+  return ["active", "planned", "archived"];
 }
 function toLocalDateTime(value: string) {
   const date = new Date(value);

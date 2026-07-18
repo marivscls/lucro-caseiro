@@ -32,15 +32,22 @@ export const ANALYTICS_SCREEN_NAMES = [
 
 export const ANALYTICS_ACTION_NAMES = [
   "signup_completed",
+  "pricing_started",
   "pricing_completed",
   "product_created",
+  "product_created_from_pricing",
   "sale_completed",
   "order_created",
+  "catalog_published",
   "catalog_shared",
   "quote_created",
   "quote_pdf_exported",
   "finance_entry_created",
+  "plan_limit_reached",
+  "paid_feature_requested",
   "subscription_started",
+  "subscription_completed",
+  "subscription_cancelled",
 ] as const;
 
 export type AnalyticsScreenName = (typeof ANALYTICS_SCREEN_NAMES)[number];
@@ -105,7 +112,7 @@ export interface FeatureUsageMetric {
 }
 
 export interface FunnelMetric {
-  stage: "installation" | "signup" | "pricing" | "product" | "sale";
+  stage: "installation" | "signup" | "pricing" | "product" | "catalog_or_sale";
   installations: number;
   previousStagePercent: number | null;
 }

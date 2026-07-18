@@ -1,8 +1,7 @@
-import * as FileSystem from "expo-file-system/legacy";
-
 import type { LabelData } from "@lucro-caseiro/contracts";
 
 import { showAlert } from "../../shared/components/alert-store";
+import { exportHtmlPdf } from "../../shared/utils/export-html";
 import { resolveLabelStyle } from "./components/label-preview";
 import { isoToBR } from "./dates";
 import { NUTRITION_FIELDS, hasNutrition } from "./nutrition";
@@ -216,36 +215,10 @@ export async function exportLabelPdf(
   copies = 1,
 ): Promise<void> {
   const html = buildLabelHtml(data, templateId, logoUrl, qrUrl, copies);
-  const [Print, Sharing] = await Promise.all([
-    import("expo-print"),
-    import("expo-sharing"),
-  ]);
-  const { uri } = await Print.printToFileAsync({ html });
-
-  // printToFileAsync gera um nome tipo "<uuid>.pdf"; copia pra um nome legível
-  // (ex.: "rotulo-brigadeiro-gourmet.pdf") antes de compartilhar. Se a cópia
-  // falhar, compartilha o original — não bloqueia o download.
-  let shareUri = uri;
-  try {
-    const dest = `${FileSystem.cacheDirectory}${labelFileName(data.productName)}`;
-    await FileSystem.deleteAsync(dest, { idempotent: true });
-    await FileSystem.copyAsync({ from: uri, to: dest });
-    shareUri = dest;
-  } catch {
-    shareUri = uri;
-  }
-
-  if (await Sharing.isAvailableAsync()) {
-    await Sharing.shareAsync(shareUri, {
-      mimeType: "application/pdf",
-      dialogTitle: "Baixar ou compartilhar rótulo",
-      UTI: "com.adobe.pdf",
-    });
-    return;
-  }
-
-  // Fallback: abre o dialogo de impressao nativo (inclui "Salvar como PDF").
-  await Print.printAsync({ html });
+  await exportHtmlPdf(html, {
+    dialogTitle: "Baixar ou compartilhar rótulo",
+    filename: labelFileName(data.productName),
+  });
 }
 
 const SHEET_COPIES = 8;

@@ -227,7 +227,11 @@ const userHasFeature =
 const labelsUseCases = new LabelsUseCases(labelsRepo, userHasFeature("labelsPremium"));
 const packagingUseCases = new PackagingUseCases(packagingRepo);
 const pricingUseCases = new PricingUseCases(pricingRepo);
-const subscriptionUseCases = new SubscriptionUseCases(subscriptionRepo, googlePlayClient);
+const subscriptionUseCases = new SubscriptionUseCases(
+  subscriptionRepo,
+  googlePlayClient,
+  (userId, action) => analyticsUseCases.recordUserAction(userId, action),
+);
 const goalsUseCases = new GoalsUseCases(
   goalsRepo,
   financeUseCases,
@@ -263,6 +267,25 @@ app.use(express.json());
 
 // Barreira contra abuso/rajada (webhook do Stripe fica de fora — montado antes do json).
 app.use(rateLimit({ windowMs: 60_000, max: 300 }));
+
+// Structured request log for multi-brand operation (ADR-0009).
+app.use((req, res, next) => {
+  const brand = req.header("x-brand")?.trim() || "lucro-caseiro";
+  res.on("finish", () => {
+    // Request logs are the operational metric for brand-separated API traffic.
+    // eslint-disable-next-line no-console
+    console.info(
+      JSON.stringify({
+        event: "api_request",
+        brand,
+        method: req.method,
+        path: req.path,
+        status: res.statusCode,
+      }),
+    );
+  });
+  next();
+});
 
 // Health check
 app.use("/api/v1/health", healthRouter);

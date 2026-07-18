@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalculatorModal } from "../../../shared/components/calculator-modal";
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { useFieldPalette } from "../../../shared/components/form-field";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import {
   currencyInput,
   maskCurrencyInput,
@@ -22,6 +23,8 @@ import {
 } from "../../../shared/utils/currency-input";
 import { usePackagingList } from "../../packaging/hooks";
 import { useProducts } from "../../products/hooks";
+import { trackAnalyticsAction } from "../../analytics/tracker";
+import { useAuth } from "../../../shared/hooks/use-auth";
 import * as priceCalc from "../calc";
 import { useCalculatePricing } from "../hooks";
 import { PricingResult } from "./pricing-result";
@@ -36,6 +39,7 @@ function parseCurrency(text: string): number {
 
 interface PricingCalculatorProps {
   readonly onSave?: () => void;
+  readonly onCreateProduct?: (salePrice: number) => void;
 }
 
 // ---- Componentes visuais ----
@@ -164,11 +168,12 @@ function MoneyField({
   autoFocus?: boolean;
 }>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const pal = useFieldPalette();
   return (
     <View
       style={{
-        minHeight: 64,
+        minHeight: isDesktop ? 52 : 64,
         borderRadius: radii.lg,
         borderWidth: 1,
         borderColor: theme.colors.primary,
@@ -189,7 +194,7 @@ function MoneyField({
         style={{
           flex: 1,
           color: theme.colors.text,
-          fontSize: 26,
+          fontSize: isDesktop ? 20 : 26,
           fontFamily: fonts.bold,
         }}
       />
@@ -199,8 +204,8 @@ function MoneyField({
         accessibilityLabel="Abrir calculadora"
         hitSlop={6}
         style={({ pressed }) => ({
-          width: 44,
-          height: 44,
+          width: isDesktop ? 36 : 44,
+          height: isDesktop ? 36 : 44,
           borderRadius: radii.md,
           borderWidth: 1,
           borderColor: `${theme.colors.primary}66`,
@@ -379,11 +384,13 @@ function DicaBox({
   );
 }
 
-export function PricingCalculator({ onSave }: PricingCalculatorProps) {
+export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculatorProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const pal = useFieldPalette();
   const insets = useSafeAreaInsets();
   const [step, setStep] = useState<Step>(1);
+  const [startedTracked, setStartedTracked] = useState(false);
 
   const { data: productsData } = useProducts();
   const costedProducts = (productsData?.items ?? []).filter((p) => p.costPrice != null);
@@ -434,8 +441,12 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
   }, []);
 
   const handleNext = useCallback(() => {
+    if (!startedTracked) {
+      setStartedTracked(true);
+      void trackAnalyticsAction("pricing_started", useAuth.getState().token);
+    }
     setStep((s) => (s === 5 ? "result" : ((Number(s) + 1) as Step)));
-  }, []);
+  }, [startedTracked]);
   const handleBack = useCallback(() => {
     setStep((s) => (s === "result" ? 5 : ((Number(s) - 1) as Step)));
   }, []);
@@ -481,6 +492,34 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
     onSave,
   ]);
 
+  const handleCreateProduct = useCallback(async () => {
+    try {
+      await calculatePricing.mutateAsync({
+        productId: productId ?? undefined,
+        ingredientCost: parseCurrency(ingredientCost),
+        packagingCost: parseCurrency(packagingCost),
+        laborCost,
+        fixedCostShare,
+        marginPercent,
+        feesPercent: feesPercent > 0 ? feesPercent : undefined,
+      });
+      onCreateProduct?.(finalPrice);
+    } catch {
+      // handled by mutation state
+    }
+  }, [
+    calculatePricing,
+    productId,
+    ingredientCost,
+    packagingCost,
+    laborCost,
+    fixedCostShare,
+    marginPercent,
+    feesPercent,
+    finalPrice,
+    onCreateProduct,
+  ]);
+
   if (step === "result") {
     return (
       <PricingResult
@@ -500,6 +539,13 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
         onSave={() => {
           void handleSave();
         }}
+        onCreateProduct={
+          onCreateProduct && productId === null
+            ? () => {
+                void handleCreateProduct();
+              }
+            : undefined
+        }
         isSaving={calculatePricing.isPending}
       />
     );
@@ -514,6 +560,9 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
           padding: spacing.xl,
           paddingBottom: spacing["5xl"] + insets.bottom,
           gap: spacing.xl,
+          width: "100%",
+          maxWidth: isDesktop ? 980 : undefined,
+          alignSelf: "center",
         }}
       >
         <StepProgress current={stepNumber} />
@@ -986,14 +1035,21 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
           </>
         )}
 
-        <View style={{ flexDirection: "row", gap: spacing.md }}>
+        <View
+          style={{
+            flexDirection: "row",
+            gap: spacing.md,
+            justifyContent: isDesktop ? "flex-end" : undefined,
+          }}
+        >
           {step !== 1 ? (
             <Pressable
               onPress={handleBack}
               accessibilityRole="button"
               style={({ pressed }) => ({
-                flex: 1,
-                minHeight: 56,
+                flex: isDesktop ? undefined : 1,
+                width: isDesktop ? 180 : undefined,
+                minHeight: isDesktop ? 44 : 56,
                 borderRadius: radii.lg,
                 borderWidth: 1,
                 borderColor: `${theme.colors.primary}66`,
@@ -1014,8 +1070,9 @@ export function PricingCalculator({ onSave }: PricingCalculatorProps) {
             onPress={handleNext}
             accessibilityRole="button"
             style={({ pressed }) => ({
-              flex: 1,
-              minHeight: 56,
+              flex: isDesktop ? undefined : 1,
+              width: isDesktop ? 180 : undefined,
+              minHeight: isDesktop ? 44 : 56,
               borderRadius: radii.lg,
               backgroundColor: theme.colors.primary,
               flexDirection: "row",

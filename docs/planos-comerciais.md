@@ -52,7 +52,7 @@ Objetivo: permitir que a usuaria teste o app com fluxo real, mas encontre o limi
 
 Preco: R$ 29,90 por mes
 
-Objetivo: ser o plano principal para autonomas e pequenos negocios que precisam sair do caderno, planilha e WhatsApp solto.
+Objetivo: ser o plano principal para autonomas e negocios que precisam sair do caderno, planilha e WhatsApp solto, sem limitar o Lucro Caseiro a um porte ou estagio de maturidade.
 
 Deve incluir:
 

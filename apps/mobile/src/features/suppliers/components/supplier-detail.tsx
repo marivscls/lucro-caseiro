@@ -5,6 +5,8 @@ import { ActivityIndicator, ScrollView, View } from "react-native";
 
 import { openWhatsApp } from "../../../shared/utils/whatsapp";
 import { useSupplier } from "../hooks";
+import { desktopContained } from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 
 interface SupplierDetailProps {
   supplierId: string;
@@ -56,6 +58,7 @@ export function SupplierDetail({
   onEditPress,
 }: Readonly<SupplierDetailProps>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const { data: supplier, isLoading, error } = useSupplier(supplierId);
 
   if (isLoading) {
@@ -80,11 +83,14 @@ export function SupplierDetail({
 
   return (
     <ScrollView
-      contentContainerStyle={{
-        paddingHorizontal: spacing.xl,
-        paddingBottom: spacing["3xl"],
-        gap: spacing.xl,
-      }}
+      contentContainerStyle={[
+        {
+          paddingHorizontal: spacing.xl,
+          paddingBottom: spacing["3xl"],
+          gap: spacing.xl,
+        },
+        desktopContained(isDesktop, 960),
+      ]}
     >
       {/* Header */}
       <View style={{ alignItems: "center", gap: spacing.md, paddingTop: spacing.lg }}>

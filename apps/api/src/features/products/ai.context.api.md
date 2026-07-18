@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Gerenciar o catalogo de produtos do negocio caseiro, incluindo nome, descricao, categoria, preco de venda, foto, vinculo com receita e controle de estoque com alertas de nivel baixo. Suporta **produtos compostos (kit/caixinha)**: um produto montado a partir de outros produtos (cada um com quantidade), com custo rolado automaticamente.
+Gerenciar o catalogo de produtos do negocio, incluindo nome, descricao, categoria, preco de venda, foto, vinculo com receita e controle de estoque com alertas de nivel baixo. Suporta **produtos compostos (kit/caixinha)**: um produto montado a partir de outros produtos (cada um com quantidade), com custo rolado automaticamente.
 
 ## Non-goals
 

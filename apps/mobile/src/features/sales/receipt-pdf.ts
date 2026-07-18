@@ -1,5 +1,6 @@
 import type { Sale } from "@lucro-caseiro/contracts";
 
+import { exportHtmlPdf } from "../../shared/utils/export-html";
 import { playStoreUrl } from "../../shared/utils/store-link";
 
 import { paymentLabel } from "./payment";
@@ -141,19 +142,5 @@ export async function exportReceiptPdf(
   business: ReceiptBusiness,
 ): Promise<void> {
   const html = buildReceiptHtml(sale, business);
-  const [Print, Sharing] = await Promise.all([
-    import("expo-print"),
-    import("expo-sharing"),
-  ]);
-  const { uri } = await Print.printToFileAsync({ html });
-
-  if (await Sharing.isAvailableAsync()) {
-    await Sharing.shareAsync(uri, {
-      mimeType: "application/pdf",
-      dialogTitle: "Enviar recibo",
-      UTI: "com.adobe.pdf",
-    });
-    return;
-  }
-  await Print.printAsync({ html });
+  await exportHtmlPdf(html, { dialogTitle: "Enviar recibo" });
 }

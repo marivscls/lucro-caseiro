@@ -6,6 +6,8 @@ import { Pressable, View } from "react-native";
 
 import { showAlert } from "../../../shared/components/alert-store";
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
+import { desktopAction, desktopContained } from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { showToast } from "../../../shared/components/toast";
 import { formatCurrency } from "../../../shared/utils/format";
 import { ClientPickerModal } from "../../clients/components/client-picker-modal";
@@ -55,6 +57,7 @@ function brToIso(value: string): string | null {
 
 export function QuoteForm({ quote, onSuccess }: QuoteFormProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const createQuote = useCreateQuote();
   const updateQuote = useUpdateQuote();
   const [title, setTitle] = useState(quote?.title ?? "");
@@ -149,11 +152,14 @@ export function QuoteForm({ quote, onSuccess }: QuoteFormProps) {
 
   return (
     <KeyboardAwareScrollView
-      contentContainerStyle={{
-        padding: spacing.xl,
-        paddingBottom: spacing["3xl"],
-        gap: spacing.lg,
-      }}
+      contentContainerStyle={[
+        {
+          padding: spacing.xl,
+          paddingBottom: spacing["3xl"],
+          gap: spacing.lg,
+        },
+        desktopContained(isDesktop, 960),
+      ]}
     >
       <Input
         label="Título"
@@ -284,6 +290,7 @@ export function QuoteForm({ quote, onSuccess }: QuoteFormProps) {
         size="lg"
         onPress={() => void handleSave()}
         loading={isSaving}
+        style={desktopAction(isDesktop)}
       />
     </KeyboardAwareScrollView>
   );

@@ -1,4 +1,7 @@
-import type { ProductAnalyticsDashboard } from "@lucro-caseiro/contracts";
+import type {
+  AnalyticsActionName,
+  ProductAnalyticsDashboard,
+} from "@lucro-caseiro/contracts";
 
 import type {
   IAnalyticsRepo,
@@ -32,6 +35,10 @@ export class AnalyticsUseCases {
       occurredAt,
       activityDate: utcDateKey(occurredAt),
     });
+  }
+
+  recordUserAction(userId: string, action: AnalyticsActionName): Promise<void> {
+    return this.repo.recordUserAction(userId, action, this.now());
   }
 
   getDashboard(): Promise<ProductAnalyticsDashboard> {

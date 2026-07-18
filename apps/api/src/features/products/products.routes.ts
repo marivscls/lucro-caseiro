@@ -1,11 +1,13 @@
 import {
   CreateProductDto,
   PaginationDto,
+  ReplaceProductVariationsDto,
   UpdateProductDto,
 } from "@lucro-caseiro/contracts";
 import { Router, type RequestHandler } from "express";
 
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
+import { requireBrandFeature } from "../../shared/middleware/brand-feature";
 import type { ProductsUseCases } from "./products.usecases";
 
 export function createProductsRouter(
@@ -18,7 +20,15 @@ export function createProductsRouter(
   router.use(authMiddleware);
 
   const passthrough: RequestHandler = (_req, _res, next) => next();
-  const guards = [createGuard, photoGuard, compositeGuard].filter(
+  const variationGuard = requireBrandFeature("catalogoCores");
+  const variationMutationGuard: RequestHandler = (req, res, next) => {
+    if (req.body && Object.hasOwn(req.body as object, "variations")) {
+      variationGuard(req, res, next);
+      return;
+    }
+    next();
+  };
+  const guards = [createGuard, photoGuard, compositeGuard, variationMutationGuard].filter(
     Boolean,
   ) as RequestHandler[];
 
@@ -79,6 +89,32 @@ export function createProductsRouter(
     }
   });
 
+  router.get("/:id/variations", variationGuard, async (req, res, next) => {
+    try {
+      const variations = await useCases.getVariations(
+        getUserId(req),
+        req.params.id as string,
+      );
+      res.json(variations);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.put("/:id/variations", variationGuard, async (req, res, next) => {
+    try {
+      const { variations } = ReplaceProductVariationsDto.parse(req.body);
+      const result = await useCases.replaceVariations(
+        getUserId(req),
+        req.params.id as string,
+        variations,
+      );
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  });
+
   router.get("/:id", async (req, res, next) => {
     try {
       const userId = getUserId(req);
@@ -89,18 +125,18 @@ export function createProductsRouter(
     }
   });
 
-  const patchGuards = [photoGuard, compositeGuard].filter(Boolean) as RequestHandler[];
+  const patchGuards = [photoGuard, compositeGuard, variationMutationGuard].filter(
+    Boolean,
+  ) as RequestHandler[];
 
-  router.patch(
+  router.patch<{ id: string }>(
     "/:id",
     ...(patchGuards.length ? patchGuards : [passthrough]),
     async (req, res, next) => {
       try {
         const userId = getUserId(req);
         const data = UpdateProductDto.parse(req.body);
-        // Rota `/:id`: o param é sempre string; o guard antes do handler alarga o
-        // tipo de req.params (quirk do Express), então afirmamos string aqui.
-        const product = await useCases.update(userId, req.params.id as string, data);
+        const product = await useCases.update(userId, req.params.id, data);
         res.json(product);
       } catch (err) {
         next(err);

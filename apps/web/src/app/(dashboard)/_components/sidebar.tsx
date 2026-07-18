@@ -10,6 +10,7 @@ import {
   Library,
   LogOut,
   Megaphone,
+  MessagesSquare,
   PackageSearch,
   Route,
   Sparkles,
@@ -20,6 +21,7 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { getSupabase } from "@/shared/lib/supabase";
 import { clearApiCache } from "@/shared/lib/api-client";
+import { useBrand } from "@/app/brand-provider";
 
 const links = [
   ["/", "Hoje", House],
@@ -27,6 +29,7 @@ const links = [
   ["/content", "Conteúdo", Megaphone],
   ["/documents", "Documentos", FileText],
   ["/audiences", "Públicos", Users],
+  ["/interviews", "Entrevistas", MessagesSquare],
   ["/features", "Funcionalidades", PackageSearch],
   ["/outreach", "Onde chegar", Route],
   ["/campaigns", "Campanhas", Layers3],
@@ -36,6 +39,7 @@ const links = [
 ] as const;
 
 export function Sidebar() {
+  const brand = useBrand();
   const pathname = usePathname();
   const router = useRouter();
   async function logout() {
@@ -46,9 +50,16 @@ export function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <div className="brand-mark small">LC</div>
+        <div className="brand-mark small">
+          {brand.appName
+            .split(/\s+/)
+            .map((word) => word[0])
+            .join("")
+            .slice(0, 2)
+            .toUpperCase()}
+        </div>
         <div>
-          <strong>Lucro Caseiro</strong>
+          <strong>{brand.appName}</strong>
           <span>Central de marketing</span>
         </div>
       </div>

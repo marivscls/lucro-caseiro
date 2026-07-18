@@ -1,8 +1,10 @@
 import { Button, Typography, radii, spacing } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef } from "react";
-import { Linking, Modal, Pressable, View } from "react-native";
+import { Linking, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { ResponsiveModal } from "./responsive-modal-surface";
 
 type BarcodeScanningResult = { data?: string | null };
 
@@ -97,7 +99,13 @@ function BarcodeScannerNative({
   }
 
   return (
-    <Modal visible animationType="slide" onRequestClose={onClose} statusBarTranslucent>
+    <ResponsiveModal
+      visible
+      animationType="slide"
+      onRequestClose={onClose}
+      statusBarTranslucent
+      desktopMaxWidth={840}
+    >
       <View style={{ flex: 1, backgroundColor: "#000" }}>
         {permission?.granted ? (
           <CameraView
@@ -196,7 +204,7 @@ function BarcodeScannerNative({
           </View>
         ) : null}
       </View>
-    </Modal>
+    </ResponsiveModal>
   );
 }
 
@@ -207,7 +215,13 @@ function BarcodeScannerUnavailable({
   const insets = useSafeAreaInsets();
 
   return (
-    <Modal visible animationType="slide" onRequestClose={onClose} statusBarTranslucent>
+    <ResponsiveModal
+      visible
+      animationType="slide"
+      onRequestClose={onClose}
+      statusBarTranslucent
+      desktopMaxWidth={840}
+    >
       <View
         style={{
           flex: 1,
@@ -259,6 +273,6 @@ function BarcodeScannerUnavailable({
           </Pressable>
         </View>
       </View>
-    </Modal>
+    </ResponsiveModal>
   );
 }

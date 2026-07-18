@@ -12,7 +12,7 @@ import {
   analyticsInstallations,
   analyticsUserActivityDays,
 } from "@lucro-caseiro/database/schema";
-import { sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 
 import type { AppDatabase } from "../../shared/db";
 import { ANALYTICS_DASHBOARD_QUERY } from "./analytics.report-query";
@@ -189,6 +189,40 @@ export class AnalyticsRepoPg implements IAnalyticsRepo {
         occurredAt: input.occurredAt,
       })),
     );
+  }
+
+  async recordUserAction(
+    userId: string,
+    action: AnalyticsActionName,
+    occurredAt: Date,
+  ): Promise<void> {
+    const [installation] = await this.db
+      .select({
+        installationId: analyticsInstallationUsers.installationId,
+        appVersion: analyticsInstallations.appVersion,
+        appBuild: analyticsInstallations.appBuild,
+      })
+      .from(analyticsInstallationUsers)
+      .innerJoin(
+        analyticsInstallations,
+        eq(analyticsInstallations.id, analyticsInstallationUsers.installationId),
+      )
+      .where(eq(analyticsInstallationUsers.userId, userId))
+      .orderBy(desc(analyticsInstallationUsers.lastIdentifiedAt))
+      .limit(1);
+
+    if (!installation) return;
+
+    await this.db.insert(analyticsEvents).values({
+      installationId: installation.installationId,
+      userId,
+      eventType: "action",
+      eventName: action,
+      durationMs: null,
+      appVersion: installation.appVersion,
+      appBuild: installation.appBuild,
+      occurredAt,
+    });
   }
 
   async getDashboard(): Promise<ProductAnalyticsDashboard> {

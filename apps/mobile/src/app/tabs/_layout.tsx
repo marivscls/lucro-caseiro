@@ -1,13 +1,17 @@
-import { fonts, useTheme } from "@lucro-caseiro/ui";
+import { fontSizes, fonts, useFeature, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
 import { Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
+
 export default function TabLayout() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
+  const isDesktop = useDesktopLayout();
+  const hasScheduling = useFeature("agendamento");
 
   // On Android the system navigation bar overlaps the tab bar; reserve its
   // height so the "+" button and labels are not hidden behind it. iOS already
@@ -18,26 +22,34 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
-          // Icone+label centralizados como um bloco: paddings simetricos e o
-          // inset do Android fica FORA do conteudo (senao o label cola na
-          // barra de gestos do sistema).
-          height: (Platform.OS === "ios" ? 82 : 66) + bottomInset,
-          paddingBottom: (Platform.OS === "ios" ? 22 : 10) + bottomInset,
-          paddingTop: 9,
-          backgroundColor: theme.colors.surfaceElevated,
-          borderTopWidth: 1,
-          borderTopColor: theme.colors.border,
-          elevation: 0,
-          shadowOpacity: 0,
-        },
+        tabBarStyle: isDesktop
+          ? { display: "none" }
+          : {
+              // Icone+label centralizados como um bloco: paddings simetricos e o
+              // inset do Android fica FORA do conteudo (senao o label cola na
+              // barra de gestos do sistema).
+              height: (Platform.OS === "ios" ? 82 : 66) + bottomInset,
+              paddingBottom: (Platform.OS === "ios" ? 18 : 5) + bottomInset,
+              paddingTop: 7,
+              backgroundColor: theme.colors.surfaceElevated,
+              borderTopWidth: 1,
+              borderTopColor: theme.colors.border,
+              elevation: 0,
+              shadowOpacity: 0,
+            },
         tabBarLabelStyle: {
-          fontSize: 11,
-          lineHeight: 14,
+          // Piso de 13px (publico com idosos): nunca abaixo de fontSizes.xs.
+          fontSize: fontSizes.xs,
+          lineHeight: 17,
           fontFamily: fonts.semiBold,
         },
         tabBarIconStyle: { marginTop: 0 },
-        tabBarItemStyle: { paddingVertical: 0 },
+        tabBarItemStyle: {
+          flex: 1,
+          minWidth: 0,
+          paddingHorizontal: 0,
+          paddingVertical: 0,
+        },
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.textSecondary,
       }}
@@ -110,6 +122,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="agenda"
         options={{
+          href: hasScheduling ? undefined : null,
           title: "Agenda",
           tabBarLabel: "Agenda",
           tabBarIcon: ({ color }) => (

@@ -1,8 +1,12 @@
 import { fonts, Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Modal, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { desktopModalSurface } from "../layout/desktop-density";
+import { useDesktopLayout } from "../layout/use-desktop-layout";
+import { ResponsiveOverlayModal } from "./responsive-modal-surface";
 
 // Mini-calculadora (modal). Operações encadeadas simples (sem precedência),
 // decimal com vírgula. "Usar" devolve o número resultante para o campo.
@@ -33,6 +37,7 @@ interface CalculatorModalProps {
 
 export function CalculatorModal({ visible, onClose, onResult }: CalculatorModalProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const insets = useSafeAreaInsets();
   const isDark = theme.mode === "dark";
   const keyBg = isDark ? "rgba(255,255,255,0.06)" : theme.colors.surface;
@@ -163,25 +168,34 @@ export function CalculatorModal({ visible, onClose, onResult }: CalculatorModalP
   const pendingOp = fresh ? op : null;
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <ResponsiveOverlayModal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
       <Pressable
         onPress={onClose}
         style={{
           flex: 1,
           backgroundColor: "rgba(0,0,0,0.55)",
-          justifyContent: "flex-end",
+          justifyContent: isDesktop ? "center" : "flex-end",
+          padding: isDesktop ? spacing.xl : 0,
         }}
       >
         <Pressable
-          style={{
-            backgroundColor: sheetBg,
-            borderTopLeftRadius: radii["2xl"],
-            borderTopRightRadius: radii["2xl"],
-            paddingHorizontal: spacing.lg,
-            paddingTop: spacing.md,
-            paddingBottom: spacing.lg + insets.bottom,
-            gap: spacing.sm,
-          }}
+          style={[
+            {
+              backgroundColor: sheetBg,
+              borderTopLeftRadius: radii["2xl"],
+              borderTopRightRadius: radii["2xl"],
+              paddingHorizontal: spacing.lg,
+              paddingTop: spacing.md,
+              paddingBottom: isDesktop ? spacing.lg : spacing.lg + insets.bottom,
+              gap: spacing.sm,
+            },
+            desktopModalSurface(isDesktop, 480),
+          ]}
         >
           <View
             style={{
@@ -303,6 +317,6 @@ export function CalculatorModal({ visible, onClose, onResult }: CalculatorModalP
           </Pressable>
         </Pressable>
       </Pressable>
-    </Modal>
+    </ResponsiveOverlayModal>
   );
 }

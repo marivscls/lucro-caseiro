@@ -1,5 +1,5 @@
 import { Button, EmptyState, Typography, useTheme } from "@lucro-caseiro/ui";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, Image, View } from "react-native";
 
 import productsEmpty from "../../../assets/products-empty.png";
@@ -9,6 +9,8 @@ import {
   interleaveAds,
 } from "../../../shared/components/ad-banner";
 import { useShowAds } from "../../../shared/hooks/use-show-ads";
+import { DesktopPagination } from "../../../shared/components/desktop-pagination";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { useProducts } from "../hooks";
 import { ProductCard } from "./product-card";
 
@@ -28,8 +30,19 @@ export function ProductList({
   onAddPress,
 }: ProductListProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const showAds = useShowAds();
-  const { data, isLoading, error } = useProducts({ category, search, isComposite });
+  const [page, setPage] = useState(1);
+  const { data, isLoading, error } = useProducts({
+    page: isDesktop ? page : undefined,
+    category,
+    search,
+    isComposite,
+  });
+
+  useEffect(() => {
+    setPage(1);
+  }, [category, search, isComposite]);
 
   if (isLoading) {
     return (
@@ -73,19 +86,40 @@ export function ProductList({
 
   return (
     <FlatList
+      key={isDesktop ? "desktop-products" : "mobile-products"}
       data={listData}
+      numColumns={isDesktop ? 3 : 1}
       keyExtractor={(item, index) => (item === AD_ITEM_MARKER ? `ad-${index}` : item.id)}
       renderItem={({ item }) => {
         if (item === AD_ITEM_MARKER) {
-          return <AdBanner size="banner" />;
+          return (
+            <View style={isDesktop ? { flex: 1, minWidth: 0 } : undefined}>
+              <AdBanner size="banner" />
+            </View>
+          );
         }
-        return <ProductCard product={item} onPress={() => onProductPress?.(item.id)} />;
+        return (
+          <View style={isDesktop ? { flex: 1, minWidth: 0 } : undefined}>
+            <ProductCard product={item} onPress={() => onProductPress?.(item.id)} />
+          </View>
+        );
       }}
-      contentContainerStyle={{ gap: 12, padding: 20 }}
+      columnWrapperStyle={isDesktop ? { gap: 12 } : undefined}
+      contentContainerStyle={{ gap: 12, padding: 20, paddingBottom: 32 }}
       ListHeaderComponent={
         <Typography variant="caption">
           {data.total} produto{data.total !== 1 ? "s" : ""}
         </Typography>
+      }
+      ListFooterComponent={
+        isDesktop ? (
+          <DesktopPagination
+            page={data.page}
+            total={data.total}
+            totalPages={data.totalPages}
+            onPageChange={setPage}
+          />
+        ) : null
       }
     />
   );

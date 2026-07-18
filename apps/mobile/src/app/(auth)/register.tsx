@@ -17,6 +17,8 @@ import {
 } from "../../shared/utils/validation";
 import { suggestEmailFix } from "../../shared/utils/email";
 import { showAlert } from "../../shared/components/alert-store";
+import { desktopContained } from "../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import authHouse from "../../assets/auth-house.png";
 
 function PasswordStrengthBar({ password }: Readonly<{ password: string }>) {
@@ -108,6 +110,7 @@ function PasswordRules({ password }: Readonly<{ password: string }>) {
 
 export default function RegisterScreen() {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const router = useRouter();
   const { signUpWithEmail, signInWithGoogle } = useAuth();
 
@@ -116,7 +119,8 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState("");
   const [businessName, setBusinessName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [registerLoading, setRegisterLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const [nameError, setNameError] = useState<string>();
   const [emailError, setEmailError] = useState<string>();
@@ -156,14 +160,14 @@ export default function RegisterScreen() {
   async function handleRegister() {
     if (!validateForm()) return;
 
-    setLoading(true);
+    setRegisterLoading(true);
     const result = await signUpWithEmail(
       email,
       password,
       name,
       businessName || undefined,
     );
-    setLoading(false);
+    setRegisterLoading(false);
 
     if (result.error) {
       showAlert({ title: "Ops!", message: result.error });
@@ -189,12 +193,14 @@ export default function RegisterScreen() {
   }
 
   async function handleGoogleRegister() {
-    setLoading(true);
-    const result = await signInWithGoogle();
-    setLoading(false);
-
-    if (result.error) {
-      showAlert({ title: "Ops!", message: result.error });
+    setGoogleLoading(true);
+    try {
+      const result = await signInWithGoogle();
+      if (result.error) {
+        showAlert({ title: "Ops!", message: result.error });
+      }
+    } finally {
+      setGoogleLoading(false);
     }
   }
 
@@ -205,12 +211,15 @@ export default function RegisterScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <KeyboardAwareScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          justifyContent: "center",
-          padding: spacing["2xl"],
-          gap: spacing.xl,
-        }}
+        contentContainerStyle={[
+          {
+            flexGrow: 1,
+            justifyContent: "center",
+            padding: spacing["2xl"],
+            gap: spacing.xl,
+          },
+          desktopContained(isDesktop, 520),
+        ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
@@ -257,7 +266,8 @@ export default function RegisterScreen() {
             onPress={() => {
               void handleGoogleRegister();
             }}
-            loading={loading}
+            loading={googleLoading}
+            disabled={registerLoading || googleLoading}
             style={{ width: "100%" }}
           />
 
@@ -370,8 +380,14 @@ export default function RegisterScreen() {
             onPress={() => {
               void handleRegister();
             }}
-            loading={loading}
-            disabled={!name.trim() || !email.trim() || !password.trim()}
+            loading={registerLoading}
+            disabled={
+              registerLoading ||
+              googleLoading ||
+              !name.trim() ||
+              !email.trim() ||
+              !password.trim()
+            }
           />
         </View>
 

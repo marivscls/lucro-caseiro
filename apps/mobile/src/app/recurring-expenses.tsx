@@ -1,8 +1,16 @@
 import type { ExpenseCategory, RecurringExpense } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
-import { IconButton, colors, fonts, useTheme, type Theme } from "@lucro-caseiro/ui";
+import {
+  fontSizes,
+  fonts,
+  iconSizes,
+  radii,
+  spacing,
+  useTheme,
+  type Theme,
+} from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
-import { router, Stack } from "expo-router";
+import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useMemo, useState } from "react";
 import {
@@ -32,6 +40,9 @@ import { usePaywall } from "../shared/hooks/use-paywall";
 import { ApiError } from "../shared/utils/api-client";
 import { alertError, alertValidation } from "../shared/utils/alerts";
 import { maskCurrencyInput, parseCurrencyInput } from "../shared/utils/currency-input";
+import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { desktopContained } from "../shared/layout/desktop-density";
+import { ScreenHeader } from "../shared/components/screen-header";
 
 const CATEGORIES: {
   key: ExpenseCategory;
@@ -45,10 +56,6 @@ const CATEGORIES: {
   { key: "fee", label: "Taxa", icon: "pricetag-outline" },
   { key: "other", label: "Outro", icon: "ellipsis-horizontal-circle-outline" },
 ];
-
-const BRAND_PINK = colors.primary;
-const BRAND_PINK_BORDER = "rgba(196, 112, 126, 0.55)";
-const BRAND_PINK_SOFT = "rgba(196, 112, 126, 0.14)";
 
 function useRecurringTheme() {
   const { theme } = useTheme();
@@ -70,6 +77,7 @@ function moneyInputValue(value: number): string {
 
 export default function RecurringExpensesScreen() {
   const { theme, styles } = useRecurringTheme();
+  const isDesktop = useDesktopLayout();
   const { data: items, isLoading } = useRecurringExpenses();
   const remove = useDeleteRecurring();
   const { data: profile } = useProfile();
@@ -120,22 +128,14 @@ export default function RecurringExpensesScreen() {
         style={styles.keyboardAvoider}
       >
         <ScrollView
-          contentContainerStyle={styles.content}
+          contentContainerStyle={[styles.content, desktopContained(isDesktop)]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.hero}>
-            <View style={styles.header}>
-              <IconButton
-                accessibilityLabel="Voltar"
-                accessibilityRole="button"
-                icon={<Ionicons name="arrow-back" size={24} color={theme.colors.text} />}
-                onPress={() => router.back()}
-                size={48}
-                style={styles.backButton}
-              />
-              <Text style={styles.title}>Gastos fixos</Text>
-            </View>
+            {!isDesktop && (
+              <ScreenHeader title="Gastos fixos" style={{ paddingHorizontal: 0 }} />
+            )}
 
             <Text style={styles.subtitle}>
               Despesas que se repetem todo mês (aluguel, internet, gás...) caem sozinhas
@@ -161,7 +161,7 @@ export default function RecurringExpensesScreen() {
               >
                 <Ionicons
                   name="add-circle-outline"
-                  size={22}
+                  size={iconSizes.sm}
                   color={theme.colors.textOnPrimary}
                 />
                 <Text style={styles.addButtonText}>Adicionar gasto fixo</Text>
@@ -209,7 +209,11 @@ export default function RecurringExpensesScreen() {
                       ]}
                     >
                       <View style={styles.expenseIcon}>
-                        <Ionicons name="calendar-outline" size={20} color={BRAND_PINK} />
+                        <Ionicons
+                          name="calendar-outline"
+                          size={iconSizes.sm}
+                          color={theme.colors.textSecondary}
+                        />
                       </View>
                       <View style={styles.expenseInfo}>
                         <Text style={styles.expenseTitle}>{item.description}</Text>
@@ -220,7 +224,7 @@ export default function RecurringExpensesScreen() {
                       <Text style={styles.expenseAmount}>{formatMoney(item.amount)}</Text>
                       <Ionicons
                         name="chevron-forward"
-                        size={20}
+                        size={iconSizes.sm}
                         color={theme.colors.textSecondary}
                       />
                     </Pressable>
@@ -262,6 +266,7 @@ function RecurringForm({
   const create = useCreateRecurring();
   const update = useUpdateRecurring();
   const { theme, styles } = useRecurringTheme();
+  const isDesktop = useDesktopLayout();
   const isEditing = !!item;
   const isSaving = create.isPending || update.isPending;
   const [description, setDescription] = useState(item?.description ?? "");
@@ -321,10 +326,14 @@ function RecurringForm({
   }
 
   return (
-    <View style={styles.formCard}>
+    <View style={[styles.formCard, desktopContained(isDesktop, 720)]}>
       <View style={styles.formHeader}>
         <View style={styles.formHeaderLeft}>
-          <Ionicons name="calendar-outline" size={24} color={BRAND_PINK} />
+          <Ionicons
+            name="calendar-outline"
+            size={iconSizes.md}
+            color={theme.colors.textSecondary}
+          />
           <Text style={styles.formTitle}>
             {isEditing ? "Editar gasto fixo" : "Novo gasto fixo"}
           </Text>
@@ -336,7 +345,7 @@ function RecurringForm({
           onPress={onClose}
           style={({ pressed }) => pressed && styles.pressed}
         >
-          <Ionicons name="chevron-up" size={22} color={theme.colors.text} />
+          <Ionicons name="chevron-up" size={iconSizes.sm} color={theme.colors.text} />
         </Pressable>
       </View>
 
@@ -359,7 +368,11 @@ function RecurringForm({
 
       <View style={styles.fieldBlock}>
         <View style={styles.labelRow}>
-          <Ionicons name="grid-outline" size={20} color={BRAND_PINK} />
+          <Ionicons
+            name="grid-outline"
+            size={iconSizes.sm}
+            color={theme.colors.textSecondary}
+          />
           <Text style={styles.fieldLabel}>Categoria</Text>
         </View>
         <View style={styles.categoryWrap}>
@@ -378,9 +391,9 @@ function RecurringForm({
               >
                 <Ionicons
                   name={c.icon}
-                  size={17}
+                  size={iconSizes.xs}
                   color={
-                    selected ? theme.colors.textOnPrimary : theme.colors.textSecondary
+                    selected ? theme.colors.primaryStrong : theme.colors.textSecondary
                   }
                 />
                 <Text
@@ -445,7 +458,7 @@ function FormField({
   return (
     <View style={styles.fieldBlock}>
       <View style={styles.labelRow}>
-        <Ionicons name={icon} size={20} color={BRAND_PINK} />
+        <Ionicons name={icon} size={iconSizes.sm} color={theme.colors.textSecondary} />
         <Text style={styles.fieldLabel}>{label}</Text>
       </View>
       <TextInput
@@ -474,7 +487,11 @@ function RecurringDetails({
     <View style={styles.detailCard}>
       <View style={styles.formHeader}>
         <View style={styles.formHeaderLeft}>
-          <Ionicons name="receipt-outline" size={24} color={BRAND_PINK} />
+          <Ionicons
+            name="receipt-outline"
+            size={iconSizes.md}
+            color={theme.colors.textSecondary}
+          />
           <Text style={styles.formTitle}>Detalhes do gasto</Text>
         </View>
         <Pressable
@@ -484,7 +501,7 @@ function RecurringDetails({
           onPress={onClose}
           style={({ pressed }) => pressed && styles.pressed}
         >
-          <Ionicons name="close" size={22} color={theme.colors.text} />
+          <Ionicons name="close" size={iconSizes.sm} color={theme.colors.text} />
         </Pressable>
       </View>
 
@@ -515,7 +532,11 @@ function RecurringDetails({
           onPress={onDelete}
           style={({ pressed }) => [styles.deleteButton, pressed && styles.pressed]}
         >
-          <Ionicons name="trash-outline" size={18} color={theme.colors.textOnPrimary} />
+          <Ionicons
+            name="trash-outline"
+            size={iconSizes.xs}
+            color={theme.colors.textOnPrimary}
+          />
           <Text style={styles.deleteText}>Remover</Text>
         </Pressable>
         <Pressable
@@ -523,7 +544,11 @@ function RecurringDetails({
           onPress={onEdit}
           style={({ pressed }) => [styles.saveButton, pressed && styles.pressed]}
         >
-          <Ionicons name="create-outline" size={18} color={theme.colors.textOnPrimary} />
+          <Ionicons
+            name="create-outline"
+            size={iconSizes.xs}
+            color={theme.colors.textOnPrimary}
+          />
           <Text style={styles.saveText}>Editar</Text>
         </Pressable>
       </View>
@@ -540,11 +565,11 @@ function DetailItem({
   label: string;
   value: string;
 }>) {
-  const { styles } = useRecurringTheme();
+  const { theme, styles } = useRecurringTheme();
 
   return (
     <View style={styles.detailItem}>
-      <Ionicons name={icon} size={18} color={BRAND_PINK} />
+      <Ionicons name={icon} size={iconSizes.xs} color={theme.colors.textSecondary} />
       <View style={styles.detailTextBlock}>
         <Text style={styles.detailLabel}>{label}</Text>
         <Text style={styles.detailValue}>{value}</Text>
@@ -568,7 +593,11 @@ function RecurringPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) 
   return (
     <View style={styles.gateCard}>
       <View style={styles.gateBadge}>
-        <Ionicons name="diamond-outline" size={16} color={theme.colors.premium} />
+        <Ionicons
+          name="diamond-outline"
+          size={iconSizes.xs}
+          color={theme.colors.premium}
+        />
         <Text style={styles.gateBadgeText}>Recurso Profissional</Text>
       </View>
       <Text style={styles.gateTitle}>Gastos fixos no automático</Text>
@@ -578,7 +607,11 @@ function RecurringPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) 
       </Text>
       {benefits.map((benefit) => (
         <View key={benefit} style={styles.gateBullet}>
-          <Ionicons name="checkmark-circle" size={20} color={theme.colors.premium} />
+          <Ionicons
+            name="checkmark-circle"
+            size={iconSizes.sm}
+            color={theme.colors.premium}
+          />
           <Text style={styles.gateBulletText}>{benefit}</Text>
         </View>
       ))}
@@ -587,7 +620,11 @@ function RecurringPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) 
         onPress={onUnlock}
         style={({ pressed }) => [styles.gateCta, pressed && styles.pressed]}
       >
-        <Ionicons name="lock-open-outline" size={20} color={theme.colors.textOnPrimary} />
+        <Ionicons
+          name="lock-open-outline"
+          size={iconSizes.sm}
+          color={theme.colors.textOnPrimary}
+        />
         <Text style={styles.gateCtaText}>Desbloquear no Profissional</Text>
       </Pressable>
     </View>
@@ -595,12 +632,16 @@ function RecurringPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) 
 }
 
 function EmptyRecurringState() {
-  const { styles } = useRecurringTheme();
+  const { theme, styles } = useRecurringTheme();
 
   return (
     <View style={styles.emptyState}>
       <View style={styles.emptyIconCircle}>
-        <Ionicons name="receipt-outline" size={34} color={BRAND_PINK} />
+        <Ionicons
+          name="receipt-outline"
+          size={iconSizes.lg}
+          color={theme.colors.primaryStrong}
+        />
       </View>
       <Text style={styles.emptyTitle}>Nenhum gasto fixo ainda</Text>
       <Text style={styles.emptyDescription}>
@@ -611,15 +652,14 @@ function EmptyRecurringState() {
 }
 
 function recurringPalette(theme: Theme) {
-  const isDark = theme.mode === "dark";
   return {
     background: theme.colors.background,
-    backButton: isDark ? "rgba(45, 38, 34, 0.76)" : theme.colors.surfaceElevated,
-    border: isDark ? "rgba(255, 235, 225, 0.11)" : "rgba(74, 50, 40, 0.12)",
-    card: isDark ? "rgba(28, 24, 21, 0.88)" : theme.colors.surfaceElevated,
-    cardStrong: isDark ? "rgba(31, 26, 23, 0.93)" : theme.colors.surfaceElevated,
-    input: isDark ? "rgba(58, 49, 44, 0.64)" : theme.colors.surface,
-    chip: isDark ? "rgba(58, 49, 44, 0.78)" : theme.colors.surface,
+    backButton: theme.colors.surfaceElevated,
+    border: theme.colors.border,
+    card: theme.colors.surfaceElevated,
+    cardStrong: theme.colors.surfaceElevated,
+    input: theme.colors.surface,
+    chip: theme.colors.surface,
     muted: theme.colors.textSecondary,
     text: theme.colors.text,
     title: theme.colors.text,
@@ -628,140 +668,133 @@ function recurringPalette(theme: Theme) {
 
 function createStyles(theme: Theme) {
   const pal = recurringPalette(theme);
+  // Rosa de marca derivado do tema: fill = fundo AA de botoes cheios.
+  const brandFill = theme.colors.primaryInteractive;
+  const brandBorder = `${theme.colors.primary}8C`;
 
   return StyleSheet.create({
     actionRow: {
       flexDirection: "row",
-      gap: 14,
+      gap: spacing.lg,
       marginTop: 1,
     },
     addButton: {
       alignItems: "center",
-      backgroundColor: BRAND_PINK,
-      borderColor: BRAND_PINK_BORDER,
-      borderRadius: 12,
+      backgroundColor: brandFill,
+      borderColor: brandBorder,
+      borderRadius: radii.md,
       borderWidth: 1,
       flexDirection: "row",
-      gap: 10,
-      height: 49,
+      gap: spacing.md,
+      height: 48,
       justifyContent: "center",
     },
     addButtonText: {
       color: theme.colors.textOnPrimary,
-      fontSize: 16,
+      fontSize: fontSizes.md,
       fontFamily: fonts.extraBold,
-    },
-    backButton: {
-      alignItems: "center",
-      backgroundColor: pal.backButton,
-      borderColor: pal.border,
-      borderRadius: 24,
-      borderWidth: 1,
-      height: 48,
-      justifyContent: "center",
-      width: 48,
     },
     cancelButton: {
       alignItems: "center",
       backgroundColor: pal.chip,
       borderColor: pal.border,
-      borderRadius: 12,
+      borderRadius: radii.md,
       borderWidth: 1,
       flex: 1,
-      height: 41,
+      height: 44,
       justifyContent: "center",
     },
     cancelText: {
       color: pal.text,
-      fontSize: 14,
+      fontSize: fontSizes.sm,
       fontFamily: fonts.extraBold,
     },
     categoryPill: {
       alignItems: "center",
       backgroundColor: pal.chip,
       borderColor: pal.border,
-      borderRadius: 16,
+      borderRadius: radii.full,
       borderWidth: 1,
       flexDirection: "row",
-      gap: 7,
-      height: 34,
+      gap: spacing.sm,
+      height: 44,
       justifyContent: "center",
       minWidth: "30%",
-      paddingHorizontal: 11,
+      paddingHorizontal: spacing.md,
     },
     categoryPillSelected: {
-      backgroundColor: BRAND_PINK,
-      borderColor: BRAND_PINK_BORDER,
+      backgroundColor: theme.colors.primaryBg,
+      borderColor: brandBorder,
     },
     categoryText: {
       color: pal.text,
-      fontSize: 13,
+      fontSize: fontSizes.xs,
       fontFamily: fonts.semiBold,
     },
     categoryTextSelected: {
-      color: theme.colors.textOnPrimary,
+      color: theme.colors.primaryStrong,
       fontFamily: fonts.bold,
     },
     categoryWrap: {
       flexDirection: "row",
       flexWrap: "wrap",
-      gap: 7,
+      gap: spacing.sm,
       paddingLeft: 1,
     },
     content: {
-      gap: 18,
-      paddingBottom: 36,
-      paddingHorizontal: 17,
-      paddingTop: 11,
+      gap: spacing.xl,
+      paddingBottom: spacing["3xl"],
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.md,
     },
     disabled: {
       opacity: 0.58,
     },
     deleteButton: {
       alignItems: "center",
-      backgroundColor: "rgba(176, 69, 69, 0.9)",
+      backgroundColor: theme.colors.alert,
       borderColor: pal.border,
-      borderRadius: 12,
+      borderRadius: radii.md,
       borderWidth: 1,
       flex: 1,
       flexDirection: "row",
-      gap: 7,
-      height: 41,
+      gap: spacing.sm,
+      height: 44,
       justifyContent: "center",
     },
     deleteText: {
       color: theme.colors.textOnPrimary,
-      fontSize: 14,
+      fontSize: fontSizes.sm,
       fontFamily: fonts.extraBold,
     },
     detailCard: {
       backgroundColor: pal.card,
-      borderColor: BRAND_PINK_BORDER,
-      borderRadius: 16,
+      borderColor: pal.border,
+      borderRadius: radii.lg,
       borderWidth: 1,
-      gap: 15,
-      paddingBottom: 17,
-      paddingHorizontal: 21,
-      paddingTop: 18,
+      gap: spacing.lg,
+      paddingBottom: spacing.lg,
+      paddingHorizontal: spacing.xl,
+      paddingTop: spacing.xl,
     },
     detailGrid: {
-      gap: 9,
+      gap: spacing.sm,
     },
     detailItem: {
       alignItems: "center",
       backgroundColor: pal.input,
       borderColor: pal.border,
-      borderRadius: 12,
+      borderRadius: radii.md,
       borderWidth: 1,
       flexDirection: "row",
-      gap: 10,
+      gap: spacing.md,
       minHeight: 48,
-      paddingHorizontal: 13,
-      paddingVertical: 8,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
     },
     detailLabel: {
       color: pal.muted,
-      fontSize: 12,
+      fontSize: fontSizes.xs,
       fontFamily: fonts.semiBold,
     },
     detailTextBlock: {
@@ -771,16 +804,16 @@ function createStyles(theme: Theme) {
     detailTitle: {
       color: pal.title,
       fontFamily: fonts.displayBold,
-      fontSize: 22,
+      fontSize: fontSizes.xl,
     },
     detailValue: {
       color: pal.text,
-      fontSize: 15,
+      fontSize: fontSizes.md,
       fontFamily: fonts.extraBold,
     },
     emptyDescription: {
       color: pal.muted,
-      fontSize: 14,
+      fontSize: fontSizes.sm,
       lineHeight: 20,
       maxWidth: 275,
       textAlign: "center",
@@ -788,7 +821,7 @@ function createStyles(theme: Theme) {
     emptyIconCircle: {
       alignItems: "center",
       backgroundColor: pal.cardStrong,
-      borderRadius: 27,
+      borderRadius: radii.full,
       height: 54,
       justifyContent: "center",
       marginBottom: 1,
@@ -796,73 +829,73 @@ function createStyles(theme: Theme) {
     },
     emptyState: {
       alignItems: "center",
-      gap: 7,
+      gap: spacing.sm,
       justifyContent: "center",
-      paddingHorizontal: 9,
+      paddingHorizontal: spacing.sm,
       paddingTop: 0,
     },
     emptyTitle: {
       color: pal.title,
       fontFamily: fonts.displayBold,
-      fontSize: 22,
+      fontSize: fontSizes.xl,
       textAlign: "center",
     },
     expenseAmount: {
-      color: BRAND_PINK,
-      fontSize: 14,
+      color: pal.text,
+      fontSize: fontSizes.sm,
       fontFamily: fonts.extraBold,
     },
     expenseCard: {
       alignItems: "center",
       backgroundColor: pal.cardStrong,
       borderColor: pal.border,
-      borderRadius: 13,
+      borderRadius: radii.md,
       borderWidth: 1,
       flexDirection: "row",
-      gap: 8,
-      padding: 10,
+      gap: spacing.sm,
+      padding: spacing.md,
     },
     expenseCardSelected: {
-      borderColor: BRAND_PINK_BORDER,
+      borderColor: brandBorder,
     },
     expenseIcon: {
       alignItems: "center",
-      backgroundColor: BRAND_PINK_SOFT,
-      borderRadius: 12,
+      backgroundColor: theme.colors.surface,
+      borderRadius: radii.md,
       height: 36,
       justifyContent: "center",
       width: 36,
     },
     expenseInfo: {
       flex: 1,
-      gap: 3,
+      gap: spacing.xs,
     },
     expenseMeta: {
       color: pal.muted,
-      fontSize: 12,
+      fontSize: fontSizes.xs,
     },
     expenseTitle: {
       color: pal.text,
-      fontSize: 15,
+      fontSize: fontSizes.md,
       fontFamily: fonts.extraBold,
     },
     fieldBlock: {
-      gap: 7,
+      gap: spacing.sm,
     },
     fieldLabel: {
       color: pal.muted,
-      fontSize: 14,
+      fontSize: fontSizes.sm,
       fontFamily: fonts.semiBold,
     },
     formCard: {
       backgroundColor: pal.card,
       borderColor: pal.border,
-      borderRadius: 16,
+      borderRadius: radii.lg,
       borderWidth: 1,
-      gap: 15,
-      paddingBottom: 17,
-      paddingHorizontal: 21,
-      paddingTop: 18,
+      gap: spacing.lg,
+      paddingBottom: spacing.lg,
+      paddingHorizontal: spacing.xl,
+      paddingTop: spacing.xl,
     },
     formHeader: {
       alignItems: "center",
@@ -872,76 +905,71 @@ function createStyles(theme: Theme) {
     formHeaderLeft: {
       alignItems: "center",
       flexDirection: "row",
-      gap: 11,
+      gap: spacing.md,
     },
     formTitle: {
       color: pal.text,
-      fontSize: 17,
+      fontSize: fontSizes.lg,
       fontFamily: fonts.extraBold,
     },
     gateBadge: {
       alignItems: "center",
       alignSelf: "flex-start",
-      backgroundColor: "rgba(212, 160, 84, 0.14)",
-      borderRadius: 999,
+      backgroundColor: theme.colors.premiumBg,
+      borderRadius: radii.full,
       flexDirection: "row",
-      gap: 6,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
+      gap: spacing.sm,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
     },
     gateBadgeText: {
       color: theme.colors.premium,
-      fontSize: 12,
+      fontSize: fontSizes.xs,
       fontFamily: fonts.extraBold,
     },
     gateBullet: {
       alignItems: "flex-start",
       flexDirection: "row",
-      gap: 10,
+      gap: spacing.md,
     },
     gateBulletText: {
       color: pal.text,
       flex: 1,
-      fontSize: 14,
+      fontSize: fontSizes.sm,
       lineHeight: 20,
     },
     gateCard: {
       backgroundColor: pal.card,
-      borderColor: BRAND_PINK_BORDER,
-      borderRadius: 16,
+      borderColor: theme.colors.premium,
+      borderRadius: radii.lg,
       borderWidth: 1,
-      gap: 14,
-      padding: 20,
+      gap: spacing.lg,
+      padding: spacing.xl,
     },
     gateCta: {
       alignItems: "center",
       backgroundColor: theme.colors.premium,
-      borderRadius: 12,
+      borderRadius: radii.md,
       flexDirection: "row",
-      gap: 8,
-      height: 50,
+      gap: spacing.sm,
+      height: 48,
       justifyContent: "center",
-      marginTop: 4,
+      marginTop: spacing.xs,
     },
     gateCtaText: {
       color: theme.colors.textOnPrimary,
-      fontSize: 16,
+      fontSize: fontSizes.md,
       fontFamily: fonts.extraBold,
     },
     gateSubtitle: {
       color: pal.muted,
-      fontSize: 14,
+      fontSize: fontSizes.sm,
       lineHeight: 20,
     },
     gateTitle: {
       color: pal.title,
       fontFamily: fonts.displayBold,
-      fontSize: 22,
-    },
-    header: {
-      alignItems: "center",
-      flexDirection: "row",
-      gap: 12,
+      fontSize: fontSizes.xl,
     },
     hero: {
       minHeight: 150,
@@ -960,11 +988,11 @@ function createStyles(theme: Theme) {
     labelRow: {
       alignItems: "center",
       flexDirection: "row",
-      gap: 10,
+      gap: spacing.md,
     },
     loadingText: {
       color: pal.muted,
-      fontSize: 14,
+      fontSize: fontSizes.sm,
       textAlign: "center",
     },
     pressed: {
@@ -976,43 +1004,37 @@ function createStyles(theme: Theme) {
     },
     saveButton: {
       alignItems: "center",
-      backgroundColor: BRAND_PINK,
-      borderColor: BRAND_PINK_BORDER,
-      borderRadius: 12,
+      backgroundColor: brandFill,
+      borderColor: brandBorder,
+      borderRadius: radii.md,
       borderWidth: 1,
       flex: 1,
       flexDirection: "row",
-      gap: 7,
-      height: 41,
+      gap: spacing.sm,
+      height: 44,
       justifyContent: "center",
     },
     saveText: {
       color: theme.colors.textOnPrimary,
-      fontSize: 14,
+      fontSize: fontSizes.sm,
       fontFamily: fonts.extraBold,
     },
     subtitle: {
       color: pal.muted,
-      fontSize: 14,
+      fontSize: fontSizes.sm,
       lineHeight: 20,
-      marginTop: 30,
+      marginTop: spacing.sm,
       maxWidth: 245,
     },
     textInput: {
       backgroundColor: pal.input,
       borderColor: pal.border,
-      borderRadius: 9,
+      borderRadius: radii.sm,
       borderWidth: 1,
       color: pal.text,
-      fontSize: 14,
-      height: 42,
-      paddingHorizontal: 31,
-    },
-    title: {
-      color: pal.title,
-      flex: 1,
-      fontFamily: fonts.displayBold,
-      fontSize: 25,
+      fontSize: fontSizes.sm,
+      height: 44,
+      paddingHorizontal: spacing["3xl"],
     },
   });
 }

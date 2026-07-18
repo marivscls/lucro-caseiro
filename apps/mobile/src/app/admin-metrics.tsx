@@ -24,6 +24,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAdminAnalyticsDashboard } from "../features/analytics/hooks";
+import { ListCard, ListCardItem } from "../shared/components/list-card";
+import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { ApiError } from "../shared/utils/api-client";
 
 type DashboardSection = "overview" | "usage" | "funnel" | "retention";
@@ -71,15 +73,22 @@ const SCREEN_LABELS: Record<string, string> = {
 
 const ACTION_LABELS: Record<string, string> = {
   signup_completed: "Cadastro concluído",
+  pricing_started: "Precificação iniciada",
   pricing_completed: "Precificação concluída",
   product_created: "Produto criado",
+  product_created_from_pricing: "Produto criado da precificação",
   sale_completed: "Venda concluída",
   order_created: "Encomenda criada",
+  catalog_published: "Catálogo publicado",
   catalog_shared: "Catálogo compartilhado",
   quote_created: "Orçamento criado",
   quote_pdf_exported: "PDF de orçamento exportado",
   finance_entry_created: "Lançamento financeiro criado",
+  plan_limit_reached: "Limite de plano atingido",
+  paid_feature_requested: "Recurso pago solicitado",
   subscription_started: "Assinatura iniciada",
+  subscription_completed: "Assinatura concluída",
+  subscription_cancelled: "Assinatura cancelada",
 };
 
 const FUNNEL_LABELS: Record<string, string> = {
@@ -87,7 +96,7 @@ const FUNNEL_LABELS: Record<string, string> = {
   signup: "Cadastro",
   pricing: "Precificação",
   product: "Produto",
-  sale: "Venda",
+  catalog_or_sale: "Catálogo ou venda",
 };
 
 function formatPercent(value: number | null): string {
@@ -309,27 +318,25 @@ function UsageSection({ data }: Readonly<{ data: ProductAnalyticsDashboard }>) {
   const { theme } = useTheme();
   return (
     <View style={{ gap: spacing.lg }}>
-      <Card variant="elevated" style={{ gap: spacing.md }}>
-        <View style={{ gap: spacing.xs }}>
-          <Typography variant="h3">Telas com mais tempo ativo</Typography>
-          <Typography variant="body" color={theme.colors.textSecondary}>
-            Últimos 30 dias; o tempo para quando o app fica em segundo plano.
-          </Typography>
-        </View>
+      <ListCard
+        variant="elevated"
+        title="Telas com mais tempo ativo"
+        subtitle="Últimos 30 dias; o tempo para quando o app fica em segundo plano."
+      >
         {data.screenUsage.length === 0 ? (
-          <Typography variant="body" color={theme.colors.textSecondary}>
+          <Typography
+            variant="body"
+            color={theme.colors.textSecondary}
+            style={{ paddingTop: spacing.md }}
+          >
             Ainda não há visitas registradas nesta versão.
           </Typography>
         ) : null}
         {data.screenUsage.map((item, index) => (
-          <View
+          <ListCardItem
             key={item.screen}
-            style={{
-              gap: spacing.xs,
-              paddingTop: index === 0 ? 0 : spacing.md,
-              borderTopWidth: index === 0 ? 0 : 1,
-              borderTopColor: theme.colors.border,
-            }}
+            first={index === 0}
+            style={{ gap: spacing.xs, paddingVertical: spacing.md }}
           >
             <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
               <Typography variant="bodyBold">
@@ -349,42 +356,37 @@ function UsageSection({ data }: Readonly<{ data: ProductAnalyticsDashboard }>) {
               })}
               s
             </Typography>
-          </View>
+          </ListCardItem>
         ))}
-      </Card>
+      </ListCard>
 
-      <Card variant="elevated" style={{ gap: spacing.md }}>
-        <View style={{ gap: spacing.xs }}>
-          <Typography variant="h3">Funcionalidades mais usadas</Typography>
-          <Typography variant="body" color={theme.colors.textSecondary}>
-            Ações confirmadas pelo app nos últimos 30 dias.
-          </Typography>
-        </View>
+      <ListCard
+        variant="elevated"
+        title="Funcionalidades mais usadas"
+        subtitle="Ações confirmadas pelo app nos últimos 30 dias."
+      >
         {data.featureUsage.map((item, index) => (
-          <View
+          <ListCardItem
             key={item.action}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              paddingTop: index === 0 ? 0 : spacing.md,
-              borderTopWidth: index === 0 ? 0 : 1,
-              borderTopColor: theme.colors.border,
-            }}
+            first={index === 0}
+            style={{ paddingVertical: spacing.md }}
           >
-            <Typography variant="bodyBold" style={{ flex: 1 }}>
-              {ACTION_LABELS[item.action] ?? item.action}
-            </Typography>
-            <View style={{ alignItems: "flex-end" }}>
-              <Typography variant="bodyBold" color={theme.colors.primary}>
-                {item.events}
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Typography variant="bodyBold" style={{ flex: 1 }}>
+                {ACTION_LABELS[item.action] ?? item.action}
               </Typography>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                {item.people} pessoas
-              </Typography>
+              <View style={{ alignItems: "flex-end" }}>
+                <Typography variant="bodyBold" color={theme.colors.primary}>
+                  {item.events}
+                </Typography>
+                <Typography variant="caption" color={theme.colors.textSecondary}>
+                  {item.people} pessoas
+                </Typography>
+              </View>
             </View>
-          </View>
+          </ListCardItem>
         ))}
-      </Card>
+      </ListCard>
     </View>
   );
 }
@@ -475,6 +477,7 @@ function RetentionSection({ data }: Readonly<{ data: ProductAnalyticsDashboard }
 
 function Dashboard({ data }: Readonly<{ data: ProductAnalyticsDashboard }>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const [section, setSection] = useState<DashboardSection>("overview");
   let sectionContent: React.ReactNode = <OverviewSection data={data} />;
   if (section === "usage") sectionContent = <UsageSection data={data} />;
@@ -484,7 +487,7 @@ function Dashboard({ data }: Readonly<{ data: ProductAnalyticsDashboard }>) {
   return (
     <View style={{ gap: spacing.lg }}>
       <View>
-        <Typography variant="h1">Métricas do produto</Typography>
+        {!isDesktop && <Typography variant="h1">Métricas do produto</Typography>}
         <Typography variant="body" color={theme.colors.textSecondary}>
           Instalação, uso, conversão e retorno dos usuários.
         </Typography>

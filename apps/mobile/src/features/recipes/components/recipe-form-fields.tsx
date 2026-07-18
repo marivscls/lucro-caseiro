@@ -1,12 +1,15 @@
 import { Typography, fonts, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { Image, Modal, Pressable, TextInput, View } from "react-native";
+import { Image, Pressable, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { formatCurrency } from "../../../shared/utils/format";
 import { useFieldPalette } from "../../../shared/components/form-field";
 import { YIELD_UNIT_PRESETS } from "../yield-units";
+import { desktopModalSurface } from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
 
 const CATEGORY_PRESETS = ["Doces", "Salgados", "Bolos", "Bebidas", "Outros"];
 
@@ -141,6 +144,7 @@ export function CategoryField({
   onChange,
 }: Readonly<{ value: string; onChange: (v: string) => void }>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const pal = useFieldPalette();
   const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
@@ -183,7 +187,7 @@ export function CategoryField({
         <Ionicons name="chevron-down" size={20} color={theme.colors.textSecondary} />
       </Pressable>
 
-      <Modal
+      <ResponsiveOverlayModal
         visible={open}
         transparent
         animationType="slide"
@@ -194,19 +198,23 @@ export function CategoryField({
           style={{
             flex: 1,
             backgroundColor: "rgba(0,0,0,0.55)",
-            justifyContent: "flex-end",
+            justifyContent: isDesktop ? "center" : "flex-end",
+            padding: isDesktop ? spacing.xl : 0,
           }}
         >
           <Pressable
-            style={{
-              backgroundColor: pal.sheetBg,
-              borderTopLeftRadius: radii["2xl"],
-              borderTopRightRadius: radii["2xl"],
-              paddingHorizontal: spacing.lg,
-              paddingTop: spacing.md,
-              paddingBottom: spacing.lg + insets.bottom,
-              gap: spacing.md,
-            }}
+            style={[
+              {
+                backgroundColor: pal.sheetBg,
+                borderTopLeftRadius: radii["2xl"],
+                borderTopRightRadius: radii["2xl"],
+                paddingHorizontal: spacing.lg,
+                paddingTop: spacing.md,
+                paddingBottom: isDesktop ? spacing.lg : spacing.lg + insets.bottom,
+                gap: spacing.md,
+              },
+              desktopModalSurface(isDesktop, 640),
+            ]}
           >
             <Typography variant="h3" color={theme.colors.text}>
               Categoria
@@ -285,7 +293,7 @@ export function CategoryField({
             </Pressable>
           </Pressable>
         </Pressable>
-      </Modal>
+      </ResponsiveOverlayModal>
     </>
   );
 }

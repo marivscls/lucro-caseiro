@@ -4,6 +4,7 @@ import {
   decimal,
   index,
   integer,
+  jsonb,
   pgTable,
   text,
   timestamp,
@@ -42,6 +43,18 @@ export const products = pgTable(
     // Produto composto (kit/caixinha): quando true, o custo e os componentes
     // vem da tabela product_components. Ver schema/product-components.ts.
     isComposite: boolean("is_composite").notNull().default(false),
+    variations: jsonb("variations")
+      .$type<
+        Array<{
+          id: string;
+          name: string;
+          color?: string;
+          size?: string;
+          stockQuantity?: number;
+        }>
+      >()
+      .notNull()
+      .default([]),
     isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },

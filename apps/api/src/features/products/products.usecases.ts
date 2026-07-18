@@ -1,4 +1,9 @@
-import type { Product } from "@lucro-caseiro/contracts";
+import type {
+  Product,
+  ProductVariation,
+  ProductVariationInput,
+} from "@lucro-caseiro/contracts";
+import { randomUUID } from "node:crypto";
 
 import { NotFoundError, ValidationError } from "../../shared/errors";
 import { paginationMeta } from "../../shared/helpers/paginate";
@@ -15,6 +20,18 @@ export class ProductsUseCases {
     private repo: IProductsRepo,
     private recipeCost?: IRecipeCostProvider,
   ) {}
+
+  private normalizeVariations(
+    variations: ProductVariationInput[] | undefined,
+  ): ProductVariation[] {
+    return (variations ?? []).map((variation) => ({
+      ...variation,
+      id: variation.id ?? randomUUID(),
+      name: variation.name.trim(),
+      color: variation.color?.trim() || undefined,
+      size: variation.size?.trim() || undefined,
+    }));
+  }
 
   /**
    * Quando o produto tem receita, o custo real vem do `costPerUnit` da receita
@@ -83,14 +100,16 @@ export class ProductsUseCases {
       }
     }
 
+    const variations = this.normalizeVariations(data.variations);
+
     if (data.isComposite) {
       await this.validateComponents(userId, undefined, data.components);
       // Custo do kit e calculado a partir dos componentes (no repo, na leitura).
-      return this.repo.create(userId, { ...data, costPrice: undefined });
+      return this.repo.create(userId, { ...data, variations, costPrice: undefined });
     }
 
     const costPrice = await this.resolveCostPrice(userId, data.recipeId, data.costPrice);
-    return this.repo.create(userId, { ...data, costPrice });
+    return this.repo.create(userId, { ...data, variations, costPrice });
   }
 
   async getById(userId: string, id: string): Promise<Product> {
@@ -151,7 +170,12 @@ export class ProductsUseCases {
       await this.validateComponents(userId, id, data.components);
     }
 
-    const dataWithCost = { ...data };
+    const dataWithCost = {
+      ...data,
+      ...(data.variations === undefined
+        ? {}
+        : { variations: this.normalizeVariations(data.variations) }),
+    };
 
     if (willBeComposite) {
       // Custo do kit vem dos componentes (calculado no repo na leitura).
@@ -167,6 +191,21 @@ export class ProductsUseCases {
       throw new NotFoundError("Produto não encontrado");
     }
     return updated;
+  }
+
+  async getVariations(userId: string, id: string): Promise<ProductVariation[]> {
+    return (await this.getById(userId, id)).variations ?? [];
+  }
+
+  async replaceVariations(
+    userId: string,
+    id: string,
+    variations: ProductVariationInput[],
+  ): Promise<ProductVariation[]> {
+    const updated = await this.update(userId, id, {
+      variations: this.normalizeVariations(variations),
+    });
+    return updated.variations ?? [];
   }
 
   async remove(userId: string, id: string): Promise<void> {

@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Gerenciar receitas do negocio caseiro: criar, listar, visualizar detalhes, editar, excluir e escalar receitas. Calcula custo total e custo por unidade com base nos ingredientes. Permite filtrar por categoria e ajustar escala da receita (0.5x a 5x).
+Gerenciar receitas do negocio: criar, listar, visualizar detalhes, editar, excluir e escalar receitas. Calcula custo total e custo por unidade com base nos ingredientes. Permite filtrar por categoria e ajustar escala da receita (0.5x a 5x).
 
 ## Non-goals
 

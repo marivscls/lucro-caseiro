@@ -1,4 +1,5 @@
 import type {
+  AnalyticsActionName,
   ProductAnalyticsDashboard,
   ProductAnalyticsEvent,
 } from "@lucro-caseiro/contracts";
@@ -29,5 +30,10 @@ export interface PersistedEvents extends RecordEventsInput {
 export interface IAnalyticsRepo {
   recordOpen(userId: string | null, input: PersistedOpen): Promise<void>;
   recordEvents(userId: string | null, input: PersistedEvents): Promise<void>;
+  recordUserAction(
+    userId: string,
+    action: AnalyticsActionName,
+    occurredAt: Date,
+  ): Promise<void>;
   getDashboard(): Promise<ProductAnalyticsDashboard>;
 }

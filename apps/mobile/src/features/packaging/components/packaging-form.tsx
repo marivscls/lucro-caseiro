@@ -6,6 +6,8 @@ import React, { useState } from "react";
 import { ActivityIndicator, Pressable, TextInput, View } from "react-native";
 
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
+import { desktopAction, desktopContained } from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import {
   FieldLabel,
   TextFieldCard,
@@ -191,6 +193,7 @@ export function PackagingForm({
   onCancel,
 }: PackagingFormProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const pal = useFieldPalette();
   const isEditing = !!packaging;
 
@@ -271,11 +274,14 @@ export function PackagingForm({
 
   return (
     <KeyboardAwareScrollView
-      contentContainerStyle={{
-        padding: spacing.xl,
-        paddingBottom: spacing["5xl"],
-        gap: spacing.xl,
-      }}
+      contentContainerStyle={[
+        {
+          padding: spacing.xl,
+          paddingBottom: spacing["5xl"],
+          gap: spacing.xl,
+        },
+        desktopContained(isDesktop, 960),
+      ]}
     >
       {isEditing ? (
         <SummaryHero
@@ -448,16 +454,19 @@ export function PackagingForm({
           }}
           disabled={saving}
           accessibilityRole="button"
-          style={({ pressed }) => ({
-            minHeight: 58,
-            borderRadius: radii.lg,
-            backgroundColor: theme.colors.primary,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: spacing.sm,
-            opacity: pressed || saving ? 0.85 : 1,
-          })}
+          style={({ pressed }) => [
+            {
+              minHeight: 58,
+              borderRadius: radii.lg,
+              backgroundColor: theme.colors.primary,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: spacing.sm,
+              opacity: pressed || saving ? 0.85 : 1,
+            },
+            desktopAction(isDesktop),
+          ]}
         >
           {saving ? (
             <ActivityIndicator color={theme.colors.textOnPrimary} />
@@ -471,15 +480,18 @@ export function PackagingForm({
         <Pressable
           onPress={() => onCancel?.()}
           accessibilityRole="button"
-          style={({ pressed }) => ({
-            minHeight: 52,
-            borderRadius: radii.lg,
-            borderWidth: 1,
-            borderColor: pal.border,
-            alignItems: "center",
-            justifyContent: "center",
-            opacity: pressed ? 0.7 : 1,
-          })}
+          style={({ pressed }) => [
+            {
+              minHeight: 52,
+              borderRadius: radii.lg,
+              borderWidth: 1,
+              borderColor: pal.border,
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: pressed ? 0.7 : 1,
+            },
+            desktopAction(isDesktop),
+          ]}
         >
           <Typography variant="bodyBold" color={theme.colors.text}>
             Cancelar

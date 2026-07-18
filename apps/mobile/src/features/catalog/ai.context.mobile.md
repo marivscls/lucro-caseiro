@@ -107,3 +107,6 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
   CTA para o paywall, refletindo o limite de 3 produtos aplicado no backend (reduzido de 5→3 em 2026-06-16).
 - 2026-06-25: campo "Faixa promocional" (máx 60) no card Aparência, abaixo da frase —
   salva junto no payload só se premium (`promoBanner`); vira tira no topo do catálogo público.
+- 2026-07-18: a primeira transição de catálogo desativado para ativo registra
+  `catalog_published`. O rodapé público mantém o selo/CTA “Feito com Lucro Caseiro” e o link da
+  Play Store usa referrer com origem, meio e campanha do catálogo compartilhado.

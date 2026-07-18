@@ -1,6 +1,8 @@
 import {
   Button,
   EmptyState,
+  fontSizes,
+  iconSizes,
   Typography,
   fonts,
   useTheme,
@@ -8,12 +10,11 @@ import {
   radii,
 } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useRouter } from "expo-router";
+import { Stack } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
-  Modal,
   Pressable,
   ScrollView,
   Share,
@@ -29,6 +30,12 @@ import { useLowStockMaterials, useMaterials } from "../features/materials/hooks"
 import materialsEmpty from "../assets/materials-empty.png";
 import { useNotificationEnabled } from "../shared/hooks/notification-prefs";
 import { NOTIFICATION_TYPES } from "../shared/hooks/notification-types";
+import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import {
+  ResponsiveModalSurface,
+  ResponsiveOverlayModal,
+} from "../shared/components/responsive-modal-surface";
+import { ScreenHeader } from "../shared/components/screen-header";
 
 function FormModalHeader({
   title,
@@ -59,7 +66,7 @@ function FormModalHeader({
         variant="h1"
         color={theme.colors.text}
         numberOfLines={1}
-        style={{ flex: 1, fontSize: 24 }}
+        style={{ flex: 1 }}
       >
         {title}
       </Typography>
@@ -70,7 +77,7 @@ function FormModalHeader({
         hitSlop={10}
         style={{ minHeight: 44, justifyContent: "center" }}
       >
-        <Typography variant="bodyBold" color={theme.colors.primary}>
+        <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
           Fechar
         </Typography>
       </Pressable>
@@ -137,14 +144,14 @@ function LowStockBanner() {
           paddingVertical: spacing.sm,
           borderRadius: radii.full,
           borderWidth: 1,
-          borderColor: `${theme.colors.primary}66`,
+          borderColor: `${theme.colors.primaryStrong}66`,
         }}
       >
-        <Ionicons name="list" size={18} color={theme.colors.primary} />
+        <Ionicons name="list" size={18} color={theme.colors.primaryStrong} />
         <Typography
           variant="bodyBold"
-          color={theme.colors.primary}
-          style={{ fontSize: 14 }}
+          color={theme.colors.primaryStrong}
+          style={{ fontSize: fontSizes.sm }}
         >
           Lista
         </Typography>
@@ -155,7 +162,7 @@ function LowStockBanner() {
 
 export default function MaterialsScreen() {
   const { theme } = useTheme();
-  const router = useRouter();
+  const isDesktop = useDesktopLayout();
   const insets = useSafeAreaInsets();
   const { data, isLoading, error } = useMaterials();
   const [showCreate, setShowCreate] = useState(false);
@@ -203,7 +210,13 @@ export default function MaterialsScreen() {
           }
           title="Nenhum insumo ainda"
           description="Cadastre seus insumos (farinha, açúcar, embalagens...) para controlar o estoque."
-          action={<Button title="Novo insumo" onPress={() => setShowCreate(true)} />}
+          action={
+            <Button
+              title="Novo insumo"
+              variant="outline"
+              onPress={() => setShowCreate(true)}
+            />
+          }
         />
       );
     }
@@ -267,64 +280,49 @@ export default function MaterialsScreen() {
     >
       <Stack.Screen options={{ headerShown: false }} />
 
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.md,
-          paddingHorizontal: spacing.lg,
-          paddingTop: spacing.sm,
-          paddingBottom: spacing.sm,
-        }}
-      >
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="Voltar"
-          hitSlop={10}
-          style={{ width: 32, height: 40, justifyContent: "center" }}
-        >
-          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
-        </Pressable>
-        <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
-          Insumos
-        </Typography>
-        <Pressable
-          onPress={() => {
-            setSearchOpen((v) => !v);
-            if (searchOpen) setSearch("");
-          }}
-          accessibilityRole="button"
-          accessibilityLabel="Buscar"
-          hitSlop={10}
-          style={{
-            width: 40,
-            height: 40,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Ionicons name="search" size={24} color={theme.colors.text} />
-        </Pressable>
-        <Pressable
-          onPress={() => setLowOnly((v) => !v)}
-          accessibilityRole="button"
-          accessibilityLabel="Filtrar estoque baixo"
-          hitSlop={10}
-          style={{
-            width: 40,
-            height: 40,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Ionicons
-            name="options-outline"
-            size={24}
-            color={lowOnly ? theme.colors.primary : theme.colors.text}
-          />
-        </Pressable>
-      </View>
+      <ScreenHeader
+        title="Insumos"
+        hideBack={isDesktop}
+        right={
+          <>
+            <Pressable
+              onPress={() => {
+                setSearchOpen((v) => !v);
+                if (searchOpen) setSearch("");
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Buscar"
+              hitSlop={10}
+              style={{
+                width: 44,
+                height: 44,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Ionicons name="search" size={iconSizes.md} color={theme.colors.text} />
+            </Pressable>
+            <Pressable
+              onPress={() => setLowOnly((v) => !v)}
+              accessibilityRole="button"
+              accessibilityLabel="Filtrar estoque baixo"
+              hitSlop={10}
+              style={{
+                width: 44,
+                height: 44,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Ionicons
+                name="options-outline"
+                size={iconSizes.md}
+                color={lowOnly ? theme.colors.primaryStrong : theme.colors.text}
+              />
+            </Pressable>
+          </>
+        }
+      />
 
       {searchOpen ? (
         <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.sm }}>
@@ -333,7 +331,7 @@ export default function MaterialsScreen() {
               minHeight: 48,
               borderRadius: radii.md,
               borderWidth: 1,
-              borderColor: `${theme.colors.text}1f`,
+              borderColor: theme.colors.border,
               flexDirection: "row",
               alignItems: "center",
               paddingHorizontal: spacing.md,
@@ -354,7 +352,7 @@ export default function MaterialsScreen() {
               style={{
                 flex: 1,
                 color: theme.colors.text,
-                fontSize: 16,
+                fontSize: fontSizes.md,
                 paddingVertical: 0,
               }}
             />
@@ -376,18 +374,22 @@ export default function MaterialsScreen() {
               minHeight: 36,
               paddingHorizontal: spacing.md,
               borderRadius: radii.full,
-              backgroundColor: theme.colors.primary,
+              backgroundColor: theme.colors.primaryBg,
             }}
           >
-            <Ionicons name="funnel" size={14} color={theme.colors.textOnPrimary} />
+            <Ionicons
+              name="funnel"
+              size={iconSizes.xs}
+              color={theme.colors.primaryStrong}
+            />
             <Typography
               variant="caption"
-              color={theme.colors.textOnPrimary}
+              color={theme.colors.primaryStrong}
               style={{ fontFamily: fonts.bold }}
             >
               Estoque baixo
             </Typography>
-            <Ionicons name="close" size={16} color={theme.colors.textOnPrimary} />
+            <Ionicons name="close" size={16} color={theme.colors.primaryStrong} />
           </Pressable>
         </View>
       ) : null}
@@ -406,9 +408,11 @@ export default function MaterialsScreen() {
           onPress={() => setShowCreate(true)}
           accessibilityRole="button"
           style={({ pressed }) => ({
-            minHeight: 56,
+            alignSelf: isDesktop ? "flex-end" : undefined,
+            width: isDesktop ? 180 : undefined,
+            minHeight: isDesktop ? 44 : 56,
             borderRadius: radii.lg,
-            backgroundColor: theme.colors.primary,
+            backgroundColor: theme.colors.primaryInteractive,
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
@@ -416,13 +420,20 @@ export default function MaterialsScreen() {
             opacity: pressed ? 0.85 : 1,
           })}
         >
-          <Ionicons name="add" size={24} color={theme.colors.textOnPrimary} />
-          <Typography variant="h3" color={theme.colors.textOnPrimary}>
+          <Ionicons
+            name="add"
+            size={isDesktop ? 20 : 24}
+            color={theme.colors.textOnPrimary}
+          />
+          <Typography
+            variant={isDesktop ? "bodyBold" : "h3"}
+            color={theme.colors.textOnPrimary}
+          >
             Novo insumo
           </Typography>
         </Pressable>
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-          <Ionicons name="bulb-outline" size={16} color={theme.colors.success} />
+          <Ionicons name="bulb-outline" size={16} color={theme.colors.textSecondary} />
           <Typography
             variant="caption"
             color={theme.colors.textSecondary}
@@ -433,38 +444,42 @@ export default function MaterialsScreen() {
         </View>
       </View>
 
-      <Modal
+      <ResponsiveOverlayModal
         visible={showCreate}
         animationType="slide"
         presentationStyle="pageSheet"
         onRequestClose={() => setShowCreate(false)}
       >
-        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <FormModalHeader title="Novo insumo" onClose={() => setShowCreate(false)} />
-          <MaterialForm
-            existingMaterials={items}
-            onSuccess={() => setShowCreate(false)}
-          />
-        </SafeAreaView>
-      </Modal>
+        <ResponsiveModalSurface maxWidth={1120}>
+          <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+            <FormModalHeader title="Novo insumo" onClose={() => setShowCreate(false)} />
+            <MaterialForm
+              existingMaterials={items}
+              onSuccess={() => setShowCreate(false)}
+            />
+          </SafeAreaView>
+        </ResponsiveModalSurface>
+      </ResponsiveOverlayModal>
 
-      <Modal
+      <ResponsiveOverlayModal
         visible={!!selected}
         animationType="slide"
         presentationStyle="pageSheet"
         onRequestClose={() => setSelectedId(null)}
       >
-        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <FormModalHeader title="Editar insumo" onClose={() => setSelectedId(null)} />
-          {selected ? (
-            <MaterialForm
-              material={selected}
-              existingMaterials={items}
-              onSuccess={() => setSelectedId(null)}
-            />
-          ) : null}
-        </SafeAreaView>
-      </Modal>
+        <ResponsiveModalSurface maxWidth={1120}>
+          <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+            <FormModalHeader title="Editar insumo" onClose={() => setSelectedId(null)} />
+            {selected ? (
+              <MaterialForm
+                material={selected}
+                existingMaterials={items}
+                onSuccess={() => setSelectedId(null)}
+              />
+            ) : null}
+          </SafeAreaView>
+        </ResponsiveModalSurface>
+      </ResponsiveOverlayModal>
     </SafeAreaView>
   );
 }

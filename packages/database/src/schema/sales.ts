@@ -58,5 +58,7 @@ export const saleItems = pgTable("sale_items", {
   // decimais como string — converter com Number(...) na borda do repo.
   quantity: decimal("quantity", { precision: 10, scale: 3 }).notNull(),
   unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
+  variationId: uuid("variation_id"),
+  variationName: text("variation_name"),
   subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
 });

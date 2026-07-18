@@ -12,7 +12,6 @@ import {
   Animated,
   Image,
   ImageBackground,
-  Modal,
   Pressable,
   View,
   type ImageSourcePropType,
@@ -24,6 +23,7 @@ import successBrigadeiro from "../../assets/success-brigadeiro.png";
 import successChecklist from "../../assets/success-checklist.png";
 import successGrowth from "../../assets/success-growth.png";
 import successModalFrame from "../../assets/success-modal-frame.png";
+import { ResponsiveOverlayModal } from "./responsive-modal-surface";
 
 export { showAlert } from "./alert-store";
 
@@ -91,7 +91,7 @@ export function AlertHost() {
     const continueButton = options.buttons?.[0] ?? { text: "Continuar" };
 
     return (
-      <Modal
+      <ResponsiveOverlayModal
         transparent
         visible
         animationType="fade"
@@ -246,12 +246,12 @@ export function AlertHost() {
             </Pressable>
           </Animated.View>
         </Pressable>
-      </Modal>
+      </ResponsiveOverlayModal>
     );
   }
 
   return (
-    <Modal
+    <ResponsiveOverlayModal
       transparent
       visible
       animationType="fade"
@@ -310,6 +310,6 @@ export function AlertHost() {
           </Pressable>
         </Animated.View>
       </Pressable>
-    </Modal>
+    </ResponsiveOverlayModal>
   );
 }

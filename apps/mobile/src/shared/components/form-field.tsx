@@ -1,4 +1,12 @@
-import { Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
+import {
+  Typography,
+  useTheme,
+  fontSizes,
+  fonts,
+  iconSizes,
+  radii,
+  spacing,
+} from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
@@ -12,12 +20,11 @@ import {
 /** Cores derivadas do tema para os campos de formulário (claro e escuro). */
 export function useFieldPalette() {
   const { theme } = useTheme();
-  const isDark = theme.mode === "dark";
   return {
-    border: isDark ? "rgba(245, 225, 219, 0.12)" : "rgba(74, 50, 40, 0.12)",
-    fieldBg: isDark ? "rgba(58, 50, 45, 0.5)" : theme.colors.surface,
-    placeholder: isDark ? "rgba(184, 160, 144, 0.7)" : "rgba(139, 115, 85, 0.7)",
-    sheetBg: isDark ? "#2C2420" : theme.colors.surfaceElevated,
+    border: theme.colors.border,
+    fieldBg: theme.colors.surface,
+    placeholder: theme.colors.textSecondary + "B3",
+    sheetBg: theme.colors.surfaceElevated,
   };
 }
 
@@ -29,14 +36,18 @@ export function FieldLabel({
   const { theme } = useTheme();
   return (
     <View style={{ flexDirection: "row", gap: 4, marginBottom: spacing.sm }}>
-      <Typography variant="bodyBold" color={theme.colors.text} style={{ fontSize: 15 }}>
+      <Typography
+        variant="bodyBold"
+        color={theme.colors.text}
+        style={{ fontSize: fontSizes.sm }}
+      >
         {label}
       </Typography>
       {required ? (
         <Typography
           variant="bodyBold"
           color={theme.colors.primary}
-          style={{ fontSize: 15 }}
+          style={{ fontSize: fontSizes.sm }}
         >
           *
         </Typography>
@@ -51,14 +62,15 @@ export type TextFieldCardProps = Readonly<{
 }> &
   TextInputProps;
 
-/** Campo de texto com ícone rosa à esquerda, no estilo dos formulários do app. */
+/** Campo de texto com ícone rosa à esquerda, no estilo dos formulários do app.
+ *  Mesmas métricas canônicas do `Input` do ui (56px, radii.lg, borda do tema). */
 export function TextFieldCard({ icon, inputStyle, ...inputProps }: TextFieldCardProps) {
   const { theme } = useTheme();
   const pal = useFieldPalette();
   return (
     <View
       style={{
-        minHeight: 60,
+        minHeight: 56,
         borderRadius: radii.lg,
         borderWidth: 1,
         borderColor: pal.border,
@@ -69,14 +81,15 @@ export function TextFieldCard({ icon, inputStyle, ...inputProps }: TextFieldCard
         gap: spacing.md,
       }}
     >
-      <Ionicons name={icon} size={22} color={theme.colors.primary} />
+      <Ionicons name={icon} size={iconSizes.sm} color={theme.colors.primary} />
       <TextInput
         placeholderTextColor={pal.placeholder}
         style={[
           {
             flex: 1,
             color: theme.colors.text,
-            fontSize: 16,
+            fontSize: fontSizes.md,
+            fontFamily: fonts.regular,
             paddingVertical: spacing.md,
           },
           inputStyle,

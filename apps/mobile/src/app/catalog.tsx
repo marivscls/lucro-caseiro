@@ -11,7 +11,7 @@ import {
   radii,
 } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
-import { Stack, useRouter } from "expo-router";
+import { Stack } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Image, Pressable, Share, Switch, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -31,6 +31,9 @@ import { showToast } from "../shared/components/toast";
 import { uploadCatalogCover, uploadCatalogLogo } from "../shared/utils/upload-image";
 import { alertError } from "../shared/utils/alerts";
 import catalogStorefront from "../assets/auth-house.png";
+import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { desktopContained } from "../shared/layout/desktop-density";
+import { ScreenHeader } from "../shared/components/screen-header";
 
 // Mesmas chaves/cores dos presets do backend (CATALOG_ACCENT_PRESETS).
 const ACCENT_SWATCHES: { key: CatalogAccentColorValue; color: string; label: string }[] =
@@ -84,12 +87,12 @@ function CatalogIntro({
                 width: 44,
                 height: 44,
                 borderRadius: radii.lg,
-                backgroundColor: theme.colors.successBg,
+                backgroundColor: theme.colors.surface,
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Ionicons name={b.icon} size={22} color={theme.colors.success} />
+              <Ionicons name={b.icon} size={22} color={theme.colors.textSecondary} />
             </View>
             <View style={{ flex: 1 }}>
               <Typography variant="bodyBold">{b.title}</Typography>
@@ -108,7 +111,7 @@ function CatalogIntro({
           style={({ pressed }) => ({
             minHeight: 56,
             borderRadius: radii.lg,
-            backgroundColor: theme.colors.primary,
+            backgroundColor: theme.colors.primaryInteractive,
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
@@ -170,8 +173,8 @@ function AppearanceProfessionalTeaser({ onUnlock }: Readonly<{ onUnlock: () => v
           marginTop: spacing.xs,
         })}
       >
-        <Ionicons name="diamond" size={18} color="#fff" />
-        <Typography variant="bodyBold" color="#fff">
+        <Ionicons name="diamond" size={18} color={theme.colors.textOnPrimary} />
+        <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
           Desbloquear no Profissional
         </Typography>
       </Pressable>
@@ -181,6 +184,7 @@ function AppearanceProfessionalTeaser({ onUnlock }: Readonly<{ onUnlock: () => v
 
 function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const update = useUpdateCatalogSettings();
   const [slug, setSlug] = useState(settings.slug);
   const [whatsapp, setWhatsapp] = useState(settings.whatsapp ?? "");
@@ -204,9 +208,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
   const canCustomizeCatalog =
     !!profile &&
     hasActiveFeature(profile.plan, profile.planExpiresAt, "catalogCustomization");
-  const dashedBorder =
-    theme.mode === "dark" ? "rgba(245, 225, 219, 0.35)" : "rgba(74, 50, 40, 0.3)";
-  const customCircleBorderColor = isCustomColor ? theme.colors.text : dashedBorder;
+  const customCircleBorderColor = isCustomColor ? theme.colors.text : theme.colors.border;
   const resolvedBaseColor = isCustomColor
     ? accentColor
     : (ACCENT_SWATCHES.find((sw) => sw.key === (accentColor ?? "brown"))?.color ??
@@ -364,16 +366,18 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
     void trackAnalyticsAction("catalog_shared", useAuth.getState().token);
   }
 
-  const isDark = theme.mode === "dark";
-  const heroBg = isDark ? "rgba(44, 36, 32, 0.85)" : theme.colors.surfaceElevated;
+  const heroBg = theme.colors.surfaceElevated;
 
   return (
     <KeyboardAwareScrollView
-      contentContainerStyle={{
-        padding: spacing.xl,
-        paddingBottom: spacing["4xl"],
-        gap: spacing.lg,
-      }}
+      contentContainerStyle={[
+        {
+          padding: spacing.xl,
+          paddingBottom: spacing["4xl"],
+          gap: spacing.lg,
+        },
+        desktopContained(isDesktop),
+      ]}
       showsVerticalScrollIndicator={false}
     >
       {/* Hero */}
@@ -429,13 +433,9 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                       flexDirection: "row",
                       alignItems: "center",
                       gap: spacing.sm,
-                      backgroundColor: isDark
-                        ? "rgba(255,255,255,0.06)"
-                        : theme.colors.surface,
+                      backgroundColor: theme.colors.surface,
                       borderWidth: 1,
-                      borderColor: isDark
-                        ? "rgba(245, 225, 219, 0.14)"
-                        : "rgba(74, 50, 40, 0.1)",
+                      borderColor: theme.colors.border,
                       borderRadius: radii.xl,
                       paddingVertical: spacing.md,
                       paddingHorizontal: spacing.lg,
@@ -446,7 +446,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                   <Ionicons
                     name="link-outline"
                     size={20}
-                    color={theme.colors.primaryLight}
+                    color={theme.colors.primaryStrong}
                   />
                   <Typography
                     variant="caption"
@@ -459,7 +459,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                   <Ionicons
                     name="share-social-outline"
                     size={20}
-                    color={theme.colors.primaryLight}
+                    color={theme.colors.primaryStrong}
                   />
                 </Pressable>
                 <Button
@@ -784,7 +784,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                         <Ionicons
                           name={isCustomColor ? "checkmark" : "add"}
                           size={22}
-                          color={isCustomColor ? "#fff" : theme.colors.primaryLight}
+                          color={isCustomColor ? "#fff" : theme.colors.textSecondary}
                         />
                       </View>
                       <Typography variant="caption">
@@ -835,6 +835,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
           {/* Salvar geral (endereco, whatsapp e frase) */}
           <Button
             title={update.isPending ? "Salvando..." : "Salvar"}
+            variant="outline"
             onPress={() => void handleSave()}
             disabled={update.isPending}
           />
@@ -865,7 +866,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
 
 export default function CatalogScreen() {
   const { theme } = useTheme();
-  const router = useRouter();
+  const isDesktop = useDesktopLayout();
   const { data: settings, isLoading, refetch } = useCatalogSettings();
 
   let content: React.ReactNode;
@@ -905,29 +906,7 @@ export default function CatalogScreen() {
       edges={["top", "bottom"]}
     >
       <Stack.Screen options={{ headerShown: false }} />
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.md,
-          paddingHorizontal: spacing.lg,
-          paddingTop: spacing.sm,
-          paddingBottom: spacing.sm,
-        }}
-      >
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="Voltar"
-          hitSlop={10}
-          style={{ width: 32, height: 40, justifyContent: "center" }}
-        >
-          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
-        </Pressable>
-        <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
-          Catálogo
-        </Typography>
-      </View>
+      {!isDesktop && <ScreenHeader title="Catálogo" />}
       {content}
     </SafeAreaView>
   );

@@ -6,6 +6,8 @@ import { ActivityIndicator, Pressable, View } from "react-native";
 
 import { showAlert } from "../../../shared/components/alert-store";
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
+import { desktopAction, desktopContained } from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { uploadRecipeImage } from "../../../shared/utils/upload-image";
 import { useDeleteRecipe, useUpdateRecipe } from "../hooks";
@@ -32,6 +34,7 @@ interface EditRecipeFormProps {
 
 export function EditRecipeForm({ recipe, onSuccess }: EditRecipeFormProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const [name, setName] = useState(recipe.name);
   const [category, setCategory] = useState(recipe.category);
   const [instructions, setInstructions] = useState(recipe.instructions ?? "");
@@ -158,11 +161,14 @@ export function EditRecipeForm({ recipe, onSuccess }: EditRecipeFormProps) {
 
   return (
     <KeyboardAwareScrollView
-      contentContainerStyle={{
-        padding: spacing.xl,
-        paddingBottom: spacing["5xl"],
-        gap: spacing.xl,
-      }}
+      contentContainerStyle={[
+        {
+          padding: spacing.xl,
+          paddingBottom: spacing["5xl"],
+          gap: spacing.xl,
+        },
+        desktopContained(isDesktop, 960),
+      ]}
     >
       <FieldRow icon="ice-cream-outline" label="Nome da receita">
         <TextBox
@@ -236,16 +242,19 @@ export function EditRecipeForm({ recipe, onSuccess }: EditRecipeFormProps) {
         }}
         disabled={saving}
         accessibilityRole="button"
-        style={({ pressed }) => ({
-          minHeight: 58,
-          borderRadius: radii.lg,
-          backgroundColor: theme.colors.primary,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: spacing.sm,
-          opacity: pressed || saving ? 0.85 : 1,
-        })}
+        style={({ pressed }) => [
+          {
+            minHeight: 58,
+            borderRadius: radii.lg,
+            backgroundColor: theme.colors.primary,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: spacing.sm,
+            opacity: pressed || saving ? 0.85 : 1,
+          },
+          desktopAction(isDesktop),
+        ]}
       >
         {saving ? (
           <ActivityIndicator color={theme.colors.textOnPrimary} />
@@ -261,17 +270,20 @@ export function EditRecipeForm({ recipe, onSuccess }: EditRecipeFormProps) {
         onPress={handleDelete}
         disabled={deleteRecipe.isPending}
         accessibilityRole="button"
-        style={({ pressed }) => ({
-          minHeight: 50,
-          borderRadius: radii.lg,
-          borderWidth: 1,
-          borderColor: `${theme.colors.alert}66`,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: spacing.sm,
-          opacity: pressed ? 0.7 : 1,
-        })}
+        style={({ pressed }) => [
+          {
+            minHeight: 50,
+            borderRadius: radii.lg,
+            borderWidth: 1,
+            borderColor: `${theme.colors.alert}66`,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: spacing.sm,
+            opacity: pressed ? 0.7 : 1,
+          },
+          desktopAction(isDesktop),
+        ]}
       >
         <Ionicons name="trash-outline" size={20} color={theme.colors.alert} />
         <Typography variant="bodyBold" color={theme.colors.alert}>

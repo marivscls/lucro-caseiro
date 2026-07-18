@@ -1,6 +1,7 @@
 import type { Session, User } from "@supabase/supabase-js";
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
+import { Platform } from "react-native";
 import { create } from "zustand";
 
 import { supabase } from "../utils/supabase";
@@ -8,6 +9,10 @@ import { getRecoveryLinkError } from "../utils/password-recovery";
 import { useOnboarding } from "./use-onboarding";
 
 export function getAuthRedirectUrl(): string {
+  if (Platform.OS === "web" && typeof window !== "undefined") {
+    return window.location.origin;
+  }
+
   if (process.env.EXPO_PUBLIC_AUTH_REDIRECT_URL) {
     return process.env.EXPO_PUBLIC_AUTH_REDIRECT_URL;
   }
@@ -260,18 +265,23 @@ export const useAuth = create<AuthState>((set) => ({
   signInWithGoogle: async () => {
     try {
       const authRedirectUrl = getAuthRedirectUrl();
+      const isWeb = Platform.OS === "web";
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: authRedirectUrl,
-          skipBrowserRedirect: true,
+          skipBrowserRedirect: !isWeb,
         },
       });
 
       if (error || !data.url) {
         return { error: "Erro ao conectar com Google. Tente novamente." };
       }
+
+      // O Supabase redireciona a propria aba no navegador. O popup do Expo
+      // exige um handshake adicional e pode deixar o PWA esperando para sempre.
+      if (isWeb) return {};
 
       const result = await WebBrowser.openAuthSessionAsync(data.url, authRedirectUrl);
 

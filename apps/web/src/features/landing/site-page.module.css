@@ -1,0 +1,255 @@
+.main {
+  width: min(calc(100% - 40px), 920px);
+  margin: 0 auto;
+  padding: 150px 0 80px;
+}
+
+.mainWide {
+  width: min(calc(100% - 40px), 1180px);
+}
+
+.hero {
+  max-width: 820px;
+  margin: 0 auto 48px;
+  text-align: center;
+}
+
+.eyebrow {
+  margin: 0 0 18px;
+  color: var(--primary-strong);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: clamp(46px, 7vw, 74px);
+  line-height: 1;
+}
+
+.description {
+  max-width: 720px;
+  margin: 24px auto 0;
+  color: var(--text-secondary);
+  font-size: 19px;
+  line-height: 1.65;
+}
+
+.updated {
+  margin: 18px 0 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.content {
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  background: var(--surface-elevated);
+}
+
+.document {
+  padding: clamp(26px, 6vw, 64px);
+}
+
+.document section + section {
+  margin-top: 42px;
+}
+
+.document h2,
+.article h2 {
+  margin: 0 0 14px;
+  font-family: var(--font-display), serif;
+  font-size: 28px;
+  letter-spacing: -0.03em;
+}
+
+.document h3,
+.article h3 {
+  margin: 28px 0 10px;
+  font-size: 19px;
+}
+
+.document p,
+.document li,
+.article p,
+.article li {
+  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.document p,
+.article p {
+  margin: 0;
+}
+
+.document p + p,
+.article p + p {
+  margin-top: 16px;
+}
+
+.document ul,
+.document ol,
+.article ul,
+.article ol {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0 0;
+  padding-left: 22px;
+}
+
+.document a,
+.article a,
+.supportLink {
+  color: var(--primary-strong);
+  font-weight: 800;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--primary-strong) 30%, transparent);
+  text-underline-offset: 3px;
+}
+
+.callout {
+  margin-top: 24px;
+  padding: 20px 22px;
+  border-radius: 18px;
+  background: var(--rose-100);
+}
+
+.callout strong {
+  color: var(--text);
+}
+
+.supportGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  padding: 24px;
+}
+
+.supportCard {
+  display: flex;
+  min-height: 220px;
+  flex-direction: column;
+  padding: 28px;
+  border-radius: 24px;
+  background: var(--background);
+}
+
+.supportIcon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 30px;
+  border-radius: 16px;
+  background: var(--rose-100);
+  color: var(--primary-strong);
+}
+
+.supportCard h2 {
+  margin: 0;
+  font-family: var(--font-display), serif;
+  font-size: 25px;
+}
+
+.supportCard p {
+  margin: 10px 0 24px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.supportCard a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: auto;
+  color: var(--primary-strong);
+  font-weight: 800;
+}
+
+.article {
+  padding: clamp(26px, 6vw, 64px);
+}
+
+.articleLead {
+  margin-bottom: 42px !important;
+  color: var(--text) !important;
+  font-size: 20px !important;
+  font-weight: 700;
+}
+
+.formula {
+  margin: 22px 0;
+  padding: 22px;
+  border-radius: 18px;
+  background: var(--text-dark);
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.articleCta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 48px;
+  padding: 28px;
+  border-radius: 22px;
+  background: var(--text);
+  color: white;
+}
+
+.articleCta p {
+  color: rgb(255 255 255 / 72%);
+}
+
+.articleCta a {
+  flex: none;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: var(--primary-interactive);
+  color: white;
+  text-decoration: none;
+}
+
+@media (max-width: 700px) {
+  .main {
+    width: min(calc(100% - 28px), 920px);
+    padding-top: 120px;
+  }
+
+  .hero {
+    margin-bottom: 34px;
+  }
+
+  .hero h1 {
+    font-size: 46px;
+  }
+
+  .description {
+    font-size: 17px;
+  }
+
+  .content {
+    border-radius: 24px;
+  }
+
+  .supportGrid {
+    grid-template-columns: 1fr;
+    padding: 14px;
+  }
+
+  .articleCta {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .articleCta a {
+    width: 100%;
+    text-align: center;
+  }
+}

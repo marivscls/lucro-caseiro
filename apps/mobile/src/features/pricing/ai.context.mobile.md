@@ -14,7 +14,7 @@ Calculadora de precificacao guiada (wizard de 5 passos) que ajuda o usuario a de
 
 ## Boundaries & Ownership
 
-- **Depende de:** `@lucro-caseiro/contracts` (tipos `CreatePricing`, `Pricing`), `@lucro-caseiro/ui`, `shared/hooks/use-auth`, `shared/utils/api-client`.
+- **Depende de:** `@lucro-caseiro/contracts` (tipos `CreatePricing`, `Pricing` e cálculos puros compartilhados), `@lucro-caseiro/ui`, `shared/hooks/use-auth`, `shared/utils/api-client`.
 - **Dependentes:** nenhum direto (resultados salvos podem ser consultados por historico).
 
 ## Code pointers
@@ -26,6 +26,9 @@ Calculadora de precificacao guiada (wizard de 5 passos) que ajuda o usuario a de
 | `apps/mobile/src/features/pricing/components/pricing-calculator.tsx` | Wizard de 5 passos + resultado                                     |
 | `apps/mobile/src/features/pricing/components/pricing-result.tsx`     | Tela de resultado com breakdown visual                             |
 | `apps/mobile/src/app/pricing.tsx`                                    | Screen (rota `/pricing`)                                           |
+
+As funções de cálculo vivem em `packages/contracts/src/pricing-calculator.ts`; o arquivo local
+`features/pricing/calc.ts` apenas reexporta a fonte compartilhada usada também pela API e pelo site.
 
 ## Components
 
@@ -109,6 +112,8 @@ Calculadora de precificacao guiada (wizard de 5 passos) que ajuda o usuario a de
 
 ## Change log / Decisions
 
+- 2026-07-16: fórmulas puras movidas para `@lucro-caseiro/contracts` para manter aplicativo,
+  backend e calculadora pública do site matematicamente idênticos.
 - ~~Projecao mensal fixa em 200 unidades~~ → agora vem da **Produção mensal estimada** (step 4); o resultado usa esse número na projeção (`monthlyUnits`).
 - Calculo feito no front para feedback instantaneo; POST de save envia ao backend para persistencia.
 - Custo real: o step 1 pode puxar o `costPrice` de um produto (que vem da receita/insumos), em
@@ -119,3 +124,6 @@ Calculadora de precificacao guiada (wizard de 5 passos) que ajuda o usuario a de
 - 2026-06-15: **redesign do wizard** (`pricing-calculator.tsx`): círculos numerados com check + "Etapa X de 5", título fora do card, cards ricos com ícone, **stepper** no tempo de mão de obra (step 3) e na produção mensal (step 4), cards de valor calculado (mão de obra/unidade, custo fixo/unidade) e caixas de dica (verde/azul). **Step 4 mudou**: agora pede **custos fixos mensais** + **produção mensal** e calcula `fixedCostShare = mensal ÷ produção` (antes era valor/unidade direto). Step 5 ganhou "Margem selecionada" + **Resumo do cálculo** (custo total, margem, preço base, taxas, preço final). Step 1 mostra card "Produto selecionado" + "Valor importado da receita"; step 2 mostra **sugestão = média do custo das embalagens cadastradas** (`usePackagingList`). Campos de dinheiro têm **mini-calculadora** (`shared/components/calculator-modal.tsx`). Top bar (em `pricing.tsx`): voltar + "Precificação" + Histórico. `PricingResult`: badges de % por item na composição, "margem sobre o preço" e projeção usando `monthlyUnits`.
 - 2026-06-15: **Histórico passou a listar o histórico completo** (corrige histórico vazio). Antes exigia selecionar um produto e usava só `usePricingHistory(productId)` — cálculos salvos **sem produto** (custo digitado na mão) nunca apareciam. Agora o modal usa `usePricingList()` (GET `/api/v1/pricing`), lista geral com **filtro por produto** (chip "tudo" + um por produto + "Cálculo avulso") e cada card mostra o nome do produto (ou "Cálculo avulso"), data, preço final, custo e margem.
 - 2026-06-15: **resultado** (`pricing-result.tsx`): valores grandes em 1 linha (`adjustsFontSizeToFit`) e ícones em círculo nos títulos (Composição/Margem/Projeção). Mini-calculadora (`calculator-modal.tsx`): operadores em rosa sólido (visíveis) + prévia da operação pendente ("3 ×") + operador ativo destacado.
+- 2026-07-18: o resultado oferece “Salvar e criar produto”; o cálculo é persistido e a rota de
+  Produtos abre o formulário com o preço preenchido. A criação concluída registra
+  `product_created_from_pricing`, marco explícito do funil de ativação.

@@ -25,7 +25,7 @@
 
 ## Sobre o Projeto
 
-**Lucro Caseiro** e um app de gestao completa para negocios caseiros (confeitaria, manicure, artesanato, marmitas, etc).
+**Lucro Caseiro** e um app de gestao completa para quem produz, vende ou presta servicos, de profissionais autonomos a negocios estruturados e em crescimento. Confeitaria, beleza, artesanato e marmitas sao exemplos de segmentos, nao limites do produto.
 
 - **Publico**: pessoas de todas as idades, incluindo idosos e jovens sem experiencia tech
 - **Principio #1 de UX**: simplicidade radical — maximo 3 toques pra qualquer acao principal

@@ -21,7 +21,7 @@ Imagens obrigatorias e recomendadas pra **Main store listing**. Tudo PNG/JPEG, R
   - Visualmente consistente com o icone (cor verde primaria do app)
   - Sem texto pequeno (vai ser visto em telefone)
 
-> **Sugestao de layout**: fundo verde escuro com glow, icone do diamante a esquerda, texto "Lucro Caseiro — Gestao do seu negocio caseiro" centralizado.
+> **Sugestao de layout**: fundo verde escuro com glow, icone do diamante a esquerda, texto "Lucro Caseiro — Gestao para crescer" centralizado.
 
 ### Screenshots de telefone (minimo 2, max 8)
 
@@ -34,7 +34,7 @@ Imagens obrigatorias e recomendadas pra **Main store listing**. Tudo PNG/JPEG, R
   3. **Lista de vendas** com filtros
   4. **Precificacao** — calculo de preco com margem
   5. **Cadastro de cliente** simples
-  6. **Premium / Paywall** — mostra trial gratis e beneficios
+  6. **Planos / Paywall** — mostra Essencial, Profissional e beneficios reais
 
 > **Dica**: capture com device frame (ex: tela dentro do contorno de um celular Android). Apps como [appmockup.com](https://app-mockup.com) ou Figma + Device Frames fazem isso facil.
 

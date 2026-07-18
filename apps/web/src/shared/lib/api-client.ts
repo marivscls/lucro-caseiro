@@ -1,7 +1,10 @@
+import { getActiveBrand } from "@lucro-caseiro/brands";
+
 import { getSupabase } from "./supabase";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 const DEFAULT_API_TIMEOUT_MS = 30_000;
+const ACTIVE_BRAND_ID = getActiveBrand().id;
 
 type ApiClientOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
@@ -16,6 +19,7 @@ export async function apiClient<T>(
   const { data } = await getSupabase().auth.getSession();
   const headers = new Headers(options.headers);
   headers.set("Content-Type", "application/json");
+  headers.set("x-brand", ACTIVE_BRAND_ID);
   if (data.session?.access_token)
     headers.set("Authorization", `Bearer ${data.session.access_token}`);
   const method = options.method ?? "GET";
@@ -71,8 +75,11 @@ export async function authenticatedDownload(path: string, filename: string) {
   const { data } = await getSupabase().auth.getSession();
   const response = await fetch(`${API_URL}/api/v1/marketing${path}`, {
     headers: data.session?.access_token
-      ? { Authorization: `Bearer ${data.session.access_token}` }
-      : {},
+      ? {
+          Authorization: `Bearer ${data.session.access_token}`,
+          "x-brand": ACTIVE_BRAND_ID,
+        }
+      : { "x-brand": ACTIVE_BRAND_ID },
   });
   if (!response.ok) throw new Error("Não foi possível exportar o documento");
   const url = URL.createObjectURL(await response.blob());

@@ -15,9 +15,12 @@ import {
   CREDENTIAL_RULES,
   getPasswordUpdateError,
 } from "../shared/utils/password-recovery";
+import { desktopContained } from "../shared/layout/desktop-density";
+import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 
 export default function ResetPasswordScreen() {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const router = useRouter();
   const signOut = useAuth((s) => s.signOut);
   const clearPasswordRecovery = useAuth((s) => s.clearPasswordRecovery);
@@ -72,12 +75,15 @@ export default function ResetPasswordScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <Stack.Screen options={{ headerShown: false }} />
       <KeyboardAwareScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          padding: spacing.xl,
-          justifyContent: "center",
-          gap: spacing.xl,
-        }}
+        contentContainerStyle={[
+          {
+            flexGrow: 1,
+            padding: spacing.xl,
+            justifyContent: "center",
+            gap: spacing.xl,
+          },
+          desktopContained(isDesktop, 480),
+        ]}
       >
         <View style={{ alignItems: "center", gap: spacing.sm }}>
           <View

@@ -784,7 +784,7 @@ Todo material deve passar por esta verificação:
 
 ## 19. Pendências e validações
 
-- O arquivo atual de listing da Play Store ainda menciona o antigo Premium de R$ 19,90. Conferir a ficha publicada e alinhá-la aos planos comerciais atuais.
+- A fonte canônica da ficha foi alinhada aos planos Essencial e Profissional em 18 de julho de 2026. A publicação na Play Console ainda deve ser conferida após a próxima revisão da ficha.
 - A alegação de que o cálculo ocorre em um tempo exato só deve ser usada depois de validada por telemetria ou teste observado. Até lá, usar “em poucos minutos”.
 - Resultados financeiros de clientes só podem ser divulgados com autorização e evidência.
 - Parcerias, indicação remunerada e programa de afiliados só devem ser lançados quando houver regras, rastreamento e unit economics definidos.

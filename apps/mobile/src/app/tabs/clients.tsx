@@ -2,6 +2,7 @@ import type { Client } from "@lucro-caseiro/contracts";
 import {
   Button,
   EmptyState,
+  fontSizes,
   fonts,
   PressableScale,
   Typography,
@@ -15,7 +16,6 @@ import {
   ActivityIndicator,
   Image,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   Pressable,
   RefreshControl,
@@ -28,6 +28,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ClientDetail } from "../../features/clients/components/client-detail";
+import { avatarPastel } from "../../features/clients/components/avatar-colors";
 import { EditClientForm } from "../../features/clients/components/edit-client-form";
 import { useClient, useClients, useCreateClient } from "../../features/clients/hooks";
 import { LimitBanner } from "../../features/subscription/components/limit-banner";
@@ -41,6 +42,14 @@ import { alertValidation } from "../../shared/utils/alerts";
 import { showAlert } from "../../shared/components/alert-store";
 import { AnimatedListItem } from "../../shared/components/animated-list-item";
 import { CalendarModal } from "../../shared/components/calendar-modal";
+import { DesktopPagination } from "../../shared/components/desktop-pagination";
+import { FAB } from "../../shared/components/fab";
+import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
+import {
+  ResponsiveModalSurface,
+  ResponsiveOverlayModal,
+} from "../../shared/components/responsive-modal-surface";
+import { desktopAction, desktopContained } from "../../shared/layout/desktop-density";
 import clientsEmpty from "../../assets/clients-empty.png";
 
 type Screen =
@@ -141,7 +150,7 @@ function SearchBox({
         style={{
           flex: 1,
           color: theme.colors.text,
-          fontSize: 15,
+          fontSize: fontSizes.md,
           fontFamily: fonts.semiBold,
           paddingVertical: 0,
         }}
@@ -155,7 +164,7 @@ function SearchBox({
           paddingLeft: spacing.md,
         }}
       >
-        <Ionicons name={filterIcon} size={21} color={theme.colors.primaryLight} />
+        <Ionicons name={filterIcon} size={21} color={pal.muted} />
       </Pressable>
     </View>
   );
@@ -167,20 +176,24 @@ interface AvatarProps {
 }
 
 function Avatar({ label, size = 44 }: Readonly<AvatarProps>) {
+  const { theme } = useTheme();
+  const pastel = avatarPastel(label, theme.mode);
   return (
     <View
       style={{
         width: size,
         height: size,
         borderRadius: size / 2,
-        backgroundColor: "#C86F86",
+        backgroundColor: pastel.bg,
+        borderWidth: 1,
+        borderColor: pastel.bg,
         alignItems: "center",
         justifyContent: "center",
       }}
     >
       <Typography
         variant="h2"
-        color="#FFF7F4"
+        color={pastel.fg}
         style={{ fontSize: size * 0.48, fontFamily: fonts.displayBold }}
       >
         {(label.trim().charAt(0) || "?").toUpperCase()}
@@ -217,17 +230,17 @@ function ClientCard({ client, onPress }: Readonly<ClientCardProps>) {
           variant="h3"
           color={theme.colors.text}
           numberOfLines={1}
-          style={{ fontSize: 15 }}
+          style={{ fontSize: fontSizes.md }}
         >
           {client.name}
         </Typography>
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-          <Ionicons name="call" size={14} color={theme.colors.primaryLight} />
+          <Ionicons name="call" size={14} color={pal.muted} />
           <Typography
             variant="body"
             color={pal.muted}
             numberOfLines={1}
-            style={{ fontSize: 13 }}
+            style={{ fontSize: fontSizes.xs }}
           >
             {client.phone || "Sem telefone"}
           </Typography>
@@ -235,6 +248,119 @@ function ClientCard({ client, onPress }: Readonly<ClientCardProps>) {
       </View>
       <Ionicons name="chevron-forward" size={22} color={pal.muted} />
     </PressableScale>
+  );
+}
+
+function DesktopClientsTable({
+  items,
+  page,
+  total,
+  totalPages,
+  onClientPress,
+  onPageChange,
+}: Readonly<{
+  items: Client[];
+  page: number;
+  total: number;
+  totalPages: number;
+  onClientPress: (id: string) => void;
+  onPageChange: (page: number) => void;
+}>) {
+  const { theme } = useTheme();
+  const pal = clientsPalette(theme);
+  const headerStyle = {
+    fontFamily: fonts.bold,
+    fontSize: fontSizes.xs,
+    letterSpacing: 0.4,
+  } as const;
+
+  return (
+    <View
+      style={surfaceStyle(pal, {
+        borderRadius: radii.xl,
+        overflow: "hidden",
+      })}
+    >
+      <View
+        style={{
+          minHeight: 46,
+          paddingHorizontal: spacing.lg,
+          backgroundColor: theme.colors.surface,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.lg,
+        }}
+      >
+        <Typography variant="caption" style={[headerStyle, { flex: 1.6 }]}>
+          Cliente
+        </Typography>
+        <Typography variant="caption" style={[headerStyle, { flex: 1.1 }]}>
+          Telefone
+        </Typography>
+        <Typography variant="caption" style={[headerStyle, { flex: 0.9 }]}>
+          Aniversário
+        </Typography>
+        <Typography variant="caption" style={[headerStyle, { flex: 1.8 }]}>
+          Observações
+        </Typography>
+        <View style={{ width: 20 }} />
+      </View>
+
+      {items.map((client) => (
+        <Pressable
+          key={client.id}
+          accessibilityRole="button"
+          onPress={() => onClientPress(client.id)}
+          style={({ pressed }) => ({
+            minHeight: 62,
+            paddingHorizontal: spacing.lg,
+            borderTopWidth: 1,
+            borderTopColor: theme.colors.border,
+            backgroundColor: pressed ? theme.colors.primaryBg : pal.cardBg,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: spacing.lg,
+          })}
+        >
+          <View
+            style={{
+              flex: 1.6,
+              minWidth: 0,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: spacing.md,
+            }}
+          >
+            <Avatar label={client.name} size={36} />
+            <Typography variant="bodyBold" numberOfLines={1} style={{ flex: 1 }}>
+              {client.name}
+            </Typography>
+          </View>
+          <Typography variant="body" numberOfLines={1} style={{ flex: 1.1 }}>
+            {client.phone || "—"}
+          </Typography>
+          <Typography variant="body" style={{ flex: 0.9 }}>
+            {client.birthday
+              ? new Date(`${client.birthday}T12:00:00`).toLocaleDateString("pt-BR", {
+                  day: "2-digit",
+                  month: "short",
+                })
+              : "—"}
+          </Typography>
+          <Typography variant="body" numberOfLines={1} style={{ flex: 1.8 }}>
+            {client.notes || "—"}
+          </Typography>
+          <Ionicons name="chevron-forward" size={20} color={pal.muted} />
+        </Pressable>
+      ))}
+
+      <DesktopPagination
+        page={page}
+        total={total}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+      />
+    </View>
   );
 }
 
@@ -270,15 +396,20 @@ function ClientsListScreen({
   onClientPress,
 }: Readonly<ClientsListScreenProps>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const pal = clientsPalette(theme);
   const showPaywall = usePaywall((s) => s.show);
   const [showTip, setShowTip] = useState(true);
+  const [page, setPage] = useState(1);
   const { data, isLoading, error, refetch, isRefetching } = useClients({
+    page: isDesktop ? page : undefined,
     search: search.trim() || undefined,
   });
 
   const groups = useMemo(() => groupClientsByInitial(data?.items ?? []), [data?.items]);
   const totalClients = groups.reduce((sum, group) => sum + group.data.length, 0);
+  let listBottomPadding = showTip ? 218 : 150;
+  if (isDesktop) listBottomPadding = spacing["3xl"];
   let clientsContent: React.ReactNode;
 
   if (isLoading) {
@@ -300,6 +431,17 @@ function ClientsListScreen({
     );
   } else if (groups.length === 0) {
     clientsContent = <EmptyClients onCreatePress={onCreatePress} />;
+  } else if (isDesktop) {
+    clientsContent = (
+      <DesktopClientsTable
+        items={data?.items ?? []}
+        page={data?.page ?? page}
+        total={data?.total ?? 0}
+        totalPages={data?.totalPages ?? 1}
+        onClientPress={onClientPress}
+        onPageChange={setPage}
+      />
+    );
   } else {
     clientsContent = (
       <View style={{ gap: spacing.lg }}>
@@ -307,8 +449,8 @@ function ClientsListScreen({
           <View key={group.letter} style={{ gap: spacing.sm }}>
             <Typography
               variant="h2"
-              color={theme.colors.primaryLight}
-              style={{ fontSize: 17, fontFamily: fonts.displayBold }}
+              color={pal.muted}
+              style={{ fontSize: fontSizes.md, fontFamily: fonts.displayBold }}
             >
               {group.letter}
             </Typography>
@@ -341,7 +483,7 @@ function ClientsListScreen({
         contentContainerStyle={{
           paddingHorizontal: spacing.xl,
           paddingTop: spacing.xl,
-          paddingBottom: showTip ? 218 : 150,
+          paddingBottom: listBottomPadding,
           gap: spacing.md,
         }}
       >
@@ -353,22 +495,24 @@ function ClientsListScreen({
             gap: spacing.md,
           }}
         >
-          <View style={{ flex: 1, gap: spacing.sm }}>
-            <Typography
-              variant="display"
-              color={theme.colors.text}
-              style={{ fontSize: 34 }}
-            >
-              Clientes
-            </Typography>
-            <Typography
-              variant="label"
-              color={pal.muted}
-              style={{ fontSize: 12, letterSpacing: 2.4 }}
-            >
-              {totalClients} CLIENTES CADASTRADOS
-            </Typography>
-          </View>
+          {!isDesktop && (
+            <View style={{ flex: 1, gap: spacing.sm }}>
+              <Typography
+                variant="display"
+                color={theme.colors.text}
+                style={{ fontSize: fontSizes["3xl"] }}
+              >
+                Clientes
+              </Typography>
+              <Typography
+                variant="label"
+                color={pal.muted}
+                style={{ fontSize: fontSizes.xs, letterSpacing: 2.4 }}
+              >
+                {totalClients} CLIENTES CADASTRADOS
+              </Typography>
+            </View>
+          )}
 
           <Pressable
             onPress={onCreatePress}
@@ -384,15 +528,11 @@ function ClientsListScreen({
               }),
             ]}
           >
-            <Ionicons
-              name="person-add-outline"
-              size={22}
-              color={theme.colors.primaryLight}
-            />
+            <Ionicons name="person-add-outline" size={22} color={pal.muted} />
             <Typography
               variant="bodyBold"
               color={theme.colors.text}
-              style={{ fontSize: 14 }}
+              style={{ fontSize: fontSizes.sm }}
             >
               Novo cliente
             </Typography>
@@ -401,7 +541,10 @@ function ClientsListScreen({
 
         <SearchBox
           value={search}
-          onChangeText={setSearch}
+          onChangeText={(value) => {
+            setSearch(value);
+            setPage(1);
+          }}
           placeholder="Buscar por nome ou telefone..."
           onFilterPress={() => {
             showAlert({
@@ -416,31 +559,20 @@ function ClientsListScreen({
         {clientsContent}
       </ScrollView>
 
-      <Pressable
-        onPress={onCreatePress}
-        accessibilityRole="button"
-        accessibilityLabel="Novo cliente"
-        style={{
-          position: "absolute",
-          right: spacing.xl,
-          bottom: showTip ? 118 : 98,
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          backgroundColor: theme.colors.primary,
-          alignItems: "center",
-          justifyContent: "center",
-          shadowColor: theme.colors.primary,
-          shadowOffset: { width: 0, height: 12 },
-          shadowOpacity: 0.34,
-          shadowRadius: 20,
-          elevation: 8,
-        }}
-      >
-        <Ionicons name="add" size={28} color={theme.colors.textOnPrimary} />
-      </Pressable>
+      {!isDesktop && (
+        <FAB
+          icon="add"
+          accessibilityLabel="Novo cliente"
+          onPress={onCreatePress}
+          style={{
+            position: "absolute",
+            right: spacing.xl,
+            bottom: showTip ? 118 : 98,
+          }}
+        />
+      )}
 
-      {showTip && (
+      {!isDesktop && showTip && (
         <View
           style={[
             surfaceStyle(pal, {
@@ -462,25 +594,25 @@ function ClientsListScreen({
               width: 38,
               height: 38,
               borderRadius: 19,
-              backgroundColor: "rgba(196, 112, 126, 0.18)",
+              backgroundColor: pal.subtleFill,
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Ionicons name="people-outline" size={20} color={theme.colors.primaryLight} />
+            <Ionicons name="people-outline" size={20} color={pal.muted} />
           </View>
           <View style={{ flex: 1, gap: spacing.xs }}>
             <Typography
               variant="bodyBold"
-              color={theme.colors.primaryLight}
-              style={{ fontSize: 13 }}
+              color={theme.colors.text}
+              style={{ fontSize: fontSizes.xs }}
             >
               Dica rápida
             </Typography>
             <Typography
               variant="body"
               color={theme.colors.text}
-              style={{ fontSize: 12, lineHeight: 16 }}
+              style={{ fontSize: fontSizes.xs, lineHeight: 16 }}
             >
               Mantenha seus clientes atualizados para uma comunicação mais eficiente.
             </Typography>
@@ -534,18 +666,18 @@ function NewClientField({
           width: 42,
           height: 48,
           borderRadius: 21,
-          backgroundColor: "rgba(196, 112, 126, 0.18)",
+          backgroundColor: pal.subtleFill,
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <Ionicons name={icon} size={24} color={theme.colors.primaryLight} />
+        <Ionicons name={icon} size={24} color={pal.muted} />
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Typography
           variant="bodyBold"
           color={theme.colors.text}
-          style={{ fontSize: 15, marginBottom: 0 }}
+          style={{ fontSize: fontSizes.md, marginBottom: 0 }}
         >
           {label}
         </Typography>
@@ -554,7 +686,7 @@ function NewClientField({
           style={[
             {
               color: theme.colors.text,
-              fontSize: 16,
+              fontSize: fontSizes.md,
               lineHeight: 22,
               padding: 0,
               minHeight: tall ? 50 : 24,
@@ -595,6 +727,7 @@ interface NewClientModalProps {
 
 function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const pal = clientsPalette(theme);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -712,203 +845,219 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
   }
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="fullScreen">
-      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-        <View
-          style={{
-            paddingHorizontal: spacing.xl,
-            paddingTop: spacing.md,
-            paddingBottom: spacing.lg,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: spacing.lg,
-          }}
-        >
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.lg }}>
-            <Pressable
-              onPress={close}
-              style={{
-                width: 42,
-                height: 48,
-                borderRadius: 21,
-                backgroundColor: pal.subtleFill,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Ionicons name="arrow-back" size={23} color={pal.muted} />
-            </Pressable>
-            <Typography variant="h1" color={theme.colors.text} style={{ fontSize: 25 }}>
-              Novo cliente
-            </Typography>
-          </View>
-          <Pressable onPress={close} hitSlop={10}>
-            <Typography
-              variant="bodyBold"
-              color={theme.colors.primaryLight}
-              style={{ fontSize: 17 }}
-            >
-              Cancelar
-            </Typography>
-          </Pressable>
-        </View>
-
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
-        >
-          <ScrollView
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{
-              flexGrow: 1,
+    <ResponsiveOverlayModal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="fullScreen"
+    >
+      <ResponsiveModalSurface maxWidth={840}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+          <View
+            style={{
               paddingHorizontal: spacing.xl,
               paddingTop: spacing.md,
-              paddingBottom: spacing["5xl"],
-              gap: spacing.md,
+              paddingBottom: spacing.lg,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: spacing.lg,
             }}
           >
-            <View
-              style={[
-                surfaceStyle(pal, {
-                  borderRadius: radii.lg,
-                  minHeight: 74,
-                  paddingHorizontal: spacing.md,
-                  paddingVertical: spacing.sm,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: spacing.md,
-                  borderLeftWidth: 3,
-                  borderLeftColor: theme.colors.primaryLight,
-                  marginTop: spacing.sm,
-                }),
-              ]}
-            >
-              <View
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.lg }}>
+              <Pressable
+                onPress={close}
                 style={{
                   width: 42,
                   height: 48,
                   borderRadius: 21,
-                  backgroundColor: "rgba(196, 112, 126, 0.18)",
+                  backgroundColor: pal.subtleFill,
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <Ionicons
-                  name="person-add-outline"
-                  size={24}
-                  color={theme.colors.primaryLight}
-                />
-              </View>
-              <View style={{ flex: 1, gap: spacing.xs }}>
-                <Typography
-                  variant="bodyBold"
-                  color={theme.colors.text}
-                  style={{ fontSize: 16 }}
-                >
-                  Preencha os dados do cliente.
-                </Typography>
-                <Typography variant="body" color={pal.muted} style={{ fontSize: 14 }}>
-                  Campos opcionais ajudam a personalizar o cadastro.
-                </Typography>
-              </View>
+                <Ionicons name="arrow-back" size={23} color={pal.muted} />
+              </Pressable>
+              <Typography variant="h1" color={theme.colors.text}>
+                Novo cliente
+              </Typography>
             </View>
-
-            <NewClientField
-              icon="person-outline"
-              label="Nome do cliente *"
-              placeholder="Ex: Maria Silva, João Pereira..."
-              value={name}
-              onChangeText={setName}
-              autoFocus
-            />
-            <NewClientField
-              icon="call-outline"
-              label="Telefone (opcional)"
-              placeholder="Ex: (11) 99999-9999"
-              value={phone}
-              onChangeText={(value) => setPhone(maskPhoneBR(value))}
-              keyboardType="phone-pad"
-            />
-            <NewClientField
-              icon="location-outline"
-              label="Endereço (opcional)"
-              placeholder="Ex: Rua das Flores, 123"
-              value={address}
-              onChangeText={setAddress}
-            />
-            <NewClientField
-              icon="calendar-outline"
-              label="Data de nascimento (opcional)"
-              placeholder="DD/MM/AAAA"
-              value={birthday}
-              onChangeText={(value) => setBirthday(maskDateBR(value))}
-              keyboardType="number-pad"
-              trailingIcon="calendar-outline"
-              onTrailingPress={() => setCalendarVisible(true)}
-            />
-            <NewClientField
-              icon="document-text-outline"
-              label="Observações (opcional)"
-              placeholder="Anotações sobre o cliente..."
-              value={notes}
-              onChangeText={(value) => setNotes(value.slice(0, 200))}
-              multiline
-              tall
-              maxLength={200}
-              count={`${notes.length}/200`}
-            />
-            <Typography variant="body" color={pal.muted} style={{ fontSize: 14 }}>
-              <Typography variant="bodyBold" color={theme.colors.primaryLight}>
-                *
-              </Typography>{" "}
-              Campos obrigatórios
-            </Typography>
-
-            <Pressable
-              onPress={() => {
-                void handleCreate();
-              }}
-              disabled={createClient.isPending}
-              style={({ pressed }) => ({
-                minHeight: 58,
-                borderRadius: radii.xl,
-                backgroundColor: theme.colors.primary,
-                alignItems: "center",
-                justifyContent: "center",
-                flexDirection: "row",
-                gap: spacing.md,
-                opacity: pressed || createClient.isPending ? 0.82 : 1,
-              })}
-            >
-              {createClient.isPending ? (
-                <ActivityIndicator color={theme.colors.textOnPrimary} />
-              ) : (
-                <Ionicons
-                  name="person-add-outline"
-                  size={23}
-                  color={theme.colors.textOnPrimary}
-                />
-              )}
+            <Pressable onPress={close} hitSlop={10}>
               <Typography
                 variant="bodyBold"
-                color={theme.colors.textOnPrimary}
-                style={{ fontSize: 18 }}
+                color={theme.colors.primaryStrong}
+                style={{ fontSize: fontSizes.md }}
               >
-                Cadastrar cliente
+                Cancelar
               </Typography>
             </Pressable>
-          </ScrollView>
-        </KeyboardAvoidingView>
-        <CalendarModal
-          visible={calendarVisible}
-          value={birthday}
-          onClose={() => setCalendarVisible(false)}
-          onSelect={setBirthday}
-        />
-      </SafeAreaView>
-    </Modal>
+          </View>
+
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={{ flex: 1 }}
+          >
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={[
+                {
+                  flexGrow: 1,
+                  paddingHorizontal: spacing.xl,
+                  paddingTop: spacing.md,
+                  paddingBottom: spacing["5xl"],
+                  gap: spacing.md,
+                },
+                desktopContained(isDesktop, 720),
+              ]}
+            >
+              <View
+                style={[
+                  surfaceStyle(pal, {
+                    borderRadius: radii.lg,
+                    minHeight: 74,
+                    paddingHorizontal: spacing.md,
+                    paddingVertical: spacing.sm,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: spacing.md,
+                    borderLeftWidth: 3,
+                    borderLeftColor: theme.colors.primaryLight,
+                    marginTop: spacing.sm,
+                  }),
+                ]}
+              >
+                <View
+                  style={{
+                    width: 42,
+                    height: 48,
+                    borderRadius: 21,
+                    backgroundColor: pal.subtleFill,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Ionicons name="person-add-outline" size={24} color={pal.muted} />
+                </View>
+                <View style={{ flex: 1, gap: spacing.xs }}>
+                  <Typography
+                    variant="bodyBold"
+                    color={theme.colors.text}
+                    style={{ fontSize: fontSizes.md }}
+                  >
+                    Preencha os dados do cliente.
+                  </Typography>
+                  <Typography
+                    variant="body"
+                    color={pal.muted}
+                    style={{ fontSize: fontSizes.sm }}
+                  >
+                    Campos opcionais ajudam a personalizar o cadastro.
+                  </Typography>
+                </View>
+              </View>
+
+              <NewClientField
+                icon="person-outline"
+                label="Nome do cliente *"
+                placeholder="Ex: Maria Silva, João Pereira..."
+                value={name}
+                onChangeText={setName}
+                autoFocus
+              />
+              <NewClientField
+                icon="call-outline"
+                label="Telefone (opcional)"
+                placeholder="Ex: (11) 99999-9999"
+                value={phone}
+                onChangeText={(value) => setPhone(maskPhoneBR(value))}
+                keyboardType="phone-pad"
+              />
+              <NewClientField
+                icon="location-outline"
+                label="Endereço (opcional)"
+                placeholder="Ex: Rua das Flores, 123"
+                value={address}
+                onChangeText={setAddress}
+              />
+              <NewClientField
+                icon="calendar-outline"
+                label="Data de nascimento (opcional)"
+                placeholder="DD/MM/AAAA"
+                value={birthday}
+                onChangeText={(value) => setBirthday(maskDateBR(value))}
+                keyboardType="number-pad"
+                trailingIcon="calendar-outline"
+                onTrailingPress={() => setCalendarVisible(true)}
+              />
+              <NewClientField
+                icon="document-text-outline"
+                label="Observações (opcional)"
+                placeholder="Anotações sobre o cliente..."
+                value={notes}
+                onChangeText={(value) => setNotes(value.slice(0, 200))}
+                multiline
+                tall
+                maxLength={200}
+                count={`${notes.length}/200`}
+              />
+              <Typography
+                variant="body"
+                color={pal.muted}
+                style={{ fontSize: fontSizes.sm }}
+              >
+                <Typography variant="bodyBold" color={theme.colors.text}>
+                  *
+                </Typography>{" "}
+                Campos obrigatórios
+              </Typography>
+
+              <Pressable
+                onPress={() => {
+                  void handleCreate();
+                }}
+                disabled={createClient.isPending}
+                style={({ pressed }) => [
+                  {
+                    minHeight: 58,
+                    borderRadius: radii.xl,
+                    backgroundColor: theme.colors.primaryInteractive,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexDirection: "row",
+                    gap: spacing.md,
+                    opacity: pressed || createClient.isPending ? 0.82 : 1,
+                  },
+                  desktopAction(isDesktop, 240),
+                ]}
+              >
+                {createClient.isPending ? (
+                  <ActivityIndicator color={theme.colors.textOnPrimary} />
+                ) : (
+                  <Ionicons
+                    name="person-add-outline"
+                    size={23}
+                    color={theme.colors.textOnPrimary}
+                  />
+                )}
+                <Typography
+                  variant="bodyBold"
+                  color={theme.colors.textOnPrimary}
+                  style={{ fontSize: fontSizes.lg }}
+                >
+                  Cadastrar cliente
+                </Typography>
+              </Pressable>
+            </ScrollView>
+          </KeyboardAvoidingView>
+          <CalendarModal
+            visible={calendarVisible}
+            value={birthday}
+            onClose={() => setCalendarVisible(false)}
+            onSelect={setBirthday}
+          />
+        </SafeAreaView>
+      </ResponsiveModalSurface>
+    </ResponsiveOverlayModal>
   );
 }
 
@@ -967,8 +1116,8 @@ export default function ClientsScreen() {
                 alignSelf: "flex-start",
               }}
             >
-              <Ionicons name="arrow-back" size={24} color={theme.colors.primaryLight} />
-              <Typography variant="bodyBold" color={theme.colors.primaryLight}>
+              <Ionicons name="arrow-back" size={24} color={theme.colors.primaryStrong} />
+              <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
                 Voltar
               </Typography>
             </Pressable>
@@ -983,32 +1132,34 @@ export default function ClientsScreen() {
       <NewClientModal visible={screen.name === "create"} onClose={goToList} />
 
       {editingClientId && editingClient && (
-        <Modal
+        <ResponsiveOverlayModal
           visible={true}
           animationType="slide"
           presentationStyle="pageSheet"
           onRequestClose={() => setEditingClientId(null)}
         >
-          <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-            <View
-              style={{
-                padding: spacing.xl,
-                paddingBottom: spacing.sm,
-                alignItems: "flex-end",
-              }}
-            >
-              <Pressable onPress={() => setEditingClientId(null)}>
-                <Typography variant="body" color={theme.colors.primary}>
-                  Cancelar
-                </Typography>
-              </Pressable>
-            </View>
-            <EditClientForm
-              client={editingClient}
-              onSuccess={() => setEditingClientId(null)}
-            />
-          </SafeAreaView>
-        </Modal>
+          <ResponsiveModalSurface maxWidth={840}>
+            <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+              <View
+                style={{
+                  padding: spacing.xl,
+                  paddingBottom: spacing.sm,
+                  alignItems: "flex-end",
+                }}
+              >
+                <Pressable onPress={() => setEditingClientId(null)}>
+                  <Typography variant="body" color={theme.colors.primary}>
+                    Cancelar
+                  </Typography>
+                </Pressable>
+              </View>
+              <EditClientForm
+                client={editingClient}
+                onSuccess={() => setEditingClientId(null)}
+              />
+            </SafeAreaView>
+          </ResponsiveModalSurface>
+        </ResponsiveOverlayModal>
       )}
     </SafeAreaView>
   );

@@ -1,0 +1,41 @@
+{
+  "id": "lucro-caseiro",
+  "appName": "Lucro Caseiro: Negocio em Casa",
+  "slug": "lucro-caseiro-dev",
+  "scheme": "lucrocaseiro",
+  "iosBundleId": "com.lucrocaseiro.app",
+  "androidPackage": "br.com.orionseven.lucrocaseiro",
+  "easProjectId": "f1dbfa95-c134-44cd-855c-52fc8bb1c3f3",
+  "theme": {
+    "primary": "#C4707E",
+    "primaryLight": "#D4919C",
+    "primaryDark": "#A85A67",
+    "primaryStrong": "#A84857",
+    "primaryInteractive": "#A85A67",
+    "primarySoft": "#F9E7EA",
+    "primarySoftDark": "#3A2B2F",
+    "background": "#FAFAF8",
+    "surface": "#F4F3F1",
+    "backgroundDark": "#1B1917",
+    "surfaceDark": "#272422"
+  },
+  "copy": {
+    "productNoun": "produto",
+    "productNounPlural": "produtos",
+    "saleLabel": "Registrar venda",
+    "stockLabel": "Estoque",
+    "revenueLabel": "Faturamento"
+  },
+  "features": {
+    "estoque": true,
+    "agendamento": true,
+    "catalogoCores": false,
+    "fichaTecnica": true
+  },
+  "admob": {
+    "androidAppId": "ca-app-pub-8304398247631710~5581735015",
+    "iosAppId": "ca-app-pub-3940256099942544~1458002511",
+    "bannerUnitIdAndroid": "ca-app-pub-8304398247631710/6992108312",
+    "interstitialUnitIdAndroid": "ca-app-pub-8304398247631710/5985224969"
+  }
+}

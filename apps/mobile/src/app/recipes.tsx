@@ -1,8 +1,8 @@
-import { Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
+import { iconSizes, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Modal, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CreateRecipeForm } from "../features/recipes/components/create-recipe-form";
@@ -12,6 +12,10 @@ import { RecipeList } from "../features/recipes/components/recipe-list";
 import { useRecipe } from "../features/recipes/hooks";
 import { LimitBanner } from "../features/subscription/components/limit-banner";
 import { usePaywall } from "../shared/hooks/use-paywall";
+import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { ResponsiveModal } from "../shared/components/responsive-modal-surface";
+import { FAB } from "../shared/components/fab";
+import { ScreenHeader } from "../shared/components/screen-header";
 
 type ModalState =
   | { type: "none" }
@@ -58,12 +62,12 @@ function RecipeModalHeader({
             width: 40,
             height: 40,
             borderRadius: 20,
-            backgroundColor: `${theme.colors.primary}30`,
+            backgroundColor: theme.colors.surface,
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <Ionicons name={badgeIcon} size={22} color={theme.colors.primary} />
+          <Ionicons name={badgeIcon} size={22} color={theme.colors.textSecondary} />
         </View>
       ) : null}
       <Typography
@@ -71,7 +75,7 @@ function RecipeModalHeader({
         serif
         color={theme.colors.text}
         numberOfLines={1}
-        style={{ flex: 1, fontSize: 26 }}
+        style={{ flex: 1 }}
       >
         {title}
       </Typography>
@@ -82,7 +86,7 @@ function RecipeModalHeader({
         hitSlop={10}
         style={{ minHeight: 44, justifyContent: "center" }}
       >
-        <Typography variant="bodyBold" color={theme.colors.primary}>
+        <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
           Fechar
         </Typography>
       </Pressable>
@@ -90,8 +94,9 @@ function RecipeModalHeader({
   );
 }
 
-export default function RecipesScreen() {
+function RecipesContent() {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [modal, setModal] = useState<ModalState>({ type: "none" });
@@ -113,41 +118,28 @@ export default function RecipesScreen() {
     >
       <Stack.Screen options={{ headerShown: false }} />
 
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.md,
-          paddingHorizontal: spacing.lg,
-          paddingTop: spacing.sm,
-          paddingBottom: spacing.sm,
-        }}
-      >
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="Voltar"
-          hitSlop={10}
-          style={{ width: 32, height: 40, justifyContent: "center" }}
-        >
-          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
-        </Pressable>
-        <Typography variant="h2" color={theme.colors.text} style={{ flex: 1 }}>
-          Receitas
-        </Typography>
-        <Pressable
-          onPress={() => router.push("/insights")}
-          accessibilityRole="button"
-          accessibilityLabel="Estatísticas"
-          hitSlop={10}
-          style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
-        >
-          <Ionicons name="stats-chart" size={20} color={theme.colors.primary} />
-          <Typography variant="bodyBold" color={theme.colors.primary}>
-            Estatísticas
-          </Typography>
-        </Pressable>
-      </View>
+      <ScreenHeader
+        title="Receitas"
+        hideBack={isDesktop}
+        right={
+          <Pressable
+            onPress={() => router.push("/insights")}
+            accessibilityRole="button"
+            accessibilityLabel="Estatísticas"
+            hitSlop={10}
+            style={{ flexDirection: "row", alignItems: "center", gap: 6, minHeight: 44 }}
+          >
+            <Ionicons
+              name="stats-chart"
+              size={iconSizes.sm}
+              color={theme.colors.primaryStrong}
+            />
+            <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+              Estatísticas
+            </Typography>
+          </Pressable>
+        }
+      />
 
       <View style={{ flex: 1 }}>
         <LimitBanner
@@ -162,37 +154,21 @@ export default function RecipesScreen() {
       </View>
 
       {/* FAB - Nova receita */}
-      <Pressable
-        onPress={() => setModal({ type: "create" })}
-        accessibilityRole="button"
+      <FAB
+        icon="add"
+        label="Nova receita"
         accessibilityLabel="Nova receita"
-        style={({ pressed }) => ({
+        onPress={() => setModal({ type: "create" })}
+        style={{
           position: "absolute",
           bottom: spacing.xl + insets.bottom,
           right: spacing.xl,
-          minHeight: 56,
-          paddingHorizontal: spacing.xl,
-          borderRadius: radii.full,
-          backgroundColor: theme.colors.primary,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.sm,
-          opacity: pressed ? 0.85 : 1,
-          shadowColor: theme.colors.primary,
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.35,
-          shadowRadius: 16,
-          elevation: 8,
-        })}
-      >
-        <Ionicons name="add" size={26} color={theme.colors.textOnPrimary} />
-        <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
-          Nova receita
-        </Typography>
-      </Pressable>
+        }}
+      />
 
       {/* Modal - Criar receita */}
-      <Modal
+      <ResponsiveModal
+        desktopMaxWidth={1120}
         visible={modal.type === "create"}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -202,10 +178,11 @@ export default function RecipesScreen() {
           <RecipeModalHeader title="Nova receita" leftIcon="close" onClose={closeModal} />
           <CreateRecipeForm onSuccess={closeModal} />
         </SafeAreaView>
-      </Modal>
+      </ResponsiveModal>
 
       {/* Modal - Detalhe da receita */}
-      <Modal
+      <ResponsiveModal
+        desktopMaxWidth={1120}
         visible={modal.type === "detail"}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -225,10 +202,11 @@ export default function RecipesScreen() {
             />
           )}
         </SafeAreaView>
-      </Modal>
+      </ResponsiveModal>
 
       {/* Modal - Editar receita */}
-      <Modal
+      <ResponsiveModal
+        desktopMaxWidth={1120}
         visible={modal.type === "edit" && !!editingRecipe}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -245,7 +223,11 @@ export default function RecipesScreen() {
             <EditRecipeForm recipe={editingRecipe} onSuccess={closeModal} />
           )}
         </SafeAreaView>
-      </Modal>
+      </ResponsiveModal>
     </SafeAreaView>
   );
+}
+
+export default function RecipesScreen() {
+  return <RecipesContent />;
 }

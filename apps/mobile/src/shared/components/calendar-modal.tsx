@@ -1,9 +1,10 @@
 import { fonts, Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useMemo, useState } from "react";
-import { Modal, Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { brToIso } from "../utils/date";
+import { ResponsiveOverlayModal } from "./responsive-modal-surface";
 
 const MONTHS = [
   "Janeiro",
@@ -104,18 +105,26 @@ export function CalendarModal({ visible, value, onSelect, onClose }: CalendarMod
   }
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <ResponsiveOverlayModal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
       <View
         style={{
           flex: 1,
           backgroundColor: "rgba(0,0,0,0.55)",
           justifyContent: "center",
+          paddingHorizontal: spacing.xl,
         }}
       >
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         <View
           style={{
-            marginHorizontal: spacing.xl,
+            width: "100%",
+            maxWidth: 520,
+            alignSelf: "center",
             padding: spacing.lg,
             borderRadius: radii["2xl"],
             backgroundColor: theme.colors.surfaceElevated,
@@ -303,6 +312,6 @@ export function CalendarModal({ visible, value, onSelect, onClose }: CalendarMod
           </Pressable>
         </View>
       </View>
-    </Modal>
+    </ResponsiveOverlayModal>
   );
 }

@@ -1,0 +1,41 @@
+{
+  "compiled_at": "2026-07-18T18:00:42.197126600+00:00",
+  "description": "Materialized from a compile candidate sequence.",
+  "id": "live-scars-15148209c2",
+  "name": "Live scars fan-out (3->1)",
+  "origin": "live",
+  "recipe": {
+    "name": "Live scars fan-out (3->1)",
+    "outputs": {
+      "item_1": "item_1.output",
+      "item_2": "item_2.output",
+      "item_3": "item_3.output"
+    },
+    "recipe": {
+      "items": [
+        {
+          "domain": "ui"
+        },
+        {
+          "domain": "auth"
+        },
+        {
+          "domain": "backend"
+        }
+      ],
+      "kind": "fan_out",
+      "node_prefix": "item_",
+      "tool": "scars"
+    },
+    "tools": {
+      "scars": {
+        "adapter": "harness"
+      }
+    },
+    "version": "0"
+  },
+  "schema": 2,
+  "source": "workspace",
+  "status": "ready",
+  "version": 1
+}

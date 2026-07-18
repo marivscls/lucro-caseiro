@@ -101,6 +101,17 @@ export class SalesUseCases {
     if (this.productsRepo) {
       for (const item of data.items) {
         const product = await this.productsRepo.findById(userId, item.productId);
+        if (product?.variations?.length) {
+          const variation = product.variations.find(
+            (candidate) => candidate.id === item.variationId,
+          );
+          if (!variation) {
+            throw new ValidationError([
+              `Escolha uma variacao valida para ${product.name}`,
+            ]);
+          }
+          item.variationName = variation.name;
+        }
         if (product && product.saleUnit !== "kg" && product.stockQuantity !== null) {
           if (product.stockQuantity < item.quantity) {
             throw new ValidationError([`Estoque insuficiente para ${product.name}`]);

@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Gerenciar o cadastro de fornecedores do negocio caseiro (nome, telefone, email, endereco e notas). Substitui o antigo campo de texto livre `supplier` que existia em ingredients/packaging por uma entidade reutilizavel, escopada por usuario.
+Gerenciar o cadastro de fornecedores do negocio (nome, telefone, email, endereco e notas). Substitui o antigo campo de texto livre `supplier` que existia em ingredients/packaging por uma entidade reutilizavel, escopada por usuario.
 
 ## Non-goals
 

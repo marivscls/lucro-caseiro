@@ -1,5 +1,7 @@
 import type { LimitResource } from "../../features/subscription/limit-copy";
 import { getLimitUsage, isLimitBlocked } from "../../features/subscription/limits";
+import { trackAnalyticsAction } from "../../features/analytics/tracker";
+import { useAuth } from "./use-auth";
 import { useLimits, useProfile } from "../../features/subscription/hooks";
 import { usePaywall } from "./use-paywall";
 
@@ -12,6 +14,7 @@ export function useLimitCheck(resource: LimitResource) {
 
   function checkAndBlock(): boolean {
     if (isAtLimit) {
+      void trackAnalyticsAction("plan_limit_reached", useAuth.getState().token);
       showPaywall(resource);
       return true;
     }

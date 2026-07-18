@@ -6,16 +6,19 @@ import {
   Button,
   Card,
   Chip,
+  iconSizes,
   Input,
   Typography,
+  useBrand,
+  useFeature,
   useTheme,
   spacing,
   radii,
 } from "@lucro-caseiro/ui";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useState } from "react";
-import { Image, Modal, Pressable, ScrollView, TextInput, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Image, Pressable, ScrollView, TextInput, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
@@ -32,7 +35,9 @@ import { LimitBanner } from "../features/subscription/components/limit-banner";
 import { useProfile } from "../features/subscription/hooks";
 import { showAlert } from "../shared/components/alert-store";
 import { BarcodeScanner } from "../shared/components/barcode-scanner";
+import { ScreenHeader } from "../shared/components/screen-header";
 import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
+import { ResponsiveModal } from "../shared/components/responsive-modal-surface";
 import {
   useDeleteProduct,
   useLowStockProducts,
@@ -43,6 +48,8 @@ import {
 import { useImagePicker } from "../shared/hooks/use-image-picker";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { useNotificationEnabled } from "../shared/hooks/notification-prefs";
+import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { desktopAction, desktopContained } from "../shared/layout/desktop-density";
 import { NOTIFICATION_TYPES } from "../shared/hooks/notification-types";
 import { uploadProductImage } from "../shared/utils/upload-image";
 import { alertValidation, alertError } from "../shared/utils/alerts";
@@ -107,6 +114,9 @@ function ProductDetailModal({
   onClose: () => void;
 }>) {
   const { theme } = useTheme();
+  const { copy } = useBrand();
+  const variationsEnabled = useFeature("catalogoCores");
+  const isDesktop = useDesktopLayout();
   const { data: product, isLoading } = useProduct(productId);
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
@@ -129,6 +139,7 @@ function ProductDetailModal({
   const [isComposite, setIsComposite] = useState(false);
   const [components, setComponents] = useState<ComponentDraft[]>([]);
   const [code, setCode] = useState("");
+  const [variationNames, setVariationNames] = useState("");
   const [showScanner, setShowScanner] = useState(false);
 
   function startEditing(p: Product) {
@@ -138,6 +149,7 @@ function ProductDetailModal({
     setSaleUnit(p.saleUnit);
     setDescription(p.description ?? "");
     setCode(p.code ?? "");
+    setVariationNames((p.variations ?? []).map((variation) => variation.name).join(", "));
     setStockQuantity(p.stockQuantity !== null ? String(p.stockQuantity) : "");
     setStockAlert(p.stockAlertThreshold !== null ? String(p.stockAlertThreshold) : "");
     setIsComposite(p.isComposite);
@@ -211,6 +223,13 @@ function ProductDetailModal({
               : parseInt(stockAlert, 10),
           isComposite,
           components: componentsPayload,
+          variations: variationsEnabled
+            ? variationNames
+                .split(",")
+                .map((variation) => variation.trim())
+                .filter(Boolean)
+                .map((variation) => ({ name: variation }))
+            : undefined,
         },
       });
       showAlert({ title: "Produto atualizado!" });
@@ -245,7 +264,8 @@ function ProductDetailModal({
   }
 
   return (
-    <Modal
+    <ResponsiveModal
+      desktopMaxWidth={1120}
       visible={visible}
       animationType="slide"
       presentationStyle="pageSheet"
@@ -270,7 +290,7 @@ function ProductDetailModal({
               hitSlop={12}
               style={{ minHeight: 48, justifyContent: "center" }}
             >
-              <Typography variant="bodyBold" color={theme.colors.primary}>
+              <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
                 Editar
               </Typography>
             </Pressable>
@@ -299,14 +319,25 @@ function ProductDetailModal({
         )}
         {!isLoading && product && editing && (
           <KeyboardAwareScrollView
-            contentContainerStyle={{
-              padding: spacing.xl,
-              paddingBottom: spacing["3xl"],
-              gap: spacing.lg,
-            }}
+            contentContainerStyle={[
+              {
+                padding: spacing.xl,
+                paddingBottom: spacing["3xl"],
+                gap: spacing.lg,
+              },
+              desktopContained(isDesktop),
+            ]}
           >
             <Input label="Nome do produto" value={name} onChangeText={setName} />
             <Input label="Categoria" value={category} onChangeText={setCategory} />
+            {variationsEnabled && !isComposite ? (
+              <Input
+                label="Variacoes de cor/tamanho (opcional)"
+                placeholder="Azul / A4, Vermelha / A5"
+                value={variationNames}
+                onChangeText={setVariationNames}
+              />
+            ) : null}
             <CompositeToggle
               value={isComposite}
               onChange={(next) => {
@@ -395,7 +426,9 @@ function ProductDetailModal({
                   width: 56,
                   height: 52,
                   borderRadius: radii.md,
-                  backgroundColor: theme.colors.primary,
+                  backgroundColor: theme.colors.surface,
+                  borderWidth: 1,
+                  borderColor: theme.colors.border,
                   alignItems: "center",
                   justifyContent: "center",
                 }}
@@ -403,7 +436,7 @@ function ProductDetailModal({
                 <Ionicons
                   name="scan-outline"
                   size={24}
-                  color={theme.colors.textOnPrimary}
+                  color={theme.colors.textSecondary}
                 />
               </Pressable>
             </View>
@@ -432,11 +465,13 @@ function ProductDetailModal({
                 void handleSave();
               }}
               loading={updateProduct.isPending || uploading}
+              style={desktopAction(isDesktop)}
             />
             <Button
               title="Cancelar"
               variant="secondary"
               onPress={() => setEditing(false)}
+              style={desktopAction(isDesktop)}
             />
             <BarcodeScanner
               visible={showScanner}
@@ -449,7 +484,12 @@ function ProductDetailModal({
           </KeyboardAwareScrollView>
         )}
         {!isLoading && product && !editing && (
-          <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
+          <ScrollView
+            contentContainerStyle={[
+              { padding: spacing.xl, gap: spacing.lg },
+              desktopContained(isDesktop, 960),
+            ]}
+          >
             <View style={{ alignItems: "center", gap: spacing.md }}>
               {product.photoUrl ? (
                 <Image
@@ -462,12 +502,14 @@ function ProductDetailModal({
                     width: 80,
                     height: 80,
                     borderRadius: radii.full,
-                    backgroundColor: theme.colors.primaryLight,
+                    backgroundColor: theme.colors.primaryBg,
+                    borderWidth: 1,
+                    borderColor: theme.colors.border,
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
-                  <Typography variant="display" color={theme.colors.textOnPrimary}>
+                  <Typography variant="display" color={theme.colors.primaryStrong}>
                     {productInitial(product.name)}
                   </Typography>
                 </View>
@@ -504,10 +546,18 @@ function ProductDetailModal({
                 )}
                 {product.saleUnit === "unit" && !product.isComposite && (
                   <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                    <Typography variant="caption">Estoque</Typography>
+                    <Typography variant="caption">{copy.stockLabel}</Typography>
                     <StockValue product={product} />
                   </View>
                 )}
+                {variationsEnabled && (product.variations?.length ?? 0) > 0 ? (
+                  <View style={{ gap: spacing.xs }}>
+                    <Typography variant="caption">Variacoes</Typography>
+                    <Typography variant="body">
+                      {product.variations?.map((variation) => variation.name).join(", ")}
+                    </Typography>
+                  </View>
+                ) : null}
                 {product.saleUnit === "unit" &&
                   !product.isComposite &&
                   product.stockQuantity !== null &&
@@ -573,18 +623,19 @@ function ProductDetailModal({
           </ScrollView>
         )}
       </SafeAreaView>
-    </Modal>
+    </ResponsiveModal>
   );
 }
 
 function LowStockBanner() {
   const { theme } = useTheme();
+  const stockEnabled = useFeature("estoque");
   const { data } = useLowStockProducts();
   const enabled = useNotificationEnabled(NOTIFICATION_TYPES.LOW_STOCK);
 
   // O aviso de estoque baixo respeita a preferência de "Estoque baixo" das
   // configurações: desligou, some também o alerta visual (não só a notificação).
-  if (!enabled || !data || data.length === 0) return null;
+  if (!stockEnabled || !enabled || !data || data.length === 0) return null;
 
   return (
     <View
@@ -611,10 +662,16 @@ function LowStockBanner() {
 
 export default function ProductsScreen() {
   const { theme } = useTheme();
+  const { copy } = useBrand();
+  const isDesktop = useDesktopLayout();
   const router = useRouter();
-  const { from } = useLocalSearchParams<{ from?: string }>();
+  const { from, create, salePrice } = useLocalSearchParams<{
+    from?: string;
+    create?: string;
+    salePrice?: string;
+  }>();
   const insets = useSafeAreaInsets();
-  const [showCreate, setShowCreate] = useState(false);
+  const [showCreate, setShowCreate] = useState(create === "from-pricing");
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -623,6 +680,10 @@ export default function ProductsScreen() {
   const { data: products } = useProducts();
   const hasProducts = (products?.total ?? 0) > 0;
   const backToHome = from === "onboarding" || !router.canGoBack();
+
+  useEffect(() => {
+    if (create === "from-pricing") setShowCreate(true);
+  }, [create]);
 
   function handleBack() {
     if (backToHome) {
@@ -639,46 +700,31 @@ export default function ProductsScreen() {
     >
       <Stack.Screen options={{ headerShown: false }} />
 
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.md,
-          paddingHorizontal: spacing.lg,
-          paddingTop: spacing.sm,
-          paddingBottom: spacing.sm,
-        }}
-      >
-        <Pressable
-          onPress={handleBack}
-          accessibilityRole="button"
-          accessibilityLabel={backToHome ? "Ir para o início" : "Voltar"}
-          hitSlop={10}
-          style={{ width: 32, height: 40, justifyContent: "center" }}
-        >
-          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
-        </Pressable>
-        <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
-          Produtos
-        </Typography>
-        <Pressable
-          onPress={() => {
-            setSearchOpen((v) => !v);
-            if (searchOpen) setSearch("");
-          }}
-          accessibilityRole="button"
-          accessibilityLabel="Buscar"
-          hitSlop={10}
-          style={{
-            width: 40,
-            height: 40,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Ionicons name="search" size={24} color={theme.colors.text} />
-        </Pressable>
-      </View>
+      <ScreenHeader
+        title={copy.productNounPlural.replace(/^./, (letter) => letter.toUpperCase())}
+        onBack={handleBack}
+        backLabel={backToHome ? "Ir para o início" : "Voltar"}
+        hideBack={isDesktop}
+        right={
+          <Pressable
+            onPress={() => {
+              setSearchOpen((v) => !v);
+              if (searchOpen) setSearch("");
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Buscar"
+            hitSlop={10}
+            style={{
+              width: 44,
+              height: 44,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Ionicons name="search" size={iconSizes.md} color={theme.colors.text} />
+          </Pressable>
+        }
+      />
 
       {searchOpen ? (
         <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.sm }}>
@@ -702,7 +748,7 @@ export default function ProductsScreen() {
             <TextInput
               value={search}
               onChangeText={setSearch}
-              placeholder="Buscar produto"
+              placeholder={`Buscar ${copy.productNoun}`}
               placeholderTextColor={theme.colors.textSecondary}
               autoFocus
               style={{
@@ -760,11 +806,13 @@ export default function ProductsScreen() {
           <Pressable
             onPress={() => setShowCreate(true)}
             accessibilityRole="button"
-            accessibilityLabel="Novo produto"
+            accessibilityLabel={`Novo ${copy.productNoun}`}
             style={({ pressed }) => ({
-              minHeight: 56,
+              alignSelf: isDesktop ? "flex-end" : undefined,
+              width: isDesktop ? 180 : undefined,
+              minHeight: isDesktop ? 44 : 56,
               borderRadius: radii.lg,
-              backgroundColor: theme.colors.primary,
+              backgroundColor: theme.colors.primaryInteractive,
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "center",
@@ -772,16 +820,24 @@ export default function ProductsScreen() {
               opacity: pressed ? 0.85 : 1,
             })}
           >
-            <Ionicons name="add" size={24} color={theme.colors.textOnPrimary} />
-            <Typography variant="h3" color={theme.colors.textOnPrimary}>
-              Novo produto
+            <Ionicons
+              name="add"
+              size={isDesktop ? 20 : 24}
+              color={theme.colors.textOnPrimary}
+            />
+            <Typography
+              variant={isDesktop ? "bodyBold" : "h3"}
+              color={theme.colors.textOnPrimary}
+            >
+              Novo {copy.productNoun}
             </Typography>
           </Pressable>
         </View>
       ) : null}
 
-      {/* Modal - Criar produto */}
-      <Modal
+      {/* Modal - criar item da marca */}
+      <ResponsiveModal
+        desktopMaxWidth={1120}
         visible={showCreate}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -792,6 +848,9 @@ export default function ProductsScreen() {
             style={{
               flexDirection: "row",
               alignItems: "center",
+              alignSelf: "center",
+              width: "100%",
+              maxWidth: isDesktop ? 1040 : undefined,
               paddingHorizontal: spacing.xl,
               paddingTop: spacing.md,
               paddingBottom: spacing.md,
@@ -813,7 +872,7 @@ export default function ProductsScreen() {
               numberOfLines={1}
               style={{ flex: 1, fontSize: 24 }}
             >
-              Novo produto
+              Novo {copy.productNoun}
             </Typography>
             <Pressable
               onPress={() => setShowCreate(false)}
@@ -827,9 +886,16 @@ export default function ProductsScreen() {
               </Typography>
             </Pressable>
           </View>
-          <CreateProductForm onSuccess={() => setShowCreate(false)} />
+          <CreateProductForm
+            key={`${create ?? "manual"}:${salePrice ?? ""}`}
+            initialSalePrice={
+              create === "from-pricing" && salePrice ? Number(salePrice) : undefined
+            }
+            analyticsSource={create === "from-pricing" ? "pricing" : undefined}
+            onSuccess={() => setShowCreate(false)}
+          />
         </SafeAreaView>
-      </Modal>
+      </ResponsiveModal>
 
       {/* Modal - Detalhe do produto */}
       {selectedProductId && (

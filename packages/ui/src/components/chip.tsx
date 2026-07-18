@@ -3,11 +3,20 @@ import { Pressable, Text, View, type ViewStyle } from "react-native";
 
 import { useTheme } from "../theme-context";
 import { fonts, fontSizes, radii, spacing } from "../theme";
+import {
+  useSemanticVariantColors,
+  type SemanticVariant,
+} from "./semantic-variant";
+
+// Mesma taxonomia semantica do Badge — nao crie nomes locais de variante.
+export type ChipVariant = SemanticVariant;
 
 interface ChipProps {
   label: string;
-  /** Estado selecionado (preenche com a cor primária). */
+  /** Estado selecionado (preenche com a cor da variante). */
   selected?: boolean;
+  /** Tom semantico do estado selecionado (padrao: primary). */
+  variant?: ChipVariant;
   onPress?: () => void;
   /** Ícone opcional à esquerda do texto. */
   icon?: React.ReactNode;
@@ -22,14 +31,27 @@ interface ChipProps {
 export function Chip({
   label,
   selected = false,
+  variant = "primary",
   onPress,
   icon,
   disabled = false,
   style,
 }: ChipProps) {
   const { theme } = useTheme();
-  const bg = selected ? theme.colors.primary : theme.colors.surface;
-  const fg = selected ? theme.colors.textOnPrimary : theme.colors.textSecondary;
+  const semantic = useSemanticVariantColors();
+
+  // Selecionado: `primary` usa o fundo interativo AA (texto branco >= 4.5:1);
+  // as demais variantes usam o mesmo par fundo/texto semantico do Badge.
+  const bg = selected
+    ? variant === "primary"
+      ? theme.colors.primaryInteractive
+      : semantic[variant].bg
+    : theme.colors.surface;
+  const fg = selected
+    ? variant === "primary"
+      ? theme.colors.textOnPrimary
+      : semantic[variant].text
+    : theme.colors.textSecondary;
 
   return (
     <Pressable

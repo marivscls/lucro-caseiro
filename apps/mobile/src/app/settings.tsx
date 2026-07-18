@@ -4,6 +4,7 @@ import {
   Card,
   Chip,
   Typography,
+  useFeature,
   useTheme,
   spacing,
   radii,
@@ -16,7 +17,7 @@ import {
   ActivityIndicator,
   Image,
   Linking,
-  Modal,
+  Platform,
   Pressable,
   ScrollView,
   Switch,
@@ -42,7 +43,11 @@ import { activePlan, useProfile, useUpdateProfile } from "../features/subscripti
 import { useSubscription } from "../features/subscription/use-subscription";
 import { showAlert } from "../shared/components/alert-store";
 import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
+import { ResponsiveModal } from "../shared/components/responsive-modal-surface";
+import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { desktopAction, desktopContained } from "../shared/layout/desktop-density";
 import { FieldLabel, TextFieldCard } from "../shared/components/form-field";
+import { ScreenHeader } from "../shared/components/screen-header";
 import { alertValidation, alertError } from "../shared/utils/alerts";
 
 const PRIVACY_POLICY_URL =
@@ -117,6 +122,9 @@ function businessTypeValue(value: string): string | undefined {
 export default function SettingsScreen() {
   const router = useRouter();
   const { theme, mode, toggleTheme } = useTheme();
+  const hasStock = useFeature("estoque");
+  const hasScheduling = useFeature("agendamento");
+  const isDesktop = useDesktopLayout();
   const { signOut } = useAuth();
   const { data: profile, isLoading } = useProfile();
   const updateProfile = useUpdateProfile();
@@ -304,30 +312,13 @@ export default function SettingsScreen() {
       edges={["top", "bottom"]}
     >
       <Stack.Screen options={{ headerShown: false }} />
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.md,
-          paddingHorizontal: spacing.lg,
-          paddingTop: spacing.sm,
-          paddingBottom: spacing.sm,
-        }}
+      {!isDesktop && <ScreenHeader title="Configurações" />}
+      <ScrollView
+        contentContainerStyle={[
+          { padding: 20, gap: 20, paddingBottom: 40 },
+          desktopContained(isDesktop),
+        ]}
       >
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="Voltar"
-          hitSlop={10}
-          style={{ width: 32, height: 40, justifyContent: "center" }}
-        >
-          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
-        </Pressable>
-        <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
-          Configurações
-        </Typography>
-      </View>
-      <ScrollView contentContainerStyle={{ padding: 20, gap: 20, paddingBottom: 40 }}>
         {/* Profile Card */}
         <Card>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
@@ -566,87 +557,118 @@ export default function SettingsScreen() {
           </View>
 
           {/* Notifications */}
-          {NOTIFICATIONS.map((item) => {
-            const locked = !!item.premium && !canUsePremiumNotifications;
-            return (
-              <View
-                key={item.type}
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: spacing.md,
-                }}
-              >
+          {Platform.OS === "web" ? (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+              <Ionicons
+                name="notifications-off-outline"
+                size={20}
+                color={theme.colors.textSecondary}
+              />
+              <View style={{ flex: 1, gap: 2 }}>
+                <Typography variant="body" color={theme.colors.text}>
+                  Notificações no navegador
+                </Typography>
+                <Typography variant="caption" color={theme.colors.textSecondary}>
+                  Os lembretes com o aplicativo fechado estarão disponíveis quando o web
+                  push for ativado.
+                </Typography>
+              </View>
+            </View>
+          ) : (
+            NOTIFICATIONS.filter((item) => {
+              if (item.type === NOTIFICATION_TYPES.LOW_STOCK) return hasStock;
+              if (item.type === NOTIFICATION_TYPES.DELIVERY) return hasScheduling;
+              return true;
+            }).map((item) => {
+              const locked = !!item.premium && !canUsePremiumNotifications;
+              return (
                 <View
+                  key={item.type}
                   style={{
                     flexDirection: "row",
+                    justifyContent: "space-between",
                     alignItems: "center",
                     gap: spacing.md,
-                    flex: 1,
                   }}
                 >
-                  <Ionicons
-                    name={item.icon}
-                    size={20}
-                    color={theme.colors.textSecondary}
-                  />
-                  <View style={{ flex: 1, gap: 2 }}>
-                    <Typography variant="body" color={theme.colors.text}>
-                      {item.label}
-                    </Typography>
-                    {item.premium ? (
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          gap: 4,
-                          alignSelf: "flex-start",
-                          paddingHorizontal: 8,
-                          paddingVertical: 2,
-                          borderRadius: radii.full,
-                          backgroundColor: `${theme.colors.premium}26`,
-                        }}
-                      >
-                        <Ionicons name="diamond" size={11} color={theme.colors.premium} />
-                        <Typography variant="label" color={theme.colors.premium}>
-                          PROFISSIONAL
-                        </Typography>
-                      </View>
-                    ) : null}
-                  </View>
-                </View>
-                {locked ? (
-                  <Pressable
-                    onPress={() => router.push("/plans")}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${item.label}, recurso Profissional`}
-                    hitSlop={8}
+                  <View
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
-                      gap: spacing.xs,
-                      paddingHorizontal: spacing.sm,
-                      paddingVertical: 6,
+                      gap: spacing.md,
+                      flex: 1,
                     }}
                   >
-                    <Ionicons name="lock-closed" size={18} color={theme.colors.premium} />
-                  </Pressable>
-                ) : (
-                  <Switch
-                    accessibilityLabel={item.label}
-                    trackColor={{
-                      false: theme.colors.surface,
-                      true: theme.colors.primary,
-                    }}
-                    thumbColor={theme.colors.textOnPrimary}
-                    value={isPrefEnabled(notifPrefs, item.type)}
-                    onValueChange={(v) => setNotifPref(item.type, v)}
-                  />
-                )}
-              </View>
-            );
-          })}
+                    <Ionicons
+                      name={item.icon}
+                      size={20}
+                      color={theme.colors.textSecondary}
+                    />
+                    <View style={{ flex: 1, gap: 2 }}>
+                      <Typography variant="body" color={theme.colors.text}>
+                        {item.label}
+                      </Typography>
+                      {item.premium ? (
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 4,
+                            alignSelf: "flex-start",
+                            paddingHorizontal: 8,
+                            paddingVertical: 2,
+                            borderRadius: radii.full,
+                            backgroundColor: `${theme.colors.premium}26`,
+                          }}
+                        >
+                          <Ionicons
+                            name="diamond"
+                            size={11}
+                            color={theme.colors.premium}
+                          />
+                          <Typography variant="label" color={theme.colors.premium}>
+                            PROFISSIONAL
+                          </Typography>
+                        </View>
+                      ) : null}
+                    </View>
+                  </View>
+                  {locked ? (
+                    <Pressable
+                      onPress={() => router.push("/plans")}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${item.label}, recurso Profissional`}
+                      hitSlop={8}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: spacing.xs,
+                        paddingHorizontal: spacing.sm,
+                        paddingVertical: 6,
+                      }}
+                    >
+                      <Ionicons
+                        name="lock-closed"
+                        size={18}
+                        color={theme.colors.premium}
+                      />
+                    </Pressable>
+                  ) : (
+                    <Switch
+                      accessibilityLabel={item.label}
+                      trackColor={{
+                        false: theme.colors.surface,
+                        true: theme.colors.primary,
+                      }}
+                      thumbColor={theme.colors.textOnPrimary}
+                      value={isPrefEnabled(notifPrefs, item.type)}
+                      onValueChange={(v) => setNotifPref(item.type, v)}
+                    />
+                  )}
+                </View>
+              );
+            })
+          )}
         </Card>
 
         {/* Suporte prioritário (Profissional) */}
@@ -765,7 +787,8 @@ export default function SettingsScreen() {
       </ScrollView>
 
       {/* Meta de pro-labore Modal */}
-      <Modal
+      <ResponsiveModal
+        desktopMaxWidth={840}
         visible={showGoal}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -803,10 +826,11 @@ export default function SettingsScreen() {
             onSuccess={() => setShowGoal(false)}
           />
         </SafeAreaView>
-      </Modal>
+      </ResponsiveModal>
 
       {/* Edit Profile Modal */}
-      <Modal
+      <ResponsiveModal
+        desktopMaxWidth={840}
         visible={showEditProfile}
         animationType="slide"
         presentationStyle="pageSheet"
@@ -840,11 +864,14 @@ export default function SettingsScreen() {
             </Typography>
           </View>
           <KeyboardAwareScrollView
-            contentContainerStyle={{
-              padding: spacing.xl,
-              paddingBottom: spacing["3xl"],
-              gap: spacing.lg,
-            }}
+            contentContainerStyle={[
+              {
+                padding: spacing.xl,
+                paddingBottom: spacing["3xl"],
+                gap: spacing.lg,
+              },
+              desktopContained(isDesktop, 720),
+            ]}
           >
             {/* Foto do negócio */}
             <View style={{ alignItems: "center", gap: spacing.sm }}>
@@ -960,10 +987,11 @@ export default function SettingsScreen() {
                 void handleSaveProfile();
               }}
               loading={updateProfile.isPending || savingAvatar}
+              style={desktopAction(isDesktop)}
             />
           </KeyboardAwareScrollView>
         </SafeAreaView>
-      </Modal>
+      </ResponsiveModal>
     </SafeAreaView>
   );
 }
