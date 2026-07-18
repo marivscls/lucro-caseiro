@@ -8,6 +8,8 @@
     "userInterfaceStyle": "automatic",
     "scheme": "lucrocaseiro",
     "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "cover",
       "backgroundColor": "#1E1814"
     },
     "ios": {
