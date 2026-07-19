@@ -5,7 +5,6 @@ import { Image, View } from "react-native";
 import { SvgXml } from "react-native-svg";
 
 import { isoToBR } from "../dates";
-import { NUTRITION_FIELDS, hasNutrition } from "../nutrition";
 import { buildQrSvg } from "../qr";
 
 interface LabelPreviewProps {
@@ -42,12 +41,11 @@ function resolveFont(custom: "serif" | "sans" | undefined, fallback: string): st
   return fallback;
 }
 
-/** Tinta clara derivada da cor de destaque (fundo automatico). */
 function tint(hex: string, ratio = 0.93): string {
   const channels = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
   return `#${channels
-    .map((c) =>
-      Math.round(c + (255 - c) * ratio)
+    .map((channel) =>
+      Math.round(channel + (255 - channel) * ratio)
         .toString(16)
         .padStart(2, "0"),
     )
@@ -59,7 +57,6 @@ export interface ResolvedLabelStyle extends TemplateStyle {
   corner: "rounded" | "square";
 }
 
-/** Mescla o template com o estilo customizado salvo no rotulo (Premium). */
 export function resolveLabelStyle(
   templateId: string,
   custom?: LabelData["style"],
@@ -85,8 +82,9 @@ export function LabelPreview({
 }: Readonly<LabelPreviewProps>) {
   const style = resolveLabelStyle(templateId, data.style);
   const qrSvg = qrUrl ? buildQrSvg(qrUrl) : null;
-  // RN nao tem borda "double": simulamos com borda externa + filete interno.
   const isDouble = style.borderStyle === "double";
+  const hasDates = data.manufacturingDate || data.expirationDate;
+  const hasContact = data.producerName || data.producerPhone;
 
   return (
     <Card
@@ -96,160 +94,94 @@ export function LabelPreview({
         borderColor: style.border,
         borderStyle: style.borderStyle === "dashed" ? "dashed" : "solid",
         borderRadius: style.corner === "square" ? 0 : 12,
-        padding: (isDouble ? 8 : 16) * scale,
-        gap: 8 * scale,
+        padding: (isDouble ? 8 : 18) * scale,
         width: 280 * scale,
         alignSelf: "center",
       }}
     >
       <DoubleBorder visible={isDouble} color={style.border} scale={scale}>
-        {logoUrl && (
+        {logoUrl ? (
           <Image
             source={{ uri: logoUrl }}
             style={{
-              width: 48 * scale,
-              height: 48 * scale,
+              width: 52 * scale,
+              height: 52 * scale,
               alignSelf: "center",
               borderRadius: 8,
             }}
           />
-        )}
+        ) : null}
 
         <Typography
           variant="h2"
           color={style.accent}
-          style={{
-            textAlign: "center",
-            fontSize: 18 * scale,
-          }}
+          style={{ textAlign: "center", fontSize: 20 * scale }}
         >
           {data.productName || "Nome do produto"}
         </Typography>
 
-        {data.ingredients && (
-          <View style={{ gap: 2 }}>
-            <Typography
-              variant="caption"
-              color={style.accent}
-              style={{ fontFamily: fonts.bold, fontSize: 10 * scale }}
-            >
-              Ingredientes:
-            </Typography>
-            <Typography
-              variant="caption"
-              color={style.accent}
-              style={{ fontSize: 9 * scale }}
-            >
-              {data.ingredients}
-            </Typography>
-          </View>
-        )}
+        {data.note?.trim() ? (
+          <Typography
+            variant="caption"
+            color={style.accent}
+            style={{ textAlign: "center", fontSize: 10 * scale }}
+          >
+            {data.note}
+          </Typography>
+        ) : null}
 
-        {hasNutrition(data.nutrition) && (
+        {hasDates ? (
           <View
             style={{
-              borderWidth: 1,
-              borderColor: style.accent,
-              borderRadius: 6,
-              padding: 6 * scale,
-              gap: 2,
+              flexDirection: "row",
+              justifyContent: "center",
+              gap: 24 * scale,
+              marginTop: 2 * scale,
             }}
           >
-            <Typography
-              variant="caption"
-              color={style.accent}
-              style={{ fontFamily: fonts.bold, fontSize: 10 * scale }}
-            >
-              Informação nutricional
-            </Typography>
-            {NUTRITION_FIELDS.filter((f) => data.nutrition?.[f.key]?.trim()).map((f) => (
-              <View
-                key={f.key}
-                style={{ flexDirection: "row", justifyContent: "space-between" }}
-              >
-                <Typography
-                  variant="caption"
-                  color={style.accent}
-                  style={{ fontSize: 9 * scale }}
-                >
-                  {f.label}
-                </Typography>
-                <Typography
-                  variant="caption"
-                  color={style.accent}
-                  style={{ fontSize: 9 * scale, fontFamily: fonts.bold }}
-                >
-                  {data.nutrition?.[f.key]}
-                </Typography>
-              </View>
-            ))}
+            {data.manufacturingDate ? (
+              <DateValue
+                label="Feito em"
+                value={data.manufacturingDate}
+                color={style.accent}
+                scale={scale}
+              />
+            ) : null}
+            {data.expirationDate ? (
+              <DateValue
+                label="Validade"
+                value={data.expirationDate}
+                color={style.accent}
+                scale={scale}
+              />
+            ) : null}
           </View>
-        )}
+        ) : null}
 
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            marginTop: 4,
-          }}
-        >
-          {data.manufacturingDate && (
-            <View>
-              <Typography
-                variant="caption"
-                color={style.accent}
-                style={{ fontSize: 9 * scale, fontFamily: fonts.bold }}
-              >
-                Fabricacao
-              </Typography>
-              <Typography
-                variant="caption"
-                color={style.accent}
-                style={{ fontSize: 9 * scale }}
-              >
-                {isoToBR(data.manufacturingDate)}
-              </Typography>
-            </View>
-          )}
-          {data.expirationDate && (
-            <View>
-              <Typography
-                variant="caption"
-                color={style.accent}
-                style={{ fontSize: 9 * scale, fontFamily: fonts.bold }}
-              >
-                Validade
-              </Typography>
-              <Typography
-                variant="caption"
-                color={style.accent}
-                style={{ fontSize: 9 * scale }}
-              >
-                {isoToBR(data.expirationDate)}
-              </Typography>
-            </View>
-          )}
-        </View>
-
-        {(data.producerName || data.producerPhone) && (
+        {hasContact ? (
           <View
             style={{
               borderTopWidth: 1,
               borderTopColor: style.border,
-              paddingTop: 6,
-              marginTop: 4,
+              paddingTop: 8 * scale,
+              marginTop: 2 * scale,
+              gap: 2 * scale,
             }}
           >
-            {data.producerName && (
+            {data.producerName ? (
               <Typography
                 variant="caption"
                 color={style.accent}
-                style={{ fontSize: 10 * scale, textAlign: "center" }}
+                style={{
+                  fontFamily: fonts.bold,
+                  fontSize: 10 * scale,
+                  textAlign: "center",
+                }}
               >
                 {data.producerName}
               </Typography>
-            )}
-            {data.producerPhone && (
+            ) : null}
+            {data.producerPhone ? (
               <Typography
                 variant="caption"
                 color={style.accent}
@@ -257,17 +189,46 @@ export function LabelPreview({
               >
                 {data.producerPhone}
               </Typography>
-            )}
+            ) : null}
           </View>
-        )}
+        ) : null}
 
-        {qrSvg && (
-          <View style={{ alignItems: "center", marginTop: 4 }}>
+        {qrSvg ? (
+          <View style={{ alignItems: "center", gap: 2 * scale }}>
             <SvgXml xml={qrSvg} width={64 * scale} height={64 * scale} />
+            <Typography
+              variant="caption"
+              color={style.accent}
+              style={{ fontSize: 8 * scale }}
+            >
+              Veja no catálogo
+            </Typography>
           </View>
-        )}
+        ) : null}
       </DoubleBorder>
     </Card>
+  );
+}
+
+function DateValue({
+  label,
+  value,
+  color,
+  scale,
+}: Readonly<{ label: string; value: string; color: string; scale: number }>) {
+  return (
+    <View style={{ alignItems: "center" }}>
+      <Typography
+        variant="caption"
+        color={color}
+        style={{ fontFamily: fonts.bold, fontSize: 9 * scale }}
+      >
+        {label}
+      </Typography>
+      <Typography variant="caption" color={color} style={{ fontSize: 9 * scale }}>
+        {isoToBR(value)}
+      </Typography>
+    </View>
   );
 }
 
@@ -282,15 +243,15 @@ function DoubleBorder({
   scale: number;
   children: React.ReactNode;
 }>) {
-  if (!visible) return <>{children}</>;
+  if (!visible) return <View style={{ gap: 10 * scale }}>{children}</View>;
   return (
     <View
       style={{
         borderWidth: 1,
         borderColor: color,
         borderRadius: 8,
-        padding: 8 * scale,
-        gap: 8 * scale,
+        padding: 10 * scale,
+        gap: 10 * scale,
       }}
     >
       {children}

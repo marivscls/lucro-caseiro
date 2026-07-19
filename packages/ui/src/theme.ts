@@ -24,9 +24,12 @@
  * Regras de contraste (publico inclui idosos — WCAG AA):
  * - Texto/icone pequeno sobre fundo: >= 4.5:1.
  * - Variantes `*Strong` sao os tons AA para texto sobre fundos claros.
- * - `primaryInteractive` e o fundo AA (>= 4.5:1 com texto branco) para
+ * - `primaryInteractive` e o fundo AA (>= 4.5:1 com o rotulo) para
  *   botoes cheios; `primary` continua sendo a cor de marca para areas
  *   grandes, icones de destaque e preenchimentos sem texto por cima.
+ * - No tema escuro, fills de marca/semanticos viram PASTEL LUMINOSO e o
+ *   rotulo (`textOnPrimary`) vira rose profundo — tons empoeirados (rose700)
+ *   "somem" sobre o fundo quente escuro e parecem desabilitados.
  */
 
 export const colors = {
@@ -68,6 +71,8 @@ export const colors = {
   // Text - Dark
   textDark: "#F5F4F2",
   textSecondaryDark: "#A8A29E",
+  /** Rotulo escuro AA (>= 4.5:1) sobre os fills pastel do tema escuro. */
+  textOnPrimaryDark: "#33121B",
 
   // Semantic — pares base/fundos; os tons de TEXTO AA ficam nos temas.
   success: "#6BBF96",
@@ -145,6 +150,11 @@ export const fonts = {
   extraBold: "NunitoSans_800ExtraBold",
 } as const;
 
+/**
+ * Escala canonica de espacamento. Micro-espacamentos de 2 e 6px sao permitidos
+ * apenas inline, para ajustes hairline (ex.: alinhamento fino icone-texto);
+ * qualquer espacamento maior deve sair desta escala.
+ */
 export const spacing = {
   xs: 4,
   sm: 8,
@@ -169,7 +179,11 @@ export const radii = {
 /** Tamanhos canonicos de icone — nunca use valores fora desta escala. */
 export const iconSizes = {
   xs: 16,
+  /** Tamanho de facto para icones inline em chips/texto (uso difuso no app). */
+  inline: 18,
   sm: 20,
+  /** Tamanho de facto para icones de listas e navegacao (uso difuso no app). */
+  list: 22,
   md: 24,
   lg: 32,
   xl: 40,
@@ -191,6 +205,8 @@ export interface ThemeOverrides {
   primaryDark?: string;
   primaryStrong?: string;
   primaryInteractive?: string;
+  /** Fill primario no tema escuro: pastel luminoso (o rotulo vira textOnPrimary escuro). */
+  primaryInteractiveDark?: string;
   primarySoft?: string;
   primarySoftDark?: string;
   background?: string;
@@ -215,6 +231,7 @@ export interface Theme {
     surfaceElevated: string;
     text: string;
     textSecondary: string;
+    /** Rotulo sobre fills de marca/semanticos: branco no claro; rose profundo no escuro (fills viram pastel). */
     textOnPrimary: string;
     success: string;
     successBg: string;
@@ -325,7 +342,9 @@ export const darkTheme: Theme = {
     primary: colors.primary,
     primaryLight: colors.primaryLight,
     primaryStrong: colors.primaryLight,
-    primaryInteractive: colors.rose700,
+    // Dark mode: fill primario vira pastel luminoso (rose400) com rotulo
+    // escuro — o rose700 "empoeirado" some sobre o fundo quente escuro.
+    primaryInteractive: colors.rose400,
     primaryBg: colors.primarySoftDark,
     border: colors.borderDark,
     background: colors.backgroundDark,
@@ -333,7 +352,7 @@ export const darkTheme: Theme = {
     surfaceElevated: colors.surfaceElevatedDark,
     text: colors.textDark,
     textSecondary: colors.textSecondaryDark,
-    textOnPrimary: colors.textOnPrimary,
+    textOnPrimary: colors.textOnPrimaryDark,
     // Tons clareados p/ contraste >=4.5:1 sobre os fundos semanticos escuros.
     success: "#8FD4B0",
     successBg: colors.successDark,
@@ -385,7 +404,8 @@ export function buildThemes(overrides?: ThemeOverrides): {
         primary: overrides.primary,
         primaryLight,
         primaryStrong: overrides.primaryLight ?? primaryStrong,
-        primaryInteractive,
+        // No escuro o fill primario pode ter um pastel proprio (par primarySoftDark).
+        primaryInteractive: overrides.primaryInteractiveDark ?? primaryInteractive,
         primaryBg: overrides.primarySoftDark ?? darkTheme.colors.primaryBg,
         background: overrides.backgroundDark ?? darkTheme.colors.background,
         surface: overrides.surfaceDark ?? darkTheme.colors.surface,

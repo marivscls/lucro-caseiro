@@ -10,23 +10,17 @@ import {
   radii,
   useTheme,
 } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../shared/components/app-icon";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  Image,
-  Pressable,
-  ScrollView,
-  View,
-} from "react-native";
+import { FlatList, Image, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import pricingEmpty from "../assets/pricing-empty.png";
 import { PricingCalculator } from "../features/pricing/components/pricing-calculator";
 import { usePricingList } from "../features/pricing/hooks";
 import { showAlert } from "../shared/components/alert-store";
+import { SkeletonList } from "../shared/components/skeleton";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { useProducts } from "../features/products/hooks";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
@@ -116,8 +110,8 @@ function PricingHistoryModal({
   function renderBody() {
     if (isLoading) {
       return (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
+        <View style={{ flex: 1, padding: spacing.xl }}>
+          <SkeletonList rows={6} />
         </View>
       );
     }
@@ -250,7 +244,7 @@ export default function PricingScreen() {
             hitSlop={10}
             style={{ flexDirection: "row", alignItems: "center", gap: 6, minHeight: 44 }}
           >
-            <Ionicons
+            <AppIcon
               name="time-outline"
               size={iconSizes.sm}
               color={theme.colors.primaryStrong}

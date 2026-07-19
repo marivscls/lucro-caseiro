@@ -165,6 +165,23 @@ export class FinanceUseCases {
     });
   }
 
+  async updateFromPurchase(
+    userId: string,
+    entryId: string,
+    amount: number,
+    description: string,
+    date: string,
+    category: FinanceCategory,
+  ): Promise<FinanceEntry> {
+    return this.update(userId, entryId, {
+      type: "expense",
+      amount,
+      description,
+      date,
+      category,
+    });
+  }
+
   // --- Gastos recorrentes ---
 
   async createRecurring(

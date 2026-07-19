@@ -7,11 +7,13 @@ import {
 import { Router } from "express";
 
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
+import { requireBrandFeature } from "../../shared/middleware/brand-feature";
 import type { MaterialsUseCases } from "./materials.usecases";
 
 export function createMaterialsRouter(useCases: MaterialsUseCases): Router {
   const router = Router();
   router.use(authMiddleware);
+  router.use(requireBrandFeature("materiais"));
 
   router.get("/", async (req, res, next) => {
     try {

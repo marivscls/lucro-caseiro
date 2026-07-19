@@ -4,6 +4,7 @@ import { Router } from "express";
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
 import { renderCatalogHtml } from "./catalog.domain";
 import type { CatalogUseCases } from "./catalog.usecases";
+import { DEFAULT_BRAND_ID } from "@lucro-caseiro/brands";
 
 /** Rotas autenticadas: configuracoes do catalogo do usuario. */
 export function createCatalogRouter(useCases: CatalogUseCases): Router {
@@ -12,7 +13,10 @@ export function createCatalogRouter(useCases: CatalogUseCases): Router {
 
   router.get("/settings", async (req, res, next) => {
     try {
-      const settings = await useCases.getSettings(getUserId(req));
+      const settings = await useCases.getSettings(
+        getUserId(req),
+        req.header("x-brand")?.trim() || DEFAULT_BRAND_ID,
+      );
       res.json(settings);
     } catch (err) {
       next(err);
@@ -22,7 +26,11 @@ export function createCatalogRouter(useCases: CatalogUseCases): Router {
   router.put("/settings", async (req, res, next) => {
     try {
       const data = UpdateCatalogSettingsDto.parse(req.body);
-      const settings = await useCases.updateSettings(getUserId(req), data);
+      const settings = await useCases.updateSettings(
+        getUserId(req),
+        data,
+        req.header("x-brand")?.trim() || DEFAULT_BRAND_ID,
+      );
       res.json(settings);
     } catch (err) {
       next(err);

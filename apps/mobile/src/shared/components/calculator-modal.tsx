@@ -1,5 +1,6 @@
 import { fonts, Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "./app-icon";
+import type { AppIconName } from "./app-icon";
 import React, { useState } from "react";
 import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -39,9 +40,8 @@ export function CalculatorModal({ visible, onClose, onResult }: CalculatorModalP
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
   const insets = useSafeAreaInsets();
-  const isDark = theme.mode === "dark";
-  const keyBg = isDark ? "rgba(255,255,255,0.06)" : theme.colors.surface;
-  const sheetBg = isDark ? "#2C2420" : theme.colors.surfaceElevated;
+  const keyBg = theme.colors.surface;
+  const sheetBg = theme.colors.surfaceElevated;
 
   const [display, setDisplay] = useState("0");
   const [acc, setAcc] = useState<number | null>(null);
@@ -123,7 +123,7 @@ export function CalculatorModal({ visible, onClose, onResult }: CalculatorModalP
     label?: string;
     onPress: () => void;
     tone?: "default" | "op" | "danger";
-    icon?: keyof typeof Ionicons.glyphMap;
+    icon?: AppIconName;
     active?: boolean;
   }>) {
     let bg = keyBg;
@@ -154,7 +154,7 @@ export function CalculatorModal({ visible, onClose, onResult }: CalculatorModalP
         })}
       >
         {icon ? (
-          <Ionicons name={icon} size={22} color={fg} />
+          <AppIcon name={icon} size={22} color={fg} />
         ) : (
           <Typography variant="h3" color={fg}>
             {label}
@@ -178,7 +178,7 @@ export function CalculatorModal({ visible, onClose, onResult }: CalculatorModalP
         onPress={onClose}
         style={{
           flex: 1,
-          backgroundColor: "rgba(0,0,0,0.55)",
+          backgroundColor: theme.colors.overlay,
           justifyContent: isDesktop ? "center" : "flex-end",
           padding: isDesktop ? spacing.xl : 0,
         }}
@@ -208,7 +208,7 @@ export function CalculatorModal({ visible, onClose, onResult }: CalculatorModalP
               Calculadora
             </Typography>
             <Pressable onPress={onClose} hitSlop={10} accessibilityLabel="Fechar">
-              <Ionicons name="close" size={26} color={theme.colors.textSecondary} />
+              <AppIcon name="close" size={26} color={theme.colors.textSecondary} />
             </Pressable>
           </View>
 

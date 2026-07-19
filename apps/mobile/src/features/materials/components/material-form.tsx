@@ -1,19 +1,15 @@
 import type { Material } from "@lucro-caseiro/contracts";
 import { Typography, useTheme, spacing, radii, fonts } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
 import { ActivityIndicator, Pressable, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { showAlert } from "../../../shared/components/alert-store";
-import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
-import {
-  desktopAction,
-  desktopContained,
-  desktopModalSurface,
-} from "../../../shared/layout/desktop-density";
+import { desktopModalSurface } from "../../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
+import { StandardModal } from "../../../shared/components/standard-modal";
 import {
   FieldLabel,
   TextFieldCard,
@@ -40,6 +36,8 @@ import { duplicateKey } from "../../../shared/utils/duplicates";
 interface MaterialFormProps {
   readonly material?: Material | null;
   readonly existingMaterials?: Material[];
+  readonly visible: boolean;
+  readonly onClose: () => void;
   readonly onSuccess?: () => void;
 }
 
@@ -157,7 +155,7 @@ function ContentUnitField({
         >
           {value || "Ex: ml"}
         </Typography>
-        <Ionicons name="chevron-down" size={20} color={theme.colors.textSecondary} />
+        <AppIcon name="chevron-down" size={20} color={theme.colors.textSecondary} />
       </Pressable>
 
       <ResponsiveOverlayModal
@@ -170,7 +168,7 @@ function ContentUnitField({
           onPress={() => setOpen(false)}
           style={{
             flex: 1,
-            backgroundColor: "rgba(0,0,0,0.55)",
+            backgroundColor: theme.colors.overlay,
             justifyContent: isDesktop ? "center" : "flex-end",
             padding: isDesktop ? spacing.xl : 0,
           }}
@@ -242,7 +240,7 @@ function NotesField({
         gap: spacing.md,
       }}
     >
-      <Ionicons name="document-text-outline" size={22} color={theme.colors.primary} />
+      <AppIcon name="document-text-outline" size={22} color={theme.colors.primary} />
       <View style={{ flex: 1 }}>
         <TextInput
           value={value}
@@ -275,10 +273,11 @@ function NotesField({
 export function MaterialForm({
   material,
   existingMaterials = [],
+  visible,
+  onClose,
   onSuccess,
 }: MaterialFormProps) {
   const { theme } = useTheme();
-  const isDesktop = useDesktopLayout();
   const pal = useFieldPalette();
   const [name, setName] = useState(material?.name ?? "");
   const [unit, setUnit] = useState(material?.unit ?? "kg");
@@ -418,315 +417,314 @@ export function MaterialForm({
   }
 
   return (
-    <KeyboardAwareScrollView
-      contentContainerStyle={[
-        {
-          padding: spacing.xl,
-          paddingBottom: spacing["5xl"],
-          gap: spacing.xl,
-        },
-        desktopContained(isDesktop, 960),
-      ]}
-    >
-      {isEditing ? (
-        <SummaryCard name={name} unit={unit} cost={cost} icon={icon} />
-      ) : (
+    <StandardModal
+      title={isEditing ? "Editar insumo" : "Novo insumo"}
+      visible={visible}
+      onClose={onClose}
+      footer={
         <>
-          <Typography
-            variant="body"
-            color={theme.colors.textSecondary}
-            style={{ marginTop: -spacing.sm }}
-          >
-            Cadastre um novo insumo para controlar seu estoque e usar nas receitas.
-          </Typography>
-          <View>
-            <FieldLabel label="Nome do insumo" required />
-            <TextFieldCard
-              icon="pricetag-outline"
-              placeholder="Ex: Farinha de trigo"
-              value={name}
-              onChangeText={setName}
-              autoFocus
-            />
-          </View>
-        </>
-      )}
-
-      <View>
-        <FieldLabel label="Ícone (opcional)" />
-        <MaterialIconField name={name} value={icon} onChange={setIcon} />
-      </View>
-
-      <View>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 4,
-            marginBottom: spacing.sm,
-          }}
-        >
-          <Typography variant="bodyBold" color={theme.colors.text}>
-            Unidade
-          </Typography>
           {isEditing ? (
             <Pressable
-              onPress={showUnitInfo}
-              hitSlop={8}
-              accessibilityLabel="Sobre a unidade"
-            >
-              <Ionicons
-                name="information-circle-outline"
-                size={16}
-                color={theme.colors.textSecondary}
-              />
-            </Pressable>
-          ) : (
-            <Typography variant="bodyBold" color={theme.colors.primary}>
-              *
-            </Typography>
-          )}
-        </View>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-          {unitOptions.map((u) => {
-            const active = unit === u;
-            return (
-              <Pressable
-                key={u}
-                onPress={() => setUnit(u)}
-                accessibilityRole="button"
-                accessibilityState={{ selected: active }}
-                accessibilityLabel={u}
-                style={{
-                  flex: 1,
-                  minWidth: 48,
-                  minHeight: 46,
+              onPress={handleDelete}
+              accessibilityRole="button"
+              style={({ pressed }) => [
+                {
+                  minHeight: 50,
+                  borderRadius: radii.lg,
                   alignItems: "center",
                   justifyContent: "center",
-                  borderRadius: radii.full,
-                  borderWidth: 1,
-                  borderColor: active ? theme.colors.primary : pal.border,
-                  backgroundColor: active ? theme.colors.primary : pal.fieldBg,
-                }}
-              >
-                <Typography
-                  variant="bodyBold"
-                  color={active ? theme.colors.textOnPrimary : theme.colors.text}
-                >
-                  {u}
-                </Typography>
-              </Pressable>
-            );
-          })}
+                  opacity: pressed ? 0.7 : 1,
+                },
+                { flex: 1 },
+              ]}
+            >
+              <Typography variant="bodyBold" color={theme.colors.alert}>
+                Excluir insumo
+              </Typography>
+            </Pressable>
+          ) : null}
+          <Pressable
+            onPress={() => {
+              void handleSave();
+            }}
+            disabled={saving}
+            accessibilityRole="button"
+            style={({ pressed }) => [
+              {
+                minHeight: 58,
+                borderRadius: radii.lg,
+                backgroundColor: theme.colors.primary,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: spacing.sm,
+                opacity: pressed || saving ? 0.85 : 1,
+              },
+              { flex: 1 },
+            ]}
+          >
+            {saving ? (
+              <ActivityIndicator color={theme.colors.textOnPrimary} />
+            ) : (
+              <AppIcon
+                name="checkmark-circle-outline"
+                size={24}
+                color={theme.colors.textOnPrimary}
+              />
+            )}
+            <Typography
+              variant="bodyBold"
+              color={theme.colors.textOnPrimary}
+              style={{ fontSize: 18 }}
+            >
+              {isEditing ? "Salvar alterações" : "Salvar insumo"}
+            </Typography>
+          </Pressable>
+        </>
+      }
+    >
+      <View style={{ flexShrink: 1, gap: spacing.xl }}>
+        {isEditing ? (
+          <SummaryCard name={name} unit={unit} cost={cost} icon={icon} />
+        ) : (
+          <>
+            <Typography
+              variant="body"
+              color={theme.colors.textSecondary}
+              style={{ marginTop: -spacing.sm }}
+            >
+              Cadastre um novo insumo para controlar seu estoque e usar nas receitas.
+            </Typography>
+            <View>
+              <FieldLabel label="Nome do insumo" required />
+              <TextFieldCard
+                icon="pricetag-outline"
+                placeholder="Ex: Farinha de trigo"
+                value={name}
+                onChangeText={setName}
+                autoFocus
+              />
+            </View>
+          </>
+        )}
+
+        <View>
+          <FieldLabel label="Ícone (opcional)" />
+          <MaterialIconField name={name} value={icon} onChange={setIcon} />
         </View>
-        {!isEditing ? (
+
+        <View>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 4,
+              marginBottom: spacing.sm,
+            }}
+          >
+            <Typography variant="bodyBold" color={theme.colors.text}>
+              Unidade
+            </Typography>
+            {isEditing ? (
+              <Pressable
+                onPress={showUnitInfo}
+                hitSlop={8}
+                accessibilityLabel="Sobre a unidade"
+              >
+                <AppIcon
+                  name="information-circle-outline"
+                  size={16}
+                  color={theme.colors.textSecondary}
+                />
+              </Pressable>
+            ) : (
+              <Typography variant="bodyBold" color={theme.colors.primary}>
+                *
+              </Typography>
+            )}
+          </View>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+            {unitOptions.map((u) => {
+              const active = unit === u;
+              return (
+                <Pressable
+                  key={u}
+                  onPress={() => setUnit(u)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
+                  accessibilityLabel={u}
+                  style={{
+                    flex: 1,
+                    minWidth: 48,
+                    minHeight: 46,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: radii.full,
+                    borderWidth: 1,
+                    borderColor: active ? theme.colors.primary : pal.border,
+                    backgroundColor: active ? theme.colors.primary : pal.fieldBg,
+                  }}
+                >
+                  <Typography
+                    variant="bodyBold"
+                    color={active ? theme.colors.textOnPrimary : theme.colors.text}
+                  >
+                    {u}
+                  </Typography>
+                </Pressable>
+              );
+            })}
+          </View>
+          {!isEditing ? (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
+                marginTop: spacing.sm,
+              }}
+            >
+              <AppIcon
+                name="information-circle-outline"
+                size={16}
+                color={theme.colors.success}
+              />
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                Selecione a unidade padrão deste insumo.
+              </Typography>
+            </View>
+          ) : null}
+        </View>
+
+        <View style={{ flexDirection: "row", gap: spacing.md }}>
+          <View style={{ flex: 1 }}>
+            <FieldLabel label="Quantidade em estoque" />
+            <TextFieldCard
+              icon="cube-outline"
+              placeholder="Ex: 10"
+              value={stock}
+              onChangeText={setStock}
+              keyboardType="decimal-pad"
+            />
+            <SubLabel>Quantidade atual disponível.</SubLabel>
+          </View>
+          <View style={{ flex: 1 }}>
+            <FieldLabel label="Alerta de estoque baixo (opcional)" />
+            <TextFieldCard
+              icon="notifications-outline"
+              placeholder="Ex: 3"
+              value={alertThreshold}
+              onChangeText={setAlertThreshold}
+              keyboardType="decimal-pad"
+            />
+            <SubLabel>Quando atingir, você será avisado.</SubLabel>
+          </View>
+        </View>
+
+        <View>
+          <FieldLabel label="Custo por unidade (opcional)" />
+          <TextFieldCard
+            icon="cash-outline"
+            placeholder="Ex: 4,50"
+            value={cost}
+            onChangeText={(value) => setCost(maskCurrencyInput(value))}
+            keyboardType="numeric"
+          />
+          <SubLabel>Valor gasto para adquirir 1 unidade.</SubLabel>
+        </View>
+
+        <View>
+          <FieldLabel label="Fornecedor (opcional)" />
+          <SupplierSelector value={supplierId} onChange={setSupplierId} />
+          <SubLabel>De quem você compra este insumo.</SubLabel>
+        </View>
+
+        <View>
           <View
             style={{
               flexDirection: "row",
               alignItems: "center",
               gap: 6,
-              marginTop: spacing.sm,
+              marginBottom: spacing.sm,
             }}
           >
-            <Ionicons
-              name="information-circle-outline"
-              size={16}
-              color={theme.colors.success}
-            />
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              Selecione a unidade padrão deste insumo.
+            <Typography variant="bodyBold" color={theme.colors.text}>
+              Conteúdo por unidade (opcional)
             </Typography>
-          </View>
-        ) : null}
-      </View>
-
-      <View style={{ flexDirection: "row", gap: spacing.md }}>
-        <View style={{ flex: 1 }}>
-          <FieldLabel label="Quantidade em estoque" />
-          <TextFieldCard
-            icon="cube-outline"
-            placeholder="Ex: 10"
-            value={stock}
-            onChangeText={setStock}
-            keyboardType="decimal-pad"
-          />
-          <SubLabel>Quantidade atual disponível.</SubLabel>
-        </View>
-        <View style={{ flex: 1 }}>
-          <FieldLabel label="Alerta de estoque baixo (opcional)" />
-          <TextFieldCard
-            icon="notifications-outline"
-            placeholder="Ex: 3"
-            value={alertThreshold}
-            onChangeText={setAlertThreshold}
-            keyboardType="decimal-pad"
-          />
-          <SubLabel>Quando atingir, você será avisado.</SubLabel>
-        </View>
-      </View>
-
-      <View>
-        <FieldLabel label="Custo por unidade (opcional)" />
-        <TextFieldCard
-          icon="cash-outline"
-          placeholder="Ex: 4,50"
-          value={cost}
-          onChangeText={(value) => setCost(maskCurrencyInput(value))}
-          keyboardType="numeric"
-        />
-        <SubLabel>Valor gasto para adquirir 1 unidade.</SubLabel>
-      </View>
-
-      <View>
-        <FieldLabel label="Fornecedor (opcional)" />
-        <SupplierSelector value={supplierId} onChange={setSupplierId} />
-        <SubLabel>De quem você compra este insumo.</SubLabel>
-      </View>
-
-      <View>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 6,
-            marginBottom: spacing.sm,
-          }}
-        >
-          <Typography variant="bodyBold" color={theme.colors.text}>
-            Conteúdo por unidade (opcional)
-          </Typography>
-          <Pressable
-            onPress={showContentInfo}
-            hitSlop={8}
-            accessibilityLabel="O que é conteúdo por unidade"
-          >
-            <Ionicons
-              name="information-circle-outline"
-              size={16}
-              color={theme.colors.primary}
-            />
-          </Pressable>
-        </View>
-        <View style={{ flexDirection: "row", gap: spacing.md }}>
-          <View style={{ flex: 1 }}>
-            <Typography
-              variant="body"
-              color={theme.colors.text}
-              style={{ fontSize: 14, marginBottom: spacing.xs }}
+            <Pressable
+              onPress={showContentInfo}
+              hitSlop={8}
+              accessibilityLabel="O que é conteúdo por unidade"
             >
-              Quantidade
-            </Typography>
-            <TextFieldCard
-              icon="beaker-outline"
-              placeholder="Ex: 350"
-              value={contentPerUnit}
-              onChangeText={setContentPerUnit}
-              keyboardType="decimal-pad"
-            />
+              <AppIcon
+                name="information-circle-outline"
+                size={16}
+                color={theme.colors.primary}
+              />
+            </Pressable>
           </View>
-          <View style={{ flex: 1 }}>
-            <Typography
-              variant="body"
-              color={theme.colors.text}
-              style={{ fontSize: 14, marginBottom: spacing.xs }}
-            >
-              Unidade
-            </Typography>
-            <ContentUnitField value={contentUnit} onChange={setContentUnit} />
+          <View style={{ flexDirection: "row", gap: spacing.md }}>
+            <View style={{ flex: 1 }}>
+              <Typography
+                variant="body"
+                color={theme.colors.text}
+                style={{ fontSize: 14, marginBottom: spacing.xs }}
+              >
+                Quantidade
+              </Typography>
+              <TextFieldCard
+                icon="beaker-outline"
+                placeholder="Ex: 350"
+                value={contentPerUnit}
+                onChangeText={setContentPerUnit}
+                keyboardType="decimal-pad"
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Typography
+                variant="body"
+                color={theme.colors.text}
+                style={{ fontSize: 14, marginBottom: spacing.xs }}
+              >
+                Unidade
+              </Typography>
+              <ContentUnitField value={contentUnit} onChange={setContentUnit} />
+            </View>
           </View>
-        </View>
-        <View
-          style={{
-            flexDirection: "row",
-            gap: spacing.md,
-            marginTop: spacing.md,
-            padding: spacing.md,
-            borderRadius: radii.lg,
-            borderWidth: 1,
-            borderColor: `${theme.colors.success}40`,
-            backgroundColor: `${theme.colors.success}14`,
-          }}
-        >
-          <Ionicons name="bulb-outline" size={20} color={theme.colors.success} />
-          <View style={{ flex: 1 }}>
-            <Typography
-              variant="caption"
-              color={theme.colors.success}
-              style={{ fontFamily: fonts.bold }}
-            >
-              Ex.: 1 {unit.trim() || "kg"} = {contentPerUnit.trim() || "350"}{" "}
-              {contentUnit.trim() || "ml"}
-            </Typography>
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              Permite usar este insumo em g/ml nas receitas.
-            </Typography>
-          </View>
-        </View>
-      </View>
-
-      <View>
-        <FieldLabel label="Observações (opcional)" />
-        <NotesField value={notes} onChange={setNotes} />
-      </View>
-
-      <Pressable
-        onPress={() => {
-          void handleSave();
-        }}
-        disabled={saving}
-        accessibilityRole="button"
-        style={({ pressed }) => [
-          {
-            minHeight: 58,
-            borderRadius: radii.lg,
-            backgroundColor: theme.colors.primary,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: spacing.sm,
-            opacity: pressed || saving ? 0.85 : 1,
-          },
-          desktopAction(isDesktop),
-        ]}
-      >
-        {saving ? (
-          <ActivityIndicator color={theme.colors.textOnPrimary} />
-        ) : (
-          <Ionicons
-            name="checkmark-circle-outline"
-            size={24}
-            color={theme.colors.textOnPrimary}
-          />
-        )}
-        <Typography
-          variant="bodyBold"
-          color={theme.colors.textOnPrimary}
-          style={{ fontSize: 18 }}
-        >
-          {isEditing ? "Salvar alterações" : "Salvar insumo"}
-        </Typography>
-      </Pressable>
-
-      {isEditing ? (
-        <Pressable
-          onPress={handleDelete}
-          accessibilityRole="button"
-          style={({ pressed }) => [
-            {
-              minHeight: 50,
+          <View
+            style={{
+              flexDirection: "row",
+              gap: spacing.md,
+              marginTop: spacing.md,
+              padding: spacing.md,
               borderRadius: radii.lg,
-              alignItems: "center",
-              justifyContent: "center",
-              opacity: pressed ? 0.7 : 1,
-            },
-            desktopAction(isDesktop),
-          ]}
-        >
-          <Typography variant="bodyBold" color={theme.colors.alert}>
-            Excluir insumo
-          </Typography>
-        </Pressable>
-      ) : null}
-    </KeyboardAwareScrollView>
+              borderWidth: 1,
+              borderColor: `${theme.colors.success}40`,
+              backgroundColor: `${theme.colors.success}14`,
+            }}
+          >
+            <AppIcon name="bulb-outline" size={20} color={theme.colors.success} />
+            <View style={{ flex: 1 }}>
+              <Typography
+                variant="caption"
+                color={theme.colors.success}
+                style={{ fontFamily: fonts.bold }}
+              >
+                Ex.: 1 {unit.trim() || "kg"} = {contentPerUnit.trim() || "350"}{" "}
+                {contentUnit.trim() || "ml"}
+              </Typography>
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                Permite usar este insumo em g/ml nas receitas.
+              </Typography>
+            </View>
+          </View>
+        </View>
+
+        <View>
+          <FieldLabel label="Observações (opcional)" />
+          <NotesField value={notes} onChange={setNotes} />
+        </View>
+      </View>
+    </StandardModal>
   );
 }

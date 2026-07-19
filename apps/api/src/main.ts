@@ -90,8 +90,18 @@ import { createClient } from "@lucro-caseiro/database";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateText } from "ai";
 import { createMarketingRouter } from "./features/marketing/marketing.routes";
+import {
+  generateMarketingAiWithFallback,
+  MarketingAiQuotaError,
+} from "./features/marketing/marketing-ai.provider";
 import { MarketingRepoPg } from "./features/marketing/marketing.repo.pg";
 import { MarketingUseCases } from "./features/marketing/marketing.usecases";
+import {
+  createPublicRetailRouter,
+  createRetailRouter,
+} from "./features/retail/retail.routes";
+import { RetailRepoPg } from "./features/retail/retail.repo.pg";
+import { RetailUseCases } from "./features/retail/retail.usecases";
 
 // Database
 const db = createClient(config.databaseUrl);
@@ -161,6 +171,12 @@ const salesUseCases = new SalesUseCases(
   // Venda paga → entrada automática no caixa (idempotente por saleId).
   financeUseCases,
 );
+const retailUseCases = new RetailUseCases(
+  new RetailRepoPg(db),
+  productsRepo,
+  salesUseCases,
+  clientsRepo,
+);
 // Exclusao de conta: usa um client Supabase com service-role key para remover
 // o usuario do Auth. A key e opcional no boot; se ausente, deleteAuthUser lanca
 // ServiceUnavailableError (503) em vez de derrubar o servidor.
@@ -193,19 +209,23 @@ const marketingUseCases = new MarketingUseCases(
   new MarketingRepoPg(db),
   marketingAi
     ? async ({ system, prompt }) => {
-        const model = "gemini-2.5-flash";
         try {
-          const result = await generateText({
-            model: marketingAi(model),
-            system,
-            prompt,
-            abortSignal: AbortSignal.timeout(45_000),
+          return await generateMarketingAiWithFallback(async (model, abortSignal) => {
+            const result = await generateText({
+              model: marketingAi(model),
+              system,
+              prompt,
+              abortSignal,
+              maxRetries: 0,
+            });
+            return result.text;
           });
-          return { text: result.text, model };
         } catch (error) {
           console.error("Marketing AI generation failed:", error);
           throw new ServiceUnavailableError(
-            "A IA est\u00e1 temporariamente indispon\u00edvel. Tente novamente em instantes.",
+            error instanceof MarketingAiQuotaError
+              ? "O limite de uso da IA foi atingido. Tente novamente mais tarde."
+              : "A IA est\u00e1 temporariamente indispon\u00edvel. Tente novamente em instantes.",
           );
         }
       }
@@ -215,7 +235,11 @@ const marketingUseCases = new MarketingUseCases(
 const catalogUseCases = new CatalogUseCases(new CatalogRepoPg(db));
 // Conversao orcamento -> encomenda reusa o usecase de orders (injetado adiante).
 
-const purchasesUseCases = new PurchasesUseCases(purchasesRepo, financeUseCases);
+const purchasesUseCases = new PurchasesUseCases(
+  purchasesRepo,
+  financeUseCases,
+  productsRepo,
+);
 const ingredientsUseCases = new IngredientsUseCases(ingredientsRepo);
 // Gate de plano por feature (usado onde o gate vive no usecase, não em middleware).
 const userHasFeature =
@@ -354,6 +378,11 @@ app.use(
   createQuotesRouter(new QuotesUseCases(new QuotesRepoPg(db), ordersUseCases)),
 );
 app.use("/api/v1/catalog", createCatalogRouter(catalogUseCases));
+app.use("/api/v1/retail", createRetailRouter(retailUseCases));
+app.use(
+  "/api/v1/public/retail",
+  createPublicRetailRouter(retailUseCases, catalogUseCases),
+);
 // Catalogo publico (sem auth): pagina HTML compartilhavel em /c/:slug.
 app.use("/c", createPublicCatalogRouter(catalogUseCases));
 app.use("/api/v1/subscription", createSubscriptionRouter(subscriptionUseCases));

@@ -1,15 +1,13 @@
 import type { ExpenseCategory, FinanceEntryType } from "@lucro-caseiro/contracts";
-import { fonts, Typography, useTheme, type Theme } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { fonts, radii, Typography, useTheme, type Theme } from "@lucro-caseiro/ui";
+import { AppIcon } from "../../../shared/components/app-icon";
+import type { AppIconName } from "../../../shared/components/app-icon";
 import React, { useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
@@ -24,18 +22,18 @@ import { CalendarModal } from "../../../shared/components/calendar-modal";
 import { useCreateFinanceEntry } from "../hooks";
 import { showToast } from "../../../shared/components/toast";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
-import { desktopAction, desktopContained } from "../../../shared/layout/desktop-density";
-import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+import { StandardModal } from "../../../shared/components/standard-modal";
 
 interface CreateFinanceEntryProps {
-  onClose?: () => void;
+  visible: boolean;
+  onClose: () => void;
   onSuccess?: () => void;
 }
 
 const CATEGORIES: {
   key: ExpenseCategory;
   label: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
   color: string;
 }[] = [
   { key: "material", label: "Material", icon: "cube-outline", color: "#D86BD9" },
@@ -58,11 +56,11 @@ function useEntryStyles() {
 }
 
 export function CreateFinanceEntry({
+  visible,
   onClose,
   onSuccess,
 }: Readonly<CreateFinanceEntryProps>) {
   const { theme, styles } = useEntryStyles();
-  const isDesktop = useDesktopLayout();
   const [type, setType] = useState<FinanceEntryType>("income");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
@@ -123,30 +121,41 @@ export function CreateFinanceEntry({
 
   return (
     <>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardAvoider}
+      <StandardModal
+        title="Novo lançamento"
+        visible={visible}
+        onClose={onClose}
+        scrollRef={scrollRef}
+        footer={
+          <Pressable
+            accessibilityRole="button"
+            disabled={createEntry.isPending}
+            onPress={() => void handleSubmit()}
+            style={({ pressed }) => [
+              styles.submitButton,
+              { flex: 1 },
+              pressed && !createEntry.isPending && styles.pressed,
+              createEntry.isPending && styles.disabled,
+            ]}
+          >
+            {createEntry.isPending ? (
+              <ActivityIndicator color={theme.colors.textOnPrimary} />
+            ) : (
+              <>
+                <AppIcon
+                  name="checkmark-circle-outline"
+                  size={29}
+                  color={theme.colors.textOnPrimary}
+                />
+                <Typography variant="h3" color={theme.colors.textOnPrimary}>
+                  Registrar lançamento
+                </Typography>
+              </>
+            )}
+          </Pressable>
+        }
       >
-        <ScrollView
-          ref={scrollRef}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={[styles.content, desktopContained(isDesktop, 720)]}
-        >
-          <View style={styles.header}>
-            <TouchableOpacity onPress={onClose} hitSlop={12} style={styles.backButton}>
-              <Ionicons name="arrow-back" size={32} color={theme.colors.text} />
-            </TouchableOpacity>
-            <Typography variant="h1" style={styles.title}>
-              Novo lançamento
-            </Typography>
-            <TouchableOpacity onPress={onClose} hitSlop={12}>
-              <Typography variant="bodyBold" color={theme.colors.primary}>
-                Fechar
-              </Typography>
-            </TouchableOpacity>
-          </View>
-
+        <View style={{ flexShrink: 1, gap: 12 }}>
           <Typography variant="body" style={styles.subtitle} numberOfLines={2}>
             Registre uma entrada ou saída para manter suas finanças organizadas.
           </Typography>
@@ -204,16 +213,19 @@ export function CreateFinanceEntry({
                     category === item.key && styles.categoryButtonSelected,
                   ]}
                 >
-                  <Ionicons name={item.icon} size={25} color={item.color} />
-                  <Text
-                    style={[
-                      styles.categoryText,
-                      category === item.key && styles.categoryTextSelected,
-                    ]}
+                  <AppIcon name={item.icon} size={25} color={item.color} />
+                  <Typography
+                    variant="captionBold"
+                    color={
+                      category === item.key
+                        ? theme.colors.text
+                        : theme.colors.textSecondary
+                    }
+                    style={{ flex: 1 }}
                     numberOfLines={1}
                   >
                     {item.label}
-                  </Text>
+                  </Typography>
                 </Pressable>
               ))}
             </View>
@@ -228,43 +240,17 @@ export function CreateFinanceEntry({
               onFocus={focusDateField}
               keyboardType="number-pad"
               trailingIcon="calendar-outline"
+              trailingLabel="Abrir calendário"
               onTrailingPress={() => setCalendarVisible(true)}
             />
           </FormCard>
 
           <Pressable
             accessibilityRole="button"
-            disabled={createEntry.isPending}
-            onPress={() => void handleSubmit()}
-            style={({ pressed }) => [
-              styles.submitButton,
-              pressed && !createEntry.isPending && styles.pressed,
-              createEntry.isPending && styles.disabled,
-              desktopAction(isDesktop, 240),
-            ]}
-          >
-            {createEntry.isPending ? (
-              <ActivityIndicator color={theme.colors.textOnPrimary} />
-            ) : (
-              <>
-                <Ionicons
-                  name="checkmark-circle-outline"
-                  size={29}
-                  color={theme.colors.textOnPrimary}
-                />
-                <Typography variant="h3" color={theme.colors.textOnPrimary}>
-                  Registrar lançamento
-                </Typography>
-              </>
-            )}
-          </Pressable>
-
-          <Pressable
-            accessibilityRole="button"
             onPress={onClose}
             style={styles.viewEntries}
           >
-            <Ionicons
+            <AppIcon
               name="clipboard-outline"
               size={22}
               color={theme.colors.primaryStrong}
@@ -273,8 +259,8 @@ export function CreateFinanceEntry({
               Ver lançamentos
             </Typography>
           </Pressable>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </View>
+      </StandardModal>
 
       <CalendarModal
         visible={calendarVisible}
@@ -297,7 +283,7 @@ function TypeButton({
   tone,
   onPress,
 }: Readonly<{
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
   label: string;
   selected: boolean;
   tone: "green" | "muted";
@@ -316,7 +302,7 @@ function TypeButton({
       onPress={onPress}
       style={[styles.typeButton, selected && { backgroundColor: selectedBg }]}
     >
-      <Ionicons name={icon} size={25} color={color} />
+      <AppIcon name={icon} size={25} color={color} />
       <Typography variant="bodyBold" color={color}>
         {label}
       </Typography>
@@ -342,13 +328,15 @@ function FormCard({
 function Field({
   icon,
   trailingIcon,
+  trailingLabel,
   onTrailingPress,
   multiline,
   ...inputProps
 }: Readonly<
   React.ComponentProps<typeof TextInput> & {
-    icon: keyof typeof Ionicons.glyphMap;
-    trailingIcon?: keyof typeof Ionicons.glyphMap;
+    icon: AppIconName;
+    trailingIcon?: AppIconName;
+    trailingLabel?: string;
     onTrailingPress?: () => void;
   }
 >) {
@@ -357,7 +345,7 @@ function Field({
   return (
     <View style={styles.inputWrap}>
       <View style={styles.inputIcon}>
-        <Ionicons name={icon} size={24} color={theme.colors.success} />
+        <AppIcon name={icon} size={24} color={theme.colors.success} />
       </View>
       <TextInput
         {...inputProps}
@@ -368,11 +356,12 @@ function Field({
       {trailingIcon ? (
         <TouchableOpacity
           accessibilityRole="button"
+          accessibilityLabel={trailingLabel}
           onPress={onTrailingPress}
           disabled={!onTrailingPress}
           hitSlop={12}
         >
-          <Ionicons name={trailingIcon} size={25} color={theme.colors.textSecondary} />
+          <AppIcon name={trailingIcon} size={25} color={theme.colors.textSecondary} />
         </TouchableOpacity>
       ) : null}
     </View>
@@ -380,10 +369,9 @@ function Field({
 }
 
 function createStyles(theme: Theme) {
-  const isDark = theme.mode === "dark";
   const border = theme.colors.border;
-  const card = isDark ? "rgba(44, 35, 32, 0.88)" : theme.colors.surfaceElevated;
-  const inputBg = isDark ? "rgba(255,255,255,0.05)" : theme.colors.surface;
+  const card = theme.colors.surfaceElevated;
+  const inputBg = theme.colors.surface;
 
   return StyleSheet.create({
     backButton: {
@@ -408,15 +396,6 @@ function createStyles(theme: Theme) {
       flexDirection: "row",
       flexWrap: "wrap",
       gap: 8,
-    },
-    categoryText: {
-      color: theme.colors.textSecondary,
-      flex: 1,
-      fontSize: 14,
-      fontFamily: fonts.bold,
-    },
-    categoryTextSelected: {
-      color: theme.colors.text,
     },
     content: {
       gap: 12,
@@ -453,7 +432,7 @@ function createStyles(theme: Theme) {
     inputIcon: {
       alignItems: "center",
       backgroundColor: theme.colors.successBg,
-      borderRadius: 11,
+      borderRadius: radii.md,
       height: 44,
       justifyContent: "center",
       width: 44,

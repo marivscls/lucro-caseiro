@@ -12,6 +12,7 @@
     "primaryDark": "#A85A67",
     "primaryStrong": "#A84857",
     "primaryInteractive": "#A85A67",
+    "primaryInteractiveDark": "#D48392",
     "primarySoft": "#F9E7EA",
     "primarySoftDark": "#3A2B2F",
     "background": "#FAFAF8",
@@ -24,13 +25,20 @@
     "productNounPlural": "produtos",
     "saleLabel": "Registrar venda",
     "stockLabel": "Estoque",
-    "revenueLabel": "Faturamento"
+    "revenueLabel": "Faturamento",
+    "labelsLabel": "Etiquetas"
   },
   "features": {
     "estoque": true,
     "agendamento": true,
     "catalogoCores": false,
-    "fichaTecnica": true
+    "fichaTecnica": true,
+    "materiais": true,
+    "embalagens": true,
+    "vendaPorPeso": true,
+    "custoDireto": false,
+    "comprasComEstoque": false,
+    "varejoPapelaria": false
   },
   "admob": {
     "androidAppId": "ca-app-pub-8304398247631710~5581735015",

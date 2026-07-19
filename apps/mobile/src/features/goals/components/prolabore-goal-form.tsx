@@ -1,10 +1,9 @@
 import type { ProlaboreGoal } from "@lucro-caseiro/contracts";
 import { Button, Input, Typography, useTheme, spacing } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
+import { View } from "react-native";
 
-import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
-import { desktopAction, desktopContained } from "../../../shared/layout/desktop-density";
-import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+import { StandardModal } from "../../../shared/components/standard-modal";
 import { useDeleteProlaboreGoal, useUpsertProlaboreGoal } from "../hooks";
 import { showToast } from "../../../shared/components/toast";
 import { showAlert } from "../../../shared/components/alert-store";
@@ -17,6 +16,8 @@ import {
 
 interface ProlaboreGoalFormProps {
   readonly config: ProlaboreGoal | null;
+  readonly visible: boolean;
+  readonly onClose: () => void;
   readonly onSuccess?: () => void;
 }
 
@@ -28,9 +29,13 @@ function initial(value: number | null): string {
   return value != null ? currencyInput(value) : "";
 }
 
-export function ProlaboreGoalForm({ config, onSuccess }: ProlaboreGoalFormProps) {
+export function ProlaboreGoalForm({
+  config,
+  visible,
+  onClose,
+  onSuccess,
+}: ProlaboreGoalFormProps) {
   const { theme } = useTheme();
-  const isDesktop = useDesktopLayout();
   const [goal, setGoal] = useState(initial(config?.monthlyProlaboreGoal ?? null));
   const [costs, setCosts] = useState(initial(config?.estimatedMonthlyCosts ?? null));
   const [ticket, setTicket] = useState(initial(config?.avgTicketOverride ?? null));
@@ -85,63 +90,62 @@ export function ProlaboreGoalForm({ config, onSuccess }: ProlaboreGoalFormProps)
   }
 
   return (
-    <KeyboardAwareScrollView
-      contentContainerStyle={[
-        {
-          padding: spacing.xl,
-          paddingBottom: spacing["3xl"],
-          gap: spacing.lg,
-        },
-        desktopContained(isDesktop, 720),
-      ]}
+    <StandardModal
+      title="Meta de pro-labore"
+      visible={visible}
+      onClose={onClose}
+      footer={
+        <>
+          {config ? (
+            <Button
+              title="Remover meta"
+              variant="secondary"
+              onPress={handleRemove}
+              loading={remove.isPending}
+              style={{ flex: 1 }}
+            />
+          ) : null}
+          <Button
+            title="Salvar meta"
+            size="lg"
+            onPress={() => {
+              void handleSave();
+            }}
+            loading={upsert.isPending}
+            style={{ flex: 1 }}
+          />
+        </>
+      }
     >
-      <Typography variant="h2">Meta de pro-labore</Typography>
-      <Typography variant="caption" color={theme.colors.textSecondary}>
-        Defina quanto você quer ganhar por mês e o app mostra quanto falta vender pra
-        chegar la.
-      </Typography>
+      <View style={{ flexShrink: 1, gap: spacing.lg }}>
+        <Typography variant="caption" color={theme.colors.textSecondary}>
+          Defina quanto você quer ganhar por mês e o app mostra quanto falta vender pra
+          chegar la.
+        </Typography>
 
-      <Input
-        label="Quanto você quer ganhar por mês? (R$)"
-        placeholder="Ex: 2.000,00"
-        value={goal}
-        onChangeText={(value) => setGoal(maskCurrencyInput(value))}
-        keyboardType="numeric"
-        autoFocus
-      />
-      <Input
-        label="Custos fixos do mês (opcional)"
-        placeholder="Aluguel, gas, energia..."
-        value={costs}
-        onChangeText={(value) => setCosts(maskCurrencyInput(value))}
-        keyboardType="numeric"
-      />
-      <Input
-        label="Preço médio por venda (opcional)"
-        placeholder="Deixe vazio para calcular automático"
-        value={ticket}
-        onChangeText={(value) => setTicket(maskCurrencyInput(value))}
-        keyboardType="numeric"
-      />
-
-      <Button
-        title="Salvar meta"
-        size="lg"
-        onPress={() => {
-          void handleSave();
-        }}
-        loading={upsert.isPending}
-        style={desktopAction(isDesktop)}
-      />
-      {config && (
-        <Button
-          title="Remover meta"
-          variant="secondary"
-          onPress={handleRemove}
-          loading={remove.isPending}
-          style={desktopAction(isDesktop)}
+        <Input
+          label="Quanto você quer ganhar por mês? (R$)"
+          placeholder="Ex: 2.000,00"
+          value={goal}
+          onChangeText={(value) => setGoal(maskCurrencyInput(value))}
+          keyboardType="numeric"
+          autoFocus
         />
-      )}
-    </KeyboardAwareScrollView>
+        <Input
+          label="Custos fixos do mês (opcional)"
+          placeholder="Aluguel, gas, energia..."
+          value={costs}
+          onChangeText={(value) => setCosts(maskCurrencyInput(value))}
+          keyboardType="numeric"
+        />
+        <Input
+          label="Preço médio por venda (opcional)"
+          placeholder="Deixe vazio para calcular automático"
+          value={ticket}
+          onChangeText={(value) => setTicket(maskCurrencyInput(value))}
+          keyboardType="numeric"
+        />
+      </View>
+    </StandardModal>
   );
 }

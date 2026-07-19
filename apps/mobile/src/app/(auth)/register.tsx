@@ -1,5 +1,13 @@
-import { Button, Input, Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import {
+  Button,
+  Input,
+  Typography,
+  useBrand,
+  useTheme,
+  radii,
+  spacing,
+} from "@lucro-caseiro/ui";
+import { AppIcon } from "../../shared/components/app-icon";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Image, Pressable, View } from "react-native";
@@ -19,7 +27,8 @@ import { suggestEmailFix } from "../../shared/utils/email";
 import { showAlert } from "../../shared/components/alert-store";
 import { desktopContained } from "../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
-import authHouse from "../../assets/auth-house.png";
+import { getBrandDisplayName } from "../../shared/brand-name";
+import { brandLogoById } from "../../shared/brand-logo";
 
 function PasswordStrengthBar({ password }: Readonly<{ password: string }>) {
   const { theme } = useTheme();
@@ -89,7 +98,7 @@ function PasswordRules({ password }: Readonly<{ password: string }>) {
               justifyContent: "center",
             }}
           >
-            <Ionicons
+            <AppIcon
               name="checkmark"
               size={14}
               color={rule.met ? theme.colors.textOnPrimary : "transparent"}
@@ -110,6 +119,8 @@ function PasswordRules({ password }: Readonly<{ password: string }>) {
 
 export default function RegisterScreen() {
   const { theme } = useTheme();
+  const brand = useBrand();
+  const brandName = getBrandDisplayName(brand);
   const isDesktop = useDesktopLayout();
   const router = useRouter();
   const { signUpWithEmail, signInWithGoogle } = useAuth();
@@ -204,8 +215,7 @@ export default function RegisterScreen() {
     }
   }
 
-  const isDark = theme.mode === "dark";
-  const cardBg = isDark ? "rgba(44, 36, 32, 0.72)" : theme.colors.surfaceElevated;
+  const cardBg = theme.colors.surfaceElevated;
   const cardBorder = theme.colors.border;
 
   return (
@@ -225,7 +235,7 @@ export default function RegisterScreen() {
       >
         <View style={{ alignItems: "center", gap: spacing.md }}>
           <Image
-            source={authHouse}
+            source={brandLogoById[brand.id]}
             resizeMode="contain"
             style={{ width: 104, height: 104 }}
           />
@@ -234,7 +244,7 @@ export default function RegisterScreen() {
             color={theme.colors.primaryLight}
             style={{ letterSpacing: 3, textTransform: "uppercase" }}
           >
-            Lucro Caseiro
+            {brandName}
           </Typography>
           <Typography variant="display" style={{ textAlign: "center" }}>
             Crie sua conta
@@ -262,7 +272,7 @@ export default function RegisterScreen() {
             title="Criar com Google"
             variant="secondary"
             size="lg"
-            icon={<Ionicons name="logo-google" size={20} color={theme.colors.text} />}
+            icon={<AppIcon name="logo-google" size={20} color={theme.colors.text} />}
             onPress={() => {
               void handleGoogleRegister();
             }}
@@ -343,7 +353,7 @@ export default function RegisterScreen() {
                 paddingHorizontal: spacing.xs,
               }}
             >
-              <Ionicons
+              <AppIcon
                 name={showPassword ? "eye-off-outline" : "eye-outline"}
                 size={20}
                 color={theme.colors.primary}
@@ -371,7 +381,7 @@ export default function RegisterScreen() {
             title="Criar minha conta"
             size="lg"
             icon={
-              <Ionicons
+              <AppIcon
                 name="arrow-forward"
                 size={20}
                 color={theme.colors.textOnPrimary}

@@ -8,7 +8,8 @@ import {
   radii,
   useTheme,
 } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
+import type { AppIconName } from "../../../shared/components/app-icon";
 import React from "react";
 import { ScrollView, View } from "react-native";
 
@@ -25,7 +26,7 @@ function IconCircle({
   color,
   size = 32,
 }: Readonly<{
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
   tint: string;
   color: string;
   size?: number;
@@ -41,7 +42,7 @@ function IconCircle({
         justifyContent: "center",
       }}
     >
-      <Ionicons name={icon} size={Math.round(size * 0.56)} color={color} />
+      <AppIcon name={icon} size={Math.round(size * 0.56)} color={color} />
     </View>
   );
 }
@@ -391,7 +392,7 @@ export function PricingResult({
           loading={isSaving}
           size="lg"
         />
-        <Button title="Recalcular" variant="outline" onPress={onRecalculate} size="lg" />
+        <Button title="Recalcular" variant="ghost" onPress={onRecalculate} size="lg" />
       </View>
     </ScrollView>
   );

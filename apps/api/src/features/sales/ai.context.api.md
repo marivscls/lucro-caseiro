@@ -65,6 +65,8 @@ Gerenciar vendas do negocio, incluindo registro de itens vendidos, forma de paga
 - Venda cancelada nao pode ser editada
 - Venda ja cancelada nao pode ser cancelada novamente
 - Se produto tem stockQuantity **e** `saleUnit !== 'kg'`, deve ter estoque suficiente ao criar venda
+- Se há variações, a variação é obrigatória e seu estoque é a fonte de verdade; linhas repetidas são agregadas antes da validação.
+- Editar itens aplica somente o delta de estoque; cancelar devolve ao mesmo produto/variação.
 - Produtos vendidos por peso (`saleUnit === 'kg'`) nao tem baixa de estoque por unidade
 - Toda query escopada por `userId`
 

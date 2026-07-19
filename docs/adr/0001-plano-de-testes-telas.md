@@ -185,12 +185,12 @@ Adotamos uma **estratégia de testes em camadas** + um **checklist de coerência
 - [ ] V: custo numérico; limite freemium (3 no free).
 - [ ] C: custo entra no preço; moeda.
 
-### 5.15 Rótulos — `/labels`
+### 5.15 Etiquetas — `/labels`
 
-- [ ] H: criar/editar rótulo (template, produto, ingredientes, datas, produtor, telefone, **logo**, **QR**, **tabela nutricional**); preview ao vivo; baixar/compartilhar PDF; várias por folha.
-- [ ] V: nome do rótulo e nome do produto obrigatórios; datas com máscara; "validade em dias" calcula a validade.
+- [ ] H: criar/editar etiqueta (template, produto, observação, datas opcionais, contato, **logo** e **QR opcional**); preview ao vivo; baixar/compartilhar PDF; várias por folha.
+- [ ] V: nome da etiqueta e nome impresso obrigatórios; datas opcionais com máscara.
 - [ ] E: lista vazia → criar; erro de upload de logo → salva sem logo e avisa.
-- [ ] C: **datas exibidas DD/MM/AAAA** no preview e no PDF (regressão corrigida — 6.3); QR preto; telefone do produtor com máscara; remover logo no editar envia `logoUrl: null`.
+- [ ] C: **datas exibidas DD/MM/AAAA** no preview e no PDF; QR preto; telefone com máscara; remover logo no editar envia `logoUrl: null`; PDF não imprime os antigos campos nutricionais/regulatórios.
 
 ### 5.16 Configurações — `/settings`
 

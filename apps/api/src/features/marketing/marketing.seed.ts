@@ -3,6 +3,27 @@ import type { MarketingResourceInput } from "@lucro-caseiro/contracts";
 export const initialMarketingResources: MarketingResourceInput[] = [
   {
     kind: "audience",
+    slug: "mercado-lucro-caseiro",
+    title: "Mercado amplo do Lucro Caseiro",
+    summary:
+      "Profissionais e negócios de diferentes segmentos e estágios que precisam precificar, vender e organizar a operação.",
+    status: "active",
+    data: {
+      scope: "brand-market",
+      includes: [
+        "profissionais autônomos",
+        "MEIs",
+        "prestadores de serviço",
+        "produtores",
+        "comerciantes",
+        "equipes e negócios em crescimento",
+      ],
+      maturity: ["início", "operação organizada", "negócio estruturado", "crescimento"],
+      rule: "Os públicos de nicho são recortes de campanha e não limitam o mercado da marca.",
+    },
+  },
+  {
+    kind: "audience",
     slug: "confeiteiras-iniciantes",
     title: "Confeiteiras iniciantes",
     summary: "Produzem e vendem, mas ainda formam preço no improviso.",

@@ -355,7 +355,7 @@ function AppContent() {
             name="labels"
             options={{
               headerShown: !showDesktopShell,
-              title: "Rótulos",
+              title: "Etiquetas",
               headerStyle: { backgroundColor: theme.colors.background },
               headerTintColor: theme.colors.text,
             }}

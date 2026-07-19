@@ -95,6 +95,7 @@ function makeProductsRepo(overrides: Partial<IProductsRepo> = {}): IProductsRepo
     delete: vi.fn(() => Promise.resolve(true)),
     countByUser: vi.fn(() => Promise.resolve(1)),
     decrementStock: vi.fn(() => Promise.resolve(undefined)),
+    adjustStock: vi.fn(() => Promise.resolve(true)),
     averageActivePrice: vi.fn(() => Promise.resolve(10)),
     findComponentCandidates: vi.fn(() => Promise.resolve([])),
     ...overrides,
@@ -180,7 +181,12 @@ describe("SalesUseCases", () => {
       });
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(productsRepo.decrementStock).toHaveBeenCalledWith(USER_ID, "prod-1", 3);
+      expect(productsRepo.adjustStock).toHaveBeenCalledWith(
+        USER_ID,
+        "prod-1",
+        -3,
+        undefined,
+      );
     });
 
     it("não decrementa estoque para produto vendido por peso (kg)", async () => {
@@ -197,7 +203,7 @@ describe("SalesUseCases", () => {
       });
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(productsRepo.decrementStock).not.toHaveBeenCalled();
+      expect(productsRepo.adjustStock).not.toHaveBeenCalled();
     });
 
     it("calcula total com quantidade decimal para venda por peso (kg)", async () => {
@@ -228,7 +234,7 @@ describe("SalesUseCases", () => {
       });
 
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(productsRepo.decrementStock).not.toHaveBeenCalled();
+      expect(productsRepo.adjustStock).not.toHaveBeenCalled();
     });
 
     it("throws ValidationError when stock is insufficient", async () => {
@@ -250,6 +256,76 @@ describe("SalesUseCases", () => {
           items: [{ productId: "prod-1", quantity: 5, unitPrice: 10 }],
         }),
       ).rejects.toThrow("Estoque insuficiente para Brigadeiro");
+    });
+
+    it("baixa o estoque da variação escolhida e agrega linhas repetidas", async () => {
+      const adjustStock = vi.fn(() => Promise.resolve(true));
+      const productsRepo = makeProductsRepo({
+        findById: vi.fn(() =>
+          Promise.resolve(
+            makeProduct({
+              stockQuantity: null,
+              variations: [{ id: "var-azul", name: "Azul", stockQuantity: 8 }],
+            }),
+          ),
+        ),
+        adjustStock,
+      });
+      const { sut } = makeSut({}, productsRepo);
+
+      await sut.createSale(USER_ID, {
+        paymentMethod: "pix",
+        items: [
+          {
+            productId: "prod-1",
+            variationId: "var-azul",
+            quantity: 2,
+            unitPrice: 10,
+          },
+          {
+            productId: "prod-1",
+            variationId: "var-azul",
+            quantity: 3,
+            unitPrice: 10,
+          },
+        ],
+      });
+
+      expect(adjustStock).toHaveBeenCalledWith(USER_ID, "prod-1", -5, "var-azul");
+    });
+
+    it("não permite que linhas repetidas ultrapassem o estoque da variação", async () => {
+      const productsRepo = makeProductsRepo({
+        findById: vi.fn(() =>
+          Promise.resolve(
+            makeProduct({
+              stockQuantity: null,
+              variations: [{ id: "var-azul", name: "Azul", stockQuantity: 4 }],
+            }),
+          ),
+        ),
+      });
+      const { sut } = makeSut({}, productsRepo);
+
+      await expect(
+        sut.createSale(USER_ID, {
+          paymentMethod: "pix",
+          items: [
+            {
+              productId: "prod-1",
+              variationId: "var-azul",
+              quantity: 2,
+              unitPrice: 10,
+            },
+            {
+              productId: "prod-1",
+              variationId: "var-azul",
+              quantity: 3,
+              unitPrice: 10,
+            },
+          ],
+        }),
+      ).rejects.toThrow("Estoque insuficiente para Brigadeiro — Azul");
     });
 
     it("dá baixa nos insumos da receita (qtd receita × qtd vendida)", async () => {
@@ -356,6 +432,45 @@ describe("SalesUseCases", () => {
         ValidationError,
       );
     });
+
+    it("devolve o estoque da mesma variação ao cancelar", async () => {
+      const adjustStock = vi.fn(() => Promise.resolve(true));
+      const productsRepo = makeProductsRepo({
+        findById: vi.fn(() =>
+          Promise.resolve(
+            makeProduct({
+              stockQuantity: null,
+              variations: [{ id: "var-azul", name: "Azul", stockQuantity: 5 }],
+            }),
+          ),
+        ),
+        adjustStock,
+      });
+      const repo = makeRepo({
+        findById: () =>
+          Promise.resolve(
+            makeSale({
+              items: [
+                {
+                  id: "item-1",
+                  productId: "prod-1",
+                  productName: "Caderno",
+                  variationId: "var-azul",
+                  variationName: "Azul",
+                  quantity: 2,
+                  unitPrice: 10,
+                  subtotal: 20,
+                },
+              ],
+            }),
+          ),
+      });
+      const sut = new SalesUseCases(repo, productsRepo);
+
+      await sut.updateStatus(USER_ID, "sale-1", "cancelled");
+
+      expect(adjustStock).toHaveBeenCalledWith(USER_ID, "prod-1", 2, "var-azul");
+    });
   });
 
   describe("updateSale", () => {
@@ -384,6 +499,19 @@ describe("SalesUseCases", () => {
       await expect(sut.updateSale(USER_ID, "nope", { notes: "updated" })).rejects.toThrow(
         NotFoundError,
       );
+    });
+
+    it("reconcilia apenas a diferença de estoque ao alterar a quantidade", async () => {
+      const adjustStock = vi.fn(() => Promise.resolve(true));
+      const productsRepo = makeProductsRepo({ adjustStock });
+      const { sut } = makeSut({}, productsRepo);
+
+      await sut.updateSale(USER_ID, "sale-1", {
+        items: [{ productId: "prod-1", quantity: 5, unitPrice: 10 }],
+      });
+
+      // A venda existente tem 3; a nova tem 5: baixa somente mais 2.
+      expect(adjustStock).toHaveBeenCalledWith(USER_ID, "prod-1", -2, undefined);
     });
   });
 

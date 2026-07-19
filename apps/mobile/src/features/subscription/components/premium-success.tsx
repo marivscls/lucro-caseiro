@@ -1,7 +1,7 @@
 import { Button, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import type { BillingPeriod, PaidPlan } from "@lucro-caseiro/contracts";
 import { PLAN_LABELS, PLAN_PRICING } from "@lucro-caseiro/contracts";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useEffect, useRef } from "react";
 import { Animated, View } from "react-native";
 
@@ -103,13 +103,13 @@ export function PremiumSuccess({ visible, onClose }: PremiumSuccessProps) {
               style={{
                 width: 72,
                 height: 72,
-                borderRadius: 36,
+                borderRadius: radii.full,
                 backgroundColor: theme.colors.successBg,
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Ionicons name="checkmark-circle" size={52} color={theme.colors.success} />
+              <AppIcon name="checkmark-circle" size={52} color={theme.colors.success} />
             </View>
             <Typography variant="h2" style={{ textAlign: "center" }}>
               Assinatura confirmada!
@@ -161,7 +161,7 @@ export function PremiumSuccess({ visible, onClose }: PremiumSuccessProps) {
                   key={benefit}
                   style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
                 >
-                  <Ionicons
+                  <AppIcon
                     name="checkmark-circle"
                     size={20}
                     color={theme.colors.success}

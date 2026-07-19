@@ -1,6 +1,7 @@
 import type { Insights } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../shared/components/app-icon";
+import type { AppIconName } from "../shared/components/app-icon";
 import {
   Button,
   Card,
@@ -12,7 +13,7 @@ import {
 } from "@lucro-caseiro/ui";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { ActivityIndicator, Image, ScrollView, View } from "react-native";
+import { Image, ScrollView, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import insightsEmpty from "../assets/insights-empty.png";
@@ -23,6 +24,7 @@ import { useInsights } from "../features/insights/hooks";
 import { useProfile } from "../features/subscription/hooks";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { ScreenHeader } from "../shared/components/screen-header";
+import { Skeleton, SkeletonCard } from "../shared/components/skeleton";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 
 function StatCard({
@@ -36,7 +38,7 @@ function StatCard({
 }: Readonly<{
   label: string;
   value: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
   tint: string;
   iconColor: string;
   valueColor?: string;
@@ -55,7 +57,7 @@ function StatCard({
         justifyContent: "center",
       }}
     >
-      <Ionicons name={icon} size={22} color={iconColor} />
+      <AppIcon name={icon} size={22} color={iconColor} />
     </View>
   );
   const texts = (
@@ -100,7 +102,7 @@ function SectionTitle({
   tint,
   iconColor,
 }: Readonly<{
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
   title: string;
   tint: string;
   iconColor: string;
@@ -124,7 +126,7 @@ function SectionTitle({
           justifyContent: "center",
         }}
       >
-        <Ionicons name={icon} size={18} color={iconColor} />
+        <AppIcon name={icon} size={18} color={iconColor} />
       </View>
       <Typography variant="h3">{title}</Typography>
     </View>
@@ -136,7 +138,7 @@ function ReportsPremiumTeaser({ onUpgrade }: Readonly<{ onUpgrade: () => void }>
   return (
     <Card variant="surface" padding="xl" onPress={onUpgrade} style={{ gap: spacing.md }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-        <Ionicons name="bar-chart" size={22} color={theme.colors.premium} />
+        <AppIcon name="bar-chart" size={22} color={theme.colors.premium} />
         <Typography variant="h3" color={theme.colors.premium}>
           Relatórios completos
         </Typography>
@@ -146,7 +148,7 @@ function ReportsPremiumTeaser({ onUpgrade }: Readonly<{ onUpgrade: () => void }>
         clientes.
       </Typography>
       <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-        <Ionicons name="diamond-outline" size={18} color={theme.colors.premium} />
+        <AppIcon name="diamond-outline" size={18} color={theme.colors.premium} />
         <Typography variant="bodyBold" color={theme.colors.premium}>
           Desbloquear no Profissional
         </Typography>
@@ -291,15 +293,17 @@ export default function InsightsScreen() {
       {!isDesktop && <ScreenHeader title="Insights" />}
 
       {loadingProfile || isLoading ? (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
+        <View style={{ flex: 1, padding: spacing.xl, gap: spacing.lg }}>
+          <Skeleton width="55%" height={22} />
+          <SkeletonCard lines={3} />
+          <SkeletonCard lines={4} />
         </View>
       ) : (
         <ScrollView
           contentContainerStyle={{
             flexGrow: 1,
             padding: spacing.xl,
-            paddingTop: spacing.md,
+            paddingTop: spacing.xl,
             paddingBottom: spacing["2xl"] + insets.bottom,
             gap: spacing.xl,
           }}
@@ -328,7 +332,7 @@ export default function InsightsScreen() {
                 <Button
                   title="Adicionar venda"
                   icon={
-                    <Ionicons
+                    <AppIcon
                       name="add-circle-outline"
                       size={20}
                       color={theme.colors.textOnPrimary}

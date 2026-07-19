@@ -15,6 +15,7 @@ export interface CatalogOwner {
 }
 
 export interface CatalogSettingsData {
+  brandId: string;
   slug: string;
   enabled: boolean;
   whatsapp: string | null;

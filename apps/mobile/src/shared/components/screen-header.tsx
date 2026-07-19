@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "./app-icon";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Pressable, View, type ViewStyle } from "react-native";
@@ -62,7 +62,7 @@ export function ScreenHeader({
             hitSlop={10}
             style={{ width: 44, height: 44, justifyContent: "center" }}
           >
-            <Ionicons name="arrow-back" size={iconSizes.md} color={theme.colors.text} />
+            <AppIcon name="arrow-back" size={iconSizes.md} color={theme.colors.text} />
           </Pressable>
           <View style={{ flex: 1 }}>
             <Typography variant="h1" color={theme.colors.text} numberOfLines={1}>

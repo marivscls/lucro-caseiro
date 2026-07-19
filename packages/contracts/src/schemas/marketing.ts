@@ -109,12 +109,46 @@ export const MarketingAiResourceDraftSchema = z.object({
   data: z.record(z.unknown()).default({}),
 });
 
+export const MarketingCampaignResearchSchema = z
+  .object({
+    audienceSlice: z.string().trim().default(""),
+    audienceLanguage: z.array(z.string().trim().min(1)).default([]),
+    realDesire: z.string().trim().default(""),
+    saturatedSolutions: z.array(z.string().trim().min(1)).default([]),
+    problemMechanism: z.string().trim().default(""),
+    solutionMechanism: z.string().trim().default(""),
+    differentiators: z.array(z.string().trim().min(1)).default([]),
+    proofs: z.array(z.string().trim().min(1)).default([]),
+    saturationNotes: z.string().trim().default(""),
+  })
+  .default({});
+
+export const MarketingCampaignCreativeStrategySchema = z
+  .object({
+    bigIdea: z.string().trim().default(""),
+    angle: z.string().trim().default(""),
+    promise: z.string().trim().default(""),
+    reasonToBelieve: z.string().trim().default(""),
+    stickyName: z.string().trim().default(""),
+    commonEnemy: z.string().trim().default(""),
+    organicInsight: z.string().trim().default(""),
+    avatar: z.string().trim().default(""),
+    format: z.string().trim().default(""),
+    visualHook: z.string().trim().default(""),
+    landing: z.string().trim().default(""),
+    retentionBeats: z.array(z.string().trim().min(1)).default([]),
+    productionNotes: z.array(z.string().trim().min(1)).default([]),
+  })
+  .default({});
+
 export const MarketingCampaignPlanSchema = z.object({
   name: z.string().trim().min(1),
   segment: z.enum(["pme", "ecommerce", "agency"]).optional(),
   goal: z.enum(["sales", "leads", "repurchase", "awareness", "reactivation"]).optional(),
   audienceSummary: z.string().trim().optional(),
   offer: z.string().trim().optional(),
+  research: MarketingCampaignResearchSchema,
+  creativeStrategy: MarketingCampaignCreativeStrategySchema,
   channels: z.array(z.string().trim().min(1)).default([]),
   messages: z.record(z.string(), z.string()).default({}),
   creativeNeeds: z.array(z.string().trim().min(1)).default([]),
@@ -133,8 +167,8 @@ export const MarketingCampaignPlanSchema = z.object({
 export const MarketingCampaignBriefInputSchema = z.object({
   segment: z.enum(["pme", "ecommerce", "agency"]).default("pme"),
   goal: z.enum(["sales", "leads", "repurchase", "awareness", "reactivation"]),
-  audience: z.string().trim().min(2).max(2_000),
-  offer: z.string().trim().min(2).max(2_000),
+  audience: z.string().trim().max(2_000).default(""),
+  offer: z.string().trim().max(2_000).default(""),
   budget: z.number().nonnegative().optional(),
 });
 
@@ -146,12 +180,35 @@ export const MarketingCreativeBundleSchema = z.object({
         channel: z.string().trim().min(1),
         format: z.string().trim().min(1),
         headline: z.string().trim().min(1),
+        hook: z.string().trim().default(""),
+        landing: z.string().trim().default(""),
         body: z.string().trim().min(1),
+        retentionBeats: z.array(z.string().trim().min(1)).default([]),
+        productionNotes: z.string().trim().default(""),
+        evidence: z.string().trim().default(""),
         cta: z.string().trim().min(1),
       }),
     )
     .min(1),
   reuseMap: z.array(z.string().trim().min(1)).default([]),
+  qualityReview: z
+    .object({
+      ready: z.boolean().default(false),
+      score: z.number().int().min(0).max(100).default(0),
+      criteria: z
+        .object({
+          congruence: z.number().int().min(0).max(100).default(0),
+          specificity: z.number().int().min(0).max(100).default(0),
+          novelty: z.number().int().min(0).max(100).default(0),
+          evidenceSafety: z.number().int().min(0).max(100).default(0),
+          concision: z.number().int().min(0).max(100).default(0),
+        })
+        .default({}),
+      strengths: z.array(z.string().trim().min(1)).default([]),
+      warnings: z.array(z.string().trim().min(1)).default([]),
+      nextTest: z.string().trim().default(""),
+    })
+    .default({}),
 });
 
 export const MarketingCampaignCopiesInputSchema = z.object({
@@ -274,6 +331,10 @@ export type MarketingResourceInput = z.infer<typeof MarketingResourceInputSchema
 export type MarketingAiResourceDraft = z.infer<typeof MarketingAiResourceDraftSchema>;
 export type MarketingCampaignPlan = z.infer<typeof MarketingCampaignPlanSchema>;
 export type MarketingCreativeBundle = z.infer<typeof MarketingCreativeBundleSchema>;
+export type MarketingCampaignResearch = z.infer<typeof MarketingCampaignResearchSchema>;
+export type MarketingCampaignCreativeStrategy = z.infer<
+  typeof MarketingCampaignCreativeStrategySchema
+>;
 export type MarketingCampaignBriefInput = z.infer<
   typeof MarketingCampaignBriefInputSchema
 >;

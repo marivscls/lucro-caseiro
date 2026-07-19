@@ -31,6 +31,12 @@ export interface IProductsRepo {
   delete(userId: string, id: string): Promise<boolean>;
   countByUser(userId: string): Promise<number>;
   decrementStock(userId: string, productId: string, quantity: number): Promise<void>;
+  adjustStock(
+    userId: string,
+    productId: string,
+    delta: number,
+    variationId?: string,
+  ): Promise<boolean>;
   averageActivePrice(userId: string): Promise<number | null>;
   /**
    * Busca, dentre os produtos do usuario, os que estao na lista de ids.

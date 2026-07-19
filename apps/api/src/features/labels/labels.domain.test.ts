@@ -1,17 +1,17 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  buildLabelContent,
   getAvailableTemplates,
   isValidTemplate,
   normalizeLabelTemplateId,
+  toSimpleLabelData,
   validateLabelData,
 } from "./labels.domain";
 import type { CreateLabelData } from "./labels.types";
 
 function makeLabelData(overrides: Partial<CreateLabelData> = {}): CreateLabelData {
   return {
-    name: "Rótulo Brigadeiro",
+    name: "Etiqueta Brigadeiro",
     templateId: "classico",
     data: { productName: "Brigadeiro" },
     ...overrides,
@@ -26,12 +26,12 @@ describe("validateLabelData", () => {
 
   it("rejects empty name", () => {
     const errors = validateLabelData(makeLabelData({ name: "   " }));
-    expect(errors).toContain("Nome do rótulo é obrigatório");
+    expect(errors).toContain("Nome da etiqueta é obrigatório");
   });
 
   it("rejects name over 200 chars", () => {
     const errors = validateLabelData(makeLabelData({ name: "a".repeat(201) }));
-    expect(errors).toContain("Nome do rótulo deve ter no máximo 200 caracteres");
+    expect(errors).toContain("Nome da etiqueta deve ter no máximo 200 caracteres");
   });
 
   it("rejects empty templateId", () => {
@@ -153,31 +153,25 @@ describe("normalizeLabelTemplateId", () => {
   });
 });
 
-describe("buildLabelContent", () => {
-  it("returns data as-is when no recipe provided", () => {
-    const data = { productName: "Brigadeiro" };
-    const result = buildLabelContent(data);
-    expect(result).toEqual({ productName: "Brigadeiro" });
-  });
-
-  it("merges recipe ingredients when data has no ingredients", () => {
-    const data = { productName: "Brigadeiro" };
-    const recipe = { ingredients: "Leite condensado, chocolate" };
-    const result = buildLabelContent(data, recipe);
-    expect(result.ingredients).toBe("Leite condensado, chocolate");
-  });
-
-  it("keeps existing ingredients when data already has them", () => {
-    const data = { productName: "Brigadeiro", ingredients: "Ingredientes proprios" };
-    const recipe = { ingredients: "Leite condensado, chocolate" };
-    const result = buildLabelContent(data, recipe);
-    expect(result.ingredients).toBe("Ingredientes proprios");
-  });
-
-  it("returns a new object, not the same reference", () => {
-    const data = { productName: "Brigadeiro" };
-    const result = buildLabelContent(data);
-    expect(result).not.toBe(data);
-    expect(result).toEqual(data);
+describe("toSimpleLabelData", () => {
+  it("mantém apenas os campos da etiqueta simples", () => {
+    expect(
+      toSimpleLabelData({
+        productName: "Brigadeiro",
+        note: "Sabor chocolate",
+        producerName: "Doces da Maria",
+        ingredients: "Leite condensado",
+        glutenWarning: "NÃO CONTÉM GLÚTEN",
+        nutrition: { calories: "80" },
+      }),
+    ).toEqual({
+      productName: "Brigadeiro",
+      note: "Sabor chocolate",
+      manufacturingDate: undefined,
+      expirationDate: undefined,
+      producerName: "Doces da Maria",
+      producerPhone: undefined,
+      style: undefined,
+    });
   });
 });

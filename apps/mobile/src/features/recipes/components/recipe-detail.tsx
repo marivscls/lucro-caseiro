@@ -1,16 +1,19 @@
 import { formatCurrency } from "../../../shared/utils/format";
 import { Button, Card, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
-import { ActivityIndicator, Image, ScrollView, View } from "react-native";
+import { Image, View } from "react-native";
 
+import {
+  Skeleton,
+  SkeletonCard,
+  SkeletonList,
+} from "../../../shared/components/skeleton";
 import { showAlert } from "../../../shared/components/alert-store";
 import { IngredientAvatar } from "../../../shared/ingredient-image/ingredient-avatar";
 import { useDeleteRecipe, useDuplicateRecipe, useRecipe, useScaleRecipe } from "../hooks";
 import { exportRecipePdf } from "../recipe-pdf";
 import { alertError } from "../../../shared/utils/alerts";
-import { desktopContained } from "../../../shared/layout/desktop-density";
-import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 
 interface RecipeDetailProps {
   readonly recipeId: string;
@@ -28,7 +31,6 @@ export function RecipeDetail({
   onDeleted,
 }: RecipeDetailProps) {
   const { theme } = useTheme();
-  const isDesktop = useDesktopLayout();
   const [multiplier, setMultiplier] = useState(1);
   const { data: recipe, isLoading } = useRecipe(recipeId);
   const { data: scaledRecipe } = useScaleRecipe(recipeId, multiplier);
@@ -37,8 +39,10 @@ export function RecipeDetail({
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color={theme.colors.success} />
+      <View style={{ flexShrink: 1, padding: spacing.xl, gap: spacing.lg }}>
+        <Skeleton width="55%" height={22} />
+        <SkeletonCard lines={3} />
+        <SkeletonList rows={4} />
       </View>
     );
   }
@@ -55,11 +59,9 @@ export function RecipeDetail({
     displayRecipe.yieldQuantity > 0 ? totalCost / displayRecipe.yieldQuantity : 0;
 
   return (
-    <ScrollView
-      contentContainerStyle={[{ padding: 20, gap: 16 }, desktopContained(isDesktop, 960)]}
-    >
+    <View style={{ flexShrink: 1, gap: 16 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-        <Ionicons name="ice-cream-outline" size={18} color={theme.colors.primary} />
+        <AppIcon name="ice-cream-outline" size={18} color={theme.colors.primary} />
         <Typography variant="caption" color={theme.colors.textSecondary}>
           {recipe.category}
         </Typography>
@@ -139,7 +141,7 @@ export function RecipeDetail({
       <View style={{ gap: 8 }}>
         <Typography variant="h3">Insumos</Typography>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-          <Ionicons name="time-outline" size={16} color={theme.colors.textSecondary} />
+          <AppIcon name="time-outline" size={16} color={theme.colors.textSecondary} />
           <Typography variant="caption" color={theme.colors.textSecondary}>
             Rende: {displayRecipe.yieldQuantity} {displayRecipe.yieldUnit}
           </Typography>
@@ -327,6 +329,6 @@ export function RecipeDetail({
         }}
         loading={deleteRecipe.isPending}
       />
-    </ScrollView>
+    </View>
   );
 }

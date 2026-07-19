@@ -6,7 +6,7 @@ import {
   radii,
   spacing,
 } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "./app-icon";
 import React, { useEffect, useRef } from "react";
 import {
   Animated,
@@ -102,7 +102,7 @@ export function AlertHost() {
           onPress={() => {}}
           style={{
             flex: 1,
-            backgroundColor: "rgba(0, 0, 0, 0.66)",
+            backgroundColor: theme.colors.overlay,
             alignItems: "center",
             justifyContent: "center",
             paddingHorizontal: spacing.xl,
@@ -240,7 +240,7 @@ export function AlertHost() {
                   >
                     Continuar
                   </Typography>
-                  <Ionicons name="arrow-forward" size={22} color="#FFFFFF" />
+                  <AppIcon name="arrow-forward" size={22} color="#FFFFFF" />
                 </Pressable>
               </ImageBackground>
             </Pressable>
@@ -277,11 +277,7 @@ export function AlertHost() {
               borderRadius: radii.xl,
               padding: spacing["2xl"],
               gap: spacing.md,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 8 },
-              shadowOpacity: 0.35,
-              shadowRadius: 16,
-              elevation: 12,
+              ...theme.shadows.lg,
             }}
           >
             <Typography variant="h3">{options.title}</Typography>

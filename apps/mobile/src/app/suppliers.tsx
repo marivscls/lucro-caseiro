@@ -1,12 +1,5 @@
-import {
-  fontSizes,
-  iconSizes,
-  Typography,
-  useTheme,
-  spacing,
-  radii,
-} from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { fontSizes, iconSizes, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import { AppIcon } from "../shared/components/app-icon";
 import { Stack } from "expo-router";
 import React, { useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
@@ -16,13 +9,14 @@ import { CreateSupplierForm } from "../features/suppliers/components/create-supp
 import { EditSupplierForm } from "../features/suppliers/components/edit-supplier-form";
 import { SupplierDetail } from "../features/suppliers/components/supplier-detail";
 import { SupplierList } from "../features/suppliers/components/supplier-list";
+import { SupplierTable } from "../features/suppliers/components/supplier-table";
 import { useDeleteSupplier, useSupplier } from "../features/suppliers/hooks";
 import { LimitBanner } from "../features/subscription/components/limit-banner";
 import { showAlert } from "../shared/components/alert-store";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { alertError } from "../shared/utils/alerts";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
-import { ResponsiveModal } from "../shared/components/responsive-modal-surface";
+import { StandardModal } from "../shared/components/standard-modal";
 import { ScreenHeader } from "../shared/components/screen-header";
 
 export default function SuppliersScreen() {
@@ -52,6 +46,21 @@ export default function SuppliersScreen() {
       .catch(() => alertError("Não foi possível excluir o fornecedor."));
   }
 
+  function confirmDelete(id: string, name: string) {
+    showAlert({
+      title: "Excluir fornecedor",
+      message: `Tem certeza que deseja excluir ${name}?`,
+      buttons: [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: () => deleteById(id),
+        },
+      ],
+    });
+  }
+
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: theme.colors.background }}
@@ -79,7 +88,7 @@ export default function SuppliersScreen() {
               opacity: pressed ? 0.85 : 1,
             })}
           >
-            <Ionicons name="add" size={iconSizes.md} color={theme.colors.textOnPrimary} />
+            <AppIcon name="add" size={iconSizes.md} color={theme.colors.textOnPrimary} />
           </Pressable>
         }
       />
@@ -88,6 +97,7 @@ export default function SuppliersScreen() {
       <View
         style={{
           paddingHorizontal: spacing.lg,
+          paddingTop: spacing.xl,
           paddingBottom: spacing.sm,
         }}
       >
@@ -103,7 +113,7 @@ export default function SuppliersScreen() {
             gap: spacing.sm,
           }}
         >
-          <Ionicons name="search-outline" size={20} color={theme.colors.textSecondary} />
+          <AppIcon name="search-outline" size={20} color={theme.colors.textSecondary} />
           <TextInput
             value={search}
             onChangeText={setSearch}
@@ -122,11 +132,7 @@ export default function SuppliersScreen() {
               hitSlop={8}
               accessibilityLabel="Limpar busca"
             >
-              <Ionicons
-                name="close-circle"
-                size={20}
-                color={theme.colors.textSecondary}
-              />
+              <AppIcon name="close-circle" size={20} color={theme.colors.textSecondary} />
             </Pressable>
           ) : null}
         </View>
@@ -138,139 +144,78 @@ export default function SuppliersScreen() {
           onUpgrade={() => showPaywall("suppliers")}
           containerStyle={{ marginHorizontal: spacing.lg, marginTop: spacing.sm }}
         />
-        <SupplierList
-          search={search.trim() || undefined}
-          onSupplierPress={(id) => {
-            setSelectedId(id);
-            setEditing(false);
-          }}
-          onAddPress={() => setShowCreate(true)}
-        />
+        {isDesktop ? (
+          <SupplierTable
+            search={search.trim() || undefined}
+            onSupplierPress={(id) => {
+              setSelectedId(id);
+              setEditing(false);
+            }}
+            onEditPress={(supplier) => {
+              setSelectedId(supplier.id);
+              setEditing(true);
+            }}
+            onDeletePress={(supplier) => confirmDelete(supplier.id, supplier.name)}
+            onAddPress={() => setShowCreate(true)}
+          />
+        ) : (
+          <SupplierList
+            search={search.trim() || undefined}
+            onSupplierPress={(id) => {
+              setSelectedId(id);
+              setEditing(false);
+            }}
+            onAddPress={() => setShowCreate(true)}
+          />
+        )}
       </View>
 
       {/* Modal: criar */}
-      <ResponsiveModal
-        desktopMaxWidth={840}
-        visible={showCreate}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowCreate(false)}
-      >
-        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              paddingHorizontal: spacing.xl,
-              paddingTop: spacing.md,
-              paddingBottom: spacing.md,
-              gap: spacing.md,
-            }}
-          >
+      <CreateSupplierForm
+        modal={{ visible: showCreate, onClose: () => setShowCreate(false) }}
+        onSuccess={() => setShowCreate(false)}
+      />
+
+      {/* Modal: detalhe */}
+      {selectedId && !editing ? (
+        <StandardModal
+          visible
+          onClose={closeDetail}
+          title="Fornecedor"
+          right={
             <Pressable
-              onPress={() => setShowCreate(false)}
-              accessibilityLabel="Fechar"
-              hitSlop={10}
-              style={{ minHeight: 44, justifyContent: "center" }}
+              onPress={() => {
+                if (!selected) return;
+                confirmDelete(selected.id, selected.name);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Excluir fornecedor"
+              hitSlop={8}
+              style={({ pressed }) => ({
+                width: 44,
+                height: 44,
+                alignItems: "center",
+                justifyContent: "center",
+                opacity: pressed ? 0.6 : 1,
+              })}
             >
-              <Ionicons name="close" size={28} color={theme.colors.text} />
+              <AppIcon name="trash-outline" size={22} color={theme.colors.alert} />
             </Pressable>
-            <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
-              Novo fornecedor
-            </Typography>
-          </View>
-          <CreateSupplierForm onSuccess={() => setShowCreate(false)} />
-        </SafeAreaView>
-      </ResponsiveModal>
+          }
+        >
+          <SupplierDetail supplierId={selectedId} onEditPress={() => setEditing(true)} />
+        </StandardModal>
+      ) : null}
 
-      {/* Modal: detalhe / editar */}
-      <ResponsiveModal
-        desktopMaxWidth={840}
-        visible={!!selectedId}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={closeDetail}
-      >
-        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          {selectedId && !editing ? (
-            <>
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  paddingHorizontal: spacing.xl,
-                  paddingTop: spacing.md,
-                  paddingBottom: spacing.sm,
-                }}
-              >
-                <Pressable onPress={closeDetail} hitSlop={10}>
-                  <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-                    Fechar
-                  </Typography>
-                </Pressable>
-                <Pressable
-                  onPress={() => {
-                    if (!selected) return;
-                    showAlert({
-                      title: "Excluir fornecedor",
-                      message: `Tem certeza que deseja excluir ${selected.name}?`,
-                      buttons: [
-                        { text: "Cancelar", style: "cancel" },
-                        {
-                          text: "Excluir",
-                          style: "destructive",
-                          onPress: () => deleteById(selected.id),
-                        },
-                      ],
-                    });
-                  }}
-                  hitSlop={10}
-                >
-                  <Ionicons name="trash-outline" size={22} color={theme.colors.alert} />
-                </Pressable>
-              </View>
-              <SupplierDetail
-                supplierId={selectedId}
-                onEditPress={() => setEditing(true)}
-              />
-            </>
-          ) : null}
-
-          {selectedId && editing && selected ? (
-            <>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  paddingHorizontal: spacing.xl,
-                  paddingTop: spacing.md,
-                  paddingBottom: spacing.sm,
-                  gap: spacing.md,
-                }}
-              >
-                <Pressable
-                  onPress={() => setEditing(false)}
-                  accessibilityLabel="Voltar"
-                  hitSlop={10}
-                  style={{ minHeight: 44, justifyContent: "center" }}
-                >
-                  <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
-                </Pressable>
-                <Typography
-                  variant="h1"
-                  color={theme.colors.text}
-                  numberOfLines={1}
-                  style={{ flex: 1, fontSize: fontSizes.xl }}
-                >
-                  Editar fornecedor
-                </Typography>
-              </View>
-              <EditSupplierForm supplier={selected} onSuccess={() => setEditing(false)} />
-            </>
-          ) : null}
-        </SafeAreaView>
-      </ResponsiveModal>
+      {/* Modal: editar */}
+      {editing && selected ? (
+        <EditSupplierForm
+          supplier={selected}
+          visible={!!selectedId && editing}
+          onClose={() => setEditing(false)}
+          onSuccess={() => setEditing(false)}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }

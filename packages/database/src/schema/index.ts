@@ -19,3 +19,4 @@ export * from "./purchases";
 export * from "./recurring-expenses";
 export * from "./analytics";
 export * from "./marketing";
+export * from "./retail";

@@ -8,7 +8,7 @@ Registrar compras de fornecedores como **contas a pagar** e **saídas do caixa**
 
 ## Non-goals
 
-- Não registra itens de linha (material + qtd + preço) nem dá baixa/entrada de estoque (evolução futura).
+- Não implementa pedido de compra, recebimento parcial ou múltiplos depósitos.
 - Não gerencia o cadastro de fornecedores (feature `suppliers`).
 - Não calcula precificação (feature `pricing`).
 - Sem limite freemium de contagem (não gating de volume nesta fase) — mas a feature em si é
@@ -16,14 +16,14 @@ Registrar compras de fornecedores como **contas a pagar** e **saídas do caixa**
 
 ## Boundaries & Ownership
 
-- **Depende de**: `@lucro-caseiro/contracts` (CreatePurchaseDto, Purchase, PaginationDto), `@lucro-caseiro/database/schema` (purchases, suppliers via FK, finance_entries via FK), `Finance` via porta `IFinancePoster` (injetada — `FinanceUseCases.createFromPurchase`).
+- **Depende de**: `@lucro-caseiro/contracts` (CreatePurchaseDto, UpdatePurchaseDto, Purchase, PaginationDto), `@lucro-caseiro/database/schema` (purchases, suppliers via FK, finance_entries via FK), `Finance` via porta `IFinancePoster` (injetada — criação/atualização do lançamento da compra).
 - **Dependentes**: nenhum.
-- **Cross-feature**: usa `IFinancePoster` (implementado por `FinanceUseCases`) para postar a despesa ao pagar.
+- **Cross-feature**: usa `IFinancePoster` para postar a despesa e `IProductsRepo` para receber/reverter estoque de produtos e variações.
 
 ## Code pointers
 
 - `apps/api/src/features/purchases/purchases.routes.ts` — rotas Express
-- `apps/api/src/features/purchases/purchases.usecases.ts` — lógica (create, pay idempotente, list, remove)
+- `apps/api/src/features/purchases/purchases.usecases.ts` — lógica (create, update, pay idempotente, list, remove)
 - `apps/api/src/features/purchases/purchases.domain.ts` — validação + `todayIso`
 - `apps/api/src/features/purchases/purchases.repo.pg.ts` — persistência Drizzle/Postgres
 - `apps/api/src/features/purchases/purchases.types.ts` — interfaces (inclui `IFinancePoster`)
@@ -48,12 +48,22 @@ Registrar compras de fornecedores como **contas a pagar** e **saídas do caixa**
 | financeEntryId | uuid      | nullable, FK finance_entries ON DELETE SET NULL |
 | createdAt      | timestamp | default now()                                   |
 
+### Tabela: `purchase_items`
+
+Guarda `purchaseId`, `productId`, snapshots de nome/variação, `quantity`,
+`unitCost` e `subtotal`. Foi adicionada pela migration `039_purchase_items.sql`.
+
 ## Invariants
 
 - `description` obrigatória (trim > 0), máx 500.
-- `amount` > 0.
+- `amount` > 0 quando não há itens; com itens, o total é derivado de `quantity * unitCost`.
+- Receber itens incrementa estoque do produto/variação e atualiza o último custo direto.
+- Excluir compra com itens reverte o estoque; a operação é negada se isso o deixaria negativo.
+- Editar itens ajusta apenas a diferença de estoque por produto/variação; reduções que deixariam
+  estoque negativo são recusadas.
 - `purchasedAt` é uma data válida (YYYY-MM-DD); `dueDate` válida quando presente.
 - `pending` NÃO gera lançamento em finance; `paid` gera exatamente UM (idempotente via `financeEntryId`).
+- Editar uma compra `paid` atualiza o lançamento financeiro vinculado; sem vínculo, a edição é recusada.
 - A saída no caixa (lançamento de despesa) usa a data do pagamento (`paidAt`), não a da compra.
 - Toda query escopada por `userId`.
 
@@ -77,6 +87,10 @@ api:
     - method: GET
       path: /:id
       response: Purchase
+    - method: PATCH
+      path: /:id
+      dto: UpdatePurchaseDto
+      response: Purchase
     - method: POST
       path: /:id/pay
       response: Purchase   # marca paga + cria a saída no caixa (idempotente)
@@ -84,7 +98,7 @@ api:
       path: /:id
       response: 204
 db:
-  tables: [purchases]
+  tables: [purchases, purchase_items]
   indexes:
     - (userId)
     - (userId, paymentStatus)
@@ -99,16 +113,17 @@ invariants:
 ## Authorization & RLS
 
 - Todas as rotas protegidas por `authMiddleware`; `userId` via `getUserId(req)`. Isolamento por `userId`.
-- `POST /` passa por `requireFeature(subscriptionRepo, "purchases")` (`apps/api/src/shared/middleware/require-feature.ts`)
-  — registrar compra de fornecedor é feature `purchases`, exclusiva do plano Profissional
+- `POST /` e `PATCH /:id` passam por `requireFeature(subscriptionRepo, "purchases")` (`apps/api/src/shared/middleware/require-feature.ts`)
+  — registrar/editar compra de fornecedor é feature `purchases`, exclusiva do plano Profissional
   (`PLAN_FEATURES.professional`). Free/Essencial recebem `LimitExceededError` (403 / `LIMIT_EXCEEDED`),
   o mesmo fluxo que o mobile trata abrindo o paywall. Demais rotas (list/get/pay/delete) seguem sem
   gate — dados já existentes continuam acessíveis mesmo se o plano cair.
 
 ## Contracts (Zod/DTO)
 
-- **CreatePurchaseDto**: `{ supplierId?, description, amount, category?, paymentStatus?, purchasedAt, dueDate? }`
-- **Purchase**: `{ id, userId, supplierId, description, amount, category, paymentStatus, purchasedAt, dueDate, paidAt, financeEntryId, createdAt }`
+- **CreatePurchaseDto**: `{ supplierId?, description, amount?, items?, category?, paymentStatus?, purchasedAt, dueDate? }`
+- **UpdatePurchaseDto**: versão parcial dos campos editáveis; não altera o status de pagamento.
+- **Purchase**: inclui os campos anteriores e `items[]` com produto, variação, quantidade, custo e subtotal.
 - **PurchasePaymentStatus**: `"pending" | "paid"`
 
 ## Errors
@@ -122,6 +137,8 @@ invariants:
 
 - `pay` (e `create` com `paymentStatus=paid`) cria um lançamento de despesa em `finance`
   (`FinanceUseCases.createFromPurchase`: type `expense`, categoria da compra) e guarda o id.
+- `update` sincroniza compras pagas via `FinanceUseCases.updateFromPurchase` e reconcilia deltas
+  de estoque quando `items` muda.
 
 ## Performance
 
@@ -143,6 +160,7 @@ invariants:
 - create pending (não posta no caixa); create paid (posta 1x, seta financeEntryId)
 - create inválido → ValidationError
 - pay: posta + marca paga; idempotente quando já paga (não posta de novo); NotFound
+- update: campos editáveis, sincronização do caixa, delta de estoque e bloqueio de estoque insuficiente
 - getById/list/remove + NotFound
 
 ## Examples
@@ -166,3 +184,9 @@ POST /api/v1/purchases/pur-1/pay
 "purchases")` (antes não tinha nenhum gate no backend, só no mobile). Mobile (`purchases.tsx`) já
   tinha o mesmo gap; ganhou tela de apresentação (badge "Recurso Profissional" + benefícios + CTA
   `showPaywall("purchases")`) igual ao padrão de `recurring-expenses.tsx`.
+- 2026-07-19: **recebimento de mercadoria da Papelaria** — compras aceitam itens de produto/variação,
+  calculam o total, repõem estoque e atualizam o custo. O payload com itens exige a capacidade
+  de marca `comprasComEstoque`; compras antigas e despesas sem itens continuam compatíveis.
+- 2026-07-19: **edição consistente** — `PATCH /:id` atualiza dados da compra em transação,
+  sincroniza o lançamento financeiro de compras pagas e aplica somente o delta de estoque por
+  produto/variação, com compensação em caso de falha.

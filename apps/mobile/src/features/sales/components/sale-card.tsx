@@ -1,6 +1,6 @@
-﻿import type { Sale } from "@lucro-caseiro/contracts";
+import type { Sale } from "@lucro-caseiro/contracts";
 import { PressableScale, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
 import React from "react";
 import { Image, View } from "react-native";
 
@@ -26,12 +26,12 @@ function getStatusColors(
   theme: ReturnType<typeof useTheme>["theme"],
 ) {
   if (color === "success") {
-    return { text: theme.colors.success, bg: "rgba(107, 191, 150, 0.22)" };
+    return { text: theme.colors.success, bg: theme.colors.successBg };
   }
   if (color === "warning") {
-    return { text: theme.colors.yellow, bg: "rgba(232, 197, 85, 0.2)" };
+    return { text: theme.colors.yellow, bg: theme.colors.yellowBg };
   }
-  return { text: theme.colors.alert, bg: "rgba(224, 114, 114, 0.2)" };
+  return { text: theme.colors.alert, bg: theme.colors.alertBg };
 }
 
 export function SaleCard({ sale, onPress }: SaleCardProps) {
@@ -64,8 +64,7 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
         minHeight: 96,
         borderRadius: radii.xl,
         padding: spacing.md,
-        backgroundColor:
-          theme.mode === "dark" ? "rgba(44, 36, 32, 0.84)" : theme.colors.surfaceElevated,
+        backgroundColor: theme.colors.surfaceElevated,
         borderWidth: 1,
         borderColor: theme.colors.border,
       }}
@@ -75,16 +74,12 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
           style={{
             width: 62,
             height: 62,
-            borderRadius: 18,
-            backgroundColor:
-              theme.mode === "dark" ? "rgba(255, 255, 255, 0.08)" : theme.colors.surface,
+            borderRadius: radii.xl,
+            backgroundColor: theme.colors.surface,
             alignItems: "center",
             justifyContent: "center",
             borderWidth: 1,
-            borderColor:
-              theme.mode === "dark"
-                ? "rgba(245, 225, 219, 0.1)"
-                : "rgba(74, 50, 40, 0.06)",
+            borderColor: theme.colors.border,
             overflow: "hidden",
           }}
         >
@@ -134,7 +129,7 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
           </View>
         </View>
 
-        <Ionicons name="chevron-forward" size={24} color={theme.colors.textSecondary} />
+        <AppIcon name="chevron-forward" size={24} color={theme.colors.textSecondary} />
       </View>
     </PressableScale>
   );

@@ -43,6 +43,7 @@ const ProductBaseDto = z.object({
   // Código/SKU/código de barras (opcional) para buscar/escanear o produto.
   code: z.string().max(100).optional(),
   salePrice: z.number().positive().max(MAX_MONEY),
+  costPrice: z.number().min(0).max(MAX_MONEY).optional(),
   saleUnit: SaleUnit.optional(),
   recipeId: z.string().uuid().optional(),
   stockQuantity: z.number().int().min(0).max(MAX_QUANTITY).optional(),

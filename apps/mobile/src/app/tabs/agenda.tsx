@@ -12,13 +12,15 @@ import {
   radii,
   spacing,
 } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../shared/components/app-icon";
+import type { AppIconName } from "../../shared/components/app-icon";
 import { Redirect, Stack } from "expo-router";
 import React, { useMemo, useState } from "react";
-import { ActivityIndicator, Image, Pressable, ScrollView, View } from "react-native";
+import { Image, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import agendaEmpty from "../../assets/agenda-empty.png";
+import { SkeletonList } from "../../shared/components/skeleton";
 import { useClient } from "../../features/clients/hooks";
 import { OrderCard } from "../../features/orders/components/order-card";
 import { OrderForm } from "../../features/orders/components/order-form";
@@ -38,11 +40,9 @@ import {
 import { openWhatsApp, waMessages } from "../../shared/utils/whatsapp";
 import { showAlert } from "../../shared/components/alert-store";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
-import {
-  ResponsiveModalSurface,
-  ResponsiveOverlayModal,
-} from "../../shared/components/responsive-modal-surface";
-import { desktopAction, desktopContained } from "../../shared/layout/desktop-density";
+import { ResponsiveOverlayModal } from "../../shared/components/responsive-modal-surface";
+import { StandardModal } from "../../shared/components/standard-modal";
+import { desktopAction } from "../../shared/layout/desktop-density";
 
 const PIPELINE: OrderStatus[] = ["pending", "in_production", "ready"];
 // Paleta da agenda derivada do tema ativo (antes eram constantes fixas de dark,
@@ -59,10 +59,7 @@ function agendaPalette(theme: ReturnType<typeof useTheme>["theme"]) {
 }
 
 type GroupTone = "alert" | "success" | "default";
-const GROUP_META: Record<
-  string,
-  { icon: keyof typeof Ionicons.glyphMap; tone: GroupTone }
-> = {
+const GROUP_META: Record<string, { icon: AppIconName; tone: GroupTone }> = {
   overdue: { icon: "alarm", tone: "alert" },
   today: { icon: "today-outline", tone: "default" },
   tomorrow: { icon: "sunny-outline", tone: "default" },
@@ -248,7 +245,7 @@ function ModernOrderDetail({
   const isFinished = order.status === "done" || order.status === "cancelled";
   const statusMeta: Record<
     OrderStatus,
-    { icon: keyof typeof Ionicons.glyphMap; color: string; bg: string }
+    { icon: AppIconName; color: string; bg: string }
   > = {
     pending: {
       icon: "time-outline",
@@ -335,7 +332,7 @@ function ModernOrderDetail({
     subtitle,
     onPress,
   }: Readonly<{
-    icon: keyof typeof Ionicons.glyphMap;
+    icon: AppIconName;
     title: string;
     subtitle: string;
     onPress: () => void;
@@ -357,7 +354,7 @@ function ModernOrderDetail({
           opacity: pressed ? 0.85 : 1,
         })}
       >
-        <Ionicons name={icon} size={26} color={agColors.muted} />
+        <AppIcon name={icon} size={26} color={agColors.muted} />
         <View style={{ flex: 1, gap: 2 }}>
           <Typography
             variant="bodyBold"
@@ -389,7 +386,7 @@ function ModernOrderDetail({
     onPress,
     danger,
   }: Readonly<{
-    icon: keyof typeof Ionicons.glyphMap;
+    icon: AppIconName;
     title: string;
     subtitle: string;
     onPress?: () => void;
@@ -423,7 +420,7 @@ function ModernOrderDetail({
             justifyContent: "center",
           }}
         >
-          <Ionicons name={icon} size={25} color={iconColor} />
+          <AppIcon name={icon} size={25} color={iconColor} />
         </View>
         <View style={{ flex: 1, gap: 2 }}>
           <Typography
@@ -442,30 +439,20 @@ function ModernOrderDetail({
           </Typography>
         </View>
         {onPress ? (
-          <Ionicons name="chevron-forward" size={24} color={agColors.muted} />
+          <AppIcon name="chevron-forward" size={24} color={agColors.muted} />
         ) : null}
       </Pressable>
     );
   }
 
   return (
-    <ScrollView
-      contentContainerStyle={[
-        {
-          padding: spacing.xl,
-          paddingTop: 0,
-          paddingBottom: spacing["2xl"],
-          gap: spacing.lg,
-        },
-        desktopContained(isDesktop),
-      ]}
-    >
+    <View style={{ flexShrink: 1, gap: spacing.lg }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.lg }}>
         <View
           style={{
             width: 96,
             height: 96,
-            borderRadius: 22,
+            borderRadius: radii["2xl"],
             backgroundColor: agColors.subtleFill,
             borderWidth: 1,
             borderColor: agColors.border,
@@ -477,7 +464,7 @@ function ModernOrderDetail({
           {order.photoUrl ? (
             <Image source={{ uri: order.photoUrl }} style={{ width: 96, height: 96 }} />
           ) : (
-            <Ionicons name="cube-outline" size={52} color={agColors.muted} />
+            <AppIcon name="cube-outline" size={52} color={agColors.muted} />
           )}
         </View>
         <View style={{ flex: 1, gap: spacing.sm }}>
@@ -493,7 +480,7 @@ function ModernOrderDetail({
           </Typography>
           {order.clientName ? (
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-              <Ionicons name="person-outline" size={20} color={agColors.muted} />
+              <AppIcon name="person-outline" size={20} color={agColors.muted} />
               <Typography
                 variant="bodyBold"
                 color={agColors.muted}
@@ -537,7 +524,7 @@ function ModernOrderDetail({
                 justifyContent: "center",
               }}
             >
-              <Ionicons name="calendar-outline" size={22} color={agColors.muted} />
+              <AppIcon name="calendar-outline" size={22} color={agColors.muted} />
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Typography
@@ -571,7 +558,7 @@ function ModernOrderDetail({
                 justifyContent: "center",
               }}
             >
-              <Ionicons name="cash-outline" size={22} color={theme.colors.success} />
+              <AppIcon name="cash-outline" size={22} color={theme.colors.success} />
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Typography
@@ -608,7 +595,7 @@ function ModernOrderDetail({
             style={{
               width: 76,
               height: 76,
-              borderRadius: 38,
+              borderRadius: radii.full,
               borderWidth: 3,
               borderColor: statusVisual.color,
               alignItems: "center",
@@ -616,7 +603,7 @@ function ModernOrderDetail({
               backgroundColor: statusVisual.bg,
             }}
           >
-            <Ionicons name={statusVisual.icon} size={44} color={statusVisual.color} />
+            <AppIcon name={statusVisual.icon} size={44} color={statusVisual.color} />
           </View>
           <View
             style={{
@@ -649,7 +636,7 @@ function ModernOrderDetail({
             padding: spacing.md,
           }}
         >
-          <Ionicons name="wallet-outline" size={20} color={theme.colors.success} />
+          <AppIcon name="wallet-outline" size={20} color={theme.colors.success} />
           <Typography variant="bodyBold" color={theme.colors.success} style={{ flex: 1 }}>
             Sinal: {formatMoney(order.deposit)}
           </Typography>
@@ -662,7 +649,7 @@ function ModernOrderDetail({
       {(order.theme || order.honoree || order.colors) && (
         <View style={{ gap: spacing.sm }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-            <Ionicons name="sparkles-outline" size={20} color={agColors.muted} />
+            <AppIcon name="sparkles-outline" size={20} color={agColors.muted} />
             <Typography
               variant="h3"
               color={agColors.muted}
@@ -680,7 +667,7 @@ function ModernOrderDetail({
       {client?.phone ? (
         <View style={{ gap: spacing.md }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-            <Ionicons name="logo-whatsapp" size={24} color={theme.colors.success} />
+            <AppIcon name="logo-whatsapp" size={24} color={theme.colors.success} />
             <Typography
               variant="h3"
               color={agColors.muted}
@@ -778,7 +765,7 @@ function ModernOrderDetail({
         title="Observações"
         subtitle={order.notes || "Nenhuma observação adicionada."}
       />
-    </ScrollView>
+    </View>
   );
 }
 
@@ -798,7 +785,7 @@ function OrdersSummaryHeader({
   return (
     <View
       style={{
-        borderRadius: 26,
+        borderRadius: radii["2xl"],
         backgroundColor: agColors.surface,
         borderWidth: 1,
         borderColor: agColors.border,
@@ -811,7 +798,7 @@ function OrdersSummaryHeader({
       >
         <View style={{ flex: 1, gap: spacing.sm }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-            <Ionicons name="analytics-outline" size={20} color={agColors.muted} />
+            <AppIcon name="analytics-outline" size={20} color={agColors.muted} />
             <Typography
               variant="bodyBold"
               color={theme.colors.text}
@@ -851,7 +838,7 @@ function OrdersSummaryHeader({
           <Typography variant="bodyBold" color={theme.colors.text} numberOfLines={1}>
             {filterLabel}
           </Typography>
-          <Ionicons name="chevron-down" size={18} color={agColors.muted} />
+          <AppIcon name="chevron-down" size={18} color={agColors.muted} />
         </Pressable>
       </View>
       <View
@@ -888,17 +875,13 @@ function OrdersSummaryHeader({
               style={{
                 width: 34,
                 height: 34,
-                borderRadius: 11,
+                borderRadius: radii.md,
                 backgroundColor: agColors.subtleFill,
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Ionicons
-                name={icon as keyof typeof Ionicons.glyphMap}
-                size={18}
-                color={color as string}
-              />
+              <AppIcon name={icon as AppIconName} size={18} color={color as string} />
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Typography
@@ -979,7 +962,7 @@ function OrdersList({
               <View
                 style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
               >
-                <Ionicons name={meta.icon} size={22} color={c} />
+                <AppIcon name={meta.icon} size={22} color={c} />
                 <Typography variant="h3" color={c} style={{ fontSize: fontSizes.xl }}>
                   {group.title}
                 </Typography>
@@ -1012,11 +995,7 @@ function OrdersList({
           backgroundColor: theme.colors.primaryBg,
         }}
       >
-        <Ionicons
-          name="add-circle-outline"
-          size={24}
-          color={theme.colors.primaryStrong}
-        />
+        <AppIcon name="add-circle-outline" size={24} color={theme.colors.primaryStrong} />
         <Typography
           variant="bodyBold"
           color={theme.colors.primaryStrong}
@@ -1039,7 +1018,7 @@ function OrdersList({
             gap: spacing.md,
           }}
         >
-          <Ionicons name="calendar" size={26} color={agColors.muted} />
+          <AppIcon name="calendar" size={26} color={agColors.muted} />
           <View style={{ flex: 1, gap: 2 }}>
             <Typography variant="bodyBold" color={theme.colors.text}>
               Dica do dia
@@ -1052,8 +1031,12 @@ function OrdersList({
               Mantenha sua agenda em dia para não perder nenhum pedido!
             </Typography>
           </View>
-          <Pressable onPress={() => setShowTip(false)} hitSlop={10}>
-            <Ionicons name="close" size={22} color={agColors.muted} />
+          <Pressable
+            onPress={() => setShowTip(false)}
+            accessibilityLabel="Fechar dica"
+            hitSlop={10}
+          >
+            <AppIcon name="close" size={22} color={agColors.muted} />
           </Pressable>
         </View>
       ) : null}
@@ -1126,13 +1109,13 @@ function DayFilterModal({
             }}
           >
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-              <Ionicons name="calendar-outline" size={24} color={agColors.muted} />
+              <AppIcon name="calendar-outline" size={24} color={agColors.muted} />
               <Typography variant="h3" color={theme.colors.text}>
                 Filtrar por dia
               </Typography>
             </View>
-            <Pressable onPress={onClose} hitSlop={10}>
-              <Ionicons name="close" size={24} color={agColors.muted} />
+            <Pressable onPress={onClose} accessibilityLabel="Fechar" hitSlop={10}>
+              <AppIcon name="close" size={24} color={agColors.muted} />
             </Pressable>
           </View>
 
@@ -1205,7 +1188,6 @@ function DayFilterModal({
 function AgendaContent() {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
-  const agColors = agendaPalette(theme);
   const insets = useSafeAreaInsets();
   const { data: orders, isLoading, error } = useOrders();
   const [showCreate, setShowCreate] = useState(false);
@@ -1228,8 +1210,8 @@ function AgendaContent() {
   function renderContent() {
     if (isLoading) {
       return (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
+        <View style={{ flex: 1, padding: spacing.xl }}>
+          <SkeletonList rows={6} />
         </View>
       );
     }
@@ -1272,28 +1254,6 @@ function AgendaContent() {
     );
   }
 
-  function renderDetail() {
-    if (!selected) return null;
-    if (editing) {
-      return (
-        <OrderForm
-          order={selected}
-          onSuccess={() => {
-            setEditing(false);
-            setSelectedId(null);
-          }}
-        />
-      );
-    }
-    return (
-      <ModernOrderDetail
-        order={selected}
-        onClose={() => setSelectedId(null)}
-        onEdit={() => setEditing(true)}
-      />
-    );
-  }
-
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: theme.colors.background }}
@@ -1325,47 +1285,11 @@ function AgendaContent() {
       {renderContent()}
 
       {/* Criar */}
-      <ResponsiveOverlayModal
+      <OrderForm
         visible={showCreate}
-        animationType="slide"
-        presentationStyle="fullScreen"
-        onRequestClose={() => setShowCreate(false)}
-      >
-        <ResponsiveModalSurface maxWidth={1120}>
-          <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                paddingHorizontal: spacing.xl,
-                paddingVertical: spacing.lg,
-              }}
-            >
-              <Pressable
-                onPress={() => setShowCreate(false)}
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 22,
-                  borderWidth: 1,
-                  borderColor: agColors.border,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Ionicons name="arrow-back" size={25} color={theme.colors.text} />
-              </Pressable>
-              <Pressable onPress={() => setShowCreate(false)}>
-                <Typography variant="bodyBold" color={theme.colors.primary}>
-                  Fechar
-                </Typography>
-              </Pressable>
-            </View>
-            <OrderForm onSuccess={() => setShowCreate(false)} />
-          </SafeAreaView>
-        </ResponsiveModalSurface>
-      </ResponsiveOverlayModal>
+        onClose={() => setShowCreate(false)}
+        onSuccess={() => setShowCreate(false)}
+      />
 
       <DayFilterModal
         visible={showDayFilter}
@@ -1375,77 +1299,36 @@ function AgendaContent() {
         onClose={() => setShowDayFilter(false)}
       />
 
-      {/* Detalhe / edição */}
-      <ResponsiveOverlayModal
-        visible={!!selected}
-        animationType="slide"
-        presentationStyle="fullScreen"
-        onRequestClose={() => setSelectedId(null)}
-      >
-        <ResponsiveModalSurface maxWidth={1120}>
-          <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                paddingHorizontal: spacing.xl,
-                paddingVertical: spacing.lg,
-              }}
-            >
-              <Pressable
-                onPress={() => {
-                  setSelectedId(null);
-                  setEditing(false);
-                }}
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 22,
-                  borderWidth: 1,
-                  borderColor: agColors.border,
-                  backgroundColor: agColors.subtleFill,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Ionicons name="arrow-back" size={25} color={theme.colors.text} />
-              </Pressable>
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
-              >
-                <Pressable
-                  onPress={() => {
-                    setSelectedId(null);
-                    setEditing(false);
-                  }}
-                >
-                  <Typography variant="bodyBold" color={theme.colors.primary}>
-                    Fechar
-                  </Typography>
-                </Pressable>
-                <Pressable
-                  onPress={() => {
-                    setSelectedId(null);
-                    setEditing(false);
-                  }}
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 18,
-                    backgroundColor: agColors.subtleFillStrong,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Ionicons name="close" size={22} color={agColors.muted} />
-                </Pressable>
-              </View>
-            </View>
-            {renderDetail()}
-          </SafeAreaView>
-        </ResponsiveModalSurface>
-      </ResponsiveOverlayModal>
+      {/* Detalhe */}
+      {selected && !editing ? (
+        <StandardModal
+          visible
+          onClose={() => {
+            setSelectedId(null);
+            setEditing(false);
+          }}
+          title="Encomenda"
+        >
+          <ModernOrderDetail
+            order={selected}
+            onClose={() => setSelectedId(null)}
+            onEdit={() => setEditing(true)}
+          />
+        </StandardModal>
+      ) : null}
+
+      {/* Edição */}
+      {selected && editing ? (
+        <OrderForm
+          order={selected}
+          visible
+          onClose={() => setEditing(false)}
+          onSuccess={() => {
+            setEditing(false);
+            setSelectedId(null);
+          }}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }

@@ -4,6 +4,7 @@ import type {
   UpdateCatalogSettings,
 } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
+import { DEFAULT_BRAND_ID } from "@lucro-caseiro/brands";
 
 import { LimitExceededError, NotFoundError, ValidationError } from "../../shared/errors";
 import { isValidSlug, slugify } from "./catalog.domain";
@@ -24,9 +25,15 @@ export class CatalogUseCases {
   constructor(private repo: ICatalogRepo) {}
 
   /** Retorna as configuracoes do catalogo, criando defaults na primeira vez. */
-  async getSettings(userId: string): Promise<CatalogSettings> {
+  async getSettings(
+    userId: string,
+    brandId = DEFAULT_BRAND_ID,
+  ): Promise<CatalogSettings> {
     const existing = await this.repo.findByUser(userId);
-    if (existing) return existing;
+    if (existing) {
+      if (existing.brandId === brandId) return existing;
+      return this.repo.upsert(userId, { ...existing, brandId });
+    }
 
     const owner = await this.repo.getOwnerDefaults(userId);
     if (!owner) throw new NotFoundError("Usuário não encontrado");
@@ -40,6 +47,7 @@ export class CatalogUseCases {
     }
 
     return this.repo.upsert(userId, {
+      brandId,
       slug,
       enabled: false,
       whatsapp: owner.phone,
@@ -55,8 +63,9 @@ export class CatalogUseCases {
   async updateSettings(
     userId: string,
     data: UpdateCatalogSettings,
+    brandId = DEFAULT_BRAND_ID,
   ): Promise<CatalogSettings> {
-    const current = await this.getSettings(userId);
+    const current = await this.getSettings(userId, brandId);
     const slug = data.slug ?? current.slug;
 
     if (!isValidSlug(slug)) {
@@ -82,6 +91,7 @@ export class CatalogUseCases {
     }
 
     return this.repo.upsert(userId, {
+      brandId,
       slug,
       enabled: data.enabled ?? current.enabled,
       whatsapp: data.whatsapp === undefined ? current.whatsapp : data.whatsapp,
@@ -126,6 +136,7 @@ export class CatalogUseCases {
       }
     }
     return {
+      brandId: owner.brandId,
       businessName: owner.businessName,
       whatsapp: owner.whatsapp ?? owner.phone,
       coverUrl: isPremium ? owner.coverUrl : null,
@@ -137,5 +148,15 @@ export class CatalogUseCases {
       products,
       totalProducts: allProducts.length,
     };
+  }
+
+  async resolvePublicRetailOwner(
+    slug: string,
+  ): Promise<{ userId: string; brandId: string }> {
+    const owner = await this.repo.findOwnerBySlug(slug);
+    if (!owner || !owner.enabled || owner.brandId !== "lucro-papelaria") {
+      throw new NotFoundError("Catálogo não encontrado");
+    }
+    return { userId: owner.userId, brandId: owner.brandId };
   }
 }

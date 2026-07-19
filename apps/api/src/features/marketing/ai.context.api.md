@@ -58,7 +58,10 @@ campanhas e resultados sem expor esses dados às usuárias do app comercial.
 - Conversas em `/ai/sessions` e `POST /ai/chat`; feedback em `/ai/feedback`.
 - Rascunhos em `POST /ai/resources/draft`; banco ranqueado em `POST /ai/content/ideas`.
 - Campanhas guiadas em `POST /ai/campaigns/strategy` e `POST /ai/campaigns/copies`: o plano
-  editável precisa de aprovação explícita antes do handoff para o copywriter.
+  editável reúne pesquisa, mecanismos, saturação, Big Idea e produção; precisa de aprovação
+  explícita antes do handoff para o copywriter. O pacote final inclui gancho, aterrissagem,
+  retenção, produção, evidência e autorrevisão estruturada. Público e oferta podem ficar vazios:
+  nesse caso, o estrategista deriva o melhor recorte sustentado pelo contexto confirmado da Central.
 - Governança em `/ai/training`: instruções, conhecimento, exemplos, avaliações e settings.
 
 ## Authorization & RLS
@@ -77,7 +80,8 @@ campanhas e resultados sem expor esses dados às usuárias do app comercial.
   o briefing aplicável de cada sugestão.
 - `MarketingCampaignBriefInputSchema`, `MarketingCampaignPlanSchema` e
   `MarketingCampaignCopiesInputSchema` validam briefing, plano aprovado e pacote criativo. Cada
-  geração devolve mensagem auditável e telemetria de prompt/versão/modelo/parse.
+  geração devolve mensagem auditável e telemetria de prompt/versão/modelo/parse. Contratos antigos
+  continuam válidos por defaults seguros nos novos campos estratégicos.
 - `MarketingLearningPolicySchema` mantém A/B ligadas, C desligada, amostra e score limitados.
 
 ## Errors
@@ -110,6 +114,8 @@ campanhas e resultados sem expor esses dados às usuárias do app comercial.
 - Seed contém 28 peças únicas em quatro semanas.
 - Instrução mantém regras contra invenção e alterações protegidas.
 - Banco de ideias remove sugestões que repetem título, gancho, CTA ou emoção principal.
+- Campanhas antigas continuam parseáveis e pacotes novos carregam autorrevisão de congruência,
+  especificidade, novidade, segurança das evidências e concisão.
 - Score de avaliação compara termos relevantes do esperado com a resposta.
 - Suíte completa da API e builds web/API são gates de entrega.
 
@@ -130,3 +136,6 @@ campanhas e resultados sem expor esses dados às usuárias do app comercial.
 - 2026-07-18: `interview` entrou como recurso operacional. O seed cria dez fichas de entrevista
   por segmento e uma campanha-piloto de mídia bloqueada por readiness, otimizada por negócio
   ativado em vez de clique ou instalação.
+- 2026-07-18: campanhas passaram a estruturar pesquisa, mecanismos, saturação, Big Idea, produção,
+  gancho, aterrissagem e retenção; a autorrevisão bloqueia aprovação quando ainda existe lacuna
+  impeditiva de prova ou congruência.

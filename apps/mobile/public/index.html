@@ -63,7 +63,7 @@
     <script>
       window.addEventListener("load", function () {
         var isDevelopment = Array.from(document.scripts).some(function (script) {
-          return script.src.includes("dev=true");
+          return script.src.includes("dev=true") || script.src.includes("entry.bundle");
         });
 
         if ("serviceWorker" in navigator && !isDevelopment) {

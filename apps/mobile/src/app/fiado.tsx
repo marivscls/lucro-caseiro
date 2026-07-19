@@ -1,5 +1,7 @@
 import type { Sale } from "@lucro-caseiro/contracts";
 import {
+  EmptyState,
+  fontSizes,
   iconSizes,
   Typography,
   fonts,
@@ -8,18 +10,11 @@ import {
   useTheme,
   type Theme,
 } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../shared/components/app-icon";
+import type { AppIconName } from "../shared/components/app-icon";
 import { Stack, useRouter } from "expo-router";
 import React from "react";
-import {
-  ActivityIndicator,
-  Image,
-  Linking,
-  Pressable,
-  ScrollView,
-  TextInput,
-  View,
-} from "react-native";
+import { Image, Linking, Pressable, ScrollView, TextInput, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useClients } from "../features/clients/hooks";
@@ -27,6 +22,7 @@ import { useSales, useUpdateSaleStatus } from "../features/sales/hooks";
 import { buildChargeMessage, groupFiados, totalOwed } from "../features/sales/fiado";
 import type { FiadoGroup } from "../features/sales/fiado";
 import { showAlert } from "../shared/components/alert-store";
+import { SkeletonList } from "../shared/components/skeleton";
 import { showToast } from "../shared/components/toast";
 import { alertError } from "../shared/utils/alerts";
 import { formatCurrency } from "../shared/utils/format";
@@ -49,25 +45,24 @@ const FILTER_OPTIONS: Array<{ key: FiadoFilter; label: string }> = [
 
 /** Paleta do Fiado derivada do tema (antes eram cores fixas de dark). */
 function fiadoPalette(theme: Theme) {
-  const isDark = theme.mode === "dark";
   const c = theme.colors;
   return {
     screenBg: c.background,
-    cardBg: isDark ? "rgba(47, 42, 35, 0.72)" : c.surfaceElevated,
+    cardBg: c.surfaceElevated,
     cardBorder: theme.colors.border,
     innerBorder: theme.colors.border,
     divider: theme.colors.border,
     text: c.text,
     textSecondary: c.textSecondary,
-    subtleFill: isDark ? "rgba(255, 255, 255, 0.06)" : "rgba(74, 50, 40, 0.05)",
-    dateChipBg: isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(74, 50, 40, 0.05)",
-    handle: isDark ? "rgba(245, 225, 219, 0.25)" : "rgba(74, 50, 40, 0.2)",
+    subtleFill: c.surface,
+    dateChipBg: c.surface,
+    handle: c.border,
     received: c.success,
     receivedBg: c.successBg,
     amountChipBg: c.yellowBg,
     amountChipFg: c.yellow,
     sheetBg: c.surfaceElevated,
-    totalCardBg: isDark ? "rgba(47, 42, 35, 0.72)" : c.surfaceElevated,
+    totalCardBg: c.surfaceElevated,
   };
 }
 
@@ -152,7 +147,7 @@ function OpenSaleRow({
           opacity: pressed ? 0.7 : 1,
         })}
       >
-        <Ionicons name="checkmark-circle" size={20} color={pal.received} />
+        <AppIcon name="checkmark-circle" size={20} color={pal.received} />
         <Typography variant="bodyBold" color={pal.received}>
           Recebi
         </Typography>
@@ -167,7 +162,7 @@ function ActionSheetRow({
   color,
   onPress,
 }: Readonly<{
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
   label: string;
   color?: string;
   onPress: () => void;
@@ -190,7 +185,7 @@ function ActionSheetRow({
         backgroundColor: pressed ? pal.subtleFill : "transparent",
       })}
     >
-      <Ionicons name={icon} size={24} color={resolvedColor} />
+      <AppIcon name={icon} size={24} color={resolvedColor} />
       <Typography variant="bodyBold" color={resolvedColor}>
         {label}
       </Typography>
@@ -248,7 +243,7 @@ function FiadoGroupCard({
           style={{
             width: 50,
             height: 50,
-            borderRadius: 25,
+            borderRadius: radii.full,
             backgroundColor: theme.colors.primaryBg,
             borderWidth: 1,
             borderColor: pal.cardBorder,
@@ -271,7 +266,7 @@ function FiadoGroupCard({
             {group.clientName}
           </Typography>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-            <Ionicons name="calendar-outline" size={14} color={pal.textSecondary} />
+            <AppIcon name="calendar-outline" size={14} color={pal.textSecondary} />
             <Typography variant="caption" color={pal.textSecondary}>
               {launchCount}
             </Typography>
@@ -282,7 +277,7 @@ function FiadoGroupCard({
           style={{
             minWidth: 88,
             minHeight: 36,
-            borderRadius: 14,
+            borderRadius: radii.lg,
             backgroundColor: pal.amountChipBg,
             alignItems: "center",
             justifyContent: "center",
@@ -302,13 +297,13 @@ function FiadoGroupCard({
           style={({ pressed }) => ({
             width: 40,
             height: 40,
-            borderRadius: 20,
+            borderRadius: radii.full,
             alignItems: "center",
             justifyContent: "center",
             backgroundColor: pressed ? pal.subtleFill : "transparent",
           })}
         >
-          <Ionicons name="ellipsis-vertical" size={22} color={pal.textSecondary} />
+          <AppIcon name="ellipsis-vertical" size={22} color={pal.textSecondary} />
         </Pressable>
       </View>
 
@@ -345,8 +340,8 @@ function FiadoGroupCard({
           opacity: pressed ? 0.86 : 1,
         })}
       >
-        <Ionicons name="logo-whatsapp" size={22} color={theme.colors.textOnPrimary} />
-        <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
+        <AppIcon name="logo-whatsapp" size={22} color="#FFFFFF" />
+        <Typography variant="bodyBold" color="#FFFFFF">
           Cobrar no WhatsApp
         </Typography>
       </Pressable>
@@ -361,7 +356,7 @@ function FiadoGroupCard({
           onPress={() => setMenuOpen(false)}
           style={{
             flex: 1,
-            backgroundColor: "rgba(0, 0, 0, 0.55)",
+            backgroundColor: theme.colors.overlay,
             justifyContent: isDesktop ? "center" : "flex-end",
             padding: isDesktop ? spacing.xl : 0,
           }}
@@ -609,8 +604,8 @@ export default function FiadoScreen() {
   function renderContent() {
     if (isLoading) {
       return (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
+        <View style={{ flex: 1, padding: spacing.xl }}>
+          <SkeletonList rows={6} />
         </View>
       );
     }
@@ -634,33 +629,17 @@ export default function FiadoScreen() {
 
     if (groups.length === 0) {
       return (
-        <View
-          style={{
-            flex: 1,
-            alignItems: "center",
-            justifyContent: "center",
-            padding: spacing.xl,
-            gap: spacing.lg,
-          }}
-        >
-          <View style={{ alignItems: "center" }}>
+        <EmptyState
+          icon={
             <Image
               source={fiadoHero}
               resizeMode="contain"
               style={{ width: 138, height: 138 }}
             />
-          </View>
-          <Typography variant="h2" color={pal.text} style={{ textAlign: "center" }}>
-            Ninguém te deve
-          </Typography>
-          <Typography
-            variant="body"
-            color={pal.textSecondary}
-            style={{ textAlign: "center" }}
-          >
-            Vendas no fiado em aberto aparecem aqui para você cobrar.
-          </Typography>
-        </View>
+          }
+          title="Ninguém te deve"
+          description="Vendas no fiado em aberto aparecem aqui para você cobrar."
+        />
       );
     }
 
@@ -671,7 +650,7 @@ export default function FiadoScreen() {
           contentContainerStyle={{
             flexGrow: 1,
             paddingHorizontal: spacing.lg,
-            paddingTop: spacing.sm,
+            paddingTop: spacing.xl,
             paddingBottom: 104 + insets.bottom,
             justifyContent: "center",
             alignItems: "center",
@@ -723,7 +702,7 @@ export default function FiadoScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingHorizontal: spacing.lg,
-          paddingTop: spacing.sm,
+          paddingTop: spacing.xl,
           paddingBottom: 104 + insets.bottom,
           gap: spacing.md,
         }}
@@ -763,7 +742,7 @@ export default function FiadoScreen() {
               justifyContent: "center",
             }}
           >
-            <Ionicons
+            <AppIcon
               name="information-circle-outline"
               size={22}
               color={pal.textSecondary}
@@ -807,7 +786,7 @@ export default function FiadoScreen() {
                 justifyContent: "center",
               }}
             >
-              <Ionicons name="search-outline" size={iconSizes.md} color={pal.text} />
+              <AppIcon name="search-outline" size={iconSizes.md} color={pal.text} />
             </Pressable>
             <Pressable
               onPress={() => {
@@ -827,7 +806,7 @@ export default function FiadoScreen() {
                   activeFilter !== "all" ? theme.colors.primaryBg : "transparent",
               }}
             >
-              <Ionicons
+              <AppIcon
                 name="options-outline"
                 size={iconSizes.md}
                 color={
@@ -854,7 +833,7 @@ export default function FiadoScreen() {
               gap: spacing.sm,
             }}
           >
-            <Ionicons name="search-outline" size={20} color={pal.textSecondary} />
+            <AppIcon name="search-outline" size={20} color={pal.textSecondary} />
             <TextInput
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -876,7 +855,7 @@ export default function FiadoScreen() {
                 accessibilityLabel="Limpar busca"
                 hitSlop={8}
               >
-                <Ionicons name="close-circle" size={20} color={pal.textSecondary} />
+                <AppIcon name="close-circle" size={20} color={pal.textSecondary} />
               </Pressable>
             ) : null}
           </View>
@@ -895,8 +874,7 @@ export default function FiadoScreen() {
         >
           {FILTER_OPTIONS.map((option) => {
             const selected = activeFilter === option.key;
-            const isDark = theme.mode === "dark";
-            const idleBg = isDark ? "rgba(255,255,255,0.06)" : theme.colors.surface;
+            const idleBg = theme.colors.surface;
             const idleBorder = theme.colors.border;
             return (
               <Pressable
@@ -905,7 +883,7 @@ export default function FiadoScreen() {
                 accessibilityRole="button"
                 style={({ pressed }) => ({
                   minHeight: 38,
-                  borderRadius: 19,
+                  borderRadius: radii.full,
                   paddingHorizontal: spacing.md,
                   alignItems: "center",
                   justifyContent: "center",
@@ -946,8 +924,8 @@ export default function FiadoScreen() {
               minHeight: 68,
               borderRadius: radii.lg,
               borderWidth: 1,
-              borderColor: "rgba(104, 174, 103, 0.2)",
-              backgroundColor: "rgba(33, 52, 34, 0.78)",
+              borderColor: theme.colors.border,
+              backgroundColor: theme.colors.surfaceElevated,
               padding: spacing.sm,
               flexDirection: "row",
               alignItems: "center",
@@ -958,23 +936,23 @@ export default function FiadoScreen() {
               style={{
                 width: 44,
                 height: 44,
-                borderRadius: 22,
-                backgroundColor: "rgba(82, 151, 75, 0.35)",
+                borderRadius: radii.full,
+                backgroundColor: theme.colors.successBg,
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Ionicons name="bulb-outline" size={23} color="#DDF4CE" />
+              <AppIcon name="bulb-outline" size={23} color={theme.colors.success} />
             </View>
             <View style={{ flex: 1, gap: 2 }}>
-              <Typography variant="bodyBold" color="#58D18C">
+              <Typography variant="bodyBold" color={theme.colors.success}>
                 Dica
               </Typography>
               <Typography
                 variant="caption"
-                color="#F4E9E3"
+                color={theme.colors.textSecondary}
                 numberOfLines={2}
-                style={{ lineHeight: 17, fontSize: 12 }}
+                style={{ lineHeight: 17, fontSize: fontSizes.xs }}
               >
                 Mantenha seus recebimentos em dia e fortaleça a confiança dos seus
                 clientes.
@@ -998,7 +976,7 @@ export default function FiadoScreen() {
                 ...theme.shadows.md,
               })}
             >
-              <Ionicons
+              <AppIcon
                 name="add"
                 size={iconSizes.lg}
                 color={theme.colors.textOnPrimary}

@@ -11,6 +11,7 @@ import {
 import { expenseCategoryEnum, financeEntries } from "./finance";
 import { suppliers } from "./suppliers";
 import { users } from "./users";
+import { products } from "./products";
 
 // Compras de fornecedores → contas a pagar e saídas do caixa.
 // `payment_status`: "pending" (a pagar, ainda NÃO é saída no caixa) | "paid"
@@ -42,5 +43,28 @@ export const purchases = pgTable(
     index("idx_purchases_user").on(table.userId),
     index("idx_purchases_user_status").on(table.userId, table.paymentStatus),
     index("idx_purchases_supplier").on(table.supplierId),
+  ],
+);
+
+export const purchaseItems = pgTable(
+  "purchase_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    purchaseId: uuid("purchase_id")
+      .notNull()
+      .references(() => purchases.id, { onDelete: "cascade" }),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id),
+    productName: text("product_name").notNull(),
+    variationId: uuid("variation_id"),
+    variationName: text("variation_name"),
+    quantity: decimal("quantity", { precision: 12, scale: 0 }).notNull(),
+    unitCost: decimal("unit_cost", { precision: 10, scale: 2 }).notNull(),
+    subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
+  },
+  (table) => [
+    index("idx_purchase_items_purchase").on(table.purchaseId),
+    index("idx_purchase_items_product").on(table.productId),
   ],
 );

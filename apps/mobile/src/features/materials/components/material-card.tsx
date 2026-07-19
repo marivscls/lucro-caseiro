@@ -7,7 +7,7 @@ import {
   fonts,
   type Theme,
 } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
 import React from "react";
 import { Pressable, View } from "react-native";
 
@@ -37,16 +37,15 @@ export function MaterialCard({ material, onPress }: MaterialCardProps) {
   const adjust = useAdjustMaterial();
   const badge = stockBadge(material);
   const c = toneColors(theme, badge.tone);
-  const isDark = theme.mode === "dark";
   const low = isLowStock(material) || material.stockQuantity <= 0;
 
-  const cardBg = isDark ? "rgba(44, 36, 32, 0.55)" : theme.colors.surfaceElevated;
+  const cardBg = theme.colors.surfaceElevated;
   const border = theme.colors.border;
   const stockColor = low ? theme.colors.alert : theme.colors.success;
 
   const step = (delta: number) => adjust.mutate({ id: material.id, delta });
 
-  const minusBg = isDark ? "rgba(255,255,255,0.08)" : theme.colors.surface;
+  const minusBg = theme.colors.surface;
 
   return (
     <View
@@ -145,7 +144,7 @@ export function MaterialCard({ material, onPress }: MaterialCardProps) {
               opacity: pressed ? 0.7 : 1,
             })}
           >
-            <Ionicons name="remove" size={24} color={theme.colors.text} />
+            <AppIcon name="remove" size={24} color={theme.colors.text} />
           </Pressable>
 
           <Pressable
@@ -162,7 +161,7 @@ export function MaterialCard({ material, onPress }: MaterialCardProps) {
               opacity: pressed ? 0.85 : 1,
             })}
           >
-            <Ionicons name="add" size={24} color={theme.colors.textOnPrimary} />
+            <AppIcon name="add" size={24} color={theme.colors.textOnPrimary} />
           </Pressable>
         </View>
       </View>

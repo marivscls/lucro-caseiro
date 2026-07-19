@@ -7,6 +7,27 @@ export function validateProductData(data: CreateProductData): string[] {
     errors.push("Preço de venda deve ser maior que zero");
   }
 
+  if (data.costPrice !== undefined && data.costPrice < 0) {
+    errors.push("Custo do produto não pode ser negativo");
+  }
+
+  const variationNames = (data.variations ?? []).map((variation) =>
+    variation.name.trim().toLocaleLowerCase("pt-BR"),
+  );
+  if (variationNames.some((name) => !name)) {
+    errors.push("Nome da variação é obrigatório");
+  }
+  if (new Set(variationNames).size !== variationNames.length) {
+    errors.push("Nomes de variação não podem se repetir");
+  }
+  if (
+    (data.variations ?? []).some(
+      (variation) => variation.stockQuantity !== undefined && variation.stockQuantity < 0,
+    )
+  ) {
+    errors.push("Estoque da variação não pode ser negativo");
+  }
+
   if (data.name.trim().length === 0) {
     errors.push("Nome do produto é obrigatório");
   }

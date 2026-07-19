@@ -1,5 +1,5 @@
 import { fonts, radii, spacing, Typography, useTheme } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "./app-icon";
 import React from "react";
 import { Pressable, View } from "react-native";
 
@@ -48,7 +48,7 @@ function PageButton({
         };
       }}
     >
-      <Ionicons name={icon} size={18} color={theme.colors.text} />
+      <AppIcon name={icon} size={18} color={theme.colors.text} />
     </Pressable>
   );
 }

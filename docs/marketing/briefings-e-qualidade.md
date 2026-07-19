@@ -95,17 +95,49 @@ O score orienta a revisão estratégica; não é garantia de desempenho do conte
 ```markdown
 - Problema de negócio:
 - Resultado esperado:
-- Público:
-- Insight ou tensão:
-- Promessa:
-- Produto ou fluxo demonstrado:
-- Conceito criativo:
+- Fatia de público:
+- Linguagem real do público:
+- Desejo real:
+- Soluções e mensagens saturadas:
+- Mecanismo do problema:
+- Mecanismo da solução:
+- Diferenciais e provas confirmadas:
+- Lacunas de evidência:
+- Big Idea:
+- Ângulo:
+- Promessa permitida:
+- Razão para acreditar:
+- Insight do conteúdo orgânico:
+- Avatar e formato:
+- Gancho visual:
+- Frase de aterrissagem:
+- Movimentos de retenção:
+- Notas de produção:
 - Canais e peças:
 - Orçamento e período:
 - Métrica principal:
 - Eventos de ativação disponíveis:
 - Provas e limitações:
 ```
+
+O Estrategista define e a usuária aprova a psicologia da campanha. O Copywriter pode variar
+gancho, ritmo, estrutura e linguagem por canal, mas não pode trocar silenciosamente público,
+oferta, promessa ou evidências. Referências validadas devem ser decompostas pela função que
+exercem; frases, ângulos e histórias literais não são copiáveis.
+
+## Autorrevisão de campanha
+
+Antes de liberar uma peça para aprovação humana, revisar de 0 a 100:
+
+- congruência com público, oferta, promessa, avatar e canal;
+- especificidade do gancho, da situação e do mecanismo;
+- novidade defensável em relação às mensagens saturadas;
+- segurança das provas e alegações;
+- concisão e função de cada trecho.
+
+Uma geração só pode marcar `ready=true` depois de corrigir o próprio rascunho. Ausência de prova,
+contradição com o plano ou lacuna impeditiva mantém `ready=false` e bloqueia a aprovação na Central.
+O score é um apoio à revisão humana, nunca previsão de desempenho.
 
 ## Briefing de experimento
 

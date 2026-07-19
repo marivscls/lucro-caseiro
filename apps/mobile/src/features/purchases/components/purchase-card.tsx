@@ -8,7 +8,7 @@ import {
   useTheme,
   spacing,
 } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
 import React from "react";
 import { ActivityIndicator, Pressable, View } from "react-native";
 
@@ -19,11 +19,13 @@ import { categoryLabel } from "../domain";
 interface PurchaseCardProps {
   readonly purchase: Purchase;
   readonly onPay: () => void;
+  readonly onEdit: () => void;
   readonly onDelete: () => void;
   readonly isPaying?: boolean;
   readonly payDisabled?: boolean;
   readonly isDeleting?: boolean;
   readonly deleteDisabled?: boolean;
+  readonly editDisabled?: boolean;
 }
 
 function formatDate(iso: string): string {
@@ -34,11 +36,13 @@ function formatDate(iso: string): string {
 export function PurchaseCard({
   purchase,
   onPay,
+  onEdit,
   onDelete,
   isPaying,
   payDisabled,
   isDeleting,
   deleteDisabled,
+  editDisabled,
 }: PurchaseCardProps) {
   const { theme } = useTheme();
   const supplierName = useSupplierName(purchase.supplierId);
@@ -74,6 +78,22 @@ export function PurchaseCard({
           </View>
         </View>
 
+        {purchase.items.length ? (
+          <View style={{ gap: spacing.xs }}>
+            {purchase.items.slice(0, 3).map((item) => (
+              <Typography key={item.id} variant="caption">
+                {item.quantity}x {item.productName}
+                {item.variationName ? ` — ${item.variationName}` : ""}
+              </Typography>
+            ))}
+            {purchase.items.length > 3 ? (
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                +{purchase.items.length - 3} itens
+              </Typography>
+            ) : null}
+          </View>
+        ) : null}
+
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
           {!isPaid ? (
             <View style={{ flex: 1 }}>
@@ -88,13 +108,38 @@ export function PurchaseCard({
             </View>
           ) : null}
           <Pressable
+            onPress={onEdit}
+            disabled={editDisabled}
+            accessibilityRole="button"
+            accessibilityLabel="Editar compra"
+            hitSlop={8}
+            style={({ pressed }) => ({
+              marginLeft: isPaid ? "auto" : undefined,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: spacing.xs,
+              minHeight: 36,
+              paddingVertical: spacing.xs,
+              paddingHorizontal: spacing.sm,
+              opacity: pressed || editDisabled ? 0.55 : 1,
+            })}
+          >
+            <AppIcon name="pencil-outline" size={18} color={theme.colors.primaryStrong} />
+            <Typography
+              variant="caption"
+              color={theme.colors.primaryStrong}
+              style={{ fontFamily: fonts.bold }}
+            >
+              Editar
+            </Typography>
+          </Pressable>
+          <Pressable
             onPress={onDelete}
             disabled={deleteDisabled}
             accessibilityRole="button"
             accessibilityLabel={isDeleting ? "Excluindo compra" : "Excluir compra"}
             hitSlop={8}
             style={({ pressed }) => ({
-              marginLeft: "auto",
               flexDirection: "row",
               alignItems: "center",
               gap: spacing.xs,
@@ -107,7 +152,7 @@ export function PurchaseCard({
             {isDeleting ? (
               <ActivityIndicator size="small" color={theme.colors.alert} />
             ) : (
-              <Ionicons name="trash-outline" size={18} color={theme.colors.alert} />
+              <AppIcon name="trash-outline" size={18} color={theme.colors.alert} />
             )}
             <Typography
               variant="caption"

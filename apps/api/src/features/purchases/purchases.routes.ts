@@ -1,7 +1,12 @@
-import { CreatePurchaseDto, PaginationDto } from "@lucro-caseiro/contracts";
+import {
+  CreatePurchaseDto,
+  PaginationDto,
+  UpdatePurchaseDto,
+} from "@lucro-caseiro/contracts";
 import { Router, type RequestHandler } from "express";
 
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
+import { requireBrandFeature } from "../../shared/middleware/brand-feature";
 import type { PurchasesUseCases } from "./purchases.usecases";
 
 export function createPurchasesRouter(
@@ -10,17 +15,30 @@ export function createPurchasesRouter(
 ): Router {
   const router = Router();
   router.use(authMiddleware);
-
-  router.post("/", ...(createGuard ? [createGuard] : []), async (req, res, next) => {
-    try {
-      const userId = getUserId(req);
-      const data = CreatePurchaseDto.parse(req.body);
-      const purchase = await useCases.create(userId, data);
-      res.status(201).json(purchase);
-    } catch (err) {
-      next(err);
+  const stockPurchaseGuard = requireBrandFeature("comprasComEstoque");
+  const itemGuard: RequestHandler = (req, res, next) => {
+    if (Array.isArray(req.body?.items) && req.body.items.length > 0) {
+      stockPurchaseGuard(req, res, next);
+      return;
     }
-  });
+    next();
+  };
+
+  router.post(
+    "/",
+    ...(createGuard ? [createGuard] : []),
+    itemGuard,
+    async (req, res, next) => {
+      try {
+        const userId = getUserId(req);
+        const data = CreatePurchaseDto.parse(req.body);
+        const purchase = await useCases.create(userId, data);
+        res.status(201).json(purchase);
+      } catch (err) {
+        next(err);
+      }
+    },
+  );
 
   router.get("/", async (req, res, next) => {
     try {
@@ -44,6 +62,22 @@ export function createPurchasesRouter(
       next(err);
     }
   });
+
+  router.patch<{ id: string }>(
+    "/:id",
+    ...(createGuard ? [createGuard] : []),
+    itemGuard,
+    async (req, res, next) => {
+      try {
+        const userId = getUserId(req);
+        const data = UpdatePurchaseDto.parse(req.body);
+        const purchase = await useCases.update(userId, req.params.id, data);
+        res.json(purchase);
+      } catch (err) {
+        next(err);
+      }
+    },
+  );
 
   // Marca a compra como paga (gera a saída no caixa).
   router.post("/:id/pay", async (req, res, next) => {

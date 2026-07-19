@@ -1,7 +1,7 @@
 import { formatCurrency } from "../../../shared/utils/format";
 import type { Packaging } from "@lucro-caseiro/contracts";
 import { Typography, useTheme, spacing, radii, fonts } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
 import React from "react";
 import { Pressable, View } from "react-native";
 
@@ -23,8 +23,7 @@ export function PackagingCard({
   onDelete,
 }: PackagingCardProps) {
   const { theme } = useTheme();
-  const isDark = theme.mode === "dark";
-  const cardBg = isDark ? "rgba(44, 36, 32, 0.55)" : theme.colors.surfaceElevated;
+  const cardBg = theme.colors.surfaceElevated;
   const border = theme.colors.border;
   const tColor = typeColor(theme, packaging.type);
 
@@ -97,7 +96,7 @@ export function PackagingCard({
           </View>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-          <Ionicons name={subtitleIcon} size={14} color={theme.colors.textSecondary} />
+          <AppIcon name={subtitleIcon} size={14} color={theme.colors.textSecondary} />
           <Typography
             variant="caption"
             color={theme.colors.textSecondary}
@@ -116,7 +115,7 @@ export function PackagingCard({
           hitSlop={8}
           style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, padding: 2 })}
         >
-          <Ionicons
+          <AppIcon
             name="ellipsis-vertical"
             size={20}
             color={theme.colors.textSecondary}
@@ -127,7 +126,7 @@ export function PackagingCard({
             {formatCurrency(packaging.unitCost)}
           </Typography>
           <Pressable onPress={onPress} hitSlop={8} accessibilityLabel="Ver detalhes">
-            <Ionicons name="chevron-forward" size={20} color={theme.colors.primary} />
+            <AppIcon name="chevron-forward" size={20} color={theme.colors.primary} />
           </Pressable>
         </View>
       </View>

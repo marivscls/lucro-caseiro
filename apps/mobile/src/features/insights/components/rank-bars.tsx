@@ -1,6 +1,6 @@
 import { Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import React from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 
 export interface RankRow {
   key: string;
@@ -15,7 +15,7 @@ const MEDALS = ["🥇", "🥈", "🥉"] as const;
 export function RankBars({ rows, color }: Readonly<{ rows: RankRow[]; color: string }>) {
   const { theme } = useTheme();
   const max = Math.max(1, ...rows.map((r) => r.value));
-  const track = theme.mode === "dark" ? "rgba(255,255,255,0.08)" : theme.colors.surface;
+  const track = theme.colors.surface;
 
   return (
     <View style={{ gap: spacing.lg }}>
@@ -39,7 +39,7 @@ export function RankBars({ rows, color }: Readonly<{ rows: RankRow[]; color: str
               }}
             >
               {medal ? (
-                <Text style={{ fontSize: 18 }}>{medal}</Text>
+                <Typography variant="h3">{medal}</Typography>
               ) : (
                 <Typography variant="bodyBold" color={theme.colors.textSecondary}>
                   {index + 1}

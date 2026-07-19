@@ -1,5 +1,5 @@
-import { fontSizes, fonts, useFeature, useTheme } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { fontSizes, fonts, radii, useFeature, useTheme } from "@lucro-caseiro/ui";
+import { AppIcon } from "../../shared/components/app-icon";
 import { Tabs } from "expo-router";
 import React from "react";
 import { Platform, View } from "react-native";
@@ -50,7 +50,7 @@ export default function TabLayout() {
           paddingHorizontal: 0,
           paddingVertical: 0,
         },
-        tabBarActiveTintColor: theme.colors.primary,
+        tabBarActiveTintColor: theme.colors.primaryStrong,
         tabBarInactiveTintColor: theme.colors.textSecondary,
       }}
     >
@@ -60,7 +60,7 @@ export default function TabLayout() {
           title: "Início",
           tabBarLabel: "Início",
           tabBarIcon: ({ color }) => (
-            <Ionicons name="home-outline" size={21} color={color} />
+            <AppIcon name="home-outline" size={21} color={color} />
           ),
         }}
       />
@@ -70,7 +70,7 @@ export default function TabLayout() {
           title: "Vendas",
           tabBarLabel: "Vendas",
           tabBarIcon: ({ color }) => (
-            <Ionicons name="receipt-outline" size={21} color={color} />
+            <AppIcon name="receipt-outline" size={21} color={color} />
           ),
         }}
       />
@@ -85,7 +85,7 @@ export default function TabLayout() {
               style={{
                 width: 50,
                 height: 50,
-                borderRadius: 25,
+                borderRadius: radii.full,
                 backgroundColor: theme.colors.primary,
                 alignItems: "center",
                 justifyContent: "center",
@@ -126,7 +126,7 @@ export default function TabLayout() {
           title: "Agenda",
           tabBarLabel: "Agenda",
           tabBarIcon: ({ color }) => (
-            <Ionicons name="calendar-outline" size={21} color={color} />
+            <AppIcon name="calendar-outline" size={21} color={color} />
           ),
         }}
       />
@@ -145,7 +145,7 @@ export default function TabLayout() {
           title: "Mais",
           tabBarLabel: "Mais",
           tabBarIcon: ({ color }) => (
-            <Ionicons name="ellipsis-horizontal" size={23} color={color} />
+            <AppIcon name="ellipsis-horizontal" size={23} color={color} />
           ),
         }}
       />

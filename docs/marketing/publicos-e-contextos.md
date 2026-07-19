@@ -1,14 +1,28 @@
 # Públicos, contextos e linguagem por nicho
 
 **Status:** Hipóteses estratégicas para validação em entrevistas
-**Versão:** 1.0
-**Data:** 16 de julho de 2026
+**Versão:** 1.1
+**Data:** 18 de julho de 2026
 
 Este documento orienta personalização. As descrições são hipóteses iniciais da estratégia e não substituem pesquisa com usuárias.
 
-## Público prioritário
+## Mercado atendido pelo produto
+
+O Lucro Caseiro atende profissionais autônomos, MEIs, prestadores de serviço, produtores,
+comerciantes, equipes e negócios em diferentes estágios de maturidade. O ponto em comum não é
+gênero, idade, segmento ou trabalhar em casa: é precisar formar preços, entender custos e lucro,
+organizar produtos ou serviços, pedidos, vendas e a operação sem depender de um sistema complicado.
+
+Confeitaria, alimentação, artesanato, papelaria, beleza e costura são segmentos de entrada e fontes
+de exemplos concretos. Eles não definem sozinhos a marca nem limitam até onde o produto pode chegar.
+
+## Recorte inicial de aquisição
 
 Mulheres de 25 a 55 anos que produzem e vendem alimentos ou produtos artesanais, trabalham principalmente pelo celular e usam Instagram e WhatsApp para divulgar, atender ou vender.
+
+Esse é um recorte tático para campanhas específicas, não a descrição do mercado total do Lucro
+Caseiro. Toda campanha deve deixar claro qual fatia escolheu sem transformar essa escolha no
+posicionamento global do produto.
 
 Contexto recorrente: negócio individual ou familiar, pouco tempo, controles espalhados, receio de sistemas complexos e dúvida sobre quanto realmente sobra.
 
@@ -83,6 +97,10 @@ Falar de horas, deslocamento, materiais, taxas, capacidade e recorrência. Não 
 ## Regra de segmentação
 
 Uma peça deve escolher um nicho, um exemplo e uma dor principal. Não misturar doceira, manicure, costureira e comerciante no mesmo anúncio. Campanhas amplas podem compartilhar o conceito, mas precisam de criativos e vocabulário próprios por segmento.
+
+Antes de escolher a fatia, compare os segmentos disponíveis. Não priorize confeitaria ou qualquer
+outro nicho apenas porque aparece primeiro, possui mais exemplos ou já foi usado em campanhas
+anteriores. Separe sempre `mercado da marca` de `público desta campanha`.
 
 ## Perguntas para aprender com o público
 

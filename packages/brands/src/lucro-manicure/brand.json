@@ -24,12 +24,24 @@
     "productNounPlural": "servicos",
     "saleLabel": "Registrar atendimento",
     "stockLabel": "Esmaltes",
-    "revenueLabel": "Faturamento"
+    "revenueLabel": "Faturamento",
+    "labelsLabel": "Etiquetas"
   },
   "features": {
     "estoque": false,
     "agendamento": true,
     "catalogoCores": true,
-    "fichaTecnica": false
+    "fichaTecnica": false,
+    "materiais": false,
+    "embalagens": false,
+    "vendaPorPeso": false,
+    "custoDireto": false,
+    "comprasComEstoque": false,
+    "varejoPapelaria": false
+  },
+  "onboarding": {
+    "businessType": "beauty",
+    "nicheId": "beleza",
+    "skipNicheSelection": true
   }
 }

@@ -7,6 +7,7 @@ import { NOTIFICATION_TYPES } from "../../shared/hooks/notification-types";
 import { useNotificationEnabled } from "../../shared/hooks/notification-prefs";
 import { asyncStorage } from "../../shared/utils/async-storage";
 import { useLowStockProducts } from "./hooks";
+import { availableProductStock } from "./variations";
 
 // Guarda os IDs de produtos que já geraram alerta de estoque baixo, para não
 // repetir a notificacao a cada refetch da lista.
@@ -17,10 +18,11 @@ function buildContent(products: Product[]): Notifications.NotificationContentInp
 
   if (products.length === 1) {
     const p = products[0];
+    const quantity = availableProductStock(p);
     const body =
-      p.stockQuantity === 0
+      quantity === 0
         ? `Acabou o estoque de ${p.name}. Toque para repor.`
-        : `Restam ${p.stockQuantity} un. de ${p.name}. Toque para repor.`;
+        : `Restam ${quantity ?? 0} un. de ${p.name}. Toque para repor.`;
     return { title: "Estoque baixo 📦", body, data };
   }
 

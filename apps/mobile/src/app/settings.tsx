@@ -4,13 +4,15 @@ import {
   Card,
   Chip,
   Typography,
+  useBrand,
   useFeature,
   useTheme,
   spacing,
   radii,
 } from "@lucro-caseiro/ui";
 import { hasActiveFeature, PLAN_LABELS } from "@lucro-caseiro/contracts";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../shared/components/app-icon";
+import type { AppIconName } from "../shared/components/app-icon";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -42,12 +44,13 @@ import { useProlaboreStatus } from "../features/goals/hooks";
 import { activePlan, useProfile, useUpdateProfile } from "../features/subscription/hooks";
 import { useSubscription } from "../features/subscription/use-subscription";
 import { showAlert } from "../shared/components/alert-store";
-import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
-import { ResponsiveModal } from "../shared/components/responsive-modal-surface";
+import { StandardModal } from "../shared/components/standard-modal";
+import { Skeleton, SkeletonCard } from "../shared/components/skeleton";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
-import { desktopAction, desktopContained } from "../shared/layout/desktop-density";
+import { desktopContained } from "../shared/layout/desktop-density";
 import { FieldLabel, TextFieldCard } from "../shared/components/form-field";
 import { ScreenHeader } from "../shared/components/screen-header";
+import { getBrandDisplayName } from "../shared/brand-name";
 import { alertValidation, alertError } from "../shared/utils/alerts";
 
 const PRIVACY_POLICY_URL =
@@ -64,7 +67,7 @@ const BUSINESS_TYPES = [
 const NOTIFICATIONS: {
   type: NotificationType;
   label: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
   premium?: boolean;
 }[] = [
   // Free
@@ -122,6 +125,7 @@ function businessTypeValue(value: string): string | undefined {
 export default function SettingsScreen() {
   const router = useRouter();
   const { theme, mode, toggleTheme } = useTheme();
+  const brandName = getBrandDisplayName(useBrand());
   const hasStock = useFeature("estoque");
   const hasScheduling = useFeature("agendamento");
   const isDesktop = useDesktopLayout();
@@ -296,12 +300,15 @@ export default function SettingsScreen() {
         style={{
           flex: 1,
           backgroundColor: theme.colors.background,
-          justifyContent: "center",
-          alignItems: "center",
+          padding: spacing.xl,
+          gap: spacing.lg,
         }}
         edges={["bottom"]}
       >
-        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Skeleton width="40%" height={22} />
+        <SkeletonCard lines={3} />
+        <SkeletonCard lines={3} />
+        <SkeletonCard lines={2} />
       </SafeAreaView>
     );
   }
@@ -326,7 +333,7 @@ export default function SettingsScreen() {
               style={{
                 width: 56,
                 height: 56,
-                borderRadius: 28,
+                borderRadius: radii.full,
                 backgroundColor: theme.colors.surfaceElevated,
                 alignItems: "center",
                 justifyContent: "center",
@@ -369,7 +376,7 @@ export default function SettingsScreen() {
                 minHeight: 44,
                 paddingHorizontal: 16,
                 justifyContent: "center",
-                borderRadius: 10,
+                borderRadius: radii.md,
                 backgroundColor: theme.colors.surfaceElevated,
               }}
             >
@@ -394,16 +401,16 @@ export default function SettingsScreen() {
                 style={{
                   width: 40,
                   height: 40,
-                  borderRadius: 20,
+                  borderRadius: radii.full,
                   backgroundColor: theme.colors.premiumBg,
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <Ionicons name="diamond-outline" size={20} color={theme.colors.premium} />
+                <AppIcon name="diamond-outline" size={20} color={theme.colors.premium} />
               </View>
               <View>
-                <Typography variant="h3">Plano Lucro Caseiro</Typography>
+                <Typography variant="h3">Plano {brandName}</Typography>
                 <Typography variant="caption">
                   {hasPaidPlan ? `${PLAN_LABELS[currentPlan]} ativo` : "Plano gratuito"}
                 </Typography>
@@ -458,13 +465,13 @@ export default function SettingsScreen() {
                 style={{
                   width: 40,
                   height: 40,
-                  borderRadius: 20,
+                  borderRadius: radii.full,
                   backgroundColor: theme.colors.successBg,
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <Ionicons name="trophy-outline" size={20} color={theme.colors.success} />
+                <AppIcon name="trophy-outline" size={20} color={theme.colors.success} />
               </View>
               <View style={{ flex: 1 }}>
                 <Typography variant="h3">Meta de pro-labore</Typography>
@@ -488,7 +495,7 @@ export default function SettingsScreen() {
                 minHeight: 44,
                 paddingHorizontal: 16,
                 justifyContent: "center",
-                borderRadius: 10,
+                borderRadius: radii.md,
                 backgroundColor: theme.colors.surfaceElevated,
               }}
             >
@@ -502,7 +509,7 @@ export default function SettingsScreen() {
         {/* Preferences Card */}
         <Card style={{ gap: 16 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <Ionicons
+            <AppIcon
               name="settings-outline"
               size={18}
               color={theme.colors.textSecondary}
@@ -534,10 +541,10 @@ export default function SettingsScreen() {
                     style={{
                       flex: 1,
                       paddingVertical: 8,
-                      borderRadius: 10,
+                      borderRadius: radii.md,
                       alignItems: "center",
                       backgroundColor:
-                        opt === mode ? theme.colors.primary : "transparent",
+                        opt === mode ? theme.colors.primaryInteractive : "transparent",
                     }}
                   >
                     <Typography
@@ -559,7 +566,7 @@ export default function SettingsScreen() {
           {/* Notifications */}
           {Platform.OS === "web" ? (
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-              <Ionicons
+              <AppIcon
                 name="notifications-off-outline"
                 size={20}
                 color={theme.colors.textSecondary}
@@ -599,7 +606,7 @@ export default function SettingsScreen() {
                       flex: 1,
                     }}
                   >
-                    <Ionicons
+                    <AppIcon
                       name={item.icon}
                       size={20}
                       color={theme.colors.textSecondary}
@@ -621,7 +628,7 @@ export default function SettingsScreen() {
                             backgroundColor: `${theme.colors.premium}26`,
                           }}
                         >
-                          <Ionicons
+                          <AppIcon
                             name="diamond"
                             size={11}
                             color={theme.colors.premium}
@@ -647,7 +654,7 @@ export default function SettingsScreen() {
                         paddingVertical: 6,
                       }}
                     >
-                      <Ionicons
+                      <AppIcon
                         name="lock-closed"
                         size={18}
                         color={theme.colors.premium}
@@ -684,13 +691,13 @@ export default function SettingsScreen() {
                 style={{
                   width: 40,
                   height: 40,
-                  borderRadius: 20,
+                  borderRadius: radii.full,
                   backgroundColor: `${theme.colors.premium}26`,
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <Ionicons
+                <AppIcon
                   name="chatbubble-ellipses-outline"
                   size={20}
                   color={theme.colors.premium}
@@ -702,7 +709,7 @@ export default function SettingsScreen() {
                   Fale direto com a gente e tenha prioridade
                 </Typography>
               </View>
-              <Ionicons
+              <AppIcon
                 name="chevron-forward"
                 size={20}
                 color={theme.colors.textSecondary}
@@ -714,7 +721,7 @@ export default function SettingsScreen() {
         {/* Legal Card */}
         <Card style={{ gap: 16 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <Ionicons
+            <AppIcon
               name="shield-checkmark-outline"
               size={18}
               color={theme.colors.textSecondary}
@@ -734,7 +741,7 @@ export default function SettingsScreen() {
             }}
           >
             <Typography variant="body">Politica de privacidade</Typography>
-            <Ionicons name="open-outline" size={18} color={theme.colors.textSecondary} />
+            <AppIcon name="open-outline" size={18} color={theme.colors.textSecondary} />
           </Pressable>
         </Card>
 
@@ -752,7 +759,7 @@ export default function SettingsScreen() {
           <Typography variant="body" color={theme.colors.alert}>
             Sair da conta
           </Typography>
-          <Ionicons name="log-out-outline" size={20} color={theme.colors.alert} />
+          <AppIcon name="log-out-outline" size={20} color={theme.colors.alert} />
         </Pressable>
 
         {/* Delete account (zona de perigo) */}
@@ -776,7 +783,7 @@ export default function SettingsScreen() {
           {deleteAccount.isPending ? (
             <ActivityIndicator size="small" color={theme.colors.alert} />
           ) : (
-            <Ionicons name="trash-outline" size={20} color={theme.colors.alert} />
+            <AppIcon name="trash-outline" size={20} color={theme.colors.alert} />
           )}
         </Pressable>
 
@@ -787,211 +794,136 @@ export default function SettingsScreen() {
       </ScrollView>
 
       {/* Meta de pro-labore Modal */}
-      <ResponsiveModal
-        desktopMaxWidth={840}
+      <ProlaboreGoalForm
+        config={prolabore?.config ?? null}
         visible={showGoal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowGoal(false)}
-      >
-        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: spacing.md,
-              paddingHorizontal: spacing.xl,
-              paddingTop: spacing.md,
-              paddingBottom: spacing.sm,
-            }}
-          >
-            <Pressable
-              onPress={() => setShowGoal(false)}
-              accessibilityLabel="Fechar"
-              hitSlop={10}
-              style={{ minHeight: 44, justifyContent: "center" }}
-            >
-              <Ionicons name="close" size={28} color={theme.colors.text} />
-            </Pressable>
-            <Typography
-              variant="h1"
-              color={theme.colors.text}
-              style={{ flex: 1, fontSize: 24 }}
-            >
-              Meta de pro-labore
-            </Typography>
-          </View>
-          <ProlaboreGoalForm
-            config={prolabore?.config ?? null}
-            onSuccess={() => setShowGoal(false)}
-          />
-        </SafeAreaView>
-      </ResponsiveModal>
+        onClose={() => setShowGoal(false)}
+        onSuccess={() => setShowGoal(false)}
+      />
 
       {/* Edit Profile Modal */}
-      <ResponsiveModal
-        desktopMaxWidth={840}
+      <StandardModal
+        title="Editar perfil"
         visible={showEditProfile}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowEditProfile(false)}
-      >
-        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: spacing.md,
-              paddingHorizontal: spacing.xl,
-              paddingTop: spacing.md,
-              paddingBottom: spacing.sm,
+        onClose={() => setShowEditProfile(false)}
+        footer={
+          <Button
+            title={savingAvatar ? "Enviando foto..." : "Salvar"}
+            size="lg"
+            onPress={() => {
+              void handleSaveProfile();
             }}
-          >
+            loading={updateProfile.isPending || savingAvatar}
+            style={{ flex: 1 }}
+          />
+        }
+      >
+        <View style={{ flexShrink: 1, gap: spacing.lg }}>
+          {/* Foto do negócio */}
+          <View style={{ alignItems: "center", gap: spacing.sm }}>
             <Pressable
-              onPress={() => setShowEditProfile(false)}
-              accessibilityLabel="Fechar"
-              hitSlop={10}
-              style={{ minHeight: 44, justifyContent: "center" }}
+              onPress={pickAvatar}
+              accessibilityRole="button"
+              accessibilityLabel="Adicionar foto do negócio"
+              style={{ alignItems: "center" }}
             >
-              <Ionicons name="close" size={28} color={theme.colors.text} />
-            </Pressable>
-            <Typography
-              variant="h1"
-              color={theme.colors.text}
-              style={{ flex: 1, fontSize: 24 }}
-            >
-              Editar perfil
-            </Typography>
-          </View>
-          <KeyboardAwareScrollView
-            contentContainerStyle={[
-              {
-                padding: spacing.xl,
-                paddingBottom: spacing["3xl"],
-                gap: spacing.lg,
-              },
-              desktopContained(isDesktop, 720),
-            ]}
-          >
-            {/* Foto do negócio */}
-            <View style={{ alignItems: "center", gap: spacing.sm }}>
-              <Pressable
-                onPress={pickAvatar}
-                accessibilityRole="button"
-                accessibilityLabel="Adicionar foto do negócio"
-                style={{ alignItems: "center" }}
+              <View
+                style={{
+                  width: 96,
+                  height: 96,
+                  borderRadius: radii.full,
+                  backgroundColor: theme.colors.surfaceElevated,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  overflow: "hidden",
+                }}
               >
+                {pickedAvatar || avatarUrl ? (
+                  <Image
+                    source={{ uri: pickedAvatar ?? avatarUrl ?? undefined }}
+                    style={{ width: 96, height: 96 }}
+                  />
+                ) : (
+                  <Typography variant="h1" color={theme.colors.primary}>
+                    {editName.charAt(0) || "?"}
+                  </Typography>
+                )}
                 <View
                   style={{
-                    width: 96,
-                    height: 96,
-                    borderRadius: 48,
-                    backgroundColor: theme.colors.surfaceElevated,
+                    position: "absolute",
+                    right: 0,
+                    bottom: 0,
+                    width: 32,
+                    height: 32,
+                    borderRadius: radii.full,
+                    backgroundColor: theme.colors.primary,
                     alignItems: "center",
                     justifyContent: "center",
-                    overflow: "hidden",
+                    borderWidth: 2,
+                    borderColor: theme.colors.background,
                   }}
                 >
-                  {pickedAvatar || avatarUrl ? (
-                    <Image
-                      source={{ uri: pickedAvatar ?? avatarUrl ?? undefined }}
-                      style={{ width: 96, height: 96 }}
-                    />
-                  ) : (
-                    <Typography variant="h1" color={theme.colors.primary}>
-                      {editName.charAt(0) || "?"}
-                    </Typography>
-                  )}
-                  <View
-                    style={{
-                      position: "absolute",
-                      right: 0,
-                      bottom: 0,
-                      width: 32,
-                      height: 32,
-                      borderRadius: 16,
-                      backgroundColor: theme.colors.primary,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      borderWidth: 2,
-                      borderColor: theme.colors.background,
-                    }}
-                  >
-                    <Ionicons
-                      name="camera"
-                      size={16}
-                      color={theme.colors.textOnPrimary}
-                    />
-                  </View>
+                  <AppIcon name="camera" size={16} color={theme.colors.textOnPrimary} />
                 </View>
-                <Typography
-                  variant="bodyBold"
-                  color={theme.colors.primary}
-                  style={{ marginTop: spacing.sm }}
-                >
-                  {pickedAvatar || avatarUrl ? "Alterar foto" : "Adicionar foto"}
-                </Typography>
-              </Pressable>
-            </View>
-
-            <View>
-              <FieldLabel label="Nome" required />
-              <TextFieldCard
-                icon="person-outline"
-                placeholder="Seu nome"
-                value={editName}
-                onChangeText={setEditName}
-              />
-            </View>
-            <View>
-              <FieldLabel label="Nome do negócio" />
-              <TextFieldCard
-                icon="storefront-outline"
-                placeholder="Ex: Doces da Maria"
-                value={editBusinessName}
-                onChangeText={setEditBusinessName}
-              />
-            </View>
-            <View style={{ gap: spacing.sm }}>
-              <Typography variant="bodyBold" color={theme.colors.text}>
-                Tipo de negócio
-              </Typography>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                Toque para selecionar
-              </Typography>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-                {BUSINESS_TYPES.map((type) => (
-                  <Chip
-                    key={type.value}
-                    label={type.label}
-                    selected={editBusinessType === type.value}
-                    onPress={() => setEditBusinessType(type.value)}
-                  />
-                ))}
               </View>
-            </View>
-            <View>
-              <FieldLabel label="Telefone" />
-              <TextFieldCard
-                icon="call-outline"
-                placeholder="Ex: (11) 99999-9999"
-                value={editPhone}
-                onChangeText={(v: string) => setEditPhone(maskPhoneBR(v))}
-                keyboardType="phone-pad"
-              />
-            </View>
-            <Button
-              title={savingAvatar ? "Enviando foto..." : "Salvar"}
-              size="lg"
-              onPress={() => {
-                void handleSaveProfile();
-              }}
-              loading={updateProfile.isPending || savingAvatar}
-              style={desktopAction(isDesktop)}
+              <Typography
+                variant="bodyBold"
+                color={theme.colors.primary}
+                style={{ marginTop: spacing.sm }}
+              >
+                {pickedAvatar || avatarUrl ? "Alterar foto" : "Adicionar foto"}
+              </Typography>
+            </Pressable>
+          </View>
+
+          <View>
+            <FieldLabel label="Nome" required />
+            <TextFieldCard
+              icon="person-outline"
+              placeholder="Seu nome"
+              value={editName}
+              onChangeText={setEditName}
             />
-          </KeyboardAwareScrollView>
-        </SafeAreaView>
-      </ResponsiveModal>
+          </View>
+          <View>
+            <FieldLabel label="Nome do negócio" />
+            <TextFieldCard
+              icon="storefront-outline"
+              placeholder="Ex: Doces da Maria"
+              value={editBusinessName}
+              onChangeText={setEditBusinessName}
+            />
+          </View>
+          <View style={{ gap: spacing.sm }}>
+            <Typography variant="bodyBold" color={theme.colors.text}>
+              Tipo de negócio
+            </Typography>
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              Toque para selecionar
+            </Typography>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+              {BUSINESS_TYPES.map((type) => (
+                <Chip
+                  key={type.value}
+                  label={type.label}
+                  selected={editBusinessType === type.value}
+                  onPress={() => setEditBusinessType(type.value)}
+                />
+              ))}
+            </View>
+          </View>
+          <View>
+            <FieldLabel label="Telefone" />
+            <TextFieldCard
+              icon="call-outline"
+              placeholder="Ex: (11) 99999-9999"
+              value={editPhone}
+              onChangeText={(v: string) => setEditPhone(maskPhoneBR(v))}
+              keyboardType="phone-pad"
+            />
+          </View>
+        </View>
+      </StandardModal>
     </SafeAreaView>
   );
 }

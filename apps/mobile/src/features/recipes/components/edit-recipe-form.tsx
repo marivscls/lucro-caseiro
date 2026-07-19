@@ -1,13 +1,11 @@
 import type { Recipe } from "@lucro-caseiro/contracts";
 import { Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, View } from "react-native";
 
 import { showAlert } from "../../../shared/components/alert-store";
-import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
-import { desktopAction, desktopContained } from "../../../shared/layout/desktop-density";
-import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+import { StandardModal } from "../../../shared/components/standard-modal";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { uploadRecipeImage } from "../../../shared/utils/upload-image";
 import { useDeleteRecipe, useUpdateRecipe } from "../hooks";
@@ -29,12 +27,18 @@ import { alertValidation, alertError } from "../../../shared/utils/alerts";
 
 interface EditRecipeFormProps {
   readonly recipe: Recipe;
+  readonly visible: boolean;
+  readonly onClose: () => void;
   readonly onSuccess?: () => void;
 }
 
-export function EditRecipeForm({ recipe, onSuccess }: EditRecipeFormProps) {
+export function EditRecipeForm({
+  recipe,
+  visible,
+  onClose,
+  onSuccess,
+}: EditRecipeFormProps) {
   const { theme } = useTheme();
-  const isDesktop = useDesktopLayout();
   const [name, setName] = useState(recipe.name);
   const [category, setCategory] = useState(recipe.category);
   const [instructions, setInstructions] = useState(recipe.instructions ?? "");
@@ -160,136 +164,140 @@ export function EditRecipeForm({ recipe, onSuccess }: EditRecipeFormProps) {
   }
 
   return (
-    <KeyboardAwareScrollView
-      contentContainerStyle={[
-        {
-          padding: spacing.xl,
-          paddingBottom: spacing["5xl"],
-          gap: spacing.xl,
-        },
-        desktopContained(isDesktop, 960),
-      ]}
+    <StandardModal
+      title="Editar receita"
+      visible={visible}
+      onClose={onClose}
+      footer={
+        <>
+          <Pressable
+            onPress={handleDelete}
+            disabled={deleteRecipe.isPending}
+            accessibilityRole="button"
+            style={({ pressed }) => [
+              {
+                minHeight: 50,
+                borderRadius: radii.lg,
+                borderWidth: 1,
+                borderColor: `${theme.colors.alert}66`,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: spacing.sm,
+                opacity: pressed ? 0.7 : 1,
+              },
+              { flex: 1 },
+            ]}
+          >
+            <AppIcon name="trash-outline" size={20} color={theme.colors.alert} />
+            <Typography variant="bodyBold" color={theme.colors.alert}>
+              Excluir receita
+            </Typography>
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              void handleSubmit();
+            }}
+            disabled={saving}
+            accessibilityRole="button"
+            style={({ pressed }) => [
+              {
+                minHeight: 58,
+                borderRadius: radii.lg,
+                backgroundColor: theme.colors.primary,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: spacing.sm,
+                opacity: pressed || saving ? 0.85 : 1,
+              },
+              { flex: 1 },
+            ]}
+          >
+            {saving ? (
+              <ActivityIndicator color={theme.colors.textOnPrimary} />
+            ) : (
+              <AppIcon name="save-outline" size={22} color={theme.colors.textOnPrimary} />
+            )}
+            <Typography variant="h3" color={theme.colors.textOnPrimary}>
+              {uploading ? "Enviando foto..." : "Salvar alterações"}
+            </Typography>
+          </Pressable>
+        </>
+      }
     >
-      <FieldRow icon="ice-cream-outline" label="Nome da receita">
-        <TextBox
-          value={name}
-          onChangeText={setName}
-          placeholder="Ex: Brigadeiro, Bolo de cenoura..."
-          maxLength={80}
-          autoFocus
-        />
-      </FieldRow>
+      <View style={{ flexShrink: 1, gap: spacing.xl }}>
+        <FieldRow icon="ice-cream-outline" label="Nome da receita">
+          <TextBox
+            value={name}
+            onChangeText={setName}
+            placeholder="Ex: Brigadeiro, Bolo de cenoura..."
+            maxLength={80}
+            autoFocus
+          />
+        </FieldRow>
 
-      <FieldRow icon="grid-outline" label="Categoria">
-        <CategoryField value={category} onChange={setCategory} />
-      </FieldRow>
+        <FieldRow icon="grid-outline" label="Categoria">
+          <CategoryField value={category} onChange={setCategory} />
+        </FieldRow>
 
-      <View style={{ gap: spacing.sm }}>
-        <Typography variant="bodyBold" color={theme.colors.text}>
-          Foto da receita{" "}
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            (opcional)
+        <View style={{ gap: spacing.sm }}>
+          <Typography variant="bodyBold" color={theme.colors.text}>
+            Foto da receita{" "}
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              (opcional)
+            </Typography>
           </Typography>
-        </Typography>
-        <RecipePhotoField imageUri={imageUri} onPick={showPicker} />
-      </View>
-
-      <FieldRow icon="document-text-outline" label="Modo de preparo" optional align="top">
-        <InstructionsField value={instructions} onChange={setInstructions} />
-      </FieldRow>
-
-      <View style={{ gap: spacing.sm }}>
-        <View style={{ flexDirection: "row", gap: spacing.md }}>
-          <View style={{ flex: 1, gap: spacing.sm }}>
-            <Typography variant="bodyBold" color={theme.colors.text}>
-              Rendimento
-            </Typography>
-            <TextBox
-              value={yieldQuantity}
-              onChangeText={setYieldQuantity}
-              placeholder="Ex: 30 ou 1,5"
-              keyboardType="decimal-pad"
-            />
-          </View>
-          <View style={{ flex: 1, gap: spacing.sm }}>
-            <Typography variant="bodyBold" color={theme.colors.text}>
-              Unidade
-            </Typography>
-            <TextBox
-              value={yieldUnit}
-              onChangeText={setYieldUnit}
-              placeholder="Ex: unidades"
-            />
-          </View>
+          <RecipePhotoField imageUri={imageUri} onPick={showPicker} />
         </View>
-        <Typography variant="caption" color={theme.colors.textSecondary}>
-          Ex: 30 unidades ou 1,5 kg
-        </Typography>
-        <YieldUnitChips value={yieldUnit} onChange={setYieldUnit} />
+
+        <FieldRow
+          icon="document-text-outline"
+          label="Modo de preparo"
+          optional
+          align="top"
+        >
+          <InstructionsField value={instructions} onChange={setInstructions} />
+        </FieldRow>
+
+        <View style={{ gap: spacing.sm }}>
+          <View style={{ flexDirection: "row", gap: spacing.md }}>
+            <View style={{ flex: 1, gap: spacing.sm }}>
+              <Typography variant="bodyBold" color={theme.colors.text}>
+                Rendimento
+              </Typography>
+              <TextBox
+                value={yieldQuantity}
+                onChangeText={setYieldQuantity}
+                placeholder="Ex: 30 ou 1,5"
+                keyboardType="decimal-pad"
+              />
+            </View>
+            <View style={{ flex: 1, gap: spacing.sm }}>
+              <Typography variant="bodyBold" color={theme.colors.text}>
+                Unidade
+              </Typography>
+              <TextBox
+                value={yieldUnit}
+                onChangeText={setYieldUnit}
+                placeholder="Ex: unidades"
+              />
+            </View>
+          </View>
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            Ex: 30 unidades ou 1,5 kg
+          </Typography>
+          <YieldUnitChips value={yieldUnit} onChange={setYieldUnit} />
+        </View>
+
+        <RecipeCostCard totalCost={totalCost} costPerUnit={costPerUnit} />
+
+        <RecipeMaterialsEditor
+          lines={lines}
+          onChange={setLines}
+          onTotalCost={setTotalCost}
+        />
       </View>
-
-      <RecipeCostCard totalCost={totalCost} costPerUnit={costPerUnit} />
-
-      <RecipeMaterialsEditor
-        lines={lines}
-        onChange={setLines}
-        onTotalCost={setTotalCost}
-      />
-
-      <Pressable
-        onPress={() => {
-          void handleSubmit();
-        }}
-        disabled={saving}
-        accessibilityRole="button"
-        style={({ pressed }) => [
-          {
-            minHeight: 58,
-            borderRadius: radii.lg,
-            backgroundColor: theme.colors.primary,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: spacing.sm,
-            opacity: pressed || saving ? 0.85 : 1,
-          },
-          desktopAction(isDesktop),
-        ]}
-      >
-        {saving ? (
-          <ActivityIndicator color={theme.colors.textOnPrimary} />
-        ) : (
-          <Ionicons name="save-outline" size={22} color={theme.colors.textOnPrimary} />
-        )}
-        <Typography variant="h3" color={theme.colors.textOnPrimary}>
-          {uploading ? "Enviando foto..." : "Salvar alterações"}
-        </Typography>
-      </Pressable>
-
-      <Pressable
-        onPress={handleDelete}
-        disabled={deleteRecipe.isPending}
-        accessibilityRole="button"
-        style={({ pressed }) => [
-          {
-            minHeight: 50,
-            borderRadius: radii.lg,
-            borderWidth: 1,
-            borderColor: `${theme.colors.alert}66`,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: spacing.sm,
-            opacity: pressed ? 0.7 : 1,
-          },
-          desktopAction(isDesktop),
-        ]}
-      >
-        <Ionicons name="trash-outline" size={20} color={theme.colors.alert} />
-        <Typography variant="bodyBold" color={theme.colors.alert}>
-          Excluir receita
-        </Typography>
-      </Pressable>
-    </KeyboardAwareScrollView>
+    </StandardModal>
   );
 }

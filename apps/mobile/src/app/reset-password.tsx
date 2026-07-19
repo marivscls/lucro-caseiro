@@ -1,5 +1,5 @@
-import { Button, Input, Typography, useTheme, spacing } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { Button, Input, Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
+import { AppIcon } from "../shared/components/app-icon";
 import { Redirect, Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Pressable, View } from "react-native";
@@ -90,13 +90,13 @@ export default function ResetPasswordScreen() {
             style={{
               width: 64,
               height: 64,
-              borderRadius: 32,
+              borderRadius: radii.full,
               backgroundColor: theme.colors.premiumBg,
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Ionicons name="lock-closed" size={30} color={theme.colors.premium} />
+            <AppIcon name="lock-closed" size={30} color={theme.colors.premium} />
           </View>
           <Typography
             variant="h1"
@@ -145,7 +145,7 @@ export default function ResetPasswordScreen() {
               minHeight: 40,
             }}
           >
-            <Ionicons
+            <AppIcon
               name={show ? "eye-off-outline" : "eye-outline"}
               size={18}
               color={theme.colors.primary}

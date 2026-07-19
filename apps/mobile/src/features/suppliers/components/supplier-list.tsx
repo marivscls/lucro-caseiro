@@ -1,9 +1,10 @@
 import type { Supplier } from "@lucro-caseiro/contracts";
 import { Button, EmptyState, useTheme, spacing } from "@lucro-caseiro/ui";
 import React from "react";
-import { ActivityIndicator, FlatList, Image, RefreshControl, View } from "react-native";
+import { FlatList, Image, RefreshControl, View } from "react-native";
 
 import suppliersEmpty from "../../../assets/suppliers-empty.png";
+import { SkeletonList } from "../../../shared/components/skeleton";
 import { useSuppliers } from "../hooks";
 import { SupplierCard } from "./supplier-card";
 
@@ -23,8 +24,8 @@ export function SupplierList({
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
+      <View style={{ flex: 1, padding: spacing.xl }}>
+        <SkeletonList rows={6} />
       </View>
     );
   }

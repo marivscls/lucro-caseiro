@@ -1,25 +1,50 @@
-import { fonts, radii, spacing, Typography, useTheme } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import type { BrandFeatures } from "@lucro-caseiro/brands";
+import { fonts, radii, spacing, Typography, useBrand, useTheme } from "@lucro-caseiro/ui";
+import { AppIcon } from "./app-icon";
+import type { AppIconName } from "./app-icon";
 import { type Href, usePathname, useRouter } from "expo-router";
 import React, { type ReactNode } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { Image, Pressable, ScrollView, View } from "react-native";
 
 import { useProfile } from "../../features/subscription/hooks";
+import { brandLogoById } from "../brand-logo";
+import { getBrandDisplayName } from "../brand-name";
 
-type IconName = keyof typeof Ionicons.glyphMap;
-type NavigationItem = { label: string; href: string; icon: IconName };
+type IconName = AppIconName;
+type NavigationItem = {
+  label: string;
+  href: string;
+  icon: IconName;
+  feature?: keyof BrandFeatures;
+};
 
 const PRIMARY_NAV: ReadonlyArray<NavigationItem> = [
   { label: "Início", href: "/tabs", icon: "home-outline" },
   { label: "Vendas", href: "/tabs/sales", icon: "receipt-outline" },
   { label: "Nova venda", href: "/tabs/new-sale", icon: "add-circle-outline" },
-  { label: "Agenda", href: "/tabs/agenda", icon: "calendar-outline" },
+  {
+    label: "Agenda",
+    href: "/tabs/agenda",
+    icon: "calendar-outline",
+    feature: "agendamento",
+  },
   { label: "Clientes", href: "/tabs/clients", icon: "people-outline" },
 ];
 
 const MANAGEMENT_NAV: ReadonlyArray<NavigationItem> = [
+  {
+    label: "Operação",
+    href: "/retail",
+    icon: "storefront-outline",
+    feature: "varejoPapelaria",
+  },
   { label: "Produtos", href: "/products", icon: "cube-outline" },
-  { label: "Insumos", href: "/materials", icon: "leaf-outline" },
+  {
+    label: "Insumos",
+    href: "/materials",
+    icon: "leaf-outline",
+    feature: "materiais",
+  },
   { label: "Precificação", href: "/pricing", icon: "calculator-outline" },
   { label: "Financeiro", href: "/finance", icon: "wallet-outline" },
   { label: "Mais opções", href: "/tabs/more", icon: "grid-outline" },
@@ -35,6 +60,7 @@ const ROUTE_TITLES: ReadonlyArray<readonly [string, string]> = [
   ["/recurring-expenses", "Gastos fixos"],
   ["/suppliers", "Fornecedores"],
   ["/purchases", "Compras"],
+  ["/retail", "Operação da Papelaria"],
   ["/support", "Suporte"],
   ["/materials", "Insumos"],
   ["/finance", "Financeiro"],
@@ -46,7 +72,7 @@ const ROUTE_TITLES: ReadonlyArray<readonly [string, string]> = [
   ["/recipes", "Receitas"],
   ["/pricing", "Precificação"],
   ["/plans", "Planos"],
-  ["/labels", "Rótulos"],
+  ["/labels", "Etiquetas"],
   ["/packaging", "Embalagens"],
   ["/settings", "Configurações"],
   ["/tabs", "Visão geral"],
@@ -79,7 +105,7 @@ function SidebarItem({ label, href, icon }: Readonly<NavigationItem>) {
         opacity: pressed ? 0.72 : 1,
       })}
     >
-      <Ionicons
+      <AppIcon
         name={icon}
         size={21}
         color={active ? theme.colors.primary : theme.colors.textSecondary}
@@ -103,6 +129,10 @@ function SidebarSection({
   items: ReadonlyArray<NavigationItem>;
 }>) {
   const { theme } = useTheme();
+  const brand = useBrand();
+  const visibleItems = items.filter(
+    (item) => !item.feature || brand.features[item.feature],
+  );
   return (
     <View style={{ gap: spacing.xs }}>
       <Typography
@@ -112,7 +142,7 @@ function SidebarSection({
       >
         {title.toUpperCase()}
       </Typography>
-      {items.map((item) => (
+      {visibleItems.map((item) => (
         <SidebarItem key={item.href} {...item} />
       ))}
     </View>
@@ -124,6 +154,8 @@ export function DesktopShell({
   children,
 }: Readonly<{ enabled: boolean; children: ReactNode }>) {
   const { theme } = useTheme();
+  const brand = useBrand();
+  const brandName = getBrandDisplayName(brand);
   const router = useRouter();
   const pathname = usePathname();
   const { data: profile } = useProfile();
@@ -131,9 +163,9 @@ export function DesktopShell({
   if (!enabled) return <>{children}</>;
 
   const userName = profile?.name ?? "Minha conta";
-  const businessName = profile?.businessName ?? "Lucro Caseiro";
+  const businessName = profile?.businessName ?? brandName;
   const pageTitle =
-    ROUTE_TITLES.find(([path]) => isActiveRoute(pathname, path))?.[1] ?? "Lucro Caseiro";
+    ROUTE_TITLES.find(([path]) => isActiveRoute(pathname, path))?.[1] ?? brandName;
 
   return (
     <View
@@ -160,21 +192,15 @@ export function DesktopShell({
             gap: spacing.md,
           }}
         >
-          <View
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: radii.md,
-              backgroundColor: theme.colors.primary,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Ionicons name="home" size={22} color={theme.colors.textOnPrimary} />
-          </View>
+          <Image
+            source={brandLogoById[brand.id] ?? brandLogoById["lucro-caseiro"]}
+            style={{ width: 40, height: 40 }}
+            resizeMode="contain"
+            accessibilityLabel={brandName}
+          />
           <View>
             <Typography variant="h3" serif color={theme.colors.text}>
-              Lucro Caseiro
+              {brandName}
             </Typography>
             <Typography variant="caption" color={theme.colors.textSecondary}>
               Gestão do seu negócio
@@ -216,9 +242,17 @@ export function DesktopShell({
               justifyContent: "center",
             }}
           >
-            <Typography variant="bodyBold" color={theme.colors.primary}>
-              {userName.charAt(0).toUpperCase()}
-            </Typography>
+            {profile?.avatarUrl ? (
+              <Image
+                source={{ uri: profile.avatarUrl }}
+                style={{ width: 40, height: 40, borderRadius: radii.full }}
+                resizeMode="cover"
+              />
+            ) : (
+              <Typography variant="bodyBold" color={theme.colors.primary}>
+                {userName.charAt(0).toUpperCase()}
+              </Typography>
+            )}
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Typography variant="bodyBold" numberOfLines={1}>
@@ -228,11 +262,7 @@ export function DesktopShell({
               {businessName}
             </Typography>
           </View>
-          <Ionicons
-            name="settings-outline"
-            size={20}
-            color={theme.colors.textSecondary}
-          />
+          <AppIcon name="settings-outline" size={20} color={theme.colors.textSecondary} />
         </Pressable>
       </View>
 
@@ -275,7 +305,7 @@ export function DesktopShell({
               opacity: pressed ? 0.72 : 1,
             })}
           >
-            <Ionicons name="person-outline" size={18} color={theme.colors.primary} />
+            <AppIcon name="person-outline" size={18} color={theme.colors.primary} />
             <Typography variant="bodyBold" color={theme.colors.text}>
               {userName}
             </Typography>

@@ -1,6 +1,7 @@
 import type { FinanceEntry, FinanceEntryType } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
+import type { AppIconName } from "../../../shared/components/app-icon";
 import { formatCurrency } from "../../../shared/utils/format";
 import {
   Button,
@@ -23,11 +24,9 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import financeEmpty from "../../../assets/finance-empty.png";
 import financeHero from "../../../assets/finance-hero.png";
@@ -45,11 +44,9 @@ import { CreateFinanceEntry } from "./create-finance-entry";
 import { alertError } from "../../../shared/utils/alerts";
 import { showAlert } from "../../../shared/components/alert-store";
 import { ScreenHeader } from "../../../shared/components/screen-header";
+import { SkeletonCard, SkeletonList } from "../../../shared/components/skeleton";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
-import {
-  ResponsiveModal,
-  ResponsiveOverlayModal,
-} from "../../../shared/components/responsive-modal-surface";
+import { StandardModal } from "../../../shared/components/standard-modal";
 
 const MONTH_NAMES = [
   "Janeiro",
@@ -248,8 +245,10 @@ export function FinanceDashboard({
 
   if (isLoading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
+      <View style={{ padding: spacing.xl, gap: spacing.lg }}>
+        <SkeletonCard lines={2} />
+        <SkeletonCard lines={3} />
+        <SkeletonList rows={4} withAvatar={false} />
       </View>
     );
   }
@@ -282,7 +281,7 @@ export function FinanceDashboard({
                 hitSlop={12}
                 style={styles.calendarButton}
               >
-                <Ionicons
+                <AppIcon
                   name="calendar-outline"
                   size={iconSizes.md}
                   color={theme.colors.textSecondary}
@@ -294,8 +293,13 @@ export function FinanceDashboard({
 
         <View style={[styles.monthSelector, isDesktop && styles.desktopMonthSelector]}>
           <View style={styles.monthNavigation}>
-            <Pressable onPress={handlePrevMonth} hitSlop={12} accessibilityRole="button">
-              <Ionicons
+            <Pressable
+              onPress={handlePrevMonth}
+              accessibilityLabel="Mês anterior"
+              hitSlop={12}
+              accessibilityRole="button"
+            >
+              <AppIcon
                 name="chevron-back"
                 size={iconSizes.lg}
                 color={theme.colors.text}
@@ -304,8 +308,13 @@ export function FinanceDashboard({
             <Typography variant="h2" color={theme.colors.text}>
               {MONTH_NAMES[month - 1]} {year}
             </Typography>
-            <Pressable onPress={handleNextMonth} hitSlop={12} accessibilityRole="button">
-              <Ionicons
+            <Pressable
+              onPress={handleNextMonth}
+              accessibilityLabel="Próximo mês"
+              hitSlop={12}
+              accessibilityRole="button"
+            >
+              <AppIcon
                 name="chevron-forward"
                 size={iconSizes.lg}
                 color={theme.colors.text}
@@ -322,7 +331,7 @@ export function FinanceDashboard({
                 { opacity: pressed ? 0.72 : 1 },
               ]}
             >
-              <Ionicons
+              <AppIcon
                 name="calendar-outline"
                 size={20}
                 color={theme.colors.textSecondary}
@@ -355,7 +364,7 @@ export function FinanceDashboard({
             </Typography>
             {profitDeltaPct !== null && (
               <View style={styles.percentBadge}>
-                <Ionicons
+                <AppIcon
                   name={
                     profitDeltaPct >= 0 ? "trending-up-outline" : "trending-down-outline"
                   }
@@ -408,20 +417,14 @@ export function FinanceDashboard({
                   borderRadius: radii.sm,
                 }}
               >
-                <Ionicons
+                <AppIcon
                   name="diamond"
                   size={iconSizes.xs}
                   color={theme.colors.premium}
                 />
-                <Text
-                  style={{
-                    color: theme.colors.premium,
-                    fontFamily: fonts.extraBold,
-                    fontSize: fontSizes.xs,
-                  }}
-                >
+                <Typography variant="captionBold" color={theme.colors.premium}>
                   {canExportBasic ? "Excel no Profissional" : "Profissional"}
-                </Text>
+                </Typography>
               </View>
             )}
           </View>
@@ -451,10 +454,11 @@ export function FinanceDashboard({
           <Typography variant="h2">Hoje</Typography>
           <Pressable
             accessibilityRole="button"
+            accessibilityLabel="Buscar lançamento"
             onPress={() => setShowSearch((visible) => !visible)}
             style={[styles.searchButton, showSearch && styles.searchButtonActive]}
           >
-            <Ionicons
+            <AppIcon
               name="search-outline"
               size={iconSizes.md}
               color={theme.colors.text}
@@ -488,7 +492,7 @@ export function FinanceDashboard({
 
         {showSearch && (
           <View style={styles.searchField}>
-            <Ionicons
+            <AppIcon
               name="search-outline"
               size={iconSizes.md}
               color={theme.colors.textSecondary}
@@ -503,10 +507,11 @@ export function FinanceDashboard({
             {searchTerm.length > 0 && (
               <Pressable
                 onPress={() => setSearchTerm("")}
+                accessibilityLabel="Limpar busca"
                 hitSlop={10}
                 accessibilityRole="button"
               >
-                <Ionicons
+                <AppIcon
                   name="close-circle"
                   size={iconSizes.md}
                   color={theme.colors.textSecondary}
@@ -568,7 +573,7 @@ export function FinanceDashboard({
         <View style={styles.footerRow}>
           <View style={styles.tipCard}>
             <View style={styles.tipIcon}>
-              <Ionicons
+              <AppIcon
                 name="bar-chart-outline"
                 size={iconSizes.md}
                 color={theme.colors.textSecondary}
@@ -585,307 +590,232 @@ export function FinanceDashboard({
             style={styles.addButtonWrap}
           >
             <View style={styles.addCircle}>
-              <Ionicons
+              <AppIcon
                 name="add"
                 size={iconSizes.lg}
                 color={theme.colors.textOnPrimary}
               />
             </View>
-            <Text style={styles.addLabel} numberOfLines={1} adjustsFontSizeToFit>
+            <Typography
+              variant="captionBold"
+              style={styles.addLabel}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
               Novo
-            </Text>
-            <Text style={styles.addLabel} numberOfLines={1} adjustsFontSizeToFit>
+            </Typography>
+            <Typography
+              variant="captionBold"
+              style={styles.addLabel}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+            >
               lançamento
-            </Text>
+            </Typography>
           </Pressable>
         </View>
       </ScrollView>
 
-      <ResponsiveModal
-        desktopMaxWidth={840}
+      <CreateFinanceEntry
         visible={showCreateEntry}
-        animationType="slide"
-        presentationStyle="fullScreen"
-        onRequestClose={() => setShowCreateEntry(false)}
-      >
-        <SafeAreaView
-          style={[styles.modal, { backgroundColor: theme.colors.background }]}
-        >
-          <CreateFinanceEntry
-            onClose={() => setShowCreateEntry(false)}
-            onSuccess={() => setShowCreateEntry(false)}
-          />
-        </SafeAreaView>
-      </ResponsiveModal>
+        onClose={() => setShowCreateEntry(false)}
+        onSuccess={() => setShowCreateEntry(false)}
+      />
 
-      <ResponsiveOverlayModal
-        visible={selectedEntry !== null}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setSelectedEntry(null)}
-      >
-        <View style={styles.detailOverlay}>
-          <Pressable
-            style={styles.detailBackdrop}
-            onPress={() => setSelectedEntry(null)}
-          />
-          {selectedEntry && (
-            <View style={[styles.detailCard, isDesktop && styles.detailCardDesktop]}>
-              <View style={styles.detailHeader}>
-                <View
-                  style={[
-                    styles.detailIcon,
-                    {
-                      backgroundColor: toneColors(
-                        theme,
-                        selectedEntry.type === "income" ? "green" : "red",
-                      ).iconBg,
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name={selectedEntry.type === "income" ? "add" : "remove"}
-                    size={iconSizes.lg}
-                    color={
-                      toneColors(theme, selectedEntry.type === "income" ? "green" : "red")
-                        .fg
-                    }
-                  />
-                </View>
-                <View style={styles.detailTitleWrap}>
-                  <Typography variant="h2" numberOfLines={2}>
-                    {selectedEntry.description}
-                  </Typography>
-                  <Typography variant="bodyBold" color={theme.colors.textSecondary}>
-                    {categoryLabel(selectedEntry.category)} •{" "}
-                    {formatEntryDate(selectedEntry.date)}
-                  </Typography>
-                </View>
-                <Pressable
-                  onPress={() => setSelectedEntry(null)}
-                  hitSlop={12}
-                  accessibilityRole="button"
-                >
-                  <Ionicons
-                    name="close"
-                    size={iconSizes.md}
-                    color={theme.colors.textSecondary}
-                  />
-                </Pressable>
-              </View>
-
-              <View style={styles.detailAmountRow}>
-                <Typography variant="bodyBold" color={theme.colors.textSecondary}>
-                  {selectedEntry.type === "income" ? "Entrada" : "Saída"}
-                </Typography>
-                <Typography
-                  variant="moneyLg"
-                  color={
-                    toneColors(theme, selectedEntry.type === "income" ? "green" : "red")
-                      .fg
-                  }
-                >
-                  {selectedEntry.type === "income" ? "+ " : "- "}
-                  {formatCurrency(selectedEntry.amount)}
-                </Typography>
-              </View>
-
-              <View style={styles.detailActions}>
-                <Pressable
-                  accessibilityRole="button"
-                  style={styles.detailSecondaryButton}
-                  onPress={() => setSelectedEntry(null)}
-                >
-                  <Typography variant="bodyBold">Fechar</Typography>
-                </Pressable>
-                <Pressable
-                  accessibilityRole="button"
-                  disabled={deleteEntry.isPending}
-                  style={[
-                    styles.detailDeleteButton,
-                    deleteEntry.isPending && styles.disabled,
-                  ]}
-                  onPress={() => {
-                    showAlert({
-                      title: "Excluir lançamento",
-                      message: "Deseja remover este lançamento do financeiro?",
-                      buttons: [
-                        { text: "Cancelar", style: "cancel" },
-                        {
-                          text: "Excluir",
-                          style: "destructive",
-                          onPress: () => {
-                            void deleteEntry
-                              .mutateAsync(selectedEntry.id)
-                              .then(() => setSelectedEntry(null))
-                              .catch(() =>
-                                showAlert({
-                                  title: "Erro",
-                                  message:
-                                    "Não foi possível excluir o lançamento. Tente novamente.",
-                                }),
-                              );
-                          },
+      {selectedEntry && (
+        <StandardModal
+          visible
+          onClose={() => setSelectedEntry(null)}
+          title={selectedEntry.description}
+          subtitle={`${categoryLabel(selectedEntry.category)} • ${formatEntryDate(selectedEntry.date)}`}
+          footer={
+            <>
+              <Pressable
+                accessibilityRole="button"
+                style={styles.detailSecondaryButton}
+                onPress={() => setSelectedEntry(null)}
+              >
+                <Typography variant="bodyBold">Fechar</Typography>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                disabled={deleteEntry.isPending}
+                style={[
+                  styles.detailDeleteButton,
+                  deleteEntry.isPending && styles.disabled,
+                ]}
+                onPress={() => {
+                  showAlert({
+                    title: "Excluir lançamento",
+                    message: "Deseja remover este lançamento do financeiro?",
+                    buttons: [
+                      { text: "Cancelar", style: "cancel" },
+                      {
+                        text: "Excluir",
+                        style: "destructive",
+                        onPress: () => {
+                          void deleteEntry
+                            .mutateAsync(selectedEntry.id)
+                            .then(() => setSelectedEntry(null))
+                            .catch(() =>
+                              showAlert({
+                                title: "Erro",
+                                message:
+                                  "Não foi possível excluir o lançamento. Tente novamente.",
+                              }),
+                            );
                         },
-                      ],
-                    });
-                  }}
-                >
-                  <Ionicons
-                    name="trash-outline"
-                    size={iconSizes.sm}
-                    color={theme.colors.alert}
-                  />
-                  <Typography variant="bodyBold" color={theme.colors.alert}>
-                    Excluir
-                  </Typography>
-                </Pressable>
-              </View>
+                      },
+                    ],
+                  });
+                }}
+              >
+                <AppIcon
+                  name="trash-outline"
+                  size={iconSizes.sm}
+                  color={theme.colors.alert}
+                />
+                <Typography variant="bodyBold" color={theme.colors.alert}>
+                  Excluir
+                </Typography>
+              </Pressable>
+            </>
+          }
+        >
+          <View style={{ flexShrink: 1, gap: spacing.lg }}>
+            <View
+              style={[
+                styles.detailIcon,
+                {
+                  alignSelf: "center",
+                  backgroundColor: toneColors(
+                    theme,
+                    selectedEntry.type === "income" ? "green" : "red",
+                  ).iconBg,
+                },
+              ]}
+            >
+              <AppIcon
+                name={selectedEntry.type === "income" ? "add" : "remove"}
+                size={iconSizes.lg}
+                color={
+                  toneColors(theme, selectedEntry.type === "income" ? "green" : "red").fg
+                }
+              />
             </View>
-          )}
-        </View>
-      </ResponsiveOverlayModal>
+            <View style={[styles.detailAmountRow, { marginTop: 0 }]}>
+              <Typography variant="bodyBold" color={theme.colors.textSecondary}>
+                {selectedEntry.type === "income" ? "Entrada" : "Saída"}
+              </Typography>
+              <Typography
+                variant="moneyLg"
+                color={
+                  toneColors(theme, selectedEntry.type === "income" ? "green" : "red").fg
+                }
+              >
+                {selectedEntry.type === "income" ? "+ " : "- "}
+                {formatCurrency(selectedEntry.amount)}
+              </Typography>
+            </View>
+          </View>
+        </StandardModal>
+      )}
 
       {/* Seletor de mês/ano */}
-      <ResponsiveOverlayModal
+      <StandardModal
         visible={showMonthPicker}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowMonthPicker(false)}
+        onClose={() => setShowMonthPicker(false)}
+        title="Escolher mês"
       >
-        <Pressable
-          onPress={() => setShowMonthPicker(false)}
-          style={{
-            flex: 1,
-            backgroundColor: theme.colors.overlay,
-            justifyContent: "center",
-            padding: spacing.xl,
-          }}
-        >
-          <Pressable
-            style={[
-              {
-                backgroundColor: theme.colors.surfaceElevated,
-                borderRadius: radii["2xl"],
-                padding: spacing.lg,
-                gap: spacing.md,
-              },
-              isDesktop
-                ? { width: "100%", maxWidth: 560, alignSelf: "center" }
-                : undefined,
-            ]}
+        <View style={{ flexShrink: 1, gap: spacing.md }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
           >
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <Typography variant="h3">Escolher mês</Typography>
-              <Pressable
-                onPress={() => setShowMonthPicker(false)}
-                hitSlop={10}
-                accessibilityLabel="Fechar"
-                accessibilityRole="button"
-              >
-                <Ionicons
-                  name="close"
-                  size={iconSizes.md}
-                  color={theme.colors.textSecondary}
-                />
-              </Pressable>
-            </View>
-
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <Pressable
-                onPress={() => setPickerYear((y) => y - 1)}
-                hitSlop={12}
-                accessibilityLabel="Ano anterior"
-                accessibilityRole="button"
-              >
-                <Ionicons
-                  name="chevron-back"
-                  size={iconSizes.md}
-                  color={theme.colors.text}
-                />
-              </Pressable>
-              <Typography variant="h2" color={theme.colors.text}>
-                {pickerYear}
-              </Typography>
-              <Pressable
-                onPress={() => setPickerYear((y) => y + 1)}
-                hitSlop={12}
-                accessibilityLabel="Próximo ano"
-                accessibilityRole="button"
-              >
-                <Ionicons
-                  name="chevron-forward"
-                  size={iconSizes.md}
-                  color={theme.colors.text}
-                />
-              </Pressable>
-            </View>
-
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-              {MONTH_NAMES.map((name, i) => {
-                const m = i + 1;
-                const isSel = m === month && pickerYear === year;
-                return (
-                  <Pressable
-                    key={name}
-                    onPress={() => {
-                      setMonth(m);
-                      setYear(pickerYear);
-                      setShowMonthPicker(false);
-                    }}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: isSel }}
-                    style={{
-                      width: "30%",
-                      flexGrow: 1,
-                      minHeight: 48,
-                      borderRadius: radii.md,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      backgroundColor: isSel
-                        ? theme.colors.primaryBg
-                        : theme.colors.surface,
-                    }}
-                  >
-                    <Typography
-                      variant="bodyBold"
-                      color={isSel ? theme.colors.primaryStrong : theme.colors.text}
-                    >
-                      {name.slice(0, 3)}
-                    </Typography>
-                  </Pressable>
-                );
-              })}
-            </View>
-
             <Pressable
-              onPress={() => {
-                setMonth(now.getMonth() + 1);
-                setYear(now.getFullYear());
-                setShowMonthPicker(false);
-              }}
+              onPress={() => setPickerYear((y) => y - 1)}
+              hitSlop={12}
+              accessibilityLabel="Ano anterior"
               accessibilityRole="button"
-              style={{ alignItems: "center", paddingVertical: spacing.sm }}
             >
-              <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-                Ir para o mês atual
-              </Typography>
+              <AppIcon
+                name="chevron-back"
+                size={iconSizes.md}
+                color={theme.colors.text}
+              />
             </Pressable>
+            <Typography variant="h2" color={theme.colors.text}>
+              {pickerYear}
+            </Typography>
+            <Pressable
+              onPress={() => setPickerYear((y) => y + 1)}
+              hitSlop={12}
+              accessibilityLabel="Próximo ano"
+              accessibilityRole="button"
+            >
+              <AppIcon
+                name="chevron-forward"
+                size={iconSizes.md}
+                color={theme.colors.text}
+              />
+            </Pressable>
+          </View>
+
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+            {MONTH_NAMES.map((name, i) => {
+              const m = i + 1;
+              const isSel = m === month && pickerYear === year;
+              return (
+                <Pressable
+                  key={name}
+                  onPress={() => {
+                    setMonth(m);
+                    setYear(pickerYear);
+                    setShowMonthPicker(false);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSel }}
+                  style={{
+                    width: "30%",
+                    flexGrow: 1,
+                    minHeight: 48,
+                    borderRadius: radii.md,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: isSel
+                      ? theme.colors.primaryBg
+                      : theme.colors.surface,
+                  }}
+                >
+                  <Typography
+                    variant="bodyBold"
+                    color={isSel ? theme.colors.primaryStrong : theme.colors.text}
+                  >
+                    {name.slice(0, 3)}
+                  </Typography>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <Pressable
+            onPress={() => {
+              setMonth(now.getMonth() + 1);
+              setYear(now.getFullYear());
+              setShowMonthPicker(false);
+            }}
+            accessibilityRole="button"
+            style={{ alignItems: "center", paddingVertical: spacing.sm }}
+          >
+            <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+              Ir para o mês atual
+            </Typography>
           </Pressable>
-        </Pressable>
-      </ResponsiveOverlayModal>
+        </View>
+      </StandardModal>
     </>
   );
 }
@@ -914,7 +844,7 @@ function SummaryCard({
   theme,
   styles,
 }: Readonly<{
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
   label: string;
   value: string;
   description: string;
@@ -932,7 +862,7 @@ function SummaryCard({
       ]}
     >
       <View style={[styles.summaryIcon, { backgroundColor: tc.fg + "1F" }]}>
-        <Ionicons name={icon} size={iconSizes.xl} color={tc.fg} />
+        <AppIcon name={icon} size={iconSizes.xl} color={tc.fg} />
       </View>
       <View style={styles.summaryCopy}>
         <Typography variant="bodyBold" numberOfLines={1} adjustsFontSizeToFit>
@@ -969,7 +899,7 @@ function ExportButton({
   theme,
   styles,
 }: Readonly<{
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
   label: string;
   loading: boolean;
   disabled: boolean;
@@ -992,7 +922,7 @@ function ExportButton({
         <ActivityIndicator color={theme.colors.primary} />
       ) : (
         <>
-          <Ionicons name={icon} size={iconSizes.md} color={theme.colors.textSecondary} />
+          <AppIcon name={icon} size={iconSizes.md} color={theme.colors.textSecondary} />
           <Typography variant="h3" color={theme.colors.text}>
             {label}
           </Typography>
@@ -1055,16 +985,21 @@ function EntryRow({
       style={[styles.entryRow, !isLast && styles.entryDivider]}
     >
       <View style={[styles.entryIcon, { backgroundColor: tc.iconBg }]}>
-        <Ionicons name={isIncome ? "add" : "remove"} size={iconSizes.sm} color={tc.fg} />
+        <AppIcon name={isIncome ? "add" : "remove"} size={iconSizes.sm} color={tc.fg} />
       </View>
       <View style={styles.entryMiddle}>
         <Typography variant="bodyBold" numberOfLines={2}>
           {entryDisplayDescription(entry, isIncome)}
         </Typography>
         <View style={styles.entryMetaRow}>
-          <Text style={styles.entryBadge} numberOfLines={1} adjustsFontSizeToFit>
+          <Typography
+            variant="captionBold"
+            style={styles.entryBadge}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+          >
             {entry.category === "sale" ? "Venda" : categoryLabel(entry.category)}
-          </Text>
+          </Typography>
           <Typography variant="caption" numberOfLines={1}>
             {formatEntryDate(entry.date)}
           </Typography>
@@ -1081,7 +1016,7 @@ function EntryRow({
         >
           {sign} {formatCurrency(entry.amount)}
         </Typography>
-        <Ionicons
+        <AppIcon
           name="chevron-forward"
           size={iconSizes.sm}
           color={theme.colors.textSecondary}
@@ -1224,11 +1159,6 @@ function createStyles(theme: Theme) {
     disabled: {
       opacity: 0.6,
     },
-    detailActions: {
-      flexDirection: "row",
-      gap: spacing.md,
-      marginTop: spacing.xl,
-    },
     desktopCalendarButton: {
       alignItems: "center",
       backgroundColor: c.surfaceElevated,
@@ -1253,23 +1183,6 @@ function createStyles(theme: Theme) {
       marginTop: spacing.xl,
       padding: spacing.lg,
     },
-    detailBackdrop: {
-      ...StyleSheet.absoluteFillObject,
-    },
-    detailCard: {
-      backgroundColor: cardBg,
-      borderColor: cardBorder,
-      borderRadius: radii["2xl"],
-      borderWidth: 1,
-      marginHorizontal: spacing["2xl"],
-      padding: spacing.xl,
-    },
-    detailCardDesktop: {
-      alignSelf: "center",
-      marginHorizontal: 0,
-      maxWidth: 560,
-      width: "100%",
-    },
     detailDeleteButton: {
       alignItems: "center",
       borderColor: deleteBorder,
@@ -1281,22 +1194,12 @@ function createStyles(theme: Theme) {
       height: 52,
       justifyContent: "center",
     },
-    detailHeader: {
-      alignItems: "center",
-      flexDirection: "row",
-      gap: spacing.md,
-    },
     detailIcon: {
       alignItems: "center",
       borderRadius: radii.full,
       height: 52,
       justifyContent: "center",
       width: 52,
-    },
-    detailOverlay: {
-      backgroundColor: c.overlay,
-      flex: 1,
-      justifyContent: "center",
     },
     detailSecondaryButton: {
       alignItems: "center",
@@ -1305,10 +1208,6 @@ function createStyles(theme: Theme) {
       flex: 1,
       height: 52,
       justifyContent: "center",
-    },
-    detailTitleWrap: {
-      flex: 1,
-      gap: spacing.xs,
     },
     emptyState: {
       alignItems: "center",

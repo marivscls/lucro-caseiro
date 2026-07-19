@@ -1,7 +1,7 @@
 import { formatCurrency } from "../../../shared/utils/format";
 import type { Product } from "@lucro-caseiro/contracts";
 import { Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -39,10 +39,9 @@ export function ComponentPicker({
   const { data, isLoading } = useProducts();
   const [pickerOpen, setPickerOpen] = useState(false);
 
-  const isDark = theme.mode === "dark";
-  const border = isDark ? "rgba(245, 225, 219, 0.12)" : "rgba(74, 50, 40, 0.12)";
-  const fieldBg = isDark ? "rgba(58, 50, 45, 0.5)" : theme.colors.surface;
-  const sheetBg = isDark ? "#2C2420" : theme.colors.surfaceElevated;
+  const border = theme.colors.border;
+  const fieldBg = theme.colors.surface;
+  const sheetBg = theme.colors.surfaceElevated;
 
   // Apenas produtos simples (sem kit dentro de kit) e diferentes do proprio produto.
   const available: Product[] = (data?.items ?? []).filter(
@@ -99,7 +98,7 @@ export function ComponentPicker({
             Produtos que compõem o kit
           </Typography>
           <Pressable onPress={showInfo} hitSlop={8} accessibilityLabel="O que é um kit">
-            <Ionicons
+            <AppIcon
               name="information-circle-outline"
               size={17}
               color={theme.colors.textSecondary}
@@ -116,7 +115,7 @@ export function ComponentPicker({
           <Typography variant="bodyBold" color={theme.colors.primary}>
             Adicionar produto
           </Typography>
-          <Ionicons name="add-circle" size={20} color={theme.colors.primary} />
+          <AppIcon name="add-circle" size={20} color={theme.colors.primary} />
         </Pressable>
       </View>
 
@@ -155,9 +154,7 @@ export function ComponentPicker({
                     borderRadius: radii.full,
                     borderWidth: 1,
                     borderColor: border,
-                    backgroundColor: isDark
-                      ? "rgba(255,255,255,0.04)"
-                      : theme.colors.surface,
+                    backgroundColor: theme.colors.surface,
                     flexShrink: 1,
                   }}
                 >
@@ -175,7 +172,7 @@ export function ComponentPicker({
                     accessibilityLabel={`Remover ${name} do kit`}
                     hitSlop={8}
                   >
-                    <Ionicons name="close" size={18} color={theme.colors.primary} />
+                    <AppIcon name="close" size={18} color={theme.colors.primary} />
                   </Pressable>
                 </View>
               );
@@ -224,7 +221,7 @@ export function ComponentPicker({
             justifyContent: "center",
           }}
         >
-          <Ionicons name="calculator-outline" size={24} color={theme.colors.primary} />
+          <AppIcon name="calculator-outline" size={24} color={theme.colors.primary} />
         </View>
         <View style={{ flex: 1 }}>
           <Typography variant="bodyBold" color={theme.colors.text}>
@@ -249,7 +246,7 @@ export function ComponentPicker({
           onPress={() => setPickerOpen(false)}
           style={{
             flex: 1,
-            backgroundColor: "rgba(0,0,0,0.55)",
+            backgroundColor: theme.colors.overlay,
             justifyContent: isDesktop ? "center" : "flex-end",
             padding: isDesktop ? spacing.xl : 0,
           }}
@@ -286,7 +283,7 @@ export function ComponentPicker({
                 accessibilityLabel="Fechar"
                 hitSlop={10}
               >
-                <Ionicons name="close" size={26} color={theme.colors.textSecondary} />
+                <AppIcon name="close" size={26} color={theme.colors.textSecondary} />
               </Pressable>
             </View>
 
@@ -335,7 +332,7 @@ export function ComponentPicker({
                           gap: spacing.md,
                         }}
                       >
-                        <Ionicons
+                        <AppIcon
                           name={selected ? "checkbox" : "square-outline"}
                           size={24}
                           color={
@@ -384,7 +381,7 @@ export function ComponentPicker({
                               justifyContent: "center",
                             }}
                           >
-                            <Ionicons name="remove" size={20} color={theme.colors.text} />
+                            <AppIcon name="remove" size={20} color={theme.colors.text} />
                           </Pressable>
                           <Typography
                             variant="bodyBold"
@@ -408,7 +405,7 @@ export function ComponentPicker({
                               justifyContent: "center",
                             }}
                           >
-                            <Ionicons name="add" size={20} color={theme.colors.primary} />
+                            <AppIcon name="add" size={20} color={theme.colors.primary} />
                           </Pressable>
                         </View>
                       ) : null}

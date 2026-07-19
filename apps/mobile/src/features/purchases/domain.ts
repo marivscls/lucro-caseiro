@@ -1,5 +1,17 @@
 import type { Purchase } from "@lucro-caseiro/contracts";
 
+export type PurchasePayload = Omit<Purchase, "items"> & {
+  items?: Purchase["items"] | null;
+};
+
+/** Mantém o app compatível com respostas da API anteriores a purchase_items. */
+export function normalizePurchase(purchase: PurchasePayload): Purchase {
+  return {
+    ...purchase,
+    items: Array.isArray(purchase.items) ? purchase.items : [],
+  };
+}
+
 export const PURCHASE_CATEGORIES = [
   { value: "material", label: "Insumo" },
   { value: "packaging", label: "Embalagem" },

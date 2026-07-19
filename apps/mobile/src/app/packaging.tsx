@@ -10,17 +10,11 @@ import {
   spacing,
   radii,
 } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../shared/components/app-icon";
+import type { AppIconName } from "../shared/components/app-icon";
 import { Stack } from "expo-router";
 import React, { useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  Pressable,
-  ScrollView,
-  TextInput,
-  View,
-} from "react-native";
+import { Image, Pressable, ScrollView, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import packagingEmpty from "../assets/packaging-empty.png";
@@ -32,10 +26,12 @@ import { useDeletePackaging, usePackagingList } from "../features/packaging/hook
 import { LimitBanner } from "../features/subscription/components/limit-banner";
 import { showAlert } from "../shared/components/alert-store";
 import { ScreenHeader } from "../shared/components/screen-header";
+import { SkeletonList } from "../shared/components/skeleton";
+import { FeatureRouteGuard } from "../shared/components/feature-route-guard";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { alertError } from "../shared/utils/alerts";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
-import { ResponsiveModal } from "../shared/components/responsive-modal-surface";
+import { StandardModal } from "../shared/components/standard-modal";
 
 function SummaryCard({
   icon,
@@ -43,7 +39,7 @@ function SummaryCard({
   value,
   hint,
 }: Readonly<{
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
   label: string;
   value: string;
   hint: string;
@@ -73,7 +69,7 @@ function SummaryCard({
           justifyContent: "center",
         }}
       >
-        <Ionicons name={icon} size={24} color={theme.colors.textSecondary} />
+        <AppIcon name={icon} size={24} color={theme.colors.textSecondary} />
       </View>
       <Typography
         variant="caption"
@@ -97,7 +93,7 @@ function SummaryCard({
   );
 }
 
-export default function PackagingScreen() {
+function PackagingScreenContent() {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
   const { data, isLoading, error } = usePackagingList();
@@ -150,8 +146,8 @@ export default function PackagingScreen() {
   function renderList() {
     if (isLoading) {
       return (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
+        <View style={{ flex: 1, padding: spacing.xl }}>
+          <SkeletonList rows={6} />
         </View>
       );
     }
@@ -252,7 +248,7 @@ export default function PackagingScreen() {
             opacity: pressed ? 0.7 : 1,
           })}
         >
-          <Ionicons
+          <AppIcon
             name="add-circle-outline"
             size={28}
             color={theme.colors.primaryStrong}
@@ -297,7 +293,7 @@ export default function PackagingScreen() {
               opacity: pressed ? 0.85 : 1,
             })}
           >
-            <Ionicons name="add" size={iconSizes.md} color={theme.colors.textOnPrimary} />
+            <AppIcon name="add" size={iconSizes.md} color={theme.colors.textOnPrimary} />
           </Pressable>
         }
       />
@@ -308,6 +304,7 @@ export default function PackagingScreen() {
           flexDirection: "row",
           gap: spacing.sm,
           paddingHorizontal: spacing.lg,
+          paddingTop: spacing.xl,
           paddingBottom: spacing.sm,
         }}
       >
@@ -324,7 +321,7 @@ export default function PackagingScreen() {
             gap: spacing.sm,
           }}
         >
-          <Ionicons name="search-outline" size={20} color={theme.colors.textSecondary} />
+          <AppIcon name="search-outline" size={20} color={theme.colors.textSecondary} />
           <TextInput
             value={search}
             onChangeText={(v) => {
@@ -346,11 +343,7 @@ export default function PackagingScreen() {
               hitSlop={8}
               accessibilityLabel="Limpar busca"
             >
-              <Ionicons
-                name="close-circle"
-                size={20}
-                color={theme.colors.textSecondary}
-              />
+              <AppIcon name="close-circle" size={20} color={theme.colors.textSecondary} />
             </Pressable>
           ) : null}
         </View>
@@ -370,7 +363,7 @@ export default function PackagingScreen() {
             opacity: pressed ? 0.7 : 1,
           })}
         >
-          <Ionicons
+          <AppIcon
             name="funnel-outline"
             size={18}
             color={typeFilter ? theme.colors.primaryStrong : theme.colors.text}
@@ -435,148 +428,99 @@ export default function PackagingScreen() {
       </View>
 
       {/* Modal: criar */}
-      <ResponsiveModal
-        desktopMaxWidth={1120}
+      <PackagingForm
         visible={showCreate}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowCreate(false)}
-      >
-        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              paddingHorizontal: spacing.xl,
-              paddingTop: spacing.md,
-              paddingBottom: spacing.md,
-              gap: spacing.md,
-            }}
-          >
+        onClose={() => setShowCreate(false)}
+        existingPackaging={items}
+        onSuccess={() => setShowCreate(false)}
+        onCancel={() => setShowCreate(false)}
+      />
+
+      {/* Modal: detalhe */}
+      {selected && !editing ? (
+        <StandardModal
+          visible
+          onClose={() => setSelectedId(null)}
+          title="Embalagem"
+          right={
             <Pressable
-              onPress={() => setShowCreate(false)}
-              accessibilityLabel="Fechar"
-              hitSlop={10}
-              style={{ minHeight: 44, justifyContent: "center" }}
+              onPress={() => setEditing(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Editar embalagem"
+              hitSlop={8}
+              style={({ pressed }) => ({
+                width: 44,
+                height: 44,
+                alignItems: "center",
+                justifyContent: "center",
+                opacity: pressed ? 0.6 : 1,
+              })}
             >
-              <Ionicons name="close" size={28} color={theme.colors.text} />
+              <AppIcon
+                name="create-outline"
+                size={22}
+                color={theme.colors.primaryStrong}
+              />
             </Pressable>
-            <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
-              Nova embalagem
-            </Typography>
-          </View>
-          <PackagingForm
-            existingPackaging={items}
-            onSuccess={() => setShowCreate(false)}
-            onCancel={() => setShowCreate(false)}
+          }
+        >
+          <PackagingDetail
+            packaging={selected}
+            onDelete={() => deleteById(selected.id)}
+            isDeleting={deletePackaging.isPending}
           />
-        </SafeAreaView>
-      </ResponsiveModal>
+        </StandardModal>
+      ) : null}
 
-      {/* Modal: detalhe / editar */}
-      <ResponsiveModal
-        desktopMaxWidth={1120}
-        visible={!!selected}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setSelectedId(null)}
-      >
-        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          {selected && !editing ? (
-            <>
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  paddingHorizontal: spacing.xl,
-                  paddingTop: spacing.md,
-                  paddingBottom: spacing.sm,
-                }}
-              >
-                <Pressable onPress={() => setSelectedId(null)} hitSlop={10}>
-                  <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-                    Fechar
-                  </Typography>
-                </Pressable>
-                <Pressable onPress={() => setEditing(true)} hitSlop={10}>
-                  <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-                    Editar
-                  </Typography>
-                </Pressable>
-              </View>
-              <PackagingDetail
-                packaging={selected}
-                onDelete={() => deleteById(selected.id)}
-                isDeleting={deletePackaging.isPending}
-              />
-            </>
-          ) : null}
-
-          {selected && editing ? (
-            <>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  paddingHorizontal: spacing.xl,
-                  paddingTop: spacing.md,
-                  paddingBottom: spacing.sm,
-                  gap: spacing.md,
-                }}
-              >
-                <Pressable
-                  onPress={() => setEditing(false)}
-                  accessibilityLabel="Voltar"
-                  hitSlop={10}
-                  style={{ minHeight: 44, justifyContent: "center" }}
-                >
-                  <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
-                </Pressable>
-                <Typography
-                  variant="h1"
-                  color={theme.colors.text}
-                  numberOfLines={1}
-                  style={{ flex: 1, fontSize: fontSizes.xl }}
-                >
-                  Editar embalagem
-                </Typography>
-                <Pressable
-                  onPress={() => {
-                    showAlert({
-                      title: "Excluir embalagem",
-                      message: "Tem certeza que deseja excluir esta embalagem?",
-                      buttons: [
-                        { text: "Cancelar", style: "cancel" },
-                        {
-                          text: "Excluir",
-                          style: "destructive",
-                          onPress: () => deleteById(selected.id),
-                        },
-                      ],
-                    });
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel="Excluir"
-                  hitSlop={10}
-                  style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}
-                >
-                  <Ionicons name="trash-outline" size={20} color={theme.colors.alert} />
-                  <Typography variant="bodyBold" color={theme.colors.alert}>
-                    Excluir
-                  </Typography>
-                </Pressable>
-              </View>
-              <PackagingForm
-                packaging={selected}
-                existingPackaging={items}
-                onSuccess={() => setEditing(false)}
-                onCancel={() => setEditing(false)}
-              />
-            </>
-          ) : null}
-        </SafeAreaView>
-      </ResponsiveModal>
+      {/* Modal: editar */}
+      {selected && editing ? (
+        <PackagingForm
+          packaging={selected}
+          visible
+          onClose={() => setEditing(false)}
+          existingPackaging={items}
+          onSuccess={() => setEditing(false)}
+          onCancel={() => setEditing(false)}
+          headerRight={
+            <Pressable
+              onPress={() => {
+                showAlert({
+                  title: "Excluir embalagem",
+                  message: "Tem certeza que deseja excluir esta embalagem?",
+                  buttons: [
+                    { text: "Cancelar", style: "cancel" },
+                    {
+                      text: "Excluir",
+                      style: "destructive",
+                      onPress: () => deleteById(selected.id),
+                    },
+                  ],
+                });
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Excluir embalagem"
+              hitSlop={8}
+              style={({ pressed }) => ({
+                width: 44,
+                height: 44,
+                alignItems: "center",
+                justifyContent: "center",
+                opacity: pressed ? 0.6 : 1,
+              })}
+            >
+              <AppIcon name="trash-outline" size={22} color={theme.colors.alert} />
+            </Pressable>
+          }
+        />
+      ) : null}
     </SafeAreaView>
+  );
+}
+
+export default function PackagingScreen() {
+  return (
+    <FeatureRouteGuard feature="embalagens">
+      <PackagingScreenContent />
+    </FeatureRouteGuard>
   );
 }

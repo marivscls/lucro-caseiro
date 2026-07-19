@@ -151,13 +151,11 @@ Adotar as **regras transversais (§4)** como padrão obrigatório e tratar a **m
   - **P2** `laborMinutes` com **máximo** (ex: ≤ 1440/dia).
   - **P2** Avisar margem muito baixa (≤10%) ou muito alta (≥500%).
 
-### 5.11 Rótulos — `features/labels/components/create-label-form.tsx` + `app/labels.tsx`
+### 5.11 Etiquetas — `features/labels/components/create-label-form.tsx` + `app/labels.tsx`
 
-- **Atual:** nome do rótulo e do produto obrigatórios; ✅ datas válidas/plausíveis + aviso de incompleta; "validade em dias" >0; logo/QR opcionais.
+- **Atual:** nome interno e nome impresso obrigatórios; datas opcionais válidas/plausíveis; validade ≥ data de produção; logo e QR opcionais. O fluxo não coleta nem exporta dados nutricionais/regulatórios.
 - **Recomendado:**
-  - **P1** **Validade ≥ Fabricação** (§4.2).
-  - **P2** `ingredients ≤ 2000`, `producerAddress ≤ 500`, nutrição `≤100`/campo (contrato+client).
-  - **P2** "Telefone do produtor": validar com `isValidBrazilPhone` (hoje só máscara).
+  - **P2** "Telefone": validar com `isValidBrazilPhone` (hoje só máscara).
   - **P2** Confirmar comportamento do limite freemium de rótulos/templates (1 template no free).
 
 ### 5.12 Meta de pró-labore — `features/goals/components/prolabore-goal-form.tsx`

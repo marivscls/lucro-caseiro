@@ -1,13 +1,11 @@
 import type { PublicCatalog, PublicCatalogProduct } from "@lucro-caseiro/contracts";
 import { CATALOG_SLUG_REGEX } from "@lucro-caseiro/contracts";
-
-import { LUCRO_CASEIRO_LOGO_B64 } from "./catalog-logo";
-
-const ANDROID_PACKAGE = "br.com.orionseven.lucrocaseiro";
+import { resolveBrand } from "@lucro-caseiro/brands";
 
 /** Link da ficha do app na Play Store, com UTM pra medir instalacoes vindas do catalogo. */
-function catalogPlayStoreUrl(): string {
-  return `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE}&referrer=utm_source%3Dcatalogo%26utm_medium%3Dreferral%26utm_campaign%3Dcatalogo_compartilhado`;
+function catalogPlayStoreUrl(brandId: string): string {
+  const brand = resolveBrand(brandId);
+  return `https://play.google.com/store/apps/details?id=${brand.androidPackage}&referrer=utm_source%3Dcatalogo%26utm_medium%3Dreferral%26utm_campaign%3Dcatalogo_compartilhado`;
 }
 
 /** Gera um slug a partir do nome do negocio (ex.: "Doces da Má" -> "doces-da-ma"). */
@@ -52,7 +50,11 @@ function whatsappLink(phone: string, productName?: string, priceLabel?: string):
 
 const WHATSAPP_ICON = `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.2 14.2c-.2.6-1.2 1.2-1.7 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.4l.9 2.2c.1.2.1.4 0 .6l-.4.6-.5.5c-.2.2-.3.4-.1.7.2.3.9 1.5 2 2.4 1.4 1.2 2.5 1.6 2.8 1.7.3.1.5.1.7-.1l1-1.1c.2-.3.4-.2.7-.1l2.1 1c.3.2.5.3.6.4 0 .1 0 .7-.2 1.3Z"/></svg>`;
 
-function productCard(product: PublicCatalogProduct, whatsapp: string | null): string {
+function productCard(
+  product: PublicCatalogProduct,
+  whatsapp: string | null,
+  retailOrdering: boolean,
+): string {
   const allPhotos = [product.photoUrl, ...product.extraPhotos].filter(
     (url): url is string => !!url,
   );
@@ -71,11 +73,36 @@ function productCard(product: PublicCatalogProduct, whatsapp: string | null): st
   const description = product.description
     ? `<p class="desc">${escapeHtml(product.description)}</p>`
     : "";
+  const variationSelect = retailOrdering
+    ? `<select class="variation-select" aria-label="Variação de ${escapeHtml(product.name)}">${product.variations
+        .filter((variation) => variation.inStock)
+        .map(
+          (variation) =>
+            `<option value="${escapeHtml(variation.id)}">${escapeHtml(variation.name)}</option>`,
+        )
+        .join("")}</select>`
+    : "";
+  const variations = product.variations.length
+    ? `<div class="variants">${product.variations
+        .map(
+          (variation) =>
+            `<span class="variant${variation.inStock ? "" : " sold-out"}">${escapeHtml(variation.name)}${variation.inStock ? "" : " · esgotado"}</span>`,
+        )
+        .join("")}</div>${variationSelect}`
+    : "";
   const priceLabel = `${formatPrice(product.salePrice)}${unit}`;
   const orderButton = whatsapp
     ? `<a class="order" href="${whatsappLink(whatsapp, product.name, priceLabel)}">${WHATSAPP_ICON}Pedir no WhatsApp</a>`
     : "";
-  return `<article class="card" id="produto-${escapeHtml(product.id)}"><div class="photo">${photo}</div><div class="info"><h2>${escapeHtml(product.name)}</h2>${description}<div class="bottom"><p class="price">${formatPrice(product.salePrice)}<span class="unit">${unit}</span></p>${orderButton}</div></div></article>`;
+  const canAdd =
+    product.variations.length === 0 ||
+    product.variations.some((variation) => variation.inStock);
+  const cartLabel = canAdd ? "Adicionar à reserva" : "Produto esgotado";
+  const cartDisabled = canAdd ? "" : " disabled";
+  const cartButton = retailOrdering
+    ? `<button class="add-cart" data-product-id="${escapeHtml(product.id)}" data-product-name="${escapeHtml(product.name)}" data-price="${product.salePrice}"${cartDisabled}>${cartLabel}</button>`
+    : "";
+  return `<article class="card" id="produto-${escapeHtml(product.id)}"><div class="photo">${photo}</div><div class="info"><h2>${escapeHtml(product.name)}</h2>${description}${variations}<div class="bottom"><p class="price">${formatPrice(product.salePrice)}<span class="unit">${unit}</span></p>${cartButton}${orderButton}</div></div></article>`;
 }
 
 /** Renderiza a pagina HTML publica do catalogo (mobile-first, sem JS). */
@@ -153,8 +180,12 @@ function resolvePalette(accentColor: string | null): AccentPalette {
 }
 
 export function renderCatalogHtml(catalog: PublicCatalog): string {
+  const brand = resolveBrand(catalog.brandId);
   const palette = resolvePalette(catalog.accentColor);
-  const cards = catalog.products.map((p) => productCard(p, catalog.whatsapp)).join("");
+  const retailOrdering = catalog.brandId === "lucro-papelaria";
+  const cards = catalog.products
+    .map((product) => productCard(product, catalog.whatsapp, retailOrdering))
+    .join("");
   const initial = escapeHtml(catalog.businessName.charAt(0).toUpperCase() || "?");
   const count = catalog.products.length;
   const countLabel =
@@ -189,6 +220,65 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
     count === 0
       ? `<div class="empty"><div class="empty-icon"><svg viewBox="0 0 120 120" width="104" height="104" aria-hidden="true"><defs><linearGradient id="ebg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7ece4"/><stop offset="1" stop-color="#f0ddd1"/></linearGradient><linearGradient id="ebd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a06a50"/><stop offset="1" stop-color="#7a4c39"/></linearGradient><linearGradient id="erm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#86573f"/><stop offset="1" stop-color="#6e4534"/></linearGradient><linearGradient id="ep1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E8B4BC"/><stop offset="1" stop-color="#C4707E"/></linearGradient><linearGradient id="ep2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9fdcbd"/><stop offset="1" stop-color="#5da883"/></linearGradient><linearGradient id="ep3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ecc78a"/><stop offset="1" stop-color="#c08c3f"/></linearGradient></defs><path d="M60 8 C92 6 112 28 110 60 C108 94 88 112 58 110 C26 108 8 90 10 58 C12 28 30 10 60 8 Z" fill="url(#ebg)"/><path d="M22 30 L24.5 36 L31 38 L24.5 40 L22 46 L19.5 40 L13 38 L19.5 36 Z" fill="#E8B4BC" opacity="0.9"/><path d="M100 78 L101.8 82.5 L106 84 L101.8 85.5 L100 90 L98.2 85.5 L94 84 L98.2 82.5 Z" fill="#D4A054" opacity="0.85"/><ellipse cx="60" cy="102" rx="34" ry="6" fill="#6e4534" opacity="0.14"/><path d="M36 56 Q60 22 84 56" stroke="#6e4534" stroke-width="7" fill="none" stroke-linecap="round"/><circle cx="44" cy="50" r="14" fill="url(#ep1)"/><ellipse cx="40" cy="45" rx="5" ry="3" fill="#fff" opacity="0.5"/><circle cx="66" cy="45" r="12.5" fill="url(#ep2)"/><ellipse cx="62.5" cy="40.5" rx="4.5" ry="2.6" fill="#fff" opacity="0.5"/><circle cx="82" cy="54" r="10" fill="url(#ep3)"/><ellipse cx="79" cy="50.5" rx="3.6" ry="2.2" fill="#fff" opacity="0.55"/><path d="M24 58 L96 58 L89 95 Q87.8 101.5 81.5 101.5 L38.5 101.5 Q32.2 101.5 31 95 Z" fill="url(#ebd)"/><path d="M27.5 76 L92.5 76 L91 83 L29 83 Z" fill="#6e4534" opacity="0.35"/><line x1="42" y1="60" x2="45" y2="100" stroke="#5e3a2b" stroke-width="3.5" opacity="0.45"/><line x1="60" y1="60" x2="60" y2="101" stroke="#5e3a2b" stroke-width="3.5" opacity="0.45"/><line x1="78" y1="60" x2="75" y2="100" stroke="#5e3a2b" stroke-width="3.5" opacity="0.45"/><rect x="22" y="55" width="76" height="10" rx="5" fill="url(#erm)"/><rect x="26" y="57" width="68" height="3" rx="1.5" fill="#a06a50" opacity="0.7"/></svg></div><p>Nenhum produto disponível no momento.</p><p class="empty-sub">Volte em breve — novidades chegando!</p></div>`
       : "";
+  const cart = retailOrdering
+    ? `<button id="cart-toggle" class="cart-toggle" hidden>Reserva · <span id="cart-count">0</span> itens</button>
+<dialog id="cart-dialog"><form id="cart-form"><button type="button" class="cart-close" aria-label="Fechar">×</button><h2>Reservar produtos</h2><div id="cart-items"></div><label>Seu nome<input id="customer-name" required maxlength="120"></label><label>WhatsApp<input id="customer-phone" required minlength="8" maxlength="20" inputmode="tel"></label><label>Recebimento<select id="fulfillment"><option value="pickup">Retirar na loja</option><option value="delivery">Entrega</option></select></label><label>Observações<textarea id="order-notes" maxlength="500"></textarea></label><button class="reserve-submit" type="submit">Confirmar reserva</button><p id="cart-message" role="status"></p></form></dialog>`
+    : "";
+  const cartScript = retailOrdering
+    ? `<script>
+(() => {
+  const cart = new Map();
+  const toggle = document.getElementById("cart-toggle");
+  const dialog = document.getElementById("cart-dialog");
+  const itemsNode = document.getElementById("cart-items");
+  const countNode = document.getElementById("cart-count");
+  const message = document.getElementById("cart-message");
+  const render = () => {
+    const items = [...cart.values()];
+    countNode.textContent = String(items.reduce((sum, item) => sum + item.quantity, 0));
+    toggle.hidden = items.length === 0;
+    itemsNode.replaceChildren(...items.map((item) => {
+      const row = document.createElement("p");
+      row.textContent = item.name + (item.variationName ? " — " + item.variationName : "") + " × " + item.quantity;
+      return row;
+    }));
+  };
+  document.querySelectorAll(".add-cart").forEach((button) => button.addEventListener("click", () => {
+    const card = button.closest(".card");
+    const select = card.querySelector(".variation-select");
+    const variationId = select?.value || undefined;
+    const variationName = select?.selectedOptions?.[0]?.textContent || undefined;
+    const key = button.dataset.productId + ":" + (variationId || "product");
+    const current = cart.get(key);
+    cart.set(key, { productId: button.dataset.productId, name: button.dataset.productName, variationId, variationName, quantity: (current?.quantity || 0) + 1 });
+    render();
+  }));
+  toggle.addEventListener("click", () => dialog.showModal());
+  document.querySelector(".cart-close").addEventListener("click", () => dialog.close());
+  document.getElementById("cart-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    message.textContent = "Reservando…";
+    const slug = location.pathname.split("/").filter(Boolean).pop();
+    const response = await fetch("/api/v1/public/retail/catalog-orders", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-brand": "lucro-papelaria" },
+      body: JSON.stringify({
+        slug,
+        customerName: document.getElementById("customer-name").value,
+        customerPhone: document.getElementById("customer-phone").value,
+        fulfillment: document.getElementById("fulfillment").value,
+        notes: document.getElementById("order-notes").value || undefined,
+        items: [...cart.values()].map(({ productId, variationId, quantity }) => ({ productId, variationId, quantity })),
+      }),
+    });
+    const result = await response.json();
+    if (!response.ok) { message.textContent = result.message || result.details?.join(" · ") || "Não foi possível reservar."; return; }
+    cart.clear(); render();
+    message.textContent = "Reserva confirmada! A loja entrará em contato.";
+  });
+})();
+</script>`
+    : "";
   return `<!doctype html>
 <html lang="pt-BR">
 <head>
@@ -226,12 +316,25 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   .info { padding: 18px 18px 20px; display: flex; flex-direction: column; flex: 1; }
   .info h2 { font-family: Georgia, "Times New Roman", serif; font-size: 20px; font-weight: 700; color: #4a3228; }
   .desc { margin-top: 6px; font-size: 14px; line-height: 1.5; color: #7d6354; }
+  .variants { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .variant { border: 1px solid ${palette.light}; color: ${palette.dark}; background: ${palette.bg}; border-radius: 999px; padding: 5px 9px; font-size: 12px; font-weight: 650; }
+  .variant.sold-out { opacity: 0.55; text-decoration: line-through; }
   .bottom { margin-top: auto; padding-top: 14px; }
   .price { font-size: 24px; font-weight: 800; color: #2e7d32; letter-spacing: -0.3px; }
   .price .unit { font-size: 14px; font-weight: 600; color: #6da471; }
   .order { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; background: #25d366; color: #fff; text-decoration: none; font-weight: 700; font-size: 15px; padding: 13px 20px; border-radius: 999px; box-shadow: 0 6px 16px rgba(37, 211, 102, 0.35); }
   .order:active { transform: scale(0.98); }
   .order svg { width: 18px; height: 18px; }
+  .add-cart { width: 100%; border: 0; margin-top: 12px; background: ${palette.base}; color: #fff; font: inherit; font-weight: 750; padding: 13px 16px; border-radius: 999px; cursor: pointer; }
+  .add-cart:disabled { opacity: .5; cursor: default; }
+  .variation-select, #cart-form input, #cart-form select, #cart-form textarea { width: 100%; margin-top: 8px; border: 1px solid #d8c7bc; border-radius: 10px; padding: 10px; background: #fff; font: inherit; }
+  .cart-toggle { position: fixed; right: 18px; bottom: 18px; z-index: 20; border: 0; border-radius: 999px; padding: 14px 20px; background: ${palette.dark}; color: #fff; font-weight: 800; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+  #cart-dialog { border: 0; border-radius: 18px; padding: 0; width: min(92vw, 480px); color: #3d2b22; }
+  #cart-dialog::backdrop { background: rgba(0,0,0,.45); }
+  #cart-form { padding: 24px; display: grid; gap: 14px; }
+  #cart-form label { font-size: 13px; font-weight: 700; }
+  .cart-close { justify-self: end; border: 0; background: transparent; font-size: 28px; }
+  .reserve-submit { border: 0; border-radius: 999px; padding: 13px; background: ${palette.base}; color: #fff; font-weight: 800; }
   .order.hero { margin-top: 18px; background: #fff; color: ${palette.dark}; box-shadow: 0 8px 22px rgba(0,0,0,0.18); position: relative; z-index: 1; }
   .empty { grid-column: 1 / -1; text-align: center; padding: 56px 20px; background: #fffdfb; border-radius: 20px; box-shadow: 0 10px 30px rgba(61, 43, 34, 0.1); }
   .empty-icon { margin-bottom: 12px; }
@@ -260,10 +363,12 @@ ${promoStrip}
   ${headerButton}
 </div>
 <main>${cards}${moreNote}${empty}</main>
+${cart}
 <footer>
-  <div class="footer-brand"><img src="data:image/png;base64,${LUCRO_CASEIRO_LOGO_B64}" alt="Lucro Caseiro"><span>Feito com carinho no <a class="footer-link" href="${catalogPlayStoreUrl()}"><strong>Lucro Caseiro</strong></a> 🧡</span></div>
-  <div class="footer-cta"><a href="${catalogPlayStoreUrl()}">Crie sua vitrine grátis</a></div>
+  <div class="footer-brand"><span>Feito com carinho no <a class="footer-link" href="${catalogPlayStoreUrl(catalog.brandId)}"><strong>${escapeHtml(brand.appName)}</strong></a></span></div>
+  <div class="footer-cta"><a href="${catalogPlayStoreUrl(catalog.brandId)}">Crie sua vitrine grátis</a></div>
 </footer>
+${cartScript}
 </body>
 </html>`;
 }

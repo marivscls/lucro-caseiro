@@ -20,4 +20,5 @@ export * from "./schemas/supplier";
 export * from "./schemas/purchase";
 export * from "./schemas/analytics";
 export * from "./schemas/marketing";
+export * from "./schemas/retail";
 export * from "./pricing-calculator";

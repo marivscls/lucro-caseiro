@@ -1,5 +1,7 @@
 import type { Sale } from "@lucro-caseiro/contracts";
+import { getActiveBrand } from "@lucro-caseiro/brands";
 
+import { getBrandDisplayName } from "../../shared/brand-name";
 import { exportHtmlPdf } from "../../shared/utils/export-html";
 import { playStoreUrl } from "../../shared/utils/store-link";
 
@@ -43,6 +45,7 @@ export function receiptNumber(saleId: string): string {
 
 /** HTML do recibo (A5 retrato) — paleta da marca, pronto para PDF. */
 export function buildReceiptHtml(sale: Sale, business: ReceiptBusiness): string {
+  const brandName = getBrandDisplayName(getActiveBrand());
   const rows = sale.items
     .map(
       (item) => `<tr>
@@ -129,8 +132,8 @@ export function buildReceiptHtml(sale: Sale, business: ReceiptBusiness): string 
   <span class="badge">${paid ? "✓ Pagamento recebido" : "Pagamento pendente"}</span>
 
   <footer>
-    Recibo gerado pelo <strong>Lucro Caseiro</strong> · sem valor fiscal
-    <div class="brand-footer"><a href="${playStoreUrl("pdf")}">Feito com Lucro Caseiro</a></div>
+    Recibo gerado pelo <strong>${escapeHtml(brandName)}</strong> · sem valor fiscal
+    <div class="brand-footer"><a href="${playStoreUrl("pdf")}">Feito com ${escapeHtml(brandName)}</a></div>
   </footer>
 </body>
 </html>`;

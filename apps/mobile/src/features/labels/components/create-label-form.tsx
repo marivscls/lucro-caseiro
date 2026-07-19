@@ -1,66 +1,67 @@
-import type { LabelData } from "@lucro-caseiro/contracts";
-import { hasActiveFeature } from "@lucro-caseiro/contracts";
-import { Button, Input, Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { hasActiveFeature, type LabelData } from "@lucro-caseiro/contracts";
+import { Button, Input, Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
-import { Image, Pressable, View } from "react-native";
+import { Image, Platform, Pressable, Switch, View, type ViewStyle } from "react-native";
 
+import { AppIcon } from "../../../shared/components/app-icon";
 import { showAlert } from "../../../shared/components/alert-store";
-import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
-import { desktopAction, desktopContained } from "../../../shared/layout/desktop-density";
-import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+import { DateField } from "../../../shared/components/date-field";
+import { FormSection } from "../../../shared/components/form-section";
+import { StandardModal } from "../../../shared/components/standard-modal";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
+import { usePaywall } from "../../../shared/hooks/use-paywall";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+import { alertError, alertValidation } from "../../../shared/utils/alerts";
 import { confirmPossibleDuplicate, duplicateKey } from "../../../shared/utils/duplicates";
 import { maskPhoneBR } from "../../../shared/utils/phone";
 import { uploadLabelLogo } from "../../../shared/utils/upload-image";
 import { publicCatalogProductUrl } from "../../catalog/api";
 import { useCatalogSettings } from "../../catalog/hooks";
-import { addDaysToBR, brToIso, maskDateBR } from "../dates";
-import { exportLabelPdfWithChoice } from "../label-export";
-import { cleanNutrition } from "../nutrition";
-import { useCreateLabel, useLabels } from "../hooks";
 import { useProfile } from "../../subscription/hooks";
-import { DateField } from "../../../shared/components/date-field";
-import { FormSection } from "../../../shared/components/form-section";
-import { usePaywall } from "../../../shared/hooks/use-paywall";
-import { LabelStyleEditor } from "./label-style-editor";
+import { brToIso } from "../dates";
+import { exportLabelPdfWithChoice } from "../label-export";
+import { useCreateLabel, useLabels } from "../hooks";
 import { LabelPreview } from "./label-preview";
-import { NutritionFields } from "./nutrition-fields";
-import { TemplatePicker } from "./template-picker";
 import { LabelProductPicker } from "./label-product-picker";
-import { alertValidation, alertError } from "../../../shared/utils/alerts";
+import { LabelStyleEditor } from "./label-style-editor";
+import { TemplatePicker } from "./template-picker";
 
 interface CreateLabelFormProps {
   productId?: string;
+  visible: boolean;
+  onClose: () => void;
   onSuccess?: () => void;
 }
 
 export function CreateLabelForm({
   productId,
+  visible,
+  onClose,
   onSuccess,
 }: Readonly<CreateLabelFormProps>) {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
+  const previewRailSticky =
+    Platform.OS === "web"
+      ? ({ position: "sticky", top: 0, alignSelf: "flex-start" } as unknown as ViewStyle)
+      : ({ alignSelf: "flex-start" } as ViewStyle);
   const { data: profile } = useProfile();
-  const showPaywall = usePaywall((st) => st.show);
+  const showPaywall = usePaywall((state) => state.show);
   const isPremium =
     !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "labelsPremium");
   const [name, setName] = useState("");
   const [templateId, setTemplateId] = useState("classico");
-  const [labelData, setLabelData] = useState<LabelData>({
-    productName: "",
-  });
+  const [labelData, setLabelData] = useState<LabelData>({ productName: "" });
   const [selectedProductId, setSelectedProductId] = useState<string | null>(
     productId ?? null,
   );
+  const [includeQr, setIncludeQr] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [shelfDays, setShelfDays] = useState("");
   const { imageUri: logoUri, showPicker, clear: clearLogo } = useImagePicker();
-
   const { data: catalogSettings } = useCatalogSettings();
   const qrUrl =
-    catalogSettings && selectedProductId
+    includeQr && catalogSettings && selectedProductId
       ? publicCatalogProductUrl(catalogSettings.slug, selectedProductId)
       : undefined;
   const createLabel = useCreateLabel();
@@ -69,49 +70,13 @@ export function CreateLabelForm({
   );
 
   function updateField<K extends keyof LabelData>(key: K, value: LabelData[K]) {
-    setLabelData((prev) => ({ ...prev, [key]: value }));
+    setLabelData((previous) => ({ ...previous, [key]: value }));
   }
 
-  // Recalcula a validade (fabricação + dias) sempre que um dos dois muda.
-  function recomputeExpiration(manufacturing: string, days: string) {
-    const n = parseInt(days, 10);
-    if (!manufacturing || Number.isNaN(n) || n <= 0) return;
-    const expiration = addDaysToBR(manufacturing, n);
-    if (expiration) updateField("expirationDate", expiration);
-  }
-
-  function handleManufacturingChange(value: string) {
-    const masked = maskDateBR(value);
-    updateField("manufacturingDate", masked);
-    recomputeExpiration(masked, shelfDays);
-  }
-
-  function handleShelfDaysChange(value: string) {
-    const digits = value.replace(/\D/g, "").slice(0, 4);
-    setShelfDays(digits);
-    recomputeExpiration(labelData.manufacturingDate ?? "", digits);
-  }
-
-  async function handleSubmit() {
-    if (!name.trim()) {
-      alertValidation("De um nome para o rótulo");
-      return;
-    }
-    if (!selectedProductId) {
-      alertValidation("Escolha o produto do rótulo");
-      return;
-    }
-    if (!qrUrl) {
-      alertError(
-        "Não foi possível carregar o endereço do seu catálogo. Tente novamente.",
-      );
-      return;
-    }
-    if (!labelData.productName.trim()) {
-      alertValidation("Preencha o nome do produto no rótulo");
-      return;
-    }
-
+  function validateDates(): {
+    manufacturingDate?: string;
+    expirationDate?: string;
+  } | null {
     const manufacturingDate = brToIso(labelData.manufacturingDate ?? "");
     const expirationDate = brToIso(labelData.expirationDate ?? "");
     if (
@@ -122,15 +87,50 @@ export function CreateLabelForm({
         title: "Data incompleta",
         message: "Confira as datas no formato DD/MM/AAAA.",
       });
-      return;
+      return null;
     }
     if (manufacturingDate && expirationDate && expirationDate < manufacturingDate) {
       showAlert({
         title: "Datas invertidas",
-        message: "A validade não pode ser anterior à fabricação.",
+        message: "A validade não pode ser anterior à data de produção.",
       });
+      return null;
+    }
+    return { manufacturingDate, expirationDate };
+  }
+
+  async function uploadLogo(): Promise<string | undefined> {
+    if (!logoUri) return undefined;
+    try {
+      setUploading(true);
+      return await uploadLabelLogo(logoUri);
+    } catch {
+      showAlert({
+        title: "Logo não enviado",
+        message:
+          "Não consegui enviar o logo agora. Vou salvar a etiqueta sem ele. Você pode adicionar depois.",
+      });
+      return undefined;
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function handleSubmit() {
+    if (!name.trim()) {
+      alertValidation("Dê um nome para a etiqueta");
       return;
     }
+    if (!selectedProductId) {
+      alertValidation("Escolha o produto da etiqueta");
+      return;
+    }
+    if (!labelData.productName.trim()) {
+      alertValidation("Preencha o nome que será impresso");
+      return;
+    }
+    const dates = validateDates();
+    if (!dates) return;
 
     const duplicatedLabel = labelsData?.items.some(
       (label) =>
@@ -140,29 +140,13 @@ export function CreateLabelForm({
     );
     if (duplicatedLabel) {
       const shouldContinue = await confirmPossibleDuplicate(
-        "Rótulo parecido",
-        "Já existe um rótulo com esse nome, produto e modelo. Confira se não é melhor editar o existente.",
+        "Etiqueta parecida",
+        "Já existe uma etiqueta com esse nome, produto e modelo. Confira se não é melhor editar a existente.",
       );
       if (!shouldContinue) return;
     }
 
-    // Sobe o logo (se houver) e usa a URL pública. Se falhar, salva sem o logo.
-    let logoUrl: string | undefined;
-    if (logoUri) {
-      try {
-        setUploading(true);
-        logoUrl = await uploadLabelLogo(logoUri);
-      } catch {
-        showAlert({
-          title: "Logo não enviado",
-          message:
-            "Não consegui enviar o logo agora. Vou salvar o rótulo sem ele. Você pode adicionar depois.",
-        });
-      } finally {
-        setUploading(false);
-      }
-    }
-
+    const logoUrl = await uploadLogo();
     try {
       await createLabel.mutateAsync({
         name: name.trim(),
@@ -170,243 +154,274 @@ export function CreateLabelForm({
         productId: selectedProductId,
         logoUrl,
         qrCodeUrl: qrUrl,
-        data: {
-          ...labelData,
-          manufacturingDate,
-          expirationDate,
-          nutrition: cleanNutrition(labelData.nutrition),
-        },
+        data: { ...labelData, ...dates },
       });
       showAlert({
-        title: "Rótulo criado!",
-        message: "Seu rótulo esta pronto para imprimir",
+        title: "Etiqueta criada!",
+        message: "Agora você pode imprimir uma unidade ou uma folha completa.",
       });
       onSuccess?.();
-    } catch (e) {
+    } catch (error) {
       showAlert({
         title: "Erro",
         message:
-          e instanceof Error
-            ? e.message
-            : "Não foi possível criar o rótulo. Tente novamente.",
+          error instanceof Error
+            ? error.message
+            : "Não foi possível criar a etiqueta. Tente novamente.",
       });
     }
   }
 
   async function handleExport() {
-    if (!selectedProductId) {
-      alertValidation("Escolha o produto do rótulo");
-      return;
-    }
-    if (!qrUrl) {
-      alertError(
-        "Não foi possível carregar o endereço do seu catálogo. Tente novamente.",
-      );
-      return;
-    }
     if (!labelData.productName.trim()) {
-      alertValidation("Preencha o nome do produto para baixar o rótulo");
+      alertValidation("Preencha o nome que será impresso");
       return;
     }
+    const dates = validateDates();
+    if (!dates) return;
     setExporting(true);
     try {
-      await exportLabelPdfWithChoice(labelData, templateId, logoUri, qrUrl);
+      await exportLabelPdfWithChoice(
+        { ...labelData, ...dates },
+        templateId,
+        logoUri,
+        qrUrl,
+      );
     } catch {
-      alertError("Não foi possível gerar o rótulo. Tente novamente.");
+      alertError("Não foi possível gerar a etiqueta. Tente novamente.");
     } finally {
       setExporting(false);
     }
   }
 
-  return (
-    <KeyboardAwareScrollView
-      contentContainerStyle={[
-        { padding: 20, paddingBottom: 80, gap: 20 },
-        desktopContained(isDesktop, 960),
-      ]}
-    >
-      <Input
-        label="Nome do rótulo"
-        placeholder="Ex: Rótulo Brigadeiro 50g"
-        value={name}
-        onChangeText={setName}
-      />
-
-      <LabelProductPicker
-        selectedId={selectedProductId}
-        onSelect={(product) => {
-          setSelectedProductId(product.id);
-          updateField("productName", product.name);
-        }}
-      />
-
-      <TemplatePicker selected={templateId} onSelect={setTemplateId} />
-
-      <Input
-        label="Nome do produto"
-        placeholder="Ex: Brigadeiro Gourmet"
-        value={labelData.productName}
-        onChangeText={(v) => updateField("productName", v)}
-      />
-
-      <Input
-        label="Ingredientes"
-        placeholder="Ex: Leite condensado, chocolate, manteiga..."
-        value={labelData.ingredients ?? ""}
-        onChangeText={(v) => updateField("ingredients", v)}
-        multiline
-        numberOfLines={3}
-        style={{ height: 80, textAlignVertical: "top", paddingTop: 12 }}
-      />
-
-      <FormSection
-        title="Datas de validade"
-        subtitle="Fabricação e validade do produto"
-        icon="calendar-outline"
-        initiallyOpen
-      >
-        <View style={{ gap: 12 }}>
-          <DateField
-            label="Fabricação"
-            value={labelData.manufacturingDate ?? ""}
-            onChange={handleManufacturingChange}
-          />
-          <DateField
-            label="Validade"
-            value={labelData.expirationDate ?? ""}
-            onChange={(v) => updateField("expirationDate", v)}
-          />
-        </View>
-        <Input
-          label="Validade em dias (opcional)"
-          placeholder="Ex: 7, preenche a validade sozinho"
-          value={shelfDays}
-          onChangeText={handleShelfDaysChange}
-          keyboardType="number-pad"
-        />
-      </FormSection>
-
-      <FormSection
-        title="Informação nutricional"
-        subtitle="Opcional: tabela de nutrientes"
-        icon="nutrition-outline"
-      >
-        <NutritionFields
-          value={labelData.nutrition}
-          onChange={(n) => updateField("nutrition", n)}
-        />
-      </FormSection>
-
-      <FormSection
-        title="Estilo do rótulo"
-        subtitle="Profissional: cores, fonte, borda e cantos"
-        icon="color-palette-outline"
-      >
-        <LabelStyleEditor
-          value={labelData.style}
-          onChange={(style) => updateField("style", style)}
-          locked={!isPremium}
-          onLockedPress={() => {
-            if (isPremium) return false;
-            showPaywall("labels");
-            return true;
-          }}
-        />
-      </FormSection>
-
-      <FormSection
-        title="Contato e marca"
-        subtitle="Opcional: seu nome, telefone e logo"
-        icon="person-circle-outline"
-      >
-        <Input
-          label="Seu nome / nome do negócio"
-          placeholder="Ex: Doces da Maria"
-          value={labelData.producerName ?? ""}
-          onChangeText={(v) => updateField("producerName", v)}
-        />
-        <Input
-          label="Telefone"
-          placeholder="(11) 99999-9999"
-          value={labelData.producerPhone ?? ""}
-          onChangeText={(v) => updateField("producerPhone", maskPhoneBR(v))}
-          keyboardType="phone-pad"
-        />
-        <View>
-          <Typography variant="caption" style={{ marginBottom: spacing.sm }}>
-            Logo do negócio (opcional)
-          </Typography>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-            <Pressable
-              onPress={showPicker}
-              accessibilityRole="button"
-              accessibilityLabel="Adicionar logo do negócio"
-              style={{
-                width: 80,
-                height: 80,
-                borderRadius: radii.lg,
-                backgroundColor: theme.colors.surface,
-                alignItems: "center",
-                justifyContent: "center",
-                overflow: "hidden",
-              }}
-            >
-              {logoUri ? (
-                <Image source={{ uri: logoUri }} style={{ width: 80, height: 80 }} />
-              ) : (
-                <Ionicons
-                  name="image-outline"
-                  size={28}
-                  color={theme.colors.textSecondary}
-                />
-              )}
-            </Pressable>
-            {logoUri && (
-              <Pressable onPress={clearLogo} hitSlop={8}>
-                <Typography variant="caption" color={theme.colors.primary}>
-                  Remover logo
-                </Typography>
-              </Pressable>
-            )}
-          </View>
-        </View>
-      </FormSection>
-
-      <View style={{ gap: 12 }}>
+  const previewBlock = (
+    <View style={{ gap: spacing.sm }}>
+      <View style={{ gap: 2 }}>
         <Typography variant="h3">Pré-visualização</Typography>
-        <LabelPreview
-          data={labelData}
-          templateId={templateId}
-          logoUrl={logoUri}
-          qrUrl={qrUrl}
-          scale={1.1}
-        />
+        <Typography variant="caption" color={theme.colors.textSecondary}>
+          Atualiza sozinha conforme você preenche.
+        </Typography>
       </View>
+      <LabelPreview
+        data={labelData}
+        templateId={templateId}
+        logoUrl={logoUri}
+        qrUrl={qrUrl}
+        scale={1.1}
+      />
+    </View>
+  );
 
-      <View style={{ gap: 12 }}>
-        <Button
-          title="Baixar / Compartilhar"
-          variant="outline"
-          size="lg"
-          icon={
-            <Ionicons name="download-outline" size={20} color={theme.colors.primary} />
-          }
-          onPress={() => {
-            void handleExport();
-          }}
-          loading={exporting}
-          style={desktopAction(isDesktop)}
-        />
-        <Button
-          title={uploading ? "Enviando logo..." : "Criar rótulo"}
-          size="lg"
-          onPress={() => {
-            void handleSubmit();
-          }}
-          loading={createLabel.isPending || uploading}
-          style={desktopAction(isDesktop)}
-        />
+  return (
+    <StandardModal
+      title="Nova etiqueta"
+      visible={visible}
+      onClose={onClose}
+      wide
+      footer={
+        <>
+          <Button
+            title="Baixar / Compartilhar"
+            variant="outline"
+            size="lg"
+            icon={
+              <AppIcon name="download-outline" size={20} color={theme.colors.primary} />
+            }
+            onPress={() => void handleExport()}
+            loading={exporting}
+            style={{ flex: 1 }}
+          />
+          <Button
+            title={uploading ? "Enviando logo..." : "Criar etiqueta"}
+            size="lg"
+            onPress={() => void handleSubmit()}
+            loading={createLabel.isPending || uploading}
+            style={{ flex: 1 }}
+          />
+        </>
+      }
+    >
+      <View
+        style={{
+          flexShrink: 1,
+          flexDirection: isDesktop ? "row" : "column",
+          gap: spacing["2xl"],
+          alignItems: "flex-start",
+        }}
+      >
+        <View style={{ flex: 1, minWidth: 0, gap: spacing.lg }}>
+          <View
+            style={{
+              borderRadius: radii.md,
+              backgroundColor: theme.colors.surface,
+              padding: spacing.md,
+            }}
+          >
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              Etiqueta para identificar seu produto. Não substitui a rotulagem obrigatória
+              quando aplicável.
+            </Typography>
+          </View>
+
+          <Input
+            label="Nome da etiqueta"
+            placeholder="Ex: Brigadeiro tradicional"
+            value={name}
+            onChangeText={setName}
+          />
+
+          <LabelProductPicker
+            selectedId={selectedProductId}
+            onSelect={(product) => {
+              setSelectedProductId(product.id);
+              updateField("productName", product.name);
+              if (!name.trim()) setName(`Etiqueta ${product.name}`);
+            }}
+          />
+
+          <TemplatePicker selected={templateId} onSelect={setTemplateId} />
+          {!isDesktop ? previewBlock : null}
+
+          <Input
+            label="Nome que será impresso"
+            placeholder="Ex: Bolo de cenoura"
+            value={labelData.productName}
+            onChangeText={(value) => updateField("productName", value)}
+          />
+          <Input
+            label="Observação (opcional)"
+            placeholder="Ex: Manter refrigerado"
+            value={labelData.note ?? ""}
+            onChangeText={(value) => updateField("note", value)}
+            multiline
+            numberOfLines={3}
+          />
+
+          <FormSection
+            title="Datas (opcional)"
+            subtitle="Imprima a produção e a validade se quiser"
+            icon="calendar-outline"
+          >
+            <View style={{ gap: spacing.md }}>
+              <DateField
+                label="Feito em"
+                value={labelData.manufacturingDate ?? ""}
+                onChange={(value) => updateField("manufacturingDate", value)}
+              />
+              <DateField
+                label="Validade"
+                value={labelData.expirationDate ?? ""}
+                onChange={(value) => updateField("expirationDate", value)}
+              />
+            </View>
+          </FormSection>
+
+          <FormSection
+            title="Contato e marca"
+            subtitle="Opcional: nome, telefone, logo e catálogo"
+            icon="person-circle-outline"
+          >
+            <Input
+              label="Seu nome / nome do negócio"
+              placeholder="Ex: Doces da Maria"
+              value={labelData.producerName ?? ""}
+              onChangeText={(value) => updateField("producerName", value)}
+            />
+            <Input
+              label="Telefone"
+              placeholder="(11) 99999-9999"
+              value={labelData.producerPhone ?? ""}
+              onChangeText={(value) => updateField("producerPhone", maskPhoneBR(value))}
+              keyboardType="phone-pad"
+            />
+            <View>
+              <Typography variant="caption" style={{ marginBottom: spacing.sm }}>
+                Logo do negócio (opcional)
+              </Typography>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
+              >
+                <Pressable
+                  onPress={showPicker}
+                  accessibilityRole="button"
+                  accessibilityLabel="Adicionar logo do negócio"
+                  style={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: radii.lg,
+                    backgroundColor: theme.colors.surface,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    overflow: "hidden",
+                  }}
+                >
+                  {logoUri ? (
+                    <Image source={{ uri: logoUri }} style={{ width: 80, height: 80 }} />
+                  ) : (
+                    <AppIcon
+                      name="image-outline"
+                      size={28}
+                      color={theme.colors.textSecondary}
+                    />
+                  )}
+                </Pressable>
+                {logoUri ? (
+                  <Pressable onPress={clearLogo} hitSlop={8}>
+                    <Typography variant="caption" color={theme.colors.primary}>
+                      Remover logo
+                    </Typography>
+                  </Pressable>
+                ) : null}
+              </View>
+            </View>
+            {catalogSettings && selectedProductId ? (
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: spacing.md,
+                }}
+              >
+                <View style={{ flex: 1 }}>
+                  <Typography variant="bodyBold">Incluir QR Code do catálogo</Typography>
+                  <Typography variant="caption" color={theme.colors.textSecondary}>
+                    Abre este produto diretamente no seu catálogo.
+                  </Typography>
+                </View>
+                <Switch
+                  value={includeQr}
+                  onValueChange={setIncludeQr}
+                  trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
+                />
+              </View>
+            ) : null}
+          </FormSection>
+
+          <FormSection
+            title="Personalizar"
+            subtitle="Profissional: cores, fonte, borda e cantos"
+            icon="color-palette-outline"
+          >
+            <LabelStyleEditor
+              value={labelData.style}
+              onChange={(style) => updateField("style", style)}
+              locked={!isPremium}
+              onLockedPress={() => {
+                if (isPremium) return false;
+                showPaywall("labels");
+                return true;
+              }}
+            />
+          </FormSection>
+        </View>
+
+        {isDesktop ? (
+          <View style={[{ width: 360, flexShrink: 0 }, previewRailSticky]}>
+            {previewBlock}
+          </View>
+        ) : null}
       </View>
-    </KeyboardAwareScrollView>
+    </StandardModal>
   );
 }

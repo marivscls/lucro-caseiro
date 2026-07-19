@@ -10,6 +10,7 @@ import { useRouter } from "expo-router";
 import {
   Button,
   Card,
+  colors,
   EmptyState,
   fonts,
   iconSizes,
@@ -21,10 +22,10 @@ import {
   spacing,
   radii,
 } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../shared/components/app-icon";
+import type { AppIconName } from "../../shared/components/app-icon";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   Image,
   KeyboardAvoidingView,
@@ -52,6 +53,7 @@ import { ApiError } from "../../shared/utils/api-client";
 import { maybeAskForReview } from "../../shared/utils/store-review";
 import { showAlert } from "../../shared/components/alert-store";
 import { BarcodeScanner } from "../../shared/components/barcode-scanner";
+import { SkeletonList } from "../../shared/components/skeleton";
 import {
   ResponsiveModal,
   ResponsiveOverlayModal,
@@ -115,14 +117,14 @@ const STEP_SUBTITLES: Record<Step, string> = {
   4: "Confira os itens e finalize a venda.",
 };
 
-// Predefined avatar colors from the theme palette
+// Cores de avatar pre-definidas, referenciando a paleta do tema.
 const AVATAR_COLORS = [
-  "#C4707E", // primary
-  "#6BBF96", // success
-  "#89A5B5", // blue
-  "#B8A9D4", // lavender
-  "#D4A054", // premium
-  "#E8C555", // yellow
+  colors.primary,
+  colors.success,
+  colors.blue,
+  colors.lavender,
+  colors.premium,
+  colors.yellow,
 ];
 
 function getAvatarColor(index: number): string {
@@ -136,8 +138,7 @@ function cartQuantityLabel(item: CartItem): string {
 
 function getSurfaceStyle(theme: ReturnType<typeof useTheme>["theme"]): ViewStyle {
   return {
-    backgroundColor:
-      theme.mode === "dark" ? "rgba(44, 36, 32, 0.84)" : theme.colors.surfaceElevated,
+    backgroundColor: theme.colors.surfaceElevated,
     borderWidth: 1,
     borderColor: theme.colors.border,
   };
@@ -175,7 +176,7 @@ function SearchBox({
   placeholder: string;
   value: string;
   onChangeText: (value: string) => void;
-  trailingIcon?: keyof typeof Ionicons.glyphMap;
+  trailingIcon?: AppIconName;
   onTrailingPress?: () => void;
 }>) {
   const { theme } = useTheme();
@@ -191,7 +192,7 @@ function SearchBox({
         ...getSurfaceStyle(theme),
       }}
     >
-      <Ionicons name="search-outline" size={24} color={theme.colors.textSecondary} />
+      <AppIcon name="search-outline" size={24} color={theme.colors.textSecondary} />
       <TextInput
         placeholder={placeholder}
         placeholderTextColor={theme.colors.textSecondary + "90"}
@@ -219,7 +220,7 @@ function SearchBox({
           opacity: onTrailingPress ? 1 : 0.7,
         }}
       >
-        <Ionicons name={trailingIcon} size={24} color={theme.colors.textSecondary} />
+        <AppIcon name={trailingIcon} size={24} color={theme.colors.textSecondary} />
       </Pressable>
     </View>
   );
@@ -230,7 +231,7 @@ function stepDotColor(
   theme: ReturnType<typeof useTheme>["theme"],
 ): string {
   if (reached) return theme.colors.primary;
-  return theme.mode === "dark" ? "rgba(245, 225, 219, 0.12)" : "rgba(74, 50, 40, 0.15)";
+  return theme.colors.border;
 }
 
 function StepIndicator({ step }: Readonly<{ step: Step }>) {
@@ -266,7 +267,7 @@ function QuickActionCard({
   subtitle,
   onPress,
 }: Readonly<{
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
   title: string;
   subtitle: string;
   onPress: () => void;
@@ -302,7 +303,7 @@ function QuickActionCard({
           justifyContent: "center",
         }}
       >
-        <Ionicons name={icon} size={22} color={theme.colors.textSecondary} />
+        <AppIcon name={icon} size={22} color={theme.colors.textSecondary} />
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Typography variant="bodyBold" color={theme.colors.text} numberOfLines={2}>
@@ -606,15 +607,12 @@ export default function NewSaleScreen() {
                 width: 48,
                 height: 48,
                 borderRadius: radii.full,
-                backgroundColor:
-                  theme.mode === "dark"
-                    ? "rgba(255, 255, 255, 0.05)"
-                    : theme.colors.surface,
+                backgroundColor: theme.colors.surface,
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Ionicons name="arrow-back" size={25} color={theme.colors.textSecondary} />
+              <AppIcon name="arrow-back" size={25} color={theme.colors.textSecondary} />
             </Pressable>
             <Typography variant="h2">Nova Venda</Typography>
           </View>
@@ -633,7 +631,7 @@ export default function NewSaleScreen() {
             paddingHorizontal: spacing.sm,
           }}
         >
-          <Ionicons
+          <AppIcon
             name="help-circle-outline"
             size={24}
             color={theme.colors.textSecondary}
@@ -646,7 +644,7 @@ export default function NewSaleScreen() {
 
       <StepIndicator step={step} />
 
-      <View style={{ paddingHorizontal: spacing.xl, paddingBottom: spacing.lg }}>
+      <View style={{ paddingHorizontal: spacing.xl, paddingBottom: spacing.xl }}>
         <Typography variant="h1" serif>
           {STEP_TITLES[step]}
         </Typography>
@@ -711,7 +709,7 @@ export default function NewSaleScreen() {
               <View
                 style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
               >
-                <Ionicons
+                <AppIcon
                   name="pricetag-outline"
                   size={22}
                   color={theme.colors.textSecondary}
@@ -731,8 +729,8 @@ export default function NewSaleScreen() {
           </View>
 
           {loadingProducts && (
-            <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-              <ActivityIndicator size="large" color={theme.colors.primary} />
+            <View style={{ flex: 1 }}>
+              <SkeletonList rows={5} />
             </View>
           )}
           {!loadingProducts && !filteredProducts?.length && (
@@ -760,7 +758,7 @@ export default function NewSaleScreen() {
                 title="Cadastrar produto"
                 onPress={() => setShowCreateProduct(true)}
                 icon={
-                  <Ionicons
+                  <AppIcon
                     name="add-circle"
                     size={18}
                     color={theme.colors.textOnPrimary}
@@ -864,7 +862,7 @@ export default function NewSaleScreen() {
                           justifyContent: "center",
                         }}
                       >
-                        <Ionicons name="add" size={18} color={theme.colors.text} />
+                        <AppIcon name="add" size={18} color={theme.colors.text} />
                       </Pressable>
                       <Typography
                         variant="bodyBold"
@@ -925,7 +923,7 @@ export default function NewSaleScreen() {
                             justifyContent: "center",
                           }}
                         >
-                          <Ionicons name="remove" size={16} color={theme.colors.text} />
+                          <AppIcon name="remove" size={16} color={theme.colors.text} />
                         </Pressable>
                       )}
                     </Pressable>
@@ -953,7 +951,7 @@ export default function NewSaleScreen() {
                     justifyContent: "center",
                   }}
                 >
-                  <Ionicons
+                  <AppIcon
                     name="sparkles-outline"
                     size={20}
                     color={theme.colors.textSecondary}
@@ -1003,7 +1001,7 @@ export default function NewSaleScreen() {
                 justifyContent: "center",
               }}
             >
-              <Ionicons
+              <AppIcon
                 name="person-outline"
                 size={iconSizes.md}
                 color={theme.colors.textSecondary}
@@ -1021,7 +1019,7 @@ export default function NewSaleScreen() {
                 Continuar sem selecionar um cliente
               </Typography>
             </View>
-            <Ionicons
+            <AppIcon
               name="chevron-forward"
               size={24}
               color={theme.colors.textSecondary}
@@ -1043,7 +1041,7 @@ export default function NewSaleScreen() {
             }}
           >
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-              <Ionicons
+              <AppIcon
                 name="person-outline"
                 size={22}
                 color={theme.colors.textSecondary}
@@ -1062,7 +1060,7 @@ export default function NewSaleScreen() {
           </View>
 
           {loadingClients ? (
-            <ActivityIndicator size="small" color={theme.colors.primary} />
+            <SkeletonList rows={4} />
           ) : (
             <FlatList
               data={filteredClients}
@@ -1102,7 +1100,7 @@ export default function NewSaleScreen() {
                       <Typography variant="caption">{item.phone}</Typography>
                     )}
                   </View>
-                  <Ionicons
+                  <AppIcon
                     name="chevron-forward"
                     size={24}
                     color={theme.colors.textSecondary}
@@ -1185,8 +1183,8 @@ export default function NewSaleScreen() {
                     justifyContent: "center",
                   }}
                 >
-                  <Ionicons
-                    name={option.icon as keyof typeof Ionicons.glyphMap}
+                  <AppIcon
+                    name={option.icon as AppIconName}
                     size={24}
                     color={
                       isSelected ? theme.colors.primaryStrong : theme.colors.textSecondary
@@ -1197,7 +1195,7 @@ export default function NewSaleScreen() {
                   <Typography variant="bodyBold">{option.label}</Typography>
                   <Typography variant="caption">{subtitles[option.value]}</Typography>
                 </View>
-                <Ionicons
+                <AppIcon
                   name={isSelected ? "checkmark-circle" : "chevron-forward"}
                   size={24}
                   color={
@@ -1228,7 +1226,7 @@ export default function NewSaleScreen() {
                 justifyContent: "center",
               }}
             >
-              <Ionicons
+              <AppIcon
                 name="information-circle-outline"
                 size={22}
                 color={theme.colors.textSecondary}
@@ -1279,7 +1277,7 @@ export default function NewSaleScreen() {
                     justifyContent: "center",
                   }}
                 >
-                  <Ionicons
+                  <AppIcon
                     name="bag-check-outline"
                     size={24}
                     color={theme.colors.textSecondary}
@@ -1291,7 +1289,7 @@ export default function NewSaleScreen() {
                 onPress={() => setStep(1)}
                 accessibilityRole="button"
                 style={{
-                  minHeight: 34,
+                  minHeight: 44,
                   borderRadius: radii.full,
                   paddingHorizontal: spacing.md,
                   flexDirection: "row",
@@ -1302,9 +1300,9 @@ export default function NewSaleScreen() {
                   borderColor: theme.colors.border,
                 }}
               >
-                <Ionicons
+                <AppIcon
                   name="pencil-outline"
-                  size={15}
+                  size={iconSizes.xs}
                   color={theme.colors.textSecondary}
                 />
                 <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -1323,10 +1321,7 @@ export default function NewSaleScreen() {
                     alignItems: "center",
                     paddingVertical: spacing.md,
                     borderBottomWidth: 1,
-                    borderBottomColor:
-                      theme.mode === "dark"
-                        ? "rgba(245, 225, 219, 0.08)"
-                        : theme.colors.surface,
+                    borderBottomColor: theme.colors.border,
                   }}
                 >
                   <View
@@ -1414,7 +1409,7 @@ export default function NewSaleScreen() {
                   justifyContent: "center",
                 }}
               >
-                <Ionicons
+                <AppIcon
                   name="person-outline"
                   size={27}
                   color={theme.colors.textSecondary}
@@ -1440,7 +1435,7 @@ export default function NewSaleScreen() {
                   {PAYMENT_OPTIONS.find((o) => o.value === paymentMethod)?.label ?? "-"}
                 </Typography>
               </View>
-              <Ionicons
+              <AppIcon
                 name="chevron-forward"
                 size={24}
                 color={theme.colors.textSecondary}
@@ -1470,7 +1465,7 @@ export default function NewSaleScreen() {
                     justifyContent: "center",
                   }}
                 >
-                  <Ionicons
+                  <AppIcon
                     name="pricetag-outline"
                     size={27}
                     color={theme.colors.textSecondary}
@@ -1493,7 +1488,7 @@ export default function NewSaleScreen() {
             }}
             loading={createSale.isPending}
             icon={
-              <Ionicons
+              <AppIcon
                 name="checkmark-circle"
                 size={18}
                 color={theme.colors.textOnPrimary}
@@ -1508,7 +1503,7 @@ export default function NewSaleScreen() {
               gap: spacing.sm,
             }}
           >
-            <Ionicons
+            <AppIcon
               name="lock-closed-outline"
               size={18}
               color={theme.colors.textSecondary}
@@ -1546,7 +1541,7 @@ export default function NewSaleScreen() {
             onPress={() => setStep(2)}
             style={{ borderRadius: radii.xl, minWidth: 138 }}
             icon={
-              <Ionicons
+              <AppIcon
                 name="arrow-forward"
                 size={16}
                 color={theme.colors.textOnPrimary}
@@ -1580,7 +1575,7 @@ export default function NewSaleScreen() {
             variant="secondary"
             style={{ flex: 1, borderRadius: radii.xl }}
             onPress={() => setStep((s) => (s - 1) as Step)}
-            icon={<Ionicons name="arrow-back" size={16} color={theme.colors.text} />}
+            icon={<AppIcon name="arrow-back" size={16} color={theme.colors.text} />}
           />
           <Button
             title="Próximo"
@@ -1588,7 +1583,7 @@ export default function NewSaleScreen() {
             disabled={!canAdvance()}
             onPress={() => setStep((s) => (s + 1) as Step)}
             icon={
-              <Ionicons
+              <AppIcon
                 name="arrow-forward"
                 size={16}
                 color={theme.colors.textOnPrimary}
@@ -1623,7 +1618,7 @@ export default function NewSaleScreen() {
             onPress={() => setShowBarcodeSearch(false)}
             style={{
               flex: 1,
-              backgroundColor: "rgba(0, 0, 0, 0.45)",
+              backgroundColor: theme.colors.overlay,
               justifyContent: isDesktop ? "center" : "flex-end",
               padding: isDesktop ? spacing.xl : 0,
             }}
@@ -1652,8 +1647,12 @@ export default function NewSaleScreen() {
                 }}
               >
                 <Typography variant="h2">Buscar por código</Typography>
-                <Pressable onPress={() => setShowBarcodeSearch(false)} hitSlop={12}>
-                  <Ionicons
+                <Pressable
+                  onPress={() => setShowBarcodeSearch(false)}
+                  accessibilityLabel="Fechar"
+                  hitSlop={12}
+                >
+                  <AppIcon
                     name="close-outline"
                     size={26}
                     color={theme.colors.textSecondary}
@@ -1676,7 +1675,7 @@ export default function NewSaleScreen() {
                 size="lg"
                 style={{ borderRadius: radii.xl }}
                 icon={
-                  <Ionicons
+                  <AppIcon
                     name="search-outline"
                     size={18}
                     color={theme.colors.textOnPrimary}
@@ -1710,7 +1709,7 @@ export default function NewSaleScreen() {
           onPress={() => setShowClientFilter(false)}
           style={{
             flex: 1,
-            backgroundColor: "rgba(0, 0, 0, 0.45)",
+            backgroundColor: theme.colors.overlay,
             justifyContent: isDesktop ? "center" : "flex-end",
             padding: isDesktop ? spacing.xl : 0,
           }}
@@ -1739,8 +1738,12 @@ export default function NewSaleScreen() {
               }}
             >
               <Typography variant="h2">Filtrar clientes</Typography>
-              <Pressable onPress={() => setShowClientFilter(false)} hitSlop={12}>
-                <Ionicons
+              <Pressable
+                onPress={() => setShowClientFilter(false)}
+                accessibilityLabel="Fechar"
+                hitSlop={12}
+              >
+                <AppIcon
                   name="close-outline"
                   size={26}
                   color={theme.colors.textSecondary}
@@ -1775,7 +1778,7 @@ export default function NewSaleScreen() {
                     ...getSurfaceStyle(theme),
                   }}
                 >
-                  <Ionicons
+                  <AppIcon
                     name={selected ? "radio-button-on" : "radio-button-off"}
                     size={22}
                     color={
@@ -1814,7 +1817,7 @@ export default function NewSaleScreen() {
           onPress={() => setVariationProduct(null)}
           style={{
             flex: 1,
-            backgroundColor: "rgba(0,0,0,0.4)",
+            backgroundColor: theme.colors.overlay,
             justifyContent: "center",
             padding: spacing.xl,
           }}
@@ -1862,7 +1865,7 @@ export default function NewSaleScreen() {
           onPress={() => setWeightProduct(null)}
           style={{
             flex: 1,
-            backgroundColor: "rgba(0,0,0,0.4)",
+            backgroundColor: theme.colors.overlay,
             justifyContent: "center",
             padding: spacing.xl,
           }}

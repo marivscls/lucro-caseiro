@@ -12,17 +12,11 @@ import {
   spacing,
   radii,
 } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../shared/components/app-icon";
+import type { AppIconName } from "../../shared/components/app-icon";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  Pressable,
-  ScrollView,
-  View,
-  type ViewStyle,
-} from "react-native";
+import { Image, Pressable, ScrollView, View, type ViewStyle } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
 
@@ -38,13 +32,14 @@ import { useProlaboreStatus } from "../../features/goals/hooks";
 import { upcomingCount } from "../../features/orders/domain";
 import { useOrders } from "../../features/orders/hooks";
 import { useLowStockProducts, useProducts } from "../../features/products/hooks";
+import { availableProductStock } from "../../features/products/variations";
 import { useSales, useTodaySummary } from "../../features/sales/hooks";
 import { LimitBanner } from "../../features/subscription/components/limit-banner";
 import { useLimits, useProfile } from "../../features/subscription/hooks";
 import { getLimitBannerState } from "../../features/subscription/limits";
 import { AdBanner } from "../../shared/components/ad-banner";
 import { ListCard, ListCardItem } from "../../shared/components/list-card";
-import { ResponsiveModal } from "../../shared/components/responsive-modal-surface";
+import { Skeleton, SkeletonCard } from "../../shared/components/skeleton";
 import { useNotificationEnabled } from "../../shared/hooks/notification-prefs";
 import { NOTIFICATION_TYPES } from "../../shared/hooks/notification-types";
 import { useOnboarding } from "../../shared/hooks/use-onboarding";
@@ -114,7 +109,7 @@ function AvatarCircle({
       style={{
         width: 44,
         height: 44,
-        borderRadius: 22,
+        borderRadius: radii.full,
         backgroundColor: pastel.bg,
         borderWidth: 1,
         borderColor: pastel.bg,
@@ -187,7 +182,7 @@ function BirthdaysCard({
             <Typography variant="bodyBold" color={theme.colors.primary}>
               {showAll ? "Ver menos" : `Ver todos os ${clients.length}`}
             </Typography>
-            <Ionicons
+            <AppIcon
               name={showAll ? "chevron-up" : "chevron-down"}
               size={16}
               color={theme.colors.primary}
@@ -246,7 +241,7 @@ function ShortcutTile({
   label,
   onPress,
 }: Readonly<{
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
   label: string;
   onPress: () => void;
 }>) {
@@ -286,7 +281,7 @@ function ShortcutTile({
           justifyContent: "center",
         }}
       >
-        <Ionicons name={icon} size={iconSizes.md} color={theme.colors.textSecondary} />
+        <AppIcon name={icon} size={iconSizes.md} color={theme.colors.textSecondary} />
       </View>
       <Typography
         variant="bodyBold"
@@ -321,6 +316,12 @@ const HOME_SHORTCUT_CATEGORIES = [
       { icon: "reader-outline", label: "Orçamentos", route: "/quotes" },
       { icon: "storefront-outline", label: "Catálogo", route: "/catalog" },
       { icon: "cart-outline", label: "Compras", route: "/purchases" },
+      {
+        icon: "storefront-outline",
+        label: "Operação",
+        route: "/retail",
+        feature: "varejoPapelaria",
+      },
     ],
   },
   {
@@ -332,9 +333,19 @@ const HOME_SHORTCUT_CATEGORIES = [
         route: "/recipes",
         feature: "fichaTecnica",
       },
-      { icon: "flask-outline", label: "Insumos", route: "/materials" },
+      {
+        icon: "flask-outline",
+        label: "Insumos",
+        route: "/materials",
+        feature: "materiais",
+      },
       { icon: "business-outline", label: "Fornecedores", route: "/suppliers" },
-      { icon: "gift-outline", label: "Embalagens", route: "/packaging" },
+      {
+        icon: "gift-outline",
+        label: "Embalagens",
+        route: "/packaging",
+        feature: "embalagens",
+      },
     ],
   },
   {
@@ -342,7 +353,7 @@ const HOME_SHORTCUT_CATEGORIES = [
     items: [
       { icon: "calculator-outline", label: "Precificação", route: "/pricing" },
       { icon: "repeat-outline", label: "Gastos fixos", route: "/recurring-expenses" },
-      { icon: "pricetag-outline", label: "Rótulos", route: "/labels" },
+      { icon: "pricetag-outline", label: "Etiquetas", route: "/labels" },
       { icon: "settings-outline", label: "Configurações", route: "/settings" },
     ],
   },
@@ -424,7 +435,7 @@ function HeroTodayCard({
           opacity: pressed ? 0.85 : 1,
         })}
       >
-        <Ionicons name="add" size={iconSizes.sm} color={colors.textOnPrimary} />
+        <AppIcon name="add" size={iconSizes.sm} color={colors.textOnPrimary} />
         <Typography variant="bodyBold" color={colors.textOnPrimary}>
           {saleActionLabel}
         </Typography>
@@ -469,7 +480,7 @@ function LucroHighlightCard({
             justifyContent: "center",
           }}
         >
-          <Ionicons name="trending-up-outline" size={iconSizes.md} color={tone} />
+          <AppIcon name="trending-up-outline" size={iconSizes.md} color={tone} />
         </View>
         <View style={{ flex: 1, gap: 2 }}>
           <Typography variant="label" color={tone}>
@@ -482,7 +493,7 @@ function LucroHighlightCard({
             {income} entradas · {expenses} despesas
           </Typography>
         </View>
-        <Ionicons name="chevron-forward" size={iconSizes.sm} color={tone} />
+        <AppIcon name="chevron-forward" size={iconSizes.sm} color={tone} />
       </View>
     </Card>
   );
@@ -606,7 +617,7 @@ function QuickCreateBar() {
               justifyContent: "center",
             }}
           >
-            <Ionicons
+            <AppIcon
               name={action.icon}
               size={iconSizes.md}
               color={
@@ -662,7 +673,7 @@ function StartStep({
         }}
       >
         {done ? (
-          <Ionicons name="checkmark" size={18} color={theme.colors.textOnPrimary} />
+          <AppIcon name="checkmark" size={18} color={theme.colors.textOnPrimary} />
         ) : (
           <Typography variant="bodyBold" color={theme.colors.primaryLight}>
             {index}
@@ -677,9 +688,7 @@ function StartStep({
       >
         {label}
       </Typography>
-      {!done && (
-        <Ionicons name="chevron-forward" size={20} color={theme.colors.primary} />
-      )}
+      {!done && <AppIcon name="chevron-forward" size={20} color={theme.colors.primary} />}
     </Pressable>
   );
 }
@@ -720,7 +729,7 @@ function GettingStartedCard({
             flex: 1,
           }}
         >
-          <Ionicons name="sparkles" size={20} color={theme.colors.primary} />
+          <AppIcon name="sparkles" size={20} color={theme.colors.primary} />
           <Typography variant="h3">Comece por aqui</Typography>
         </View>
         <Pressable
@@ -758,10 +767,10 @@ function GettingStartedCard({
 
 export default function HomeScreen() {
   const { theme } = useTheme();
-  const { copy } = useBrand();
+  const brand = useBrand();
+  const { copy } = brand;
   const hasStock = useFeature("estoque");
   const hasScheduling = useFeature("agendamento");
-  const hasRecipes = useFeature("fichaTecnica");
   const router = useRouter();
   const isDesktop = useDesktopLayout();
   const [showGoalForm, setShowGoalForm] = useState(false);
@@ -813,53 +822,35 @@ export default function HomeScreen() {
   const cardStyle = getCardStyle(theme);
   const homeShortcutCategories = HOME_SHORTCUT_CATEGORIES.map((category) => ({
     ...category,
+    title:
+      brand.features.comprasComEstoque && category.title === "Produção"
+        ? "Estoque e compras"
+        : category.title,
     items: category.items
       .filter((item) => {
         if (!("feature" in item)) return true;
-        return item.feature === "agendamento" ? hasScheduling : hasRecipes;
+        return brand.features[item.feature];
       })
-      .map((item) =>
-        item.route === "/products"
-          ? {
-              ...item,
-              label: copy.productNounPlural.replace(/^./, (letter) =>
-                letter.toUpperCase(),
-              ),
-            }
-          : item,
-      ),
+      .map((item) => {
+        let label: string = item.label;
+        if (item.route === "/products") {
+          label = copy.productNounPlural.replace(/^./, (letter) => letter.toUpperCase());
+        } else if (item.route === "/labels") {
+          label = copy.labelsLabel;
+        }
+        return { ...item, label };
+      }),
   }));
   const goalConfig = prolaboreData?.config;
   const goalProgress = prolaboreData?.progress;
 
   const goalModal = (
-    <ResponsiveModal
-      desktopMaxWidth={840}
+    <ProlaboreGoalForm
+      config={goalConfig ?? null}
       visible={showGoalForm}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={() => setShowGoalForm(false)}
-    >
-      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "flex-end",
-            padding: spacing.lg,
-          }}
-        >
-          <Pressable onPress={() => setShowGoalForm(false)}>
-            <Typography variant="bodyBold" color={theme.colors.primary}>
-              Fechar
-            </Typography>
-          </Pressable>
-        </View>
-        <ProlaboreGoalForm
-          config={goalConfig ?? null}
-          onSuccess={() => setShowGoalForm(false)}
-        />
-      </SafeAreaView>
-    </ResponsiveModal>
+      onClose={() => setShowGoalForm(false)}
+      onSuccess={() => setShowGoalForm(false)}
+    />
   );
 
   return (
@@ -880,7 +871,6 @@ export default function HomeScreen() {
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "flex-start",
-            marginTop: spacing.md,
           }}
         >
           <View style={{ flex: 1, paddingRight: spacing.md }}>
@@ -888,7 +878,7 @@ export default function HomeScreen() {
               <Typography variant="display" serif>
                 Olá, {firstName}!
               </Typography>
-              <Ionicons name="heart" size={22} color={colors.rose300} />
+              <AppIcon name="heart" size={22} color={colors.rose300} />
             </View>
             <Typography variant="body" style={{ marginTop: spacing.xs }}>
               {getFormattedDate()}
@@ -919,11 +909,11 @@ export default function HomeScreen() {
         {!showSalesLimitBanner && <AdBanner size="banner" />}
 
         {isLoading ? (
-          <ActivityIndicator
-            size="large"
-            color={theme.colors.primary}
-            style={{ marginTop: spacing["2xl"] }}
-          />
+          <View style={{ marginTop: spacing["2xl"], gap: spacing.lg }}>
+            <Skeleton height={140} borderRadius={radii.xl} />
+            <SkeletonCard lines={3} />
+            <SkeletonCard lines={2} />
+          </View>
         ) : (
           <>
             <HeroTodayCard
@@ -965,7 +955,7 @@ export default function HomeScreen() {
                       justifyContent: "center",
                     }}
                   >
-                    <Ionicons
+                    <AppIcon
                       name="calendar"
                       size={iconSizes.md}
                       color={theme.colors.textSecondary}
@@ -984,7 +974,7 @@ export default function HomeScreen() {
                     resizeMode="contain"
                     style={{ width: 82, height: 70 }}
                   />
-                  <Ionicons
+                  <AppIcon
                     name="chevron-forward"
                     size={iconSizes.sm}
                     color={theme.colors.textSecondary}
@@ -1021,7 +1011,7 @@ export default function HomeScreen() {
                         justifyContent: "center",
                       }}
                     >
-                      <Ionicons
+                      <AppIcon
                         name="create-outline"
                         size={iconSizes.sm}
                         color={theme.colors.textSecondary}
@@ -1077,7 +1067,7 @@ export default function HomeScreen() {
                       gap: spacing.sm,
                     }}
                   >
-                    <Ionicons
+                    <AppIcon
                       name="locate-outline"
                       size={iconSizes.sm}
                       color={
@@ -1118,80 +1108,84 @@ export default function HomeScreen() {
                   style={cardStyle}
                 >
                   {lowStockProducts && lowStockProducts.length > 0 ? (
-                    lowStockProducts.slice(0, 3).map((product, index) => (
-                      <ListCardItem
-                        key={product.id}
-                        first={index === 0}
-                        style={{ paddingVertical: spacing.sm }}
-                      >
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: spacing.md,
-                          }}
+                    lowStockProducts.slice(0, 3).map((product, index) => {
+                      const quantity = availableProductStock(product);
+                      return (
+                        <ListCardItem
+                          key={product.id}
+                          first={index === 0}
+                          style={{ paddingVertical: spacing.sm }}
                         >
-                          {product.photoUrl ? (
-                            <Image
-                              source={{ uri: product.photoUrl }}
-                              style={{
-                                width: 44,
-                                height: 44,
-                                borderRadius: radii.md,
-                                backgroundColor: theme.colors.surface,
-                              }}
-                            />
-                          ) : (
-                            <View
-                              style={{
-                                width: 44,
-                                height: 44,
-                                borderRadius: radii.md,
-                                backgroundColor: theme.colors.surface,
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
-                            >
-                              <Typography variant="bodyBold" color={theme.colors.primary}>
-                                {product.name.charAt(0).toUpperCase()}
-                              </Typography>
-                            </View>
-                          )}
-                          <Typography
-                            variant="bodyBold"
-                            style={{ flex: 1 }}
-                            numberOfLines={2}
-                          >
-                            {product.name}
-                          </Typography>
                           <View
                             style={{
-                              paddingHorizontal: spacing.md,
-                              paddingVertical: spacing.sm,
-                              borderRadius: radii.full,
-                              backgroundColor:
-                                product.stockQuantity === 0
-                                  ? theme.colors.alertBg
-                                  : theme.colors.yellowBg,
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: spacing.md,
                             }}
                           >
+                            {product.photoUrl ? (
+                              <Image
+                                source={{ uri: product.photoUrl }}
+                                style={{
+                                  width: 44,
+                                  height: 44,
+                                  borderRadius: radii.md,
+                                  backgroundColor: theme.colors.surface,
+                                }}
+                              />
+                            ) : (
+                              <View
+                                style={{
+                                  width: 44,
+                                  height: 44,
+                                  borderRadius: radii.md,
+                                  backgroundColor: theme.colors.surface,
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <Typography
+                                  variant="bodyBold"
+                                  color={theme.colors.primary}
+                                >
+                                  {product.name.charAt(0).toUpperCase()}
+                                </Typography>
+                              </View>
+                            )}
                             <Typography
-                              variant="caption"
-                              color={
-                                product.stockQuantity === 0
-                                  ? theme.colors.alert
-                                  : theme.colors.yellow
-                              }
-                              numberOfLines={1}
+                              variant="bodyBold"
+                              style={{ flex: 1 }}
+                              numberOfLines={2}
                             >
-                              {product.stockQuantity === 0
-                                ? "Sem estoque"
-                                : `${product.stockQuantity} un.`}
+                              {product.name}
                             </Typography>
+                            <View
+                              style={{
+                                paddingHorizontal: spacing.md,
+                                paddingVertical: spacing.sm,
+                                borderRadius: radii.full,
+                                backgroundColor:
+                                  quantity === 0
+                                    ? theme.colors.alertBg
+                                    : theme.colors.yellowBg,
+                              }}
+                            >
+                              <Typography
+                                variant="caption"
+                                color={
+                                  quantity === 0
+                                    ? theme.colors.alert
+                                    : theme.colors.yellow
+                                }
+                                numberOfLines={1}
+                              >
+                                {quantity === 0 ? "Sem estoque" : `${quantity ?? 0} un.`}
+                              </Typography>
+                            </View>
                           </View>
-                        </View>
-                      </ListCardItem>
-                    ))
+                        </ListCardItem>
+                      );
+                    })
                   ) : (
                     <View
                       style={{
@@ -1200,7 +1194,7 @@ export default function HomeScreen() {
                         paddingVertical: spacing.md,
                       }}
                     >
-                      <Ionicons
+                      <AppIcon
                         name="cube-outline"
                         size={34}
                         color={theme.colors.textSecondary}
@@ -1246,7 +1240,7 @@ export default function HomeScreen() {
                       gap: spacing.sm,
                     }}
                   >
-                    <Ionicons name="lock-closed" size={18} color={theme.colors.premium} />
+                    <AppIcon name="lock-closed" size={18} color={theme.colors.premium} />
                     <Typography
                       variant="body"
                       color={theme.colors.text}

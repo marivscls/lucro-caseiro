@@ -255,6 +255,10 @@ POST /api/v1/products  (produto composto / kit / caixinha)
 
 ## Change log / Decisions
 
+- 2026-07-19: Papelaria aceita `costPrice` direto e variações estruturadas (nome, cor,
+  tamanho/modelo e estoque). Nomes repetidos/estoque negativo são rejeitados; alertas
+  de estoque consideram cada variação.
+
 - Criacao inicial com CRUD + soft delete + estoque
 - `decrementStock` implementado no repo para uso por Sales
 - Domain expoe `isLowStock` e `calculateStockStatus` para UI/notificacoes

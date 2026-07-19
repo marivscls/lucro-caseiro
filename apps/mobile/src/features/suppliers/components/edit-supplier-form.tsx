@@ -1,11 +1,10 @@
 import type { Supplier } from "@lucro-caseiro/contracts";
-import { Button, Input, Typography, spacing } from "@lucro-caseiro/ui";
+import { Button, Input, spacing } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
-import { KeyboardAvoidingView, Platform, View } from "react-native";
+import { View } from "react-native";
 
+import { StandardModal } from "../../../shared/components/standard-modal";
 import { showToast } from "../../../shared/components/toast";
-import { desktopAction, desktopContained } from "../../../shared/layout/desktop-density";
-import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { alertError, alertValidation } from "../../../shared/utils/alerts";
 import { isValidEmail } from "../../../shared/utils/email";
 import { isValidBrazilPhone, maskPhoneBR } from "../../../shared/utils/phone";
@@ -13,14 +12,17 @@ import { useUpdateSupplier } from "../hooks";
 
 interface EditSupplierFormProps {
   supplier: Supplier;
+  visible: boolean;
+  onClose: () => void;
   onSuccess?: () => void;
 }
 
 export function EditSupplierForm({
   supplier,
+  visible,
+  onClose,
   onSuccess,
 }: Readonly<EditSupplierFormProps>) {
-  const isDesktop = useDesktopLayout();
   const [name, setName] = useState(supplier.name);
   const [phone, setPhone] = useState(supplier.phone ?? "");
   const [email, setEmail] = useState(supplier.email ?? "");
@@ -70,25 +72,23 @@ export function EditSupplierForm({
   }
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      style={{ flex: 1 }}
+    <StandardModal
+      title="Editar fornecedor"
+      visible={visible}
+      onClose={onClose}
+      footer={
+        <Button
+          title="Salvar alterações"
+          size="lg"
+          onPress={() => {
+            void handleSubmit();
+          }}
+          loading={updateSupplier.isPending}
+          style={{ flex: 1 }}
+        />
+      }
     >
-      <View
-        style={[
-          {
-            flex: 1,
-            paddingHorizontal: spacing.xl,
-            paddingBottom: spacing.xl,
-            gap: spacing.md,
-          },
-          desktopContained(isDesktop, 720),
-        ]}
-      >
-        <Typography variant="h2" style={{ marginBottom: spacing.sm }}>
-          Editar fornecedor
-        </Typography>
-
+      <View style={{ flexShrink: 1, gap: spacing.md }}>
         <Input
           label="Nome do fornecedor"
           placeholder="Ex: Atacadão da Festa..."
@@ -130,19 +130,7 @@ export function EditSupplierForm({
           numberOfLines={2}
           style={{ height: 78, textAlignVertical: "top", paddingTop: 12 }}
         />
-
-        <View style={{ flex: 1 }} />
-
-        <Button
-          title="Salvar alterações"
-          size="lg"
-          onPress={() => {
-            void handleSubmit();
-          }}
-          loading={updateSupplier.isPending}
-          style={desktopAction(isDesktop)}
-        />
       </View>
-    </KeyboardAvoidingView>
+    </StandardModal>
   );
 }

@@ -1,6 +1,6 @@
-import { Button, Card, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
+import { Button, Card, Typography, spacing, useBrand, useTheme } from "@lucro-caseiro/ui";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../shared/components/app-icon";
 import { Stack, useRouter } from "expo-router";
 import React from "react";
 import { Linking, ScrollView, View } from "react-native";
@@ -10,6 +10,7 @@ import { useProfile } from "../features/subscription/hooks";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { desktopAction, desktopContained } from "../shared/layout/desktop-density";
 import { ScreenHeader } from "../shared/components/screen-header";
+import { getBrandDisplayName } from "../shared/brand-name";
 
 const SUPPORT_EMAIL = "contato@orionseven.com.br";
 
@@ -32,12 +33,12 @@ const FAQ: { question: string; answer: string }[] = [
   {
     question: "Achei um erro ou tenho uma ideia",
     answer:
-      "Manda pra gente! Feedback de quem usa todo dia é o que faz o Lucro Caseiro melhorar. Use o botão abaixo.",
+      "Manda pra gente! Feedback de quem usa todo dia é o que faz o app melhorar. Use o botão abaixo.",
   },
 ];
 
-function openSupportEmail() {
-  const subject = encodeURIComponent("Suporte Lucro Caseiro");
+function openSupportEmail(brandName: string) {
+  const subject = encodeURIComponent(`Suporte ${brandName}`);
   const body = encodeURIComponent(
     "Oi! Preciso de ajuda com:\n\n\n---\n(Conte o que aconteceu que a gente resolve.)",
   );
@@ -46,6 +47,7 @@ function openSupportEmail() {
 
 export default function SupportScreen() {
   const { theme } = useTheme();
+  const brandName = getBrandDisplayName(useBrand());
   const isDesktop = useDesktopLayout();
   const router = useRouter();
   const { data: profile } = useProfile();
@@ -75,7 +77,7 @@ export default function SupportScreen() {
         {isPremium ? (
           <Card variant="surface" padding="xl" style={{ gap: spacing.md }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-              <Ionicons name="diamond" size={20} color={theme.colors.premium} />
+              <AppIcon name="diamond" size={20} color={theme.colors.premium} />
               <Typography variant="h3" color={theme.colors.premium}>
                 Atendimento prioritário
               </Typography>
@@ -88,13 +90,13 @@ export default function SupportScreen() {
               title="Falar com o suporte"
               size="lg"
               icon={
-                <Ionicons
+                <AppIcon
                   name="mail-outline"
                   size={20}
                   color={theme.colors.textOnPrimary}
                 />
               }
-              onPress={openSupportEmail}
+              onPress={() => openSupportEmail(brandName)}
               style={desktopAction(isDesktop, 240)}
             />
             <Typography variant="caption" style={{ textAlign: "center" }}>
@@ -104,7 +106,7 @@ export default function SupportScreen() {
         ) : (
           <Card variant="surface" padding="xl" style={{ gap: spacing.md }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-              <Ionicons name="diamond-outline" size={20} color={theme.colors.premium} />
+              <AppIcon name="diamond-outline" size={20} color={theme.colors.premium} />
               <Typography variant="h3" color={theme.colors.premium}>
                 Suporte prioritário
               </Typography>
@@ -131,7 +133,7 @@ export default function SupportScreen() {
               <View
                 style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
               >
-                <Ionicons
+                <AppIcon
                   name="help-circle-outline"
                   size={20}
                   color={theme.colors.primaryLight}

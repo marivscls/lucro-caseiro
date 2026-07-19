@@ -3,11 +3,12 @@ import {
   fontSizes,
   iconSizes,
   Typography,
+  useBrand,
   useTheme,
   spacing,
   radii,
 } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../shared/components/app-icon";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Image, ScrollView, useWindowDimensions, View } from "react-native";
@@ -44,6 +45,13 @@ const dailyItems = [
 
 const menuItems = [
   {
+    title: "Operação da Papelaria",
+    description: "PDV, caixa, listas, inventário e serviços",
+    icon: "storefront-outline" as const,
+    route: "/retail" as const,
+    feature: "varejoPapelaria" as const,
+  },
+  {
     title: "Gastos fixos",
     description: "Custos mensais no automático",
     icon: "repeat-outline" as const,
@@ -72,6 +80,7 @@ const menuItems = [
     description: "Matéria-prima e estoque",
     icon: "flask-outline" as const,
     route: "/materials" as const,
+    feature: "materiais" as const,
   },
   {
     title: "Fornecedores",
@@ -90,6 +99,7 @@ const menuItems = [
     description: "Suas receitas e ingredientes",
     icon: "document-text-outline" as const,
     route: "/recipes" as const,
+    feature: "fichaTecnica" as const,
   },
   {
     title: "Precificação",
@@ -102,10 +112,11 @@ const menuItems = [
     description: "Suas embalagens",
     icon: "gift-outline" as const,
     route: "/packaging" as const,
+    feature: "embalagens" as const,
   },
   {
-    title: "Rótulos",
-    description: "Rótulos para seus produtos",
+    title: "Etiquetas",
+    description: "Etiquetas prontas para imprimir",
     icon: "pricetag-outline" as const,
     route: "/labels" as const,
   },
@@ -120,6 +131,7 @@ const menuItems = [
 export default function MoreScreen() {
   const router = useRouter();
   const { theme } = useTheme();
+  const brand = useBrand();
   const { width } = useWindowDimensions();
   const isDesktop = useDesktopLayout();
   const { data: profile } = useProfile();
@@ -187,7 +199,7 @@ export default function MoreScreen() {
                   {businessName}
                 </Typography>
               </View>
-              <Ionicons
+              <AppIcon
                 name="chevron-forward"
                 size={iconSizes.sm}
                 color={theme.colors.textSecondary}
@@ -239,7 +251,7 @@ export default function MoreScreen() {
                       justifyContent: "center",
                     }}
                   >
-                    <Ionicons
+                    <AppIcon
                       name={item.icon}
                       size={iconSizes.md}
                       color={theme.colors.textSecondary}
@@ -257,7 +269,7 @@ export default function MoreScreen() {
                       {item.description}
                     </Typography>
                   </View>
-                  <Ionicons
+                  <AppIcon
                     name="chevron-forward"
                     size={iconSizes.md}
                     color={theme.colors.textSecondary}
@@ -287,7 +299,16 @@ export default function MoreScreen() {
             }}
           >
             {[
-              ...menuItems,
+              ...menuItems
+                .filter(
+                  (item) =>
+                    !("feature" in item) || !item.feature || brand.features[item.feature],
+                )
+                .map((item) =>
+                  item.route === "/labels"
+                    ? { ...item, title: brand.copy.labelsLabel }
+                    : item,
+                ),
               ...(adminAccess?.allowed
                 ? [
                     {
@@ -322,7 +343,7 @@ export default function MoreScreen() {
                       justifyContent: "center",
                     }}
                   >
-                    <Ionicons
+                    <AppIcon
                       name={item.icon}
                       size={iconSizes.md}
                       color={theme.colors.textSecondary}
@@ -338,7 +359,7 @@ export default function MoreScreen() {
                       {item.description}
                     </Typography>
                   </View>
-                  <Ionicons
+                  <AppIcon
                     name="chevron-forward"
                     size={iconSizes.sm}
                     color={theme.colors.textSecondary}

@@ -13,8 +13,20 @@ export function validatePurchaseData(data: CreatePurchaseData): string[] {
     errors.push("Descrição deve ter no máximo 500 caracteres");
   }
 
-  if (data.amount <= 0 || Number.isNaN(data.amount)) {
+  if (
+    (data.amount === undefined || data.amount <= 0 || Number.isNaN(data.amount)) &&
+    !data.items?.length
+  ) {
     errors.push("Valor deve ser maior que zero");
+  }
+
+  if (
+    data.items?.some(
+      (item) =>
+        item.quantity <= 0 || !Number.isInteger(item.quantity) || item.unitCost < 0,
+    )
+  ) {
+    errors.push("Itens da compra têm quantidade ou custo inválido");
   }
 
   if (!data.purchasedAt || !ISO_DATE.test(data.purchasedAt)) {

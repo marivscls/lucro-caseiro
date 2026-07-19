@@ -10,7 +10,7 @@ import { useOnboarding } from "./use-onboarding";
 
 export function getAuthRedirectUrl(): string {
   if (Platform.OS === "web" && typeof window !== "undefined") {
-    return window.location.origin;
+    return new URL("/", window.location.origin).toString();
   }
 
   if (process.env.EXPO_PUBLIC_AUTH_REDIRECT_URL) {

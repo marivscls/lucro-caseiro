@@ -8,14 +8,13 @@ import {
   Input,
   Typography,
   useTheme,
-  fontSizes,
   radii,
   spacing,
 } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../shared/components/app-icon";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { ActivityIndicator, Image, Pressable, ScrollView, View } from "react-native";
+import { Image, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import quotesEmpty from "../assets/quotes-empty.png";
@@ -24,6 +23,7 @@ import { useClient } from "../features/clients/hooks";
 import { QuoteForm } from "../features/quotes/components/quote-form";
 import { showAlert } from "../shared/components/alert-store";
 import { ScreenHeader } from "../shared/components/screen-header";
+import { SkeletonList } from "../shared/components/skeleton";
 import {
   useConvertQuote,
   useDeleteQuote,
@@ -39,10 +39,7 @@ import { usePaywall } from "../shared/hooks/use-paywall";
 import { useAuth } from "../shared/hooks/use-auth";
 import { brToIso } from "../shared/utils/date";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
-import {
-  ResponsiveModal,
-  ResponsiveOverlayModal,
-} from "../shared/components/responsive-modal-surface";
+import { StandardModal } from "../shared/components/standard-modal";
 import { formatCurrency } from "../shared/utils/format";
 import { isValidBrazilPhone } from "../shared/utils/phone";
 import { openWhatsApp, openWhatsAppShare } from "../shared/utils/whatsapp";
@@ -76,74 +73,6 @@ const FILTERS: { key: QuoteStatusType | "all"; label: string }[] = [
   { key: "accepted", label: "Aprovados" },
   { key: "rejected", label: "Recusados" },
 ];
-
-function ModalHeader({
-  title,
-  onClose,
-  onBack,
-  rightLabel,
-  onRight,
-}: Readonly<{
-  title: string;
-  onClose?: () => void;
-  onBack?: () => void;
-  rightLabel?: string;
-  onRight?: () => void;
-}>) {
-  const { theme } = useTheme();
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        gap: spacing.md,
-        paddingHorizontal: spacing.lg,
-        paddingTop: spacing.md,
-        paddingBottom: spacing.sm,
-      }}
-    >
-      {onBack ? (
-        <Pressable
-          onPress={onBack}
-          accessibilityLabel="Voltar"
-          hitSlop={10}
-          style={{ minHeight: 44, justifyContent: "center" }}
-        >
-          <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
-        </Pressable>
-      ) : (
-        <Pressable
-          onPress={onClose}
-          accessibilityLabel="Fechar"
-          hitSlop={10}
-          style={{ minHeight: 44, justifyContent: "center" }}
-        >
-          <Ionicons name="close" size={28} color={theme.colors.text} />
-        </Pressable>
-      )}
-      <Typography
-        variant="h1"
-        color={theme.colors.text}
-        numberOfLines={1}
-        style={{ flex: 1, fontSize: fontSizes.xl }}
-      >
-        {title}
-      </Typography>
-      {rightLabel && onRight ? (
-        <Pressable
-          onPress={onRight}
-          accessibilityRole="button"
-          hitSlop={10}
-          style={{ minHeight: 44, justifyContent: "center" }}
-        >
-          <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-            {rightLabel}
-          </Typography>
-        </Pressable>
-      ) : null}
-    </View>
-  );
-}
 
 function QuoteCard({ quote, onPress }: Readonly<{ quote: Quote; onPress: () => void }>) {
   const { theme } = useTheme();
@@ -182,7 +111,6 @@ function ConvertModal({
   onClose: () => void;
   onDone: () => void;
 }>) {
-  const { theme } = useTheme();
   const convert = useConvertQuote();
   const [dateText, setDateText] = useState("");
   const [deposit, setDeposit] = useState("");
@@ -212,53 +140,42 @@ function ConvertModal({
   }
 
   return (
-    <ResponsiveOverlayModal
+    <StandardModal
+      title="Aprovar e criar encomenda"
       visible={visible}
-      animationType="fade"
-      transparent
-      onRequestClose={onClose}
-    >
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: theme.colors.overlay,
-          justifyContent: "center",
-          padding: spacing.xl,
-        }}
-      >
-        <View
-          style={{
-            backgroundColor: theme.colors.surfaceElevated,
-            width: "100%",
-            maxWidth: 520,
-            alignSelf: "center",
-            borderRadius: radii["2xl"],
-            padding: spacing.xl,
-            gap: spacing.md,
-          }}
-        >
-          <Typography variant="h3">Aprovar e criar encomenda</Typography>
-          <Typography variant="caption">
-            O orçamento "{quote.title}" ({formatCurrency(quote.total)}) vira uma encomenda
-            na sua agenda.
-          </Typography>
-          <DateField label="Data de entrega" value={dateText} onChange={setDateText} />
-          <Input
-            label="Sinal recebido (opcional)"
-            placeholder="Ex.: 60,00"
-            value={deposit}
-            onChangeText={(value) => setDeposit(maskCurrencyInput(value))}
-            keyboardType="numeric"
+      onClose={onClose}
+      footer={
+        <>
+          <Button
+            title="Cancelar"
+            variant="ghost"
+            onPress={onClose}
+            style={{ flex: 1 }}
           />
           <Button
             title="Criar encomenda"
             onPress={() => void handleConvert()}
             loading={convert.isPending}
+            style={{ flex: 1 }}
           />
-          <Button title="Cancelar" variant="ghost" onPress={onClose} />
-        </View>
+        </>
+      }
+    >
+      <View style={{ flexShrink: 1, gap: spacing.md }}>
+        <Typography variant="caption">
+          O orçamento "{quote.title}" ({formatCurrency(quote.total)}) vira uma encomenda
+          na sua agenda.
+        </Typography>
+        <DateField label="Data de entrega" value={dateText} onChange={setDateText} />
+        <Input
+          label="Sinal recebido (opcional)"
+          placeholder="Ex.: 60,00"
+          value={deposit}
+          onChangeText={(value) => setDeposit(maskCurrencyInput(value))}
+          keyboardType="numeric"
+        />
       </View>
-    </ResponsiveOverlayModal>
+    </StandardModal>
   );
 }
 
@@ -375,19 +292,8 @@ function QuoteDetail({
   }
 
   return (
-    <ScrollView
-      contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg, flexGrow: 1 }}
-    >
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Typography variant="h2" style={{ flex: 1 }} numberOfLines={2}>
-          {quote.title}
-        </Typography>
+    <View style={{ flexShrink: 1, gap: spacing.lg }}>
+      <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
         <Badge label={meta.label} variant={meta.variant} />
       </View>
       {quote.clientName && (
@@ -438,11 +344,7 @@ function QuoteDetail({
 
       {quote.validUntil && (
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>
-          <Ionicons
-            name="calendar-outline"
-            size={16}
-            color={theme.colors.textSecondary}
-          />
+          <AppIcon name="calendar-outline" size={16} color={theme.colors.textSecondary} />
           <Typography variant="caption">
             Válido até {quote.validUntil.split("-").reverse().join("/")}
           </Typography>
@@ -451,7 +353,7 @@ function QuoteDetail({
       {quote.notes && (
         <Card variant="surface">
           <View style={{ flexDirection: "row", gap: spacing.sm }}>
-            <Ionicons
+            <AppIcon
               name="chatbubble-ellipses-outline"
               size={18}
               color={theme.colors.textSecondary}
@@ -468,14 +370,13 @@ function QuoteDetail({
         </Card>
       )}
 
-      {/* Ação primária + ações relevantes por status; o resto vai no menu "Mais ações".
-          marginTop auto fixa o bloco no rodapé quando o conteúdo é curto. */}
-      <View style={{ gap: spacing.md, marginTop: "auto" }}>
+      {/* Ação primária + ações relevantes por status; o resto vai no menu "Mais ações". */}
+      <View style={{ gap: spacing.md }}>
         <Button
           title="Enviar no WhatsApp"
-          variant="success"
+          variant="successOutline"
           size="lg"
-          icon={<Ionicons name="logo-whatsapp" size={20} color="#fff" />}
+          icon={<AppIcon name="logo-whatsapp" size={20} color={theme.colors.success} />}
           onPress={() => {
             void handleWhatsApp();
           }}
@@ -484,7 +385,13 @@ function QuoteDetail({
           <Button
             title="Aprovado! Criar encomenda"
             size="lg"
-            icon={<Ionicons name="checkmark-circle" size={20} color="#fff" />}
+            icon={
+              <AppIcon
+                name="checkmark-circle"
+                size={20}
+                color={theme.colors.textOnPrimary}
+              />
+            }
             onPress={() => setConvertVisible(true)}
           />
         )}
@@ -504,7 +411,7 @@ function QuoteDetail({
           variant="ghost"
           size="lg"
           icon={
-            <Ionicons
+            <AppIcon
               name="ellipsis-horizontal"
               size={20}
               color={theme.colors.textSecondary}
@@ -520,7 +427,7 @@ function QuoteDetail({
         onClose={() => setConvertVisible(false)}
         onDone={() => setConvertVisible(false)}
       />
-    </ScrollView>
+    </View>
   );
 }
 
@@ -550,7 +457,13 @@ export default function QuotesScreen() {
       {!isDesktop && <ScreenHeader title="Orçamentos" />}
 
       {/* Filtros (chips) */}
-      <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.sm }}>
+      <View
+        style={{
+          paddingHorizontal: spacing.lg,
+          paddingTop: spacing.xl,
+          paddingBottom: spacing.sm,
+        }}
+      >
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -587,11 +500,9 @@ export default function QuotesScreen() {
 
       <View style={{ flex: 1, paddingHorizontal: spacing.xl }}>
         {isLoading && (
-          <ActivityIndicator
-            size="large"
-            color={theme.colors.primary}
-            style={{ marginTop: spacing["3xl"] }}
-          />
+          <View style={{ marginTop: spacing["3xl"] }}>
+            <SkeletonList rows={5} />
+          </View>
         )}
 
         {!isLoading && quotes.length === 0 && (
@@ -648,7 +559,7 @@ export default function QuotesScreen() {
             opacity: pressed ? 0.85 : 1,
           })}
         >
-          <Ionicons
+          <AppIcon
             name="add"
             size={isDesktop ? 20 : 24}
             color={theme.colors.textOnPrimary}
@@ -663,56 +574,49 @@ export default function QuotesScreen() {
       </View>
 
       {/* Criar */}
-      <ResponsiveModal
-        desktopMaxWidth={1120}
+      <QuoteForm
         visible={showCreate}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowCreate(false)}
-      >
-        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <ModalHeader title="Novo orçamento" onClose={() => setShowCreate(false)} />
-          <QuoteForm onSuccess={() => setShowCreate(false)} />
-        </SafeAreaView>
-      </ResponsiveModal>
+        onClose={() => setShowCreate(false)}
+        onSuccess={() => setShowCreate(false)}
+      />
 
-      {/* Detalhe / editar */}
-      <ResponsiveModal
-        desktopMaxWidth={1120}
-        visible={!!selected}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => {
-          setSelectedId(null);
-          setEditing(false);
-        }}
-      >
-        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          {selected && !editing && (
-            <>
-              <ModalHeader
-                title="Detalhes"
-                onClose={() => setSelectedId(null)}
-                rightLabel={selected.status === "pending" ? "Editar" : undefined}
-                onRight={
-                  selected.status === "pending" ? () => setEditing(true) : undefined
-                }
-              />
-              <QuoteDetail
-                quote={selected}
-                onClose={() => setSelectedId(null)}
-                onEdit={() => setEditing(true)}
-              />
-            </>
-          )}
-          {selected && editing && (
-            <>
-              <ModalHeader title="Editar orçamento" onBack={() => setEditing(false)} />
-              <QuoteForm quote={selected} onSuccess={() => setEditing(false)} />
-            </>
-          )}
-        </SafeAreaView>
-      </ResponsiveModal>
+      {/* Detalhe */}
+      {selected && !editing ? (
+        <StandardModal
+          title={selected.title}
+          visible
+          onClose={() => {
+            setSelectedId(null);
+            setEditing(false);
+          }}
+          wide
+          right={
+            selected.status === "pending" ? (
+              <Pressable onPress={() => setEditing(true)} hitSlop={8}>
+                <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+                  Editar
+                </Typography>
+              </Pressable>
+            ) : undefined
+          }
+        >
+          <QuoteDetail
+            quote={selected}
+            onClose={() => setSelectedId(null)}
+            onEdit={() => setEditing(true)}
+          />
+        </StandardModal>
+      ) : null}
+
+      {/* Editar */}
+      {selected && editing ? (
+        <QuoteForm
+          quote={selected}
+          visible
+          onClose={() => setEditing(false)}
+          onSuccess={() => setEditing(false)}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }

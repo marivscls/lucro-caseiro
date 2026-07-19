@@ -1,5 +1,5 @@
 import { Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -57,7 +57,7 @@ export function MaterialIconField({ name, value, onChange }: MaterialIconFieldPr
             {value ? "Toque para trocar" : "Definido pelo nome. Toque para escolher"}
           </Typography>
         </View>
-        <Ionicons name="chevron-down" size={20} color={theme.colors.textSecondary} />
+        <AppIcon name="chevron-down" size={20} color={theme.colors.textSecondary} />
       </Pressable>
 
       <ResponsiveOverlayModal
@@ -70,7 +70,7 @@ export function MaterialIconField({ name, value, onChange }: MaterialIconFieldPr
           onPress={() => setOpen(false)}
           style={{
             flex: 1,
-            backgroundColor: "rgba(0,0,0,0.55)",
+            backgroundColor: theme.colors.overlay,
             justifyContent: isDesktop ? "center" : "flex-end",
             padding: isDesktop ? spacing.xl : 0,
           }}
@@ -105,7 +105,7 @@ export function MaterialIconField({ name, value, onChange }: MaterialIconFieldPr
                 hitSlop={10}
                 accessibilityLabel="Fechar"
               >
-                <Ionicons name="close" size={26} color={theme.colors.textSecondary} />
+                <AppIcon name="close" size={26} color={theme.colors.textSecondary} />
               </Pressable>
             </View>
 
@@ -137,11 +137,7 @@ export function MaterialIconField({ name, value, onChange }: MaterialIconFieldPr
                 </Typography>
               </View>
               {value == null ? (
-                <Ionicons
-                  name="checkmark-circle"
-                  size={22}
-                  color={theme.colors.primary}
-                />
+                <AppIcon name="checkmark-circle" size={22} color={theme.colors.primary} />
               ) : null}
             </Pressable>
 

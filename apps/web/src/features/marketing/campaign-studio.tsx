@@ -6,12 +6,19 @@ import { useEffect, useMemo, useState } from "react";
 import { apiClient } from "@/shared/lib/api-client";
 import type {
   MarketingCampaignCopiesGeneration,
+  MarketingAiResourceDraft,
   MarketingCampaignPlan,
   MarketingCampaignPlanGeneration,
   MarketingCreativeBundle,
   MarketingPromptTelemetry,
   MarketingResource,
 } from "@/shared/types";
+
+import {
+  campaignAiBriefingFields,
+  campaignNeedsStrategyEnrichment,
+  mergeCampaignStrategyEnrichment,
+} from "./campaign-strategy";
 
 type Briefing = {
   segment: "pme" | "ecommerce" | "agency";
@@ -23,6 +30,7 @@ type Briefing = {
 
 type CopyStyle = "promotional" | "organic";
 type Destination = "content" | "document";
+type CreativeVariant = MarketingCreativeBundle["variants"][number];
 
 const initialBriefing: Briefing = {
   segment: "pme",
@@ -63,15 +71,49 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
   }, [restored, restoredId]);
 
   const generateStrategy = useMutation({
-    mutationFn: () =>
-      apiClient<MarketingCampaignPlanGeneration>("/ai/campaigns/strategy", {
-        method: "POST",
-        timeoutMs: 55_000,
-        body: {
-          ...briefing,
-          budget: Number(briefing.budget) || undefined,
+    mutationFn: async () => {
+      const result = await apiClient<MarketingCampaignPlanGeneration>(
+        "/ai/campaigns/strategy",
+        {
+          method: "POST",
+          timeoutMs: 55_000,
+          body: {
+            ...briefing,
+            ...campaignAiBriefingFields(briefing.audience, briefing.offer),
+            budget: Number(briefing.budget) || undefined,
+          },
         },
-      }),
+      );
+      if (!result.plan || !campaignNeedsStrategyEnrichment(result.plan)) return result;
+
+      const enrichment = await apiClient<MarketingAiResourceDraft>(
+        "/ai/resources/draft",
+        {
+          method: "POST",
+          timeoutMs: 55_000,
+          body: {
+            kind: "campaign",
+            intent: "refine",
+            prompt: campaignStrategyEnrichmentPrompt,
+            current: {
+              title: result.plan.name,
+              summary: result.plan.nextBestAction ?? result.plan.offer ?? "",
+              status: "planned",
+              scheduledFor: null,
+              data: {
+                adBriefing: briefing,
+                adStrategy: result.plan,
+              },
+            },
+          },
+        },
+      );
+
+      return {
+        ...result,
+        plan: mergeCampaignStrategyEnrichment(result.plan, enrichment.data),
+      };
+    },
     onMutate: () => {
       setPlan(null);
       setBundle(null);
@@ -199,7 +241,12 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
               channel: variant.channel,
               format: variant.format,
               headline: variant.headline,
+              hook: variant.hook,
+              landing: variant.landing,
               body: variant.body,
+              retentionBeats: variant.retentionBeats ?? [],
+              productionNotes: variant.productionNotes,
+              evidence: variant.evidence,
               cta: variant.cta,
               prompt: copyTelemetry,
             },
@@ -211,7 +258,7 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
           body: {
             title: variant.headline,
             slug: `copy-campanha-${Date.now()}-${index}`,
-            body: `# ${variant.headline}\n\n${variant.body}\n\n**CTA:** ${variant.cta}\n\n**Canal:** ${variant.channel}\n**Formato:** ${variant.format}`,
+            body: creativeVariantDocument(variant),
             tags: ["ia", "copy", variant.channel],
             source: "ai",
           },
@@ -240,19 +287,28 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
       setFeedbackSent((current) => ({ ...current, [input.messageId]: true })),
   });
 
+  const reviewBlocksApproval = bundle?.qualityReview?.ready === false;
+  let strategyButtonLabel = plan
+    ? "Refazer preenchimento com IA"
+    : "Preencher todos os campos com IA";
+  if (generateStrategy.isPending) strategyButtonLabel = "Preenchendo todos os campos…";
+
   return (
     <section className="campaign-studio" aria-label="Criação de campanha com IA">
       <div className="campaign-studio-intro">
         <p className="eyebrow">Fluxo guiado com IA</p>
-        <h2>Estrategista de anúncios → Copywriter</h2>
-        <p>Defina e aprove a estratégia antes de produzir as peças de cada canal.</p>
+        <h2>Pesquisa → Estratégia → Copy → Revisão</h2>
+        <p>
+          Converta contexto real em uma Big Idea, uma produção executável e peças
+          revisadas antes da aprovação.
+        </p>
       </div>
 
       <div className="campaign-step">
         <StepHeading
           number="1"
-          title="Estratégia do anúncio"
-          description="Briefing, plano estruturado e aprovação."
+          title="Pesquisa e estratégia do anúncio"
+          description="Público, mecanismos, saturação, Big Idea, produção e aprovação."
         />
         <fieldset
           className="campaign-form"
@@ -290,15 +346,18 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
             </select>
           </label>
           <label className="span-2">
-            Público
+            Público desta campanha
             <textarea
               rows={3}
               value={briefing.audience}
               onChange={(event) =>
                 setBriefing({ ...briefing, audience: event.target.value })
               }
-              placeholder="Quem precisa ver este anúncio?"
+              placeholder="Qual recorte precisa ver este anúncio? Deixe vazio para a IA comparar os segmentos."
             />
+            <small>
+              Este recorte orienta a campanha; não define todo o mercado do Lucro Caseiro.
+            </small>
           </label>
           <label className="span-2">
             Oferta
@@ -327,14 +386,10 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
         {!strategyApproved && (
           <button
             className="button primary"
-            disabled={
-              generateStrategy.isPending ||
-              !briefing.audience.trim() ||
-              !briefing.offer.trim()
-            }
+            disabled={generateStrategy.isPending}
             onClick={() => generateStrategy.mutate()}
           >
-            {generateStrategy.isPending ? "Gerando estratégia…" : "Gerar estratégia"}
+            {strategyButtonLabel}
           </button>
         )}
         {generateStrategy.error && (
@@ -400,7 +455,7 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
         <StepHeading
           number="2"
           title="Copies"
-          description="O plano aprovado trava público, oferta, promessa e canais."
+          description="O plano aprovado trava psicologia, público, oferta, promessa e canais."
         />
         {!strategyApproved ? (
           <p className="empty-inline">Aprove a estratégia para liberar as copies.</p>
@@ -476,6 +531,7 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
           <p className="empty-inline">Gere as copies para revisar cada variante.</p>
         ) : (
           <>
+            {bundle.qualityReview && <QualityReviewPanel review={bundle.qualityReview} />}
             <div className="copy-variants">
               {bundle.variants.map((variant, index) => (
                 <article className="copy-card" key={`${variant.channel}-${index}`}>
@@ -484,7 +540,27 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
                     <small>{variant.format}</small>
                   </div>
                   <h3>{variant.headline}</h3>
+                  {variant.hook && <CopyElement label="Gancho" value={variant.hook} />}
+                  {variant.landing && (
+                    <CopyElement label="Aterrissagem" value={variant.landing} />
+                  )}
                   <p>{variant.body}</p>
+                  {Boolean(variant.retentionBeats?.length) && (
+                    <div className="copy-elements">
+                      <small>Movimentos de retenção</small>
+                      <ul>
+                        {variant.retentionBeats?.map((beat, beatIndex) => (
+                          <li key={`${beatIndex}-${beat}`}>{beat}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {variant.productionNotes && (
+                    <CopyElement label="Produção" value={variant.productionNotes} />
+                  )}
+                  {variant.evidence && (
+                    <CopyElement label="Evidência usada" value={variant.evidence} />
+                  )}
                   <div className="copy-cta">
                     <small>CTA</small>
                     <strong>{variant.cta}</strong>
@@ -498,7 +574,7 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
                     <div className="copy-actions">
                       <button
                         className="button primary"
-                        disabled={saveVariant.isPending}
+                        disabled={saveVariant.isPending || reviewBlocksApproval}
                         onClick={() =>
                           saveVariant.mutate({ index, destination: "content" })
                         }
@@ -507,7 +583,7 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
                       </button>
                       <button
                         className="button secondary"
-                        disabled={saveVariant.isPending}
+                        disabled={saveVariant.isPending || reviewBlocksApproval}
                         onClick={() =>
                           saveVariant.mutate({ index, destination: "document" })
                         }
@@ -519,6 +595,12 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
                 </article>
               ))}
             </div>
+            {reviewBlocksApproval && (
+              <p className="notice warning">
+                A autorrevisão encontrou uma lacuna impeditiva. Regere as copies ou reabra
+                a estratégia antes de aprovar.
+              </p>
+            )}
             {copyMessageId && (
               <FeedbackButtons
                 sent={Boolean(feedbackSent[copyMessageId])}
@@ -541,6 +623,95 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
   );
 }
 
+function ListField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string[];
+  onChange: (value: string[]) => void;
+}) {
+  return (
+    <label>
+      {label}
+      <textarea
+        rows={4}
+        value={value.join("\n")}
+        onChange={(event) => onChange(splitLines(event.target.value))}
+        placeholder="Um item por linha"
+      />
+    </label>
+  );
+}
+
+function QualityReviewPanel({
+  review,
+}: {
+  review: NonNullable<MarketingCreativeBundle["qualityReview"]>;
+}) {
+  const criteria = [
+    ["Congruência", review.criteria.congruence],
+    ["Especificidade", review.criteria.specificity],
+    ["Novidade", review.criteria.novelty],
+    ["Segurança das evidências", review.criteria.evidenceSafety],
+    ["Concisão", review.criteria.concision],
+  ] as const;
+  return (
+    <section className={`quality-review ${review.ready ? "ready" : "blocked"}`}>
+      <div className="quality-review-heading">
+        <div>
+          <small>Autorrevisão da geração</small>
+          <strong>{review.ready ? "Pronta para revisão humana" : "Requer ajuste"}</strong>
+        </div>
+        <span>{review.score}/100</span>
+      </div>
+      <div className="quality-criteria">
+        {criteria.map(([label, score]) => (
+          <div key={label}>
+            <span>{label}</span>
+            <strong>{score}</strong>
+          </div>
+        ))}
+      </div>
+      {review.strengths.length > 0 && (
+        <div>
+          <strong>Pontos fortes</strong>
+          <ul>
+            {review.strengths.map((item, index) => (
+              <li key={`${index}-${item}`}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {review.warnings.length > 0 && (
+        <div>
+          <strong>Pendências</strong>
+          <ul>
+            {review.warnings.map((item, index) => (
+              <li key={`${index}-${item}`}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {review.nextTest && (
+        <p>
+          <strong>Próximo teste:</strong> {review.nextTest}
+        </p>
+      )}
+    </section>
+  );
+}
+
+function CopyElement({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="copy-elements">
+      <small>{label}</small>
+      <p>{value}</p>
+    </div>
+  );
+}
+
 function PlanEditor({
   plan,
   disabled,
@@ -558,6 +729,12 @@ function PlanEditor({
         itemIndex === index ? { ...kpi, [field]: value } : kpi,
       ),
     });
+  const research = campaignResearch(plan);
+  const creativeStrategy = campaignCreativeStrategy(plan);
+  const patchResearch = (value: Partial<typeof research>) =>
+    patch({ research: { ...research, ...value } });
+  const patchCreativeStrategy = (value: Partial<typeof creativeStrategy>) =>
+    patch({ creativeStrategy: { ...creativeStrategy, ...value } });
   return (
     <fieldset className="plan-editor" disabled={disabled}>
       <legend>Plano estruturado</legend>
@@ -584,6 +761,186 @@ function PlanEditor({
           onChange={(event) => patch({ offer: event.target.value })}
         />
       </label>
+      <details className="span-2 plan-section" open>
+        <summary>Pesquisa estratégica</summary>
+        <div className="plan-section-grid">
+          <label>
+            Fatia de público
+            <textarea
+              rows={3}
+              value={research.audienceSlice}
+              onChange={(event) => patchResearch({ audienceSlice: event.target.value })}
+            />
+          </label>
+          <label>
+            Desejo real
+            <textarea
+              rows={3}
+              value={research.realDesire}
+              onChange={(event) => patchResearch({ realDesire: event.target.value })}
+            />
+          </label>
+          <label>
+            Mecanismo do problema
+            <textarea
+              rows={3}
+              value={research.problemMechanism}
+              onChange={(event) =>
+                patchResearch({ problemMechanism: event.target.value })
+              }
+            />
+          </label>
+          <label>
+            Mecanismo da solução
+            <textarea
+              rows={3}
+              value={research.solutionMechanism}
+              onChange={(event) =>
+                patchResearch({ solutionMechanism: event.target.value })
+              }
+            />
+          </label>
+          <ListField
+            label="Linguagem real do público"
+            value={research.audienceLanguage}
+            onChange={(audienceLanguage) => patchResearch({ audienceLanguage })}
+          />
+          <ListField
+            label="Soluções ou mensagens saturadas"
+            value={research.saturatedSolutions}
+            onChange={(saturatedSolutions) => patchResearch({ saturatedSolutions })}
+          />
+          <ListField
+            label="Diferenciais"
+            value={research.differentiators}
+            onChange={(differentiators) => patchResearch({ differentiators })}
+          />
+          <ListField
+            label="Provas confirmadas"
+            value={research.proofs}
+            onChange={(proofs) => patchResearch({ proofs })}
+          />
+          <label className="span-2">
+            Notas de saturação e lacunas
+            <textarea
+              rows={3}
+              value={research.saturationNotes}
+              onChange={(event) => patchResearch({ saturationNotes: event.target.value })}
+            />
+          </label>
+        </div>
+      </details>
+      <details className="span-2 plan-section" open>
+        <summary>Big Idea e produção</summary>
+        <div className="plan-section-grid">
+          <label className="span-2">
+            Big Idea
+            <textarea
+              rows={3}
+              value={creativeStrategy.bigIdea}
+              onChange={(event) => patchCreativeStrategy({ bigIdea: event.target.value })}
+            />
+          </label>
+          <label>
+            Ângulo
+            <textarea
+              rows={3}
+              value={creativeStrategy.angle}
+              onChange={(event) => patchCreativeStrategy({ angle: event.target.value })}
+            />
+          </label>
+          <label>
+            Promessa permitida
+            <textarea
+              rows={3}
+              value={creativeStrategy.promise}
+              onChange={(event) => patchCreativeStrategy({ promise: event.target.value })}
+            />
+          </label>
+          <label>
+            Razão para acreditar
+            <textarea
+              rows={3}
+              value={creativeStrategy.reasonToBelieve}
+              onChange={(event) =>
+                patchCreativeStrategy({ reasonToBelieve: event.target.value })
+              }
+            />
+          </label>
+          <label>
+            Insight do orgânico
+            <textarea
+              rows={3}
+              value={creativeStrategy.organicInsight}
+              onChange={(event) =>
+                patchCreativeStrategy({ organicInsight: event.target.value })
+              }
+            />
+          </label>
+          <label>
+            Nome memorável (opcional)
+            <input
+              value={creativeStrategy.stickyName}
+              onChange={(event) =>
+                patchCreativeStrategy({ stickyName: event.target.value })
+              }
+            />
+          </label>
+          <label>
+            Inimigo comum fundamentado (opcional)
+            <input
+              value={creativeStrategy.commonEnemy}
+              onChange={(event) =>
+                patchCreativeStrategy({ commonEnemy: event.target.value })
+              }
+            />
+          </label>
+          <label>
+            Avatar
+            <textarea
+              rows={3}
+              value={creativeStrategy.avatar}
+              onChange={(event) => patchCreativeStrategy({ avatar: event.target.value })}
+            />
+          </label>
+          <label>
+            Formato
+            <textarea
+              rows={3}
+              value={creativeStrategy.format}
+              onChange={(event) => patchCreativeStrategy({ format: event.target.value })}
+            />
+          </label>
+          <label>
+            Gancho visual
+            <textarea
+              rows={3}
+              value={creativeStrategy.visualHook}
+              onChange={(event) =>
+                patchCreativeStrategy({ visualHook: event.target.value })
+              }
+            />
+          </label>
+          <label>
+            Frase de aterrissagem
+            <textarea
+              rows={3}
+              value={creativeStrategy.landing}
+              onChange={(event) => patchCreativeStrategy({ landing: event.target.value })}
+            />
+          </label>
+          <ListField
+            label="Movimentos de retenção"
+            value={creativeStrategy.retentionBeats}
+            onChange={(retentionBeats) => patchCreativeStrategy({ retentionBeats })}
+          />
+          <ListField
+            label="Notas de produção"
+            value={creativeStrategy.productionNotes}
+            onChange={(productionNotes) => patchCreativeStrategy({ productionNotes })}
+          />
+        </div>
+      </details>
       <label className="span-2">
         Canais
         <input
@@ -774,6 +1131,64 @@ function appendPromptRun(value: unknown, telemetry: MarketingPromptTelemetry) {
     ...(Array.isArray(value) ? value : []),
     { ...telemetry, createdAt: new Date().toISOString() },
   ];
+}
+
+function campaignResearch(
+  plan: MarketingCampaignPlan,
+): NonNullable<MarketingCampaignPlan["research"]> {
+  return {
+    audienceSlice: "",
+    realDesire: "",
+    problemMechanism: "",
+    solutionMechanism: "",
+    saturationNotes: "",
+    ...plan.research,
+    audienceLanguage: plan.research?.audienceLanguage ?? [],
+    saturatedSolutions: plan.research?.saturatedSolutions ?? [],
+    differentiators: plan.research?.differentiators ?? [],
+    proofs: plan.research?.proofs ?? [],
+  };
+}
+
+function campaignCreativeStrategy(
+  plan: MarketingCampaignPlan,
+): NonNullable<MarketingCampaignPlan["creativeStrategy"]> {
+  return {
+    bigIdea: "",
+    angle: "",
+    promise: "",
+    reasonToBelieve: "",
+    stickyName: "",
+    commonEnemy: "",
+    organicInsight: "",
+    avatar: "",
+    format: "",
+    visualHook: "",
+    landing: "",
+    ...plan.creativeStrategy,
+    retentionBeats: plan.creativeStrategy?.retentionBeats ?? [],
+    productionNotes: plan.creativeStrategy?.productionNotes ?? [],
+  };
+}
+
+const campaignStrategyEnrichmentPrompt = `Complete os blocos Pesquisa estratégica e Big Idea e produção da campanha atual.
+Use somente o briefing, o plano e o conhecimento confirmado da Central. Não invente provas.
+No objeto data da resposta, devolva exatamente estas duas chaves:
+{"research":{"audienceSlice":"...","audienceLanguage":["..."],"realDesire":"...","saturatedSolutions":["..."],"problemMechanism":"...","solutionMechanism":"...","differentiators":["..."],"proofs":["..."],"saturationNotes":"..."},"creativeStrategy":{"bigIdea":"...","angle":"...","promise":"...","reasonToBelieve":"...","stickyName":"...","commonEnemy":"...","organicInsight":"...","avatar":"...","format":"...","visualHook":"...","landing":"...","retentionBeats":["..."],"productionNotes":["..."]}}.
+Preencha todos os campos com conteúdo específico. proofs pode ser [] e stickyName/commonEnemy podem ficar vazios quando não houver fundamento.`;
+
+function creativeVariantDocument(variant: CreativeVariant) {
+  const retentionItems = variant.retentionBeats?.map((item) => "- " + item).join("\n");
+  const retention = retentionItems
+    ? `\n\n## Movimentos de retenção\n\n${retentionItems}`
+    : "";
+  const production = variant.productionNotes
+    ? `\n\n## Produção\n\n${variant.productionNotes}`
+    : "";
+  const evidence = variant.evidence
+    ? `\n\n## Evidência usada\n\n${variant.evidence}`
+    : "";
+  return `# ${variant.headline}\n\n**Canal:** ${variant.channel}\n**Formato:** ${variant.format}\n\n## Gancho\n\n${variant.hook || variant.headline}\n\n## Aterrissagem\n\n${variant.landing || "—"}\n\n## Corpo\n\n${variant.body}${retention}${production}${evidence}\n\n## CTA\n\n${variant.cta}`;
 }
 
 function splitList(value: string) {

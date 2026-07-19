@@ -1,6 +1,6 @@
 import type { Supplier } from "@lucro-caseiro/contracts";
 import { Card, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
 import React from "react";
 import { View } from "react-native";
 
@@ -26,7 +26,7 @@ export function SupplierCard({ supplier, onPress }: Readonly<SupplierCardProps>)
             justifyContent: "center",
           }}
         >
-          <Ionicons name="business" size={22} color={theme.colors.textOnPrimary} />
+          <AppIcon name="business" size={22} color={theme.colors.textOnPrimary} />
         </View>
 
         <View style={{ flex: 1, gap: 2 }}>
@@ -38,7 +38,7 @@ export function SupplierCard({ supplier, onPress }: Readonly<SupplierCardProps>)
           </Typography>
         </View>
 
-        <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
+        <AppIcon name="chevron-forward" size={20} color={theme.colors.textSecondary} />
       </View>
     </Card>
   );

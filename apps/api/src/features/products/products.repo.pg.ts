@@ -208,10 +208,43 @@ export class ProductsRepoPg implements IProductsRepo {
     productId: string,
     quantity: number,
   ): Promise<void> {
-    await this.db
+    await this.adjustStock(userId, productId, -quantity);
+  }
+
+  async adjustStock(
+    userId: string,
+    productId: string,
+    delta: number,
+    variationId?: string,
+  ): Promise<boolean> {
+    const product = await this.findById(userId, productId);
+    if (!product) return false;
+
+    if (variationId) {
+      const variations = product.variations ?? [];
+      const index = variations.findIndex((variation) => variation.id === variationId);
+      if (index < 0) return false;
+      const variation = variations[index]!;
+      // Estoque ausente significa "não controlado"; não inventa uma quantidade
+      // durante venda/cancelamento. Recebimentos inicializam explicitamente.
+      if (variation.stockQuantity === undefined) return true;
+      const nextQuantity = variation.stockQuantity + delta;
+      if (nextQuantity < 0) return false;
+      const next = variations.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, stockQuantity: nextQuantity } : item,
+      );
+      return !!(await this.update(userId, productId, { variations: next }));
+    }
+
+    if (product.stockQuantity === null) return true;
+    if (product.stockQuantity + delta < 0) return false;
+
+    const [row] = await this.db
       .update(products)
-      .set({ stockQuantity: sql`${products.stockQuantity} - ${quantity}` })
-      .where(and(eq(products.userId, userId), eq(products.id, productId)));
+      .set({ stockQuantity: sql`${products.stockQuantity} + ${delta}` })
+      .where(and(eq(products.userId, userId), eq(products.id, productId)))
+      .returning({ id: products.id });
+    return !!row;
   }
 
   async countByUser(userId: string): Promise<number> {

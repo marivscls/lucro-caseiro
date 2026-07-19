@@ -1,5 +1,5 @@
-import { Card, Typography, fonts, useTheme } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { Card, Typography, fonts, radii, useTheme } from "@lucro-caseiro/ui";
+import { AppIcon } from "../../../shared/components/app-icon";
 import React from "react";
 import { FlatList, Pressable, View } from "react-native";
 
@@ -57,7 +57,7 @@ export function TemplatePicker({ selected, onSelect }: Readonly<TemplatePickerPr
                   style={{
                     width: 56,
                     height: 56,
-                    borderRadius: 10,
+                    borderRadius: radii.md,
                     backgroundColor: colors.accent,
                     opacity: 0.16,
                   }}
@@ -78,13 +78,13 @@ export function TemplatePicker({ selected, onSelect }: Readonly<TemplatePickerPr
                       right: 8,
                       width: 22,
                       height: 22,
-                      borderRadius: 11,
+                      borderRadius: radii.full,
                       backgroundColor: theme.colors.primary,
                       alignItems: "center",
                       justifyContent: "center",
                     }}
                   >
-                    <Ionicons
+                    <AppIcon
                       name="checkmark"
                       size={14}
                       color={theme.colors.textOnPrimary}

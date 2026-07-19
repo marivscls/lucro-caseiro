@@ -25,11 +25,11 @@ export function validateLabelData(data: CreateLabelData): string[] {
   const errors: string[] = [];
 
   if (data.name.trim().length === 0) {
-    errors.push("Nome do rótulo é obrigatório");
+    errors.push("Nome da etiqueta é obrigatório");
   }
 
   if (data.name.length > 200) {
-    errors.push("Nome do rótulo deve ter no máximo 200 caracteres");
+    errors.push("Nome da etiqueta deve ter no máximo 200 caracteres");
   }
 
   if (!data.templateId || data.templateId.trim().length === 0) {
@@ -55,12 +55,18 @@ export function isValidTemplate(templateId: string): boolean {
   return TEMPLATES.some((t) => t.id === normalizedId);
 }
 
-export function buildLabelContent(
-  data: LabelData,
-  recipe?: { ingredients: string },
-): LabelData {
-  if (recipe?.ingredients && !data.ingredients) {
-    return { ...data, ingredients: recipe.ingredients };
-  }
-  return { ...data };
+/**
+ * Mantem o contrato antigo legivel, mas impede clientes desatualizados de
+ * persistirem ou receberem campos com aparencia de rotulagem tecnica.
+ */
+export function toSimpleLabelData(data: LabelData): LabelData {
+  return {
+    productName: data.productName,
+    note: data.note,
+    manufacturingDate: data.manufacturingDate,
+    expirationDate: data.expirationDate,
+    producerName: data.producerName,
+    producerPhone: data.producerPhone,
+    style: data.style,
+  };
 }

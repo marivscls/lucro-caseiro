@@ -1,8 +1,10 @@
 import type { Supplier } from "@lucro-caseiro/contracts";
 import { Button, Input, Typography } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
+import { View } from "react-native";
 
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
+import { StandardModal } from "../../../shared/components/standard-modal";
 import { desktopAction, desktopContained } from "../../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
@@ -18,9 +20,14 @@ import { useCreateSupplier, useSuppliers } from "../hooks";
 interface CreateSupplierFormProps {
   // Recebe o fornecedor criado para quem quiser auto-selecioná-lo (ex.: SupplierSelector).
   onSuccess?: (supplier?: Supplier) => void;
+  /** Quando presente, o form se apresenta como StandardModal (hug) com a ação no footer. */
+  modal?: { visible: boolean; onClose: () => void };
 }
 
-export function CreateSupplierForm({ onSuccess }: Readonly<CreateSupplierFormProps>) {
+export function CreateSupplierForm({
+  onSuccess,
+  modal,
+}: Readonly<CreateSupplierFormProps>) {
   const isDesktop = useDesktopLayout();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -100,15 +107,20 @@ export function CreateSupplierForm({ onSuccess }: Readonly<CreateSupplierFormPro
     }
   }
 
-  return (
-    <KeyboardAwareScrollView
-      contentContainerStyle={[
-        { padding: 20, paddingBottom: 80, gap: 16 },
-        desktopContained(isDesktop, 720),
-      ]}
-    >
-      <Typography variant="h2">Novo fornecedor</Typography>
+  const submitButton = (
+    <Button
+      title="Cadastrar fornecedor"
+      size="lg"
+      onPress={() => {
+        void handleSubmit();
+      }}
+      loading={createSupplier.isPending}
+      style={modal ? { flex: 1 } : desktopAction(isDesktop)}
+    />
+  );
 
+  const fields = (
+    <>
       <Input
         label="Nome do fornecedor"
         placeholder="Ex: Atacadão da Festa, Doce Sabor..."
@@ -150,16 +162,34 @@ export function CreateSupplierForm({ onSuccess }: Readonly<CreateSupplierFormPro
         numberOfLines={3}
         style={{ height: 100, textAlignVertical: "top", paddingTop: 12 }}
       />
+    </>
+  );
 
-      <Button
-        title="Cadastrar fornecedor"
-        size="lg"
-        onPress={() => {
-          void handleSubmit();
-        }}
-        loading={createSupplier.isPending}
-        style={desktopAction(isDesktop)}
-      />
+  if (modal) {
+    return (
+      <StandardModal
+        visible={modal.visible}
+        onClose={modal.onClose}
+        title="Novo fornecedor"
+        footer={submitButton}
+      >
+        <View style={{ flexShrink: 1, gap: 16 }}>{fields}</View>
+      </StandardModal>
+    );
+  }
+
+  return (
+    <KeyboardAwareScrollView
+      contentContainerStyle={[
+        { padding: 20, paddingBottom: 80, gap: 16 },
+        desktopContained(isDesktop, 720),
+      ]}
+    >
+      <Typography variant="h2">Novo fornecedor</Typography>
+
+      {fields}
+
+      {submitButton}
     </KeyboardAwareScrollView>
   );
 }

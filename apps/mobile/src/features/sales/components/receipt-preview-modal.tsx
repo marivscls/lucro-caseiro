@@ -1,6 +1,6 @@
 import type { Sale } from "@lucro-caseiro/contracts";
 import { Button, Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
 import React from "react";
 import { Pressable, View } from "react-native";
 
@@ -40,7 +40,7 @@ export function ReceiptPreviewModal({
       <View
         style={{
           flex: 1,
-          backgroundColor: "rgba(0,0,0,0.6)",
+          backgroundColor: theme.colors.overlay,
           justifyContent: "center",
           padding: spacing.xl,
         }}
@@ -132,18 +132,18 @@ export function ReceiptPreviewModal({
                 style={{
                   width: 64,
                   height: 64,
-                  borderRadius: 32,
+                  borderRadius: radii.full,
                   backgroundColor: theme.colors.premium,
                   alignItems: "center",
                   justifyContent: "center",
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 6 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 10,
-                  elevation: 6,
+                  ...theme.shadows.lg,
                 }}
               >
-                <Ionicons name="lock-closed" size={28} color="#ffffff" />
+                <AppIcon
+                  name="lock-closed"
+                  size={28}
+                  color={theme.colors.textOnPrimary}
+                />
               </View>
             </View>
           </View>

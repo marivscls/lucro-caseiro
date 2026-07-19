@@ -1,12 +1,12 @@
 import { Button, Card, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
+import type { AppIconName } from "../../../shared/components/app-icon";
 import React from "react";
-import { ActivityIndicator, ScrollView, View } from "react-native";
+import { View } from "react-native";
 
+import { SkeletonCard } from "../../../shared/components/skeleton";
 import { openWhatsApp } from "../../../shared/utils/whatsapp";
 import { useSupplier } from "../hooks";
-import { desktopContained } from "../../../shared/layout/desktop-density";
-import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 
 interface SupplierDetailProps {
   supplierId: string;
@@ -19,7 +19,7 @@ function InfoRow({
   value,
   theme,
 }: Readonly<{
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
   label: string;
   value: string;
   theme: { colors: Record<string, string> };
@@ -43,7 +43,7 @@ function InfoRow({
           justifyContent: "center",
         }}
       >
-        <Ionicons name={icon} size={16} color={theme.colors.textSecondary} />
+        <AppIcon name={icon} size={16} color={theme.colors.textSecondary} />
       </View>
       <View style={{ flex: 1, gap: 2 }}>
         <Typography variant="caption">{label}</Typography>
@@ -58,20 +58,20 @@ export function SupplierDetail({
   onEditPress,
 }: Readonly<SupplierDetailProps>) {
   const { theme } = useTheme();
-  const isDesktop = useDesktopLayout();
   const { data: supplier, isLoading, error } = useSupplier(supplierId);
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
+      <View style={{ flexShrink: 1, padding: spacing.xl, gap: spacing.lg }}>
+        <SkeletonCard lines={3} />
+        <SkeletonCard lines={2} />
       </View>
     );
   }
 
   if (error || !supplier) {
     return (
-      <View style={{ flex: 1, padding: spacing.xl, justifyContent: "center" }}>
+      <View style={{ flexShrink: 1, padding: spacing.xl, justifyContent: "center" }}>
         <Typography variant="body">
           Não foi possível carregar os dados do fornecedor.
         </Typography>
@@ -82,16 +82,7 @@ export function SupplierDetail({
   const hasInfo = supplier.phone || supplier.email || supplier.address || supplier.notes;
 
   return (
-    <ScrollView
-      contentContainerStyle={[
-        {
-          paddingHorizontal: spacing.xl,
-          paddingBottom: spacing["3xl"],
-          gap: spacing.xl,
-        },
-        desktopContained(isDesktop, 960),
-      ]}
-    >
+    <View style={{ flexShrink: 1, gap: spacing.xl }}>
       {/* Header */}
       <View style={{ alignItems: "center", gap: spacing.md, paddingTop: spacing.lg }}>
         <View
@@ -104,7 +95,7 @@ export function SupplierDetail({
             justifyContent: "center",
           }}
         >
-          <Ionicons name="business" size={36} color={theme.colors.textOnPrimary} />
+          <AppIcon name="business" size={36} color={theme.colors.textOnPrimary} />
         </View>
         <Typography variant="h1" style={{ textAlign: "center" }}>
           {supplier.name}
@@ -179,6 +170,6 @@ export function SupplierDetail({
           )}
         </View>
       </Card>
-    </ScrollView>
+    </View>
   );
 }

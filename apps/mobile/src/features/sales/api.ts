@@ -59,7 +59,13 @@ export async function updateSaleStatus(
 export interface UpdateSaleData {
   clientId?: string;
   paymentMethod?: string;
-  items?: Array<{ productId: string; quantity: number; unitPrice: number }>;
+  items?: Array<{
+    productId: string;
+    quantity: number;
+    unitPrice: number;
+    variationId?: string;
+    variationName?: string;
+  }>;
   notes?: string;
 }
 

@@ -1,8 +1,8 @@
 # Estratégia de Marketing e Vendas — Lucro Caseiro
 
 **Status:** Diretriz estratégica inicial
-**Versão:** 1.1
-**Data:** 16 de julho de 2026
+**Versão:** 1.2
+**Data:** 18 de julho de 2026
 **Escopo:** Posicionamento, aquisição, ativação, conteúdo, conversão e retenção
 
 ## 1. Resumo executivo
@@ -54,7 +54,18 @@ Os materiais de marketing, vendas e conteúdo devem perseguir três resultados p
 
 ## 3. Público-alvo
 
-### 3.1 Público prioritário
+### 3.1 Mercado atendido
+
+O Lucro Caseiro atende profissionais autônomos, MEIs, prestadores de serviço, produtores,
+comerciantes, equipes e negócios em diferentes estágios de maturidade — do início à operação
+estruturada e em crescimento. O elo entre esses públicos é a necessidade de formar preços,
+entender custos e lucro, organizar produtos ou serviços, pedidos, vendas e a operação com
+simplicidade.
+
+O nome “Lucro Caseiro” e os segmentos usados na aquisição não limitam o produto a quem trabalha em
+casa, a pequenos negócios, a mulheres ou a uma atividade específica.
+
+### 3.2 Recorte inicial de aquisição
 
 Mulheres de 25 a 55 anos que produzem e vendem alimentos ou produtos artesanais, principalmente por Instagram e WhatsApp, desde operações individuais até negócios estruturados e em crescimento.
 
@@ -81,7 +92,7 @@ Características recorrentes:
 - possuem pouco tempo e pouca familiaridade com sistemas de gestão;
 - querem praticidade, segurança e aparência profissional.
 
-### 3.2 Públicos secundários
+### 3.3 Outros segmentos de aquisição
 
 - profissionais de beleza e estética;
 - costureiras e ateliês;
@@ -91,11 +102,11 @@ Características recorrentes:
 
 Esses públicos devem receber campanhas próprias, com exemplos, imagens e vocabulário do seu segmento. Um mesmo anúncio não deve tentar falar simultaneamente com doceiras, manicures, costureiras e comerciantes.
 
-### 3.3 Job to be Done
+### 3.4 Job to be Done
 
 > Quando preciso definir o preço de algo que produzo, quero considerar tudo que gastei e saber quanto vai sobrar, para cobrar com segurança e começar a vender sem perder tempo cadastrando as mesmas informações novamente.
 
-### 3.4 Dores centrais
+### 3.5 Dores centrais
 
 - “Não sei se estou cobrando certo.”
 - “Tenho medo de aumentar o preço e perder clientes.”
@@ -106,7 +117,7 @@ Esses públicos devem receber campanhas próprias, com exemplos, imagens e vocab
 - “Aplicativos de gestão parecem complicados.”
 - “Cadastrar tudo mais de uma vez dá muito trabalho.”
 
-### 3.5 Desejos centrais
+### 3.6 Desejos centrais
 
 - cobrar com segurança;
 - entender quanto realmente lucra;

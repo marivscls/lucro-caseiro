@@ -1,7 +1,7 @@
 import type { Client } from "@lucro-caseiro/contracts";
-import { Button, Input, Typography, spacing } from "@lucro-caseiro/ui";
+import { Button, Input, spacing } from "@lucro-caseiro/ui";
 import React, { useRef, useState } from "react";
-import { KeyboardAvoidingView, Platform, View } from "react-native";
+import { View } from "react-native";
 
 import { brToIso, isoToBR, maskDateBR } from "../../../shared/utils/date";
 import { phoneDuplicateKey } from "../../../shared/utils/duplicates";
@@ -10,16 +10,21 @@ import { useClients, useUpdateClient } from "../hooks";
 import { showToast } from "../../../shared/components/toast";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
 import { ApiError } from "../../../shared/utils/api-client";
-import { desktopAction, desktopContained } from "../../../shared/layout/desktop-density";
-import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+import { StandardModal } from "../../../shared/components/standard-modal";
 
 interface EditClientFormProps {
   client: Client;
+  visible: boolean;
+  onClose: () => void;
   onSuccess?: () => void;
 }
 
-export function EditClientForm({ client, onSuccess }: Readonly<EditClientFormProps>) {
-  const isDesktop = useDesktopLayout();
+export function EditClientForm({
+  client,
+  visible,
+  onClose,
+  onSuccess,
+}: Readonly<EditClientFormProps>) {
   const [name, setName] = useState(client.name);
   const [phone, setPhone] = useState(client.phone ?? "");
   const [address, setAddress] = useState(client.address ?? "");
@@ -109,25 +114,23 @@ export function EditClientForm({ client, onSuccess }: Readonly<EditClientFormPro
   }
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      style={{ flex: 1 }}
+    <StandardModal
+      title="Editar cliente"
+      visible={visible}
+      onClose={onClose}
+      footer={
+        <Button
+          title="Salvar alterações"
+          size="lg"
+          onPress={() => {
+            void handleSubmit();
+          }}
+          loading={updateClient.isPending}
+          style={{ flex: 1 }}
+        />
+      }
     >
-      <View
-        style={[
-          {
-            flex: 1,
-            paddingHorizontal: spacing.xl,
-            paddingBottom: spacing.xl,
-            gap: spacing.md,
-          },
-          desktopContained(isDesktop, 720),
-        ]}
-      >
-        <Typography variant="h2" style={{ marginBottom: spacing.sm }}>
-          Editar cliente
-        </Typography>
-
+      <View style={{ flexShrink: 1, gap: spacing.md }}>
         <Input
           label="Nome do cliente"
           placeholder="Ex: Maria Silva, João Pereira..."
@@ -168,20 +171,8 @@ export function EditClientForm({ client, onSuccess }: Readonly<EditClientFormPro
           numberOfLines={2}
           style={{ height: 78, textAlignVertical: "top", paddingTop: 12 }}
         />
-
-        <View style={{ flex: 1 }} />
-
-        <Button
-          title="Salvar alterações"
-          size="lg"
-          onPress={() => {
-            void handleSubmit();
-          }}
-          loading={updateClient.isPending}
-          style={desktopAction(isDesktop)}
-        />
       </View>
-    </KeyboardAvoidingView>
+    </StandardModal>
   );
 }
 

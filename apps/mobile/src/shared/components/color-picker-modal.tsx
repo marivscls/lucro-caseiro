@@ -128,7 +128,7 @@ export function ColorPickerModal({
       <View
         style={{
           flex: 1,
-          backgroundColor: "rgba(0,0,0,0.55)",
+          backgroundColor: theme.colors.overlay,
           justifyContent: "center",
           padding: spacing.xl,
         }}
@@ -182,7 +182,7 @@ export function ColorPickerModal({
                     top: markerTop - 10,
                     width: 20,
                     height: 20,
-                    borderRadius: 10,
+                    borderRadius: radii.full,
                     borderWidth: 2.5,
                     borderColor: "#ffffff",
                     backgroundColor: hex,
@@ -246,7 +246,7 @@ export function ColorPickerModal({
               style={{
                 width: 48,
                 height: 48,
-                borderRadius: 24,
+                borderRadius: radii.full,
                 backgroundColor: hex,
                 borderWidth: 1,
                 borderColor: "rgba(0,0,0,0.15)",

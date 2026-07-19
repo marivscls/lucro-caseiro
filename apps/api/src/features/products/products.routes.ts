@@ -76,13 +76,25 @@ export function createProductsRouter(
         limit: 100,
         activeOnly: true,
       });
-      const lowStock = result.items.filter(
-        (p) =>
-          p.stockQuantity !== null &&
-          p.stockAlertThreshold !== null &&
-          p.stockQuantity <= p.stockAlertThreshold,
-      );
-      lowStock.sort((a, b) => (a.stockQuantity ?? 0) - (b.stockQuantity ?? 0));
+      const lowStock = result.items.filter((p) => {
+        if (p.stockAlertThreshold === null) return false;
+        if (p.variations?.length) {
+          return p.variations.some(
+            (variation) =>
+              variation.stockQuantity !== undefined &&
+              variation.stockQuantity <= p.stockAlertThreshold!,
+          );
+        }
+        return p.stockQuantity !== null && p.stockQuantity <= p.stockAlertThreshold;
+      });
+      const available = (product: (typeof lowStock)[number]) =>
+        product.variations?.length
+          ? product.variations.reduce(
+              (total, variation) => total + (variation.stockQuantity ?? 0),
+              0,
+            )
+          : (product.stockQuantity ?? 0);
+      lowStock.sort((a, b) => available(a) - available(b));
       res.json(lowStock);
     } catch (err) {
       next(err);

@@ -1,10 +1,11 @@
 import type { Client } from "@lucro-caseiro/contracts";
 import { Button, Input, Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from "react-native";
+import { FlatList, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useClients } from "../hooks";
+import { SkeletonList } from "../../../shared/components/skeleton";
 import { desktopModalSurface } from "../../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
@@ -44,7 +45,7 @@ export function ClientPickerModal({
       <View
         style={{
           flex: 1,
-          backgroundColor: "rgba(0,0,0,0.55)",
+          backgroundColor: theme.colors.overlay,
           justifyContent: isDesktop ? "center" : "flex-end",
           padding: isDesktop ? spacing.xl : 0,
         }}
@@ -92,7 +93,7 @@ export function ClientPickerModal({
             </Typography>
           </Pressable>
           {isLoading ? (
-            <ActivityIndicator color={theme.colors.primary} />
+            <SkeletonList rows={4} />
           ) : (
             <FlatList
               data={clients}

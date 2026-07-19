@@ -59,6 +59,124 @@ export class SalesUseCases {
     }
   }
 
+  private async collectStockChanges(
+    userId: string,
+    items: SaleItemData[],
+    multiplier: 1 | -1,
+  ): Promise<Array<{ productId: string; variationId?: string; delta: number }>> {
+    if (!this.productsRepo) return [];
+    const changes = new Map<
+      string,
+      { productId: string; variationId?: string; delta: number }
+    >();
+
+    for (const item of items) {
+      const product = await this.productsRepo.findById(userId, item.productId);
+      if (!product) {
+        if (multiplier < 0) {
+          throw new ValidationError(["Produto da venda não foi encontrado"]);
+        }
+        continue;
+      }
+      if (product.saleUnit === "kg") continue;
+
+      let variationId: string | undefined;
+      if (product.variations?.length) {
+        const variation = product.variations.find(
+          (candidate) => candidate.id === item.variationId,
+        );
+        if (!variation) {
+          if (multiplier < 0) {
+            throw new ValidationError([
+              `Escolha uma variação válida para ${product.name}`,
+            ]);
+          }
+          // Venda histórica sem variação: não há como adivinhar onde devolver.
+          continue;
+        }
+        item.variationName = variation.name;
+        if (variation.stockQuantity === undefined) continue;
+        variationId = variation.id;
+      } else if (product.stockQuantity === null) {
+        continue;
+      }
+
+      const key = `${item.productId}:${variationId ?? "produto"}`;
+      const current = changes.get(key);
+      const delta = item.quantity * multiplier;
+      changes.set(key, {
+        productId: item.productId,
+        ...(variationId ? { variationId } : {}),
+        delta: (current?.delta ?? 0) + delta,
+      });
+    }
+
+    return [...changes.values()].filter((change) => change.delta !== 0);
+  }
+
+  private mergeStockChanges(
+    ...groups: Array<Array<{ productId: string; variationId?: string; delta: number }>>
+  ): Array<{ productId: string; variationId?: string; delta: number }> {
+    const merged = new Map<
+      string,
+      { productId: string; variationId?: string; delta: number }
+    >();
+    for (const group of groups) {
+      for (const change of group) {
+        const key = `${change.productId}:${change.variationId ?? "produto"}`;
+        const current = merged.get(key);
+        merged.set(key, {
+          ...change,
+          delta: (current?.delta ?? 0) + change.delta,
+        });
+      }
+    }
+    return [...merged.values()].filter((change) => change.delta !== 0);
+  }
+
+  private async validateStockChanges(
+    userId: string,
+    changes: Array<{ productId: string; variationId?: string; delta: number }>,
+  ): Promise<void> {
+    if (!this.productsRepo) return;
+    for (const change of changes) {
+      if (change.delta >= 0) continue;
+      const product = await this.productsRepo.findById(userId, change.productId);
+      if (!product) throw new ValidationError(["Produto da venda não foi encontrado"]);
+      const available = change.variationId
+        ? product.variations?.find((variation) => variation.id === change.variationId)
+            ?.stockQuantity
+        : product.stockQuantity;
+      if (available !== undefined && available !== null && available + change.delta < 0) {
+        const variation = change.variationId
+          ? product.variations?.find((item) => item.id === change.variationId)?.name
+          : undefined;
+        const variationLabel = variation ? ` — ${variation}` : "";
+        throw new ValidationError([
+          `Estoque insuficiente para ${product.name}${variationLabel}`,
+        ]);
+      }
+    }
+  }
+
+  private async applyStockChanges(
+    userId: string,
+    changes: Array<{ productId: string; variationId?: string; delta: number }>,
+  ): Promise<void> {
+    if (!this.productsRepo) return;
+    for (const change of changes) {
+      const adjusted = await this.productsRepo.adjustStock(
+        userId,
+        change.productId,
+        change.delta,
+        change.variationId,
+      );
+      if (!adjusted) {
+        throw new ValidationError(["Não foi possível atualizar o estoque da venda"]);
+      }
+    }
+  }
+
   /**
    * Baixa automática dos insumos da receita de cada produto vendido
    * (quantidade da receita × quantidade vendida). Best-effort: nunca bloqueia a venda.
@@ -95,41 +213,22 @@ export class SalesUseCases {
 
     const total = calculateSaleTotal(data.items);
 
-    // Validate and decrement stock for each product.
-    // Estoque por unidades inteiras nao se aplica a produtos vendidos por peso
-    // (saleUnit === "kg"): nesses casos pulamos validacao/baixa de estoque.
-    if (this.productsRepo) {
-      for (const item of data.items) {
-        const product = await this.productsRepo.findById(userId, item.productId);
-        if (product?.variations?.length) {
-          const variation = product.variations.find(
-            (candidate) => candidate.id === item.variationId,
-          );
-          if (!variation) {
-            throw new ValidationError([
-              `Escolha uma variacao valida para ${product.name}`,
-            ]);
-          }
-          item.variationName = variation.name;
-        }
-        if (product && product.saleUnit !== "kg" && product.stockQuantity !== null) {
-          if (product.stockQuantity < item.quantity) {
-            throw new ValidationError([`Estoque insuficiente para ${product.name}`]);
-          }
-        }
-      }
-
-      for (const item of data.items) {
-        const product = await this.productsRepo.findById(userId, item.productId);
-        if (product && product.saleUnit !== "kg" && product.stockQuantity !== null) {
-          await this.productsRepo.decrementStock(userId, item.productId, item.quantity);
-        }
-      }
-    }
+    const stockChanges = await this.collectStockChanges(userId, data.items, -1);
+    await this.validateStockChanges(userId, stockChanges);
+    await this.applyStockChanges(userId, stockChanges);
 
     // "credit" (fiado) nasce pendente -> aparece no Fiado; demais formas, pagas.
     const status = initialSaleStatus(data.paymentMethod);
-    const sale = await this.repo.create(userId, data, total, status);
+    let sale: Sale;
+    try {
+      sale = await this.repo.create(userId, data, total, status);
+    } catch (error) {
+      await this.applyStockChanges(
+        userId,
+        stockChanges.map((change) => ({ ...change, delta: -change.delta })),
+      );
+      throw error;
+    }
     await this.consumeMaterials(userId, data.items);
     // Venda paga já entra no caixa; fiado (pending) só quando for paga.
     if (sale.status === "paid") {
@@ -170,6 +269,8 @@ export class SalesUseCases {
         productId: i.productId,
         quantity: i.quantity,
         unitPrice: i.unitPrice,
+        ...(i.variationId ? { variationId: i.variationId } : {}),
+        ...(i.variationName ? { variationName: i.variationName } : {}),
       }));
 
     if (data.items) {
@@ -181,8 +282,40 @@ export class SalesUseCases {
 
     const total = calculateSaleTotal(items);
 
-    const updated = await this.repo.update(userId, id, data, total);
+    const stockChanges = data.items
+      ? this.mergeStockChanges(
+          await this.collectStockChanges(
+            userId,
+            existing.items.map((item) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              ...(item.variationId ? { variationId: item.variationId } : {}),
+              ...(item.variationName ? { variationName: item.variationName } : {}),
+            })),
+            1,
+          ),
+          await this.collectStockChanges(userId, data.items, -1),
+        )
+      : [];
+    await this.validateStockChanges(userId, stockChanges);
+    await this.applyStockChanges(userId, stockChanges);
+
+    let updated: Sale | null;
+    try {
+      updated = await this.repo.update(userId, id, data, total);
+    } catch (error) {
+      await this.applyStockChanges(
+        userId,
+        stockChanges.map((change) => ({ ...change, delta: -change.delta })),
+      );
+      throw error;
+    }
     if (!updated) {
+      await this.applyStockChanges(
+        userId,
+        stockChanges.map((change) => ({ ...change, delta: -change.delta })),
+      );
       throw new NotFoundError("Venda não encontrada");
     }
 
@@ -205,8 +338,37 @@ export class SalesUseCases {
       throw new ValidationError(["Venda já esta cancelada"]);
     }
 
-    const updated = await this.repo.updateStatus(userId, id, status);
+    const restoreChanges =
+      status === "cancelled"
+        ? await this.collectStockChanges(
+            userId,
+            existing.items.map((item) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              ...(item.variationId ? { variationId: item.variationId } : {}),
+              ...(item.variationName ? { variationName: item.variationName } : {}),
+            })),
+            1,
+          )
+        : [];
+    await this.applyStockChanges(userId, restoreChanges);
+
+    let updated: Sale | null;
+    try {
+      updated = await this.repo.updateStatus(userId, id, status);
+    } catch (error) {
+      await this.applyStockChanges(
+        userId,
+        restoreChanges.map((change) => ({ ...change, delta: -change.delta })),
+      );
+      throw error;
+    }
     if (!updated) {
+      await this.applyStockChanges(
+        userId,
+        restoreChanges.map((change) => ({ ...change, delta: -change.delta })),
+      );
       throw new NotFoundError("Venda não encontrada");
     }
 

@@ -1,8 +1,14 @@
-import type { CreatePurchase } from "@lucro-caseiro/contracts";
+import type { CreatePurchase, UpdatePurchase } from "@lucro-caseiro/contracts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "../../shared/hooks/use-auth";
-import { createPurchase, deletePurchase, fetchPurchases, payPurchase } from "./api";
+import {
+  createPurchase,
+  deletePurchase,
+  fetchPurchases,
+  payPurchase,
+  updatePurchase,
+} from "./api";
 
 const PURCHASES_KEY = ["purchases"];
 
@@ -24,6 +30,7 @@ export function useCreatePurchase() {
       void queryClient.invalidateQueries({ queryKey: PURCHASES_KEY });
       // Criar uma compra já paga gera uma saída no caixa → atualiza o financeiro.
       void queryClient.invalidateQueries({ queryKey: ["finance"] });
+      void queryClient.invalidateQueries({ queryKey: ["products"] });
     },
   });
 }
@@ -37,6 +44,20 @@ export function usePayPurchase() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: PURCHASES_KEY });
       void queryClient.invalidateQueries({ queryKey: ["finance"] });
+    },
+  });
+}
+
+export function useUpdatePurchase() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdatePurchase }) =>
+      updatePurchase(token!, id, data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: PURCHASES_KEY });
+      void queryClient.invalidateQueries({ queryKey: ["finance"] });
+      void queryClient.invalidateQueries({ queryKey: ["products"] });
     },
   });
 }

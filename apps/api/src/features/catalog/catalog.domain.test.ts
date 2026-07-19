@@ -47,6 +47,7 @@ describe("renderCatalogHtml", () => {
     extraPhotos: [] as string[],
     salePrice: 12.5,
     saleUnit: "unit",
+    variations: [],
   };
 
   it("renderiza galeria (scroll) quando o produto tem mais de uma foto", () => {
@@ -73,6 +74,7 @@ describe("renderCatalogHtml", () => {
     expect(html).not.toContain('class="gallery"');
   });
   const baseCatalog = {
+    brandId: "lucro-caseiro",
     businessName: "Doces",
     whatsapp: null,
     coverUrl: null,
@@ -107,10 +109,37 @@ describe("renderCatalogHtml", () => {
     expect(html).toContain("Mostrando 1 de 8 produtos");
   });
 
-  it("rodape inclui a logo do app", () => {
+  it("rodape inclui a marca e o link correto do app", () => {
     const html = renderCatalogHtml(baseCatalog);
-    expect(html).toContain("data:image/png;base64,");
     expect(html).toContain("Lucro Caseiro");
+    expect(html).toContain("br.com.orionseven.lucrocaseiro");
+  });
+
+  it("renderiza variações e identifica as esgotadas", () => {
+    const html = renderCatalogHtml({
+      ...baseCatalog,
+      brandId: "lucro-papelaria",
+      products: [
+        {
+          ...product,
+          variations: [
+            {
+              id: "22222222-2222-2222-2222-222222222222",
+              name: "Azul",
+              inStock: true,
+            },
+            {
+              id: "33333333-3333-3333-3333-333333333333",
+              name: "Rosa",
+              inStock: false,
+            },
+          ],
+        },
+      ],
+    });
+    expect(html).toContain("Azul");
+    expect(html).toContain("Rosa · esgotado");
+    expect(html).toContain("br.com.orionseven.lucropapelaria");
   });
 
   it("renderiza nome do negocio, produto e preco formatado", () => {

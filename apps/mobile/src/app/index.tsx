@@ -1,16 +1,27 @@
 import { Redirect } from "expo-router";
 import React from "react";
-import { ActivityIndicator, View } from "react-native";
+import { View } from "react-native";
 
 import { useProfile } from "../features/subscription/hooks";
+import { Skeleton } from "../shared/components/skeleton";
 import { useAuth } from "../shared/hooks/use-auth";
 import { useOnboarding } from "../shared/hooks/use-onboarding";
 import { isNewAccount } from "../shared/utils/new-account";
 
 function Loading() {
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <ActivityIndicator size="large" />
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        gap: 16,
+        padding: 24,
+      }}
+    >
+      <Skeleton width={72} height={72} borderRadius={20} />
+      <Skeleton width="60%" height={18} />
+      <Skeleton width="40%" height={14} />
     </View>
   );
 }

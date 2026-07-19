@@ -1,5 +1,4 @@
-import type { Label, LabelData } from "@lucro-caseiro/contracts";
-import { hasActiveFeature } from "@lucro-caseiro/contracts";
+import { hasActiveFeature, type Label, type LabelData } from "@lucro-caseiro/contracts";
 import {
   Button,
   Card,
@@ -8,51 +7,43 @@ import {
   Typography,
   radii,
   spacing,
+  useBrand,
   useTheme,
 } from "@lucro-caseiro/ui";
 import { Stack } from "expo-router";
 import React, { useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  Image,
-  Pressable,
-  ScrollView,
-  View,
-} from "react-native";
+import { FlatList, Image, Pressable, Switch, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { CreateLabelForm } from "../features/labels/components/create-label-form";
-import { LabelStyleEditor } from "../features/labels/components/label-style-editor";
-import { LabelPreview } from "../features/labels/components/label-preview";
-import { LabelProductPicker } from "../features/labels/components/label-product-picker";
-import { TemplatePicker } from "../features/labels/components/template-picker";
-import { exportLabelPdfWithChoice } from "../features/labels/label-export";
+import labelsEmpty from "../assets/labels-empty.png";
 import { publicCatalogProductUrl } from "../features/catalog/api";
 import { useCatalogSettings } from "../features/catalog/hooks";
-import { useProfile } from "../features/subscription/hooks";
-import { usePaywall } from "../shared/hooks/use-paywall";
-import { addDaysToBR, brToIso, isoToBR, maskDateBR } from "../features/labels/dates";
-import { cleanNutrition } from "../features/labels/nutrition";
-import { NutritionFields } from "../features/labels/components/nutrition-fields";
-import { useImagePicker } from "../shared/hooks/use-image-picker";
-import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
-import { maskPhoneBR } from "../shared/utils/phone";
-import { uploadLabelLogo } from "../shared/utils/upload-image";
-import { Ionicons } from "@expo/vector-icons";
-import { showAlert } from "../shared/components/alert-store";
-import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
-import { ResponsiveModal } from "../shared/components/responsive-modal-surface";
-import { ScreenHeader } from "../shared/components/screen-header";
-import { desktopAction, desktopContained } from "../shared/layout/desktop-density";
+import { CreateLabelForm } from "../features/labels/components/create-label-form";
+import { LabelPreview } from "../features/labels/components/label-preview";
+import { LabelProductPicker } from "../features/labels/components/label-product-picker";
+import { LabelStyleEditor } from "../features/labels/components/label-style-editor";
+import { TemplatePicker } from "../features/labels/components/template-picker";
+import { brToIso, isoToBR } from "../features/labels/dates";
+import { exportLabelPdfWithChoice } from "../features/labels/label-export";
 import {
   useDeleteLabel,
   useLabel,
   useLabels,
   useUpdateLabel,
 } from "../features/labels/hooks";
-import { alertValidation, alertError } from "../shared/utils/alerts";
-import labelsEmpty from "../assets/labels-empty.png";
+import { useProfile } from "../features/subscription/hooks";
+import { AppIcon } from "../shared/components/app-icon";
+import { showAlert } from "../shared/components/alert-store";
+import { DateField } from "../shared/components/date-field";
+import { ScreenHeader } from "../shared/components/screen-header";
+import { SkeletonList } from "../shared/components/skeleton";
+import { StandardModal } from "../shared/components/standard-modal";
+import { useImagePicker } from "../shared/hooks/use-image-picker";
+import { usePaywall } from "../shared/hooks/use-paywall";
+import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
+import { alertError, alertValidation } from "../shared/utils/alerts";
+import { maskPhoneBR } from "../shared/utils/phone";
+import { uploadLabelLogo } from "../shared/utils/upload-image";
 
 function LabelDetailModal({
   labelId,
@@ -64,136 +55,110 @@ function LabelDetailModal({
   onClose: () => void;
 }>) {
   const { theme } = useTheme();
-  const isDesktop = useDesktopLayout();
   const { data: profile } = useProfile();
-  const showPaywall = usePaywall((st) => st.show);
+  const showPaywall = usePaywall((state) => state.show);
   const isPremium =
     !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "labelsPremium");
   const { data: label, isLoading } = useLabel(labelId);
   const { data: catalogSettings } = useCatalogSettings();
   const updateLabel = useUpdateLabel();
   const deleteLabel = useDeleteLabel();
-
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
   const [templateId, setTemplateId] = useState("classico");
   const [labelData, setLabelData] = useState<LabelData>({ productName: "" });
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [includeQr, setIncludeQr] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [logoRemoved, setLogoRemoved] = useState(false);
-  const [shelfDays, setShelfDays] = useState("");
   const { imageUri: newLogo, showPicker, clear: clearPickedLogo } = useImagePicker();
-
-  // Logo exibido na edição: novo escolhido > existente (a menos que removido).
   const editingLogo = newLogo ?? (logoRemoved ? null : (label?.logoUrl ?? null));
-  const catalogProductUrl = (productId: string | null | undefined) =>
-    catalogSettings && productId
-      ? publicCatalogProductUrl(catalogSettings.slug, productId)
+  const generatedQrUrl =
+    catalogSettings && selectedProductId
+      ? publicCatalogProductUrl(catalogSettings.slug, selectedProductId)
       : undefined;
-  const editingQrUrl = catalogProductUrl(selectedProductId);
+  const savedQrUrl =
+    label?.productId === selectedProductId ? (label.qrCodeUrl ?? undefined) : undefined;
+  const editingQrUrl = includeQr ? (generatedQrUrl ?? savedQrUrl) : undefined;
 
-  async function handleExport(l: Label) {
-    if (!l.productId) {
-      alertValidation("Edite o rótulo e escolha o produto antes de baixar");
-      return;
-    }
-    const qrUrl = catalogProductUrl(l.productId);
-    if (!qrUrl) {
-      alertError(
-        "Não foi possível carregar o endereço do seu catálogo. Tente novamente.",
-      );
-      return;
-    }
-    setExporting(true);
-    try {
-      await exportLabelPdfWithChoice(l.data, l.templateId, l.logoUrl, qrUrl);
-    } catch {
-      alertError("Não foi possível gerar o rótulo. Tente novamente.");
-    } finally {
-      setExporting(false);
-    }
+  function updateField<K extends keyof LabelData>(key: K, value: LabelData[K]) {
+    setLabelData((previous) => ({ ...previous, [key]: value }));
   }
 
-  function startEditing(l: Label) {
-    setName(l.name);
-    setTemplateId(l.templateId);
-    setSelectedProductId(l.productId);
-    // datas vêm em ISO do back; no formulário usamos DD/MM/AAAA.
+  function startEditing(current: Label) {
+    setName(current.name);
+    setTemplateId(current.templateId);
+    setSelectedProductId(current.productId);
+    setIncludeQr(Boolean(current.qrCodeUrl));
     setLabelData({
-      ...l.data,
-      manufacturingDate: isoToBR(l.data.manufacturingDate),
-      expirationDate: isoToBR(l.data.expirationDate),
+      ...current.data,
+      manufacturingDate: isoToBR(current.data.manufacturingDate),
+      expirationDate: isoToBR(current.data.expirationDate),
     });
-    setShelfDays("");
     setLogoRemoved(false);
     clearPickedLogo();
     setEditing(true);
   }
 
-  function handleRemoveLogo() {
-    clearPickedLogo();
-    setLogoRemoved(true);
+  function validateDates(): {
+    manufacturingDate?: string;
+    expirationDate?: string;
+  } | null {
+    const manufacturingDate = brToIso(labelData.manufacturingDate ?? "");
+    const expirationDate = brToIso(labelData.expirationDate ?? "");
+    if (
+      (labelData.manufacturingDate?.trim() && !manufacturingDate) ||
+      (labelData.expirationDate?.trim() && !expirationDate)
+    ) {
+      showAlert({
+        title: "Data incompleta",
+        message: "Confira as datas no formato DD/MM/AAAA.",
+      });
+      return null;
+    }
+    if (manufacturingDate && expirationDate && expirationDate < manufacturingDate) {
+      showAlert({
+        title: "Datas invertidas",
+        message: "A validade não pode ser anterior à data de produção.",
+      });
+      return null;
+    }
+    return { manufacturingDate, expirationDate };
   }
 
-  function updateField<K extends keyof LabelData>(key: K, value: LabelData[K]) {
-    setLabelData((prev) => ({ ...prev, [key]: value }));
-  }
-
-  function recomputeExpiration(manufacturing: string, days: string) {
-    const n = parseInt(days, 10);
-    if (!manufacturing || Number.isNaN(n) || n <= 0) return;
-    const expiration = addDaysToBR(manufacturing, n);
-    if (expiration) updateField("expirationDate", expiration);
-  }
-
-  function handleManufacturingChange(value: string) {
-    const masked = maskDateBR(value);
-    updateField("manufacturingDate", masked);
-    recomputeExpiration(masked, shelfDays);
-  }
-
-  function handleShelfDaysChange(value: string) {
-    const digits = value.replace(/\D/g, "").slice(0, 4);
-    setShelfDays(digits);
-    recomputeExpiration(labelData.manufacturingDate ?? "", digits);
+  async function resolveLogoUrl(): Promise<string | null | undefined> {
+    if (!newLogo) return logoRemoved ? null : undefined;
+    try {
+      setUploading(true);
+      return await uploadLabelLogo(newLogo);
+    } catch {
+      showAlert({
+        title: "Logo não enviado",
+        message: "Não consegui enviar o novo logo. Vou manter o anterior.",
+      });
+      return undefined;
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function handleSave() {
     if (!name.trim()) {
-      alertValidation("De um nome para o rótulo");
+      alertValidation("Dê um nome para a etiqueta");
       return;
     }
     if (!selectedProductId) {
-      alertValidation("Escolha o produto do rótulo");
+      alertValidation("Escolha o produto da etiqueta");
       return;
     }
-    if (!editingQrUrl) {
-      alertError(
-        "Não foi possível carregar o endereço do seu catálogo. Tente novamente.",
-      );
+    if (!labelData.productName.trim()) {
+      alertValidation("Preencha o nome que será impresso");
       return;
     }
-
-    // logoUrl: string (novo upload), null (removido) ou undefined (inalterado).
-    let logoUrl: string | null | undefined;
-    if (newLogo) {
-      try {
-        setUploading(true);
-        logoUrl = await uploadLabelLogo(newLogo);
-      } catch {
-        showAlert({
-          title: "Logo não enviado",
-          message:
-            "Não consegui enviar o novo logo agora. Vou salvar mantendo o logo anterior.",
-        });
-        logoUrl = undefined;
-      } finally {
-        setUploading(false);
-      }
-    } else if (logoRemoved) {
-      logoUrl = null;
-    }
+    const dates = validateDates();
+    if (!dates) return;
+    const logoUrl = await resolveLogoUrl();
 
     try {
       await updateLabel.mutateAsync({
@@ -202,30 +167,44 @@ function LabelDetailModal({
           name: name.trim(),
           templateId,
           productId: selectedProductId,
-          data: {
-            ...labelData,
-            manufacturingDate: brToIso(labelData.manufacturingDate ?? ""),
-            expirationDate: brToIso(labelData.expirationDate ?? ""),
-            nutrition: cleanNutrition(labelData.nutrition),
-          },
+          data: { ...labelData, ...dates },
           qrCodeUrl: editingQrUrl ?? null,
           ...(logoUrl !== undefined ? { logoUrl } : {}),
         },
       });
-      showAlert({ title: "Rótulo atualizado!" });
+      showAlert({ title: "Etiqueta atualizada!" });
       setEditing(false);
-    } catch (e) {
+    } catch (error) {
       showAlert({
         title: "Erro",
-        message: e instanceof Error ? e.message : "Não foi possível atualizar o rótulo.",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Não foi possível atualizar a etiqueta.",
       });
+    }
+  }
+
+  async function handleExport(current: Label) {
+    setExporting(true);
+    try {
+      await exportLabelPdfWithChoice(
+        current.data,
+        current.templateId,
+        current.logoUrl,
+        current.qrCodeUrl,
+      );
+    } catch {
+      alertError("Não foi possível gerar a etiqueta. Tente novamente.");
+    } finally {
+      setExporting(false);
     }
   }
 
   function handleDelete() {
     showAlert({
-      title: "Excluir rótulo",
-      message: "Tem certeza que deseja excluir este rótulo?",
+      title: "Excluir etiqueta",
+      message: "Tem certeza que deseja excluir esta etiqueta?",
       buttons: [
         { text: "Cancelar", style: "cancel" },
         {
@@ -242,250 +221,240 @@ function LabelDetailModal({
     });
   }
 
+  let footer: React.ReactNode;
+  if (!isLoading && label) {
+    footer = editing ? (
+      <>
+        <Button
+          title="Cancelar"
+          variant="secondary"
+          onPress={() => setEditing(false)}
+          style={{ flex: 1 }}
+        />
+        <Button
+          title={uploading ? "Enviando logo..." : "Salvar"}
+          size="lg"
+          onPress={() => void handleSave()}
+          loading={updateLabel.isPending || uploading}
+          style={{ flex: 1 }}
+        />
+      </>
+    ) : (
+      <>
+        <Button
+          title="Excluir etiqueta"
+          variant="secondary"
+          onPress={handleDelete}
+          loading={deleteLabel.isPending}
+          style={{ flex: 1 }}
+        />
+        <Button
+          title="Baixar / Compartilhar"
+          size="lg"
+          icon={
+            <AppIcon
+              name="download-outline"
+              size={20}
+              color={theme.colors.textOnPrimary}
+            />
+          }
+          onPress={() => void handleExport(label)}
+          loading={exporting}
+          style={{ flex: 1 }}
+        />
+      </>
+    );
+  }
+
   return (
-    <ResponsiveModal
-      desktopMaxWidth={1120}
+    <StandardModal
+      title={editing ? "Editar etiqueta" : (label?.name ?? "Etiqueta")}
+      subtitle={
+        !editing && label
+          ? `Modelo: ${label.templateId} · Criada em ${new Date(label.createdAt).toLocaleDateString("pt-BR")}`
+          : undefined
+      }
       visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
-      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: spacing.lg,
-          }}
-        >
-          <Pressable onPress={onClose}>
+      onClose={onClose}
+      wide
+      right={
+        label && !editing ? (
+          <Pressable onPress={() => startEditing(label)} hitSlop={8}>
             <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-              Fechar
+              Editar
             </Typography>
           </Pressable>
-          {label && !editing && (
-            <Pressable onPress={() => startEditing(label)}>
-              <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-                Editar
-              </Typography>
-            </Pressable>
-          )}
-        </View>
+        ) : undefined
+      }
+      footer={footer}
+    >
+      {isLoading ? <SkeletonList rows={4} /> : null}
 
-        {isLoading && (
-          <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-            <ActivityIndicator size="large" color={theme.colors.primary} />
+      {!isLoading && label && editing ? (
+        <View style={{ flexShrink: 1, gap: spacing.lg }}>
+          <View
+            style={{
+              borderRadius: radii.md,
+              backgroundColor: theme.colors.surface,
+              padding: spacing.md,
+            }}
+          >
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              Etiqueta para identificar seu produto. Não substitui a rotulagem obrigatória
+              quando aplicável.
+            </Typography>
           </View>
-        )}
-
-        {!isLoading && label && editing && (
-          <KeyboardAwareScrollView
-            contentContainerStyle={[
-              {
-                padding: spacing.xl,
-                paddingBottom: spacing["3xl"],
-                gap: spacing.lg,
-              },
-              desktopContained(isDesktop, 960),
-            ]}
-          >
-            <Typography variant="h2">Editar rótulo</Typography>
-            <Input label="Nome do rótulo" value={name} onChangeText={setName} />
-            <LabelProductPicker
-              selectedId={selectedProductId}
-              onSelect={(product) => {
-                setSelectedProductId(product.id);
-                updateField("productName", product.name);
-              }}
+          <Input label="Nome da etiqueta" value={name} onChangeText={setName} />
+          <LabelProductPicker
+            selectedId={selectedProductId}
+            onSelect={(product) => {
+              setSelectedProductId(product.id);
+              updateField("productName", product.name);
+            }}
+          />
+          <TemplatePicker selected={templateId} onSelect={setTemplateId} />
+          <Input
+            label="Nome que será impresso"
+            value={labelData.productName}
+            onChangeText={(value) => updateField("productName", value)}
+          />
+          <Input
+            label="Observação (opcional)"
+            placeholder="Ex: Manter refrigerado"
+            value={labelData.note ?? ""}
+            onChangeText={(value) => updateField("note", value)}
+            multiline
+            numberOfLines={3}
+          />
+          <View style={{ gap: spacing.md }}>
+            <Typography variant="h3">Datas (opcional)</Typography>
+            <DateField
+              label="Feito em"
+              value={labelData.manufacturingDate ?? ""}
+              onChange={(value) => updateField("manufacturingDate", value)}
             />
-            <TemplatePicker selected={templateId} onSelect={setTemplateId} />
-            <Typography variant="h3" style={{ marginTop: spacing.xs }}>
-              Informações do produto
+            <DateField
+              label="Validade"
+              value={labelData.expirationDate ?? ""}
+              onChange={(value) => updateField("expirationDate", value)}
+            />
+          </View>
+          <Typography variant="h3">Contato e marca</Typography>
+          <Input
+            label="Seu nome / nome do negócio"
+            value={labelData.producerName ?? ""}
+            onChangeText={(value) => updateField("producerName", value)}
+          />
+          <Input
+            label="Telefone"
+            value={labelData.producerPhone ?? ""}
+            onChangeText={(value) => updateField("producerPhone", maskPhoneBR(value))}
+            keyboardType="phone-pad"
+          />
+          <View>
+            <Typography variant="caption" style={{ marginBottom: spacing.sm }}>
+              Logo do negócio (opcional)
             </Typography>
-            <Input
-              label="Nome do produto"
-              value={labelData.productName}
-              onChangeText={(v) => updateField("productName", v)}
-            />
-            <Input
-              label="Ingredientes"
-              value={labelData.ingredients ?? ""}
-              onChangeText={(v) => updateField("ingredients", v)}
-              multiline
-              numberOfLines={3}
-              style={{ height: 80, textAlignVertical: "top", paddingTop: spacing.md }}
-            />
-            <NutritionFields
-              value={labelData.nutrition}
-              onChange={(n) => updateField("nutrition", n)}
-            />
-            <Typography variant="h3" style={{ marginTop: spacing.xs }}>
-              Datas
-            </Typography>
-            <View style={{ gap: spacing.md }}>
-              <Input
-                label="Fabricação"
-                placeholder="DD/MM/AAAA"
-                value={labelData.manufacturingDate ?? ""}
-                onChangeText={handleManufacturingChange}
-                keyboardType="number-pad"
-              />
-              <Input
-                label="Validade"
-                placeholder="DD/MM/AAAA"
-                value={labelData.expirationDate ?? ""}
-                onChangeText={(v) => updateField("expirationDate", maskDateBR(v))}
-                keyboardType="number-pad"
-              />
-            </View>
-            <Input
-              label="Validade em dias (opcional)"
-              placeholder="Ex: 7, preenche a validade sozinho"
-              value={shelfDays}
-              onChangeText={handleShelfDaysChange}
-              keyboardType="number-pad"
-            />
-            <Typography variant="h3" style={{ marginTop: spacing.xs }}>
-              Contato e marca
-            </Typography>
-            <Input
-              label="Seu nome / nome do negócio"
-              value={labelData.producerName ?? ""}
-              onChangeText={(v) => updateField("producerName", v)}
-            />
-            <Input
-              label="Telefone"
-              value={labelData.producerPhone ?? ""}
-              onChangeText={(v) => updateField("producerPhone", maskPhoneBR(v))}
-              keyboardType="phone-pad"
-            />
-            <View>
-              <Typography variant="caption" style={{ marginBottom: spacing.sm }}>
-                Logo do negócio (opcional)
-              </Typography>
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
-              >
-                <Pressable
-                  onPress={showPicker}
-                  style={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: radii.lg,
-                    backgroundColor: theme.colors.surface,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    overflow: "hidden",
-                  }}
-                >
-                  {editingLogo ? (
-                    <Image
-                      source={{ uri: editingLogo }}
-                      style={{ width: 80, height: 80 }}
-                    />
-                  ) : (
-                    <Ionicons
-                      name="image-outline"
-                      size={28}
-                      color={theme.colors.textSecondary}
-                    />
-                  )}
-                </Pressable>
-                {editingLogo && (
-                  <Pressable onPress={handleRemoveLogo} hitSlop={8}>
-                    <Typography variant="caption" color={theme.colors.alert}>
-                      Remover logo
-                    </Typography>
-                  </Pressable>
-                )}
-              </View>
-            </View>
-            <LabelStyleEditor
-              value={labelData.style}
-              onChange={(style) => updateField("style", style)}
-              locked={!isPremium}
-              onLockedPress={() => {
-                if (isPremium) return false;
-                showPaywall("labels");
-                return true;
-              }}
-            />
-            <LabelPreview
-              data={labelData}
-              templateId={templateId}
-              logoUrl={editingLogo}
-              qrUrl={editingQrUrl}
-            />
-            <Button
-              title={uploading ? "Enviando logo..." : "Salvar"}
-              size="lg"
-              onPress={() => {
-                handleSave().catch(() => {});
-              }}
-              loading={updateLabel.isPending || uploading}
-              style={desktopAction(isDesktop)}
-            />
-            <Button
-              title="Cancelar"
-              variant="secondary"
-              onPress={() => setEditing(false)}
-              style={desktopAction(isDesktop)}
-            />
-          </KeyboardAwareScrollView>
-        )}
-
-        {!isLoading && label && !editing && (
-          <ScrollView
-            contentContainerStyle={[
-              { padding: spacing.xl, gap: spacing.lg },
-              desktopContained(isDesktop, 960),
-            ]}
-          >
-            <Typography variant="h1">{label.name}</Typography>
-            <Typography variant="caption">
-              Template: {label.templateId} · Criado em{" "}
-              {new Date(label.createdAt).toLocaleDateString("pt-BR")}
-            </Typography>
-            <LabelPreview
-              data={label.data}
-              templateId={label.templateId}
-              logoUrl={label.logoUrl}
-              qrUrl={catalogProductUrl(label.productId)}
-              scale={1.2}
-            />
-            <View style={{ gap: spacing.md }}>
-              <Button
-                title="Baixar / Compartilhar"
-                size="lg"
-                icon={
-                  <Ionicons
-                    name="download-outline"
-                    size={20}
-                    color={theme.colors.textOnPrimary}
-                  />
-                }
-                onPress={() => {
-                  void handleExport(label);
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+              <Pressable
+                onPress={showPicker}
+                style={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: radii.lg,
+                  backgroundColor: theme.colors.surface,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  overflow: "hidden",
                 }}
-                loading={exporting}
-              />
-              <Button
-                title="Excluir rótulo"
-                variant="secondary"
-                onPress={handleDelete}
-                loading={deleteLabel.isPending}
+              >
+                {editingLogo ? (
+                  <Image
+                    source={{ uri: editingLogo }}
+                    style={{ width: 80, height: 80 }}
+                  />
+                ) : (
+                  <AppIcon
+                    name="image-outline"
+                    size={28}
+                    color={theme.colors.textSecondary}
+                  />
+                )}
+              </Pressable>
+              {editingLogo ? (
+                <Pressable
+                  onPress={() => {
+                    clearPickedLogo();
+                    setLogoRemoved(true);
+                  }}
+                  hitSlop={8}
+                >
+                  <Typography variant="caption" color={theme.colors.alert}>
+                    Remover logo
+                  </Typography>
+                </Pressable>
+              ) : null}
+            </View>
+          </View>
+          {catalogSettings || label.qrCodeUrl ? (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: spacing.md,
+              }}
+            >
+              <View style={{ flex: 1 }}>
+                <Typography variant="bodyBold">Incluir QR Code do catálogo</Typography>
+                <Typography variant="caption" color={theme.colors.textSecondary}>
+                  Opcional: abre o produto diretamente no catálogo.
+                </Typography>
+              </View>
+              <Switch
+                value={includeQr}
+                onValueChange={setIncludeQr}
+                trackColor={{ false: theme.colors.border, true: theme.colors.primary }}
               />
             </View>
-          </ScrollView>
-        )}
-      </SafeAreaView>
-    </ResponsiveModal>
+          ) : null}
+          <LabelStyleEditor
+            value={labelData.style}
+            onChange={(style) => updateField("style", style)}
+            locked={!isPremium}
+            onLockedPress={() => {
+              if (isPremium) return false;
+              showPaywall("labels");
+              return true;
+            }}
+          />
+          <LabelPreview
+            data={labelData}
+            templateId={templateId}
+            logoUrl={editingLogo}
+            qrUrl={editingQrUrl}
+          />
+        </View>
+      ) : null}
+
+      {!isLoading && label && !editing ? (
+        <View style={{ flexShrink: 1, gap: spacing.lg }}>
+          <LabelPreview
+            data={label.data}
+            templateId={label.templateId}
+            logoUrl={label.logoUrl}
+            qrUrl={label.qrCodeUrl}
+            scale={1.2}
+          />
+        </View>
+      ) : null}
+    </StandardModal>
   );
 }
 
 export default function LabelsScreen() {
   const { theme } = useTheme();
+  const labelsLabel = useBrand().copy.labelsLabel;
   const isDesktop = useDesktopLayout();
   const insets = useSafeAreaInsets();
   const { data, isLoading, error } = useLabels();
@@ -495,8 +464,8 @@ export default function LabelsScreen() {
   function renderContent() {
     if (isLoading) {
       return (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
+        <View style={{ flex: 1, padding: spacing.xl }}>
+          <SkeletonList rows={5} />
         </View>
       );
     }
@@ -504,7 +473,7 @@ export default function LabelsScreen() {
       return (
         <EmptyState
           title="Algo deu errado"
-          description="Não foi possível carregar seus rótulos."
+          description="Não foi possível carregar suas etiquetas."
         />
       );
     }
@@ -518,11 +487,11 @@ export default function LabelsScreen() {
               style={{ width: 132, height: 132 }}
             />
           }
-          title="Nenhum rótulo ainda"
-          description="Crie rótulos para seus produtos"
+          title="Nenhuma etiqueta ainda"
+          description="Escolha um produto e crie uma etiqueta pronta para imprimir."
           action={
             <Button
-              title="Criar rótulo"
+              title="Criar etiqueta"
               variant="outline"
               onPress={() => setShowCreate(true)}
             />
@@ -542,11 +511,14 @@ export default function LabelsScreen() {
                 flexDirection: "row",
                 justifyContent: "space-between",
                 alignItems: "center",
+                gap: spacing.md,
               }}
             >
-              <View style={{ gap: 2 }}>
+              <View style={{ flex: 1, gap: 2 }}>
                 <Typography variant="bodyBold">{item.name}</Typography>
-                <Typography variant="caption">Template: {item.templateId}</Typography>
+                <Typography variant="caption" numberOfLines={1}>
+                  {item.data.productName}
+                </Typography>
               </View>
               <Typography variant="caption" color={theme.colors.textSecondary}>
                 {new Date(item.createdAt).toLocaleDateString("pt-BR")}
@@ -564,13 +536,8 @@ export default function LabelsScreen() {
       edges={["top", "bottom"]}
     >
       <Stack.Screen options={{ headerShown: false }} />
-
-      {/* Top bar */}
-      {!isDesktop && <ScreenHeader title="Rótulos" />}
-
+      {!isDesktop ? <ScreenHeader title={labelsLabel} /> : null}
       <View style={{ flex: 1 }}>{renderContent()}</View>
-
-      {/* Ação principal */}
       <View
         style={{
           paddingHorizontal: spacing.xl,
@@ -583,7 +550,7 @@ export default function LabelsScreen() {
           accessibilityRole="button"
           style={({ pressed }) => ({
             alignSelf: isDesktop ? "flex-end" : undefined,
-            width: isDesktop ? 180 : undefined,
+            width: isDesktop ? 190 : undefined,
             minHeight: isDesktop ? 44 : 56,
             borderRadius: radii.lg,
             backgroundColor: theme.colors.primaryInteractive,
@@ -594,7 +561,7 @@ export default function LabelsScreen() {
             opacity: pressed ? 0.85 : 1,
           })}
         >
-          <Ionicons
+          <AppIcon
             name="add"
             size={isDesktop ? 20 : 24}
             color={theme.colors.textOnPrimary}
@@ -603,54 +570,24 @@ export default function LabelsScreen() {
             variant={isDesktop ? "bodyBold" : "h3"}
             color={theme.colors.textOnPrimary}
           >
-            Novo rótulo
+            Nova etiqueta
           </Typography>
         </Pressable>
       </View>
 
-      {/* Modal - Criar rótulo */}
-      <ResponsiveModal
-        desktopMaxWidth={1120}
+      <CreateLabelForm
         visible={showCreate}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowCreate(false)}
-      >
-        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: spacing.md,
-              paddingHorizontal: spacing.xl,
-              paddingTop: spacing.md,
-              paddingBottom: spacing.sm,
-            }}
-          >
-            <Pressable
-              onPress={() => setShowCreate(false)}
-              accessibilityLabel="Fechar"
-              hitSlop={10}
-              style={{ minHeight: 44, justifyContent: "center" }}
-            >
-              <Ionicons name="close" size={28} color={theme.colors.text} />
-            </Pressable>
-            <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
-              Novo rótulo
-            </Typography>
-          </View>
-          <CreateLabelForm onSuccess={() => setShowCreate(false)} />
-        </SafeAreaView>
-      </ResponsiveModal>
+        onClose={() => setShowCreate(false)}
+        onSuccess={() => setShowCreate(false)}
+      />
 
-      {/* Modal - Detalhe do rótulo */}
-      {selectedId && (
+      {selectedId ? (
         <LabelDetailModal
           labelId={selectedId}
-          visible={true}
+          visible
           onClose={() => setSelectedId(null)}
         />
-      )}
+      ) : null}
     </SafeAreaView>
   );
 }

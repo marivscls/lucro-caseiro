@@ -1,15 +1,14 @@
 import { formatCurrency } from "../../../shared/utils/format";
 import type { Packaging } from "@lucro-caseiro/contracts";
 import { Typography, useTheme, spacing, radii, fonts } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
+import type { AppIconName } from "../../../shared/components/app-icon";
 import React from "react";
-import { Pressable, ScrollView, Share, View } from "react-native";
+import { Pressable, Share, View } from "react-native";
 
 import { buildPackagingShareText, typeColor, typeLabel } from "../domain";
 import { showAlert } from "../../../shared/components/alert-store";
 import { useSupplierName } from "../../suppliers/hooks";
-import { desktopContained } from "../../../shared/layout/desktop-density";
-import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 
 interface PackagingDetailProps {
   readonly packaging: Packaging;
@@ -25,13 +24,13 @@ function StatCol({
   icon,
   label,
   value,
-}: Readonly<{ icon: keyof typeof Ionicons.glyphMap; label: string; value: string }>) {
+}: Readonly<{ icon: AppIconName; label: string; value: string }>) {
   const { theme } = useTheme();
   return (
     <View
       style={{ flex: 1, alignItems: "center", gap: 6, paddingHorizontal: spacing.xs }}
     >
-      <Ionicons name={icon} size={22} color={theme.colors.primary} />
+      <AppIcon name={icon} size={22} color={theme.colors.primary} />
       <Typography
         variant="caption"
         color={theme.colors.textSecondary}
@@ -56,7 +55,7 @@ function InfoRow({
   icon,
   label,
   value,
-}: Readonly<{ icon: keyof typeof Ionicons.glyphMap; label: string; value: string }>) {
+}: Readonly<{ icon: AppIconName; label: string; value: string }>) {
   const { theme } = useTheme();
   return (
     <View
@@ -67,7 +66,7 @@ function InfoRow({
         paddingVertical: spacing.md,
       }}
     >
-      <Ionicons name={icon} size={20} color={theme.colors.primary} />
+      <AppIcon name={icon} size={20} color={theme.colors.primary} />
       <View style={{ flex: 1 }}>
         <Typography variant="caption" color={theme.colors.textSecondary}>
           {label}
@@ -86,9 +85,7 @@ export function PackagingDetail({
   isDeleting,
 }: PackagingDetailProps) {
   const { theme } = useTheme();
-  const isDesktop = useDesktopLayout();
-  const isDark = theme.mode === "dark";
-  const cardBg = isDark ? "rgba(44, 36, 32, 0.55)" : theme.colors.surfaceElevated;
+  const cardBg = theme.colors.surfaceElevated;
   const border = theme.colors.border;
   const tColor = typeColor(theme, packaging.type);
   const supplierName = useSupplierName(packaging.supplierId);
@@ -110,17 +107,7 @@ export function PackagingDetail({
   }
 
   return (
-    <ScrollView
-      contentContainerStyle={[
-        {
-          padding: spacing.xl,
-          paddingBottom: spacing["3xl"],
-          gap: spacing.xl,
-        },
-        desktopContained(isDesktop, 960),
-      ]}
-      showsVerticalScrollIndicator={false}
-    >
+    <View style={{ flexShrink: 1, gap: spacing.xl }}>
       <Typography variant="h1" color={theme.colors.text}>
         {typeLabel(packaging.type)}
       </Typography>
@@ -202,7 +189,7 @@ export function PackagingDetail({
           opacity: pressed ? 0.7 : 1,
         })}
       >
-        <Ionicons name="trash-outline" size={20} color={theme.colors.alert} />
+        <AppIcon name="trash-outline" size={20} color={theme.colors.alert} />
         <Typography variant="bodyBold" color={theme.colors.alert}>
           Excluir embalagem
         </Typography>
@@ -278,7 +265,7 @@ export function PackagingDetail({
           opacity: pressed ? 0.85 : 1,
         })}
       >
-        <Ionicons name="share-outline" size={22} color={theme.colors.textOnPrimary} />
+        <AppIcon name="share-outline" size={22} color={theme.colors.textOnPrimary} />
         <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
           Baixar / Compartilhar
         </Typography>
@@ -303,6 +290,6 @@ export function PackagingDetail({
           Excluir embalagem
         </Typography>
       </Pressable>
-    </ScrollView>
+    </View>
   );
 }

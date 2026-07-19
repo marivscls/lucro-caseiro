@@ -32,3 +32,18 @@ revisão humana do listing e das imagens.
 Crie um deploy por marca e altere somente `BRAND`, `NEXT_PUBLIC_BRAND` e
 `NEXT_PUBLIC_SITE_URL`. A API compartilhada recebe `x-brand` de cada cliente. O
 catálogo mobile usa `EXPO_PUBLIC_CATALOG_URL`, apontando para o domínio da marca.
+
+## PWA principal
+
+O PWA é exportado do mesmo `apps/mobile`, com manifesto, nome, cores, atalhos,
+ícones e cache offline gerados para a marca selecionada:
+
+| Marca              | Build                      | Preview                      | URL local               |
+| ------------------ | -------------------------- | ---------------------------- | ----------------------- |
+| Lucro Caseiro      | `pnpm build:pwa:caseiro`   | `pnpm preview:pwa:caseiro`   | `http://localhost:8083` |
+| Lucro na Papelaria | `pnpm build:pwa:papelaria` | `pnpm preview:pwa:papelaria` | `http://localhost:8084` |
+| Lucro na Manicure  | `pnpm build:pwa:manicure`  | `pnpm preview:pwa:manicure`  | `http://localhost:8085` |
+
+Execute dentro de `apps/mobile`. Cada marca tem uma saída permanente própria em
+`dist/<marca>`; gerar uma delas não substitui nem recolore as demais. Em produção,
+publique cada diretório em um deploy e domínio distintos.

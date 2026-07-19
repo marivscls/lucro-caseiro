@@ -1,5 +1,5 @@
 import { iconSizes, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../shared/components/app-icon";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Pressable, View } from "react-native";
@@ -13,86 +13,16 @@ import { useRecipe } from "../features/recipes/hooks";
 import { LimitBanner } from "../features/subscription/components/limit-banner";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
-import { ResponsiveModal } from "../shared/components/responsive-modal-surface";
+import { StandardModal } from "../shared/components/standard-modal";
 import { FAB } from "../shared/components/fab";
 import { ScreenHeader } from "../shared/components/screen-header";
+import { FeatureRouteGuard } from "../shared/components/feature-route-guard";
 
 type ModalState =
   | { type: "none" }
   | { type: "create" }
   | { type: "detail"; recipeId: string }
   | { type: "edit"; recipeId: string };
-
-/** Header dos modais de receita: ícone esquerdo + (badge) + título serif + Fechar. */
-function RecipeModalHeader({
-  title,
-  leftIcon,
-  badgeIcon,
-  onClose,
-}: Readonly<{
-  title: string;
-  leftIcon: keyof typeof Ionicons.glyphMap;
-  badgeIcon?: keyof typeof Ionicons.glyphMap;
-  onClose: () => void;
-}>) {
-  const { theme } = useTheme();
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        gap: spacing.md,
-        paddingHorizontal: spacing.lg,
-        paddingTop: spacing.md,
-        paddingBottom: spacing.sm,
-      }}
-    >
-      <Pressable
-        onPress={onClose}
-        accessibilityRole="button"
-        accessibilityLabel="Fechar"
-        hitSlop={10}
-        style={{ minHeight: 44, justifyContent: "center" }}
-      >
-        <Ionicons name={leftIcon} size={28} color={theme.colors.text} />
-      </Pressable>
-      {badgeIcon ? (
-        <View
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            backgroundColor: theme.colors.surface,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Ionicons name={badgeIcon} size={22} color={theme.colors.textSecondary} />
-        </View>
-      ) : null}
-      <Typography
-        variant="h1"
-        serif
-        color={theme.colors.text}
-        numberOfLines={1}
-        style={{ flex: 1 }}
-      >
-        {title}
-      </Typography>
-      <Pressable
-        onPress={onClose}
-        accessibilityRole="button"
-        accessibilityLabel="Fechar"
-        hitSlop={10}
-        style={{ minHeight: 44, justifyContent: "center" }}
-      >
-        <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-          Fechar
-        </Typography>
-      </Pressable>
-    </View>
-  );
-}
 
 function RecipesContent() {
   const { theme } = useTheme();
@@ -129,7 +59,7 @@ function RecipesContent() {
             hitSlop={10}
             style={{ flexDirection: "row", alignItems: "center", gap: 6, minHeight: 44 }}
           >
-            <Ionicons
+            <AppIcon
               name="stats-chart"
               size={iconSizes.sm}
               color={theme.colors.primaryStrong}
@@ -167,67 +97,44 @@ function RecipesContent() {
       />
 
       {/* Modal - Criar receita */}
-      <ResponsiveModal
-        desktopMaxWidth={1120}
+      <CreateRecipeForm
         visible={modal.type === "create"}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={closeModal}
-      >
-        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <RecipeModalHeader title="Nova receita" leftIcon="close" onClose={closeModal} />
-          <CreateRecipeForm onSuccess={closeModal} />
-        </SafeAreaView>
-      </ResponsiveModal>
+        onClose={closeModal}
+        onSuccess={closeModal}
+      />
 
       {/* Modal - Detalhe da receita */}
-      <ResponsiveModal
-        desktopMaxWidth={1120}
-        visible={modal.type === "detail"}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={closeModal}
-      >
-        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <RecipeModalHeader
-            title={detailRecipe?.name ?? "Receita"}
-            leftIcon="arrow-back"
-            onClose={closeModal}
+      {modal.type === "detail" ? (
+        <StandardModal
+          visible
+          onClose={closeModal}
+          title={detailRecipe?.name ?? "Receita"}
+        >
+          <RecipeDetail
+            recipeId={modal.recipeId}
+            onEdit={() => setModal({ type: "edit", recipeId: modal.recipeId })}
+            onDeleted={closeModal}
           />
-          {modal.type === "detail" && (
-            <RecipeDetail
-              recipeId={modal.recipeId}
-              onEdit={() => setModal({ type: "edit", recipeId: modal.recipeId })}
-              onDeleted={closeModal}
-            />
-          )}
-        </SafeAreaView>
-      </ResponsiveModal>
+        </StandardModal>
+      ) : null}
 
       {/* Modal - Editar receita */}
-      <ResponsiveModal
-        desktopMaxWidth={1120}
-        visible={modal.type === "edit" && !!editingRecipe}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={closeModal}
-      >
-        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <RecipeModalHeader
-            title="Editar receita"
-            leftIcon="arrow-back"
-            badgeIcon="ice-cream-outline"
-            onClose={closeModal}
-          />
-          {editingRecipe && (
-            <EditRecipeForm recipe={editingRecipe} onSuccess={closeModal} />
-          )}
-        </SafeAreaView>
-      </ResponsiveModal>
+      {modal.type === "edit" && editingRecipe ? (
+        <EditRecipeForm
+          recipe={editingRecipe}
+          visible
+          onClose={closeModal}
+          onSuccess={closeModal}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }
 
 export default function RecipesScreen() {
-  return <RecipesContent />;
+  return (
+    <FeatureRouteGuard feature="fichaTecnica">
+      <RecipesContent />
+    </FeatureRouteGuard>
+  );
 }

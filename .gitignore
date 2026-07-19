@@ -62,6 +62,15 @@ lucro-caseiro-*.json
 # concurrent agent runtime logs / metro cache — never commit
 .codex-logs/
 
+# AeroFortress runtime artifacts (knowledge/specs remain versioned)
+.aerofortress/logs/
+.aerofortress/tmp/
+.aerofortress/web-dev-*.log
+
+# local deployment/link caches
+.railway-config-pull-*/
+supabase/.temp/
+
 # maestro e2e — credenciais (.env já coberto acima) e screenshots (artefatos de teste).
 # `**/` pra pegar também em apps/mobile/.maestro/ (não só na raiz).
 **/.maestro/.env

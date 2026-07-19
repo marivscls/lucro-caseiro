@@ -1,4 +1,7 @@
 import type { PaidPlan } from "@lucro-caseiro/contracts";
+import { getActiveBrand } from "@lucro-caseiro/brands";
+
+import { getBrandDisplayName } from "../../shared/brand-name";
 
 // Fonte da verdade das copys de limite/Premium (banner + paywall).
 // Tom: conquista, não restrição ("seu negócio está crescendo").
@@ -120,8 +123,8 @@ const FEATURE_COPY: Record<string, { title: string; message: string }> = {
       "Mostre todos os produtos e personalize sua vitrine pros clientes. Desbloqueie no Profissional.",
   },
   labels: {
-    title: "🏷️ Rótulos personalizados",
-    message: "Crie rótulos com a cara do seu negócio no plano Profissional.",
+    title: "🏷️ Etiquetas personalizadas",
+    message: "Crie etiquetas com a cara do seu negócio no plano Profissional.",
   },
   productPhotos: {
     title: "📸 Mais fotos do produto",
@@ -163,7 +166,7 @@ export function getPaywallCopy(resource: string | null): {
   }
   return {
     title: "🚀 Seu negócio está crescendo!",
-    message: "Desbloqueie todos os recursos do Lucro Caseiro.",
+    message: `Desbloqueie todos os recursos do ${getBrandDisplayName(getActiveBrand())}.`,
   };
 }
 

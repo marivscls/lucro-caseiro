@@ -1,5 +1,5 @@
 import { Button, Typography, radii, spacing } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "./app-icon";
 import React, { useEffect, useRef } from "react";
 import { Linking, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -134,7 +134,7 @@ function BarcodeScannerNative({
               gap: spacing.lg,
             }}
           >
-            <Ionicons name="camera-outline" size={64} color="#FFFFFF" />
+            <AppIcon name="camera-outline" size={64} color="#FFFFFF" />
             <Typography variant="h3" color="#FFFFFF" style={{ textAlign: "center" }}>
               Precisamos da câmera
             </Typography>
@@ -187,7 +187,7 @@ function BarcodeScannerNative({
               justifyContent: "center",
             }}
           >
-            <Ionicons name="close" size={24} color="#FFFFFF" />
+            <AppIcon name="close" size={24} color="#FFFFFF" />
           </Pressable>
         </View>
 
@@ -232,7 +232,7 @@ function BarcodeScannerUnavailable({
           gap: spacing.lg,
         }}
       >
-        <Ionicons name="camera-outline" size={64} color="#FFFFFF" />
+        <AppIcon name="camera-outline" size={64} color="#FFFFFF" />
         <Typography variant="h3" color="#FFFFFF" style={{ textAlign: "center" }}>
           Câmera indisponível
         </Typography>
@@ -269,7 +269,7 @@ function BarcodeScannerUnavailable({
               justifyContent: "center",
             }}
           >
-            <Ionicons name="close" size={24} color="#FFFFFF" />
+            <AppIcon name="close" size={24} color="#FFFFFF" />
           </Pressable>
         </View>
       </View>

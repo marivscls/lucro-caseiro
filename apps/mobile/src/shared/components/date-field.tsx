@@ -1,5 +1,5 @@
 import { Input, useTheme } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "./app-icon";
 import React, { useState } from "react";
 import { Pressable, type ViewStyle } from "react-native";
 
@@ -41,7 +41,7 @@ export function DateField({
             accessibilityLabel={`Escolher ${label} no calendário`}
             hitSlop={12}
           >
-            <Ionicons name="calendar-outline" size={22} color={theme.colors.primary} />
+            <AppIcon name="calendar-outline" size={22} color={theme.colors.primary} />
           </Pressable>
         }
       />

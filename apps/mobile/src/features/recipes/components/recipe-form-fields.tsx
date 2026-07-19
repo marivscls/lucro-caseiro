@@ -1,5 +1,6 @@
 import { Typography, fonts, useTheme, spacing, radii } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
+import type { AppIconName } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
 import { Image, Pressable, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -13,7 +14,7 @@ import { ResponsiveOverlayModal } from "../../../shared/components/responsive-mo
 
 const CATEGORY_PRESETS = ["Doces", "Salgados", "Bolos", "Bebidas", "Outros"];
 
-const YIELD_UNIT_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
+const YIELD_UNIT_ICONS: Record<string, AppIconName> = {
   unidades: "cube-outline",
   fatias: "pizza-outline",
   porções: "restaurant-outline",
@@ -22,7 +23,7 @@ const YIELD_UNIT_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
 };
 
 /** Ícone do campo num círculo tingido (à esquerda do campo). */
-export function IconBadge({ icon }: Readonly<{ icon: keyof typeof Ionicons.glyphMap }>) {
+export function IconBadge({ icon }: Readonly<{ icon: AppIconName }>) {
   const { theme } = useTheme();
   return (
     <View
@@ -35,7 +36,7 @@ export function IconBadge({ icon }: Readonly<{ icon: keyof typeof Ionicons.glyph
         justifyContent: "center",
       }}
     >
-      <Ionicons name={icon} size={20} color={theme.colors.primary} />
+      <AppIcon name={icon} size={20} color={theme.colors.primary} />
     </View>
   );
 }
@@ -48,7 +49,7 @@ export function FieldRow({
   align = "center",
   children,
 }: Readonly<{
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
   label: string;
   optional?: boolean;
   align?: "center" | "top";
@@ -184,7 +185,7 @@ export function CategoryField({
         >
           {value || "Ex: Doces, Salgados, Bolos..."}
         </Typography>
-        <Ionicons name="chevron-down" size={20} color={theme.colors.textSecondary} />
+        <AppIcon name="chevron-down" size={20} color={theme.colors.textSecondary} />
       </Pressable>
 
       <ResponsiveOverlayModal
@@ -197,7 +198,7 @@ export function CategoryField({
           onPress={() => setOpen(false)}
           style={{
             flex: 1,
-            backgroundColor: "rgba(0,0,0,0.55)",
+            backgroundColor: theme.colors.overlay,
             justifyContent: isDesktop ? "center" : "flex-end",
             padding: isDesktop ? spacing.xl : 0,
           }}
@@ -232,7 +233,7 @@ export function CategoryField({
                 gap: spacing.md,
               }}
             >
-              <Ionicons name="create-outline" size={22} color={theme.colors.primary} />
+              <AppIcon name="create-outline" size={22} color={theme.colors.primary} />
               <TextInput
                 value={draft}
                 onChangeText={setDraft}
@@ -391,7 +392,7 @@ export function RecipePhotoField({
               justifyContent: "center",
             }}
           >
-            <Ionicons name="camera-outline" size={22} color={theme.colors.primary} />
+            <AppIcon name="camera-outline" size={22} color={theme.colors.primary} />
           </View>
           <View style={{ flex: 1 }}>
             <Typography
@@ -440,7 +441,7 @@ export function YieldUnitChips({
               backgroundColor: active ? theme.colors.primary : pal.fieldBg,
             }}
           >
-            <Ionicons
+            <AppIcon
               name={YIELD_UNIT_ICONS[preset] ?? "ellipse-outline"}
               size={18}
               color={active ? theme.colors.textOnPrimary : theme.colors.primary}
@@ -483,14 +484,14 @@ export function RecipeCostCard({
         style={{
           width: 44,
           height: 44,
-          borderRadius: 22,
+          borderRadius: radii.full,
           borderWidth: 1,
           borderColor: `${theme.colors.primary}66`,
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <Ionicons name="cash-outline" size={22} color={theme.colors.primary} />
+        <AppIcon name="cash-outline" size={22} color={theme.colors.primary} />
       </View>
       <View
         style={{ flex: 1, alignItems: "center", gap: 2, paddingHorizontal: spacing.xs }}

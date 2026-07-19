@@ -10,7 +10,8 @@ import {
   spacing,
   radii,
 } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../shared/components/app-icon";
+import type { AppIconName } from "../shared/components/app-icon";
 import { Stack } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Image, Pressable, Share, Switch, View } from "react-native";
@@ -21,6 +22,7 @@ import { publicCatalogUrl } from "../features/catalog/api";
 import { ColorPickerModal } from "../shared/components/color-picker-modal";
 import { HeroPreview } from "../features/catalog/components/hero-preview";
 import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
+import { Skeleton, SkeletonCard } from "../shared/components/skeleton";
 import { useCatalogSettings, useUpdateCatalogSettings } from "../features/catalog/hooks";
 import { useProfile } from "../features/subscription/hooks";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
@@ -47,7 +49,7 @@ const ACCENT_SWATCHES: { key: CatalogAccentColorValue; color: string; label: str
   ];
 
 const INTRO_BENEFITS: {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
   title: string;
   desc: string;
 }[] = [
@@ -92,7 +94,7 @@ function CatalogIntro({
                 justifyContent: "center",
               }}
             >
-              <Ionicons name={b.icon} size={22} color={theme.colors.textSecondary} />
+              <AppIcon name={b.icon} size={22} color={theme.colors.textSecondary} />
             </View>
             <View style={{ flex: 1 }}>
               <Typography variant="bodyBold">{b.title}</Typography>
@@ -120,7 +122,7 @@ function CatalogIntro({
             marginTop: spacing.xs,
           })}
         >
-          <Ionicons name="rocket-outline" size={22} color={theme.colors.textOnPrimary} />
+          <AppIcon name="rocket-outline" size={22} color={theme.colors.textOnPrimary} />
           <Typography variant="h3" color={theme.colors.textOnPrimary}>
             {pending ? "Ativando..." : "Ativar meu catálogo"}
           </Typography>
@@ -151,7 +153,7 @@ function AppearanceProfessionalTeaser({ onUnlock }: Readonly<{ onUnlock: () => v
           key={perk}
           style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
         >
-          <Ionicons name="checkmark-circle" size={18} color={theme.colors.premium} />
+          <AppIcon name="checkmark-circle" size={18} color={theme.colors.premium} />
           <Typography variant="body" style={{ flex: 1 }}>
             {perk}
           </Typography>
@@ -173,7 +175,7 @@ function AppearanceProfessionalTeaser({ onUnlock }: Readonly<{ onUnlock: () => v
           marginTop: spacing.xs,
         })}
       >
-        <Ionicons name="diamond" size={18} color={theme.colors.textOnPrimary} />
+        <AppIcon name="diamond" size={18} color={theme.colors.textOnPrimary} />
         <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
           Desbloquear no Profissional
         </Typography>
@@ -443,7 +445,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                     },
                   ]}
                 >
-                  <Ionicons
+                  <AppIcon
                     name="link-outline"
                     size={20}
                     color={theme.colors.primaryStrong}
@@ -456,7 +458,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                   >
                     {url.replace(/^https?:\/\//, "")}
                   </Typography>
-                  <Ionicons
+                  <AppIcon
                     name="share-social-outline"
                     size={20}
                     color={theme.colors.primaryStrong}
@@ -483,7 +485,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
               <View
                 style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
               >
-                <Ionicons name="diamond-outline" size={24} color={theme.colors.premium} />
+                <AppIcon name="diamond-outline" size={24} color={theme.colors.premium} />
                 <View style={{ flex: 1 }}>
                   <Typography variant="bodyBold">
                     Seu catálogo mostra até 3 produtos
@@ -492,7 +494,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                     Mostre seu catálogo completo e personalize as cores no Profissional.
                   </Typography>
                 </View>
-                <Ionicons
+                <AppIcon
                   name="chevron-forward"
                   size={18}
                   color={theme.colors.textSecondary}
@@ -522,7 +524,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                   justifyContent: "center",
                 }}
               >
-                <Ionicons
+                <AppIcon
                   name={settings.enabled ? "globe-outline" : "eye-off-outline"}
                   size={22}
                   color={
@@ -625,7 +627,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                           <ActivityIndicator color={theme.colors.primary} />
                         ) : (
                           <>
-                            <Ionicons
+                            <AppIcon
                               name="image-outline"
                               size={28}
                               color={theme.colors.primaryLight}
@@ -693,7 +695,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                           {uploadingLogo ? (
                             <ActivityIndicator color={theme.colors.primary} />
                           ) : (
-                            <Ionicons
+                            <AppIcon
                               name="person-circle-outline"
                               size={32}
                               color={theme.colors.primaryLight}
@@ -751,7 +753,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                             }}
                           >
                             {selected && (
-                              <Ionicons name="checkmark" size={20} color="#fff" />
+                              <AppIcon name="checkmark" size={20} color="#fff" />
                             )}
                           </View>
                           <Typography variant="caption">{swatch.label}</Typography>
@@ -781,7 +783,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                           justifyContent: "center",
                         }}
                       >
-                        <Ionicons
+                        <AppIcon
                           name={isCustomColor ? "checkmark" : "add"}
                           size={22}
                           color={isCustomColor ? "#fff" : theme.colors.textSecondary}
@@ -848,7 +850,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
               paddingHorizontal: spacing.sm,
             }}
           >
-            <Ionicons
+            <AppIcon
               name="information-circle-outline"
               size={18}
               color={theme.colors.textSecondary}
@@ -874,11 +876,11 @@ export default function CatalogScreen() {
     content = <CatalogForm settings={settings} />;
   } else if (isLoading) {
     content = (
-      <ActivityIndicator
-        size="large"
-        color={theme.colors.primary}
-        style={{ marginTop: spacing["3xl"] }}
-      />
+      <View style={{ padding: spacing.xl, gap: spacing.lg }}>
+        <Skeleton width="40%" height={18} />
+        <SkeletonCard lines={4} />
+        <SkeletonCard lines={3} />
+      </View>
     );
   } else {
     content = (
@@ -891,7 +893,7 @@ export default function CatalogScreen() {
           gap: spacing.lg,
         }}
       >
-        <Ionicons name="cloud-offline-outline" size={44} color={theme.colors.alert} />
+        <AppIcon name="cloud-offline-outline" size={44} color={theme.colors.alert} />
         <Typography variant="body" style={{ textAlign: "center" }}>
           Não foi possível carregar o catálogo. Verifique sua conexão e tente de novo.
         </Typography>

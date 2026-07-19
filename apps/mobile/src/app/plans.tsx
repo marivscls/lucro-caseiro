@@ -6,7 +6,7 @@ import {
   isPaidPlan,
   normalizePlan,
 } from "@lucro-caseiro/contracts";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../shared/components/app-icon";
 import { Stack } from "expo-router";
 import React from "react";
 import { Linking, Platform, ScrollView, View } from "react-native";
@@ -126,7 +126,7 @@ export default function PlansScreen() {
         contentContainerStyle={[
           {
             padding: spacing.xl,
-            paddingTop: spacing.sm,
+            paddingTop: spacing.xl,
             gap: spacing.xl,
             paddingBottom: spacing["3xl"],
           },
@@ -143,7 +143,7 @@ export default function PlansScreen() {
             }}
           >
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-              <Ionicons name="warning-outline" size={22} color={theme.colors.alert} />
+              <AppIcon name="warning-outline" size={22} color={theme.colors.alert} />
               <Typography variant="h3" color={theme.colors.alert} style={{ flex: 1 }}>
                 {warning.title}
               </Typography>
@@ -334,7 +334,7 @@ export default function PlansScreen() {
                       gap: spacing.sm,
                     }}
                   >
-                    <Ionicons
+                    <AppIcon
                       name="checkmark-circle"
                       size={20}
                       color={theme.colors.success}

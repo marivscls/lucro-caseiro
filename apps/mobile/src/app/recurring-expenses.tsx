@@ -1,15 +1,17 @@
 import type { ExpenseCategory, RecurringExpense } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import {
+  EmptyState,
   fontSizes,
-  fonts,
   iconSizes,
   radii,
   spacing,
+  Typography,
   useTheme,
   type Theme,
 } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../shared/components/app-icon";
+import type { AppIconName } from "../shared/components/app-icon";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useMemo, useState } from "react";
@@ -20,7 +22,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   View,
 } from "react-native";
@@ -28,6 +29,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import recurringHero from "../assets/recurring-expenses-hero.png";
 import { showAlert } from "../shared/components/alert-store";
+import { SkeletonList } from "../shared/components/skeleton";
 import { showToast } from "../shared/components/toast";
 import {
   useCreateRecurring,
@@ -47,7 +49,7 @@ import { ScreenHeader } from "../shared/components/screen-header";
 const CATEGORIES: {
   key: ExpenseCategory;
   label: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
 }[] = [
   { key: "utility", label: "Utilidade", icon: "flash-outline" },
   { key: "material", label: "Material", icon: "cube-outline" },
@@ -85,7 +87,7 @@ export default function RecurringExpensesScreen() {
     !!profile &&
     hasActiveFeature(profile.plan, profile.planExpiresAt, "recurringExpenses");
   const showPaywall = usePaywall((s) => s.show);
-  const [showForm, setShowForm] = useState(true);
+  const [showForm, setShowForm] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<RecurringExpense | null>(null);
   const [editingExpense, setEditingExpense] = useState<RecurringExpense | null>(null);
 
@@ -137,10 +139,13 @@ export default function RecurringExpensesScreen() {
               <ScreenHeader title="Gastos fixos" style={{ paddingHorizontal: 0 }} />
             )}
 
-            <Text style={styles.subtitle}>
+            <Typography
+              variant="caption"
+              style={{ marginTop: spacing.sm, maxWidth: 245 }}
+            >
               Despesas que se repetem todo mês (aluguel, internet, gás...) caem sozinhas
               no seu caixa na data certa.
-            </Text>
+            </Typography>
 
             <Image
               source={recurringHero}
@@ -159,12 +164,14 @@ export default function RecurringExpensesScreen() {
                 onPress={handleAddPress}
                 style={({ pressed }) => [styles.addButton, pressed && styles.pressed]}
               >
-                <Ionicons
+                <AppIcon
                   name="add-circle-outline"
                   size={iconSizes.sm}
                   color={theme.colors.textOnPrimary}
                 />
-                <Text style={styles.addButtonText}>Adicionar gasto fixo</Text>
+                <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
+                  Adicionar gasto fixo
+                </Typography>
               </Pressable>
 
               {showForm && (
@@ -187,7 +194,7 @@ export default function RecurringExpensesScreen() {
                 />
               )}
 
-              {isLoading && <Text style={styles.loadingText}>Carregando...</Text>}
+              {isLoading && <SkeletonList rows={3} />}
 
               {!isLoading && (items?.length ?? 0) === 0 && <EmptyRecurringState />}
 
@@ -209,20 +216,22 @@ export default function RecurringExpensesScreen() {
                       ]}
                     >
                       <View style={styles.expenseIcon}>
-                        <Ionicons
+                        <AppIcon
                           name="calendar-outline"
                           size={iconSizes.sm}
                           color={theme.colors.textSecondary}
                         />
                       </View>
                       <View style={styles.expenseInfo}>
-                        <Text style={styles.expenseTitle}>{item.description}</Text>
-                        <Text style={styles.expenseMeta}>
+                        <Typography variant="bodyBold">{item.description}</Typography>
+                        <Typography variant="caption">
                           {categoryLabel(item.category)} · todo dia {item.dayOfMonth}
-                        </Text>
+                        </Typography>
                       </View>
-                      <Text style={styles.expenseAmount}>{formatMoney(item.amount)}</Text>
-                      <Ionicons
+                      <Typography variant="captionBold">
+                        {formatMoney(item.amount)}
+                      </Typography>
+                      <AppIcon
                         name="chevron-forward"
                         size={iconSizes.sm}
                         color={theme.colors.textSecondary}
@@ -329,14 +338,14 @@ function RecurringForm({
     <View style={[styles.formCard, desktopContained(isDesktop, 720)]}>
       <View style={styles.formHeader}>
         <View style={styles.formHeaderLeft}>
-          <Ionicons
+          <AppIcon
             name="calendar-outline"
             size={iconSizes.md}
             color={theme.colors.textSecondary}
           />
-          <Text style={styles.formTitle}>
+          <Typography variant="h3">
             {isEditing ? "Editar gasto fixo" : "Novo gasto fixo"}
-          </Text>
+          </Typography>
         </View>
         <Pressable
           accessibilityLabel="Fechar formulário"
@@ -345,7 +354,7 @@ function RecurringForm({
           onPress={onClose}
           style={({ pressed }) => pressed && styles.pressed}
         >
-          <Ionicons name="chevron-up" size={iconSizes.sm} color={theme.colors.text} />
+          <AppIcon name="chevron-up" size={iconSizes.sm} color={theme.colors.text} />
         </Pressable>
       </View>
 
@@ -368,12 +377,12 @@ function RecurringForm({
 
       <View style={styles.fieldBlock}>
         <View style={styles.labelRow}>
-          <Ionicons
+          <AppIcon
             name="grid-outline"
             size={iconSizes.sm}
             color={theme.colors.textSecondary}
           />
-          <Text style={styles.fieldLabel}>Categoria</Text>
+          <Typography variant="caption">Categoria</Typography>
         </View>
         <View style={styles.categoryWrap}>
           {CATEGORIES.map((c) => {
@@ -389,19 +398,20 @@ function RecurringForm({
                   pressed && styles.pressed,
                 ]}
               >
-                <Ionicons
+                <AppIcon
                   name={c.icon}
                   size={iconSizes.xs}
                   color={
                     selected ? theme.colors.primaryStrong : theme.colors.textSecondary
                   }
                 />
-                <Text
+                <Typography
+                  variant={selected ? "captionBold" : "caption"}
                   numberOfLines={1}
-                  style={[styles.categoryText, selected && styles.categoryTextSelected]}
+                  color={selected ? theme.colors.primaryStrong : theme.colors.text}
                 >
                   {c.label}
-                </Text>
+                </Typography>
               </Pressable>
             );
           })}
@@ -424,7 +434,7 @@ function RecurringForm({
           onPress={onClose}
           style={({ pressed }) => [styles.cancelButton, pressed && styles.pressed]}
         >
-          <Text style={styles.cancelText}>Cancelar</Text>
+          <Typography variant="captionBold">Cancelar</Typography>
         </Pressable>
         <Pressable
           accessibilityRole="button"
@@ -436,7 +446,9 @@ function RecurringForm({
             pressed && !isSaving && styles.pressed,
           ]}
         >
-          <Text style={styles.saveText}>{isSaving ? "Salvando..." : "Salvar"}</Text>
+          <Typography variant="captionBold" color={theme.colors.textOnPrimary}>
+            {isSaving ? "Salvando..." : "Salvar"}
+          </Typography>
         </Pressable>
       </View>
     </View>
@@ -449,7 +461,7 @@ function FormField({
   ...inputProps
 }: Readonly<
   React.ComponentProps<typeof TextInput> & {
-    icon: keyof typeof Ionicons.glyphMap;
+    icon: AppIconName;
     label: string;
   }
 >) {
@@ -458,8 +470,8 @@ function FormField({
   return (
     <View style={styles.fieldBlock}>
       <View style={styles.labelRow}>
-        <Ionicons name={icon} size={iconSizes.sm} color={theme.colors.textSecondary} />
-        <Text style={styles.fieldLabel}>{label}</Text>
+        <AppIcon name={icon} size={iconSizes.sm} color={theme.colors.textSecondary} />
+        <Typography variant="caption">{label}</Typography>
       </View>
       <TextInput
         {...inputProps}
@@ -487,12 +499,12 @@ function RecurringDetails({
     <View style={styles.detailCard}>
       <View style={styles.formHeader}>
         <View style={styles.formHeaderLeft}>
-          <Ionicons
+          <AppIcon
             name="receipt-outline"
             size={iconSizes.md}
             color={theme.colors.textSecondary}
           />
-          <Text style={styles.formTitle}>Detalhes do gasto</Text>
+          <Typography variant="h3">Detalhes do gasto</Typography>
         </View>
         <Pressable
           accessibilityLabel="Fechar detalhes"
@@ -501,11 +513,11 @@ function RecurringDetails({
           onPress={onClose}
           style={({ pressed }) => pressed && styles.pressed}
         >
-          <Ionicons name="close" size={iconSizes.sm} color={theme.colors.text} />
+          <AppIcon name="close" size={iconSizes.sm} color={theme.colors.text} />
         </Pressable>
       </View>
 
-      <Text style={styles.detailTitle}>{item.description}</Text>
+      <Typography variant="h2">{item.description}</Typography>
 
       <View style={styles.detailGrid}>
         <DetailItem icon="cash-outline" label="Valor" value={formatMoney(item.amount)} />
@@ -532,24 +544,28 @@ function RecurringDetails({
           onPress={onDelete}
           style={({ pressed }) => [styles.deleteButton, pressed && styles.pressed]}
         >
-          <Ionicons
+          <AppIcon
             name="trash-outline"
             size={iconSizes.xs}
             color={theme.colors.textOnPrimary}
           />
-          <Text style={styles.deleteText}>Remover</Text>
+          <Typography variant="captionBold" color={theme.colors.textOnPrimary}>
+            Remover
+          </Typography>
         </Pressable>
         <Pressable
           accessibilityRole="button"
           onPress={onEdit}
           style={({ pressed }) => [styles.saveButton, pressed && styles.pressed]}
         >
-          <Ionicons
+          <AppIcon
             name="create-outline"
             size={iconSizes.xs}
             color={theme.colors.textOnPrimary}
           />
-          <Text style={styles.saveText}>Editar</Text>
+          <Typography variant="captionBold" color={theme.colors.textOnPrimary}>
+            Editar
+          </Typography>
         </Pressable>
       </View>
     </View>
@@ -561,7 +577,7 @@ function DetailItem({
   label,
   value,
 }: Readonly<{
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
   label: string;
   value: string;
 }>) {
@@ -569,10 +585,10 @@ function DetailItem({
 
   return (
     <View style={styles.detailItem}>
-      <Ionicons name={icon} size={iconSizes.xs} color={theme.colors.textSecondary} />
+      <AppIcon name={icon} size={iconSizes.xs} color={theme.colors.textSecondary} />
       <View style={styles.detailTextBlock}>
-        <Text style={styles.detailLabel}>{label}</Text>
-        <Text style={styles.detailValue}>{value}</Text>
+        <Typography variant="caption">{label}</Typography>
+        <Typography variant="bodyBold">{value}</Typography>
       </View>
     </View>
   );
@@ -593,26 +609,30 @@ function RecurringPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) 
   return (
     <View style={styles.gateCard}>
       <View style={styles.gateBadge}>
-        <Ionicons
+        <AppIcon
           name="diamond-outline"
           size={iconSizes.xs}
           color={theme.colors.premium}
         />
-        <Text style={styles.gateBadgeText}>Recurso Profissional</Text>
+        <Typography variant="captionBold" color={theme.colors.premium}>
+          Recurso Profissional
+        </Typography>
       </View>
-      <Text style={styles.gateTitle}>Gastos fixos no automático</Text>
-      <Text style={styles.gateSubtitle}>
+      <Typography variant="h2">Gastos fixos no automático</Typography>
+      <Typography variant="caption">
         Cadastre uma vez e deixe o app lançar seus custos mensais sozinho, sempre na data
         certa.
-      </Text>
+      </Typography>
       {benefits.map((benefit) => (
         <View key={benefit} style={styles.gateBullet}>
-          <Ionicons
+          <AppIcon
             name="checkmark-circle"
             size={iconSizes.sm}
             color={theme.colors.premium}
           />
-          <Text style={styles.gateBulletText}>{benefit}</Text>
+          <Typography variant="caption" color={theme.colors.text} style={{ flex: 1 }}>
+            {benefit}
+          </Typography>
         </View>
       ))}
       <Pressable
@@ -620,12 +640,14 @@ function RecurringPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) 
         onPress={onUnlock}
         style={({ pressed }) => [styles.gateCta, pressed && styles.pressed]}
       >
-        <Ionicons
+        <AppIcon
           name="lock-open-outline"
           size={iconSizes.sm}
           color={theme.colors.textOnPrimary}
         />
-        <Text style={styles.gateCtaText}>Desbloquear no Profissional</Text>
+        <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
+          Desbloquear no Profissional
+        </Typography>
       </Pressable>
     </View>
   );
@@ -635,19 +657,20 @@ function EmptyRecurringState() {
   const { theme, styles } = useRecurringTheme();
 
   return (
-    <View style={styles.emptyState}>
-      <View style={styles.emptyIconCircle}>
-        <Ionicons
-          name="receipt-outline"
-          size={iconSizes.lg}
-          color={theme.colors.primaryStrong}
-        />
-      </View>
-      <Text style={styles.emptyTitle}>Nenhum gasto fixo ainda</Text>
-      <Text style={styles.emptyDescription}>
-        Cadastre seus custos mensais e deixe o app lançar pra você.
-      </Text>
-    </View>
+    <EmptyState
+      style={{ flex: 0, paddingTop: 0, paddingHorizontal: spacing.sm }}
+      icon={
+        <View style={styles.emptyIconCircle}>
+          <AppIcon
+            name="receipt-outline"
+            size={iconSizes.lg}
+            color={theme.colors.primaryStrong}
+          />
+        </View>
+      }
+      title="Nenhum gasto fixo ainda"
+      description="Cadastre seus custos mensais e deixe o app lançar pra você."
+    />
   );
 }
 
@@ -670,7 +693,7 @@ function createStyles(theme: Theme) {
   const pal = recurringPalette(theme);
   // Rosa de marca derivado do tema: fill = fundo AA de botoes cheios.
   const brandFill = theme.colors.primaryInteractive;
-  const brandBorder = `${theme.colors.primary}8C`;
+  const brandBorder = theme.colors.primaryStrong;
 
   return StyleSheet.create({
     actionRow: {
@@ -689,11 +712,6 @@ function createStyles(theme: Theme) {
       height: 48,
       justifyContent: "center",
     },
-    addButtonText: {
-      color: theme.colors.textOnPrimary,
-      fontSize: fontSizes.md,
-      fontFamily: fonts.extraBold,
-    },
     cancelButton: {
       alignItems: "center",
       backgroundColor: pal.chip,
@@ -703,11 +721,6 @@ function createStyles(theme: Theme) {
       flex: 1,
       height: 44,
       justifyContent: "center",
-    },
-    cancelText: {
-      color: pal.text,
-      fontSize: fontSizes.sm,
-      fontFamily: fonts.extraBold,
     },
     categoryPill: {
       alignItems: "center",
@@ -726,15 +739,6 @@ function createStyles(theme: Theme) {
       backgroundColor: theme.colors.primaryBg,
       borderColor: brandBorder,
     },
-    categoryText: {
-      color: pal.text,
-      fontSize: fontSizes.xs,
-      fontFamily: fonts.semiBold,
-    },
-    categoryTextSelected: {
-      color: theme.colors.primaryStrong,
-      fontFamily: fonts.bold,
-    },
     categoryWrap: {
       flexDirection: "row",
       flexWrap: "wrap",
@@ -745,7 +749,7 @@ function createStyles(theme: Theme) {
       gap: spacing.xl,
       paddingBottom: spacing["3xl"],
       paddingHorizontal: spacing.lg,
-      paddingTop: spacing.md,
+      paddingTop: spacing.xl,
     },
     disabled: {
       opacity: 0.58,
@@ -761,11 +765,6 @@ function createStyles(theme: Theme) {
       gap: spacing.sm,
       height: 44,
       justifyContent: "center",
-    },
-    deleteText: {
-      color: theme.colors.textOnPrimary,
-      fontSize: fontSizes.sm,
-      fontFamily: fonts.extraBold,
     },
     detailCard: {
       backgroundColor: pal.card,
@@ -792,31 +791,9 @@ function createStyles(theme: Theme) {
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.sm,
     },
-    detailLabel: {
-      color: pal.muted,
-      fontSize: fontSizes.xs,
-      fontFamily: fonts.semiBold,
-    },
     detailTextBlock: {
       flex: 1,
       gap: 2,
-    },
-    detailTitle: {
-      color: pal.title,
-      fontFamily: fonts.displayBold,
-      fontSize: fontSizes.xl,
-    },
-    detailValue: {
-      color: pal.text,
-      fontSize: fontSizes.md,
-      fontFamily: fonts.extraBold,
-    },
-    emptyDescription: {
-      color: pal.muted,
-      fontSize: fontSizes.sm,
-      lineHeight: 20,
-      maxWidth: 275,
-      textAlign: "center",
     },
     emptyIconCircle: {
       alignItems: "center",
@@ -826,24 +803,6 @@ function createStyles(theme: Theme) {
       justifyContent: "center",
       marginBottom: 1,
       width: 54,
-    },
-    emptyState: {
-      alignItems: "center",
-      gap: spacing.sm,
-      justifyContent: "center",
-      paddingHorizontal: spacing.sm,
-      paddingTop: 0,
-    },
-    emptyTitle: {
-      color: pal.title,
-      fontFamily: fonts.displayBold,
-      fontSize: fontSizes.xl,
-      textAlign: "center",
-    },
-    expenseAmount: {
-      color: pal.text,
-      fontSize: fontSizes.sm,
-      fontFamily: fonts.extraBold,
     },
     expenseCard: {
       alignItems: "center",
@@ -870,22 +829,8 @@ function createStyles(theme: Theme) {
       flex: 1,
       gap: spacing.xs,
     },
-    expenseMeta: {
-      color: pal.muted,
-      fontSize: fontSizes.xs,
-    },
-    expenseTitle: {
-      color: pal.text,
-      fontSize: fontSizes.md,
-      fontFamily: fonts.extraBold,
-    },
     fieldBlock: {
       gap: spacing.sm,
-    },
-    fieldLabel: {
-      color: pal.muted,
-      fontSize: fontSizes.sm,
-      fontFamily: fonts.semiBold,
     },
     formCard: {
       backgroundColor: pal.card,
@@ -907,11 +852,6 @@ function createStyles(theme: Theme) {
       flexDirection: "row",
       gap: spacing.md,
     },
-    formTitle: {
-      color: pal.text,
-      fontSize: fontSizes.lg,
-      fontFamily: fonts.extraBold,
-    },
     gateBadge: {
       alignItems: "center",
       alignSelf: "flex-start",
@@ -922,21 +862,10 @@ function createStyles(theme: Theme) {
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.sm,
     },
-    gateBadgeText: {
-      color: theme.colors.premium,
-      fontSize: fontSizes.xs,
-      fontFamily: fonts.extraBold,
-    },
     gateBullet: {
       alignItems: "flex-start",
       flexDirection: "row",
       gap: spacing.md,
-    },
-    gateBulletText: {
-      color: pal.text,
-      flex: 1,
-      fontSize: fontSizes.sm,
-      lineHeight: 20,
     },
     gateCard: {
       backgroundColor: pal.card,
@@ -955,21 +884,6 @@ function createStyles(theme: Theme) {
       height: 48,
       justifyContent: "center",
       marginTop: spacing.xs,
-    },
-    gateCtaText: {
-      color: theme.colors.textOnPrimary,
-      fontSize: fontSizes.md,
-      fontFamily: fonts.extraBold,
-    },
-    gateSubtitle: {
-      color: pal.muted,
-      fontSize: fontSizes.sm,
-      lineHeight: 20,
-    },
-    gateTitle: {
-      color: pal.title,
-      fontFamily: fonts.displayBold,
-      fontSize: fontSizes.xl,
     },
     hero: {
       minHeight: 150,
@@ -990,11 +904,6 @@ function createStyles(theme: Theme) {
       flexDirection: "row",
       gap: spacing.md,
     },
-    loadingText: {
-      color: pal.muted,
-      fontSize: fontSizes.sm,
-      textAlign: "center",
-    },
     pressed: {
       opacity: 0.82,
     },
@@ -1013,18 +922,6 @@ function createStyles(theme: Theme) {
       gap: spacing.sm,
       height: 44,
       justifyContent: "center",
-    },
-    saveText: {
-      color: theme.colors.textOnPrimary,
-      fontSize: fontSizes.sm,
-      fontFamily: fonts.extraBold,
-    },
-    subtitle: {
-      color: pal.muted,
-      fontSize: fontSizes.sm,
-      lineHeight: 20,
-      marginTop: spacing.sm,
-      maxWidth: 245,
     },
     textInput: {
       backgroundColor: pal.input,

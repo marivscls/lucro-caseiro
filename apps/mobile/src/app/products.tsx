@@ -1,5 +1,5 @@
 import { formatCurrency } from "../shared/utils/format";
-import type { Product, SaleUnit } from "@lucro-caseiro/contracts";
+import type { Product, ProductVariationInput, SaleUnit } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import {
   Badge,
@@ -15,10 +15,10 @@ import {
   spacing,
   radii,
 } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../shared/components/app-icon";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Image, Pressable, ScrollView, TextInput, View } from "react-native";
+import { Image, Pressable, TextInput, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
@@ -31,13 +31,14 @@ import { CreateProductForm } from "../features/products/components/create-produc
 import { ProductList } from "../features/products/components/product-list";
 import { productInitial } from "../features/products/display";
 import { SaleUnitToggle } from "../features/products/components/sale-unit-toggle";
+import { VariationEditor } from "../features/products/components/variation-editor";
+import { totalVariationStock, validateVariations } from "../features/products/variations";
 import { LimitBanner } from "../features/subscription/components/limit-banner";
 import { useProfile } from "../features/subscription/hooks";
 import { showAlert } from "../shared/components/alert-store";
 import { BarcodeScanner } from "../shared/components/barcode-scanner";
 import { ScreenHeader } from "../shared/components/screen-header";
-import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
-import { ResponsiveModal } from "../shared/components/responsive-modal-surface";
+import { StandardModal } from "../shared/components/standard-modal";
 import {
   useDeleteProduct,
   useLowStockProducts,
@@ -49,7 +50,6 @@ import { useImagePicker } from "../shared/hooks/use-image-picker";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { useNotificationEnabled } from "../shared/hooks/notification-prefs";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
-import { desktopAction, desktopContained } from "../shared/layout/desktop-density";
 import { NOTIFICATION_TYPES } from "../shared/hooks/notification-types";
 import { uploadProductImage } from "../shared/utils/upload-image";
 import { alertValidation, alertError } from "../shared/utils/alerts";
@@ -78,23 +78,29 @@ function priceLabel(p: Product): string {
 }
 
 function stockLabel(p: Product): string {
-  if (p.stockQuantity === null) return "Não controlado";
-  if (p.stockQuantity === 0) return "Sem estoque";
-  return `${p.stockQuantity} un.`;
+  const quantity = totalVariationStock(p.variations) ?? p.stockQuantity;
+  if (quantity === null) return "Não controlado";
+  if (quantity === 0) return "Sem estoque";
+  return `${quantity} un.`;
 }
 
 function isLowStock(p: Product): boolean {
-  return (
-    p.stockQuantity !== null &&
-    p.stockAlertThreshold !== null &&
-    p.stockQuantity <= p.stockAlertThreshold
-  );
+  if (p.stockAlertThreshold === null) return false;
+  if (p.variations?.length) {
+    return p.variations.some(
+      (variation) =>
+        variation.stockQuantity !== undefined &&
+        variation.stockQuantity <= p.stockAlertThreshold!,
+    );
+  }
+  return p.stockQuantity !== null && p.stockQuantity <= p.stockAlertThreshold;
 }
 
 function StockValue({ product }: Readonly<{ product: Product }>) {
   const { theme } = useTheme();
   let color = theme.colors.success;
-  if (product.stockQuantity === null) color = theme.colors.textSecondary;
+  if ((totalVariationStock(product.variations) ?? product.stockQuantity) === null)
+    color = theme.colors.textSecondary;
   else if (isLowStock(product)) color = theme.colors.alert;
 
   return (
@@ -116,7 +122,8 @@ function ProductDetailModal({
   const { theme } = useTheme();
   const { copy } = useBrand();
   const variationsEnabled = useFeature("catalogoCores");
-  const isDesktop = useDesktopLayout();
+  const directCostEnabled = useFeature("custoDireto");
+  const weightEnabled = useFeature("vendaPorPeso");
   const { data: product, isLoading } = useProduct(productId);
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
@@ -132,6 +139,7 @@ function ProductDetailModal({
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [salePrice, setSalePrice] = useState("");
+  const [costPrice, setCostPrice] = useState("");
   const [saleUnit, setSaleUnit] = useState<SaleUnit>("unit");
   const [description, setDescription] = useState("");
   const [stockQuantity, setStockQuantity] = useState("");
@@ -139,17 +147,18 @@ function ProductDetailModal({
   const [isComposite, setIsComposite] = useState(false);
   const [components, setComponents] = useState<ComponentDraft[]>([]);
   const [code, setCode] = useState("");
-  const [variationNames, setVariationNames] = useState("");
+  const [variations, setVariations] = useState<ProductVariationInput[]>([]);
   const [showScanner, setShowScanner] = useState(false);
 
   function startEditing(p: Product) {
     setName(p.name);
     setCategory(p.category);
     setSalePrice(currencyInput(p.salePrice));
+    setCostPrice(p.costPrice === null ? "" : currencyInput(p.costPrice));
     setSaleUnit(p.saleUnit);
     setDescription(p.description ?? "");
     setCode(p.code ?? "");
-    setVariationNames((p.variations ?? []).map((variation) => variation.name).join(", "));
+    setVariations(p.variations ?? []);
     setStockQuantity(p.stockQuantity !== null ? String(p.stockQuantity) : "");
     setStockAlert(p.stockAlertThreshold !== null ? String(p.stockAlertThreshold) : "");
     setIsComposite(p.isComposite);
@@ -165,12 +174,22 @@ function ProductDetailModal({
 
   async function handleSave() {
     const price = parseCurrencyInput(salePrice);
+    const cost = costPrice ? parseCurrencyInput(costPrice) : undefined;
     if (!name.trim()) {
       alertValidation("Coloque o nome do produto");
       return;
     }
     if (isNaN(price) || price <= 0) {
       alertValidation("O preço precisa ser maior que zero");
+      return;
+    }
+    if (cost !== undefined && (!Number.isFinite(cost) || cost < 0)) {
+      alertValidation("O custo não pode ser negativo");
+      return;
+    }
+    const variationError = validateVariations(variations);
+    if (variationsEnabled && variationError) {
+      alertValidation(variationError);
       return;
     }
 
@@ -208,7 +227,8 @@ function ProductDetailModal({
           name: name.trim(),
           category: category.trim(),
           salePrice: price,
-          saleUnit,
+          saleUnit: weightEnabled ? saleUnit : "unit",
+          costPrice: directCostEnabled ? cost : undefined,
           description: description.trim() || undefined,
           photoUrl,
           code: code.trim() || undefined,
@@ -223,13 +243,7 @@ function ProductDetailModal({
               : parseInt(stockAlert, 10),
           isComposite,
           components: componentsPayload,
-          variations: variationsEnabled
-            ? variationNames
-                .split(",")
-                .map((variation) => variation.trim())
-                .filter(Boolean)
-                .map((variation) => ({ name: variation }))
-            : undefined,
+          variations: variationsEnabled ? variations : undefined,
         },
       });
       showAlert({ title: "Produto atualizado!" });
@@ -263,233 +277,48 @@ function ProductDetailModal({
     });
   }
 
-  return (
-    <ResponsiveModal
-      desktopMaxWidth={1120}
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
-      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            padding: spacing.lg,
-            gap: spacing.lg,
-          }}
-        >
-          <Typography variant="h3" style={{ flex: 1 }} numberOfLines={1}>
-            {editing ? "Editar produto" : "Detalhes do produto"}
-          </Typography>
-          {product && !editing && (
+  if (!editing) {
+    return (
+      <StandardModal
+        visible={visible}
+        onClose={onClose}
+        title="Detalhes do produto"
+        right={
+          product ? (
             <Pressable
               onPress={() => startEditing(product)}
               accessibilityRole="button"
-              hitSlop={12}
-              style={{ minHeight: 48, justifyContent: "center" }}
+              accessibilityLabel="Editar produto"
+              hitSlop={8}
+              style={({ pressed }) => ({
+                width: 44,
+                height: 44,
+                alignItems: "center",
+                justifyContent: "center",
+                opacity: pressed ? 0.6 : 1,
+              })}
             >
-              <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-                Editar
-              </Typography>
+              <AppIcon
+                name="create-outline"
+                size={22}
+                color={theme.colors.primaryStrong}
+              />
             </Pressable>
-          )}
-          <Pressable
-            onPress={onClose}
-            accessibilityRole="button"
-            hitSlop={12}
-            style={{ minHeight: 48, justifyContent: "center" }}
-          >
-            <Typography variant="bodyBold" color={theme.colors.primary}>
-              Fechar
-            </Typography>
-          </Pressable>
-        </View>
-
-        {isLoading && (
-          <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          ) : null
+        }
+      >
+        {isLoading ? (
+          <View style={{ flexShrink: 1, justifyContent: "center", alignItems: "center" }}>
             <Typography variant="caption">Carregando...</Typography>
           </View>
-        )}
-        {!isLoading && !product && (
-          <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        ) : null}
+        {!isLoading && !product ? (
+          <View style={{ flexShrink: 1, justifyContent: "center", alignItems: "center" }}>
             <Typography variant="caption">Produto não encontrado</Typography>
           </View>
-        )}
-        {!isLoading && product && editing && (
-          <KeyboardAwareScrollView
-            contentContainerStyle={[
-              {
-                padding: spacing.xl,
-                paddingBottom: spacing["3xl"],
-                gap: spacing.lg,
-              },
-              desktopContained(isDesktop),
-            ]}
-          >
-            <Input label="Nome do produto" value={name} onChangeText={setName} />
-            <Input label="Categoria" value={category} onChangeText={setCategory} />
-            {variationsEnabled && !isComposite ? (
-              <Input
-                label="Variacoes de cor/tamanho (opcional)"
-                placeholder="Azul / A4, Vermelha / A5"
-                value={variationNames}
-                onChangeText={setVariationNames}
-              />
-            ) : null}
-            <CompositeToggle
-              value={isComposite}
-              onChange={(next) => {
-                if (next && !isPremium) {
-                  showPaywall("compositeProducts");
-                  return;
-                }
-                setIsComposite(next);
-              }}
-              locked={!isPremium}
-            />
-            {isComposite && (
-              <ComponentPicker
-                value={components}
-                onChange={setComponents}
-                excludeProductId={productId}
-              />
-            )}
-            {!isComposite && <SaleUnitToggle value={saleUnit} onChange={setSaleUnit} />}
-            <Input
-              label={
-                saleUnit === "kg" && !isComposite
-                  ? "Preço por kg (R$)"
-                  : "Preço de venda (R$)"
-              }
-              value={salePrice}
-              onChangeText={(value) => setSalePrice(maskCurrencyInput(value))}
-              keyboardType="numeric"
-            />
-            <View>
-              <Typography variant="caption" style={{ marginBottom: spacing.sm }}>
-                Foto do produto
-              </Typography>
-              <Pressable
-                onPress={showPicker}
-                style={{
-                  width: 100,
-                  height: 100,
-                  borderRadius: radii.lg,
-                  backgroundColor: theme.colors.surface,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  overflow: "hidden",
-                }}
-              >
-                {imageUri ? (
-                  <Image source={{ uri: imageUri }} style={{ width: 100, height: 100 }} />
-                ) : (
-                  <View style={{ alignItems: "center", gap: 4 }}>
-                    <Ionicons
-                      name="camera-outline"
-                      size={28}
-                      color={theme.colors.textSecondary}
-                    />
-                    <Typography variant="caption" color={theme.colors.textSecondary}>
-                      Adicionar
-                    </Typography>
-                  </View>
-                )}
-              </Pressable>
-            </View>
-            <Input
-              label="Descrição (opcional)"
-              value={description}
-              onChangeText={setDescription}
-              multiline
-              numberOfLines={3}
-              style={{ height: 100, textAlignVertical: "top", paddingTop: 12 }}
-            />
-            <View
-              style={{ flexDirection: "row", alignItems: "flex-end", gap: spacing.sm }}
-            >
-              <View style={{ flex: 1 }}>
-                <Input
-                  label="Código de barras (opcional)"
-                  placeholder="Ex: 789..."
-                  value={code}
-                  onChangeText={setCode}
-                />
-              </View>
-              <Pressable
-                onPress={() => setShowScanner(true)}
-                accessibilityRole="button"
-                accessibilityLabel="Escanear código"
-                style={{
-                  width: 56,
-                  height: 52,
-                  borderRadius: radii.md,
-                  backgroundColor: theme.colors.surface,
-                  borderWidth: 1,
-                  borderColor: theme.colors.border,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Ionicons
-                  name="scan-outline"
-                  size={24}
-                  color={theme.colors.textSecondary}
-                />
-              </Pressable>
-            </View>
-            {saleUnit === "unit" && !isComposite && (
-              <>
-                <Input
-                  label="Quantidade em estoque (opcional)"
-                  placeholder="Ex: 50"
-                  value={stockQuantity}
-                  onChangeText={setStockQuantity}
-                  keyboardType="number-pad"
-                />
-                <Input
-                  label="Alerta de estoque baixo (opcional)"
-                  placeholder="Ex: 10"
-                  value={stockAlert}
-                  onChangeText={setStockAlert}
-                  keyboardType="number-pad"
-                />
-              </>
-            )}
-            <Button
-              title={uploading ? "Enviando foto..." : "Salvar"}
-              size="lg"
-              onPress={() => {
-                void handleSave();
-              }}
-              loading={updateProduct.isPending || uploading}
-              style={desktopAction(isDesktop)}
-            />
-            <Button
-              title="Cancelar"
-              variant="secondary"
-              onPress={() => setEditing(false)}
-              style={desktopAction(isDesktop)}
-            />
-            <BarcodeScanner
-              visible={showScanner}
-              onClose={() => setShowScanner(false)}
-              onScanned={(scanned) => {
-                setShowScanner(false);
-                setCode(scanned);
-              }}
-            />
-          </KeyboardAwareScrollView>
-        )}
-        {!isLoading && product && !editing && (
-          <ScrollView
-            contentContainerStyle={[
-              { padding: spacing.xl, gap: spacing.lg },
-              desktopContained(isDesktop, 960),
-            ]}
-          >
+        ) : null}
+        {!isLoading && product ? (
+          <View style={{ flexShrink: 1, gap: spacing.lg }}>
             <View style={{ alignItems: "center", gap: spacing.md }}>
               {product.photoUrl ? (
                 <Image
@@ -544,6 +373,30 @@ function ProductDetailModal({
                     </Typography>
                   </View>
                 )}
+                {directCostEnabled && !product.isComposite && (
+                  <>
+                    <View
+                      style={{ flexDirection: "row", justifyContent: "space-between" }}
+                    >
+                      <Typography variant="caption">Custo unitário</Typography>
+                      <Typography variant="bodyBold">
+                        {product.costPrice == null
+                          ? "Não informado"
+                          : formatCurrency(product.costPrice)}
+                      </Typography>
+                    </View>
+                    {product.costPrice != null ? (
+                      <View
+                        style={{ flexDirection: "row", justifyContent: "space-between" }}
+                      >
+                        <Typography variant="caption">Margem bruta estimada</Typography>
+                        <Typography variant="bodyBold" color={theme.colors.success}>
+                          {formatCurrency(product.salePrice - product.costPrice)}
+                        </Typography>
+                      </View>
+                    ) : null}
+                  </>
+                )}
                 {product.saleUnit === "unit" && !product.isComposite && (
                   <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                     <Typography variant="caption">{copy.stockLabel}</Typography>
@@ -552,10 +405,20 @@ function ProductDetailModal({
                 )}
                 {variationsEnabled && (product.variations?.length ?? 0) > 0 ? (
                   <View style={{ gap: spacing.xs }}>
-                    <Typography variant="caption">Variacoes</Typography>
-                    <Typography variant="body">
-                      {product.variations?.map((variation) => variation.name).join(", ")}
-                    </Typography>
+                    <Typography variant="caption">Variações</Typography>
+                    {product.variations?.map((variation) => (
+                      <View
+                        key={variation.id}
+                        style={{ flexDirection: "row", justifyContent: "space-between" }}
+                      >
+                        <Typography variant="body">{variation.name}</Typography>
+                        <Typography variant="caption">
+                          {variation.stockQuantity === undefined
+                            ? "Sem controle"
+                            : `${variation.stockQuantity} un.`}
+                        </Typography>
+                      </View>
+                    ))}
                   </View>
                 ) : null}
                 {product.saleUnit === "unit" &&
@@ -620,10 +483,188 @@ function ProductDetailModal({
               onPress={handleDelete}
               loading={deleteProduct.isPending}
             />
-          </ScrollView>
-        )}
-      </SafeAreaView>
-    </ResponsiveModal>
+          </View>
+        ) : null}
+      </StandardModal>
+    );
+  }
+
+  return (
+    <StandardModal
+      title="Editar produto"
+      visible={visible && editing}
+      onClose={onClose}
+      footer={
+        <>
+          <Button
+            title="Cancelar"
+            variant="secondary"
+            onPress={() => setEditing(false)}
+            style={{ flex: 1 }}
+          />
+          <Button
+            title={uploading ? "Enviando foto..." : "Salvar"}
+            size="lg"
+            onPress={() => {
+              void handleSave();
+            }}
+            loading={updateProduct.isPending || uploading}
+            style={{ flex: 1 }}
+          />
+        </>
+      }
+    >
+      {!isLoading && product ? (
+        <View style={{ flexShrink: 1, gap: spacing.lg }}>
+          <Input label="Nome do produto" value={name} onChangeText={setName} />
+          <Input label="Categoria" value={category} onChangeText={setCategory} />
+          {variationsEnabled && !isComposite ? (
+            <VariationEditor value={variations} onChange={setVariations} />
+          ) : null}
+          <CompositeToggle
+            value={isComposite}
+            onChange={(next) => {
+              if (next && !isPremium) {
+                showPaywall("compositeProducts");
+                return;
+              }
+              setIsComposite(next);
+            }}
+            locked={!isPremium}
+          />
+          {isComposite && (
+            <ComponentPicker
+              value={components}
+              onChange={setComponents}
+              excludeProductId={productId}
+            />
+          )}
+          {!isComposite && weightEnabled ? (
+            <SaleUnitToggle value={saleUnit} onChange={setSaleUnit} />
+          ) : null}
+          <Input
+            label={
+              saleUnit === "kg" && !isComposite
+                ? "Preço por kg (R$)"
+                : "Preço de venda (R$)"
+            }
+            value={salePrice}
+            onChangeText={(value) => setSalePrice(maskCurrencyInput(value))}
+            keyboardType="numeric"
+          />
+          {directCostEnabled && !isComposite ? (
+            <Input
+              label="Custo unitário (R$)"
+              value={costPrice}
+              onChangeText={(value) => setCostPrice(maskCurrencyInput(value))}
+              keyboardType="numeric"
+            />
+          ) : null}
+          <View>
+            <Typography variant="caption" style={{ marginBottom: spacing.sm }}>
+              Foto do produto
+            </Typography>
+            <Pressable
+              onPress={showPicker}
+              style={{
+                width: 100,
+                height: 100,
+                borderRadius: radii.lg,
+                backgroundColor: theme.colors.surface,
+                alignItems: "center",
+                justifyContent: "center",
+                overflow: "hidden",
+              }}
+            >
+              {imageUri ? (
+                <Image source={{ uri: imageUri }} style={{ width: 100, height: 100 }} />
+              ) : (
+                <View style={{ alignItems: "center", gap: 4 }}>
+                  <AppIcon
+                    name="camera-outline"
+                    size={28}
+                    color={theme.colors.textSecondary}
+                  />
+                  <Typography variant="caption" color={theme.colors.textSecondary}>
+                    Adicionar
+                  </Typography>
+                </View>
+              )}
+            </Pressable>
+          </View>
+          <Input
+            label="Descrição (opcional)"
+            value={description}
+            onChangeText={setDescription}
+            multiline
+            numberOfLines={3}
+            style={{ height: 100, textAlignVertical: "top", paddingTop: 12 }}
+          />
+          <View style={{ flexDirection: "row", alignItems: "flex-end", gap: spacing.sm }}>
+            <View style={{ flex: 1 }}>
+              <Input
+                label="Código de barras (opcional)"
+                placeholder="Ex: 789..."
+                value={code}
+                onChangeText={setCode}
+              />
+            </View>
+            <Pressable
+              onPress={() => setShowScanner(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Escanear código"
+              style={{
+                width: 56,
+                height: 52,
+                borderRadius: radii.md,
+                backgroundColor: theme.colors.surface,
+                borderWidth: 1,
+                borderColor: theme.colors.border,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <AppIcon name="scan-outline" size={24} color={theme.colors.textSecondary} />
+            </Pressable>
+          </View>
+          {saleUnit === "unit" && !isComposite && variations.length === 0 && (
+            <>
+              <Input
+                label="Quantidade em estoque (opcional)"
+                placeholder="Ex: 50"
+                value={stockQuantity}
+                onChangeText={setStockQuantity}
+                keyboardType="number-pad"
+              />
+              <Input
+                label="Alerta de estoque baixo (opcional)"
+                placeholder="Ex: 10"
+                value={stockAlert}
+                onChangeText={setStockAlert}
+                keyboardType="number-pad"
+              />
+            </>
+          )}
+          {saleUnit === "unit" && !isComposite && variations.length > 0 ? (
+            <Input
+              label="Alerta por variação (opcional)"
+              placeholder="Ex: 3"
+              value={stockAlert}
+              onChangeText={setStockAlert}
+              keyboardType="number-pad"
+            />
+          ) : null}
+          <BarcodeScanner
+            visible={showScanner}
+            onClose={() => setShowScanner(false)}
+            onScanned={(scanned) => {
+              setShowScanner(false);
+              setCode(scanned);
+            }}
+          />
+        </View>
+      ) : null}
+    </StandardModal>
   );
 }
 
@@ -650,7 +691,7 @@ function LowStockBanner() {
         backgroundColor: theme.colors.alertBg,
       }}
     >
-      <Ionicons name="alert-circle" size={20} color={theme.colors.alert} />
+      <AppIcon name="alert-circle" size={20} color={theme.colors.alert} />
       <Typography variant="caption" color={theme.colors.text} style={{ flex: 1 }}>
         {data.length === 1
           ? "1 produto com estoque baixo"
@@ -721,7 +762,7 @@ export default function ProductsScreen() {
               justifyContent: "center",
             }}
           >
-            <Ionicons name="search" size={iconSizes.md} color={theme.colors.text} />
+            <AppIcon name="search" size={iconSizes.md} color={theme.colors.text} />
           </Pressable>
         }
       />
@@ -740,11 +781,7 @@ export default function ProductsScreen() {
               gap: spacing.sm,
             }}
           >
-            <Ionicons
-              name="search-outline"
-              size={20}
-              color={theme.colors.textSecondary}
-            />
+            <AppIcon name="search-outline" size={20} color={theme.colors.textSecondary} />
             <TextInput
               value={search}
               onChangeText={setSearch}
@@ -767,6 +804,7 @@ export default function ProductsScreen() {
           flexDirection: "row",
           gap: spacing.sm,
           paddingHorizontal: spacing.lg,
+          paddingTop: spacing.xl,
           paddingBottom: spacing.sm,
         }}
       >
@@ -820,7 +858,7 @@ export default function ProductsScreen() {
               opacity: pressed ? 0.85 : 1,
             })}
           >
-            <Ionicons
+            <AppIcon
               name="add"
               size={isDesktop ? 20 : 24}
               color={theme.colors.textOnPrimary}
@@ -836,66 +874,19 @@ export default function ProductsScreen() {
       ) : null}
 
       {/* Modal - criar item da marca */}
-      <ResponsiveModal
-        desktopMaxWidth={1120}
-        visible={showCreate}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowCreate(false)}
-      >
-        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              alignSelf: "center",
-              width: "100%",
-              maxWidth: isDesktop ? 1040 : undefined,
-              paddingHorizontal: spacing.xl,
-              paddingTop: spacing.md,
-              paddingBottom: spacing.md,
-              gap: spacing.md,
-            }}
-          >
-            <Pressable
-              onPress={() => setShowCreate(false)}
-              accessibilityRole="button"
-              accessibilityLabel="Voltar"
-              hitSlop={10}
-              style={{ minHeight: 44, justifyContent: "center" }}
-            >
-              <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
-            </Pressable>
-            <Typography
-              variant="h1"
-              color={theme.colors.text}
-              numberOfLines={1}
-              style={{ flex: 1, fontSize: 24 }}
-            >
-              Novo {copy.productNoun}
-            </Typography>
-            <Pressable
-              onPress={() => setShowCreate(false)}
-              accessibilityRole="button"
-              accessibilityLabel="Fechar"
-              hitSlop={10}
-              style={{ minHeight: 44, justifyContent: "center" }}
-            >
-              <Typography variant="bodyBold" color={theme.colors.primary}>
-                Fechar
-              </Typography>
-            </Pressable>
-          </View>
-          <CreateProductForm
-            key={`${create ?? "manual"}:${salePrice ?? ""}`}
-            initialSalePrice={
-              create === "from-pricing" && salePrice ? Number(salePrice) : undefined
-            }
-            analyticsSource={create === "from-pricing" ? "pricing" : undefined}
-            onSuccess={() => setShowCreate(false)}
-          />
-        </SafeAreaView>
-      </ResponsiveModal>
+      <CreateProductForm
+        key={`${create ?? "manual"}:${salePrice ?? ""}`}
+        modal={{
+          visible: showCreate,
+          onClose: () => setShowCreate(false),
+          title: `Novo ${copy.productNoun}`,
+        }}
+        initialSalePrice={
+          create === "from-pricing" && salePrice ? Number(salePrice) : undefined
+        }
+        analyticsSource={create === "from-pricing" ? "pricing" : undefined}
+        onSuccess={() => setShowCreate(false)}
+      />
 
       {/* Modal - Detalhe do produto */}
       {selectedProductId && (

@@ -13,11 +13,10 @@ import {
   spacing,
   radii,
 } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../shared/components/app-icon";
 import { useQueries } from "@tanstack/react-query";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   Image,
   Pressable,
@@ -38,20 +37,14 @@ import { useSale, useSales, useUpdateSale } from "../../features/sales/hooks";
 import { paymentLabel, PAYMENT_OPTIONS } from "../../features/sales/payment";
 import { useAuth } from "../../shared/hooks/use-auth";
 import { useProfile } from "../../features/subscription/hooks";
-import { KeyboardAwareScrollView } from "../../shared/components/keyboard-aware-scroll-view";
-import {
-  ResponsiveModal,
-  ResponsiveOverlayModal,
-} from "../../shared/components/responsive-modal-surface";
+import { ResponsiveOverlayModal } from "../../shared/components/responsive-modal-surface";
+import { StandardModal } from "../../shared/components/standard-modal";
 import { showAlert } from "../../shared/components/alert-store";
+import { SkeletonList } from "../../shared/components/skeleton";
 import { AnimatedListItem } from "../../shared/components/animated-list-item";
 import { DesktopPagination } from "../../shared/components/desktop-pagination";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
-import {
-  desktopAction,
-  desktopContained,
-  desktopModalSurface,
-} from "../../shared/layout/desktop-density";
+import { desktopModalSurface } from "../../shared/layout/desktop-density";
 import { alertError } from "../../shared/utils/alerts";
 import salesEmpty from "../../assets/sales-empty.png";
 
@@ -121,8 +114,7 @@ function groupSalesByDate(items: Sale[]): SaleGroup[] {
 // Cards flat com borda sutil, no padrao canonico da home (sem sombra hardcoded).
 function getSurfaceStyle(theme: ReturnType<typeof useTheme>["theme"]): ViewStyle {
   return {
-    backgroundColor:
-      theme.mode === "dark" ? "rgba(44, 36, 32, 0.84)" : theme.colors.surfaceElevated,
+    backgroundColor: theme.colors.surfaceElevated,
     borderWidth: 1,
     borderColor: theme.colors.border,
   };
@@ -134,7 +126,6 @@ function getFilterBg(
 ): string {
   // Selecao = fundo rosado suave (primaryBg), nunca pilula cheia de rosa.
   if (selected) return theme.colors.primaryBg;
-  if (theme.mode === "dark") return "rgba(44, 36, 32, 0.7)";
   return theme.colors.surface;
 }
 
@@ -227,7 +218,7 @@ function SearchBar({
         ...getSurfaceStyle(theme),
       }}
     >
-      <Ionicons name="search-outline" size={23} color={theme.colors.textSecondary} />
+      <AppIcon name="search-outline" size={23} color={theme.colors.textSecondary} />
       <TextInput
         placeholder="Buscar por produto ou cliente..."
         placeholderTextColor={theme.colors.textSecondary + "90"}
@@ -248,7 +239,7 @@ function SearchBar({
         accessibilityRole="button"
         accessibilityLabel="Abrir filtros"
       >
-        <Ionicons name="options-outline" size={25} color={theme.colors.textSecondary} />
+        <AppIcon name="options-outline" size={25} color={theme.colors.textSecondary} />
       </Pressable>
     </View>
   );
@@ -267,7 +258,7 @@ function GroupHeader({ title, count }: Readonly<{ title: string; count: number }
       }}
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-        <Ionicons name="calendar-outline" size={24} color={theme.colors.textSecondary} />
+        <AppIcon name="calendar-outline" size={24} color={theme.colors.textSecondary} />
         <Typography variant="h2" serif color={theme.colors.text}>
           {title}
         </Typography>
@@ -361,7 +352,7 @@ function StatusSummary({
               justifyContent: "center",
             }}
           >
-            <Ionicons name={copy.icon} size={26} color={accent} />
+            <AppIcon name={copy.icon} size={26} color={accent} />
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Typography variant="h3" color={theme.colors.text}>
@@ -377,10 +368,7 @@ function StatusSummary({
           style={{
             width: 1,
             height: 54,
-            backgroundColor:
-              theme.mode === "dark"
-                ? "rgba(245, 225, 219, 0.1)"
-                : "rgba(74, 50, 40, 0.1)",
+            backgroundColor: theme.colors.border,
           }}
         />
         <View
@@ -397,7 +385,7 @@ function StatusSummary({
               justifyContent: "center",
             }}
           >
-            <Ionicons name="cash-outline" size={25} color={accent} />
+            <AppIcon name="cash-outline" size={25} color={accent} />
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Typography variant="h3" color={theme.colors.text} numberOfLines={1}>
@@ -582,7 +570,7 @@ function DesktopSalesTable({
                       currency: "BRL",
                     }).format(sale.total)}
                   </Typography>
-                  <Ionicons
+                  <AppIcon
                     name="chevron-forward"
                     size={20}
                     color={theme.colors.textSecondary}
@@ -615,7 +603,7 @@ function SalesContent({
   page,
   total,
   totalPages,
-  primaryColor,
+  primaryColor: _primaryColor,
   onSalePress,
   onClearFilters,
   onNewSalePress,
@@ -627,8 +615,8 @@ function SalesContent({
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color={primaryColor} />
+      <View style={{ flex: 1, padding: spacing.xl }}>
+        <SkeletonList rows={6} />
       </View>
     );
   }
@@ -669,7 +657,7 @@ function SalesContent({
             title={isFiltered ? emptyCopy.button : copy.saleLabel}
             size="lg"
             icon={
-              <Ionicons
+              <AppIcon
                 name={emptyCopy.icon}
                 size={iconSizes.sm}
                 color={theme.colors.textOnPrimary}
@@ -863,7 +851,7 @@ export default function SalesScreen() {
         style={{
           flexDirection: "row",
           paddingHorizontal: spacing.xl,
-          paddingTop: spacing.md,
+          paddingTop: spacing.xl,
           paddingBottom: spacing.xl,
           gap: spacing.xs,
         }}
@@ -933,7 +921,7 @@ export default function SalesScreen() {
         <View
           style={{
             flex: 1,
-            backgroundColor: "rgba(0, 0, 0, 0.45)",
+            backgroundColor: theme.colors.overlay,
             justifyContent: isDesktop ? "center" : "flex-end",
             padding: isDesktop ? spacing.xl : 0,
           }}
@@ -967,8 +955,12 @@ export default function SalesScreen() {
               }}
             >
               <Typography variant="h2">Filtrar vendas</Typography>
-              <Pressable onPress={() => setShowFilters(false)} hitSlop={12}>
-                <Ionicons
+              <Pressable
+                onPress={() => setShowFilters(false)}
+                accessibilityLabel="Fechar filtros"
+                hitSlop={12}
+              >
+                <AppIcon
                   name="close-outline"
                   size={26}
                   color={theme.colors.textSecondary}
@@ -1004,93 +996,32 @@ export default function SalesScreen() {
         </View>
       </ResponsiveOverlayModal>
 
-      <ResponsiveModal
-        desktopMaxWidth={1040}
-        visible={!!selectedSaleId && !!selectedSaleWithPhotos}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setSelectedSaleId(null)}
-      >
-        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "flex-end",
-              padding: spacing.lg,
-            }}
-          >
-            <Pressable onPress={() => setSelectedSaleId(null)}>
-              <Typography variant="body" color={theme.colors.primary}>
-                Fechar
-              </Typography>
-            </Pressable>
-          </View>
-          {selectedSaleWithPhotos && (
-            <SaleDetail
-              sale={selectedSaleWithPhotos}
-              clientPhone={selectedClient?.phone}
-              onStatusUpdated={handleStatusUpdated}
-              onEditPress={handleEditPress}
-            />
-          )}
-        </SafeAreaView>
-      </ResponsiveModal>
+      {selectedSaleWithPhotos ? (
+        <StandardModal
+          visible
+          onClose={() => setSelectedSaleId(null)}
+          title="Detalhes da venda"
+        >
+          <SaleDetail
+            sale={selectedSaleWithPhotos}
+            clientPhone={selectedClient?.phone}
+            onStatusUpdated={handleStatusUpdated}
+            onEditPress={handleEditPress}
+          />
+        </StandardModal>
+      ) : null}
 
-      <ResponsiveModal
-        desktopMaxWidth={840}
+      <StandardModal
+        title="Editar venda"
         visible={showEdit}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowEdit(false)}
-      >
-        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: spacing.lg,
-            }}
-          >
-            <Pressable onPress={() => setShowEdit(false)}>
-              <Typography variant="bodyBold" color={theme.colors.primary}>
-                Cancelar
-              </Typography>
-            </Pressable>
-            <Typography variant="h3">Editar venda</Typography>
-            <View style={{ width: 60 }} />
-          </View>
-          <KeyboardAwareScrollView
-            contentContainerStyle={[
-              {
-                padding: spacing.xl,
-                paddingBottom: spacing["3xl"],
-                gap: spacing.lg,
-              },
-              desktopContained(isDesktop, 720),
-            ]}
-          >
-            <View style={{ gap: spacing.sm }}>
-              <Typography variant="caption">Forma de pagamento</Typography>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-                {PAYMENT_OPTIONS.map((opt) => (
-                  <Chip
-                    key={opt.value}
-                    label={opt.label}
-                    selected={editPayment === opt.value}
-                    onPress={() => setEditPayment(opt.value)}
-                  />
-                ))}
-              </View>
-            </View>
-            <Input
-              label="Observações"
-              placeholder="Alguma anotação sobre a venda..."
-              value={editNotes}
-              onChangeText={setEditNotes}
-              multiline
-              numberOfLines={3}
-              style={{ height: 80, textAlignVertical: "top", paddingTop: 12 }}
+        onClose={() => setShowEdit(false)}
+        footer={
+          <>
+            <Button
+              title="Cancelar"
+              variant="secondary"
+              onPress={() => setShowEdit(false)}
+              style={{ flex: 1 }}
             />
             <Button
               title="Salvar alterações"
@@ -1099,11 +1030,36 @@ export default function SalesScreen() {
                 handleSaveEdit().catch(() => {});
               }}
               loading={updateSale.isPending}
-              style={desktopAction(isDesktop)}
+              style={{ flex: 1 }}
             />
-          </KeyboardAwareScrollView>
-        </SafeAreaView>
-      </ResponsiveModal>
+          </>
+        }
+      >
+        <View style={{ flexShrink: 1, gap: spacing.lg }}>
+          <View style={{ gap: spacing.sm }}>
+            <Typography variant="caption">Forma de pagamento</Typography>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+              {PAYMENT_OPTIONS.map((opt) => (
+                <Chip
+                  key={opt.value}
+                  label={opt.label}
+                  selected={editPayment === opt.value}
+                  onPress={() => setEditPayment(opt.value)}
+                />
+              ))}
+            </View>
+          </View>
+          <Input
+            label="Observações"
+            placeholder="Alguma anotação sobre a venda..."
+            value={editNotes}
+            onChangeText={setEditNotes}
+            multiline
+            numberOfLines={3}
+            style={{ height: 80, textAlignVertical: "top", paddingTop: 12 }}
+          />
+        </View>
+      </StandardModal>
     </SafeAreaView>
   );
 }

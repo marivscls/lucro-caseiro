@@ -1,4 +1,5 @@
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "./app-icon";
+import type { AppIconName } from "./app-icon";
 import React from "react";
 import {
   Pressable,
@@ -11,7 +12,7 @@ import { iconSizes, radii, spacing, Typography, useTheme } from "@lucro-caseiro/
 
 export type FABProps = Readonly<
   {
-    icon: keyof typeof Ionicons.glyphMap;
+    icon: AppIconName;
     /** Texto do FAB estendido; sem label vira o círculo clássico de 56px. */
     label?: string;
     accessibilityLabel: string;
@@ -49,7 +50,7 @@ export function FAB({ icon, label, accessibilityLabel, style, ...props }: FABPro
       ]}
       {...props}
     >
-      <Ionicons name={icon} size={iconSizes.md} color={theme.colors.textOnPrimary} />
+      <AppIcon name={icon} size={iconSizes.md} color={theme.colors.textOnPrimary} />
       {label ? (
         <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
           {label}

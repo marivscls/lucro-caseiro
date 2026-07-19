@@ -1,7 +1,13 @@
 import type { Purchase } from "@lucro-caseiro/contracts";
 import { describe, expect, it } from "vitest";
 
-import { categoryLabel, pendingTotal, sortPurchasesPendingFirst } from "./domain";
+import {
+  categoryLabel,
+  normalizePurchase,
+  pendingTotal,
+  sortPurchasesPendingFirst,
+  type PurchasePayload,
+} from "./domain";
 
 function makePurchase(overrides: Partial<Purchase> = {}): Purchase {
   return {
@@ -10,6 +16,7 @@ function makePurchase(overrides: Partial<Purchase> = {}): Purchase {
     supplierId: null,
     description: "Farinha",
     amount: 100,
+    items: [],
     category: "material",
     paymentStatus: "pending",
     purchasedAt: "2026-06-25",
@@ -29,6 +36,32 @@ describe("categoryLabel", () => {
 
   it("falls back to Outro for unknown values", () => {
     expect(categoryLabel("sale")).toBe("Outro");
+  });
+});
+
+describe("normalizePurchase", () => {
+  it("fills items for responses from the API version before purchase items", () => {
+    const legacyPurchase: PurchasePayload = { ...makePurchase() };
+    delete legacyPurchase.items;
+
+    expect(normalizePurchase(legacyPurchase).items).toEqual([]);
+  });
+
+  it("preserves items returned by the current API", () => {
+    const items: Purchase["items"] = [
+      {
+        id: "item",
+        productId: "product",
+        productName: "Caderno",
+        variationId: null,
+        variationName: null,
+        quantity: 2,
+        unitCost: 10,
+        subtotal: 20,
+      },
+    ];
+
+    expect(normalizePurchase(makePurchase({ items })).items).toBe(items);
   });
 });
 

@@ -3,11 +3,12 @@ import {
   Card,
   Input,
   Typography,
+  useBrand,
   useTheme,
   radii,
   spacing,
 } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../shared/components/app-icon";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -20,8 +21,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import authHouse from "../assets/auth-house.png";
-import onboardingHouse from "../assets/onboarding-house.png";
 import nicheArtesanato from "../assets/onboarding-niche-artesanato.png";
 import nicheBeleza from "../assets/onboarding-niche-beleza.png";
 import nicheConfeitaria from "../assets/onboarding-niche-confeitaria.png";
@@ -41,6 +40,8 @@ import { useAuth } from "../shared/hooks/use-auth";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { desktopContained } from "../shared/layout/desktop-density";
 import { useOnboarding } from "../shared/hooks/use-onboarding";
+import { brandLogoById } from "../shared/brand-logo";
+import { getBrandDisplayName } from "../shared/brand-name";
 
 // Nichos cobrindo todos os publicos do app (nao so comida). `db` e o valor
 // aceito pelo enum business_type do banco.
@@ -171,7 +172,7 @@ const NICHE_COPY: Record<string, { label: string; description: string }> = {
 
 const WELCOME_SLIDES = [
   {
-    image: authHouse,
+    image: null,
     title: "Sua paixão,\nseu negócio organizado.",
     description: "Vendas, encomendas, orçamentos e lucro, tudo num lugar só.",
   },
@@ -184,6 +185,24 @@ const WELCOME_SLIDES = [
     image: pricingEmpty,
     title: "Preço certo,\nlucro claro.",
     description: "Calcule custos, margem e lucro antes de vender.",
+  },
+];
+
+const RETAIL_WELCOME_SLIDES = [
+  {
+    image: null,
+    title: "Sua papelaria,\ntoda organizada.",
+    description: "Produtos, estoque, compras e vendas no mesmo lugar.",
+  },
+  {
+    image: salesEmpty,
+    title: "Venda rápido,\nsem perder estoque.",
+    description: "Use código de barras, escolha a variação e dê baixa automaticamente.",
+  },
+  {
+    image: pricingEmpty,
+    title: "Custo e margem\nsempre claros.",
+    description: "Saiba quanto cada item custa e quanto sobra em cada venda.",
   },
 ];
 
@@ -209,6 +228,7 @@ function ProgressDots({ current, total }: Readonly<{ current: number; total: num
 
 function StepHeader({ onBack }: Readonly<{ onBack: () => void }>) {
   const { theme } = useTheme();
+  const brand = useBrand();
   return (
     <View style={{ flexDirection: "row", alignItems: "center", padding: spacing.lg }}>
       <Pressable
@@ -224,7 +244,7 @@ function StepHeader({ onBack }: Readonly<{ onBack: () => void }>) {
           justifyContent: "center",
         }}
       >
-        <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+        <AppIcon name="arrow-back" size={24} color={theme.colors.text} />
       </Pressable>
       <View style={{ flex: 1, alignItems: "center" }}>
         <Typography
@@ -232,7 +252,7 @@ function StepHeader({ onBack }: Readonly<{ onBack: () => void }>) {
           color={theme.colors.primaryLight}
           style={{ letterSpacing: 3, textTransform: "uppercase" }}
         >
-          Lucro Caseiro
+          {getBrandDisplayName(brand)}
         </Typography>
       </View>
       <View style={{ width: 48 }} />
@@ -246,6 +266,10 @@ function WelcomeStep({
   switchingAccount,
 }: Readonly<{ onNext: () => void; onLogin: () => void; switchingAccount: boolean }>) {
   const { theme } = useTheme();
+  const brand = useBrand();
+  const slides = brand.features.comprasComEstoque
+    ? RETAIL_WELCOME_SLIDES
+    : WELCOME_SLIDES;
   const { width } = useWindowDimensions();
   const isDesktop = useDesktopLayout();
   const [slide, setSlide] = useState(0);
@@ -262,7 +286,7 @@ function WelcomeStep({
           color={theme.colors.primaryLight}
           style={{ letterSpacing: 3, textTransform: "uppercase" }}
         >
-          Lucro Caseiro
+          {getBrandDisplayName(brand)}
         </Typography>
       </View>
 
@@ -277,7 +301,7 @@ function WelcomeStep({
             setSlide(Math.round(event.nativeEvent.contentOffset.x / slideWidth));
           }}
         >
-          {WELCOME_SLIDES.map((item) => (
+          {slides.map((item) => (
             <View
               key={item.title}
               style={{
@@ -287,7 +311,7 @@ function WelcomeStep({
               }}
             >
               <Image
-                source={item.image}
+                source={item.image ?? brandLogoById[brand.id]}
                 resizeMode="contain"
                 style={{ width: 168, height: 168 }}
               />
@@ -305,7 +329,7 @@ function WelcomeStep({
           ))}
         </ScrollView>
 
-        <ProgressDots current={slide} total={WELCOME_SLIDES.length} />
+        <ProgressDots current={slide} total={slides.length} />
       </View>
 
       <View style={{ gap: spacing.md, paddingBottom: spacing.lg }}>
@@ -313,7 +337,7 @@ function WelcomeStep({
           title="Começar minha jornada"
           size="lg"
           icon={
-            <Ionicons name="arrow-forward" size={20} color={theme.colors.textOnPrimary} />
+            <AppIcon name="arrow-forward" size={20} color={theme.colors.textOnPrimary} />
           }
           onPress={onNext}
           disabled={switchingAccount}
@@ -345,6 +369,7 @@ function NicheStep({
   onBack: () => void;
 }>) {
   const { theme } = useTheme();
+  const brand = useBrand();
   const pagePadding = spacing.lg;
   const cardGap = spacing.md;
   const background = theme.colors.background;
@@ -365,7 +390,7 @@ function NicheStep({
       >
         <View style={{ alignItems: "center", gap: 0, marginBottom: spacing.md }}>
           <Image
-            source={onboardingHouse}
+            source={brandLogoById[brand.id]}
             resizeMode="contain"
             style={{ width: 168, height: 96 }}
           />
@@ -466,7 +491,7 @@ function NicheStep({
                     }}
                   >
                     {isSelected && (
-                      <Ionicons
+                      <AppIcon
                         name="checkmark"
                         size={18}
                         color={theme.colors.textOnPrimary}
@@ -495,7 +520,7 @@ function NicheStep({
           onPress={onNext}
           disabled={!selected}
           icon={
-            <Ionicons name="arrow-forward" size={22} color={theme.colors.textOnPrimary} />
+            <AppIcon name="arrow-forward" size={22} color={theme.colors.textOnPrimary} />
           }
           style={{ borderRadius: radii.lg }}
         />
@@ -507,7 +532,7 @@ function NicheStep({
             gap: spacing.sm,
           }}
         >
-          <Ionicons name="lock-closed" size={14} color={theme.colors.primaryLight} />
+          <AppIcon name="lock-closed" size={14} color={theme.colors.primaryLight} />
           <Typography
             variant="caption"
             color={theme.colors.primaryLight}
@@ -638,7 +663,7 @@ function DoneStep({
           title="Cadastrar meu primeiro produto"
           size="lg"
           icon={
-            <Ionicons name="add-circle" size={20} color={theme.colors.textOnPrimary} />
+            <AppIcon name="add-circle" size={20} color={theme.colors.textOnPrimary} />
           }
           onPress={onFirstProduct}
         />
@@ -651,6 +676,10 @@ function DoneStep({
 export default function OnboardingScreen() {
   const router = useRouter();
   const { theme } = useTheme();
+  const brand = useBrand();
+  const verticalOnboarding = brand.onboarding?.skipNicheSelection
+    ? brand.onboarding
+    : undefined;
   const isDesktop = useDesktopLayout();
   const updateProfile = useUpdateProfile();
   const { signOut, userId } = useAuth();
@@ -671,7 +700,7 @@ export default function OnboardingScreen() {
     updateProfile
       .mutateAsync({
         businessName: name || undefined,
-        businessType: niche?.db ?? undefined,
+        businessType: verticalOnboarding?.businessType ?? niche?.db ?? undefined,
       })
       .catch(() => {});
   }
@@ -709,7 +738,14 @@ export default function OnboardingScreen() {
       <View style={[{ flex: 1 }, desktopContained(isDesktop, 720)]}>
         {currentStep === 0 && (
           <WelcomeStep
-            onNext={() => setStep(1)}
+            onNext={() => {
+              if (verticalOnboarding) {
+                setBusinessType(verticalOnboarding.nicheId);
+                setStep(2);
+                return;
+              }
+              setStep(1);
+            }}
             onLogin={() => {
               void handleSwitchAccount();
             }}
@@ -733,7 +769,7 @@ export default function OnboardingScreen() {
               persistProfile(name);
               setStep(3);
             }}
-            onBack={() => setStep(1)}
+            onBack={() => setStep(verticalOnboarding ? 0 : 1)}
           />
         )}
 

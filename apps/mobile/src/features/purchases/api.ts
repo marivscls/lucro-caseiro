@@ -1,6 +1,7 @@
-import type { CreatePurchase, Purchase } from "@lucro-caseiro/contracts";
+import type { CreatePurchase, Purchase, UpdatePurchase } from "@lucro-caseiro/contracts";
 
 import { apiClient } from "../../shared/utils/api-client";
+import { normalizePurchase, type PurchasePayload } from "./domain";
 
 const BASE = "/api/v1/purchases";
 
@@ -12,6 +13,10 @@ interface PaginatedPurchases {
   totalPages: number;
 }
 
+type PaginatedPurchasesPayload = Omit<PaginatedPurchases, "items"> & {
+  items: PurchasePayload[];
+};
+
 export async function fetchPurchases(
   token: string,
   opts?: { page?: number; status?: "pending" | "paid" },
@@ -22,18 +27,46 @@ export async function fetchPurchases(
 
   const query = params.toString();
   const queryString = query ? `?${query}` : "";
-  return apiClient<PaginatedPurchases>(`${BASE}${queryString}`, { token });
+  const response = await apiClient<PaginatedPurchasesPayload>(`${BASE}${queryString}`, {
+    token,
+  });
+  return {
+    ...response,
+    items: response.items.map(normalizePurchase),
+  };
 }
 
 export async function createPurchase(
   token: string,
   data: CreatePurchase,
 ): Promise<Purchase> {
-  return apiClient<Purchase>(BASE, { method: "POST", body: data, token });
+  const purchase = await apiClient<PurchasePayload>(BASE, {
+    method: "POST",
+    body: data,
+    token,
+  });
+  return normalizePurchase(purchase);
 }
 
 export async function payPurchase(token: string, id: string): Promise<Purchase> {
-  return apiClient<Purchase>(`${BASE}/${id}/pay`, { method: "POST", token });
+  const purchase = await apiClient<PurchasePayload>(`${BASE}/${id}/pay`, {
+    method: "POST",
+    token,
+  });
+  return normalizePurchase(purchase);
+}
+
+export async function updatePurchase(
+  token: string,
+  id: string,
+  data: UpdatePurchase,
+): Promise<Purchase> {
+  const purchase = await apiClient<PurchasePayload>(`${BASE}/${id}`, {
+    method: "PATCH",
+    body: data,
+    token,
+  });
+  return normalizePurchase(purchase);
 }
 
 export async function deletePurchase(token: string, id: string): Promise<void> {

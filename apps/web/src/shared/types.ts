@@ -35,6 +35,32 @@ export interface MarketingCampaignPlan {
   goal?: "sales" | "leads" | "repurchase" | "awareness" | "reactivation";
   audienceSummary?: string;
   offer?: string;
+  research?: {
+    audienceSlice: string;
+    audienceLanguage: string[];
+    realDesire: string;
+    saturatedSolutions: string[];
+    problemMechanism: string;
+    solutionMechanism: string;
+    differentiators: string[];
+    proofs: string[];
+    saturationNotes: string;
+  };
+  creativeStrategy?: {
+    bigIdea: string;
+    angle: string;
+    promise: string;
+    reasonToBelieve: string;
+    stickyName: string;
+    commonEnemy: string;
+    organicInsight: string;
+    avatar: string;
+    format: string;
+    visualHook: string;
+    landing: string;
+    retentionBeats: string[];
+    productionNotes: string[];
+  };
   channels: string[];
   messages: Record<string, string>;
   creativeNeeds: string[];
@@ -49,10 +75,29 @@ export interface MarketingCreativeBundle {
     channel: string;
     format: string;
     headline: string;
+    hook?: string;
+    landing?: string;
     body: string;
+    retentionBeats?: string[];
+    productionNotes?: string;
+    evidence?: string;
     cta: string;
   }>;
   reuseMap: string[];
+  qualityReview?: {
+    ready: boolean;
+    score: number;
+    criteria: {
+      congruence: number;
+      specificity: number;
+      novelty: number;
+      evidenceSafety: number;
+      concision: number;
+    };
+    strengths: string[];
+    warnings: string[];
+    nextTest: string;
+  };
 }
 
 export interface MarketingPromptTelemetry {

@@ -7,7 +7,8 @@ import {
   useTheme,
   type Theme,
 } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
+import type { AppIconName } from "../../../shared/components/app-icon";
 import React, { useCallback, useState } from "react";
 import { Pressable, ScrollView, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -46,7 +47,7 @@ interface PricingCalculatorProps {
 
 function StepProgress({ current }: Readonly<{ current: number }>) {
   const { theme } = useTheme();
-  const border = theme.mode === "dark" ? "rgba(245,225,219,0.2)" : "rgba(74,50,40,0.2)";
+  const border = theme.colors.border;
   return (
     <View style={{ flexDirection: "row", alignItems: "center" }}>
       {Array.from({ length: TOTAL_STEPS }, (_, i) => {
@@ -59,7 +60,7 @@ function StepProgress({ current }: Readonly<{ current: number }>) {
               style={{
                 width: 34,
                 height: 34,
-                borderRadius: 17,
+                borderRadius: radii.full,
                 alignItems: "center",
                 justifyContent: "center",
                 backgroundColor: done || active ? theme.colors.primary : "transparent",
@@ -68,7 +69,7 @@ function StepProgress({ current }: Readonly<{ current: number }>) {
               }}
             >
               {done ? (
-                <Ionicons name="checkmark" size={18} color={theme.colors.textOnPrimary} />
+                <AppIcon name="checkmark" size={18} color={theme.colors.textOnPrimary} />
               ) : (
                 <Typography
                   variant="bodyBold"
@@ -126,7 +127,7 @@ function SubField({
   label,
   children,
 }: Readonly<{
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
   label: string;
   children: React.ReactNode;
 }>) {
@@ -137,14 +138,14 @@ function SubField({
         style={{
           width: 48,
           height: 48,
-          borderRadius: 24,
+          borderRadius: radii.full,
           borderWidth: 1,
           borderColor: `${theme.colors.primary}55`,
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <Ionicons name={icon} size={22} color={theme.colors.primary} />
+        <AppIcon name={icon} size={22} color={theme.colors.primary} />
       </View>
       <View style={{ flex: 1, gap: spacing.sm }}>
         <FieldLabel>{label}</FieldLabel>
@@ -214,7 +215,7 @@ function MoneyField({
           opacity: pressed ? 0.7 : 1,
         })}
       >
-        <Ionicons name="calculator-outline" size={22} color={theme.colors.primary} />
+        <AppIcon name="calculator-outline" size={22} color={theme.colors.primary} />
       </Pressable>
     </View>
   );
@@ -234,8 +235,7 @@ function Stepper({
   suffix: string;
 }>) {
   const { theme } = useTheme();
-  const isDark = theme.mode === "dark";
-  const btnBg = isDark ? "rgba(255,255,255,0.06)" : theme.colors.surface;
+  const btnBg = theme.colors.surface;
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
       <Pressable
@@ -252,7 +252,7 @@ function Stepper({
           opacity: pressed ? 0.7 : 1,
         })}
       >
-        <Ionicons name="remove" size={22} color={theme.colors.text} />
+        <AppIcon name="remove" size={22} color={theme.colors.text} />
       </Pressable>
       <View
         style={{
@@ -284,7 +284,7 @@ function Stepper({
           opacity: pressed ? 0.7 : 1,
         })}
       >
-        <Ionicons name="add" size={22} color={theme.colors.text} />
+        <AppIcon name="add" size={22} color={theme.colors.text} />
       </Pressable>
     </View>
   );
@@ -307,7 +307,7 @@ function ComputedCard({
   value,
   sublabel,
 }: Readonly<{
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
   label: string;
   value: string;
   sublabel?: string;
@@ -330,14 +330,14 @@ function ComputedCard({
         style={{
           width: 44,
           height: 44,
-          borderRadius: 22,
+          borderRadius: radii.full,
           borderWidth: 1,
           borderColor: `${theme.colors.success}66`,
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <Ionicons name={icon} size={22} color={theme.colors.success} />
+        <AppIcon name={icon} size={22} color={theme.colors.success} />
       </View>
       <View style={{ flex: 1 }}>
         <Typography variant="caption" color={theme.colors.success}>
@@ -374,7 +374,7 @@ function DicaBox({
         padding: spacing.md,
       }}
     >
-      <Ionicons
+      <AppIcon
         name={tone === "green" ? "checkmark-circle-outline" : "bulb-outline"}
         size={20}
         color={color}
@@ -620,14 +620,14 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
                     style={{
                       width: 64,
                       height: 64,
-                      borderRadius: 32,
+                      borderRadius: radii.full,
                       borderWidth: 1,
                       borderColor: `${theme.colors.primary}55`,
                       alignItems: "center",
                       justifyContent: "center",
                     }}
                   >
-                    <Ionicons
+                    <AppIcon
                       name="basket-outline"
                       size={30}
                       color={theme.colors.primary}
@@ -668,7 +668,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
               />
               {importedFromRecipe ? (
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                  <Ionicons
+                  <AppIcon
                     name="checkmark-circle"
                     size={16}
                     color={theme.colors.success}
@@ -702,14 +702,14 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
                       style={{
                         width: 64,
                         height: 64,
-                        borderRadius: 32,
+                        borderRadius: radii.full,
                         borderWidth: 1,
                         borderColor: `${theme.colors.primary}55`,
                         alignItems: "center",
                         justifyContent: "center",
                       }}
                     >
-                      <Ionicons
+                      <AppIcon
                         name="cube-outline"
                         size={30}
                         color={theme.colors.primary}
@@ -1060,7 +1060,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
                 opacity: pressed ? 0.7 : 1,
               })}
             >
-              <Ionicons name="arrow-back" size={20} color={theme.colors.primary} />
+              <AppIcon name="arrow-back" size={20} color={theme.colors.primary} />
               <Typography variant="bodyBold" color={theme.colors.primary}>
                 Voltar
               </Typography>
@@ -1083,13 +1083,13 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
             })}
           >
             {step === 5 ? (
-              <Ionicons name="stats-chart" size={20} color={theme.colors.textOnPrimary} />
+              <AppIcon name="stats-chart" size={20} color={theme.colors.textOnPrimary} />
             ) : null}
             <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
               {step === 5 ? "Ver resultado" : "Próximo"}
             </Typography>
             {step !== 5 ? (
-              <Ionicons
+              <AppIcon
                 name="arrow-forward"
                 size={20}
                 color={theme.colors.textOnPrimary}
@@ -1119,7 +1119,7 @@ function SummaryRow({
   valueColor,
   bold,
 }: Readonly<{
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
   iconColor: string;
   label: string;
   value: string;
@@ -1129,7 +1129,7 @@ function SummaryRow({
   const { theme } = useTheme();
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-      <Ionicons name={icon} size={20} color={iconColor} />
+      <AppIcon name={icon} size={20} color={iconColor} />
       <Typography
         variant={bold ? "bodyBold" : "body"}
         color={theme.colors.text}

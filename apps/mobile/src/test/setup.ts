@@ -21,6 +21,16 @@ vi.mock("react-native", () => ({
   TouchableOpacity: ({ children }: { children?: React.ReactNode }) => children,
   Image: () => null,
   ActivityIndicator: () => null,
+  Animated: {
+    View: ({ children }: { children?: React.ReactNode }) => children,
+    Value: class {
+      constructor(public _value: number) {}
+      setValue() {}
+    },
+    timing: () => ({ start: vi.fn(), stop: vi.fn() }),
+    sequence: () => ({}),
+    loop: () => ({ start: vi.fn(), stop: vi.fn() }),
+  },
   Switch: () => null,
   StyleSheet: { create: (s: unknown) => s },
   Dimensions: { get: () => ({ width: 375, height: 812 }) },
@@ -62,9 +72,37 @@ vi.mock("react-native-safe-area-context", () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
 
-// Mock @expo/vector-icons
-vi.mock("@expo/vector-icons", () => ({
-  Ionicons: () => null,
+// Mock lucide-react-native (ícones renderizados como null nos testes)
+const NullComponent = () => null;
+vi.mock(
+  "lucide-react-native",
+  () =>
+    new Proxy(
+      {},
+      {
+        get: (_target, prop) => (prop === "__esModule" ? true : NullComponent),
+      },
+    ),
+);
+
+// Mock react-native-svg (evita carregar código nativo nos testes)
+vi.mock("react-native-svg", () => ({
+  __esModule: true,
+  default: NullComponent,
+  Svg: NullComponent,
+  Path: NullComponent,
+  Circle: NullComponent,
+  Rect: NullComponent,
+  Defs: NullComponent,
+  LinearGradient: NullComponent,
+  Stop: NullComponent,
+  G: NullComponent,
+  SvgXml: NullComponent,
+}));
+
+// Mock AppIcon (camada de ícones do app)
+vi.mock("../shared/components/app-icon", () => ({
+  AppIcon: () => null,
 }));
 
 // Mock expo-modules-core (uses Flow types and __DEV__)
@@ -136,12 +174,14 @@ vi.mock("@lucro-caseiro/ui", () => ({
   Badge: () => null,
   EmptyState: () => null,
   ThemeProvider: ({ children }: { children?: React.ReactNode }) => children,
+  useReducedMotion: () => false,
   useTheme: () => ({
     theme: {
       colors: {
         background: "#1E1814",
         surface: "#2C2420",
         surfaceElevated: "#3A322D",
+        border: "#4A423C",
         text: "#F5EDE8",
         textSecondary: "#B8A9A0",
         textOnPrimary: "#FFFFFF",

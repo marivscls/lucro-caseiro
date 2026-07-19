@@ -1,6 +1,7 @@
 import React from "react";
 import { Pressable, View, type ViewStyle } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "./app-icon";
+import type { AppIconName } from "./app-icon";
 
 import {
   Badge,
@@ -26,7 +27,7 @@ interface ListCardProps {
   title: string;
   /** Texto auxiliar sob o título (contexto da lista). */
   subtitle?: string;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: AppIconName;
   /** Cor do ícone (padrão: primary). */
   iconColor?: string;
   /** Fundo do quadrado do ícone (padrão: primaryBg). */
@@ -60,7 +61,7 @@ function ListCardAction({ label, onAction }: Readonly<ListCardActionProps>) {
       <Typography variant="caption" color={theme.colors.primary}>
         {label}
       </Typography>
-      <Ionicons name="chevron-forward" size={18} color={theme.colors.primaryLight} />
+      <AppIcon name="chevron-forward" size={18} color={theme.colors.primaryLight} />
     </>
   );
   const rowStyle = {
@@ -107,7 +108,7 @@ export function ListCard({
               justifyContent: "center",
             }}
           >
-            <Ionicons name={icon} size={18} color={iconColor ?? theme.colors.primary} />
+            <AppIcon name={icon} size={18} color={iconColor ?? theme.colors.primary} />
           </View>
         ) : null}
         <View style={{ flex: 1, gap: spacing.xs }}>

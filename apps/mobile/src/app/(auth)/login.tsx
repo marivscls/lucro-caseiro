@@ -1,5 +1,13 @@
-import { Button, Input, Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import {
+  Button,
+  Input,
+  Typography,
+  useBrand,
+  useTheme,
+  radii,
+  spacing,
+} from "@lucro-caseiro/ui";
+import { AppIcon } from "../../shared/components/app-icon";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Image, Pressable, View } from "react-native";
@@ -15,10 +23,13 @@ import { alertError } from "../../shared/utils/alerts";
 import { showAlert } from "../../shared/components/alert-store";
 import { desktopContained } from "../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
-import authHouse from "../../assets/auth-house.png";
+import { getBrandDisplayName } from "../../shared/brand-name";
+import { brandLogoById } from "../../shared/brand-logo";
 
 export default function LoginScreen() {
   const { theme } = useTheme();
+  const brand = useBrand();
+  const brandName = getBrandDisplayName(brand);
   const isDesktop = useDesktopLayout();
   const router = useRouter();
   const { signInWithEmail, signInWithGoogle } = useAuth();
@@ -33,8 +44,7 @@ export default function LoginScreen() {
   const [emailSuggestion, setEmailSuggestion] = useState<string>();
   const [passwordError, setPasswordError] = useState<string>();
 
-  const isDark = theme.mode === "dark";
-  const cardBg = isDark ? "rgba(44, 36, 32, 0.92)" : theme.colors.surfaceElevated;
+  const cardBg = theme.colors.surfaceElevated;
   const cardBorder = theme.colors.border;
 
   function validateForm(): boolean {
@@ -144,7 +154,7 @@ export default function LoginScreen() {
         {/* Marca + boas-vindas */}
         <View style={{ alignItems: "center", gap: spacing.md }}>
           <Image
-            source={authHouse}
+            source={brandLogoById[brand.id]}
             resizeMode="contain"
             style={{ width: 112, height: 112 }}
           />
@@ -153,7 +163,7 @@ export default function LoginScreen() {
             color={theme.colors.primaryLight}
             style={{ letterSpacing: 3, textTransform: "uppercase" }}
           >
-            Lucro Caseiro
+            {brandName}
           </Typography>
           <Typography variant="display" style={{ textAlign: "center" }}>
             Que bom te ver!
@@ -182,7 +192,7 @@ export default function LoginScreen() {
             title="Entrar com Google"
             variant="secondary"
             size="lg"
-            icon={<Ionicons name="logo-google" size={20} color={theme.colors.text} />}
+            icon={<AppIcon name="logo-google" size={20} color={theme.colors.text} />}
             onPress={() => {
               void handleGoogleLogin();
             }}
@@ -255,7 +265,7 @@ export default function LoginScreen() {
                 paddingHorizontal: spacing.xs,
               }}
             >
-              <Ionicons
+              <AppIcon
                 name={showPassword ? "eye-off-outline" : "eye-outline"}
                 size={20}
                 color={theme.colors.primary}
@@ -274,7 +284,7 @@ export default function LoginScreen() {
             title="Entrar"
             size="lg"
             icon={
-              <Ionicons
+              <AppIcon
                 name="arrow-forward"
                 size={20}
                 color={theme.colors.textOnPrimary}

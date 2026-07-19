@@ -9,6 +9,7 @@ export const catalogSettings = pgTable(
       .primaryKey()
       .references(() => users.id, { onDelete: "cascade" }),
     slug: text("slug").notNull().unique(),
+    brandId: text("brand_id").notNull().default("lucro-caseiro"),
     enabled: boolean("enabled").notNull().default(false),
     // WhatsApp para receber pedidos; se null, usa users.phone.
     whatsapp: text("whatsapp"),

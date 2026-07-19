@@ -1,12 +1,13 @@
 import { Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "./app-icon";
+import type { AppIconName } from "./app-icon";
 import React, { useState } from "react";
 import { Pressable, View } from "react-native";
 
 interface FormSectionProps {
   readonly title: string;
   readonly subtitle?: string;
-  readonly icon?: keyof typeof Ionicons.glyphMap;
+  readonly icon?: AppIconName;
   readonly initiallyOpen?: boolean;
   readonly children: React.ReactNode;
 }
@@ -31,8 +32,7 @@ export function FormSection({
       style={{
         borderRadius: radii.xl,
         borderWidth: 1,
-        borderColor:
-          theme.mode === "dark" ? "rgba(245, 225, 219, 0.12)" : "rgba(74, 50, 40, 0.1)",
+        borderColor: theme.colors.border,
         backgroundColor: theme.colors.surfaceElevated,
         overflow: "hidden",
       }}
@@ -53,12 +53,12 @@ export function FormSection({
           },
         ]}
       >
-        {icon && <Ionicons name={icon} size={22} color={theme.colors.primary} />}
+        {icon && <AppIcon name={icon} size={22} color={theme.colors.primary} />}
         <View style={{ flex: 1 }}>
           <Typography variant="bodyBold">{title}</Typography>
           {subtitle ? <Typography variant="caption">{subtitle}</Typography> : null}
         </View>
-        <Ionicons
+        <AppIcon
           name={open ? "chevron-up" : "chevron-down"}
           size={20}
           color={theme.colors.textSecondary}

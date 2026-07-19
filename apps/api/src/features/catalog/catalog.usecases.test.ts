@@ -9,6 +9,7 @@ const USER_ID = "user-123";
 
 function makeSettings(overrides: Partial<CatalogSettings> = {}): CatalogSettings {
   return {
+    brandId: "lucro-caseiro",
     slug: "doces-da-maria",
     enabled: true,
     whatsapp: "11999998888",
@@ -43,6 +44,7 @@ function makeProduct(): PublicCatalogProduct {
     extraPhotos: [],
     salePrice: 12.5,
     saleUnit: "unit",
+    variations: [],
   };
 }
 

@@ -11,26 +11,73 @@ import { useDesktopLayout } from "../layout/use-desktop-layout";
 interface ResponsiveModalSurfaceProps {
   readonly children: React.ReactNode;
   readonly maxWidth?: number;
+  readonly size?: "full" | "hug";
 }
 
 /**
  * Mantém o modal como tela cheia no mobile e o transforma em uma superfície
  * centralizada no desktop. A contenção fica na raiz real do modal, não no
  * contentContainerStyle interno de um ScrollView.
+ *
+ * size="hug": a superfície abraça o conteúdo — bottom sheet no mobile,
+ * dialog centralizado no desktop — encolhendo quando o conteúdo é curto.
  */
 export function ResponsiveModalSurface({
   children,
   maxWidth = 1040,
+  size = "full",
 }: ResponsiveModalSurfaceProps) {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
+
+  if (size === "hug") {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: isDesktop ? "center" : "flex-end",
+          padding: isDesktop ? 24 : 0,
+          backgroundColor: theme.colors.overlay,
+        }}
+      >
+        <View
+          style={[
+            {
+              flexGrow: 0,
+              flexShrink: 1,
+              overflow: "hidden",
+              backgroundColor: theme.colors.surfaceElevated,
+            },
+            isDesktop
+              ? {
+                  alignSelf: "center",
+                  width: "100%",
+                  maxWidth,
+                  maxHeight: "85%",
+                  borderRadius: 24,
+                  borderWidth: 1,
+                  borderColor: theme.colors.border,
+                }
+              : {
+                  maxHeight: "92%",
+                  borderTopLeftRadius: 24,
+                  borderTopRightRadius: 24,
+                },
+            theme.shadows.lg,
+          ]}
+        >
+          {children}
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View
       style={{
         flex: 1,
         padding: isDesktop ? 24 : 0,
-        backgroundColor: isDesktop ? "rgba(45, 31, 25, 0.28)" : theme.colors.background,
+        backgroundColor: isDesktop ? theme.colors.overlay : theme.colors.background,
       }}
     >
       <View
@@ -53,6 +100,7 @@ export function ResponsiveModalSurface({
 
 interface ResponsiveModalProps extends ModalProps {
   readonly desktopMaxWidth?: number;
+  readonly size?: "full" | "hug";
 }
 
 /**
@@ -83,11 +131,12 @@ export function ResponsiveOverlayModal({
 export function ResponsiveModal({
   children,
   desktopMaxWidth = 1040,
+  size = "full",
   ...props
 }: Readonly<ResponsiveModalProps>) {
   return (
     <ResponsiveOverlayModal {...props}>
-      <ResponsiveModalSurface maxWidth={desktopMaxWidth}>
+      <ResponsiveModalSurface maxWidth={desktopMaxWidth} size={size}>
         {children}
       </ResponsiveModalSurface>
     </ResponsiveOverlayModal>

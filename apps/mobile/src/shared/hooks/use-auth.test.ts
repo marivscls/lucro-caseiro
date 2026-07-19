@@ -19,7 +19,7 @@ describe("getAuthRedirectUrl", () => {
     platform.OS = "web";
     vi.stubEnv("EXPO_PUBLIC_AUTH_REDIRECT_URL", "lucrocaseiro://auth/callback");
 
-    expect(getAuthRedirectUrl()).toBe(window.location.origin);
+    expect(getAuthRedirectUrl()).toBe(`${window.location.origin}/`);
   });
 
   it("mantem o deep link configurado no app nativo", () => {
@@ -43,7 +43,7 @@ describe("getAuthRedirectUrl", () => {
     expect(signInWithOAuth).toHaveBeenCalledWith({
       provider: "google",
       options: {
-        redirectTo: window.location.origin,
+        redirectTo: `${window.location.origin}/`,
         skipBrowserRedirect: false,
       },
     });

@@ -1,14 +1,19 @@
 import type { Order } from "@lucro-caseiro/contracts";
-import { Typography, fonts, radii, spacing, useTheme } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import {
+  Typography,
+  fontSizes,
+  fonts,
+  radii,
+  spacing,
+  useTheme,
+} from "@lucro-caseiro/ui";
+import { AppIcon } from "../../../shared/components/app-icon";
+import type { AppIconName } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
   Image,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
-  ScrollView,
   TextInput,
   View,
   type TextInputProps,
@@ -16,6 +21,7 @@ import {
 
 import { showAlert } from "../../../shared/components/alert-store";
 import { CalendarModal } from "../../../shared/components/calendar-modal";
+import { StandardModal } from "../../../shared/components/standard-modal";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import {
   brToIso,
@@ -28,7 +34,6 @@ import { uploadOrderImage } from "../../../shared/utils/upload-image";
 import { ClientPickerModal } from "../../clients/components/client-picker-modal";
 import { useCreateOrder, useDeleteOrder, useUpdateOrder } from "../hooks";
 import { FormSection } from "../../../shared/components/form-section";
-import { desktopAction, desktopContained } from "../../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { alertValidation } from "../../../shared/utils/alerts";
 import {
@@ -39,19 +44,20 @@ import {
 
 interface OrderFormProps {
   readonly order?: Order | null;
+  readonly visible: boolean;
+  readonly onClose: () => void;
   readonly onSuccess?: () => void;
 }
 
 // Paleta derivada do tema ativo (antes eram constantes fixas de dark, que
 // deixavam o formulario de encomenda com cores erradas no modo claro).
 function formPalette(theme: { mode: string; colors: Record<string, string> }) {
-  const isDark = theme.mode === "dark";
   return {
-    surface: isDark ? "rgba(44, 36, 32, 0.82)" : theme.colors.surfaceElevated,
-    panel: isDark ? "rgba(44, 36, 32, 0.6)" : theme.colors.surface,
+    surface: theme.colors.surfaceElevated,
+    panel: theme.colors.surface,
     border: theme.colors.border,
     muted: theme.colors.textSecondary,
-    subtleFill: isDark ? "rgba(245, 225, 219, 0.03)" : "rgba(74, 50, 40, 0.03)",
+    subtleFill: theme.colors.surface,
   };
 }
 
@@ -68,12 +74,14 @@ function offsetIsoBr(days: number): string {
 function Field({
   icon,
   trailingIcon,
+  trailingLabel,
   onTrailingPress,
   ...props
 }: Readonly<
   TextInputProps & {
-    icon: keyof typeof Ionicons.glyphMap;
-    trailingIcon?: keyof typeof Ionicons.glyphMap;
+    icon: AppIconName;
+    trailingIcon?: AppIconName;
+    trailingLabel?: string;
     onTrailingPress?: () => void;
   }
 >) {
@@ -96,7 +104,7 @@ function Field({
         gap: spacing.md,
       }}
     >
-      <Ionicons
+      <AppIcon
         name={icon}
         size={24}
         color={theme.colors.primaryLight}
@@ -120,11 +128,12 @@ function Field({
       {trailingIcon ? (
         <Pressable
           accessibilityRole="button"
+          accessibilityLabel={trailingLabel}
           onPress={onTrailingPress}
           disabled={!onTrailingPress}
           hitSlop={12}
         >
-          <Ionicons name={trailingIcon} size={24} color={theme.colors.primaryLight} />
+          <AppIcon name={trailingIcon} size={24} color={theme.colors.primaryLight} />
         </Pressable>
       ) : null}
     </View>
@@ -199,7 +208,7 @@ function ClientField({
         gap: spacing.md,
       }}
     >
-      <Ionicons name="person-outline" size={24} color={theme.colors.primaryLight} />
+      <AppIcon name="person-outline" size={24} color={theme.colors.primaryLight} />
       <Typography
         variant="body"
         color={clientName ? theme.colors.text : theme.colors.textSecondary}
@@ -209,11 +218,16 @@ function ClientField({
         {clientName || "Nenhum cliente selecionado"}
       </Typography>
       {clientName ? (
-        <Pressable accessibilityRole="button" onPress={onClear} hitSlop={12}>
-          <Ionicons name="close-circle" size={22} color={pal.muted} />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Remover cliente"
+          onPress={onClear}
+          hitSlop={12}
+        >
+          <AppIcon name="close-circle" size={22} color={pal.muted} />
         </Pressable>
       ) : null}
-      <Ionicons name="chevron-down" size={20} color={pal.muted} />
+      <AppIcon name="chevron-down" size={20} color={pal.muted} />
     </Pressable>
   );
 }
@@ -324,7 +338,7 @@ function PersonalizationFields({
                   style={{
                     width: 38,
                     height: 38,
-                    borderRadius: 19,
+                    borderRadius: radii.full,
                     backgroundColor: color.hex,
                     borderWidth: selected ? 3 : 1,
                     borderColor: selected ? theme.colors.primary : pal.border,
@@ -333,14 +347,14 @@ function PersonalizationFields({
                   }}
                 >
                   {selected ? (
-                    <Ionicons name="checkmark" size={20} color="#4A3228" />
+                    <AppIcon name="checkmark" size={20} color="#4A3228" />
                   ) : null}
                 </View>
                 <Typography
                   variant="caption"
                   color={selected ? theme.colors.text : pal.muted}
                   numberOfLines={1}
-                  style={{ fontSize: 11 }}
+                  style={{ fontSize: fontSizes.xs }}
                 >
                   {color.name}
                 </Typography>
@@ -353,7 +367,7 @@ function PersonalizationFields({
   );
 }
 
-export function OrderForm({ order, onSuccess }: OrderFormProps) {
+export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps) {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
   const pal = formPalette(theme);
@@ -491,45 +505,65 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
   }
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1 }}
+    <StandardModal
+      title={isEditing ? "Editar encomenda" : "Nova encomenda"}
+      visible={visible}
+      onClose={onClose}
+      footer={
+        <Pressable
+          disabled={isSaving}
+          onPress={() => {
+            void handleSave();
+          }}
+          accessibilityRole="button"
+          style={({ pressed }) => [
+            {
+              minHeight: 62,
+              borderRadius: radii.xl,
+              backgroundColor: theme.colors.primary,
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: "row",
+              gap: spacing.md,
+              opacity: pressed || isSaving ? 0.82 : 1,
+            },
+            { flex: 1 },
+          ]}
+        >
+          {isSaving ? (
+            <ActivityIndicator color={theme.colors.textOnPrimary} />
+          ) : (
+            <AppIcon
+              name="checkmark-circle"
+              size={25}
+              color={theme.colors.textOnPrimary}
+            />
+          )}
+          <Typography
+            variant="bodyBold"
+            color={theme.colors.textOnPrimary}
+            style={{ fontSize: 21 }}
+          >
+            {uploading ? "Enviando imagem..." : "Salvar encomenda"}
+          </Typography>
+        </Pressable>
+      }
     >
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[
-          {
-            padding: spacing.xl,
-            paddingTop: 0,
-            paddingBottom: spacing["2xl"],
-            gap: spacing.lg,
-          },
-          desktopContained(isDesktop),
-        ]}
-      >
+      <View style={{ flexShrink: 1, gap: spacing.lg }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.lg }}>
           <View
             style={{
               width: 64,
               height: 64,
               borderRadius: radii.lg,
-              backgroundColor: "rgba(196, 112, 126, 0.25)",
+              backgroundColor: theme.colors.primaryBg,
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Ionicons name="cube-outline" size={34} color={theme.colors.primaryLight} />
+            <AppIcon name="cube-outline" size={34} color={theme.colors.primaryLight} />
           </View>
           <View style={{ flex: 1, gap: spacing.xs }}>
-            <Typography
-              variant="display"
-              color={theme.colors.text}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.75}
-            >
-              {isEditing ? "Editar encomenda" : "Nova encomenda"}
-            </Typography>
             <Typography variant="body" color={pal.muted}>
               Preencha os dados da encomenda
             </Typography>
@@ -560,7 +594,7 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
                   backgroundColor: pal.subtleFill,
                   borderWidth: 1,
                   borderStyle: currentPhotoUrl ? "solid" : "dashed",
-                  borderColor: currentPhotoUrl ? pal.border : "rgba(184, 160, 144, 0.45)",
+                  borderColor: pal.border,
                   alignItems: "center",
                   justifyContent: "center",
                   overflow: "hidden",
@@ -573,7 +607,7 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
                     style={{ width: 96, height: 96 }}
                   />
                 ) : (
-                  <Ionicons
+                  <AppIcon
                     name="image-outline"
                     size={34}
                     color={theme.colors.primaryLight}
@@ -595,7 +629,7 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
                     opacity: pressed ? 0.82 : 1,
                   })}
                 >
-                  <Ionicons
+                  <AppIcon
                     name={
                       currentPhotoUrl ? "swap-horizontal-outline" : "cloud-upload-outline"
                     }
@@ -719,7 +753,7 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
                         backgroundColor: active ? theme.colors.primary : pal.surface,
                       }}
                     >
-                      <Ionicons
+                      <AppIcon
                         name={chip.icon}
                         size={21}
                         color={active ? theme.colors.textOnPrimary : pal.muted}
@@ -737,6 +771,7 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
               <Field
                 icon="calendar-outline"
                 trailingIcon="calendar-outline"
+                trailingLabel="Abrir calendário"
                 onTrailingPress={openDatePicker}
                 value={dateText}
                 onChangeText={(v) => setDateText(maskDateBR(v))}
@@ -830,43 +865,6 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
           </View>
         </View>
 
-        <Pressable
-          disabled={isSaving}
-          onPress={() => {
-            void handleSave();
-          }}
-          style={({ pressed }) => [
-            {
-              minHeight: 62,
-              borderRadius: radii.xl,
-              backgroundColor: theme.colors.primary,
-              alignItems: "center",
-              justifyContent: "center",
-              flexDirection: "row",
-              gap: spacing.md,
-              opacity: pressed || isSaving ? 0.82 : 1,
-            },
-            desktopAction(isDesktop, 240),
-          ]}
-        >
-          {isSaving ? (
-            <ActivityIndicator color={theme.colors.textOnPrimary} />
-          ) : (
-            <Ionicons
-              name="checkmark-circle"
-              size={25}
-              color={theme.colors.textOnPrimary}
-            />
-          )}
-          <Typography
-            variant="bodyBold"
-            color={theme.colors.textOnPrimary}
-            style={{ fontSize: 21 }}
-          >
-            {uploading ? "Enviando imagem..." : "Salvar encomenda"}
-          </Typography>
-        </Pressable>
-
         <View
           style={{
             flexDirection: "row",
@@ -875,12 +873,12 @@ export function OrderForm({ order, onSuccess }: OrderFormProps) {
             gap: spacing.sm,
           }}
         >
-          <Ionicons name="shield-checkmark-outline" size={17} color={pal.muted} />
+          <AppIcon name="shield-checkmark-outline" size={17} color={pal.muted} />
           <Typography variant="caption" color={pal.muted}>
             Seus dados estão seguros
           </Typography>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </View>
+    </StandardModal>
   );
 }

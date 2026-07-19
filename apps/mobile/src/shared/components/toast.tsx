@@ -1,5 +1,5 @@
 import { Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "./app-icon";
 import React, { useEffect, useRef } from "react";
 import { Animated, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -68,19 +68,15 @@ export function ToastHost() {
           flexDirection: "row",
           alignItems: "center",
           gap: spacing.sm,
-          backgroundColor: theme.mode === "dark" ? "#3a302b" : "#3d2b22",
+          backgroundColor: theme.colors.surfaceElevated,
           borderRadius: radii.full,
           paddingVertical: spacing.md,
           paddingHorizontal: spacing.xl,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.3,
-          shadowRadius: 12,
-          elevation: 6,
+          ...theme.shadows.md,
         }}
       >
-        <Ionicons name="checkmark-circle" size={20} color="#6BBF96" />
-        <Typography variant="bodyBold" color="#ffffff">
+        <AppIcon name="checkmark-circle" size={20} color={theme.colors.success} />
+        <Typography variant="bodyBold" color={theme.colors.text}>
           {message}
         </Typography>
       </View>

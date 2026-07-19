@@ -1,5 +1,7 @@
 import type { Quote } from "@lucro-caseiro/contracts";
+import { getActiveBrand } from "@lucro-caseiro/brands";
 
+import { getBrandDisplayName } from "../../shared/brand-name";
 import { exportHtmlPdf } from "../../shared/utils/export-html";
 import { playStoreUrl } from "../../shared/utils/store-link";
 
@@ -38,6 +40,7 @@ export function quoteNumber(quoteId: string): string {
 
 /** HTML do orçamento (A5) — mesma linguagem visual do recibo. */
 export function buildQuoteHtml(quote: Quote, business: QuoteBusiness): string {
+  const brandName = getBrandDisplayName(getActiveBrand());
   const rows = quote.items
     .map(
       (item) => `<tr>
@@ -130,8 +133,8 @@ export function buildQuoteHtml(quote: Quote, business: QuoteBusiness): string {
   ${notes}
 
   <footer>
-    Orçamento gerado pelo <strong>Lucro Caseiro</strong> · valores sujeitos a confirmação
-    <div class="brand-footer"><a href="${playStoreUrl("pdf")}">Feito com Lucro Caseiro</a></div>
+    Orçamento gerado pelo <strong>${escapeHtml(brandName)}</strong> · valores sujeitos a confirmação
+    <div class="brand-footer"><a href="${playStoreUrl("pdf")}">Feito com ${escapeHtml(brandName)}</a></div>
   </footer>
 </body>
 </html>`;

@@ -7,7 +7,8 @@ import {
   radii,
   spacing,
 } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "./app-icon";
+import type { AppIconName } from "./app-icon";
 import React from "react";
 import {
   TextInput,
@@ -57,7 +58,7 @@ export function FieldLabel({
 }
 
 export type TextFieldCardProps = Readonly<{
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
   inputStyle?: StyleProp<TextStyle>;
 }> &
   TextInputProps;
@@ -81,7 +82,7 @@ export function TextFieldCard({ icon, inputStyle, ...inputProps }: TextFieldCard
         gap: spacing.md,
       }}
     >
-      <Ionicons name={icon} size={iconSizes.sm} color={theme.colors.primary} />
+      <AppIcon name={icon} size={iconSizes.sm} color={theme.colors.primary} />
       <TextInput
         placeholderTextColor={pal.placeholder}
         style={[

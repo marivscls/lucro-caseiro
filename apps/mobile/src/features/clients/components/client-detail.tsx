@@ -9,8 +9,13 @@ import {
   radii,
 } from "@lucro-caseiro/ui";
 import React from "react";
-import { ActivityIndicator, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 
+import {
+  Skeleton,
+  SkeletonCard,
+  SkeletonList,
+} from "../../../shared/components/skeleton";
 import { openWhatsApp, waMessages } from "../../../shared/utils/whatsapp";
 import { useSales } from "../../sales/hooks";
 import { useClient } from "../hooks";
@@ -78,8 +83,10 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
+      <View style={{ flex: 1, padding: spacing.xl, gap: spacing.lg }}>
+        <Skeleton width={64} height={64} borderRadius={radii.full} />
+        <SkeletonCard lines={3} />
+        <SkeletonList rows={4} />
       </View>
     );
   }

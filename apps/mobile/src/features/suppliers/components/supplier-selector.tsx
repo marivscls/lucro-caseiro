@@ -1,5 +1,5 @@
 import { Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useMemo, useState } from "react";
 import { Pressable, ScrollView, TextInput, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -67,7 +67,7 @@ export function SupplierSelector({ value, onChange }: SupplierSelectorProps) {
           gap: spacing.md,
         }}
       >
-        <Ionicons name="business-outline" size={22} color={theme.colors.primary} />
+        <AppIcon name="business-outline" size={22} color={theme.colors.primary} />
         <Typography
           variant="body"
           color={selected ? theme.colors.text : pal.placeholder}
@@ -82,10 +82,10 @@ export function SupplierSelector({ value, onChange }: SupplierSelectorProps) {
             hitSlop={8}
             accessibilityLabel="Remover fornecedor"
           >
-            <Ionicons name="close-circle" size={20} color={theme.colors.textSecondary} />
+            <AppIcon name="close-circle" size={20} color={theme.colors.textSecondary} />
           </Pressable>
         ) : (
-          <Ionicons name="chevron-down" size={20} color={theme.colors.textSecondary} />
+          <AppIcon name="chevron-down" size={20} color={theme.colors.textSecondary} />
         )}
       </Pressable>
 
@@ -100,7 +100,7 @@ export function SupplierSelector({ value, onChange }: SupplierSelectorProps) {
           onPress={() => setOpen(false)}
           style={{
             flex: 1,
-            backgroundColor: "rgba(0,0,0,0.55)",
+            backgroundColor: theme.colors.overlay,
             justifyContent: isDesktop ? "center" : "flex-end",
             padding: isDesktop ? spacing.xl : 0,
           }}
@@ -138,7 +138,7 @@ export function SupplierSelector({ value, onChange }: SupplierSelectorProps) {
                 gap: spacing.sm,
               }}
             >
-              <Ionicons
+              <AppIcon
                 name="search-outline"
                 size={20}
                 color={theme.colors.textSecondary}
@@ -239,11 +239,7 @@ export function SupplierSelector({ value, onChange }: SupplierSelectorProps) {
                 opacity: pressed ? 0.7 : 1,
               })}
             >
-              <Ionicons
-                name="add-circle-outline"
-                size={22}
-                color={theme.colors.primary}
-              />
+              <AppIcon name="add-circle-outline" size={22} color={theme.colors.primary} />
               <Typography variant="bodyBold" color={theme.colors.primary}>
                 Cadastrar novo fornecedor
               </Typography>
@@ -277,7 +273,7 @@ export function SupplierSelector({ value, onChange }: SupplierSelectorProps) {
               hitSlop={10}
               style={{ minHeight: 44, justifyContent: "center" }}
             >
-              <Ionicons name="close" size={28} color={theme.colors.text} />
+              <AppIcon name="close" size={28} color={theme.colors.text} />
             </Pressable>
             <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
               Novo fornecedor

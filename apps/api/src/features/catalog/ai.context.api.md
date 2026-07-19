@@ -5,14 +5,15 @@
 ## Purpose
 
 Catálogo público compartilhável: uma página web (HTML servida pela própria API, sem
-infra extra) com os produtos ativos do usuário e botão de pedido via WhatsApp. O
-usuário ativa/desativa, escolhe o endereço (`slug`) e o WhatsApp de pedidos no app.
+infra extra) com os produtos ativos do usuário e botão de pedido via WhatsApp. Na
+marca Papelaria, também oferece carrinho com reserva de estoque. O usuário
+ativa/desativa, escolhe o endereço (`slug`) e o WhatsApp de pedidos no app.
 
 ## Non-goals
 
-- Não processa pedidos/pagamentos (o pedido acontece no WhatsApp).
+- Não processa pagamento online; na Papelaria o pedido vira reserva para recebimento no PDV.
 - Não gerencia produtos (feature `products`); apenas lê produtos ativos.
-- Não tem carrinho, estoque visível nem preços promocionais.
+- Não revela quantidade exata de estoque; informa apenas se uma variação está disponível.
 - Não tem SEO avançado/domínio próprio (futuro premium).
 
 ## Boundaries & Ownership
@@ -20,7 +21,7 @@ usuário ativa/desativa, escolhe o endereço (`slug`) e o WhatsApp de pedidos no
 - **Depende de**: `@lucro-caseiro/contracts` (CatalogSettings, UpdateCatalogSettings,
   PublicCatalog), `@lucro-caseiro/database/schema` (catalogSettings, products, users).
 - **Composição**: nenhuma injeção cross-feature; repo próprio lê `products`/`users`.
-- **Dependentes**: mobile feature `catalog`.
+- **Dependentes**: mobile feature `catalog` e API feature `retail` para reservas da Papelaria.
 
 ## Code pointers
 
@@ -34,6 +35,7 @@ usuário ativa/desativa, escolhe o endereço (`slug`) e o WhatsApp de pedidos no
 
 - `catalog_settings` (migration 011): `user_id` PK → users (cascade), `slug` UNIQUE,
   `enabled` (default false), `whatsapp` (nullable; fallback `users.phone`), `updated_at`.
+- `brand_id` (migration 040) identifica qual marca assina o catálogo e qual app recebe o link da loja.
 - Índice `idx_catalog_settings_slug` para lookup público por slug.
 - Lê `products` (`userId`, `isActive = true`) e `users` (businessName, name, phone).
 
@@ -85,9 +87,9 @@ invariants:
 
 ## Contracts (Zod/DTO)
 
-- `CatalogSettingsDto` — `{ slug, enabled, whatsapp, coverUrl, logoUrl, accentColor, pattern, tagline, promoBanner, updatedAt }`
+- `CatalogSettingsDto` — inclui `brandId`, slug, estado e personalização.
 - `UpdateCatalogSettingsDto` — `{ slug?, enabled?, whatsapp?, coverUrl?, logoUrl?, accentColor?, pattern?, tagline? (máx 120), promoBanner? (máx 60) }` (campos de personalização exigem Premium; slug validado por regex)
-- `PublicCatalogDto` — `{ businessName, whatsapp, coverUrl, logoUrl, accentColor, pattern, tagline, promoBanner, products[], totalProducts }`
+- `PublicCatalogDto` — inclui `brandId`; produtos expõem variações com `inStock`, sem quantidade/custo.
 
 ## Errors
 
@@ -144,6 +146,10 @@ invariants:
 - 2026-06-09: capa integrada ao hero — `cover_url` vira background do próprio hero com
   véu da cor por cima (gradiente com alpha), em vez de bloco separado; pattern é
   ignorado quando há capa (evita poluição visual).
+- 2026-07-19: catálogo passou a persistir a marca ativa, usar o app/Play Store correto
+  no rodapé e mostrar as variações disponíveis/esgotadas sem revelar quantidades.
+- 2026-07-19: o catálogo da Papelaria ganhou carrinho e criação pública de reserva por
+  quatro horas; preço e disponibilidade são recalculados no backend de varejo.
 - 2026-06-09: limite freemium — plano free exibe no máximo 3 produtos no catálogo
   público (reduzido de 5→3 em 2026-06-16; `totalProducts` no DTO traz o total real; página mostra "Mostrando X de Y").
   Rodapé ganhou a logo do app embutida em base64 (`catalog-logo.ts`).

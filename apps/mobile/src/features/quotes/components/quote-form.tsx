@@ -1,13 +1,11 @@
 import type { CreateQuote, Quote, QuoteItem } from "@lucro-caseiro/contracts";
 import { Button, Input, Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
 import { Pressable, View } from "react-native";
 
 import { showAlert } from "../../../shared/components/alert-store";
-import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
-import { desktopAction, desktopContained } from "../../../shared/layout/desktop-density";
-import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+import { StandardModal } from "../../../shared/components/standard-modal";
 import { showToast } from "../../../shared/components/toast";
 import { formatCurrency } from "../../../shared/utils/format";
 import { ClientPickerModal } from "../../clients/components/client-picker-modal";
@@ -28,6 +26,8 @@ interface ItemDraft {
 
 interface QuoteFormProps {
   readonly quote?: Quote;
+  readonly visible: boolean;
+  readonly onClose: () => void;
   readonly onSuccess?: () => void;
 }
 
@@ -55,9 +55,8 @@ function brToIso(value: string): string | null {
   return m ? `${m[3]}-${m[2]}-${m[1]}` : null;
 }
 
-export function QuoteForm({ quote, onSuccess }: QuoteFormProps) {
+export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps) {
   const { theme } = useTheme();
-  const isDesktop = useDesktopLayout();
   const createQuote = useCreateQuote();
   const updateQuote = useUpdateQuote();
   const [title, setTitle] = useState(quote?.title ?? "");
@@ -151,147 +150,142 @@ export function QuoteForm({ quote, onSuccess }: QuoteFormProps) {
   }
 
   return (
-    <KeyboardAwareScrollView
-      contentContainerStyle={[
-        {
-          padding: spacing.xl,
-          paddingBottom: spacing["3xl"],
-          gap: spacing.lg,
-        },
-        desktopContained(isDesktop, 960),
-      ]}
+    <StandardModal
+      title={quote ? "Editar orçamento" : "Novo orçamento"}
+      visible={visible}
+      onClose={onClose}
+      footer={
+        <Button
+          title={quote ? "Salvar alterações" : "Criar orçamento"}
+          size="lg"
+          onPress={() => void handleSave()}
+          loading={isSaving}
+          style={{ flex: 1 }}
+        />
+      }
     >
-      <Input
-        label="Título"
-        placeholder="Ex.: Kit festa Safari"
-        value={title}
-        onChangeText={setTitle}
-      />
-      <Input
-        label="Cliente (opcional)"
-        placeholder="Nome de quem pediu o orçamento"
-        value={clientName}
-        onChangeText={(value) => {
-          setClientId(null);
-          setClientName(value);
-        }}
-      />
-      <Button
-        title={clientId ? "Trocar cliente cadastrado" : "Selecionar cliente cadastrado"}
-        variant="outline"
-        icon={<Ionicons name="person-outline" size={20} color={theme.colors.primary} />}
-        onPress={() => setShowClientPicker(true)}
-      />
-      <ClientPickerModal
-        visible={showClientPicker}
-        onClose={() => setShowClientPicker(false)}
-        onSelect={(client) => {
-          setClientId(client?.id ?? null);
-          setClientName(client?.name ?? "");
-        }}
-      />
+      <View style={{ flexShrink: 1, gap: spacing.lg }}>
+        <Input
+          label="Título"
+          placeholder="Ex.: Kit festa Safari"
+          value={title}
+          onChangeText={setTitle}
+        />
+        <Input
+          label="Cliente (opcional)"
+          placeholder="Nome de quem pediu o orçamento"
+          value={clientName}
+          onChangeText={(value) => {
+            setClientId(null);
+            setClientName(value);
+          }}
+        />
+        <Button
+          title={clientId ? "Trocar cliente cadastrado" : "Selecionar cliente cadastrado"}
+          variant="outline"
+          icon={<AppIcon name="person-outline" size={20} color={theme.colors.primary} />}
+          onPress={() => setShowClientPicker(true)}
+        />
+        <ClientPickerModal
+          visible={showClientPicker}
+          onClose={() => setShowClientPicker(false)}
+          onSelect={(client) => {
+            setClientId(client?.id ?? null);
+            setClientName(client?.name ?? "");
+          }}
+        />
 
-      <Typography variant="h3">Itens</Typography>
-      {items.map((item, index) => (
+        <Typography variant="h3">Itens</Typography>
+        {items.map((item, index) => (
+          <View
+            key={index}
+            style={{
+              gap: spacing.sm,
+              borderRadius: radii.xl,
+              borderWidth: 1,
+              borderColor: theme.colors.border,
+              padding: spacing.md,
+            }}
+          >
+            <Input
+              placeholder={`Item ${index + 1}, ex.: Convite personalizado`}
+              value={item.description}
+              onChangeText={(v) => setItem(index, { description: v })}
+            />
+            <View style={{ flexDirection: "row", gap: spacing.sm, alignItems: "center" }}>
+              <Input
+                placeholder="Qtd."
+                value={item.quantity}
+                onChangeText={(v) => setItem(index, { quantity: v })}
+                keyboardType="decimal-pad"
+                containerStyle={{ flex: 1 }}
+              />
+              <Input
+                placeholder="Preço un."
+                value={item.unitPrice}
+                onChangeText={(v) => setItem(index, { unitPrice: maskCurrencyInput(v) })}
+                keyboardType="numeric"
+                containerStyle={{ flex: 1.4 }}
+              />
+              <Pressable
+                onPress={() => removeItem(index)}
+                accessibilityRole="button"
+                accessibilityLabel={`Remover item ${index + 1}`}
+                disabled={items.length === 1}
+                style={{
+                  width: 48,
+                  height: 48,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  opacity: items.length === 1 ? 0.35 : 1,
+                }}
+              >
+                <AppIcon name="trash-outline" size={22} color={theme.colors.alert} />
+              </Pressable>
+            </View>
+          </View>
+        ))}
+
+        <Button
+          title="Adicionar item"
+          variant="outline"
+          icon={<AppIcon name="add" size={20} color={theme.colors.primary} />}
+          onPress={addItem}
+        />
+
         <View
-          key={index}
           style={{
-            gap: spacing.sm,
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            backgroundColor: theme.colors.successBg,
             borderRadius: radii.xl,
-            borderWidth: 1,
-            borderColor:
-              theme.mode === "dark"
-                ? "rgba(245, 225, 219, 0.12)"
-                : "rgba(74, 50, 40, 0.1)",
-            padding: spacing.md,
+            padding: spacing.lg,
           }}
         >
-          <Input
-            placeholder={`Item ${index + 1}, ex.: Convite personalizado`}
-            value={item.description}
-            onChangeText={(v) => setItem(index, { description: v })}
-          />
-          <View style={{ flexDirection: "row", gap: spacing.sm, alignItems: "center" }}>
-            <Input
-              placeholder="Qtd."
-              value={item.quantity}
-              onChangeText={(v) => setItem(index, { quantity: v })}
-              keyboardType="decimal-pad"
-              containerStyle={{ flex: 1 }}
-            />
-            <Input
-              placeholder="Preço un."
-              value={item.unitPrice}
-              onChangeText={(v) => setItem(index, { unitPrice: maskCurrencyInput(v) })}
-              keyboardType="numeric"
-              containerStyle={{ flex: 1.4 }}
-            />
-            <Pressable
-              onPress={() => removeItem(index)}
-              accessibilityRole="button"
-              accessibilityLabel={`Remover item ${index + 1}`}
-              disabled={items.length === 1}
-              style={{
-                width: 48,
-                height: 48,
-                alignItems: "center",
-                justifyContent: "center",
-                opacity: items.length === 1 ? 0.35 : 1,
-              }}
-            >
-              <Ionicons name="trash-outline" size={22} color={theme.colors.alert} />
-            </Pressable>
-          </View>
+          <Typography variant="bodyBold">Total do orçamento</Typography>
+          <Typography variant="h2" color={theme.colors.success}>
+            {formatCurrency(total)}
+          </Typography>
         </View>
-      ))}
 
-      <Button
-        title="Adicionar item"
-        variant="outline"
-        icon={<Ionicons name="add" size={20} color={theme.colors.primary} />}
-        onPress={addItem}
-      />
-
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          backgroundColor: theme.colors.successBg,
-          borderRadius: radii.xl,
-          padding: spacing.lg,
-        }}
-      >
-        <Typography variant="bodyBold">Total do orçamento</Typography>
-        <Typography variant="h2" color={theme.colors.success}>
-          {formatCurrency(total)}
-        </Typography>
+        <Input
+          label="Válido até (opcional)"
+          placeholder="DD/MM/AAAA"
+          value={validUntil}
+          onChangeText={(v) => setValidUntil(maskDateBR(v))}
+          keyboardType="number-pad"
+        />
+        <Input
+          label="Observações (opcional)"
+          placeholder="Condições, prazo de produção, retirada..."
+          value={notes}
+          onChangeText={setNotes}
+          multiline
+          numberOfLines={3}
+          style={{ height: 80, textAlignVertical: "top", paddingTop: 12 }}
+        />
       </View>
-
-      <Input
-        label="Válido até (opcional)"
-        placeholder="DD/MM/AAAA"
-        value={validUntil}
-        onChangeText={(v) => setValidUntil(maskDateBR(v))}
-        keyboardType="number-pad"
-      />
-      <Input
-        label="Observações (opcional)"
-        placeholder="Condições, prazo de produção, retirada..."
-        value={notes}
-        onChangeText={setNotes}
-        multiline
-        numberOfLines={3}
-        style={{ height: 80, textAlignVertical: "top", paddingTop: 12 }}
-      />
-
-      <Button
-        title={quote ? "Salvar alterações" : "Criar orçamento"}
-        size="lg"
-        onPress={() => void handleSave()}
-        loading={isSaving}
-        style={desktopAction(isDesktop)}
-      />
-    </KeyboardAwareScrollView>
+    </StandardModal>
   );
 }

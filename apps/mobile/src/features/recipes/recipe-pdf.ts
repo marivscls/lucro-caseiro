@@ -1,5 +1,7 @@
 import type { Recipe } from "@lucro-caseiro/contracts";
+import { getActiveBrand } from "@lucro-caseiro/brands";
 
+import { getBrandDisplayName } from "../../shared/brand-name";
 import { exportHtmlPdf } from "../../shared/utils/export-html";
 import { formatCurrency } from "../../shared/utils/format";
 import { playStoreUrl } from "../../shared/utils/store-link";
@@ -23,6 +25,7 @@ function formatQuantity(value: number): string {
  * ingredientes, custos e modo de preparo. Conteúdo em pt-BR.
  */
 export function buildRecipeHtml(recipe: Recipe): string {
+  const brandName = getBrandDisplayName(getActiveBrand());
   const ingredientRows = recipe.ingredients
     .map(
       (ing) =>
@@ -110,7 +113,7 @@ export function buildRecipeHtml(recipe: Recipe): string {
 
   ${instructions}
 
-  <div class="brand-footer"><a href="${playStoreUrl("pdf")}">Feito com Lucro Caseiro</a></div>
+  <div class="brand-footer"><a href="${playStoreUrl("pdf")}">Feito com ${escapeHtml(brandName)}</a></div>
 </body>
 </html>`;
 }

@@ -1,10 +1,11 @@
+import { getActiveBrand } from "@lucro-caseiro/brands";
 import type { LabelData } from "@lucro-caseiro/contracts";
 
+import { getBrandDisplayName } from "../../shared/brand-name";
 import { showAlert } from "../../shared/components/alert-store";
 import { exportHtmlPdf } from "../../shared/utils/export-html";
 import { resolveLabelStyle } from "./components/label-preview";
 import { isoToBR } from "./dates";
-import { NUTRITION_FIELDS, hasNutrition } from "./nutrition";
 import { buildQrSvg } from "./qr";
 
 function escapeHtml(value: string): string {
@@ -17,7 +18,7 @@ function escapeHtml(value: string): string {
 
 function dateBlock(label: string, value?: string): string {
   if (!value?.trim()) return "";
-  return `<div><div class="label">${label}</div><div class="value">${escapeHtml(value)}</div></div>`;
+  return `<div class="date"><strong>${label}</strong><span>${escapeHtml(isoToBR(value))}</span></div>`;
 }
 
 function textLine(value: string | undefined, className?: string): string {
@@ -26,63 +27,44 @@ function textLine(value: string | undefined, className?: string): string {
   return `<div${cls}>${escapeHtml(value)}</div>`;
 }
 
-/** Conteúdo interno do card do rótulo (sem o wrapper `.label-card`). */
 function buildLabelCard(
   data: LabelData,
   logoUrl?: string | null,
   qrUrl?: string | null,
 ): string {
+  const brandName = getBrandDisplayName(getActiveBrand());
   const logo = logoUrl ? `<img class="logo" src="${escapeHtml(logoUrl)}" />` : "";
-  const qr = qrUrl ? `<div class="qr">${buildQrSvg(qrUrl)}</div>` : "";
-
-  let ingredients = "";
-  if (data.ingredients?.trim()) {
-    ingredients = `<div class="block">
-        <div class="label">Ingredientes:</div>
-        <div class="value">${escapeHtml(data.ingredients)}</div>
-      </div>`;
-  }
-
-  let dates = "";
-  if (data.manufacturingDate?.trim() || data.expirationDate?.trim()) {
-    dates = `<div class="dates">
-          ${dateBlock("Fabricação", isoToBR(data.manufacturingDate))}
-          ${dateBlock("Validade", isoToBR(data.expirationDate))}
-        </div>`;
-  }
-
-  let nutrition = "";
-  if (hasNutrition(data.nutrition)) {
-    const rows = NUTRITION_FIELDS.filter((f) => data.nutrition?.[f.key]?.trim())
-      .map(
-        (f) =>
-          `<tr><td>${f.label}</td><td class="v">${escapeHtml(
-            data.nutrition?.[f.key] ?? "",
-          )}</td></tr>`,
-      )
-      .join("");
-    nutrition = `<div class="nutrition"><div class="nutrition-title">Informação nutricional</div><table>${rows}</table></div>`;
-  }
-
-  let producer = "";
-  if (data.producerName?.trim() || data.producerPhone?.trim()) {
-    producer = `<div class="producer">
-          ${textLine(data.producerName)}
-          ${textLine(data.producerPhone, "phone")}
-        </div>`;
-  }
+  const note = data.note?.trim()
+    ? `<div class="note">${escapeHtml(data.note)}</div>`
+    : "";
+  const dates =
+    data.manufacturingDate?.trim() || data.expirationDate?.trim()
+      ? `<div class="dates">
+        ${dateBlock("Feito em", data.manufacturingDate)}
+        ${dateBlock("Validade", data.expirationDate)}
+      </div>`
+      : "";
+  const producer =
+    data.producerName?.trim() || data.producerPhone?.trim()
+      ? `<div class="producer">
+        ${textLine(data.producerName, "producer-name")}
+        ${textLine(data.producerPhone)}
+      </div>`
+      : "";
+  const qr = qrUrl
+    ? `<div class="qr">${buildQrSvg(qrUrl)}<div>Veja no catálogo</div></div>`
+    : "";
 
   return `${logo}
     <div class="title">${escapeHtml(data.productName || "Produto")}</div>
-    ${ingredients}
-    ${nutrition}
+    ${note}
     ${dates}
     ${producer}
     ${qr}
-    <div class="brand-credit">Lucro Caseiro</div>`;
+    <div class="brand-credit">Feito com ${escapeHtml(brandName)}</div>`;
 }
 
-function buildLabelHtml(
+export function buildLabelHtml(
   data: LabelData,
   templateId: string,
   logoUrl?: string | null,
@@ -97,9 +79,8 @@ function buildLabelHtml(
   const card = buildLabelCard(data, logoUrl, qrUrl);
   const cards = `<div class="label-card">${card}</div>`.repeat(count);
   const sheet = count > 1;
-  // Etiqueta única fica maior pra aproveitar a folha A4 (a folha cheia já usa 2 colunas).
-  const scale = sheet ? 1 : 1.4;
-  const sz = (n: number) => Math.round(n * scale);
+  const scale = sheet ? 1 : 1.35;
+  const size = (value: number) => Math.round(value * scale);
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -122,91 +103,70 @@ function buildLabelHtml(
     }
     .label-card {
       width: ${sheet ? "47%" : "460px"};
+      min-height: ${sheet ? "160px" : "240px"};
       break-inside: avoid;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       background: ${style.bg};
       border: ${borderCss};
       border-radius: ${radiusCss};
-      padding: ${sz(24)}px;
+      padding: ${size(22)}px;
       color: ${style.accent};
+      text-align: center;
     }
     .logo {
-      display: block;
-      width: ${sz(64)}px;
-      height: ${sz(64)}px;
+      width: ${size(58)}px;
+      height: ${size(58)}px;
       object-fit: contain;
-      margin: 0 auto ${sz(18)}px;
+      margin-bottom: ${size(12)}px;
       border-radius: 8px;
     }
     .title {
-      text-align: center;
-      font-size: ${sz(24)}px;
+      font-size: ${size(24)}px;
       font-weight: 700;
-      margin: 0 0 ${sz(16)}px;
+      line-height: 1.15;
     }
-    .block { margin-bottom: ${sz(12)}px; }
-    .label { font-size: ${sz(12)}px; font-weight: 700; }
-    .value { font-size: ${sz(12)}px; line-height: 1.4; }
+    .note {
+      margin-top: ${size(8)}px;
+      font-size: ${size(12)}px;
+      line-height: 1.35;
+    }
     .dates {
       display: flex;
-      justify-content: space-between;
-      gap: ${sz(16)}px;
-      margin-bottom: ${sz(12)}px;
+      justify-content: center;
+      gap: ${size(28)}px;
+      margin-top: ${size(12)}px;
     }
+    .date { display: flex; flex-direction: column; font-size: ${size(11)}px; }
     .producer {
+      width: 100%;
       border-top: 1px solid ${style.border};
-      padding-top: ${sz(12)}px;
-      margin-top: ${sz(6)}px;
-      text-align: center;
-      font-size: ${sz(13)}px;
+      padding-top: ${size(10)}px;
+      margin-top: ${size(12)}px;
+      font-size: ${size(11)}px;
     }
-    .producer .phone { font-size: ${sz(12)}px; }
-    .nutrition {
-      border: 1px solid ${style.accent};
-      border-radius: 8px;
-      padding: ${sz(8)}px ${sz(10)}px;
-      margin-bottom: ${sz(12)}px;
-    }
-    .nutrition-title { font-size: ${sz(12)}px; font-weight: 700; margin-bottom: 4px; }
-    .nutrition table { width: 100%; border-collapse: collapse; }
-    .nutrition td { font-size: ${sz(11)}px; padding: 1px 0; }
-    .nutrition td.v { text-align: right; font-weight: 700; }
-    .qr {
-      margin-top: ${sz(12)}px;
-      text-align: center;
-    }
-    .qr svg {
-      width: ${sz(96)}px;
-      height: ${sz(96)}px;
-    }
-    .brand-credit {
-      margin-top: ${sz(8)}px;
-      text-align: center;
-      font-size: ${sz(8)}px;
-      opacity: 0.45;
-    }
+    .producer-name { font-weight: 700; }
+    .qr { margin-top: ${size(10)}px; font-size: ${size(9)}px; }
+    .qr svg { width: ${size(68)}px; height: ${size(68)}px; }
+    .brand-credit { margin-top: ${size(8)}px; font-size: ${size(8)}px; opacity: 0.45; }
   </style>
 </head>
-<body>
-  ${cards}
-</body>
+<body>${cards}</body>
 </html>`;
 }
 
-/** Nome de arquivo amigável a partir do nome do produto (sem acento/símbolo). */
 function labelFileName(productName?: string): string {
   const slug = (productName ?? "")
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "") // remove acentos (combining marks)
+    .replace(/[̀-ͯ]/g, "")
     .replace(/[^a-zA-Z0-9]+/g, "-")
     .replace(/^-|-$/g, "")
     .toLowerCase();
-  return `rotulo-${slug || "produto"}.pdf`;
+  return `etiqueta-${slug || "produto"}.pdf`;
 }
 
-/**
- * Gera um PDF do rotulo e abre a folha de compartilhamento do sistema
- * (salvar em Arquivos, enviar no WhatsApp, imprimir, etc).
- */
 export async function exportLabelPdf(
   data: LabelData,
   templateId: string,
@@ -216,18 +176,28 @@ export async function exportLabelPdf(
 ): Promise<void> {
   const html = buildLabelHtml(data, templateId, logoUrl, qrUrl, copies);
   await exportHtmlPdf(html, {
-    dialogTitle: "Baixar ou compartilhar rótulo",
+    dialogTitle: "Baixar ou compartilhar etiqueta",
     filename: labelFileName(data.productName),
   });
 }
 
 const SHEET_COPIES = 8;
 
-/**
- * Pergunta se quer 1 etiqueta ou uma folha cheia e gera o PDF correspondente.
- * Resolve ao concluir/cancelar; rejeita em erro real (caller mostra o aviso).
- */
-export function exportLabelPdfWithChoice(
+function confirmLabelResponsibility(): Promise<boolean> {
+  return new Promise((resolve) => {
+    showAlert({
+      title: "Confira antes de imprimir",
+      message:
+        "Esta é uma etiqueta de identificação e não substitui a rotulagem obrigatória quando aplicável. Confira o nome, as datas e a observação.",
+      buttons: [
+        { text: "Voltar e revisar", style: "cancel", onPress: () => resolve(false) },
+        { text: "Continuar", onPress: () => resolve(true) },
+      ],
+    });
+  });
+}
+
+function chooseLabelCopies(
   data: LabelData,
   templateId: string,
   logoUrl?: string | null,
@@ -235,7 +205,7 @@ export function exportLabelPdfWithChoice(
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     showAlert({
-      title: "Baixar rótulo",
+      title: "Baixar etiqueta",
       message: "Quantas etiquetas no PDF?",
       buttons: [
         {
@@ -257,4 +227,15 @@ export function exportLabelPdfWithChoice(
       ],
     });
   });
+}
+
+export async function exportLabelPdfWithChoice(
+  data: LabelData,
+  templateId: string,
+  logoUrl?: string | null,
+  qrUrl?: string | null,
+): Promise<void> {
+  const confirmed = await confirmLabelResponsibility();
+  if (!confirmed) return;
+  await chooseLabelCopies(data, templateId, logoUrl, qrUrl);
 }

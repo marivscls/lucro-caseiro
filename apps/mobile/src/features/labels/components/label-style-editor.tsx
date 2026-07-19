@@ -1,6 +1,6 @@
 import type { LabelStyle } from "@lucro-caseiro/contracts";
-import { Badge, Typography, useTheme, spacing } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { Badge, Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
+import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
 import { Pressable, View } from "react-native";
 
@@ -53,11 +53,11 @@ function Pill({ label, selected, onPress }: PillProps) {
       style={{
         minHeight: 44,
         paddingHorizontal: spacing.lg,
-        borderRadius: 999,
+        borderRadius: radii.full,
         justifyContent: "center",
         backgroundColor: selected ? theme.colors.primary : theme.colors.surface,
         borderWidth: 1,
-        borderColor: selected ? theme.colors.primary : "rgba(128, 99, 84, 0.25)",
+        borderColor: selected ? theme.colors.primary : theme.colors.border,
       }}
     >
       <Typography
@@ -109,10 +109,10 @@ export function LabelStyleEditor({
       <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
         <Typography variant="caption" style={{ flex: 1 }}>
           {locked
-            ? "Veja como seu rótulo pode ficar. Desbloqueie com o Profissional."
-            : "Deixe o rótulo com a sua cara ou mantenha o visual do modelo."}
+            ? "Veja como sua etiqueta pode ficar. Desbloqueie com o Profissional."
+            : "Deixe a etiqueta com a sua cara ou mantenha o visual do modelo."}
         </Typography>
-        {locked && <Ionicons name="lock-closed" size={16} color={theme.colors.premium} />}
+        {locked && <AppIcon name="lock-closed" size={16} color={theme.colors.premium} />}
         <Badge label="Profissional" variant="premium" />
       </View>
 
@@ -130,7 +130,7 @@ export function LabelStyleEditor({
                 style={{
                   width: 44,
                   height: 44,
-                  borderRadius: 22,
+                  borderRadius: radii.full,
                   backgroundColor: color,
                   borderWidth: selected ? 3 : 0,
                   borderColor: theme.colors.text,
@@ -138,7 +138,7 @@ export function LabelStyleEditor({
                   justifyContent: "center",
                 }}
               >
-                {selected && <Ionicons name="checkmark" size={20} color="#fff" />}
+                {selected && <AppIcon name="checkmark" size={20} color="#fff" />}
               </Pressable>
             );
           })}
@@ -152,16 +152,16 @@ export function LabelStyleEditor({
             style={{
               width: 44,
               height: 44,
-              borderRadius: 22,
+              borderRadius: radii.full,
               backgroundColor: isCustomAccent ? style.accentColor : theme.colors.surface,
               borderWidth: isCustomAccent ? 3 : 1.5,
               borderStyle: isCustomAccent ? "solid" : "dashed",
-              borderColor: isCustomAccent ? theme.colors.text : "rgba(128, 99, 84, 0.4)",
+              borderColor: isCustomAccent ? theme.colors.text : theme.colors.border,
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Ionicons
+            <AppIcon
               name={isCustomAccent ? "checkmark" : "add"}
               size={22}
               color={isCustomAccent ? "#fff" : theme.colors.primaryLight}

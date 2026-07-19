@@ -146,8 +146,10 @@ export class ProductsUseCases {
       description: merged.description ?? undefined,
       photoUrl: merged.photoUrl ?? undefined,
       recipeId: merged.recipeId ?? undefined,
+      costPrice: merged.costPrice ?? undefined,
       stockQuantity: merged.stockQuantity ?? undefined,
       stockAlertThreshold: merged.stockAlertThreshold ?? undefined,
+      variations: data.variations ?? existing.variations,
     });
 
     if (errors.length > 0) {

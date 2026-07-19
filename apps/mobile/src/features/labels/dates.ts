@@ -1,2 +1,2 @@
-// Datas dos rótulos reutilizam os helpers compartilhados (fonte única).
-export { addDaysToBR, brToIso, isoToBR, maskDateBR } from "../../shared/utils/date";
+// Datas das etiquetas reutilizam os helpers compartilhados (fonte única).
+export { brToIso, isoToBR } from "../../shared/utils/date";

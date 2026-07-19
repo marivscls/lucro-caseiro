@@ -9,18 +9,10 @@ import {
   spacing,
   radii,
 } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../shared/components/app-icon";
 import { Stack } from "expo-router";
 import React, { useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  Pressable,
-  ScrollView,
-  Share,
-  TextInput,
-  View,
-} from "react-native";
+import { Image, Pressable, ScrollView, Share, TextInput, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { MaterialCard } from "../features/materials/components/material-card";
@@ -31,59 +23,9 @@ import materialsEmpty from "../assets/materials-empty.png";
 import { useNotificationEnabled } from "../shared/hooks/notification-prefs";
 import { NOTIFICATION_TYPES } from "../shared/hooks/notification-types";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
-import {
-  ResponsiveModalSurface,
-  ResponsiveOverlayModal,
-} from "../shared/components/responsive-modal-surface";
 import { ScreenHeader } from "../shared/components/screen-header";
-
-function FormModalHeader({
-  title,
-  onClose,
-}: Readonly<{ title: string; onClose: () => void }>) {
-  const { theme } = useTheme();
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        paddingHorizontal: spacing.xl,
-        paddingTop: spacing.md,
-        paddingBottom: spacing.md,
-        gap: spacing.md,
-      }}
-    >
-      <Pressable
-        onPress={onClose}
-        accessibilityRole="button"
-        accessibilityLabel="Voltar"
-        hitSlop={10}
-        style={{ minHeight: 44, justifyContent: "center" }}
-      >
-        <Ionicons name="arrow-back" size={28} color={theme.colors.text} />
-      </Pressable>
-      <Typography
-        variant="h1"
-        color={theme.colors.text}
-        numberOfLines={1}
-        style={{ flex: 1 }}
-      >
-        {title}
-      </Typography>
-      <Pressable
-        onPress={onClose}
-        accessibilityRole="button"
-        accessibilityLabel="Fechar"
-        hitSlop={10}
-        style={{ minHeight: 44, justifyContent: "center" }}
-      >
-        <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-          Fechar
-        </Typography>
-      </Pressable>
-    </View>
-  );
-}
+import { SkeletonList } from "../shared/components/skeleton";
+import { FeatureRouteGuard } from "../shared/components/feature-route-guard";
 
 function LowStockBanner() {
   const { theme } = useTheme();
@@ -120,7 +62,7 @@ function LowStockBanner() {
           justifyContent: "center",
         }}
       >
-        <Ionicons name="alert-circle" size={24} color={theme.colors.alert} />
+        <AppIcon name="alert-circle" size={24} color={theme.colors.alert} />
       </View>
       <View style={{ flex: 1 }}>
         <Typography variant="bodyBold" color={theme.colors.alert}>
@@ -147,7 +89,7 @@ function LowStockBanner() {
           borderColor: `${theme.colors.primaryStrong}66`,
         }}
       >
-        <Ionicons name="list" size={18} color={theme.colors.primaryStrong} />
+        <AppIcon name="list" size={18} color={theme.colors.primaryStrong} />
         <Typography
           variant="bodyBold"
           color={theme.colors.primaryStrong}
@@ -160,7 +102,7 @@ function LowStockBanner() {
   );
 }
 
-export default function MaterialsScreen() {
+function MaterialsScreenContent() {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
   const insets = useSafeAreaInsets();
@@ -185,8 +127,8 @@ export default function MaterialsScreen() {
   function renderContent() {
     if (isLoading) {
       return (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
+        <View style={{ flex: 1, padding: spacing.xl }}>
+          <SkeletonList rows={6} />
         </View>
       );
     }
@@ -256,7 +198,7 @@ export default function MaterialsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingHorizontal: spacing.xl,
-          paddingTop: spacing.sm,
+          paddingTop: spacing.xl,
           paddingBottom: spacing.lg,
           gap: spacing.md,
         }}
@@ -300,7 +242,7 @@ export default function MaterialsScreen() {
                 justifyContent: "center",
               }}
             >
-              <Ionicons name="search" size={iconSizes.md} color={theme.colors.text} />
+              <AppIcon name="search" size={iconSizes.md} color={theme.colors.text} />
             </Pressable>
             <Pressable
               onPress={() => setLowOnly((v) => !v)}
@@ -314,7 +256,7 @@ export default function MaterialsScreen() {
                 justifyContent: "center",
               }}
             >
-              <Ionicons
+              <AppIcon
                 name="options-outline"
                 size={iconSizes.md}
                 color={lowOnly ? theme.colors.primaryStrong : theme.colors.text}
@@ -338,11 +280,7 @@ export default function MaterialsScreen() {
               gap: spacing.sm,
             }}
           >
-            <Ionicons
-              name="search-outline"
-              size={20}
-              color={theme.colors.textSecondary}
-            />
+            <AppIcon name="search-outline" size={20} color={theme.colors.textSecondary} />
             <TextInput
               value={search}
               onChangeText={setSearch}
@@ -377,7 +315,7 @@ export default function MaterialsScreen() {
               backgroundColor: theme.colors.primaryBg,
             }}
           >
-            <Ionicons
+            <AppIcon
               name="funnel"
               size={iconSizes.xs}
               color={theme.colors.primaryStrong}
@@ -389,7 +327,7 @@ export default function MaterialsScreen() {
             >
               Estoque baixo
             </Typography>
-            <Ionicons name="close" size={16} color={theme.colors.primaryStrong} />
+            <AppIcon name="close" size={16} color={theme.colors.primaryStrong} />
           </Pressable>
         </View>
       ) : null}
@@ -420,7 +358,7 @@ export default function MaterialsScreen() {
             opacity: pressed ? 0.85 : 1,
           })}
         >
-          <Ionicons
+          <AppIcon
             name="add"
             size={isDesktop ? 20 : 24}
             color={theme.colors.textOnPrimary}
@@ -433,7 +371,7 @@ export default function MaterialsScreen() {
           </Typography>
         </Pressable>
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-          <Ionicons name="bulb-outline" size={16} color={theme.colors.textSecondary} />
+          <AppIcon name="bulb-outline" size={16} color={theme.colors.textSecondary} />
           <Typography
             variant="caption"
             color={theme.colors.textSecondary}
@@ -444,42 +382,30 @@ export default function MaterialsScreen() {
         </View>
       </View>
 
-      <ResponsiveOverlayModal
+      <MaterialForm
         visible={showCreate}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowCreate(false)}
-      >
-        <ResponsiveModalSurface maxWidth={1120}>
-          <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-            <FormModalHeader title="Novo insumo" onClose={() => setShowCreate(false)} />
-            <MaterialForm
-              existingMaterials={items}
-              onSuccess={() => setShowCreate(false)}
-            />
-          </SafeAreaView>
-        </ResponsiveModalSurface>
-      </ResponsiveOverlayModal>
+        onClose={() => setShowCreate(false)}
+        existingMaterials={items}
+        onSuccess={() => setShowCreate(false)}
+      />
 
-      <ResponsiveOverlayModal
-        visible={!!selected}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setSelectedId(null)}
-      >
-        <ResponsiveModalSurface maxWidth={1120}>
-          <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-            <FormModalHeader title="Editar insumo" onClose={() => setSelectedId(null)} />
-            {selected ? (
-              <MaterialForm
-                material={selected}
-                existingMaterials={items}
-                onSuccess={() => setSelectedId(null)}
-              />
-            ) : null}
-          </SafeAreaView>
-        </ResponsiveModalSurface>
-      </ResponsiveOverlayModal>
+      {selected ? (
+        <MaterialForm
+          visible
+          onClose={() => setSelectedId(null)}
+          material={selected}
+          existingMaterials={items}
+          onSuccess={() => setSelectedId(null)}
+        />
+      ) : null}
     </SafeAreaView>
+  );
+}
+
+export default function MaterialsScreen() {
+  return (
+    <FeatureRouteGuard feature="materiais">
+      <MaterialsScreenContent />
+    </FeatureRouteGuard>
   );
 }

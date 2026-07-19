@@ -1,4 +1,5 @@
 import type { Product } from "@lucro-caseiro/contracts";
+import { availableProductStock } from "./variations";
 
 type StockBadgeVariant = "danger" | "warning" | "success";
 
@@ -23,13 +24,19 @@ export function getStockBadge(
   if (product.saleUnit === "kg") return null;
   // Kits (produtos compostos) nao tem estoque proprio por unidade no MVP.
   if (product.isComposite) return null;
-  if (product.stockQuantity === null) return null;
-  if (product.stockQuantity === 0)
+  const quantity = availableProductStock(product);
+  if (quantity === null) return null;
+  if (quantity === 0)
     return lowStockEnabled ? { label: "Sem estoque", variant: "danger" } : null;
   if (
     product.stockAlertThreshold !== null &&
-    product.stockQuantity <= product.stockAlertThreshold
+    (product.variations?.some(
+      (variation) =>
+        variation.stockQuantity !== undefined &&
+        variation.stockQuantity <= product.stockAlertThreshold!,
+    ) ??
+      quantity <= product.stockAlertThreshold)
   )
     return lowStockEnabled ? { label: "Estoque baixo", variant: "warning" } : null;
-  return { label: `${product.stockQuantity} un.`, variant: "success" };
+  return { label: `${quantity} un.`, variant: "success" };
 }

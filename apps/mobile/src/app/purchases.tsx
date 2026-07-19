@@ -9,10 +9,11 @@ import {
   radii,
 } from "@lucro-caseiro/ui";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
-import { Ionicons } from "@expo/vector-icons";
+import type { Purchase } from "@lucro-caseiro/contracts";
+import { AppIcon } from "../shared/components/app-icon";
 import { Stack } from "expo-router";
 import React, { useRef, useState } from "react";
-import { ActivityIndicator, Image, Pressable, ScrollView, View } from "react-native";
+import { Image, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import purchasesEmpty from "../assets/purchases-empty.png";
@@ -30,8 +31,8 @@ import { usePaywall } from "../shared/hooks/use-paywall";
 import { alertError } from "../shared/utils/alerts";
 import { formatCurrency } from "../shared/utils/format";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
-import { ResponsiveModal } from "../shared/components/responsive-modal-surface";
 import { ScreenHeader } from "../shared/components/screen-header";
+import { SkeletonList } from "../shared/components/skeleton";
 
 type Filter = "all" | "pending" | "paid";
 
@@ -50,6 +51,7 @@ export default function PurchasesScreen() {
   const showPaywall = usePaywall((s) => s.show);
   const [filter, setFilter] = useState<Filter>("all");
   const [showCreate, setShowCreate] = useState(false);
+  const [editingPurchase, setEditingPurchase] = useState<Purchase | null>(null);
   const [payingId, setPayingId] = useState<string | null>(null);
   const payingIdRef = useRef<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -116,8 +118,8 @@ export default function PurchasesScreen() {
   function renderList() {
     if (isLoading) {
       return (
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
+        <View style={{ flex: 1, padding: spacing.xl }}>
+          <SkeletonList rows={6} />
         </View>
       );
     }
@@ -160,11 +162,13 @@ export default function PurchasesScreen() {
             key={p.id}
             purchase={p}
             onPay={() => pay(p.id)}
+            onEdit={() => setEditingPurchase(p)}
             onDelete={() => confirmDelete(p.id)}
             isPaying={payingId === p.id}
             payDisabled={payingId !== null}
             isDeleting={deletingId === p.id}
             deleteDisabled={deletingId !== null}
+            editDisabled={payingId !== null || deletingId !== null}
           />
         ))}
       </ScrollView>
@@ -190,7 +194,9 @@ export default function PurchasesScreen() {
         {/* Top bar */}
         {!isDesktop && <ScreenHeader title="Compras" style={{ gap: spacing.sm }} />}
 
-        <ScrollView contentContainerStyle={{ padding: spacing.lg }}>
+        <ScrollView
+          contentContainerStyle={{ padding: spacing.lg, paddingTop: spacing.xl }}
+        >
           <PurchasesPremiumGate onUnlock={() => showPaywall("purchases")} />
         </ScrollView>
       </SafeAreaView>
@@ -224,7 +230,7 @@ export default function PurchasesScreen() {
               opacity: pressed ? 0.85 : 1,
             })}
           >
-            <Ionicons name="add" size={iconSizes.md} color={theme.colors.textOnPrimary} />
+            <AppIcon name="add" size={iconSizes.md} color={theme.colors.textOnPrimary} />
           </Pressable>
         }
       />
@@ -233,6 +239,7 @@ export default function PurchasesScreen() {
       <View
         style={{
           marginHorizontal: spacing.lg,
+          marginTop: spacing.xl,
           marginBottom: spacing.sm,
           padding: spacing.lg,
           borderRadius: radii.xl,
@@ -242,7 +249,7 @@ export default function PurchasesScreen() {
           gap: spacing.md,
         }}
       >
-        <Ionicons name="time-outline" size={24} color={theme.colors.yellow} />
+        <AppIcon name="time-outline" size={24} color={theme.colors.yellow} />
         <View style={{ flex: 1 }}>
           <Typography variant="caption" color={theme.colors.textSecondary}>
             Total a pagar
@@ -294,39 +301,21 @@ export default function PurchasesScreen() {
       <View style={{ flex: 1 }}>{renderList()}</View>
 
       {/* Modal: criar */}
-      <ResponsiveModal
-        desktopMaxWidth={840}
-        visible={showCreate}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowCreate(false)}
-      >
-        <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              paddingHorizontal: spacing.xl,
-              paddingTop: spacing.md,
-              paddingBottom: spacing.md,
-              gap: spacing.md,
-            }}
-          >
-            <Pressable
-              onPress={() => setShowCreate(false)}
-              accessibilityLabel="Fechar"
-              hitSlop={10}
-              style={{ minHeight: 44, justifyContent: "center" }}
-            >
-              <Ionicons name="close" size={28} color={theme.colors.text} />
-            </Pressable>
-            <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
-              Nova compra
-            </Typography>
-          </View>
-          <CreatePurchaseForm onSuccess={() => setShowCreate(false)} />
-        </SafeAreaView>
-      </ResponsiveModal>
+      {showCreate ? (
+        <CreatePurchaseForm
+          visible
+          onClose={() => setShowCreate(false)}
+          onSuccess={() => setShowCreate(false)}
+        />
+      ) : null}
+      {editingPurchase ? (
+        <CreatePurchaseForm
+          visible
+          purchase={editingPurchase}
+          onClose={() => setEditingPurchase(null)}
+          onSuccess={() => setEditingPurchase(null)}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -367,7 +356,7 @@ function PurchasesPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) 
           key={benefit}
           style={{ flexDirection: "row", alignItems: "flex-start", gap: spacing.sm }}
         >
-          <Ionicons name="checkmark-circle" size={20} color={theme.colors.premium} />
+          <AppIcon name="checkmark-circle" size={20} color={theme.colors.premium} />
           <Typography
             variant="body"
             color={theme.colors.text}
@@ -381,7 +370,7 @@ function PurchasesPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) 
         title="Desbloquear no Profissional"
         variant="premium"
         icon={
-          <Ionicons
+          <AppIcon
             name="lock-open-outline"
             size={20}
             color={theme.colors.textOnPrimary}

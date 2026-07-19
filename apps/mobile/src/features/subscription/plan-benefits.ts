@@ -17,7 +17,7 @@ export const TIER_BENEFITS: Record<PaidPlan, readonly string[]> = {
     "Catálogo completo e personalizado",
     "Relatórios completos + exportar PDF/Excel",
     "Fornecedores, compras e gastos fixos ilimitados",
-    "Rótulos personalizados e orçamentos em PDF",
+    "Etiquetas personalizadas e orçamentos em PDF",
     "Aniversários, lembretes avançados e suporte prioritário",
   ],
 };

@@ -2,7 +2,9 @@ import {
   Button,
   Card,
   Typography,
+  useBrand,
   useTheme,
+  fontSizes,
   spacing,
   radii,
   fonts,
@@ -10,13 +12,14 @@ import {
 } from "@lucro-caseiro/ui";
 import type { BillingPeriod, PaidPlan } from "@lucro-caseiro/contracts";
 import { PLAN_LABELS, PLAN_PRICING } from "@lucro-caseiro/contracts";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { showAlert } from "../../../shared/components/alert-store";
 import { TIER_BENEFITS } from "../plan-benefits";
+import { getBrandDisplayName } from "../../../shared/brand-name";
 
 interface PaywallProps {
   readonly title?: string;
@@ -80,7 +83,7 @@ function TierCard({
         <Typography
           variant="caption"
           color={isPro ? theme.colors.premium : theme.colors.textSecondary}
-          style={{ fontSize: 12, fontFamily: fonts.extraBold }}
+          style={{ fontSize: fontSizes.xs, fontFamily: fonts.extraBold }}
         >
           {isPro ? "COMPLETO" : "MAIS ESCOLHIDO"}
         </Typography>
@@ -151,7 +154,7 @@ function PeriodCard({
           <Typography
             variant="caption"
             color={theme.colors.premium}
-            style={{ fontSize: 12, fontFamily: fonts.extraBold }}
+            style={{ fontSize: fontSizes.xs, fontFamily: fonts.extraBold }}
           >
             {badge}
           </Typography>
@@ -179,7 +182,7 @@ function PeriodCard({
           marginTop: spacing.xs,
         }}
       >
-        <Ionicons name="checkmark-circle" size={14} color={theme.colors.success} />
+        <AppIcon name="checkmark-circle" size={14} color={theme.colors.success} />
         <Typography
           variant="caption"
           color={theme.colors.textSecondary}
@@ -197,7 +200,7 @@ function PeriodCard({
 function BenefitItem({ text, theme }: Readonly<{ text: string; theme: Theme }>) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-      <Ionicons name="checkmark-circle" size={20} color={theme.colors.success} />
+      <AppIcon name="checkmark-circle" size={20} color={theme.colors.success} />
       <Typography
         variant="caption"
         color={theme.colors.text}
@@ -221,6 +224,7 @@ export function Paywall({
   onClose,
 }: PaywallProps) {
   const { theme } = useTheme();
+  const brandName = getBrandDisplayName(useBrand());
   const [tier, setTier] = useState<PaidPlan>(recommendedTier);
   // Anual pré-selecionado: âncora de venda (item 2.3 do PRD) — o plano anual é o
   // que mais interessa ao negócio (menos cancelamento, receita adiantada).
@@ -266,10 +270,10 @@ export function Paywall({
               justifyContent: "center",
             }}
           >
-            <Ionicons name="diamond" size={18} color={theme.colors.premium} />
+            <AppIcon name="diamond" size={18} color={theme.colors.premium} />
           </View>
           <Typography variant="bodyBold" color={theme.colors.text}>
-            Lucro Caseiro
+            {brandName}
           </Typography>
         </View>
 
@@ -377,7 +381,7 @@ export function Paywall({
             size="lg"
             loading={loading}
             onPress={handleSubscribe}
-            icon={<Ionicons name="star" size={18} color="#FFFFFF" />}
+            icon={<AppIcon name="star" size={18} color={theme.colors.textOnPrimary} />}
           />
 
           <Pressable
@@ -391,7 +395,7 @@ export function Paywall({
               paddingVertical: spacing.sm,
             }}
           >
-            <Ionicons name="refresh" size={16} color={theme.colors.primaryStrong} />
+            <AppIcon name="refresh" size={16} color={theme.colors.primaryStrong} />
             <Typography variant="caption" color={theme.colors.primaryStrong}>
               Restaurar compra anterior
             </Typography>

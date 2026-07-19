@@ -27,6 +27,7 @@ import {
   CONTENT_MARKETING_SYSTEM_PROMPT,
   DEFAULT_MARKETING_SYSTEM_PROMPT,
   IDEA_BANK_SYSTEM_PROMPT,
+  MARKET_POSITIONING_GUARDRAIL,
   REFINE_STRATEGY_SYSTEM_PROMPT,
 } from "./marketing.system-prompt";
 import type { MarketingRepoPg } from "./marketing.repo.pg";
@@ -772,12 +773,14 @@ function normalizeIdeaField(value: string) {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
-function marketingSystemPrompt(activeInstruction?: string) {
-  if (!activeInstruction) return DEFAULT_MARKETING_SYSTEM_PROMPT;
-  if (activeInstruction.includes(CONTENT_MARKETING_SYSTEM_PROMPT)) {
-    return activeInstruction;
-  }
-  return `${activeInstruction}\n\n${CONTENT_MARKETING_SYSTEM_PROMPT}`;
+export function marketingSystemPrompt(activeInstruction?: string) {
+  const base = activeInstruction || DEFAULT_MARKETING_SYSTEM_PROMPT;
+  const withContent = base.includes(CONTENT_MARKETING_SYSTEM_PROMPT)
+    ? base
+    : `${base}\n\n${CONTENT_MARKETING_SYSTEM_PROMPT}`;
+  return withContent.includes(MARKET_POSITIONING_GUARDRAIL)
+    ? withContent
+    : `${withContent}\n\n${MARKET_POSITIONING_GUARDRAIL}`;
 }
 
 function resourceDraftDataInstructions(kind: MarketingResourceKind) {

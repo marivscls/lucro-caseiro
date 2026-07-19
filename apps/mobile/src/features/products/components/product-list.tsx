@@ -1,8 +1,9 @@
-import { Button, EmptyState, Typography, useTheme } from "@lucro-caseiro/ui";
+import { Button, EmptyState, Typography, spacing } from "@lucro-caseiro/ui";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Image, View } from "react-native";
+import { FlatList, Image, View } from "react-native";
 
 import productsEmpty from "../../../assets/products-empty.png";
+import { SkeletonList } from "../../../shared/components/skeleton";
 import {
   AD_ITEM_MARKER,
   AdBanner,
@@ -29,7 +30,6 @@ export function ProductList({
   onProductPress,
   onAddPress,
 }: ProductListProps) {
-  const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
   const showAds = useShowAds();
   const [page, setPage] = useState(1);
@@ -46,8 +46,8 @@ export function ProductList({
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color={theme.colors.success} />
+      <View style={{ flex: 1, padding: spacing.lg }}>
+        <SkeletonList rows={6} />
       </View>
     );
   }

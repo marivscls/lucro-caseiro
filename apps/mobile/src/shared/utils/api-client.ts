@@ -1,4 +1,7 @@
+import { getActiveBrand } from "@lucro-caseiro/brands";
+
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3001";
+const ACTIVE_BRAND_ID = getActiveBrand().id;
 
 /**
  * Erro de resposta da API. Carrega o status HTTP e o `code` do backend
@@ -30,6 +33,7 @@ export async function apiClient<T>(
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    "x-brand": ACTIVE_BRAND_ID,
   };
 
   if (token) {

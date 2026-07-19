@@ -1,15 +1,16 @@
-# ai.context.api.md — Labels
+# ai.context.api.md — Etiquetas (internamente Labels)
 
 ---
 
 ## Purpose
 
-Gerenciar rotulos personalizados para produtos do negocio. Permite criar rotulos baseados em templates pre-definidos, vincular a produtos e incluir informacoes como ingredientes, logo e QR code.
+Gerenciar etiquetas simples de identificacao para produtos do negocio. Permite criar etiquetas baseadas em templates pre-definidos, vincular a produtos e incluir nome impresso, observacao, datas, contato, logo e QR opcional.
 
 ## Non-goals
 
-- Nao gera o arquivo visual/imagem do rotulo (apenas armazena dados estruturados)
-- Nao faz impressao de rotulos
+- Nao gera o arquivo visual/imagem da etiqueta (apenas armazena dados estruturados)
+- Nao faz impressao de etiquetas
+- Nao calcula ou certifica rotulagem nutricional/regulatoria
 - Nao gerencia estoque de etiquetas fisicas
 
 ## Boundaries & Ownership
@@ -46,8 +47,8 @@ Gerenciar rotulos personalizados para produtos do negocio. Permite criar rotulos
 
 ## Invariants
 
-- Nome do rotulo e obrigatorio (trim > 0 caracteres)
-- Nome do rotulo deve ter no maximo 200 caracteres
+- Nome da etiqueta e obrigatorio (trim > 0 caracteres)
+- Nome da etiqueta deve ter no maximo 200 caracteres
 - Template e obrigatorio e deve ser um dos templates validos
 - Templates validos: "classico", "moderno", "minimalista", "artesanal", "gourmet"
 - Toda query escopada por `userId`
@@ -106,7 +107,8 @@ invariants:
 
 - **CreateLabelDto**: `{ productId?, templateId, name, data: LabelData, logoUrl?, qrCodeUrl? }`
 - **UpdateLabelDto**: `Partial<CreateLabelDto>`, exceto `logoUrl`/`qrCodeUrl` que sao `string().url().nullable().optional()` — enviar `null` limpa o campo (remover logo/QR de um rotulo salvo); omitir mantem o valor atual.
-- **LabelData**: `{ productName, ingredients?, ..., nutrition? }` (objeto JSON flexivel; `nutrition` = `NutritionFacts` opcional). Persistido na coluna jsonb `data` — sem migration ao evoluir campos.
+- **LabelData**: o fluxo atual usa `{ productName, note?, manufacturingDate?, expirationDate?, producerName?, producerPhone?, style? }`. Campos antigos continuam opcionais no contrato somente para compatibilidade. Persistido na coluna jsonb `data` — sem migration ao evoluir campos.
+- `toSimpleLabelData` e aplicado na entrada e na saida dos use cases. Isso impede clientes antigos de persistirem ou receberem ingredientes, advertencias e nutricao, sem exigir uma quebra imediata do DTO legado.
 - **Label**: `{ id, userId, productId, templateId, name, data, logoUrl, qrCodeUrl, createdAt }`
 - **LabelTemplate**: `{ id: string, name: string }`
 
@@ -115,7 +117,7 @@ invariants:
 | Status | Quando                        | Mensagem                   |
 | ------ | ----------------------------- | -------------------------- |
 | 400    | Nome vazio, template invalido | Array de strings com erros |
-| 404    | Rotulo nao encontrado         | "Rotulo nao encontrado"    |
+| 404    | Etiqueta nao encontrada       | "Etiqueta nao encontrada"  |
 
 ## Events / Side effects
 

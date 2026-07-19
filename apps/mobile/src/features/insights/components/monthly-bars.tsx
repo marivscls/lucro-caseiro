@@ -1,5 +1,13 @@
-import { Ionicons } from "@expo/vector-icons";
-import { Typography, useTheme, spacing, radii, type Theme } from "@lucro-caseiro/ui";
+import { AppIcon } from "../../../shared/components/app-icon";
+import type { AppIconName } from "../../../shared/components/app-icon";
+import {
+  Typography,
+  useTheme,
+  fontSizes,
+  spacing,
+  radii,
+  type Theme,
+} from "@lucro-caseiro/ui";
 import React from "react";
 import { Pressable, View } from "react-native";
 
@@ -82,16 +90,14 @@ function CompactWindowSelector({
         justifyContent: "center",
         gap: spacing.xs,
         borderWidth: 1,
-        borderColor:
-          theme.mode === "dark" ? "rgba(196,112,126,0.72)" : theme.colors.primary,
+        borderColor: theme.colors.primary,
         borderRadius: radii.lg,
         paddingHorizontal: spacing.md,
-        backgroundColor:
-          theme.mode === "dark" ? "rgba(30,24,20,0.44)" : "rgba(255,250,248,0.58)",
+        backgroundColor: theme.colors.surface,
         opacity: pressed ? 0.72 : 1,
       })}
     >
-      <Ionicons name="calendar-clear-outline" size={18} color={theme.colors.text} />
+      <AppIcon name="calendar-clear-outline" size={18} color={theme.colors.text} />
       <Typography
         variant="bodyBold"
         color={theme.colors.text}
@@ -102,7 +108,7 @@ function CompactWindowSelector({
       >
         Últimos {months} meses
       </Typography>
-      <Ionicons name="chevron-down" size={18} color={theme.colors.text} />
+      <AppIcon name="chevron-down" size={18} color={theme.colors.text} />
     </Pressable>
   );
 }
@@ -115,7 +121,7 @@ function StatPanel({
   tint,
   theme,
 }: Readonly<{
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
   label: string;
   value: string;
   caption: string;
@@ -144,7 +150,7 @@ function StatPanel({
           borderColor: `${tint}3f`,
         }}
       >
-        <Ionicons name={icon} size={23} color={tint} />
+        <AppIcon name={icon} size={23} color={tint} />
       </View>
       <View style={{ width: "100%", gap: 4 }}>
         <Typography
@@ -188,8 +194,7 @@ export function MonthlyBars({
 }>) {
   const { theme } = useTheme();
   const axisMax = niceCeil(maxRevenue(series));
-  const gridColor =
-    theme.mode === "dark" ? "rgba(245,225,219,0.16)" : "rgba(74,50,40,0.14)";
+  const gridColor = theme.colors.border;
   const labelColor = theme.colors.textSecondary;
   const nonEmpty = series.filter((m) => m.revenue > 0);
   const total = series.reduce((acc, m) => acc + m.revenue, 0);
@@ -202,12 +207,9 @@ export function MonthlyBars({
   const delta = periodDelta(series);
   const deltaColor =
     delta == null || delta >= 0 ? theme.colors.success : theme.colors.alert;
-  const panelBg =
-    theme.mode === "dark" ? "rgba(31,26,23,0.92)" : "rgba(255,250,248,0.94)";
-  const insetBg =
-    theme.mode === "dark" ? "rgba(39,31,27,0.72)" : "rgba(247,237,233,0.78)";
-  const borderColor =
-    theme.mode === "dark" ? "rgba(245,225,219,0.16)" : "rgba(74,50,40,0.16)";
+  const panelBg = theme.colors.surfaceElevated;
+  const insetBg = theme.colors.surface;
+  const borderColor = theme.colors.border;
   const gridValues = Array.from({ length: STEPS + 1 }, (_, i) =>
     Math.round((axisMax * (STEPS - i)) / STEPS),
   );
@@ -246,7 +248,7 @@ export function MonthlyBars({
               borderColor: `${theme.colors.primary}28`,
             }}
           >
-            <Ionicons name="bar-chart-outline" size={30} color={theme.colors.primary} />
+            <AppIcon name="bar-chart-outline" size={30} color={theme.colors.primary} />
           </View>
           <Typography
             variant="bodyBold"
@@ -284,7 +286,7 @@ export function MonthlyBars({
                 borderColor: `${theme.colors.primary}42`,
               }}
             >
-              <Ionicons
+              <AppIcon
                 name="trending-up-outline"
                 size={22}
                 color={theme.colors.primary}
@@ -293,7 +295,7 @@ export function MonthlyBars({
             <Typography
               variant="label"
               color={theme.colors.primaryLight}
-              style={{ fontSize: 12, letterSpacing: 0 }}
+              style={{ fontSize: fontSizes.xs, letterSpacing: 0 }}
             >
               EVOLUÇÃO DO FATURAMENTO
             </Typography>
@@ -317,7 +319,7 @@ export function MonthlyBars({
                 style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}
               >
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
-                  <Ionicons
+                  <AppIcon
                     name={delta >= 0 ? "arrow-up" : "arrow-down"}
                     size={15}
                     color={deltaColor}
@@ -411,10 +413,7 @@ export function MonthlyBars({
                             width: 1,
                             borderLeftWidth: 1,
                             borderStyle: "dashed",
-                            borderColor:
-                              theme.mode === "dark"
-                                ? "rgba(245,225,219,0.46)"
-                                : "rgba(74,50,40,0.3)",
+                            borderColor: theme.colors.border,
                           }}
                         />
                       )}
@@ -577,7 +576,7 @@ export function MonthlyBars({
           gap: spacing.sm,
         }}
       >
-        <Ionicons
+        <AppIcon
           name="shield-checkmark-outline"
           size={18}
           color={theme.colors.textSecondary}

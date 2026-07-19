@@ -6,10 +6,10 @@ import {
   radii,
   useTheme,
 } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
+import type { AppIconName } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   Image,
   Pressable,
@@ -19,6 +19,7 @@ import {
 } from "react-native";
 
 import { showAlert } from "../../../shared/components/alert-store";
+import { SkeletonList } from "../../../shared/components/skeleton";
 import {
   AD_ITEM_MARKER,
   AdBanner,
@@ -33,7 +34,7 @@ function FeatureCol({
   icon,
   title,
   desc,
-}: Readonly<{ icon: keyof typeof Ionicons.glyphMap; title: string; desc: string }>) {
+}: Readonly<{ icon: AppIconName; title: string; desc: string }>) {
   const { theme } = useTheme();
   return (
     <View
@@ -48,13 +49,13 @@ function FeatureCol({
         style={{
           width: 44,
           height: 44,
-          borderRadius: 22,
-          backgroundColor: "rgba(196, 112, 126, 0.35)",
+          borderRadius: radii.full,
+          backgroundColor: theme.colors.primaryBg,
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <Ionicons name={icon} size={22} color="#FFFFFF" />
+        <AppIcon name={icon} size={22} color={theme.colors.primary} />
       </View>
       <Typography
         variant="caption"
@@ -76,8 +77,7 @@ function FeatureCol({
 
 function RecipesEmptyState({ onAddPress }: Readonly<{ onAddPress?: () => void }>) {
   const { theme } = useTheme();
-  const isDark = theme.mode === "dark";
-  const cardBg = isDark ? "rgba(44, 36, 32, 0.55)" : theme.colors.surface;
+  const cardBg = theme.colors.surface;
   const border = theme.colors.border;
 
   function howItWorks() {
@@ -138,7 +138,7 @@ function RecipesEmptyState({ onAddPress }: Readonly<{ onAddPress?: () => void }>
           opacity: pressed ? 0.85 : 1,
         })}
       >
-        <Ionicons
+        <AppIcon
           name="document-text-outline"
           size={22}
           color={theme.colors.textOnPrimary}
@@ -195,7 +195,7 @@ function RecipesEmptyState({ onAddPress }: Readonly<{ onAddPress?: () => void }>
           opacity: pressed ? 0.7 : 1,
         })}
       >
-        <Ionicons name="play-circle-outline" size={20} color={theme.colors.primary} />
+        <AppIcon name="play-circle-outline" size={20} color={theme.colors.primary} />
         <Typography variant="bodyBold" color={theme.colors.primary}>
           Saiba como funciona
         </Typography>
@@ -221,8 +221,8 @@ export function RecipeList({ onRecipePress, onAddPress }: RecipeListProps) {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
+      <View style={{ flex: 1, padding: spacing.lg }}>
+        <SkeletonList rows={6} />
       </View>
     );
   }

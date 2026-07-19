@@ -1,5 +1,5 @@
 import { fonts, Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "./app-icon";
 import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
@@ -73,7 +73,6 @@ interface CalendarModalProps {
  */
 export function CalendarModal({ visible, value, onSelect, onClose }: CalendarModalProps) {
   const { theme } = useTheme();
-  const isDark = theme.mode === "dark";
   const [viewMonth, setViewMonth] = useState<Date>(() => monthFromBR(value));
   const [pickingYear, setPickingYear] = useState(false);
 
@@ -94,7 +93,7 @@ export function CalendarModal({ visible, value, onSelect, onClose }: CalendarMod
   const years = Array.from({ length: 12 }, (_, i) => yearWindowStart + i);
 
   const border = theme.colors.border;
-  const mutedFill = isDark ? "rgba(255,255,255,0.05)" : "rgba(74,50,40,0.04)";
+  const mutedFill = theme.colors.surface;
 
   function shiftMonth(offset: number) {
     setViewMonth(new Date(year, viewMonth.getMonth() + offset, 1));
@@ -114,7 +113,7 @@ export function CalendarModal({ visible, value, onSelect, onClose }: CalendarMod
       <View
         style={{
           flex: 1,
-          backgroundColor: "rgba(0,0,0,0.55)",
+          backgroundColor: theme.colors.overlay,
           justifyContent: "center",
           paddingHorizontal: spacing.xl,
         }}
@@ -148,7 +147,7 @@ export function CalendarModal({ visible, value, onSelect, onClose }: CalendarMod
               accessibilityLabel={pickingYear ? "Anos anteriores" : "Mês anterior"}
               style={{ minWidth: 44, minHeight: 44, justifyContent: "center" }}
             >
-              <Ionicons name="chevron-back" size={26} color={theme.colors.primary} />
+              <AppIcon name="chevron-back" size={26} color={theme.colors.primary} />
             </Pressable>
 
             <Pressable
@@ -168,7 +167,7 @@ export function CalendarModal({ visible, value, onSelect, onClose }: CalendarMod
                   ? `${years[0]} – ${years[years.length - 1]}`
                   : `${MONTHS[viewMonth.getMonth()]} ${year}`}
               </Typography>
-              <Ionicons
+              <AppIcon
                 name={pickingYear ? "chevron-up" : "chevron-down"}
                 size={18}
                 color={theme.colors.textSecondary}
@@ -187,7 +186,7 @@ export function CalendarModal({ visible, value, onSelect, onClose }: CalendarMod
                 alignItems: "flex-end",
               }}
             >
-              <Ionicons name="chevron-forward" size={26} color={theme.colors.primary} />
+              <AppIcon name="chevron-forward" size={26} color={theme.colors.primary} />
             </Pressable>
           </View>
 
@@ -269,7 +268,7 @@ export function CalendarModal({ visible, value, onSelect, onClose }: CalendarMod
                         style={{
                           width: 38,
                           height: 38,
-                          borderRadius: 19,
+                          borderRadius: radii.full,
                           alignItems: "center",
                           justifyContent: "center",
                           backgroundColor: selected

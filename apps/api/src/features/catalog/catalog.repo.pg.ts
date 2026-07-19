@@ -63,6 +63,7 @@ export class CatalogRepoPg implements ICatalogRepo {
         target: catalogSettings.userId,
         set: {
           slug: values.slug,
+          brandId: values.brandId,
           enabled: values.enabled,
           whatsapp: values.whatsapp,
           coverUrl: values.coverUrl,
@@ -88,6 +89,7 @@ export class CatalogRepoPg implements ICatalogRepo {
         extraPhotos: products.extraPhotos,
         salePrice: products.salePrice,
         saleUnit: products.saleUnit,
+        variations: products.variations,
       })
       .from(products)
       .where(and(eq(products.userId, userId), eq(products.isActive, true)))
@@ -101,6 +103,13 @@ export class CatalogRepoPg implements ICatalogRepo {
       extraPhotos: row.extraPhotos ?? [],
       salePrice: Number(row.salePrice),
       saleUnit: row.saleUnit,
+      variations: (row.variations ?? []).map((variation) => ({
+        id: variation.id,
+        name: variation.name,
+        ...(variation.color ? { color: variation.color } : {}),
+        ...(variation.size ? { size: variation.size } : {}),
+        inStock: variation.stockQuantity === undefined || variation.stockQuantity > 0,
+      })),
     }));
   }
 
@@ -127,6 +136,7 @@ export class CatalogRepoPg implements ICatalogRepo {
 
   private toSettings(row: typeof catalogSettings.$inferSelect): CatalogSettings {
     return {
+      brandId: row.brandId,
       slug: row.slug,
       enabled: row.enabled,
       whatsapp: row.whatsapp,

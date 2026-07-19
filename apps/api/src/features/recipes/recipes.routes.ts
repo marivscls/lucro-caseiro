@@ -7,6 +7,7 @@ import { Router, type RequestHandler } from "express";
 import { z } from "zod";
 
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
+import { requireBrandFeature } from "../../shared/middleware/brand-feature";
 import type { RecipesUseCases } from "./recipes.usecases";
 
 export function createRecipesRouter(
@@ -15,6 +16,7 @@ export function createRecipesRouter(
 ): Router {
   const router = Router();
   router.use(authMiddleware);
+  router.use(requireBrandFeature("fichaTecnica"));
 
   router.post("/", ...(createGuard ? [createGuard] : []), async (req, res, next) => {
     try {

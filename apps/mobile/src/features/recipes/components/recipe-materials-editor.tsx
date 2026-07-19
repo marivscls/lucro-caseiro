@@ -1,12 +1,14 @@
 import { formatCurrency as formatMoney } from "../../../shared/utils/format";
 import type { Material } from "@lucro-caseiro/contracts";
-import { Input, Typography, fonts, useTheme, spacing, radii } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { Input, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import { AppIcon } from "../../../shared/components/app-icon";
 import { useRouter } from "expo-router";
-import React, { useEffect, useRef } from "react";
-import { Pressable, ScrollView, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Pressable, TouchableOpacity, View } from "react-native";
 
+import { FormSection } from "../../../shared/components/form-section";
 import { IngredientAvatar } from "../../../shared/ingredient-image/ingredient-avatar";
+import { StandardModal } from "../../../shared/components/standard-modal";
 import { useMaterials } from "../../materials/hooks";
 
 export interface RecipeLine {
@@ -76,8 +78,14 @@ export function RecipeMaterialsEditor({
   const { data } = useMaterials();
   const materials = data?.items ?? [];
   const byId = new Map(materials.map((m) => [m.id, m]));
-  const inactiveBorder =
-    theme.mode === "dark" ? "rgba(245, 225, 219, 0.12)" : "rgba(74, 50, 40, 0.12)";
+  const [pickerLineIndex, setPickerLineIndex] = useState<number | null>(null);
+  const [materialSearch, setMaterialSearch] = useState("");
+  const normalizedSearch = materialSearch.trim().toLowerCase();
+  const visibleMaterials = normalizedSearch
+    ? materials.filter((material) =>
+        material.name.toLowerCase().includes(normalizedSearch),
+      )
+    : materials;
 
   function updateLine(index: number, patch: Partial<RecipeLine>) {
     onChange(lines.map((l, i) => (i === index ? { ...l, ...patch } : l)));
@@ -85,6 +93,22 @@ export function RecipeMaterialsEditor({
 
   function selectMaterial(index: number, material: Material) {
     updateLine(index, { materialId: material.id, unit: material.unit });
+  }
+
+  function openMaterialPicker(index: number) {
+    setMaterialSearch("");
+    setPickerLineIndex(index);
+  }
+
+  function closeMaterialPicker() {
+    setPickerLineIndex(null);
+    setMaterialSearch("");
+  }
+
+  function pickMaterial(material: Material) {
+    if (pickerLineIndex === null) return;
+    selectMaterial(pickerLineIndex, material);
+    closeMaterialPicker();
   }
 
   function addLine() {
@@ -132,194 +156,267 @@ export function RecipeMaterialsEditor({
   }
 
   return (
-    <View style={{ gap: spacing.md }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-        <Ionicons name="basket-outline" size={22} color={theme.colors.primary} />
-        <Typography variant="h3" color={theme.colors.text}>
-          Insumos
-        </Typography>
-      </View>
-      <Typography
-        variant="caption"
-        color={theme.colors.textSecondary}
-        style={{ marginTop: -spacing.sm }}
+    <>
+      <FormSection
+        title="Insumos"
+        subtitle={`${lines.length} ${lines.length === 1 ? "insumo" : "insumos"} · ${formatMoney(total)}`}
+        icon="basket-outline"
+        initiallyOpen
       >
-        Adicione os ingredientes utilizados na receita
-      </Typography>
-
-      {lines.map((line, index) => {
-        const material = byId.get(line.materialId);
-        const cost = lineCost(material, line.quantity, line.unit);
-        const units = material ? unitOptions(material) : [];
-        return (
-          <View
-            key={index}
-            style={{
-              gap: spacing.sm,
-              padding: spacing.md,
-              borderRadius: radii.lg,
-              backgroundColor: theme.colors.surface,
-            }}
-          >
+        {lines.map((line, index) => {
+          const material = byId.get(line.materialId);
+          const cost = lineCost(material, line.quantity, line.unit);
+          const units = material ? unitOptions(material) : [];
+          return (
             <View
+              key={index}
               style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
+                gap: spacing.sm,
+                padding: spacing.md,
+                borderRadius: radii.lg,
+                backgroundColor: theme.colors.surface,
               }}
             >
-              <Typography variant="bodyBold" color={theme.colors.text}>
-                Insumo {index + 1}
-              </Typography>
-              {lines.length > 1 && (
-                <TouchableOpacity
-                  onPress={() => removeLine(index)}
-                  accessibilityLabel={`Remover insumo ${index + 1}`}
-                  hitSlop={8}
-                >
-                  <Ionicons name="trash-outline" size={20} color={theme.colors.alert} />
-                </TouchableOpacity>
-              )}
-            </View>
-
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: spacing.sm, paddingVertical: spacing.xs }}
-            >
-              {materials.map((m) => {
-                const active = m.id === line.materialId;
-                return (
-                  <Pressable
-                    key={m.id}
-                    onPress={() => selectMaterial(index, m)}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Selecionar ${m.name}`}
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: spacing.xs,
-                      paddingLeft: spacing.xs,
-                      paddingRight: spacing.md,
-                      paddingVertical: spacing.xs,
-                      borderRadius: radii.full,
-                      borderWidth: 1,
-                      borderColor: active ? theme.colors.primary : inactiveBorder,
-                      backgroundColor: active
-                        ? theme.colors.primary
-                        : theme.colors.surfaceElevated,
-                    }}
-                  >
-                    <IngredientAvatar name={m.name} size={26} />
-                    <Typography
-                      variant="caption"
-                      color={active ? theme.colors.textOnPrimary : theme.colors.text}
-                      style={{ fontFamily: fonts.semiBold }}
-                    >
-                      {m.name}
-                    </Typography>
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-
-            {units.length > 1 && (
-              <View style={{ gap: spacing.xs }}>
-                <Typography variant="caption" color={theme.colors.textSecondary}>
-                  Usar em
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Typography variant="bodyBold" color={theme.colors.text}>
+                  Insumo {index + 1}
                 </Typography>
-                <View style={{ flexDirection: "row", gap: spacing.sm }}>
-                  {units.map((u) => {
-                    const active =
-                      u.trim().toLowerCase() === line.unit.trim().toLowerCase();
-                    return (
-                      <Pressable
-                        key={u}
-                        onPress={() => updateLine(index, { unit: u })}
-                        accessibilityRole="button"
-                        accessibilityLabel={`Usar em ${u}`}
-                        style={{
-                          paddingHorizontal: spacing.md,
-                          paddingVertical: spacing.sm,
-                          borderRadius: radii.full,
-                          backgroundColor: active
-                            ? theme.colors.primary
-                            : theme.colors.surfaceElevated,
-                        }}
-                      >
-                        <Typography
-                          variant="caption"
-                          color={active ? theme.colors.textOnPrimary : theme.colors.text}
+                {lines.length > 1 && (
+                  <TouchableOpacity
+                    onPress={() => removeLine(index)}
+                    accessibilityLabel={`Remover insumo ${index + 1}`}
+                    hitSlop={8}
+                  >
+                    <AppIcon name="trash-outline" size={20} color={theme.colors.alert} />
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              <Pressable
+                onPress={() => openMaterialPicker(index)}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  material ? `Trocar insumo ${material.name}` : "Selecionar insumo"
+                }
+                style={({ pressed }) => ({
+                  minHeight: 58,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: spacing.sm,
+                  paddingHorizontal: spacing.md,
+                  borderRadius: radii.lg,
+                  borderWidth: 1,
+                  borderColor: theme.colors.border,
+                  backgroundColor: theme.colors.surfaceElevated,
+                  opacity: pressed ? 0.7 : 1,
+                })}
+              >
+                {material ? (
+                  <IngredientAvatar name={material.name} size={32} />
+                ) : (
+                  <AppIcon name="basket-outline" size={24} color={theme.colors.primary} />
+                )}
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Typography variant="caption" color={theme.colors.textSecondary}>
+                    Insumo
+                  </Typography>
+                  <Typography
+                    variant="bodyBold"
+                    color={material ? theme.colors.text : theme.colors.primary}
+                    numberOfLines={1}
+                  >
+                    {material?.name ?? "Selecionar insumo"}
+                  </Typography>
+                </View>
+                <AppIcon
+                  name="chevron-down"
+                  size={20}
+                  color={theme.colors.textSecondary}
+                />
+              </Pressable>
+
+              {units.length > 1 && (
+                <View style={{ gap: spacing.xs }}>
+                  <Typography variant="caption" color={theme.colors.textSecondary}>
+                    Usar em
+                  </Typography>
+                  <View style={{ flexDirection: "row", gap: spacing.sm }}>
+                    {units.map((u) => {
+                      const active =
+                        u.trim().toLowerCase() === line.unit.trim().toLowerCase();
+                      return (
+                        <Pressable
+                          key={u}
+                          onPress={() => updateLine(index, { unit: u })}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Usar em ${u}`}
+                          style={{
+                            paddingHorizontal: spacing.md,
+                            paddingVertical: spacing.sm,
+                            borderRadius: radii.full,
+                            backgroundColor: active
+                              ? theme.colors.primary
+                              : theme.colors.surfaceElevated,
+                          }}
                         >
-                          {u}
-                        </Typography>
-                      </Pressable>
-                    );
-                  })}
+                          <Typography
+                            variant="caption"
+                            color={
+                              active ? theme.colors.textOnPrimary : theme.colors.text
+                            }
+                          >
+                            {u}
+                          </Typography>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
+
+              <View
+                style={{ flexDirection: "row", gap: spacing.sm, alignItems: "flex-end" }}
+              >
+                <View style={{ flex: 1 }}>
+                  <Input
+                    label={
+                      material
+                        ? `Quantidade (${line.unit || material.unit})`
+                        : "Quantidade"
+                    }
+                    placeholder="Ex: 2"
+                    value={line.quantity}
+                    onChangeText={(v) => updateLine(index, { quantity: v })}
+                    keyboardType="decimal-pad"
+                  />
+                </View>
+                <View style={{ paddingBottom: spacing.md }}>
+                  <Typography variant="caption" color={theme.colors.textSecondary}>
+                    Custo
+                  </Typography>
+                  <Typography variant="bodyBold" color={theme.colors.success}>
+                    {formatMoney(cost)}
+                  </Typography>
                 </View>
               </View>
-            )}
-
-            <View
-              style={{ flexDirection: "row", gap: spacing.sm, alignItems: "flex-end" }}
-            >
-              <View style={{ flex: 1 }}>
-                <Input
-                  label={
-                    material ? `Quantidade (${line.unit || material.unit})` : "Quantidade"
-                  }
-                  placeholder="Ex: 2"
-                  value={line.quantity}
-                  onChangeText={(v) => updateLine(index, { quantity: v })}
-                  keyboardType="decimal-pad"
-                />
-              </View>
-              <View style={{ paddingBottom: spacing.md }}>
-                <Typography variant="caption" color={theme.colors.textSecondary}>
-                  Custo
-                </Typography>
-                <Typography variant="bodyBold" color={theme.colors.success}>
-                  {formatMoney(cost)}
-                </Typography>
-              </View>
             </View>
-          </View>
-        );
-      })}
+          );
+        })}
 
-      <TouchableOpacity
-        onPress={addLine}
-        style={{
-          flexDirection: "row",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: spacing.xs,
-          paddingVertical: spacing.md,
-          borderRadius: radii.lg,
-          borderWidth: 1,
-          borderColor: theme.colors.primary,
-          borderStyle: "dashed",
-        }}
-      >
-        <Ionicons name="add" size={20} color={theme.colors.primary} />
-        <Typography variant="bodyBold" color={theme.colors.primary}>
-          Adicionar insumo
-        </Typography>
-      </TouchableOpacity>
+        <TouchableOpacity
+          onPress={addLine}
+          style={{
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: spacing.xs,
+            paddingVertical: spacing.md,
+            borderRadius: radii.lg,
+            borderWidth: 1,
+            borderColor: theme.colors.primary,
+            borderStyle: "dashed",
+          }}
+        >
+          <AppIcon name="add" size={20} color={theme.colors.primary} />
+          <Typography variant="bodyBold" color={theme.colors.primary}>
+            Adicionar insumo
+          </Typography>
+        </TouchableOpacity>
 
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          paddingTop: spacing.xs,
-        }}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            paddingTop: spacing.xs,
+          }}
+        >
+          <Typography variant="body">Custo total dos insumos</Typography>
+          <Typography variant="bodyBold" color={theme.colors.success}>
+            {formatMoney(total)}
+          </Typography>
+        </View>
+      </FormSection>
+
+      <StandardModal
+        visible={pickerLineIndex !== null}
+        onClose={closeMaterialPicker}
+        title="Selecionar insumo"
+        subtitle={pickerLineIndex === null ? undefined : `Insumo ${pickerLineIndex + 1}`}
       >
-        <Typography variant="body">Custo total dos insumos</Typography>
-        <Typography variant="bodyBold" color={theme.colors.success}>
-          {formatMoney(total)}
-        </Typography>
-      </View>
-    </View>
+        <Input
+          label="Buscar insumo"
+          placeholder="Digite o nome do insumo"
+          value={materialSearch}
+          onChangeText={setMaterialSearch}
+        />
+
+        <View style={{ gap: spacing.sm }}>
+          {visibleMaterials.map((materialOption) => {
+            const active =
+              pickerLineIndex !== null &&
+              lines[pickerLineIndex]?.materialId === materialOption.id;
+            return (
+              <Pressable
+                key={materialOption.id}
+                onPress={() => pickMaterial(materialOption)}
+                accessibilityRole="button"
+                accessibilityLabel={`Selecionar ${materialOption.name}`}
+                accessibilityState={{ selected: active }}
+                style={({ pressed }) => ({
+                  minHeight: 56,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: spacing.sm,
+                  paddingHorizontal: spacing.md,
+                  paddingVertical: spacing.sm,
+                  borderRadius: radii.lg,
+                  borderWidth: 1,
+                  borderColor: active ? theme.colors.primary : theme.colors.border,
+                  backgroundColor: active
+                    ? theme.colors.primaryBg
+                    : theme.colors.surfaceElevated,
+                  opacity: pressed ? 0.7 : 1,
+                })}
+              >
+                <IngredientAvatar name={materialOption.name} size={34} />
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Typography variant="bodyBold" color={theme.colors.text}>
+                    {materialOption.name}
+                  </Typography>
+                  <Typography variant="caption" color={theme.colors.textSecondary}>
+                    {formatMoney(materialOption.costPerUnit ?? 0)} por{" "}
+                    {materialOption.unit}
+                  </Typography>
+                </View>
+                {active ? (
+                  <AppIcon
+                    name="checkmark-circle"
+                    size={22}
+                    color={theme.colors.primary}
+                  />
+                ) : null}
+              </Pressable>
+            );
+          })}
+
+          {visibleMaterials.length === 0 ? (
+            <Typography
+              variant="caption"
+              color={theme.colors.textSecondary}
+              style={{ textAlign: "center", paddingVertical: spacing.lg }}
+            >
+              Nenhum insumo encontrado.
+            </Typography>
+          ) : null}
+        </View>
+      </StandardModal>
+    </>
   );
 }

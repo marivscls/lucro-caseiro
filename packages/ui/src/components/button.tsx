@@ -10,9 +10,9 @@ import {
 
 import { useTheme } from "../theme-context";
 import { useReducedMotion } from "../use-reduced-motion";
-import { colors, fonts, fontSizes, radii, spacing } from "../theme";
+import { fonts, fontSizes, radii, spacing } from "../theme";
 
-type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "success" | "premium";
+type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "success" | "successOutline" | "premium";
 type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps extends Omit<PressableProps, "style"> {
@@ -61,14 +61,15 @@ export function Button({
     }).start();
 
   const variants: Record<ButtonVariant, { bg: string; text: string; border?: string }> = {
-    // Fundos cheios usam tons AA (texto branco >= 4.5:1); `primary` de marca
-    // fica para areas grandes sem texto por cima.
+    // Fundos cheios usam os tons AA do tema (rotulo >= 4.5:1 nos dois modos);
+    // `primary` de marca fica para areas grandes sem texto por cima.
     primary: { bg: theme.colors.primaryInteractive, text: theme.colors.textOnPrimary },
     secondary: { bg: theme.colors.surface, text: theme.colors.text },
     outline: { bg: "transparent", text: theme.colors.primaryStrong, border: theme.colors.primaryStrong },
     ghost: { bg: "transparent", text: theme.colors.textSecondary },
-    success: { bg: colors.successStrong, text: theme.colors.textOnPrimary },
-    premium: { bg: "#8F6620", text: theme.colors.textOnPrimary },
+    success: { bg: theme.colors.success, text: theme.colors.textOnPrimary },
+    successOutline: { bg: "transparent", text: theme.colors.success, border: theme.colors.success },
+    premium: { bg: theme.colors.premium, text: theme.colors.textOnPrimary },
   };
 
   const v = variants[variant];
@@ -109,6 +110,7 @@ export function Button({
         <>
           {icon}
           <Text
+            numberOfLines={1}
             style={{
               color: v.text,
               fontSize: s.fontSize,

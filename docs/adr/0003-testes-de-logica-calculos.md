@@ -31,7 +31,6 @@ Esta decisão cataloga, por feature, **o que o cliente calcula**, e exige que es
 | **Financeiro**            | lucro (receitas−despesas), **delta % vs mês anterior**, contagem por tipo                   | `finance/calc.ts`                     | `finance.domain.ts`   |
 | **Insights**              | `R$ X mil` curto, label de mês, máximo da série (guarda /0)                                 | `insights/domain.ts`                  | — (exibição)          |
 | **Vendas (pagamento)**    | rótulo da forma de pagamento (fallback)                                                     | `sales/payment.ts`                    | —                     |
-| **Rótulos (nutrição)**    | tem nutrição? / limpar nutrição vazia                                                       | `labels/nutrition.ts`                 | —                     |
 | **Encomendas**            | instante do lembrete (véspera 9h; pula passado/finalizada)                                  | `orders/reminders.ts`                 | — (notificação local) |
 
 > Já cobertos antes deste ADR: `sales/fiado.ts`, `sales/receipt.ts`, `sales/receipt-pdf.ts`, `materials/domain.ts`, `goals/domain.ts`, `orders/domain.ts`, `labels/qr.ts`, `products/kit.ts`, e utils compartilhados (`format`, `date`, `phone`, `whatsapp`).
@@ -73,12 +72,7 @@ Esta decisão cataloga, por feature, **o que o cliente calcula**, e exige que es
 
 - `paymentLabel("pix")` → "Pix"; `paymentLabel("credit")` → "Fiado"; valor cru desconhecido → ele mesmo.
 
-### 4.7 Nutrição — `labels/nutrition.ts`
-
-- `hasNutrition`: null/vazio → false; um campo preenchido → true.
-- `cleanNutrition`: vazio → undefined; com dado → mantém.
-
-### 4.8 Encomendas — `orders/reminders.ts`
+### 4.7 Encomendas — `orders/reminders.ts`
 
 - `reminderInstant(data, agora)`: véspera às 9h; data no passado → null; data inválida → null.
 - `shouldScheduleReminder(order, agora)`: `done`/`cancelled` → false; futura → true.
@@ -97,7 +91,6 @@ Esta decisão cataloga, por feature, **o que o cliente calcula**, e exige que es
 - [x] `finance/calc.ts` + `calc.test.ts`
 - [x] `insights/domain.test.ts`
 - [x] `sales/payment.test.ts`
-- [x] `labels/nutrition.test.ts`
 - [x] `orders/reminders.ts` (helper puro) + `reminders.test.ts`
 
 ## 7. Manutenção

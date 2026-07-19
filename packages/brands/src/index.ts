@@ -15,6 +15,7 @@ export type {
   BrandConfig,
   BrandCopy,
   BrandFeatures,
+  BrandOnboardingConfig,
   BrandThemeOverrides,
 } from "./types";
 

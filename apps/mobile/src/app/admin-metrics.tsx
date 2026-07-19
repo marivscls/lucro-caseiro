@@ -2,7 +2,8 @@ import type {
   ProductAnalyticsDashboard,
   RetentionMetric,
 } from "@lucro-caseiro/contracts";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../shared/components/app-icon";
+import type { AppIconName } from "../shared/components/app-icon";
 import {
   Button,
   Card,
@@ -14,17 +15,12 @@ import {
 } from "@lucro-caseiro/ui";
 import { Stack } from "expo-router";
 import React, { useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  View,
-} from "react-native";
+import { Pressable, RefreshControl, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAdminAnalyticsDashboard } from "../features/analytics/hooks";
 import { ListCard, ListCardItem } from "../shared/components/list-card";
+import { SkeletonCard } from "../shared/components/skeleton";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { ApiError } from "../shared/utils/api-client";
 
@@ -56,7 +52,7 @@ const SCREEN_LABELS: Record<string, string> = {
   fiado: "Fiado",
   finance: "Financeiro",
   insights: "Insights",
-  labels: "Rótulos",
+  labels: "Etiquetas",
   materials: "Insumos",
   packaging: "Embalagens",
   plans: "Planos",
@@ -114,7 +110,7 @@ function MetricCard({
   label: string;
   value: string | number;
   caption: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
 }>) {
   const { theme } = useTheme();
   return (
@@ -129,7 +125,7 @@ function MetricCard({
           backgroundColor: theme.colors.primaryBg,
         }}
       >
-        <Ionicons name={icon} size={20} color={theme.colors.primary} />
+        <AppIcon name={icon} size={20} color={theme.colors.primary} />
       </View>
       <Typography variant="moneyLg" numberOfLines={1} adjustsFontSizeToFit>
         {value}
@@ -549,14 +545,16 @@ export default function AdminMetricsScreen() {
   let content: React.ReactNode;
   if (dashboard.isLoading) {
     content = (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
+      <View style={{ flex: 1, padding: spacing.xl, gap: spacing.lg }}>
+        <SkeletonCard lines={2} />
+        <SkeletonCard lines={2} />
+        <SkeletonCard lines={3} />
       </View>
     );
   } else if (dashboard.error || !dashboard.data) {
     content = (
       <EmptyState
-        icon={<Ionicons name={errorIcon} size={52} color={theme.colors.textSecondary} />}
+        icon={<AppIcon name={errorIcon} size={52} color={theme.colors.textSecondary} />}
         title={errorTitle}
         description={errorDescription}
         action={

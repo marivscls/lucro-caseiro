@@ -1,6 +1,7 @@
 import type { SaleUnit } from "@lucro-caseiro/contracts";
 import { Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
+import type { AppIconName } from "../../../shared/components/app-icon";
 import React from "react";
 import { Pressable, View } from "react-native";
 
@@ -14,7 +15,7 @@ interface SaleUnitToggleProps {
 const OPTIONS: ReadonlyArray<{
   value: SaleUnit;
   label: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
 }> = [
   { value: "unit", label: "Por unidade", icon: "cube-outline" },
   { value: "kg", label: "Por quilo (kg)", icon: "scale-outline" },
@@ -27,9 +28,8 @@ const OPTIONS: ReadonlyArray<{
 export function SaleUnitToggle({ value, onChange }: SaleUnitToggleProps) {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
-  const isDark = theme.mode === "dark";
-  const border = isDark ? "rgba(245, 225, 219, 0.12)" : "rgba(74, 50, 40, 0.12)";
-  const fieldBg = isDark ? "rgba(58, 50, 45, 0.5)" : theme.colors.surface;
+  const border = theme.colors.border;
+  const fieldBg = theme.colors.surface;
 
   return (
     <View
@@ -68,7 +68,7 @@ export function SaleUnitToggle({ value, onChange }: SaleUnitToggleProps) {
                 opacity: pressed ? 0.85 : 1,
               })}
             >
-              <Ionicons
+              <AppIcon
                 name={option.icon}
                 size={22}
                 color={selected ? theme.colors.textOnPrimary : theme.colors.primary}

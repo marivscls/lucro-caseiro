@@ -153,6 +153,10 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 
 ## Change log / Decisions
 
+- 2026-07-19: `VariationEditor` virou o editor canônico de nome/cor/tamanho/estoque;
+  a Papelaria também informa custo direto e vê margem bruta. Venda por peso é ocultada
+  quando a capacidade `vendaPorPeso` está desligada.
+
 - Detalhe/edicao do produto implementado como modal inline no screen (nao como componente separado na feature).
 - Upload de foto e em breve ("em breve").
 - Estoque agora e visivel e editavel no modal de detalhe (antes so podia ser definido na criacao).

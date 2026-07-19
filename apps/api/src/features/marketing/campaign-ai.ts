@@ -7,10 +7,12 @@ import {
   type MarketingCreativeBundle,
 } from "@lucro-caseiro/contracts";
 
+import { MARKET_POSITIONING_GUARDRAIL } from "./marketing.system-prompt";
+
 export const CAMPAIGN_STRATEGIST_PROMPT_ID = "campaign-strategist";
-export const CAMPAIGN_STRATEGIST_PROMPT_VERSION = "1";
+export const CAMPAIGN_STRATEGIST_PROMPT_VERSION = "4";
 export const AD_COPYWRITER_PROMPT_ID = "ad-copywriter";
-export const AD_COPYWRITER_PROMPT_VERSION = "1";
+export const AD_COPYWRITER_PROMPT_VERSION = "2";
 
 type CampaignContext = {
   instruction?: string;
@@ -32,11 +34,22 @@ export type BrandProfile = {
 };
 
 const CAMPAIGN_SYSTEM = `Você é o Estrategista de Anúncios do Lucro Caseiro.
-Sua função é transformar um briefing em um plano de campanha multicanal claro, com KPIs e próximos passos.
+Sua função é pesquisar o contexto disponível e transformar o briefing em um plano de campanha multicanal claro, específico e defensável.
+
+${MARKET_POSITIONING_GUARDRAIL}
 
 Princípios:
 - Evite promessas absolutas de resultado e nunca invente fatos, provas ou funcionalidades.
 - Linguagem direta, consultiva e adequada ao público definido.
+- Separe psicologia (o que e por que comunicar) de comunicação (como escrever).
+- Defina uma fatia de público identificável; não misture nichos numa mesma peça.
+- audienceSummary e research.audienceSlice descrevem o público desta campanha, não o mercado total da marca.
+- Quando o briefing não escolher um público, compare os segmentos disponíveis e não eleja confeitaria ou qualquer outro nicho por ordem, frequência ou hábito.
+- Preserve o que já foi validado, mas procure uma Big Idea e uma comunicação próprias.
+- Trate exemplos e referências como estruturas a compreender, nunca frases a copiar.
+- Diferencie evidência confirmada, hipótese e lacuna. Se não houver prova, registre a lacuna.
+- Se público ou oferta não vierem preenchidos, derive a opção mais bem sustentada pelo contexto confirmado da Central; não invente dados para esconder lacunas.
+- "Inimigo comum" e nome memorável são opcionais: só use quando houver fundamento real.
 - Priorize próximos passos acionáveis.
 - Sempre devolva JSON válido, sem texto fora do JSON.
 
@@ -47,6 +60,32 @@ Schema de saída (JSON):
   "goal": "sales" | "leads" | "repurchase" | "awareness" | "reactivation",
   "audienceSummary": string,
   "offer": string,
+  "research": {
+    "audienceSlice": string,
+    "audienceLanguage": string[],
+    "realDesire": string,
+    "saturatedSolutions": string[],
+    "problemMechanism": string,
+    "solutionMechanism": string,
+    "differentiators": string[],
+    "proofs": string[],
+    "saturationNotes": string
+  },
+  "creativeStrategy": {
+    "bigIdea": string,
+    "angle": string,
+    "promise": string,
+    "reasonToBelieve": string,
+    "stickyName": string,
+    "commonEnemy": string,
+    "organicInsight": string,
+    "avatar": string,
+    "format": string,
+    "visualHook": string,
+    "landing": string,
+    "retentionBeats": string[],
+    "productionNotes": string[]
+  },
   "channels": Array<"instagram" | "tiktok" | "youtube" | "whatsapp" | "email" | "googleads" | "metaads" | "local">,
   "messages": { [channel: string]: string },
   "creativeNeeds": string[],
@@ -62,6 +101,11 @@ Princípios universais:
 - Reaproveite ideias entre canais: mesma promessa, formatos diferentes.
 - Respeite a voz, as restrições e os exemplos aprovados da marca.
 - Evite promessas absolutas de resultado e nunca invente provas.
+- Abra com a informação mais relevante para a fatia de público definida.
+- Use especificidade concreta; elimine conectores, introduções e frases sem função.
+- O gancho deve qualificar o público, a aterrissagem deve sustentar a atenção e o corpo deve renovar o interesse.
+- Escreva a partir da função psicológica da estratégia, nunca por substituição superficial de palavras.
+- Faça uma autorrevisão, corrija o pacote antes de responder e marque ready=false somente se restar risco de prova, contradição com o plano ou lacuna impeditiva.
 - Devolva JSON válido sem texto fora do JSON.
 
 REGRA CRÍTICA SOBRE A ESTRATÉGIA:
@@ -77,13 +121,39 @@ Os exemplos são REFERÊNCIA DE FORMATO E TOM, nunca conteúdo a copiar.
 
 Schema de saída:
 {
-  "variants": Array<{ "channel": string, "format": string, "headline": string, "body": string, "cta": string }>,
-  "reuseMap": string[]
+  "variants": Array<{
+    "channel": string,
+    "format": string,
+    "headline": string,
+    "hook": string,
+    "landing": string,
+    "body": string,
+    "retentionBeats": string[],
+    "productionNotes": string,
+    "evidence": string,
+    "cta": string
+  }>,
+  "reuseMap": string[],
+  "qualityReview": {
+    "ready": boolean,
+    "score": number,
+    "criteria": {
+      "congruence": number,
+      "specificity": number,
+      "novelty": number,
+      "evidenceSafety": number,
+      "concision": number
+    },
+    "strengths": string[],
+    "warnings": string[],
+    "nextTest": string
+  }
 }`;
 
 const PROMOTIONAL_GUIDANCE = `ESTILO: PROMOCIONAL
-- Headline direta com benefício claro.
-- Body com prova ou diferenciação permitida pela memória da marca.
+- Headline e gancho diretos, específicos e coerentes com o nível de consciência do público.
+- Aterrissagem forte o bastante para continuar a atenção sem repetir o gancho.
+- Body com prova ou diferenciação permitida pela memória da marca e 2 a 4 movimentos de retenção.
 - CTA explícito, coerente com a próxima ação do plano.
 - Tom consultivo e direto.`;
 
@@ -93,6 +163,7 @@ const ORGANIC_GUIDANCE = `ESTILO: ORGÂNICO (creator-style, nativo em feed de de
 - CTA suave: salvar, comentar, hashtag da marca, menção discreta ou link na bio.
 - Não use CTA de compra direta.
 - Reescreva 100% do conteúdo na voz da marca atual.
+- Preserve aparência de conteúdo nativo e detalhe a produção necessária para executar o formato.
 
 Referência real de FORMATO — nunca copie literalmente:
 Canal: TikTok; formato: carrossel-listicle; estrutura: headline curta + lista numerada + CTA suave por hashtag. O exemplo original fala de hábitos culturais; não reutilize tema, frases, hashtags ou ângulo.`;
@@ -120,8 +191,8 @@ ${JSON.stringify(workspaceContext)}
 Briefing recebido:
 - Segmento: ${input.segment}
 - Objetivo: ${input.goal}
-- Público: ${input.audience}
-- Oferta: ${input.offer}
+- Público: ${input.audience || "não informado; derive do contexto confirmado"}
+- Oferta: ${input.offer || "não informada; derive do contexto confirmado"}
 - Orçamento: ${input.budget === undefined ? "não informado" : `R$ ${input.budget}`}
 
 Gere o plano de campanha em JSON estritamente conforme o schema acima.`,
@@ -181,7 +252,9 @@ ${JSON.stringify(input.plan, null, 2)}
 MEMÓRIA DA MARCA:
 ${JSON.stringify(brand, null, 2)}
 
-Gere uma variante para cada canal da estratégia aprovada. Preserve exatamente o público, a oferta e a promessa do plano. Responda somente com o JSON do schema.`,
+Gere uma variante para cada canal da estratégia aprovada. Preserve exatamente o público, a oferta e a promessa do plano.
+Antes de responder, revise congruência, especificidade, novidade, segurança das evidências e concisão; corrija as variantes e só então preencha qualityReview.
+Responda somente com o JSON do schema.`,
   };
 }
 

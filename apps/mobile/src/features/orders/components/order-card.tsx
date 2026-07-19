@@ -1,7 +1,8 @@
 import { formatCurrency as formatMoney } from "../../../shared/utils/format";
 import type { Order } from "@lucro-caseiro/contracts";
 import { Typography, useTheme, spacing, radii, type Theme } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
+import type { AppIconName } from "../../../shared/components/app-icon";
 import React from "react";
 import { Image, Pressable, View } from "react-native";
 
@@ -15,23 +16,22 @@ interface OrderCardProps {
 function toneColors(theme: Theme, tone: StatusTone): { bg: string; fg: string } {
   switch (tone) {
     case "info":
-      return { bg: "rgba(137, 165, 181, 0.22)", fg: theme.colors.blue };
+      return { bg: theme.colors.blueBg, fg: theme.colors.blue };
     case "warn":
-      return { bg: "rgba(212, 160, 84, 0.22)", fg: theme.colors.premium };
+      return { bg: theme.colors.premiumBg, fg: theme.colors.premium };
     case "success":
-      return { bg: "rgba(107, 191, 150, 0.22)", fg: theme.colors.success };
+      return { bg: theme.colors.successBg, fg: theme.colors.success };
     case "danger":
-      return { bg: "rgba(224, 114, 114, 0.22)", fg: theme.colors.alert };
+      return { bg: theme.colors.alertBg, fg: theme.colors.alert };
     default:
       return {
-        bg:
-          theme.mode === "dark" ? "rgba(245, 225, 219, 0.08)" : "rgba(74, 50, 40, 0.08)",
+        bg: theme.colors.surface,
         fg: theme.colors.textSecondary,
       };
   }
 }
 
-function orderIcon(order: Order): keyof typeof Ionicons.glyphMap {
+function orderIcon(order: Order): AppIconName {
   if (order.status === "done") return "cube-outline";
   if (order.status === "in_production") return "bag-handle-outline";
   if (order.status === "ready") return "checkmark-circle-outline";
@@ -49,8 +49,7 @@ export function OrderCard({ order, onPress }: OrderCardProps) {
         minHeight: 86,
         borderRadius: radii.xl,
         padding: spacing.md,
-        backgroundColor:
-          theme.mode === "dark" ? "rgba(44, 36, 32, 0.84)" : theme.colors.surfaceElevated,
+        backgroundColor: theme.colors.surfaceElevated,
         borderWidth: 1,
         borderColor: theme.colors.border,
         flexDirection: "row",
@@ -73,7 +72,7 @@ export function OrderCard({ order, onPress }: OrderCardProps) {
         {order.photoUrl ? (
           <Image source={{ uri: order.photoUrl }} style={{ width: 52, height: 52 }} />
         ) : (
-          <Ionicons name={orderIcon(order)} size={25} color={colors.fg} />
+          <AppIcon name={orderIcon(order)} size={25} color={colors.fg} />
         )}
       </View>
 
@@ -91,11 +90,7 @@ export function OrderCard({ order, onPress }: OrderCardProps) {
           </Typography>
         ) : null}
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-          <Ionicons
-            name="calendar-outline"
-            size={14}
-            color={theme.colors.textSecondary}
-          />
+          <AppIcon name="calendar-outline" size={14} color={theme.colors.textSecondary} />
           <Typography variant="caption" numberOfLines={1}>
             {formatDateBR(order.deliveryDate)}
             {order.deliveryTime ? ` · ${order.deliveryTime}` : ""}
@@ -128,7 +123,7 @@ export function OrderCard({ order, onPress }: OrderCardProps) {
         </View>
       </View>
 
-      <Ionicons name="chevron-forward" size={23} color={theme.colors.textSecondary} />
+      <AppIcon name="chevron-forward" size={23} color={theme.colors.textSecondary} />
     </Pressable>
   );
 }

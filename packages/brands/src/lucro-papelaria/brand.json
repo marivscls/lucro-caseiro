@@ -20,12 +20,24 @@
     "productNounPlural": "produtos",
     "saleLabel": "Registrar venda",
     "stockLabel": "Estoque",
-    "revenueLabel": "Faturamento"
+    "revenueLabel": "Faturamento",
+    "labelsLabel": "Etiquetas e QR"
   },
   "features": {
     "estoque": true,
     "agendamento": false,
     "catalogoCores": true,
-    "fichaTecnica": false
+    "fichaTecnica": false,
+    "materiais": false,
+    "embalagens": false,
+    "vendaPorPeso": false,
+    "custoDireto": true,
+    "comprasComEstoque": true,
+    "varejoPapelaria": true
+  },
+  "onboarding": {
+    "businessType": "crafts",
+    "nicheId": "papelaria",
+    "skipNicheSelection": true
   }
 }

@@ -27,6 +27,7 @@ export const CatalogPattern = z.enum(["dots", "bubbles", "grid", "stripes"]);
 export type CatalogPatternKey = z.infer<typeof CatalogPattern>;
 
 export const CatalogSettingsDto = z.object({
+  brandId: z.string(),
   slug: z.string(),
   enabled: z.boolean(),
   whatsapp: z.string().nullable(),
@@ -66,9 +67,19 @@ export const PublicCatalogProductDto = z.object({
   extraPhotos: z.array(z.string()),
   salePrice: z.number(),
   saleUnit: z.string(),
+  variations: z.array(
+    z.object({
+      id: z.string().uuid(),
+      name: z.string(),
+      color: z.string().optional(),
+      size: z.string().optional(),
+      inStock: z.boolean(),
+    }),
+  ),
 });
 
 export const PublicCatalogDto = z.object({
+  brandId: z.string(),
   businessName: z.string(),
   whatsapp: z.string().nullable(),
   coverUrl: z.string().nullable(),

@@ -9,6 +9,7 @@ import {
 import {
   initialMarketingDocumentDefinitions,
   loadInitialMarketingDocument,
+  marketingSystemPrompt,
   overlapScore,
   parseMarketingContentIdeas,
   parseMarketingResourceDraft,
@@ -20,6 +21,15 @@ describe("marketing intelligence", () => {
     expect(content).toHaveLength(28);
     expect(new Set(content.map((item) => item.slug)).size).toBe(28);
     expect(new Set(content.map((item) => item.data.week))).toEqual(new Set([1, 2, 3, 4]));
+  });
+
+  it("keeps the brand market broader than each campaign segment", () => {
+    const market = initialMarketingResources.find(
+      (item) => item.kind === "audience" && item.slug === "mercado-lucro-caseiro",
+    );
+    expect(market?.title).toBe("Mercado amplo do Lucro Caseiro");
+    expect(market?.data.scope).toBe("brand-market");
+    expect(market?.data.rule).toContain("não limitam o mercado da marca");
   });
 
   it("keeps the protected AI rules in the official instruction", () => {
@@ -36,6 +46,10 @@ describe("marketing intelligence", () => {
       "título, resumo, ideia, texto ou transcrição",
     );
     expect(DEFAULT_MARKETING_SYSTEM_PROMPT).toContain("potencial de salvamento");
+    expect(DEFAULT_MARKETING_SYSTEM_PROMPT).toContain("não é exclusivo de confeiteiras");
+    expect(marketingSystemPrompt("Instrução personalizada.")).toContain(
+      "mercado amplo da marca",
+    );
   });
 
   it("keeps refinement focused on strategy instead of final content", () => {

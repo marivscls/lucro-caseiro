@@ -1,9 +1,9 @@
 import type { Sale } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import { Badge, Button, Card, Typography, useTheme } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
-import { Image, ScrollView, View } from "react-native";
+import { Image, View } from "react-native";
 
 import { formatCurrency } from "../../../shared/utils/format";
 import { isValidBrazilPhone } from "../../../shared/utils/phone";
@@ -17,8 +17,6 @@ import { exportReceiptPdf } from "../receipt-pdf";
 import { ReceiptPreviewModal } from "./receipt-preview-modal";
 import { showAlert } from "../../../shared/components/alert-store";
 import { alertError } from "../../../shared/utils/alerts";
-import { desktopContained } from "../../../shared/layout/desktop-density";
-import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 
 interface SaleDetailProps {
   readonly sale: Sale;
@@ -54,7 +52,6 @@ export function SaleDetail({
   onEditPress,
 }: SaleDetailProps) {
   const { theme } = useTheme();
-  const isDesktop = useDesktopLayout();
   const updateStatus = useUpdateSaleStatus();
   const { data: profile } = useProfile();
   const showPaywall = usePaywall((st) => st.show);
@@ -144,17 +141,8 @@ export function SaleDetail({
   }
 
   return (
-    <ScrollView
-      contentContainerStyle={[{ padding: 20, gap: 16 }, desktopContained(isDesktop, 960)]}
-    >
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Typography variant="h2">Detalhes da venda</Typography>
+    <View style={{ flexShrink: 1, gap: 16 }}>
+      <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
         <Badge label={status.label} variant={status.variant} />
       </View>
 
@@ -247,9 +235,9 @@ export function SaleDetail({
         {sale.status !== "cancelled" && (
           <Button
             title="Enviar recibo no WhatsApp"
-            variant="success"
+            variant="successOutline"
             size="lg"
-            icon={<Ionicons name="logo-whatsapp" size={20} color="#FFFFFF" />}
+            icon={<AppIcon name="logo-whatsapp" size={20} color={theme.colors.success} />}
             onPress={handleSendReceipt}
           />
         )}
@@ -259,11 +247,7 @@ export function SaleDetail({
             variant="secondary"
             size="lg"
             icon={
-              <Ionicons
-                name="document-text-outline"
-                size={20}
-                color={theme.colors.text}
-              />
+              <AppIcon name="document-text-outline" size={20} color={theme.colors.text} />
             }
             onPress={() => void handleReceiptPdf()}
             loading={exporting}
@@ -306,6 +290,6 @@ export function SaleDetail({
         }}
         onClose={() => setPreviewVisible(false)}
       />
-    </ScrollView>
+    </View>
   );
 }

@@ -6,6 +6,7 @@ import {
 import { Router, type RequestHandler } from "express";
 
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
+import { requireBrandFeature } from "../../shared/middleware/brand-feature";
 import type { PackagingUseCases } from "./packaging.usecases";
 
 export function createPackagingRouter(
@@ -14,6 +15,7 @@ export function createPackagingRouter(
 ): Router {
   const router = Router();
   router.use(authMiddleware);
+  router.use(requireBrandFeature("embalagens"));
 
   router.post("/", ...(createGuard ? [createGuard] : []), async (req, res, next) => {
     try {

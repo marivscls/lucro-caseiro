@@ -1,7 +1,8 @@
-import type { SaleUnit } from "@lucro-caseiro/contracts";
+import type { ProductVariationInput, SaleUnit } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import { Typography, useFeature, useTheme, radii, spacing } from "@lucro-caseiro/ui";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "../../../shared/components/app-icon";
+import type { AppIconName } from "../../../shared/components/app-icon";
 import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -43,6 +44,9 @@ import {
 import { confirmPossibleDuplicate, duplicateKey } from "../../../shared/utils/duplicates";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
+import { StandardModal } from "../../../shared/components/standard-modal";
+import { VariationEditor } from "./variation-editor";
+import { validateVariations } from "../variations";
 import { trackAnalyticsAction } from "../../analytics/tracker";
 import { useAuth } from "../../../shared/hooks/use-auth";
 
@@ -50,17 +54,17 @@ interface CreateProductFormProps {
   readonly onSuccess?: () => void;
   readonly initialSalePrice?: number;
   readonly analyticsSource?: "pricing";
+  readonly modal?: { visible: boolean; onClose: () => void; title: string };
 }
 
 /** Cores derivadas do tema para os campos (funciona em claro e escuro). */
 function useFieldPalette() {
   const { theme } = useTheme();
-  const isDark = theme.mode === "dark";
   return {
-    border: isDark ? "rgba(245, 225, 219, 0.12)" : "rgba(74, 50, 40, 0.12)",
-    fieldBg: isDark ? "rgba(58, 50, 45, 0.5)" : theme.colors.surface,
-    placeholder: isDark ? "rgba(184, 160, 144, 0.7)" : "rgba(139, 115, 85, 0.7)",
-    sheetBg: isDark ? "#2C2420" : theme.colors.surfaceElevated,
+    border: theme.colors.border,
+    fieldBg: theme.colors.surface,
+    placeholder: theme.colors.textSecondary,
+    sheetBg: theme.colors.surfaceElevated,
   };
 }
 
@@ -84,7 +88,7 @@ function FieldLabel({
 }
 
 type TextFieldCardProps = Readonly<{
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: AppIconName;
   isDesktop?: boolean;
 }> &
   TextInputProps;
@@ -106,7 +110,7 @@ function TextFieldCard({ icon, isDesktop = false, ...inputProps }: TextFieldCard
         gap: spacing.md,
       }}
     >
-      <Ionicons name={icon} size={22} color={theme.colors.textSecondary} />
+      <AppIcon name={icon} size={22} color={theme.colors.textSecondary} />
       <TextInput
         placeholderTextColor={pal.placeholder}
         style={{
@@ -166,7 +170,7 @@ function CategoryField({
           gap: spacing.md,
         }}
       >
-        <Ionicons name="grid-outline" size={22} color={theme.colors.textSecondary} />
+        <AppIcon name="grid-outline" size={22} color={theme.colors.textSecondary} />
         <Typography
           variant="body"
           color={value ? theme.colors.text : pal.placeholder}
@@ -175,7 +179,7 @@ function CategoryField({
         >
           {value || "Ex: Doces, Salgados, Bolos..."}
         </Typography>
-        <Ionicons name="chevron-down" size={20} color={theme.colors.textSecondary} />
+        <AppIcon name="chevron-down" size={20} color={theme.colors.textSecondary} />
       </Pressable>
 
       <ResponsiveOverlayModal
@@ -192,7 +196,7 @@ function CategoryField({
             onPress={() => setOpen(false)}
             style={{
               flex: 1,
-              backgroundColor: "rgba(0,0,0,0.55)",
+              backgroundColor: theme.colors.overlay,
               justifyContent: isDesktop ? "center" : "flex-end",
               alignItems: isDesktop ? "center" : undefined,
               padding: isDesktop ? spacing.xl : 0,
@@ -230,7 +234,7 @@ function CategoryField({
                   gap: spacing.md,
                 }}
               >
-                <Ionicons
+                <AppIcon
                   name="create-outline"
                   size={22}
                   color={theme.colors.textSecondary}
@@ -376,7 +380,7 @@ function PhotoField({
                 justifyContent: "center",
               }}
             >
-              <Ionicons
+              <AppIcon
                 name="camera-outline"
                 size={28}
                 color={theme.colors.textSecondary}
@@ -425,7 +429,7 @@ function DescriptionField({
           gap: spacing.md,
         }}
       >
-        <Ionicons
+        <AppIcon
           name="document-text-outline"
           size={22}
           color={theme.colors.textSecondary}
@@ -507,7 +511,7 @@ function ExtraPhotosField({
               accessibilityLabel="Remover foto"
               style={{ position: "absolute", top: -8, right: -8 }}
             >
-              <Ionicons name="close-circle" size={24} color={theme.colors.alert} />
+              <AppIcon name="close-circle" size={24} color={theme.colors.alert} />
             </Pressable>
           </View>
         ))}
@@ -528,9 +532,9 @@ function ExtraPhotosField({
               justifyContent: "center",
             }}
           >
-            <Ionicons name="add" size={28} color={theme.colors.textSecondary} />
+            <AppIcon name="add" size={28} color={theme.colors.textSecondary} />
             {!isPremium && (
-              <Ionicons
+              <AppIcon
                 name="lock-closed"
                 size={12}
                 color={theme.colors.premium}
@@ -548,19 +552,26 @@ export function CreateProductForm({
   onSuccess,
   initialSalePrice,
   analyticsSource,
+  modal,
 }: CreateProductFormProps) {
   const { theme } = useTheme();
   const variationsEnabled = useFeature("catalogoCores");
+  const directCostEnabled = useFeature("custoDireto");
+  const weightEnabled = useFeature("vendaPorPeso");
   const isDesktop = useDesktopLayout();
+  // No sheet hug (modal) o form usa sempre coluna única: as rows lado a lado com
+  // larguras fixas foram pensadas para o uso inline em desktop (fluxo new-sale).
+  const wideLayout = isDesktop && !modal;
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [salePrice, setSalePrice] = useState(
     initialSalePrice === undefined ? "" : currencyInput(initialSalePrice),
   );
+  const [costPrice, setCostPrice] = useState("");
   const [saleUnit, setSaleUnit] = useState<SaleUnit>("unit");
   const [description, setDescription] = useState("");
   const [code, setCode] = useState("");
-  const [variationNames, setVariationNames] = useState("");
+  const [variations, setVariations] = useState<ProductVariationInput[]>([]);
   const [showScanner, setShowScanner] = useState(false);
   const [stockQuantity, setStockQuantity] = useState("");
   const [stockAlert, setStockAlert] = useState("");
@@ -618,6 +629,7 @@ export function CreateProductForm({
     if (checkProductLimit()) return;
 
     const price = parseCurrencyInput(salePrice);
+    const cost = costPrice ? parseCurrencyInput(costPrice) : undefined;
 
     const validationError = validateProductDraft({
       name,
@@ -628,6 +640,15 @@ export function CreateProductForm({
     });
     if (validationError) {
       alertValidation(validationError);
+      return;
+    }
+    if (cost !== undefined && (!Number.isFinite(cost) || cost < 0)) {
+      alertValidation("O custo não pode ser negativo.");
+      return;
+    }
+    const variationError = validateVariations(variations);
+    if (variationsEnabled && variationError) {
+      alertValidation(variationError);
       return;
     }
 
@@ -684,7 +705,8 @@ export function CreateProductForm({
         name: name.trim(),
         category: category.trim(),
         salePrice: price,
-        saleUnit,
+        saleUnit: weightEnabled ? saleUnit : "unit",
+        costPrice: directCostEnabled ? cost : undefined,
         description: description.trim() || undefined,
         photoUrl,
         extraPhotos,
@@ -696,13 +718,7 @@ export function CreateProductForm({
           saleUnit === "kg" || !stockAlert ? undefined : parseInt(stockAlert, 10),
         isComposite,
         components: componentsPayload,
-        variations: variationsEnabled
-          ? variationNames
-              .split(",")
-              .map((variation) => variation.trim())
-              .filter(Boolean)
-              .map((variation) => ({ name: variation }))
-          : undefined,
+        variations: variationsEnabled ? variations : undefined,
       });
       showAlert({
         title: "Produto cadastrado!",
@@ -731,6 +747,288 @@ export function CreateProductForm({
 
   const loading = createProduct.isPending || uploading;
 
+  const fields = (
+    <>
+      <View
+        style={{
+          flexDirection: wideLayout ? "row" : "column",
+          gap: wideLayout ? spacing.lg : spacing.xl,
+        }}
+      >
+        <View style={wideLayout ? { flex: 1 } : undefined}>
+          <FieldLabel label="Nome do produto" required />
+          <TextFieldCard
+            icon="pricetag-outline"
+            placeholder={
+              directCostEnabled
+                ? "Ex: Caderno universitário, Caneta azul..."
+                : "Ex: Brigadeiro, Bolo de chocolate..."
+            }
+            value={name}
+            onChangeText={setName}
+            autoFocus
+            isDesktop={isDesktop}
+          />
+        </View>
+
+        <View style={wideLayout ? { flex: 1 } : undefined}>
+          <FieldLabel label="Categoria" required />
+          <CategoryField
+            value={category}
+            onChange={setCategory}
+            categories={categories}
+            isDesktop={isDesktop}
+          />
+        </View>
+      </View>
+
+      <CompositeToggle
+        value={isComposite}
+        onChange={handleCompositeChange}
+        locked={!canUseCompositeProducts}
+      />
+
+      {isComposite && <ComponentPicker value={components} onChange={setComponents} />}
+
+      {variationsEnabled && !isComposite ? (
+        <VariationEditor value={variations} onChange={setVariations} />
+      ) : null}
+
+      <View
+        style={{
+          flexDirection: wideLayout ? "row" : "column",
+          alignItems: wideLayout ? "flex-end" : undefined,
+          gap: spacing.xl,
+        }}
+      >
+        {/* Venda por peso (kg) so faz sentido para produto simples. */}
+        {!isComposite && weightEnabled && (
+          <View style={wideLayout ? { flex: 1, maxWidth: 640 } : undefined}>
+            <SaleUnitToggle value={saleUnit} onChange={setSaleUnit} />
+          </View>
+        )}
+
+        <View style={wideLayout ? { width: 360 } : undefined}>
+          <FieldLabel
+            label={isKg ? "Preço por kg (R$)" : "Preço de venda (R$)"}
+            required
+          />
+          <TextFieldCard
+            icon="cash-outline"
+            placeholder={isKg ? "Ex: 80,00" : "Ex: 3,50"}
+            value={salePrice}
+            onChangeText={(value) => setSalePrice(maskCurrencyInput(value))}
+            keyboardType="numeric"
+            isDesktop={isDesktop}
+          />
+        </View>
+
+        {directCostEnabled && !isComposite ? (
+          <View style={wideLayout ? { width: 360 } : undefined}>
+            <FieldLabel label="Custo unitário (R$)" />
+            <TextFieldCard
+              icon="wallet-outline"
+              placeholder="Ex: 2,10"
+              value={costPrice}
+              onChangeText={(value) => setCostPrice(maskCurrencyInput(value))}
+              keyboardType="numeric"
+              isDesktop={isDesktop}
+            />
+            {costPrice && salePrice ? (
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                Margem bruta estimada:{" "}
+                {Math.max(
+                  0,
+                  parseCurrencyInput(salePrice) - parseCurrencyInput(costPrice),
+                ).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+              </Typography>
+            ) : null}
+          </View>
+        ) : null}
+      </View>
+
+      <View
+        style={{
+          flexDirection: wideLayout ? "row" : "column",
+          alignItems: wideLayout ? "flex-start" : undefined,
+          gap: spacing.xl,
+        }}
+      >
+        <View style={wideLayout ? { width: 480, gap: spacing.lg } : { gap: spacing.xl }}>
+          <PhotoField imageUri={imageUri} onPress={showPicker} isDesktop={isDesktop} />
+
+          <ExtraPhotosField
+            uris={extraUris}
+            onAdd={() => void addExtraPhoto()}
+            onRemove={removeExtraPhoto}
+            max={MAX_EXTRA_PHOTOS}
+            isPremium={canUseExtraPhotos}
+            isDesktop={isDesktop}
+          />
+        </View>
+
+        <View style={wideLayout ? { flex: 1 } : undefined}>
+          <DescriptionField
+            value={description}
+            onChange={setDescription}
+            isDesktop={isDesktop}
+          />
+        </View>
+      </View>
+
+      <View
+        style={{
+          flexDirection: wideLayout ? "row" : "column",
+          alignItems: wideLayout ? "flex-end" : undefined,
+          gap: wideLayout ? spacing.lg : spacing.xl,
+        }}
+      >
+        <View style={wideLayout ? { flex: 1, maxWidth: 480 } : undefined}>
+          <FieldLabel label="Código de barras (opcional)" />
+          <View style={{ flexDirection: "row", gap: spacing.sm }}>
+            <View style={{ flex: 1 }}>
+              <TextFieldCard
+                icon="barcode-outline"
+                placeholder="Ex: 789..."
+                value={code}
+                onChangeText={setCode}
+                isDesktop={isDesktop}
+              />
+            </View>
+            <Pressable
+              onPress={() => setShowScanner(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Escanear código"
+              style={{
+                width: isDesktop ? 48 : 60,
+                minHeight: isDesktop ? 48 : 60,
+                borderRadius: radii.lg,
+                backgroundColor: theme.colors.surface,
+                borderWidth: 1,
+                borderColor: theme.colors.border,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <AppIcon name="scan-outline" size={24} color={theme.colors.textSecondary} />
+            </Pressable>
+          </View>
+        </View>
+
+        {saleUnit === "unit" && !isComposite && variations.length === 0 && (
+          <>
+            <View style={wideLayout ? { flex: 1, maxWidth: 260 } : undefined}>
+              <FieldLabel label="Quantidade em estoque (opcional)" />
+              <TextFieldCard
+                icon="albums-outline"
+                placeholder="Ex: 50"
+                value={stockQuantity}
+                onChangeText={setStockQuantity}
+                keyboardType="number-pad"
+                isDesktop={isDesktop}
+              />
+            </View>
+
+            <View style={wideLayout ? { flex: 1, maxWidth: 260 } : undefined}>
+              <FieldLabel label="Alerta de estoque baixo (opcional)" />
+              <TextFieldCard
+                icon="notifications-outline"
+                placeholder="Ex: 10"
+                value={stockAlert}
+                onChangeText={setStockAlert}
+                keyboardType="number-pad"
+                isDesktop={isDesktop}
+              />
+            </View>
+          </>
+        )}
+        {saleUnit === "unit" && !isComposite && variations.length > 0 ? (
+          <View style={wideLayout ? { flex: 1, maxWidth: 260 } : undefined}>
+            <FieldLabel label="Alerta por variação (opcional)" />
+            <TextFieldCard
+              icon="notifications-outline"
+              placeholder="Ex: 3"
+              value={stockAlert}
+              onChangeText={setStockAlert}
+              keyboardType="number-pad"
+              isDesktop={isDesktop}
+            />
+          </View>
+        ) : null}
+      </View>
+    </>
+  );
+
+  function renderSubmitButton(footerStyle?: object) {
+    return (
+      <Pressable
+        onPress={() => {
+          void handleSubmit();
+        }}
+        disabled={loading}
+        accessibilityRole="button"
+        style={({ pressed }) => ({
+          alignSelf: isDesktop ? "flex-end" : undefined,
+          width: isDesktop ? 220 : undefined,
+          minHeight: isDesktop ? 44 : 58,
+          borderRadius: radii.lg,
+          backgroundColor: theme.colors.primary,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: spacing.sm,
+          opacity: pressed || loading ? 0.85 : 1,
+          ...footerStyle,
+        })}
+      >
+        {loading ? (
+          <ActivityIndicator color={theme.colors.textOnPrimary} />
+        ) : (
+          <AppIcon
+            name="checkmark-circle-outline"
+            size={24}
+            color={theme.colors.textOnPrimary}
+          />
+        )}
+        <Typography
+          variant={isDesktop ? "bodyBold" : "h3"}
+          color={theme.colors.textOnPrimary}
+        >
+          {uploading ? "Enviando foto..." : "Cadastrar produto"}
+        </Typography>
+      </Pressable>
+    );
+  }
+
+  const scanner = (
+    <BarcodeScanner
+      visible={showScanner}
+      onClose={() => setShowScanner(false)}
+      onScanned={(scanned) => {
+        setShowScanner(false);
+        setCode(scanned);
+      }}
+    />
+  );
+
+  if (modal) {
+    return (
+      <>
+        <StandardModal
+          title={modal.title}
+          visible={modal.visible}
+          onClose={modal.onClose}
+          footer={renderSubmitButton({ flex: 1, alignSelf: undefined, width: undefined })}
+        >
+          <View style={{ flexShrink: 1, gap: isDesktop ? spacing.lg : spacing.xl }}>
+            {fields}
+          </View>
+        </StandardModal>
+        {scanner}
+      </>
+    );
+  }
+
   return (
     <>
       <KeyboardAwareScrollView
@@ -743,234 +1041,10 @@ export function CreateProductForm({
           alignSelf: "center",
         }}
       >
-        <View
-          style={{
-            flexDirection: isDesktop ? "row" : "column",
-            gap: isDesktop ? spacing.lg : spacing.xl,
-          }}
-        >
-          <View style={isDesktop ? { flex: 1 } : undefined}>
-            <FieldLabel label="Nome do produto" required />
-            <TextFieldCard
-              icon="pricetag-outline"
-              placeholder="Ex: Brigadeiro, Bolo de chocolate..."
-              value={name}
-              onChangeText={setName}
-              autoFocus
-              isDesktop={isDesktop}
-            />
-          </View>
-
-          <View style={isDesktop ? { flex: 1 } : undefined}>
-            <FieldLabel label="Categoria" required />
-            <CategoryField
-              value={category}
-              onChange={setCategory}
-              categories={categories}
-              isDesktop={isDesktop}
-            />
-          </View>
-        </View>
-
-        <CompositeToggle
-          value={isComposite}
-          onChange={handleCompositeChange}
-          locked={!canUseCompositeProducts}
-        />
-
-        {isComposite && <ComponentPicker value={components} onChange={setComponents} />}
-
-        {variationsEnabled && !isComposite ? (
-          <View>
-            <FieldLabel label="Variacoes de cor/tamanho (opcional)" />
-            <TextFieldCard
-              icon="color-palette-outline"
-              placeholder="Ex: Azul / A4, Vermelha / A5"
-              value={variationNames}
-              onChangeText={setVariationNames}
-              isDesktop={isDesktop}
-            />
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              Separe cada variacao por virgula.
-            </Typography>
-          </View>
-        ) : null}
-
-        <View
-          style={{
-            flexDirection: isDesktop ? "row" : "column",
-            alignItems: isDesktop ? "flex-end" : undefined,
-            gap: spacing.xl,
-          }}
-        >
-          {/* Venda por peso (kg) so faz sentido para produto simples. */}
-          {!isComposite && (
-            <View style={isDesktop ? { flex: 1, maxWidth: 640 } : undefined}>
-              <SaleUnitToggle value={saleUnit} onChange={setSaleUnit} />
-            </View>
-          )}
-
-          <View style={isDesktop ? { width: 360 } : undefined}>
-            <FieldLabel
-              label={isKg ? "Preço por kg (R$)" : "Preço de venda (R$)"}
-              required
-            />
-            <TextFieldCard
-              icon="cash-outline"
-              placeholder={isKg ? "Ex: 80,00" : "Ex: 3,50"}
-              value={salePrice}
-              onChangeText={(value) => setSalePrice(maskCurrencyInput(value))}
-              keyboardType="numeric"
-              isDesktop={isDesktop}
-            />
-          </View>
-        </View>
-
-        <View
-          style={{
-            flexDirection: isDesktop ? "row" : "column",
-            alignItems: isDesktop ? "flex-start" : undefined,
-            gap: spacing.xl,
-          }}
-        >
-          <View style={isDesktop ? { width: 480, gap: spacing.lg } : { gap: spacing.xl }}>
-            <PhotoField imageUri={imageUri} onPress={showPicker} isDesktop={isDesktop} />
-
-            <ExtraPhotosField
-              uris={extraUris}
-              onAdd={() => void addExtraPhoto()}
-              onRemove={removeExtraPhoto}
-              max={MAX_EXTRA_PHOTOS}
-              isPremium={canUseExtraPhotos}
-              isDesktop={isDesktop}
-            />
-          </View>
-
-          <View style={isDesktop ? { flex: 1 } : undefined}>
-            <DescriptionField
-              value={description}
-              onChange={setDescription}
-              isDesktop={isDesktop}
-            />
-          </View>
-        </View>
-
-        <View
-          style={{
-            flexDirection: isDesktop ? "row" : "column",
-            alignItems: isDesktop ? "flex-end" : undefined,
-            gap: isDesktop ? spacing.lg : spacing.xl,
-          }}
-        >
-          <View style={isDesktop ? { flex: 1, maxWidth: 480 } : undefined}>
-            <FieldLabel label="Código de barras (opcional)" />
-            <View style={{ flexDirection: "row", gap: spacing.sm }}>
-              <View style={{ flex: 1 }}>
-                <TextFieldCard
-                  icon="barcode-outline"
-                  placeholder="Ex: 789..."
-                  value={code}
-                  onChangeText={setCode}
-                  isDesktop={isDesktop}
-                />
-              </View>
-              <Pressable
-                onPress={() => setShowScanner(true)}
-                accessibilityRole="button"
-                accessibilityLabel="Escanear código"
-                style={{
-                  width: isDesktop ? 48 : 60,
-                  minHeight: isDesktop ? 48 : 60,
-                  borderRadius: radii.lg,
-                  backgroundColor: theme.colors.surface,
-                  borderWidth: 1,
-                  borderColor: theme.colors.border,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Ionicons
-                  name="scan-outline"
-                  size={24}
-                  color={theme.colors.textSecondary}
-                />
-              </Pressable>
-            </View>
-          </View>
-
-          {saleUnit === "unit" && !isComposite && (
-            <>
-              <View style={isDesktop ? { flex: 1, maxWidth: 260 } : undefined}>
-                <FieldLabel label="Quantidade em estoque (opcional)" />
-                <TextFieldCard
-                  icon="albums-outline"
-                  placeholder="Ex: 50"
-                  value={stockQuantity}
-                  onChangeText={setStockQuantity}
-                  keyboardType="number-pad"
-                  isDesktop={isDesktop}
-                />
-              </View>
-
-              <View style={isDesktop ? { flex: 1, maxWidth: 260 } : undefined}>
-                <FieldLabel label="Alerta de estoque baixo (opcional)" />
-                <TextFieldCard
-                  icon="notifications-outline"
-                  placeholder="Ex: 10"
-                  value={stockAlert}
-                  onChangeText={setStockAlert}
-                  keyboardType="number-pad"
-                  isDesktop={isDesktop}
-                />
-              </View>
-            </>
-          )}
-        </View>
-
-        <Pressable
-          onPress={() => {
-            void handleSubmit();
-          }}
-          disabled={loading}
-          accessibilityRole="button"
-          style={({ pressed }) => ({
-            alignSelf: isDesktop ? "flex-end" : undefined,
-            width: isDesktop ? 220 : undefined,
-            minHeight: isDesktop ? 44 : 58,
-            borderRadius: radii.lg,
-            backgroundColor: theme.colors.primary,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: spacing.sm,
-            opacity: pressed || loading ? 0.85 : 1,
-          })}
-        >
-          {loading ? (
-            <ActivityIndicator color={theme.colors.textOnPrimary} />
-          ) : (
-            <Ionicons
-              name="checkmark-circle-outline"
-              size={24}
-              color={theme.colors.textOnPrimary}
-            />
-          )}
-          <Typography
-            variant={isDesktop ? "bodyBold" : "h3"}
-            color={theme.colors.textOnPrimary}
-          >
-            {uploading ? "Enviando foto..." : "Cadastrar produto"}
-          </Typography>
-        </Pressable>
+        {fields}
+        {renderSubmitButton()}
       </KeyboardAwareScrollView>
-      <BarcodeScanner
-        visible={showScanner}
-        onClose={() => setShowScanner(false)}
-        onScanned={(scanned) => {
-          setShowScanner(false);
-          setCode(scanned);
-        }}
-      />
+      {scanner}
     </>
   );
 }
