@@ -22,6 +22,7 @@ import {
   maskCurrencyInput,
   parseCurrencyInput,
 } from "../../../shared/utils/currency-input";
+import { alertError } from "../../../shared/utils/alerts";
 import { usePackagingList } from "../../packaging/hooks";
 import { useProducts } from "../../products/hooks";
 import { trackAnalyticsAction } from "../../analytics/tracker";
@@ -477,8 +478,8 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
         feesPercent: feesPercent > 0 ? feesPercent : undefined,
       });
       onSave?.();
-    } catch {
-      // handled by mutation state
+    } catch (error) {
+      alertError(error);
     }
   }, [
     calculatePricing,
@@ -493,6 +494,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
   ]);
 
   const handleCreateProduct = useCallback(async () => {
+    onCreateProduct?.(finalPrice);
     try {
       await calculatePricing.mutateAsync({
         productId: productId ?? undefined,
@@ -503,9 +505,8 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
         marginPercent,
         feesPercent: feesPercent > 0 ? feesPercent : undefined,
       });
-      onCreateProduct?.(finalPrice);
-    } catch {
-      // handled by mutation state
+    } catch (error) {
+      alertError(error);
     }
   }, [
     calculatePricing,
