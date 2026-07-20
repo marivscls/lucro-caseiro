@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const appRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const brandId = process.argv[2]?.trim();
-const port = Number(process.argv[3]);
+const port = Number(process.argv[3] ?? process.env.PORT ?? 8083);
 
 if (!brandId || !/^[a-z0-9-]+$/.test(brandId)) {
   throw new Error("Informe a marca que sera servida.");
