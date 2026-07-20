@@ -563,6 +563,7 @@ function QuickCreateBar() {
   const router = useRouter();
   const { theme } = useTheme();
   const { copy } = useBrand();
+  const isDesktop = useDesktopLayout();
   const actions = [
     { icon: "add", label: copy.saleLabel, route: "/tabs/new-sale", active: true },
     {
@@ -597,7 +598,7 @@ function QuickCreateBar() {
           accessibilityLabel={action.label}
           style={({ pressed }) => ({
             flex: 1,
-            minHeight: 76,
+            minHeight: isDesktop ? 76 : 88,
             alignItems: "center",
             justifyContent: "center",
             gap: spacing.xs,
@@ -628,8 +629,14 @@ function QuickCreateBar() {
           <Typography
             variant="caption"
             color={action.active ? theme.colors.primaryStrong : theme.colors.text}
-            numberOfLines={1}
-            style={{ fontSize: fontSizes.xs }}
+            numberOfLines={isDesktop ? 1 : 2}
+            style={{
+              alignSelf: "stretch",
+              paddingHorizontal: spacing.xs,
+              fontSize: fontSizes.xs,
+              lineHeight: 16,
+              textAlign: "center",
+            }}
           >
             {action.label}
           </Typography>
