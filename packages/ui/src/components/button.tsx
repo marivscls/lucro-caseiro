@@ -12,7 +12,14 @@ import { useTheme } from "../theme-context";
 import { useReducedMotion } from "../use-reduced-motion";
 import { fonts, fontSizes, radii, spacing } from "../theme";
 
-type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "success" | "successOutline" | "premium";
+type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "outline"
+  | "ghost"
+  | "success"
+  | "successOutline"
+  | "premium";
 type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps extends Omit<PressableProps, "style"> {
@@ -21,18 +28,21 @@ interface ButtonProps extends Omit<PressableProps, "style"> {
   size?: ButtonSize;
   loading?: boolean;
   icon?: React.ReactNode;
+  compact?: boolean;
   style?: ViewStyle;
 }
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 // Alturas distintas por tamanho; minimo de 44px de alvo de toque (publico idoso).
-const sizeStyles: Record<ButtonSize, { height: number; fontSize: number; px: number }> =
-  {
-    sm: { height: 44, fontSize: fontSizes.sm, px: spacing.lg },
-    md: { height: 48, fontSize: fontSizes.md, px: spacing.xl },
-    lg: { height: 56, fontSize: fontSizes.lg, px: spacing["2xl"] },
-  };
+const sizeStyles: Record<
+  ButtonSize,
+  { minHeight: number; fontSize: number; px: number }
+> = {
+  sm: { minHeight: 44, fontSize: fontSizes.sm, px: spacing.lg },
+  md: { minHeight: 48, fontSize: fontSizes.md, px: spacing.xl },
+  lg: { minHeight: 56, fontSize: fontSizes.lg, px: spacing["2xl"] },
+};
 
 export function Button({
   title,
@@ -40,6 +50,7 @@ export function Button({
   size = "md",
   loading = false,
   icon,
+  compact = false,
   disabled,
   style,
   onPressIn,
@@ -65,10 +76,18 @@ export function Button({
     // `primary` de marca fica para areas grandes sem texto por cima.
     primary: { bg: theme.colors.primaryInteractive, text: theme.colors.textOnPrimary },
     secondary: { bg: theme.colors.surface, text: theme.colors.text },
-    outline: { bg: "transparent", text: theme.colors.primaryStrong, border: theme.colors.primaryStrong },
+    outline: {
+      bg: "transparent",
+      text: theme.colors.primaryStrong,
+      border: theme.colors.primaryStrong,
+    },
     ghost: { bg: "transparent", text: theme.colors.textSecondary },
     success: { bg: theme.colors.success, text: theme.colors.textOnPrimary },
-    successOutline: { bg: "transparent", text: theme.colors.success, border: theme.colors.success },
+    successOutline: {
+      bg: "transparent",
+      text: theme.colors.success,
+      border: theme.colors.success,
+    },
     premium: { bg: theme.colors.premium, text: theme.colors.textOnPrimary },
   };
 
@@ -87,8 +106,9 @@ export function Button({
       }}
       style={[
         {
-          height: s.height,
-          paddingHorizontal: s.px,
+          minHeight: s.minHeight,
+          paddingHorizontal: compact ? spacing.md : s.px,
+          paddingVertical: spacing.sm,
           backgroundColor: v.bg,
           borderRadius: radii.lg,
           flexDirection: "row",
@@ -110,11 +130,14 @@ export function Button({
         <>
           {icon}
           <Text
-            numberOfLines={1}
+            numberOfLines={2}
             style={{
               color: v.text,
               fontSize: s.fontSize,
               fontFamily: fonts.bold,
+              flexShrink: 1,
+              minWidth: 0,
+              textAlign: "center",
             }}
           >
             {title}

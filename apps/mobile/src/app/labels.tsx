@@ -55,6 +55,7 @@ function LabelDetailModal({
   onClose: () => void;
 }>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const { data: profile } = useProfile();
   const showPaywall = usePaywall((state) => state.show);
   const isPremium =
@@ -221,22 +222,22 @@ function LabelDetailModal({
     });
   }
 
-  let footer: React.ReactNode;
+  let footerButtons: React.ReactNode;
   if (!isLoading && label) {
-    footer = editing ? (
+    footerButtons = editing ? (
       <>
         <Button
           title="Cancelar"
           variant="secondary"
           onPress={() => setEditing(false)}
-          style={{ flex: 1 }}
+          style={isDesktop ? { flex: 1 } : { alignSelf: "stretch" }}
         />
         <Button
           title={uploading ? "Enviando logo..." : "Salvar"}
           size="lg"
           onPress={() => void handleSave()}
           loading={updateLabel.isPending || uploading}
-          style={{ flex: 1 }}
+          style={isDesktop ? { flex: 1 } : { alignSelf: "stretch" }}
         />
       </>
     ) : (
@@ -246,11 +247,12 @@ function LabelDetailModal({
           variant="secondary"
           onPress={handleDelete}
           loading={deleteLabel.isPending}
-          style={{ flex: 1 }}
+          style={isDesktop ? { flex: 1 } : { alignSelf: "stretch" }}
         />
         <Button
           title="Baixar / Compartilhar"
           size="lg"
+          compact
           icon={
             <AppIcon
               name="download-outline"
@@ -260,11 +262,23 @@ function LabelDetailModal({
           }
           onPress={() => void handleExport(label)}
           loading={exporting}
-          style={{ flex: 1 }}
+          style={isDesktop ? { flex: 1 } : { alignSelf: "stretch" }}
         />
       </>
     );
   }
+
+  const footer = footerButtons ? (
+    <View
+      style={{
+        flex: 1,
+        flexDirection: isDesktop ? "row" : "column",
+        gap: spacing.md,
+      }}
+    >
+      {footerButtons}
+    </View>
+  ) : undefined;
 
   return (
     <StandardModal
@@ -291,7 +305,14 @@ function LabelDetailModal({
       {isLoading ? <SkeletonList rows={4} /> : null}
 
       {!isLoading && label && editing ? (
-        <View style={{ flexShrink: 1, gap: spacing["3xl"] }}>
+        <View
+          style={{
+            width: "100%",
+            minWidth: 0,
+            alignSelf: "stretch",
+            gap: isDesktop ? spacing["3xl"] : spacing["2xl"],
+          }}
+        >
           <View
             style={{
               borderRadius: radii.md,
@@ -438,7 +459,7 @@ function LabelDetailModal({
       ) : null}
 
       {!isLoading && label && !editing ? (
-        <View style={{ flexShrink: 1, gap: spacing.lg }}>
+        <View style={{ width: "100%", minWidth: 0, gap: spacing.lg }}>
           <LabelPreview
             data={label.data}
             templateId={label.templateId}

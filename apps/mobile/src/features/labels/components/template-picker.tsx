@@ -1,7 +1,7 @@
-import { Card, Typography, fonts, radii, useTheme } from "@lucro-caseiro/ui";
+import { Card, Typography, fonts, radii, spacing, useTheme } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import React from "react";
-import { FlatList, Pressable, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 
 import { useTemplates } from "../hooks";
 
@@ -23,25 +23,51 @@ export function TemplatePicker({ selected, onSelect }: Readonly<TemplatePickerPr
   const { data: templates } = useTemplates();
 
   return (
-    <View style={{ gap: 8 }}>
-      <Typography variant="h3">Escolha um modelo</Typography>
-      <FlatList
-        data={templates}
+    <View style={{ width: "100%", minWidth: 0, gap: spacing.sm }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: spacing.sm,
+        }}
+      >
+        <Typography variant="h3">Escolha um modelo</Typography>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            Arraste
+          </Typography>
+          <AppIcon name="chevron-forward" size={16} color={theme.colors.textSecondary} />
+        </View>
+      </View>
+      <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{ gap: 12, paddingVertical: 4 }}
-        renderItem={({ item }) => {
+        nestedScrollEnabled
+        directionalLockEnabled
+        decelerationRate="fast"
+        snapToInterval={128}
+        style={{ width: "100%", maxWidth: "100%", flexGrow: 0 }}
+        contentContainerStyle={{
+          gap: spacing.md,
+          paddingVertical: spacing.xs,
+          paddingRight: spacing.xl,
+        }}
+      >
+        {templates?.map((item) => {
           const colors = TEMPLATE_COLORS[item.id] ?? { bg: "#F3F4F6", accent: "#4B5563" };
           const isSelected = selected === item.id;
           return (
             <Pressable
+              key={item.id}
               onPress={() => onSelect(item.id)}
               accessibilityRole="button"
               accessibilityState={{ selected: isSelected }}
               accessibilityLabel={item.name}
+              style={{ width: 116, flexShrink: 0 }}
             >
               <Card
+                padding="sm"
                 style={{
                   width: 116,
                   height: 132,
@@ -94,8 +120,8 @@ export function TemplatePicker({ selected, onSelect }: Readonly<TemplatePickerPr
               </Card>
             </Pressable>
           );
-        }}
-      />
+        })}
+      </ScrollView>
     </View>
   );
 }

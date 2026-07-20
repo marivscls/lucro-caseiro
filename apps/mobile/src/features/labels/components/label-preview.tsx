@@ -1,7 +1,7 @@
 import type { LabelData } from "@lucro-caseiro/contracts";
-import { Card, Typography, fonts } from "@lucro-caseiro/ui";
+import { Card, Typography, fonts, spacing } from "@lucro-caseiro/ui";
 import React from "react";
-import { Image, View } from "react-native";
+import { Image, View, useWindowDimensions } from "react-native";
 import { SvgXml } from "react-native-svg";
 
 import { isoToBR } from "../dates";
@@ -13,6 +13,17 @@ interface LabelPreviewProps {
   logoUrl?: string | null;
   qrUrl?: string | null;
   scale?: number;
+}
+
+const LABEL_PREVIEW_WIDTH = 280;
+
+export function fitLabelPreviewScale(
+  requestedScale: number,
+  viewportWidth: number,
+): number {
+  if (viewportWidth <= 0) return requestedScale;
+  const availableWidth = Math.max(0, viewportWidth - spacing.xl * 2);
+  return Math.min(requestedScale, availableWidth / LABEL_PREVIEW_WIDTH);
 }
 
 type TemplateStyle = {
@@ -80,6 +91,8 @@ export function LabelPreview({
   qrUrl,
   scale = 1,
 }: Readonly<LabelPreviewProps>) {
+  const { width: viewportWidth } = useWindowDimensions();
+  const previewScale = fitLabelPreviewScale(scale, viewportWidth);
   const style = resolveLabelStyle(templateId, data.style);
   const qrSvg = qrUrl ? buildQrSvg(qrUrl) : null;
   const isDouble = style.borderStyle === "double";
@@ -94,18 +107,18 @@ export function LabelPreview({
         borderColor: style.border,
         borderStyle: style.borderStyle === "dashed" ? "dashed" : "solid",
         borderRadius: style.corner === "square" ? 0 : 12,
-        padding: (isDouble ? 8 : 18) * scale,
-        width: 280 * scale,
+        padding: (isDouble ? 8 : 18) * previewScale,
+        width: LABEL_PREVIEW_WIDTH * previewScale,
         alignSelf: "center",
       }}
     >
-      <DoubleBorder visible={isDouble} color={style.border} scale={scale}>
+      <DoubleBorder visible={isDouble} color={style.border} scale={previewScale}>
         {logoUrl ? (
           <Image
             source={{ uri: logoUrl }}
             style={{
-              width: 52 * scale,
-              height: 52 * scale,
+              width: 52 * previewScale,
+              height: 52 * previewScale,
               alignSelf: "center",
               borderRadius: 8,
             }}
@@ -115,7 +128,7 @@ export function LabelPreview({
         <Typography
           variant="h2"
           color={style.accent}
-          style={{ textAlign: "center", fontSize: 20 * scale }}
+          style={{ textAlign: "center", fontSize: 20 * previewScale }}
         >
           {data.productName || "Nome do produto"}
         </Typography>
@@ -124,7 +137,7 @@ export function LabelPreview({
           <Typography
             variant="caption"
             color={style.accent}
-            style={{ textAlign: "center", fontSize: 10 * scale }}
+            style={{ textAlign: "center", fontSize: 10 * previewScale }}
           >
             {data.note}
           </Typography>
@@ -135,8 +148,8 @@ export function LabelPreview({
             style={{
               flexDirection: "row",
               justifyContent: "center",
-              gap: 24 * scale,
-              marginTop: 2 * scale,
+              gap: 24 * previewScale,
+              marginTop: 2 * previewScale,
             }}
           >
             {data.manufacturingDate ? (
@@ -144,7 +157,7 @@ export function LabelPreview({
                 label="Feito em"
                 value={data.manufacturingDate}
                 color={style.accent}
-                scale={scale}
+                scale={previewScale}
               />
             ) : null}
             {data.expirationDate ? (
@@ -152,7 +165,7 @@ export function LabelPreview({
                 label="Validade"
                 value={data.expirationDate}
                 color={style.accent}
-                scale={scale}
+                scale={previewScale}
               />
             ) : null}
           </View>
@@ -163,9 +176,9 @@ export function LabelPreview({
             style={{
               borderTopWidth: 1,
               borderTopColor: style.border,
-              paddingTop: 8 * scale,
-              marginTop: 2 * scale,
-              gap: 2 * scale,
+              paddingTop: 8 * previewScale,
+              marginTop: 2 * previewScale,
+              gap: 2 * previewScale,
             }}
           >
             {data.producerName ? (
@@ -174,7 +187,7 @@ export function LabelPreview({
                 color={style.accent}
                 style={{
                   fontFamily: fonts.bold,
-                  fontSize: 10 * scale,
+                  fontSize: 10 * previewScale,
                   textAlign: "center",
                 }}
               >
@@ -185,7 +198,7 @@ export function LabelPreview({
               <Typography
                 variant="caption"
                 color={style.accent}
-                style={{ fontSize: 9 * scale, textAlign: "center" }}
+                style={{ fontSize: 9 * previewScale, textAlign: "center" }}
               >
                 {data.producerPhone}
               </Typography>
@@ -194,12 +207,12 @@ export function LabelPreview({
         ) : null}
 
         {qrSvg ? (
-          <View style={{ alignItems: "center", gap: 2 * scale }}>
-            <SvgXml xml={qrSvg} width={64 * scale} height={64 * scale} />
+          <View style={{ alignItems: "center", gap: 2 * previewScale }}>
+            <SvgXml xml={qrSvg} width={64 * previewScale} height={64 * previewScale} />
             <Typography
               variant="caption"
               color={style.accent}
-              style={{ fontSize: 8 * scale }}
+              style={{ fontSize: 8 * previewScale }}
             >
               Veja no catálogo
             </Typography>

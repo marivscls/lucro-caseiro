@@ -29,7 +29,7 @@ export function LabelProductPicker({
   }, [products, search]);
 
   return (
-    <View style={{ gap: spacing.sm }}>
+    <View style={{ width: "100%", minWidth: 0, gap: spacing.sm }}>
       <Typography variant="h3">Produto da etiqueta</Typography>
       <Typography variant="caption" color={theme.colors.textSecondary}>
         Escolha um produto para preencher o nome que será impresso.

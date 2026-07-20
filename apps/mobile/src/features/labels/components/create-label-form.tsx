@@ -195,7 +195,7 @@ export function CreateLabelForm({
   }
 
   const previewBlock = (
-    <View style={{ gap: spacing.sm }}>
+    <View style={{ width: "100%", minWidth: 0, gap: spacing.sm }}>
       <View style={{ gap: 2 }}>
         <Typography variant="h3">Pré-visualização</Typography>
         <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -219,37 +219,55 @@ export function CreateLabelForm({
       onClose={onClose}
       wide
       footer={
-        <>
+        <View
+          style={{
+            flex: 1,
+            flexDirection: isDesktop ? "row" : "column",
+            gap: spacing.md,
+          }}
+        >
           <Button
             title="Baixar / Compartilhar"
             variant="outline"
             size="lg"
+            compact
             icon={
               <AppIcon name="download-outline" size={20} color={theme.colors.primary} />
             }
             onPress={() => void handleExport()}
             loading={exporting}
-            style={{ flex: 1 }}
+            style={isDesktop ? { flex: 1 } : { alignSelf: "stretch" }}
           />
           <Button
             title={uploading ? "Enviando logo..." : "Criar etiqueta"}
             size="lg"
+            compact
             onPress={() => void handleSubmit()}
             loading={createLabel.isPending || uploading}
-            style={{ flex: 1 }}
+            style={isDesktop ? { flex: 1 } : { alignSelf: "stretch" }}
           />
-        </>
+        </View>
       }
     >
       <View
         style={{
-          flexShrink: 1,
+          width: "100%",
+          minWidth: 0,
           flexDirection: isDesktop ? "row" : "column",
-          gap: spacing["2xl"],
+          gap: isDesktop ? spacing["2xl"] : spacing.xl,
           alignItems: "flex-start",
         }}
       >
-        <View style={{ flex: 1, minWidth: 0, gap: spacing["3xl"] }}>
+        <View
+          style={[
+            {
+              minWidth: 0,
+              alignSelf: "stretch",
+              gap: isDesktop ? spacing["3xl"] : spacing["2xl"],
+            },
+            isDesktop ? { flex: 1 } : { width: "100%" },
+          ]}
+        >
           <View
             style={{
               borderRadius: radii.md,

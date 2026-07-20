@@ -1,6 +1,7 @@
 import { useTheme } from "@lucro-caseiro/ui";
 import React from "react";
-import { Modal, View, type ModalProps } from "react-native";
+import { Modal, View, type ModalProps, type ViewStyle } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   desktopModalSurface,
@@ -12,6 +13,16 @@ interface ResponsiveModalSurfaceProps {
   readonly children: React.ReactNode;
   readonly maxWidth?: number;
   readonly size?: "full" | "hug";
+}
+
+export function hugModalSafeAreaStyle(
+  isDesktop: boolean,
+  bottomInset: number,
+): Pick<ViewStyle, "padding" | "paddingBottom"> {
+  return {
+    padding: isDesktop ? 24 : 0,
+    paddingBottom: isDesktop ? 24 : bottomInset,
+  };
 }
 
 /**
@@ -29,6 +40,7 @@ export function ResponsiveModalSurface({
 }: ResponsiveModalSurfaceProps) {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
+  const insets = useSafeAreaInsets();
 
   if (size === "hug") {
     return (
@@ -36,7 +48,7 @@ export function ResponsiveModalSurface({
         style={{
           flex: 1,
           justifyContent: isDesktop ? "center" : "flex-end",
-          padding: isDesktop ? 24 : 0,
+          ...hugModalSafeAreaStyle(isDesktop, insets.bottom),
           backgroundColor: theme.colors.overlay,
         }}
       >
