@@ -313,6 +313,13 @@ export function CreateLabelForm({
             onChangeText={(value) => updateField("note", value)}
             multiline
             numberOfLines={3}
+            style={{
+              height: 88,
+              lineHeight: 24,
+              paddingTop: spacing["3xl"],
+              paddingBottom: spacing["3xl"],
+              textAlignVertical: "center",
+            }}
           />
 
           <FormSection
