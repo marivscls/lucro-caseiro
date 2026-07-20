@@ -968,18 +968,20 @@ export default function HomeScreen() {
                       color={theme.colors.textSecondary}
                     />
                   </View>
-                  <View style={{ flex: 1 }}>
+                  <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
                     <Typography variant="h3">Agenda</Typography>
+                    <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+                      {upcomingDeliveries}{" "}
+                      {upcomingDeliveries === 1 ? "entrega" : "entregas"}
+                    </Typography>
                     <Typography variant="caption" numberOfLines={3}>
-                      {upcomingDeliveries === 1
-                        ? "1 entrega próxima (hoje/amanhã ou atrasada)"
-                        : `${upcomingDeliveries} entregas próximas (hoje/amanhã ou atrasadas)`}
+                      Hoje, amanhã ou em atraso
                     </Typography>
                   </View>
                   <Image
                     source={agendaDeliveries}
                     resizeMode="contain"
-                    style={{ width: 82, height: 70 }}
+                    style={{ width: isDesktop ? 82 : 72, height: 70 }}
                   />
                   <AppIcon
                     name="chevron-forward"
