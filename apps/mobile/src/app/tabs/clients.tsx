@@ -12,6 +12,7 @@ import {
 } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../shared/components/app-icon";
 import type { AppIconName } from "../../shared/components/app-icon";
+import { useRouter } from "expo-router";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -381,6 +382,7 @@ function EmptyClients({ onCreatePress }: Readonly<{ onCreatePress: () => void }>
 interface ClientsListScreenProps {
   search: string;
   setSearch: (value: string) => void;
+  onBack: () => void;
   onCreatePress: () => void;
   onClientPress: (id: string) => void;
 }
@@ -388,6 +390,7 @@ interface ClientsListScreenProps {
 function ClientsListScreen({
   search,
   setSearch,
+  onBack,
   onCreatePress,
   onClientPress,
 }: Readonly<ClientsListScreenProps>) {
@@ -486,12 +489,23 @@ function ClientsListScreen({
         <View
           style={{
             flexDirection: "row",
-            alignItems: "center",
+            alignItems: "flex-start",
             justifyContent: "space-between",
             gap: spacing.md,
             marginBottom: spacing.sm,
           }}
         >
+          {!isDesktop && (
+            <Pressable
+              onPress={onBack}
+              accessibilityRole="button"
+              accessibilityLabel="Voltar"
+              hitSlop={10}
+              style={{ width: 44, height: 44, justifyContent: "center" }}
+            >
+              <AppIcon name="arrow-back" size={24} color={theme.colors.text} />
+            </Pressable>
+          )}
           {!isDesktop && (
             <View style={{ flex: 1, gap: spacing.sm }}>
               <Typography
@@ -1016,6 +1030,7 @@ function isClientDuplicateError(error: unknown): boolean {
 
 export default function ClientsScreen() {
   const { theme } = useTheme();
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [screen, setScreen] = useState<Screen>({ name: "list" });
   const [editingClientId, setEditingClientId] = useState<string | null>(null);
@@ -1028,6 +1043,13 @@ export default function ClientsScreen() {
     (id: string) => setScreen({ name: "detail", clientId: id }),
     [],
   );
+  const handleBack = useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+    router.replace("/tabs/more");
+  }, [router]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -1035,6 +1057,7 @@ export default function ClientsScreen() {
         <ClientsListScreen
           search={search}
           setSearch={setSearch}
+          onBack={handleBack}
           onCreatePress={goToCreate}
           onClientPress={goToDetail}
         />
