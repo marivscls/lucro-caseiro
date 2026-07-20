@@ -491,7 +491,7 @@ function ClientsListScreen({
             flexDirection: "row",
             alignItems: "flex-start",
             justifyContent: "space-between",
-            gap: spacing.md,
+            gap: isDesktop ? spacing.md : spacing.sm,
             marginBottom: spacing.sm,
           }}
         >
@@ -511,7 +511,8 @@ function ClientsListScreen({
               <Typography
                 variant="display"
                 color={theme.colors.text}
-                style={{ fontSize: fontSizes["3xl"] }}
+                numberOfLines={1}
+                style={{ fontSize: fontSizes["2xl"], lineHeight: 36 }}
               >
                 Clientes
               </Typography>
@@ -531,10 +532,10 @@ function ClientsListScreen({
               surfaceStyle(pal, {
                 borderRadius: radii.xl,
                 minHeight: 48,
-                paddingHorizontal: spacing.md,
+                paddingHorizontal: isDesktop ? spacing.md : spacing.sm,
                 flexDirection: "row",
                 alignItems: "center",
-                gap: spacing.md,
+                gap: isDesktop ? spacing.md : spacing.sm,
                 opacity: pressed ? 0.86 : 1,
               }),
             ]}
@@ -1044,10 +1045,6 @@ export default function ClientsScreen() {
     [],
   );
   const handleBack = useCallback(() => {
-    if (router.canGoBack()) {
-      router.back();
-      return;
-    }
     router.replace("/tabs/more");
   }, [router]);
 
