@@ -1,4 +1,4 @@
-import type { ProductVariationInput, SaleUnit } from "@lucro-caseiro/contracts";
+import type { Product, ProductVariationInput, SaleUnit } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import { Typography, useFeature, useTheme, radii, spacing } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
@@ -49,10 +49,17 @@ import { VariationEditor } from "./variation-editor";
 import { validateVariations } from "../variations";
 import { trackAnalyticsAction } from "../../analytics/tracker";
 import { useAuth } from "../../../shared/hooks/use-auth";
+import { createInternalProductCode } from "../barcode";
 
 interface CreateProductFormProps {
-  readonly onSuccess?: () => void;
+  readonly onSuccess?: (product: Product) => void;
   readonly initialSalePrice?: number;
+  readonly initialValues?: {
+    name?: string;
+    category?: string;
+    code?: string;
+    photoUrl?: string;
+  };
   readonly analyticsSource?: "pricing";
   readonly modal?: { visible: boolean; onClose: () => void; title: string };
 }
@@ -551,6 +558,7 @@ function ExtraPhotosField({
 export function CreateProductForm({
   onSuccess,
   initialSalePrice,
+  initialValues,
   analyticsSource,
   modal,
 }: CreateProductFormProps) {
@@ -562,15 +570,15 @@ export function CreateProductForm({
   // No sheet hug (modal) o form usa sempre coluna única: as rows lado a lado com
   // larguras fixas foram pensadas para o uso inline em desktop (fluxo new-sale).
   const wideLayout = isDesktop && !modal;
-  const [name, setName] = useState("");
-  const [category, setCategory] = useState("");
+  const [name, setName] = useState(initialValues?.name ?? "");
+  const [category, setCategory] = useState(initialValues?.category ?? "");
   const [salePrice, setSalePrice] = useState(
     initialSalePrice === undefined ? "" : currencyInput(initialSalePrice),
   );
   const [costPrice, setCostPrice] = useState("");
   const [saleUnit, setSaleUnit] = useState<SaleUnit>("unit");
   const [description, setDescription] = useState("");
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState(initialValues?.code ?? "");
   const [variations, setVariations] = useState<ProductVariationInput[]>([]);
   const [showScanner, setShowScanner] = useState(false);
   const [stockQuantity, setStockQuantity] = useState("");
@@ -666,7 +674,7 @@ export function CreateProductForm({
     const componentsPayload = isComposite ? draftsToComponents(components) : undefined;
 
     // Sobe a foto (se houver) e usa a URL pública. Se falhar, salva sem a foto.
-    let photoUrl: string | undefined;
+    let photoUrl: string | undefined = initialValues?.photoUrl;
     if (imageUri) {
       try {
         setUploading(true);
@@ -701,7 +709,7 @@ export function CreateProductForm({
     }
 
     try {
-      await createProduct.mutateAsync({
+      const product = await createProduct.mutateAsync({
         name: name.trim(),
         category: category.trim(),
         salePrice: price,
@@ -730,7 +738,7 @@ export function CreateProductForm({
           useAuth.getState().token,
         );
       }
-      onSuccess?.();
+      onSuccess?.(product);
     } catch (e) {
       // Limite do plano gratuito atingido → abre o paywall (em vez de erro genérico).
       if (e instanceof ApiError && e.code === "LIMIT_EXCEEDED") {
@@ -855,7 +863,11 @@ export function CreateProductForm({
         }}
       >
         <View style={wideLayout ? { width: 480, gap: spacing.lg } : { gap: spacing.xl }}>
-          <PhotoField imageUri={imageUri} onPress={showPicker} isDesktop={isDesktop} />
+          <PhotoField
+            imageUri={imageUri ?? initialValues?.photoUrl ?? null}
+            onPress={showPicker}
+            isDesktop={isDesktop}
+          />
 
           <ExtraPhotosField
             uris={extraUris}
@@ -913,6 +925,23 @@ export function CreateProductForm({
               <AppIcon name="scan-outline" size={24} color={theme.colors.textSecondary} />
             </Pressable>
           </View>
+          <Pressable
+            onPress={() => setCode(createInternalProductCode())}
+            accessibilityRole="button"
+            accessibilityLabel="Gerar código interno"
+            style={{
+              alignSelf: "flex-start",
+              flexDirection: "row",
+              alignItems: "center",
+              gap: spacing.xs,
+              paddingTop: spacing.sm,
+            }}
+          >
+            <AppIcon name="repeat-outline" size={18} color={theme.colors.primaryStrong} />
+            <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+              Gerar código interno
+            </Typography>
+          </Pressable>
         </View>
 
         {saleUnit === "unit" && !isComposite && variations.length === 0 && (

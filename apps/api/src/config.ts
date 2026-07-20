@@ -14,6 +14,8 @@ const envSchema = z.object({
   ADMIN_USER_IDS: z.string().default(""),
   MARKETING_USER_IDS: z.string().default(""),
   GOOGLE_GENERATIVE_AI_API_KEY: z.string().default(""),
+  COSMOS_API_TOKEN: z.string().default(""),
+  COSMOS_USER_AGENT: z.string().default(""),
   CORS_ORIGIN: z.string().default("*"),
   GOOGLE_PLAY_PACKAGE_NAME: z.string().default("br.com.orionseven.lucrocaseiro"),
   GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: z.string().default(""),
@@ -49,6 +51,8 @@ export const config = {
     .map((id) => id.trim())
     .filter(Boolean),
   googleGenerativeAiApiKey: parsed.data.GOOGLE_GENERATIVE_AI_API_KEY,
+  cosmosApiToken: parsed.data.COSMOS_API_TOKEN,
+  cosmosUserAgent: parsed.data.COSMOS_USER_AGENT,
   corsOrigin: parsed.data.CORS_ORIGIN,
   googlePlayPackageName: parsed.data.GOOGLE_PLAY_PACKAGE_NAME,
   googlePlayServiceAccountJson: parsed.data.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON,

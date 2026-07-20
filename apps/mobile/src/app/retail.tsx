@@ -21,7 +21,8 @@ import { Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useClients } from "../features/clients/hooks";
-import { useProducts } from "../features/products/hooks";
+import { CreateProductForm } from "../features/products/components/create-product-form";
+import { useAllProducts, useProductCodeLookup } from "../features/products/hooks";
 import {
   useBatchLabels,
   useBusinessAccounts,
@@ -45,6 +46,7 @@ import {
 import { FeatureRouteGuard } from "../shared/components/feature-route-guard";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { StandardModal } from "../shared/components/standard-modal";
+import { showAlert } from "../shared/components/alert-store";
 import { showToast } from "../shared/components/toast";
 import { alertError, alertValidation } from "../shared/utils/alerts";
 import { exportHtmlPdf } from "../shared/utils/export-html";
@@ -121,6 +123,12 @@ export default function RetailScreen() {
   const [quantities, setQuantities] = useState<Record<string, string>>({});
   const [productSearch, setProductSearch] = useState("");
   const [scannerVisible, setScannerVisible] = useState(false);
+  const [createProductInitial, setCreateProductInitial] = useState<{
+    name?: string;
+    category?: string;
+    code?: string;
+    photoUrl?: string;
+  }>();
   const [selectedClientId, setSelectedClientId] = useState<string>();
   const [selectedBusinessAccountId, setSelectedBusinessAccountId] = useState<string>();
   const [sourceCatalogOrderId, setSourceCatalogOrderId] = useState<string>();
@@ -129,7 +137,8 @@ export default function RetailScreen() {
   const [counted, setCounted] = useState<Record<string, string>>({});
 
   const cash = useCashSession();
-  const productsQuery = useProducts({ limit: 100 });
+  const productsQuery = useAllProducts();
+  const productCodeLookup = useProductCodeLookup();
   const clientsQuery = useClients();
   const replenishment = useReplenishment();
   const promotions = usePromotions();
@@ -155,7 +164,7 @@ export default function RetailScreen() {
   const batchLabels = useBatchLabels();
   const createBusinessAccount = useCreateBusinessAccount();
 
-  const products = productsQuery.data?.items ?? [];
+  const products = productsQuery.data ?? [];
   const clients = clientsQuery.data?.items ?? [];
   const stockItems = products.flatMap<{
     product: Product;
@@ -218,6 +227,64 @@ export default function RetailScreen() {
       setQuantities((values) => ({ ...values, [key]: selected ? "" : "1" }));
       return selected ? current.filter((item) => item !== key) : [...current, key];
     });
+  }
+
+  function addScannedProduct(product: Product) {
+    const variations = product.variations ?? [];
+    if (variations.length > 1) {
+      setProductSearch(product.code ?? product.name);
+      showAlert({
+        title: "Escolha a variação",
+        message: `${product.name} tem mais de uma variação. Selecione a desejada na lista.`,
+      });
+      return;
+    }
+
+    const key = stockItemKey(product.id, variations[0]?.id);
+    setSelectedItemKeys((current) =>
+      current.includes(key) ? current : [...current, key],
+    );
+    setQuantities((current) => ({
+      ...current,
+      [key]: String((Number(current[key]) || 0) + 1),
+    }));
+    setProductSearch("");
+  }
+
+  async function handleProductCode(rawCode: string) {
+    const code = rawCode.trim();
+    if (!code) return;
+
+    try {
+      const result = await productCodeLookup.mutateAsync(code);
+      if (result.status === "found") {
+        addScannedProduct(result.product);
+        return;
+      }
+      if (result.status === "suggestion") {
+        setCreateProductInitial({
+          name: result.suggestion.name,
+          category: result.suggestion.category ?? undefined,
+          code: result.suggestion.code,
+          photoUrl: result.suggestion.photoUrl ?? undefined,
+        });
+        return;
+      }
+
+      showAlert({
+        title: "Produto não cadastrado",
+        message: "Quer cadastrar este código e continuar a operação?",
+        buttons: [
+          { text: "Agora não", style: "cancel" },
+          {
+            text: "Cadastrar produto",
+            onPress: () => setCreateProductInitial({ code }),
+          },
+        ],
+      });
+    } catch (error) {
+      alertError(error);
+    }
   }
 
   async function runAction(action: () => Promise<unknown>, success: string) {
@@ -980,10 +1047,25 @@ export default function RetailScreen() {
           onClose={() => setScannerVisible(false)}
           onManual={() => setScannerVisible(false)}
           onScanned={(code) => {
-            setProductSearch(code);
             setScannerVisible(false);
+            void handleProductCode(code);
           }}
         />
+        {createProductInitial ? (
+          <CreateProductForm
+            key={createProductInitial.code ?? "barcode-product"}
+            initialValues={createProductInitial}
+            modal={{
+              visible: true,
+              title: "Cadastrar produto",
+              onClose: () => setCreateProductInitial(undefined),
+            }}
+            onSuccess={(product) => {
+              setCreateProductInitial(undefined);
+              void productsQuery.refetch().then(() => addScannedProduct(product));
+            }}
+          />
+        ) : null}
       </SafeAreaView>
     </FeatureRouteGuard>
   );

@@ -123,6 +123,11 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 
 ## Change log / Decisions
 
+- 2026-07-20: o scanner da Nova Venda deixou de apenas filtrar a primeira página. Agora consulta o
+  código exato na API, adiciona o produto diretamente ao carrinho e incrementa a quantidade em
+  leituras repetidas. Produto desconhecido oferece cadastro já preenchido; o produto criado entra
+  no carrinho. Produtos com variação ou por peso preservam a escolha/peso obrigatórios.
+
 - Wizard de 4 steps segue principio de "maximo 3 toques para acao principal" (cada step e 1 toque).
 - Status da venda: paid (default se nao fiado), pending (se fiado), cancelled.
 - Formas de pagamento: pix, cash, card, credit, transfer.

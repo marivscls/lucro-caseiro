@@ -101,6 +101,15 @@ export function createProductsRouter(
     }
   });
 
+  router.get("/lookup/by-code/:code", async (req, res, next) => {
+    try {
+      const result = await useCases.lookupByCode(getUserId(req), req.params.code);
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  });
+
   router.get("/:id/variations", variationGuard, async (req, res, next) => {
     try {
       const variations = await useCases.getVariations(

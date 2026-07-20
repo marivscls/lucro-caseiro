@@ -10,6 +10,7 @@ import {
   fetchLowStockProducts,
   fetchProduct,
   fetchProducts,
+  lookupProductByCode,
   updateProduct,
 } from "./api";
 
@@ -45,6 +46,13 @@ export function useProduct(id: string) {
     queryKey: [...PRODUCTS_KEY, id],
     queryFn: () => fetchProduct(token!, id),
     enabled: !!token && !!id,
+  });
+}
+
+export function useProductCodeLookup() {
+  const { token } = useAuth();
+  return useMutation({
+    mutationFn: (code: string) => lookupProductByCode(token!, code),
   });
 }
 

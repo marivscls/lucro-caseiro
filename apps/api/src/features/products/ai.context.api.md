@@ -212,6 +212,7 @@ invariants:
 
 ### UseCases (products.usecases.test.ts)
 
+- lookupByCode: produto local, sugestao externa e fallback manual quando provedor falha
 - create: dados validos, ValidationError, repassa saleUnit 'kg' para o repo (venda por peso)
 - create composto: cria com componentes (costPrice undefined, vem do rollup), rejeita sem componentes,
   rejeita componente composto (sem aninhamento), rejeita componente de outro usuario (nao encontrado)
@@ -234,6 +235,11 @@ POST /api/v1/products  (venda por peso)
 GET /api/v1/products?category=doces&search=brig
 => 200 { "items": [...], "total": 3, "page": 1, "totalPages": 1 }
 
+GET /api/v1/products/lookup/by-code/7891234567890
+=> 200 { "status": "found", "product": { ... } }
+=> 200 { "status": "suggestion", "suggestion": { "name": "...", "source": "cosmos", ... } }
+=> 200 { "status": "not_found" }
+
 POST /api/v1/products  (produto composto / kit / caixinha)
 {
   "name": "Caixinha de doces", "category": "kits", "salePrice": 50.00,
@@ -254,6 +260,11 @@ POST /api/v1/products  (produto composto / kit / caixinha)
 ```
 
 ## Change log / Decisions
+
+- 2026-07-20: `GET /products/lookup/by-code/:code` faz correspondência local exata, sem depender
+  de paginação. Se não houver produto, consulta opcionalmente o Cosmos/Bluesoft e devolve sugestão
+  de nome, categoria, marca e foto; falha/ausência de credenciais degrada para `not_found`, sem
+  bloquear venda ou cadastro. Configuração: `COSMOS_API_TOKEN` + `COSMOS_USER_AGENT`.
 
 - 2026-07-19: Papelaria aceita `costPrice` direto e variações estruturadas (nome, cor,
   tamanho/modelo e estoque). Nomes repetidos/estoque negativo são rejeitados; alertas

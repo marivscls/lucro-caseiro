@@ -21,6 +21,8 @@ Lista completa em [apps/api/.env.example](../apps/api/.env.example). Resumo:
 | `SUPABASE_ANON_KEY`                    | sim         | Anon key (publica) do Supabase                               |
 | `API_PORT`                             | nao         | Porta interna (default 3001 — Railway/Fly mapeiam pra fora)  |
 | `CORS_ORIGIN`                          | nao         | Origens permitidas (comma-separated, default `*`)            |
+| `COSMOS_API_TOKEN`                     | nao         | Token Cosmos para sugerir cadastro por GTIN/EAN              |
+| `COSMOS_USER_AGENT`                    | nao         | User-Agent liberado junto ao token Cosmos                    |
 | `GOOGLE_PLAY_PACKAGE_NAME`             | sim         | Package name Android (`br.com.orionseven.lucrocaseiro`)      |
 | `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`     | sim         | JSON da service account para validar assinaturas Google Play |
 | `STRIPE_SECRET_KEY`                    | sim         | Secret key live da Stripe (`sk_live_...`)                    |

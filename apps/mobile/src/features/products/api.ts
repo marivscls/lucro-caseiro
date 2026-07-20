@@ -1,4 +1,9 @@
-import type { CreateProduct, Product, UpdateProduct } from "@lucro-caseiro/contracts";
+import type {
+  CreateProduct,
+  Product,
+  ProductCodeLookup,
+  UpdateProduct,
+} from "@lucro-caseiro/contracts";
 
 import { apiClient } from "../../shared/utils/api-client";
 
@@ -52,6 +57,16 @@ export async function fetchAllProducts(token: string): Promise<Product[]> {
 
 export async function fetchProduct(token: string, id: string): Promise<Product> {
   return apiClient<Product>(`${BASE}/${id}`, { token });
+}
+
+export async function lookupProductByCode(
+  token: string,
+  code: string,
+): Promise<ProductCodeLookup> {
+  return apiClient<ProductCodeLookup>(
+    `${BASE}/lookup/by-code/${encodeURIComponent(code.trim())}`,
+    { token },
+  );
 }
 
 export async function createProduct(

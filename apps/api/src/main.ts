@@ -50,6 +50,7 @@ import { createPricingRouter } from "./features/pricing/pricing.routes";
 import { PricingRepoPg } from "./features/pricing/pricing.repo.pg";
 import { PricingUseCases } from "./features/pricing/pricing.usecases";
 import { createProductsRouter } from "./features/products/products.routes";
+import { CosmosProductCatalog } from "./features/products/products.catalog";
 import { ProductsRepoPg } from "./features/products/products.repo.pg";
 import { ProductsUseCases } from "./features/products/products.usecases";
 import { createIngredientsRouter } from "./features/recipes/ingredients.routes";
@@ -131,17 +132,21 @@ const googlePlayClient = new GooglePlayClient(
 
 // Use Cases
 const recipesUseCases = new RecipesUseCases(recipesRepo);
-const productsUseCases = new ProductsUseCases(productsRepo, {
-  // Custo real do produto = custo por unidade da receita (insumos).
-  getCostPerUnit: async (userId, recipeId) => {
-    try {
-      const recipe = await recipesUseCases.getById(userId, recipeId);
-      return recipe.costPerUnit;
-    } catch {
-      return null;
-    }
+const productsUseCases = new ProductsUseCases(
+  productsRepo,
+  {
+    // Custo real do produto = custo por unidade da receita (insumos).
+    getCostPerUnit: async (userId, recipeId) => {
+      try {
+        const recipe = await recipesUseCases.getById(userId, recipeId);
+        return recipe.costPerUnit;
+      } catch {
+        return null;
+      }
+    },
   },
-});
+  new CosmosProductCatalog(config.cosmosApiToken, config.cosmosUserAgent),
+);
 const clientsUseCases = new ClientsUseCases(clientsRepo);
 const suppliersUseCases = new SuppliersUseCases(suppliersRepo);
 const materialsUseCases = new MaterialsUseCases(materialsRepo);

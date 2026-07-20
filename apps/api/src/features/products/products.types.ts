@@ -1,6 +1,7 @@
 import type {
   Product,
   ProductComponentInput,
+  ProductLookupSuggestion,
   ProductVariationInput,
   SaleUnit,
 } from "@lucro-caseiro/contracts";
@@ -48,6 +49,10 @@ export interface IProductsRepo {
 /** Fonte do custo real de uma receita (injetada da feature recipes, sem importar internals). */
 export interface IRecipeCostProvider {
   getCostPerUnit(userId: string, recipeId: string): Promise<number | null>;
+}
+
+export interface IProductCatalogLookup {
+  lookupByCode(code: string): Promise<ProductLookupSuggestion | null>;
 }
 
 export interface CreateProductData {

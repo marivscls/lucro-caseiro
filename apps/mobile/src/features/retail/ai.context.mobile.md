@@ -68,5 +68,10 @@ inventário, reposição, serviços, promoções, preços, etiquetas, reservas e
 
 ## Change log / Decisions
 
+- 2026-07-20: o PDV passou a carregar todas as páginas de produtos e a consultar códigos pela API.
+  Leitura encontrada seleciona o item e incrementa sua quantidade; produto com várias variações
+  pede a escolha da variação. Código desconhecido abre o `CreateProductForm` preenchido e continua
+  a operação após o cadastro.
+
 - 2026-07-19: central criada com componentes existentes; documentos compartilham o
   mesmo painel e modal para manter a superfície pequena e coerente.

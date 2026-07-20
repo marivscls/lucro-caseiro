@@ -114,3 +114,22 @@ export const ProductDto = z.object({
 });
 
 export type Product = z.infer<typeof ProductDto>;
+
+export const ProductLookupSuggestionDto = z.object({
+  code: z.string(),
+  name: z.string(),
+  category: z.string().nullable(),
+  photoUrl: z.string().url().nullable(),
+  brand: z.string().nullable(),
+  source: z.literal("cosmos"),
+});
+
+export type ProductLookupSuggestion = z.infer<typeof ProductLookupSuggestionDto>;
+
+export const ProductCodeLookupDto = z.discriminatedUnion("status", [
+  z.object({ status: z.literal("found"), product: ProductDto }),
+  z.object({ status: z.literal("suggestion"), suggestion: ProductLookupSuggestionDto }),
+  z.object({ status: z.literal("not_found") }),
+]);
+
+export type ProductCodeLookup = z.infer<typeof ProductCodeLookupDto>;

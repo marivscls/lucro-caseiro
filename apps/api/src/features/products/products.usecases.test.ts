@@ -3,7 +3,11 @@ import { describe, expect, it } from "vitest";
 
 import { NotFoundError, ValidationError } from "../../shared/errors";
 import { ProductsUseCases } from "./products.usecases";
-import type { CreateProductData, IProductsRepo } from "./products.types";
+import type {
+  CreateProductData,
+  IProductCatalogLookup,
+  IProductsRepo,
+} from "./products.types";
 
 const USER_ID = "user-123";
 
@@ -56,13 +60,61 @@ function makeRepo(overrides: Partial<IProductsRepo> = {}): IProductsRepo {
   };
 }
 
-function makeSut(repoOverrides: Partial<IProductsRepo> = {}) {
+function makeSut(
+  repoOverrides: Partial<IProductsRepo> = {},
+  productCatalog?: IProductCatalogLookup,
+) {
   const repo = makeRepo(repoOverrides);
-  const sut = new ProductsUseCases(repo);
+  const sut = new ProductsUseCases(repo, undefined, productCatalog);
   return { sut, repo };
 }
 
 describe("ProductsUseCases", () => {
+  describe("lookupByCode", () => {
+    it("retorna o produto local por correspondencia exata", async () => {
+      const product = makeProduct({ code: "7891234567890" });
+      const { sut } = makeSut({
+        findDuplicateByCode: () => Promise.resolve(product),
+      });
+
+      await expect(sut.lookupByCode(USER_ID, " 7891234567890 ")).resolves.toEqual({
+        status: "found",
+        product,
+      });
+    });
+
+    it("retorna sugestao externa quando o produto ainda nao existe", async () => {
+      const suggestion = {
+        code: "7891234567890",
+        name: "Caderno",
+        category: "Papelaria",
+        photoUrl: null,
+        brand: "Marca",
+        source: "cosmos" as const,
+      };
+      const productCatalog: IProductCatalogLookup = {
+        lookupByCode: () => Promise.resolve(suggestion),
+      };
+      const { sut } = makeSut({}, productCatalog);
+
+      await expect(sut.lookupByCode(USER_ID, suggestion.code)).resolves.toEqual({
+        status: "suggestion",
+        suggestion,
+      });
+    });
+
+    it("mantem o cadastro manual disponivel quando o catalogo externo falha", async () => {
+      const productCatalog: IProductCatalogLookup = {
+        lookupByCode: () => Promise.reject(new Error("indisponivel")),
+      };
+      const { sut } = makeSut({}, productCatalog);
+
+      await expect(sut.lookupByCode(USER_ID, "LC-ABC123")).resolves.toEqual({
+        status: "not_found",
+      });
+    });
+  });
+
   describe("create", () => {
     it("creates a product with valid data", async () => {
       const { sut } = makeSut();

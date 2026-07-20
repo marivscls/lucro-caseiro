@@ -40,7 +40,8 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { avatarPastel } from "../../features/clients/components/avatar-colors";
 import { useClients } from "../../features/clients/hooks";
 import { CreateProductForm } from "../../features/products/components/create-product-form";
-import { useProducts } from "../../features/products/hooks";
+import { productMatchesSearch } from "../../features/products/barcode";
+import { useAllProducts, useProductCodeLookup } from "../../features/products/hooks";
 import { cartTotal as computeCartTotal, formatWeight } from "../../features/sales/cart";
 import { useCreateSale, useSales } from "../../features/sales/hooks";
 import { PAYMENT_LABELS } from "../../features/sales/payment";
@@ -75,6 +76,13 @@ interface CartItem {
   variationId?: string;
   variationName?: string;
   saleUnit: SaleUnit;
+}
+
+interface CreateProductInitialValues {
+  name?: string;
+  category?: string;
+  code?: string;
+  photoUrl?: string;
 }
 
 type PaymentOption = {
@@ -334,6 +342,8 @@ export default function NewSaleScreen() {
   const [clientSearch, setClientSearch] = useState("");
   const [productSearch, setProductSearch] = useState("");
   const [showCreateProduct, setShowCreateProduct] = useState(false);
+  const [createProductInitial, setCreateProductInitial] =
+    useState<CreateProductInitialValues>();
   const [showBarcodeSearch, setShowBarcodeSearch] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
   const [showClientFilter, setShowClientFilter] = useState(false);
@@ -345,7 +355,8 @@ export default function NewSaleScreen() {
   const [weightInput, setWeightInput] = useState("");
   const [variationProduct, setVariationProduct] = useState<Product | null>(null);
 
-  const { data: productsData, isLoading: loadingProducts } = useProducts();
+  const { data: products = [], isLoading: loadingProducts } = useAllProducts();
+  const productCodeLookup = useProductCodeLookup();
   const { data: clientsData, isLoading: loadingClients } = useClients({
     search: clientSearch || undefined,
   });
@@ -456,7 +467,7 @@ export default function NewSaleScreen() {
   function getCartItemPhotoUrl(item: CartItem): string | null {
     return (
       item.photoUrl ??
-      productsData?.items.find((product) => product.id === item.productId)?.photoUrl ??
+      products.find((product) => product.id === item.productId)?.photoUrl ??
       null
     );
   }
@@ -478,14 +489,55 @@ export default function NewSaleScreen() {
     setWeightInput("");
   }
 
+  async function handleProductCode(rawCode: string) {
+    const code = rawCode.trim();
+    if (!code) {
+      alertValidation("Digite ou cole um código para buscar.");
+      return;
+    }
+
+    try {
+      const result = await productCodeLookup.mutateAsync(code);
+      setShowBarcodeSearch(false);
+      setBarcodeInput("");
+      if (result.status === "found") {
+        setProductSearch("");
+        addToCart(result.product);
+        return;
+      }
+
+      if (result.status === "suggestion") {
+        setCreateProductInitial({
+          name: result.suggestion.name,
+          category: result.suggestion.category ?? undefined,
+          code: result.suggestion.code,
+          photoUrl: result.suggestion.photoUrl ?? undefined,
+        });
+        setShowCreateProduct(true);
+        return;
+      }
+
+      setCreateProductInitial({ code });
+      showAlert({
+        title: "Produto não cadastrado",
+        message: "Quer cadastrar este código agora? Ele já ficará preenchido no produto.",
+        buttons: [
+          { text: "Agora não", style: "cancel" },
+          { text: "Cadastrar produto", onPress: () => setShowCreateProduct(true) },
+        ],
+      });
+    } catch (error) {
+      alertError(error);
+    }
+  }
+
   function handleBarcodeSearch() {
     const query = barcodeInput.trim();
     if (!query) {
       alertValidation("Digite ou cole um código para buscar.");
       return;
     }
-    setProductSearch(query);
-    setShowBarcodeSearch(false);
+    void handleProductCode(query);
   }
 
   async function handleSubmit() {
@@ -564,12 +616,10 @@ export default function NewSaleScreen() {
     showAlert({ title: "Ajuda", message: messages[step] });
   }
 
-  const filteredProducts = productsData?.items.filter(
-    (p) => !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase()),
+  const filteredProducts = products.filter((product) =>
+    productMatchesSearch(product, productSearch),
   );
-  const productGridItems: Array<Product | null> = filteredProducts
-    ? [...filteredProducts]
-    : [];
+  const productGridItems: Array<Product | null> = [...filteredProducts];
   if (productGridItems.length % 2 === 1) {
     productGridItems.push(null);
   }
@@ -688,7 +738,10 @@ export default function NewSaleScreen() {
                 icon="add-circle-outline"
                 title="Adicionar produto"
                 subtitle="Criar novo item"
-                onPress={() => setShowCreateProduct(true)}
+                onPress={() => {
+                  setCreateProductInitial(undefined);
+                  setShowCreateProduct(true);
+                }}
               />
               <QuickActionCard
                 icon="barcode-outline"
@@ -1561,7 +1614,7 @@ export default function NewSaleScreen() {
         onClose={() => setShowScanner(false)}
         onScanned={(scanned) => {
           setShowScanner(false);
-          setProductSearch(scanned);
+          void handleProductCode(scanned);
         }}
         onManual={() => {
           setShowScanner(false);
@@ -1628,10 +1681,12 @@ export default function NewSaleScreen() {
               </Typography>
               <Input
                 label="Código"
-                placeholder="Ex: 789..."
+                placeholder="Ex: 789... ou LC-ABC123"
                 value={barcodeInput}
                 onChangeText={setBarcodeInput}
-                keyboardType="number-pad"
+                autoCapitalize="characters"
+                returnKeyType="search"
+                onSubmitEditing={handleBarcodeSearch}
                 autoFocus
               />
               <Button
@@ -1646,6 +1701,7 @@ export default function NewSaleScreen() {
                   />
                 }
                 onPress={handleBarcodeSearch}
+                loading={productCodeLookup.isPending}
               />
             </Pressable>
           </Pressable>
@@ -1660,7 +1716,15 @@ export default function NewSaleScreen() {
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
           <ModalHeader title="Novo produto" onClose={() => setShowCreateProduct(false)} />
-          <CreateProductForm onSuccess={() => setShowCreateProduct(false)} />
+          <CreateProductForm
+            key={createProductInitial?.code ?? "manual"}
+            initialValues={createProductInitial}
+            onSuccess={(product) => {
+              setShowCreateProduct(false);
+              setCreateProductInitial(undefined);
+              addToCart(product);
+            }}
+          />
         </SafeAreaView>
       </ResponsiveModal>
       <ResponsiveOverlayModal

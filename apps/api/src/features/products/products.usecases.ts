@@ -1,5 +1,6 @@
 import type {
   Product,
+  ProductCodeLookup,
   ProductVariation,
   ProductVariationInput,
 } from "@lucro-caseiro/contracts";
@@ -11,6 +12,7 @@ import { validateCompositeComponents, validateProductData } from "./products.dom
 import type {
   CreateProductData,
   FindAllOpts,
+  IProductCatalogLookup,
   IProductsRepo,
   IRecipeCostProvider,
 } from "./products.types";
@@ -19,6 +21,7 @@ export class ProductsUseCases {
   constructor(
     private repo: IProductsRepo,
     private recipeCost?: IRecipeCostProvider,
+    private productCatalog?: IProductCatalogLookup,
   ) {}
 
   private normalizeVariations(
@@ -118,6 +121,27 @@ export class ProductsUseCases {
       throw new NotFoundError("Produto não encontrado");
     }
     return product;
+  }
+
+  async lookupByCode(userId: string, code: string): Promise<ProductCodeLookup> {
+    const normalizedCode = code.trim();
+    if (!normalizedCode || normalizedCode.length > 100) {
+      throw new ValidationError(["Código de produto inválido"]);
+    }
+
+    const product = await this.repo.findDuplicateByCode(userId, normalizedCode);
+    if (product) return { status: "found", product };
+
+    if (this.productCatalog) {
+      try {
+        const suggestion = await this.productCatalog.lookupByCode(normalizedCode);
+        if (suggestion) return { status: "suggestion", suggestion };
+      } catch {
+        // Catálogo externo acelera o cadastro, mas nunca pode bloquear a venda.
+      }
+    }
+
+    return { status: "not_found" };
   }
 
   async list(userId: string, opts: FindAllOpts) {

@@ -71,8 +71,8 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 
 ### `CreateProductForm`
 
-- **Props:** `{ onSuccess?: () => void }`
-- Campos: nome (obrigatorio), categoria (obrigatorio), **tipo (toggle simples/kit)**, **unidade de venda (toggle por unidade/kg)**, preco de venda (obrigatorio, > 0; label vira "Preço por kg (R$)" quando kg), foto, descricao, **código de barras (opcional, com botão de escanear via câmera)**, quantidade em estoque, alerta de estoque baixo.
+- **Props:** `{ onSuccess?: (product) => void; initialValues?: { name?, category?, code?, photoUrl? } }`
+- Campos: nome (obrigatorio), categoria (obrigatorio), **tipo (toggle simples/kit)**, **unidade de venda (toggle por unidade/kg)**, preco de venda (obrigatorio, > 0; label vira "Preço por kg (R$)" quando kg), foto, descricao, **código de barras (opcional, com botões de escanear e gerar código interno)**, quantidade em estoque, alerta de estoque baixo.
 - Campos de estoque ficam ocultos quando "Por quilo (kg)" (estoque por unidade nao se aplica).
 - Quando **kit** (`isComposite`): mostra o `ComponentPicker`; oculta o toggle de unidade de venda e os campos de estoque. O preco de venda continua sendo pedido (preco do kit). Validacao local: pelo menos um componente.
 
@@ -91,25 +91,27 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 
 ## Hooks
 
-| Hook                    | Tipo          | Descricao                                                                    |
-| ----------------------- | ------------- | ---------------------------------------------------------------------------- |
-| `useProducts(opts?)`    | `useQuery`    | Lista paginada. Query key: `["products", opts]`                              |
-| `useProduct(id)`        | `useQuery`    | Detalhe. Query key: `["products", id]`                                       |
-| `useCreateProduct()`    | `useMutation` | Cria produto. Invalida `["products"]`.                                       |
-| `useUpdateProduct()`    | `useMutation` | Atualiza produto. Invalida `["products"]`.                                   |
-| `useDeleteProduct()`    | `useMutation` | Remove produto. Invalida `["products"]`.                                     |
-| `useLowStockProducts()` | `useQuery`    | Produtos abaixo do limite de alerta. Query key: `["products", "low-stock"]`. |
+| Hook                     | Tipo          | Descricao                                                                    |
+| ------------------------ | ------------- | ---------------------------------------------------------------------------- |
+| `useProducts(opts?)`     | `useQuery`    | Lista paginada. Query key: `["products", opts]`                              |
+| `useProduct(id)`         | `useQuery`    | Detalhe. Query key: `["products", id]`                                       |
+| `useProductCodeLookup()` | `useMutation` | Busca exata local e, quando configurado, sugestão do catálogo externo.       |
+| `useCreateProduct()`     | `useMutation` | Cria produto. Invalida `["products"]`.                                       |
+| `useUpdateProduct()`     | `useMutation` | Atualiza produto. Invalida `["products"]`.                                   |
+| `useDeleteProduct()`     | `useMutation` | Remove produto. Invalida `["products"]`.                                     |
+| `useLowStockProducts()`  | `useQuery`    | Produtos abaixo do limite de alerta. Query key: `["products", "low-stock"]`. |
 
 ## API Integration
 
-| Endpoint                     | Verbo  | Funcao                  | Parametros                                 |
-| ---------------------------- | ------ | ----------------------- | ------------------------------------------ |
-| `/api/v1/products`           | GET    | `fetchProducts`         | `?page=N&limit=N&category=cat&search=term` |
-| `/api/v1/products/:id`       | GET    | `fetchProduct`          | path param `id`                            |
-| `/api/v1/products`           | POST   | `createProduct`         | body: `CreateProduct`                      |
-| `/api/v1/products/:id`       | PATCH  | `updateProduct`         | body: `UpdateProduct`                      |
-| `/api/v1/products/:id`       | DELETE | `deleteProduct`         | -                                          |
-| `/api/v1/products/low-stock` | GET    | `fetchLowStockProducts` | retorna produtos com estoque <= alerta     |
+| Endpoint                                | Verbo  | Funcao                  | Parametros                                 |
+| --------------------------------------- | ------ | ----------------------- | ------------------------------------------ |
+| `/api/v1/products`                      | GET    | `fetchProducts`         | `?page=N&limit=N&category=cat&search=term` |
+| `/api/v1/products/:id`                  | GET    | `fetchProduct`          | path param `id`                            |
+| `/api/v1/products`                      | POST   | `createProduct`         | body: `CreateProduct`                      |
+| `/api/v1/products/:id`                  | PATCH  | `updateProduct`         | body: `UpdateProduct`                      |
+| `/api/v1/products/:id`                  | DELETE | `deleteProduct`         | -                                          |
+| `/api/v1/products/low-stock`            | GET    | `fetchLowStockProducts` | retorna produtos com estoque <= alerta     |
+| `/api/v1/products/lookup/by-code/:code` | GET    | `lookupProductByCode`   | código lido/digitado                       |
 
 ## Contracts
 
@@ -152,6 +154,12 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 - Tap em produto -> modal detalhe -> editar -> salvar.
 
 ## Change log / Decisions
+
+- 2026-07-20: leitura por código passou a usar consulta exata na API, independente da paginação.
+  Produto local é adicionado diretamente à venda/PDV; nova leitura incrementa quantidade. Código
+  desconhecido abre cadastro com o código preenchido; sugestão Cosmos preenche nome/categoria/foto
+  quando `COSMOS_API_TOKEN` e `COSMOS_USER_AGENT` estão configurados. O formulário também gera código
+  interno `LC-*`, compatível com os formatos alfanuméricos aceitos pelo scanner.
 
 - 2026-07-19: `VariationEditor` virou o editor canônico de nome/cor/tamanho/estoque;
   a Papelaria também informa custo direto e vê margem bruta. Venda por peso é ocultada
