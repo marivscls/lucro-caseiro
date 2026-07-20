@@ -61,9 +61,24 @@
         });
 
         if ("serviceWorker" in navigator && !isDevelopment) {
-          navigator.serviceWorker.register("/sw.js").catch(function () {
-            // A aplicação continua funcionando online se o navegador bloquear o PWA.
+          var hadServiceWorker = Boolean(navigator.serviceWorker.controller);
+          var reloadingForUpdate = false;
+
+          navigator.serviceWorker.addEventListener("controllerchange", function () {
+            if (!hadServiceWorker || reloadingForUpdate) return;
+
+            reloadingForUpdate = true;
+            window.location.reload();
           });
+
+          navigator.serviceWorker
+            .register("/sw.js", { updateViaCache: "none" })
+            .then(function (registration) {
+              return registration.update();
+            })
+            .catch(function () {
+              // A aplicação continua funcionando online se o navegador bloquear o PWA.
+            });
         }
       });
     </script>
