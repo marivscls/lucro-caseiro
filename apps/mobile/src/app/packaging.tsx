@@ -172,11 +172,7 @@ function PackagingScreenContent() {
           title="Nenhuma embalagem ainda"
           description="Cadastre sua primeira embalagem pra calcular o custo certinho dos seus produtos"
           action={
-            <Button
-              title="Cadastrar embalagem"
-              variant="outline"
-              onPress={() => setShowCreate(true)}
-            />
+            <Button title="Cadastrar embalagem" onPress={() => setShowCreate(true)} />
           }
         />
       );

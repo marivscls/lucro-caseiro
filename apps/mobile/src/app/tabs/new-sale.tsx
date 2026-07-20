@@ -11,7 +11,6 @@ import {
   Button,
   Card,
   colors,
-  EmptyState,
   fonts,
   iconSizes,
   Input,
@@ -64,7 +63,6 @@ import {
   desktopModalSurface,
 } from "../../shared/layout/desktop-density";
 import { alertValidation, alertError } from "../../shared/utils/alerts";
-import productsEmpty from "../../assets/products-empty.png";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -731,40 +729,6 @@ export default function NewSaleScreen() {
           {loadingProducts && (
             <View style={{ flex: 1 }}>
               <SkeletonList rows={5} />
-            </View>
-          )}
-          {!loadingProducts && !filteredProducts?.length && (
-            <View
-              style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-                gap: spacing.lg,
-              }}
-            >
-              <EmptyState
-                icon={
-                  <Image
-                    source={productsEmpty}
-                    resizeMode="contain"
-                    style={{ width: 118, height: 118 }}
-                  />
-                }
-                title="Nenhum produto cadastrado"
-                description="Cadastre produtos antes de registrar uma venda"
-                style={{ flex: 0, padding: spacing.md, marginTop: spacing.md }}
-              />
-              <Button
-                title="Cadastrar produto"
-                onPress={() => setShowCreateProduct(true)}
-                icon={
-                  <AppIcon
-                    name="add-circle"
-                    size={18}
-                    color={theme.colors.textOnPrimary}
-                  />
-                }
-              />
             </View>
           )}
           {!loadingProducts && !!filteredProducts?.length && (

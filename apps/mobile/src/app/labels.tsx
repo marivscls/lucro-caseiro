@@ -489,13 +489,7 @@ export default function LabelsScreen() {
           }
           title="Nenhuma etiqueta ainda"
           description="Escolha um produto e crie uma etiqueta pronta para imprimir."
-          action={
-            <Button
-              title="Criar etiqueta"
-              variant="outline"
-              onPress={() => setShowCreate(true)}
-            />
-          }
+          action={<Button title="Criar etiqueta" onPress={() => setShowCreate(true)} />}
         />
       );
     }

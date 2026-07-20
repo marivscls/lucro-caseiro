@@ -152,13 +152,7 @@ function MaterialsScreenContent() {
           }
           title="Nenhum insumo ainda"
           description="Cadastre seus insumos (farinha, açúcar, embalagens...) para controlar o estoque."
-          action={
-            <Button
-              title="Novo insumo"
-              variant="outline"
-              onPress={() => setShowCreate(true)}
-            />
-          }
+          action={<Button title="Novo insumo" onPress={() => setShowCreate(true)} />}
         />
       );
     }
