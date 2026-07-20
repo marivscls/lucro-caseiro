@@ -10,7 +10,7 @@ import {
   useBrand,
   useTheme,
 } from "@lucro-caseiro/ui";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import { FlatList, Image, Pressable, Switch, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -484,10 +484,20 @@ export default function LabelsScreen() {
   const { theme } = useTheme();
   const labelsLabel = useBrand().copy.labelsLabel;
   const isDesktop = useDesktopLayout();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { data, isLoading, error } = useLabels();
   const [showCreate, setShowCreate] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const backToHome = !router.canGoBack();
+
+  function handleBack() {
+    if (backToHome) {
+      router.replace("/tabs");
+      return;
+    }
+    router.back();
+  }
 
   function renderContent() {
     if (isLoading) {
@@ -558,7 +568,13 @@ export default function LabelsScreen() {
       edges={["top", "bottom"]}
     >
       <Stack.Screen options={{ headerShown: false }} />
-      {!isDesktop ? <ScreenHeader title={labelsLabel} /> : null}
+      {!isDesktop ? (
+        <ScreenHeader
+          title={labelsLabel}
+          onBack={handleBack}
+          backLabel={backToHome ? "Ir para o início" : "Voltar"}
+        />
+      ) : null}
       <View style={{ flex: 1 }}>{renderContent()}</View>
       <View
         style={{
