@@ -226,12 +226,6 @@ brandedHtml = replaceRequired(
 );
 brandedHtml = replaceRequired(
   brandedHtml,
-  /(input:focus-visible,[\s\S]*?outline:\s*2px solid\s*)#[0-9a-f]{6}/i,
-  `$1${activeBrand.theme.primary}`,
-  "a cor de foco",
-);
-brandedHtml = replaceRequired(
-  brandedHtml,
   /<noscript>[^<]*<\/noscript>/,
   `<noscript>Ative o JavaScript para usar o ${pwaName}.</noscript>`,
   "a mensagem sem JavaScript",
