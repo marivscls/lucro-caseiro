@@ -154,3 +154,9 @@ Gerenciar receitas do negocio: criar, listar, visualizar detalhes, editar, exclu
 - 2026-07-11: `recipe-pdf.ts` ganhou rodapé "Feito com Lucro Caseiro" linkando pra
   ficha da Play Store (UTM `pdf`), mesmo padrão do catálogo público e do recibo.
 - 2026-06-15: campos do form de receita extraídos para `recipe-form-fields.tsx` (FieldRow ícone-em-círculo, TextBox c/ contador opcional, CategoryField dropdown, InstructionsField 0/1000, YieldUnitChips, RecipeCostCard) — usados por create **e** edit (consistentes). **`EditRecipeForm`** reescrito no mesmo estilo + **card de custo** (custo total/por unidade via `onTotalCost`; por unidade = total/rendimento), nome com contador 0/80, "Salvar alterações" e "Excluir receita". **`RecipeDetail`**: header mostra o nome (em `recipes.tsx`), topo com cupcake + categoria, escala selecionada em rosa, **`IngredientAvatar`** na tabela de insumos. **Bug corrigido**: rendimento não duplica mais o "s" (presets já são plurais) em `recipe-detail`, `recipe-card` e na exibição — "Rende: 30 unidades" em vez de "unidadess"/"30 2s". Headers dos modais unificados em `RecipeModalHeader` (create = ×, detail/edit = voltar; edit com badge cupcake).
+- 2026-07-20: o atalho "Estatísticas" deixou de abrir `/insights` e passou a abrir a
+  `RecipeStatisticsModal`, exclusiva de Receitas. Ela pagina todas as receitas e produtos,
+  mostra custo médio por receita, margem média e ranking das cinco receitas com maior lucro
+  por unidade de rendimento. Lucro e margem usam o preço do produto ativo vinculado à receita;
+  sem esse vínculo, a tela explica por que essas métricas estão indisponíveis. O H1 duplicado da
+  lista foi removido e o título canônico permanece apenas no `ScreenHeader`.

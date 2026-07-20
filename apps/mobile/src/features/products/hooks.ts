@@ -6,6 +6,7 @@ import { trackAnalyticsAction } from "../analytics/tracker";
 import {
   createProduct,
   deleteProduct,
+  fetchAllProducts,
   fetchLowStockProducts,
   fetchProduct,
   fetchProducts,
@@ -25,6 +26,15 @@ export function useProducts(opts?: {
   return useQuery({
     queryKey: [...PRODUCTS_KEY, opts],
     queryFn: () => fetchProducts(token!, opts),
+    enabled: !!token,
+  });
+}
+
+export function useAllProducts() {
+  const { token } = useAuth();
+  return useQuery({
+    queryKey: [...PRODUCTS_KEY, "all"],
+    queryFn: () => fetchAllProducts(token!),
     enabled: !!token,
   });
 }

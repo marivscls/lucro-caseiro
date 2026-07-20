@@ -1,6 +1,5 @@
 import { iconSizes, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
-import { AppIcon } from "../shared/components/app-icon";
-import { Stack, useRouter } from "expo-router";
+import { Stack } from "expo-router";
 import React, { useState } from "react";
 import { Pressable, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -9,6 +8,7 @@ import { CreateRecipeForm } from "../features/recipes/components/create-recipe-f
 import { EditRecipeForm } from "../features/recipes/components/edit-recipe-form";
 import { RecipeDetail } from "../features/recipes/components/recipe-detail";
 import { RecipeList } from "../features/recipes/components/recipe-list";
+import { RecipeStatisticsModal } from "../features/recipes/components/recipe-statistics-modal";
 import { useRecipe } from "../features/recipes/hooks";
 import { LimitBanner } from "../features/subscription/components/limit-banner";
 import { usePaywall } from "../shared/hooks/use-paywall";
@@ -17,17 +17,18 @@ import { StandardModal } from "../shared/components/standard-modal";
 import { FAB } from "../shared/components/fab";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { FeatureRouteGuard } from "../shared/components/feature-route-guard";
+import { AppIcon } from "../shared/components/app-icon";
 
 type ModalState =
   | { type: "none" }
   | { type: "create" }
+  | { type: "statistics" }
   | { type: "detail"; recipeId: string }
   | { type: "edit"; recipeId: string };
 
 function RecipesContent() {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
-  const router = useRouter();
   const insets = useSafeAreaInsets();
   const [modal, setModal] = useState<ModalState>({ type: "none" });
   const showPaywall = usePaywall((s) => s.show);
@@ -53,9 +54,9 @@ function RecipesContent() {
         hideBack={isDesktop}
         right={
           <Pressable
-            onPress={() => router.push("/insights")}
+            onPress={() => setModal({ type: "statistics" })}
             accessibilityRole="button"
-            accessibilityLabel="Estatísticas"
+            accessibilityLabel="Estatísticas de receitas"
             hitSlop={10}
             style={{ flexDirection: "row", alignItems: "center", gap: 6, minHeight: 44 }}
           >
@@ -102,6 +103,10 @@ function RecipesContent() {
         onClose={closeModal}
         onSuccess={closeModal}
       />
+
+      {modal.type === "statistics" ? (
+        <RecipeStatisticsModal visible onClose={closeModal} />
+      ) : null}
 
       {/* Modal - Detalhe da receita */}
       {modal.type === "detail" ? (

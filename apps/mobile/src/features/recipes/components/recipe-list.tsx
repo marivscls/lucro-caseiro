@@ -255,13 +255,7 @@ export function RecipeList({ onRecipePress, onAddPress }: RecipeListProps) {
       contentContainerStyle={{ gap: spacing.md, padding: spacing.xl }}
       ListHeaderComponent={
         <View style={{ gap: spacing.lg }}>
-          {/* Serif title */}
-          <View style={{ gap: spacing.xs }}>
-            <Typography variant="h1">Receitas</Typography>
-            <Typography variant="body">
-              Gerencie seus custos e margens de lucro
-            </Typography>
-          </View>
+          <Typography variant="body">Gerencie seus custos e margens de lucro</Typography>
 
           {/* Filter chips */}
           <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>

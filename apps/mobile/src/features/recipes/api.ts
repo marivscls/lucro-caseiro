@@ -29,14 +29,27 @@ interface PaginatedIngredients {
 // Recipes
 export async function fetchRecipes(
   token: string,
-  opts?: { page?: number; category?: string },
+  opts?: { page?: number; limit?: number; category?: string },
 ): Promise<PaginatedRecipes> {
   const params = new URLSearchParams();
   if (opts?.page) params.set("page", String(opts.page));
+  if (opts?.limit) params.set("limit", String(opts.limit));
   if (opts?.category) params.set("category", opts.category);
   const query = params.toString();
   const queryString = query ? `?${query}` : "";
   return apiClient<PaginatedRecipes>(`${RECIPES_BASE}${queryString}`, { token });
+}
+
+export async function fetchAllRecipes(token: string): Promise<Recipe[]> {
+  const firstPage = await fetchRecipes(token, { page: 1, limit: 100 });
+  if (firstPage.totalPages <= 1) return firstPage.items;
+
+  const remainingPages = await Promise.all(
+    Array.from({ length: firstPage.totalPages - 1 }, (_, index) =>
+      fetchRecipes(token, { page: index + 2, limit: 100 }),
+    ),
+  );
+  return [firstPage, ...remainingPages].flatMap((page) => page.items);
 }
 
 export async function fetchRecipe(token: string, id: string): Promise<Recipe> {

@@ -7,6 +7,7 @@ import {
   createRecipe,
   deleteRecipe,
   duplicateRecipe,
+  fetchAllRecipes,
   fetchIngredients,
   fetchRecipe,
   fetchRecipes,
@@ -17,11 +18,20 @@ import {
 const RECIPES_KEY = ["recipes"];
 const INGREDIENTS_KEY = ["ingredients"];
 
-export function useRecipes(opts?: { page?: number; category?: string }) {
+export function useRecipes(opts?: { page?: number; limit?: number; category?: string }) {
   const { token } = useAuth();
   return useQuery({
     queryKey: [...RECIPES_KEY, opts],
     queryFn: () => fetchRecipes(token!, opts),
+    enabled: !!token,
+  });
+}
+
+export function useAllRecipes() {
+  const { token } = useAuth();
+  return useQuery({
+    queryKey: [...RECIPES_KEY, "all"],
+    queryFn: () => fetchAllRecipes(token!),
     enabled: !!token,
   });
 }

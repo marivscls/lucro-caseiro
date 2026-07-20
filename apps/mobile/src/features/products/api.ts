@@ -38,6 +38,18 @@ export async function fetchProducts(
   });
 }
 
+export async function fetchAllProducts(token: string): Promise<Product[]> {
+  const firstPage = await fetchProducts(token, { page: 1, limit: 100 });
+  if (firstPage.totalPages <= 1) return firstPage.items;
+
+  const remainingPages = await Promise.all(
+    Array.from({ length: firstPage.totalPages - 1 }, (_, index) =>
+      fetchProducts(token, { page: index + 2, limit: 100 }),
+    ),
+  );
+  return [firstPage, ...remainingPages].flatMap((page) => page.items);
+}
+
 export async function fetchProduct(token: string, id: string): Promise<Product> {
   return apiClient<Product>(`${BASE}/${id}`, { token });
 }
