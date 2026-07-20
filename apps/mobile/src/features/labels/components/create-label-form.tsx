@@ -249,7 +249,7 @@ export function CreateLabelForm({
           alignItems: "flex-start",
         }}
       >
-        <View style={{ flex: 1, minWidth: 0, gap: spacing.lg }}>
+        <View style={{ flex: 1, minWidth: 0, gap: spacing["3xl"] }}>
           <View
             style={{
               borderRadius: radii.md,

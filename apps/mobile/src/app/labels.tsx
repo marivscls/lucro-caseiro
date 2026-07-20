@@ -291,7 +291,7 @@ function LabelDetailModal({
       {isLoading ? <SkeletonList rows={4} /> : null}
 
       {!isLoading && label && editing ? (
-        <View style={{ flexShrink: 1, gap: spacing.lg }}>
+        <View style={{ flexShrink: 1, gap: spacing["3xl"] }}>
           <View
             style={{
               borderRadius: radii.md,
