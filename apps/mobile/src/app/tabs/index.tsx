@@ -578,7 +578,7 @@ function QuickCreateBar() {
       route: "/tabs/clients",
       active: false,
     },
-    { icon: "cash-outline", label: "Despesas", route: "/finance", active: false },
+    { icon: "cash-outline", label: "Financeiro", route: "/finance", active: false },
   ] as const;
 
   return (
