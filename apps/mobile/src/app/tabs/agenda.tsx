@@ -665,45 +665,33 @@ function ModernOrderDetail({
       )}
 
       {client?.phone ? (
-        <View style={{ gap: spacing.md }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-            <AppIcon name="logo-whatsapp" size={24} color={theme.colors.success} />
-            <Typography
-              variant="h3"
-              color={agColors.muted}
-              style={{ fontSize: fontSizes.lg }}
-            >
-              WhatsApp
-            </Typography>
-          </View>
-          <View style={{ flexDirection: "row", gap: spacing.md }}>
-            <ActionCard
-              icon="logo-whatsapp"
-              title="Confirmar pedido"
-              subtitle="Confirmar com o cliente"
-              onPress={() => {
-                void openWhatsApp(
-                  client.phone!,
-                  waMessages.orderConfirm(
-                    order.clientName,
-                    order.title,
-                    order.deliveryDate,
-                  ),
-                );
-              }}
-            />
-            <ActionCard
-              icon="checkmark-done-outline"
-              title="Avisar que está pronto"
-              subtitle="Informar que o pedido está pronto"
-              onPress={() => {
-                void openWhatsApp(
-                  client.phone!,
-                  waMessages.orderReady(order.clientName, order.title),
-                );
-              }}
-            />
-          </View>
+        <View style={{ flexDirection: "row", gap: spacing.md }}>
+          <ActionCard
+            icon="logo-whatsapp"
+            title="Confirmar pedido"
+            subtitle="Confirmar com o cliente"
+            onPress={() => {
+              void openWhatsApp(
+                client.phone!,
+                waMessages.orderConfirm(
+                  order.clientName,
+                  order.title,
+                  order.deliveryDate,
+                ),
+              );
+            }}
+          />
+          <ActionCard
+            icon="checkmark-done-outline"
+            title="Avisar que está pronto"
+            subtitle="Informar que o pedido está pronto"
+            onPress={() => {
+              void openWhatsApp(
+                client.phone!,
+                waMessages.orderReady(order.clientName, order.title),
+              );
+            }}
+          />
         </View>
       ) : null}
 
