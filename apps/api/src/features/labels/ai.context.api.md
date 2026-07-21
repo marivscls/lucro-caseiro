@@ -52,6 +52,8 @@ Gerenciar etiquetas simples de identificacao para produtos do negocio. Permite c
 - Template e obrigatorio e deve ser um dos templates validos
 - Templates validos: "classico", "moderno", "minimalista", "artesanal", "gourmet"
 - Toda query escopada por `userId`
+- Estilo e formato de impressao customizados exigem a feature `labelsPremium`
+- A quantidade por folha nao pode exceder a capacidade A4 calculada para as medidas informadas
 
 ## Operations
 
@@ -107,7 +109,7 @@ invariants:
 
 - **CreateLabelDto**: `{ productId?, templateId, name, data: LabelData, logoUrl?, qrCodeUrl? }`
 - **UpdateLabelDto**: `Partial<CreateLabelDto>`, exceto `logoUrl`/`qrCodeUrl` que sao `string().url().nullable().optional()` — enviar `null` limpa o campo (remover logo/QR de um rotulo salvo); omitir mantem o valor atual.
-- **LabelData**: o fluxo atual usa `{ productName, note?, manufacturingDate?, expirationDate?, producerName?, producerPhone?, style? }`. Campos antigos continuam opcionais no contrato somente para compatibilidade. Persistido na coluna jsonb `data` — sem migration ao evoluir campos.
+- **LabelData**: o fluxo atual usa `{ productName, note?, manufacturingDate?, expirationDate?, producerName?, producerPhone?, style?, layout? }`. `layout` salva `{ widthMm, heightMm, copiesPerSheet }`; o contrato restringe as medidas a area imprimivel A4 e valida a capacidade da folha. Campos antigos continuam opcionais no contrato somente para compatibilidade. Persistido na coluna jsonb `data` — sem migration ao evoluir campos.
 - `toSimpleLabelData` e aplicado na entrada e na saida dos use cases. Isso impede clientes antigos de persistirem ou receberem ingredientes, advertencias e nutricao, sem exigir uma quebra imediata do DTO legado.
 - **Label**: `{ id, userId, productId, templateId, name, data, logoUrl, qrCodeUrl, createdAt }`
 - **LabelTemplate**: `{ id: string, name: string }`
@@ -172,3 +174,6 @@ GET /api/v1/labels/templates
   corner) — personalização exclusiva do Profissional; `LabelsUseCases` recebe um checker
   `hasLabelsPremium` (wired no main com `userHasFeature("labelsPremium")`) e lança
   LimitExceededError quando o plano não tem a feature (create/update).
+- 2026-07-20: `data.layout` adiciona largura, altura e quantidade por folha sem migration, pois
+  `data` e JSONB. O contrato calcula a capacidade A4 considerando margens e espacamento; os use
+  cases aplicam o mesmo gate Profissional usado pelo estilo e `toSimpleLabelData` preserva o layout.

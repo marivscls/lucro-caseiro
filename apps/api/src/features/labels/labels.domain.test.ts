@@ -160,6 +160,7 @@ describe("toSimpleLabelData", () => {
         productName: "Brigadeiro",
         note: "Sabor chocolate",
         producerName: "Doces da Maria",
+        layout: { widthMm: 50, heightMm: 30, copiesPerSheet: 20 },
         ingredients: "Leite condensado",
         glutenWarning: "NÃO CONTÉM GLÚTEN",
         nutrition: { calories: "80" },
@@ -172,6 +173,7 @@ describe("toSimpleLabelData", () => {
       producerName: "Doces da Maria",
       producerPhone: undefined,
       style: undefined,
+      layout: { widthMm: 50, heightMm: 30, copiesPerSheet: 20 },
     });
   });
 });

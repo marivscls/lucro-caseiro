@@ -68,5 +68,6 @@ export function toSimpleLabelData(data: LabelData): LabelData {
     producerName: data.producerName,
     producerPhone: data.producerPhone,
     style: data.style,
+    layout: data.layout,
   };
 }

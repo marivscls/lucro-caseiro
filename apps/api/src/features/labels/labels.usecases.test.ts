@@ -43,7 +43,7 @@ function makeSut(repoOverrides: Partial<ILabelsRepo> = {}, premium = false) {
 }
 
 describe("LabelsUseCases", () => {
-  describe("estilo customizado (Premium)", () => {
+  describe("personalização (Premium)", () => {
     const styledData: CreateLabelData = {
       name: "Rótulo",
       templateId: "classico",
@@ -67,6 +67,33 @@ describe("LabelsUseCases", () => {
     it("permite estilo customizado no premium", async () => {
       const { sut } = makeSut({}, true);
       const label = await sut.create(USER_ID, styledData);
+      expect(label.name).toBe("Rótulo");
+    });
+
+    it("bloqueia formato de impressão customizado no plano free", async () => {
+      const { sut } = makeSut({}, false);
+      await expect(
+        sut.create(USER_ID, {
+          name: "Rótulo",
+          templateId: "classico",
+          data: {
+            productName: "Brigadeiro",
+            layout: { widthMm: 50, heightMm: 30, copiesPerSheet: 20 },
+          },
+        }),
+      ).rejects.toBeInstanceOf(LimitExceededError);
+    });
+
+    it("permite formato de impressão customizado no premium", async () => {
+      const { sut } = makeSut({}, true);
+      const label = await sut.create(USER_ID, {
+        name: "Rótulo",
+        templateId: "classico",
+        data: {
+          productName: "Brigadeiro",
+          layout: { widthMm: 50, heightMm: 30, copiesPerSheet: 20 },
+        },
+      });
       expect(label.name).toBe("Rótulo");
     });
 

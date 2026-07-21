@@ -1,4 +1,8 @@
-import type { LabelData } from "@lucro-caseiro/contracts";
+import {
+  LabelLayoutDto,
+  calculateLabelSheetCapacity,
+  type LabelData,
+} from "@lucro-caseiro/contracts";
 import { describe, expect, it } from "vitest";
 
 import { buildLabelHtml } from "./label-export";
@@ -33,5 +37,31 @@ describe("buildLabelHtml", () => {
     const html = buildLabelHtml(labelData(), "classico", null, null, 8);
 
     expect(html.match(/class="label-card"/g)).toHaveLength(8);
+  });
+
+  it("aplica medidas personalizadas e a quantidade configurada", () => {
+    const data = {
+      ...labelData(),
+      layout: { widthMm: 50, heightMm: 30, copiesPerSheet: 20 },
+    } satisfies LabelData;
+    const html = buildLabelHtml(data, "classico", null, null, 20);
+
+    expect(html).toContain("width: 50mm");
+    expect(html).toContain("height: 30mm");
+    expect(html.match(/class="label-card"/g)).toHaveLength(20);
+  });
+
+  it("limita a quantidade à capacidade física da folha A4", () => {
+    const data = {
+      ...labelData(),
+      layout: { widthMm: 90, heightMm: 60, copiesPerSheet: 8 },
+    } satisfies LabelData;
+    const html = buildLabelHtml(data, "classico", null, null, 99);
+
+    expect(calculateLabelSheetCapacity(90, 60)).toBe(8);
+    expect(html.match(/class="label-card"/g)).toHaveLength(8);
+    expect(
+      LabelLayoutDto.safeParse({ widthMm: 90, heightMm: 60, copiesPerSheet: 9 }).success,
+    ).toBe(false);
   });
 });

@@ -19,6 +19,7 @@ import labelsEmpty from "../assets/labels-empty.png";
 import { publicCatalogProductUrl } from "../features/catalog/api";
 import { useCatalogSettings } from "../features/catalog/hooks";
 import { CreateLabelForm } from "../features/labels/components/create-label-form";
+import { LabelLayoutEditor } from "../features/labels/components/label-layout-editor";
 import { LabelPreview } from "../features/labels/components/label-preview";
 import { LabelProductPicker } from "../features/labels/components/label-product-picker";
 import { LabelStyleEditor } from "../features/labels/components/label-style-editor";
@@ -35,6 +36,7 @@ import { useProfile } from "../features/subscription/hooks";
 import { AppIcon } from "../shared/components/app-icon";
 import { showAlert } from "../shared/components/alert-store";
 import { DateField } from "../shared/components/date-field";
+import { FormSection } from "../shared/components/form-section";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { SkeletonList } from "../shared/components/skeleton";
 import { StandardModal } from "../shared/components/standard-modal";
@@ -72,6 +74,7 @@ function LabelDetailModal({
   const [includeQr, setIncludeQr] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [layoutValid, setLayoutValid] = useState(true);
   const [logoRemoved, setLogoRemoved] = useState(false);
   const { imageUri: newLogo, showPicker, clear: clearPickedLogo } = useImagePicker();
   const editingLogo = newLogo ?? (logoRemoved ? null : (label?.logoUrl ?? null));
@@ -155,6 +158,10 @@ function LabelDetailModal({
     }
     if (!labelData.productName.trim()) {
       alertValidation("Preencha o nome que será impresso");
+      return;
+    }
+    if (!layoutValid) {
+      alertValidation("Confira o tamanho e a quantidade de etiquetas por folha");
       return;
     }
     const dates = validateDates();
@@ -334,6 +341,19 @@ function LabelDetailModal({
             }}
           />
           <TemplatePicker selected={templateId} onSelect={setTemplateId} />
+          <FormSection
+            title="Formato de impressão"
+            subtitle="Tamanho exato e quantidade na folha A4"
+            icon="grid-outline"
+          >
+            <LabelLayoutEditor
+              value={labelData.layout}
+              onChange={(layout) => updateField("layout", layout)}
+              onValidityChange={setLayoutValid}
+              locked={!isPremium}
+              onLockedPress={() => showPaywall("labels")}
+            />
+          </FormSection>
           <Input
             label="Nome que será impresso"
             value={labelData.productName}

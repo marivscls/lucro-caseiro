@@ -1,4 +1,4 @@
-import type { LabelData } from "@lucro-caseiro/contracts";
+import { DEFAULT_LABEL_LAYOUT, type LabelData } from "@lucro-caseiro/contracts";
 import { Card, Typography, fonts, spacing } from "@lucro-caseiro/ui";
 import React from "react";
 import { Image, View, useWindowDimensions } from "react-native";
@@ -16,14 +16,18 @@ interface LabelPreviewProps {
 }
 
 const LABEL_PREVIEW_WIDTH = 280;
+const MAX_LABEL_PREVIEW_HEIGHT = 400;
 
 export function fitLabelPreviewScale(
   requestedScale: number,
   viewportWidth: number,
+  baseWidth = LABEL_PREVIEW_WIDTH,
+  baseHeight?: number,
 ): number {
   if (viewportWidth <= 0) return requestedScale;
   const availableWidth = Math.max(0, viewportWidth - spacing.xl * 2);
-  return Math.min(requestedScale, availableWidth / LABEL_PREVIEW_WIDTH);
+  const heightScale = baseHeight ? MAX_LABEL_PREVIEW_HEIGHT / baseHeight : requestedScale;
+  return Math.min(requestedScale, availableWidth / baseWidth, heightScale);
 }
 
 type TemplateStyle = {
@@ -92,7 +96,17 @@ export function LabelPreview({
   scale = 1,
 }: Readonly<LabelPreviewProps>) {
   const { width: viewportWidth } = useWindowDimensions();
-  const previewScale = fitLabelPreviewScale(scale, viewportWidth);
+  const layout = data.layout ?? DEFAULT_LABEL_LAYOUT;
+  const baseWidth = Math.max(LABEL_PREVIEW_WIDTH, layout.widthMm * 3);
+  const baseHeight = baseWidth * (layout.heightMm / layout.widthMm);
+  const previewScale = fitLabelPreviewScale(scale, viewportWidth, baseWidth, baseHeight);
+  const contentScale =
+    previewScale *
+    Math.min(
+      1.5,
+      layout.widthMm / DEFAULT_LABEL_LAYOUT.widthMm,
+      layout.heightMm / DEFAULT_LABEL_LAYOUT.heightMm,
+    );
   const style = resolveLabelStyle(templateId, data.style);
   const qrSvg = qrUrl ? buildQrSvg(qrUrl) : null;
   const isDouble = style.borderStyle === "double";
@@ -107,18 +121,20 @@ export function LabelPreview({
         borderColor: style.border,
         borderStyle: style.borderStyle === "dashed" ? "dashed" : "solid",
         borderRadius: style.corner === "square" ? 0 : 12,
-        padding: (isDouble ? 8 : 18) * previewScale,
-        width: LABEL_PREVIEW_WIDTH * previewScale,
+        padding: (isDouble ? 8 : 18) * contentScale,
+        width: baseWidth * previewScale,
+        height: baseHeight * previewScale,
         alignSelf: "center",
+        overflow: "hidden",
       }}
     >
-      <DoubleBorder visible={isDouble} color={style.border} scale={previewScale}>
+      <DoubleBorder visible={isDouble} color={style.border} scale={contentScale}>
         {logoUrl ? (
           <Image
             source={{ uri: logoUrl }}
             style={{
-              width: 52 * previewScale,
-              height: 52 * previewScale,
+              width: 52 * contentScale,
+              height: 52 * contentScale,
               alignSelf: "center",
               borderRadius: 8,
             }}
@@ -128,7 +144,7 @@ export function LabelPreview({
         <Typography
           variant="h2"
           color={style.accent}
-          style={{ textAlign: "center", fontSize: 20 * previewScale }}
+          style={{ textAlign: "center", fontSize: 20 * contentScale }}
         >
           {data.productName || "Nome do produto"}
         </Typography>
@@ -137,7 +153,7 @@ export function LabelPreview({
           <Typography
             variant="caption"
             color={style.accent}
-            style={{ textAlign: "center", fontSize: 10 * previewScale }}
+            style={{ textAlign: "center", fontSize: 10 * contentScale }}
           >
             {data.note}
           </Typography>
@@ -148,8 +164,8 @@ export function LabelPreview({
             style={{
               flexDirection: "row",
               justifyContent: "center",
-              gap: 24 * previewScale,
-              marginTop: 2 * previewScale,
+              gap: 24 * contentScale,
+              marginTop: 2 * contentScale,
             }}
           >
             {data.manufacturingDate ? (
@@ -157,7 +173,7 @@ export function LabelPreview({
                 label="Feito em"
                 value={data.manufacturingDate}
                 color={style.accent}
-                scale={previewScale}
+                scale={contentScale}
               />
             ) : null}
             {data.expirationDate ? (
@@ -165,7 +181,7 @@ export function LabelPreview({
                 label="Validade"
                 value={data.expirationDate}
                 color={style.accent}
-                scale={previewScale}
+                scale={contentScale}
               />
             ) : null}
           </View>
@@ -176,9 +192,9 @@ export function LabelPreview({
             style={{
               borderTopWidth: 1,
               borderTopColor: style.border,
-              paddingTop: 8 * previewScale,
-              marginTop: 2 * previewScale,
-              gap: 2 * previewScale,
+              paddingTop: 8 * contentScale,
+              marginTop: 2 * contentScale,
+              gap: 2 * contentScale,
             }}
           >
             {data.producerName ? (
@@ -187,7 +203,7 @@ export function LabelPreview({
                 color={style.accent}
                 style={{
                   fontFamily: fonts.bold,
-                  fontSize: 10 * previewScale,
+                  fontSize: 10 * contentScale,
                   textAlign: "center",
                 }}
               >
@@ -198,7 +214,7 @@ export function LabelPreview({
               <Typography
                 variant="caption"
                 color={style.accent}
-                style={{ fontSize: 9 * previewScale, textAlign: "center" }}
+                style={{ fontSize: 9 * contentScale, textAlign: "center" }}
               >
                 {data.producerPhone}
               </Typography>
@@ -207,12 +223,12 @@ export function LabelPreview({
         ) : null}
 
         {qrSvg ? (
-          <View style={{ alignItems: "center", gap: 2 * previewScale }}>
-            <SvgXml xml={qrSvg} width={64 * previewScale} height={64 * previewScale} />
+          <View style={{ alignItems: "center", gap: 2 * contentScale }}>
+            <SvgXml xml={qrSvg} width={64 * contentScale} height={64 * contentScale} />
             <Typography
               variant="caption"
               color={style.accent}
-              style={{ fontSize: 8 * previewScale }}
+              style={{ fontSize: 8 * contentScale }}
             >
               Veja no catálogo
             </Typography>
@@ -256,10 +272,19 @@ function DoubleBorder({
   scale: number;
   children: React.ReactNode;
 }>) {
-  if (!visible) return <View style={{ gap: 10 * scale }}>{children}</View>;
+  if (!visible) {
+    return (
+      <View style={{ flex: 1, width: "100%", justifyContent: "center", gap: 10 * scale }}>
+        {children}
+      </View>
+    );
+  }
   return (
     <View
       style={{
+        flex: 1,
+        width: "100%",
+        justifyContent: "center",
         borderWidth: 1,
         borderColor: color,
         borderRadius: 8,

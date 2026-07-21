@@ -61,6 +61,59 @@ export const LabelStyleDto = z.object({
 
 export type LabelStyle = z.infer<typeof LabelStyleDto>;
 
+export const DEFAULT_LABEL_LAYOUT = {
+  widthMm: 90,
+  heightMm: 60,
+  copiesPerSheet: 8,
+} as const;
+
+export const LABEL_LAYOUT_LIMITS = {
+  minWidthMm: 40,
+  maxWidthMm: 190,
+  minHeightMm: 25,
+  maxHeightMm: 277,
+  sheetWidthMm: 190,
+  sheetHeightMm: 277,
+  gapMm: 4,
+} as const;
+
+export function calculateLabelSheetCapacity(widthMm: number, heightMm: number): number {
+  const columns = Math.floor(
+    (LABEL_LAYOUT_LIMITS.sheetWidthMm + LABEL_LAYOUT_LIMITS.gapMm) /
+      (widthMm + LABEL_LAYOUT_LIMITS.gapMm),
+  );
+  const rows = Math.floor(
+    (LABEL_LAYOUT_LIMITS.sheetHeightMm + LABEL_LAYOUT_LIMITS.gapMm) /
+      (heightMm + LABEL_LAYOUT_LIMITS.gapMm),
+  );
+  return Math.max(1, columns * rows);
+}
+
+export const LabelLayoutDto = z
+  .object({
+    widthMm: z
+      .number()
+      .min(LABEL_LAYOUT_LIMITS.minWidthMm)
+      .max(LABEL_LAYOUT_LIMITS.maxWidthMm),
+    heightMm: z
+      .number()
+      .min(LABEL_LAYOUT_LIMITS.minHeightMm)
+      .max(LABEL_LAYOUT_LIMITS.maxHeightMm),
+    copiesPerSheet: z.number().int().min(1),
+  })
+  .superRefine((layout, context) => {
+    const capacity = calculateLabelSheetCapacity(layout.widthMm, layout.heightMm);
+    if (layout.copiesPerSheet > capacity) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["copiesPerSheet"],
+        message: `Cabem no máximo ${capacity} etiquetas desse tamanho em uma folha A4`,
+      });
+    }
+  });
+
+export type LabelLayout = z.infer<typeof LabelLayoutDto>;
+
 export const LabelDataDto = z.object({
   productName: z.string(),
   note: z.string().optional(),
@@ -80,6 +133,7 @@ export const LabelDataDto = z.object({
   preparationInstructions: z.string().optional(),
   nutrition: NutritionFactsDto.optional(),
   style: LabelStyleDto.optional(),
+  layout: LabelLayoutDto.optional(),
 });
 
 export type LabelData = z.infer<typeof LabelDataDto>;

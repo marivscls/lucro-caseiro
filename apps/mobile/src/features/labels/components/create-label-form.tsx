@@ -21,6 +21,7 @@ import { useProfile } from "../../subscription/hooks";
 import { brToIso } from "../dates";
 import { exportLabelPdfWithChoice } from "../label-export";
 import { useCreateLabel, useLabels } from "../hooks";
+import { LabelLayoutEditor } from "./label-layout-editor";
 import { LabelPreview } from "./label-preview";
 import { LabelProductPicker } from "./label-product-picker";
 import { LabelStyleEditor } from "./label-style-editor";
@@ -58,6 +59,7 @@ export function CreateLabelForm({
   const [includeQr, setIncludeQr] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [layoutValid, setLayoutValid] = useState(true);
   const { imageUri: logoUri, showPicker, clear: clearLogo } = useImagePicker();
   const { data: catalogSettings } = useCatalogSettings();
   const qrUrl =
@@ -129,6 +131,10 @@ export function CreateLabelForm({
       alertValidation("Preencha o nome que será impresso");
       return;
     }
+    if (!layoutValid) {
+      alertValidation("Confira o tamanho e a quantidade de etiquetas por folha");
+      return;
+    }
     const dates = validateDates();
     if (!dates) return;
 
@@ -158,7 +164,7 @@ export function CreateLabelForm({
       });
       showAlert({
         title: "Etiqueta criada!",
-        message: "Agora você pode imprimir uma unidade ou uma folha completa.",
+        message: "Agora você pode imprimir uma unidade ou a folha configurada.",
       });
       onSuccess?.();
     } catch (error) {
@@ -175,6 +181,10 @@ export function CreateLabelForm({
   async function handleExport() {
     if (!labelData.productName.trim()) {
       alertValidation("Preencha o nome que será impresso");
+      return;
+    }
+    if (!layoutValid) {
+      alertValidation("Confira o tamanho e a quantidade de etiquetas por folha");
       return;
     }
     const dates = validateDates();
@@ -298,6 +308,19 @@ export function CreateLabelForm({
           />
 
           <TemplatePicker selected={templateId} onSelect={setTemplateId} />
+          <FormSection
+            title="Formato de impressão"
+            subtitle="Tamanho exato e quantidade na folha A4"
+            icon="grid-outline"
+          >
+            <LabelLayoutEditor
+              value={labelData.layout}
+              onChange={(layout) => updateField("layout", layout)}
+              onValidityChange={setLayoutValid}
+              locked={!isPremium}
+              onLockedPress={() => showPaywall("labels")}
+            />
+          </FormSection>
           {!isDesktop ? previewBlock : null}
 
           <Input

@@ -1,5 +1,10 @@
 import { getActiveBrand } from "@lucro-caseiro/brands";
-import type { LabelData } from "@lucro-caseiro/contracts";
+import {
+  DEFAULT_LABEL_LAYOUT,
+  LABEL_LAYOUT_LIMITS,
+  calculateLabelSheetCapacity,
+  type LabelData,
+} from "@lucro-caseiro/contracts";
 
 import { getBrandDisplayName } from "../../shared/brand-name";
 import { showAlert } from "../../shared/components/alert-store";
@@ -75,11 +80,19 @@ export function buildLabelHtml(
   const borderCss =
     style.borderStyle === "none" ? "none" : `2px ${style.borderStyle} ${style.border}`;
   const radiusCss = style.corner === "square" ? "0" : "12px";
-  const count = Math.max(1, Math.floor(copies));
+  const layout = data.layout ?? DEFAULT_LABEL_LAYOUT;
+  const capacity = calculateLabelSheetCapacity(layout.widthMm, layout.heightMm);
+  const count = Math.min(capacity, Math.max(1, Math.floor(copies)));
   const card = buildLabelCard(data, logoUrl, qrUrl);
   const cards = `<div class="label-card">${card}</div>`.repeat(count);
-  const sheet = count > 1;
-  const scale = sheet ? 1 : 1.35;
+  const scale = Math.max(
+    0.4,
+    Math.min(
+      1.4,
+      layout.widthMm / DEFAULT_LABEL_LAYOUT.widthMm,
+      layout.heightMm / DEFAULT_LABEL_LAYOUT.heightMm,
+    ),
+  );
   const size = (value: number) => Math.round(value * scale);
 
   return `<!DOCTYPE html>
@@ -91,19 +104,23 @@ export function buildLabelHtml(
     * { box-sizing: border-box; }
     @page { size: A4; margin: 10mm; }
     body {
+      width: ${LABEL_LAYOUT_LIMITS.sheetWidthMm}mm;
+      min-height: ${LABEL_LAYOUT_LIMITS.sheetHeightMm}mm;
       margin: 0;
-      padding: ${sheet ? "0" : "24px"};
+      padding: 0;
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: ${LABEL_LAYOUT_LIMITS.gapMm}mm;
       justify-content: center;
       align-items: flex-start;
+      align-content: flex-start;
       font-family: ${style.font};
       background: #ffffff;
     }
     .label-card {
-      width: ${sheet ? "47%" : "460px"};
-      min-height: ${sheet ? "160px" : "240px"};
+      flex: 0 0 ${layout.widthMm}mm;
+      width: ${layout.widthMm}mm;
+      height: ${layout.heightMm}mm;
       break-inside: avoid;
       display: flex;
       flex-direction: column;
@@ -115,6 +132,7 @@ export function buildLabelHtml(
       padding: ${size(22)}px;
       color: ${style.accent};
       text-align: center;
+      overflow: hidden;
     }
     .logo {
       width: ${size(58)}px;
@@ -181,8 +199,6 @@ export async function exportLabelPdf(
   });
 }
 
-const SHEET_COPIES = 8;
-
 function confirmLabelResponsibility(): Promise<boolean> {
   return new Promise((resolve) => {
     showAlert({
@@ -203,10 +219,11 @@ function chooseLabelCopies(
   logoUrl?: string | null,
   qrUrl?: string | null,
 ): Promise<void> {
+  const copies = data.layout?.copiesPerSheet ?? DEFAULT_LABEL_LAYOUT.copiesPerSheet;
   return new Promise((resolve, reject) => {
     showAlert({
       title: "Baixar etiqueta",
-      message: "Quantas etiquetas no PDF?",
+      message: "Escolha uma unidade ou a folha A4 configurada.",
       buttons: [
         {
           text: "1 etiqueta",
@@ -214,15 +231,19 @@ function chooseLabelCopies(
             exportLabelPdf(data, templateId, logoUrl, qrUrl, 1).then(resolve, reject);
           },
         },
-        {
-          text: `Folha cheia (${SHEET_COPIES})`,
-          onPress: () => {
-            exportLabelPdf(data, templateId, logoUrl, qrUrl, SHEET_COPIES).then(
-              resolve,
-              reject,
-            );
-          },
-        },
+        ...(copies > 1
+          ? [
+              {
+                text: `Folha configurada (${copies})`,
+                onPress: () => {
+                  exportLabelPdf(data, templateId, logoUrl, qrUrl, copies).then(
+                    resolve,
+                    reject,
+                  );
+                },
+              },
+            ]
+          : []),
         { text: "Cancelar", style: "cancel", onPress: () => resolve() },
       ],
     });

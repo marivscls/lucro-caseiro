@@ -1,4 +1,4 @@
-import type { Label, LabelStyle } from "@lucro-caseiro/contracts";
+import type { Label, LabelData, LabelStyle } from "@lucro-caseiro/contracts";
 
 import { LimitExceededError, NotFoundError, ValidationError } from "../../shared/errors";
 import { paginationMeta } from "../../shared/helpers/paginate";
@@ -27,8 +27,11 @@ export class LabelsUseCases {
       Promise.resolve(false),
   ) {}
 
-  private async assertStyleAllowed(userId: string, style?: LabelStyle): Promise<void> {
-    if (!hasCustomStyle(style)) return;
+  private async assertCustomizationAllowed(
+    userId: string,
+    data: LabelData,
+  ): Promise<void> {
+    if (!hasCustomStyle(data.style) && !data.layout) return;
     if (await this.hasLabelsPremium(userId)) return;
     throw new LimitExceededError(
       "A personalização da etiqueta faz parte do plano Profissional.",
@@ -45,7 +48,7 @@ export class LabelsUseCases {
     if (errors.length > 0) {
       throw new ValidationError(errors);
     }
-    await this.assertStyleAllowed(userId, normalizedData.data.style);
+    await this.assertCustomizationAllowed(userId, normalizedData.data);
 
     return presentLabel(await this.repo.create(userId, normalizedData));
   }
@@ -90,7 +93,7 @@ export class LabelsUseCases {
     if (errors.length > 0) {
       throw new ValidationError(errors);
     }
-    await this.assertStyleAllowed(userId, data.data?.style);
+    if (data.data) await this.assertCustomizationAllowed(userId, data.data);
 
     const updated = await this.repo.update(userId, id, {
       ...data,
