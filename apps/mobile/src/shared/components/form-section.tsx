@@ -8,6 +8,7 @@ interface FormSectionProps {
   readonly title: string;
   readonly subtitle?: string;
   readonly icon?: AppIconName;
+  readonly titleAccessory?: React.ReactNode;
   readonly initiallyOpen?: boolean;
   readonly children: React.ReactNode;
 }
@@ -21,6 +22,7 @@ export function FormSection({
   title,
   subtitle,
   icon,
+  titleAccessory,
   initiallyOpen = false,
   children,
 }: FormSectionProps) {
@@ -55,7 +57,12 @@ export function FormSection({
       >
         {icon && <AppIcon name={icon} size={22} color={theme.colors.primary} />}
         <View style={{ flex: 1 }}>
-          <Typography variant="bodyBold">{title}</Typography>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+            <Typography variant="bodyBold" style={{ flexShrink: 1 }}>
+              {title}
+            </Typography>
+            {titleAccessory}
+          </View>
           {subtitle ? <Typography variant="caption">{subtitle}</Typography> : null}
         </View>
         <AppIcon

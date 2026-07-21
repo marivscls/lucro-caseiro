@@ -1,5 +1,13 @@
 import { hasActiveFeature, type LabelData } from "@lucro-caseiro/contracts";
-import { Button, Input, Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
+import {
+  Badge,
+  Button,
+  Input,
+  Typography,
+  radii,
+  spacing,
+  useTheme,
+} from "@lucro-caseiro/ui";
 import React, { useState } from "react";
 import { Image, Platform, Pressable, Switch, View, type ViewStyle } from "react-native";
 
@@ -312,6 +320,7 @@ export function CreateLabelForm({
             title="Formato de impressão"
             subtitle="Tamanho exato e quantidade na folha A4"
             icon="grid-outline"
+            titleAccessory={<Badge label="Profissional" variant="premium" />}
           >
             <LabelLayoutEditor
               value={labelData.layout}

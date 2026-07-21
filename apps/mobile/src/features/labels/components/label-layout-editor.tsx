@@ -4,7 +4,7 @@ import {
   calculateLabelSheetCapacity,
   type LabelLayout,
 } from "@lucro-caseiro/contracts";
-import { Badge, Input, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
+import { Input, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import React, { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
 
@@ -111,7 +111,7 @@ export function LabelLayoutEditor({
         />
       </View>
       <Input
-        label="Etiquetas por folha A4"
+        label="Número de cópias por folha A4"
         value={copies}
         onChangeText={(next) => {
           setCopies(next.replace(/\D/g, ""));
@@ -139,7 +139,6 @@ export function LabelLayoutEditor({
         {locked ? (
           <AppIcon name="lock-closed" size={16} color={theme.colors.premium} />
         ) : null}
-        <Badge label="Profissional" variant="premium" />
       </View>
       {locked ? (
         <Pressable

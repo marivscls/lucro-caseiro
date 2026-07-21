@@ -1,5 +1,6 @@
 import { hasActiveFeature, type Label, type LabelData } from "@lucro-caseiro/contracts";
 import {
+  Badge,
   Button,
   Card,
   EmptyState,
@@ -345,6 +346,7 @@ function LabelDetailModal({
             title="Formato de impressão"
             subtitle="Tamanho exato e quantidade na folha A4"
             icon="grid-outline"
+            titleAccessory={<Badge label="Profissional" variant="premium" />}
           >
             <LabelLayoutEditor
               value={labelData.layout}
