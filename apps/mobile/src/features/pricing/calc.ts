@@ -1,6 +1,7 @@
 /** Cálculos compartilhados por app, API e calculadora pública do site. */
 export {
   finalPriceWithFees,
+  fixedCostShare,
   laborCost,
   profitPerUnit,
   suggestedPrice,

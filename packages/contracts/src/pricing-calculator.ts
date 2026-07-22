@@ -3,6 +3,12 @@ export function laborCost(minutes: number, hourlyRate: number): number {
   return (minutes / 60) * hourlyRate;
 }
 
+/** Rateio mensal: gastos fixos do mês divididos pelas unidades produzidas. */
+export function fixedCostShare(monthlyFixed: number, monthlyProduction: number): number {
+  if (monthlyFixed <= 0 || monthlyProduction <= 0) return 0;
+  return monthlyFixed / monthlyProduction;
+}
+
 /** Custo total = insumos + embalagem + mão de obra + rateio de custo fixo. */
 export function totalCost(
   ingredient: number,

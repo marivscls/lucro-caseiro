@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   finalPriceWithFees,
+  fixedCostShare,
   laborCost,
   profitMarkupPercent,
   profitPerUnit,
@@ -15,6 +16,14 @@ describe("laborCost", () => {
     expect(laborCost(90, 20)).toBe(30);
     expect(laborCost(0, 50)).toBe(0);
     expect(laborCost(30, 0)).toBe(0);
+  });
+});
+
+describe("fixedCostShare", () => {
+  it("divide os gastos mensais pela producao sem exigir conta por fora", () => {
+    expect(fixedCostShare(300, 100)).toBe(3);
+    expect(fixedCostShare(300, 0)).toBe(0);
+    expect(fixedCostShare(0, 100)).toBe(0);
   });
 });
 

@@ -4,7 +4,7 @@
 
 ## Purpose
 
-A precificacao tem dois caminhos conectados. A rota `/pricing` abre o modo **Simples**, que pergunta o custo total por unidade e quanto a pessoa quer ganhar em reais. A rota `/pricing-complete` preserva o wizard de 5 passos para detalhar insumos, embalagem, mao de obra, custos fixos, acrescimo sobre o custo e taxas. Ambos salvam no mesmo historico.
+A precificacao tem dois caminhos conectados. A rota `/pricing` abre o modo **Simples**, que calcula dentro do app insumos, embalagem, mao de obra e rateio de gastos fixos antes de perguntar quanto a pessoa quer ganhar em reais. A rota `/pricing-complete` preserva o wizard de 5 passos para controlar esses componentes em detalhe, o acrescimo sobre o custo e as taxas. Ambos salvam no mesmo historico.
 
 ## Non-goals
 

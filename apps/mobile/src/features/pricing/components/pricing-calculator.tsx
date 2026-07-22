@@ -420,7 +420,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
 
   const laborCost = priceCalc.laborCost(laborMin, parseCurrency(laborHourlyRate));
   const monthlyFixedNum = parseCurrency(monthlyFixed);
-  const fixedCostShare = monthlyProduction > 0 ? monthlyFixedNum / monthlyProduction : 0;
+  const fixedCostShare = priceCalc.fixedCostShare(monthlyFixedNum, monthlyProduction);
   const totalCost = priceCalc.totalCost(
     parseCurrency(ingredientCost),
     parseCurrency(packagingCost),

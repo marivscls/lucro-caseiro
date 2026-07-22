@@ -1,4 +1,4 @@
-import type { Product } from "@lucro-caseiro/contracts";
+import type { Packaging, Product } from "@lucro-caseiro/contracts";
 import {
   Button,
   Card,
@@ -9,7 +9,7 @@ import {
   spacing,
   useTheme,
 } from "@lucro-caseiro/ui";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -19,8 +19,8 @@ import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-awa
 import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
 import { Skeleton } from "../../../shared/components/skeleton";
 import { useAuth } from "../../../shared/hooks/use-auth";
-import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { desktopModalSurface } from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { alertError, alertValidation } from "../../../shared/utils/alerts";
 import {
   currencyInput,
@@ -29,6 +29,8 @@ import {
 } from "../../../shared/utils/currency-input";
 import { formatCurrency } from "../../../shared/utils/format";
 import { trackAnalyticsAction } from "../../analytics/tracker";
+import { useFinanceSummary } from "../../finance/hooks";
+import { usePackagingList } from "../../packaging/hooks";
 import { useAllProducts } from "../../products/hooks";
 import * as priceCalc from "../calc";
 import { useCalculatePricing } from "../hooks";
@@ -36,6 +38,13 @@ import { useCalculatePricing } from "../hooks";
 interface SimplePricingCalculatorProps {
   readonly onSave?: () => void;
   readonly onCreateProduct?: (salePrice: number) => void;
+}
+
+interface CostSourceItem {
+  readonly id: string;
+  readonly name: string;
+  readonly cost: number;
+  readonly costLabel: string;
 }
 
 function money(text: string): number {
@@ -52,32 +61,40 @@ function percentageInput(text: string): string {
   return decimals.length > 0 ? `${integer},${decimals.join("").slice(0, 2)}` : integer;
 }
 
-function ProductCostPicker({
+function wholeNumberInput(text: string): string {
+  return text.replace(/\D/g, "").slice(0, 7);
+}
+
+function CostSourcePicker({
   visible,
-  products,
+  title,
+  subtitle,
+  items,
+  emptyLabel,
   selectedId,
   loading,
   onSelect,
   onClose,
 }: Readonly<{
   visible: boolean;
-  products: Product[];
+  title: string;
+  subtitle: string;
+  items: CostSourceItem[];
+  emptyLabel: string;
   selectedId: string | null;
   loading: boolean;
-  onSelect: (product: Product) => void;
+  onSelect: (item: CostSourceItem) => void;
   onClose: () => void;
 }>) {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
   const insets = useSafeAreaInsets();
   const [search, setSearch] = useState("");
-  const visibleProducts = useMemo(() => {
+  const visibleItems = useMemo(() => {
     const query = search.trim().toLocaleLowerCase("pt-BR");
-    if (!query) return products;
-    return products.filter((product) =>
-      product.name.toLocaleLowerCase("pt-BR").includes(query),
-    );
-  }, [products, search]);
+    if (!query) return items;
+    return items.filter((item) => item.name.toLocaleLowerCase("pt-BR").includes(query));
+  }, [items, search]);
 
   return (
     <ResponsiveOverlayModal
@@ -120,16 +137,16 @@ function ProductCostPicker({
           >
             <View style={{ flex: 1, minWidth: 0 }}>
               <Typography variant="h2" numberOfLines={1}>
-                Usar custo de um produto
+                {title}
               </Typography>
               <Typography variant="caption" color={theme.colors.textSecondary}>
-                O valor vem do custo cadastrado no produto.
+                {subtitle}
               </Typography>
             </View>
             <Pressable
               onPress={onClose}
               accessibilityRole="button"
-              accessibilityLabel="Fechar seleção de produto"
+              accessibilityLabel="Fechar seleção"
               hitSlop={10}
               style={{
                 width: 44,
@@ -143,7 +160,7 @@ function ProductCostPicker({
           </View>
 
           <Input
-            placeholder="Buscar produto..."
+            placeholder="Buscar..."
             value={search}
             onChangeText={setSearch}
             icon={
@@ -168,12 +185,12 @@ function ProductCostPicker({
               keyboardShouldPersistTaps="handled"
               contentContainerStyle={{ gap: spacing.sm }}
             >
-              {visibleProducts.map((product) => {
-                const selected = selectedId === product.id;
+              {visibleItems.map((item) => {
+                const selected = selectedId === item.id;
                 return (
                   <Pressable
-                    key={product.id}
-                    onPress={() => onSelect(product)}
+                    key={item.id}
+                    onPress={() => onSelect(item)}
                     accessibilityRole="button"
                     accessibilityState={{ selected }}
                     style={({ pressed }) => ({
@@ -194,10 +211,10 @@ function ProductCostPicker({
                   >
                     <View style={{ flex: 1, minWidth: 0 }}>
                       <Typography variant="bodyBold" numberOfLines={1}>
-                        {product.name}
+                        {item.name}
                       </Typography>
                       <Typography variant="caption" color={theme.colors.textSecondary}>
-                        Custo cadastrado: {formatCurrency(product.costPrice ?? 0)}
+                        {item.costLabel}: {formatCurrency(item.cost)}
                       </Typography>
                     </View>
                     {selected ? (
@@ -211,15 +228,13 @@ function ProductCostPicker({
                 );
               })}
 
-              {visibleProducts.length === 0 ? (
+              {visibleItems.length === 0 ? (
                 <Typography
                   variant="body"
                   color={theme.colors.textSecondary}
                   style={{ textAlign: "center", paddingVertical: spacing.xl }}
                 >
-                  {products.length === 0
-                    ? "Nenhum produto com custo de receita disponível."
-                    : "Nenhum produto encontrado."}
+                  {items.length === 0 ? emptyLabel : "Nenhum item encontrado."}
                 </Typography>
               ) : null}
             </ScrollView>
@@ -227,6 +242,26 @@ function ProductCostPicker({
         </Pressable>
       </Pressable>
     </ResponsiveOverlayModal>
+  );
+}
+
+function CostRow({
+  label,
+  value,
+  color,
+}: Readonly<{ label: string; value: number; color?: string }>) {
+  const { theme } = useTheme();
+  return (
+    <View
+      style={{ flexDirection: "row", justifyContent: "space-between", gap: spacing.md }}
+    >
+      <Typography variant="body" color={theme.colors.textSecondary}>
+        {label}
+      </Typography>
+      <Typography variant="bodyBold" color={color}>
+        {formatCurrency(value)}
+      </Typography>
+    </View>
   );
 }
 
@@ -238,20 +273,56 @@ export function SimplePricingCalculator({
   const isDesktop = useDesktopLayout();
   const insets = useSafeAreaInsets();
   const { data: allProducts = [], isLoading: loadingProducts } = useAllProducts();
-  const products = allProducts.filter((product) => product.costPrice != null);
+  const { data: packagingData, isLoading: loadingPackaging } = usePackagingList();
+  const { data: financeSummary } = useFinanceSummary();
   const calculatePricing = useCalculatePricing();
   const startedTracked = useRef(false);
+  const fixedCostEdited = useRef(false);
+
+  const products = allProducts.filter((product) => product.costPrice != null);
+  const packaging = packagingData?.items ?? [];
+  const productItems = useMemo(() => products.map(productCostSource), [products]);
+  const packagingItems = useMemo(() => packaging.map(packagingCostSource), [packaging]);
 
   const [productId, setProductId] = useState<string | null>(null);
-  const [costInput, setCostInput] = useState("");
+  const [packagingId, setPackagingId] = useState<string | null>(null);
+  const [ingredientInput, setIngredientInput] = useState("");
+  const [packagingInput, setPackagingInput] = useState("");
+  const [laborMinutesInput, setLaborMinutesInput] = useState("");
+  const [hourlyRateInput, setHourlyRateInput] = useState("");
+  const [monthlyFixedInput, setMonthlyFixedInput] = useState("");
+  const [monthlyProductionInput, setMonthlyProductionInput] = useState("100");
   const [profitInput, setProfitInput] = useState("");
   const [feesInput, setFeesInput] = useState("");
   const [showFees, setShowFees] = useState(false);
-  const [pickerVisible, setPickerVisible] = useState(false);
-  const [importedCost, setImportedCost] = useState(false);
+  const [productPickerVisible, setProductPickerVisible] = useState(false);
+  const [packagingPickerVisible, setPackagingPickerVisible] = useState(false);
+  const [importedIngredients, setImportedIngredients] = useState(false);
+  const [importedFixedCosts, setImportedFixedCosts] = useState(false);
+
+  useEffect(() => {
+    const savedFixedCosts = financeSummary?.fixedExpenses ?? 0;
+    if (savedFixedCosts <= 0 || fixedCostEdited.current) return;
+    setMonthlyFixedInput(currencyInput(savedFixedCosts));
+    setImportedFixedCosts(true);
+  }, [financeSummary?.fixedExpenses]);
 
   const selectedProduct = products.find((product) => product.id === productId) ?? null;
-  const totalCost = money(costInput);
+  const selectedPackaging = packaging.find((item) => item.id === packagingId) ?? null;
+  const ingredientCost = money(ingredientInput);
+  const packagingCost = money(packagingInput);
+  const laborMinutes = Number(laborMinutesInput) || 0;
+  const hourlyRate = money(hourlyRateInput);
+  const laborCost = priceCalc.laborCost(laborMinutes, hourlyRate);
+  const monthlyFixed = money(monthlyFixedInput);
+  const monthlyProduction = Number(monthlyProductionInput) || 0;
+  const fixedCostShare = priceCalc.fixedCostShare(monthlyFixed, monthlyProduction);
+  const totalCost = priceCalc.totalCost(
+    ingredientCost,
+    packagingCost,
+    laborCost,
+    fixedCostShare,
+  );
   const desiredProfit = money(profitInput);
   const feesPercent = percentage(feesInput);
   const markupPercent = priceCalc.profitMarkupPercent(totalCost, desiredProfit);
@@ -260,7 +331,7 @@ export function SimplePricingCalculator({
     priceBeforeFees,
     feesPercent,
   );
-  const canCalculate = totalCost > 0 && desiredProfit > 0;
+  const canCalculate = ingredientCost > 0 && desiredProfit > 0;
 
   const trackStarted = useCallback(() => {
     if (startedTracked.current) return;
@@ -269,12 +340,16 @@ export function SimplePricingCalculator({
   }, []);
 
   const pricingPayload = useCallback(() => {
-    if (totalCost <= 0) {
-      alertValidation("Informe quanto custa produzir uma unidade.");
+    if (ingredientCost <= 0) {
+      alertValidation("Informe o custo dos insumos ou escolha um produto com receita.");
       return null;
     }
     if (desiredProfit <= 0) {
       alertValidation("Informe quanto você quer ganhar por unidade.");
+      return null;
+    }
+    if (monthlyFixed > 0 && monthlyProduction <= 0) {
+      alertValidation("Informe quantas unidades você produz por mês.");
       return null;
     }
     if (feesPercent > 95) {
@@ -288,14 +363,25 @@ export function SimplePricingCalculator({
 
     return {
       productId: productId ?? undefined,
-      ingredientCost: totalCost,
-      packagingCost: 0,
-      laborCost: 0,
-      fixedCostShare: 0,
+      ingredientCost,
+      packagingCost,
+      laborCost,
+      fixedCostShare,
       marginPercent: markupPercent,
       feesPercent: feesPercent > 0 ? feesPercent : undefined,
     };
-  }, [desiredProfit, feesPercent, markupPercent, productId, totalCost]);
+  }, [
+    desiredProfit,
+    feesPercent,
+    fixedCostShare,
+    ingredientCost,
+    laborCost,
+    markupPercent,
+    monthlyFixed,
+    monthlyProduction,
+    packagingCost,
+    productId,
+  ]);
 
   const handleSave = useCallback(async () => {
     const payload = pricingPayload();
@@ -320,11 +406,22 @@ export function SimplePricingCalculator({
     }
   }, [calculatePricing, finalPrice, onCreateProduct, pricingPayload]);
 
-  function selectProduct(product: Product) {
+  function selectProduct(item: CostSourceItem) {
+    const product = products.find((candidate) => candidate.id === item.id);
+    if (!product) return;
     setProductId(product.id);
-    setCostInput(currencyInput(product.costPrice ?? 0));
-    setImportedCost(true);
-    setPickerVisible(false);
+    setIngredientInput(currencyInput(product.costPrice ?? 0));
+    setImportedIngredients(true);
+    setProductPickerVisible(false);
+    trackStarted();
+  }
+
+  function selectPackaging(item: CostSourceItem) {
+    const selected = packaging.find((candidate) => candidate.id === item.id);
+    if (!selected) return;
+    setPackagingId(selected.id);
+    setPackagingInput(currencyInput(selected.unitCost));
+    setPackagingPickerVisible(false);
     trackStarted();
   }
 
@@ -343,68 +440,182 @@ export function SimplePricingCalculator({
         <View style={{ gap: spacing.xs }}>
           <Typography variant="h1">Descubra quanto cobrar</Typography>
           <Typography variant="body" color={theme.colors.textSecondary}>
-            Você informa o custo e quanto quer ganhar. O preço sai na hora.
+            Informe cada parte do custo. O aplicativo soma tudo e calcula o preço.
           </Typography>
         </View>
 
         <View style={{ gap: spacing.sm }}>
-          <FieldLabel label="Produto (opcional)" />
-          <Pressable
-            onPress={() => setPickerVisible(true)}
-            accessibilityRole="button"
-            accessibilityLabel="Usar custo de um produto"
-            style={({ pressed }) => ({
-              minHeight: 56,
-              flexDirection: "row",
-              alignItems: "center",
-              gap: spacing.md,
-              paddingHorizontal: spacing.md,
-              borderRadius: radii.lg,
-              borderWidth: 1,
-              borderColor: selectedProduct ? theme.colors.primary : theme.colors.border,
-              backgroundColor: theme.colors.surface,
-              opacity: pressed ? 0.75 : 1,
-            })}
-          >
-            <AppIcon name="basket-outline" size={22} color={theme.colors.primary} />
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="bodyBold" numberOfLines={1}>
-                {selectedProduct?.name ?? "Usar custo já cadastrado"}
-              </Typography>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                {selectedProduct
-                  ? `Custo cadastrado: ${formatCurrency(selectedProduct.costPrice ?? 0)}`
-                  : "Escolha um produto com custo definido"}
-              </Typography>
-            </View>
-            <AppIcon
-              name="chevron-forward"
-              size={20}
-              color={theme.colors.textSecondary}
-            />
-          </Pressable>
-        </View>
-
-        <View style={{ gap: spacing.sm }}>
-          <FieldLabel label="Quanto custa produzir uma unidade?" required />
-          <TextFieldCard
-            icon="cash-outline"
-            value={costInput}
-            onChangeText={(text) => {
-              setCostInput(maskCurrencyInput(text));
-              setImportedCost(false);
-              trackStarted();
-            }}
-            keyboardType="numeric"
-            placeholder="Ex: 12,50"
-            inputStyle={{ fontFamily: fonts.bold, fontSize: 20 }}
+          <FieldLabel label="Produto ou receita (opcional)" />
+          <SourceButton
+            title={selectedProduct?.name ?? "Usar uma receita já cadastrada"}
+            subtitle={
+              selectedProduct
+                ? `Insumos calculados: ${formatCurrency(selectedProduct.costPrice ?? 0)}`
+                : "O custo dos insumos será preenchido automaticamente"
+            }
+            icon="basket-outline"
+            selected={selectedProduct != null}
+            onPress={() => setProductPickerVisible(true)}
           />
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            {importedCost
-              ? "Custo importado do produto. Ajuste se precisar incluir embalagem, trabalho ou outros gastos."
-              : "Some insumos, embalagem, seu trabalho e outros gastos por unidade."}
-          </Typography>
         </View>
+
+        <Card style={{ gap: spacing.xl }}>
+          <View style={{ gap: spacing.xs }}>
+            <Typography variant="h2">Custos da unidade</Typography>
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              Você informa os dados; as somas e divisões ficam por nossa conta.
+            </Typography>
+          </View>
+
+          <View style={{ gap: spacing.sm }}>
+            <FieldLabel label="Insumos da receita" required />
+            <TextFieldCard
+              icon="basket-outline"
+              value={ingredientInput}
+              onChangeText={(text) => {
+                setIngredientInput(maskCurrencyInput(text));
+                setImportedIngredients(false);
+                trackStarted();
+              }}
+              keyboardType="numeric"
+              placeholder="Ex: 12,50"
+              inputStyle={{ fontFamily: fonts.bold, fontSize: 20 }}
+            />
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              {importedIngredients
+                ? "Preenchido pelo custo da receita cadastrada."
+                : "Sem receita cadastrada, informe apenas o valor dos ingredientes."}
+            </Typography>
+          </View>
+
+          <View style={{ gap: spacing.sm }}>
+            <FieldLabel label="Embalagem por unidade" />
+            <SourceButton
+              title={selectedPackaging?.name ?? "Usar embalagem cadastrada"}
+              subtitle={
+                selectedPackaging
+                  ? `Custo aplicado: ${formatCurrency(selectedPackaging.unitCost)}`
+                  : "Escolha uma embalagem para preencher o custo"
+              }
+              icon="cube-outline"
+              selected={selectedPackaging != null}
+              onPress={() => setPackagingPickerVisible(true)}
+              compact
+            />
+            <TextFieldCard
+              icon="cash-outline"
+              value={packagingInput}
+              onChangeText={(text) => {
+                setPackagingInput(maskCurrencyInput(text));
+                setPackagingId(null);
+                trackStarted();
+              }}
+              keyboardType="numeric"
+              placeholder="Ou informe o custo da embalagem"
+            />
+          </View>
+
+          <View style={{ gap: spacing.sm }}>
+            <FieldLabel label="Seu trabalho" />
+            <View
+              style={{
+                flexDirection: isDesktop ? "row" : "column",
+                gap: spacing.sm,
+              }}
+            >
+              <View style={{ flex: 1, gap: spacing.xs }}>
+                <Typography variant="caption" color={theme.colors.textSecondary}>
+                  Minutos por unidade
+                </Typography>
+                <TextFieldCard
+                  icon="time-outline"
+                  value={laborMinutesInput}
+                  onChangeText={(text) => {
+                    setLaborMinutesInput(wholeNumberInput(text));
+                    trackStarted();
+                  }}
+                  keyboardType="number-pad"
+                  placeholder="Ex: 30"
+                />
+              </View>
+              <View style={{ flex: 1, gap: spacing.xs }}>
+                <Typography variant="caption" color={theme.colors.textSecondary}>
+                  Quanto vale sua hora
+                </Typography>
+                <TextFieldCard
+                  icon="cash-outline"
+                  value={hourlyRateInput}
+                  onChangeText={(text) => {
+                    setHourlyRateInput(maskCurrencyInput(text));
+                    trackStarted();
+                  }}
+                  keyboardType="numeric"
+                  placeholder="Ex: 20,00"
+                />
+              </View>
+            </View>
+            <ComputedValue label="Mão de obra por unidade" value={laborCost} />
+          </View>
+
+          <View style={{ gap: spacing.sm }}>
+            <FieldLabel label="Gastos fixos" />
+            <View
+              style={{
+                flexDirection: isDesktop ? "row" : "column",
+                gap: spacing.sm,
+              }}
+            >
+              <View style={{ flex: 1, gap: spacing.xs }}>
+                <Typography variant="caption" color={theme.colors.textSecondary}>
+                  Total de gastos no mês
+                </Typography>
+                <TextFieldCard
+                  icon="calendar-outline"
+                  value={monthlyFixedInput}
+                  onChangeText={(text) => {
+                    fixedCostEdited.current = true;
+                    setImportedFixedCosts(false);
+                    setMonthlyFixedInput(maskCurrencyInput(text));
+                    trackStarted();
+                  }}
+                  keyboardType="numeric"
+                  placeholder="Ex: 300,00"
+                />
+              </View>
+              <View style={{ flex: 1, gap: spacing.xs }}>
+                <Typography variant="caption" color={theme.colors.textSecondary}>
+                  Unidades produzidas no mês
+                </Typography>
+                <TextFieldCard
+                  icon="cube-outline"
+                  value={monthlyProductionInput}
+                  onChangeText={(text) => {
+                    setMonthlyProductionInput(wholeNumberInput(text));
+                    trackStarted();
+                  }}
+                  keyboardType="number-pad"
+                  placeholder="Ex: 100"
+                />
+              </View>
+            </View>
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              {importedFixedCosts
+                ? "Total preenchido com os gastos fixos registrados neste mês."
+                : "O aplicativo divide o total mensal pela sua produção."}
+            </Typography>
+            <ComputedValue label="Gastos fixos por unidade" value={fixedCostShare} />
+          </View>
+
+          <View
+            style={{
+              borderTopWidth: 1,
+              borderTopColor: theme.colors.border,
+              paddingTop: spacing.lg,
+            }}
+          >
+            <CostRow label="Custo total calculado" value={totalCost} />
+          </View>
+        </Card>
 
         <View style={{ gap: spacing.sm }}>
           <FieldLabel label="Quanto você quer ganhar por unidade?" required />
@@ -495,45 +706,23 @@ export function SimplePricingCalculator({
           </View>
 
           <View style={{ gap: spacing.sm }}>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                gap: spacing.md,
-              }}
-            >
-              <Typography variant="body" color={theme.colors.textSecondary}>
-                Custo da unidade
-              </Typography>
-              <Typography variant="bodyBold">{formatCurrency(totalCost)}</Typography>
-            </View>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                gap: spacing.md,
-              }}
-            >
-              <Typography variant="body" color={theme.colors.textSecondary}>
-                Você ganha
-              </Typography>
-              <Typography variant="bodyBold" color={theme.colors.success}>
-                {formatCurrency(desiredProfit)}
-              </Typography>
-            </View>
+            <CostRow label="Insumos" value={ingredientCost} />
+            {packagingCost > 0 ? (
+              <CostRow label="Embalagem" value={packagingCost} />
+            ) : null}
+            {laborCost > 0 ? <CostRow label="Seu trabalho" value={laborCost} /> : null}
+            {fixedCostShare > 0 ? (
+              <CostRow label="Gastos fixos" value={fixedCostShare} />
+            ) : null}
+            <View style={{ height: 1, backgroundColor: theme.colors.border }} />
+            <CostRow label="Custo total" value={totalCost} />
+            <CostRow
+              label="Você ganha"
+              value={desiredProfit}
+              color={theme.colors.success}
+            />
             {feesPercent > 0 && feesPercent <= 95 ? (
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  gap: spacing.md,
-                }}
-              >
-                <Typography variant="body" color={theme.colors.textSecondary}>
-                  Taxa ({feesPercent}%)
-                </Typography>
-                <Typography variant="bodyBold">{formatCurrency(feesAmount)}</Typography>
-              </View>
+              <CostRow label={`Taxa (${feesPercent}%)`} value={feesAmount} />
             ) : null}
           </View>
         </Card>
@@ -562,14 +751,119 @@ export function SimplePricingCalculator({
         </View>
       </KeyboardAwareScrollView>
 
-      <ProductCostPicker
-        visible={pickerVisible}
-        products={products}
+      <CostSourcePicker
+        visible={productPickerVisible}
+        title="Usar produto ou receita"
+        subtitle="O custo dos insumos vem do cadastro escolhido."
+        items={productItems}
+        emptyLabel="Nenhum produto com custo de receita disponível."
         selectedId={productId}
         loading={loadingProducts}
         onSelect={selectProduct}
-        onClose={() => setPickerVisible(false)}
+        onClose={() => setProductPickerVisible(false)}
+      />
+
+      <CostSourcePicker
+        visible={packagingPickerVisible}
+        title="Usar embalagem"
+        subtitle="O custo por unidade vem do cadastro escolhido."
+        items={packagingItems}
+        emptyLabel="Nenhuma embalagem cadastrada."
+        selectedId={packagingId}
+        loading={loadingPackaging}
+        onSelect={selectPackaging}
+        onClose={() => setPackagingPickerVisible(false)}
       />
     </>
+  );
+}
+
+function productCostSource(product: Product): CostSourceItem {
+  return {
+    id: product.id,
+    name: product.name,
+    cost: product.costPrice ?? 0,
+    costLabel: product.recipeId ? "Insumos da receita" : "Custo cadastrado",
+  };
+}
+
+function packagingCostSource(packaging: Packaging): CostSourceItem {
+  return {
+    id: packaging.id,
+    name: packaging.name,
+    cost: packaging.unitCost,
+    costLabel: "Custo por unidade",
+  };
+}
+
+function SourceButton({
+  title,
+  subtitle,
+  icon,
+  selected,
+  compact = false,
+  onPress,
+}: Readonly<{
+  title: string;
+  subtitle: string;
+  icon: "basket-outline" | "cube-outline";
+  selected: boolean;
+  compact?: boolean;
+  onPress: () => void;
+}>) {
+  const { theme } = useTheme();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      style={({ pressed }) => ({
+        minHeight: compact ? 52 : 56,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: spacing.md,
+        paddingHorizontal: spacing.md,
+        borderRadius: radii.lg,
+        borderWidth: 1,
+        borderColor: selected ? theme.colors.primary : theme.colors.border,
+        backgroundColor: theme.colors.surface,
+        opacity: pressed ? 0.75 : 1,
+      })}
+    >
+      <AppIcon name={icon} size={22} color={theme.colors.primary} />
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Typography variant="bodyBold" numberOfLines={1}>
+          {title}
+        </Typography>
+        <Typography variant="caption" color={theme.colors.textSecondary}>
+          {subtitle}
+        </Typography>
+      </View>
+      <AppIcon name="chevron-forward" size={20} color={theme.colors.textSecondary} />
+    </Pressable>
+  );
+}
+
+function ComputedValue({ label, value }: Readonly<{ label: string; value: number }>) {
+  const { theme } = useTheme();
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: spacing.md,
+        padding: spacing.sm,
+        borderRadius: radii.md,
+        backgroundColor: theme.colors.successBg,
+      }}
+    >
+      <Typography variant="caption" color={theme.colors.success}>
+        {label}
+      </Typography>
+      <Typography variant="bodyBold" color={theme.colors.success}>
+        {formatCurrency(value)}
+      </Typography>
+    </View>
   );
 }
