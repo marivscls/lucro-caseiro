@@ -22,7 +22,7 @@ import {
   maskCurrencyInput,
   parseCurrencyInput,
 } from "../../../shared/utils/currency-input";
-import { alertError } from "../../../shared/utils/alerts";
+import { alertError, alertValidation } from "../../../shared/utils/alerts";
 import { usePackagingList } from "../../packaging/hooks";
 import { useProducts } from "../../products/hooks";
 import { trackAnalyticsAction } from "../../analytics/tracker";
@@ -397,19 +397,16 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
   const costedProducts = (productsData?.items ?? []).filter((p) => p.costPrice != null);
   const { data: packagingData } = usePackagingList();
   const packagingItems = packagingData?.items ?? [];
-  const packagingSuggestion =
-    packagingItems.length > 0
-      ? packagingItems.reduce((s, p) => s + (p.unitCost ?? 0), 0) / packagingItems.length
-      : null;
 
   const [productId, setProductId] = useState<string | null>(null);
   const [importedFromRecipe, setImportedFromRecipe] = useState(false);
   const [ingredientCost, setIngredientCost] = useState("");
   const [packagingCost, setPackagingCost] = useState("");
   const [laborMin, setLaborMin] = useState(0);
+  const [laborUnits, setLaborUnits] = useState(0);
   const [laborHourlyRate, setLaborHourlyRate] = useState("");
   const [monthlyFixed, setMonthlyFixed] = useState("");
-  const [monthlyProduction, setMonthlyProduction] = useState(100);
+  const [monthlyProduction, setMonthlyProduction] = useState(0);
   const [marginPercent, setMarginPercent] = useState(50);
   const [ifoodPercent, setIfoodPercent] = useState("");
   const [cardPercent, setCardPercent] = useState("");
@@ -418,7 +415,12 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
   const calculatePricing = useCalculatePricing();
   const selectedProduct = costedProducts.find((p) => p.id === productId) ?? null;
 
-  const laborCost = priceCalc.laborCost(laborMin, parseCurrency(laborHourlyRate));
+  const laborHourlyRateValue = parseCurrency(laborHourlyRate);
+  const laborCost = priceCalc.laborCostPerUnit(
+    laborMin,
+    laborHourlyRateValue,
+    laborUnits,
+  );
   const monthlyFixedNum = parseCurrency(monthlyFixed);
   const fixedCostShare = priceCalc.fixedCostShare(monthlyFixedNum, monthlyProduction);
   const totalCost = priceCalc.totalCost(
@@ -442,12 +444,44 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
   }, []);
 
   const handleNext = useCallback(() => {
+    if (step === 1 && parseCurrency(ingredientCost) <= 0) {
+      alertValidation("Informe o custo dos insumos para continuar.");
+      return;
+    }
+    const hasAnyLaborValue = laborMin > 0 || laborUnits > 0 || laborHourlyRateValue > 0;
+    const hasCompleteLabor = laborMin > 0 && laborUnits > 0 && laborHourlyRateValue > 0;
+    if (step === 3 && hasAnyLaborValue && !hasCompleteLabor) {
+      alertValidation(
+        "Para incluir seu trabalho, informe o tempo do lote, quantas unidades ele rende e o valor da sua hora.",
+      );
+      return;
+    }
+    if (step === 4 && monthlyFixedNum > 0 && monthlyProduction <= 0) {
+      alertValidation(
+        "Para ratear os gastos fixos, informe quantas unidades você produz por mês.",
+      );
+      return;
+    }
+    if (step === 5 && feesPercent > 95) {
+      alertValidation("A soma das taxas de venda pode ser de no máximo 95%.");
+      return;
+    }
     if (!startedTracked) {
       setStartedTracked(true);
       void trackAnalyticsAction("pricing_started", useAuth.getState().token);
     }
     setStep((s) => (s === 5 ? "result" : ((Number(s) + 1) as Step)));
-  }, [startedTracked]);
+  }, [
+    feesPercent,
+    ingredientCost,
+    laborHourlyRateValue,
+    laborMin,
+    laborUnits,
+    monthlyFixedNum,
+    monthlyProduction,
+    startedTracked,
+    step,
+  ]);
   const handleBack = useCallback(() => {
     setStep((s) => (s === "result" ? 5 : ((Number(s) - 1) as Step)));
   }, []);
@@ -689,58 +723,69 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
               title="Custo da embalagem"
               subtitle="Informe quanto custa a embalagem utilizada para cada unidade."
             />
-            {selectedProduct || packagingSuggestion != null ? (
+            {selectedProduct ? (
               <View style={cardStyle(theme, pal)}>
-                {selectedProduct ? (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: spacing.md,
+                  }}
+                >
                   <View
                     style={{
-                      flexDirection: "row",
+                      width: 64,
+                      height: 64,
+                      borderRadius: radii.full,
+                      borderWidth: 1,
+                      borderColor: `${theme.colors.primary}55`,
                       alignItems: "center",
-                      gap: spacing.md,
+                      justifyContent: "center",
                     }}
                   >
-                    <View
+                    <AppIcon name="cube-outline" size={30} color={theme.colors.primary} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Typography variant="caption" color={theme.colors.textSecondary}>
+                      Produto selecionado
+                    </Typography>
+                    <Typography variant="h2" color={theme.colors.text}>
+                      {selectedProduct.name}
+                    </Typography>
+                  </View>
+                </View>
+              </View>
+            ) : null}
+
+            {packagingItems.length > 0 ? (
+              <View style={{ gap: spacing.sm }}>
+                <FieldLabel>Escolha uma embalagem cadastrada:</FieldLabel>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ gap: spacing.sm }}
+                >
+                  {packagingItems.map((item) => (
+                    <Pressable
+                      key={item.id}
+                      onPress={() => setPackagingCost(currencyInput(item.unitCost))}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${item.name}, ${formatCurrency(item.unitCost)}`}
                       style={{
-                        width: 64,
-                        height: 64,
+                        paddingHorizontal: spacing.md,
+                        paddingVertical: spacing.sm,
                         borderRadius: radii.full,
                         borderWidth: 1,
-                        borderColor: `${theme.colors.primary}55`,
-                        alignItems: "center",
-                        justifyContent: "center",
+                        borderColor: pal.border,
+                        backgroundColor: pal.fieldBg,
                       }}
                     >
-                      <AppIcon
-                        name="cube-outline"
-                        size={30}
-                        color={theme.colors.primary}
-                      />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Typography variant="caption" color={theme.colors.textSecondary}>
-                        Produto selecionado
+                      <Typography variant="caption" color={theme.colors.text}>
+                        {item.name} · {formatCurrency(item.unitCost)}
                       </Typography>
-                      <Typography variant="h2" color={theme.colors.text}>
-                        {selectedProduct.name}
-                      </Typography>
-                    </View>
-                  </View>
-                ) : null}
-                {packagingSuggestion != null ? (
-                  <>
-                    {selectedProduct ? (
-                      <View style={{ height: 1, backgroundColor: pal.border }} />
-                    ) : null}
-                    <View>
-                      <Typography variant="caption" color={theme.colors.textSecondary}>
-                        Sugestão baseada nas suas embalagens
-                      </Typography>
-                      <Typography variant="money" color={theme.colors.success}>
-                        {formatCurrency(packagingSuggestion)}
-                      </Typography>
-                    </View>
-                  </>
-                ) : null}
+                    </Pressable>
+                  ))}
+                </ScrollView>
               </View>
             ) : null}
 
@@ -774,16 +819,26 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
           <>
             <StepTitle
               title="Mão de obra"
-              subtitle="Informe o tempo gasto para produzir uma unidade e o valor da sua hora de trabalho."
+              subtitle="Informe o tempo de uma produção completa e quantas unidades ela rende. O aplicativo calcula o valor por unidade."
             />
             <View style={cardStyle(theme, pal)}>
-              <SubField icon="time-outline" label="Tempo gasto por unidade">
+              <SubField icon="time-outline" label="Tempo total dessa produção">
                 <Stepper
                   value={laborMin}
                   onChange={setLaborMin}
                   step={5}
                   min={0}
                   suffix="min"
+                />
+              </SubField>
+              <View style={{ height: 1, backgroundColor: pal.border }} />
+              <SubField icon="cube-outline" label="Quantas unidades essa produção rende">
+                <Stepper
+                  value={laborUnits}
+                  onChange={setLaborUnits}
+                  step={1}
+                  min={0}
+                  suffix="un"
                 />
               </SubField>
               <View style={{ height: 1, backgroundColor: pal.border }} />
@@ -809,8 +864,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
               >
                 Dica:{" "}
                 <Typography variant="caption" color={theme.colors.textSecondary}>
-                  Considere todo o tempo envolvido no preparo, montagem, limpeza e
-                  organização.
+                  Se não quiser incluir mão de obra, deixe os três valores zerados.
                 </Typography>
               </Typography>
             </DicaBox>
@@ -821,7 +875,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
           <>
             <StepTitle
               title="Custos fixos (rateio)"
-              subtitle="Informe o valor dos seus custos fixos mensais. Dividiremos pelo número de unidades produzidas."
+              subtitle="Esta etapa é opcional. Só preencha se quiser dividir uma parte dos gastos mensais entre os produtos."
             />
             <View style={cardStyle(theme, pal)}>
               <SubField icon="calendar-outline" label="Custos fixos mensais (R$)">
@@ -838,7 +892,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
                   value={monthlyProduction}
                   onChange={setMonthlyProduction}
                   step={10}
-                  min={1}
+                  min={0}
                   suffix="un"
                 />
               </SubField>
@@ -847,7 +901,11 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
               icon="pie-chart-outline"
               label="Custo fixo por unidade"
               value={formatCurrency(fixedCostShare)}
-              sublabel={`${formatCurrency(monthlyFixedNum)} ÷ ${monthlyProduction} unidades`}
+              sublabel={
+                monthlyProduction > 0
+                  ? `${formatCurrency(monthlyFixedNum)} ÷ ${monthlyProduction} unidades`
+                  : "Nenhum rateio incluído"
+              }
             />
             <DicaBox tone="blue">
               <Typography
@@ -857,8 +915,8 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
               >
                 Dica:{" "}
                 <Typography variant="caption" color={theme.colors.textSecondary}>
-                  Inclua aluguel, água, luz, internet, contador, depreciação de
-                  equipamentos, entre outros.
+                  Nada é incluído automaticamente. Se usar o rateio, confirme o total
+                  mensal e a quantidade produzida.
                 </Typography>
               </Typography>
             </DicaBox>

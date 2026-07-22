@@ -4,7 +4,7 @@
 
 ## Purpose
 
-A precificacao tem dois caminhos conectados. A rota `/pricing` abre o modo **Simples**, que calcula dentro do app insumos, embalagem, mao de obra e rateio de gastos fixos antes de perguntar quanto a pessoa quer ganhar em reais. A rota `/pricing-complete` preserva o wizard de 5 passos para controlar esses componentes em detalhe, o acrescimo sobre o custo e as taxas. Ambos salvam no mesmo historico.
+A precificacao tem dois caminhos conectados. A rota `/pricing` abre o modo **Simples**: insumos, embalagem e lucro ficam evidentes; mao de obra e rateio ficam em "Incluir outros custos", fechado e opcional. A rota `/pricing-complete` preserva o wizard de 5 passos, exige premissas completas para mao de obra/rateio e apresenta o resultado como estimativa. Nenhum modo presume producao mensal nem inclui gastos fixos silenciosamente. Ambos salvam no mesmo historico.
 
 ## Non-goals
 
@@ -24,7 +24,7 @@ A precificacao tem dois caminhos conectados. A rota `/pricing` abre o modo **Sim
 | `apps/mobile/src/features/pricing/api.ts`                                   | Funcoes HTTP (calculatePricing, fetchPricingHistory, fetchPricing) |
 | `apps/mobile/src/features/pricing/hooks.ts`                                 | React Query hooks                                                  |
 | `apps/mobile/src/features/pricing/components/pricing-calculator.tsx`        | Wizard de 5 passos + resultado                                     |
-| `apps/mobile/src/features/pricing/components/simple-pricing-calculator.tsx` | Calculo rapido com custo, lucro desejado e taxa opcional           |
+| `apps/mobile/src/features/pricing/components/simple-pricing-calculator.tsx` | Calculo rapido com custos objetivos e extras opcionais             |
 | `apps/mobile/src/features/pricing/components/pricing-result.tsx`            | Tela de resultado com breakdown visual                             |
 | `apps/mobile/src/features/pricing/components/pricing-mode-switch.tsx`       | Alterna entre Simples e Completa sem empilhar as rotas             |
 | `apps/mobile/src/features/pricing/components/pricing-history-modal.tsx`     | Historico compartilhado pelas duas telas                           |
@@ -43,8 +43,8 @@ As funções de cálculo vivem em `packages/contracts/src/pricing-calculator.ts`
   1. Custo dos insumos (R$) — com seletor opcional de **produto** que pré-preenche o valor
      com o `costPrice` real (derivado da receita) e amarra o `productId` no salvamento.
      Só lista produtos com `costPrice != null`.
-  2. Custo da embalagem (R$)
-  3. Mao de obra (minutos + valor/hora, calculo automatico)
+  2. Custo da embalagem (R$), com escolha exata de embalagem cadastrada
+  3. Mao de obra (tempo do lote + rendimento + valor/hora, calculo por unidade)
   4. Custos fixos rateados por unidade (R$)
   5. Acrescimo sobre o custo (% presets ou custom) + **taxas de venda opcionais** (iFood % e
      cartão %), somadas em `feesPercent`.
@@ -62,7 +62,7 @@ As funções de cálculo vivem em `packages/contracts/src/pricing-calculator.ts`
   taxas, mostra a quebra "base + X% taxas".
 - Barra empilhada de composicao de custos (ingredientes, embalagem, mao de obra, custos fixos) com legenda colorida.
 - Card de lucro por unidade e margem real sobre o preco.
-- Projecao mensal (200 unidades fixo).
+- Projecao mensal somente quando a pessoa informa a producao mensal.
 - Botoes "Salvar calculo" e "Recalcular".
 
 ## Hooks
@@ -91,7 +91,7 @@ As funções de cálculo vivem em `packages/contracts/src/pricing-calculator.ts`
 ## Error Handling
 
 - **Erro de salvamento:** tratado pelo estado da mutation (isPending/isError).
-- **Validacao local:** cada um dos valores sao calculados localmente antes de enviar; nao ha validacao de campos obrigatorios por step (valores default 0).
+- **Validacao local:** insumos sao obrigatorios; mao de obra e rateio podem ficar zerados, mas, quando iniciados, exigem todas as premissas necessarias.
 - **Sucesso ao salvar:** `Alert.alert("Calculo salvo!")` + `router.back()`.
 
 ## Performance
@@ -102,10 +102,10 @@ As funções de cálculo vivem em `packages/contracts/src/pricing-calculator.ts`
 ## Test matrix
 
 - [ ] Calculo de custo total soma cada um dos componentes
-- [ ] Calculo de mao de obra: (minutos/60) \* valorHora
+- [ ] Calculo de mao de obra por unidade: ((minutos/60) \* valorHora) / rendimento
 - [ ] Preco sugerido: totalCost \* (1 + acrescimo/100)
 - [ ] Preco final com taxas (gross-up): precoBase / (1 - feesPercent/100)
-- [ ] Projecao mensal usa 200 unidades
+- [ ] Projecao mensal so aparece com producao confirmada
 - [ ] Navegacao entre steps funciona corretamente
 - [ ] `useCalculatePricing` envia payload correto
 
@@ -131,8 +131,11 @@ As funções de cálculo vivem em `packages/contracts/src/pricing-calculator.ts`
 - 2026-07-18: o resultado oferece “Salvar e criar produto”; o cálculo é persistido e a rota de
   Produtos abre o formulário com o preço preenchido. A criação concluída registra
   `product_created_from_pricing`, marco explícito do funil de ativação.
-- 2026-07-22: a entrada `/pricing` virou o modo **Simples** (custo total + lucro desejado em
-  reais + taxa opcional), com resultado ao vivo e importação do custo cadastrado do produto. O wizard antigo
+- 2026-07-22: a entrada `/pricing` virou o modo **Simples**, com resultado ao vivo e importação do custo cadastrado do produto. O wizard antigo
   ficou em `/pricing-complete`; um seletor segmentado alterna entre os modos. Na interface completa,
   `marginPercent` passou a ser nomeado corretamente como **acréscimo sobre o custo**; a margem real
   continua sendo calculada e exibida no resultado.
+- 2026-07-22: a Simples passou a deixar mão de obra e gastos fixos em uma seção opcional fechada;
+  removeu a importação silenciosa de gastos e a produção presumida de 100 unidades. A Completa passou
+  a calcular mão de obra pelo lote/rendimento, selecionar embalagens pelo custo exato e validar premissas
+  incompletas. Os resultados agora se identificam como estimativas baseadas nos dados informados.

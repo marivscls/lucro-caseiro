@@ -3,6 +3,16 @@ export function laborCost(minutes: number, hourlyRate: number): number {
   return (minutes / 60) * hourlyRate;
 }
 
+/** Custo de mão de obra por unidade a partir do tempo e rendimento de um lote. */
+export function laborCostPerUnit(
+  batchMinutes: number,
+  hourlyRate: number,
+  batchUnits: number,
+): number {
+  if (batchMinutes <= 0 || hourlyRate <= 0 || batchUnits <= 0) return 0;
+  return laborCost(batchMinutes, hourlyRate) / batchUnits;
+}
+
 /** Rateio mensal: gastos fixos do mês divididos pelas unidades produzidas. */
 export function fixedCostShare(monthlyFixed: number, monthlyProduction: number): number {
   if (monthlyFixed <= 0 || monthlyProduction <= 0) return 0;

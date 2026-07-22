@@ -78,7 +78,7 @@ export function PricingResult({
   feesPercent = 0,
   feesAmount = 0,
   finalPrice,
-  monthlyUnits = 200,
+  monthlyUnits = 0,
   onRecalculate,
   onSave,
   onCreateProduct,
@@ -110,9 +110,10 @@ export function PricingResult({
     >
       {/* Serif title */}
       <View style={{ gap: spacing.xs }}>
-        <Typography variant="h1">Resultado do Cálculo</Typography>
-        <Typography variant="body">
-          Baseado nos valores informados para o seu produto
+        <Typography variant="h1">Estimativa de preço</Typography>
+        <Typography variant="body" color={theme.colors.textSecondary}>
+          Calculada somente com os valores que você informou. Confira as premissas antes
+          de usar este preço.
         </Typography>
       </View>
 
@@ -126,7 +127,7 @@ export function PricingResult({
         }}
       >
         <Typography variant="caption" color={theme.colors.success}>
-          {hasFees ? "Preço final (com taxas)" : "Preço sugerido"}
+          {hasFees ? "Estimativa com taxas" : "Preço estimado"}
         </Typography>
         <Typography
           variant="moneyHero"
@@ -160,7 +161,7 @@ export function PricingResult({
               tint={`${theme.colors.primary}26`}
               color={theme.colors.primary}
             />
-            <Typography variant="h3">Composição</Typography>
+            <Typography variant="h3">O que entrou no cálculo</Typography>
           </View>
           <Typography variant="caption">
             {formatCurrency(totalCost)} (
@@ -221,23 +222,27 @@ export function PricingResult({
               <View
                 style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
               >
-                <Typography variant="body">{formatCurrency(item.value)}</Typography>
-                <View
-                  style={{
-                    paddingHorizontal: spacing.sm,
-                    paddingVertical: 2,
-                    borderRadius: radii.sm,
-                    backgroundColor: `${item.color}26`,
-                  }}
-                >
-                  <Typography
-                    variant="caption"
-                    color={item.color}
-                    style={{ fontFamily: fonts.bold }}
+                <Typography variant="body">
+                  {item.value > 0 ? formatCurrency(item.value) : "Não incluído"}
+                </Typography>
+                {item.value > 0 ? (
+                  <View
+                    style={{
+                      paddingHorizontal: spacing.sm,
+                      paddingVertical: 2,
+                      borderRadius: radii.sm,
+                      backgroundColor: `${item.color}26`,
+                    }}
                   >
-                    {pct}%
-                  </Typography>
-                </View>
+                    <Typography
+                      variant="caption"
+                      color={item.color}
+                      style={{ fontFamily: fonts.bold }}
+                    >
+                      {pct}%
+                    </Typography>
+                  </View>
+                ) : null}
               </View>
             </View>
           );
@@ -294,86 +299,88 @@ export function PricingResult({
         </View>
       </Card>
 
-      {/* Monthly projection */}
-      <Card style={{ gap: spacing.lg }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-          <IconCircle
-            icon="trending-up"
-            tint={theme.colors.premiumBg}
-            color={theme.colors.premium}
-          />
-          <Typography variant="h3">Projeção mensal</Typography>
-        </View>
-        <Typography variant="caption" color={theme.colors.textSecondary}>
-          Estimativa vendendo {monthlyUnits} unidades por mês
-        </Typography>
-
-        <View style={{ flexDirection: "row", gap: spacing.md }}>
-          <View
-            style={{
-              flex: 1,
-              backgroundColor: theme.colors.surfaceElevated,
-              borderRadius: radii.lg,
-              padding: spacing.lg,
-              gap: spacing.xs,
-            }}
-          >
-            <Typography variant="label">FATURAMENTO</Typography>
-            <Typography
-              variant="money"
-              color={theme.colors.text}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.5}
-            >
-              {formatCurrency(monthlyRevenue)}
-            </Typography>
+      {/* Monthly projection: só existe quando a pessoa informou a produção. */}
+      {monthlyUnits > 0 ? (
+        <Card style={{ gap: spacing.lg }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+            <IconCircle
+              icon="trending-up"
+              tint={theme.colors.premiumBg}
+              color={theme.colors.premium}
+            />
+            <Typography variant="h3">Projeção mensal</Typography>
           </View>
-
-          <View
-            style={{
-              flex: 1,
-              backgroundColor: theme.colors.surfaceElevated,
-              borderRadius: radii.lg,
-              padding: spacing.lg,
-              gap: spacing.xs,
-            }}
-          >
-            <Typography
-              variant="label"
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.7}
-            >
-              LUCRO LÍQUIDO
-            </Typography>
-            <Typography
-              variant="money"
-              color={theme.colors.success}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.5}
-            >
-              {formatCurrency(monthlyProfit)}
-            </Typography>
-          </View>
-        </View>
-
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
           <Typography variant="caption" color={theme.colors.textSecondary}>
-            Margem sobre o preço
+            Estimativa vendendo {monthlyUnits} unidades por mês
           </Typography>
-          <Typography variant="bodyBold" color={theme.colors.success}>
-            {profitMarginDisplay}%
-          </Typography>
-        </View>
-      </Card>
+
+          <View style={{ flexDirection: "row", gap: spacing.md }}>
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: theme.colors.surfaceElevated,
+                borderRadius: radii.lg,
+                padding: spacing.lg,
+                gap: spacing.xs,
+              }}
+            >
+              <Typography variant="label">FATURAMENTO</Typography>
+              <Typography
+                variant="money"
+                color={theme.colors.text}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.5}
+              >
+                {formatCurrency(monthlyRevenue)}
+              </Typography>
+            </View>
+
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: theme.colors.surfaceElevated,
+                borderRadius: radii.lg,
+                padding: spacing.lg,
+                gap: spacing.xs,
+              }}
+            >
+              <Typography
+                variant="label"
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.7}
+              >
+                LUCRO ESTIMADO
+              </Typography>
+              <Typography
+                variant="money"
+                color={theme.colors.success}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.5}
+              >
+                {formatCurrency(monthlyProfit)}
+              </Typography>
+            </View>
+          </View>
+
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              Margem sobre o preço
+            </Typography>
+            <Typography variant="bodyBold" color={theme.colors.success}>
+              {profitMarginDisplay}%
+            </Typography>
+          </View>
+        </Card>
+      ) : null}
 
       {/* Actions */}
       <View style={{ gap: spacing.md }}>

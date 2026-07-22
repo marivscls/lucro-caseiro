@@ -4,6 +4,7 @@ import {
   finalPriceWithFees,
   fixedCostShare,
   laborCost,
+  laborCostPerUnit,
   profitMarkupPercent,
   profitPerUnit,
   suggestedPrice,
@@ -16,6 +17,13 @@ describe("laborCost", () => {
     expect(laborCost(90, 20)).toBe(30);
     expect(laborCost(0, 50)).toBe(0);
     expect(laborCost(30, 0)).toBe(0);
+  });
+});
+
+describe("laborCostPerUnit", () => {
+  it("divide o custo do tempo total pelo rendimento do lote", () => {
+    expect(laborCostPerUnit(120, 30, 20)).toBe(3);
+    expect(laborCostPerUnit(120, 30, 0)).toBe(0);
   });
 });
 

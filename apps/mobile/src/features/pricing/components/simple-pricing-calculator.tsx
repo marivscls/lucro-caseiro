@@ -9,7 +9,7 @@ import {
   spacing,
   useTheme,
 } from "@lucro-caseiro/ui";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -29,7 +29,6 @@ import {
 } from "../../../shared/utils/currency-input";
 import { formatCurrency } from "../../../shared/utils/format";
 import { trackAnalyticsAction } from "../../analytics/tracker";
-import { useFinanceSummary } from "../../finance/hooks";
 import { usePackagingList } from "../../packaging/hooks";
 import { useAllProducts } from "../../products/hooks";
 import * as priceCalc from "../calc";
@@ -274,10 +273,8 @@ export function SimplePricingCalculator({
   const insets = useSafeAreaInsets();
   const { data: allProducts = [], isLoading: loadingProducts } = useAllProducts();
   const { data: packagingData, isLoading: loadingPackaging } = usePackagingList();
-  const { data: financeSummary } = useFinanceSummary();
   const calculatePricing = useCalculatePricing();
   const startedTracked = useRef(false);
-  const fixedCostEdited = useRef(false);
 
   const products = allProducts.filter((product) => product.costPrice != null);
   const packaging = packagingData?.items ?? [];
@@ -291,21 +288,14 @@ export function SimplePricingCalculator({
   const [laborMinutesInput, setLaborMinutesInput] = useState("");
   const [hourlyRateInput, setHourlyRateInput] = useState("");
   const [monthlyFixedInput, setMonthlyFixedInput] = useState("");
-  const [monthlyProductionInput, setMonthlyProductionInput] = useState("100");
+  const [monthlyProductionInput, setMonthlyProductionInput] = useState("");
   const [profitInput, setProfitInput] = useState("");
   const [feesInput, setFeesInput] = useState("");
+  const [showOtherCosts, setShowOtherCosts] = useState(false);
   const [showFees, setShowFees] = useState(false);
   const [productPickerVisible, setProductPickerVisible] = useState(false);
   const [packagingPickerVisible, setPackagingPickerVisible] = useState(false);
   const [importedIngredients, setImportedIngredients] = useState(false);
-  const [importedFixedCosts, setImportedFixedCosts] = useState(false);
-
-  useEffect(() => {
-    const savedFixedCosts = financeSummary?.fixedExpenses ?? 0;
-    if (savedFixedCosts <= 0 || fixedCostEdited.current) return;
-    setMonthlyFixedInput(currencyInput(savedFixedCosts));
-    setImportedFixedCosts(true);
-  }, [financeSummary?.fixedExpenses]);
 
   const selectedProduct = products.find((product) => product.id === productId) ?? null;
   const selectedPackaging = packaging.find((item) => item.id === packagingId) ?? null;
@@ -323,6 +313,7 @@ export function SimplePricingCalculator({
     laborCost,
     fixedCostShare,
   );
+  const otherCostsAmount = laborCost + fixedCostShare;
   const desiredProfit = money(profitInput);
   const feesPercent = percentage(feesInput);
   const markupPercent = priceCalc.profitMarkupPercent(totalCost, desiredProfit);
@@ -440,7 +431,7 @@ export function SimplePricingCalculator({
         <View style={{ gap: spacing.xs }}>
           <Typography variant="h1">Descubra quanto cobrar</Typography>
           <Typography variant="body" color={theme.colors.textSecondary}>
-            Informe cada parte do custo. O aplicativo soma tudo e calcula o preço.
+            Comece pela receita e embalagem. O aplicativo faz as contas para você.
           </Typography>
         </View>
 
@@ -515,96 +506,126 @@ export function SimplePricingCalculator({
             />
           </View>
 
-          <View style={{ gap: spacing.sm }}>
-            <FieldLabel label="Seu trabalho" />
-            <View
-              style={{
-                flexDirection: isDesktop ? "row" : "column",
-                gap: spacing.sm,
-              }}
-            >
-              <View style={{ flex: 1, gap: spacing.xs }}>
-                <Typography variant="caption" color={theme.colors.textSecondary}>
-                  Minutos por unidade
-                </Typography>
-                <TextFieldCard
-                  icon="time-outline"
-                  value={laborMinutesInput}
-                  onChangeText={(text) => {
-                    setLaborMinutesInput(wholeNumberInput(text));
-                    trackStarted();
-                  }}
-                  keyboardType="number-pad"
-                  placeholder="Ex: 30"
-                />
-              </View>
-              <View style={{ flex: 1, gap: spacing.xs }}>
-                <Typography variant="caption" color={theme.colors.textSecondary}>
-                  Quanto vale sua hora
-                </Typography>
-                <TextFieldCard
-                  icon="cash-outline"
-                  value={hourlyRateInput}
-                  onChangeText={(text) => {
-                    setHourlyRateInput(maskCurrencyInput(text));
-                    trackStarted();
-                  }}
-                  keyboardType="numeric"
-                  placeholder="Ex: 20,00"
-                />
-              </View>
+          <Pressable
+            onPress={() => setShowOtherCosts((current) => !current)}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: showOtherCosts }}
+            style={({ pressed }) => ({
+              minHeight: 52,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: spacing.md,
+              paddingVertical: spacing.sm,
+              opacity: pressed ? 0.75 : 1,
+            })}
+          >
+            <View style={{ flex: 1 }}>
+              <Typography variant="bodyBold">Incluir outros custos</Typography>
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                {otherCostsAmount > 0
+                  ? `${formatCurrency(otherCostsAmount)} por unidade já incluídos`
+                  : "Seu trabalho e uma parte dos gastos mensais"}
+              </Typography>
             </View>
-            <ComputedValue label="Mão de obra por unidade" value={laborCost} />
-          </View>
+            <AppIcon
+              name={showOtherCosts ? "chevron-up" : "chevron-down"}
+              size={22}
+              color={theme.colors.primary}
+            />
+          </Pressable>
 
-          <View style={{ gap: spacing.sm }}>
-            <FieldLabel label="Gastos fixos" />
-            <View
-              style={{
-                flexDirection: isDesktop ? "row" : "column",
-                gap: spacing.sm,
-              }}
-            >
-              <View style={{ flex: 1, gap: spacing.xs }}>
-                <Typography variant="caption" color={theme.colors.textSecondary}>
-                  Total de gastos no mês
-                </Typography>
-                <TextFieldCard
-                  icon="calendar-outline"
-                  value={monthlyFixedInput}
-                  onChangeText={(text) => {
-                    fixedCostEdited.current = true;
-                    setImportedFixedCosts(false);
-                    setMonthlyFixedInput(maskCurrencyInput(text));
-                    trackStarted();
+          {showOtherCosts ? (
+            <>
+              <View style={{ gap: spacing.sm }}>
+                <FieldLabel label="Seu trabalho (opcional)" />
+                <View
+                  style={{
+                    flexDirection: isDesktop ? "row" : "column",
+                    gap: spacing.sm,
                   }}
-                  keyboardType="numeric"
-                  placeholder="Ex: 300,00"
-                />
+                >
+                  <View style={{ flex: 1, gap: spacing.xs }}>
+                    <Typography variant="caption" color={theme.colors.textSecondary}>
+                      Minutos por unidade
+                    </Typography>
+                    <TextFieldCard
+                      icon="time-outline"
+                      value={laborMinutesInput}
+                      onChangeText={(text) => {
+                        setLaborMinutesInput(wholeNumberInput(text));
+                        trackStarted();
+                      }}
+                      keyboardType="number-pad"
+                      placeholder="Ex: 30"
+                    />
+                  </View>
+                  <View style={{ flex: 1, gap: spacing.xs }}>
+                    <Typography variant="caption" color={theme.colors.textSecondary}>
+                      Quanto vale sua hora
+                    </Typography>
+                    <TextFieldCard
+                      icon="cash-outline"
+                      value={hourlyRateInput}
+                      onChangeText={(text) => {
+                        setHourlyRateInput(maskCurrencyInput(text));
+                        trackStarted();
+                      }}
+                      keyboardType="numeric"
+                      placeholder="Ex: 20,00"
+                    />
+                  </View>
+                </View>
+                <ComputedValue label="Mão de obra por unidade" value={laborCost} />
               </View>
-              <View style={{ flex: 1, gap: spacing.xs }}>
-                <Typography variant="caption" color={theme.colors.textSecondary}>
-                  Unidades produzidas no mês
-                </Typography>
-                <TextFieldCard
-                  icon="cube-outline"
-                  value={monthlyProductionInput}
-                  onChangeText={(text) => {
-                    setMonthlyProductionInput(wholeNumberInput(text));
-                    trackStarted();
+
+              <View style={{ gap: spacing.sm }}>
+                <FieldLabel label="Gastos fixos (opcional)" />
+                <View
+                  style={{
+                    flexDirection: isDesktop ? "row" : "column",
+                    gap: spacing.sm,
                   }}
-                  keyboardType="number-pad"
-                  placeholder="Ex: 100"
-                />
+                >
+                  <View style={{ flex: 1, gap: spacing.xs }}>
+                    <Typography variant="caption" color={theme.colors.textSecondary}>
+                      Total de gastos no mês
+                    </Typography>
+                    <TextFieldCard
+                      icon="calendar-outline"
+                      value={monthlyFixedInput}
+                      onChangeText={(text) => {
+                        setMonthlyFixedInput(maskCurrencyInput(text));
+                        trackStarted();
+                      }}
+                      keyboardType="numeric"
+                      placeholder="Ex: 300,00"
+                    />
+                  </View>
+                  <View style={{ flex: 1, gap: spacing.xs }}>
+                    <Typography variant="caption" color={theme.colors.textSecondary}>
+                      Unidades produzidas no mês
+                    </Typography>
+                    <TextFieldCard
+                      icon="cube-outline"
+                      value={monthlyProductionInput}
+                      onChangeText={(text) => {
+                        setMonthlyProductionInput(wholeNumberInput(text));
+                        trackStarted();
+                      }}
+                      keyboardType="number-pad"
+                      placeholder="Ex: 100"
+                    />
+                  </View>
+                </View>
+                <Typography variant="caption" color={theme.colors.textSecondary}>
+                  Nada é incluído automaticamente. Preencha os dois valores somente se
+                  quiser fazer esse rateio.
+                </Typography>
+                <ComputedValue label="Gastos fixos por unidade" value={fixedCostShare} />
               </View>
-            </View>
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              {importedFixedCosts
-                ? "Total preenchido com os gastos fixos registrados neste mês."
-                : "O aplicativo divide o total mensal pela sua produção."}
-            </Typography>
-            <ComputedValue label="Gastos fixos por unidade" value={fixedCostShare} />
-          </View>
+            </>
+          ) : null}
 
           <View
             style={{
@@ -692,7 +713,7 @@ export function SimplePricingCalculator({
               variant="caption"
               color={canCalculate ? theme.colors.success : theme.colors.textSecondary}
             >
-              PREÇO RECOMENDADO
+              ESTIMATIVA DE PREÇO
             </Typography>
             <Typography
               variant="moneyHero"
@@ -725,6 +746,14 @@ export function SimplePricingCalculator({
               <CostRow label={`Taxa (${feesPercent}%)`} value={feesAmount} />
             ) : null}
           </View>
+          <Typography
+            variant="caption"
+            color={theme.colors.textSecondary}
+            style={{ textAlign: "center" }}
+          >
+            Baseada somente nos valores informados acima. Confira os dados antes de usar
+            este preço.
+          </Typography>
         </Card>
 
         <View style={{ gap: spacing.md }}>

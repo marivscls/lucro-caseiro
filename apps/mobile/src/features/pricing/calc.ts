@@ -3,6 +3,7 @@ export {
   finalPriceWithFees,
   fixedCostShare,
   laborCost,
+  laborCostPerUnit,
   profitPerUnit,
   suggestedPrice,
   totalCost,
