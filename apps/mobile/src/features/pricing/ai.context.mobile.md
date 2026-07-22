@@ -6,6 +6,8 @@
 
 A precificacao tem dois caminhos conectados. A rota `/pricing` abre o modo **Simples** em qualquer plano: usa apenas insumos, embalagem, lucro desejado e taxa de venda opcional; nao pede nem inclui mao de obra ou gastos mensais e declara essa exclusao no resultado. A rota `/pricing-complete` e um recurso Profissional (`advancedPricing`), preserva o wizard de 5 passos, trata mao de obra e rateio como estimativas opcionais e apresenta o resultado como preco sugerido. Nenhum modo presume producao mensal nem inclui gastos fixos silenciosamente. Ambos salvam no mesmo historico.
 
+Os campos monetarios das duas telas exibem o prefixo `R$` antes do valor; campos percentuais e quantidades nao usam esse prefixo.
+
 ## Non-goals
 
 - Nao cadastra produtos (feature `products`).

@@ -59,13 +59,19 @@ export function FieldLabel({
 
 export type TextFieldCardProps = Readonly<{
   icon: AppIconName;
+  prefix?: string;
   inputStyle?: StyleProp<TextStyle>;
 }> &
   TextInputProps;
 
 /** Campo de texto com ícone rosa à esquerda, no estilo dos formulários do app.
  *  Mesmas métricas canônicas do `Input` do ui (56px, radii.lg, borda do tema). */
-export function TextFieldCard({ icon, inputStyle, ...inputProps }: TextFieldCardProps) {
+export function TextFieldCard({
+  icon,
+  prefix,
+  inputStyle,
+  ...inputProps
+}: TextFieldCardProps) {
   const { theme } = useTheme();
   const pal = useFieldPalette();
   return (
@@ -83,6 +89,11 @@ export function TextFieldCard({ icon, inputStyle, ...inputProps }: TextFieldCard
       }}
     >
       <AppIcon name={icon} size={iconSizes.sm} color={theme.colors.primary} />
+      {prefix ? (
+        <Typography variant="bodyBold" color={theme.colors.text}>
+          {prefix}
+        </Typography>
+      ) : null}
       <TextInput
         placeholderTextColor={pal.placeholder}
         style={[

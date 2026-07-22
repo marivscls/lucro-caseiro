@@ -186,6 +186,13 @@ function MoneyField({
         gap: spacing.sm,
       }}
     >
+      <Typography
+        variant="bodyBold"
+        color={theme.colors.text}
+        style={{ fontSize: isDesktop ? 18 : 22 }}
+      >
+        R$
+      </Typography>
       <TextInput
         value={value}
         onChangeText={onChangeText}

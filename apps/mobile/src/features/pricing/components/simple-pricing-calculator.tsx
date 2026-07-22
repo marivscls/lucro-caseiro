@@ -433,6 +433,7 @@ export function SimplePricingCalculator({
             <FieldLabel label="Insumos da receita" required />
             <TextFieldCard
               icon="basket-outline"
+              prefix="R$"
               value={ingredientInput}
               onChangeText={(text) => {
                 setIngredientInput(maskCurrencyInput(text));
@@ -466,6 +467,7 @@ export function SimplePricingCalculator({
             />
             <TextFieldCard
               icon="cash-outline"
+              prefix="R$"
               value={packagingInput}
               onChangeText={(text) => {
                 setPackagingInput(maskCurrencyInput(text));
@@ -492,6 +494,7 @@ export function SimplePricingCalculator({
           <FieldLabel label="Quanto você quer ganhar por unidade?" required />
           <TextFieldCard
             icon="trending-up"
+            prefix="R$"
             value={profitInput}
             onChangeText={(text) => {
               setProfitInput(maskCurrencyInput(text));
