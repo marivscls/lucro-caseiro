@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   finalPriceWithFees,
   laborCost,
+  profitMarkupPercent,
   profitPerUnit,
   suggestedPrice,
   totalCost,
@@ -25,10 +26,23 @@ describe("totalCost", () => {
 });
 
 describe("suggestedPrice", () => {
-  it("aplica a margem sobre o custo", () => {
-    expect(suggestedPrice(10, 0)).toBe(10); // margem 0 -> custo
+  it("aplica o acrescimo sobre o custo", () => {
+    expect(suggestedPrice(10, 0)).toBe(10); // acrescimo 0 -> custo
     expect(suggestedPrice(10, 100)).toBe(20); // 100% dobra
     expect(suggestedPrice(0, 50)).toBe(0); // custo 0 -> 0
+  });
+});
+
+describe("profitMarkupPercent", () => {
+  it("converte lucro em acrescimo percentual sobre o custo", () => {
+    expect(profitMarkupPercent(20, 10)).toBe(50);
+    expect(profitMarkupPercent(10, 20)).toBe(200);
+  });
+
+  it("evita divisao por zero e percentuais negativos", () => {
+    expect(profitMarkupPercent(0, 10)).toBe(0);
+    expect(profitMarkupPercent(10, 0)).toBe(0);
+    expect(profitMarkupPercent(10, -5)).toBe(0);
   });
 });
 

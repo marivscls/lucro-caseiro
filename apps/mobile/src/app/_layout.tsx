@@ -343,6 +343,15 @@ function AppContent() {
             }}
           />
           <Stack.Screen
+            name="pricing-complete"
+            options={{
+              headerShown: !showDesktopShell,
+              title: "Precificação completa",
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.text,
+            }}
+          />
+          <Stack.Screen
             name="plans"
             options={{
               headerShown: !showDesktopShell,

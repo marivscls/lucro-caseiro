@@ -13,7 +13,7 @@ export function totalCost(
   return ingredient + packaging + labor + fixedShare;
 }
 
-/** Preço sugerido = custo × (1 + margem%). */
+/** Preço sugerido = custo × (1 + acréscimo sobre o custo%). */
 export function suggestedPrice(cost: number, marginPercent: number): number {
   return cost * (1 + marginPercent / 100);
 }

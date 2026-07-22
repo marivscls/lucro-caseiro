@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Calculadora de precificacao guiada (wizard de 5 passos) que ajuda o usuario a definir o preco de venda de um produto. Considera custo de ingredientes, embalagem, mao de obra, custos fixos rateados e margem de lucro desejada. Exibe resultado com composicao de custos, lucro por unidade e projecao mensal.
+A precificacao tem dois caminhos conectados. A rota `/pricing` abre o modo **Simples**, que pergunta o custo total por unidade e quanto a pessoa quer ganhar em reais. A rota `/pricing-complete` preserva o wizard de 5 passos para detalhar insumos, embalagem, mao de obra, custos fixos, acrescimo sobre o custo e taxas. Ambos salvam no mesmo historico.
 
 ## Non-goals
 
@@ -19,13 +19,17 @@ Calculadora de precificacao guiada (wizard de 5 passos) que ajuda o usuario a de
 
 ## Code pointers
 
-| Arquivo                                                              | Descricao                                                          |
-| -------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `apps/mobile/src/features/pricing/api.ts`                            | Funcoes HTTP (calculatePricing, fetchPricingHistory, fetchPricing) |
-| `apps/mobile/src/features/pricing/hooks.ts`                          | React Query hooks                                                  |
-| `apps/mobile/src/features/pricing/components/pricing-calculator.tsx` | Wizard de 5 passos + resultado                                     |
-| `apps/mobile/src/features/pricing/components/pricing-result.tsx`     | Tela de resultado com breakdown visual                             |
-| `apps/mobile/src/app/pricing.tsx`                                    | Screen (rota `/pricing`)                                           |
+| Arquivo                                                                     | Descricao                                                          |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `apps/mobile/src/features/pricing/api.ts`                                   | Funcoes HTTP (calculatePricing, fetchPricingHistory, fetchPricing) |
+| `apps/mobile/src/features/pricing/hooks.ts`                                 | React Query hooks                                                  |
+| `apps/mobile/src/features/pricing/components/pricing-calculator.tsx`        | Wizard de 5 passos + resultado                                     |
+| `apps/mobile/src/features/pricing/components/simple-pricing-calculator.tsx` | Calculo rapido com custo, lucro desejado e taxa opcional           |
+| `apps/mobile/src/features/pricing/components/pricing-result.tsx`            | Tela de resultado com breakdown visual                             |
+| `apps/mobile/src/features/pricing/components/pricing-mode-switch.tsx`       | Alterna entre Simples e Completa sem empilhar as rotas             |
+| `apps/mobile/src/features/pricing/components/pricing-history-modal.tsx`     | Historico compartilhado pelas duas telas                           |
+| `apps/mobile/src/app/pricing.tsx`                                           | Modo Simples (rota `/pricing`)                                     |
+| `apps/mobile/src/app/pricing-complete.tsx`                                  | Modo Completo (rota `/pricing-complete`)                           |
 
 As funções de cálculo vivem em `packages/contracts/src/pricing-calculator.ts`; o arquivo local
 `features/pricing/calc.ts` apenas reexporta a fonte compartilhada usada também pela API e pelo site.
@@ -42,13 +46,13 @@ As funções de cálculo vivem em `packages/contracts/src/pricing-calculator.ts`
   2. Custo da embalagem (R$)
   3. Mao de obra (minutos + valor/hora, calculo automatico)
   4. Custos fixos rateados por unidade (R$)
-  5. Margem de lucro (% presets ou custom) + **taxas de venda opcionais** (iFood % e
+  5. Acrescimo sobre o custo (% presets ou custom) + **taxas de venda opcionais** (iFood % e
      cartão %), somadas em `feesPercent`.
 - Barra de progresso visual.
 - Calculo local: `totalCost = ingredientes + embalagem + maoDeObra + fixos`;
-  `precoBase = totalCost * (1 + margem/100)`; com taxas, **gross-up**:
+  `precoBase = totalCost * (1 + acrescimo/100)`; com taxas, **gross-up**:
   `precoFinal = precoBase / (1 - feesPercent/100)` (a taxa incide sobre a venda, preservando
-  a margem).
+  o lucro desejado).
 - Botoes Voltar/Proximo em cada step.
 
 ### `PricingResult`
@@ -57,7 +61,7 @@ As funções de cálculo vivem em `packages/contracts/src/pricing-calculator.ts`
 - Card hero com o **preço final** (com taxas, se houver) ou o preço sugerido; quando há
   taxas, mostra a quebra "base + X% taxas".
 - Barra empilhada de composicao de custos (ingredientes, embalagem, mao de obra, custos fixos) com legenda colorida.
-- Card de margem de lucro por unidade.
+- Card de lucro por unidade e margem real sobre o preco.
 - Projecao mensal (200 unidades fixo).
 - Botoes "Salvar calculo" e "Recalcular".
 
@@ -99,7 +103,7 @@ As funções de cálculo vivem em `packages/contracts/src/pricing-calculator.ts`
 
 - [ ] Calculo de custo total soma cada um dos componentes
 - [ ] Calculo de mao de obra: (minutos/60) \* valorHora
-- [ ] Preco sugerido: totalCost \* (1 + margem/100)
+- [ ] Preco sugerido: totalCost \* (1 + acrescimo/100)
 - [ ] Preco final com taxas (gross-up): precoBase / (1 - feesPercent/100)
 - [ ] Projecao mensal usa 200 unidades
 - [ ] Navegacao entre steps funciona corretamente
@@ -127,3 +131,8 @@ As funções de cálculo vivem em `packages/contracts/src/pricing-calculator.ts`
 - 2026-07-18: o resultado oferece “Salvar e criar produto”; o cálculo é persistido e a rota de
   Produtos abre o formulário com o preço preenchido. A criação concluída registra
   `product_created_from_pricing`, marco explícito do funil de ativação.
+- 2026-07-22: a entrada `/pricing` virou o modo **Simples** (custo total + lucro desejado em
+  reais + taxa opcional), com resultado ao vivo e importação do custo cadastrado do produto. O wizard antigo
+  ficou em `/pricing-complete`; um seletor segmentado alterna entre os modos. Na interface completa,
+  `marginPercent` passou a ser nomeado corretamente como **acréscimo sobre o custo**; a margem real
+  continua sendo calculada e exibida no resultado.

@@ -3,17 +3,17 @@ import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { PricingCalculator } from "../features/pricing/components/pricing-calculator";
 import {
   PricingHistoryButton,
   PricingHistoryModal,
 } from "../features/pricing/components/pricing-history-modal";
 import { PricingModeSwitch } from "../features/pricing/components/pricing-mode-switch";
-import { SimplePricingCalculator } from "../features/pricing/components/simple-pricing-calculator";
 import { showAlert } from "../shared/components/alert-store";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 
-export default function SimplePricingScreen() {
+export default function CompletePricingScreen() {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
   const router = useRouter();
@@ -31,15 +31,15 @@ export default function SimplePricingScreen() {
     >
       <Stack.Screen options={{ headerShown: false }} />
       <ScreenHeader
-        title="Precificação"
+        title="Precificação completa"
         hideBack={isDesktop}
         onBack={leavePricing}
         right={<PricingHistoryButton onPress={() => setShowHistory(true)} />}
       />
 
-      <PricingModeSwitch mode="simple" />
+      <PricingModeSwitch mode="complete" />
 
-      <SimplePricingCalculator
+      <PricingCalculator
         onCreateProduct={(salePrice) => {
           router.push({
             pathname: "/products",

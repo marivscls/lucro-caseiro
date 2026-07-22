@@ -868,11 +868,11 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
         {step === 5 && (
           <>
             <StepTitle
-              title="Margem de lucro"
-              subtitle="Escolha a margem de lucro desejada sobre o custo total e veja o resultado do preço final."
+              title="Acréscimo de lucro"
+              subtitle="Escolha quanto deseja acrescentar ao custo total e veja o preço final."
             />
             <View style={cardStyle(theme, pal)}>
-              <FieldLabel>Selecione uma margem (%)</FieldLabel>
+              <FieldLabel>Selecione um acréscimo (%)</FieldLabel>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
                 {MARGIN_PRESETS.map((v) => {
                   const active = marginPercent === v;
@@ -936,7 +936,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
 
             <ComputedCard
               icon="trending-up-outline"
-              label="Margem selecionada"
+              label="Acréscimo selecionado"
               value={`${marginPercent}%`}
               sublabel={`Preço final será ${marginPercent}% maior que o custo total.`}
             />
@@ -1004,14 +1004,14 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
               <SummaryRow
                 icon="pricetag-outline"
                 iconColor={theme.colors.success}
-                label="Margem de lucro"
+                label="Acréscimo sobre o custo"
                 value={`${marginPercent}% (${formatCurrency(profitPerUnit)})`}
                 valueColor={theme.colors.success}
               />
               <SummaryRow
                 icon="calculator-outline"
                 iconColor={theme.colors.blue}
-                label="Preço base (com margem)"
+                label="Preço base (com acréscimo)"
                 value={formatCurrency(suggestedPrice)}
               />
               {feesPercent > 0 ? (

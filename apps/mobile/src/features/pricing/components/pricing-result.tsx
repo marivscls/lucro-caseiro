@@ -258,7 +258,7 @@ export function PricingResult({
             color={theme.colors.success}
           />
           <Typography variant="bodyBold" color={theme.colors.success}>
-            Margem de lucro
+            Lucro estimado
           </Typography>
         </View>
         <View style={{ flexDirection: "row", gap: spacing.lg }}>
