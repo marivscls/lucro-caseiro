@@ -151,7 +151,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         backgroundColor: activeBrand.theme.primarySoft ?? "#F7DFD6",
       },
       package: activeBrand.androidPackage,
-      versionCode: 19,
+      versionCode: 21,
       softwareKeyboardLayoutMode: "resize",
       permissions: [],
     },
@@ -168,6 +168,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       knownBrands: knownBrandIds,
       admob: { bannerUnitIdAndroid, interstitialUnitIdAndroid },
     },
-    owner: "marivscls5",
+    owner: "marivscls",
   };
 };

@@ -1,11 +1,11 @@
 {
   "id": "lucro-caseiro",
   "appName": "Lucro Caseiro: Negocio em Casa",
-  "slug": "lucro-caseiro-dev",
+  "slug": "lucro-caseiro",
   "scheme": "lucrocaseiro",
   "iosBundleId": "com.lucrocaseiro.app",
   "androidPackage": "br.com.orionseven.lucrocaseiro",
-  "easProjectId": "f1dbfa95-c134-44cd-855c-52fc8bb1c3f3",
+  "easProjectId": "a64ae465-7911-4d82-81a3-9f2d20973dff",
   "theme": {
     "primary": "#C4707E",
     "primaryLight": "#D4919C",
