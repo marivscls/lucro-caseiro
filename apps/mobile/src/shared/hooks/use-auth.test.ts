@@ -1,8 +1,10 @@
 import * as WebBrowser from "expo-web-browser";
 import { Platform } from "react-native";
+import type { User } from "@supabase/supabase-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { supabase } from "../utils/supabase";
+import { useOnboarding } from "./use-onboarding";
 import { getAuthRedirectUrl, useAuth } from "./use-auth";
 
 const platform = Platform as typeof Platform & { OS: string };
@@ -48,5 +50,25 @@ describe("getAuthRedirectUrl", () => {
       },
     });
     expect(openAuthSession).not.toHaveBeenCalled();
+  });
+
+  it("mantem o onboarding pendente quando o cadastro exige login depois", async () => {
+    const userId = "67e5db17-3f41-46ee-9dbd-9df536cf3d2c";
+    const user = {
+      id: userId,
+      identities: [{ id: "email-identity" }],
+    } as User;
+    vi.spyOn(supabase.auth, "signUp").mockResolvedValue({
+      data: { user, session: null },
+      error: null,
+    });
+    useOnboarding.setState({ pendingUserIds: [] });
+
+    const result = await useAuth
+      .getState()
+      .signUpWithEmail("nova@conta.com", "Senha123!", "Nova Conta");
+
+    expect(result).toEqual({ needsConfirmation: true });
+    expect(useOnboarding.getState().pendingUserIds).toContain(userId);
   });
 });

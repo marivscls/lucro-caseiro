@@ -6,7 +6,7 @@ import { useProfile } from "../features/subscription/hooks";
 import { Skeleton } from "../shared/components/skeleton";
 import { useAuth } from "../shared/hooks/use-auth";
 import { useOnboarding } from "../shared/hooks/use-onboarding";
-import { isNewAccount } from "../shared/utils/new-account";
+import { needsOnboarding } from "../shared/utils/new-account";
 
 function Loading() {
   return (
@@ -28,7 +28,7 @@ function Loading() {
 
 export default function Index() {
   const { isAuthenticated, userId, user } = useAuth();
-  const { completed, completedUserIds } = useOnboarding();
+  const { completed, completedUserIds, pendingUserIds } = useOnboarding();
   const hasHydrated = useOnboarding.persist.hasHydrated();
   const { data: profile, isLoading: profileLoading } = useProfile();
 
@@ -46,6 +46,12 @@ export default function Index() {
     return <Redirect href="/tabs" />;
   }
 
+  // Conta criada agora (ou neste aparelho antes da confirmação por e-mail)
+  // sempre passa pelo onboarding, mesmo se o cadastro já trouxe nome do negócio.
+  if (needsOnboarding(userId, user?.created_at, pendingUserIds, Date.now())) {
+    return <Redirect href="/onboarding" />;
+  }
+
   // Aparelho novo, mas a conta pode ja estar configurada (usuario retornando).
   // Espera o perfil pra decidir e evita mostrar onboarding pra quem ja tem conta.
   if (profileLoading) {
@@ -55,13 +61,7 @@ export default function Index() {
     return <Redirect href="/tabs" />;
   }
 
-  // Sem nome de negocio salvo NAO significa conta nova: o campo e opcional no
-  // cadastro. O onboarding so aparece para contas realmente recem-criadas
-  // (created_at do Auth). Conta antiga sem nome de negocio = usuario retornando
-  // (ex.: apos recuperar a senha) -> vai direto pro app.
-  if (isNewAccount(user?.created_at, Date.now())) {
-    return <Redirect href="/onboarding" />;
-  }
-
+  // Conta antiga sem nome de negocio = usuario retornando (ex.: apos recuperar
+  // a senha) -> vai direto pro app.
   return <Redirect href="/tabs" />;
 }

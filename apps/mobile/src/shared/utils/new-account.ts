@@ -14,3 +14,12 @@ export function isNewAccount(createdAt: string | null | undefined, now: number):
   if (Number.isNaN(created)) return false;
   return now - created < NEW_ACCOUNT_WINDOW_MS;
 }
+
+export function needsOnboarding(
+  userId: string | null | undefined,
+  createdAt: string | null | undefined,
+  pendingUserIds: readonly string[],
+  now: number,
+): boolean {
+  return (!!userId && pendingUserIds.includes(userId)) || isNewAccount(createdAt, now);
+}

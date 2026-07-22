@@ -10,6 +10,9 @@ interface OnboardingState {
   // sair: garante que quem já concluiu nunca reveja o onboarding ao relogar,
   // mesmo que não tenha salvo o nome do negócio no servidor.
   completedUserIds: string[];
+  // Contas criadas neste aparelho que ainda precisam passar pelo onboarding.
+  // Persiste mesmo quando o cadastro exige confirmar o e-mail e entrar depois.
+  pendingUserIds: string[];
   currentStep: number;
   businessType: string | null;
   businessName: string | null;
@@ -18,6 +21,7 @@ interface OnboardingState {
   setStep: (step: number) => void;
   setBusinessType: (type: string) => void;
   setBusinessName: (name: string) => void;
+  startOnboarding: (userId: string) => void;
   completeOnboarding: (userId?: string | null) => void;
   dismissGettingStarted: () => void;
   reset: () => void;
@@ -28,6 +32,7 @@ export const useOnboarding = create<OnboardingState>()(
     (set) => ({
       completed: false,
       completedUserIds: [],
+      pendingUserIds: [],
       currentStep: 0,
       businessType: null,
       businessName: null,
@@ -35,6 +40,12 @@ export const useOnboarding = create<OnboardingState>()(
       setStep: (step) => set({ currentStep: step }),
       setBusinessType: (type) => set({ businessType: type }),
       setBusinessName: (name) => set({ businessName: name }),
+      startOnboarding: (userId) =>
+        set((state) => ({
+          pendingUserIds: state.pendingUserIds.includes(userId)
+            ? state.pendingUserIds
+            : [...state.pendingUserIds, userId],
+        })),
       completeOnboarding: (userId) =>
         set((state) => ({
           completed: true,
@@ -42,6 +53,9 @@ export const useOnboarding = create<OnboardingState>()(
             userId && !state.completedUserIds.includes(userId)
               ? [...state.completedUserIds, userId]
               : state.completedUserIds,
+          pendingUserIds: userId
+            ? state.pendingUserIds.filter((id) => id !== userId)
+            : state.pendingUserIds,
         })),
       dismissGettingStarted: () => set({ dismissedGettingStarted: true }),
       // Zera só o estado de sessão; `completedUserIds` é preservado de

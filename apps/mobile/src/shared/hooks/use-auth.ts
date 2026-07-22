@@ -251,6 +251,14 @@ export const useAuth = create<AuthState>((set) => ({
       return { error: signUpErrorMessage(error) };
     }
 
+    // Guarda a intenção no momento exato do cadastro. Assim o onboarding ainda
+    // aparece se a confirmação por e-mail mandar a pessoa para o login antes de
+    // criar a sessão. O Supabase devolve `identities: []` quando oculta que um
+    // e-mail já está cadastrado; nesse caso não tratamos a conta como nova.
+    if (data.user?.identities?.length) {
+      useOnboarding.getState().startOnboarding(data.user.id);
+    }
+
     // Confirmação de e-mail desativada no Supabase: o signUp já devolve sessão
     // e o usuário entra na hora. Quando ativada, não há sessão e ele precisa
     // confirmar pelo e-mail antes de entrar.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { NEW_ACCOUNT_WINDOW_MS, isNewAccount } from "./new-account";
+import { NEW_ACCOUNT_WINDOW_MS, isNewAccount, needsOnboarding } from "./new-account";
 
 describe("isNewAccount", () => {
   const now = new Date("2026-07-11T12:00:00.000Z").getTime();
@@ -30,5 +30,21 @@ describe("isNewAccount", () => {
     expect(isNewAccount(null, now)).toBe(false);
     expect(isNewAccount("", now)).toBe(false);
     expect(isNewAccount("nao-e-data", now)).toBe(false);
+  });
+});
+
+describe("needsOnboarding", () => {
+  const now = new Date("2026-07-11T12:00:00.000Z").getTime();
+
+  it("mantem o onboarding pendente depois da confirmacao e do login", () => {
+    const oldCreatedAt = new Date(now - 24 * 60 * 60 * 1000).toISOString();
+
+    expect(needsOnboarding("user-new", oldCreatedAt, ["user-new"], now)).toBe(true);
+  });
+
+  it("nao confunde outra conta do aparelho com a conta recem-criada", () => {
+    const oldCreatedAt = new Date(now - 24 * 60 * 60 * 1000).toISOString();
+
+    expect(needsOnboarding("user-old", oldCreatedAt, ["user-new"], now)).toBe(false);
   });
 });
