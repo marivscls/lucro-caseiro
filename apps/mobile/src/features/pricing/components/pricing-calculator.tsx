@@ -818,11 +818,11 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
         {step === 3 && (
           <>
             <StepTitle
-              title="Mão de obra"
-              subtitle="Informe o tempo de uma produção completa e quantas unidades ela rende. O aplicativo calcula o valor por unidade."
+              title="Mão de obra (estimativa opcional)"
+              subtitle="Use o tempo e o rendimento médios de uma produção. Se ainda não souber, deixe os valores zerados."
             />
             <View style={cardStyle(theme, pal)}>
-              <SubField icon="time-outline" label="Tempo total dessa produção">
+              <SubField icon="time-outline" label="Tempo médio de uma produção">
                 <Stepper
                   value={laborMin}
                   onChange={setLaborMin}
@@ -832,7 +832,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
                 />
               </SubField>
               <View style={{ height: 1, backgroundColor: pal.border }} />
-              <SubField icon="cube-outline" label="Quantas unidades essa produção rende">
+              <SubField icon="cube-outline" label="Rendimento médio dessa produção">
                 <Stepper
                   value={laborUnits}
                   onChange={setLaborUnits}
@@ -874,11 +874,14 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
         {step === 4 && (
           <>
             <StepTitle
-              title="Custos fixos (rateio)"
-              subtitle="Esta etapa é opcional. Só preencha se quiser dividir uma parte dos gastos mensais entre os produtos."
+              title="Gastos mensais (estimativa opcional)"
+              subtitle="Use uma média somente se quiser dividir parte desses gastos entre os produtos."
             />
             <View style={cardStyle(theme, pal)}>
-              <SubField icon="calendar-outline" label="Custos fixos mensais (R$)">
+              <SubField
+                icon="calendar-outline"
+                label="Média dos gastos fixos mensais (R$)"
+              >
                 <MoneyField
                   value={monthlyFixed}
                   onChangeText={(t) => setMonthlyFixed(maskCurrencyInput(t))}

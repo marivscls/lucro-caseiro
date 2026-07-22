@@ -60,10 +60,6 @@ function percentageInput(text: string): string {
   return decimals.length > 0 ? `${integer},${decimals.join("").slice(0, 2)}` : integer;
 }
 
-function wholeNumberInput(text: string): string {
-  return text.replace(/\D/g, "").slice(0, 7);
-}
-
 function CostSourcePicker({
   visible,
   title,
@@ -285,13 +281,8 @@ export function SimplePricingCalculator({
   const [packagingId, setPackagingId] = useState<string | null>(null);
   const [ingredientInput, setIngredientInput] = useState("");
   const [packagingInput, setPackagingInput] = useState("");
-  const [laborMinutesInput, setLaborMinutesInput] = useState("");
-  const [hourlyRateInput, setHourlyRateInput] = useState("");
-  const [monthlyFixedInput, setMonthlyFixedInput] = useState("");
-  const [monthlyProductionInput, setMonthlyProductionInput] = useState("");
   const [profitInput, setProfitInput] = useState("");
   const [feesInput, setFeesInput] = useState("");
-  const [showOtherCosts, setShowOtherCosts] = useState(false);
   const [showFees, setShowFees] = useState(false);
   const [productPickerVisible, setProductPickerVisible] = useState(false);
   const [packagingPickerVisible, setPackagingPickerVisible] = useState(false);
@@ -301,19 +292,7 @@ export function SimplePricingCalculator({
   const selectedPackaging = packaging.find((item) => item.id === packagingId) ?? null;
   const ingredientCost = money(ingredientInput);
   const packagingCost = money(packagingInput);
-  const laborMinutes = Number(laborMinutesInput) || 0;
-  const hourlyRate = money(hourlyRateInput);
-  const laborCost = priceCalc.laborCost(laborMinutes, hourlyRate);
-  const monthlyFixed = money(monthlyFixedInput);
-  const monthlyProduction = Number(monthlyProductionInput) || 0;
-  const fixedCostShare = priceCalc.fixedCostShare(monthlyFixed, monthlyProduction);
-  const totalCost = priceCalc.totalCost(
-    ingredientCost,
-    packagingCost,
-    laborCost,
-    fixedCostShare,
-  );
-  const otherCostsAmount = laborCost + fixedCostShare;
+  const totalCost = priceCalc.totalCost(ingredientCost, packagingCost, 0, 0);
   const desiredProfit = money(profitInput);
   const feesPercent = percentage(feesInput);
   const markupPercent = priceCalc.profitMarkupPercent(totalCost, desiredProfit);
@@ -339,10 +318,6 @@ export function SimplePricingCalculator({
       alertValidation("Informe quanto você quer ganhar por unidade.");
       return null;
     }
-    if (monthlyFixed > 0 && monthlyProduction <= 0) {
-      alertValidation("Informe quantas unidades você produz por mês.");
-      return null;
-    }
     if (feesPercent > 95) {
       alertValidation("A taxa de venda pode ser de no máximo 95%.");
       return null;
@@ -356,20 +331,16 @@ export function SimplePricingCalculator({
       productId: productId ?? undefined,
       ingredientCost,
       packagingCost,
-      laborCost,
-      fixedCostShare,
+      laborCost: 0,
+      fixedCostShare: 0,
       marginPercent: markupPercent,
       feesPercent: feesPercent > 0 ? feesPercent : undefined,
     };
   }, [
     desiredProfit,
     feesPercent,
-    fixedCostShare,
     ingredientCost,
-    laborCost,
     markupPercent,
-    monthlyFixed,
-    monthlyProduction,
     packagingCost,
     productId,
   ]);
@@ -506,127 +477,6 @@ export function SimplePricingCalculator({
             />
           </View>
 
-          <Pressable
-            onPress={() => setShowOtherCosts((current) => !current)}
-            accessibilityRole="button"
-            accessibilityState={{ expanded: showOtherCosts }}
-            style={({ pressed }) => ({
-              minHeight: 52,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: spacing.md,
-              paddingVertical: spacing.sm,
-              opacity: pressed ? 0.75 : 1,
-            })}
-          >
-            <View style={{ flex: 1 }}>
-              <Typography variant="bodyBold">Incluir outros custos</Typography>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                {otherCostsAmount > 0
-                  ? `${formatCurrency(otherCostsAmount)} por unidade já incluídos`
-                  : "Seu trabalho e uma parte dos gastos mensais"}
-              </Typography>
-            </View>
-            <AppIcon
-              name={showOtherCosts ? "chevron-up" : "chevron-down"}
-              size={22}
-              color={theme.colors.primary}
-            />
-          </Pressable>
-
-          {showOtherCosts ? (
-            <>
-              <View style={{ gap: spacing.sm }}>
-                <FieldLabel label="Seu trabalho (opcional)" />
-                <View
-                  style={{
-                    flexDirection: isDesktop ? "row" : "column",
-                    gap: spacing.sm,
-                  }}
-                >
-                  <View style={{ flex: 1, gap: spacing.xs }}>
-                    <Typography variant="caption" color={theme.colors.textSecondary}>
-                      Minutos por unidade
-                    </Typography>
-                    <TextFieldCard
-                      icon="time-outline"
-                      value={laborMinutesInput}
-                      onChangeText={(text) => {
-                        setLaborMinutesInput(wholeNumberInput(text));
-                        trackStarted();
-                      }}
-                      keyboardType="number-pad"
-                      placeholder="Ex: 30"
-                    />
-                  </View>
-                  <View style={{ flex: 1, gap: spacing.xs }}>
-                    <Typography variant="caption" color={theme.colors.textSecondary}>
-                      Quanto vale sua hora
-                    </Typography>
-                    <TextFieldCard
-                      icon="cash-outline"
-                      value={hourlyRateInput}
-                      onChangeText={(text) => {
-                        setHourlyRateInput(maskCurrencyInput(text));
-                        trackStarted();
-                      }}
-                      keyboardType="numeric"
-                      placeholder="Ex: 20,00"
-                    />
-                  </View>
-                </View>
-                <ComputedValue label="Mão de obra por unidade" value={laborCost} />
-              </View>
-
-              <View style={{ gap: spacing.sm }}>
-                <FieldLabel label="Gastos fixos (opcional)" />
-                <View
-                  style={{
-                    flexDirection: isDesktop ? "row" : "column",
-                    gap: spacing.sm,
-                  }}
-                >
-                  <View style={{ flex: 1, gap: spacing.xs }}>
-                    <Typography variant="caption" color={theme.colors.textSecondary}>
-                      Total de gastos no mês
-                    </Typography>
-                    <TextFieldCard
-                      icon="calendar-outline"
-                      value={monthlyFixedInput}
-                      onChangeText={(text) => {
-                        setMonthlyFixedInput(maskCurrencyInput(text));
-                        trackStarted();
-                      }}
-                      keyboardType="numeric"
-                      placeholder="Ex: 300,00"
-                    />
-                  </View>
-                  <View style={{ flex: 1, gap: spacing.xs }}>
-                    <Typography variant="caption" color={theme.colors.textSecondary}>
-                      Unidades produzidas no mês
-                    </Typography>
-                    <TextFieldCard
-                      icon="cube-outline"
-                      value={monthlyProductionInput}
-                      onChangeText={(text) => {
-                        setMonthlyProductionInput(wholeNumberInput(text));
-                        trackStarted();
-                      }}
-                      keyboardType="number-pad"
-                      placeholder="Ex: 100"
-                    />
-                  </View>
-                </View>
-                <Typography variant="caption" color={theme.colors.textSecondary}>
-                  Nada é incluído automaticamente. Preencha os dois valores somente se
-                  quiser fazer esse rateio.
-                </Typography>
-                <ComputedValue label="Gastos fixos por unidade" value={fixedCostShare} />
-              </View>
-            </>
-          ) : null}
-
           <View
             style={{
               borderTopWidth: 1,
@@ -634,7 +484,7 @@ export function SimplePricingCalculator({
               paddingTop: spacing.lg,
             }}
           >
-            <CostRow label="Custo total calculado" value={totalCost} />
+            <CostRow label="Custos informados" value={totalCost} />
           </View>
         </Card>
 
@@ -731,10 +581,6 @@ export function SimplePricingCalculator({
             {packagingCost > 0 ? (
               <CostRow label="Embalagem" value={packagingCost} />
             ) : null}
-            {laborCost > 0 ? <CostRow label="Seu trabalho" value={laborCost} /> : null}
-            {fixedCostShare > 0 ? (
-              <CostRow label="Gastos fixos" value={fixedCostShare} />
-            ) : null}
             <View style={{ height: 1, backgroundColor: theme.colors.border }} />
             <CostRow label="Custo total" value={totalCost} />
             <CostRow
@@ -751,8 +597,8 @@ export function SimplePricingCalculator({
             color={theme.colors.textSecondary}
             style={{ textAlign: "center" }}
           >
-            Baseada somente nos valores informados acima. Confira os dados antes de usar
-            este preço.
+            Baseada somente em insumos e embalagem. Mão de obra e gastos mensais não estão
+            incluídos. Confira os dados antes de usar este preço.
           </Typography>
         </Card>
 
@@ -870,29 +716,5 @@ function SourceButton({
       </View>
       <AppIcon name="chevron-forward" size={20} color={theme.colors.textSecondary} />
     </Pressable>
-  );
-}
-
-function ComputedValue({ label, value }: Readonly<{ label: string; value: number }>) {
-  const { theme } = useTheme();
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: spacing.md,
-        padding: spacing.sm,
-        borderRadius: radii.md,
-        backgroundColor: theme.colors.successBg,
-      }}
-    >
-      <Typography variant="caption" color={theme.colors.success}>
-        {label}
-      </Typography>
-      <Typography variant="bodyBold" color={theme.colors.success}>
-        {formatCurrency(value)}
-      </Typography>
-    </View>
   );
 }

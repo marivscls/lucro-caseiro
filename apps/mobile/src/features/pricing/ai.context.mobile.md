@@ -4,7 +4,7 @@
 
 ## Purpose
 
-A precificacao tem dois caminhos conectados. A rota `/pricing` abre o modo **Simples** em qualquer plano: insumos, embalagem e lucro ficam evidentes; mao de obra e rateio ficam em "Incluir outros custos", fechado e opcional. A rota `/pricing-complete` e um recurso Profissional (`advancedPricing`), preserva o wizard de 5 passos, exige premissas completas para mao de obra/rateio e apresenta o resultado como estimativa. Nenhum modo presume producao mensal nem inclui gastos fixos silenciosamente. Ambos salvam no mesmo historico.
+A precificacao tem dois caminhos conectados. A rota `/pricing` abre o modo **Simples** em qualquer plano: usa apenas insumos, embalagem, lucro desejado e taxa de venda opcional; nao pede nem inclui mao de obra ou gastos mensais e declara essa exclusao no resultado. A rota `/pricing-complete` e um recurso Profissional (`advancedPricing`), preserva o wizard de 5 passos, trata mao de obra e rateio como estimativas opcionais e apresenta o resultado como preco sugerido. Nenhum modo presume producao mensal nem inclui gastos fixos silenciosamente. Ambos salvam no mesmo historico.
 
 ## Non-goals
 
