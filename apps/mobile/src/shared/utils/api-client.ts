@@ -1,5 +1,7 @@
 import { getActiveBrand } from "@lucro-caseiro/brands";
 
+import { supabase } from "./supabase";
+
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3001";
 const ACTIVE_BRAND_ID = getActiveBrand().id;
 
@@ -31,39 +33,56 @@ export async function apiClient<T>(
 ): Promise<T> {
   const { method = "GET", body, token } = options;
 
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    "x-brand": ACTIVE_BRAND_ID,
-  };
+  async function request(
+    currentToken: string | undefined,
+    retryAuth: boolean,
+  ): Promise<T> {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "x-brand": ACTIVE_BRAND_ID,
+    };
 
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+    if (currentToken) {
+      headers["Authorization"] = `Bearer ${currentToken}`;
+    }
+
+    const response = await fetch(`${API_URL}${path}`, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    // Ao voltar para um PWA que ficou inativo, a primeira requisição pode sair
+    // com o access token antigo antes do auto-refresh do Supabase terminar.
+    // Renova e repete uma única vez; não desloga em 401 transitório.
+    if (response.status === 401 && currentToken && retryAuth) {
+      const { data, error } = await supabase.auth.refreshSession();
+      if (!error && data.session?.access_token) {
+        return request(data.session.access_token, false);
+      }
+    }
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: "Erro desconhecido" }));
+      const details = Array.isArray(error.details) ? error.details.join("\n") : null;
+      throw new ApiError(
+        details || error.message || `HTTP ${response.status}`,
+        response.status,
+        error.error,
+      );
+    }
+
+    if (response.status === 204) {
+      return undefined as T;
+    }
+
+    const text = await response.text();
+    if (!text) {
+      return undefined as T;
+    }
+
+    return JSON.parse(text) as T;
   }
 
-  const response = await fetch(`${API_URL}${path}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: "Erro desconhecido" }));
-    const details = Array.isArray(error.details) ? error.details.join("\n") : null;
-    throw new ApiError(
-      details || error.message || `HTTP ${response.status}`,
-      response.status,
-      error.error,
-    );
-  }
-
-  if (response.status === 204) {
-    return undefined as T;
-  }
-
-  const text = await response.text();
-  if (!text) {
-    return undefined as T;
-  }
-
-  return JSON.parse(text) as T;
+  return request(token, true);
 }

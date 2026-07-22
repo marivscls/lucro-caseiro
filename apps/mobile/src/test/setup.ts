@@ -225,6 +225,7 @@ vi.mock("@supabase/supabase-js", () => ({
       signInWithOAuth: vi.fn(),
       signUp: vi.fn(),
       signOut: vi.fn(),
+      refreshSession: vi.fn(),
     },
   }),
 }));
