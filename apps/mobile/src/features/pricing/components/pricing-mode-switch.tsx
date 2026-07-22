@@ -51,12 +51,22 @@ export function PricingModeSwitch({ mode }: Readonly<{ mode: PricingMode }>) {
               opacity: pressed ? 0.75 : 1,
             })}
           >
-            <Typography
-              variant="bodyBold"
-              color={active ? theme.colors.textOnPrimary : theme.colors.textSecondary}
-            >
-              {option.label}
-            </Typography>
+            <View style={{ alignItems: "center" }}>
+              <Typography
+                variant="bodyBold"
+                color={active ? theme.colors.textOnPrimary : theme.colors.textSecondary}
+              >
+                {option.label}
+              </Typography>
+              {option.key === "complete" ? (
+                <Typography
+                  variant="caption"
+                  color={active ? theme.colors.textOnPrimary : theme.colors.primaryStrong}
+                >
+                  Profissional
+                </Typography>
+              ) : null}
+            </View>
           </Pressable>
         );
       })}

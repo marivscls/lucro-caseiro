@@ -113,6 +113,11 @@ const FEATURE_COPY: Record<string, { title: string; message: string }> = {
     message:
       "Veja seu faturamento mês a mês, os produtos mais vendidos e seus melhores clientes. Desbloqueie no Profissional.",
   },
+  advancedPricing: {
+    title: "Precificação completa",
+    message:
+      "Revise mão de obra, rateios, taxas e cada premissa do preço no plano Profissional.",
+  },
   export: {
     title: "📄 Exportar PDF e Excel",
     message: "Baixe seus relatórios pra contabilidade e MEI. Recurso do Profissional.",

@@ -4,7 +4,7 @@
 
 ## Purpose
 
-A precificacao tem dois caminhos conectados. A rota `/pricing` abre o modo **Simples**: insumos, embalagem e lucro ficam evidentes; mao de obra e rateio ficam em "Incluir outros custos", fechado e opcional. A rota `/pricing-complete` preserva o wizard de 5 passos, exige premissas completas para mao de obra/rateio e apresenta o resultado como estimativa. Nenhum modo presume producao mensal nem inclui gastos fixos silenciosamente. Ambos salvam no mesmo historico.
+A precificacao tem dois caminhos conectados. A rota `/pricing` abre o modo **Simples** em qualquer plano: insumos, embalagem e lucro ficam evidentes; mao de obra e rateio ficam em "Incluir outros custos", fechado e opcional. A rota `/pricing-complete` e um recurso Profissional (`advancedPricing`), preserva o wizard de 5 passos, exige premissas completas para mao de obra/rateio e apresenta o resultado como estimativa. Nenhum modo presume producao mensal nem inclui gastos fixos silenciosamente. Ambos salvam no mesmo historico.
 
 ## Non-goals
 
@@ -139,3 +139,6 @@ As funções de cálculo vivem em `packages/contracts/src/pricing-calculator.ts`
   removeu a importação silenciosa de gastos e a produção presumida de 100 unidades. A Completa passou
   a calcular mão de obra pelo lote/rendimento, selecionar embalagens pelo custo exato e validar premissas
   incompletas. Os resultados agora se identificam como estimativas baseadas nos dados informados.
+- 2026-07-22: a tela Completa passou a exigir a feature `advancedPricing`, exclusiva do plano
+  Profissional. Contas sem a feature veem a apresentação e o CTA antes de qualquer formulário;
+  a Simples continua disponível com toda a matemática básica necessária.

@@ -6,6 +6,7 @@ const PROFESSIONAL_ONLY: readonly PlanFeature[] = [
   "catalogPremium",
   "catalogCustomization",
   "advancedReports",
+  "advancedPricing",
   "export",
   "purchases",
   "recurringExpenses",

@@ -79,6 +79,7 @@ export type PlanFeature =
   | "catalogPremium" // catálogo completo na vitrine (sem teto de 3 produtos)
   | "catalogCustomization" // capa/cor/logo/frase/banner do catálogo público
   | "advancedReports" // relatórios completos com gráficos (insights)
+  | "advancedPricing" // precificação completa com premissas detalhadas
   | "export" // exportar PDF/XLSX completo (relatórios avançados, histórico)
   | "purchases" // registrar compras de fornecedores
   | "recurringExpenses" // gastos recorrentes
@@ -97,6 +98,7 @@ const PROFESSIONAL_FEATURES: readonly PlanFeature[] = [
   "catalogPremium",
   "catalogCustomization",
   "advancedReports",
+  "advancedPricing",
   "export",
   "purchases",
   "recurringExpenses",
