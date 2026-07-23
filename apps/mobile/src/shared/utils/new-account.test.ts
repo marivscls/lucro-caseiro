@@ -47,4 +47,18 @@ describe("needsOnboarding", () => {
 
     expect(needsOnboarding("user-old", oldCreatedAt, ["user-new"], now)).toBe(false);
   });
+
+  it("mantem onboarding para cadastro marcado como pendente no servidor", () => {
+    const oldCreatedAt = new Date(now - 24 * 60 * 60 * 1000).toISOString();
+
+    expect(needsOnboarding("user-new", oldCreatedAt, [], now, false)).toBe(true);
+  });
+
+  it("nao repete onboarding concluido mesmo para conta recente", () => {
+    const recentCreatedAt = new Date(now - 30 * 1000).toISOString();
+
+    expect(needsOnboarding("user-new", recentCreatedAt, ["user-new"], now, true)).toBe(
+      false,
+    );
+  });
 });

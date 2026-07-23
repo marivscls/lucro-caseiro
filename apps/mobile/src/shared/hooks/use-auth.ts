@@ -5,6 +5,7 @@ import { Platform } from "react-native";
 import { create } from "zustand";
 
 import { supabase } from "../utils/supabase";
+import { withoutAuthParams } from "../utils/auth-url";
 import { getRecoveryLinkError } from "../utils/password-recovery";
 import { useOnboarding } from "./use-onboarding";
 
@@ -76,6 +77,22 @@ async function applySessionFromUrl(
     return !error;
   }
   return false;
+}
+
+function clearBrowserAuthParams(rawUrl: string): void {
+  if (Platform.OS !== "web" || typeof window === "undefined") return;
+
+  try {
+    const cleanUrl = new URL(withoutAuthParams(rawUrl));
+    if (cleanUrl.toString() === rawUrl) return;
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`,
+    );
+  } catch {
+    // URL inválida não deve impedir a inicialização da autenticação.
+  }
 }
 
 interface AuthState {
@@ -181,18 +198,22 @@ export const useAuth = create<AuthState>((set) => ({
       // Captura o callback do OAuth mesmo quando o Android reabre o app pelo
       // deep link (lucrocaseiro://) em vez de retornar pro browser in-app.
       const handleUrl = async (url: string | null) => {
-        const recoveryError = url ? getRecoveryLinkError(url) : null;
-        if (recoveryError) {
-          set({ passwordRecovery: false, passwordRecoveryError: recoveryError });
-          return;
-        }
-        if (url && (url.includes("code=") || url.includes("access_token="))) {
-          const isRecovery = url.includes("type=recovery");
-          const ok = await applySessionFromUrl(url, isRecovery);
-          // Link de recuperação de senha chega com type=recovery: marca o modo
-          // recovery para o app abrir a tela de "criar nova senha".
-          if (ok && isRecovery)
-            set({ passwordRecovery: true, passwordRecoveryError: null });
+        try {
+          const recoveryError = url ? getRecoveryLinkError(url) : null;
+          if (recoveryError) {
+            set({ passwordRecovery: false, passwordRecoveryError: recoveryError });
+            return;
+          }
+          if (url && (url.includes("code=") || url.includes("access_token="))) {
+            const isRecovery = url.includes("type=recovery");
+            const ok = await applySessionFromUrl(url, isRecovery);
+            // Link de recuperação de senha chega com type=recovery: marca o modo
+            // recovery para o app abrir a tela de "criar nova senha".
+            if (ok && isRecovery)
+              set({ passwordRecovery: true, passwordRecoveryError: null });
+          }
+        } finally {
+          if (url) clearBrowserAuthParams(url);
         }
       };
       await handleUrl(await Linking.getInitialURL());
@@ -236,6 +257,7 @@ export const useAuth = create<AuthState>((set) => ({
         data: {
           name,
           business_name: businessName,
+          onboarding_completed: false,
         },
       },
     });

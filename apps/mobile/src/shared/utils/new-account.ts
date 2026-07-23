@@ -20,6 +20,9 @@ export function needsOnboarding(
   createdAt: string | null | undefined,
   pendingUserIds: readonly string[],
   now: number,
+  onboardingCompleted?: unknown,
 ): boolean {
+  if (onboardingCompleted === true) return false;
+  if (onboardingCompleted === false) return true;
   return (!!userId && pendingUserIds.includes(userId)) || isNewAccount(createdAt, now);
 }

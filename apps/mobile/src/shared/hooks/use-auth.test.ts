@@ -1,4 +1,5 @@
 import * as WebBrowser from "expo-web-browser";
+import * as Linking from "expo-linking";
 import { Platform } from "react-native";
 import type { User } from "@supabase/supabase-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -58,7 +59,7 @@ describe("getAuthRedirectUrl", () => {
       id: userId,
       identities: [{ id: "email-identity" }],
     } as User;
-    vi.spyOn(supabase.auth, "signUp").mockResolvedValue({
+    const signUp = vi.spyOn(supabase.auth, "signUp").mockResolvedValue({
       data: { user, session: null },
       error: null,
     });
@@ -69,6 +70,37 @@ describe("getAuthRedirectUrl", () => {
       .signUpWithEmail("nova@conta.com", "Senha123!", "Nova Conta");
 
     expect(result).toEqual({ needsConfirmation: true });
+    expect(signUp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: expect.objectContaining({
+          data: expect.objectContaining({ onboarding_completed: false }),
+        }),
+      }),
+    );
     expect(useOnboarding.getState().pendingUserIds).toContain(userId);
+  });
+
+  it("limpa tokens da barra depois de aplicar o callback no PWA", async () => {
+    platform.OS = "web";
+    const callbackUrl = `${window.location.origin}/#access_token=segredo&refresh_token=renovacao&type=signup`;
+    vi.mocked(Linking.getInitialURL).mockResolvedValue(callbackUrl);
+    vi.spyOn(supabase.auth, "getSession").mockResolvedValue({
+      data: { session: null },
+      error: null,
+    });
+    const setSession = vi.spyOn(supabase.auth, "setSession").mockResolvedValue({
+      data: { session: null, user: null },
+      error: null,
+    });
+    const replaceState = vi.spyOn(window.history, "replaceState");
+    useAuth.setState({ isLoading: true });
+
+    await useAuth.getState().initialize();
+
+    expect(setSession).toHaveBeenCalledWith({
+      access_token: "segredo",
+      refresh_token: "renovacao",
+    });
+    expect(replaceState).toHaveBeenCalledWith(window.history.state, "", "/");
   });
 });

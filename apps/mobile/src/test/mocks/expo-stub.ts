@@ -19,5 +19,8 @@ export const Stack = { Screen: () => null };
 export const Link = () => null;
 export const maybeCompleteAuthSession = vi.fn();
 export const openAuthSessionAsync = vi.fn();
+export const getInitialURL = vi.fn().mockResolvedValue(null);
+export const addEventListener = vi.fn().mockReturnValue({ remove: vi.fn() });
+export const createURL = vi.fn().mockReturnValue("lucrocaseiro://");
 
 export default {};

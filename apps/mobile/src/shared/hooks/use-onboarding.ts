@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 import { asyncStorage } from "../utils/async-storage";
+import { supabase } from "../utils/supabase";
 
 interface OnboardingState {
   completed: boolean;
@@ -22,7 +23,7 @@ interface OnboardingState {
   setBusinessType: (type: string) => void;
   setBusinessName: (name: string) => void;
   startOnboarding: (userId: string) => void;
-  completeOnboarding: (userId?: string | null) => void;
+  completeOnboarding: (userId?: string | null) => Promise<void>;
   dismissGettingStarted: () => void;
   reset: () => void;
 }
@@ -46,7 +47,12 @@ export const useOnboarding = create<OnboardingState>()(
             ? state.pendingUserIds
             : [...state.pendingUserIds, userId],
         })),
-      completeOnboarding: (userId) =>
+      completeOnboarding: async (userId) => {
+        const { error } = await supabase.auth.updateUser({
+          data: { onboarding_completed: true },
+        });
+        if (error) throw error;
+
         set((state) => ({
           completed: true,
           completedUserIds:
@@ -56,7 +62,8 @@ export const useOnboarding = create<OnboardingState>()(
           pendingUserIds: userId
             ? state.pendingUserIds.filter((id) => id !== userId)
             : state.pendingUserIds,
-        })),
+        }));
+      },
       dismissGettingStarted: () => set({ dismissedGettingStarted: true }),
       // Zera só o estado de sessão; `completedUserIds` é preservado de
       // propósito (memória por conta neste aparelho).

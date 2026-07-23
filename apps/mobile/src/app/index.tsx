@@ -48,7 +48,15 @@ export default function Index() {
 
   // Conta criada agora (ou neste aparelho antes da confirmação por e-mail)
   // sempre passa pelo onboarding, mesmo se o cadastro já trouxe nome do negócio.
-  if (needsOnboarding(userId, user?.created_at, pendingUserIds, Date.now())) {
+  if (
+    needsOnboarding(
+      userId,
+      user?.created_at,
+      pendingUserIds,
+      Date.now(),
+      user?.user_metadata?.onboarding_completed,
+    )
+  ) {
     return <Redirect href="/onboarding" />;
   }
 

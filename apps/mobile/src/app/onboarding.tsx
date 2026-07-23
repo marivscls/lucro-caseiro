@@ -42,6 +42,7 @@ import { desktopContained } from "../shared/layout/desktop-density";
 import { useOnboarding } from "../shared/hooks/use-onboarding";
 import { brandLogoById } from "../shared/brand-logo";
 import { getBrandDisplayName } from "../shared/brand-name";
+import { alertError } from "../shared/utils/alerts";
 
 // Nichos cobrindo todos os publicos do app (nao so comida). `db` e o valor
 // aceito pelo enum business_type do banco.
@@ -627,7 +628,12 @@ function BusinessNameStep({
 function DoneStep({
   onFinish,
   onFirstProduct,
-}: Readonly<{ onFinish: () => void; onFirstProduct: () => void }>) {
+  finishing,
+}: Readonly<{
+  onFinish: () => void;
+  onFirstProduct: () => void;
+  finishing: boolean;
+}>) {
   const { theme } = useTheme();
 
   return (
@@ -666,8 +672,15 @@ function DoneStep({
             <AppIcon name="add-circle" size={20} color={theme.colors.textOnPrimary} />
           }
           onPress={onFirstProduct}
+          loading={finishing}
         />
-        <Button title="Deixar para depois" size="lg" variant="ghost" onPress={onFinish} />
+        <Button
+          title="Deixar para depois"
+          size="lg"
+          variant="ghost"
+          onPress={onFinish}
+          disabled={finishing}
+        />
       </View>
     </View>
   );
@@ -684,6 +697,7 @@ export default function OnboardingScreen() {
   const updateProfile = useUpdateProfile();
   const { signOut, userId } = useAuth();
   const [switchingAccount, setSwitchingAccount] = useState(false);
+  const [finishing, setFinishing] = useState(false);
   const {
     currentStep,
     businessType,
@@ -705,15 +719,26 @@ export default function OnboardingScreen() {
       .catch(() => {});
   }
 
+  async function completeAndNavigate(destination: "/tabs" | "/products?from=onboarding") {
+    if (finishing) return;
+    setFinishing(true);
+    try {
+      await completeOnboarding(userId);
+      router.replace(destination);
+    } catch (error) {
+      alertError(error);
+    } finally {
+      setFinishing(false);
+    }
+  }
+
   function handleFinish() {
-    completeOnboarding(userId);
-    router.replace("/tabs");
+    void completeAndNavigate("/tabs");
   }
 
   // Primeira vitoria: leva direto ao cadastro do 1o produto.
   function handleFirstProduct() {
-    completeOnboarding(userId);
-    router.replace("/products?from=onboarding");
+    void completeAndNavigate("/products?from=onboarding");
   }
 
   async function handleSwitchAccount() {
@@ -774,7 +799,11 @@ export default function OnboardingScreen() {
         )}
 
         {currentStep === 3 && (
-          <DoneStep onFinish={handleFinish} onFirstProduct={handleFirstProduct} />
+          <DoneStep
+            onFinish={handleFinish}
+            onFirstProduct={handleFirstProduct}
+            finishing={finishing}
+          />
         )}
       </View>
     </SafeAreaView>

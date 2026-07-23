@@ -105,6 +105,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storage: ExpoSecureStoreAdapter as unknown as Storage,
     autoRefreshToken: true,
     persistSession: true,
+    flowType: Platform.OS === "web" ? "pkce" : "implicit",
     // No PWA, o proprio SDK aplica a sessao devolvida pelo OAuth na URL.
     // No nativo, o deep link continua sendo processado pelo useAuth.
     detectSessionInUrl: Platform.OS === "web",
