@@ -56,7 +56,7 @@ lucrocaseiro://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8083
    adb wait-for-device; adb shell getprop sys.boot_completed   # -> 1
    ```
 
-2. **Instalar o dev client** (uma vez por build). Logado no EAS como **`marivscls5`**
+2. **Instalar o dev client** (uma vez por build). Logado no EAS como **`marivscls`**
    (dono do projeto), gere e instale:
 
    ```powershell

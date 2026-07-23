@@ -31,6 +31,21 @@ npm run dev
 npx remotion render
 ```
 
+**Render Play Store video**
+
+```console
+npm run render:play-store
+```
+
+The Play Store composition is a 1920x1080, 27-second video built from the
+current Android screenshots in `public/play-store`.
+
+**Render Play Store screenshots**
+
+The still compositions under `Play-Store-Screenshots` preserve the real Android
+screens inside complete phone and tablet frames. Use `npx remotion still` with
+the corresponding composition ID to render each PNG.
+
 **Upgrade Remotion**
 
 ```console

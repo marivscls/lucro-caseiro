@@ -1,10 +1,10 @@
 import { formatCurrency } from "../../../shared/utils/format";
 import type { Packaging } from "@lucro-caseiro/contracts";
-import { Typography, useTheme, spacing, radii, fonts } from "@lucro-caseiro/ui";
+import { Button, Typography, useTheme, spacing, radii, fonts } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import type { AppIconName } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
-import { ActivityIndicator, Pressable, TextInput, View } from "react-native";
+import { Pressable, TextInput, View } from "react-native";
 
 import { StandardModal } from "../../../shared/components/standard-modal";
 import {
@@ -301,35 +301,20 @@ export function PackagingForm({
               Cancelar
             </Typography>
           </Pressable>
-          <Pressable
+          <Button
+            title={isEditing ? "Salvar" : "Cadastrar"}
+            size="lg"
+            compact
+            icon={
+              <AppIcon name="save-outline" size={22} color={theme.colors.textOnPrimary} />
+            }
             onPress={() => {
               if (!saving) void handleSave();
             }}
             disabled={saving}
-            accessibilityRole="button"
-            style={({ pressed }) => [
-              {
-                minHeight: 58,
-                borderRadius: radii.lg,
-                backgroundColor: theme.colors.primary,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: spacing.sm,
-                opacity: pressed || saving ? 0.85 : 1,
-              },
-              { flex: 1 },
-            ]}
-          >
-            {saving ? (
-              <ActivityIndicator color={theme.colors.textOnPrimary} />
-            ) : (
-              <AppIcon name="save-outline" size={22} color={theme.colors.textOnPrimary} />
-            )}
-            <Typography variant="h3" color={theme.colors.textOnPrimary}>
-              {isEditing ? "Salvar" : "Cadastrar embalagem"}
-            </Typography>
-          </Pressable>
+            loading={saving}
+            style={{ flex: 1 }}
+          />
         </>
       }
     >

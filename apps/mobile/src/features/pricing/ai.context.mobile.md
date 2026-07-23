@@ -94,7 +94,7 @@ As funções de cálculo vivem em `packages/contracts/src/pricing-calculator.ts`
 
 - **Erro de salvamento:** tratado pelo estado da mutation (isPending/isError).
 - **Validacao local:** insumos sao obrigatorios; mao de obra e rateio podem ficar zerados, mas, quando iniciados, exigem todas as premissas necessarias.
-- **Sucesso ao salvar:** `Alert.alert("Calculo salvo!")` + `router.back()`.
+- **Sucesso ao salvar:** confirma "Cálculo salvo!" e o botão "Ver histórico" abre o histórico compartilhado com o novo cálculo no topo.
 
 ## Performance
 

@@ -86,4 +86,6 @@ tags:
     visible:
       text: ".*(Cálculo salvo|salvo).*"
     timeout: 10000
+- tapOn: "Ver histórico"
+- assertVisible: "Histórico"
 - takeScreenshot: .maestro/screenshots/15-precificacao

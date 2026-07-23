@@ -50,7 +50,7 @@ export default function SimplePricingScreen() {
           showAlert({
             title: "Cálculo salvo!",
             message: "Sua precificação foi salva com sucesso.",
-            buttons: [{ text: "OK", onPress: leavePricing }],
+            buttons: [{ text: "Ver histórico", onPress: () => setShowHistory(true) }],
           });
         }}
       />
