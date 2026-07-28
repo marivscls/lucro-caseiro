@@ -847,3 +847,4 @@
 {"deferred":1,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-07-27T14:39:07.650669200+00:00"}
 {"deferred":1,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-07-27T14:46:16.082329800+00:00"}
 {"deferred":1,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-07-27T14:53:46.598675400+00:00"}
+{"deferred":1,"linked":0,"materialized":1,"min_occurrences":3,"observed":0,"promoted":[{"name":"Live scars fan-out (3->1)","occurrences":9,"recipe_id":"live-scars-15148209c2","structural_key":"run:harness:scars"}],"skipped":0,"ts":"2026-07-28T21:48:12.610033600+00:00"}

@@ -1,5 +1,5 @@
 {
-  "compiled_at": "2026-07-25T17:11:18.523504300+00:00",
+  "compiled_at": "2026-07-28T21:48:12.608308700+00:00",
   "description": "Materialized from a compile candidate sequence.",
   "id": "live-scars-15148209c2",
   "name": "Live scars fan-out (3->1)",
@@ -14,13 +14,13 @@
     "recipe": {
       "items": [
         {
-          "domain": "scripts"
+          "domain": "pricing"
         },
         {
-          "domain": "build"
+          "domain": "ui"
         },
         {
-          "domain": "dev"
+          "domain": "backend"
         }
       ],
       "kind": "fan_out",
@@ -37,5 +37,5 @@
   "schema": 2,
   "source": "workspace",
   "status": "ready",
-  "version": 7
+  "version": 8
 }
