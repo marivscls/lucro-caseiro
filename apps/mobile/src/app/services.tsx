@@ -1,6 +1,7 @@
 import type { Service } from "@lucro-caseiro/contracts";
 import {
   Badge,
+  type BadgeVariant,
   Button,
   Card,
   Chip,
@@ -13,12 +14,22 @@ import {
 } from "@lucro-caseiro/ui";
 import { Stack, useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
-import { FlatList, View } from "react-native";
+import { FlatList, Image, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
+import servicesEmpty from "../assets/services-empty-transparent.png";
 import { ServiceForm } from "../features/services/components/service-form";
+import {
+  buildServiceOverview,
+  calculateStoredServicePricing,
+  filterServices,
+  serviceHasCostData,
+  servicePriceHealth,
+  type ServiceFilter,
+} from "../features/services/domain";
 import { useServices } from "../features/services/hooks";
 import { AppIcon } from "../shared/components/app-icon";
+import type { AppIconName } from "../shared/components/app-icon";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { SkeletonList } from "../shared/components/skeleton";
 import {
@@ -36,11 +47,85 @@ function durationLabel(minutes: number): string {
   return remaining ? `${hours}h ${remaining}min` : `${hours}h`;
 }
 
+function ServiceMetricCard({
+  icon,
+  label,
+  value,
+  hint,
+  compact,
+}: Readonly<{
+  icon: AppIconName;
+  label: string;
+  value: string;
+  hint: string;
+  compact: boolean;
+}>) {
+  const { theme } = useTheme();
+  return (
+    <Card
+      variant="elevated"
+      padding="lg"
+      style={{
+        flex: 1,
+        flexBasis: compact ? "46%" : 0,
+        minWidth: compact ? 140 : 180,
+        gap: spacing.sm,
+      }}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+        <View
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: radii.full,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: theme.colors.surface,
+          }}
+        >
+          <AppIcon name={icon} size={20} color={theme.colors.textSecondary} />
+        </View>
+        <Typography
+          variant="caption"
+          color={theme.colors.textSecondary}
+          style={{ flex: 1 }}
+        >
+          {label}
+        </Typography>
+      </View>
+      <Typography variant="h3">{value}</Typography>
+      <Typography variant="caption" color={theme.colors.textSecondary}>
+        {hint}
+      </Typography>
+    </Card>
+  );
+}
+
+function priceHealthBadge(service: Service): {
+  label: string;
+  variant: BadgeVariant;
+} {
+  const health = servicePriceHealth(service);
+  if (health === "missing-price") {
+    return { label: "Preço a definir", variant: "warning" };
+  }
+  if (health === "below-cost") {
+    return { label: "Abaixo do custo", variant: "danger" };
+  }
+  if (health === "costed") {
+    return { label: "Custos conferidos", variant: "success" };
+  }
+  return { label: "Preço definido", variant: "info" };
+}
+
 function ServiceCard({
   service,
   onPress,
 }: Readonly<{ service: Service; onPress: () => void }>) {
   const { theme } = useTheme();
+  const health = priceHealthBadge(service);
+  const pricing = calculateStoredServicePricing(service);
+  const hasCostData = serviceHasCostData(service);
   return (
     <Card
       variant="elevated"
@@ -64,14 +149,17 @@ function ServiceCard({
             color={theme.colors.primaryStrong}
           />
         </View>
-        <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+        <View style={{ flex: 1, minWidth: 0, gap: spacing.sm }}>
           <Typography variant="bodyBold" numberOfLines={1}>
             {service.name}
           </Typography>
-          <Badge
-            label={service.active ? "Ativo" : "Inativo"}
-            variant={service.active ? "success" : "neutral"}
-          />
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.xs }}>
+            <Badge
+              label={service.active ? "Disponível" : "Pausado"}
+              variant={service.active ? "success" : "neutral"}
+            />
+            <Badge label={health.label} variant={health.variant} />
+          </View>
         </View>
       </View>
 
@@ -111,10 +199,43 @@ function ServiceCard({
           }
         >
           {service.defaultPrice == null
-            ? "Sem preço"
+            ? "Valor combinado"
             : formatCurrency(service.defaultPrice)}
         </Typography>
       </View>
+
+      {hasCostData ? (
+        <View
+          style={{
+            borderTopWidth: 1,
+            borderTopColor: theme.colors.border,
+            paddingTop: spacing.md,
+            flexDirection: "row",
+            gap: spacing.lg,
+          }}
+        >
+          <View style={{ flex: 1, gap: spacing.xs }}>
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              Custo estimado
+            </Typography>
+            <Typography variant="bodyBold">
+              {formatCurrency(pricing.totalCost)}
+            </Typography>
+          </View>
+          <View style={{ flex: 1, gap: spacing.xs }}>
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              Preço sugerido
+            </Typography>
+            <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+              {formatCurrency(pricing.suggestedPrice)}
+            </Typography>
+          </View>
+        </View>
+      ) : (
+        <Typography variant="caption" color={theme.colors.textSecondary}>
+          Adicione seus custos para conferir se o preço cobre o atendimento.
+        </Typography>
+      )}
     </Card>
   );
 }
@@ -127,20 +248,21 @@ export default function ServicesScreen() {
   const servicesQuery = useServices();
   const services = servicesQuery.data ?? [];
   const [search, setSearch] = useState("");
-  const [showInactive, setShowInactive] = useState(false);
+  const [filter, setFilter] = useState<ServiceFilter>("active");
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [showCreate, setShowCreate] = useState(false);
 
-  const visibleServices = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase("pt-BR");
-    return services.filter(
-      (service) =>
-        (showInactive || service.active) &&
-        (!query ||
-          service.name.toLocaleLowerCase("pt-BR").includes(query) ||
-          service.description?.toLocaleLowerCase("pt-BR").includes(query)),
-    );
-  }, [search, services, showInactive]);
+  const overview = useMemo(() => buildServiceOverview(services), [services]);
+  const visibleServices = useMemo(
+    () => filterServices(services, filter, search),
+    [filter, search, services],
+  );
+  const averagePriceLabel =
+    overview.averagePrice == null ? "—" : formatCurrency(overview.averagePrice);
+  const averageDurationLabel =
+    overview.averageDurationMinutes == null
+      ? "—"
+      : durationLabel(overview.averageDurationMinutes);
 
   function goBack() {
     if (router.canGoBack()) router.back();
@@ -179,42 +301,54 @@ export default function ServicesScreen() {
     }
 
     if (visibleServices.length === 0) {
-      const hasOnlyInactiveServices = services.length > 0 && !showInactive;
-      let emptyTitle = "Nenhum serviço ainda";
+      let emptyTitle = "Nenhum serviço disponível";
       let emptyDescription =
-        "Cadastre seu primeiro serviço para organizar preços e atendimentos.";
-      if (hasOnlyInactiveServices) {
-        emptyTitle = "Nenhum serviço ativo";
-        emptyDescription = "Veja todos os serviços para reativar um cadastro.";
+        "Os serviços pausados continuam guardados e podem ser retomados quando quiser.";
+      let emptyActionTitle: string | undefined;
+      let onEmptyAction: (() => void) | undefined;
+
+      if (services.length === 0) {
+        emptyTitle = "Comece pelo seu primeiro serviço";
+        emptyDescription =
+          "Cadastre qualquer trabalho que você oferece, defina o tempo e escolha se quer informar um preço.";
+        emptyActionTitle = "Cadastrar serviço";
+        onEmptyAction = () => setShowCreate(true);
+      } else if (filter === "active") {
+        emptyActionTitle = "Ver pausados";
+        onEmptyAction = () => setFilter("inactive");
+      } else if (filter === "inactive") {
+        emptyTitle = "Nenhum serviço pausado";
+        emptyDescription = "Seus serviços disponíveis continuam aparecendo normalmente.";
+      } else if (filter === "review") {
+        emptyTitle = "Preços em dia";
+        emptyDescription =
+          "Nenhum serviço disponível está sem preço ou abaixo do custo informado.";
       }
       if (search) {
-        emptyTitle = "Nenhum serviço encontrado";
-        emptyDescription = "Tente buscar por outro nome.";
+        emptyTitle = "Nenhum resultado encontrado";
+        emptyDescription = "Tente buscar por outro nome ou descrição.";
+        emptyActionTitle = undefined;
+        onEmptyAction = undefined;
       }
-      const emptyActionTitle = hasOnlyInactiveServices
-        ? "Ver todos"
-        : "Cadastrar serviço";
 
       return (
         <View style={{ flex: 1, ...pageGutter(isDesktop) }}>
           <EmptyState
             icon={
-              <AppIcon name="briefcase-outline" size={76} color={theme.colors.primary} />
+              <Image
+                source={servicesEmpty}
+                resizeMode="contain"
+                style={{
+                  width: isDesktop ? 240 : 220,
+                  height: isDesktop ? 240 : 220,
+                }}
+              />
             }
             title={emptyTitle}
             description={emptyDescription}
             action={
-              !search ? (
-                <Button
-                  title={emptyActionTitle}
-                  onPress={() => {
-                    if (services.length > 0 && !showInactive) {
-                      setShowInactive(true);
-                      return;
-                    }
-                    setShowCreate(true);
-                  }}
-                />
+              emptyActionTitle && onEmptyAction ? (
+                <Button title={emptyActionTitle} onPress={onEmptyAction} />
               ) : undefined
             }
           />
@@ -258,12 +392,57 @@ export default function ServicesScreen() {
       >
         <ScreenHeader
           title="Serviços"
-          subtitle={`${services.length} ${
-            services.length === 1 ? "serviço cadastrado" : "serviços cadastrados"
-          }`}
+          subtitle={`${overview.activeCount} disponíveis de ${overview.totalCount} cadastrados`}
           onBack={goBack}
           hideBack={isDesktop}
         />
+
+        {!servicesQuery.isLoading && !servicesQuery.error && services.length > 0 ? (
+          <View
+            style={{
+              ...pageGutter(isDesktop),
+              gap: spacing.md,
+              paddingBottom: spacing.lg,
+            }}
+          >
+            <View style={{ gap: spacing.xs }}>
+              <Typography variant="bodyBold">Visão geral</Typography>
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                Um retrato rápido dos serviços disponíveis para novos atendimentos.
+              </Typography>
+            </View>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
+              <ServiceMetricCard
+                icon="briefcase-outline"
+                label="Disponíveis"
+                value={String(overview.activeCount)}
+                hint={`de ${overview.totalCount} cadastrados`}
+                compact={!isDesktop}
+              />
+              <ServiceMetricCard
+                icon="cash-outline"
+                label="Preço médio"
+                value={averagePriceLabel}
+                hint={`${overview.pricedCount} com preço definido`}
+                compact={!isDesktop}
+              />
+              <ServiceMetricCard
+                icon="time-outline"
+                label="Duração média"
+                value={averageDurationLabel}
+                hint="por atendimento"
+                compact={!isDesktop}
+              />
+              <ServiceMetricCard
+                icon="alert-circle-outline"
+                label="Revisar preço"
+                value={String(overview.attentionCount)}
+                hint="sem preço ou abaixo do custo"
+                compact={!isDesktop}
+              />
+            </View>
+          </View>
+        ) : null}
 
         <View
           style={{
@@ -273,7 +452,7 @@ export default function ServicesScreen() {
           }}
         >
           <Input
-            placeholder="Buscar serviço"
+            placeholder="Buscar por nome ou descrição"
             value={search}
             onChangeText={setSearch}
             icon={
@@ -290,14 +469,24 @@ export default function ServicesScreen() {
           />
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
             <Chip
-              label="Ativos"
-              selected={!showInactive}
-              onPress={() => setShowInactive(false)}
+              label="Disponíveis"
+              selected={filter === "active"}
+              onPress={() => setFilter("active")}
+            />
+            <Chip
+              label="Revisar preço"
+              selected={filter === "review"}
+              onPress={() => setFilter("review")}
+            />
+            <Chip
+              label="Pausados"
+              selected={filter === "inactive"}
+              onPress={() => setFilter("inactive")}
             />
             <Chip
               label="Todos"
-              selected={showInactive}
-              onPress={() => setShowInactive(true)}
+              selected={filter === "all"}
+              onPress={() => setFilter("all")}
             />
           </View>
         </View>
@@ -314,7 +503,7 @@ export default function ServicesScreen() {
             }}
           >
             <Button
-              title="Novo serviço"
+              title="Cadastrar serviço"
               onPress={() => setShowCreate(true)}
               icon={<AppIcon name="add" size={20} color={theme.colors.textOnPrimary} />}
             />

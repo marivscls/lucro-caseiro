@@ -1,6 +1,32 @@
+import type { Service } from "@lucro-caseiro/contracts";
 import { describe, expect, it } from "vitest";
 
-import { calculateServicePricing } from "./domain";
+import {
+  buildServiceOverview,
+  calculateServicePricing,
+  filterServices,
+  servicePriceHealth,
+} from "./domain";
+
+function makeService(overrides: Partial<Service> = {}): Service {
+  return {
+    id: "123e4567-e89b-12d3-a456-426614174000",
+    userId: "123e4567-e89b-12d3-a456-426614174001",
+    name: "Consulta",
+    description: "Atendimento online",
+    durationMinutes: 60,
+    defaultPrice: 120,
+    materialCost: 0,
+    hourlyRate: 50,
+    otherCost: 0,
+    fixedCostShare: 10,
+    markupPercent: 50,
+    feesPercent: 0,
+    active: true,
+    createdAt: "2026-07-28T12:00:00.000Z",
+    ...overrides,
+  };
+}
 
 describe("calculateServicePricing", () => {
   it("uses duration and hourly rate to calculate labor", () => {
@@ -52,5 +78,74 @@ describe("calculateServicePricing", () => {
       suggestedPrice: 0,
       feesAmount: 0,
     });
+  });
+
+  it("flags missing prices and prices below the informed cost", () => {
+    expect(servicePriceHealth(makeService({ defaultPrice: null }))).toBe("missing-price");
+    expect(servicePriceHealth(makeService({ defaultPrice: 40 }))).toBe("below-cost");
+    expect(
+      servicePriceHealth(
+        makeService({
+          defaultPrice: 65,
+          feesPercent: 10,
+        }),
+      ),
+    ).toBe("below-cost");
+    expect(servicePriceHealth(makeService({ defaultPrice: 120 }))).toBe("costed");
+    expect(
+      servicePriceHealth(
+        makeService({
+          hourlyRate: 0,
+          fixedCostShare: 0,
+          defaultPrice: 120,
+        }),
+      ),
+    ).toBe("price-only");
+  });
+
+  it("builds an overview from active services without counting paused services", () => {
+    const overview = buildServiceOverview([
+      makeService({ id: "service-1", defaultPrice: 100, durationMinutes: 60 }),
+      makeService({ id: "service-2", defaultPrice: null, durationMinutes: 90 }),
+      makeService({
+        id: "service-3",
+        active: false,
+        defaultPrice: 500,
+        durationMinutes: 180,
+      }),
+    ]);
+
+    expect(overview).toEqual({
+      totalCount: 3,
+      activeCount: 2,
+      pricedCount: 1,
+      attentionCount: 1,
+      averagePrice: 100,
+      averageDurationMinutes: 75,
+    });
+  });
+
+  it("filters by price review and searches name or description", () => {
+    const services = [
+      makeService({ id: "service-1", name: "Aula particular", defaultPrice: null }),
+      makeService({
+        id: "service-2",
+        name: "Instalação",
+        description: "Atendimento no endereço do cliente",
+        defaultPrice: 200,
+      }),
+      makeService({
+        id: "service-3",
+        name: "Serviço pausado",
+        active: false,
+        defaultPrice: null,
+      }),
+    ];
+
+    expect(filterServices(services, "review", "")).toHaveLength(1);
+    expect(
+      filterServices(services, "all", "endereço").map((service) => service.id),
+    ).toEqual(["service-2"]);
+    expect(filterServices(services, "inactive", "")).toHaveLength(1);
   });
 });

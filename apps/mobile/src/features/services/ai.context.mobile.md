@@ -8,6 +8,9 @@ Gerenciar serviços como cadastro separado de produtos, guardar duração e pre�
 padrão, conferir opcionalmente a formação do preço e reutilizar serviços ativos na
 Agenda.
 
+A tela é propositalmente neutra em relação à profissão: atende desde beleza e
+manutenção até consultoria, aulas, criação e serviços presenciais ou online.
+
 ## Non-goals
 
 - Não controla estoque.
@@ -36,7 +39,8 @@ Agenda.
 - `ServiceForm` — modal canônico de criação e edição. Valida nome, duração,
   duplicidade e campos financeiros antes de chamar as mutations.
 - `app/services.tsx` — lista serviços ativos e inativos, abre o formulário e
-  apresenta as ações de gestão.
+  apresenta visão geral, filtros de disponibilidade/revisão e sinais de saúde do
+  preço.
 
 ## Hooks
 
@@ -53,6 +57,10 @@ Agenda.
 - O formulário não presume custos.
 - Markup é apresentado como “acréscimo sobre o custo”, nunca como margem.
 - Inativos continuam visíveis na gestão e deixam de aparecer na Agenda.
+- Serviço disponível sem preço ou abaixo do custo informado entra no filtro de
+  revisão.
+- Resumos consideram somente serviços disponíveis; cadastros pausados não distorcem
+  preço médio nem duração média.
 
 ## API Integration
 
@@ -91,6 +99,9 @@ Agenda.
 - acréscimo sobre custo;
 - gross-up de taxas;
 - ausência de premissas quando os campos estão zerados.
+- classificação de preço ausente ou abaixo do custo;
+- visão geral somente com serviços disponíveis;
+- filtros por disponibilidade e revisão de preço.
 
 ## Examples
 
@@ -110,3 +121,5 @@ const pricing = calculateServicePricing({
 
 - 2026-07-28: serviços passam a coexistir com produtos e ganham rota de gestão,
   formação opcional de preço e integração com a Agenda.
+- 2026-07-28: a gestão passa a representar prestadores em geral, com visão
+  operacional, filtros de revisão, cards financeiros e exemplos neutros.

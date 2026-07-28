@@ -33,6 +33,7 @@ import recipesHowItWorks from "../assets/recipes-how-it-works.png";
 import recurringExpensesHero from "../assets/recurring-expenses-hero.png";
 import salesEmpty from "../assets/sales-empty.png";
 import salesEmptyV2 from "../assets/sales-empty-v2.png";
+import servicesEmpty from "../assets/services-empty-transparent.png";
 import successChecklist from "../assets/success-checklist.png";
 import successGrowth from "../assets/success-growth.png";
 import successModalFrame from "../assets/success-modal-frame.png";
@@ -71,6 +72,7 @@ const staticImageAssets: readonly ImageSourcePropType[] = [
   recurringExpensesHero,
   salesEmpty,
   salesEmptyV2,
+  servicesEmpty,
   successChecklist,
   successGrowth,
   successModalFrame,

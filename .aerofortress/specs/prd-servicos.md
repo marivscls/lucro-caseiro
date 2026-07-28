@@ -6,16 +6,28 @@ Adicionar serviços como cadastro de primeira classe, separado de produtos, para
 prestadores organizem atendimentos, confiram a formação do preço e reutilizem o
 cadastro na Agenda.
 
+A experiência deve atender profissionais em geral — de beleza, manutenção,
+consultoria, aulas, criação, eventos e atendimento online ou presencial — sem
+presumir que o serviço pertence a um segmento específico.
+
 ## Escopo
 
 - Nova rota autenticada `/services`, acessível pelo menu Mais e pela navegação desktop.
 - Lista pesquisável de serviços ativos e inativos.
+- Visão geral com serviços disponíveis, preço médio, duração média e cadastros que
+  precisam revisar o preço.
+- Filtros por disponíveis, pausados, todos e serviços sem preço ou abaixo do custo
+  informado.
+- Cards operacionais com disponibilidade, duração, preço cobrado, custo estimado e
+  preço sugerido quando houver dados suficientes.
 - Criação e edição com:
   - nome;
   - descrição opcional;
   - duração em minutos;
   - preço padrão opcional;
   - situação ativa/inativa.
+- Atalhos de duração para os tempos mais comuns, sem impedir valores livres.
+- Linguagem e exemplos neutros para diferentes modalidades de prestação de serviço.
 - Conferência opcional de preço com:
   - custo agregado de materiais;
   - valor da hora;
@@ -38,6 +50,10 @@ cadastro na Agenda.
 - O resultado é uma estimativa baseada apenas nos dados informados.
 - “Acréscimo sobre o custo” não deve ser chamado de margem de lucro.
 - Nenhuma premissa de custo ou produção é preenchida silenciosamente.
+- “Disponível” significa que o serviço pode ser escolhido em um novo agendamento;
+  “Pausado” preserva o cadastro e o histórico.
+- Um serviço disponível sem preço, ou com preço abaixo do custo estimado informado,
+  aparece como item a revisar.
 
 ## Fora do escopo inicial
 
@@ -56,3 +72,7 @@ cadastro na Agenda.
 5. Um serviço ativo aparece na Agenda e preenche duração e preço padrão.
 6. Serviço inativo permanece gerenciável, mas não aparece para um novo pedido.
 7. Contratos, API, persistência e UI passam em testes, lint de contexto e typecheck.
+8. A tela oferece uma visão operacional dos serviços, sem exigir que a pessoa abra
+   cada cadastro para descobrir duração, preço ou situação da formação de custo.
+9. Textos e exemplos são compreensíveis para diferentes profissões e modalidades de
+   atendimento.

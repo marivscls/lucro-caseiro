@@ -5,12 +5,14 @@ import {
   Chip,
   Input,
   Typography,
+  radii,
   spacing,
   useTheme,
 } from "@lucro-caseiro/ui";
 import React, { useMemo, useState } from "react";
 import { View } from "react-native";
 
+import { AppIcon } from "../../../shared/components/app-icon";
 import { FormSection } from "../../../shared/components/form-section";
 import { StandardModal } from "../../../shared/components/standard-modal";
 import { alertError, alertValidation } from "../../../shared/utils/alerts";
@@ -47,6 +49,13 @@ function percentageInput(value: string): string {
 function initialMoney(value?: number | null): string {
   return value == null || value === 0 ? "" : currencyInput(value);
 }
+
+const DURATION_PRESETS = [
+  { label: "30 min", value: "30" },
+  { label: "1 hora", value: "60" },
+  { label: "1h30", value: "90" },
+  { label: "2 horas", value: "120" },
+] as const;
 
 export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFormProps) {
   const { theme } = useTheme();
@@ -102,6 +111,8 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
       otherCost,
     ],
   );
+  const priceAfterFees =
+    moneyValue(defaultPrice) * (1 - Math.min(numberValue(feesPercent), 95) / 100);
 
   const saving = createService.isPending || updateService.isPending;
 
@@ -176,7 +187,8 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
       visible={visible}
       onClose={onClose}
       title={service ? "Editar serviço" : "Novo serviço"}
-      subtitle="Dados do atendimento e preço"
+      subtitle="Organize o que você oferece, o tempo e o preço"
+      wide
       footer={
         <>
           <Button
@@ -195,22 +207,58 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
         </>
       }
     >
+      <Card
+        variant="elevated"
+        style={{
+          flexDirection: "row",
+          alignItems: "flex-start",
+          gap: spacing.md,
+          backgroundColor: theme.colors.surface,
+        }}
+      >
+        <View
+          style={{
+            width: 44,
+            height: 44,
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: radii.full,
+            backgroundColor: theme.colors.primaryBg,
+          }}
+        >
+          <AppIcon
+            name="briefcase-outline"
+            size={22}
+            color={theme.colors.primaryStrong}
+          />
+        </View>
+        <View style={{ flex: 1, gap: spacing.xs }}>
+          <Typography variant="bodyBold">
+            Serve para diferentes tipos de trabalho
+          </Typography>
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            Cadastre atendimentos presenciais, online ou no endereço do cliente:
+            consultas, aulas, beleza, manutenção, instalação, criação e outros.
+          </Typography>
+        </View>
+      </Card>
+
       <FormSection
-        title="Informações básicas"
-        subtitle="Nome, duração e preço cobrado"
+        title="Como o serviço funciona"
+        subtitle="O que a pessoa recebe, quanto tempo leva e quanto custa"
         icon="briefcase-outline"
         initiallyOpen
       >
         <Input
           label="Nome do serviço"
-          placeholder="Ex: Manutenção de unhas"
+          placeholder="Ex.: Consulta, corte, instalação ou aula"
           value={name}
           onChangeText={setName}
           maxLength={120}
         />
         <Input
           label="Descrição (opcional)"
-          placeholder="O que está incluído neste serviço?"
+          placeholder="Explique o que está incluído, o formato e onde acontece"
           value={description}
           onChangeText={setDescription}
           maxLength={500}
@@ -230,7 +278,7 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
             containerStyle={{ flex: 1, minWidth: 180 }}
           />
           <Input
-            label="Preço padrão"
+            label="Preço cobrado (opcional)"
             placeholder="R$ 0,00"
             value={defaultPrice}
             onChangeText={(value) => setDefaultPrice(maskCurrencyInput(value))}
@@ -238,21 +286,48 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
             containerStyle={{ flex: 1, minWidth: 180 }}
           />
         </View>
+        <View style={{ gap: spacing.sm }}>
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            Atalhos de duração
+          </Typography>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+            {DURATION_PRESETS.map((preset) => (
+              <Chip
+                key={preset.value}
+                label={preset.label}
+                selected={durationMinutes === preset.value}
+                onPress={() => setDurationMinutes(preset.value)}
+              />
+            ))}
+          </View>
+        </View>
+        <Typography variant="caption" color={theme.colors.textSecondary}>
+          Se o preço variar conforme o atendimento, deixe em branco e combine o valor ao
+          criar o agendamento.
+        </Typography>
+        <Typography variant="bodyBold">Disponibilidade</Typography>
+        <Typography variant="caption" color={theme.colors.textSecondary}>
+          Serviços disponíveis aparecem para novos agendamentos. Pausar preserva o
+          histórico.
+        </Typography>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-          <Chip label="Ativo" selected={active} onPress={() => setActive(true)} />
-          <Chip label="Inativo" selected={!active} onPress={() => setActive(false)} />
+          <Chip label="Disponível" selected={active} onPress={() => setActive(true)} />
+          <Chip label="Pausado" selected={!active} onPress={() => setActive(false)} />
         </View>
       </FormSection>
 
       <FormSection
-        title="Conferir formação do preço"
-        subtitle="Opcional; nenhuma premissa é preenchida automaticamente"
+        title="Custos e preço sugerido"
+        subtitle="Opcional; preencha somente o que se aplica ao seu trabalho"
         icon="calculator-outline"
         initiallyOpen={hasPricingData}
       >
+        <Typography variant="caption" color={theme.colors.textSecondary}>
+          Campos vazios valem zero. O cálculo usa apenas os valores que você informar.
+        </Typography>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
           <Input
-            label="Materiais utilizados"
+            label="Materiais e insumos"
             placeholder="R$ 0,00"
             value={materialCost}
             onChangeText={(value) => setMaterialCost(maskCurrencyInput(value))}
@@ -260,7 +335,7 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
             containerStyle={{ flex: 1, minWidth: 180 }}
           />
           <Input
-            label="Valor da sua hora"
+            label="Valor da sua hora de trabalho"
             placeholder="R$ 0,00"
             value={hourlyRate}
             onChangeText={(value) => setHourlyRate(maskCurrencyInput(value))}
@@ -268,7 +343,7 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
             containerStyle={{ flex: 1, minWidth: 180 }}
           />
           <Input
-            label="Outros custos"
+            label="Deslocamento e outros custos"
             placeholder="R$ 0,00"
             value={otherCost}
             onChangeText={(value) => setOtherCost(maskCurrencyInput(value))}
@@ -284,7 +359,7 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
             containerStyle={{ flex: 1, minWidth: 180 }}
           />
           <Input
-            label="Acréscimo sobre o custo (%)"
+            label="Acréscimo desejado sobre o custo (%)"
             placeholder="0"
             value={markupPercent}
             onChangeText={(value) => setMarkupPercent(percentageInput(value))}
@@ -292,7 +367,7 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
             containerStyle={{ flex: 1, minWidth: 180 }}
           />
           <Input
-            label="Taxas sobre a venda (%)"
+            label="Taxas de pagamento ou plataforma (%)"
             placeholder="0"
             value={feesPercent}
             onChangeText={(value) => setFeesPercent(percentageInput(value))}
@@ -310,10 +385,10 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
         >
           <Typography variant="bodyBold">Estimativa com os dados informados</Typography>
           <Typography variant="body">
-            Mão de obra: {formatCurrency(pricing.laborCost)}
+            Seu tempo de trabalho: {formatCurrency(pricing.laborCost)}
           </Typography>
           <Typography variant="body">
-            Custo total: {formatCurrency(pricing.totalCost)}
+            Custo estimado do atendimento: {formatCurrency(pricing.totalCost)}
           </Typography>
           <Typography variant="h3" color={theme.colors.primaryStrong}>
             Preço sugerido: {formatCurrency(pricing.suggestedPrice)}
@@ -323,6 +398,14 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
               Inclui {formatCurrency(pricing.feesAmount)} para cobrir as taxas informadas.
             </Typography>
           ) : null}
+          {defaultPrice && pricing.totalCost > 0 && priceAfterFees < pricing.totalCost ? (
+            <Typography variant="caption" color={theme.colors.alert}>
+              Depois das taxas, o preço cobrado fica abaixo do custo estimado.
+            </Typography>
+          ) : null}
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            Esta estimativa não inclui valores que você deixou em branco.
+          </Typography>
           <Button
             title="Usar como preço padrão"
             variant="secondary"
