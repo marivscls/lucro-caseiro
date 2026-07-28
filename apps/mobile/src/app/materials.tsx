@@ -22,6 +22,11 @@ import { useLowStockMaterials, useMaterials } from "../features/materials/hooks"
 import materialsEmpty from "../assets/materials-empty.png";
 import { useNotificationEnabled } from "../shared/hooks/notification-prefs";
 import { NOTIFICATION_TYPES } from "../shared/hooks/notification-types";
+import {
+  desktopStretch,
+  desktopWidths,
+  pageGutter,
+} from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { SkeletonList } from "../shared/components/skeleton";
@@ -127,8 +132,15 @@ function MaterialsScreenContent() {
   function renderContent() {
     if (isLoading) {
       return (
-        <View style={{ flex: 1, padding: spacing.xl }}>
-          <SkeletonList rows={6} />
+        <View
+          style={{
+            flex: 1,
+            paddingVertical: spacing.xl,
+            ...pageGutter(isDesktop),
+            ...desktopStretch(isDesktop, desktopWidths.data),
+          }}
+        >
+          <SkeletonList rows={6} variant="material" />
         </View>
       );
     }
@@ -147,7 +159,10 @@ function MaterialsScreenContent() {
             <Image
               source={materialsEmpty}
               resizeMode="contain"
-              style={{ width: 146, height: 146 }}
+              style={{
+                width: isDesktop ? 240 : 220,
+                height: isDesktop ? 240 : 220,
+              }}
             />
           }
           title="Nenhum insumo ainda"
@@ -162,9 +177,11 @@ function MaterialsScreenContent() {
         <View
           style={{
             flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            padding: spacing.xl,
+            justifyContent: isDesktop ? "flex-start" : "center",
+            ...(isDesktop ? undefined : { alignItems: "center" }),
+            paddingVertical: spacing.xl,
+            ...pageGutter(isDesktop),
+            ...desktopStretch(isDesktop, desktopWidths.data),
             gap: spacing.md,
           }}
         >
@@ -174,7 +191,7 @@ function MaterialsScreenContent() {
             style={{ textAlign: "center" }}
           >
             {lowFilterEmpty
-              ? "Nenhum insumo com estoque baixo. Está tudo em dia! 🎉"
+              ? "Nenhum insumo com estoque baixo. Está tudo em dia!"
               : "Nenhum insumo encontrado. Ajuste a busca ou o filtro."}
           </Typography>
           {lowOnly ? (
@@ -191,19 +208,31 @@ function MaterialsScreenContent() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingHorizontal: spacing.xl,
+          ...pageGutter(isDesktop),
+          ...desktopStretch(isDesktop, desktopWidths.data),
           paddingTop: spacing.xl,
           paddingBottom: spacing.lg,
           gap: spacing.md,
+          ...(isDesktop ? { flexDirection: "row", flexWrap: "wrap" } : undefined),
         }}
       >
-        <LowStockBanner />
+        <View style={isDesktop ? { width: "100%" } : undefined}>
+          <LowStockBanner />
+        </View>
         {visible.map((material) => (
-          <MaterialCard
+          <View
             key={material.id}
-            material={material}
-            onPress={() => setSelectedId(material.id)}
-          />
+            style={
+              isDesktop
+                ? { width: "31%", flexGrow: 1, minWidth: 280 }
+                : { width: "100%" }
+            }
+          >
+            <MaterialCard
+              material={material}
+              onPress={() => setSelectedId(material.id)}
+            />
+          </View>
         ))}
       </ScrollView>
     );
@@ -261,7 +290,15 @@ function MaterialsScreenContent() {
       />
 
       {searchOpen ? (
-        <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.sm }}>
+        <View
+          style={{
+            ...pageGutter(isDesktop, spacing.lg),
+            paddingBottom: spacing.sm,
+            ...(isDesktop
+              ? { alignSelf: "flex-start", maxWidth: 480, width: "100%" }
+              : undefined),
+          }}
+        >
           <View
             style={{
               minHeight: 48,
@@ -293,7 +330,7 @@ function MaterialsScreenContent() {
       ) : null}
 
       {lowOnly ? (
-        <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.sm }}>
+        <View style={{ ...pageGutter(isDesktop, spacing.lg), paddingBottom: spacing.sm }}>
           <Pressable
             onPress={() => setLowOnly(false)}
             accessibilityRole="button"
@@ -328,53 +365,33 @@ function MaterialsScreenContent() {
 
       <View style={{ flex: 1 }}>{renderContent()}</View>
 
-      <View
-        style={{
-          paddingHorizontal: spacing.xl,
-          paddingTop: spacing.sm,
-          paddingBottom: spacing.sm + insets.bottom,
-          gap: spacing.md,
-        }}
-      >
-        <Pressable
-          onPress={() => setShowCreate(true)}
-          accessibilityRole="button"
-          style={({ pressed }) => ({
-            alignSelf: isDesktop ? "flex-end" : undefined,
-            width: isDesktop ? 180 : undefined,
-            minHeight: isDesktop ? 44 : 56,
-            borderRadius: radii.lg,
-            backgroundColor: theme.colors.primaryInteractive,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: spacing.sm,
-            opacity: pressed ? 0.85 : 1,
-          })}
+      {items.length > 0 ? (
+        <View
+          style={{
+            ...pageGutter(isDesktop),
+            paddingTop: spacing.sm,
+            paddingBottom: spacing.sm + insets.bottom,
+            gap: spacing.md,
+            alignItems: isDesktop ? "flex-end" : "center",
+          }}
         >
-          <AppIcon
-            name="add"
-            size={isDesktop ? 20 : 24}
-            color={theme.colors.textOnPrimary}
+          <Button
+            title="Novo insumo"
+            onPress={() => setShowCreate(true)}
+            icon={<AppIcon name="add" size={20} color={theme.colors.textOnPrimary} />}
           />
-          <Typography
-            variant={isDesktop ? "bodyBold" : "h3"}
-            color={theme.colors.textOnPrimary}
-          >
-            Novo insumo
-          </Typography>
-        </Pressable>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-          <AppIcon name="bulb-outline" size={16} color={theme.colors.textSecondary} />
-          <Typography
-            variant="caption"
-            color={theme.colors.textSecondary}
-            style={{ flex: 1 }}
-          >
-            Dica: mantenha seu estoque atualizado para uma gestão mais eficiente.
-          </Typography>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+            <AppIcon name="bulb-outline" size={16} color={theme.colors.textSecondary} />
+            <Typography
+              variant="caption"
+              color={theme.colors.textSecondary}
+              style={{ flex: 1 }}
+            >
+              Dica: mantenha seu estoque atualizado para uma gestão mais eficiente.
+            </Typography>
+          </View>
         </View>
-      </View>
+      ) : null}
 
       <MaterialForm
         visible={showCreate}

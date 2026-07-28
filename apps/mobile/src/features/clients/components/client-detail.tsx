@@ -20,7 +20,11 @@ import { openWhatsApp, waMessages } from "../../../shared/utils/whatsapp";
 import { useSales } from "../../sales/hooks";
 import { useClient } from "../hooks";
 import { avatarPastel } from "./avatar-colors";
-import { desktopContained } from "../../../shared/layout/desktop-density";
+import {
+  desktopStretch,
+  desktopWidths,
+  pageGutter,
+} from "../../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 
 interface ClientDetailProps {
@@ -86,7 +90,7 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
       <View style={{ flex: 1, padding: spacing.xl, gap: spacing.lg }}>
         <Skeleton width={64} height={64} borderRadius={radii.full} />
         <SkeletonCard lines={3} />
-        <SkeletonList rows={4} />
+        <SkeletonList rows={4} variant="sale" />
       </View>
     );
   }
@@ -108,15 +112,21 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
     <ScrollView
       contentContainerStyle={[
         {
-          paddingHorizontal: spacing.xl,
           paddingBottom: spacing["3xl"],
           gap: spacing.xl,
+          ...pageGutter(isDesktop, spacing.xl),
         },
-        desktopContained(isDesktop, 960),
-      ]}
-    >
+          desktopStretch(isDesktop, desktopWidths.data),
+        ]}
+      >
       {/* Avatar and name header */}
-      <View style={{ alignItems: "center", gap: spacing.md, paddingTop: spacing.lg }}>
+      <View
+        style={{
+          alignItems: isDesktop ? "flex-start" : "center",
+          gap: spacing.md,
+          paddingTop: spacing.lg,
+        }}
+      >
         <View
           style={{
             width: 80,
@@ -133,7 +143,7 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
             {initial}
           </Typography>
         </View>
-        <View style={{ alignItems: "center", gap: spacing.xs }}>
+        <View style={{ alignItems: isDesktop ? "flex-start" : "center", gap: spacing.xs }}>
           <Typography variant="h1">{client.name}</Typography>
           <Typography variant="caption">
             cliente desde{" "}
@@ -147,7 +157,7 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
               flexDirection: "row",
               gap: spacing.sm,
               flexWrap: "wrap",
-              justifyContent: "center",
+              justifyContent: isDesktop ? "flex-start" : "center",
             }}
           >
             {client.tags.map((tag) => (
@@ -166,7 +176,7 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
               variant="secondary"
               size="sm"
               onPress={onEditPress ?? (() => {})}
-              style={{ borderRadius: radii.lg }}
+              style={{ borderRadius: radii.md }}
             />
           </View>
         )}
@@ -179,7 +189,7 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
               onPress={() => {
                 void openWhatsApp(client.phone!);
               }}
-              style={{ borderRadius: radii.lg }}
+              style={{ borderRadius: radii.md }}
             />
           </View>
         )}
@@ -196,7 +206,7 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
             onPress={() => {
               void openWhatsApp(client.phone!, waMessages.birthday(client.name));
             }}
-            style={{ borderRadius: radii.lg }}
+            style={{ borderRadius: radii.md }}
           />
         )}
 

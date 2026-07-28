@@ -3,8 +3,17 @@ import { vi } from "vitest";
 // Mock react-native — Flow types can't be parsed by Rollup/Vite
 vi.mock("react-native", () => ({
   Platform: {
+    OS: "android",
     select: (opts: Record<string, unknown>) => opts.default ?? opts.android ?? "",
   },
+  Keyboard: {
+    addListener: vi.fn().mockReturnValue({ remove: vi.fn() }),
+    metrics: vi.fn().mockReturnValue(undefined),
+  },
+  KeyboardAvoidingView: ({ children }: { children?: React.ReactNode }) => children,
+  TextInput: Object.assign(() => null, {
+    State: { currentlyFocusedInput: vi.fn() },
+  }),
   Alert: { alert: vi.fn() },
   View: ({ children }: { children?: React.ReactNode }) => children,
   Text: ({ children }: { children?: React.ReactNode }) => children,
@@ -188,7 +197,7 @@ vi.mock("@lucro-caseiro/ui", () => ({
         text: "#F5EDE8",
         textSecondary: "#B8A9A0",
         textOnPrimary: "#FFFFFF",
-        primary: "#C4707E",
+        primary: "#B65F72",
         primaryLight: "#D4919C",
         primaryDark: "#A85A67",
         success: "#6BBF96",

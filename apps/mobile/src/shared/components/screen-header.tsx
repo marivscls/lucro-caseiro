@@ -1,9 +1,11 @@
 import { AppIcon } from "./app-icon";
-import { useRouter } from "expo-router";
+import { type Href, useRouter } from "expo-router";
 import React from "react";
 import { Pressable, View, type ViewStyle } from "react-native";
 
 import { iconSizes, spacing, Typography, useTheme } from "@lucro-caseiro/ui";
+
+import { useDesktopLayout } from "../layout/use-desktop-layout";
 
 export type ScreenHeaderProps = Readonly<{
   title: string;
@@ -11,18 +13,20 @@ export type ScreenHeaderProps = Readonly<{
   subtitle?: string;
   /** Ação do botão voltar (padrão: `router.back()`). */
   onBack?: () => void;
+  /** Destino quando a rota foi aberta sem histórico (acesso direto/PWA). */
+  fallbackRoute?: Href;
   /** Rótulo de acessibilidade do voltar (padrão: "Voltar"). */
   backLabel?: string;
   /** Ações à direita (busca, histórico, filtros…). */
   right?: React.ReactNode;
-  /** Esconde voltar+título mantendo o alinhamento das ações (ex.: desktop). */
   hideBack?: boolean;
+  backButtonStyle?: ViewStyle;
   style?: ViewStyle;
 }>;
 
 /**
- * Cabeçalho canônico das telas empilhadas: voltar + título (Fraunces) +
- * ações à direita. Substitui o bloco Pressable(arrow-back)+Typography h1 que
+ * Cabeçalho canônico das telas empilhadas: voltar + título (Nunito Sans) +
+ * ações à direita. Substitui o bloco Pressable+Typography que
  * era copiado em cada tela. Deve ficar dentro de uma SafeAreaView (a tela
  * controla as edges); alvo de toque do voltar >= 44px.
  */
@@ -30,14 +34,28 @@ export function ScreenHeader({
   title,
   subtitle,
   onBack,
+  fallbackRoute = "/tabs/more",
   backLabel = "Voltar",
   right,
   hideBack = false,
+  backButtonStyle,
   style,
 }: ScreenHeaderProps) {
   const { theme } = useTheme();
   const router = useRouter();
-  const handleBack = onBack ?? (() => router.back());
+  const isDesktop = useDesktopLayout();
+
+  function handleBack() {
+    if (onBack) {
+      onBack();
+      return;
+    }
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+    router.replace(fallbackRoute);
+  }
 
   return (
     <View
@@ -46,38 +64,51 @@ export function ScreenHeader({
           flexDirection: "row",
           alignItems: "center",
           gap: spacing.md,
-          paddingHorizontal: spacing.lg,
-          paddingTop: spacing.sm,
+          paddingHorizontal: isDesktop ? 0 : spacing.lg,
+          paddingTop: hideBack ? spacing.xl : spacing.sm,
           paddingBottom: spacing.sm,
+          position: "relative",
+          zIndex: 10,
         },
         style,
       ]}
     >
       {!hideBack ? (
-        <>
-          <Pressable
-            onPress={handleBack}
-            accessibilityRole="button"
-            accessibilityLabel={backLabel}
-            hitSlop={10}
-            style={{ width: 44, height: 44, justifyContent: "center" }}
-          >
-            <AppIcon name="arrow-back" size={iconSizes.md} color={theme.colors.text} />
-          </Pressable>
-          <View style={{ flex: 1 }}>
-            <Typography variant="h1" color={theme.colors.text} numberOfLines={1}>
-              {title}
-            </Typography>
-            {subtitle ? (
-              <Typography variant="caption" numberOfLines={2}>
-                {subtitle}
-              </Typography>
-            ) : null}
-          </View>
-        </>
-      ) : (
-        <View style={{ flex: 1 }} />
-      )}
+        <Pressable
+          onPress={handleBack}
+          accessibilityRole="button"
+          accessibilityLabel={backLabel}
+          hitSlop={10}
+          style={[
+            {
+              width: 44,
+              height: 44,
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+              zIndex: 11,
+            },
+            backButtonStyle,
+          ]}
+        >
+          <AppIcon name="chevron-back" size={iconSizes.md} color={theme.colors.text} />
+        </Pressable>
+      ) : null}
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Typography
+          variant="screenTitle"
+          color={theme.colors.text}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {title}
+        </Typography>
+        {subtitle ? (
+          <Typography variant="caption" numberOfLines={1} ellipsizeMode="tail">
+            {subtitle}
+          </Typography>
+        ) : null}
+      </View>
       {right}
     </View>
   );

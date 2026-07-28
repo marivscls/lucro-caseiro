@@ -298,9 +298,9 @@ export function CalculatorModal({ visible, onClose, onResult }: CalculatorModalP
             onPress={use}
             accessibilityRole="button"
             style={({ pressed }) => ({
-              minHeight: 52,
-              borderRadius: radii.lg,
-              backgroundColor: theme.colors.primary,
+              minHeight: 44,
+              borderRadius: radii.md,
+              backgroundColor: theme.colors.primaryInteractive,
               alignItems: "center",
               justifyContent: "center",
               marginTop: spacing.xs,

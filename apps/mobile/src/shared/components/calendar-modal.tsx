@@ -298,14 +298,14 @@ export function CalendarModal({ visible, value, onSelect, onClose }: CalendarMod
             accessibilityRole="button"
             style={{
               marginTop: spacing.md,
-              minHeight: 48,
-              borderRadius: radii.lg,
+              minHeight: 44,
+              borderRadius: radii.md,
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: theme.colors.primary,
+              backgroundColor: theme.colors.surface,
             }}
           >
-            <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
+            <Typography variant="bodyBold" color={theme.colors.text}>
               Fechar
             </Typography>
           </Pressable>

@@ -1,10 +1,9 @@
 import type { ExpenseCategory, FinanceEntryType } from "@lucro-caseiro/contracts";
-import { fonts, radii, Typography, useTheme, type Theme } from "@lucro-caseiro/ui";
+import { Button, fonts, radii, Typography, useTheme, type Theme } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import type { AppIconName } from "../../../shared/components/app-icon";
 import React, { useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -22,6 +21,12 @@ import { CalendarModal } from "../../../shared/components/calendar-modal";
 import { useCreateFinanceEntry } from "../hooks";
 import { showToast } from "../../../shared/components/toast";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
+import {
+  desktopAction,
+  desktopCompactField,
+} from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+import { useBusinessCopy } from "../../subscription/business-copy";
 import { StandardModal } from "../../../shared/components/standard-modal";
 
 interface CreateFinanceEntryProps {
@@ -55,12 +60,28 @@ function useEntryStyles() {
   return { theme, styles };
 }
 
+function capitalize(value: string): string {
+  return value.replace(/^./, (letter) => letter.toUpperCase());
+}
+
 export function CreateFinanceEntry({
   visible,
   onClose,
   onSuccess,
 }: Readonly<CreateFinanceEntryProps>) {
   const { theme, styles } = useEntryStyles();
+  const isDesktop = useDesktopLayout();
+  const compactField = desktopCompactField(isDesktop);
+  const experienceCopy = useBusinessCopy();
+  const categories = CATEGORIES.map((item) => {
+    if (item.key === "material") {
+      return { ...item, label: capitalize(experienceCopy.materialNoun) };
+    }
+    if (item.key === "packaging") {
+      return { ...item, label: capitalize(experienceCopy.packagingNoun) };
+    }
+    return item;
+  });
   const [type, setType] = useState<FinanceEntryType>("income");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
@@ -127,32 +148,20 @@ export function CreateFinanceEntry({
         onClose={onClose}
         scrollRef={scrollRef}
         footer={
-          <Pressable
-            accessibilityRole="button"
-            disabled={createEntry.isPending}
+          <Button
+            title="Registrar lançamento"
+            size="lg"
             onPress={() => void handleSubmit()}
-            style={({ pressed }) => [
-              styles.submitButton,
-              { flex: 1 },
-              pressed && !createEntry.isPending && styles.pressed,
-              createEntry.isPending && styles.disabled,
-            ]}
-          >
-            {createEntry.isPending ? (
-              <ActivityIndicator color={theme.colors.textOnPrimary} />
-            ) : (
-              <>
-                <AppIcon
-                  name="checkmark-circle-outline"
-                  size={29}
-                  color={theme.colors.textOnPrimary}
-                />
-                <Typography variant="h3" color={theme.colors.textOnPrimary}>
-                  Registrar lançamento
-                </Typography>
-              </>
-            )}
-          </Pressable>
+            loading={createEntry.isPending}
+            icon={
+              <AppIcon
+                name="checkmark-circle-outline"
+                size={20}
+                color={theme.colors.textOnPrimary}
+              />
+            }
+            style={{ flex: isDesktop ? undefined : 1, ...desktopAction(isDesktop, 240) }}
+          />
         }
       >
         <View style={{ flexShrink: 1, gap: 12 }}>
@@ -178,19 +187,21 @@ export function CreateFinanceEntry({
           </View>
 
           <FormCard label="Valor (R$)">
-            <Field
-              icon="cash-outline"
-              placeholder="Ex: 25,00"
-              value={amount}
-              onChangeText={(value) => setAmount(maskCurrencyInput(value))}
-              keyboardType="decimal-pad"
-            />
+            <View style={compactField}>
+              <Field
+                icon="cash-outline"
+                placeholder="Ex: 25,00"
+                value={amount}
+                onChangeText={(value) => setAmount(maskCurrencyInput(value))}
+                keyboardType="decimal-pad"
+              />
+            </View>
           </FormCard>
 
           <FormCard label="Descrição">
             <Field
               icon="document-text-outline"
-              placeholder="Ex: Venda de brigadeiros, Compra de leite condensado"
+              placeholder={`Ex: ${experienceCopy.financeEntryExample}`}
               value={description}
               onChangeText={setDescription}
               multiline
@@ -203,7 +214,7 @@ export function CreateFinanceEntry({
               Categoria
             </Typography>
             <View style={styles.categoryGrid}>
-              {CATEGORIES.map((item) => (
+              {categories.map((item) => (
                 <Pressable
                   key={item.key}
                   accessibilityRole="button"
@@ -403,9 +414,6 @@ function createStyles(theme: Theme) {
       paddingHorizontal: 22,
       paddingTop: 8,
     },
-    disabled: {
-      opacity: 0.6,
-    },
     fieldLabel: {
       marginBottom: 10,
     },
@@ -445,7 +453,7 @@ function createStyles(theme: Theme) {
       borderWidth: 1,
       flexDirection: "row",
       gap: 11,
-      minHeight: 56,
+      minHeight: 48,
       paddingHorizontal: 12,
       paddingVertical: 7,
     },
@@ -455,19 +463,6 @@ function createStyles(theme: Theme) {
     multilineInput: {
       minHeight: 50,
       textAlignVertical: "center",
-    },
-    pressed: {
-      opacity: 0.86,
-    },
-    submitButton: {
-      alignItems: "center",
-      backgroundColor: theme.colors.primaryInteractive,
-      borderRadius: 16,
-      flexDirection: "row",
-      gap: 10,
-      height: 62,
-      justifyContent: "center",
-      marginTop: 4,
     },
     subtitle: {
       marginTop: 4,
@@ -482,7 +477,7 @@ function createStyles(theme: Theme) {
       flex: 1,
       flexDirection: "row",
       gap: 10,
-      height: 62,
+      height: 48,
       justifyContent: "center",
     },
     typeSwitch: {

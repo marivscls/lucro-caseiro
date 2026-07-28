@@ -114,6 +114,14 @@ receita ao entregar.
 - Home → quick-access "Agenda" ou card "Agenda" → tab `/tabs/agenda`.
 - FAB "Nova encomenda" → form → salvar. Tap no card → detalhe → status / entregar / editar.
 
+## Service integration
+
+- Orders consumes the public hooks from `features/services/hooks.ts`.
+- Only active services are offered for a new order.
+- Selecting a service fills its duration and default price.
+- Quick creation in the order form keeps the short name/duration flow; complete
+  management and pricing live at `/services`.
+
 ## Change log / Decisions
 
 - Criação inicial: agenda de encomendas/entregas unificada.
@@ -130,3 +138,6 @@ receita ao entregar.
 - 2026-06-17: campo "Horario (opcional)" agora aplica mascara progressiva `maskTimeBR` ("1430" -> "14:30") e valida 24h via `isValidTimeBR` (00:00–23:59) — antes aceitava qualquer `\d{2}:\d{2}`. Removido o chevron sem acao do campo.
 - 2026-06-17: fix `useUpdateOrder.onMutate` — o `getQueriesData({ queryKey: ["orders"] })` casa por prefixo tambem com `["orders","summary"]` (objeto, nao array); ao editar uma encomenda isso quebrava com `orders.map is not a function`. Agora pula caches que nao sao array (`Array.isArray`).
 - 2026-07-11: `OrderForm` passou a expor `clientId` e `notes` (PRD 4.2) — antes o schema ja aceitava os dois campos mas o formulario nao tinha UI pra eles (`notes` ate tinha estado, mas sem setter). Adicionado `ClientField`/`ClientPickerModal` (locais ao form, reaproveitam `useClients`) e campo "Observacoes (opcional)" multiline reaproveitando o `Field` existente (ganhou suporte a `multiline`). Detalhe da agenda (`ModernOrderDetail`) ja exibia `clientName`/`notes` quando presentes — nao precisou mudar.
+- 2026-07-24: a Agenda ganhou uma faixa horizontal de sete dias com contagem por data e
+  seleção direta. Dias sem encomenda mantêm a navegação visível e oferecem criar uma nova,
+  enquanto o filtro completo por data continua acessível no resumo.

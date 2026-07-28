@@ -13,6 +13,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
 import { StandardModal } from "../../../shared/components/standard-modal";
+import { desktopAction, desktopCompactField } from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { SupplierSelector } from "../../suppliers/components/supplier-selector";
 import { alertError, alertValidation } from "../../../shared/utils/alerts";
 import {
@@ -25,6 +27,7 @@ import { PURCHASE_CATEGORIES, type PurchaseCategoryValue } from "../domain";
 import { useCreatePurchase, useUpdatePurchase } from "../hooks";
 import { useProducts } from "../../products/hooks";
 import { AppIcon } from "../../../shared/components/app-icon";
+import { useBusinessCopy } from "../../subscription/business-copy";
 
 type PurchaseItemDraft = {
   product: Pick<Product, "id" | "name" | "variations">;
@@ -84,7 +87,19 @@ export function CreatePurchaseForm({
   onSuccess,
 }: Readonly<CreatePurchaseFormProps>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
+  const compactField = desktopCompactField(isDesktop);
+  const experienceCopy = useBusinessCopy();
   const stockPurchaseEnabled = useFeature("comprasComEstoque");
+  const purchaseCategories = PURCHASE_CATEGORIES.map((item) => {
+    if (item.value === "material") {
+      return { ...item, label: capitalize(experienceCopy.materialNoun) };
+    }
+    if (item.value === "packaging") {
+      return { ...item, label: capitalize(experienceCopy.packagingNoun) };
+    }
+    return item;
+  });
   const [supplierId, setSupplierId] = useState<string | null>(
     purchase?.supplierId ?? null,
   );
@@ -236,7 +251,7 @@ export function CreatePurchaseForm({
             void handleSubmit();
           }}
           loading={createPurchase.isPending || updatePurchase.isPending}
-          style={{ flex: 1 }}
+          style={{ flex: isDesktop ? undefined : 1, ...desktopAction(isDesktop, 240) }}
         />
       }
     >
@@ -343,7 +358,7 @@ export function CreatePurchaseForm({
                   </ScrollView>
                 ) : null}
                 <View style={{ flexDirection: "row", gap: spacing.sm }}>
-                  <View style={{ flex: 1 }}>
+                  <View style={[{ flex: 1 }, compactField]}>
                     <Input
                       label="Quantidade"
                       value={item.quantity}
@@ -351,7 +366,7 @@ export function CreatePurchaseForm({
                       onChangeText={(quantity) => updateItem(index, { quantity })}
                     />
                   </View>
-                  <View style={{ flex: 1 }}>
+                  <View style={[{ flex: 1 }, compactField]}>
                     <Input
                       label="Custo unitário"
                       value={item.unitCost}
@@ -381,13 +396,15 @@ export function CreatePurchaseForm({
             ) : null}
           </View>
         ) : (
-          <Input
-            label="Valor (R$)"
-            placeholder="0,00"
-            value={amount}
-            onChangeText={(v) => setAmount(maskCurrencyInput(v))}
-            keyboardType="numeric"
-          />
+          <View style={compactField}>
+            <Input
+              label="Valor (R$)"
+              placeholder="0,00"
+              value={amount}
+              onChangeText={(v) => setAmount(maskCurrencyInput(v))}
+              keyboardType="numeric"
+            />
+          </View>
         )}
 
         <View>
@@ -395,7 +412,7 @@ export function CreatePurchaseForm({
             CATEGORIA
           </Typography>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-            {PURCHASE_CATEGORIES.map((c) => (
+            {purchaseCategories.map((c) => (
               <Chip
                 key={c.value}
                 label={c.label}
@@ -406,13 +423,15 @@ export function CreatePurchaseForm({
           </View>
         </View>
 
-        <Input
-          label="Data da compra"
-          placeholder="DD/MM/AAAA"
-          value={date}
-          onChangeText={(v) => setDate(maskDateBR(v))}
-          keyboardType="number-pad"
-        />
+        <View style={compactField}>
+          <Input
+            label="Data da compra"
+            placeholder="DD/MM/AAAA"
+            value={date}
+            onChangeText={(v) => setDate(maskDateBR(v))}
+            keyboardType="number-pad"
+          />
+        </View>
 
         {isEditing ? (
           <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -451,4 +470,8 @@ export function CreatePurchaseForm({
       </View>
     </StandardModal>
   );
+}
+
+function capitalize(value: string): string {
+  return value.replace(/^./, (letter) => letter.toUpperCase());
 }

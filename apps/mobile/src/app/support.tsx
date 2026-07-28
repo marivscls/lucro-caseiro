@@ -1,20 +1,27 @@
 import { Button, Card, Typography, spacing, useBrand, useTheme } from "@lucro-caseiro/ui";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import { AppIcon } from "../shared/components/app-icon";
-import { Stack, useRouter } from "expo-router";
+import { Stack } from "expo-router";
 import React from "react";
 import { Linking, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useProfile } from "../features/subscription/hooks";
+import { useBusinessCopy } from "../features/subscription/business-copy";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
-import { desktopAction, desktopContained } from "../shared/layout/desktop-density";
+import {
+  desktopAction,
+  desktopStretch,
+  desktopWidths,
+  pageGutter,
+} from "../shared/layout/desktop-density";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { getBrandDisplayName } from "../shared/brand-name";
+import { usePaywall } from "../shared/hooks/use-paywall";
 
 const SUPPORT_EMAIL = "contato@orionseven.com.br";
 
-const FAQ: { question: string; answer: string }[] = [
+const STATIC_FAQ: { question: string; answer: string }[] = [
   {
     question: "Como falo com vocês?",
     answer:
@@ -24,11 +31,6 @@ const FAQ: { question: string; answer: string }[] = [
     question: "Como cancelo minha assinatura?",
     answer:
       "A cobrança é feita pela loja (Google Play ou App Store). O cancelamento é nas Assinaturas do seu aparelho — seus dados continuam salvos.",
-  },
-  {
-    question: "Troquei de celular. E os meus dados?",
-    answer:
-      "Nada se perde: entre com o mesmo e-mail no aparelho novo e suas vendas, clientes e receitas voltam automaticamente.",
   },
   {
     question: "Achei um erro ou tenho uma ideia",
@@ -47,12 +49,21 @@ function openSupportEmail(brandName: string) {
 
 export default function SupportScreen() {
   const { theme } = useTheme();
+  const experienceCopy = useBusinessCopy();
   const brandName = getBrandDisplayName(useBrand());
   const isDesktop = useDesktopLayout();
-  const router = useRouter();
+  const showPaywall = usePaywall((state) => state.show);
   const { data: profile } = useProfile();
   const isPremium =
     !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "prioritySupport");
+  const faq = [
+    ...STATIC_FAQ.slice(0, 2),
+    {
+      question: "Troquei de celular. E os meus dados?",
+      answer: `Nada se perde: entre com o mesmo e-mail no aparelho novo e suas vendas, clientes e ${experienceCopy.formulaNounPlural} voltam automaticamente.`,
+    },
+    ...STATIC_FAQ.slice(2),
+  ];
 
   return (
     <SafeAreaView
@@ -61,16 +72,17 @@ export default function SupportScreen() {
     >
       <Stack.Screen options={{ headerShown: false }} />
 
-      {!isDesktop && <ScreenHeader title="Suporte" />}
+      <ScreenHeader title="Suporte" hideBack={isDesktop} />
 
       <ScrollView
         contentContainerStyle={[
           {
-            padding: spacing.xl,
+            ...pageGutter(isDesktop),
             paddingTop: spacing.md,
+            paddingBottom: spacing.xl,
             gap: spacing.lg,
           },
-          desktopContained(isDesktop, 960),
+          desktopStretch(isDesktop, desktopWidths.data),
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -112,13 +124,13 @@ export default function SupportScreen() {
               </Typography>
             </View>
             <Typography variant="body" color={theme.colors.textSecondary}>
-              O atendimento com prioridade faz parte do plano pago. Assine pra falar
-              direto com a gente sempre que precisar.
+              O atendimento com prioridade faz parte do plano Profissional. Assine pra
+              falar direto com a gente sempre que precisar.
             </Typography>
             <Button
-              title="Ver planos"
+              title="Desbloquear Profissional"
               size="lg"
-              onPress={() => router.push("/plans")}
+              onPress={() => showPaywall("prioritySupport")}
               style={desktopAction(isDesktop, 240)}
             />
           </Card>
@@ -128,7 +140,7 @@ export default function SupportScreen() {
           <Typography variant="bodyBold" color={theme.colors.text}>
             Perguntas frequentes
           </Typography>
-          {FAQ.map((item) => (
+          {faq.map((item) => (
             <Card key={item.question} variant="surface" padding="lg" style={{ gap: 6 }}>
               <View
                 style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}

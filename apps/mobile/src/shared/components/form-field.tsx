@@ -59,15 +59,17 @@ export function FieldLabel({
 
 export type TextFieldCardProps = Readonly<{
   icon: AppIconName;
+  iconSurface?: boolean;
   prefix?: string;
   inputStyle?: StyleProp<TextStyle>;
 }> &
   TextInputProps;
 
 /** Campo de texto com ícone rosa à esquerda, no estilo dos formulários do app.
- *  Mesmas métricas canônicas do `Input` do ui (56px, radii.lg, borda do tema). */
+ *  Mesmas métricas canônicas do `Input` do ui (48px, radii.lg, borda do tema). */
 export function TextFieldCard({
   icon,
+  iconSurface = false,
   prefix,
   inputStyle,
   ...inputProps
@@ -77,37 +79,64 @@ export function TextFieldCard({
   return (
     <View
       style={{
-        minHeight: 56,
+        minHeight: 48,
         borderRadius: radii.lg,
         borderWidth: 1,
         borderColor: pal.border,
         backgroundColor: pal.fieldBg,
         flexDirection: "row",
         alignItems: "center",
-        paddingHorizontal: spacing.md,
-        gap: spacing.md,
+        overflow: "hidden",
+        paddingHorizontal: iconSurface ? 0 : spacing.md,
+        gap: iconSurface ? 0 : spacing.md,
       }}
     >
-      <AppIcon name={icon} size={iconSizes.sm} color={theme.colors.primary} />
-      {prefix ? (
-        <Typography variant="bodyBold" color={theme.colors.text}>
-          {prefix}
-        </Typography>
-      ) : null}
-      <TextInput
-        placeholderTextColor={pal.placeholder}
-        style={[
-          {
-            flex: 1,
-            color: theme.colors.text,
-            fontSize: fontSizes.md,
-            fontFamily: fonts.regular,
-            paddingVertical: spacing.md,
-          },
-          inputStyle,
-        ]}
-        {...inputProps}
-      />
+      {iconSurface ? (
+        <View
+          style={{
+            alignItems: "center",
+            alignSelf: "stretch",
+            backgroundColor: theme.colors.primaryBg,
+            justifyContent: "center",
+            width: 44,
+          }}
+        >
+          <AppIcon name={icon} size={iconSizes.sm} color={theme.colors.primary} />
+        </View>
+      ) : (
+        <AppIcon name={icon} size={iconSizes.sm} color={theme.colors.primary} />
+      )}
+      <View
+        style={{
+          alignItems: "center",
+          flex: 1,
+          flexDirection: "row",
+          gap: spacing.md,
+          minWidth: 0,
+          paddingLeft: iconSurface ? spacing.md : 0,
+          paddingRight: iconSurface ? spacing.md : 0,
+        }}
+      >
+        {prefix ? (
+          <Typography variant="bodyBold" color={theme.colors.text}>
+            {prefix}
+          </Typography>
+        ) : null}
+        <TextInput
+          placeholderTextColor={pal.placeholder}
+          style={[
+            {
+              flex: 1,
+              color: theme.colors.text,
+              fontSize: fontSizes.md,
+              fontFamily: fonts.regular,
+              paddingVertical: spacing.sm,
+            },
+            inputStyle,
+          ]}
+          {...inputProps}
+        />
+      </View>
     </View>
   );
 }

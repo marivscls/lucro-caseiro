@@ -1,6 +1,11 @@
-import type { Order } from "@lucro-caseiro/contracts";
-import { clients, orders } from "@lucro-caseiro/database/schema";
-import { and, asc, count, eq, gte, lte, sum } from "drizzle-orm";
+import type {
+  CreateService,
+  Order,
+  Service,
+  UpdateService,
+} from "@lucro-caseiro/contracts";
+import { clients, orders, services } from "@lucro-caseiro/database/schema";
+import { and, asc, count, eq, gte, lte, ne, sql, sum } from "drizzle-orm";
 
 import type { AppDatabase } from "../../shared/db";
 import type {
@@ -21,6 +26,9 @@ export class OrdersRepoPg implements IOrdersRepo {
       .values({
         userId,
         clientId: data.clientId ?? null,
+        serviceId: data.serviceId ?? null,
+        durationMinutes:
+          data.durationMinutes != null ? String(data.durationMinutes) : null,
         title: data.title,
         deliveryDate: data.deliveryDate,
         deliveryTime: data.deliveryTime ?? null,
@@ -40,12 +48,17 @@ export class OrdersRepoPg implements IOrdersRepo {
 
   async findById(userId: string, id: string): Promise<Order | null> {
     const [row] = await this.db
-      .select({ order: orders, clientName: clients.name })
+      .select({
+        order: orders,
+        clientName: clients.name,
+        serviceName: services.name,
+      })
       .from(orders)
       .leftJoin(clients, eq(orders.clientId, clients.id))
+      .leftJoin(services, eq(orders.serviceId, services.id))
       .where(and(eq(orders.userId, userId), eq(orders.id, id)));
 
-    return row ? this.toOrder(row.order, row.clientName) : null;
+    return row ? this.toOrder(row.order, row.clientName, row.serviceName) : null;
   }
 
   async findAll(userId: string, opts: FindAllOrdersOpts): Promise<Order[]> {
@@ -55,13 +68,18 @@ export class OrdersRepoPg implements IOrdersRepo {
     if (opts.to) conditions.push(lte(orders.deliveryDate, opts.to));
 
     const rows = await this.db
-      .select({ order: orders, clientName: clients.name })
+      .select({
+        order: orders,
+        clientName: clients.name,
+        serviceName: services.name,
+      })
       .from(orders)
       .leftJoin(clients, eq(orders.clientId, clients.id))
+      .leftJoin(services, eq(orders.serviceId, services.id))
       .where(and(...conditions))
       .orderBy(asc(orders.deliveryDate), asc(orders.deliveryTime));
 
-    return rows.map((r) => this.toOrder(r.order, r.clientName));
+    return rows.map((r) => this.toOrder(r.order, r.clientName, r.serviceName));
   }
 
   async update(userId: string, id: string, data: UpdateOrderData): Promise<Order | null> {
@@ -70,6 +88,10 @@ export class OrdersRepoPg implements IOrdersRepo {
     if (data.deliveryDate !== undefined) set.deliveryDate = data.deliveryDate;
     if (data.deliveryTime !== undefined) set.deliveryTime = data.deliveryTime ?? null;
     if (data.clientId !== undefined) set.clientId = data.clientId ?? null;
+    if (data.serviceId !== undefined) set.serviceId = data.serviceId ?? null;
+    if (data.durationMinutes !== undefined)
+      set.durationMinutes =
+        data.durationMinutes != null ? String(data.durationMinutes) : null;
     if (data.amount !== undefined)
       set.amount = data.amount != null ? String(data.amount) : null;
     if (data.deposit !== undefined)
@@ -131,12 +153,146 @@ export class OrdersRepoPg implements IOrdersRepo {
     return !!row;
   }
 
-  private toOrder(row: typeof orders.$inferSelect, clientName: string | null): Order {
+  async listServices(userId: string): Promise<Service[]> {
+    const rows = await this.db
+      .select()
+      .from(services)
+      .where(eq(services.userId, userId))
+      .orderBy(asc(services.name));
+    return rows.map((row) => this.toService(row));
+  }
+
+  async findServiceByName(
+    userId: string,
+    name: string,
+    excludeId?: string,
+  ): Promise<Service | null> {
+    const normalizedName = name.trim().toLocaleLowerCase("pt-BR");
+    const conditions = [
+      eq(services.userId, userId),
+      sql`lower(trim(${services.name})) = ${normalizedName}`,
+    ];
+    if (excludeId) conditions.push(ne(services.id, excludeId));
+    const [row] = await this.db
+      .select()
+      .from(services)
+      .where(and(...conditions))
+      .limit(1);
+    return row ? this.toService(row) : null;
+  }
+
+  async createService(userId: string, data: CreateService): Promise<Service> {
+    const [row] = await this.db
+      .insert(services)
+      .values({
+        userId,
+        name: data.name.trim(),
+        description: data.description?.trim() || null,
+        durationMinutes: data.durationMinutes,
+        defaultPrice: data.defaultPrice == null ? null : String(data.defaultPrice),
+        materialCost: String(data.materialCost ?? 0),
+        hourlyRate: String(data.hourlyRate ?? 0),
+        otherCost: String(data.otherCost ?? 0),
+        fixedCostShare: String(data.fixedCostShare ?? 0),
+        markupPercent: String(data.markupPercent ?? 0),
+        feesPercent: String(data.feesPercent ?? 0),
+        active: data.active ?? true,
+      })
+      .returning();
+    return this.toService(row!);
+  }
+
+  async updateService(
+    userId: string,
+    id: string,
+    data: UpdateService,
+  ): Promise<Service | null> {
+    const set: Record<string, unknown> = {};
+    if (data.name !== undefined) set.name = data.name.trim();
+    if (data.description !== undefined)
+      set.description = data.description?.trim() || null;
+    if (data.durationMinutes !== undefined) set.durationMinutes = data.durationMinutes;
+    if (data.defaultPrice !== undefined)
+      set.defaultPrice = data.defaultPrice == null ? null : String(data.defaultPrice);
+    if (data.materialCost !== undefined) set.materialCost = String(data.materialCost);
+    if (data.hourlyRate !== undefined) set.hourlyRate = String(data.hourlyRate);
+    if (data.otherCost !== undefined) set.otherCost = String(data.otherCost);
+    if (data.fixedCostShare !== undefined)
+      set.fixedCostShare = String(data.fixedCostShare);
+    if (data.markupPercent !== undefined) set.markupPercent = String(data.markupPercent);
+    if (data.feesPercent !== undefined) set.feesPercent = String(data.feesPercent);
+    if (data.active !== undefined) set.active = data.active;
+    if (Object.keys(set).length === 0) {
+      const [row] = await this.db
+        .select()
+        .from(services)
+        .where(and(eq(services.userId, userId), eq(services.id, id)));
+      return row ? this.toService(row) : null;
+    }
+    const [row] = await this.db
+      .update(services)
+      .set(set)
+      .where(and(eq(services.userId, userId), eq(services.id, id)))
+      .returning();
+    return row ? this.toService(row) : null;
+  }
+
+  async hasScheduleConflict(
+    userId: string,
+    date: string,
+    time: string,
+    durationMinutes: number,
+    excludeOrderId?: string,
+  ): Promise<boolean> {
+    const rows = await this.findAll(userId, { from: date, to: date });
+    const start = minutesOfDay(time);
+    const end = start + durationMinutes;
+    return rows.some((order) => {
+      if (
+        order.id === excludeOrderId ||
+        order.status === "cancelled" ||
+        !order.deliveryTime
+      ) {
+        return false;
+      }
+      const occupiedStart = minutesOfDay(order.deliveryTime);
+      const occupiedEnd = occupiedStart + (order.durationMinutes ?? 60);
+      return start < occupiedEnd && end > occupiedStart;
+    });
+  }
+
+  private toService(row: typeof services.$inferSelect): Service {
+    return {
+      id: row.id,
+      userId: row.userId,
+      name: row.name,
+      description: row.description,
+      durationMinutes: row.durationMinutes,
+      defaultPrice: row.defaultPrice == null ? null : Number(row.defaultPrice),
+      materialCost: Number(row.materialCost),
+      hourlyRate: Number(row.hourlyRate),
+      otherCost: Number(row.otherCost),
+      fixedCostShare: Number(row.fixedCostShare),
+      markupPercent: Number(row.markupPercent),
+      feesPercent: Number(row.feesPercent),
+      active: row.active,
+      createdAt: row.createdAt.toISOString(),
+    };
+  }
+
+  private toOrder(
+    row: typeof orders.$inferSelect,
+    clientName: string | null,
+    serviceName: string | null,
+  ): Order {
     return {
       id: row.id,
       userId: row.userId,
       clientId: row.clientId,
       clientName: clientName ?? null,
+      serviceId: row.serviceId,
+      serviceName,
+      durationMinutes: row.durationMinutes != null ? Number(row.durationMinutes) : null,
       title: row.title,
       deliveryDate: row.deliveryDate,
       deliveryTime: row.deliveryTime,
@@ -152,4 +308,9 @@ export class OrdersRepoPg implements IOrdersRepo {
       createdAt: row.createdAt.toISOString(),
     };
   }
+}
+
+function minutesOfDay(value: string): number {
+  const [hours, minutes] = value.split(":").map(Number);
+  return (hours ?? 0) * 60 + (minutes ?? 0);
 }

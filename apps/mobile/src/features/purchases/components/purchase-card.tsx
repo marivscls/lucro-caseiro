@@ -15,6 +15,7 @@ import { ActivityIndicator, Pressable, View } from "react-native";
 import { formatCurrency } from "../../../shared/utils/format";
 import { useSupplierName } from "../../suppliers/hooks";
 import { categoryLabel } from "../domain";
+import { useBusinessCopy } from "../../subscription/business-copy";
 
 interface PurchaseCardProps {
   readonly purchase: Purchase;
@@ -45,6 +46,7 @@ export function PurchaseCard({
   editDisabled,
 }: PurchaseCardProps) {
   const { theme } = useTheme();
+  const experienceCopy = useBusinessCopy();
   const supplierName = useSupplierName(purchase.supplierId);
   const isPaid = purchase.paymentStatus === "paid";
 
@@ -64,7 +66,12 @@ export function PurchaseCard({
             </Typography>
             <Typography variant="caption" color={theme.colors.textSecondary}>
               {supplierName ? `${supplierName} • ` : ""}
-              {categoryLabel(purchase.category)} • {formatDate(purchase.purchasedAt)}
+              {purchaseCategoryLabel(
+                purchase.category,
+                experienceCopy.materialNoun,
+                experienceCopy.packagingNoun,
+              )}{" "}
+              • {formatDate(purchase.purchasedAt)}
             </Typography>
           </View>
           <View style={{ alignItems: "flex-end", gap: 4 }}>
@@ -166,4 +173,18 @@ export function PurchaseCard({
       </View>
     </Card>
   );
+}
+
+function purchaseCategoryLabel(
+  category: string,
+  materialNoun: string,
+  packagingNoun: string,
+): string {
+  if (category === "material") return capitalize(materialNoun);
+  if (category === "packaging") return capitalize(packagingNoun);
+  return categoryLabel(category);
+}
+
+function capitalize(value: string): string {
+  return value.replace(/^./, (letter) => letter.toUpperCase());
 }

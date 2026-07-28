@@ -64,18 +64,18 @@ export function SaleUnitToggle({ value, onChange }: SaleUnitToggleProps) {
                 borderRadius: radii.lg,
                 borderWidth: 1,
                 borderColor: selected ? theme.colors.primary : border,
-                backgroundColor: selected ? theme.colors.primary : fieldBg,
+                backgroundColor: selected ? theme.colors.primaryBg : fieldBg,
                 opacity: pressed ? 0.85 : 1,
               })}
             >
               <AppIcon
                 name={option.icon}
                 size={22}
-                color={selected ? theme.colors.textOnPrimary : theme.colors.primary}
+                color={selected ? theme.colors.primaryStrong : theme.colors.primary}
               />
               <Typography
                 variant="bodyBold"
-                color={selected ? theme.colors.textOnPrimary : theme.colors.text}
+                color={selected ? theme.colors.primaryStrong : theme.colors.text}
                 numberOfLines={2}
                 style={{
                   fontSize: 14,

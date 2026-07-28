@@ -21,8 +21,12 @@ export function buildQuoteMessage(quote: Quote, businessName: string): string {
         )}`,
     ),
     "",
-    `*Total: ${money(quote.total)}*`,
   ];
+  if (quote.discount > 0) {
+    lines.push(`Subtotal: ${money(quote.subtotal)}`);
+    lines.push(`Desconto: -${money(quote.discount)}`);
+  }
+  lines.push(`*Total: ${money(quote.total)}*`);
   if (quote.validUntil) {
     const [y, m, d] = quote.validUntil.split("-");
     lines.push(`Válido até ${d}/${m}/${y}`);

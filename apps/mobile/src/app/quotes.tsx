@@ -38,6 +38,7 @@ import { showToast } from "../shared/components/toast";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { useAuth } from "../shared/hooks/use-auth";
 import { brToIso } from "../shared/utils/date";
+import { desktopStretch, desktopWidths, pageGutter } from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { StandardModal } from "../shared/components/standard-modal";
 import { formatCurrency } from "../shared/utils/format";
@@ -324,6 +325,28 @@ function QuoteDetail({
               </Typography>
             </View>
           ))}
+          {quote.discount > 0 ? (
+            <>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  paddingTop: spacing.sm,
+                }}
+              >
+                <Typography variant="body">Subtotal</Typography>
+                <Typography variant="bodyBold">
+                  {formatCurrency(quote.subtotal)}
+                </Typography>
+              </View>
+              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                <Typography variant="body">Desconto</Typography>
+                <Typography variant="bodyBold" color={theme.colors.success}>
+                  − {formatCurrency(quote.discount)}
+                </Typography>
+              </View>
+            </>
+          ) : null}
           <View
             style={{
               flexDirection: "row",
@@ -337,6 +360,36 @@ function QuoteDetail({
             <Typography variant="bodyBold">Total</Typography>
             <Typography variant="h3" color={theme.colors.success}>
               {formatCurrency(quote.total)}
+            </Typography>
+          </View>
+        </View>
+      </Card>
+
+      <Card variant="surface">
+        <View style={{ gap: spacing.sm }}>
+          <Typography variant="bodyBold">Rentabilidade interna</Typography>
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            Não aparece no PDF nem no WhatsApp do cliente.
+          </Typography>
+          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            <Typography variant="body">Custo estimado</Typography>
+            <Typography variant="bodyBold">
+              {formatCurrency(quote.estimatedCost)}
+            </Typography>
+          </View>
+          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            <Typography variant="body">Ganho estimado</Typography>
+            <Typography
+              variant="bodyBold"
+              color={quote.estimatedGain >= 0 ? theme.colors.success : theme.colors.alert}
+            >
+              {formatCurrency(quote.estimatedGain)}
+            </Typography>
+          </View>
+          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            <Typography variant="body">Margem estimada</Typography>
+            <Typography variant="bodyBold">
+              {quote.estimatedMargin.toFixed(1).replace(".", ",")}%
             </Typography>
           </View>
         </View>
@@ -433,18 +486,28 @@ function QuoteDetail({
 
 export default function QuotesScreen() {
   const { theme } = useTheme();
+  const router = useRouter();
   const isDesktop = useDesktopLayout();
   const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState<QuoteStatusType | "all">("all");
   const [showCreate, setShowCreate] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
-  const { data, isLoading } = useQuotes(
+  const { data, isLoading, error, refetch } = useQuotes(
     filter === "all" ? undefined : { status: filter },
   );
 
   const quotes = data?.items ?? [];
   const selected = quotes.find((q) => q.id === selectedId) ?? null;
+  const backToMore = !router.canGoBack();
+
+  function handleBack() {
+    if (backToMore) {
+      router.replace("/tabs/more");
+      return;
+    }
+    router.back();
+  }
 
   return (
     <SafeAreaView
@@ -453,13 +516,18 @@ export default function QuotesScreen() {
     >
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* Top bar */}
-      {!isDesktop && <ScreenHeader title="Orçamentos" />}
+      <ScreenHeader
+        title="Orçamentos"
+        onBack={handleBack}
+        backLabel={backToMore ? "Ir para Mais opções" : "Voltar"}
+        hideBack={isDesktop}
+      />
 
       {/* Filtros (chips) */}
       <View
         style={{
-          paddingHorizontal: spacing.lg,
+          ...pageGutter(isDesktop, spacing.lg),
+          ...desktopStretch(isDesktop, desktopWidths.data),
           paddingTop: spacing.xl,
           paddingBottom: spacing.sm,
         }}
@@ -498,80 +566,75 @@ export default function QuotesScreen() {
         </ScrollView>
       </View>
 
-      <View style={{ flex: 1, paddingHorizontal: spacing.xl }}>
+      <View style={{ flex: 1, ...pageGutter(isDesktop), ...desktopStretch(isDesktop, desktopWidths.data) }}>
         {isLoading && (
           <View style={{ marginTop: spacing["3xl"] }}>
-            <SkeletonList rows={5} />
+            <SkeletonList rows={5} variant="quote" />
           </View>
         )}
 
-        {!isLoading && quotes.length === 0 && (
+        {!isLoading && error ? (
+          <EmptyState
+            title="Não foi possível carregar os orçamentos"
+            description="Verifique sua conexão e tente novamente."
+            action={<Button title="Tentar novamente" onPress={() => void refetch()} />}
+          />
+        ) : null}
+
+        {!isLoading && !error && quotes.length === 0 && (
           <EmptyState
             icon={
               <Image
                 source={quotesEmpty}
                 resizeMode="contain"
-                style={{ width: 142, height: 142 }}
+                style={{
+                  width: isDesktop ? 240 : 220,
+                  height: isDesktop ? 240 : 220,
+                }}
               />
             }
             title="Nenhum orçamento ainda"
             description="Monte o orçamento, envie no WhatsApp e, quando aprovar, vire encomenda com um toque."
+            action={<Button title="Novo orçamento" onPress={() => setShowCreate(true)} />}
           />
         )}
 
-        {!isLoading && quotes.length > 0 && (
+        {!isLoading && !error && quotes.length > 0 && (
           <ScrollView
-            contentContainerStyle={{ gap: spacing.md, paddingBottom: spacing.lg }}
+            contentContainerStyle={{
+              flexDirection: isDesktop ? "row" : "column",
+              flexWrap: isDesktop ? "wrap" : "nowrap",
+              gap: spacing.md,
+              paddingBottom: spacing.lg,
+            }}
             showsVerticalScrollIndicator={false}
           >
             {quotes.map((quote) => (
-              <QuoteCard
-                key={quote.id}
-                quote={quote}
-                onPress={() => setSelectedId(quote.id)}
-              />
+              <View key={quote.id} style={isDesktop ? { width: "48%" } : undefined}>
+                <QuoteCard quote={quote} onPress={() => setSelectedId(quote.id)} />
+              </View>
             ))}
           </ScrollView>
         )}
       </View>
 
       {/* Ação principal: novo orçamento */}
-      <View
-        style={{
-          paddingHorizontal: spacing.xl,
-          paddingTop: spacing.sm,
-          paddingBottom: spacing.sm + insets.bottom,
-        }}
-      >
-        <Pressable
-          onPress={() => setShowCreate(true)}
-          accessibilityRole="button"
-          style={({ pressed }) => ({
-            alignSelf: isDesktop ? "flex-end" : undefined,
-            width: isDesktop ? 180 : undefined,
-            minHeight: isDesktop ? 44 : 56,
-            borderRadius: radii.lg,
-            backgroundColor: theme.colors.primaryInteractive,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: spacing.sm,
-            opacity: pressed ? 0.85 : 1,
-          })}
+      {quotes.length > 0 ? (
+        <View
+          style={{
+            ...pageGutter(isDesktop),
+            paddingTop: spacing.sm,
+            paddingBottom: spacing.sm + insets.bottom,
+            alignItems: isDesktop ? "flex-end" : "center",
+          }}
         >
-          <AppIcon
-            name="add"
-            size={isDesktop ? 20 : 24}
-            color={theme.colors.textOnPrimary}
+          <Button
+            title="Novo orçamento"
+            onPress={() => setShowCreate(true)}
+            icon={<AppIcon name="add" size={20} color={theme.colors.textOnPrimary} />}
           />
-          <Typography
-            variant={isDesktop ? "bodyBold" : "h3"}
-            color={theme.colors.textOnPrimary}
-          >
-            Novo orçamento
-          </Typography>
-        </Pressable>
-      </View>
+        </View>
+      ) : null}
 
       {/* Criar */}
       <QuoteForm

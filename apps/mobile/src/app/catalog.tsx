@@ -32,10 +32,11 @@ import { ApiError } from "../shared/utils/api-client";
 import { showToast } from "../shared/components/toast";
 import { uploadCatalogCover, uploadCatalogLogo } from "../shared/utils/upload-image";
 import { alertError } from "../shared/utils/alerts";
-import catalogStorefront from "../assets/auth-house.png";
+import catalogStorefront from "../assets/catalog-hero.png";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
-import { desktopContained } from "../shared/layout/desktop-density";
+import { desktopAction, desktopCompactField, desktopSplitLayout, desktopStretch, pageGutter } from "../shared/layout/desktop-density";
 import { ScreenHeader } from "../shared/components/screen-header";
+import { useBusinessCopy } from "../features/subscription/business-copy";
 
 // Mesmas chaves/cores dos presets do backend (CATALOG_ACCENT_PRESETS).
 const ACCENT_SWATCHES: { key: CatalogAccentColorValue; color: string; label: string }[] =
@@ -76,57 +77,50 @@ function CatalogIntro({
   pending,
 }: Readonly<{ onActivate: () => void; pending: boolean }>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   return (
-    <Card padding="lg">
-      <View style={{ gap: spacing.lg }}>
-        {INTRO_BENEFITS.map((b) => (
-          <View
-            key={b.title}
-            style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
-          >
+    <View style={{ gap: spacing["5xl"] }}>
+      <Card padding="lg">
+        <View style={{ gap: spacing.lg }}>
+          {INTRO_BENEFITS.map((b) => (
             <View
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: radii.lg,
-                backgroundColor: theme.colors.surface,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+              key={b.title}
+              style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
             >
-              <AppIcon name={b.icon} size={22} color={theme.colors.textSecondary} />
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: radii.lg,
+                  backgroundColor: theme.colors.surface,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <AppIcon name={b.icon} size={22} color={theme.colors.textSecondary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Typography variant="bodyBold">{b.title}</Typography>
+                <Typography variant="caption" color={theme.colors.textSecondary}>
+                  {b.desc}
+                </Typography>
+              </View>
             </View>
-            <View style={{ flex: 1 }}>
-              <Typography variant="bodyBold">{b.title}</Typography>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                {b.desc}
-              </Typography>
-            </View>
-          </View>
-        ))}
-
-        <Pressable
+          ))}
+        </View>
+      </Card>
+      <View style={{ gap: spacing.sm }}>
+        <Button
+          title="Ativar meu catálogo"
+          size="lg"
           onPress={onActivate}
-          disabled={pending}
-          accessibilityRole="button"
+          loading={pending}
+          icon={
+            <AppIcon name="rocket-outline" size={20} color={theme.colors.textOnPrimary} />
+          }
           accessibilityLabel="Ativar meu catálogo"
-          style={({ pressed }) => ({
-            minHeight: 56,
-            borderRadius: radii.lg,
-            backgroundColor: theme.colors.primaryInteractive,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: spacing.sm,
-            opacity: pressed || pending ? 0.85 : 1,
-            marginTop: spacing.xs,
-          })}
-        >
-          <AppIcon name="rocket-outline" size={22} color={theme.colors.textOnPrimary} />
-          <Typography variant="h3" color={theme.colors.textOnPrimary}>
-            {pending ? "Ativando..." : "Ativar meu catálogo"}
-          </Typography>
-        </Pressable>
+          style={{ alignSelf: isDesktop ? undefined : "stretch", minHeight: 56, ...desktopAction(isDesktop, 240) }}
+        />
         <Typography
           variant="caption"
           color={theme.colors.textSecondary}
@@ -135,12 +129,12 @@ function CatalogIntro({
           É grátis. Você personaliza tudo depois.
         </Typography>
       </View>
-    </Card>
+    </View>
   );
 }
 
-/** Teaser de personalização: mostra o que o Profissional libera sem expor controles. */
-function AppearanceProfessionalTeaser({ onUnlock }: Readonly<{ onUnlock: () => void }>) {
+/** Teaser de personalização: mostra o que o Essencial libera sem expor controles. */
+function AppearanceEssentialTeaser({ onUnlock }: Readonly<{ onUnlock: () => void }>) {
   const { theme } = useTheme();
   const perks = ["Foto de capa e logo", "Cores do seu jeito", "Frase de apresentação"];
   return (
@@ -159,33 +153,21 @@ function AppearanceProfessionalTeaser({ onUnlock }: Readonly<{ onUnlock: () => v
           </Typography>
         </View>
       ))}
-      <Pressable
+      <Button
+        title="Desbloquear no Essencial"
+        variant="premium"
         onPress={onUnlock}
-        accessibilityRole="button"
-        accessibilityLabel="Desbloquear personalização com o Profissional"
-        style={({ pressed }) => ({
-          minHeight: 52,
-          borderRadius: radii.lg,
-          backgroundColor: theme.colors.premium,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: spacing.sm,
-          opacity: pressed ? 0.85 : 1,
-          marginTop: spacing.xs,
-        })}
-      >
-        <AppIcon name="diamond" size={18} color={theme.colors.textOnPrimary} />
-        <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
-          Desbloquear no Profissional
-        </Typography>
-      </Pressable>
+        accessibilityLabel="Desbloquear personalização com o Essencial"
+        icon={<AppIcon name="diamond" size={18} color={theme.colors.textOnPrimary} />}
+        style={{ alignSelf: "center", marginTop: spacing.xs }}
+      />
     </View>
   );
 }
 
 function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
   const { theme } = useTheme();
+  const experienceCopy = useBusinessCopy();
   const isDesktop = useDesktopLayout();
   const update = useUpdateCatalogSettings();
   const [slug, setSlug] = useState(settings.slug);
@@ -238,9 +220,9 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
     try {
       return await update.mutateAsync(data);
     } catch (err) {
-      // Personalizacao e do Profissional: LIMIT_EXCEEDED abre o paywall.
+      // Personalização é do Essencial: LIMIT_EXCEEDED abre o paywall correto.
       if (err instanceof ApiError && err.code === "LIMIT_EXCEEDED") {
-        showPaywall("catalog");
+        showPaywall("catalog", "essential");
         return null;
       }
       const message =
@@ -252,14 +234,14 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
     }
   }
 
-  function requireProfessional(): boolean {
+  function requireEssential(): boolean {
     if (canCustomizeCatalog) return false;
-    showPaywall("catalog");
+    showPaywall("catalog", "essential");
     return true;
   }
 
   async function handlePickCover() {
-    if (requireProfessional()) return;
+    if (requireEssential()) return;
     const uri = await pickFromGallery();
     if (!uri) return;
     setCoverPreview(uri);
@@ -280,7 +262,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
   }
 
   async function handlePickLogo() {
-    if (requireProfessional()) return;
+    if (requireEssential()) return;
     const uri = await pickFromGallery();
     if (!uri) return;
     setLogoPreview(uri);
@@ -301,12 +283,12 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
   }
 
   function handlePickColor(color: CatalogAccentColorValue) {
-    if (requireProfessional()) return;
+    if (requireEssential()) return;
     setAccentColor(color);
   }
 
   function handleOpenColorModal() {
-    if (requireProfessional()) return;
+    if (requireEssential()) return;
     setColorModalVisible(true);
   }
 
@@ -369,16 +351,18 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
   }
 
   const heroBg = theme.colors.surfaceElevated;
+  const split = desktopSplitLayout(isDesktop);
 
   return (
     <KeyboardAwareScrollView
       contentContainerStyle={[
         {
-          padding: spacing.xl,
+          ...pageGutter(isDesktop),
+          paddingTop: spacing.xl,
           paddingBottom: spacing["4xl"],
           gap: spacing.lg,
         },
-        desktopContained(isDesktop),
+        desktopStretch(isDesktop),
       ]}
       showsVerticalScrollIndicator={false}
     >
@@ -393,9 +377,9 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
         <Image
           source={catalogStorefront}
           resizeMode="contain"
-          style={{ width: 118, height: 118 }}
+          style={{ width: 300, height: 200 }}
         />
-        <Typography variant="h1" serif style={{ marginTop: spacing.sm }}>
+        <Typography variant="h1" style={{ marginTop: spacing.sm }}>
           Sua vitrine online
         </Typography>
         <Typography
@@ -408,7 +392,8 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
         </Typography>
         <Badge
           label={settings.enabled ? "✓ Catálogo no ar" : "Catálogo desativado"}
-          variant={settings.enabled ? "success" : "neutral"}
+          variant={settings.enabled ? "success" : "danger"}
+          style={{ alignSelf: "center" }}
         />
       </View>
 
@@ -420,7 +405,8 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
       )}
 
       {settings.enabled && (
-        <>
+        <View style={canCustomizeCatalog && isDesktop ? split.row : undefined}>
+          <View style={canCustomizeCatalog && isDesktop ? split.main : { gap: spacing.lg }}>
           {/* Link compartilhável */}
           {settings.enabled && (
             <Card padding="lg" style={{ backgroundColor: heroBg }}>
@@ -467,6 +453,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                 <Button
                   title="Compartilhar com clientes"
                   onPress={() => void handleShare()}
+                  style={desktopAction(isDesktop, 240)}
                 />
               </View>
             </Card>
@@ -476,7 +463,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
           {!canShowFullCatalog && (
             <Card
               padding="lg"
-              onPress={() => showPaywall("catalog")}
+              onPress={() => showPaywall("catalog", "essential")}
               style={{
                 borderLeftWidth: 3,
                 borderLeftColor: theme.colors.premium,
@@ -491,7 +478,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                     Seu catálogo mostra até 3 produtos
                   </Typography>
                   <Typography variant="caption">
-                    Mostre seu catálogo completo e personalize as cores no Profissional.
+                    Mostre seu catálogo completo e personalize as cores no Essencial.
                   </Typography>
                 </View>
                 <AppIcon
@@ -559,7 +546,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                 onChangeText={setSlug}
                 autoCapitalize="none"
                 autoCorrect={false}
-                placeholder="doces-da-maria"
+                placeholder="meu-negocio"
               />
               <Typography variant="caption" color={theme.colors.textSecondary}>
                 Só letras minúsculas, números e hífens.
@@ -574,7 +561,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
             </View>
           </Card>
 
-          {/* Aparência (Profissional) */}
+          {/* Aparência (Essencial) */}
           <Card padding="lg">
             <View style={{ gap: spacing.md }}>
               <View
@@ -583,16 +570,22 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                 <Typography variant="label" style={{ flex: 1 }}>
                   APARÊNCIA
                 </Typography>
-                {!canCustomizeCatalog && <Badge label="Profissional" variant="premium" />}
+                {!canCustomizeCatalog && <Badge label="Essencial" variant="premium" />}
               </View>
 
               {!canCustomizeCatalog ? (
-                <AppearanceProfessionalTeaser
-                  onUnlock={() => showPaywall("catalog", "professional")}
+                <AppearanceEssentialTeaser
+                  onUnlock={() => showPaywall("catalog", "essential")}
                 />
               ) : (
                 <>
                   {/* Capa */}
+                  <View
+                    style={[
+                      desktopStretch(isDesktop, 480),
+                      isDesktop ? { alignSelf: "flex-start" } : undefined,
+                    ]}
+                  >
                   <Pressable
                     onPress={() => void handlePickCover()}
                     accessibilityRole="button"
@@ -650,6 +643,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                       </Typography>
                     </Pressable>
                   )}
+                  </View>
 
                   {/* Foto de perfil / logo */}
                   <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -724,6 +718,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                   </View>
 
                   {/* Cor do tema */}
+                  <View style={desktopCompactField(isDesktop)}>
                   <Typography variant="caption" color={theme.colors.textSecondary}>
                     Cor do catálogo
                   </Typography>
@@ -794,16 +789,20 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                       </Typography>
                     </Pressable>
                   </View>
+                  </View>
 
-                  {/* Previa do topo */}
-                  <Typography variant="caption" color={theme.colors.textSecondary}>
-                    Prévia do topo do catálogo
-                  </Typography>
-                  <HeroPreview
-                    baseColor={resolvedBaseColor}
-                    businessName={profile?.businessName ?? profile?.name ?? "Seu negócio"}
-                    tagline={tagline}
-                  />
+                  {!isDesktop ? (
+                    <>
+                      <Typography variant="caption" color={theme.colors.textSecondary}>
+                        Prévia do topo do catálogo
+                      </Typography>
+                      <HeroPreview
+                        baseColor={resolvedBaseColor}
+                        businessName={profile?.businessName ?? profile?.name ?? "Seu negócio"}
+                        tagline={tagline}
+                      />
+                    </>
+                  ) : null}
 
                   <ColorPickerModal
                     visible={colorModalVisible}
@@ -817,7 +816,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                     label="Frase de apresentação"
                     value={tagline}
                     onChangeText={setTagline}
-                    placeholder="Bolos artesanais feitos com amor 🧁"
+                    placeholder={`Conheça meus ${experienceCopy.productNounPlural}`}
                     maxLength={120}
                   />
 
@@ -840,6 +839,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
             variant="outline"
             onPress={() => void handleSave()}
             disabled={update.isPending}
+            style={desktopAction(isDesktop, 220)}
           />
 
           <View
@@ -860,7 +860,21 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
               preço.
             </Typography>
           </View>
-        </>
+          </View>
+
+          {canCustomizeCatalog && isDesktop ? (
+            <View style={split.aside}>
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                Prévia do topo do catálogo
+              </Typography>
+              <HeroPreview
+                baseColor={resolvedBaseColor}
+                businessName={profile?.businessName ?? profile?.name ?? "Seu negócio"}
+                tagline={tagline}
+              />
+            </View>
+          ) : null}
+        </View>
       )}
     </KeyboardAwareScrollView>
   );
@@ -876,10 +890,12 @@ export default function CatalogScreen() {
     content = <CatalogForm settings={settings} />;
   } else if (isLoading) {
     content = (
-      <View style={{ padding: spacing.xl, gap: spacing.lg }}>
+      <View style={{ ...pageGutter(isDesktop), paddingVertical: spacing.xl, gap: spacing.lg }}>
         <Skeleton width="40%" height={18} />
+        <Skeleton height={120} borderRadius={radii.lg} />
         <SkeletonCard lines={4} />
         <SkeletonCard lines={3} />
+        <Skeleton width={220} height={48} borderRadius={radii.md} style={{ alignSelf: "flex-end" }} />
       </View>
     );
   } else {
@@ -889,7 +905,8 @@ export default function CatalogScreen() {
           flex: 1,
           alignItems: "center",
           justifyContent: "center",
-          padding: spacing.xl,
+          ...pageGutter(isDesktop),
+          paddingVertical: spacing.xl,
           gap: spacing.lg,
         }}
       >
@@ -908,7 +925,7 @@ export default function CatalogScreen() {
       edges={["top", "bottom"]}
     >
       <Stack.Screen options={{ headerShown: false }} />
-      {!isDesktop && <ScreenHeader title="Catálogo" />}
+      <ScreenHeader title="Catálogo" hideBack={isDesktop} />
       {content}
     </SafeAreaView>
   );

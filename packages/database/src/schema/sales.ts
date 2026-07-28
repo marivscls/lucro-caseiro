@@ -34,6 +34,12 @@ export const sales = pgTable(
     }),
     status: saleStatusEnum("status").notNull().default("paid"),
     paymentMethod: paymentMethodEnum("payment_method").notNull(),
+    subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
+    discount: decimal("discount", { precision: 10, scale: 2 }).notNull().default("0"),
+    discountType: text("discount_type"),
+    discountValue: decimal("discount_value", { precision: 10, scale: 2 })
+      .notNull()
+      .default("0"),
     total: decimal("total", { precision: 10, scale: 2 }).notNull(),
     notes: text("notes"),
     soldAt: timestamp("sold_at", { withTimezone: true }).notNull().defaultNow(),

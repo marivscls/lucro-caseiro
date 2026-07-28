@@ -1,6 +1,13 @@
 import { useTheme } from "@lucro-caseiro/ui";
 import React from "react";
-import { Modal, View, type ModalProps, type ViewStyle } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  View,
+  type ModalProps,
+  type ViewStyle,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
@@ -44,7 +51,8 @@ export function ResponsiveModalSurface({
 
   if (size === "hug") {
     return (
-      <View
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{
           flex: 1,
           justifyContent: isDesktop ? "center" : "flex-end",
@@ -57,6 +65,7 @@ export function ResponsiveModalSurface({
             {
               flexGrow: 0,
               flexShrink: 1,
+              minHeight: 0,
               overflow: "hidden",
               backgroundColor: theme.colors.surfaceElevated,
             },
@@ -80,7 +89,7 @@ export function ResponsiveModalSurface({
         >
           {children}
         </View>
-      </View>
+      </KeyboardAvoidingView>
     );
   }
 

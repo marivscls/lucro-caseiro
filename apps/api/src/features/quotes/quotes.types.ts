@@ -7,7 +7,18 @@ export interface FindAllQuotesOpts {
 }
 
 export interface IQuotesRepo {
-  create(userId: string, data: CreateQuote & { total: number }): Promise<Quote>;
+  create(
+    userId: string,
+    data: CreateQuote & {
+      subtotal: number;
+      discount: number;
+      total: number;
+      estimatedCost: number;
+      estimatedGain: number;
+      estimatedMargin: number;
+      status: QuoteStatusType;
+    },
+  ): Promise<Quote>;
   findById(userId: string, id: string): Promise<Quote | null>;
   findAll(
     userId: string,
@@ -17,7 +28,16 @@ export interface IQuotesRepo {
     userId: string,
     id: string,
     data: Partial<
-      CreateQuote & { total: number; status: QuoteStatusType; orderId: string }
+      CreateQuote & {
+        subtotal: number;
+        discount: number;
+        total: number;
+        estimatedCost: number;
+        estimatedGain: number;
+        estimatedMargin: number;
+        status: QuoteStatusType;
+        orderId: string;
+      }
     >,
   ): Promise<Quote | null>;
   delete(userId: string, id: string): Promise<boolean>;

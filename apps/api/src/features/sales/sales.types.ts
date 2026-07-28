@@ -1,4 +1,8 @@
-import type { Sale, SaleStatus } from "@lucro-caseiro/contracts";
+import type {
+  DiscountType,
+  Sale,
+  SaleStatus,
+} from "@lucro-caseiro/contracts";
 
 export interface SaleItemData {
   productId: string;
@@ -12,6 +16,8 @@ export interface CreateSaleData {
   clientId?: string;
   paymentMethod: string;
   items: SaleItemData[];
+  discountType?: DiscountType;
+  discountValue?: number;
   notes?: string;
   soldAt?: string;
 }
@@ -20,6 +26,8 @@ export interface UpdateSaleData {
   clientId?: string;
   paymentMethod?: string;
   items?: SaleItemData[];
+  discountType?: DiscountType | null;
+  discountValue?: number;
   notes?: string;
 }
 
@@ -72,6 +80,7 @@ export interface ISalesRepo {
     data: CreateSaleData,
     total: number,
     status: SaleStatus,
+    pricing?: { subtotal: number; discount: number; total: number },
   ): Promise<Sale>;
   findById(userId: string, id: string): Promise<Sale | null>;
   findAll(
@@ -83,6 +92,7 @@ export interface ISalesRepo {
     id: string,
     data: UpdateSaleData,
     total: number,
+    pricing?: { subtotal: number; discount: number; total: number },
   ): Promise<Sale | null>;
   updateStatus(userId: string, id: string, status: SaleStatus): Promise<Sale | null>;
   countByUserInMonth(userId: string, year: number, month: number): Promise<number>;

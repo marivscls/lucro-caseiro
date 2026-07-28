@@ -3,8 +3,6 @@ import { describe, expect, it } from "vitest";
 
 const PROFESSIONAL_ONLY: readonly PlanFeature[] = [
   "extraPhotos",
-  "catalogPremium",
-  "catalogCustomization",
   "advancedReports",
   "advancedPricing",
   "export",
@@ -22,6 +20,15 @@ describe("plan feature matrix", () => {
     expect(hasActiveFeature("free", null, "exportBasic")).toBe(false);
     expect(hasActiveFeature("essential", null, "exportBasic")).toBe(true);
     expect(hasActiveFeature("professional", null, "exportBasic")).toBe(true);
+  });
+
+  it("keeps the complete and customizable catalog available in essential", () => {
+    expect(hasActiveFeature("free", null, "catalogPremium")).toBe(false);
+    expect(hasActiveFeature("free", null, "catalogCustomization")).toBe(false);
+    expect(hasActiveFeature("essential", null, "catalogPremium")).toBe(true);
+    expect(hasActiveFeature("essential", null, "catalogCustomization")).toBe(true);
+    expect(hasActiveFeature("professional", null, "catalogPremium")).toBe(true);
+    expect(hasActiveFeature("professional", null, "catalogCustomization")).toBe(true);
   });
 
   it("treats the legacy premium value as professional", () => {

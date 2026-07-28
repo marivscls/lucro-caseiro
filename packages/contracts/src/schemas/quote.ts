@@ -1,31 +1,50 @@
 import { z } from "zod";
 
-import { MAX_MONEY } from "./common";
+import { DiscountType, MAX_MONEY } from "./common";
 
 export const QuoteStatus = z.enum(["pending", "accepted", "rejected"]);
 export type QuoteStatusType = z.infer<typeof QuoteStatus>;
 
 export const QuoteItemDto = z.object({
+  productId: z.string().uuid().optional(),
   description: z.string().min(1).max(200),
   quantity: z.number().positive().max(99999),
   unitPrice: z.number().min(0).max(MAX_MONEY),
+  estimatedUnitCost: z.number().min(0).max(MAX_MONEY).optional(),
 });
 
 export type QuoteItem = z.infer<typeof QuoteItemDto>;
 
-export const CreateQuoteDto = z.object({
+const QuoteInputDto = z.object({
   title: z.string().min(1).max(200),
   clientId: z.string().uuid().nullable().optional(),
   // Nome livre para cliente nao cadastrado.
   clientName: z.string().max(200).nullable().optional(),
   items: z.array(QuoteItemDto).min(1).max(50),
+  discountType: DiscountType.nullable().optional(),
+  discountValue: z.number().min(0).max(MAX_MONEY).optional(),
   validUntil: z.string().date().nullable().optional(),
   notes: z.string().max(500).nullable().optional(),
 });
 
+function validateDiscount(
+  data: { discountType?: "fixed" | "percentage" | null; discountValue?: number },
+  ctx: z.RefinementCtx,
+) {
+  if (data.discountType === "percentage" && (data.discountValue ?? 0) > 100) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["discountValue"],
+      message: "O desconto percentual deve ser de no máximo 100%",
+    });
+  }
+}
+
+export const CreateQuoteDto = QuoteInputDto.superRefine(validateDiscount);
+
 export type CreateQuote = z.infer<typeof CreateQuoteDto>;
 
-export const UpdateQuoteDto = CreateQuoteDto.partial();
+export const UpdateQuoteDto = QuoteInputDto.partial().superRefine(validateDiscount);
 export type UpdateQuote = z.infer<typeof UpdateQuoteDto>;
 
 export const UpdateQuoteStatusDto = z.object({
@@ -51,6 +70,13 @@ export const QuoteDto = z.object({
   clientName: z.string().nullable(),
   title: z.string(),
   items: z.array(QuoteItemDto),
+  subtotal: z.number(),
+  discount: z.number(),
+  discountType: DiscountType.nullable(),
+  discountValue: z.number(),
+  estimatedCost: z.number(),
+  estimatedGain: z.number(),
+  estimatedMargin: z.number(),
   total: z.number(),
   status: QuoteStatus,
   validUntil: z.string().nullable(),

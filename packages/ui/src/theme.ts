@@ -2,8 +2,8 @@
  * Lucro Caseiro — Design Tokens (v2)
  *
  * Fonte unica da verdade visual do produto (mobile, PWA e desktop).
- * Identidade canonica (ADR-0008): rose quente + Fraunces (display) +
- * Nunito Sans (texto). O app web espelha estes valores via CSS custom
+ * Identidade canonica (ADR-0008): rose quente + Nunito Sans em toda a
+ * interface. O app web espelha estes valores via CSS custom
  * properties em `apps/web/src/app/globals.css` — ao mudar algo aqui,
  * atualize la tambem (o cabecalho do globals.css aponta para ca).
  *
@@ -34,27 +34,27 @@
 
 export const colors = {
   // Escala rose (marca). 500 = cor canonica.
-  rose50: "#FBF1F3",
-  rose100: "#F9E7EA",
-  rose200: "#EFC3CB",
-  rose300: "#E29AA6",
-  rose400: "#D48392",
-  rose500: "#C4707E",
-  rose600: "#B05765",
+  rose50: "#FAF1F3",
+  rose100: "#F5E5E8",
+  rose200: "#E9C2CA",
+  rose300: "#D99AA7",
+  rose400: "#C77989",
+  rose500: "#B65F72",
+  rose600: "#AD586B",
   rose700: "#A85A67",
   rose800: "#7A3641",
   rose900: "#5F2B33",
 
   // Primary (aliases de marca — manter compatibilidade)
-  primary: "#C4707E",
-  primaryLight: "#D4919C",
+  primary: "#B65F72",
+  primaryLight: "#C98593",
   primaryDark: "#A85A67",
   /** Tom AA para texto rose sobre fundos claros (>= 4.5:1). */
-  primaryStrong: "#A84857",
+  primaryStrong: "#A85A67",
 
   // Surfaces - Light (neutras de verdade: sem matiz rosa — o rosa e sotaque)
-  background: "#FAFAF8",
-  surface: "#F4F3F1",
+  background: "#FAF8F6",
+  surface: "#F5F3F1",
   surfaceElevated: "#FFFFFF",
 
   // Surfaces - Dark
@@ -63,7 +63,7 @@ export const colors = {
   surfaceElevatedDark: "#33302D",
 
   // Text - Light
-  text: "#292624",
+  text: "#2C2A29",
   /** AA (>= 4.5:1) sobre background/surface claros. */
   textSecondary: "#6B6660",
   textOnPrimary: "#FFFFFF",
@@ -102,11 +102,11 @@ export const colors = {
   yellowLight: "#FFF8E1",
 
   // Bordas hairline dos containers (padrao canonico flat da home).
-  border: "rgba(41, 38, 36, 0.08)",
+  border: "#E9E5E2",
   borderDark: "rgba(245, 244, 243, 0.11)",
 
   // Fundo rosado suave (CTAs tracejados, destaques da cor primaria).
-  primarySoft: "#F9E7EA",
+  primarySoft: "#F5E5E8",
   primarySoftDark: "#3A2B2F",
 
   // Utility
@@ -135,15 +135,13 @@ export const lineHeights = {
 } as const;
 
 /**
- * Familias tipograficas oficiais (ADR-0008): Fraunces para display/titulos,
- * Nunito Sans para todo o resto. Os nomes batem com os exports de
- * `@expo-google-fonts/*` carregados no RootLayout do mobile via `useFonts`.
+ * Familia tipografica oficial (ADR-0008): Nunito Sans em toda a interface.
+ * Os nomes batem com os exports de `@expo-google-fonts/nunito-sans`
+ * carregados no RootLayout do mobile via `useFonts`.
  * Nunca use `fontWeight` junto com estas familias (Android ignora/faz faux
  * bold) — escolha a familia do peso certo.
  */
 export const fonts = {
-  display: "Fraunces_600SemiBold",
-  displayBold: "Fraunces_700Bold",
   regular: "NunitoSans_400Regular",
   semiBold: "NunitoSans_600SemiBold",
   bold: "NunitoSans_700Bold",

@@ -27,7 +27,8 @@ Dashboard financeiro do usuario: visualizar resumo mensal (entradas, saidas, luc
 | `apps/mobile/src/features/finance/components/finance-dashboard.tsx`    | Dashboard principal com resumo, seletor de mes e exportacao                                    |
 | `apps/mobile/src/features/finance/components/finance-entry-list.tsx`   | Lista de lancamentos com filtro                                                                |
 | `apps/mobile/src/features/finance/components/create-finance-entry.tsx` | Formulario de criacao de lancamento                                                            |
-| `apps/mobile/src/app/finance.tsx`                                      | Screen (rota `/finance`)                                                                       |
+| `apps/mobile/src/app/tabs/finance.tsx`                                 | Screen canônica na aba Financeiro (`/tabs/finance`)                                             |
+| `apps/mobile/src/app/finance.tsx`                                      | Redirecionamento compatível da rota antiga `/finance`                                           |
 
 ## Components
 
@@ -105,9 +106,13 @@ Dashboard financeiro do usuario: visualizar resumo mensal (entradas, saidas, luc
 ## Examples
 
 - Acessado via Home (quick access "Financeiro") ou tab "Mais" -> "Financeiro".
-- Rota: `/finance`.
+- Rota canônica: `/tabs/finance`; `/finance` permanece como redirecionamento compatível.
 
 ## Change log / Decisions
+
+- 2026-07-24: o painel ganhou filtros Hoje / 7 dias / Mês, consultando lançamentos pelo
+  intervalo real suportado pela API (`startDate`/`endDate`, até 100 itens). O mesmo período
+  mostra recebido e a receber das encomendas, preservando a semântica financeira de sinal.
 
 - Exportacao PDF/Excel depende do backend retornar arquivo via download (header Authorization).
 - Dashboard mostra lucro = entradas - saidas (calculo feito no front a partir do summary).

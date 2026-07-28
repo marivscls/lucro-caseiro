@@ -102,4 +102,16 @@ describe("subscription limits", () => {
       percentage: 100,
     });
   });
+
+  it("exposes the exact current and maximum values for the progress copy", () => {
+    const profile = makeProfile({ plan: "free" });
+    const limits = makeLimits({ currentClients: 18, maxClients: 20 });
+
+    expect(getLimitBannerState(limits, profile, "clients")).toMatchObject({
+      current: 18,
+      max: 20,
+      remaining: 2,
+      percentage: 90,
+    });
+  });
 });

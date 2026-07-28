@@ -1,4 +1,9 @@
-import type { FinanceEntry, Product, Purchase } from "@lucro-caseiro/contracts";
+import type {
+  FinanceEntry,
+  Product,
+  Purchase,
+  StockMovement,
+} from "@lucro-caseiro/contracts";
 import { describe, expect, it, vi } from "vitest";
 
 import { NotFoundError, ValidationError } from "../../shared/errors";
@@ -237,6 +242,37 @@ describe("PurchasesUseCases", () => {
         { costPrice: 3.25 },
       );
     });
+
+    it("registra a entrada da compra no histórico de estoque", async () => {
+      const adjustStockWithMovement = vi.fn(() =>
+        Promise.resolve({ id: "movement-1" } as StockMovement),
+      );
+      const products = makeProductsRepo({ adjustStockWithMovement });
+      const sut = new PurchasesUseCases(makeRepo(), makeFinance(), products);
+
+      await sut.create(USER_ID, {
+        description: "Reposição semanal",
+        purchasedAt: "2026-06-25",
+        items: [
+          {
+            productId: "11111111-1111-1111-1111-111111111111",
+            quantity: 5,
+            unitCost: 3.25,
+          },
+        ],
+      });
+
+      expect(adjustStockWithMovement).toHaveBeenCalledWith(
+        USER_ID,
+        "11111111-1111-1111-1111-111111111111",
+        expect.objectContaining({
+          delta: 5,
+          type: "purchase",
+          reason: "Compra recebida",
+          sourceId: "pur-1",
+        }),
+      );
+    });
   });
 
   describe("pay", () => {
@@ -380,7 +416,6 @@ describe("PurchasesUseCases", () => {
         USER_ID,
         "11111111-1111-1111-1111-111111111111",
         -2,
-        undefined,
       );
     });
 

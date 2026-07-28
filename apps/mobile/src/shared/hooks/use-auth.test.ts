@@ -1,7 +1,7 @@
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import { Platform } from "react-native";
-import type { User } from "@supabase/supabase-js";
+import type { AuthError, User } from "@supabase/supabase-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { supabase } from "../utils/supabase";
@@ -78,6 +78,60 @@ describe("getAuthRedirectUrl", () => {
       }),
     );
     expect(useOnboarding.getState().pendingUserIds).toContain(userId);
+  });
+
+  it("explica a falha de conexão sem exibir o objeto técnico vazio", async () => {
+    vi.spyOn(supabase.auth, "signUp").mockResolvedValue({
+      data: { user: null, session: null },
+      error: {
+        name: "AuthRetryableFetchError",
+        message: "{}",
+        status: 0,
+      } as AuthError,
+    });
+
+    const result = await useAuth
+      .getState()
+      .signUpWithEmail("nova@conta.com", "Senha123!", "Nova Conta");
+
+    expect(result).toEqual({
+      error:
+        "Não foi possível conectar para criar sua conta. Verifique sua internet e tente novamente.",
+    });
+    expect(result.error).not.toContain("{}");
+  });
+
+  it("prioriza o código de e-mail existente mesmo sem mensagem útil", async () => {
+    vi.spyOn(supabase.auth, "signUp").mockResolvedValue({
+      data: { user: null, session: null },
+      error: {
+        name: "AuthApiError",
+        message: "{}",
+        code: "user_already_exists",
+        status: 422,
+      } as AuthError,
+    });
+
+    const result = await useAuth
+      .getState()
+      .signUpWithEmail("existente@conta.com", "Senha123!", "Conta Existente");
+
+    expect(result).toEqual({
+      error: "Esse e-mail já tem uma conta. Tente entrar.",
+    });
+  });
+
+  it("trata exceção sem mensagem e sempre devolve um alerta amigável", async () => {
+    vi.spyOn(supabase.auth, "signUp").mockRejectedValue({});
+
+    const result = await useAuth
+      .getState()
+      .signUpWithEmail("nova@conta.com", "Senha123!", "Nova Conta");
+
+    expect(result).toEqual({
+      error:
+        "Não foi possível conectar para criar sua conta. Verifique sua internet e tente novamente.",
+    });
   });
 
   it("limpa tokens da barra depois de aplicar o callback no PWA", async () => {

@@ -12,10 +12,9 @@ import {
 } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../shared/components/app-icon";
 import type { AppIconName } from "../../shared/components/app-icon";
-import { useRouter } from "expo-router";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Image,
   Pressable,
   RefreshControl,
@@ -44,7 +43,8 @@ import { SkeletonList } from "../../shared/components/skeleton";
 import { AnimatedListItem } from "../../shared/components/animated-list-item";
 import { CalendarModal } from "../../shared/components/calendar-modal";
 import { DesktopPagination } from "../../shared/components/desktop-pagination";
-import { FAB } from "../../shared/components/fab";
+import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
+import { desktopStretch, desktopWidths, pageGutter } from "../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { StandardModal } from "../../shared/components/standard-modal";
 import clientsEmpty from "../../assets/clients-empty.png";
@@ -191,7 +191,7 @@ function Avatar({ label, size = 44 }: Readonly<AvatarProps>) {
       <Typography
         variant="h2"
         color={pastel.fg}
-        style={{ fontSize: size * 0.48, fontFamily: fonts.displayBold }}
+        style={{ fontSize: size * 0.48, fontFamily: fonts.bold }}
       >
         {(label.trim().charAt(0) || "?").toUpperCase()}
       </Typography>
@@ -368,13 +368,12 @@ function EmptyClients({ onCreatePress }: Readonly<{ onCreatePress: () => void }>
         <Image
           source={clientsEmpty}
           resizeMode="contain"
-          style={{ width: 146, height: 146 }}
+          style={{ width: 220, height: 220 }}
         />
       }
       title="Nenhum cliente ainda"
       description="Cadastre seu primeiro cliente pra acompanhar pedidos e aniversários"
       action={<Button title="Novo cliente" onPress={onCreatePress} />}
-      style={{ flex: undefined }}
     />
   );
 }
@@ -407,14 +406,15 @@ function ClientsListScreen({
 
   const groups = useMemo(() => groupClientsByInitial(data?.items ?? []), [data?.items]);
   const totalClients = groups.reduce((sum, group) => sum + group.data.length, 0);
-  let listBottomPadding = showTip ? 218 : 150;
+  const tabBarClearance = floatingTabBarContentPadding(0);
+  let listBottomPadding = showTip ? Math.max(126, tabBarClearance) : tabBarClearance;
   if (isDesktop) listBottomPadding = spacing["3xl"];
   let clientsContent: React.ReactNode;
 
   if (isLoading) {
     clientsContent = (
       <View style={{ minHeight: 180 }}>
-        <SkeletonList rows={4} />
+        <SkeletonList rows={6} variant="client" />
       </View>
     );
   } else if (error) {
@@ -449,7 +449,7 @@ function ClientsListScreen({
             <Typography
               variant="h2"
               color={pal.muted}
-              style={{ fontSize: fontSizes.md, fontFamily: fonts.displayBold }}
+              style={{ fontSize: fontSizes.md, fontFamily: fonts.bold }}
             >
               {group.letter}
             </Typography>
@@ -480,10 +480,12 @@ function ClientsListScreen({
           />
         }
         contentContainerStyle={{
-          paddingHorizontal: spacing.xl,
+          flexGrow: 1,
           paddingTop: spacing.xl,
           paddingBottom: listBottomPadding,
           gap: spacing.md,
+          ...pageGutter(isDesktop),
+          ...desktopStretch(isDesktop, desktopWidths.data),
         }}
       >
         <View
@@ -495,7 +497,7 @@ function ClientsListScreen({
             marginBottom: spacing.sm,
           }}
         >
-          {!isDesktop && (
+          {!isDesktop ? (
             <Pressable
               onPress={onBack}
               accessibilityRole="button"
@@ -503,86 +505,76 @@ function ClientsListScreen({
               hitSlop={10}
               style={{ width: 44, height: 44, justifyContent: "center" }}
             >
-              <AppIcon name="arrow-back" size={24} color={theme.colors.text} />
+              <AppIcon name="chevron-back" size={24} color={theme.colors.text} />
             </Pressable>
-          )}
-          {!isDesktop && (
-            <View style={{ flex: 1, gap: spacing.sm }}>
-              <Typography
-                variant="display"
-                color={theme.colors.text}
-                numberOfLines={1}
-                style={{ fontSize: fontSizes["2xl"], lineHeight: 36 }}
-              >
-                Clientes
-              </Typography>
-              <Typography
-                variant="label"
-                color={pal.muted}
-                style={{ fontSize: fontSizes.xs, letterSpacing: 2.4 }}
-              >
-                {totalClients} CLIENTES CADASTRADOS
-              </Typography>
-            </View>
-          )}
-
-          <Pressable
-            onPress={onCreatePress}
-            style={({ pressed }) => [
-              surfaceStyle(pal, {
-                borderRadius: radii.xl,
-                minHeight: 48,
-                paddingHorizontal: isDesktop ? spacing.md : spacing.sm,
-                flexDirection: "row",
-                alignItems: "center",
-                gap: isDesktop ? spacing.md : spacing.sm,
-                opacity: pressed ? 0.86 : 1,
-              }),
-            ]}
-          >
-            <AppIcon name="person-add-outline" size={22} color={pal.muted} />
+          ) : null}
+          <View style={{ flex: 1, gap: spacing.sm }}>
             <Typography
-              variant="bodyBold"
+              variant="screenTitle"
               color={theme.colors.text}
-              style={{ fontSize: fontSizes.sm }}
+              numberOfLines={1}
             >
-              Novo cliente
+              Clientes
             </Typography>
-          </Pressable>
+            <Typography variant="caption" color={pal.muted}>
+              {totalClients} clientes cadastrados
+            </Typography>
+          </View>
+
+          {groups.length > 0 ? (
+            <Pressable
+              onPress={onCreatePress}
+              style={({ pressed }) => [
+                surfaceStyle(pal, {
+                  borderRadius: radii.md,
+                  minHeight: 44,
+                  paddingHorizontal: isDesktop ? spacing.md : spacing.sm,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: isDesktop ? spacing.md : spacing.sm,
+                  opacity: pressed ? 0.86 : 1,
+                }),
+              ]}
+            >
+              <AppIcon name="person-add-outline" size={20} color={pal.muted} />
+              <Typography
+                variant="bodyBold"
+                color={theme.colors.text}
+                style={{ fontSize: fontSizes.sm }}
+              >
+                Novo cliente
+              </Typography>
+            </Pressable>
+          ) : null}
         </View>
 
-        <SearchBox
-          value={search}
-          onChangeText={(value) => {
-            setSearch(value);
-            setPage(1);
-          }}
-          placeholder="Buscar por nome ou telefone..."
-          onFilterPress={() => {
-            showAlert({
-              title: "Filtro de clientes",
-              message: "Use a busca para filtrar por nome ou telefone.",
-            });
-          }}
-        />
+        <View
+          style={
+            isDesktop
+              ? { alignSelf: "flex-start", maxWidth: 480, width: "100%" }
+              : undefined
+          }
+        >
+          <SearchBox
+            value={search}
+            onChangeText={(value) => {
+              setSearch(value);
+              setPage(1);
+            }}
+            placeholder="Buscar por nome ou telefone..."
+            onFilterPress={() => {
+              showAlert({
+                title: "Filtro de clientes",
+                message: "Use a busca para filtrar por nome ou telefone.",
+              });
+            }}
+          />
+        </View>
 
         <LimitBanner resource="clients" onUpgrade={() => showPaywall("clients")} />
 
         {clientsContent}
       </ScrollView>
-
-      {!isDesktop && (
-        <FAB
-          icon="add"
-          accessibilityLabel="Novo cliente"
-          onPress={onCreatePress}
-          style={{
-            position: "absolute",
-            right: spacing.xl,
-            bottom: showTip ? 118 : 98,
-          }}
-        />
-      )}
 
       {!isDesktop && showTip && (
         <View
@@ -869,43 +861,23 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
         visible={visible}
         onClose={close}
         footer={
-          <Pressable
+          <Button
+            title="Cadastrar cliente"
+            size="lg"
             onPress={() => {
               void handleCreate();
             }}
             disabled={createClient.isPending}
-            accessibilityRole="button"
-            style={({ pressed }) => [
-              {
-                minHeight: 58,
-                borderRadius: radii.xl,
-                backgroundColor: theme.colors.primaryInteractive,
-                alignItems: "center",
-                justifyContent: "center",
-                flexDirection: "row",
-                gap: spacing.md,
-                opacity: pressed || createClient.isPending ? 0.82 : 1,
-              },
-              { flex: 1 },
-            ]}
-          >
-            {createClient.isPending ? (
-              <ActivityIndicator color={theme.colors.textOnPrimary} />
-            ) : (
+            loading={createClient.isPending}
+            icon={
               <AppIcon
                 name="person-add-outline"
-                size={23}
+                size={20}
                 color={theme.colors.textOnPrimary}
               />
-            )}
-            <Typography
-              variant="bodyBold"
-              color={theme.colors.textOnPrimary}
-              style={{ fontSize: fontSizes.lg }}
-            >
-              Cadastrar cliente
-            </Typography>
-          </Pressable>
+            }
+            style={{ flex: 1 }}
+          />
         }
       >
         <View style={{ flexShrink: 1, gap: spacing.md }}>
@@ -1031,10 +1003,16 @@ function isClientDuplicateError(error: unknown): boolean {
 
 export default function ClientsScreen() {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const router = useRouter();
+  const { clientId } = useLocalSearchParams<{ clientId?: string }>();
   const [search, setSearch] = useState("");
   const [screen, setScreen] = useState<Screen>({ name: "list" });
   const [editingClientId, setEditingClientId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (clientId) setScreen({ name: "detail", clientId });
+  }, [clientId]);
 
   const { data: editingClient } = useClient(editingClientId ?? "");
 
@@ -1064,21 +1042,25 @@ export default function ClientsScreen() {
         <>
           <View
             style={{
-              paddingHorizontal: spacing.xl,
               paddingTop: spacing.xl,
               paddingBottom: spacing.sm,
+              ...pageGutter(isDesktop),
             }}
           >
             <Pressable
               onPress={goToList}
+              accessibilityRole="button"
+              accessibilityLabel="Voltar para clientes"
+              hitSlop={10}
               style={{
                 flexDirection: "row",
                 alignItems: "center",
                 gap: spacing.sm,
                 alignSelf: "flex-start",
+                minHeight: 44,
               }}
             >
-              <AppIcon name="arrow-back" size={24} color={theme.colors.primaryStrong} />
+              <AppIcon name="chevron-back" size={24} color={theme.colors.primaryStrong} />
               <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
                 Voltar
               </Typography>

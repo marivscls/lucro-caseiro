@@ -51,7 +51,7 @@ export function HeroPreview({ baseColor, businessName, tagline }: HeroPreviewPro
           paddingHorizontal: 16,
         }}
       >
-        <Typography variant="h3" serif color="#ffffff" numberOfLines={1}>
+        <Typography variant="h3" color="#ffffff" numberOfLines={1}>
           {businessName}
         </Typography>
         <Typography

@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { countByType, profit, profitDeltaPct } from "./calc";
+import {
+  countByType,
+  financePeriodRange,
+  profit,
+  profitDeltaPct,
+  totalsByType,
+  unusualExpenses,
+} from "./calc";
 
 describe("profit", () => {
   it("e receitas menos despesas", () => {
@@ -41,5 +48,53 @@ describe("countByType", () => {
         { type: "other" },
       ]),
     ).toEqual({ incomeCount: 2, expenseCount: 1 });
+  });
+});
+
+describe("financePeriodRange", () => {
+  const today = new Date(2026, 6, 24, 12);
+
+  it("monta hoje e os últimos 7 dias como intervalos inclusivos", () => {
+    expect(financePeriodRange("today", 7, 2026, today)).toEqual({
+      startDate: "2026-07-24",
+      endDate: "2026-07-24",
+    });
+    expect(financePeriodRange("7days", 7, 2026, today)).toEqual({
+      startDate: "2026-07-18",
+      endDate: "2026-07-24",
+    });
+  });
+
+  it("respeita o mês escolhido, inclusive ano bissexto", () => {
+    expect(financePeriodRange("month", 2, 2024, today)).toEqual({
+      startDate: "2024-02-01",
+      endDate: "2024-02-29",
+    });
+  });
+});
+
+describe("totalsByType", () => {
+  it("soma entradas e saídas sem misturar outros tipos", () => {
+    expect(
+      totalsByType([
+        { type: "income", amount: 120 },
+        { type: "expense", amount: 35 },
+        { type: "income", amount: 20 },
+        { type: "other", amount: 999 },
+      ]),
+    ).toEqual({ income: 140, expenses: 35 });
+  });
+});
+
+describe("unusualExpenses", () => {
+  it("sÃ³ sinaliza com base suficiente e valor de ao menos 2x a mediana", () => {
+    const entries = [
+      { id: "1", type: "expense", amount: 10 },
+      { id: "2", type: "expense", amount: 12 },
+      { id: "3", type: "expense", amount: 14 },
+      { id: "4", type: "expense", amount: 80 },
+    ];
+    expect(unusualExpenses(entries).map((entry) => entry.id)).toEqual(["4"]);
+    expect(unusualExpenses(entries.slice(0, 3))).toEqual([]);
   });
 });

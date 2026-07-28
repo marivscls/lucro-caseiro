@@ -16,6 +16,27 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) {
 
 const root = join(appRoot, "dist", brandId);
 const indexPath = join(root, "index.html");
+const previewResetHtml = `<!doctype html>
+<html lang="pt-BR">
+  <head><meta charset="utf-8"><title>Atualizando preview</title></head>
+  <body>
+    <p>Atualizando o Lucro Caseiro…</p>
+    <script>
+      Promise.all([
+        "serviceWorker" in navigator
+          ? navigator.serviceWorker.getRegistrations().then((items) =>
+              Promise.all(items.map((item) => item.unregister())),
+            )
+          : Promise.resolve(),
+        "caches" in window
+          ? caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+          : Promise.resolve(),
+      ]).finally(() => {
+        window.location.replace("/?preview-reset=" + Date.now());
+      });
+    </script>
+  </body>
+</html>`;
 await stat(indexPath).catch(() => {
   throw new Error(`Gere o PWA ${brandId} antes de inicia-lo.`);
 });
@@ -54,6 +75,16 @@ async function findFile(pathname) {
 createServer(async (request, response) => {
   try {
     const url = new URL(request.url ?? "/", "http://localhost");
+    if (url.pathname === "/__preview/reset") {
+      response.writeHead(200, {
+        "Cache-Control": "no-store",
+        "Clear-Site-Data": '"cache"',
+        "Content-Type": "text/html; charset=utf-8",
+      });
+      response.end(previewResetHtml);
+      return;
+    }
+
     const filePath = await findFile(url.pathname);
     if (!filePath) {
       response.writeHead(400).end("Caminho invalido");

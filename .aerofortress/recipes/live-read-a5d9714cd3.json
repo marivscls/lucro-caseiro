@@ -1,11 +1,11 @@
 {
-  "compiled_at": "2026-07-18T18:00:42.198309600+00:00",
+  "compiled_at": "2026-07-26T01:25:06.708819200+00:00",
   "description": "Materialized from a compile candidate sequence.",
   "id": "live-read-a5d9714cd3",
-  "name": "Live read fan-out (3->1): 598bb59c-8633-4a42-97f9-092e, 5b0e978b-91d0-4ac9-b609-9f97, +1",
+  "name": "Live read fan-out (3->1): 3f4b1e61-9f23-42b6-9303-a699, 6805b0e4-4c6b-47fd-86e3-b4e4, +1",
   "origin": "live",
   "recipe": {
-    "name": "Live read fan-out (3->1): 598bb59c-8633-4a42-97f9-092e, 5b0e978b-91d0-4ac9-b609-9f97, +1",
+    "name": "Live read fan-out (3->1): 3f4b1e61-9f23-42b6-9303-a699, 6805b0e4-4c6b-47fd-86e3-b4e4, +1",
     "outputs": {
       "item_1": "item_1.output",
       "item_2": "item_2.output",
@@ -14,13 +14,13 @@
     "recipe": {
       "items": [
         {
-          "id": "598bb59c-8633-4a42-97f9-092e22af8e7d"
+          "id": "3f4b1e61-9f23-42b6-9303-a699462e9cdd"
         },
         {
-          "id": "5b0e978b-91d0-4ac9-b609-9f97aa7a35c8"
+          "id": "6805b0e4-4c6b-47fd-86e3-b4e4bac82c00"
         },
         {
-          "id": "46967f88-c1d5-402e-99b0-8912793e3dda"
+          "id": "d56e77f2-cb4f-4ce9-b47b-567dbf574e92"
         }
       ],
       "kind": "fan_out",
@@ -37,5 +37,5 @@
   "schema": 2,
   "source": "workspace",
   "status": "ready",
-  "version": 1
+  "version": 2
 }

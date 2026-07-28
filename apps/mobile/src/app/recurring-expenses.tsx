@@ -43,8 +43,9 @@ import { ApiError } from "../shared/utils/api-client";
 import { alertError, alertValidation } from "../shared/utils/alerts";
 import { maskCurrencyInput, parseCurrencyInput } from "../shared/utils/currency-input";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
-import { desktopContained } from "../shared/layout/desktop-density";
+import { desktopAction, desktopCompactField, desktopStretch, pageGutter } from "../shared/layout/desktop-density";
 import { ScreenHeader } from "../shared/components/screen-header";
+import { useBusinessCopy } from "../features/subscription/business-copy";
 
 const CATEGORIES: {
   key: ExpenseCategory;
@@ -65,8 +66,18 @@ function useRecurringTheme() {
   return { theme, styles };
 }
 
-function categoryLabel(key: string): string {
+function categoryLabel(
+  key: string,
+  materialNoun = "material",
+  packagingNoun = "embalagem",
+): string {
+  if (key === "material") return capitalize(materialNoun);
+  if (key === "packaging") return capitalize(packagingNoun);
   return CATEGORIES.find((c) => c.key === key)?.label ?? "Outro";
+}
+
+function capitalize(value: string): string {
+  return value.replace(/^./, (letter) => letter.toUpperCase());
 }
 
 function formatMoney(value: number): string {
@@ -79,6 +90,7 @@ function moneyInputValue(value: number): string {
 
 export default function RecurringExpensesScreen() {
   const { theme, styles } = useRecurringTheme();
+  const experienceCopy = useBusinessCopy();
   const isDesktop = useDesktopLayout();
   const { data: items, isLoading } = useRecurringExpenses();
   const remove = useDeleteRecurring();
@@ -130,14 +142,20 @@ export default function RecurringExpensesScreen() {
         style={styles.keyboardAvoider}
       >
         <ScrollView
-          contentContainerStyle={[styles.content, desktopContained(isDesktop)]}
+          contentContainerStyle={[
+            styles.content,
+            pageGutter(isDesktop, spacing.lg),
+            desktopStretch(isDesktop),
+          ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.hero}>
-            {!isDesktop && (
-              <ScreenHeader title="Gastos fixos" style={{ paddingHorizontal: 0 }} />
-            )}
+            <ScreenHeader
+              title="Gastos fixos"
+              hideBack={isDesktop}
+              style={{ paddingHorizontal: 0 }}
+            />
 
             <Typography
               variant="caption"
@@ -194,7 +212,7 @@ export default function RecurringExpensesScreen() {
                 />
               )}
 
-              {isLoading && <SkeletonList rows={3} />}
+              {isLoading && <SkeletonList rows={3} variant="amount" />}
 
               {!isLoading && (items?.length ?? 0) === 0 && <EmptyRecurringState />}
 
@@ -225,7 +243,12 @@ export default function RecurringExpensesScreen() {
                       <View style={styles.expenseInfo}>
                         <Typography variant="bodyBold">{item.description}</Typography>
                         <Typography variant="caption">
-                          {categoryLabel(item.category)} · todo dia {item.dayOfMonth}
+                          {categoryLabel(
+                            item.category,
+                            experienceCopy.materialNoun,
+                            experienceCopy.packagingNoun,
+                          )}{" "}
+                          · todo dia {item.dayOfMonth}
                         </Typography>
                       </View>
                       <Typography variant="captionBold">
@@ -275,6 +298,22 @@ function RecurringForm({
   const create = useCreateRecurring();
   const update = useUpdateRecurring();
   const { theme, styles } = useRecurringTheme();
+  const experienceCopy = useBusinessCopy();
+  const categories = CATEGORIES.map((categoryOption) => {
+    if (categoryOption.key === "material") {
+      return {
+        ...categoryOption,
+        label: capitalize(experienceCopy.materialNoun),
+      };
+    }
+    if (categoryOption.key === "packaging") {
+      return {
+        ...categoryOption,
+        label: capitalize(experienceCopy.packagingNoun),
+      };
+    }
+    return categoryOption;
+  });
   const isDesktop = useDesktopLayout();
   const isEditing = !!item;
   const isSaving = create.isPending || update.isPending;
@@ -335,7 +374,13 @@ function RecurringForm({
   }
 
   return (
-    <View style={[styles.formCard, desktopContained(isDesktop, 720)]}>
+    <View
+      style={[
+        styles.formCard,
+        desktopStretch(isDesktop, 720),
+        isDesktop ? { alignSelf: "flex-start" } : undefined,
+      ]}
+    >
       <View style={styles.formHeader}>
         <View style={styles.formHeaderLeft}>
           <AppIcon
@@ -373,6 +418,7 @@ function RecurringForm({
         onChangeText={(v) => setAmount(maskCurrencyInput(v))}
         placeholder="Ex: 800,00"
         keyboardType="decimal-pad"
+        compact
       />
 
       <View style={styles.fieldBlock}>
@@ -385,7 +431,7 @@ function RecurringForm({
           <Typography variant="caption">Categoria</Typography>
         </View>
         <View style={styles.categoryWrap}>
-          {CATEGORIES.map((c) => {
+          {categories.map((c) => {
             const selected = c.key === category;
             return (
               <Pressable
@@ -426,13 +472,18 @@ function RecurringForm({
         placeholder="1"
         keyboardType="number-pad"
         maxLength={2}
+        compact
       />
 
-      <View style={styles.actionRow}>
+      <View style={[styles.actionRow, isDesktop && { justifyContent: "flex-end" }]}>
         <Pressable
           accessibilityRole="button"
           onPress={onClose}
-          style={({ pressed }) => [styles.cancelButton, pressed && styles.pressed]}
+          style={({ pressed }) => [
+            styles.cancelButton,
+            isDesktop && { flex: undefined, ...desktopAction(isDesktop, 220) },
+            pressed && styles.pressed,
+          ]}
         >
           <Typography variant="captionBold">Cancelar</Typography>
         </Pressable>
@@ -442,6 +493,7 @@ function RecurringForm({
           onPress={() => void handleSave()}
           style={({ pressed }) => [
             styles.saveButton,
+            isDesktop && { flex: undefined, ...desktopAction(isDesktop, 240) },
             isSaving && styles.disabled,
             pressed && !isSaving && styles.pressed,
           ]}
@@ -458,17 +510,20 @@ function RecurringForm({
 function FormField({
   icon,
   label,
+  compact = false,
   ...inputProps
 }: Readonly<
   React.ComponentProps<typeof TextInput> & {
     icon: AppIconName;
     label: string;
+    compact?: boolean;
   }
 >) {
   const { theme, styles } = useRecurringTheme();
+  const isDesktop = useDesktopLayout();
 
   return (
-    <View style={styles.fieldBlock}>
+    <View style={[styles.fieldBlock, compact && desktopCompactField(isDesktop)]}>
       <View style={styles.labelRow}>
         <AppIcon name={icon} size={iconSizes.sm} color={theme.colors.textSecondary} />
         <Typography variant="caption">{label}</Typography>
@@ -494,6 +549,8 @@ function RecurringDetails({
   onEdit: () => void;
 }>) {
   const { theme, styles } = useRecurringTheme();
+  const experienceCopy = useBusinessCopy();
+  const isDesktop = useDesktopLayout();
 
   return (
     <View style={styles.detailCard}>
@@ -524,7 +581,11 @@ function RecurringDetails({
         <DetailItem
           icon="grid-outline"
           label="Categoria"
-          value={categoryLabel(item.category)}
+          value={categoryLabel(
+            item.category,
+            experienceCopy.materialNoun,
+            experienceCopy.packagingNoun,
+          )}
         />
         <DetailItem
           icon="calendar-outline"
@@ -538,11 +599,15 @@ function RecurringDetails({
         />
       </View>
 
-      <View style={styles.actionRow}>
+      <View style={[styles.actionRow, isDesktop && { justifyContent: "flex-end" }]}>
         <Pressable
           accessibilityRole="button"
           onPress={onDelete}
-          style={({ pressed }) => [styles.deleteButton, pressed && styles.pressed]}
+          style={({ pressed }) => [
+            styles.deleteButton,
+            isDesktop && { flex: undefined, ...desktopAction(isDesktop, 220) },
+            pressed && styles.pressed,
+          ]}
         >
           <AppIcon
             name="trash-outline"
@@ -556,7 +621,11 @@ function RecurringDetails({
         <Pressable
           accessibilityRole="button"
           onPress={onEdit}
-          style={({ pressed }) => [styles.saveButton, pressed && styles.pressed]}
+          style={({ pressed }) => [
+            styles.saveButton,
+            isDesktop && { flex: undefined, ...desktopAction(isDesktop, 240) },
+            pressed && styles.pressed,
+          ]}
         >
           <AppIcon
             name="create-outline"
@@ -748,7 +817,6 @@ function createStyles(theme: Theme) {
     content: {
       gap: spacing.xl,
       paddingBottom: spacing["3xl"],
-      paddingHorizontal: spacing.lg,
       paddingTop: spacing.xl,
     },
     disabled: {

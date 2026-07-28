@@ -1,8 +1,10 @@
 import {
   CreateOrderDto,
+  CreateServiceDto,
   DeliverOrderDto,
   OrderStatus,
   UpdateOrderDto,
+  UpdateServiceDto,
 } from "@lucro-caseiro/contracts";
 import { Router } from "express";
 
@@ -12,6 +14,39 @@ import type { OrdersUseCases } from "./orders.usecases";
 export function createOrdersRouter(useCases: OrdersUseCases): Router {
   const router = Router();
   router.use(authMiddleware);
+
+  router.get("/services", async (req, res, next) => {
+    try {
+      res.json({ items: await useCases.listServices(getUserId(req)) });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.post("/services", async (req, res, next) => {
+    try {
+      const service = await useCases.createService(
+        getUserId(req),
+        CreateServiceDto.parse(req.body),
+      );
+      res.status(201).json(service);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.patch("/services/:id", async (req, res, next) => {
+    try {
+      const service = await useCases.updateService(
+        getUserId(req),
+        req.params.id,
+        UpdateServiceDto.parse(req.body),
+      );
+      res.json(service);
+    } catch (err) {
+      next(err);
+    }
+  });
 
   router.get("/", async (req, res, next) => {
     try {

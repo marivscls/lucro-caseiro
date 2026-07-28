@@ -20,6 +20,7 @@ export class SalesRepoPg implements ISalesRepo {
     data: CreateSaleData,
     total: number,
     status: SaleStatus,
+    pricing = { subtotal: total, discount: 0, total },
   ): Promise<Sale> {
     const [saleRow] = await this.db
       .insert(sales)
@@ -28,7 +29,11 @@ export class SalesRepoPg implements ISalesRepo {
         clientId: data.clientId ?? null,
         paymentMethod: data.paymentMethod as PaymentMethodColumn,
         status,
-        total: String(total),
+        subtotal: String(pricing.subtotal),
+        discount: String(pricing.discount),
+        discountType: data.discountType ?? null,
+        discountValue: String(data.discountValue ?? 0),
+        total: String(pricing.total),
         notes: data.notes ?? null,
         soldAt: data.soldAt ? new Date(data.soldAt) : new Date(),
       })
@@ -59,8 +64,13 @@ export class SalesRepoPg implements ISalesRepo {
     id: string,
     data: UpdateSaleData,
     total: number,
+    pricing = { subtotal: total, discount: 0, total },
   ): Promise<Sale | null> {
-    const setFields: Record<string, unknown> = { total: String(total) };
+    const setFields: Record<string, unknown> = {
+      subtotal: String(pricing.subtotal),
+      discount: String(pricing.discount),
+      total: String(pricing.total),
+    };
 
     if (data.clientId !== undefined) {
       setFields.clientId = data.clientId ?? null;
@@ -70,6 +80,12 @@ export class SalesRepoPg implements ISalesRepo {
     }
     if (data.notes !== undefined) {
       setFields.notes = data.notes ?? null;
+    }
+    if (data.discountType !== undefined) {
+      setFields.discountType = data.discountType;
+    }
+    if (data.discountValue !== undefined) {
+      setFields.discountValue = String(data.discountValue);
     }
 
     const [row] = await this.db
@@ -299,6 +315,10 @@ export class SalesRepoPg implements ISalesRepo {
       clientName,
       status: row.status,
       paymentMethod: row.paymentMethod,
+      subtotal: Number(row.subtotal),
+      discount: Number(row.discount),
+      discountType: row.discountType as Sale["discountType"],
+      discountValue: Number(row.discountValue),
       total: Number(row.total),
       notes: row.notes,
       items: itemRows.map((item) => ({
@@ -338,6 +358,10 @@ export class SalesRepoPg implements ISalesRepo {
       clientName,
       status: row.status,
       paymentMethod: row.paymentMethod,
+      subtotal: Number(row.subtotal),
+      discount: Number(row.discount),
+      discountType: row.discountType as Sale["discountType"],
+      discountValue: Number(row.discountValue),
       total: Number(row.total),
       notes: row.notes,
       items: itemRows.map((item) => ({

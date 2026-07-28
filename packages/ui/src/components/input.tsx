@@ -52,8 +52,8 @@ export function Input({
           style={[
             {
               flex: 1,
-              // Altura canonica de campo (56) — mesma do TextFieldCard.
-              height: 56,
+              // Denso sem sacrificar o alvo de toque recomendado.
+              height: 48,
               fontSize: fontSizes.md,
               fontFamily: fonts.regular,
               color: theme.colors.text,

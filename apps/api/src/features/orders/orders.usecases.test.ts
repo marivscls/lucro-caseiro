@@ -1,4 +1,4 @@
-import type { Order } from "@lucro-caseiro/contracts";
+import type { Order, Service } from "@lucro-caseiro/contracts";
 import { describe, expect, it, vi } from "vitest";
 
 import { NotFoundError, ValidationError } from "../../shared/errors";
@@ -25,6 +25,29 @@ function makeOrder(overrides: Partial<Order> = {}): Order {
     photoUrl: null,
     notes: null,
     saleId: null,
+    createdAt: new Date().toISOString(),
+    ...overrides,
+    serviceId: overrides.serviceId ?? null,
+    serviceName: overrides.serviceName ?? null,
+    durationMinutes: overrides.durationMinutes ?? null,
+  };
+}
+
+function makeService(overrides: Partial<Service> = {}): Service {
+  return {
+    id: "service-1",
+    userId: USER_ID,
+    name: "Manutenção de unhas",
+    description: null,
+    durationMinutes: 60,
+    defaultPrice: 80,
+    materialCost: 10,
+    hourlyRate: 30,
+    otherCost: 0,
+    fixedCostShare: 5,
+    markupPercent: 50,
+    feesPercent: 3,
+    active: true,
     createdAt: new Date().toISOString(),
     ...overrides,
   };
@@ -141,6 +164,62 @@ describe("OrdersUseCases", () => {
     it("throws NotFoundError when missing", async () => {
       const { sut } = makeSut({ repo: { delete: () => Promise.resolve(false) } });
       await expect(sut.remove(USER_ID, "nope")).rejects.toThrow(NotFoundError);
+    });
+  });
+
+  describe("services", () => {
+    it("creates a service when the name is available", async () => {
+      const createService = vi.fn(() => Promise.resolve(makeService()));
+      const { sut } = makeSut({
+        repo: {
+          findServiceByName: () => Promise.resolve(null),
+          createService,
+        },
+      });
+
+      const result = await sut.createService(USER_ID, {
+        name: "Manutenção de unhas",
+        durationMinutes: 60,
+        defaultPrice: 80,
+      });
+
+      expect(result.name).toBe("Manutenção de unhas");
+      expect(createService).toHaveBeenCalledOnce();
+    });
+
+    it("rejects a duplicated service name", async () => {
+      const { sut } = makeSut({
+        repo: {
+          findServiceByName: () => Promise.resolve(makeService()),
+          createService: () => Promise.resolve(makeService()),
+        },
+      });
+
+      await expect(
+        sut.createService(USER_ID, {
+          name: "  MANUTENÇÃO DE UNHAS ",
+          durationMinutes: 60,
+        }),
+      ).rejects.toThrow(ValidationError);
+    });
+
+    it("excludes the current service when validating an edit", async () => {
+      const findServiceByName = vi.fn(() => Promise.resolve(null));
+      const updateService = vi.fn(() => Promise.resolve(makeService()));
+      const { sut } = makeSut({
+        repo: { findServiceByName, updateService },
+      });
+
+      await sut.updateService(USER_ID, "service-1", {
+        name: "Manutenção de unhas",
+      });
+
+      expect(findServiceByName).toHaveBeenCalledWith(
+        USER_ID,
+        "Manutenção de unhas",
+        "service-1",
+      );
+      expect(updateService).toHaveBeenCalledOnce();
     });
   });
 });

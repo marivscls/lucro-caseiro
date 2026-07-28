@@ -1,21 +1,59 @@
-import { fontSizes, fonts, radii, useFeature, useTheme } from "@lucro-caseiro/ui";
-import { AppIcon } from "../../shared/components/app-icon";
+import { Typography, fontSizes, fonts, useFeature, useTheme } from "@lucro-caseiro/ui";
 import { Tabs } from "expo-router";
+import {
+  CalendarDays,
+  Ellipsis,
+  House,
+  Plus,
+  ShoppingBag,
+  Users,
+} from "lucide-react-native";
 import React from "react";
-import { Platform, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import {
+  FLOATING_TAB_BAR_HEIGHT,
+  floatingTabBarBottomOffset,
+} from "../../shared/layout/floating-tab-bar";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 
-export default function TabLayout() {
+function TabLabel({ children, color }: Readonly<{ children: string; color: string }>) {
+  return (
+    <Typography
+      variant="captionBold"
+      color={color}
+      numberOfLines={1}
+      adjustsFontSizeToFit
+      minimumFontScale={0.78}
+      style={styles.tabLabel}
+    >
+      {children}
+    </Typography>
+  );
+}
+
+function NewSaleIcon({ color }: Readonly<{ color: string }>) {
   const { theme } = useTheme();
+
+  return (
+    <View>
+      <ShoppingBag size={23} color={color} strokeWidth={1.9} />
+      <View
+        style={[styles.plusBadge, { backgroundColor: theme.colors.primaryInteractive }]}
+      >
+        <Plus size={12} color={theme.colors.textOnPrimary} strokeWidth={2.2} />
+      </View>
+    </View>
+  );
+}
+
+export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const isDesktop = useDesktopLayout();
   const hasScheduling = useFeature("agendamento");
+  const { theme } = useTheme();
 
-  // On Android the system navigation bar overlaps the tab bar; reserve its
-  // height so the "+" button and labels are not hidden behind it. iOS already
-  // accounts for the home indicator via the fixed values below.
   const bottomInset = Platform.OS === "android" ? insets.bottom : 0;
 
   return (
@@ -25,31 +63,46 @@ export default function TabLayout() {
         tabBarStyle: isDesktop
           ? { display: "none" }
           : {
-              // Icone+label centralizados como um bloco: paddings simetricos e o
-              // inset do Android fica FORA do conteudo (senao o label cola na
-              // barra de gestos do sistema).
-              height: (Platform.OS === "ios" ? 82 : 66) + bottomInset,
-              paddingBottom: (Platform.OS === "ios" ? 18 : 5) + bottomInset,
-              paddingTop: 7,
+              // O inset afasta a superficie da navegacao do Android sem aumentar
+              // a altura visual da tab bar nem desenha-la por tras do sistema.
+              bottom: floatingTabBarBottomOffset(bottomInset),
+              height: FLOATING_TAB_BAR_HEIGHT,
+              left: 12,
+              paddingBottom: Platform.OS === "ios" ? 14 : 5,
+              paddingHorizontal: 6,
+              paddingTop: 5,
+              position: "absolute",
+              right: 12,
+              width: "auto",
               backgroundColor: theme.colors.surfaceElevated,
+              borderColor: theme.colors.border,
+              borderRadius: 24,
               borderTopWidth: 1,
-              borderTopColor: theme.colors.border,
-              elevation: 0,
-              shadowOpacity: 0,
+              borderWidth: 1,
+              elevation: 8,
+              shadowColor: theme.shadows.md.shadowColor,
+              shadowOffset: theme.shadows.md.shadowOffset,
+              shadowOpacity: theme.shadows.md.shadowOpacity,
+              shadowRadius: theme.shadows.md.shadowRadius,
             },
         tabBarLabelStyle: {
           // Piso de 13px (publico com idosos): nunca abaixo de fontSizes.xs.
           fontSize: fontSizes.xs,
           lineHeight: 17,
           fontFamily: fonts.semiBold,
+          marginBottom: 3,
         },
-        tabBarIconStyle: { marginTop: 0 },
+        tabBarIconStyle: { marginTop: 3 },
         tabBarItemStyle: {
+          borderRadius: 20,
           flex: 1,
+          marginHorizontal: 2,
           minWidth: 0,
+          overflow: "hidden",
           paddingHorizontal: 0,
           paddingVertical: 0,
         },
+        tabBarActiveBackgroundColor: theme.colors.primaryBg,
         tabBarActiveTintColor: theme.colors.primaryStrong,
         tabBarInactiveTintColor: theme.colors.textSecondary,
       }}
@@ -58,65 +111,33 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Início",
-          tabBarLabel: "Início",
-          tabBarIcon: ({ color }) => (
-            <AppIcon name="home-outline" size={21} color={color} />
-          ),
+          tabBarLabel: ({ color }) => <TabLabel color={color}>Início</TabLabel>,
+          tabBarIcon: ({ color }) => <House size={23} color={color} strokeWidth={1.9} />,
         }}
       />
       <Tabs.Screen
         name="sales"
         options={{
           title: "Vendas",
-          tabBarLabel: "Vendas",
+          tabBarLabel: ({ color }) => <TabLabel color={color}>Vendas</TabLabel>,
           tabBarIcon: ({ color }) => (
-            <AppIcon name="receipt-outline" size={21} color={color} />
+            <ShoppingBag size={23} color={color} strokeWidth={1.9} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="finance"
+        options={{
+          href: null,
+          title: "Financeiro",
         }}
       />
       <Tabs.Screen
         name="new-sale"
         options={{
           title: "Nova venda",
-          tabBarLabel: () => null,
-          tabBarAccessibilityLabel: "Nova venda",
-          tabBarIcon: () => (
-            <View
-              style={{
-                width: 50,
-                height: 50,
-                borderRadius: radii.full,
-                backgroundColor: theme.colors.primary,
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: Platform.OS === "ios" ? 20 : 28,
-                shadowColor: theme.colors.primary,
-                shadowOffset: { width: 0, height: 3 },
-                shadowOpacity: 0.16,
-                shadowRadius: 6,
-                elevation: 4,
-              }}
-            >
-              <View
-                style={{
-                  width: 22,
-                  height: 2.5,
-                  backgroundColor: theme.colors.textOnPrimary,
-                  borderRadius: 2,
-                  position: "absolute",
-                }}
-              />
-              <View
-                style={{
-                  width: 2.5,
-                  height: 22,
-                  backgroundColor: theme.colors.textOnPrimary,
-                  borderRadius: 2,
-                  position: "absolute",
-                }}
-              />
-            </View>
-          ),
+          tabBarLabel: ({ color }) => <TabLabel color={color}>Nova venda</TabLabel>,
+          tabBarIcon: ({ color }) => <NewSaleIcon color={color} />,
         }}
       />
       <Tabs.Screen
@@ -124,31 +145,61 @@ export default function TabLayout() {
         options={{
           href: hasScheduling ? undefined : null,
           title: "Agenda",
-          tabBarLabel: "Agenda",
+          tabBarLabel: ({ color }) => <TabLabel color={color}>Agenda</TabLabel>,
           tabBarIcon: ({ color }) => (
-            <AppIcon name="calendar-outline" size={21} color={color} />
+            <CalendarDays size={23} color={color} strokeWidth={1.9} />
           ),
         }}
       />
       <Tabs.Screen
         name="clients"
         options={{
-          // Clientes sai da tab bar (ADR-0006): acessível via "Mais" e atalhos
-          // da home, mas a rota /tabs/clients continua funcionando.
-          href: null,
+          href: hasScheduling ? null : undefined,
           title: "Clientes",
+          tabBarLabel: ({ color }) => <TabLabel color={color}>Clientes</TabLabel>,
+          tabBarIcon: ({ color }) => <Users size={23} color={color} strokeWidth={1.9} />,
         }}
       />
       <Tabs.Screen
         name="more"
         options={{
           title: "Mais",
-          tabBarLabel: "Mais",
+          tabBarLabel: ({ color }) => <TabLabel color={color}>Mais</TabLabel>,
           tabBarIcon: ({ color }) => (
-            <AppIcon name="ellipsis-horizontal" size={23} color={color} />
+            <View style={[styles.moreIcon, { backgroundColor: theme.colors.surface }]}>
+              <Ellipsis size={25} color={color} strokeWidth={2.2} />
+            </View>
           ),
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  moreIcon: {
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 18,
+    height: 36,
+    marginBottom: 4,
+    width: 36,
+  },
+  plusBadge: {
+    alignItems: "center",
+    borderRadius: 9,
+    height: 18,
+    justifyContent: "center",
+    position: "absolute",
+    right: -8,
+    top: -6,
+    width: 18,
+  },
+  tabLabel: {
+    fontSize: fontSizes.xs,
+    lineHeight: 17,
+    marginBottom: 3,
+    maxWidth: "100%",
+    textAlign: "center",
+  },
+});

@@ -133,3 +133,13 @@ await createStripeCheckout(token, "essential", "monthly");
   - **Paywall com técnica de venda** (`components/paywall.tsx`): período default virou `"annual"` (era `"monthly"`); `PeriodCard` ganhou prop opcional `badge` — o card Anual mostra "Mais vantajoso"; a nota do card Anual virou âncora de preço: `"Equivale a R$ X,XX/mês · economize R$ Y"`, calculada de `PLAN_PRICING[tier]` (`annual/12` e `monthly*12 - annual`).
   - **Aviso de expiração** (`plans.tsx`): `expiryWarning(planLabel, expiresAt)` deriva de `profile.planExpiresAt` (sem endpoint novo) — mostra um `Card` de alerta no topo quando a assinatura vence em ≤5 dias ou venceu há <30 dias. Usa o plano **bruto** (`normalizePlan(profile.plan)`), não o `activePlan` resolvido, porque `resolveActivePlan` já cai pra `"free"` assim que expira (senão o aviso nunca apareceria pro caso "acabou de vencer").
   - **Teto de fornecedores comunicado**: bullet dedicado no Essencial (ver acima), visível antes da compra em `plans.tsx` e no `Paywall`.
+## Atualização de tier do Catálogo — 2026-07-25
+
+Esta regra substitui as menções anteriores que colocavam o catálogo completo no
+Profissional: catálogo completo e personalização pertencem ao **Essencial**. Os gatilhos
+do Catálogo abrem checkout Essencial somente para contas Gratuitas.
+
+- 2026-07-25: restauração segue o provedor do checkout. Android consulta compras da
+  Google Play e valida o token; iOS/web, onde a assinatura é vinculada à conta via
+  Stripe, reconsultam o perfil e invalidam os limites. Nenhuma plataforma cai mais no
+  aviso temporário “Restauração iOS será disponibilizada depois”.

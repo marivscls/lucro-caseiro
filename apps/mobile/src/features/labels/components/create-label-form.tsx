@@ -19,6 +19,7 @@ import { StandardModal } from "../../../shared/components/standard-modal";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { usePaywall } from "../../../shared/hooks/use-paywall";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+import { desktopSplitLayout } from "../../../shared/layout/desktop-density";
 import { alertError, alertValidation } from "../../../shared/utils/alerts";
 import { confirmPossibleDuplicate, duplicateKey } from "../../../shared/utils/duplicates";
 import { maskPhoneBR } from "../../../shared/utils/phone";
@@ -26,6 +27,7 @@ import { uploadLabelLogo } from "../../../shared/utils/upload-image";
 import { publicCatalogProductUrl } from "../../catalog/api";
 import { useCatalogSettings } from "../../catalog/hooks";
 import { useProfile } from "../../subscription/hooks";
+import { businessCopyFor } from "../../subscription/business-copy";
 import { brToIso } from "../dates";
 import { exportLabelPdfWithChoice } from "../label-export";
 import { useCreateLabel, useLabels } from "../hooks";
@@ -50,11 +52,13 @@ export function CreateLabelForm({
 }: Readonly<CreateLabelFormProps>) {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
+  const split = desktopSplitLayout(isDesktop);
   const previewRailSticky =
     Platform.OS === "web"
       ? ({ position: "sticky", top: 0, alignSelf: "flex-start" } as unknown as ViewStyle)
       : ({ alignSelf: "flex-start" } as ViewStyle);
   const { data: profile } = useProfile();
+  const experienceCopy = businessCopyFor(profile?.businessType);
   const showPaywall = usePaywall((state) => state.show);
   const isPremium =
     !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "labelsPremium");
@@ -242,6 +246,9 @@ export function CreateLabelForm({
             flex: 1,
             flexDirection: isDesktop ? "row" : "column",
             gap: spacing.md,
+            alignItems: isDesktop ? "center" : "stretch",
+            justifyContent: isDesktop ? "flex-start" : undefined,
+            flexWrap: "wrap",
           }}
         >
           <Button
@@ -254,7 +261,11 @@ export function CreateLabelForm({
             }
             onPress={() => void handleExport()}
             loading={exporting}
-            style={isDesktop ? { flex: 1 } : { alignSelf: "stretch" }}
+            style={
+              isDesktop
+                ? { minHeight: 48, minWidth: 220, paddingHorizontal: spacing.xl }
+                : { alignSelf: "stretch" }
+            }
           />
           <Button
             title={uploading ? "Enviando logo..." : "Criar etiqueta"}
@@ -262,20 +273,28 @@ export function CreateLabelForm({
             compact
             onPress={() => void handleSubmit()}
             loading={createLabel.isPending || uploading}
-            style={isDesktop ? { flex: 1 } : { alignSelf: "stretch" }}
+            style={
+              isDesktop
+                ? { minHeight: 48, minWidth: 220, paddingHorizontal: spacing.xl }
+                : { alignSelf: "stretch" }
+            }
           />
         </View>
       }
     >
-      <View
-        style={{
-          width: "100%",
-          minWidth: 0,
-          flexDirection: isDesktop ? "row" : "column",
-          gap: isDesktop ? spacing["2xl"] : spacing.xl,
-          alignItems: "flex-start",
-        }}
-      >
+      <View style={[{ width: "100%", minWidth: 0 }, split.outer]}>
+        <View
+          style={
+            isDesktop
+              ? split.row
+              : {
+                  width: "100%",
+                  flexDirection: "column",
+                  gap: spacing.xl,
+                  alignItems: "flex-start",
+                }
+          }
+        >
         <View
           style={[
             {
@@ -283,7 +302,7 @@ export function CreateLabelForm({
               alignSelf: "stretch",
               gap: isDesktop ? spacing["3xl"] : spacing["2xl"],
             },
-            isDesktop ? { flex: 1 } : { width: "100%" },
+            isDesktop ? split.main : { width: "100%" },
           ]}
         >
           <View
@@ -301,7 +320,7 @@ export function CreateLabelForm({
 
           <Input
             label="Nome da etiqueta"
-            placeholder="Ex: Brigadeiro tradicional"
+            placeholder={`Ex: ${experienceCopy.productExample}`}
             value={name}
             onChangeText={setName}
           />
@@ -334,7 +353,7 @@ export function CreateLabelForm({
 
           <Input
             label="Nome que será impresso"
-            placeholder="Ex: Bolo de cenoura"
+            placeholder={`Ex: ${experienceCopy.productExample}`}
             value={labelData.productName}
             onChangeText={(value) => updateField("productName", value)}
           />
@@ -380,7 +399,7 @@ export function CreateLabelForm({
           >
             <Input
               label="Seu nome / nome do negócio"
-              placeholder="Ex: Doces da Maria"
+              placeholder={`Ex: ${experienceCopy.businessNameExample}`}
               value={labelData.producerName ?? ""}
               onChangeText={(value) => updateField("producerName", value)}
             />
@@ -474,10 +493,9 @@ export function CreateLabelForm({
         </View>
 
         {isDesktop ? (
-          <View style={[{ width: 360, flexShrink: 0 }, previewRailSticky]}>
-            {previewBlock}
-          </View>
+          <View style={[split.aside, previewRailSticky]}>{previewBlock}</View>
         ) : null}
+        </View>
       </View>
     </StandardModal>
   );

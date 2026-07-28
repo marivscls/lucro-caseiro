@@ -7,6 +7,9 @@ export const CreateClientDto = z.object({
   birthday: z.string().date().optional(),
   notes: z.string().max(2000).optional(),
   tags: z.array(z.string().max(50)).max(10).optional(),
+  nextContactAt: z.string().date().nullable().optional(),
+  nextContactReason: z.string().max(200).nullable().optional(),
+  nextContactNotes: z.string().max(500).nullable().optional(),
 });
 
 export type CreateClient = z.infer<typeof CreateClientDto>;
@@ -23,6 +26,9 @@ export const ClientDto = z.object({
   birthday: z.string().nullable(),
   notes: z.string().nullable(),
   tags: z.array(z.string()),
+  nextContactAt: z.string().nullable(),
+  nextContactReason: z.string().nullable(),
+  nextContactNotes: z.string().nullable(),
   totalSpent: z.number(),
   createdAt: z.string().datetime(),
 });

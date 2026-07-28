@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Pressable, View, type LayoutChangeEvent } from "react-native";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 
+import { KeyboardAwareScrollView } from "./keyboard-aware-scroll-view";
 import { ResponsiveOverlayModal } from "./responsive-modal-surface";
 
 const SV_HEIGHT = 190;
@@ -125,9 +126,10 @@ export function ColorPickerModal({
       transparent
       onRequestClose={onCancel}
     >
-      <View
-        style={{
-          flex: 1,
+      <KeyboardAwareScrollView
+        extraScrollHeight={spacing.xl}
+        contentContainerStyle={{
+          flexGrow: 1,
           backgroundColor: theme.colors.overlay,
           justifyContent: "center",
           padding: spacing.xl,
@@ -283,7 +285,7 @@ export function ColorPickerModal({
             </Typography>
           </Pressable>
         </View>
-      </View>
+      </KeyboardAwareScrollView>
     </ResponsiveOverlayModal>
   );
 }

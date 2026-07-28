@@ -1,4 +1,3 @@
-import { Fraunces_600SemiBold, Fraunces_700Bold } from "@expo-google-fonts/fraunces";
 import {
   NunitoSans_400Regular,
   NunitoSans_600SemiBold,
@@ -19,7 +18,7 @@ import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/reac
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useRef, useState } from "react";
-import { AppState, Platform, useColorScheme } from "react-native";
+import { AppState, useColorScheme } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { useBirthdayNotifier } from "../features/clients/use-birthday-notifier";
@@ -44,15 +43,11 @@ import { setupAutoSync } from "../shared/hooks/use-offline-queue";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { usePremiumSuccess } from "../shared/hooks/use-premium-success";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
-import { Paywall } from "../features/subscription/components/paywall";
+import { preloadStaticImageAssets } from "../shared/static-image-assets";
+import { SubscriptionCheckout } from "../features/subscription/components/subscription-checkout";
 import { PremiumSuccess } from "../features/subscription/components/premium-success";
-import {
-  getPaywallCopy,
-  getPaywallRecommendedTier,
-} from "../features/subscription/limit-copy";
+import { getPaywallRecommendedTier } from "../features/subscription/limit-copy";
 import { activePlan, useProfile } from "../features/subscription/hooks";
-import { useSubscription } from "../features/subscription/use-subscription";
-import { useStripeCheckout } from "../features/subscription/use-stripe";
 
 const activeBrand = getActiveBrand();
 
@@ -77,9 +72,6 @@ function AppContent() {
     resource: paywallResource,
     recommendedTier: paywallRecommendedTier,
   } = usePaywall();
-  const paywallCopy = getPaywallCopy(paywallResource);
-  const { subscribe, restore, loading: subscriptionLoading } = useSubscription();
-  const { checkout: payWithStripe, loading: stripeLoading } = useStripeCheckout();
   const { data: profile } = useProfile();
   const {
     visible: successVisible,
@@ -87,6 +79,7 @@ function AppContent() {
     hide: hidePremiumSuccess,
   } = usePremiumSuccess();
   const [introDone, setIntroDone] = useState(false);
+  const [staticAssetsReady, setStaticAssetsReady] = useState(false);
 
   const canUsePremiumNotifications =
     !!profile &&
@@ -148,6 +141,23 @@ function AppContent() {
     void initialize();
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+    const fallback = setTimeout(() => {
+      if (mounted) setStaticAssetsReady(true);
+    }, 3_000);
+
+    void preloadStaticImageAssets().finally(() => {
+      clearTimeout(fallback);
+      if (mounted) setStaticAssetsReady(true);
+    });
+
+    return () => {
+      mounted = false;
+      clearTimeout(fallback);
+    };
+  }, []);
+
   // Link de recuperação de senha → abre a tela de "criar nova senha" (sobrepõe
   // o roteamento normal de auth). Só navega com o app já montado (introDone).
   useEffect(() => {
@@ -194,9 +204,14 @@ function AppContent() {
   }, [userId, appQueryClient]);
 
   // Abertura da marca: visivel durante o initialize() da auth, some quando a
-  // sessao esta pronta (e apos o tempo minimo de exibicao).
+  // sessao e as imagens estao prontas (e apos o tempo minimo de exibicao).
   if (!introDone) {
-    return <BrandIntro authReady={!isLoading} onFinish={() => setIntroDone(true)} />;
+    return (
+      <BrandIntro
+        authReady={!isLoading && staticAssetsReady}
+        onFinish={() => setIntroDone(true)}
+      />
+    );
   }
 
   return (
@@ -206,41 +221,20 @@ function AppContent() {
       <ToastHost />
       <AlertHost />
       <PremiumSuccess visible={successVisible} onClose={hidePremiumSuccess} />
-      <ResponsiveModal
-        desktopMaxWidth={1120}
-        visible={paywallVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={hidePaywall}
-      >
-        <Paywall
-          title={paywallCopy.title}
-          message={paywallCopy.message}
-          recommendedTier={
-            paywallRecommendedTier ??
-            (paywallResource &&
-            ["sales", "clients", "products", "recipes", "packaging"].includes(
-              paywallResource,
-            )
-              ? "essential"
-              : "professional")
-          }
-          onClose={hidePaywall}
-          onSubscribe={(tier, period) => {
-            // Android must use Google Play Billing (Play Store policy);
-            // iOS/Web use hosted Stripe Checkout.
-            if (Platform.OS === "android") {
-              void subscribe(tier, period);
-            } else {
-              void payWithStripe(tier, period);
-            }
-          }}
-          onRestore={() => {
-            void restore();
-          }}
-          loading={subscriptionLoading || stripeLoading}
-        />
-      </ResponsiveModal>
+      {paywallVisible ? (
+        <ResponsiveModal
+          desktopMaxWidth={1120}
+          visible
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={hidePaywall}
+        >
+          <SubscriptionCheckout
+            recommendedTier={requiredPaywallTier}
+            onClose={hidePaywall}
+          />
+        </ResponsiveModal>
+      ) : null}
       <DesktopShell enabled={showDesktopShell}>
         <Stack
           screenOptions={{
@@ -320,6 +314,15 @@ function AppContent() {
             options={{
               headerShown: !showDesktopShell,
               title: "Produtos",
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="services"
+            options={{
+              headerShown: !showDesktopShell,
+              title: "Serviços",
               headerStyle: { backgroundColor: theme.colors.background },
               headerTintColor: theme.colors.text,
             }}
@@ -417,23 +420,29 @@ export default function RootLayout() {
   const themeLoaded = useThemePref((s) => s.loaded);
   const storedMode = useThemePref((s) => s.mode);
   const systemScheme = useColorScheme();
+  const [bootstrapTimedOut, setBootstrapTimedOut] = useState(false);
   useEffect(() => {
     void useThemePref.getState().hydrate();
   }, []);
+  useEffect(() => {
+    const timeout = setTimeout(() => setBootstrapTimedOut(true), 3_000);
+    return () => clearTimeout(timeout);
+  }, []);
 
-  // Familias oficiais (ADR-0008): os nomes batem com o token `fonts` do
+  // Familia oficial (ADR-0008): os nomes batem com o token `fonts` do
   // @lucro-caseiro/ui. Segura o mount até carregar pra nao piscar fonte de
   // sistema (o BrandIntro cobre a espera logo em seguida).
-  const [fontsLoaded] = useFonts({
-    Fraunces_600SemiBold,
-    Fraunces_700Bold,
+  const [fontsLoaded, fontError] = useFonts({
     NunitoSans_400Regular,
     NunitoSans_600SemiBold,
     NunitoSans_700Bold,
     NunitoSans_800ExtraBold,
   });
 
-  if (!themeLoaded || !fontsLoaded) return null;
+  // Preferencias ou fontes indisponiveis nao podem manter o app inteiro em
+  // branco. Depois do limite, monta com tema/fonte do sistema e atualiza quando
+  // a hidratacao terminar.
+  if (!bootstrapTimedOut && (!themeLoaded || (!fontsLoaded && !fontError))) return null;
 
   const initialMode: ThemeMode =
     storedMode ?? (systemScheme === "light" ? "light" : "dark");

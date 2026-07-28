@@ -1,4 +1,4 @@
-import type { Insights } from "@lucro-caseiro/contracts";
+import type { Insights, Product } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import { AppIcon } from "../shared/components/app-icon";
 import type { AppIconName } from "../shared/components/app-icon";
@@ -13,18 +13,27 @@ import {
 } from "@lucro-caseiro/ui";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Image, ScrollView, View } from "react-native";
+import { Image, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import insightsEmpty from "../assets/insights-empty.png";
 import { MonthlyBars } from "../features/insights/components/monthly-bars";
 import { RankBars, type RankRow } from "../features/insights/components/rank-bars";
-import { formatMoney, monthOverMonthDelta } from "../features/insights/domain";
+import {
+  answerInsightQuestion,
+  buildActionableInsights,
+  formatMoney,
+  monthOverMonthDelta,
+  type InsightActionTarget,
+  type InsightQuestionId,
+} from "../features/insights/domain";
 import { useInsights } from "../features/insights/hooks";
+import { useAllProducts } from "../features/products/hooks";
 import { useProfile } from "../features/subscription/hooks";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { ScreenHeader } from "../shared/components/screen-header";
-import { Skeleton, SkeletonCard } from "../shared/components/skeleton";
+import { Skeleton, SkeletonCard, SkeletonSummaryStrip } from "../shared/components/skeleton";
+import { desktopStretch, desktopWidths, pageGutter } from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 
 function StatCard({
@@ -159,18 +168,21 @@ function ReportsPremiumTeaser({ onUpgrade }: Readonly<{ onUpgrade: () => void }>
 
 function InsightsContent({
   data,
+  products,
   isPremium,
   onUpgrade,
   months,
   onMonthsChange,
 }: Readonly<{
   data: Insights;
+  products: Product[];
   isPremium: boolean;
   onUpgrade: () => void;
   months: number;
   onMonthsChange: (months: number) => void;
 }>) {
   const { theme } = useTheme();
+  const router = useRouter();
   const averageTicket = data.totalSales > 0 ? data.totalRevenue / data.totalSales : 0;
   // Com o gráfico visível o total do período já aparece nele; o card vira
   // comparação mês a mês (só quando dá pra comparar — mês anterior > 0).
@@ -189,6 +201,17 @@ function InsightsContent({
     caption: formatMoney(c.totalSpent),
     value: c.totalSpent,
   }));
+  const actionable = buildActionableInsights(data, products);
+  const [selectedQuestion, setSelectedQuestion] = useState<InsightQuestionId | null>(
+    null,
+  );
+
+  function openAction(target: InsightActionTarget) {
+    if (target === "finance") router.push("/finance");
+    else if (target === "products") router.push("/products");
+    else if (target === "clients") router.push("/tabs/clients");
+    else router.push("/tabs/new-sale");
+  }
 
   return (
     <>
@@ -239,6 +262,120 @@ function InsightsContent({
 
       {isPremium ? (
         <>
+          {actionable.length > 0 ? (
+            <Card variant="surface" padding="xl">
+              <SectionTitle
+                icon="sparkles-outline"
+                title="O que fazer agora"
+                tint={theme.colors.primaryBg}
+                iconColor={theme.colors.primaryStrong}
+              />
+              <View style={{ gap: spacing.sm }}>
+                {actionable.map((action) => (
+                  <Pressable
+                    key={action.id}
+                    onPress={() => openAction(action.target)}
+                    accessibilityRole="button"
+                    style={({ pressed }) => ({
+                      minHeight: 64,
+                      borderRadius: radii.lg,
+                      borderWidth: 1,
+                      borderColor: theme.colors.border,
+                      backgroundColor: theme.colors.surfaceElevated,
+                      padding: spacing.md,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: spacing.md,
+                      opacity: pressed ? 0.78 : 1,
+                    })}
+                  >
+                    <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+                      <Typography
+                        variant="label"
+                        color={
+                          action.tone === "attention"
+                            ? theme.colors.alert
+                            : theme.colors.primaryStrong
+                        }
+                      >
+                        {action.tone === "attention" ? "ATENÇÃO" : "OPORTUNIDADE"}
+                      </Typography>
+                      <Typography variant="bodyBold">{action.title}</Typography>
+                      <Typography variant="caption" color={theme.colors.textSecondary}>
+                        {action.description}
+                      </Typography>
+                    </View>
+                    <AppIcon
+                      name="chevron-forward"
+                      size={20}
+                      color={theme.colors.textSecondary}
+                    />
+                  </Pressable>
+                ))}
+              </View>
+            </Card>
+          ) : null}
+          <Card variant="surface" padding="xl">
+            <SectionTitle
+              icon="help-circle-outline"
+              title="Perguntas rápidas"
+              tint={theme.colors.surface}
+              iconColor={theme.colors.textSecondary}
+            />
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              Respostas calculadas somente com estoque, custos e vendas cadastrados.
+            </Typography>
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                gap: spacing.sm,
+                marginTop: spacing.md,
+              }}
+            >
+              {[
+                { id: "restock" as const, label: "O que devo repor?" },
+                { id: "margin" as const, label: "Onde estou perdendo margem?" },
+              ].map((question) => (
+                <Pressable
+                  key={question.id}
+                  onPress={() => setSelectedQuestion(question.id)}
+                  accessibilityRole="button"
+                  style={{
+                    minHeight: 44,
+                    justifyContent: "center",
+                    paddingHorizontal: spacing.md,
+                    borderRadius: radii.full,
+                    borderWidth: 1,
+                    borderColor:
+                      selectedQuestion === question.id
+                        ? theme.colors.primary
+                        : theme.colors.border,
+                    backgroundColor:
+                      selectedQuestion === question.id
+                        ? theme.colors.primaryBg
+                        : theme.colors.surfaceElevated,
+                  }}
+                >
+                  <Typography variant="captionBold">{question.label}</Typography>
+                </Pressable>
+              ))}
+            </View>
+            {selectedQuestion ? (
+              <View
+                style={{
+                  marginTop: spacing.md,
+                  borderRadius: radii.lg,
+                  backgroundColor: theme.colors.surfaceElevated,
+                  padding: spacing.md,
+                }}
+              >
+                <Typography variant="body">
+                  {answerInsightQuestion(selectedQuestion, data, products)}
+                </Typography>
+              </View>
+            ) : null}
+          </Card>
           {productRows.length > 0 && (
             <Card variant="surface" padding="xl">
               <SectionTitle
@@ -281,7 +418,9 @@ export default function InsightsScreen() {
     !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "advancedReports");
   const showPaywall = usePaywall((s) => s.show);
   // Free vê só o mês atual ("básico mensal"); Premium escolhe a janela.
-  const { data, isLoading } = useInsights(isPremium ? months : 1, !!profile);
+  const insightsQuery = useInsights(isPremium ? months : 1, !!profile);
+  const { data, isLoading, error } = insightsQuery;
+  const { data: products = [] } = useAllProducts();
 
   return (
     <SafeAreaView
@@ -290,19 +429,36 @@ export default function InsightsScreen() {
     >
       <Stack.Screen options={{ headerShown: false }} />
 
-      {!isDesktop && <ScreenHeader title="Insights" />}
+      <ScreenHeader title="Insights" fallbackRoute="/tabs" hideBack={isDesktop} />
 
       {loadingProfile || isLoading ? (
-        <View style={{ flex: 1, padding: spacing.xl, gap: spacing.lg }}>
+        <View
+          style={{ flex: 1, ...pageGutter(isDesktop), ...desktopStretch(isDesktop, desktopWidths.data), paddingVertical: spacing.xl, gap: spacing.lg }}
+        >
           <Skeleton width="55%" height={22} />
-          <SkeletonCard lines={3} />
+          <SkeletonSummaryStrip tiles={2} />
           <SkeletonCard lines={4} />
+          <Skeleton height={160} borderRadius={radii.lg} />
         </View>
-      ) : (
+      ) : null}
+      {!loadingProfile && !isLoading && error ? (
+        <EmptyState
+          title="Não foi possível carregar os Insights"
+          description="Verifique sua conexão e tente novamente."
+          action={
+            <Button
+              title="Tentar novamente"
+              onPress={() => void insightsQuery.refetch()}
+            />
+          }
+        />
+      ) : null}
+      {!loadingProfile && !isLoading && !error ? (
         <ScrollView
           contentContainerStyle={{
             flexGrow: 1,
-            padding: spacing.xl,
+            ...pageGutter(isDesktop),
+            ...desktopStretch(isDesktop, desktopWidths.data),
             paddingTop: spacing.xl,
             paddingBottom: spacing["2xl"] + insets.bottom,
             gap: spacing.xl,
@@ -312,6 +468,7 @@ export default function InsightsScreen() {
           {data && data.totalSales > 0 ? (
             <InsightsContent
               data={data}
+              products={products}
               isPremium={isPremium}
               onUpgrade={() => showPaywall("reports")}
               months={months}
@@ -345,7 +502,7 @@ export default function InsightsScreen() {
             />
           )}
         </ScrollView>
-      )}
+      ) : null}
     </SafeAreaView>
   );
 }

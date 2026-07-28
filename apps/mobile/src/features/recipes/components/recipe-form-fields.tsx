@@ -2,7 +2,14 @@ import { Typography, fonts, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import type { AppIconName } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
-import { Image, Pressable, TextInput, View } from "react-native";
+import {
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  TextInput,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { formatCurrency } from "../../../shared/utils/format";
@@ -11,8 +18,7 @@ import { YIELD_UNIT_PRESETS } from "../yield-units";
 import { desktopModalSurface } from "../../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
-
-const CATEGORY_PRESETS = ["Doces", "Salgados", "Bolos", "Bebidas", "Outros"];
+import { useBusinessCopy } from "../../subscription/business-copy";
 
 const YIELD_UNIT_ICONS: Record<string, AppIconName> = {
   unidades: "cube-outline",
@@ -145,6 +151,7 @@ export function CategoryField({
   onChange,
 }: Readonly<{ value: string; onChange: (v: string) => void }>) {
   const { theme } = useTheme();
+  const experienceCopy = useBusinessCopy();
   const isDesktop = useDesktopLayout();
   const pal = useFieldPalette();
   const insets = useSafeAreaInsets();
@@ -183,7 +190,7 @@ export function CategoryField({
           numberOfLines={1}
           style={{ flex: 1 }}
         >
-          {value || "Ex: Doces, Salgados, Bolos..."}
+          {value || `Ex: ${experienceCopy.categoryExample}...`}
         </Typography>
         <AppIcon name="chevron-down" size={20} color={theme.colors.textSecondary} />
       </Pressable>
@@ -194,106 +201,119 @@ export function CategoryField({
         animationType="slide"
         onRequestClose={() => setOpen(false)}
       >
-        <Pressable
-          onPress={() => setOpen(false)}
-          style={{
-            flex: 1,
-            backgroundColor: theme.colors.overlay,
-            justifyContent: isDesktop ? "center" : "flex-end",
-            padding: isDesktop ? spacing.xl : 0,
-          }}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1, minHeight: 0 }}
         >
           <Pressable
-            style={[
-              {
-                backgroundColor: pal.sheetBg,
-                borderTopLeftRadius: radii["2xl"],
-                borderTopRightRadius: radii["2xl"],
-                paddingHorizontal: spacing.lg,
-                paddingTop: spacing.md,
-                paddingBottom: isDesktop ? spacing.lg : spacing.lg + insets.bottom,
-                gap: spacing.md,
-              },
-              desktopModalSurface(isDesktop, 640),
-            ]}
+            onPress={() => setOpen(false)}
+            style={{
+              flex: 1,
+              minHeight: 0,
+              backgroundColor: theme.colors.overlay,
+              justifyContent: isDesktop ? "center" : "flex-end",
+              padding: isDesktop ? spacing.xl : 0,
+            }}
           >
-            <Typography variant="h3" color={theme.colors.text}>
-              Categoria
-            </Typography>
-            <View
-              style={{
-                minHeight: 56,
-                borderRadius: radii.lg,
-                borderWidth: 1,
-                borderColor: pal.border,
-                backgroundColor: pal.fieldBg,
-                flexDirection: "row",
-                alignItems: "center",
-                paddingHorizontal: spacing.md,
-                gap: spacing.md,
-              }}
-            >
-              <AppIcon name="create-outline" size={22} color={theme.colors.primary} />
-              <TextInput
-                value={draft}
-                onChangeText={setDraft}
-                placeholder="Digite uma categoria nova"
-                placeholderTextColor={pal.placeholder}
-                autoFocus
-                style={{
-                  flex: 1,
-                  color: theme.colors.text,
-                  fontSize: 16,
-                  paddingVertical: spacing.md,
-                }}
-              />
-            </View>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-              {CATEGORY_PRESETS.map((cat) => (
-                <Pressable
-                  key={cat}
-                  onPress={() => confirm(cat)}
-                  accessibilityRole="button"
-                  style={{
-                    minHeight: 40,
-                    paddingHorizontal: spacing.md,
-                    justifyContent: "center",
-                    borderRadius: radii.full,
-                    borderWidth: 1,
-                    borderColor: pal.border,
-                    backgroundColor: pal.fieldBg,
-                  }}
-                >
-                  <Typography variant="body" color={theme.colors.text}>
-                    {cat}
-                  </Typography>
-                </Pressable>
-              ))}
-            </View>
             <Pressable
-              onPress={() => confirm(draft)}
-              disabled={!draft.trim()}
-              accessibilityRole="button"
-              style={({ pressed }) => {
-                let opacity = 1;
-                if (!draft.trim()) opacity = 0.5;
-                else if (pressed) opacity = 0.85;
-                return {
-                  minHeight: 52,
-                  borderRadius: radii.lg,
-                  backgroundColor: theme.colors.primary,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  opacity,
-                };
-              }}
+              style={[
+                {
+                  flexShrink: 1,
+                  backgroundColor: pal.sheetBg,
+                  borderTopLeftRadius: radii["2xl"],
+                  borderTopRightRadius: radii["2xl"],
+                  paddingHorizontal: spacing.lg,
+                  paddingTop: spacing.md,
+                  paddingBottom: isDesktop ? spacing.lg : spacing.lg + insets.bottom,
+                  gap: spacing.md,
+                },
+                desktopModalSurface(isDesktop, 640),
+              ]}
             >
-              <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
-                Usar categoria
+              <Typography variant="h3" color={theme.colors.text}>
+                Categoria
               </Typography>
+              <View
+                style={{
+                  minHeight: 56,
+                  borderRadius: radii.lg,
+                  borderWidth: 1,
+                  borderColor: pal.border,
+                  backgroundColor: pal.fieldBg,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingHorizontal: spacing.md,
+                  gap: spacing.md,
+                }}
+              >
+                <AppIcon
+                  name="create-outline"
+                  size={22}
+                  color={theme.colors.primary}
+                />
+                <TextInput
+                  value={draft}
+                  onChangeText={setDraft}
+                  placeholder="Digite uma categoria nova"
+                  placeholderTextColor={pal.placeholder}
+                  autoFocus
+                  style={{
+                    flex: 1,
+                    color: theme.colors.text,
+                    fontSize: 16,
+                    paddingVertical: spacing.md,
+                  }}
+                />
+              </View>
+              <View
+                style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
+              >
+                {experienceCopy.categoryPresets.map((cat) => (
+                  <Pressable
+                    key={cat}
+                    onPress={() => confirm(cat)}
+                    accessibilityRole="button"
+                    style={{
+                      minHeight: 40,
+                      paddingHorizontal: spacing.md,
+                      justifyContent: "center",
+                      borderRadius: radii.full,
+                      borderWidth: 1,
+                      borderColor: pal.border,
+                      backgroundColor: pal.fieldBg,
+                    }}
+                  >
+                    <Typography variant="body" color={theme.colors.text}>
+                      {cat}
+                    </Typography>
+                  </Pressable>
+                ))}
+              </View>
+              <Pressable
+                onPress={() => confirm(draft)}
+                disabled={!draft.trim()}
+                accessibilityRole="button"
+                style={({ pressed }) => {
+                  let opacity = 1;
+                  if (!draft.trim()) opacity = 0.5;
+                  else if (pressed) opacity = 0.85;
+                  return {
+                    minHeight: 52,
+                    borderRadius: radii.lg,
+                    backgroundColor: theme.colors.primary,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    opacity,
+                  };
+                }}
+              >
+                <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
+                  Usar categoria
+                </Typography>
+              </Pressable>
             </Pressable>
           </Pressable>
-        </Pressable>
+        </KeyboardAvoidingView>
       </ResponsiveOverlayModal>
     </>
   );
@@ -320,7 +340,7 @@ export function InstructionsField({
       <TextInput
         value={value}
         onChangeText={(t) => onChange(t.slice(0, MAX))}
-        placeholder="Descreva o passo a passo da receita..."
+        placeholder="Descreva etapas, observações ou modo de preparo..."
         placeholderTextColor={pal.placeholder}
         multiline
         maxLength={MAX}
@@ -344,7 +364,7 @@ export function InstructionsField({
   );
 }
 
-/** Campo de foto da receita: preview da imagem ou caixa tracejada "Adicionar foto". */
+/** Campo de foto do cadastro: preview da imagem ou caixa tracejada "Adicionar foto". */
 export function RecipePhotoField({
   imageUri,
   onPick,
@@ -355,7 +375,7 @@ export function RecipePhotoField({
     <Pressable
       onPress={onPick}
       accessibilityRole="button"
-      accessibilityLabel="Adicionar foto da receita"
+      accessibilityLabel="Adicionar foto"
       style={{
         borderRadius: radii.lg,
         borderWidth: 1.5,

@@ -63,7 +63,8 @@ export default function CompletePricingScreen() {
       <View
         style={{
           flex: 1,
-          padding: spacing.xl,
+          paddingHorizontal: isDesktop ? 0 : spacing.xl,
+          paddingVertical: spacing.xl,
           alignItems: "center",
           justifyContent: "center",
         }}

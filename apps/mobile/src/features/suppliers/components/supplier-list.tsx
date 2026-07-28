@@ -5,8 +5,15 @@ import { FlatList, Image, RefreshControl, View } from "react-native";
 
 import suppliersEmpty from "../../../assets/suppliers-empty.png";
 import { SkeletonList } from "../../../shared/components/skeleton";
+import {
+  desktopStretch,
+  desktopWidths,
+  pageGutter,
+} from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { useSuppliers } from "../hooks";
 import { SupplierCard } from "./supplier-card";
+import { useBusinessCopy } from "../../subscription/business-copy";
 
 interface SupplierListProps {
   search?: string;
@@ -20,12 +27,21 @@ export function SupplierList({
   onAddPress,
 }: Readonly<SupplierListProps>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
+  const experienceCopy = useBusinessCopy();
   const { data, isLoading, error, refetch, isRefetching } = useSuppliers({ search });
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, padding: spacing.xl }}>
-        <SkeletonList rows={6} />
+      <View
+        style={{
+          flex: 1,
+          paddingVertical: spacing.xl,
+          ...pageGutter(isDesktop),
+          ...desktopStretch(isDesktop, desktopWidths.data),
+        }}
+      >
+        <SkeletonList rows={6} variant="supplier" />
       </View>
     );
   }
@@ -46,11 +62,11 @@ export function SupplierList({
           <Image
             source={suppliersEmpty}
             resizeMode="contain"
-            style={{ width: 146, height: 146 }}
+            style={{ width: 220, height: 220 }}
           />
         }
         title="Nenhum fornecedor ainda"
-        description="Cadastre de quem você compra seus insumos e embalagens para organizar seus gastos."
+        description={`Cadastre de quem você compra ${experienceCopy.materialNounPlural} e outros itens para organizar seus gastos.`}
         action={
           onAddPress ? (
             <Button title="Cadastrar fornecedor" onPress={onAddPress} />
@@ -65,11 +81,19 @@ export function SupplierList({
       data={data.items}
       keyExtractor={(item: Supplier) => item.id}
       contentContainerStyle={{
-        paddingHorizontal: spacing.xl,
+        ...pageGutter(isDesktop),
+        ...desktopStretch(isDesktop, desktopWidths.data),
         paddingTop: spacing.md,
         paddingBottom: spacing["3xl"],
         gap: spacing.md,
       }}
+      ListHeaderComponent={
+        onAddPress ? (
+          <View style={{ alignItems: "flex-end" }}>
+            <Button title="Novo fornecedor" size="sm" onPress={onAddPress} />
+          </View>
+        ) : null
+      }
       refreshControl={
         <RefreshControl
           refreshing={isRefetching}

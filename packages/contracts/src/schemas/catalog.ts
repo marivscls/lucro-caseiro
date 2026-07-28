@@ -3,7 +3,7 @@ import { z } from "zod";
 // Slug da URL publica do catalogo: minusculas, numeros e hifens.
 export const CATALOG_SLUG_REGEX = /^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])?$/;
 
-// Cor do catalogo (personalizacao Premium): preset nomeado OU hex livre (#rrggbb).
+// Cor do catálogo (personalização do Essencial): preset nomeado OU hex livre (#rrggbb).
 // A chave/hex e persistida; as paletas concretas ficam no dominio da API.
 export const CATALOG_HEX_COLOR_REGEX = /^#[0-9a-fA-F]{6}$/;
 
@@ -22,7 +22,7 @@ export const CatalogAccentColor = z.union([
 ]);
 export type CatalogAccentColorValue = z.infer<typeof CatalogAccentColor>;
 
-// Pattern decorativo sobre a cor do hero (personalizacao Premium).
+// Pattern decorativo sobre a cor do hero (personalização do Essencial).
 export const CatalogPattern = z.enum(["dots", "bubbles", "grid", "stripes"]);
 export type CatalogPatternKey = z.infer<typeof CatalogPattern>;
 
@@ -61,6 +61,7 @@ export type UpdateCatalogSettings = z.infer<typeof UpdateCatalogSettingsDto>;
 export const PublicCatalogProductDto = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  category: z.string(),
   description: z.string().nullable(),
   photoUrl: z.string().nullable(),
   // Fotos adicionais (galeria) além da principal.

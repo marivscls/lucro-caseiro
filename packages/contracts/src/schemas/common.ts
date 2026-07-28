@@ -38,6 +38,10 @@ export const ExpenseCategory = z.enum([
 ]);
 export type ExpenseCategory = z.infer<typeof ExpenseCategory>;
 
+/** Tipo de desconto explícito usado em vendas e orçamentos. */
+export const DiscountType = z.enum(["fixed", "percentage"]);
+export type DiscountType = z.infer<typeof DiscountType>;
+
 export const PackagingType = z.enum(["box", "bag", "pot", "film", "label", "other"]);
 export type PackagingType = z.infer<typeof PackagingType>;
 

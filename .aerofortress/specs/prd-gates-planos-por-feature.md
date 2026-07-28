@@ -31,7 +31,7 @@ entre Essencial e Profissional.
 | Rótulos premium                          | Não      | Não       | Sim          | `labelsPremium`                           |
 | Fotos adicionais                         | Não      | Não       | Sim          | `extraPhotos`                             |
 | Produtos compostos/kits                  | Não      | Não       | Sim          | `compositeProducts`                       |
-| Catálogo completo/personalizado          | Não      | Não       | Sim          | `catalogPremium` / `catalogCustomization` |
+| Catálogo completo/personalizado          | Não      | Sim       | Sim          | `catalogPremium` / `catalogCustomization` |
 | Aniversários e notificações avançadas    | Não      | Não       | Sim          | `premiumNotifications`                    |
 | Suporte prioritário                      | Não      | Não       | Sim          | `prioritySupport`                         |
 

@@ -162,6 +162,21 @@ POST /api/v1/orders/:id/deliver
 => 200 { "status": "done", ... }  (+ lançamento de receita no financeiro)
 ```
 
+## Service registry extension
+
+Services coexist with products and are persisted in the `services` table.
+
+- `GET /api/v1/orders/services` returns active and inactive services for management.
+- `POST /api/v1/orders/services` creates from `CreateServiceDto`.
+- `PATCH /api/v1/orders/services/:id` updates from `UpdateServiceDto`.
+- Every query and mutation is scoped by `userId`.
+- Duplicate names are rejected ignoring case and surrounding spaces.
+- Fields: name, description, duration, default price, active state, material cost,
+  hourly rate, other cost, fixed-cost share, markup percent and fee percent.
+- No cost or percentage is silently assumed.
+- Active services can be linked to orders through `serviceId`; the order stores its
+  selected duration and joins the service name.
+
 ## Change log / Decisions
 
 - Criação inicial: encomendas com data + status + entrega.

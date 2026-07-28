@@ -26,9 +26,12 @@ const RECURRING_KEY = ["finance", "recurring"];
 
 export function useFinanceEntries(opts?: {
   page?: number;
+  limit?: number;
   type?: string;
   category?: string;
   fixed?: boolean;
+  startDate?: string;
+  endDate?: string;
 }) {
   const { token } = useAuth();
   return useQuery({

@@ -153,7 +153,17 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 - Fluxo: lista -> FAB "Novo produto" -> modal criacao -> salvar.
 - Tap em produto -> modal detalhe -> editar -> salvar.
 
+## Product and service separation
+
+Products and services coexist. The business profile may personalize examples, but
+it must not turn the Products registry into Services; services use `/services`.
+
 ## Change log / Decisions
+
+- 2026-07-24: criação e edição foram organizadas em blocos canônicos (`FormSection`) para
+  informações básicas, preço/custo, apresentação e estoque. O resultado ao vivo diferencia
+  ganho bruto em reais de margem sobre o preço, sempre descrito como estimativa baseada nos
+  custos informados.
 
 - 2026-07-20: leitura por código passou a usar consulta exata na API, independente da paginação.
   Produto local é adicionado diretamente à venda/PDV; nova leitura incrementa quantidade. Código

@@ -95,3 +95,7 @@ aprovado em encomenda na agenda (com sinal opcional).
   PDF é Premium (exportação); ilustração `clipboard` no estado vazio.
 - 2026-07-11: `quote-pdf.ts` ganhou rodapé discreto "Feito com Lucro Caseiro" linkando
   pra ficha da Play Store (UTM `pdf`), mesmo padrão do catálogo público.
+- 2026-07-24: o formulário passou a permitir adicionar um produto do catálogo, preenchendo
+  nome e preço de venda no item editável. O seletor de produto foi generalizado a partir do
+  componente já usado em Etiquetas; o fluxo aprovado continua criando encomenda, pois itens
+  de orçamento não persistem `productId`.

@@ -165,7 +165,7 @@ Regras gerais:
 - Modais ou cadastros complexos podem usar até 960 px.
 - Quando a rota continuar em tela cheia, seu conteúdo interno deve obedecer à zona operacional de 1.040 px.
 - Cabeçalho, fechar/voltar e rodapé de ações devem se alinhar ao mesmo contêiner do formulário.
-- No desktop autenticado, o shell continua sendo o único dono do título da rota; cabeçalhos internos mobile não devem duplicá-lo.
+- No desktop autenticado, o shell mantém apenas a sidebar; cada página é dona do próprio título e subtítulo (sem header global de rota).
 
 ### RF-07 — Listas, grades e barras de ação
 

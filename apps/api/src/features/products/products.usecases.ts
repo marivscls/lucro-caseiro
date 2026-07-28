@@ -1,6 +1,8 @@
 import type {
+  CreateStockAdjustment,
   Product,
   ProductCodeLookup,
+  StockMovement,
   ProductVariation,
   ProductVariationInput,
 } from "@lucro-caseiro/contracts";
@@ -244,5 +246,67 @@ export class ProductsUseCases {
   /** Preço médio de venda dos produtos ativos (null se não houver produtos). */
   async averageActivePrice(userId: string): Promise<number | null> {
     return this.repo.averageActivePrice(userId);
+  }
+
+  async adjustStock(
+    userId: string,
+    productId: string,
+    data: CreateStockAdjustment,
+  ): Promise<StockMovement> {
+    const product = await this.getById(userId, productId);
+    if (product.saleUnit === "kg") {
+      throw new ValidationError([
+        "Produtos vendidos por peso não usam estoque por unidade",
+      ]);
+    }
+    if (data.variationId) {
+      const variation = product.variations?.find(
+        (candidate) => candidate.id === data.variationId,
+      );
+      if (!variation || variation.stockQuantity === undefined) {
+        throw new ValidationError(["Esta variação não possui estoque controlado"]);
+      }
+    } else if (product.stockQuantity === null) {
+      throw new ValidationError(["Este produto não possui estoque controlado"]);
+    }
+    if (!this.repo.adjustStockWithMovement) {
+      throw new ValidationError(["Ajuste de estoque indisponível"]);
+    }
+    const movement = await this.repo.adjustStockWithMovement(
+      userId,
+      productId,
+      data,
+    );
+    if (!movement) {
+      throw new ValidationError(["O ajuste deixaria o estoque negativo"]);
+    }
+    return movement;
+  }
+
+  async listStockMovements(
+    userId: string,
+    productId: string,
+    limit: number,
+  ): Promise<StockMovement[]> {
+    await this.getById(userId, productId);
+    return this.repo.listStockMovements
+      ? this.repo.listStockMovements(userId, productId, limit)
+      : [];
+  }
+
+  async salesVelocity(userId: string, days: number) {
+    const rows = this.repo.getSalesVelocity
+      ? await this.repo.getSalesVelocity(userId, days)
+      : [];
+    if (rows.length === 0) return { days, fast: [], slow: [] };
+    const positive = [...rows]
+      .filter((row) => row.quantity > 0)
+      .sort((a, b) => b.quantity - a.quantity);
+    const split = Math.max(1, Math.ceil(positive.length / 3));
+    return {
+      days,
+      fast: positive.slice(0, split).map((row) => row.productId),
+      slow: positive.slice(-split).map((row) => row.productId),
+    };
   }
 }

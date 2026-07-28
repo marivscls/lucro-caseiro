@@ -51,6 +51,8 @@ import { showToast } from "../shared/components/toast";
 import { alertError, alertValidation } from "../shared/utils/alerts";
 import { exportHtmlPdf } from "../shared/utils/export-html";
 import { BarcodeScanner } from "../shared/components/barcode-scanner";
+import { desktopStretch, desktopWidths, pageGutter } from "../shared/layout/desktop-density";
+import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 
 type OperationMode =
   | "checkout"
@@ -114,6 +116,7 @@ const NEXT_DOCUMENT_STATUS: Record<
 
 export default function RetailScreen() {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const [mode, setMode] = useState<OperationMode | null>(null);
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
@@ -856,7 +859,14 @@ export default function RetailScreen() {
       <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
         <Stack.Screen options={{ headerShown: false }} />
         <ScreenHeader title="Operação da Papelaria" />
-        <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }}>
+        <ScrollView
+          contentContainerStyle={{
+            ...pageGutter(isDesktop, spacing.lg),
+            ...desktopStretch(isDesktop, desktopWidths.data),
+            paddingVertical: spacing.lg,
+            gap: spacing.lg,
+          }}
+        >
           <Card variant="elevated" style={{ gap: spacing.md }}>
             <Typography variant="h3">Caixa</Typography>
             {cash.data ? (

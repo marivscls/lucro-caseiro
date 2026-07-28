@@ -6,7 +6,11 @@ import { ActivityIndicator, Pressable, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { showAlert } from "../../../shared/components/alert-store";
-import { desktopModalSurface } from "../../../shared/layout/desktop-density";
+import {
+  desktopAction,
+  desktopCompactField,
+  desktopModalSurface,
+} from "../../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
 import { StandardModal } from "../../../shared/components/standard-modal";
@@ -32,6 +36,7 @@ import {
   parseCurrencyInput,
 } from "../../../shared/utils/currency-input";
 import { duplicateKey } from "../../../shared/utils/duplicates";
+import { useBusinessCopy } from "../../subscription/business-copy";
 
 interface MaterialFormProps {
   readonly material?: Material | null;
@@ -245,7 +250,7 @@ function NotesField({
         <TextInput
           value={value}
           onChangeText={(t) => onChange(t.slice(0, MAX))}
-          placeholder="Ex: Informações importantes sobre o insumo..."
+          placeholder="Ex: Informações importantes para este cadastro..."
           placeholderTextColor={pal.placeholder}
           multiline
           maxLength={MAX}
@@ -278,6 +283,9 @@ export function MaterialForm({
   onSuccess,
 }: MaterialFormProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
+  const experienceCopy = useBusinessCopy();
+  const materialTitle = "Insumo";
   const pal = useFieldPalette();
   const [name, setName] = useState(material?.name ?? "");
   const [unit, setUnit] = useState(material?.unit ?? "kg");
@@ -322,7 +330,7 @@ export function MaterialForm({
     showAlert({
       title: "Conteúdo por unidade",
       message:
-        "Diz quanto vem em 1 unidade do insumo (ex.: 1 lata = 350 ml). Assim dá para usar este insumo em g/ml nas receitas.",
+        "Diz quanto vem em 1 unidade do insumo. Assim, o app consegue usar quantidades menores na receita.",
     });
   }
 
@@ -335,7 +343,9 @@ export function MaterialForm({
 
   async function handleSave() {
     if (!name.trim()) {
-      alertValidation("Dê um nome ao insumo (ex.: Farinha de trigo).");
+      alertValidation(
+        `Dê um nome ao insumo (ex.: ${experienceCopy.materialExample}).`,
+      );
       return;
     }
     const contentValue = parseNum(contentPerUnit);
@@ -363,9 +373,8 @@ export function MaterialForm({
     );
     if (duplicate) {
       showAlert({
-        title: "Insumo já cadastrado",
-        message:
-          "Esse insumo já existe. Abra o cadastro existente para ajustar o estoque.",
+        title: `${materialTitle} já cadastrado`,
+        message: "Esse insumo já existe. Abra o cadastro existente para ajustar o estoque.",
       });
       return;
     }
@@ -418,11 +427,22 @@ export function MaterialForm({
 
   return (
     <StandardModal
-      title={isEditing ? "Editar insumo" : "Novo insumo"}
+      title={
+        isEditing
+          ? "Editar insumo"
+          : "Novo insumo"
+      }
       visible={visible}
       onClose={onClose}
       footer={
-        <>
+        <View
+          style={{
+            flexDirection: "row",
+            gap: spacing.md,
+            justifyContent: isDesktop ? "flex-end" : undefined,
+            width: "100%",
+          }}
+        >
           {isEditing ? (
             <Pressable
               onPress={handleDelete}
@@ -435,7 +455,7 @@ export function MaterialForm({
                   justifyContent: "center",
                   opacity: pressed ? 0.7 : 1,
                 },
-                { flex: 1 },
+                isDesktop ? desktopAction(isDesktop, 180) : { flex: 1 },
               ]}
             >
               <Typography variant="bodyBold" color={theme.colors.alert}>
@@ -451,16 +471,16 @@ export function MaterialForm({
             accessibilityRole="button"
             style={({ pressed }) => [
               {
-                minHeight: 58,
-                borderRadius: radii.lg,
-                backgroundColor: theme.colors.primary,
+                minHeight: 48,
+                borderRadius: radii.md,
+                backgroundColor: theme.colors.primaryInteractive,
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: spacing.sm,
                 opacity: pressed || saving ? 0.85 : 1,
               },
-              { flex: 1 },
+              isDesktop ? desktopAction(isDesktop, 220) : { flex: 1 },
             ]}
           >
             {saving ? (
@@ -475,12 +495,14 @@ export function MaterialForm({
             <Typography
               variant="bodyBold"
               color={theme.colors.textOnPrimary}
-              style={{ fontSize: 18 }}
+              style={{ fontSize: 16 }}
             >
-              {isEditing ? "Salvar alterações" : "Salvar insumo"}
+              {isEditing
+                ? "Salvar alterações"
+                : "Salvar insumo"}
             </Typography>
           </Pressable>
-        </>
+        </View>
       }
     >
       <View style={{ flexShrink: 1, gap: spacing.xl }}>
@@ -493,13 +515,13 @@ export function MaterialForm({
               color={theme.colors.textSecondary}
               style={{ marginTop: -spacing.sm }}
             >
-              Cadastre um novo insumo para controlar seu estoque e usar nas receitas.
+              Cadastre um novo insumo para controlar custos e usar nas receitas.
             </Typography>
             <View>
               <FieldLabel label="Nome do insumo" required />
               <TextFieldCard
                 icon="pricetag-outline"
-                placeholder="Ex: Farinha de trigo"
+                placeholder={`Ex: ${experienceCopy.materialExample}`}
                 value={name}
                 onChangeText={setName}
                 autoFocus
@@ -597,7 +619,7 @@ export function MaterialForm({
         </View>
 
         <View style={{ flexDirection: "row", gap: spacing.md }}>
-          <View style={{ flex: 1 }}>
+          <View style={[{ flex: 1 }, desktopCompactField(isDesktop)]}>
             <FieldLabel label="Quantidade em estoque" />
             <TextFieldCard
               icon="cube-outline"
@@ -608,7 +630,7 @@ export function MaterialForm({
             />
             <SubLabel>Quantidade atual disponível.</SubLabel>
           </View>
-          <View style={{ flex: 1 }}>
+          <View style={[{ flex: 1 }, desktopCompactField(isDesktop)]}>
             <FieldLabel label="Alerta de estoque baixo (opcional)" />
             <TextFieldCard
               icon="notifications-outline"
@@ -621,7 +643,7 @@ export function MaterialForm({
           </View>
         </View>
 
-        <View>
+        <View style={desktopCompactField(isDesktop)}>
           <FieldLabel label="Custo por unidade (opcional)" />
           <TextFieldCard
             icon="cash-outline"
@@ -664,7 +686,7 @@ export function MaterialForm({
             </Pressable>
           </View>
           <View style={{ flexDirection: "row", gap: spacing.md }}>
-            <View style={{ flex: 1 }}>
+            <View style={[{ flex: 1 }, desktopCompactField(isDesktop)]}>
               <Typography
                 variant="body"
                 color={theme.colors.text}
@@ -714,7 +736,7 @@ export function MaterialForm({
                 {contentUnit.trim() || "ml"}
               </Typography>
               <Typography variant="caption" color={theme.colors.textSecondary}>
-                Permite usar este insumo em g/ml nas receitas.
+                Permite usar este insumo em quantidades menores nas receitas.
               </Typography>
             </View>
           </View>

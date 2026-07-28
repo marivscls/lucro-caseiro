@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { MAX_MONEY, MAX_QUANTITY, PaymentMethod, SaleStatus } from "./common";
+import {
+  DiscountType,
+  MAX_MONEY,
+  MAX_QUANTITY,
+  PaymentMethod,
+  SaleStatus,
+} from "./common";
 
 export const SaleItemDto = z.object({
   productId: z.string().uuid(),
@@ -15,8 +21,25 @@ export const CreateSaleDto = z.object({
   clientId: z.string().uuid().optional(),
   paymentMethod: PaymentMethod,
   items: z.array(SaleItemDto).min(1),
+  discountType: DiscountType.optional(),
+  discountValue: z.number().positive().max(MAX_MONEY).optional(),
   notes: z.string().max(500).optional(),
   soldAt: z.string().datetime().optional(),
+}).superRefine((data, ctx) => {
+  if ((data.discountType === undefined) !== (data.discountValue === undefined)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["discountValue"],
+      message: "Informe o tipo e o valor do desconto",
+    });
+  }
+  if (data.discountType === "percentage" && (data.discountValue ?? 0) > 100) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["discountValue"],
+      message: "O desconto percentual deve ser de no máximo 100%",
+    });
+  }
 });
 
 export type CreateSale = z.infer<typeof CreateSaleDto>;
@@ -31,6 +54,8 @@ export const UpdateSaleDto = z.object({
   clientId: z.string().uuid().optional(),
   paymentMethod: PaymentMethod.optional(),
   items: z.array(SaleItemDto).min(1).optional(),
+  discountType: DiscountType.nullable().optional(),
+  discountValue: z.number().min(0).max(MAX_MONEY).optional(),
   notes: z.string().max(500).optional(),
 });
 
@@ -41,6 +66,10 @@ export const SaleDto = z.object({
   clientName: z.string().nullable(),
   status: SaleStatus,
   paymentMethod: PaymentMethod,
+  subtotal: z.number(),
+  discount: z.number(),
+  discountType: DiscountType.nullable(),
+  discountValue: z.number(),
   total: z.number(),
   notes: z.string().nullable(),
   items: z.array(

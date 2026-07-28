@@ -22,7 +22,7 @@
 
 .page h1,
 .page h2 {
-  font-family: var(--font-display), serif;
+  font-family: var(--font-sans), sans-serif;
   letter-spacing: -0.045em;
 }
 
@@ -53,7 +53,7 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-family: var(--font-display), serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: 20px;
   font-weight: 700;
 }
@@ -630,7 +630,7 @@
 
 .planCard h3 {
   margin: 0;
-  font-family: var(--font-display), serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: 30px;
 }
 
@@ -749,7 +749,7 @@
 
 .guidesGrid h3 {
   margin: 50px 0 12px;
-  font-family: var(--font-display), serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: 28px;
   line-height: 1.05;
 }
@@ -860,7 +860,7 @@
 
 .footerBrand strong {
   color: var(--brown);
-  font-family: var(--font-display), serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: 18px;
 }
 

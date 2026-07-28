@@ -11,6 +11,10 @@ function makeSale(overrides: Partial<Sale> = {}): Sale {
     clientName: "Maria",
     status: "paid",
     paymentMethod: "pix",
+    subtotal: 25,
+    discount: 0,
+    discountType: null,
+    discountValue: 0,
     total: 25,
     notes: null,
     items: [

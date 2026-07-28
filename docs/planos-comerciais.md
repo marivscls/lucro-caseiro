@@ -65,7 +65,7 @@ Deve incluir:
 - Receitas.
 - Precificacao.
 - Estoque basico.
-- Catalogo online basico.
+- Catalogo online completo e personalizado.
 - Recibo simples.
 - Exportar resumo mensal em PDF simples (feature `exportBasic`, ver ADR-0005).
 - 1 usuario.
@@ -81,7 +81,6 @@ Objetivo: ser o plano completo para quem quer operar com mais controle, melhor a
 
 Deve incluir tudo do Essencial, mais:
 
-- Catalogo premium.
 - Varias fotos por produto.
 - Relatorios avancados.
 - Exportacao em PDF/XLSX.
@@ -111,29 +110,29 @@ Usar a logica de 2 meses gratis:
 
 ## Comparacao resumida
 
-| Recurso                 | Gratis         | Essencial               | Profissional                |
-| ----------------------- | -------------- | ----------------------- | --------------------------- |
-| Vendas                  | 30/mes         | Ilimitadas              | Ilimitadas                  |
-| Clientes                | 20             | Ilimitados              | Ilimitados                  |
-| Produtos                | 15             | Ilimitados              | Ilimitados                  |
-| Receitas                | 5              | Ilimitadas              | Ilimitadas                  |
-| Embalagens              | 3              | Ilimitadas              | Ilimitadas                  |
-| Fornecedores            | 3              | Limitado ou nao incluso | Ilimitados                  |
-| Fotos por produto       | 1              | 1                       | Varias                      |
-| Catalogo online         | Basico         | Basico                  | Premium                     |
-| Agenda/encomendas       | Basico         | Completo                | Completo                    |
-| Fiado                   | Basico         | Completo                | Completo                    |
-| Financeiro              | Resumo simples | Basico                  | Completo                    |
-| Relatorios avancados    | Nao            | Nao                     | Sim                         |
-| Exportacao PDF/XLSX     | Nao            | PDF basico (resumo mes) | Sim (PDF completo + XLSX)   |
-| Recibos                 | Simples        | Simples                 | Personalizados              |
-| Exportar resumo em PDF  | Nao            | Sim (PDF basico do mes) | Sim (PDF completo)          |
-| Orcamentos em PDF       | Nao            | Nao                     | Sim                         |
-| Rotulos premium         | Nao            | Nao                     | Sim                         |
-| Produtos compostos/kits | Nao            | Nao                     | Sim                         |
-| Despesas recorrentes    | Nao            | Nao                     | Sim                         |
-| Usuarios                | 1              | 1                       | Multiusuario quando existir |
-| Suporte                 | Basico         | Basico                  | Prioritario                 |
+| Recurso                 | Gratis         | Essencial                | Profissional                |
+| ----------------------- | -------------- | ------------------------ | --------------------------- |
+| Vendas                  | 30/mes         | Ilimitadas               | Ilimitadas                  |
+| Clientes                | 20             | Ilimitados               | Ilimitados                  |
+| Produtos                | 15             | Ilimitados               | Ilimitados                  |
+| Receitas                | 5              | Ilimitadas               | Ilimitadas                  |
+| Embalagens              | 3              | Ilimitadas               | Ilimitadas                  |
+| Fornecedores            | 3              | Limitado ou nao incluso  | Ilimitados                  |
+| Fotos por produto       | 1              | 1                        | Varias                      |
+| Catalogo online         | Basico         | Completo e personalizado | Completo e personalizado    |
+| Agenda/encomendas       | Basico         | Completo                 | Completo                    |
+| Fiado                   | Basico         | Completo                 | Completo                    |
+| Financeiro              | Resumo simples | Basico                   | Completo                    |
+| Relatorios avancados    | Nao            | Nao                      | Sim                         |
+| Exportacao PDF/XLSX     | Nao            | PDF basico (resumo mes)  | Sim (PDF completo + XLSX)   |
+| Recibos                 | Simples        | Simples                  | Personalizados              |
+| Exportar resumo em PDF  | Nao            | Sim (PDF basico do mes)  | Sim (PDF completo)          |
+| Orcamentos em PDF       | Nao            | Nao                      | Sim                         |
+| Rotulos premium         | Nao            | Nao                      | Sim                         |
+| Produtos compostos/kits | Nao            | Nao                      | Sim                         |
+| Despesas recorrentes    | Nao            | Nao                      | Sim                         |
+| Usuarios                | 1              | 1                        | Multiusuario quando existir |
+| Suporte                 | Basico         | Basico                   | Prioritario                 |
 
 ## Diferenca para o Kyte
 

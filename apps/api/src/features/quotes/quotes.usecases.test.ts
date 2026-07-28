@@ -22,13 +22,22 @@ function makeQuote(overrides: Partial<Quote> = {}): Quote {
     orderId: null,
     createdAt: new Date().toISOString(),
     ...overrides,
+    subtotal: overrides.subtotal ?? 60,
+    discount: overrides.discount ?? 0,
+    discountType: overrides.discountType ?? null,
+    discountValue: overrides.discountValue ?? 0,
+    estimatedCost: overrides.estimatedCost ?? 0,
+    estimatedGain: overrides.estimatedGain ?? 60,
+    estimatedMargin: overrides.estimatedMargin ?? 100,
   };
 }
 
 function makeRepo(overrides: Partial<IQuotesRepo> = {}): IQuotesRepo {
   return {
     create: (_userId, data) =>
-      Promise.resolve(makeQuote({ title: data.title, total: data.total })),
+      Promise.resolve(
+        makeQuote({ title: data.title, total: data.total, status: data.status }),
+      ),
     findById: () => Promise.resolve(makeQuote()),
     findAll: () => Promise.resolve({ items: [makeQuote()], total: 1 }),
     update: (_userId, _id, data) => Promise.resolve(makeQuote(data as Partial<Quote>)),
@@ -57,6 +66,7 @@ describe("QuotesUseCases.create", () => {
       ],
     });
     expect(quote.total).toBe(95);
+    expect(quote.status).toBe("pending");
   });
 
   it("rejeita orçamento sem itens", async () => {

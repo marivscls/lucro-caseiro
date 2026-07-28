@@ -1,10 +1,10 @@
-import type { Sale, SaleStatus } from "@lucro-caseiro/contracts";
+import type { Sale, SaleStatus, StockMovementType } from "@lucro-caseiro/contracts";
 
 import { NotFoundError, ValidationError } from "../../shared/errors";
 import { paginationMeta } from "../../shared/helpers/paginate";
 import type { IProductsRepo } from "../products/products.types";
 import {
-  calculateSaleTotal,
+  calculateSalePricing,
   canCancelSale,
   initialSaleStatus,
   validateSaleItems,
@@ -162,15 +162,28 @@ export class SalesUseCases {
   private async applyStockChanges(
     userId: string,
     changes: Array<{ productId: string; variationId?: string; delta: number }>,
+    movement: {
+      type: StockMovementType;
+      reason: string;
+      sourceId?: string;
+    },
   ): Promise<void> {
     if (!this.productsRepo) return;
     for (const change of changes) {
-      const adjusted = await this.productsRepo.adjustStock(
-        userId,
-        change.productId,
-        change.delta,
-        change.variationId,
-      );
+      const adjusted = this.productsRepo.adjustStockWithMovement
+        ? await this.productsRepo.adjustStockWithMovement(userId, change.productId, {
+            delta: change.delta,
+            variationId: change.variationId,
+            type: movement.type,
+            reason: movement.reason,
+            sourceId: movement.sourceId,
+          })
+        : await this.productsRepo.adjustStock(
+            userId,
+            change.productId,
+            change.delta,
+            change.variationId,
+          );
       if (!adjusted) {
         throw new ValidationError(["Não foi possível atualizar o estoque da venda"]);
       }
@@ -211,21 +224,35 @@ export class SalesUseCases {
       throw new ValidationError(errors);
     }
 
-    const total = calculateSaleTotal(data.items);
+    const pricing = calculateSalePricing(
+      data.items,
+      data.discountType,
+      data.discountValue,
+    );
+    if (pricing.total <= 0) {
+      throw new ValidationError(["O desconto deve ser menor que o subtotal"]);
+    }
 
     const stockChanges = await this.collectStockChanges(userId, data.items, -1);
     await this.validateStockChanges(userId, stockChanges);
-    await this.applyStockChanges(userId, stockChanges);
+    await this.applyStockChanges(userId, stockChanges, {
+      type: "sale",
+      reason: "Venda registrada",
+    });
 
     // "credit" (fiado) nasce pendente -> aparece no Fiado; demais formas, pagas.
     const status = initialSaleStatus(data.paymentMethod);
     let sale: Sale;
     try {
-      sale = await this.repo.create(userId, data, total, status);
+      sale = await this.repo.create(userId, data, pricing.total, status, pricing);
     } catch (error) {
       await this.applyStockChanges(
         userId,
         stockChanges.map((change) => ({ ...change, delta: -change.delta })),
+        {
+          type: "cancellation",
+          reason: "Estorno de venda não concluída",
+        },
       );
       throw error;
     }
@@ -280,7 +307,14 @@ export class SalesUseCases {
       }
     }
 
-    const total = calculateSaleTotal(items);
+    const discountType =
+      data.discountType === undefined ? existing.discountType : data.discountType;
+    const discountValue =
+      data.discountValue === undefined ? existing.discountValue : data.discountValue;
+    const pricing = calculateSalePricing(items, discountType, discountValue);
+    if (pricing.total <= 0) {
+      throw new ValidationError(["O desconto deve ser menor que o subtotal"]);
+    }
 
     const stockChanges = data.items
       ? this.mergeStockChanges(
@@ -299,15 +333,24 @@ export class SalesUseCases {
         )
       : [];
     await this.validateStockChanges(userId, stockChanges);
-    await this.applyStockChanges(userId, stockChanges);
+    await this.applyStockChanges(userId, stockChanges, {
+      type: "adjustment",
+      reason: "Venda editada",
+      sourceId: id,
+    });
 
     let updated: Sale | null;
     try {
-      updated = await this.repo.update(userId, id, data, total);
+      updated = await this.repo.update(userId, id, data, pricing.total, pricing);
     } catch (error) {
       await this.applyStockChanges(
         userId,
         stockChanges.map((change) => ({ ...change, delta: -change.delta })),
+        {
+          type: "adjustment",
+          reason: "Estorno de edição de venda",
+          sourceId: id,
+        },
       );
       throw error;
     }
@@ -315,6 +358,11 @@ export class SalesUseCases {
       await this.applyStockChanges(
         userId,
         stockChanges.map((change) => ({ ...change, delta: -change.delta })),
+        {
+          type: "adjustment",
+          reason: "Estorno de edição de venda",
+          sourceId: id,
+        },
       );
       throw new NotFoundError("Venda não encontrada");
     }
@@ -352,7 +400,11 @@ export class SalesUseCases {
             1,
           )
         : [];
-    await this.applyStockChanges(userId, restoreChanges);
+    await this.applyStockChanges(userId, restoreChanges, {
+      type: "cancellation",
+      reason: "Venda cancelada",
+      sourceId: id,
+    });
 
     let updated: Sale | null;
     try {
@@ -361,6 +413,11 @@ export class SalesUseCases {
       await this.applyStockChanges(
         userId,
         restoreChanges.map((change) => ({ ...change, delta: -change.delta })),
+        {
+          type: "sale",
+          reason: "Estorno de cancelamento de venda",
+          sourceId: id,
+        },
       );
       throw error;
     }
@@ -368,6 +425,11 @@ export class SalesUseCases {
       await this.applyStockChanges(
         userId,
         restoreChanges.map((change) => ({ ...change, delta: -change.delta })),
+        {
+          type: "sale",
+          reason: "Estorno de cancelamento de venda",
+          sourceId: id,
+        },
       );
       throw new NotFoundError("Venda não encontrada");
     }

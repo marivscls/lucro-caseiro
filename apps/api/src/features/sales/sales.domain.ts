@@ -1,9 +1,36 @@
-import type { SaleStatus } from "@lucro-caseiro/contracts";
+import type { DiscountType, SaleStatus } from "@lucro-caseiro/contracts";
 
 import type { DaySummary, SaleItemData } from "./sales.types";
 
+function discountAmount(
+  subtotal: number,
+  discountType: DiscountType | null | undefined,
+  discountValue: number,
+): number {
+  if (discountType === "fixed") return discountValue;
+  if (discountType === "percentage") return subtotal * (discountValue / 100);
+  return 0;
+}
+
 export function calculateSaleTotal(items: SaleItemData[]): number {
-  return items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+  return Math.round(
+    items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0) * 100,
+  ) / 100;
+}
+
+export function calculateSalePricing(
+  items: SaleItemData[],
+  discountType?: DiscountType | null,
+  discountValue = 0,
+): { subtotal: number; discount: number; total: number } {
+  const subtotal = calculateSaleTotal(items);
+  const discount =
+    Math.round(discountAmount(subtotal, discountType, discountValue) * 100) / 100;
+  return {
+    subtotal,
+    discount,
+    total: Math.round((subtotal - discount) * 100) / 100,
+  };
 }
 
 export function validateSaleItems(items: SaleItemData[]): string[] {

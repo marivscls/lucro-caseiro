@@ -6,6 +6,7 @@ import { fonts, fontSizes } from "../theme";
 
 type TypographyVariant =
   | "display"
+  | "screenTitle"
   | "h1"
   | "h2"
   | "h3"
@@ -21,17 +22,14 @@ type TypographyVariant =
 interface TypographyProps extends TextProps {
   variant?: TypographyVariant;
   color?: string;
-  serif?: boolean;
 }
 
-// Escala tipografica oficial (ADR-0008). Fraunces em display/h1/h2 (a voz da
-// marca), Nunito Sans no resto. Nao passe fontSize/fontWeight/fontFamily via
-// `style` — escolha a variante certa; o peso vem da familia (faux bold no
-// Android quebra a fonte).
+// Escala tipografica oficial (ADR-0008). Nunito Sans em toda a interface.
+// Nao passe fontSize/fontWeight/fontFamily via `style` — escolha a variante
+// certa; o peso vem da familia (faux bold no Android quebra a fonte).
 export function Typography({
   variant = "body",
   color,
-  serif,
   style,
   children,
   ...props
@@ -41,21 +39,28 @@ export function Typography({
   const styles: Record<TypographyVariant, TextStyle> = {
     display: {
       fontSize: fontSizes["3xl"],
-      fontFamily: fonts.displayBold,
+      fontFamily: fonts.bold,
       lineHeight: 42,
       color: theme.colors.text,
       letterSpacing: -0.5,
     },
+    screenTitle: {
+      fontSize: 24,
+      fontFamily: fonts.bold,
+      lineHeight: 30,
+      color: theme.colors.text,
+      letterSpacing: -0.2,
+    },
     h1: {
       fontSize: fontSizes["2xl"],
-      fontFamily: fonts.displayBold,
+      fontFamily: fonts.bold,
       lineHeight: 34,
       color: theme.colors.text,
       letterSpacing: -0.3,
     },
     h2: {
       fontSize: fontSizes.xl,
-      fontFamily: fonts.display,
+      fontFamily: fonts.bold,
       lineHeight: 28,
       color: theme.colors.text,
     },
@@ -66,27 +71,27 @@ export function Typography({
       color: theme.colors.text,
     },
     body: {
-      fontSize: fontSizes.md,
+      fontSize: 15,
       fontFamily: fonts.regular,
-      lineHeight: 24,
+      lineHeight: 22,
       color: theme.colors.textSecondary,
     },
     bodyBold: {
-      fontSize: fontSizes.md,
+      fontSize: 15,
       fontFamily: fonts.bold,
-      lineHeight: 24,
+      lineHeight: 22,
       color: theme.colors.text,
     },
     caption: {
-      fontSize: fontSizes.sm,
+      fontSize: fontSizes.xs,
       fontFamily: fonts.regular,
-      lineHeight: 20,
+      lineHeight: 18,
       color: theme.colors.textSecondary,
     },
     captionBold: {
-      fontSize: fontSizes.sm,
+      fontSize: fontSizes.xs,
       fontFamily: fonts.bold,
-      lineHeight: 20,
+      lineHeight: 18,
       color: theme.colors.text,
     },
     label: {
@@ -123,15 +128,7 @@ export function Typography({
   const s = styles[variant];
 
   return (
-    <Text
-      style={[
-        s,
-        serif ? { fontFamily: fonts.display } : undefined,
-        color ? { color } : undefined,
-        style,
-      ]}
-      {...props}
-    >
+    <Text style={[s, color ? { color } : undefined, style]} {...props}>
       {children}
     </Text>
   );

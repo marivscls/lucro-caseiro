@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { chipLabel, draftsToComponents, kitTotalCost, type ComponentDraft } from "../kit";
 import { showAlert } from "../../../shared/components/alert-store";
+import { SkeletonList } from "../../../shared/components/skeleton";
 import { useProducts } from "../hooks";
 import { desktopModalSurface } from "../../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
@@ -287,11 +288,7 @@ export function ComponentPicker({
               </Pressable>
             </View>
 
-            {isLoading ? (
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                Carregando produtos...
-              </Typography>
-            ) : null}
+            {isLoading ? <SkeletonList rows={5} variant="picker" /> : null}
 
             {!isLoading && available.length === 0 ? (
               <Typography variant="body" color={theme.colors.textSecondary}>
@@ -419,16 +416,16 @@ export function ComponentPicker({
               onPress={() => setPickerOpen(false)}
               accessibilityRole="button"
               style={({ pressed }) => ({
-                minHeight: 52,
-                borderRadius: radii.lg,
-                backgroundColor: theme.colors.primary,
+                minHeight: 44,
+                borderRadius: radii.md,
+                backgroundColor: theme.colors.surface,
                 alignItems: "center",
                 justifyContent: "center",
                 marginTop: spacing.xs,
                 opacity: pressed ? 0.85 : 1,
               })}
             >
-              <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
+              <Typography variant="bodyBold" color={theme.colors.text}>
                 Concluir
               </Typography>
             </Pressable>

@@ -227,7 +227,7 @@ function QuoteDemo({ client, product, price }: DemoValues) {
   return (
     <div className={styles.demoLayout}>
       <div className={styles.demoControls}>
-        <span className={styles.professionalBadge}>Recurso Profissional</span>
+        <span className={styles.professionalBadge}>Recurso Essencial</span>
         <h3>Orçamento bonito, pronto para enviar</h3>
         <p>
           Monte a proposta com os dados do cliente e compartilhe um PDF organizado pelo
@@ -283,7 +283,7 @@ function CatalogDemo({ product, price }: DemoValues) {
             <Check aria-hidden="true" size={17} /> Catálogo completo e personalizado
           </li>
           <li>
-            <Check aria-hidden="true" size={17} /> Várias fotos por produto
+            <Check aria-hidden="true" size={17} /> Capa, cores e identidade da marca
           </li>
           <li>
             <Check aria-hidden="true" size={17} /> Pedido iniciado no WhatsApp

@@ -80,7 +80,7 @@ export function ReceiptPreviewModal({
                   paddingBottom: spacing.sm,
                 }}
               >
-                <Typography variant="bodyBold" color="#6e4534" serif>
+                <Typography variant="bodyBold" color="#6e4534">
                   {businessName}
                 </Typography>
                 <Typography variant="caption" color="#9b8275">

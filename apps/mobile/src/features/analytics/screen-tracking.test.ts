@@ -11,6 +11,7 @@ describe("analyticsScreenForPath", () => {
     ["/onboarding", "onboarding"],
     ["/tabs/index", "home"],
     ["/tabs/sales", "sales"],
+    ["/tabs/finance", "finance"],
     ["/tabs/new-sale", "new_sale"],
     ["/tabs/agenda", "agenda"],
     ["/tabs/clients", "clients"],

@@ -10,6 +10,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { clients } from "./clients";
+import { services } from "./operations";
 import { sales } from "./sales";
 import { users } from "./users";
 
@@ -30,6 +31,10 @@ export const orders = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     clientId: uuid("client_id").references(() => clients.id, { onDelete: "set null" }),
+    serviceId: uuid("service_id").references(() => services.id, {
+      onDelete: "set null",
+    }),
+    durationMinutes: decimal("duration_minutes", { precision: 6, scale: 0 }),
     title: text("title").notNull(),
     deliveryDate: date("delivery_date").notNull(),
     deliveryTime: text("delivery_time"),

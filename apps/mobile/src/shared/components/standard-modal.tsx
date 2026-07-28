@@ -1,14 +1,9 @@
 import { Typography, useTheme, spacing } from "@lucro-caseiro/ui";
 import { AppIcon } from "./app-icon";
 import React from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  View,
-} from "react-native";
+import { Platform, Pressable, ScrollView, View } from "react-native";
 
+import { useScrollFocusedInputIntoView } from "./keyboard-aware-scroll-view";
 import { ResponsiveModal } from "./responsive-modal-surface";
 
 interface StandardModalProps {
@@ -40,6 +35,9 @@ export function StandardModal({
   children,
 }: Readonly<StandardModalProps>) {
   const { theme } = useTheme();
+  const internalScrollRef = React.useRef<ScrollView>(null);
+  const { scrollFocusedInput, trackScroll } =
+    useScrollFocusedInputIntoView(internalScrollRef, spacing.xl, visible);
 
   if (!visible) return null;
 
@@ -52,10 +50,7 @@ export function StandardModal({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flexGrow: 0, flexShrink: 1 }}
-      >
+      <View style={{ flexGrow: 0, flexShrink: 1, minHeight: 0 }}>
         {/* Header */}
         <View
           style={{
@@ -69,7 +64,7 @@ export function StandardModal({
           }}
         >
           <View style={{ flex: 1, gap: 2 }}>
-            <Typography variant="h3" serif color={theme.colors.text} numberOfLines={1}>
+            <Typography variant="h3" color={theme.colors.text} numberOfLines={1}>
               {title}
             </Typography>
             {subtitle ? (
@@ -98,12 +93,18 @@ export function StandardModal({
 
         {/* Conteúdo */}
         <ScrollView
-          ref={scrollRef}
-          style={{ flexGrow: 0, flexShrink: 1 }}
+          ref={(node) => {
+            internalScrollRef.current = node;
+            if (scrollRef) scrollRef.current = node;
+          }}
+          style={{ flexGrow: 0, flexShrink: 1, minHeight: 0 }}
           contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+          scrollEventThrottle={16}
+          onFocus={() => scrollFocusedInput()}
+          onScroll={trackScroll}
         >
           {children}
         </ScrollView>
@@ -122,7 +123,7 @@ export function StandardModal({
             {footer}
           </View>
         ) : null}
-      </KeyboardAvoidingView>
+      </View>
     </ResponsiveModal>
   );
 }

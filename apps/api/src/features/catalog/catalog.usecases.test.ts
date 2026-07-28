@@ -39,6 +39,7 @@ function makeProduct(): PublicCatalogProduct {
   return {
     id: "11111111-1111-1111-1111-111111111111",
     name: "Bolo de Pote",
+    category: "Doces",
     description: null,
     photoUrl: null,
     extraPhotos: [],
@@ -152,16 +153,20 @@ describe("CatalogUseCases.updateSettings", () => {
     ).rejects.toBeInstanceOf(LimitExceededError);
   });
 
-  it("bloqueia personalizacao para plano essential (personalizacao e do profissional)", async () => {
+  it("permite personalizacao para plano essential", async () => {
     const sut = new CatalogUseCases(
       makeRepo({
         getOwnerDefaults: () => Promise.resolve(makeOwner({ plan: "essential" })),
       }),
     );
 
-    await expect(
-      sut.updateSettings(USER_ID, { accentColor: "rose" }),
-    ).rejects.toBeInstanceOf(LimitExceededError);
+    const settings = await sut.updateSettings(USER_ID, {
+      accentColor: "rose",
+      tagline: "Bolos artesanais",
+    });
+
+    expect(settings.accentColor).toBe("rose");
+    expect(settings.tagline).toBe("Bolos artesanais");
   });
 
   it("permite personalizacao para plano profissional", async () => {
@@ -244,7 +249,7 @@ describe("CatalogUseCases.getPublicCatalog", () => {
     expect(catalog.totalProducts).toBe(8);
   });
 
-  it("plano essential ainda limita a vitrine a 3 produtos (catalogo completo e do profissional)", async () => {
+  it("plano essential exibe todos os produtos", async () => {
     const many = Array.from({ length: 8 }, () => makeProduct());
     const sut = new CatalogUseCases(
       makeRepo({
@@ -256,7 +261,7 @@ describe("CatalogUseCases.getPublicCatalog", () => {
 
     const catalog = await sut.getPublicCatalog("doces-da-maria");
 
-    expect(catalog.products).toHaveLength(3);
+    expect(catalog.products).toHaveLength(8);
     expect(catalog.totalProducts).toBe(8);
   });
 
@@ -283,7 +288,7 @@ describe("CatalogUseCases.getPublicCatalog", () => {
     expect(catalog.whatsapp).toBe("11988887777");
   });
 
-  it("oculta personalizacao quando o dono nao e profissional", async () => {
+  it("oculta personalizacao quando o dono esta no plano gratuito", async () => {
     const sut = new CatalogUseCases(
       makeRepo({
         findOwnerBySlug: () =>
@@ -307,7 +312,7 @@ describe("CatalogUseCases.getPublicCatalog", () => {
     expect(catalog.promoBanner).toBeNull();
   });
 
-  it("exibe personalizacao quando o dono e profissional", async () => {
+  it("exibe personalizacao quando o dono e essential", async () => {
     const sut = new CatalogUseCases(
       makeRepo({
         findOwnerBySlug: () =>
@@ -317,7 +322,7 @@ describe("CatalogUseCases.getPublicCatalog", () => {
               tagline: "Feito com amor",
               promoBanner: "Frete grátis hoje",
             }),
-            ...makeOwner({ plan: "professional" }),
+            ...makeOwner({ plan: "essential" }),
           }),
       }),
     );

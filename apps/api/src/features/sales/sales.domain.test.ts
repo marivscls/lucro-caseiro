@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildDaySummary,
+  calculateSalePricing,
   calculateSaleTotal,
   canCancelSale,
   initialSaleStatus,
@@ -17,6 +18,21 @@ function makeItem(overrides: Partial<SaleItemData> = {}): SaleItemData {
     ...overrides,
   };
 }
+
+describe("calculateSalePricing", () => {
+  it("aplica desconto fixo e percentual sem misturar entrega", () => {
+    expect(calculateSalePricing([makeItem()], "fixed", 5)).toEqual({
+      subtotal: 20,
+      discount: 5,
+      total: 15,
+    });
+    expect(calculateSalePricing([makeItem()], "percentage", 10)).toEqual({
+      subtotal: 20,
+      discount: 2,
+      total: 18,
+    });
+  });
+});
 
 describe("calculateSaleTotal", () => {
   it("calculates total from single item", () => {

@@ -255,9 +255,9 @@ export function PackagingDetail({
         onPress={share}
         accessibilityRole="button"
         style={({ pressed }) => ({
-          minHeight: 56,
-          borderRadius: radii.lg,
-          backgroundColor: theme.colors.primary,
+          minHeight: 44,
+          borderRadius: radii.md,
+          backgroundColor: theme.colors.primaryInteractive,
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "center",

@@ -156,3 +156,6 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
   UTM `pdf`); ao registrar a venda com sucesso, `new-sale.tsx` chama
   `maybeAskForReview` (shared/utils/store-review.ts) que pede avaliação na loja uma
   única vez, após a 3ª venda.
+- 2026-07-24: o wizard passou a seguir cliente → produtos → pagamento → revisão. A grade
+  mostra a disponibilidade de estoque e o sucesso oferece abrir Vendas para acessar o
+  detalhe, WhatsApp e recibo, além de iniciar outra venda.

@@ -73,6 +73,7 @@ function productCard(
   const description = product.description
     ? `<p class="desc">${escapeHtml(product.description)}</p>`
     : "";
+  const category = `<p class="category">${escapeHtml(product.category)}</p>`;
   const variationSelect = retailOrdering
     ? `<select class="variation-select" aria-label="Variação de ${escapeHtml(product.name)}">${product.variations
         .filter((variation) => variation.inStock)
@@ -102,12 +103,12 @@ function productCard(
   const cartButton = retailOrdering
     ? `<button class="add-cart" data-product-id="${escapeHtml(product.id)}" data-product-name="${escapeHtml(product.name)}" data-price="${product.salePrice}"${cartDisabled}>${cartLabel}</button>`
     : "";
-  return `<article class="card" id="produto-${escapeHtml(product.id)}"><div class="photo">${photo}</div><div class="info"><h2>${escapeHtml(product.name)}</h2>${description}${variations}<div class="bottom"><p class="price">${formatPrice(product.salePrice)}<span class="unit">${unit}</span></p>${cartButton}${orderButton}</div></div></article>`;
+  return `<article class="card" data-category="${escapeHtml(product.category)}" data-name="${escapeHtml(product.name.toLocaleLowerCase("pt-BR"))}" data-price="${product.salePrice}" id="produto-${escapeHtml(product.id)}"><div class="photo">${photo}</div><div class="info">${category}<h2>${escapeHtml(product.name)}</h2>${description}${variations}<div class="bottom"><p class="price">${formatPrice(product.salePrice)}<span class="unit">${unit}</span></p>${cartButton}${orderButton}</div></div></article>`;
 }
 
 /** Renderiza a pagina HTML publica do catalogo (mobile-first, sem JS). */
 /**
- * Presets de cor do catalogo (personalizacao Premium). `dark`/`base`/`light`
+ * Presets de cor do catálogo (personalização do Essencial). `dark`/`base`/`light`
  * compoem o gradiente do hero; `accent` colore detalhes (rodape, placeholder).
  */
 interface AccentPalette {
@@ -181,13 +182,32 @@ function resolvePalette(accentColor: string | null): AccentPalette {
 
 export function renderCatalogHtml(catalog: PublicCatalog): string {
   const brand = resolveBrand(catalog.brandId);
-  const palette = resolvePalette(catalog.accentColor);
+  const palette =
+    catalog.accentColor === null && catalog.brandId === "lucro-caseiro"
+      ? (CATALOG_ACCENT_PRESETS.rose ?? BROWN_PALETTE)
+      : resolvePalette(catalog.accentColor);
   const retailOrdering = catalog.brandId === "lucro-papelaria";
   const cards = catalog.products
     .map((product) => productCard(product, catalog.whatsapp, retailOrdering))
     .join("");
-  const initial = escapeHtml(catalog.businessName.charAt(0).toUpperCase() || "?");
+  const categories = [
+    ...new Set(catalog.products.map((product) => product.category)),
+  ].sort((a, b) => a.localeCompare(b, "pt-BR"));
   const count = catalog.products.length;
+  const filters =
+    count > 0
+      ? `<section class="catalog-tools" aria-label="Filtros do catálogo">
+  <label class="search"><span>Buscar</span><input id="catalog-search" type="search" placeholder="Nome do produto"></label>
+  <label><span>Categoria</span><select id="catalog-category"><option value="">Todas</option>${categories
+    .map(
+      (category) =>
+        `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`,
+    )
+    .join("")}</select></label>
+  <label><span>Ordenar</span><select id="catalog-sort"><option value="name">Nome</option><option value="price-asc">Menor preço</option><option value="price-desc">Maior preço</option></select></label>
+</section>`
+      : "";
+  const initial = escapeHtml(catalog.businessName.charAt(0).toUpperCase() || "?");
   const countLabel =
     count === 1 ? "1 produto disponível" : `${count} produtos disponíveis`;
   const headerButton = catalog.whatsapp
@@ -279,6 +299,37 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
 })();
 </script>`
     : "";
+  const catalogScript =
+    count > 0
+      ? `<script>
+(() => {
+  const root = document.getElementById("catalog-products");
+  const search = document.getElementById("catalog-search");
+  const category = document.getElementById("catalog-category");
+  const sort = document.getElementById("catalog-sort");
+  const cards = [...root.querySelectorAll(".card")];
+  const update = () => {
+    const query = search.value.trim().toLocaleLowerCase("pt-BR");
+    cards.forEach((card) => {
+      const matchesName = !query || card.dataset.name.includes(query);
+      const matchesCategory = !category.value || card.dataset.category === category.value;
+      card.hidden = !(matchesName && matchesCategory);
+    });
+    const ordered = [...cards].sort((a, b) => {
+      if (sort.value === "price-asc") return Number(a.dataset.price) - Number(b.dataset.price);
+      if (sort.value === "price-desc") return Number(b.dataset.price) - Number(a.dataset.price);
+      return a.dataset.name.localeCompare(b.dataset.name, "pt-BR");
+    });
+    const anchor = root.querySelector(".more-note");
+    ordered.forEach((card) => root.insertBefore(card, anchor));
+  };
+  search.addEventListener("input", update);
+  category.addEventListener("change", update);
+  sort.addEventListener("change", update);
+  update();
+})();
+</script>`
+      : "";
   return `<!doctype html>
 <html lang="pt-BR">
 <head>
@@ -288,23 +339,29 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
 <meta property="og:title" content="${escapeHtml(catalog.businessName)} — Catálogo">
 <meta property="og:description" content="${countLabel}. Peça pelo WhatsApp!">
 <title>${escapeHtml(catalog.businessName)} — Catálogo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root { color-scheme: light; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: ${palette.bg}; color: #3d2b22; -webkit-font-smoothing: antialiased; }
+  body { font-family: "Nunito Sans", system-ui, sans-serif; background: ${palette.bg}; color: #3d2b22; -webkit-font-smoothing: antialiased; }
   .promo { background: ${palette.dark}; color: #fff; text-align: center; font-size: 14px; font-weight: 700; padding: 11px 16px; letter-spacing: 0.3px; }
   .hero-bg { ${heroBackground} padding: 44px 20px 72px; text-align: center; color: #fff; position: relative; overflow: hidden; }
   .bio { margin-top: 10px; font-size: 15px; line-height: 1.5; opacity: 0.92; max-width: 480px; margin-left: auto; margin-right: auto; position: relative; z-index: 1; }
   .hero-bg::before { content: ""; position: absolute; top: -60px; right: -60px; width: 220px; height: 220px; border-radius: 50%; background: rgba(255,255,255,0.06); }
   .hero-bg::after { content: ""; position: absolute; bottom: -80px; left: -40px; width: 260px; height: 260px; border-radius: 50%; background: rgba(255,255,255,0.05); }
   .pattern { position: absolute; inset: 0; pointer-events: none; ${patternCss} }
-  .avatar { width: 76px; height: 76px; border-radius: 50%; background: rgba(255,255,255,0.16); border: 2px solid rgba(255,255,255,0.45); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; font-family: Georgia, "Times New Roman", serif; font-size: 34px; font-weight: 700; position: relative; z-index: 1; overflow: hidden; }
+  .avatar { width: 76px; height: 76px; border-radius: 50%; background: rgba(255,255,255,0.16); border: 2px solid rgba(255,255,255,0.45); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; font-family: "Nunito Sans", system-ui, sans-serif; font-size: 34px; font-weight: 700; position: relative; z-index: 1; overflow: hidden; }
   .avatar img { width: 100%; height: 100%; object-fit: cover; }
-  h1 { font-family: Georgia, "Times New Roman", serif; font-size: 30px; letter-spacing: 0.2px; position: relative; z-index: 1; }
+  h1 { font-family: "Nunito Sans", system-ui, sans-serif; font-size: 30px; letter-spacing: 0.2px; position: relative; z-index: 1; }
   .tagline { margin-top: 6px; font-size: 14px; letter-spacing: 2.5px; text-transform: uppercase; opacity: 0.78; position: relative; z-index: 1; }
   .count { display: inline-block; margin-top: 14px; font-size: 13px; background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.25); padding: 6px 14px; border-radius: 999px; position: relative; z-index: 1; }
-  main { max-width: 760px; margin: -44px auto 0; padding: 0 16px 16px; display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); position: relative; z-index: 2; }
-  .card { background: #fffdfb; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(61, 43, 34, 0.12), 0 2px 6px rgba(61, 43, 34, 0.06); border: 1px solid rgba(140, 90, 69, 0.08); display: flex; flex-direction: column; transition: transform 0.15s ease; }
+  .catalog-tools { max-width: 1160px; margin: -44px auto 18px; padding: 16px; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; position: relative; z-index: 3; background: #fffdfb; border: 1px solid rgba(140,90,69,.16); border-radius: 18px; }
+  .catalog-tools label { display: grid; gap: 6px; font-size: 12px; font-weight: 800; color: #7d6354; }
+  .catalog-tools input, .catalog-tools select { width: 100%; min-height: 44px; border: 1px solid #dfd0c8; border-radius: 12px; background: #fff; color: #3d2b22; padding: 0 12px; font: inherit; }
+  main { max-width: 1160px; margin: 0 auto; padding: 0 16px 16px; display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); position: relative; z-index: 2; }
+  .card { background: #fffdfb; border-radius: 20px; overflow: hidden; border: 1px solid rgba(140, 90, 69, 0.16); display: flex; flex-direction: column; transition: transform 0.15s ease; }
   .card:target { scroll-margin-top: 16px; outline: 3px solid ${palette.light}; outline-offset: 3px; }
   .card:hover { transform: translateY(-2px); }
   .photo img { width: 100%; height: 200px; object-fit: cover; display: block; }
@@ -312,9 +369,10 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   .gallery::-webkit-scrollbar { display: none; }
   .gallery img { flex: 0 0 100%; scroll-snap-align: center; }
   .placeholder { width: 100%; height: 200px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f3e6dd, #e9d5c8); }
-  .placeholder span { font-family: Georgia, serif; font-size: 64px; color: #b08368; }
+  .placeholder span { font-family: "Nunito Sans", system-ui, sans-serif; font-size: 64px; color: #b08368; }
   .info { padding: 18px 18px 20px; display: flex; flex-direction: column; flex: 1; }
-  .info h2 { font-family: Georgia, "Times New Roman", serif; font-size: 20px; font-weight: 700; color: #4a3228; }
+  .info h2 { font-family: "Nunito Sans", system-ui, sans-serif; font-size: 20px; font-weight: 700; color: #4a3228; }
+  .category { color: ${palette.base}; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .7px; margin-bottom: 5px; }
   .desc { margin-top: 6px; font-size: 14px; line-height: 1.5; color: #7d6354; }
   .variants { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
   .variant { border: 1px solid ${palette.light}; color: ${palette.dark}; background: ${palette.bg}; border-radius: 999px; padding: 5px 9px; font-size: 12px; font-weight: 650; }
@@ -322,7 +380,7 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   .bottom { margin-top: auto; padding-top: 14px; }
   .price { font-size: 24px; font-weight: 800; color: #2e7d32; letter-spacing: -0.3px; }
   .price .unit { font-size: 14px; font-weight: 600; color: #6da471; }
-  .order { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; background: #25d366; color: #fff; text-decoration: none; font-weight: 700; font-size: 15px; padding: 13px 20px; border-radius: 999px; box-shadow: 0 6px 16px rgba(37, 211, 102, 0.35); }
+  .order { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; background: transparent; color: ${palette.base}; border: 1px solid ${palette.base}; text-decoration: none; font-weight: 700; font-size: 15px; padding: 12px 19px; border-radius: 999px; }
   .order:active { transform: scale(0.98); }
   .order svg { width: 18px; height: 18px; }
   .add-cart { width: 100%; border: 0; margin-top: 12px; background: ${palette.base}; color: #fff; font: inherit; font-weight: 750; padding: 13px 16px; border-radius: 999px; cursor: pointer; }
@@ -348,7 +406,13 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   footer strong { color: ${palette.base}; }
   footer a.footer-link { color: ${palette.base}; text-decoration: none; }
   footer .footer-cta { font-size: 13px; }
-  footer .footer-cta a { color: #fff; background: ${palette.base}; text-decoration: none; font-weight: 700; padding: 8px 16px; border-radius: 999px; display: inline-block; margin-top: 2px; }
+  footer .footer-cta a { color: ${palette.base}; background: transparent; border: 1px solid ${palette.base}; text-decoration: none; font-weight: 700; padding: 7px 15px; border-radius: 999px; display: inline-block; margin-top: 2px; }
+  @media (max-width: 720px) {
+    .catalog-tools { margin: -44px 16px 18px; grid-template-columns: 1fr 1fr; }
+    .catalog-tools .search { grid-column: 1 / -1; }
+    main { grid-template-columns: 1fr; }
+    .photo img, .placeholder { height: 250px; }
+  }
 </style>
 </head>
 <body>
@@ -362,13 +426,37 @@ ${promoStrip}
   ${count > 0 ? `<span class="count">${countLabel}</span>` : ""}
   ${headerButton}
 </div>
-<main>${cards}${moreNote}${empty}</main>
+${filters}
+<main id="catalog-products">${cards}${moreNote}${empty}</main>
 ${cart}
 <footer>
   <div class="footer-brand"><span>Feito com carinho no <a class="footer-link" href="${catalogPlayStoreUrl(catalog.brandId)}"><strong>${escapeHtml(brand.appName)}</strong></a></span></div>
   <div class="footer-cta"><a href="${catalogPlayStoreUrl(catalog.brandId)}">Crie sua vitrine grátis</a></div>
 </footer>
+${catalogScript}
 ${cartScript}
 </body>
+</html>`;
+}
+
+export function renderCatalogErrorHtml(): string {
+  return `<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Catálogo indisponível — Lucro Caseiro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:#fff8f6;color:#2e2826;font-family:"Nunito Sans",system-ui,sans-serif}
+main{width:min(100%,520px);padding:32px;background:#fff;border:1px solid #eadedb;border-radius:20px;text-align:center}
+.mark{width:64px;height:64px;margin:0 auto 18px;display:grid;place-items:center;border-radius:50%;background:#fde8ec;color:#b45b6d;font-size:30px}
+h1{margin:0;font:700 30px/1.15 "Nunito Sans",system-ui,sans-serif}p{margin:12px 0 22px;color:#716866;line-height:1.55}
+button{min-height:48px;border:1px solid #b45b6d;border-radius:999px;background:#fff;color:#a94e61;padding:0 22px;font:800 15px "Nunito Sans",sans-serif;cursor:pointer}
+</style>
+</head>
+<body><main><div class="mark" aria-hidden="true">!</div><h1>Não foi possível abrir o catálogo</h1><p>Verifique sua conexão e tente carregar novamente.</p><button type="button" onclick="location.reload()">Tentar novamente</button></main></body>
 </html>`;
 }

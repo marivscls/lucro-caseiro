@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from "next";
 
 import { SiteAnalytics } from "@/features/landing/site-analytics";
 
-// As fontes canonicas (Fraunces + Nunito Sans) sao carregadas no root
-// layout e expostas como --font-display / --font-sans para o app inteiro.
+// A fonte canonica Nunito Sans e carregada no root e exposta como
+// --font-sans para o app inteiro.
 
 export const viewport: Viewport = {
   themeColor: "#FFFAF8",

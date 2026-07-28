@@ -2,7 +2,7 @@ import { iconSizes, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import { Stack } from "expo-router";
 import React, { useState } from "react";
 import { Pressable, View } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { CreateRecipeForm } from "../features/recipes/components/create-recipe-form";
 import { EditRecipeForm } from "../features/recipes/components/edit-recipe-form";
@@ -14,7 +14,6 @@ import { LimitBanner } from "../features/subscription/components/limit-banner";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { StandardModal } from "../shared/components/standard-modal";
-import { FAB } from "../shared/components/fab";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { FeatureRouteGuard } from "../shared/components/feature-route-guard";
 import { AppIcon } from "../shared/components/app-icon";
@@ -29,7 +28,6 @@ type ModalState =
 function RecipesContent() {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
-  const insets = useSafeAreaInsets();
   const [modal, setModal] = useState<ModalState>({ type: "none" });
   const showPaywall = usePaywall((s) => s.show);
 
@@ -76,26 +74,16 @@ function RecipesContent() {
         <LimitBanner
           resource="recipes"
           onUpgrade={() => showPaywall("recipes")}
-          containerStyle={{ marginHorizontal: spacing.lg, marginTop: spacing.sm }}
+          containerStyle={{
+            marginHorizontal: isDesktop ? 0 : spacing.lg,
+            marginTop: spacing.sm,
+          }}
         />
         <RecipeList
           onRecipePress={(id) => setModal({ type: "detail", recipeId: id })}
           onAddPress={() => setModal({ type: "create" })}
         />
       </View>
-
-      {/* FAB - Nova receita */}
-      <FAB
-        icon="add"
-        label="Nova receita"
-        accessibilityLabel="Nova receita"
-        onPress={() => setModal({ type: "create" })}
-        style={{
-          position: "absolute",
-          bottom: spacing.xl + insets.bottom,
-          right: spacing.xl,
-        }}
-      />
 
       {/* Modal - Criar receita */}
       <CreateRecipeForm

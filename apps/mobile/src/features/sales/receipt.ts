@@ -27,9 +27,14 @@ export function buildReceiptMessage(sale: Sale): string {
   }
 
   lines.push("");
+  if (sale.discount > 0) {
+    lines.push(`Subtotal: ${formatCurrency(sale.subtotal)}`);
+    lines.push(`Desconto: -${formatCurrency(sale.discount)}`);
+  }
   lines.push(`*Total: ${formatCurrency(sale.total)}*`);
   lines.push(`Pagamento: ${paymentLabel(sale.paymentMethod)}`);
   if (sale.status === "pending") lines.push("Situação: em aberto");
+  if (sale.notes) lines.push(`Observações: ${sale.notes}`);
   lines.push("");
   lines.push("Obrigada pela preferência! 💛");
 

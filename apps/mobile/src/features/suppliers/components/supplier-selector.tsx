@@ -1,7 +1,14 @@
 import { Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useMemo, useState } from "react";
-import { Pressable, ScrollView, TextInput, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  TextInput,
+  View,
+} from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useFieldPalette } from "../../../shared/components/form-field";
@@ -96,71 +103,78 @@ export function SupplierSelector({ value, onChange }: SupplierSelectorProps) {
         animationType="slide"
         onRequestClose={() => setOpen(false)}
       >
-        <Pressable
-          onPress={() => setOpen(false)}
-          style={{
-            flex: 1,
-            backgroundColor: theme.colors.overlay,
-            justifyContent: isDesktop ? "center" : "flex-end",
-            padding: isDesktop ? spacing.xl : 0,
-          }}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1, minHeight: 0 }}
         >
           <Pressable
-            style={[
-              {
-                backgroundColor: pal.sheetBg,
-                borderTopLeftRadius: radii["2xl"],
-                borderTopRightRadius: radii["2xl"],
-                paddingHorizontal: spacing.lg,
-                paddingTop: spacing.md,
-                paddingBottom: isDesktop ? spacing.lg : spacing.lg + insets.bottom,
-                gap: spacing.sm,
-                maxHeight: "75%",
-              },
-              desktopModalSurface(isDesktop, 640),
-            ]}
+            onPress={() => setOpen(false)}
+            style={{
+              flex: 1,
+              minHeight: 0,
+              backgroundColor: theme.colors.overlay,
+              justifyContent: isDesktop ? "center" : "flex-end",
+              padding: isDesktop ? spacing.xl : 0,
+            }}
           >
-            <Typography variant="h3" color={theme.colors.text}>
-              Fornecedor
-            </Typography>
-
-            {/* Busca */}
-            <View
-              style={{
-                minHeight: 48,
-                borderRadius: radii.md,
-                borderWidth: 1,
-                borderColor: pal.border,
-                backgroundColor: pal.fieldBg,
-                flexDirection: "row",
-                alignItems: "center",
-                paddingHorizontal: spacing.md,
-                gap: spacing.sm,
-              }}
+            <Pressable
+              style={[
+                {
+                  backgroundColor: pal.sheetBg,
+                  borderTopLeftRadius: radii["2xl"],
+                  borderTopRightRadius: radii["2xl"],
+                  paddingHorizontal: spacing.lg,
+                  paddingTop: spacing.md,
+                  paddingBottom: isDesktop ? spacing.lg : spacing.lg + insets.bottom,
+                  gap: spacing.sm,
+                  maxHeight: "75%",
+                  minHeight: 0,
+                },
+                desktopModalSurface(isDesktop, 640),
+              ]}
             >
-              <AppIcon
-                name="search-outline"
-                size={20}
-                color={theme.colors.textSecondary}
-              />
-              <TextInput
-                value={search}
-                onChangeText={setSearch}
-                placeholder="Buscar..."
-                placeholderTextColor={pal.placeholder}
+              <Typography variant="h3" color={theme.colors.text}>
+                Fornecedor
+              </Typography>
+
+              {/* Busca */}
+              <View
                 style={{
-                  flex: 1,
-                  color: theme.colors.text,
-                  fontSize: 16,
-                  paddingVertical: 0,
+                  minHeight: 48,
+                  borderRadius: radii.md,
+                  borderWidth: 1,
+                  borderColor: pal.border,
+                  backgroundColor: pal.fieldBg,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingHorizontal: spacing.md,
+                  gap: spacing.sm,
                 }}
-              />
-            </View>
+              >
+                <AppIcon
+                  name="search-outline"
+                  size={20}
+                  color={theme.colors.textSecondary}
+                />
+                <TextInput
+                  value={search}
+                  onChangeText={setSearch}
+                  placeholder="Buscar..."
+                  placeholderTextColor={pal.placeholder}
+                  style={{
+                    flex: 1,
+                    color: theme.colors.text,
+                    fontSize: 16,
+                    paddingVertical: 0,
+                  }}
+                />
+              </View>
 
-            <ScrollView
-              keyboardShouldPersistTaps="handled"
-              contentContainerStyle={{ gap: spacing.sm, paddingVertical: spacing.sm }}
-            >
+              <ScrollView
+                keyboardShouldPersistTaps="handled"
+                style={{ flexShrink: 1 }}
+                contentContainerStyle={{ gap: spacing.sm, paddingVertical: spacing.sm }}
+              >
               {/* Nenhum */}
               <Pressable
                 onPress={() => pick(null)}
@@ -219,33 +233,38 @@ export function SupplierSelector({ value, onChange }: SupplierSelectorProps) {
                   Nenhum fornecedor encontrado.
                 </Typography>
               ) : null}
-            </ScrollView>
+              </ScrollView>
 
-            {/* Cadastrar novo */}
-            <Pressable
-              onPress={() => setCreating(true)}
-              accessibilityRole="button"
-              style={({ pressed }) => ({
-                minHeight: 52,
-                borderRadius: radii.lg,
-                borderWidth: 1.5,
-                borderStyle: "dashed",
-                borderColor: theme.colors.primaryLight,
-                backgroundColor: theme.colors.primaryBg,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: spacing.sm,
-                opacity: pressed ? 0.7 : 1,
-              })}
-            >
-              <AppIcon name="add-circle-outline" size={22} color={theme.colors.primary} />
-              <Typography variant="bodyBold" color={theme.colors.primary}>
-                Cadastrar novo fornecedor
-              </Typography>
+              {/* Cadastrar novo */}
+              <Pressable
+                onPress={() => setCreating(true)}
+                accessibilityRole="button"
+                style={({ pressed }) => ({
+                  minHeight: 44,
+                  borderRadius: radii.md,
+                  borderWidth: 1,
+                  borderStyle: "dashed",
+                  borderColor: theme.colors.primaryLight,
+                  backgroundColor: theme.colors.primaryBg,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: spacing.sm,
+                  opacity: pressed ? 0.7 : 1,
+                })}
+              >
+                <AppIcon
+                  name="add-circle-outline"
+                  size={22}
+                  color={theme.colors.primary}
+                />
+                <Typography variant="bodyBold" color={theme.colors.primary}>
+                  Cadastrar novo fornecedor
+                </Typography>
+              </Pressable>
             </Pressable>
           </Pressable>
-        </Pressable>
+        </KeyboardAvoidingView>
       </ResponsiveOverlayModal>
 
       {/* Modal de criar fornecedor (auto-seleciona o criado) */}

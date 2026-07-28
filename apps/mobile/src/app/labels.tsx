@@ -43,6 +43,7 @@ import { SkeletonList } from "../shared/components/skeleton";
 import { StandardModal } from "../shared/components/standard-modal";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
 import { usePaywall } from "../shared/hooks/use-paywall";
+import { desktopStretch, desktopWidths, pageGutter } from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { alertError, alertValidation } from "../shared/utils/alerts";
 import { maskPhoneBR } from "../shared/utils/phone";
@@ -310,7 +311,7 @@ function LabelDetailModal({
       }
       footer={footer}
     >
-      {isLoading ? <SkeletonList rows={4} /> : null}
+      {isLoading ? <SkeletonList rows={4} variant="label" /> : null}
 
       {!isLoading && label && editing ? (
         <View
@@ -524,8 +525,8 @@ export default function LabelsScreen() {
   function renderContent() {
     if (isLoading) {
       return (
-        <View style={{ flex: 1, padding: spacing.xl }}>
-          <SkeletonList rows={5} />
+        <View style={{ flex: 1, paddingVertical: spacing.xl, ...pageGutter(isDesktop), ...desktopStretch(isDesktop, desktopWidths.data) }}>
+          <SkeletonList rows={5} variant="label" />
         </View>
       );
     }
@@ -544,7 +545,10 @@ export default function LabelsScreen() {
             <Image
               source={labelsEmpty}
               resizeMode="contain"
-              style={{ width: 132, height: 132 }}
+              style={{
+                width: isDesktop ? 240 : 220,
+                height: isDesktop ? 240 : 220,
+              }}
             />
           }
           title="Nenhuma etiqueta ainda"
@@ -555,30 +559,40 @@ export default function LabelsScreen() {
     }
     return (
       <FlatList
+        key={isDesktop ? "desktop-labels" : "mobile-labels"}
         data={data.items}
+        numColumns={isDesktop ? 2 : 1}
+        columnWrapperStyle={isDesktop ? { gap: spacing.md } : undefined}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: spacing.xl, gap: spacing.md }}
+        contentContainerStyle={{
+          paddingVertical: spacing.xl,
+          ...pageGutter(isDesktop),
+          ...desktopStretch(isDesktop, desktopWidths.data),
+          gap: spacing.md,
+        }}
         renderItem={({ item }) => (
-          <Card onPress={() => setSelectedId(item.id)}>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: spacing.md,
-              }}
-            >
-              <View style={{ flex: 1, gap: 2 }}>
-                <Typography variant="bodyBold">{item.name}</Typography>
-                <Typography variant="caption" numberOfLines={1}>
-                  {item.data.productName}
+          <View style={isDesktop ? { flex: 1, minWidth: 0 } : undefined}>
+            <Card onPress={() => setSelectedId(item.id)}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: spacing.md,
+                }}
+              >
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Typography variant="bodyBold">{item.name}</Typography>
+                  <Typography variant="caption" numberOfLines={1}>
+                    {item.data.productName}
+                  </Typography>
+                </View>
+                <Typography variant="caption" color={theme.colors.textSecondary}>
+                  {new Date(item.createdAt).toLocaleDateString("pt-BR")}
                 </Typography>
               </View>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                {new Date(item.createdAt).toLocaleDateString("pt-BR")}
-              </Typography>
-            </View>
-          </Card>
+            </Card>
+          </View>
         )}
       />
     );
@@ -590,50 +604,30 @@ export default function LabelsScreen() {
       edges={["top", "bottom"]}
     >
       <Stack.Screen options={{ headerShown: false }} />
-      {!isDesktop ? (
-        <ScreenHeader
-          title={labelsLabel}
-          onBack={handleBack}
-          backLabel={backToHome ? "Ir para o início" : "Voltar"}
-        />
-      ) : null}
+      <ScreenHeader
+        title={labelsLabel}
+        onBack={handleBack}
+        backLabel={backToHome ? "Ir para o início" : "Voltar"}
+        hideBack={isDesktop}
+      />
       <View style={{ flex: 1 }}>{renderContent()}</View>
-      <View
-        style={{
-          paddingHorizontal: spacing.xl,
-          paddingTop: spacing.sm,
-          paddingBottom: spacing.sm + insets.bottom,
-        }}
-      >
-        <Pressable
-          onPress={() => setShowCreate(true)}
-          accessibilityRole="button"
-          style={({ pressed }) => ({
-            alignSelf: isDesktop ? "flex-end" : undefined,
-            width: isDesktop ? 190 : undefined,
-            minHeight: isDesktop ? 44 : 56,
-            borderRadius: radii.lg,
-            backgroundColor: theme.colors.primaryInteractive,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: spacing.sm,
-            opacity: pressed ? 0.85 : 1,
-          })}
+      {data?.items.length ? (
+        <View
+          style={{
+            ...pageGutter(isDesktop),
+            ...desktopStretch(isDesktop, desktopWidths.data),
+            paddingTop: spacing.sm,
+            paddingBottom: spacing.sm + insets.bottom,
+            alignItems: isDesktop ? "flex-end" : "center",
+          }}
         >
-          <AppIcon
-            name="add"
-            size={isDesktop ? 20 : 24}
-            color={theme.colors.textOnPrimary}
+          <Button
+            title="Nova etiqueta"
+            onPress={() => setShowCreate(true)}
+            icon={<AppIcon name="add" size={20} color={theme.colors.textOnPrimary} />}
           />
-          <Typography
-            variant={isDesktop ? "bodyBold" : "h3"}
-            color={theme.colors.textOnPrimary}
-          >
-            Nova etiqueta
-          </Typography>
-        </Pressable>
-      </View>
+        </View>
+      ) : null}
 
       <CreateLabelForm
         visible={showCreate}

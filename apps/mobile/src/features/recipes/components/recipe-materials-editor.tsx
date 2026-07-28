@@ -10,6 +10,7 @@ import { FormSection } from "../../../shared/components/form-section";
 import { IngredientAvatar } from "../../../shared/ingredient-image/ingredient-avatar";
 import { StandardModal } from "../../../shared/components/standard-modal";
 import { useMaterials } from "../../materials/hooks";
+import { useBusinessCopy } from "../../subscription/business-copy";
 
 export interface RecipeLine {
   materialId: string;
@@ -74,6 +75,9 @@ export function RecipeMaterialsEditor({
   onTotalCost?: (total: number) => void;
 }>) {
   const { theme } = useTheme();
+  const experienceCopy = useBusinessCopy();
+  const materialTitle = "Insumo";
+  const materialsTitle = "Insumos";
   const router = useRouter();
   const { data } = useMaterials();
   const materials = data?.items ?? [];
@@ -134,7 +138,7 @@ export function RecipeMaterialsEditor({
   if (materials.length === 0) {
     return (
       <View style={{ gap: spacing.md }}>
-        <Typography variant="h3">Insumos</Typography>
+        <Typography variant="h3">{materialsTitle}</Typography>
         <Pressable
           onPress={() => router.push("/materials")}
           style={{
@@ -145,7 +149,7 @@ export function RecipeMaterialsEditor({
           }}
         >
           <Typography variant="body">
-            Você ainda não cadastrou insumos (matéria-prima).
+            Você ainda não cadastrou {experienceCopy.materialNounPlural}.
           </Typography>
           <Typography variant="caption" color={theme.colors.primary}>
             Cadastrar insumos →
@@ -158,8 +162,12 @@ export function RecipeMaterialsEditor({
   return (
     <>
       <FormSection
-        title="Insumos"
-        subtitle={`${lines.length} ${lines.length === 1 ? "insumo" : "insumos"} · ${formatMoney(total)}`}
+        title={materialsTitle}
+        subtitle={`${lines.length} ${
+          lines.length === 1
+            ? experienceCopy.materialNoun
+            : experienceCopy.materialNounPlural
+        } · ${formatMoney(total)}`}
         icon="basket-outline"
         initiallyOpen
       >
@@ -185,12 +193,12 @@ export function RecipeMaterialsEditor({
                 }}
               >
                 <Typography variant="bodyBold" color={theme.colors.text}>
-                  Insumo {index + 1}
+                  {materialTitle} {index + 1}
                 </Typography>
                 {lines.length > 1 && (
                   <TouchableOpacity
                     onPress={() => removeLine(index)}
-                    accessibilityLabel={`Remover insumo ${index + 1}`}
+                    accessibilityLabel={`Remover ${experienceCopy.materialNoun} ${index + 1}`}
                     hitSlop={8}
                   >
                     <AppIcon name="trash-outline" size={20} color={theme.colors.alert} />
@@ -202,7 +210,9 @@ export function RecipeMaterialsEditor({
                 onPress={() => openMaterialPicker(index)}
                 accessibilityRole="button"
                 accessibilityLabel={
-                  material ? `Trocar insumo ${material.name}` : "Selecionar insumo"
+                  material
+                    ? `Trocar ${experienceCopy.materialNoun} ${material.name}`
+                    : `Selecionar ${experienceCopy.materialNoun}`
                 }
                 style={({ pressed }) => ({
                   minHeight: 58,
@@ -224,14 +234,14 @@ export function RecipeMaterialsEditor({
                 )}
                 <View style={{ flex: 1, gap: 2 }}>
                   <Typography variant="caption" color={theme.colors.textSecondary}>
-                    Insumo
+                    {materialTitle}
                   </Typography>
                   <Typography
                     variant="bodyBold"
                     color={material ? theme.colors.text : theme.colors.primary}
                     numberOfLines={1}
                   >
-                    {material?.name ?? "Selecionar insumo"}
+                    {material?.name ?? `Selecionar ${experienceCopy.materialNoun}`}
                   </Typography>
                 </View>
                 <AppIcon
@@ -337,7 +347,9 @@ export function RecipeMaterialsEditor({
             paddingTop: spacing.xs,
           }}
         >
-          <Typography variant="body">Custo total dos insumos</Typography>
+          <Typography variant="body">
+            Custo total — {experienceCopy.materialNounPlural}
+          </Typography>
           <Typography variant="bodyBold" color={theme.colors.success}>
             {formatMoney(total)}
           </Typography>
@@ -348,11 +360,13 @@ export function RecipeMaterialsEditor({
         visible={pickerLineIndex !== null}
         onClose={closeMaterialPicker}
         title="Selecionar insumo"
-        subtitle={pickerLineIndex === null ? undefined : `Insumo ${pickerLineIndex + 1}`}
+        subtitle={
+          pickerLineIndex === null ? undefined : `${materialTitle} ${pickerLineIndex + 1}`
+        }
       >
         <Input
-          label="Buscar insumo"
-          placeholder="Digite o nome do insumo"
+          label={`Buscar ${experienceCopy.materialNoun}`}
+          placeholder={`Digite o nome do ${experienceCopy.materialNoun}`}
           value={materialSearch}
           onChangeText={setMaterialSearch}
         />
@@ -412,7 +426,7 @@ export function RecipeMaterialsEditor({
               color={theme.colors.textSecondary}
               style={{ textAlign: "center", paddingVertical: spacing.lg }}
             >
-              Nenhum insumo encontrado.
+              Nenhum {experienceCopy.materialNoun} encontrado.
             </Typography>
           ) : null}
         </View>

@@ -1,7 +1,7 @@
 import {
+  Button,
   EmptyState,
   Typography,
-  fonts,
   spacing,
   radii,
   useTheme,
@@ -15,11 +15,17 @@ import {
   Pressable,
   ScrollView,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 
-import { showAlert } from "../../../shared/components/alert-store";
 import { SkeletonList } from "../../../shared/components/skeleton";
+import {
+  desktopStretch,
+  desktopWidths,
+  pageGutter,
+} from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import {
   AD_ITEM_MARKER,
   AdBanner,
@@ -29,19 +35,27 @@ import { useShowAds } from "../../../shared/hooks/use-show-ads";
 import { useRecipes } from "../hooks";
 import { RecipeCard } from "./recipe-card";
 import recipesEmpty from "../../../assets/recipes-empty.png";
+import recipesHowItWorks from "../../../assets/recipes-how-it-works.png";
+import { useBusinessCopy } from "../../subscription/business-copy";
+import { showAlert } from "../../../shared/components/alert-store";
 
-function FeatureCol({
+function BenefitColumn({
   icon,
   title,
-  desc,
-}: Readonly<{ icon: AppIconName; title: string; desc: string }>) {
+  description,
+}: Readonly<{
+  icon: AppIconName;
+  title: string;
+  description: string;
+}>) {
   const { theme } = useTheme();
+
   return (
     <View
       style={{
         flex: 1,
         alignItems: "center",
-        gap: spacing.sm,
+        gap: spacing.xs,
         paddingHorizontal: spacing.xs,
       }}
     >
@@ -50,17 +64,18 @@ function FeatureCol({
           width: 44,
           height: 44,
           borderRadius: radii.full,
-          backgroundColor: theme.colors.primaryBg,
+          backgroundColor: theme.colors.surface,
           alignItems: "center",
           justifyContent: "center",
+          ...theme.shadows.sm,
         }}
       >
-        <AppIcon name={icon} size={22} color={theme.colors.primary} />
+        <AppIcon name={icon} size={20} color={theme.colors.primary} />
       </View>
       <Typography
-        variant="caption"
+        variant="captionBold"
         color={theme.colors.text}
-        style={{ fontFamily: fonts.bold, textAlign: "center" }}
+        style={{ textAlign: "center" }}
       >
         {title}
       </Typography>
@@ -69,7 +84,7 @@ function FeatureCol({
         color={theme.colors.textSecondary}
         style={{ textAlign: "center", lineHeight: 16 }}
       >
-        {desc}
+        {description}
       </Typography>
     </View>
   );
@@ -77,14 +92,16 @@ function FeatureCol({
 
 function RecipesEmptyState({ onAddPress }: Readonly<{ onAddPress?: () => void }>) {
   const { theme } = useTheme();
-  const cardBg = theme.colors.surface;
-  const border = theme.colors.border;
+  const isDesktop = useDesktopLayout();
+  const { width } = useWindowDimensions();
+  const imageWidth = Math.min(340, width - spacing.lg * 2);
+  const benefitsWidth = Math.min(520, width - spacing.md * 2);
 
-  function howItWorks() {
+  function showHowItWorks() {
     showAlert({
-      title: "Como funciona",
+      title: "Saiba como funciona",
       message:
-        "Cadastre uma receita com os insumos e o rendimento. O app calcula o custo por unidade e ajuda você a definir o preço com lucro.",
+        "Cadastre os ingredientes, informe o rendimento e deixe o Lucro Caseiro calcular o custo de cada receita para você.",
     });
   }
 
@@ -93,112 +110,175 @@ function RecipesEmptyState({ onAddPress }: Readonly<{ onAddPress?: () => void }>
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{
         flexGrow: 1,
-        padding: spacing.xl,
-        // Espaço extra no fundo pra o "Saiba como funciona" não ficar embaixo
-        // do FAB "Nova receita" (renderizado por cima pela tela).
-        paddingBottom: spacing.xl + 96,
-        alignItems: "center",
-        justifyContent: "center",
-        gap: spacing.lg,
+        ...pageGutter(isDesktop),
+        ...desktopStretch(isDesktop, desktopWidths.data),
+        paddingTop: spacing["2xl"],
+        paddingBottom: spacing.lg,
+        ...(isDesktop ? undefined : { alignItems: "center" }),
+        justifyContent: "flex-start",
       }}
     >
       <Image
         source={recipesEmpty}
-        style={{ width: 240, height: 200 }}
+        style={{ width: imageWidth, height: 220 }}
         resizeMode="contain"
       />
       <Typography
-        variant="h1"
-        serif
+        variant="h2"
         color={theme.colors.text}
-        style={{ textAlign: "center" }}
+        style={{ marginTop: spacing.md, textAlign: "center" }}
       >
         Nenhuma receita ainda
       </Typography>
       <Typography
-        variant="body"
+        variant="caption"
         color={theme.colors.textSecondary}
-        style={{ textAlign: "center", lineHeight: 22 }}
+        style={{
+          maxWidth: 300,
+          marginTop: spacing.sm,
+          textAlign: "center",
+          lineHeight: 18,
+        }}
       >
-        Cadastre sua primeira receita para começar a calcular seus custos e lucros.
+        Cadastre sua primeira ficha técnica para começar a calcular custos e lucros com
+        mais precisão.
       </Typography>
 
-      <Pressable
+      <Button
+        title="Cadastrar receita"
         onPress={onAddPress}
-        accessibilityRole="button"
-        style={({ pressed }) => ({
-          alignSelf: "stretch",
-          minHeight: 56,
-          borderRadius: radii.lg,
-          backgroundColor: theme.colors.primary,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: spacing.sm,
-          opacity: pressed ? 0.85 : 1,
-        })}
-      >
-        <AppIcon
-          name="document-text-outline"
-          size={22}
-          color={theme.colors.textOnPrimary}
-        />
-        <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
-          Cadastrar receita
-        </Typography>
-      </Pressable>
+        style={{
+          minWidth: 188,
+          marginTop: spacing.lg,
+          shadowColor: theme.colors.primaryInteractive,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.22,
+          shadowRadius: 8,
+          elevation: 3,
+        }}
+        icon={
+          <AppIcon
+            name="document-attach-outline"
+            size={20}
+            color={theme.colors.textOnPrimary}
+          />
+        }
+      />
 
       <View
         style={{
-          alignSelf: "stretch",
-          flexDirection: "row",
-          borderRadius: radii.xl,
-          borderWidth: 1,
-          borderColor: border,
-          backgroundColor: cardBg,
-          paddingVertical: spacing.lg,
+          width: benefitsWidth,
+          marginTop: spacing.xl,
           paddingHorizontal: spacing.sm,
+          paddingVertical: spacing.lg,
+          flexDirection: "row",
+          borderWidth: 1,
+          borderColor: theme.colors.border,
+          borderRadius: radii.xl,
+          backgroundColor: theme.colors.surface,
+          ...theme.shadows.sm,
         }}
       >
-        <FeatureCol
+        <BenefitColumn
           icon="calculator-outline"
           title="Calcule custos"
-          desc="Saiba exatamente quanto cada receita custa."
+          description={"Saiba exatamente\nquanto cada ficha\ntécnica custa."}
         />
-        <View style={{ width: 1, alignSelf: "stretch", backgroundColor: border }} />
-        <FeatureCol
+        <View
+          style={{
+            width: 1,
+            marginVertical: spacing.xs,
+            backgroundColor: theme.colors.border,
+          }}
+        />
+        <BenefitColumn
           icon="trending-up-outline"
           title="Acompanhe lucros"
-          desc="Veja suas margens e aumente seus resultados."
+          description={"Veja suas margens e\naumente seus\nresultados."}
         />
-        <View style={{ width: 1, alignSelf: "stretch", backgroundColor: border }} />
-        <FeatureCol
+        <View
+          style={{
+            width: 1,
+            marginVertical: spacing.xs,
+            backgroundColor: theme.colors.border,
+          }}
+        />
+        <BenefitColumn
           icon="time-outline"
           title="Economize tempo"
-          desc="Receitas organizadas e fáceis de consultar sempre que precisar."
+          description={"Receitas organizadas\ne fáceis de consultar\nquando precisar."}
         />
       </View>
 
       <Pressable
-        onPress={howItWorks}
+        onPress={showHowItWorks}
         accessibilityRole="button"
+        accessibilityLabel="Saiba como criar receitas"
         style={({ pressed }) => ({
-          minHeight: 48,
-          paddingHorizontal: spacing.xl,
-          borderRadius: radii.full,
-          borderWidth: 1,
-          borderColor: `${theme.colors.primary}66`,
+          width: benefitsWidth,
+          minHeight: 84,
+          marginTop: spacing.lg,
+          paddingHorizontal: spacing.lg,
+          paddingVertical: spacing.sm,
           flexDirection: "row",
           alignItems: "center",
-          justifyContent: "center",
-          gap: spacing.sm,
-          opacity: pressed ? 0.7 : 1,
+          gap: spacing.md,
+          borderWidth: 1,
+          borderColor: theme.colors.border,
+          borderRadius: radii.xl,
+          backgroundColor: theme.colors.surface,
+          ...theme.shadows.sm,
+          opacity: pressed ? 0.78 : 1,
         })}
       >
-        <AppIcon name="play-circle-outline" size={20} color={theme.colors.primary} />
-        <Typography variant="bodyBold" color={theme.colors.primary}>
-          Saiba como funciona
-        </Typography>
+        <Image
+          source={recipesHowItWorks}
+          resizeMode="cover"
+          style={{
+            width: 92,
+            height: 64,
+            borderRadius: radii.lg,
+            opacity: theme.mode === "dark" ? 0.72 : 1,
+          }}
+        />
+        <View style={{ flex: 1, gap: spacing.xs }}>
+          <Typography variant="bodyBold" color={theme.colors.text}>
+            Saiba como funciona
+          </Typography>
+          <Typography
+            variant="caption"
+            color={theme.colors.textSecondary}
+            style={{ lineHeight: 16 }}
+          >
+            Aprenda a criar suas receitas e aproveitar todos os recursos.
+          </Typography>
+        </View>
+        <View
+          style={{
+            width: 44,
+            height: 44,
+            borderWidth: 1,
+            borderColor: theme.colors.primary,
+            borderRadius: radii.full,
+            backgroundColor: theme.colors.surface,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <View
+            style={{
+              width: 0,
+              height: 0,
+              marginLeft: 3,
+              borderTopWidth: 7,
+              borderBottomWidth: 7,
+              borderLeftWidth: 10,
+              borderTopColor: "transparent",
+              borderBottomColor: "transparent",
+              borderLeftColor: theme.colors.primary,
+            }}
+          />
+        </View>
       </Pressable>
     </ScrollView>
   );
@@ -209,20 +289,28 @@ interface RecipeListProps {
   readonly onAddPress?: () => void;
 }
 
-const CATEGORY_FILTERS = ["Todas", "Doces", "Salgados", "Bolos", "Bebidas", "Outros"];
-
 export function RecipeList({ onRecipePress, onAddPress }: RecipeListProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
+  const experienceCopy = useBusinessCopy();
   const showAds = useShowAds();
   const [selectedCategory, setSelectedCategory] = useState("Todas");
+  const categoryFilters = ["Todas", ...experienceCopy.categoryPresets];
 
   const category = selectedCategory === "Todas" ? undefined : selectedCategory;
   const { data, isLoading, error } = useRecipes({ category });
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, padding: spacing.lg }}>
-        <SkeletonList rows={6} />
+      <View
+        style={{
+          flex: 1,
+          paddingVertical: spacing.lg,
+          ...pageGutter(isDesktop, spacing.lg),
+          ...desktopStretch(isDesktop, desktopWidths.data),
+        }}
+      >
+        <SkeletonList rows={6} variant="recipe" />
       </View>
     );
   }
@@ -231,7 +319,7 @@ export function RecipeList({ onRecipePress, onAddPress }: RecipeListProps) {
     return (
       <EmptyState
         title="Algo deu errado"
-        description="Não foi possível carregar suas receitas. Tente novamente."
+        description={`Não foi possível carregar suas ${experienceCopy.formulaNounPlural}. Tente novamente.`}
       />
     );
   }
@@ -244,22 +332,52 @@ export function RecipeList({ onRecipePress, onAddPress }: RecipeListProps) {
 
   return (
     <FlatList
+      key={isDesktop ? "desktop-recipes" : "mobile-recipes"}
       data={listData}
+      numColumns={isDesktop ? 2 : 1}
+      columnWrapperStyle={isDesktop ? { gap: spacing.md } : undefined}
       keyExtractor={(item, index) => (item === AD_ITEM_MARKER ? `ad-${index}` : item.id)}
       renderItem={({ item }) => {
         if (item === AD_ITEM_MARKER) {
-          return <AdBanner size="banner" />;
+          return (
+            <View style={isDesktop ? { flex: 1, minWidth: 0 } : undefined}>
+              <AdBanner size="banner" />
+            </View>
+          );
         }
-        return <RecipeCard recipe={item} onPress={() => onRecipePress?.(item.id)} />;
+        return (
+          <View style={isDesktop ? { flex: 1, minWidth: 0 } : undefined}>
+            <RecipeCard recipe={item} onPress={() => onRecipePress?.(item.id)} />
+          </View>
+        );
       }}
-      contentContainerStyle={{ gap: spacing.md, padding: spacing.xl }}
+      contentContainerStyle={{
+        gap: spacing.md,
+        paddingVertical: spacing.xl,
+        ...pageGutter(isDesktop),
+        ...desktopStretch(isDesktop, desktopWidths.data),
+      }}
       ListHeaderComponent={
         <View style={{ gap: spacing.lg }}>
-          <Typography variant="body">Gerencie seus custos e margens de lucro</Typography>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: spacing.md,
+            }}
+          >
+            <Typography variant="body" style={{ flex: 1 }}>
+              Gerencie seus custos e margens de lucro
+            </Typography>
+            {onAddPress ? (
+              <Button title="Nova receita" size="sm" onPress={onAddPress} />
+            ) : null}
+          </View>
 
           {/* Filter chips */}
           <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
-            {CATEGORY_FILTERS.map((cat) => (
+            {categoryFilters.map((cat) => (
               <TouchableOpacity
                 key={cat}
                 onPress={() => setSelectedCategory(cat)}
@@ -269,7 +387,7 @@ export function RecipeList({ onRecipePress, onAddPress }: RecipeListProps) {
                   borderRadius: radii.full,
                   backgroundColor:
                     selectedCategory === cat
-                      ? theme.colors.primary
+                      ? theme.colors.primaryBg
                       : theme.colors.surface,
                 }}
               >
@@ -277,7 +395,7 @@ export function RecipeList({ onRecipePress, onAddPress }: RecipeListProps) {
                   variant="caption"
                   color={
                     selectedCategory === cat
-                      ? theme.colors.textOnPrimary
+                      ? theme.colors.primaryStrong
                       : theme.colors.textSecondary
                   }
                 >

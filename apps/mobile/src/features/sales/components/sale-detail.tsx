@@ -1,6 +1,13 @@
 import type { Sale } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
-import { Badge, Button, Card, Typography, useTheme } from "@lucro-caseiro/ui";
+import {
+  Badge,
+  Button,
+  Card,
+  spacing,
+  Typography,
+  useTheme,
+} from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
 import { Image, View } from "react-native";
@@ -217,6 +224,34 @@ export function SaleDetail({
       ))}
 
       <Card style={{ backgroundColor: theme.colors.successBg }}>
+        {sale.discount > 0 ? (
+          <>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                marginBottom: spacing.sm,
+              }}
+            >
+              <Typography variant="body">Subtotal</Typography>
+              <Typography variant="bodyBold">
+                {formatCurrency(sale.subtotal)}
+              </Typography>
+            </View>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                marginBottom: spacing.md,
+              }}
+            >
+              <Typography variant="body">Desconto</Typography>
+              <Typography variant="bodyBold" color={theme.colors.success}>
+                − {formatCurrency(sale.discount)}
+              </Typography>
+            </View>
+          </>
+        ) : null}
         <View
           style={{
             flexDirection: "row",

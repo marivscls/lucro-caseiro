@@ -1,4 +1,8 @@
-import type { Purchase, UpdatePurchase } from "@lucro-caseiro/contracts";
+import type {
+  Purchase,
+  StockMovementType,
+  UpdatePurchase,
+} from "@lucro-caseiro/contracts";
 
 import { NotFoundError, ValidationError } from "../../shared/errors";
 import { paginationMeta } from "../../shared/helpers/paginate";
@@ -25,6 +29,32 @@ export class PurchasesUseCases {
     private finance: IFinancePoster,
     private productsRepo?: IProductsRepo,
   ) {}
+
+  private async adjustTrackedStock(
+    userId: string,
+    productId: string,
+    delta: number,
+    variationId: string | undefined,
+    movement: {
+      type: StockMovementType;
+      reason: string;
+      sourceId?: string;
+    },
+  ): Promise<boolean> {
+    if (!this.productsRepo) return false;
+    if (this.productsRepo.adjustStockWithMovement) {
+      return !!(await this.productsRepo.adjustStockWithMovement(userId, productId, {
+        delta,
+        variationId,
+        type: movement.type,
+        reason: movement.reason,
+        sourceId: movement.sourceId,
+      }));
+    }
+    return variationId
+      ? this.productsRepo.adjustStock(userId, productId, delta, variationId)
+      : this.productsRepo.adjustStock(userId, productId, delta);
+  }
 
   private async resolveItems(
     userId: string,
@@ -59,6 +89,11 @@ export class PurchasesUseCases {
     userId: string,
     items: NonNullable<CreatePurchaseRecord["items"]>,
     updateCost = true,
+    movement: {
+      type: StockMovementType;
+      reason: string;
+      sourceId?: string;
+    } = { type: "purchase", reason: "Compra recebida" },
   ): Promise<void> {
     if (!this.productsRepo) return;
     const received: typeof items = [];
@@ -77,21 +112,41 @@ export class PurchasesUseCases {
           }
           const variation = variations[index]!;
           if (variation.stockQuantity === undefined) {
-            const updated = await this.productsRepo.update(userId, product.id, {
-              variations: variations.map((candidate, variationIndex) =>
-                variationIndex === index
-                  ? { ...candidate, stockQuantity: item.quantity }
-                  : candidate,
-              ),
-              ...(updateCost ? { costPrice: item.unitCost } : {}),
-            });
-            if (!updated) throw new ValidationError(["Não foi possível repor o estoque"]);
+            if (this.productsRepo.adjustStockWithMovement) {
+              const adjusted = await this.adjustTrackedStock(
+                userId,
+                product.id,
+                item.quantity,
+                item.variationId,
+                movement,
+              );
+              if (!adjusted) {
+                throw new ValidationError(["Não foi possível repor o estoque"]);
+              }
+              if (updateCost) {
+                await this.productsRepo.update(userId, product.id, {
+                  costPrice: item.unitCost,
+                });
+              }
+            } else {
+              const updated = await this.productsRepo.update(userId, product.id, {
+                variations: variations.map((candidate, variationIndex) =>
+                  variationIndex === index
+                    ? { ...candidate, stockQuantity: item.quantity }
+                    : candidate,
+                ),
+                ...(updateCost ? { costPrice: item.unitCost } : {}),
+              });
+              if (!updated)
+                throw new ValidationError(["Não foi possível repor o estoque"]);
+            }
           } else {
-            const adjusted = await this.productsRepo.adjustStock(
+            const adjusted = await this.adjustTrackedStock(
               userId,
               product.id,
               item.quantity,
               item.variationId,
+              movement,
             );
             if (!adjusted)
               throw new ValidationError(["Não foi possível repor o estoque"]);
@@ -102,16 +157,35 @@ export class PurchasesUseCases {
             }
           }
         } else if (product.stockQuantity === null) {
-          const updated = await this.productsRepo.update(userId, product.id, {
-            stockQuantity: item.quantity,
-            ...(updateCost ? { costPrice: item.unitCost } : {}),
-          });
-          if (!updated) throw new ValidationError(["Não foi possível repor o estoque"]);
+          if (this.productsRepo.adjustStockWithMovement) {
+            const adjusted = await this.adjustTrackedStock(
+              userId,
+              product.id,
+              item.quantity,
+              undefined,
+              movement,
+            );
+            if (!adjusted)
+              throw new ValidationError(["Não foi possível repor o estoque"]);
+            if (updateCost) {
+              await this.productsRepo.update(userId, product.id, {
+                costPrice: item.unitCost,
+              });
+            }
+          } else {
+            const updated = await this.productsRepo.update(userId, product.id, {
+              stockQuantity: item.quantity,
+              ...(updateCost ? { costPrice: item.unitCost } : {}),
+            });
+            if (!updated) throw new ValidationError(["Não foi possível repor o estoque"]);
+          }
         } else {
-          const adjusted = await this.productsRepo.adjustStock(
+          const adjusted = await this.adjustTrackedStock(
             userId,
             product.id,
             item.quantity,
+            undefined,
+            movement,
           );
           if (!adjusted) throw new ValidationError(["Não foi possível repor o estoque"]);
           if (updateCost) {
@@ -123,7 +197,17 @@ export class PurchasesUseCases {
         received.push(item);
       }
     } catch (error) {
-      await this.reverseItems(userId, received, false);
+      await this.reverseItems(
+        userId,
+        received,
+        false,
+        "Não foi possível estornar o recebimento da compra",
+        {
+          type: "cancellation",
+          reason: "Estorno de compra não concluída",
+          sourceId: movement.sourceId,
+        },
+      );
       throw error;
     }
   }
@@ -137,23 +221,34 @@ export class PurchasesUseCases {
     }>,
     rejectInsufficient = true,
     insufficientMessage = "Não é possível excluir a compra porque parte do estoque já foi vendida",
+    movement: {
+      type: StockMovementType;
+      reason: string;
+      sourceId?: string;
+    } = { type: "cancellation", reason: "Estoque de compra estornado" },
   ): Promise<void> {
     if (!this.productsRepo) return;
     const reversed: (typeof items)[number][] = [];
     for (const item of items) {
-      const adjusted = await this.productsRepo.adjustStock(
+      const adjusted = await this.adjustTrackedStock(
         userId,
         item.productId,
         -item.quantity,
         item.variationId ?? undefined,
+        movement,
       );
       if (!adjusted) {
         for (const rollback of reversed) {
-          await this.productsRepo.adjustStock(
+          await this.adjustTrackedStock(
             userId,
             rollback.productId,
             rollback.quantity,
             rollback.variationId ?? undefined,
+            {
+              type: "adjustment",
+              reason: "Reversão de estorno de estoque",
+              sourceId: movement.sourceId,
+            },
           );
         }
         if (rejectInsufficient) {
@@ -186,14 +281,20 @@ export class PurchasesUseCases {
   private async restoreItems(
     userId: string,
     items: ReadonlyArray<ResolvedPurchaseItem>,
+    sourceId?: string,
   ): Promise<void> {
     if (!this.productsRepo) return;
     for (const item of items) {
-      await this.productsRepo.adjustStock(
+      await this.adjustTrackedStock(
         userId,
         item.productId,
         item.quantity,
         item.variationId ?? undefined,
+        {
+          type: "adjustment",
+          reason: "Estoque da compra restaurado",
+          sourceId,
+        },
       );
     }
   }
@@ -202,6 +303,7 @@ export class PurchasesUseCases {
     userId: string,
     existing: ReadonlyArray<ResolvedPurchaseItem>,
     next: ReadonlyArray<ResolvedPurchaseItem>,
+    sourceId: string,
   ): Promise<{ decreases: ResolvedPurchaseItem[]; increases: ResolvedPurchaseItem[] }> {
     const changes = this.stockChanges(existing, next);
     const decreases = changes
@@ -216,11 +318,20 @@ export class PurchasesUseCases {
       decreases,
       true,
       "Não é possível reduzir os itens porque parte desse estoque já foi vendida",
+      {
+        type: "adjustment",
+        reason: "Itens da compra reduzidos",
+        sourceId,
+      },
     );
     try {
-      await this.receiveItems(userId, increases, false);
+      await this.receiveItems(userId, increases, false, {
+        type: "adjustment",
+        reason: "Itens da compra aumentados",
+        sourceId,
+      });
     } catch (error) {
-      await this.restoreItems(userId, decreases);
+      await this.restoreItems(userId, decreases, sourceId);
       throw error;
     }
     return { decreases, increases };
@@ -229,9 +340,20 @@ export class PurchasesUseCases {
   private async rollbackStockChanges(
     userId: string,
     changes: { decreases: ResolvedPurchaseItem[]; increases: ResolvedPurchaseItem[] },
+    sourceId: string,
   ): Promise<void> {
-    await this.reverseItems(userId, changes.increases, false);
-    await this.restoreItems(userId, changes.decreases);
+    await this.reverseItems(
+      userId,
+      changes.increases,
+      false,
+      "Não foi possível reverter o estoque da compra",
+      {
+        type: "adjustment",
+        reason: "Reversão de alteração da compra",
+        sourceId,
+      },
+    );
+    await this.restoreItems(userId, changes.decreases, sourceId);
   }
 
   private purchaseItems(purchase: Purchase): ResolvedPurchaseItem[] {
@@ -266,7 +388,11 @@ export class PurchasesUseCases {
 
     if (resolvedItems?.length) {
       try {
-        await this.receiveItems(userId, resolvedItems);
+        await this.receiveItems(userId, resolvedItems, true, {
+          type: "purchase",
+          reason: "Compra recebida",
+          sourceId: purchase.id,
+        });
       } catch (error) {
         await this.repo.delete(userId, purchase.id);
         throw error;
@@ -335,7 +461,12 @@ export class PurchasesUseCases {
     const errors = validatePurchaseData(merged);
     if (errors.length > 0) throw new ValidationError(errors);
 
-    const stockChanges = await this.applyStockChanges(userId, existingItems, nextItems);
+    const stockChanges = await this.applyStockChanges(
+      userId,
+      existingItems,
+      nextItems,
+      id,
+    );
     const updateData: UpdatePurchaseData = {
       supplierId: data.supplierId,
       description: data.description,
@@ -373,7 +504,7 @@ export class PurchasesUseCases {
           dueDate: existing.dueDate,
         });
       }
-      await this.rollbackStockChanges(userId, stockChanges);
+      await this.rollbackStockChanges(userId, stockChanges, id);
       throw error;
     }
   }
@@ -415,7 +546,17 @@ export class PurchasesUseCases {
     const existing = await this.repo.findById(userId, id);
     if (!existing) throw new NotFoundError("Compra não encontrada");
     if (existing.items.length) {
-      await this.reverseItems(userId, existing.items);
+      await this.reverseItems(
+        userId,
+        existing.items,
+        true,
+        "Não é possível excluir a compra porque parte do estoque já foi vendida",
+        {
+          type: "cancellation",
+          reason: "Compra excluída",
+          sourceId: id,
+        },
+      );
     }
     const deleted = await this.repo.delete(userId, id);
     if (!deleted) {

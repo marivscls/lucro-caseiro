@@ -13,14 +13,13 @@ tags:
 # Atalho "Finanças" na home
 - tapOn: "Finanças"
 - assertVisible: "Financeiro"
-# O botão de criar mostra "Novo" e "lançamento" em dois Texts; "lançamento" também
-# aparece em "Nenhum lançamento". Mira no "Novo" exato (único na tela).
+# O botão mostra apenas o ícone; o nome da ação permanece acessível.
 - scrollUntilVisible:
     element:
-      text: "^Novo$"
+      text: "^Novo lançamento$"
     direction: DOWN
 - tapOn:
-    text: "^Novo$"
+    text: "^Novo lançamento$"
 - extendedWaitUntil:
     visible:
       text: "Entrada"

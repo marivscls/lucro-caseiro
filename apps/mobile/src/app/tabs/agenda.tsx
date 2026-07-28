@@ -14,12 +14,13 @@ import {
 } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../shared/components/app-icon";
 import type { AppIconName } from "../../shared/components/app-icon";
-import { Redirect, Stack } from "expo-router";
+import { ScreenHeader } from "../../shared/components/screen-header";
+import { Redirect, Stack, useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
-import { Image, Pressable, ScrollView, View } from "react-native";
+import { Image, Platform, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-import agendaEmpty from "../../assets/agenda-empty.png";
+import agendaEmpty from "../../assets/agenda-empty-v3.png";
 import { SkeletonList } from "../../shared/components/skeleton";
 import { useClient } from "../../features/clients/hooks";
 import { OrderCard } from "../../features/orders/components/order-card";
@@ -40,9 +41,15 @@ import {
 import { openWhatsApp, waMessages } from "../../shared/utils/whatsapp";
 import { showAlert } from "../../shared/components/alert-store";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
+import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
 import { ResponsiveOverlayModal } from "../../shared/components/responsive-modal-surface";
 import { StandardModal } from "../../shared/components/standard-modal";
-import { desktopAction } from "../../shared/layout/desktop-density";
+import {
+  desktopAction,
+  desktopStretch,
+  desktopWidths,
+  pageGutter,
+} from "../../shared/layout/desktop-density";
 
 const PIPELINE: OrderStatus[] = ["pending", "in_production", "ready"];
 // Paleta da agenda derivada do tema ativo (antes eram constantes fixas de dark,
@@ -236,6 +243,7 @@ function ModernOrderDetail({
   onEdit,
 }: Readonly<{ order: Order; onClose: () => void; onEdit: () => void }>) {
   const { theme } = useTheme();
+  const router = useRouter();
   const isDesktop = useDesktopLayout();
   const agColors = agendaPalette(theme);
   const updateOrder = useUpdateOrder();
@@ -741,6 +749,20 @@ function ModernOrderDetail({
         subtitle="Alterar informações da encomenda"
         onPress={onEdit}
       />
+      {order.clientId ? (
+        <RowAction
+          icon="person-outline"
+          title="Histórico do cliente"
+          subtitle="Ver vendas, encomendas e dados do cliente"
+          onPress={() => {
+            onClose();
+            router.push({
+              pathname: "/tabs/clients",
+              params: { clientId: order.clientId },
+            });
+          }}
+        />
+      ) : null}
       <RowAction
         icon="trash-outline"
         title="Excluir encomenda"
@@ -900,20 +922,27 @@ function OrdersSummaryHeader({
 
 function OrdersList({
   groups,
+  orders,
+  dayOptions,
   onSelect,
   onCreate,
   selectedDate,
+  onSelectDate,
   onOpenDayFilter,
   bottomInset,
 }: Readonly<{
   groups: OrderGroup[];
+  orders: Order[];
+  dayOptions: Array<{ date: string; count: number }>;
   onSelect: (id: string) => void;
   onCreate: () => void;
   selectedDate: string | null;
+  onSelectDate: (date: string | null) => void;
   onOpenDayFilter: () => void;
   bottomInset: number;
 }>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const agColors = agendaPalette(theme);
   const [showTip, setShowTip] = useState(true);
   const toneColor = (tone: GroupTone) => {
@@ -925,12 +954,43 @@ function OrdersList({
   return (
     <ScrollView
       contentContainerStyle={{
-        padding: spacing.xl,
+        paddingVertical: spacing.xl,
         paddingBottom: 96 + bottomInset,
         gap: spacing.lg,
+        ...pageGutter(isDesktop),
+        ...desktopStretch(isDesktop, desktopWidths.data),
       }}
     >
+      <AgendaDateStrip
+        options={dayOptions}
+        selectedDate={selectedDate}
+        onSelect={onSelectDate}
+      />
       <OrdersSummaryHeader selectedDate={selectedDate} onOpenFilter={onOpenDayFilter} />
+      {selectedDate ? <DayTimeline orders={orders} /> : null}
+      {groups.length === 0 ? (
+        <View
+          style={{
+            borderRadius: radii.xl,
+            borderWidth: 1,
+            borderColor: agColors.border,
+            backgroundColor: agColors.surface,
+            padding: spacing.xl,
+            alignItems: "center",
+            gap: spacing.sm,
+          }}
+        >
+          <AppIcon name="calendar-outline" size={30} color={agColors.muted} />
+          <Typography variant="h3">Nenhuma encomenda nesse dia</Typography>
+          <Typography
+            variant="body"
+            color={agColors.muted}
+            style={{ textAlign: "center" }}
+          >
+            Escolha outra data ou cadastre uma nova encomenda.
+          </Typography>
+        </View>
+      ) : null}
       {groups.map((group) => {
         const meta = GROUP_META[group.key] ?? {
           icon: "calendar-outline" as const,
@@ -971,19 +1031,19 @@ function OrdersList({
       <Pressable
         onPress={onCreate}
         style={{
-          minHeight: 58,
-          borderRadius: radii.xl,
-          borderWidth: 1.5,
+          minHeight: 48,
+          borderRadius: radii.md,
+          borderWidth: 1,
           borderStyle: "dashed",
           borderColor: theme.colors.primaryLight,
           alignItems: "center",
           justifyContent: "center",
           flexDirection: "row",
-          gap: spacing.md,
+          gap: spacing.sm,
           backgroundColor: theme.colors.primaryBg,
         }}
       >
-        <AppIcon name="add-circle-outline" size={24} color={theme.colors.primaryStrong} />
+        <AppIcon name="add-circle-outline" size={20} color={theme.colors.primaryStrong} />
         <Typography
           variant="bodyBold"
           color={theme.colors.primaryStrong}
@@ -1028,6 +1088,181 @@ function OrdersList({
           </Pressable>
         </View>
       ) : null}
+    </ScrollView>
+  );
+}
+
+function DayTimeline({ orders }: Readonly<{ orders: Order[] }>) {
+  const { theme } = useTheme();
+  const slots = Array.from({ length: 20 }, (_, index) => {
+    const minutes = 8 * 60 + index * 30;
+    return {
+      label: `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(
+        minutes % 60,
+      ).padStart(2, "0")}`,
+      minutes,
+    };
+  });
+  return (
+    <View
+      style={{
+        borderRadius: radii.xl,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
+        backgroundColor: theme.colors.surfaceElevated,
+        padding: spacing.lg,
+        gap: spacing.sm,
+      }}
+    >
+      <Typography variant="h3">Linha do tempo do dia</Typography>
+      <Typography variant="caption" color={theme.colors.textSecondary}>
+        Horários livres e ocupados entre 8h e 18h.
+      </Typography>
+      {slots.map((slot) => {
+        const order = orders.find((candidate) => {
+          if (
+            candidate.deliveryTime === null ||
+            ["done", "cancelled"].includes(candidate.status)
+          ) {
+            return false;
+          }
+          const [hours, minutes] = candidate.deliveryTime.split(":").map(Number);
+          const start = hours * 60 + minutes;
+          const end = start + (candidate.durationMinutes ?? 60);
+          return slot.minutes >= start && slot.minutes < end;
+        });
+        return (
+          <View
+            key={slot.label}
+            style={{
+              minHeight: 44,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: spacing.md,
+              borderTopWidth: 1,
+              borderTopColor: theme.colors.border,
+              paddingTop: spacing.sm,
+            }}
+          >
+            <Typography variant="bodyBold" style={{ width: 54 }}>
+              {slot.label}
+            </Typography>
+            <View
+              style={{
+                flex: 1,
+                borderRadius: radii.md,
+                backgroundColor: order ? theme.colors.premiumBg : theme.colors.surface,
+                paddingHorizontal: spacing.md,
+                paddingVertical: spacing.sm,
+              }}
+            >
+              <Typography
+                variant="captionBold"
+                color={order ? theme.colors.premium : theme.colors.textSecondary}
+              >
+                {order ? `${order.serviceName ?? order.title} · ocupado` : "Livre"}
+              </Typography>
+            </View>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+function isoLocalDate(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+function shortWeekday(date: Date): string {
+  return new Intl.DateTimeFormat("pt-BR", { weekday: "short" })
+    .format(date)
+    .replace(".", "");
+}
+
+function AgendaDateStrip({
+  options,
+  selectedDate,
+  onSelect,
+}: Readonly<{
+  options: Array<{ date: string; count: number }>;
+  selectedDate: string | null;
+  onSelect: (date: string | null) => void;
+}>) {
+  const { theme } = useTheme();
+  const countByDate = new Map(options.map((option) => [option.date, option.count]));
+  const today = new Date();
+  const days = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + index);
+    const iso = isoLocalDate(date);
+    return {
+      date: iso,
+      day: date.getDate(),
+      label: index === 0 ? "Hoje" : shortWeekday(date),
+      count: countByDate.get(iso) ?? 0,
+    };
+  });
+
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={{ gap: spacing.sm }}
+    >
+      <Pressable
+        onPress={() => onSelect(null)}
+        style={{
+          minWidth: 66,
+          minHeight: 64,
+          borderRadius: radii.lg,
+          borderWidth: 1,
+          borderColor: selectedDate === null ? theme.colors.primary : theme.colors.border,
+          backgroundColor:
+            selectedDate === null ? theme.colors.primaryBg : theme.colors.surfaceElevated,
+          alignItems: "center",
+          justifyContent: "center",
+          padding: spacing.sm,
+        }}
+      >
+        <Typography variant="bodyBold">Todos</Typography>
+        <Typography variant="caption" color={theme.colors.textSecondary}>
+          {options.reduce((total, option) => total + option.count, 0)}
+        </Typography>
+      </Pressable>
+      {days.map((item) => {
+        const selected = selectedDate === item.date;
+        return (
+          <Pressable
+            key={item.date}
+            onPress={() => onSelect(item.date)}
+            style={{
+              minWidth: 58,
+              minHeight: 64,
+              borderRadius: radii.lg,
+              borderWidth: 1,
+              borderColor: selected ? theme.colors.primary : theme.colors.border,
+              backgroundColor: selected
+                ? theme.colors.primaryBg
+                : theme.colors.surfaceElevated,
+              alignItems: "center",
+              justifyContent: "center",
+              padding: spacing.sm,
+            }}
+          >
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              {item.label}
+            </Typography>
+            <Typography variant="bodyBold">{item.day}</Typography>
+            {item.count > 0 ? (
+              <Typography variant="caption" color={theme.colors.primaryStrong}>
+                {item.count}
+              </Typography>
+            ) : null}
+          </Pressable>
+        );
+      })}
     </ScrollView>
   );
 }
@@ -1176,8 +1411,9 @@ function DayFilterModal({
 function AgendaContent() {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
+  const nativeMobile = !isDesktop && Platform.OS !== "web";
   const insets = useSafeAreaInsets();
-  const { data: orders, isLoading, error } = useOrders();
+  const { data: orders, isLoading, error, refetch } = useOrders();
   const [showCreate, setShowCreate] = useState(false);
   const [showDayFilter, setShowDayFilter] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -1198,8 +1434,15 @@ function AgendaContent() {
   function renderContent() {
     if (isLoading) {
       return (
-        <View style={{ flex: 1, padding: spacing.xl }}>
-          <SkeletonList rows={6} />
+        <View
+          style={{
+            flex: 1,
+            paddingVertical: spacing.xl,
+            ...pageGutter(isDesktop),
+            ...desktopStretch(isDesktop, desktopWidths.data),
+          }}
+        >
+          <SkeletonList rows={6} variant="order" />
         </View>
       );
     }
@@ -1208,31 +1451,40 @@ function AgendaContent() {
         <EmptyState
           title="Algo deu errado"
           description="Não foi possível carregar sua agenda. Tente novamente."
+          action={<Button title="Tentar novamente" onPress={() => void refetch()} />}
         />
       );
     }
-    if (groups.length === 0) {
+    if ((orders?.length ?? 0) === 0) {
       return (
         <EmptyState
           icon={
             <Image
               source={agendaEmpty}
               resizeMode="contain"
-              style={{ width: 142, height: 142 }}
+              style={{ width: 220, height: 220 }}
             />
           }
           title="Sua agenda está vazia"
           description="Cadastre uma encomenda com data de entrega para começar a se organizar."
           action={<Button title="Nova encomenda" onPress={() => setShowCreate(true)} />}
+          style={
+            nativeMobile
+              ? { paddingBottom: floatingTabBarContentPadding(insets.bottom) }
+              : undefined
+          }
         />
       );
     }
     return (
       <OrdersList
         groups={groups}
+        orders={visibleOrders}
+        dayOptions={dayFilterOptions}
         bottomInset={insets.bottom}
         onCreate={() => setShowCreate(true)}
         selectedDate={selectedDate}
+        onSelectDate={setSelectedDate}
         onOpenDayFilter={() => setShowDayFilter(true)}
         onSelect={(id) => {
           setSelectedId(id);
@@ -1249,26 +1501,7 @@ function AgendaContent() {
     >
       <Stack.Screen options={{ headerShown: false }} />
 
-      {!isDesktop && (
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: spacing.md,
-            paddingHorizontal: spacing.xl,
-            paddingTop: spacing.sm,
-            paddingBottom: spacing.sm,
-          }}
-        >
-          <Typography
-            variant="h1"
-            color={theme.colors.text}
-            style={{ flex: 1, fontSize: fontSizes["2xl"] }}
-          >
-            Agenda
-          </Typography>
-        </View>
-      )}
+      <ScreenHeader title="Agenda" fallbackRoute="/tabs" hideBack={isDesktop} />
 
       {renderContent()}
 

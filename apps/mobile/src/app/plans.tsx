@@ -13,26 +13,21 @@ import { Linking, Platform, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { activePlan, useProfile, useLimits } from "../features/subscription/hooks";
-import { TIER_BENEFITS } from "../features/subscription/plan-benefits";
+import { tierBenefitsFor } from "../features/subscription/plan-benefits";
+import { businessCopyFor } from "../features/subscription/business-copy";
 import { showAlert } from "../shared/components/alert-store";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
-import { desktopAction, desktopContained } from "../shared/layout/desktop-density";
+import {
+  desktopAction,
+  desktopStretch,
+  desktopWidths,
+  pageGutter,
+} from "../shared/layout/desktop-density";
 
 // Mesmo package do apps/mobile/app.json (expo.android.package).
 const ANDROID_PACKAGE = "br.com.orionseven.lucrocaseiro";
-
-const PLAN_FEATURES: Record<PlanType, readonly string[]> = {
-  free: [
-    "30 vendas por mês",
-    "20 clientes e 15 produtos",
-    "5 receitas e 3 embalagens",
-    "Agenda, fiado e catálogo básico",
-  ],
-  essential: TIER_BENEFITS.essential,
-  professional: TIER_BENEFITS.professional,
-};
 
 /** Dias até `expiresAt` (negativo se já passou). */
 function daysUntil(expiresAt: string): number {
@@ -87,11 +82,9 @@ function openStoreSubscriptionManagement() {
   });
 }
 
-const PLAN_ORDER: PlanType[] = ["free", "essential", "professional"];
 const RANK: Record<PlanType, number> = { free: 0, essential: 1, professional: 2 };
 
-function priceLabel(plan: PlanType): string {
-  if (plan === "free") return "Grátis";
+function priceLabel(plan: PaidPlan): string {
   return `R$ ${PLAN_PRICING[plan].monthly.toFixed(2).replace(".", ",")}`;
 }
 
@@ -103,6 +96,11 @@ export default function PlansScreen() {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
   const { data: profile } = useProfile();
+  const experienceCopy = businessCopyFor(profile?.businessType);
+  const planFeatures: Record<PaidPlan, readonly string[]> = {
+    essential: tierBenefitsFor("essential", experienceCopy),
+    professional: tierBenefitsFor("professional", experienceCopy),
+  };
   const { data: limits } = useLimits();
   const showPaywall = usePaywall((state) => state.show);
   const current = activePlan(profile);
@@ -111,6 +109,9 @@ export default function PlansScreen() {
     profile && isPaidPlan(rawPlan) && profile.planExpiresAt
       ? expiryWarning(PLAN_LABELS[rawPlan], profile.planExpiresAt)
       : null;
+  let visiblePlans: readonly PaidPlan[] = ["professional", "essential"];
+  if (current === "essential") visiblePlans = ["essential", "professional"];
+  if (current === "professional") visiblePlans = ["professional"];
 
   return (
     <SafeAreaView
@@ -120,17 +121,17 @@ export default function PlansScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* Top bar */}
-      {!isDesktop && <ScreenHeader title="Planos" />}
+      <ScreenHeader title="Planos" hideBack={isDesktop} />
 
       <ScrollView
         contentContainerStyle={[
           {
-            padding: spacing.xl,
+            ...pageGutter(isDesktop),
             paddingTop: spacing.xl,
-            gap: spacing.xl,
             paddingBottom: spacing["3xl"],
+            gap: spacing.xl,
           },
-          desktopContained(isDesktop, 960),
+          desktopStretch(isDesktop, desktopWidths.data),
         ]}
       >
         {warning && (
@@ -164,11 +165,13 @@ export default function PlansScreen() {
         >
           <View>
             <Typography variant="h2" color={theme.colors.text}>
-              Cresça no seu ritmo
+              {current === "free" ? "Escolha seu plano" : "Sua assinatura"}
             </Typography>
           </View>
           <Typography variant="body" color={theme.colors.textSecondary}>
-            Escolha o plano que acompanha o momento do seu negócio.
+            {current === "free"
+              ? "Compare Essencial e Profissional. O checkout abre somente depois da sua escolha."
+              : "Veja seu plano atual, faça upgrade ou gerencie a cobrança."}
           </Typography>
         </Card>
 
@@ -191,7 +194,11 @@ export default function PlansScreen() {
                   cur: limits.currentProducts,
                   max: limits.maxProducts,
                 },
-                { label: "Receitas", cur: limits.currentRecipes, max: limits.maxRecipes },
+                {
+                  label: "Receitas",
+                  cur: limits.currentRecipes,
+                  max: limits.maxRecipes,
+                },
                 {
                   label: "Embalagens",
                   cur: limits.currentPackaging,
@@ -244,14 +251,24 @@ export default function PlansScreen() {
         )}
 
         {/* Cards dos planos */}
-        {PLAN_ORDER.map((plan) => {
+        <View
+          style={
+            isDesktop
+              ? { flexDirection: "row", flexWrap: "wrap", gap: spacing.xl, width: "100%" }
+              : { gap: spacing.xl }
+          }
+        >
+        {visiblePlans.map((plan) => {
           const isCurrent = plan === current;
           const isUpgrade = RANK[plan] > RANK[current];
-          const isPaid = plan !== "free";
           const highlight = plan === "professional";
           return (
-            <Card
+            <View
               key={plan}
+              style={isDesktop ? { flex: 1, minWidth: 320 } : { width: "100%" }}
+            >
+            <Card
+              padding={highlight ? "2xl" : "xl"}
               style={{
                 gap: spacing.md,
                 borderWidth: highlight ? 2 : 1,
@@ -298,7 +315,7 @@ export default function PlansScreen() {
                     }}
                   >
                     <Typography variant="label" color={theme.colors.premium}>
-                      MAIS COMPLETO
+                      RECOMENDADO
                     </Typography>
                   </View>
                 )}
@@ -308,24 +325,20 @@ export default function PlansScreen() {
                 <Typography variant="moneyLg" color={theme.colors.text}>
                   {priceLabel(plan)}
                 </Typography>
-                {isPaid && (
-                  <Typography
-                    variant="body"
-                    color={theme.colors.textSecondary}
-                    style={{ marginBottom: 4 }}
-                  >
-                    /mês
-                  </Typography>
-                )}
-              </View>
-              {isPaid && (
-                <Typography variant="caption" color={theme.colors.textSecondary}>
-                  {annualLabel(plan as PaidPlan)}
+                <Typography
+                  variant="body"
+                  color={theme.colors.textSecondary}
+                  style={{ marginBottom: 4 }}
+                >
+                  /mês
                 </Typography>
-              )}
+              </View>
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                {annualLabel(plan)}
+              </Typography>
 
               <View style={{ gap: spacing.sm, marginTop: spacing.xs }}>
-                {PLAN_FEATURES[plan].map((f) => (
+                {planFeatures[plan].map((f) => (
                   <View
                     key={f}
                     style={{
@@ -359,13 +372,15 @@ export default function PlansScreen() {
                   }
                   variant={highlight ? "premium" : "primary"}
                   size="lg"
-                  onPress={() => showPaywall("plans", plan as PaidPlan)}
+                  onPress={() => showPaywall("plans", plan)}
                   style={desktopAction(isDesktop, 240)}
                 />
               )}
             </Card>
+            </View>
           );
         })}
+        </View>
 
         {current !== "free" && (
           <Button

@@ -77,7 +77,7 @@ export class CatalogUseCases {
       throw new ValidationError(["Este endereço já está em uso. Escolha outro."]);
     }
 
-    // Personalizacao (capa/cor/frase) e exclusiva do plano Profissional.
+    // Personalização (capa/cor/frase) está disponível a partir do Essencial.
     if (wantsCustomization(data)) {
       const owner = await this.repo.getOwnerDefaults(userId);
       if (
@@ -85,7 +85,7 @@ export class CatalogUseCases {
         !hasActiveFeature(owner.plan, owner.planExpiresAt, "catalogCustomization")
       ) {
         throw new LimitExceededError(
-          "A personalização do catálogo faz parte do plano Profissional.",
+          "A personalização do catálogo faz parte do plano Essencial.",
         );
       }
     }
@@ -117,13 +117,17 @@ export class CatalogUseCases {
     }
 
     const allProducts = await this.repo.listPublicProducts(owner.userId);
-    // Catalogo completo + personalizacao so aparecem no Profissional (se a
+    // Catálogo completo + personalização aparecem a partir do Essencial (se a
     // assinatura cair, a pagina volta ao tema padrao sem apagar o que foi salvo).
-    const isPremium = hasActiveFeature(owner.plan, owner.planExpiresAt, "catalogPremium");
-    // Planos sem catalogo premium exibem no maximo 3 produtos na vitrine
+    const hasFullCatalog = hasActiveFeature(
+      owner.plan,
+      owner.planExpiresAt,
+      "catalogPremium",
+    );
+    // O plano gratuito exibe no máximo 3 produtos na vitrine
     // (gatilho de conversao; o app mostra "Mostre seu catalogo completo").
     let products = allProducts;
-    if (!isPremium) {
+    if (!hasFullCatalog) {
       products = allProducts.slice(0, 3);
       const focusedProduct = focusedProductId
         ? allProducts.find((product) => product.id === focusedProductId)
@@ -139,12 +143,12 @@ export class CatalogUseCases {
       brandId: owner.brandId,
       businessName: owner.businessName,
       whatsapp: owner.whatsapp ?? owner.phone,
-      coverUrl: isPremium ? owner.coverUrl : null,
-      logoUrl: isPremium ? owner.logoUrl : null,
-      accentColor: isPremium ? owner.accentColor : null,
-      pattern: isPremium ? owner.pattern : null,
-      tagline: isPremium ? owner.tagline : null,
-      promoBanner: isPremium ? owner.promoBanner : null,
+      coverUrl: hasFullCatalog ? owner.coverUrl : null,
+      logoUrl: hasFullCatalog ? owner.logoUrl : null,
+      accentColor: hasFullCatalog ? owner.accentColor : null,
+      pattern: hasFullCatalog ? owner.pattern : null,
+      tagline: hasFullCatalog ? owner.tagline : null,
+      promoBanner: hasFullCatalog ? owner.promoBanner : null,
       products,
       totalProducts: allProducts.length,
     };

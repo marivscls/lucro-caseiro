@@ -14,6 +14,7 @@ import { IngredientAvatar } from "../../../shared/ingredient-image/ingredient-av
 import { useDeleteRecipe, useDuplicateRecipe, useRecipe, useScaleRecipe } from "../hooks";
 import { exportRecipePdf } from "../recipe-pdf";
 import { alertError } from "../../../shared/utils/alerts";
+import { useBusinessCopy } from "../../subscription/business-copy";
 
 interface RecipeDetailProps {
   readonly recipeId: string;
@@ -31,6 +32,16 @@ export function RecipeDetail({
   onDeleted,
 }: RecipeDetailProps) {
   const { theme } = useTheme();
+  const experienceCopy = useBusinessCopy();
+  const formulaLabel = experienceCopy.formulaNoun.replace(/^./, (letter) =>
+    letter.toUpperCase(),
+  );
+  const materialLabel = experienceCopy.materialNoun.replace(/^./, (letter) =>
+    letter.toUpperCase(),
+  );
+  const materialsLabel = experienceCopy.materialNounPlural.replace(/^./, (letter) =>
+    letter.toUpperCase(),
+  );
   const [multiplier, setMultiplier] = useState(1);
   const { data: recipe, isLoading } = useRecipe(recipeId);
   const { data: scaledRecipe } = useScaleRecipe(recipeId, multiplier);
@@ -42,7 +53,7 @@ export function RecipeDetail({
       <View style={{ flexShrink: 1, padding: spacing.xl, gap: spacing.lg }}>
         <Skeleton width="55%" height={22} />
         <SkeletonCard lines={3} />
-        <SkeletonList rows={4} />
+        <SkeletonList rows={4} variant="amount" />
       </View>
     );
   }
@@ -77,7 +88,7 @@ export function RecipeDetail({
 
       {recipe.instructions && (
         <Card style={{ gap: 8 }}>
-          <Typography variant="h3">Modo de preparo</Typography>
+          <Typography variant="h3">Etapas ou observações</Typography>
           <Typography variant="body">{recipe.instructions}</Typography>
         </Card>
       )}
@@ -109,7 +120,7 @@ export function RecipeDetail({
       </Card>
 
       <View style={{ gap: 8 }}>
-        <Typography variant="h3">Escala da receita</Typography>
+        <Typography variant="h3">Escala da {experienceCopy.formulaNoun}</Typography>
         <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
           {SCALE_OPTIONS.map((scale) => (
             <View
@@ -139,7 +150,7 @@ export function RecipeDetail({
       </View>
 
       <View style={{ gap: 8 }}>
-        <Typography variant="h3">Insumos</Typography>
+        <Typography variant="h3">{materialsLabel}</Typography>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
           <AppIcon name="time-outline" size={16} color={theme.colors.textSecondary} />
           <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -166,7 +177,7 @@ export function RecipeDetail({
             }}
           >
             <Typography variant="caption" style={{ flex: 2 }}>
-              Insumo
+              {materialLabel}
             </Typography>
             <Typography variant="caption" style={{ flex: 1, textAlign: "center" }}>
               Qtd
@@ -251,7 +262,13 @@ export function RecipeDetail({
         </Card>
       </View>
 
-      {onEdit && <Button title="Editar receita" size="lg" onPress={onEdit} />}
+      {onEdit && (
+        <Button
+          title="Editar receita"
+          size="lg"
+          onPress={onEdit}
+        />
+      )}
 
       <Button
         title="Imprimir / Compartilhar"
@@ -260,16 +277,24 @@ export function RecipeDetail({
         onPress={() => {
           void (async () => {
             try {
-              await exportRecipePdf({
-                ...displayRecipe,
-                ingredients,
-                totalCost,
-                costPerUnit,
-              });
+              await exportRecipePdf(
+                {
+                  ...displayRecipe,
+                  ingredients,
+                  totalCost,
+                  costPerUnit,
+                },
+                {
+                  formulaNoun: experienceCopy.formulaNoun,
+                  materialNoun: experienceCopy.materialNoun,
+                  materialNounPlural: experienceCopy.materialNounPlural,
+                  quantityLabel: experienceCopy.quantityLabel,
+                },
+              );
             } catch {
               showAlert({
                 title: "Erro",
-                message: "Não foi possível gerar o PDF da receita. Tente novamente.",
+                message: `Não foi possível gerar o PDF da ${experienceCopy.formulaNoun}. Tente novamente.`,
               });
             }
           })();
@@ -285,14 +310,14 @@ export function RecipeDetail({
             try {
               await duplicateRecipe.mutateAsync(recipeId);
               showAlert({
-                title: "Receita duplicada",
+                title: `${formulaLabel} duplicada`,
                 message: `Criamos uma cópia de "${recipe.name}".`,
               });
               onDuplicate?.();
             } catch {
               showAlert({
                 title: "Não foi possível duplicar",
-                message: "Você pode ter atingido o limite de receitas do plano gratuito.",
+                message: `Você pode ter atingido o limite de ${experienceCopy.formulaNounPlural} do plano gratuito.`,
               });
             }
           })();
@@ -319,7 +344,7 @@ export function RecipeDetail({
                       await deleteRecipe.mutateAsync(recipeId);
                       onDeleted?.();
                     } catch {
-                      alertError("Não foi possível excluir a receita.");
+                      alertError(`Não foi possível excluir a ${experienceCopy.formulaNoun}.`);
                     }
                   })();
                 },

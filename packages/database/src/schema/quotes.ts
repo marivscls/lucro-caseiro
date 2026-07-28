@@ -25,6 +25,15 @@ export const quotes = pgTable(
     clientName: text("client_name"),
     title: text("title").notNull(),
     items: jsonb("items").notNull(),
+    subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
+    discount: decimal("discount", { precision: 10, scale: 2 }).notNull().default("0"),
+    discountType: text("discount_type"),
+    discountValue: decimal("discount_value", { precision: 10, scale: 2 })
+      .notNull()
+      .default("0"),
+    estimatedCost: decimal("estimated_cost", { precision: 10, scale: 2 })
+      .notNull()
+      .default("0"),
     total: decimal("total", { precision: 10, scale: 2 }).notNull(),
     status: text("status").notNull().default("pending"),
     validUntil: date("valid_until"),

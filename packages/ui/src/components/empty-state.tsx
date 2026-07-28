@@ -32,7 +32,7 @@ export function EmptyState({ icon, title, description, action, style }: EmptySta
       <Text
         style={{
           fontSize: fontSizes.xl,
-          fontFamily: fonts.display,
+          fontFamily: fonts.bold,
           lineHeight: 28,
           color: theme.colors.text,
           textAlign: "center",

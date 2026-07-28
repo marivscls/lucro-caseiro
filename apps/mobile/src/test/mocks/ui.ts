@@ -18,7 +18,7 @@ export const useTheme = () => ({
       text: "#F5EDE8",
       textSecondary: "#B8A9A0",
       textOnPrimary: "#FFFFFF",
-      primary: "#C4707E",
+      primary: "#B65F72",
       primaryLight: "#D4919C",
       primaryDark: "#A85A67",
       success: "#6BBF96",

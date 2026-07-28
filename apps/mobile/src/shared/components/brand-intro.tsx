@@ -14,7 +14,7 @@ interface BrandIntroProps {
 }
 
 /**
- * Abertura da marca: wordmark serifado revelado em cascata, linha verde que se
+ * Abertura da marca: wordmark revelado em cascata, linha verde que se
  * desenha e uma tagline. Fundo escuro = transicao continua pro app. Pure
  * Animated (sem libs nativas), reaproveita o tempo do initialize() da auth.
  */
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     marginBottom: 26,
   },
   word: {
-    fontFamily: fonts.displayBold,
+    fontFamily: fonts.bold,
     fontSize: 50,
     lineHeight: 54,
     letterSpacing: 0.5,

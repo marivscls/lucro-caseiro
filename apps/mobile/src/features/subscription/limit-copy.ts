@@ -2,6 +2,7 @@ import type { PaidPlan } from "@lucro-caseiro/contracts";
 import { getActiveBrand } from "@lucro-caseiro/brands";
 
 import { getBrandDisplayName } from "../../shared/brand-name";
+import type { BusinessExperienceCopy } from "./business-copy";
 
 // Fonte da verdade das copys de limite/Premium (banner + paywall).
 // Tom: conquista, não restrição ("seu negócio está crescendo").
@@ -96,8 +97,9 @@ const LIMIT_COPY: Record<LimitResource, ResourceCopy> = {
 export function getBannerCopy(
   resource: LimitResource,
   remaining: number,
+  experienceCopy?: BusinessExperienceCopy,
 ): { title: string; body: string } {
-  const copy = LIMIT_COPY[resource];
+  const copy = resourceCopyFor(resource, experienceCopy);
   if (remaining <= 0) return copy.atLimit;
   if (remaining === 1) return copy.lastOne;
   return {
@@ -105,6 +107,21 @@ export function getBannerCopy(
     body: `Faltam apenas ${remaining} ${copy.plural} para atingir o limite do plano gratuito.`,
   };
 }
+
+export function getLimitResourceLabel(
+  resource: LimitResource,
+  experienceCopy?: BusinessExperienceCopy,
+): string {
+  return resourceCopyFor(resource, experienceCopy).plural;
+}
+
+const ESSENTIAL_FEATURE_COPY: Record<string, { title: string; message: string }> = {
+  catalog: {
+    title: "📖 Catálogo completo e personalizado",
+    message:
+      "Mostre todos os produtos e personalize sua vitrine para os clientes. Desbloqueie no Essencial.",
+  },
+};
 
 // Paywalls de feature (não-contagem): recursos do plano Profissional.
 const FEATURE_COPY: Record<string, { title: string; message: string }> = {
@@ -121,11 +138,6 @@ const FEATURE_COPY: Record<string, { title: string; message: string }> = {
   export: {
     title: "📄 Exportar PDF e Excel",
     message: "Baixe seus relatórios pra contabilidade e MEI. Recurso do Profissional.",
-  },
-  catalog: {
-    title: "📖 Catálogo profissional",
-    message:
-      "Mostre todos os produtos e personalize sua vitrine pros clientes. Desbloqueie no Profissional.",
   },
   labels: {
     title: "🏷️ Etiquetas personalizadas",
@@ -155,19 +167,34 @@ const FEATURE_COPY: Record<string, { title: string; message: string }> = {
     message:
       "Veja quem faz aniversário no mês e parabenize na hora certa pra fidelizar. Desbloqueie no Profissional.",
   },
+  notifications: {
+    title: "Notificações profissionais",
+    message:
+      "Ative lembretes diários, aniversários de clientes e o resumo semanal no Profissional.",
+  },
+  prioritySupport: {
+    title: "Suporte prioritário",
+    message: "Fale com a equipe com prioridade no plano Profissional.",
+  },
 };
 
 /** Título + mensagem do paywall conforme o recurso/feature de origem. */
-export function getPaywallCopy(resource: string | null): {
+export function getPaywallCopy(
+  resource: string | null,
+  experienceCopy?: BusinessExperienceCopy,
+): {
   title: string;
   message: string;
 } {
   if (resource && resource in LIMIT_COPY) {
-    const copy = LIMIT_COPY[resource as LimitResource];
+    const copy = resourceCopyFor(resource as LimitResource, experienceCopy);
     return { title: copy.atLimit.title, message: copy.atLimit.body };
   }
   if (resource && resource in FEATURE_COPY) {
     return FEATURE_COPY[resource];
+  }
+  if (resource && resource in ESSENTIAL_FEATURE_COPY) {
+    return ESSENTIAL_FEATURE_COPY[resource];
   }
   return {
     title: "🚀 Seu negócio está crescendo!",
@@ -175,8 +202,60 @@ export function getPaywallCopy(resource: string | null): {
   };
 }
 
+function resourceCopyFor(
+  resource: LimitResource,
+  experienceCopy?: BusinessExperienceCopy,
+): ResourceCopy {
+  if (!experienceCopy) return LIMIT_COPY[resource];
+
+  if (resource === "products") {
+    return {
+      plural: experienceCopy.productNounPlural,
+      lastOne: {
+        title: `📦 Falta apenas 1 ${experienceCopy.productNoun}`,
+        body: `Assine o Essencial e tenha ${experienceCopy.productNounPlural} sem limite.`,
+      },
+      atLimit: {
+        title: `📦 Limite de ${experienceCopy.productNounPlural} atingido`,
+        body: `Cadastre ${experienceCopy.productNounPlural} sem limite com o Essencial.`,
+      },
+    };
+  }
+
+  if (resource === "recipes") {
+    return {
+      plural: experienceCopy.formulaNounPlural,
+      lastOne: {
+        title: `📋 Falta apenas 1 ${experienceCopy.formulaNoun}`,
+        body: `Assine o Essencial e crie ${experienceCopy.formulaNounPlural} sem limite.`,
+      },
+      atLimit: {
+        title: `📋 Limite de ${experienceCopy.formulaNounPlural} atingido`,
+        body: `Desbloqueie ${experienceCopy.formulaNounPlural} sem limite no Essencial.`,
+      },
+    };
+  }
+
+  if (resource === "packaging") {
+    return {
+      plural: experienceCopy.packagingNounPlural,
+      lastOne: {
+        title: "📦 Falta apenas 1 custo adicional",
+        body: `Assine o Essencial e tenha ${experienceCopy.packagingNounPlural} sem limite.`,
+      },
+      atLimit: {
+        title: "📦 Limite de custos adicionais atingido",
+        body: `Cadastre ${experienceCopy.packagingNounPlural} sem limite no Essencial.`,
+      },
+    };
+  }
+
+  return LIMIT_COPY[resource];
+}
+
 /** Tier mínimo do paywall quando o caller não informou um explicitamente. */
 export function getPaywallRecommendedTier(resource: string | null): PaidPlan {
+  if (resource && resource in ESSENTIAL_FEATURE_COPY) return "essential";
   if (resource && resource in FEATURE_COPY) return "professional";
   if (resource === "suppliers") return "professional";
   return "essential";

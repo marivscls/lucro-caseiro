@@ -6,6 +6,20 @@ import { exportHtmlPdf } from "../../shared/utils/export-html";
 import { formatCurrency } from "../../shared/utils/format";
 import { playStoreUrl } from "../../shared/utils/store-link";
 
+export interface RecipePdfCopy {
+  readonly formulaNoun: string;
+  readonly materialNoun: string;
+  readonly materialNounPlural: string;
+  readonly quantityLabel: string;
+}
+
+const DEFAULT_PDF_COPY: RecipePdfCopy = {
+  formulaNoun: "ficha de custo",
+  materialNoun: "material",
+  materialNounPlural: "materiais",
+  quantityLabel: "Quantidade final",
+};
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
@@ -24,7 +38,10 @@ function formatQuantity(value: number): string {
  * Monta o HTML imprimível da receita: nome, categoria, rendimento, tabela de
  * ingredientes, custos e modo de preparo. Conteúdo em pt-BR.
  */
-export function buildRecipeHtml(recipe: Recipe): string {
+export function buildRecipeHtml(
+  recipe: Recipe,
+  copy: RecipePdfCopy = DEFAULT_PDF_COPY,
+): string {
   const brandName = getBrandDisplayName(getActiveBrand());
   const ingredientRows = recipe.ingredients
     .map(
@@ -39,7 +56,7 @@ export function buildRecipeHtml(recipe: Recipe): string {
 
   const instructions = recipe.instructions?.trim()
     ? `<div class="section">
-        <div class="section-title">Modo de preparo</div>
+        <div class="section-title">Etapas ou observações</div>
         <div class="instructions">${escapeHtml(recipe.instructions).replace(/\n/g, "<br />")}</div>
       </div>`
     : "";
@@ -83,16 +100,18 @@ export function buildRecipeHtml(recipe: Recipe): string {
   <div class="header">
     <h1 class="title">${escapeHtml(recipe.name)}</h1>
     <div class="category">${escapeHtml(recipe.category)}</div>
-    <div class="yield">Rendimento: ${formatQuantity(recipe.yieldQuantity)} ${escapeHtml(
+    <div class="yield">${escapeHtml(copy.quantityLabel)}: ${formatQuantity(recipe.yieldQuantity)} ${escapeHtml(
       recipe.yieldUnit,
     )}</div>
   </div>
 
   <div class="section">
-    <div class="section-title">Ingredientes</div>
+    <div class="section-title">${escapeHtml(
+      copy.materialNounPlural.replace(/^./, (letter) => letter.toUpperCase()),
+    )}</div>
     <table>
       <thead>
-        <tr><th>Insumo</th><th class="num">Quantidade</th><th class="num">Custo</th></tr>
+        <tr><th>${escapeHtml(copy.materialNoun)}</th><th class="num">Quantidade</th><th class="num">Custo</th></tr>
       </thead>
       <tbody>${ingredientRows}</tbody>
     </table>
@@ -123,7 +142,12 @@ export function buildRecipeHtml(recipe: Recipe): string {
  * (salvar em Arquivos, enviar no WhatsApp, imprimir, etc). Reusa a mesma
  * abordagem de `labels` (expo-print + expo-sharing).
  */
-export async function exportRecipePdf(recipe: Recipe): Promise<void> {
-  const html = buildRecipeHtml(recipe);
-  await exportHtmlPdf(html, { dialogTitle: "Imprimir ou compartilhar receita" });
+export async function exportRecipePdf(
+  recipe: Recipe,
+  copy: RecipePdfCopy = DEFAULT_PDF_COPY,
+): Promise<void> {
+  const html = buildRecipeHtml(recipe, copy);
+  await exportHtmlPdf(html, {
+    dialogTitle: `Imprimir ou compartilhar ${copy.formulaNoun}`,
+  });
 }

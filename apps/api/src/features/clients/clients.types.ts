@@ -26,6 +26,9 @@ export interface CreateClientData {
   birthday?: string;
   notes?: string;
   tags?: string[];
+  nextContactAt?: string | null;
+  nextContactReason?: string | null;
+  nextContactNotes?: string | null;
 }
 
 export interface FindAllOpts {

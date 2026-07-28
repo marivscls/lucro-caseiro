@@ -305,7 +305,7 @@
 .featuresHeading h2 {
   margin: 8px 0 10px;
   color: var(--text);
-  font-family: var(--font-display), serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: clamp(30px, 4vw, 42px);
   line-height: 1.05;
   letter-spacing: -0.035em;
@@ -419,7 +419,7 @@
   max-width: 520px;
   margin: 16px 0 10px;
   color: var(--text);
-  font-family: var(--font-display), serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: clamp(29px, 3vw, 38px);
   line-height: 1.05;
   letter-spacing: -0.035em;
@@ -603,7 +603,7 @@
 .documentBrand {
   margin-bottom: 28px;
   color: var(--primary-strong);
-  font-family: var(--font-display), serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: 24px;
   font-weight: 800;
 }
@@ -678,7 +678,7 @@
 }
 
 .catalogCover strong {
-  font-family: var(--font-display), serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: 26px;
 }
 

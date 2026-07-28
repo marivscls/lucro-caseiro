@@ -26,10 +26,15 @@ import { useDeletePackaging, usePackagingList } from "../features/packaging/hook
 import { LimitBanner } from "../features/subscription/components/limit-banner";
 import { showAlert } from "../shared/components/alert-store";
 import { ScreenHeader } from "../shared/components/screen-header";
-import { SkeletonList } from "../shared/components/skeleton";
+import { SkeletonList, SkeletonSummaryStrip } from "../shared/components/skeleton";
 import { FeatureRouteGuard } from "../shared/components/feature-route-guard";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { alertError } from "../shared/utils/alerts";
+import {
+  desktopStretch,
+  desktopWidths,
+  pageGutter,
+} from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { StandardModal } from "../shared/components/standard-modal";
 
@@ -146,8 +151,17 @@ function PackagingScreenContent() {
   function renderList() {
     if (isLoading) {
       return (
-        <View style={{ flex: 1, padding: spacing.xl }}>
-          <SkeletonList rows={6} />
+        <View
+          style={{
+            flex: 1,
+            paddingVertical: spacing.xl,
+            gap: spacing.lg,
+            ...pageGutter(isDesktop),
+            ...desktopStretch(isDesktop, desktopWidths.data),
+          }}
+        >
+          <SkeletonSummaryStrip tiles={2} />
+          <SkeletonList rows={5} variant="material" />
         </View>
       );
     }
@@ -166,7 +180,10 @@ function PackagingScreenContent() {
             <Image
               source={packagingEmpty}
               resizeMode="contain"
-              style={{ width: 146, height: 146 }}
+              style={{
+                width: isDesktop ? 240 : 220,
+                height: isDesktop ? 240 : 220,
+              }}
             />
           }
           title="Nenhuma embalagem ainda"
@@ -181,14 +198,15 @@ function PackagingScreenContent() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingHorizontal: spacing.xl,
+          ...pageGutter(isDesktop),
+          ...desktopStretch(isDesktop, desktopWidths.data),
           paddingTop: spacing.sm,
           paddingBottom: spacing.lg,
           gap: spacing.md,
         }}
       >
-        {/* Resumo */}
-        <View style={{ flexDirection: "row", gap: spacing.md }}>
+        {/* Resumo — full width of stretch zone */}
+        <View style={{ flexDirection: "row", gap: spacing.md, width: "100%" }}>
           <SummaryCard
             icon="cube-outline"
             label="Total de embalagens"
@@ -214,15 +232,31 @@ function PackagingScreenContent() {
             </Typography>
           </View>
         ) : (
-          visible.map((pkg) => (
-            <PackagingCard
-              key={pkg.id}
-              packaging={pkg}
-              onPress={() => openCard(pkg.id)}
-              onEdit={() => startEdit(pkg.id)}
-              onDelete={() => deleteById(pkg.id)}
-            />
-          ))
+          <View
+            style={
+              isDesktop
+                ? { flexDirection: "row", flexWrap: "wrap", gap: spacing.md, width: "100%" }
+                : { gap: spacing.md }
+            }
+          >
+            {visible.map((pkg) => (
+              <View
+                key={pkg.id}
+                style={
+                  isDesktop
+                    ? { width: "31%", flexGrow: 1, minWidth: 280 }
+                    : { width: "100%" }
+                }
+              >
+                <PackagingCard
+                  packaging={pkg}
+                  onPress={() => openCard(pkg.id)}
+                  onEdit={() => startEdit(pkg.id)}
+                  onDelete={() => deleteById(pkg.id)}
+                />
+              </View>
+            ))}
+          </View>
         )}
 
         {/* CTA tracejado */}
@@ -232,11 +266,12 @@ function PackagingScreenContent() {
           accessibilityLabel="Adicionar nova embalagem"
           style={({ pressed }) => ({
             marginTop: spacing.sm,
+            width: isDesktop ? "100%" : undefined,
             borderRadius: radii.xl,
             borderWidth: 1.5,
             borderStyle: "dashed",
-            borderColor: theme.colors.primaryLight,
-            backgroundColor: theme.colors.primaryBg,
+            borderColor: theme.colors.border,
+            backgroundColor: theme.colors.surface,
             padding: spacing.lg,
             flexDirection: "row",
             alignItems: "center",
@@ -250,7 +285,7 @@ function PackagingScreenContent() {
             color={theme.colors.primaryStrong}
           />
           <View style={{ flex: 1 }}>
-            <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+            <Typography variant="bodyBold" color={theme.colors.text}>
               Adicionar nova embalagem
             </Typography>
             <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -275,22 +310,24 @@ function PackagingScreenContent() {
         hideBack={isDesktop}
         style={{ gap: spacing.sm }}
         right={
-          <Pressable
-            onPress={() => setShowCreate(true)}
-            accessibilityRole="button"
-            accessibilityLabel="Nova embalagem"
-            style={({ pressed }) => ({
-              width: 44,
-              height: 44,
-              borderRadius: radii.full,
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: theme.colors.primaryInteractive,
-              opacity: pressed ? 0.85 : 1,
-            })}
-          >
-            <AppIcon name="add" size={iconSizes.md} color={theme.colors.textOnPrimary} />
-          </Pressable>
+          items.length > 0 ? (
+            <Pressable
+              onPress={() => setShowCreate(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Nova embalagem"
+              style={({ pressed }) => ({
+                width: 44,
+                height: 44,
+                borderRadius: radii.full,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: theme.colors.primaryInteractive,
+                opacity: pressed ? 0.85 : 1,
+              })}
+            >
+              <AppIcon name="add" size={iconSizes.md} color={theme.colors.textOnPrimary} />
+            </Pressable>
+          ) : undefined
         }
       />
 
@@ -299,9 +336,12 @@ function PackagingScreenContent() {
         style={{
           flexDirection: "row",
           gap: spacing.sm,
-          paddingHorizontal: spacing.lg,
+          ...pageGutter(isDesktop, spacing.lg),
           paddingTop: spacing.xl,
           paddingBottom: spacing.sm,
+          ...(isDesktop
+            ? { alignSelf: "flex-start", maxWidth: 480, width: "100%" }
+            : undefined),
         }}
       >
         <View
@@ -374,7 +414,7 @@ function PackagingScreenContent() {
       </View>
 
       {filtersOpen ? (
-        <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.sm }}>
+        <View style={{ ...pageGutter(isDesktop, spacing.lg), paddingBottom: spacing.sm }}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -418,7 +458,10 @@ function PackagingScreenContent() {
         <LimitBanner
           resource="packaging"
           onUpgrade={() => showPaywall("packaging")}
-          containerStyle={{ marginHorizontal: spacing.lg, marginTop: spacing.sm }}
+          containerStyle={{
+            marginHorizontal: isDesktop ? 0 : spacing.lg,
+            marginTop: spacing.sm,
+          }}
         />
         {renderList()}
       </View>

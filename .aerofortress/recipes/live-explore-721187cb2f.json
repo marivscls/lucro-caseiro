@@ -1,0 +1,41 @@
+{
+  "compiled_at": "2026-07-26T02:37:11.104587800+00:00",
+  "description": "Materialized from a compile candidate sequence.",
+  "id": "live-explore-721187cb2f",
+  "name": "Live explore fan-out (3->1): Lucro Caseiro proposta de va, Lucro Caseiro planos preços , +1",
+  "origin": "live",
+  "recipe": {
+    "name": "Live explore fan-out (3->1): Lucro Caseiro proposta de va, Lucro Caseiro planos preços , +1",
+    "outputs": {
+      "item_1": "item_1.output",
+      "item_2": "item_2.output",
+      "item_3": "item_3.output"
+    },
+    "recipe": {
+      "items": [
+        {
+          "q": "Lucro Caseiro proposta de valor público alvo funcionalidades site landing conversão"
+        },
+        {
+          "q": "Lucro Caseiro planos preços gratuito profissional limites assinatura"
+        },
+        {
+          "q": "Lucro Caseiro identidade visual logo paleta fonte site público"
+        }
+      ],
+      "kind": "fan_out",
+      "node_prefix": "item_",
+      "tool": "explore"
+    },
+    "tools": {
+      "explore": {
+        "adapter": "harness"
+      }
+    },
+    "version": "0"
+  },
+  "schema": 2,
+  "source": "workspace",
+  "status": "ready",
+  "version": 1
+}

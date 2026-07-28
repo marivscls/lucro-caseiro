@@ -7,15 +7,19 @@ import { AppIcon } from "../../../shared/components/app-icon";
 import { useProducts } from "../../products/hooks";
 import { Skeleton } from "../../../shared/components/skeleton";
 
-interface LabelProductPickerProps {
-  selectedId: string | null;
+interface ProductPickerProps {
+  selectedId?: string | null;
   onSelect: (product: Product) => void;
+  title?: string;
+  subtitle?: string;
 }
 
-export function LabelProductPicker({
+export function ProductPicker({
   selectedId,
   onSelect,
-}: Readonly<LabelProductPickerProps>) {
+  title = "Escolha um produto",
+  subtitle = "Busque no seu catálogo e toque para selecionar.",
+}: Readonly<ProductPickerProps>) {
   const { theme } = useTheme();
   const [search, setSearch] = useState("");
   const { data, isLoading } = useProducts({ limit: 100 });
@@ -30,9 +34,9 @@ export function LabelProductPicker({
 
   return (
     <View style={{ width: "100%", minWidth: 0, gap: spacing.sm }}>
-      <Typography variant="h3">Produto da etiqueta</Typography>
+      <Typography variant="h3">{title}</Typography>
       <Typography variant="caption" color={theme.colors.textSecondary}>
-        Escolha um produto para preencher o nome que será impresso.
+        {subtitle}
       </Typography>
       {isLoading ? (
         <View style={{ flexDirection: "row", gap: spacing.sm }}>
@@ -120,5 +124,17 @@ export function LabelProductPicker({
         </Typography>
       ) : null}
     </View>
+  );
+}
+
+export function LabelProductPicker(
+  props: Readonly<Pick<ProductPickerProps, "selectedId" | "onSelect">>,
+) {
+  return (
+    <ProductPicker
+      {...props}
+      title="Produto da etiqueta"
+      subtitle="Escolha um produto para preencher o nome que será impresso."
+    />
   );
 }

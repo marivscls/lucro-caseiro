@@ -48,7 +48,7 @@ export function FormSection({
             flexDirection: "row",
             alignItems: "center",
             gap: spacing.md,
-            minHeight: 56,
+            minHeight: 52,
             paddingHorizontal: spacing.lg,
             paddingVertical: spacing.md,
             opacity: pressed ? 0.85 : 1,
@@ -58,7 +58,13 @@ export function FormSection({
         {icon && <AppIcon name={icon} size={22} color={theme.colors.primary} />}
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-            <Typography variant="bodyBold" style={{ flexShrink: 1 }}>
+            <Typography
+              variant="bodyBold"
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.82}
+              style={{ flexShrink: 1 }}
+            >
               {title}
             </Typography>
             {titleAccessory}

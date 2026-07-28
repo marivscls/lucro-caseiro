@@ -78,12 +78,12 @@ PLANO GRATUITO
 PLANO ESSENCIAL (R$ 29,90/mes ou R$ 299,00/ano)
 - Vendas, clientes, produtos, receitas e embalagens sem limite de volume
 - Agenda, fiado, financeiro e estoque basico
-- Catalogo online basico
+- Catalogo completo e personalizado
 - Resumo mensal em PDF
 
 PLANO PROFISSIONAL (R$ 69,90/mes ou R$ 699,00/ano)
 - Tudo do Essencial
-- Catalogo personalizado e varias fotos por produto
+- Varias fotos por produto
 - Relatorios e exportacoes avancadas
 - Compras, fornecedores, despesas recorrentes, orcamentos e rotulos
 - Produtos compostos e kits

@@ -4,6 +4,8 @@ import type {
   ProductLookupSuggestion,
   ProductVariationInput,
   SaleUnit,
+  StockMovement,
+  StockMovementType,
 } from "@lucro-caseiro/contracts";
 
 /** Dados minimos de um candidato a componente (para validar pertencimento/tipo). */
@@ -38,6 +40,27 @@ export interface IProductsRepo {
     delta: number,
     variationId?: string,
   ): Promise<boolean>;
+  adjustStockWithMovement?(
+    userId: string,
+    productId: string,
+    data: {
+      delta: number;
+      variationId?: string | null;
+      reason?: string | null;
+      occurredAt?: string;
+      type?: StockMovementType;
+      sourceId?: string | null;
+    },
+  ): Promise<StockMovement | null>;
+  listStockMovements?(
+    userId: string,
+    productId: string,
+    limit: number,
+  ): Promise<StockMovement[]>;
+  getSalesVelocity?(
+    userId: string,
+    days: number,
+  ): Promise<Array<{ productId: string; quantity: number }>>;
   averageActivePrice(userId: string): Promise<number | null>;
   /**
    * Busca, dentre os produtos do usuario, os que estao na lista de ids.

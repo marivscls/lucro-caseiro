@@ -1,4 +1,5 @@
 import { Button, EmptyState, Typography, spacing } from "@lucro-caseiro/ui";
+import type { Product } from "@lucro-caseiro/contracts";
 import React, { useEffect, useState } from "react";
 import { FlatList, Image, View } from "react-native";
 
@@ -12,13 +13,15 @@ import {
 import { useShowAds } from "../../../shared/hooks/use-show-ads";
 import { DesktopPagination } from "../../../shared/components/desktop-pagination";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
-import { useProducts } from "../hooks";
+import { useLowStockProducts, useProducts } from "../hooks";
 import { ProductCard } from "./product-card";
 
 interface ProductListProps {
   readonly category?: string;
   readonly search?: string;
   readonly isComposite?: boolean;
+  readonly stockOnly?: boolean;
+  readonly items?: Product[];
   readonly onProductPress?: (id: string) => void;
   readonly onAddPress?: () => void;
 }
@@ -27,18 +30,50 @@ export function ProductList({
   category,
   search,
   isComposite,
+  stockOnly = false,
+  items,
   onProductPress,
   onAddPress,
 }: ProductListProps) {
   const isDesktop = useDesktopLayout();
   const showAds = useShowAds();
   const [page, setPage] = useState(1);
-  const { data, isLoading, error } = useProducts({
+  const productsQuery = useProducts({
     page: isDesktop ? page : undefined,
     category,
     search,
     isComposite,
   });
+  const lowStockQuery = useLowStockProducts();
+  const lowStockItems = lowStockQuery.data?.filter((product) => {
+    const query = search?.trim().toLocaleLowerCase("pt-BR");
+    return !query || product.name.toLocaleLowerCase("pt-BR").includes(query);
+  });
+  let data = productsQuery.data;
+  let isLoading = productsQuery.isLoading;
+  let error = productsQuery.error;
+  if (stockOnly) {
+    data = {
+      items: lowStockItems ?? [],
+      total: lowStockItems?.length ?? 0,
+      page: 1,
+      limit: lowStockItems?.length ?? 0,
+      totalPages: 1,
+    };
+    isLoading = lowStockQuery.isLoading;
+    error = lowStockQuery.error;
+  }
+  if (items !== undefined) {
+    data = {
+      items,
+      total: items.length,
+      page: 1,
+      limit: items.length,
+      totalPages: 1,
+    };
+    isLoading = false;
+    error = null;
+  }
 
   useEffect(() => {
     setPage(1);
@@ -46,8 +81,14 @@ export function ProductList({
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, padding: spacing.lg }}>
-        <SkeletonList rows={6} />
+      <View
+        style={{
+          flex: 1,
+          paddingHorizontal: isDesktop ? 0 : spacing.lg,
+          paddingVertical: spacing.lg,
+        }}
+      >
+        <SkeletonList rows={6} variant="product" />
       </View>
     );
   }
@@ -62,19 +103,30 @@ export function ProductList({
   }
 
   if (!data?.items.length) {
+    let emptyTitle = "Nenhum produto ainda";
+    let emptyDescription = "Cadastre seu primeiro produto para começar a vender";
+    if (stockOnly) {
+      emptyTitle = search ? "Nenhum item encontrado" : "Estoque em dia";
+      emptyDescription = search
+        ? "Ajuste a busca para encontrar outro item."
+        : "Nenhum produto precisa de reposição agora.";
+    }
+
     return (
       <EmptyState
         icon={
-          <Image
-            source={productsEmpty}
-            resizeMode="contain"
-            style={{ width: 146, height: 146 }}
-          />
+          stockOnly ? undefined : (
+            <Image
+              source={productsEmpty}
+              resizeMode="contain"
+              style={{ width: 220, height: 220 }}
+            />
+          )
         }
-        title="Nenhum produto ainda"
-        description="Cadastre seu primeiro produto para começar a vender"
+        title={emptyTitle}
+        description={emptyDescription}
         action={
-          onAddPress ? (
+          !stockOnly && onAddPress ? (
             <Button title="Cadastrar produto" onPress={onAddPress} />
           ) : undefined
         }
@@ -83,6 +135,12 @@ export function ProductList({
   }
 
   const listData = showAds ? interleaveAds(data.items) : data.items;
+  let itemCountLabel = `${data.total} produto${data.total !== 1 ? "s" : ""}`;
+  if (stockOnly) {
+    itemCountLabel = `${data.total} ${
+      data.total === 1 ? "item para repor" : "itens para repor"
+    }`;
+  }
 
   return (
     <FlatList
@@ -105,14 +163,17 @@ export function ProductList({
         );
       }}
       columnWrapperStyle={isDesktop ? { gap: 12 } : undefined}
-      contentContainerStyle={{ gap: 12, padding: 20, paddingBottom: 32 }}
+      contentContainerStyle={{
+        gap: 12,
+        paddingHorizontal: isDesktop ? 0 : 20,
+        paddingTop: 20,
+        paddingBottom: 32,
+      }}
       ListHeaderComponent={
-        <Typography variant="caption">
-          {data.total} produto{data.total !== 1 ? "s" : ""}
-        </Typography>
+        <Typography variant="caption">{itemCountLabel}</Typography>
       }
       ListFooterComponent={
-        isDesktop ? (
+        isDesktop && !stockOnly && !items ? (
           <DesktopPagination
             page={data.page}
             total={data.total}

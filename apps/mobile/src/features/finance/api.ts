@@ -22,13 +22,24 @@ interface PaginatedFinance {
 
 export async function fetchEntries(
   token: string,
-  opts?: { page?: number; type?: string; category?: string; fixed?: boolean },
+  opts?: {
+    page?: number;
+    limit?: number;
+    type?: string;
+    category?: string;
+    fixed?: boolean;
+    startDate?: string;
+    endDate?: string;
+  },
 ): Promise<PaginatedFinance> {
   const params = new URLSearchParams();
   if (opts?.page) params.set("page", String(opts.page));
+  if (opts?.limit) params.set("limit", String(opts.limit));
   if (opts?.type) params.set("type", opts.type);
   if (opts?.category) params.set("category", opts.category);
   if (opts?.fixed !== undefined) params.set("fixed", String(opts.fixed));
+  if (opts?.startDate) params.set("startDate", opts.startDate);
+  if (opts?.endDate) params.set("endDate", opts.endDate);
 
   const query = params.toString();
   const queryString = query ? `?${query}` : "";

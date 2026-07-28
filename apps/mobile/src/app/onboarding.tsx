@@ -23,17 +23,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import nicheArtesanato from "../assets/onboarding-niche-artesanato.png";
 import nicheBeleza from "../assets/onboarding-niche-beleza.png";
-import nicheConfeitaria from "../assets/onboarding-niche-confeitaria.png";
 import nicheFotografia from "../assets/onboarding-niche-fotografia.png";
-import nicheLimpeza from "../assets/onboarding-niche-limpeza.png";
-import nicheOutro from "../assets/onboarding-niche-outro.png";
 import nichePapelaria from "../assets/onboarding-niche-papelaria.png";
-import nichePlantas from "../assets/onboarding-niche-plantas.png";
-import nichePresentes from "../assets/onboarding-niche-presentes.png";
 import nicheSalgados from "../assets/onboarding-niche-salgados.png";
-import labelsEmpty from "../assets/labels-empty.png";
 import pricingEmpty from "../assets/pricing-empty.png";
 import salesEmpty from "../assets/sales-empty.png";
+import salesEmptyV2 from "../assets/sales-empty-v2.png";
+import {
+  BUSINESS_PROFILE_OPTIONS,
+  businessCopyFor,
+  type BusinessProfile,
+} from "../features/subscription/business-copy";
 import { useUpdateProfile } from "../features/subscription/hooks";
 import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
 import { useAuth } from "../shared/hooks/use-auth";
@@ -44,148 +44,48 @@ import { brandLogoById } from "../shared/brand-logo";
 import { getBrandDisplayName } from "../shared/brand-name";
 import { alertError } from "../shared/utils/alerts";
 
-// Nichos cobrindo todos os publicos do app (nao so comida). `db` e o valor
-// aceito pelo enum business_type do banco.
-const NICHES = [
-  {
-    id: "confeitaria",
-    db: "food",
-    label: "Confeitaria e bolos",
-    description: "Bolos, doces e sobremesas.",
-    emoji: "🎂",
-  },
-  {
-    id: "salgados",
-    db: "food",
-    label: "Salgados e marmitas",
-    description: "Salgadinhos, quentinhas e festas.",
-    emoji: "🥟",
-  },
-  {
-    id: "papelaria",
-    db: "crafts",
-    label: "Papelaria e festas",
-    description: "Convites, topos de bolo e lembrancinhas.",
-    emoji: "🎉",
-  },
-  {
-    id: "beleza",
-    db: "beauty",
-    label: "Beleza e unhas",
-    description: "Manicure, cílios, sobrancelhas.",
-    emoji: "💅",
-  },
-  {
-    id: "artesanato",
-    db: "crafts",
-    label: "Artesanato",
-    description: "Crochê, costura, velas, sabonetes.",
-    emoji: "🧶",
-  },
-  {
-    id: "presentes",
-    db: "crafts",
-    label: "Presentes e personalizados",
-    description: "Canecas, produtos personalizados e afins.",
-  },
-  {
-    id: "limpeza",
-    db: "other",
-    label: "Produtos de limpeza",
-    description: "Saboes, detergentes, produtos de limpeza.",
-  },
-  {
-    id: "plantas",
-    db: "other",
-    label: "Plantas e jardinagem",
-    description: "Vasos, suculentas, mudas e cuidados.",
-  },
-  {
-    id: "fotografia",
-    db: "other",
-    label: "Fotografia e design",
-    description: "Fotos, artes digitais, logos e convites.",
-  },
-  {
-    id: "outro",
-    db: "other",
-    label: "Outro negócio",
-    description: "Todo tipo de negócio é bem-vindo!",
-    emoji: "✨",
-  },
-];
-
-const NICHE_ICONS: Record<string, ImageSourcePropType> = {
-  confeitaria: nicheConfeitaria,
-  salgados: nicheSalgados,
-  papelaria: nichePapelaria,
-  beleza: nicheBeleza,
-  artesanato: nicheArtesanato,
-  presentes: nichePresentes,
-  limpeza: nicheLimpeza,
-  plantas: nichePlantas,
-  fotografia: nicheFotografia,
-  outro: nicheOutro,
+const PROFILE_IMAGES: Record<BusinessProfile, ImageSourcePropType> = {
+  crafts: nicheArtesanato,
+  other: nichePapelaria,
+  services: nicheFotografia,
+  beauty: nicheBeleza,
+  food: nicheSalgados,
 };
 
-const NICHE_COPY: Record<string, { label: string; description: string }> = {
-  confeitaria: {
-    label: "Confeitaria e bolos",
-    description: "Bolos, doces e sobremesas.",
-  },
-  salgados: {
-    label: "Salgados e marmitas",
-    description: "Salgadinhos, quentinhas e festas.",
-  },
-  papelaria: {
-    label: "Papelaria e festas",
-    description: "Convites, topos de bolo e lembrancinhas.",
-  },
-  beleza: {
-    label: "Beleza e unhas",
-    description: "Manicure, cilios, sobrancelhas e afins.",
-  },
-  artesanato: {
-    label: "Artesanato",
-    description: "Croche, costura, velas, sabonetes e mais.",
-  },
-  presentes: {
-    label: "Presentes e personalizados",
-    description: "Canecas, produtos personalizados e afins.",
-  },
-  limpeza: {
-    label: "Produtos de limpeza",
-    description: "Saboes, detergentes, produtos de limpeza.",
-  },
-  plantas: {
-    label: "Plantas e jardinagem",
-    description: "Vasos, suculentas, mudas e cuidados.",
-  },
-  fotografia: {
-    label: "Fotografia e design",
-    description: "Fotos, artes digitais, logos e convites.",
-  },
-  outro: {
-    label: "Outro negocio",
-    description: "Todo tipo de negocio e bem-vindo!",
-  },
+const LEGACY_NICHE_PROFILE: Record<string, BusinessProfile> = {
+  confeitaria: "food",
+  salgados: "food",
+  papelaria: "crafts",
+  beleza: "beauty",
+  artesanato: "crafts",
+  presentes: "crafts",
+  limpeza: "other",
+  plantas: "other",
+  fotografia: "services",
+  outro: "other",
 };
+
+function normalizeBusinessProfile(value: string | null): BusinessProfile | null {
+  if (!value) return null;
+  const direct = BUSINESS_PROFILE_OPTIONS.find((profile) => profile.value === value)?.value;
+  return direct ?? LEGACY_NICHE_PROFILE[value] ?? null;
+}
 
 const WELCOME_SLIDES = [
   {
     image: null,
-    title: "Sua paixão,\nseu negócio organizado.",
-    description: "Vendas, encomendas, orçamentos e lucro, tudo num lugar só.",
+    title: "Preço certo,\nvendas organizadas.",
+    description: "Cadastre o que você vende e acompanhe quanto realmente sobra.",
   },
   {
     image: salesEmpty,
-    title: "Venda sem\nperder controle.",
-    description: "Registre pedidos, acompanhe pagamentos e saiba o que falta entregar.",
+    title: "Sua rotina,\nnum só lugar.",
+    description: "Organize vendas, clientes, pedidos e recebimentos sem retrabalho.",
   },
   {
     image: pricingEmpty,
-    title: "Preço certo,\nlucro claro.",
-    description: "Calcule custos, margem e lucro antes de vender.",
+    title: "Custo claro,\nlucro sob controle.",
+    description: "Calcule custos, margem e preço antes de vender.",
   },
 ];
 
@@ -245,7 +145,7 @@ function StepHeader({ onBack }: Readonly<{ onBack: () => void }>) {
           justifyContent: "center",
         }}
       >
-        <AppIcon name="arrow-back" size={24} color={theme.colors.text} />
+        <AppIcon name="chevron-back" size={24} color={theme.colors.text} />
       </Pressable>
       <View style={{ flex: 1, alignItems: "center" }}>
         <Typography
@@ -377,6 +277,7 @@ function NicheStep({
   const cardBackground = theme.colors.surfaceElevated;
   const selectedBg = `${theme.colors.primary}1f`;
   const mutedText = theme.colors.textSecondary;
+  const selectedProfile = normalizeBusinessProfile(selected);
 
   return (
     <View style={{ flex: 1, backgroundColor: background }}>
@@ -404,15 +305,14 @@ function NicheStep({
               letterSpacing: 0,
             }}
           >
-            O que você faz?
+            Como seu negócio funciona?
           </Typography>
           <Typography
             variant="body"
             color={mutedText}
             style={{ textAlign: "center", maxWidth: 340, lineHeight: 24 }}
           >
-            Escolha o que mais combina com o seu negócio para personalizarmos sua
-            experiência.
+            Escolha a opção mais próxima da sua rotina. Você poderá mudar depois.
           </Typography>
         </View>
 
@@ -421,13 +321,12 @@ function NicheStep({
             gap: cardGap,
           }}
         >
-          {NICHES.map((niche) => {
-            const isSelected = selected === niche.id;
-            const copy = NICHE_COPY[niche.id] ?? niche;
+          {BUSINESS_PROFILE_OPTIONS.map((profile) => {
+            const isSelected = selectedProfile === profile.value;
             return (
               <Pressable
-                key={niche.id}
-                onPress={() => onSelect(niche.id)}
+                key={profile.value}
+                onPress={() => onSelect(profile.value)}
                 accessibilityRole="button"
                 accessibilityState={{ selected: isSelected }}
                 style={{ width: "100%" }}
@@ -456,7 +355,7 @@ function NicheStep({
                     }}
                   >
                     <Image
-                      source={NICHE_ICONS[niche.id]}
+                      source={PROFILE_IMAGES[profile.value]}
                       resizeMode="contain"
                       style={{ width: 48, height: 48 }}
                     />
@@ -468,7 +367,7 @@ function NicheStep({
                       numberOfLines={2}
                       style={{ fontSize: 15, lineHeight: 19 }}
                     >
-                      {copy.label}
+                      {profile.label}
                     </Typography>
                     <Typography
                       variant="body"
@@ -476,7 +375,7 @@ function NicheStep({
                       numberOfLines={3}
                       style={{ fontSize: 13, lineHeight: 18, marginTop: 3 }}
                     >
-                      {copy.description}
+                      {profile.description}
                     </Typography>
                   </View>
                   <View
@@ -523,7 +422,7 @@ function NicheStep({
           icon={
             <AppIcon name="arrow-forward" size={22} color={theme.colors.textOnPrimary} />
           }
-          style={{ borderRadius: radii.lg }}
+          style={{ borderRadius: radii.md }}
         />
         <View
           style={{
@@ -549,9 +448,13 @@ function NicheStep({
 }
 
 function BusinessNameStep({
+  example,
+  image,
   onNext,
   onBack,
 }: Readonly<{
+  example: string;
+  image: ImageSourcePropType;
   onNext: (name: string) => void;
   onBack: () => void;
 }>) {
@@ -573,7 +476,7 @@ function BusinessNameStep({
       >
         <View style={{ alignItems: "center" }}>
           <Image
-            source={labelsEmpty}
+            source={image}
             resizeMode="contain"
             style={{ width: 150, height: 150 }}
           />
@@ -590,7 +493,7 @@ function BusinessNameStep({
         </Typography>
         <Input
           label="Nome do negócio"
-          placeholder="Ex.: Doces da Maria"
+          placeholder={`Ex.: ${example}`}
           value={name}
           onChangeText={setName}
           autoFocus
@@ -626,10 +529,12 @@ function BusinessNameStep({
 }
 
 function DoneStep({
+  productNoun,
   onFinish,
   onFirstProduct,
   finishing,
 }: Readonly<{
+  productNoun: string;
   onFinish: () => void;
   onFirstProduct: () => void;
   finishing: boolean;
@@ -647,7 +552,7 @@ function DoneStep({
       }}
     >
       <Image
-        source={salesEmpty}
+        source={salesEmptyV2}
         resizeMode="contain"
         style={{ width: 158, height: 158 }}
       />
@@ -660,13 +565,13 @@ function DoneStep({
         color={theme.colors.textSecondary}
         style={{ textAlign: "center", maxWidth: 300 }}
       >
-        Que tal começar cadastrando seu primeiro produto? Leva menos de 1 minuto, e depois
-        é só registrar a primeira venda!
+        Que tal começar cadastrando seu primeiro {productNoun}? Leva menos de 1 minuto, e
+        depois é só registrar a primeira venda!
       </Typography>
 
       <View style={{ gap: spacing.md, width: "100%", marginTop: spacing.sm }}>
         <Button
-          title="Cadastrar meu primeiro produto"
+          title={`Cadastrar meu primeiro ${productNoun}`}
           size="lg"
           icon={
             <AppIcon name="add-circle" size={20} color={theme.colors.textOnPrimary} />
@@ -706,15 +611,17 @@ export default function OnboardingScreen() {
     setBusinessName,
     completeOnboarding,
   } = useOnboarding();
+  const selectedProfile = normalizeBusinessProfile(businessType);
+  const experienceCopy = businessCopyFor(selectedProfile, brand.copy);
 
-  // Salva nicho e nome do negocio no perfil (servidor). Nao bloqueia o fluxo:
+  // Salva perfil e nome do negocio no servidor. Nao bloqueia o fluxo:
   // se falhar (offline), o usuario ajusta depois nas configuracoes.
   function persistProfile(name: string) {
-    const niche = NICHES.find((n) => n.id === businessType);
     updateProfile
       .mutateAsync({
         businessName: name || undefined,
-        businessType: verticalOnboarding?.businessType ?? niche?.db ?? undefined,
+        businessType:
+          verticalOnboarding?.businessType ?? selectedProfile ?? undefined,
       })
       .catch(() => {});
   }
@@ -765,7 +672,7 @@ export default function OnboardingScreen() {
           <WelcomeStep
             onNext={() => {
               if (verticalOnboarding) {
-                setBusinessType(verticalOnboarding.nicheId);
+                setBusinessType(verticalOnboarding.businessType);
                 setStep(2);
                 return;
               }
@@ -789,6 +696,12 @@ export default function OnboardingScreen() {
 
         {currentStep === 2 && (
           <BusinessNameStep
+            example={experienceCopy.businessNameExample}
+            image={
+              selectedProfile
+                ? PROFILE_IMAGES[selectedProfile]
+                : brandLogoById[brand.id]
+            }
             onNext={(name) => {
               setBusinessName(name);
               persistProfile(name);
@@ -800,6 +713,7 @@ export default function OnboardingScreen() {
 
         {currentStep === 3 && (
           <DoneStep
+            productNoun={experienceCopy.productNoun}
             onFinish={handleFinish}
             onFirstProduct={handleFirstProduct}
             finishing={finishing}

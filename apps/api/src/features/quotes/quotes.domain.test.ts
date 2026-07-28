@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { computeQuoteTotal, quoteItemsSummary, validateQuote } from "./quotes.domain";
+import {
+  computeQuotePricing,
+  computeQuoteTotal,
+  quoteItemsSummary,
+  validateQuote,
+} from "./quotes.domain";
 
 describe("computeQuoteTotal", () => {
   it("soma quantidade x preco unitario", () => {
@@ -20,6 +25,32 @@ describe("computeQuoteTotal", () => {
 
   it("lista vazia soma zero", () => {
     expect(computeQuoteTotal([])).toBe(0);
+  });
+});
+
+describe("computeQuotePricing", () => {
+  it("calcula desconto e rentabilidade interna", () => {
+    expect(
+      computeQuotePricing(
+        [
+          {
+            description: "Bolo",
+            quantity: 2,
+            unitPrice: 50,
+            estimatedUnitCost: 20,
+          },
+        ],
+        "percentage",
+        10,
+      ),
+    ).toEqual({
+      subtotal: 100,
+      discount: 10,
+      total: 90,
+      estimatedCost: 40,
+      estimatedGain: 50,
+      estimatedMargin: 55.56,
+    });
   });
 });
 

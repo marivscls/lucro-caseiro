@@ -78,7 +78,7 @@ export function CompositeToggle({
                 borderRadius: radii.lg,
                 borderWidth: 1,
                 borderColor: selected ? theme.colors.primary : border,
-                backgroundColor: selected ? theme.colors.primary : fieldBg,
+                backgroundColor: selected ? theme.colors.primaryBg : fieldBg,
                 opacity: pressed ? 0.85 : 1,
               })}
             >
@@ -86,19 +86,21 @@ export function CompositeToggle({
                 <AppIcon
                   name={option.icon}
                   size={22}
-                  color={selected ? theme.colors.textOnPrimary : theme.colors.primary}
+                  color={
+                    selected ? theme.colors.primaryStrong : theme.colors.primary
+                  }
                 />
                 {isLockedOption && (
                   <AppIcon
                     name="lock-closed"
                     size={14}
-                    color={selected ? theme.colors.textOnPrimary : theme.colors.premium}
+                    color={selected ? theme.colors.primaryStrong : theme.colors.premium}
                   />
                 )}
               </View>
               <Typography
                 variant="bodyBold"
-                color={selected ? theme.colors.textOnPrimary : theme.colors.text}
+                color={selected ? theme.colors.primaryStrong : theme.colors.text}
                 numberOfLines={2}
                 style={{
                   fontSize: 14,

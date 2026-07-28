@@ -16,14 +16,14 @@ import { AppIcon } from "../../shared/components/app-icon";
 import type { AppIconName } from "../../shared/components/app-icon";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Image, Pressable, ScrollView, View, type ViewStyle } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Image, Platform, Pressable, ScrollView, View, type ViewStyle } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
 
 import agendaDeliveries from "../../../assets/agenda-deliveries.png";
 
 import { avatarPastel } from "../../features/clients/components/avatar-colors";
-import { useBirthdays } from "../../features/clients/hooks";
+import { useBirthdays, useClients } from "../../features/clients/hooks";
 import { isBirthdayToday } from "../../features/clients/use-birthday-notifier";
 import { useFinanceSummary } from "../../features/finance/hooks";
 import { ProlaboreGoalForm } from "../../features/goals/components/prolabore-goal-form";
@@ -39,11 +39,13 @@ import { useLimits, useProfile } from "../../features/subscription/hooks";
 import { getLimitBannerState } from "../../features/subscription/limits";
 import { AdBanner } from "../../shared/components/ad-banner";
 import { ListCard, ListCardItem } from "../../shared/components/list-card";
-import { Skeleton, SkeletonCard } from "../../shared/components/skeleton";
+import { SkeletonHome } from "../../shared/components/skeleton";
 import { useNotificationEnabled } from "../../shared/hooks/notification-prefs";
 import { NOTIFICATION_TYPES } from "../../shared/hooks/notification-types";
 import { useOnboarding } from "../../shared/hooks/use-onboarding";
 import { usePaywall } from "../../shared/hooks/use-paywall";
+import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
+import { desktopStretch, desktopWidths, pageGutter } from "../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 
 function getMonthName(): string {
@@ -232,6 +234,66 @@ function BirthdaysCard({
           </ListCardItem>
         );
       })}
+    </ListCard>
+  );
+}
+
+function dueContacts(clients: Client[], today = new Date()): Client[] {
+  const todayKey = today.toISOString().slice(0, 10);
+  return clients
+    .filter(
+      (client) =>
+        client.nextContactAt !== null && client.nextContactAt.slice(0, 10) <= todayKey,
+    )
+    .sort((a, b) => (a.nextContactAt ?? "").localeCompare(b.nextContactAt ?? ""));
+}
+
+function NextContactsCard({
+  clients,
+  cardStyle,
+  onOpen,
+}: Readonly<{
+  clients: Client[];
+  cardStyle: ViewStyle;
+  onOpen: () => void;
+}>) {
+  const { theme } = useTheme();
+  return (
+    <ListCard
+      title="Contatos para hoje"
+      icon="chatbubble-ellipses-outline"
+      iconColor={theme.colors.yellow}
+      iconBg={theme.colors.yellowBg}
+      badge={String(clients.length)}
+      badgeVariant="warning"
+      actionLabel="Ver clientes"
+      onPress={onOpen}
+      style={cardStyle}
+    >
+      {clients.slice(0, 3).map((client, index) => (
+        <ListCardItem key={client.id} first={index === 0}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+            <AvatarCircle name={client.name} />
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Typography variant="bodyBold" numberOfLines={1}>
+                {client.name}
+              </Typography>
+              <Typography
+                variant="caption"
+                color={theme.colors.textSecondary}
+                numberOfLines={1}
+              >
+                {client.nextContactReason ?? "Retomar contato"}
+              </Typography>
+            </View>
+            <AppIcon
+              name="chevron-forward"
+              size={iconSizes.sm}
+              color={theme.colors.textSecondary}
+            />
+          </View>
+        </ListCardItem>
+      ))}
     </ListCard>
   );
 }
@@ -780,13 +842,20 @@ export default function HomeScreen() {
   const hasScheduling = useFeature("agendamento");
   const router = useRouter();
   const isDesktop = useDesktopLayout();
+  const insets = useSafeAreaInsets();
   const [showGoalForm, setShowGoalForm] = useState(false);
   const { data: profile } = useProfile();
   const { data: limits } = useLimits();
   const showPaywall = usePaywall((s) => s.show);
-  const { data: todaySummary, isLoading: loadingSales } = useTodaySummary();
+  const todaySalesQuery = useTodaySummary();
+  const {
+    data: todaySummary,
+    isLoading: loadingSales,
+    error: todaySalesError,
+  } = todaySalesQuery;
   const { data: prolaboreData, isLoading: loadingGoal } = useProlaboreStatus();
   const { data: birthdays } = useBirthdays();
+  const { data: clientsData } = useClients();
   const { data: lowStockProducts } = useLowStockProducts();
   // ponytail: checklist de ativação reusa as listas (cacheadas) de produtos/vendas
   // pra saber se cada passo já foi feito; um endpoint de contagem dedicado seria
@@ -806,6 +875,7 @@ export default function HomeScreen() {
     !!profile &&
     hasActiveFeature(profile.plan, profile.planExpiresAt, "premiumNotifications");
   const birthdayCount = birthdays?.length ?? 0;
+  const contactsToDo = dueContacts(clientsData?.items ?? []);
 
   // 2.5: não mostrar o AdBanner junto do LimitBanner (mensagem "assine" ao lado
   // de um anúncio canibaliza o upgrade); mesma condição usada pelo LimitBanner.
@@ -827,6 +897,11 @@ export default function HomeScreen() {
   const isLoading = loadingSales || loadingGoal;
   const firstName = profile?.name?.trim().split(/\s+/)[0] ?? "Maria";
   const cardStyle = getCardStyle(theme);
+  const dashboardCardStyle = {
+    ...cardStyle,
+    flex: Platform.OS === "web" && !isDesktop ? undefined : 1,
+    width: "100%" as const,
+  };
   const homeShortcutCategories = HOME_SHORTCUT_CATEGORIES.map((category) => ({
     ...category,
     title:
@@ -867,9 +942,13 @@ export default function HomeScreen() {
     >
       <ScrollView
         contentContainerStyle={{
-          padding: spacing.xl,
-          paddingBottom: spacing["3xl"],
+          paddingVertical: spacing.xl,
+          paddingBottom: isDesktop
+            ? spacing["3xl"]
+            : floatingTabBarContentPadding(insets.bottom),
           gap: spacing.lg,
+          ...pageGutter(isDesktop),
+          ...desktopStretch(isDesktop, desktopWidths.data),
         }}
         showsVerticalScrollIndicator={false}
       >
@@ -881,12 +960,7 @@ export default function HomeScreen() {
           }}
         >
           <View style={{ flex: 1, paddingRight: spacing.md }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-              <Typography variant="display" serif>
-                Olá, {firstName}!
-              </Typography>
-              <AppIcon name="heart" size={22} color={colors.rose300} />
-            </View>
+            <Typography variant="screenTitle">Olá, {firstName}!</Typography>
             <Typography variant="body" style={{ marginTop: spacing.xs }}>
               {getFormattedDate()}
             </Typography>
@@ -915,11 +989,37 @@ export default function HomeScreen() {
 
         {!showSalesLimitBanner && <AdBanner size="banner" />}
 
+        {todaySalesError ? (
+          <Card variant="surface" padding="lg" style={getCardStyle(theme)}>
+            <View style={{ gap: spacing.md }}>
+              <Typography variant="h3">Não foi possível atualizar o dia</Typography>
+              <Typography variant="body" color={theme.colors.textSecondary}>
+                Os atalhos continuam disponíveis. Tente buscar os números novamente.
+              </Typography>
+              <Pressable
+                onPress={() => void todaySalesQuery.refetch()}
+                accessibilityRole="button"
+                style={{
+                  alignSelf: "flex-start",
+                  minHeight: 44,
+                  justifyContent: "center",
+                  paddingHorizontal: spacing.lg,
+                  borderRadius: radii.full,
+                  borderWidth: 1,
+                  borderColor: theme.colors.primary,
+                }}
+              >
+                <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+                  Tentar novamente
+                </Typography>
+              </Pressable>
+            </View>
+          </Card>
+        ) : null}
+
         {isLoading ? (
-          <View style={{ marginTop: spacing["2xl"], gap: spacing.lg }}>
-            <Skeleton height={140} borderRadius={radii.xl} />
-            <SkeletonCard lines={3} />
-            <SkeletonCard lines={2} />
+          <View style={{ marginTop: spacing["2xl"] }}>
+            <SkeletonHome />
           </View>
         ) : (
           <>
@@ -934,70 +1034,90 @@ export default function HomeScreen() {
 
             <QuickCreateBar />
 
-            <LucroHighlightCard
-              monthName={getMonthName().toUpperCase()}
-              amount={formatCurrency(monthProfit)}
-              income={formatCurrency(financeSummary?.totalIncome ?? 0)}
-              expenses={formatCurrency(financeSummary?.totalExpenses ?? 0)}
-              onPress={() => router.push("/finance")}
-            />
+            <View
+              style={{
+                alignItems: "stretch",
+                flexDirection: isDesktop ? "row" : "column",
+                gap: spacing.lg,
+              }}
+            >
+              <View style={{ flex: 1 }}>
+                <LucroHighlightCard
+                  monthName={getMonthName().toUpperCase()}
+                  amount={formatCurrency(monthProfit)}
+                  income={formatCurrency(financeSummary?.totalIncome ?? 0)}
+                  expenses={formatCurrency(financeSummary?.totalExpenses ?? 0)}
+                  onPress={() => router.push("/finance")}
+                />
+              </View>
 
-            {hasScheduling && upcomingDeliveries > 0 && (
-              <Card
-                variant="surface"
-                padding="lg"
-                onPress={() => router.push("/tabs/agenda")}
-                style={cardStyle}
-              >
-                <View
-                  style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
+              {hasScheduling && upcomingDeliveries > 0 ? (
+                <Card
+                  variant="surface"
+                  padding="lg"
+                  onPress={() => router.push("/tabs/agenda")}
+                  style={{ ...cardStyle, flex: 1 }}
                 >
                   <View
                     style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: radii.full,
-                      backgroundColor: theme.colors.alertBg,
+                      flexDirection: "row",
                       alignItems: "center",
-                      justifyContent: "center",
+                      gap: spacing.sm,
                     }}
                   >
+                    <View
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: radii.full,
+                        backgroundColor: theme.colors.alertBg,
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <AppIcon
+                        name="calendar"
+                        size={iconSizes.md}
+                        color={theme.colors.textSecondary}
+                      />
+                    </View>
+                    <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+                      <Typography variant="h3">Agenda</Typography>
+                      <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+                        {upcomingDeliveries}{" "}
+                        {upcomingDeliveries === 1 ? "entrega" : "entregas"}
+                      </Typography>
+                      <Typography variant="caption" numberOfLines={3}>
+                        Hoje, amanhã ou em atraso
+                      </Typography>
+                    </View>
+                    <Image
+                      source={agendaDeliveries}
+                      resizeMode="contain"
+                      style={{ width: isDesktop ? 82 : 72, height: 70 }}
+                    />
                     <AppIcon
-                      name="calendar"
-                      size={iconSizes.md}
+                      name="chevron-forward"
+                      size={iconSizes.sm}
                       color={theme.colors.textSecondary}
                     />
                   </View>
-                  <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
-                    <Typography variant="h3">Agenda</Typography>
-                    <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-                      {upcomingDeliveries}{" "}
-                      {upcomingDeliveries === 1 ? "entrega" : "entregas"}
-                    </Typography>
-                    <Typography variant="caption" numberOfLines={3}>
-                      Hoje, amanhã ou em atraso
-                    </Typography>
-                  </View>
-                  <Image
-                    source={agendaDeliveries}
-                    resizeMode="contain"
-                    style={{ width: isDesktop ? 82 : 72, height: 70 }}
-                  />
-                  <AppIcon
-                    name="chevron-forward"
-                    size={iconSizes.sm}
-                    color={theme.colors.textSecondary}
-                  />
-                </View>
-              </Card>
-            )}
+                </Card>
+              ) : null}
+            </View>
 
-            <View style={{ gap: spacing.md }}>
+            <View
+              style={{
+                alignItems: "flex-start",
+                flexDirection: isDesktop ? "row" : "column",
+                gap: spacing.md,
+              }}
+            >
               <Card
                 variant="surface"
                 padding="lg"
                 onPress={() => setShowGoalForm(true)}
-                style={cardStyle}
+                style={dashboardCardStyle}
               >
                 <View style={{ gap: spacing.lg }}>
                   <View
@@ -1113,8 +1233,8 @@ export default function HomeScreen() {
                   }
                   badgeVariant="warning"
                   actionLabel="Ver todos"
-                  onPress={() => router.push("/products")}
-                  style={cardStyle}
+                  onPress={() => router.push("/products?stock=low")}
+                  style={dashboardCardStyle}
                 >
                   {lowStockProducts && lowStockProducts.length > 0 ? (
                     lowStockProducts.slice(0, 3).map((product, index) => {
@@ -1224,6 +1344,14 @@ export default function HomeScreen() {
               canUsePremiumNotifications &&
               birthdaysEnabled &&
               birthdays && <BirthdaysCard clients={birthdays} cardStyle={cardStyle} />}
+
+            {contactsToDo.length > 0 ? (
+              <NextContactsCard
+                clients={contactsToDo}
+                cardStyle={cardStyle}
+                onOpen={() => router.push("/tabs/clients")}
+              />
+            ) : null}
 
             {birthdayCount > 0 && !canUsePremiumNotifications && (
               <ListCard

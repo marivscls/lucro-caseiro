@@ -1,24 +1,18 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Nunito_Sans } from "next/font/google";
+import { Nunito_Sans } from "next/font/google";
 
 import "./globals.css";
 import { BrandProvider } from "./brand-provider";
 import { BrandThemeStyle } from "./brand-theme";
 import { Providers } from "./providers";
 
-// Tipografia canonica (ADR-0008): Fraunces para display/titulos,
-// Nunito Sans para o texto corrido. Espelha `fonts` de packages/ui/src/theme.ts.
+// Tipografia canonica (ADR-0008): Nunito Sans em toda a interface.
+// Espelha `fonts` de packages/ui/src/theme.ts.
 const sans = Nunito_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
   weight: ["400", "600", "700", "800"],
 });
-const display = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-display",
-  weight: ["600", "700"],
-});
-
 export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://lucrocaseiro.com.br",
@@ -34,7 +28,7 @@ export const viewport: Viewport = { themeColor: "#C4707E", colorScheme: "light" 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
-      <body className={`${sans.variable} ${display.variable}`}>
+      <body className={sans.variable}>
         {/* Whitelabel (ADR-0009): overrides de CSS vars da marca ativa,
             aplicados sobre o globals.css (que segue sendo a base). */}
         <BrandThemeStyle />

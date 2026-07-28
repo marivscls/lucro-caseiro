@@ -5,6 +5,11 @@ import { ActivityIndicator, Pressable, View } from "react-native";
 
 import { showAlert } from "../../../shared/components/alert-store";
 import { StandardModal } from "../../../shared/components/standard-modal";
+import {
+  desktopAction,
+  desktopCompactField,
+} from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
 import { usePaywall } from "../../../shared/hooks/use-paywall";
@@ -26,6 +31,7 @@ import {
   type RecipeLine,
 } from "./recipe-materials-editor";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
+import { useBusinessCopy } from "../../subscription/business-copy";
 
 interface CreateRecipeFormProps {
   readonly visible: boolean;
@@ -35,6 +41,9 @@ interface CreateRecipeFormProps {
 
 export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFormProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
+  const experienceCopy = useBusinessCopy();
+  const formulaLabel = "Receita";
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [instructions, setInstructions] = useState("");
@@ -62,7 +71,7 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
     }
     const parsedYield = parseFloat(yieldQuantity.replace(",", "."));
     if (isNaN(parsedYield) || parsedYield <= 0) {
-      alertValidation("Informe o rendimento da receita");
+      alertValidation(`Informe ${experienceCopy.quantityLabel.toLowerCase()}`);
       return;
     }
     if (!yieldUnit.trim()) {
@@ -71,12 +80,12 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
     }
     const linesWithMaterial = lines.filter((l) => l.materialId);
     if (linesWithMaterial.length === 0) {
-      alertValidation("Adicione pelo menos um insumo");
+      alertValidation(`Adicione pelo menos um ${experienceCopy.materialNoun}`);
       return;
     }
     const validLines = linesWithMaterial.filter((l) => l.quantity.trim());
     if (validLines.length === 0) {
-      alertValidation("Informe a quantidade do insumo");
+      alertValidation(`Informe a quantidade do ${experienceCopy.materialNoun}`);
       return;
     }
 
@@ -85,7 +94,7 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
     );
     if (duplicatedName) {
       const shouldContinue = await confirmPossibleDuplicate(
-        "Receita parecida",
+        `${formulaLabel} parecida`,
         "Já existe uma receita com esse nome. Confira se não é melhor editar ou duplicar a existente.",
       );
       if (!shouldContinue) return;
@@ -122,7 +131,7 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
           unit: l.unit.trim(),
         })),
       });
-      showAlert({ title: "Receita cadastrada!", message: `${name} foi adicionada` });
+      showAlert({ title: `${formulaLabel} cadastrada!`, message: `${name} foi adicionada` });
       onSuccess?.();
     } catch (e) {
       if (e instanceof ApiError && e.code === "LIMIT_EXCEEDED") {
@@ -139,35 +148,43 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
       visible={visible}
       onClose={onClose}
       footer={
-        <Pressable
-          onPress={() => {
-            void handleSubmit();
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: isDesktop ? "flex-end" : undefined,
+            width: "100%",
           }}
-          disabled={loading}
-          accessibilityRole="button"
-          style={({ pressed }) => [
-            {
-              minHeight: 58,
-              borderRadius: radii.lg,
-              backgroundColor: theme.colors.primary,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: spacing.sm,
-              opacity: pressed || loading ? 0.85 : 1,
-            },
-            { flex: 1 },
-          ]}
         >
-          {loading ? (
-            <ActivityIndicator color={theme.colors.textOnPrimary} />
-          ) : (
-            <AppIcon name="save-outline" size={22} color={theme.colors.textOnPrimary} />
-          )}
-          <Typography variant="h3" color={theme.colors.textOnPrimary}>
-            {uploading ? "Enviando foto..." : "Salvar receita"}
-          </Typography>
-        </Pressable>
+          <Pressable
+            onPress={() => {
+              void handleSubmit();
+            }}
+            disabled={loading}
+            accessibilityRole="button"
+            style={({ pressed }) => [
+              {
+                minHeight: 48,
+                borderRadius: radii.md,
+                backgroundColor: theme.colors.primaryInteractive,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: spacing.sm,
+                opacity: pressed || loading ? 0.85 : 1,
+              },
+              isDesktop ? desktopAction(isDesktop, 220) : { flex: 1 },
+            ]}
+          >
+            {loading ? (
+              <ActivityIndicator color={theme.colors.textOnPrimary} />
+            ) : (
+              <AppIcon name="save-outline" size={22} color={theme.colors.textOnPrimary} />
+            )}
+            <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
+              {uploading ? "Enviando foto..." : "Salvar receita"}
+            </Typography>
+          </Pressable>
+        </View>
       }
     >
       <View style={{ flexShrink: 1, gap: spacing.xl }}>
@@ -179,11 +196,11 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
           Preencha os detalhes da sua receita
         </Typography>
 
-        <FieldRow icon="ice-cream-outline" label="Nome da receita">
+        <FieldRow icon="document-text-outline" label="Nome da receita">
           <TextBox
             value={name}
             onChangeText={setName}
-            placeholder="Ex: Brigadeiro, Bolo de cenoura..."
+            placeholder={`Ex: ${experienceCopy.productExample}`}
             autoFocus
           />
         </FieldRow>
@@ -204,7 +221,7 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
 
         <FieldRow
           icon="document-text-outline"
-          label="Modo de preparo"
+          label="Etapas ou observações"
           optional
           align="top"
         >
@@ -213,9 +230,9 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
 
         <View style={{ gap: spacing.sm }}>
           <View style={{ flexDirection: "row", gap: spacing.md }}>
-            <View style={{ flex: 1, gap: spacing.sm }}>
+            <View style={[{ flex: 1, gap: spacing.sm }, desktopCompactField(isDesktop)]}>
               <Typography variant="bodyBold" color={theme.colors.text}>
-                Rendimento
+                {experienceCopy.quantityLabel}
               </Typography>
               <TextBox
                 value={yieldQuantity}

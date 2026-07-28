@@ -2,6 +2,8 @@ import type {
   CreateProduct,
   Product,
   ProductCodeLookup,
+  CreateStockAdjustment,
+  StockMovement,
   UpdateProduct,
 } from "@lucro-caseiro/contracts";
 
@@ -90,4 +92,33 @@ export async function deleteProduct(token: string, id: string): Promise<void> {
 
 export async function fetchLowStockProducts(token: string): Promise<Product[]> {
   return apiClient<Product[]>(`${BASE}/low-stock`, { token });
+}
+
+export async function adjustProductStock(
+  token: string,
+  productId: string,
+  data: CreateStockAdjustment,
+): Promise<StockMovement> {
+  return apiClient<StockMovement>(`${BASE}/${productId}/stock-adjustments`, {
+    method: "POST",
+    body: data,
+    token,
+  });
+}
+
+export async function fetchStockMovements(
+  token: string,
+  productId: string,
+): Promise<StockMovement[]> {
+  const result = await apiClient<{ items: StockMovement[] }>(
+    `${BASE}/${productId}/stock-movements`,
+    { token },
+  );
+  return result.items;
+}
+
+export async function fetchSalesVelocity(
+  token: string,
+): Promise<{ days: number; fast: string[]; slow: string[] }> {
+  return apiClient(`${BASE}/velocity?days=30`, { token });
 }

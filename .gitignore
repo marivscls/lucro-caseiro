@@ -64,6 +64,7 @@ lucro-caseiro-*.json
 
 # AeroFortress runtime artifacts (knowledge/specs remain versioned)
 .aerofortress/logs/
+.aerofortress/runtime/
 .aerofortress/tmp/
 .aerofortress/web-dev-*.log
 

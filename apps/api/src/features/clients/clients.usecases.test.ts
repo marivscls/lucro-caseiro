@@ -20,6 +20,9 @@ function makeClient(overrides: Partial<Client> = {}): Client {
     totalSpent: 0,
     createdAt: new Date().toISOString(),
     ...overrides,
+    nextContactAt: overrides.nextContactAt ?? null,
+    nextContactReason: overrides.nextContactReason ?? null,
+    nextContactNotes: overrides.nextContactNotes ?? null,
   };
 }
 

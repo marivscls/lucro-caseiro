@@ -11,6 +11,11 @@ import { showToast } from "../../../shared/components/toast";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
 import { ApiError } from "../../../shared/utils/api-client";
 import { StandardModal } from "../../../shared/components/standard-modal";
+import {
+  desktopAction,
+  desktopCompactField,
+} from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 
 interface EditClientFormProps {
   client: Client;
@@ -25,11 +30,21 @@ export function EditClientForm({
   onClose,
   onSuccess,
 }: Readonly<EditClientFormProps>) {
+  const isDesktop = useDesktopLayout();
   const [name, setName] = useState(client.name);
   const [phone, setPhone] = useState(client.phone ?? "");
   const [address, setAddress] = useState(client.address ?? "");
   const [birthday, setBirthday] = useState(isoToBR(client.birthday));
   const [notes, setNotes] = useState(client.notes ?? "");
+  const [nextContactAt, setNextContactAt] = useState(
+    isoToBR(client.nextContactAt),
+  );
+  const [nextContactReason, setNextContactReason] = useState(
+    client.nextContactReason ?? "",
+  );
+  const [nextContactNotes, setNextContactNotes] = useState(
+    client.nextContactNotes ?? "",
+  );
   const submittingRef = useRef(false);
 
   const updateClient = useUpdateClient();
@@ -78,6 +93,9 @@ export function EditClientForm({
             address: address.trim() || undefined,
             birthday: brToIso(birthday),
             notes: notes.trim() || undefined,
+            nextContactAt: brToIso(nextContactAt),
+            nextContactReason: nextContactReason.trim() || null,
+            nextContactNotes: nextContactNotes.trim() || null,
           },
         });
         showToast(`${name} atualizado!`);
@@ -119,54 +137,107 @@ export function EditClientForm({
       visible={visible}
       onClose={onClose}
       footer={
-        <Button
-          title="Salvar alterações"
-          size="lg"
-          onPress={() => {
-            void handleSubmit();
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: isDesktop ? "flex-end" : undefined,
+            width: "100%",
           }}
-          loading={updateClient.isPending}
-          style={{ flex: 1 }}
-        />
+        >
+          <Button
+            title="Salvar alterações"
+            size="lg"
+            onPress={() => {
+              void handleSubmit();
+            }}
+            loading={updateClient.isPending}
+            style={isDesktop ? desktopAction(isDesktop, 220) : { flex: 1 }}
+          />
+        </View>
       }
     >
       <View style={{ flexShrink: 1, gap: spacing.md }}>
-        <Input
-          label="Nome do cliente"
-          placeholder="Ex: Maria Silva, João Pereira..."
-          value={name}
-          onChangeText={setName}
-          autoFocus
-        />
+        <View style={{ flexDirection: isDesktop ? "row" : "column", gap: spacing.md }}>
+          <View style={isDesktop ? { flex: 1 } : undefined}>
+            <Input
+              label="Nome do cliente"
+              placeholder="Ex: Maria Silva, João Pereira..."
+              value={name}
+              onChangeText={setName}
+              autoFocus
+            />
+          </View>
 
-        <Input
-          label="Telefone (opcional)"
-          placeholder="Ex: (11) 99999-9999"
-          value={phone}
-          onChangeText={(v) => setPhone(maskPhoneBR(v))}
-          keyboardType="phone-pad"
-        />
+          <View style={isDesktop ? { flex: 1 } : undefined}>
+            <Input
+              label="Telefone (opcional)"
+              placeholder="Ex: (11) 99999-9999"
+              value={phone}
+              onChangeText={(v) => setPhone(maskPhoneBR(v))}
+              keyboardType="phone-pad"
+            />
+          </View>
+        </View>
 
-        <Input
-          label="Endereço (opcional)"
-          placeholder="Ex: Rua das Flores, 123"
-          value={address}
-          onChangeText={setAddress}
-        />
+        <View style={{ flexDirection: isDesktop ? "row" : "column", gap: spacing.md }}>
+          <View style={isDesktop ? { flex: 1 } : undefined}>
+            <Input
+              label="Endereço (opcional)"
+              placeholder="Ex: Rua das Flores, 123"
+              value={address}
+              onChangeText={setAddress}
+            />
+          </View>
 
-        <Input
-          label="Data de nascimento (opcional)"
-          placeholder="DD/MM/AAAA"
-          value={birthday}
-          onChangeText={(v) => setBirthday(maskDateBR(v))}
-          keyboardType="number-pad"
-        />
+          <View style={desktopCompactField(isDesktop)}>
+            <Input
+              label="Data de nascimento (opcional)"
+              placeholder="DD/MM/AAAA"
+              value={birthday}
+              onChangeText={(v) => setBirthday(maskDateBR(v))}
+              keyboardType="number-pad"
+            />
+          </View>
+        </View>
 
         <Input
           label="Observações (opcional)"
           placeholder="Anotações sobre o cliente..."
           value={notes}
           onChangeText={(value) => setNotes(value.slice(0, 200))}
+          multiline
+          numberOfLines={2}
+          style={{ height: 78, textAlignVertical: "top", paddingTop: 12 }}
+        />
+
+        <View style={{ flexDirection: isDesktop ? "row" : "column", gap: spacing.md }}>
+          <View style={desktopCompactField(isDesktop)}>
+            <Input
+              label="Próximo contato (opcional)"
+              placeholder="DD/MM/AAAA"
+              value={nextContactAt}
+              onChangeText={(value) => setNextContactAt(maskDateBR(value))}
+              keyboardType="number-pad"
+            />
+          </View>
+
+          <View style={isDesktop ? { flex: 1 } : undefined}>
+            <Input
+              label="Motivo do próximo contato"
+              placeholder="Ex.: confirmar encomenda"
+              value={nextContactReason}
+              onChangeText={setNextContactReason}
+              maxLength={200}
+            />
+          </View>
+        </View>
+
+        <Input
+          label="Nota para o contato"
+          placeholder="Ex.: perguntar quantidade final"
+          value={nextContactNotes}
+          onChangeText={setNextContactNotes}
+          maxLength={500}
           multiline
           numberOfLines={2}
           style={{ height: 78, textAlignVertical: "top", paddingTop: 12 }}

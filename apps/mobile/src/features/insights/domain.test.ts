@@ -1,7 +1,13 @@
 import type { MonthlyRevenue } from "@lucro-caseiro/contracts";
 import { describe, expect, it } from "vitest";
 
-import { formatMoneyShort, maxRevenue, monthLabel, monthOverMonthDelta } from "./domain";
+import {
+  buildActionableInsights,
+  formatMoneyShort,
+  maxRevenue,
+  monthLabel,
+  monthOverMonthDelta,
+} from "./domain";
 
 function rev(revenue: number, month = "2026-01"): MonthlyRevenue {
   return { month, revenue, salesCount: 0 };
@@ -62,5 +68,54 @@ describe("maxRevenue", () => {
 
   it("nunca retorna abaixo de 1 mesmo com tudo zero", () => {
     expect(maxRevenue([rev(0), rev(0)])).toBe(1);
+  });
+});
+
+describe("buildActionableInsights", () => {
+  it("explica queda, estoque baixo e ganho abaixo do limite explícito", () => {
+    const actions = buildActionableInsights(
+      {
+        months: 2,
+        totalRevenue: 180,
+        totalSales: 2,
+        monthlyRevenue: [rev(100, "2026-06"), rev(80, "2026-07")],
+        topProducts: [{ productId: "p1", name: "Bolo", quantity: 2, revenue: 180 }],
+        topClients: [],
+      },
+      [
+        {
+          id: "p1",
+          salePrice: 100,
+          costPrice: 85,
+          saleUnit: "unit",
+          isComposite: false,
+          stockQuantity: 2,
+          stockAlertThreshold: 3,
+        },
+      ],
+    );
+
+    expect(actions.map((action) => action.id)).toEqual([
+      "revenue-drop",
+      "low-stock",
+      "low-margin",
+    ]);
+    expect(actions[2]?.title).toContain("20%");
+  });
+
+  it("usa campeão de vendas e melhor cliente quando não há alertas", () => {
+    const actions = buildActionableInsights(
+      {
+        months: 1,
+        totalRevenue: 200,
+        totalSales: 2,
+        monthlyRevenue: [rev(200, "2026-07")],
+        topProducts: [{ productId: "p1", name: "Bolo", quantity: 2, revenue: 200 }],
+        topClients: [{ clientId: "c1", name: "Maria", totalSpent: 200, salesCount: 2 }],
+      },
+      [],
+    );
+
+    expect(actions.map((action) => action.target)).toEqual(["sales", "clients"]);
   });
 });

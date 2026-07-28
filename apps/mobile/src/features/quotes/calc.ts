@@ -19,3 +19,50 @@ export function computeQuoteTotal(
     return sum + quoteItemSubtotal(item.quantity, item.unitPrice);
   }, 0);
 }
+
+export function computeQuotePricing(
+  items: ReadonlyArray<{
+    quantity: number;
+    unitPrice: number;
+    estimatedUnitCost?: number;
+  }>,
+  discountType: "fixed" | "percentage" | null,
+  discountValue: number,
+): {
+  subtotal: number;
+  discount: number;
+  total: number;
+  estimatedCost: number;
+  estimatedGain: number;
+  estimatedMargin: number;
+} {
+  const subtotal = computeQuoteTotal(items);
+  let requestedDiscount = 0;
+  if (discountType === "percentage") {
+    requestedDiscount =
+      subtotal * (Math.min(Math.max(discountValue, 0), 100) / 100);
+  }
+  if (discountType === "fixed") {
+    requestedDiscount = Math.max(discountValue, 0);
+  }
+  const discount = Math.min(requestedDiscount, subtotal);
+  const total = subtotal - discount;
+  const estimatedCost = items.reduce(
+    (sum, item) =>
+      sum +
+      (Number.isFinite(item.quantity) && Number.isFinite(item.estimatedUnitCost)
+        ? item.quantity * (item.estimatedUnitCost ?? 0)
+        : 0),
+    0,
+  );
+  const estimatedGain = total - estimatedCost;
+  const estimatedMargin = total > 0 ? (estimatedGain / total) * 100 : 0;
+  return {
+    subtotal,
+    discount,
+    total,
+    estimatedCost,
+    estimatedGain,
+    estimatedMargin,
+  };
+}

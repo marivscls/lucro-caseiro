@@ -70,7 +70,7 @@ export function planLimit(plan: PlanType, resource: LimitResource): number | nul
 }
 
 // ---------------------------------------------------------------------------
-// Features premium (gate por plano, além dos limites de contagem).
+// Features qualitativas (gate por plano, além dos limites de contagem).
 // ---------------------------------------------------------------------------
 
 export type PlanFeature =
@@ -89,14 +89,16 @@ export type PlanFeature =
   | "prioritySupport" // atendimento prioritário
   | "compositeProducts"; // produtos compostos / kits
 
-// Essencial ganha 1 diferencial qualitativo sobre o free: PDF básico do resumo
-// mensal (ADR-0005). Toda outra feature premium segue exclusiva do Profissional.
-const ESSENTIAL_FEATURES: readonly PlanFeature[] = ["exportBasic"];
+// Essencial libera o operacional diário, o catálogo completo/personalizado e o
+// PDF básico do resumo mensal (ADR-0005).
+const ESSENTIAL_FEATURES: readonly PlanFeature[] = [
+  "exportBasic",
+  "catalogPremium",
+  "catalogCustomization",
+];
 
 const PROFESSIONAL_FEATURES: readonly PlanFeature[] = [
   "extraPhotos",
-  "catalogPremium",
-  "catalogCustomization",
   "advancedReports",
   "advancedPricing",
   "export",

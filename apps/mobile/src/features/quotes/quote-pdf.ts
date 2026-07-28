@@ -189,6 +189,14 @@ export function buildQuoteHtml(quote: Quote, business: QuoteBusiness): string {
     <tbody>${rows}</tbody>
   </table>
 
+  ${
+    quote.discount > 0
+      ? `<div class="meta">
+    <div class="meta-row"><span>Subtotal</span><strong>${money(quote.subtotal)}</strong></div>
+    <div class="meta-row"><span>Desconto</span><strong>- ${money(quote.discount)}</strong></div>
+  </div>`
+      : ""
+  }
   <div class="total">
     <span class="label">Total</span>
     <span class="value">${money(quote.total)}</span>

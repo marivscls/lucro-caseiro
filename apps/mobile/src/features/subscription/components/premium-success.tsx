@@ -6,7 +6,8 @@ import React, { useEffect, useRef } from "react";
 import { Animated, View } from "react-native";
 
 import { useProfile } from "../hooks";
-import { TIER_BENEFITS } from "../plan-benefits";
+import { tierBenefitsFor } from "../plan-benefits";
+import { businessCopyFor } from "../business-copy";
 import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
 
 interface PremiumSuccessProps {
@@ -30,6 +31,7 @@ function inferPeriod(expiresAt: Date | null): BillingPeriod {
 export function PremiumSuccess({ visible, onClose }: PremiumSuccessProps) {
   const { theme } = useTheme();
   const { data: profile } = useProfile();
+  const experienceCopy = businessCopyFor(profile?.businessType);
   const scale = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -48,7 +50,7 @@ export function PremiumSuccess({ visible, onClose }: PremiumSuccessProps) {
     plan === "essential" || plan === "professional" ? plan : null;
   const expiresAt = profile?.planExpiresAt ? new Date(profile.planExpiresAt) : null;
   const period = inferPeriod(expiresAt);
-  const benefits = tier ? TIER_BENEFITS[tier] : [];
+  const benefits = tier ? tierBenefitsFor(tier, experienceCopy) : [];
 
   function Row({ label, value }: { readonly label: string; readonly value: string }) {
     return (

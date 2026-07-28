@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { isValidSlug, renderCatalogHtml, slugify } from "./catalog.domain";
+import {
+  isValidSlug,
+  renderCatalogErrorHtml,
+  renderCatalogHtml,
+  slugify,
+} from "./catalog.domain";
 
 describe("slugify", () => {
   it("converte nome do negocio em slug com acentos removidos", () => {
@@ -42,6 +47,7 @@ describe("renderCatalogHtml", () => {
   const product = {
     id: "11111111-1111-1111-1111-111111111111",
     name: "Bolo de Pote",
+    category: "Doces",
     description: "Chocolate com morango",
     photoUrl: null,
     extraPhotos: [] as string[],
@@ -184,9 +190,9 @@ describe("renderCatalogHtml", () => {
     expect(html).toContain("Nenhum produto disponível no momento.");
   });
 
-  it("usa a paleta padrao (marrom) sem personalizacao", () => {
+  it("usa a paleta rosa oficial no Lucro Caseiro sem personalizacao", () => {
     const html = renderCatalogHtml(baseCatalog);
-    expect(html).toContain("#8c5a45");
+    expect(html).toContain("#c2557b");
   });
 
   it("aplica preset de cor quando definido", () => {
@@ -242,5 +248,14 @@ describe("renderCatalogHtml", () => {
       logoUrl: "https://cdn.example.com/logo.jpg",
     });
     expect(html).toContain("https://cdn.example.com/logo.jpg");
+  });
+});
+
+describe("renderCatalogErrorHtml", () => {
+  it("offers an explicit retry without exposing technical details", () => {
+    const html = renderCatalogErrorHtml();
+    expect(html).toContain("Não foi possível abrir o catálogo");
+    expect(html).toContain("Tentar novamente");
+    expect(html).toContain("location.reload()");
   });
 });

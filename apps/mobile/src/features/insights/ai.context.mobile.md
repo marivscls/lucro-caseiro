@@ -94,3 +94,7 @@ const { data } = useInsights(6);
 - Janela default de 6 meses (pills 3/6/12); top 5 vem pronto do backend.
 - 2026-06-16: **gating Premium** — free vê só os 3 cards do mês atual (`useInsights(isPremium ? months : 1)`); seletor de janela some e gráfico + rankings viram `ReportsPremiumTeaser` (toque → `showPaywall("reports")`). Premium-check via `useProfile().plan`. Backend também força `months=1` no free (não confiar no front).
 - 2026-07-11: **refinamentos de leitura** — (a) eixo X do gráfico de 12 meses mostra abreviações alternadas em vez de pontinhos; (b) `formatMoneyShort` só abrevia "mil" a partir de R$ 10.000 (eixo Y consistente: "R$ 1.000", não "R$ 1,0 mil"); (c) no Premium, o card "FATURAMENTO" (redundante com o total do gráfico) vira "VS. MÊS ANTERIOR" com a variação % mês a mês (`monthOverMonthDelta`; fallback pro card de faturamento quando não há base de comparação — e o free mantém o card original).
+- 2026-07-24: relatórios Premium ganharam "Próximas ações", derivadas somente de dados
+  disponíveis: queda mensal, estoque no limite explícito, ganho abaixo de 20% do preço,
+  campeão de vendas e melhor cliente. Cada alerta explica a regra e abre a tela onde a
+  pessoa pode agir; o limite de 20% é apresentado como alerta, não como previsão.

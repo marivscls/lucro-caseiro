@@ -17,6 +17,29 @@ export interface QuotesPage {
   totalPages: number;
 }
 
+export function normalizeQuote(quote: Quote): Quote {
+  const total = Number.isFinite(quote.total) ? quote.total : 0;
+  const estimatedCost = Number.isFinite(quote.estimatedCost) ? quote.estimatedCost : 0;
+  const estimatedGain = Number.isFinite(quote.estimatedGain)
+    ? quote.estimatedGain
+    : total - estimatedCost;
+  let estimatedMargin = quote.estimatedMargin;
+  if (!Number.isFinite(estimatedMargin)) {
+    estimatedMargin = total > 0 ? (estimatedGain / total) * 100 : 0;
+  }
+
+  return {
+    ...quote,
+    subtotal: Number.isFinite(quote.subtotal) ? quote.subtotal : total,
+    discount: Number.isFinite(quote.discount) ? quote.discount : 0,
+    discountType: quote.discountType ?? null,
+    discountValue: Number.isFinite(quote.discountValue) ? quote.discountValue : 0,
+    estimatedCost,
+    estimatedGain,
+    estimatedMargin,
+  };
+}
+
 export async function fetchQuotes(
   token: string,
   opts?: { page?: number; status?: QuoteStatusType },
@@ -26,15 +49,18 @@ export async function fetchQuotes(
   if (opts?.status) params.set("status", opts.status);
   const query = params.toString();
   const suffix = query ? `?${query}` : "";
-  return apiClient<QuotesPage>(`${BASE}${suffix}`, { token });
+  const page = await apiClient<QuotesPage>(`${BASE}${suffix}`, { token });
+  return { ...page, items: page.items.map(normalizeQuote) };
 }
 
 export async function fetchQuote(token: string, id: string): Promise<Quote> {
-  return apiClient<Quote>(`${BASE}/${id}`, { token });
+  return normalizeQuote(await apiClient<Quote>(`${BASE}/${id}`, { token }));
 }
 
 export async function createQuote(token: string, data: CreateQuote): Promise<Quote> {
-  return apiClient<Quote>(BASE, { method: "POST", body: data, token });
+  return normalizeQuote(
+    await apiClient<Quote>(BASE, { method: "POST", body: data, token }),
+  );
 }
 
 export async function updateQuote(
@@ -42,7 +68,13 @@ export async function updateQuote(
   id: string,
   data: UpdateQuote,
 ): Promise<Quote> {
-  return apiClient<Quote>(`${BASE}/${id}`, { method: "PUT", body: data, token });
+  return normalizeQuote(
+    await apiClient<Quote>(`${BASE}/${id}`, {
+      method: "PUT",
+      body: data,
+      token,
+    }),
+  );
 }
 
 export async function updateQuoteStatus(
@@ -50,11 +82,13 @@ export async function updateQuoteStatus(
   id: string,
   status: QuoteStatusType,
 ): Promise<Quote> {
-  return apiClient<Quote>(`${BASE}/${id}/status`, {
-    method: "PATCH",
-    body: { status },
-    token,
-  });
+  return normalizeQuote(
+    await apiClient<Quote>(`${BASE}/${id}/status`, {
+      method: "PATCH",
+      body: { status },
+      token,
+    }),
+  );
 }
 
 export async function convertQuote(
@@ -62,11 +96,13 @@ export async function convertQuote(
   id: string,
   data: ConvertQuote,
 ): Promise<Quote> {
-  return apiClient<Quote>(`${BASE}/${id}/convert`, {
-    method: "POST",
-    body: data,
-    token,
-  });
+  return normalizeQuote(
+    await apiClient<Quote>(`${BASE}/${id}/convert`, {
+      method: "POST",
+      body: data,
+      token,
+    }),
+  );
 }
 
 export async function deleteQuote(token: string, id: string): Promise<void> {

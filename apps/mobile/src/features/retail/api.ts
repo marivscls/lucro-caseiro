@@ -13,6 +13,7 @@ import type {
 import { apiClient } from "../../shared/utils/api-client";
 
 const BASE = "/api/v1/retail";
+const PROMOTIONS_BASE = "/api/v1/promotions";
 
 export interface RetailCheckoutInput {
   sessionId: string;
@@ -131,11 +132,11 @@ export function finalizeInventory(token: string, id: string) {
 }
 
 export function fetchPromotions(token: string) {
-  return apiClient<RetailPromotion[]>(`${BASE}/promotions`, { token });
+  return apiClient<RetailPromotion[]>(PROMOTIONS_BASE, { token });
 }
 
 export function createPromotion(token: string, data: CreateRetailPromotion) {
-  return apiClient<RetailPromotion>(`${BASE}/promotions`, {
+  return apiClient<RetailPromotion>(PROMOTIONS_BASE, {
     method: "POST",
     token,
     body: data,

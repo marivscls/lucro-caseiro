@@ -19,6 +19,22 @@ export function cartTotal(
   );
 }
 
+export function salePricing(
+  subtotal: number,
+  discountType: "fixed" | "percentage" | null,
+  discountValue: number,
+): { subtotal: number; discount: number; total: number } {
+  let requested = 0;
+  if (discountType === "percentage") {
+    requested = subtotal * (Math.min(Math.max(discountValue, 0), 100) / 100);
+  }
+  if (discountType === "fixed") {
+    requested = Math.max(discountValue, 0);
+  }
+  const discount = Math.min(requested, subtotal);
+  return { subtotal, discount, total: subtotal - discount };
+}
+
 /** Formata um peso em kg com vírgula decimal, até 3 casas (ex.: "1,5 kg"). */
 export function formatWeight(kg: number): string {
   const str = Number.parseFloat(kg.toFixed(3)).toString().replace(".", ",");

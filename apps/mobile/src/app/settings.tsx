@@ -11,8 +11,6 @@ import {
   radii,
 } from "@lucro-caseiro/ui";
 import { hasActiveFeature, PLAN_LABELS } from "@lucro-caseiro/contracts";
-import { AppIcon } from "../shared/components/app-icon";
-import type { AppIconName } from "../shared/components/app-icon";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -27,42 +25,45 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useDeleteAccount } from "../features/account/hooks";
+import { ProlaboreGoalForm } from "../features/goals/components/prolabore-goal-form";
+import { formatCurrency } from "../features/goals/domain";
+import { useProlaboreStatus } from "../features/goals/hooks";
+import {
+  BUSINESS_PROFILE_OPTIONS,
+  businessCopyFor,
+} from "../features/subscription/business-copy";
+import { activePlan, useProfile, useUpdateProfile } from "../features/subscription/hooks";
+import { useSubscription } from "../features/subscription/use-subscription";
+import { getBrandDisplayName } from "../shared/brand-name";
+import { showAlert } from "../shared/components/alert-store";
+import { AppIcon, type AppIconName } from "../shared/components/app-icon";
+import { FieldLabel, TextFieldCard } from "../shared/components/form-field";
+import { ScreenHeader } from "../shared/components/screen-header";
+import { Skeleton, SkeletonCard } from "../shared/components/skeleton";
+import { StandardModal } from "../shared/components/standard-modal";
 import { useAuth } from "../shared/hooks/use-auth";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
 import {
   NOTIFICATION_TYPES,
   type NotificationType,
 } from "../shared/hooks/notification-types";
-import { useNotificationPrefs, isPrefEnabled } from "../shared/hooks/notification-prefs";
-import { ApiError } from "../shared/utils/api-client";
-import { uploadProfilePhoto } from "../shared/utils/upload-image";
-import { maskPhoneBR } from "../shared/utils/phone";
-import { useDeleteAccount } from "../features/account/hooks";
-import { ProlaboreGoalForm } from "../features/goals/components/prolabore-goal-form";
-import { formatCurrency } from "../features/goals/domain";
-import { useProlaboreStatus } from "../features/goals/hooks";
-import { activePlan, useProfile, useUpdateProfile } from "../features/subscription/hooks";
-import { useSubscription } from "../features/subscription/use-subscription";
-import { showAlert } from "../shared/components/alert-store";
-import { StandardModal } from "../shared/components/standard-modal";
-import { Skeleton, SkeletonCard } from "../shared/components/skeleton";
+import { isPrefEnabled, useNotificationPrefs } from "../shared/hooks/notification-prefs";
+import { usePaywall } from "../shared/hooks/use-paywall";
+import { desktopAction, desktopStretch, desktopWidths, pageGutter } from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
-import { desktopContained } from "../shared/layout/desktop-density";
-import { FieldLabel, TextFieldCard } from "../shared/components/form-field";
-import { ScreenHeader } from "../shared/components/screen-header";
-import { getBrandDisplayName } from "../shared/brand-name";
-import { alertValidation, alertError } from "../shared/utils/alerts";
+import { ApiError } from "../shared/utils/api-client";
+import { alertError, alertValidation } from "../shared/utils/alerts";
+import { maskPhoneBR } from "../shared/utils/phone";
+import { uploadProfilePhoto } from "../shared/utils/upload-image";
 
 const PRIVACY_POLICY_URL =
   "https://www.orionseven.com.br/lucro-caseiro/politica-de-privacidade";
 
-const BUSINESS_TYPES = [
-  { value: "food", label: "Alimentação" },
-  { value: "beauty", label: "Beleza" },
-  { value: "crafts", label: "Artesanato" },
-  { value: "services", label: "Serviços" },
-  { value: "other", label: "Outro" },
-] as const;
+const BUSINESS_TYPES = BUSINESS_PROFILE_OPTIONS.map((option) => ({
+  value: option.value,
+  label: option.shortLabel,
+}));
 
 const NOTIFICATIONS: {
   type: NotificationType;
@@ -70,7 +71,6 @@ const NOTIFICATIONS: {
   icon: AppIconName;
   premium?: boolean;
 }[] = [
-  // Free
   {
     type: NOTIFICATION_TYPES.PENDING_SALES,
     label: "Vendas pendentes",
@@ -86,7 +86,6 @@ const NOTIFICATIONS: {
     label: "Lembretes de entrega",
     icon: "cube-outline",
   },
-  // Profissional
   {
     type: NOTIFICATION_TYPES.CLIENT_BIRTHDAY,
     label: "Aniversários de clientes",
@@ -122,6 +121,109 @@ function businessTypeValue(value: string): string | undefined {
   );
 }
 
+type IconSurfaceProps = Readonly<{
+  name: AppIconName;
+  color: string;
+  backgroundColor: string;
+  size?: number;
+  iconSize?: number;
+}>;
+
+function IconSurface({
+  name,
+  color,
+  backgroundColor,
+  size = 40,
+  iconSize = 22,
+}: IconSurfaceProps) {
+  return (
+    <View
+      style={{
+        width: size,
+        height: size,
+        borderRadius: radii.md,
+        backgroundColor,
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+      }}
+    >
+      <AppIcon name={name} size={iconSize} color={color} strokeWidth={1.8} />
+    </View>
+  );
+}
+
+type SettingsRowProps = Readonly<{
+  icon: AppIconName;
+  iconColor: string;
+  iconBackground: string;
+  title: string;
+  subtitle?: string;
+  titleColor?: string;
+  onPress: () => void;
+  trailing?: React.ReactNode;
+  showChevron?: boolean;
+  disabled?: boolean;
+}>;
+
+function SettingsRow({
+  icon,
+  iconColor,
+  iconBackground,
+  title,
+  subtitle,
+  titleColor,
+  onPress,
+  trailing,
+  showChevron = false,
+  disabled = false,
+}: SettingsRowProps) {
+  const { theme } = useTheme();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      style={{
+        minHeight: 56,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: spacing.md,
+        opacity: disabled ? 0.6 : 1,
+      }}
+    >
+      <IconSurface
+        name={icon}
+        color={iconColor}
+        backgroundColor={iconBackground}
+        size={34}
+        iconSize={18}
+      />
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Typography variant="bodyBold" color={titleColor ?? theme.colors.text}>
+          {title}
+        </Typography>
+        {subtitle ? (
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            {subtitle}
+          </Typography>
+        ) : null}
+      </View>
+      {trailing}
+      {showChevron ? (
+        <AppIcon
+          name="chevron-forward"
+          size={20}
+          color={theme.colors.textSecondary}
+          strokeWidth={2}
+        />
+      ) : null}
+    </Pressable>
+  );
+}
+
 export default function SettingsScreen() {
   const router = useRouter();
   const { theme, mode, toggleTheme } = useTheme();
@@ -130,6 +232,7 @@ export default function SettingsScreen() {
   const hasScheduling = useFeature("agendamento");
   const isDesktop = useDesktopLayout();
   const { signOut } = useAuth();
+  const showPaywall = usePaywall((state) => state.show);
   const { data: profile, isLoading } = useProfile();
   const updateProfile = useUpdateProfile();
   const { restore, loading: subscriptionLoading } = useSubscription();
@@ -148,12 +251,13 @@ export default function SettingsScreen() {
     clear: clearPickedAvatar,
   } = useImagePicker();
   const [savingAvatar, setSavingAvatar] = useState(false);
-  const notifPrefs = useNotificationPrefs((s) => s.prefs);
-  const setNotifPref = useNotificationPrefs((s) => s.setPref);
+  const notifPrefs = useNotificationPrefs((state) => state.prefs);
+  const setNotifPref = useNotificationPrefs((state) => state.setPref);
 
   const userName = profile?.name ?? "...";
   const businessName = profile?.businessName ?? "Meu negócio";
   const businessType = profile?.businessType ?? "";
+  const experienceCopy = businessCopyFor(businessType);
   const avatarUrl = profile?.avatarUrl ?? null;
   const currentPlan = activePlan(profile);
   const hasPaidPlan = currentPlan !== "free";
@@ -179,12 +283,11 @@ export default function SettingsScreen() {
       return;
     }
 
-    // Sobe a foto nova (se escolhida); se falhar, salva o resto sem trocar a foto.
-    let avatarUrl: string | undefined;
+    let newAvatarUrl: string | undefined;
     if (pickedAvatar) {
       try {
         setSavingAvatar(true);
-        avatarUrl = await uploadProfilePhoto(pickedAvatar);
+        newAvatarUrl = await uploadProfilePhoto(pickedAvatar);
       } catch {
         showAlert({
           title: "Foto não enviada",
@@ -202,7 +305,7 @@ export default function SettingsScreen() {
         businessName: editBusinessName.trim() || undefined,
         businessType: businessTypeValue(editBusinessType),
         phone: editPhone.trim() || undefined,
-        ...(avatarUrl ? { avatarUrl } : {}),
+        ...(newAvatarUrl ? { avatarUrl: newAvatarUrl } : {}),
       });
       showAlert({ title: "Perfil atualizado!" });
       setShowEditProfile(false);
@@ -221,9 +324,7 @@ export default function SettingsScreen() {
           text: "Sair",
           style: "destructive",
           onPress: () => {
-            void signOut().then(() => {
-              router.replace("/(auth)/login");
-            });
+            void signOut().then(() => router.replace("/(auth)/login"));
           },
         },
       ],
@@ -233,27 +334,22 @@ export default function SettingsScreen() {
   async function runDeleteAccount() {
     try {
       await deleteAccount.mutateAsync();
-      // Sucesso: o hook ja encerrou a sessao e limpou o cache.
       router.replace("/(auth)/login");
-    } catch (e: unknown) {
-      // 401 = o usuario nao existe mais no Auth (conta ja removida numa tentativa
-      // anterior) ou a sessao expirou. Em ambos os casos o destino e o login —
-      // encerra a sessao local em vez de mostrar um erro sem saida.
-      if (e instanceof ApiError && e.status === 401) {
+    } catch (error: unknown) {
+      if (error instanceof ApiError && error.status === 401) {
         await signOut();
         router.replace("/(auth)/login");
         return;
       }
-      const message =
-        e instanceof Error
-          ? e.message
-          : "Não foi possível excluir a conta. Tente novamente.";
-      alertError(message);
+      alertError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível excluir a conta. Tente novamente.",
+      );
     }
   }
 
   function handleDeleteAccount() {
-    // Confirmacao em dois toques: aviso claro de que e definitivo.
     showAlert({
       title: "Excluir conta",
       message:
@@ -273,9 +369,7 @@ export default function SettingsScreen() {
                 {
                   text: "Sim, excluir",
                   style: "destructive",
-                  onPress: () => {
-                    void runDeleteAccount();
-                  },
+                  onPress: () => void runDeleteAccount(),
                 },
               ],
             });
@@ -288,10 +382,107 @@ export default function SettingsScreen() {
   async function openPrivacyPolicy() {
     const canOpen = await Linking.canOpenURL(PRIVACY_POLICY_URL);
     if (!canOpen) {
-      alertError("Não foi possível abrir a politica de privacidade.");
+      alertError("Não foi possível abrir a política de privacidade.");
       return;
     }
     await Linking.openURL(PRIVACY_POLICY_URL);
+  }
+
+  function renderPlanActions() {
+    const actionRowStyle = isDesktop
+      ? { flexDirection: "row" as const, flexWrap: "wrap" as const, gap: spacing.md, alignItems: "center" as const }
+      : { gap: spacing.sm };
+
+    if (currentPlan === "free") {
+      return (
+        <View style={actionRowStyle}>
+          <Button
+            title="Conhecer os planos"
+            variant="premium"
+            size="md"
+            icon={
+              <AppIcon
+                name="crown-outline"
+                size={19}
+                color={theme.colors.textOnPrimary}
+              />
+            }
+            onPress={() => router.push("/plans")}
+            style={desktopAction(isDesktop, 240)}
+          />
+          <Pressable
+            onPress={() => void restore()}
+            disabled={subscriptionLoading}
+            accessibilityRole="button"
+            accessibilityLabel="Restaurar compra anterior"
+            style={{
+              minHeight: 36,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: isDesktop ? "flex-start" : "center",
+              gap: spacing.sm,
+            }}
+          >
+            <AppIcon
+              name="sync-circle-outline"
+              size={17}
+              color={theme.colors.primaryStrong}
+            />
+            <Typography variant="caption" color={theme.colors.primaryStrong}>
+              {subscriptionLoading ? "Restaurando..." : "Restaurar compra anterior"}
+            </Typography>
+          </Pressable>
+        </View>
+      );
+    }
+
+    if (currentPlan === "essential") {
+      return (
+        <View style={actionRowStyle}>
+          <Button
+            title="Fazer upgrade para Profissional"
+            variant="premium"
+            size="md"
+            icon={
+              <AppIcon
+                name="crown-outline"
+                size={19}
+                color={theme.colors.textOnPrimary}
+              />
+            }
+            onPress={() => showPaywall("plans", "professional")}
+            style={desktopAction(isDesktop, 240)}
+          />
+          <Button
+            title="Gerenciar assinatura"
+            variant="outline"
+            size="md"
+            icon={
+              <AppIcon
+                name="settings-outline"
+                size={19}
+                color={theme.colors.primaryStrong}
+              />
+            }
+            onPress={() => router.push("/plans")}
+            style={desktopAction(isDesktop, 220)}
+          />
+        </View>
+      );
+    }
+
+    return (
+      <Button
+        title="Gerenciar assinatura"
+        variant="outline"
+        size="md"
+        icon={
+          <AppIcon name="settings-outline" size={19} color={theme.colors.primaryStrong} />
+        }
+        onPress={() => router.push("/plans")}
+        style={desktopAction(isDesktop, 220)}
+      />
+    );
   }
 
   if (isLoading) {
@@ -300,12 +491,19 @@ export default function SettingsScreen() {
         style={{
           flex: 1,
           backgroundColor: theme.colors.background,
-          padding: spacing.xl,
+          ...pageGutter(isDesktop),
+          paddingVertical: spacing.xl,
           gap: spacing.lg,
         }}
         edges={["bottom"]}
       >
-        <Skeleton width="40%" height={22} />
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.lg }}>
+          <Skeleton width={50} height={50} borderRadius={radii.full} />
+          <View style={{ flex: 1, gap: spacing.sm }}>
+            <Skeleton width="50%" height={16} />
+            <Skeleton width="70%" height={12} />
+          </View>
+        </View>
         <SkeletonCard lines={3} />
         <SkeletonCard lines={3} />
         <SkeletonCard lines={2} />
@@ -319,49 +517,67 @@ export default function SettingsScreen() {
       edges={["top", "bottom"]}
     >
       <Stack.Screen options={{ headerShown: false }} />
-      {!isDesktop && <ScreenHeader title="Configurações" />}
+      <ScreenHeader
+        title="Configurações"
+        fallbackRoute="/tabs/more"
+        hideBack={isDesktop}
+        backButtonStyle={{
+          borderRadius: radii.full,
+          backgroundColor: theme.colors.surface,
+        }}
+        style={{
+          paddingHorizontal: isDesktop ? 0 : 18,
+          paddingTop: spacing.xs,
+          paddingBottom: spacing.md,
+        }}
+      />
+
       <ScrollView
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={[
-          { padding: 20, gap: 20, paddingBottom: 40 },
-          desktopContained(isDesktop),
+          {
+            ...pageGutter(isDesktop, 18),
+            gap: spacing.md,
+            paddingBottom: spacing.xl,
+          },
+          desktopStretch(isDesktop, desktopWidths.data),
         ]}
       >
-        {/* Profile Card */}
-        <Card>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
+        <Card variant="elevated" shadow="sm" padding="lg">
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.lg }}>
             <View
               style={{
-                width: 56,
-                height: 56,
+                width: 50,
+                height: 50,
                 borderRadius: radii.full,
-                backgroundColor: theme.colors.surfaceElevated,
+                backgroundColor: theme.colors.primaryBg,
                 alignItems: "center",
                 justifyContent: "center",
                 overflow: "hidden",
               }}
             >
               {avatarUrl ? (
-                <Image source={{ uri: avatarUrl }} style={{ width: 56, height: 56 }} />
+                <Image source={{ uri: avatarUrl }} style={{ width: 50, height: 50 }} />
               ) : (
-                <Typography variant="h2" color={theme.colors.primary}>
-                  {userName.charAt(0)}
+                <Typography variant="h2" color={theme.colors.primaryStrong}>
+                  {userName.charAt(0).toUpperCase()}
                 </Typography>
               )}
             </View>
 
-            <View style={{ flex: 1, gap: 4 }}>
-              <Typography variant="h3" numberOfLines={2}>
+            <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+              <Typography variant="h3" numberOfLines={1}>
                 {userName}
               </Typography>
               <View
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
-                  gap: spacing.sm,
+                  gap: spacing.xs,
                   flexWrap: "wrap",
                 }}
               >
-                <Typography variant="caption">{businessName}</Typography>
+                <Badge label={businessName} variant="neutral" />
                 {businessType ? (
                   <Badge label={businessTypeLabel(businessType)} variant="primary" />
                 ) : null}
@@ -374,426 +590,383 @@ export default function SettingsScreen() {
               accessibilityLabel="Editar perfil"
               style={{
                 minHeight: 44,
-                paddingHorizontal: 16,
-                justifyContent: "center",
+                paddingHorizontal: spacing.md,
                 borderRadius: radii.md,
+                borderWidth: 1,
+                borderColor: theme.colors.border,
                 backgroundColor: theme.colors.surfaceElevated,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: spacing.sm,
               }}
             >
-              <Typography variant="bodyBold" color={theme.colors.text}>
-                Editar
+              <AppIcon
+                name="pencil-outline"
+                size={17}
+                color={theme.colors.primaryStrong}
+              />
+              <Typography variant="body" color={theme.colors.text}>
+                Editar perfil
               </Typography>
             </Pressable>
           </View>
         </Card>
 
-        {/* Plan Card */}
-        <Card>
+        <Card variant="elevated" shadow="sm" padding="lg">
           <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
+            style={{ flexDirection: "row", alignItems: "flex-start", gap: spacing.lg }}
           >
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-              <View
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: radii.full,
-                  backgroundColor: theme.colors.premiumBg,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <AppIcon name="diamond-outline" size={20} color={theme.colors.premium} />
-              </View>
-              <View>
-                <Typography variant="h3">Plano {brandName}</Typography>
-                <Typography variant="caption">
-                  {hasPaidPlan ? `${PLAN_LABELS[currentPlan]} ativo` : "Plano gratuito"}
-                </Typography>
-              </View>
-            </View>
-          </View>
-
-          {!hasPaidPlan && (
-            <View style={{ gap: 8, marginTop: 16 }}>
-              <Button
-                title="Conhecer os planos"
-                variant="premium"
-                size="md"
-                onPress={() => router.push("/plans")}
-              />
-              <Pressable
-                onPress={() => void restore()}
-                disabled={subscriptionLoading}
-                style={{ alignItems: "center", paddingVertical: 4 }}
-              >
-                <Typography variant="caption" color={theme.colors.primary}>
-                  {subscriptionLoading ? "Restaurando..." : "Restaurar compra anterior"}
-                </Typography>
-              </Pressable>
-            </View>
-          )}
-          {hasPaidPlan && (
-            <View style={{ marginTop: 16 }}>
-              <Button
-                title="Gerenciar assinatura"
-                variant="outline"
-                size="md"
-                onPress={() => router.push("/plans")}
-              />
-            </View>
-          )}
-        </Card>
-
-        {/* Meta de pro-labore Card */}
-        <Card>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}
-            >
-              <View
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: radii.full,
-                  backgroundColor: theme.colors.successBg,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <AppIcon name="trophy-outline" size={20} color={theme.colors.success} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Typography variant="h3">Meta de pro-labore</Typography>
-                <Typography variant="caption">
-                  {prolabore?.config
-                    ? `${formatCurrency(prolabore.config.monthlyProlaboreGoal)} por mês`
-                    : "Não definida"}
-                </Typography>
-              </View>
-            </View>
-
-            <Pressable
-              onPress={() => setShowGoal(true)}
-              accessibilityRole="button"
-              accessibilityLabel={
-                prolabore?.config
-                  ? "Editar meta de pro-labore"
-                  : "Definir meta de pro-labore"
-              }
-              style={{
-                minHeight: 44,
-                paddingHorizontal: 16,
-                justifyContent: "center",
-                borderRadius: radii.md,
-                backgroundColor: theme.colors.surfaceElevated,
-              }}
-            >
-              <Typography variant="bodyBold" color={theme.colors.text}>
-                {prolabore?.config ? "Editar" : "Definir"}
+            <IconSurface
+              name="diamond-outline"
+              size={42}
+              iconSize={24}
+              color={theme.colors.premium}
+              backgroundColor={theme.colors.premiumBg}
+            />
+            <View style={{ flex: 1, gap: 2 }}>
+              <Typography variant="h3">Plano {brandName}</Typography>
+              <Typography variant="caption" color={theme.colors.primaryStrong}>
+                {hasPaidPlan ? `Plano ${PLAN_LABELS[currentPlan]}` : "Plano Gratuito"}
               </Typography>
-            </Pressable>
+              <Typography
+                variant="caption"
+                color={theme.colors.textSecondary}
+                style={{ marginTop: spacing.sm, maxWidth: 285 }}
+              >
+                {hasPaidPlan
+                  ? "Continue aproveitando os recursos do seu plano."
+                  : "Tenha acesso a recursos exclusivos e leve seu negócio para o próximo nível."}
+              </Typography>
+              <View
+                style={{
+                  height: 1,
+                  backgroundColor: theme.colors.border,
+                  marginTop: spacing.md,
+                  marginBottom: spacing.md,
+                }}
+              />
+              {renderPlanActions()}
+            </View>
           </View>
         </Card>
 
-        {/* Preferences Card */}
-        <Card style={{ gap: 16 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <Card
+          variant="elevated"
+          shadow="sm"
+          padding="lg"
+          onPress={() => setShowGoal(true)}
+          style={{ paddingVertical: spacing.md }}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+            <IconSurface
+              name="trophy-outline"
+              color={theme.colors.success}
+              backgroundColor={theme.colors.successBg}
+            />
+            <View style={{ flex: 1 }}>
+              <Typography variant="bodyBold">Meta de pró-labore</Typography>
+              <Typography variant="caption">
+                {prolabore?.config
+                  ? `${formatCurrency(prolabore.config.monthlyProlaboreGoal)} por mês`
+                  : "Não definida"}
+              </Typography>
+            </View>
             <AppIcon
-              name="settings-outline"
-              size={18}
+              name="chevron-forward"
+              size={20}
               color={theme.colors.textSecondary}
             />
-            <Typography variant="bodyBold">Preferências</Typography>
           </View>
+        </Card>
 
-          {/* Theme Toggle */}
-          <View>
-            <Typography variant="caption" style={{ marginBottom: 8 }}>
-              Tema
-            </Typography>
+        <Card variant="elevated" shadow="sm" padding="lg">
+          <Typography variant="h3" style={{ marginBottom: spacing.md }}>
+            Preferências
+          </Typography>
+          <View
+            style={{
+              borderWidth: 1,
+              borderColor: theme.colors.border,
+              borderRadius: radii.md,
+              overflow: "hidden",
+              paddingHorizontal: spacing.xs,
+            }}
+          >
             <View
               style={{
+                minHeight: 58,
                 flexDirection: "row",
-                backgroundColor: theme.colors.surfaceElevated,
-                borderRadius: 12,
-                padding: 4,
+                alignItems: "center",
+                gap: spacing.md,
+                paddingHorizontal: spacing.xs,
               }}
             >
-              {(["light", "dark"] as const).map((opt) => {
-                const labels = { light: "Claro", dark: "Escuro" };
-                return (
-                  <Pressable
-                    key={opt}
-                    onPress={() => {
-                      if (opt !== mode) toggleTheme();
-                    }}
-                    style={{
-                      flex: 1,
-                      paddingVertical: 8,
-                      borderRadius: radii.md,
-                      alignItems: "center",
-                      backgroundColor:
-                        opt === mode ? theme.colors.primaryInteractive : "transparent",
-                    }}
-                  >
-                    <Typography
-                      variant="caption"
-                      color={
-                        opt === mode
-                          ? theme.colors.textOnPrimary
-                          : theme.colors.textSecondary
-                      }
-                    >
-                      {labels[opt]}
-                    </Typography>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
-
-          {/* Notifications */}
-          {Platform.OS === "web" ? (
-            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-              <AppIcon
-                name="notifications-off-outline"
-                size={20}
-                color={theme.colors.textSecondary}
+              <IconSurface
+                name="sunny-outline"
+                color={theme.colors.alert}
+                backgroundColor={theme.colors.alertBg}
+                size={34}
+                iconSize={19}
               />
-              <View style={{ flex: 1, gap: 2 }}>
-                <Typography variant="body" color={theme.colors.text}>
-                  Notificações no navegador
-                </Typography>
-                <Typography variant="caption" color={theme.colors.textSecondary}>
-                  Os lembretes com o aplicativo fechado estarão disponíveis quando o web
-                  push for ativado.
-                </Typography>
+              <Typography variant="bodyBold" style={{ flex: 1 }}>
+                Tema
+              </Typography>
+              <View
+                style={{
+                  width: 116,
+                  height: 38,
+                  padding: 2,
+                  flexDirection: "row",
+                  borderRadius: radii.sm,
+                  backgroundColor: theme.colors.surface,
+                }}
+              >
+                {(["light", "dark"] as const).map((option) => {
+                  const selected = option === mode;
+                  return (
+                    <Pressable
+                      key={option}
+                      onPress={() => {
+                        if (!selected) toggleTheme();
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        option === "light" ? "Tema claro" : "Tema escuro"
+                      }
+                      style={{
+                        flex: 1,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        borderRadius: radii.sm,
+                        borderWidth: selected ? 1 : 0,
+                        borderColor: theme.colors.border,
+                        backgroundColor: selected
+                          ? theme.colors.primaryBg
+                          : "transparent",
+                      }}
+                    >
+                      <Typography
+                        variant="caption"
+                        color={
+                          selected
+                            ? theme.colors.primaryStrong
+                            : theme.colors.textSecondary
+                        }
+                      >
+                        {option === "light" ? "Claro" : "Escuro"}
+                      </Typography>
+                    </Pressable>
+                  );
+                })}
               </View>
             </View>
-          ) : (
-            NOTIFICATIONS.filter((item) => {
-              if (item.type === NOTIFICATION_TYPES.LOW_STOCK) return hasStock;
-              if (item.type === NOTIFICATION_TYPES.DELIVERY) return hasScheduling;
-              return true;
-            }).map((item) => {
-              const locked = !!item.premium && !canUsePremiumNotifications;
-              return (
-                <View
-                  key={item.type}
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: spacing.md,
+
+            {Platform.OS === "web" ? (
+              <View
+                style={{
+                  minHeight: 64,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: spacing.md,
+                  paddingHorizontal: spacing.xs,
+                  borderTopWidth: 1,
+                  borderTopColor: theme.colors.border,
+                }}
+              >
+                <IconSurface
+                  name="notifications-outline"
+                  color={theme.colors.alert}
+                  backgroundColor={theme.colors.alertBg}
+                  size={34}
+                  iconSize={19}
+                />
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Typography variant="bodyBold">Notificações no navegador</Typography>
+                  <Typography variant="caption">
+                    Os lembretes com o aplicativo fechado estarão disponíveis quando o
+                    push for ativado.
+                  </Typography>
+                </View>
+                <Switch
+                  accessibilityLabel="Notificações no navegador"
+                  trackColor={{
+                    false: theme.colors.surface,
+                    true: theme.colors.primaryInteractive,
                   }}
-                >
+                  thumbColor={theme.colors.textOnPrimary}
+                  value
+                />
+              </View>
+            ) : (
+              NOTIFICATIONS.filter((item) => {
+                if (item.type === NOTIFICATION_TYPES.LOW_STOCK) return hasStock;
+                if (item.type === NOTIFICATION_TYPES.DELIVERY) return hasScheduling;
+                return true;
+              }).map((item) => {
+                const locked = !!item.premium && !canUsePremiumNotifications;
+                return (
                   <View
+                    key={item.type}
                     style={{
+                      minHeight: 58,
                       flexDirection: "row",
                       alignItems: "center",
                       gap: spacing.md,
-                      flex: 1,
+                      paddingHorizontal: spacing.xs,
+                      borderTopWidth: 1,
+                      borderTopColor: theme.colors.border,
                     }}
                   >
-                    <AppIcon
+                    <IconSurface
                       name={item.icon}
-                      size={20}
-                      color={theme.colors.textSecondary}
+                      color={theme.colors.alert}
+                      backgroundColor={theme.colors.alertBg}
+                      size={34}
+                      iconSize={18}
                     />
-                    <View style={{ flex: 1, gap: 2 }}>
-                      <Typography variant="body" color={theme.colors.text}>
-                        {item.label}
-                      </Typography>
+                    <View style={{ flex: 1 }}>
+                      <Typography variant="bodyBold">{item.label}</Typography>
                       {item.premium ? (
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: 4,
-                            alignSelf: "flex-start",
-                            paddingHorizontal: 8,
-                            paddingVertical: 2,
-                            borderRadius: radii.full,
-                            backgroundColor: `${theme.colors.premium}26`,
-                          }}
-                        >
-                          <AppIcon
-                            name="diamond"
-                            size={11}
-                            color={theme.colors.premium}
-                          />
-                          <Typography variant="label" color={theme.colors.premium}>
-                            PROFISSIONAL
-                          </Typography>
-                        </View>
+                        <Typography variant="caption" color={theme.colors.premium}>
+                          Profissional
+                        </Typography>
                       ) : null}
                     </View>
-                  </View>
-                  {locked ? (
-                    <Pressable
-                      onPress={() => router.push("/plans")}
-                      accessibilityRole="button"
-                      accessibilityLabel={`${item.label}, recurso Profissional`}
-                      hitSlop={8}
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: spacing.xs,
-                        paddingHorizontal: spacing.sm,
-                        paddingVertical: 6,
-                      }}
-                    >
-                      <AppIcon
-                        name="lock-closed"
-                        size={18}
-                        color={theme.colors.premium}
+                    {locked ? (
+                      <Pressable
+                        onPress={() => showPaywall("notifications")}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${item.label}, recurso Profissional`}
+                        style={{
+                          width: 44,
+                          height: 44,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <AppIcon
+                          name="lock-closed"
+                          size={18}
+                          color={theme.colors.premium}
+                        />
+                      </Pressable>
+                    ) : (
+                      <Switch
+                        accessibilityLabel={item.label}
+                        trackColor={{
+                          false: theme.colors.surface,
+                          true: theme.colors.primaryInteractive,
+                        }}
+                        thumbColor={theme.colors.textOnPrimary}
+                        value={isPrefEnabled(notifPrefs, item.type)}
+                        onValueChange={(value) => setNotifPref(item.type, value)}
                       />
-                    </Pressable>
-                  ) : (
-                    <Switch
-                      accessibilityLabel={item.label}
-                      trackColor={{
-                        false: theme.colors.surface,
-                        true: theme.colors.primary,
-                      }}
-                      thumbColor={theme.colors.textOnPrimary}
-                      value={isPrefEnabled(notifPrefs, item.type)}
-                      onValueChange={(v) => setNotifPref(item.type, v)}
-                    />
-                  )}
-                </View>
-              );
-            })
-          )}
-        </Card>
-
-        {/* Suporte prioritário (Profissional) */}
-        {hasPrioritySupport && (
-          <Card>
-            <Pressable
-              onPress={() => router.push("/support")}
-              accessibilityRole="button"
-              accessibilityLabel="Suporte prioritário"
-              style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
-            >
-              <View
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: radii.full,
-                  backgroundColor: `${theme.colors.premium}26`,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <AppIcon
-                  name="chatbubble-ellipses-outline"
-                  size={20}
-                  color={theme.colors.premium}
-                />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Typography variant="h3">Suporte prioritário</Typography>
-                <Typography variant="caption">
-                  Fale direto com a gente e tenha prioridade
-                </Typography>
-              </View>
-              <AppIcon
-                name="chevron-forward"
-                size={20}
-                color={theme.colors.textSecondary}
-              />
-            </Pressable>
-          </Card>
-        )}
-
-        {/* Legal Card */}
-        <Card style={{ gap: 16 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <AppIcon
-              name="shield-checkmark-outline"
-              size={18}
-              color={theme.colors.textSecondary}
-            />
-            <Typography variant="bodyBold">Privacidade</Typography>
+                    )}
+                  </View>
+                );
+              })
+            )}
           </View>
-
-          <Pressable
-            onPress={() => {
-              void openPrivacyPolicy();
-            }}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              paddingVertical: 4,
-            }}
-          >
-            <Typography variant="body">Politica de privacidade</Typography>
-            <AppIcon name="open-outline" size={18} color={theme.colors.textSecondary} />
-          </Pressable>
         </Card>
 
-        {/* Logout */}
-        <Pressable
-          onPress={handleLogout}
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            paddingVertical: 16,
-            paddingHorizontal: 4,
-          }}
-        >
-          <Typography variant="body" color={theme.colors.alert}>
-            Sair da conta
-          </Typography>
-          <AppIcon name="log-out-outline" size={20} color={theme.colors.alert} />
-        </Pressable>
+        {hasPrioritySupport ? (
+          <Card variant="elevated" shadow="sm" padding="lg">
+            <SettingsRow
+              icon="chatbubble-ellipses-outline"
+              iconColor={theme.colors.premium}
+              iconBackground={theme.colors.premiumBg}
+              title="Suporte prioritário"
+              subtitle="Fale direto com a gente e tenha prioridade"
+              onPress={() => router.push("/support")}
+              showChevron
+            />
+          </Card>
+        ) : null}
 
-        {/* Delete account (zona de perigo) */}
-        <Pressable
-          onPress={handleDeleteAccount}
-          disabled={deleteAccount.isPending}
-          accessibilityRole="button"
-          accessibilityLabel="Excluir conta definitivamente"
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            paddingVertical: 16,
-            paddingHorizontal: 4,
-            opacity: deleteAccount.isPending ? 0.6 : 1,
-          }}
+        <View
+          style={
+            isDesktop
+              ? { flexDirection: "row", gap: spacing.md, alignItems: "stretch" }
+              : undefined
+          }
         >
-          <Typography variant="body" color={theme.colors.alert}>
-            {deleteAccount.isPending ? "Excluindo conta..." : "Excluir conta"}
-          </Typography>
-          {deleteAccount.isPending ? (
-            <ActivityIndicator size="small" color={theme.colors.alert} />
-          ) : (
-            <AppIcon name="trash-outline" size={20} color={theme.colors.alert} />
-          )}
-        </Pressable>
+          <Card
+            variant="elevated"
+            shadow="sm"
+            padding="lg"
+            style={isDesktop ? { flex: 1 } : undefined}
+          >
+            <Typography variant="h3" style={{ marginBottom: spacing.xs }}>
+              Privacidade
+            </Typography>
+            <SettingsRow
+              icon="shield-checkmark-outline"
+              iconColor={theme.colors.textSecondary}
+              iconBackground={theme.colors.surface}
+              title="Política de privacidade"
+              onPress={() => void openPrivacyPolicy()}
+              showChevron
+            />
+            <SettingsRow
+              icon="document-text-outline"
+              iconColor={theme.colors.textSecondary}
+              iconBackground={theme.colors.surface}
+              title="Termos de uso"
+              onPress={() =>
+                showAlert({
+                  title: "Termos de uso",
+                  message: "Consulte os termos de uso no site oficial do Lucro Caseiro.",
+                })
+              }
+              showChevron
+            />
+          </Card>
 
-        {/* Version */}
-        <Typography variant="caption" style={{ textAlign: "center", marginTop: 4 }}>
+          <Card
+            variant="elevated"
+            shadow="sm"
+            padding="lg"
+            style={isDesktop ? { flex: 1 } : undefined}
+          >
+            <Typography variant="h3" style={{ marginBottom: spacing.xs }}>
+              Conta
+            </Typography>
+            <SettingsRow
+              icon="log-out-outline"
+              iconColor={theme.colors.alert}
+              iconBackground={theme.colors.alertBg}
+              title="Sair da conta"
+              onPress={handleLogout}
+              showChevron
+            />
+            <SettingsRow
+              icon="trash-outline"
+              iconColor={theme.colors.alert}
+              iconBackground={theme.colors.alertBg}
+              title={deleteAccount.isPending ? "Excluindo conta..." : "Excluir conta"}
+              titleColor={theme.colors.alert}
+              onPress={handleDeleteAccount}
+              disabled={deleteAccount.isPending}
+              trailing={
+                deleteAccount.isPending ? (
+                  <ActivityIndicator size="small" color={theme.colors.alert} />
+                ) : null
+              }
+              showChevron={!deleteAccount.isPending}
+            />
+          </Card>
+        </View>
+
+        <Typography
+          variant="caption"
+          color={theme.colors.textSecondary}
+          style={{ textAlign: "center" }}
+        >
           {appVersion}
         </Typography>
       </ScrollView>
 
-      {/* Meta de pro-labore Modal */}
       <ProlaboreGoalForm
         config={prolabore?.config ?? null}
         visible={showGoal}
@@ -801,7 +974,6 @@ export default function SettingsScreen() {
         onSuccess={() => setShowGoal(false)}
       />
 
-      {/* Edit Profile Modal */}
       <StandardModal
         title="Editar perfil"
         visible={showEditProfile}
@@ -810,16 +982,13 @@ export default function SettingsScreen() {
           <Button
             title={savingAvatar ? "Enviando foto..." : "Salvar"}
             size="lg"
-            onPress={() => {
-              void handleSaveProfile();
-            }}
+            onPress={() => void handleSaveProfile()}
             loading={updateProfile.isPending || savingAvatar}
-            style={{ flex: 1 }}
+            style={{ flex: isDesktop ? undefined : 1, ...desktopAction(isDesktop, 220) }}
           />
         }
       >
         <View style={{ flexShrink: 1, gap: spacing.lg }}>
-          {/* Foto do negócio */}
           <View style={{ alignItems: "center", gap: spacing.sm }}>
             <Pressable
               onPress={pickAvatar}
@@ -889,7 +1058,7 @@ export default function SettingsScreen() {
             <FieldLabel label="Nome do negócio" />
             <TextFieldCard
               icon="storefront-outline"
-              placeholder="Ex: Doces da Maria"
+              placeholder={`Ex: ${experienceCopy.businessNameExample}`}
               value={editBusinessName}
               onChangeText={setEditBusinessName}
             />
@@ -918,7 +1087,7 @@ export default function SettingsScreen() {
               icon="call-outline"
               placeholder="Ex: (11) 99999-9999"
               value={editPhone}
-              onChangeText={(v: string) => setEditPhone(maskPhoneBR(v))}
+              onChangeText={(value: string) => setEditPhone(maskPhoneBR(value))}
               keyboardType="phone-pad"
             />
           </View>

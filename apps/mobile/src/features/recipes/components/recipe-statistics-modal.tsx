@@ -10,6 +10,7 @@ import { RankBars, type RankRow } from "../../insights/components/rank-bars";
 import { useAllProducts } from "../../products/hooks";
 import { useAllRecipes } from "../hooks";
 import { calculateRecipeStatistics } from "../statistics";
+import { useBusinessCopy } from "../../subscription/business-copy";
 
 function MetricCard({
   label,
@@ -28,12 +29,12 @@ function MetricCard({
           width: 38,
           height: 38,
           borderRadius: radii.full,
-          backgroundColor: theme.colors.primaryBg,
+          backgroundColor: theme.colors.blueBg,
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <AppIcon name={icon} size={20} color={theme.colors.primary} />
+        <AppIcon name={icon} size={20} color={theme.colors.blue} />
       </View>
       <Typography variant="caption" color={theme.colors.textSecondary}>
         {label}
@@ -55,6 +56,7 @@ export function RecipeStatisticsModal({
   onClose,
 }: Readonly<{ visible: boolean; onClose: () => void }>) {
   const { theme } = useTheme();
+  const experienceCopy = useBusinessCopy();
   const {
     data: recipes,
     isLoading: loadingRecipes,
@@ -97,7 +99,7 @@ export function RecipeStatisticsModal({
       <>
         <View style={{ flexDirection: "row", gap: spacing.md }}>
           <MetricCard
-            label="CUSTO MÉDIO / RECEITA"
+            label={`CUSTO MÉDIO / ${experienceCopy.formulaNoun.toUpperCase()}`}
             value={formatCurrency(statistics.averageRecipeCost)}
             icon="calculator-outline"
           />
@@ -113,7 +115,7 @@ export function RecipeStatisticsModal({
         </View>
         <Typography variant="caption" color={theme.colors.textSecondary}>
           Margem calculada em {statistics.profitability.length} de {recipes?.length ?? 0}{" "}
-          receitas vinculadas a produtos ativos.
+          {experienceCopy.formulaNounPlural} vinculadas a produtos ativos.
         </Typography>
 
         {ranking.length ? (
@@ -131,8 +133,8 @@ export function RecipeStatisticsModal({
           <Card variant="surface" padding="xl" style={{ gap: spacing.sm }}>
             <Typography variant="h3">Margem ainda indisponível</Typography>
             <Typography variant="body" color={theme.colors.textSecondary}>
-              Vincule uma receita a um produto com preço de venda para calcular lucro e
-              margem.
+              Vincule uma {experienceCopy.formulaNoun} a um produto com preço de venda para
+              calcular lucro e margem.
             </Typography>
           </Card>
         )}

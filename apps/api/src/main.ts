@@ -53,6 +53,9 @@ import { createProductsRouter } from "./features/products/products.routes";
 import { CosmosProductCatalog } from "./features/products/products.catalog";
 import { ProductsRepoPg } from "./features/products/products.repo.pg";
 import { ProductsUseCases } from "./features/products/products.usecases";
+import { createProductionRouter } from "./features/production/production.routes";
+import { ProductionRepoPg } from "./features/production/production.repo.pg";
+import { ProductionUseCases } from "./features/production/production.usecases";
 import { createIngredientsRouter } from "./features/recipes/ingredients.routes";
 import { IngredientsRepoPg } from "./features/recipes/ingredients.repo.pg";
 import { IngredientsUseCases } from "./features/recipes/ingredients.usecases";
@@ -98,6 +101,7 @@ import {
 import { MarketingRepoPg } from "./features/marketing/marketing.repo.pg";
 import { MarketingUseCases } from "./features/marketing/marketing.usecases";
 import {
+  createPromotionsRouter,
   createPublicRetailRouter,
   createRetailRouter,
 } from "./features/retail/retail.routes";
@@ -125,6 +129,7 @@ const goalsRepo = new GoalsRepoPg(db);
 const ordersRepo = new OrdersRepoPg(db);
 const materialsRepo = new MaterialsRepoPg(db);
 const insightsRepo = new InsightsRepoPg(db);
+const productionUseCases = new ProductionUseCases(new ProductionRepoPg(db));
 const googlePlayClient = new GooglePlayClient(
   config.googlePlayPackageName,
   config.googlePlayServiceAccountJson,
@@ -362,6 +367,7 @@ app.use(
 );
 app.use("/api/v1/goals", createGoalsRouter(goalsUseCases));
 app.use("/api/v1/orders", createOrdersRouter(ordersUseCases));
+app.use("/api/v1/production", createProductionRouter(productionUseCases));
 app.use("/api/v1/materials", createMaterialsRouter(materialsUseCases));
 app.use(
   "/api/v1/insights",
@@ -384,6 +390,7 @@ app.use(
 );
 app.use("/api/v1/catalog", createCatalogRouter(catalogUseCases));
 app.use("/api/v1/retail", createRetailRouter(retailUseCases));
+app.use("/api/v1/promotions", createPromotionsRouter(retailUseCases));
 app.use(
   "/api/v1/public/retail",
   createPublicRetailRouter(retailUseCases, catalogUseCases),

@@ -13,6 +13,22 @@ export function availableProductStock(product: Product): number | null {
   return totalVariationStock(product.variations) ?? product.stockQuantity;
 }
 
+export function summarizeLowStockProducts(products: readonly Product[]): {
+  outOfStock: number;
+  lowStock: number;
+} {
+  return products.reduce(
+    (summary, product) => {
+      const quantity = availableProductStock(product);
+      if (quantity === null) return summary;
+      if (quantity <= 0) summary.outOfStock += 1;
+      else summary.lowStock += 1;
+      return summary;
+    },
+    { outOfStock: 0, lowStock: 0 },
+  );
+}
+
 export function validateVariations(
   variations: readonly ProductVariationInput[],
 ): string | null {

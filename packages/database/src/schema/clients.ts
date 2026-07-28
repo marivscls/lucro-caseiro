@@ -25,6 +25,9 @@ export const clients = pgTable(
     birthday: date("birthday"),
     notes: text("notes"),
     tags: text("tags").array().notNull().default([]),
+    nextContactAt: date("next_contact_at"),
+    nextContactReason: text("next_contact_reason"),
+    nextContactNotes: text("next_contact_notes"),
     totalSpent: decimal("total_spent", { precision: 10, scale: 2 })
       .notNull()
       .default("0"),
@@ -33,6 +36,7 @@ export const clients = pgTable(
   (table) => [
     index("idx_clients_user").on(table.userId),
     index("idx_clients_user_phone").on(table.userId, table.phone),
+    index("idx_clients_user_next_contact").on(table.userId, table.nextContactAt),
     uniqueIndex("idx_clients_user_phone_digits_unique").on(
       table.userId,
       sql`(

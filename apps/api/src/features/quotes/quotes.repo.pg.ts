@@ -13,7 +13,18 @@ import type { FindAllQuotesOpts, IQuotesRepo } from "./quotes.types";
 export class QuotesRepoPg implements IQuotesRepo {
   constructor(private db: AppDatabase) {}
 
-  async create(userId: string, data: CreateQuote & { total: number }): Promise<Quote> {
+  async create(
+    userId: string,
+    data: CreateQuote & {
+      subtotal: number;
+      discount: number;
+      total: number;
+      estimatedCost: number;
+      estimatedGain: number;
+      estimatedMargin: number;
+      status: QuoteStatusType;
+    },
+  ): Promise<Quote> {
     const [row] = await this.db
       .insert(quotes)
       .values({
@@ -22,7 +33,13 @@ export class QuotesRepoPg implements IQuotesRepo {
         clientName: data.clientName ?? null,
         title: data.title,
         items: data.items,
+        subtotal: String(data.subtotal),
+        discount: String(data.discount),
+        discountType: data.discountType ?? null,
+        discountValue: String(data.discountValue ?? 0),
+        estimatedCost: String(data.estimatedCost),
         total: String(data.total),
+        status: data.status,
         validUntil: data.validUntil ?? null,
         notes: data.notes ?? null,
       })
@@ -64,7 +81,14 @@ export class QuotesRepoPg implements IQuotesRepo {
     userId: string,
     id: string,
     data: Partial<
-      CreateQuote & { total: number; status: QuoteStatusType; orderId: string }
+      CreateQuote & {
+        subtotal: number;
+        discount: number;
+        total: number;
+        estimatedCost: number;
+        status: QuoteStatusType;
+        orderId: string;
+      }
     >,
   ): Promise<Quote | null> {
     const set: Record<string, unknown> = { updatedAt: new Date() };
@@ -72,6 +96,13 @@ export class QuotesRepoPg implements IQuotesRepo {
     if (data.clientId !== undefined) set.clientId = data.clientId;
     if (data.clientName !== undefined) set.clientName = data.clientName;
     if (data.items !== undefined) set.items = data.items;
+    if (data.subtotal !== undefined) set.subtotal = String(data.subtotal);
+    if (data.discount !== undefined) set.discount = String(data.discount);
+    if (data.discountType !== undefined) set.discountType = data.discountType;
+    if (data.discountValue !== undefined)
+      set.discountValue = String(data.discountValue);
+    if (data.estimatedCost !== undefined)
+      set.estimatedCost = String(data.estimatedCost);
     if (data.total !== undefined) set.total = String(data.total);
     if (data.status !== undefined) set.status = data.status;
     if (data.orderId !== undefined) set.orderId = data.orderId;
@@ -118,6 +149,16 @@ export class QuotesRepoPg implements IQuotesRepo {
       clientName,
       title: row.title,
       items: row.items as QuoteItem[],
+      subtotal: Number(row.subtotal),
+      discount: Number(row.discount),
+      discountType: row.discountType as Quote["discountType"],
+      discountValue: Number(row.discountValue),
+      estimatedCost: Number(row.estimatedCost),
+      estimatedGain: Number(row.total) - Number(row.estimatedCost),
+      estimatedMargin:
+        Number(row.total) > 0
+          ? ((Number(row.total) - Number(row.estimatedCost)) / Number(row.total)) * 100
+          : 0,
       total: Number(row.total),
       status: row.status as Quote["status"],
       validUntil: row.validUntil,

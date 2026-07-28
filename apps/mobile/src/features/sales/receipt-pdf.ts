@@ -125,6 +125,14 @@ export function buildReceiptHtml(sale: Sale, business: ReceiptBusiness): string 
     <tbody>${rows}</tbody>
   </table>
 
+  ${
+    sale.discount > 0
+      ? `<div class="meta">
+    <div class="meta-row"><span>Subtotal</span><strong>${money(sale.subtotal)}</strong></div>
+    <div class="meta-row"><span>Desconto</span><strong>- ${money(sale.discount)}</strong></div>
+  </div>`
+      : ""
+  }
   <div class="total">
     <span class="label">Total</span>
     <span class="value">${money(sale.total)}</span>

@@ -17,6 +17,7 @@ type ButtonVariant =
   | "secondary"
   | "outline"
   | "ghost"
+  | "text"
   | "success"
   | "successOutline"
   | "premium";
@@ -24,6 +25,7 @@ type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps extends Omit<PressableProps, "style"> {
   title: string;
+  titleLines?: 1 | 2;
   variant?: ButtonVariant;
   size?: ButtonSize;
   loading?: boolean;
@@ -39,13 +41,14 @@ const sizeStyles: Record<
   ButtonSize,
   { minHeight: number; fontSize: number; px: number }
 > = {
-  sm: { minHeight: 44, fontSize: fontSizes.sm, px: spacing.lg },
-  md: { minHeight: 48, fontSize: fontSizes.md, px: spacing.xl },
-  lg: { minHeight: 56, fontSize: fontSizes.lg, px: spacing["2xl"] },
+  sm: { minHeight: 40, fontSize: fontSizes.xs, px: spacing.md },
+  md: { minHeight: 44, fontSize: fontSizes.sm, px: spacing.lg },
+  lg: { minHeight: 48, fontSize: fontSizes.md, px: spacing.xl },
 };
 
 export function Button({
   title,
+  titleLines = 1,
   variant = "primary",
   size = "md",
   loading = false,
@@ -53,6 +56,7 @@ export function Button({
   compact = false,
   disabled,
   style,
+  hitSlop,
   onPressIn,
   onPressOut,
   ...props
@@ -75,20 +79,22 @@ export function Button({
     // Fundos cheios usam os tons AA do tema (rotulo >= 4.5:1 nos dois modos);
     // `primary` de marca fica para areas grandes sem texto por cima.
     primary: { bg: theme.colors.primaryInteractive, text: theme.colors.textOnPrimary },
-    secondary: { bg: theme.colors.surface, text: theme.colors.text },
+    secondary: { bg: theme.colors.primaryBg, text: theme.colors.primaryStrong },
     outline: {
       bg: "transparent",
       text: theme.colors.primaryStrong,
-      border: theme.colors.primaryStrong,
+      border: theme.colors.border,
     },
     ghost: { bg: "transparent", text: theme.colors.textSecondary },
+    text: { bg: "transparent", text: theme.colors.primaryStrong },
     success: { bg: theme.colors.success, text: theme.colors.textOnPrimary },
     successOutline: {
       bg: "transparent",
       text: theme.colors.success,
       border: theme.colors.success,
     },
-    premium: { bg: theme.colors.premium, text: theme.colors.textOnPrimary },
+    // O dourado fica em badges e pequenos detalhes; o CTA usa a assinatura da marca.
+    premium: { bg: theme.colors.primaryInteractive, text: theme.colors.textOnPrimary },
   };
 
   const v = variants[variant];
@@ -96,6 +102,7 @@ export function Button({
   return (
     <AnimatedPressable
       disabled={isDisabled}
+      hitSlop={hitSlop ?? (size === "sm" ? 2 : undefined)}
       onPressIn={(e) => {
         if (!reduced && !isDisabled) animateTo(0.97);
         onPressIn?.(e);
@@ -108,15 +115,15 @@ export function Button({
         {
           minHeight: s.minHeight,
           paddingHorizontal: compact ? spacing.md : s.px,
-          paddingVertical: spacing.sm,
+          paddingVertical: 6,
           backgroundColor: v.bg,
-          borderRadius: radii.lg,
+          borderRadius: radii.md,
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "center",
           gap: spacing.sm,
           opacity: isDisabled ? 0.5 : 1,
-          borderWidth: v.border ? 1.5 : 0,
+          borderWidth: v.border ? 1 : 0,
           borderColor: v.border,
         },
         style,
@@ -130,11 +137,13 @@ export function Button({
         <>
           {icon}
           <Text
-            numberOfLines={2}
+            adjustsFontSizeToFit
+            minimumFontScale={0.8}
+            numberOfLines={titleLines}
             style={{
               color: v.text,
               fontSize: s.fontSize,
-              fontFamily: fonts.bold,
+              fontFamily: fonts.semiBold,
               flexShrink: 1,
               minWidth: 0,
               textAlign: "center",

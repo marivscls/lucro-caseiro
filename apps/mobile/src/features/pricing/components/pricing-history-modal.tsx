@@ -133,7 +133,7 @@ export function PricingHistoryModal({
   if (isLoading) {
     content = (
       <View style={{ flex: 1, padding: spacing.xl }}>
-        <SkeletonList rows={6} />
+        <SkeletonList rows={6} variant="amount" />
       </View>
     );
   } else if (error) {

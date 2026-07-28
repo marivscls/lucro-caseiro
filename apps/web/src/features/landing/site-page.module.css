@@ -60,7 +60,7 @@
 .document h2,
 .article h2 {
   margin: 0 0 14px;
-  font-family: var(--font-display), serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: 28px;
   letter-spacing: -0.03em;
 }
@@ -150,7 +150,7 @@
 
 .supportCard h2 {
   margin: 0;
-  font-family: var(--font-display), serif;
+  font-family: var(--font-sans), sans-serif;
   font-size: 25px;
 }
 

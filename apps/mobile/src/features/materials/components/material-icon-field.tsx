@@ -10,6 +10,7 @@ import { MATERIAL_ICONS } from "../icons";
 import { desktopModalSurface } from "../../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
+import { useBusinessCopy } from "../../subscription/business-copy";
 
 interface MaterialIconFieldProps {
   readonly name: string;
@@ -20,6 +21,7 @@ interface MaterialIconFieldProps {
 /** Seletor do ícone (emoji) do insumo: preview + modal com grade de emojis. */
 export function MaterialIconField({ name, value, onChange }: MaterialIconFieldProps) {
   const { theme } = useTheme();
+  const experienceCopy = useBusinessCopy();
   const isDesktop = useDesktopLayout();
   const pal = useFieldPalette();
   const insets = useSafeAreaInsets();
@@ -35,7 +37,7 @@ export function MaterialIconField({ name, value, onChange }: MaterialIconFieldPr
       <Pressable
         onPress={() => setOpen(true)}
         accessibilityRole="button"
-        accessibilityLabel="Escolher ícone do insumo"
+        accessibilityLabel={`Escolher ícone de ${experienceCopy.materialNoun}`}
         style={{
           minHeight: 72,
           borderRadius: radii.lg,
@@ -48,7 +50,11 @@ export function MaterialIconField({ name, value, onChange }: MaterialIconFieldPr
           paddingHorizontal: spacing.md,
         }}
       >
-        <IngredientAvatar name={name || "Insumo"} emoji={value} size={48} />
+        <IngredientAvatar
+          name={name || experienceCopy.materialNoun}
+          emoji={value}
+          size={48}
+        />
         <View style={{ flex: 1 }}>
           <Typography variant="bodyBold" color={theme.colors.text}>
             {value ? "Ícone escolhido" : "Ícone automático"}
@@ -127,13 +133,13 @@ export function MaterialIconField({ name, value, onChange }: MaterialIconFieldPr
                   value == null ? `${theme.colors.primary}1f` : pal.fieldBg,
               }}
             >
-              <IngredientAvatar name={name || "Insumo"} size={40} />
+              <IngredientAvatar name={name || experienceCopy.materialNoun} size={40} />
               <View style={{ flex: 1 }}>
                 <Typography variant="bodyBold" color={theme.colors.text}>
                   Automático
                 </Typography>
                 <Typography variant="caption" color={theme.colors.textSecondary}>
-                  Escolhe um ícone pelo nome do insumo
+                  Escolhe um ícone pelo nome de {experienceCopy.materialNoun}
                 </Typography>
               </View>
               {value == null ? (

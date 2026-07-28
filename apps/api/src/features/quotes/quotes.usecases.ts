@@ -8,7 +8,7 @@ import type {
 
 import { NotFoundError, ValidationError } from "../../shared/errors";
 import { paginationMeta } from "../../shared/helpers/paginate";
-import { computeQuoteTotal, quoteItemsSummary, validateQuote } from "./quotes.domain";
+import { computeQuotePricing, quoteItemsSummary, validateQuote } from "./quotes.domain";
 import type { FindAllQuotesOpts, IOrderCreator, IQuotesRepo } from "./quotes.types";
 
 export class QuotesUseCases {
@@ -21,7 +21,19 @@ export class QuotesUseCases {
     const errors = validateQuote(data);
     if (errors.length > 0) throw new ValidationError(errors);
 
-    return this.repo.create(userId, { ...data, total: computeQuoteTotal(data.items) });
+    const pricing = computeQuotePricing(
+      data.items,
+      data.discountType,
+      data.discountValue,
+    );
+    if (pricing.total <= 0) {
+      throw new ValidationError(["O desconto deve ser menor que o subtotal"]);
+    }
+    return this.repo.create(userId, {
+      ...data,
+      ...pricing,
+      status: "pending",
+    });
   }
 
   async getById(userId: string, id: string): Promise<Quote> {
@@ -46,8 +58,16 @@ export class QuotesUseCases {
     const errors = validateQuote(data);
     if (errors.length > 0) throw new ValidationError(errors);
 
-    const total = data.items ? computeQuoteTotal(data.items) : undefined;
-    const updated = await this.repo.update(userId, id, { ...data, total });
+    const items = data.items ?? existing.items;
+    const discountType =
+      data.discountType === undefined ? existing.discountType : data.discountType;
+    const discountValue =
+      data.discountValue === undefined ? existing.discountValue : data.discountValue;
+    const pricing = computeQuotePricing(items, discountType, discountValue);
+    if (pricing.total <= 0) {
+      throw new ValidationError(["O desconto deve ser menor que o subtotal"]);
+    }
+    const updated = await this.repo.update(userId, id, { ...data, ...pricing });
     if (!updated) throw new NotFoundError("Orçamento não encontrado");
     return updated;
   }

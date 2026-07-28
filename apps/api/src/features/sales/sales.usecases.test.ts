@@ -1,4 +1,4 @@
-import type { Product, Sale } from "@lucro-caseiro/contracts";
+import type { Product, Sale, StockMovement } from "@lucro-caseiro/contracts";
 import { describe, expect, it, vi } from "vitest";
 
 import { NotFoundError, ValidationError } from "../../shared/errors";
@@ -31,6 +31,10 @@ function makeSale(overrides: Partial<Sale> = {}): Sale {
     soldAt: new Date().toISOString(),
     createdAt: new Date().toISOString(),
     ...overrides,
+    subtotal: overrides.subtotal ?? 30,
+    discount: overrides.discount ?? 0,
+    discountType: overrides.discountType ?? null,
+    discountValue: overrides.discountValue ?? 0,
   };
 }
 
@@ -118,6 +122,29 @@ describe("SalesUseCases", () => {
       });
 
       expect(result.total).toBe(30);
+    });
+
+    it("registra a baixa da venda no histórico de estoque", async () => {
+      const adjustStockWithMovement = vi.fn(() =>
+        Promise.resolve({ id: "movement-1" } as StockMovement),
+      );
+      const products = makeProductsRepo({ adjustStockWithMovement });
+      const { sut } = makeSut({}, products);
+
+      await sut.createSale(USER_ID, {
+        paymentMethod: "pix",
+        items: [{ productId: "prod-1", quantity: 2, unitPrice: 10 }],
+      });
+
+      expect(adjustStockWithMovement).toHaveBeenCalledWith(
+        USER_ID,
+        "prod-1",
+        expect.objectContaining({
+          delta: -2,
+          type: "sale",
+          reason: "Venda registrada",
+        }),
+      );
     });
 
     it("cria venda fiado (credit) como pendente -> aparece no Fiado", async () => {

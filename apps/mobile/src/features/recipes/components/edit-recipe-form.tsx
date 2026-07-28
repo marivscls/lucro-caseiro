@@ -6,6 +6,11 @@ import { ActivityIndicator, Pressable, View } from "react-native";
 
 import { showAlert } from "../../../shared/components/alert-store";
 import { StandardModal } from "../../../shared/components/standard-modal";
+import {
+  desktopAction,
+  desktopCompactField,
+} from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { uploadRecipeImage } from "../../../shared/utils/upload-image";
 import { useDeleteRecipe, useUpdateRecipe } from "../hooks";
@@ -24,6 +29,7 @@ import {
   type RecipeLine,
 } from "./recipe-materials-editor";
 import { alertValidation, alertError } from "../../../shared/utils/alerts";
+import { useBusinessCopy } from "../../subscription/business-copy";
 
 interface EditRecipeFormProps {
   readonly recipe: Recipe;
@@ -39,6 +45,9 @@ export function EditRecipeForm({
   onSuccess,
 }: EditRecipeFormProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
+  const experienceCopy = useBusinessCopy();
+  const formulaLabel = "Receita";
   const [name, setName] = useState(recipe.name);
   const [category, setCategory] = useState(recipe.category);
   const [instructions, setInstructions] = useState(recipe.instructions ?? "");
@@ -76,7 +85,7 @@ export function EditRecipeForm({
     }
     const validYield = parseFloat(yieldQuantity.replace(",", "."));
     if (isNaN(validYield) || validYield <= 0) {
-      alertValidation("Informe o rendimento da receita");
+      alertValidation(`Informe ${experienceCopy.quantityLabel.toLowerCase()}`);
       return;
     }
     if (!yieldUnit.trim()) {
@@ -85,12 +94,12 @@ export function EditRecipeForm({
     }
     const linesWithMaterial = lines.filter((l) => l.materialId);
     if (linesWithMaterial.length === 0) {
-      alertValidation("Adicione pelo menos um insumo");
+      alertValidation(`Adicione pelo menos um ${experienceCopy.materialNoun}`);
       return;
     }
     const validLines = linesWithMaterial.filter((l) => l.quantity.trim());
     if (validLines.length === 0) {
-      alertValidation("Informe a quantidade do insumo");
+      alertValidation(`Informe a quantidade do ${experienceCopy.materialNoun}`);
       return;
     }
 
@@ -132,7 +141,7 @@ export function EditRecipeForm({
           })),
         },
       });
-      showAlert({ title: "Receita atualizada!", message: `${name} foi atualizada` });
+      showAlert({ title: `${formulaLabel} atualizada!`, message: `${name} foi atualizada` });
       onSuccess?.();
     } catch {
       alertError("Não foi possível atualizar a receita. Tente novamente.");
@@ -169,7 +178,14 @@ export function EditRecipeForm({
       visible={visible}
       onClose={onClose}
       footer={
-        <>
+        <View
+          style={{
+            flexDirection: "row",
+            gap: spacing.md,
+            justifyContent: isDesktop ? "flex-end" : undefined,
+            width: "100%",
+          }}
+        >
           <Pressable
             onPress={handleDelete}
             disabled={deleteRecipe.isPending}
@@ -186,7 +202,7 @@ export function EditRecipeForm({
                 gap: spacing.sm,
                 opacity: pressed ? 0.7 : 1,
               },
-              { flex: 1 },
+              isDesktop ? desktopAction(isDesktop, 180) : { flex: 1 },
             ]}
           >
             <AppIcon name="trash-outline" size={20} color={theme.colors.alert} />
@@ -202,16 +218,16 @@ export function EditRecipeForm({
             accessibilityRole="button"
             style={({ pressed }) => [
               {
-                minHeight: 58,
-                borderRadius: radii.lg,
-                backgroundColor: theme.colors.primary,
+                minHeight: 48,
+                borderRadius: radii.md,
+                backgroundColor: theme.colors.primaryInteractive,
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: spacing.sm,
                 opacity: pressed || saving ? 0.85 : 1,
               },
-              { flex: 1 },
+              isDesktop ? desktopAction(isDesktop, 220) : { flex: 1 },
             ]}
           >
             {saving ? (
@@ -219,19 +235,19 @@ export function EditRecipeForm({
             ) : (
               <AppIcon name="save-outline" size={22} color={theme.colors.textOnPrimary} />
             )}
-            <Typography variant="h3" color={theme.colors.textOnPrimary}>
+            <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
               {uploading ? "Enviando foto..." : "Salvar alterações"}
             </Typography>
           </Pressable>
-        </>
+        </View>
       }
     >
       <View style={{ flexShrink: 1, gap: spacing.xl }}>
-        <FieldRow icon="ice-cream-outline" label="Nome da receita">
+        <FieldRow icon="document-text-outline" label="Nome da receita">
           <TextBox
             value={name}
             onChangeText={setName}
-            placeholder="Ex: Brigadeiro, Bolo de cenoura..."
+            placeholder={`Ex: ${experienceCopy.productExample}`}
             maxLength={80}
             autoFocus
           />
@@ -253,7 +269,7 @@ export function EditRecipeForm({
 
         <FieldRow
           icon="document-text-outline"
-          label="Modo de preparo"
+          label="Etapas ou observações"
           optional
           align="top"
         >
@@ -262,9 +278,9 @@ export function EditRecipeForm({
 
         <View style={{ gap: spacing.sm }}>
           <View style={{ flexDirection: "row", gap: spacing.md }}>
-            <View style={{ flex: 1, gap: spacing.sm }}>
+            <View style={[{ flex: 1, gap: spacing.sm }, desktopCompactField(isDesktop)]}>
               <Typography variant="bodyBold" color={theme.colors.text}>
-                Rendimento
+                {experienceCopy.quantityLabel}
               </Typography>
               <TextBox
                 value={yieldQuantity}

@@ -1,4 +1,10 @@
-import type { DeliverOrder, Order } from "@lucro-caseiro/contracts";
+import type {
+  CreateService,
+  DeliverOrder,
+  Order,
+  Service,
+  UpdateService,
+} from "@lucro-caseiro/contracts";
 
 import { NotFoundError, ValidationError } from "../../shared/errors";
 import { buildOrdersSummary, todayISO, validateOrder } from "./orders.domain";
@@ -21,6 +27,7 @@ export class OrdersUseCases {
   async create(userId: string, data: CreateOrderData): Promise<Order> {
     const errors = validateOrder(data);
     if (errors.length > 0) throw new ValidationError(errors);
+    await this.assertAvailable(userId, data);
     return this.repo.create(userId, data);
   }
 
@@ -47,6 +54,7 @@ export class OrdersUseCases {
     const errors = validateOrder(data, true);
     if (errors.length > 0) throw new ValidationError(errors);
 
+    await this.assertAvailable(userId, data, id, existing);
     const updated = await this.repo.update(userId, id, data);
     if (!updated) throw new NotFoundError("Encomenda nao encontrada");
     return updated;
@@ -81,5 +89,64 @@ export class OrdersUseCases {
   async remove(userId: string, id: string): Promise<void> {
     const deleted = await this.repo.delete(userId, id);
     if (!deleted) throw new NotFoundError("Encomenda nao encontrada");
+  }
+
+  listServices(userId: string): Promise<Service[]> {
+    return this.repo.listServices ? this.repo.listServices(userId) : Promise.resolve([]);
+  }
+
+  async createService(userId: string, data: CreateService): Promise<Service> {
+    if (!this.repo.createService) {
+      throw new ValidationError(["Cadastro de serviços indisponível"]);
+    }
+    await this.assertServiceNameAvailable(userId, data.name);
+    return this.repo.createService(userId, data);
+  }
+
+  async updateService(userId: string, id: string, data: UpdateService): Promise<Service> {
+    if (!this.repo.updateService) {
+      throw new ValidationError(["Cadastro de serviços indisponível"]);
+    }
+    if (data.name !== undefined) {
+      await this.assertServiceNameAvailable(userId, data.name, id);
+    }
+    const updated = await this.repo.updateService(userId, id, data);
+    if (!updated) throw new NotFoundError("Serviço não encontrado");
+    return updated;
+  }
+
+  private async assertServiceNameAvailable(
+    userId: string,
+    name: string,
+    excludeId?: string,
+  ): Promise<void> {
+    if (!this.repo.findServiceByName) return;
+    const duplicate = await this.repo.findServiceByName(userId, name, excludeId);
+    if (duplicate) {
+      throw new ValidationError(["Já existe um serviço com esse nome"]);
+    }
+  }
+
+  private async assertAvailable(
+    userId: string,
+    data: CreateOrderData | UpdateOrderData,
+    excludeOrderId?: string,
+    existing?: Order,
+  ): Promise<void> {
+    const date = data.deliveryDate ?? existing?.deliveryDate;
+    const time = data.deliveryTime ?? existing?.deliveryTime ?? undefined;
+    const duration = data.durationMinutes ?? existing?.durationMinutes ?? undefined;
+    if (!date || !time || !duration) return;
+    if (!this.repo.hasScheduleConflict) return;
+    const conflict = await this.repo.hasScheduleConflict(
+      userId,
+      date,
+      time,
+      duration,
+      excludeOrderId,
+    );
+    if (conflict) {
+      throw new ValidationError(["Este horário já está ocupado"]);
+    }
   }
 }

@@ -1,10 +1,18 @@
-import type { Order, OrderStatus } from "@lucro-caseiro/contracts";
+import type {
+  CreateService,
+  Order,
+  OrderStatus,
+  Service,
+  UpdateService,
+} from "@lucro-caseiro/contracts";
 
 export interface CreateOrderData {
   title: string;
   deliveryDate: string;
   deliveryTime?: string;
   clientId?: string;
+  serviceId?: string | null;
+  durationMinutes?: number | null;
   amount?: number;
   deposit?: number | null;
   theme?: string | null;
@@ -56,6 +64,25 @@ export interface IOrdersRepo {
   update(userId: string, id: string, data: UpdateOrderData): Promise<Order | null>;
   delete(userId: string, id: string): Promise<boolean>;
   summarize(userId: string, opts: OrdersSummaryOpts): Promise<OrdersStatusAggregate[]>;
+  listServices?(userId: string): Promise<Service[]>;
+  findServiceByName?(
+    userId: string,
+    name: string,
+    excludeId?: string,
+  ): Promise<Service | null>;
+  createService?(userId: string, data: CreateService): Promise<Service>;
+  updateService?(
+    userId: string,
+    id: string,
+    data: UpdateService,
+  ): Promise<Service | null>;
+  hasScheduleConflict?(
+    userId: string,
+    date: string,
+    time: string,
+    durationMinutes: number,
+    excludeOrderId?: string,
+  ): Promise<boolean>;
 }
 
 // Registra receita ao entregar — implementado por FinanceUseCases no composition

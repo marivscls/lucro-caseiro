@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { cartTotal, formatWeight, itemSubtotal } from "./cart";
+import { cartTotal, formatWeight, itemSubtotal, salePricing } from "./cart";
 
 describe("itemSubtotal", () => {
   it("multiplica preco por quantidade", () => {
@@ -44,5 +44,25 @@ describe("formatWeight", () => {
     expect(formatWeight(1.5)).toBe("1,5 kg");
     expect(formatWeight(1.567)).toBe("1,567 kg");
     expect(formatWeight(2.5001)).toBe("2,5 kg");
+  });
+});
+
+describe("salePricing", () => {
+  it("calcula desconto em valor e percentual", () => {
+    expect(salePricing(100, "fixed", 15)).toEqual({
+      subtotal: 100,
+      discount: 15,
+      total: 85,
+    });
+    expect(salePricing(200, "percentage", 10)).toEqual({
+      subtotal: 200,
+      discount: 20,
+      total: 180,
+    });
+  });
+
+  it("limita o desconto ao subtotal", () => {
+    expect(salePricing(40, "fixed", 100).total).toBe(0);
+    expect(salePricing(40, "percentage", 120).discount).toBe(40);
   });
 });

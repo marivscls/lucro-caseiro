@@ -306,6 +306,53 @@ export function createRetailRouter(useCases: RetailUseCases): Router {
   return router;
 }
 
+/** Núcleo compartilhado de promoções, disponível também no Lucro Caseiro. */
+export function createPromotionsRouter(useCases: RetailUseCases): Router {
+  const router = Router();
+  router.use(authMiddleware);
+  router.get("/", async (req, res, next) => {
+    try {
+      res.json(await useCases.listPromotions(getUserId(req)));
+    } catch (error) {
+      next(error);
+    }
+  });
+  router.post("/", async (req, res, next) => {
+    try {
+      res.status(201).json(
+        await useCases.createPromotion(
+          getUserId(req),
+          CreateRetailPromotionDto.parse(req.body),
+        ),
+      );
+    } catch (error) {
+      next(error);
+    }
+  });
+  router.patch("/:id", async (req, res, next) => {
+    try {
+      res.json(
+        await useCases.updatePromotion(
+          getUserId(req),
+          req.params.id,
+          UpdateRetailPromotionDto.parse(req.body),
+        ),
+      );
+    } catch (error) {
+      next(error);
+    }
+  });
+  router.delete("/:id", async (req, res, next) => {
+    try {
+      await useCases.removePromotion(getUserId(req), req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  });
+  return router;
+}
+
 export function createPublicRetailRouter(
   useCases: RetailUseCases,
   catalogUseCases: CatalogUseCases,

@@ -372,7 +372,7 @@ export default function RegisterScreen() {
 
           <Input
             label="Nome do negócio (opcional)"
-            placeholder="Ex: Doces da Maria"
+            placeholder="Ex: Meu negócio"
             value={businessName}
             onChangeText={setBusinessName}
           />

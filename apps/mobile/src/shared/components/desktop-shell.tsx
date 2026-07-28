@@ -7,6 +7,7 @@ import React, { type ReactNode } from "react";
 import { Image, Pressable, ScrollView, View } from "react-native";
 
 import { useProfile } from "../../features/subscription/hooks";
+import { businessCopyFor } from "../../features/subscription/business-copy";
 import { brandLogoById } from "../brand-logo";
 import { getBrandDisplayName } from "../brand-name";
 
@@ -39,6 +40,7 @@ const MANAGEMENT_NAV: ReadonlyArray<NavigationItem> = [
     feature: "varejoPapelaria",
   },
   { label: "Produtos", href: "/products", icon: "cube-outline" },
+  { label: "Serviços", href: "/services", icon: "briefcase-outline" },
   {
     label: "Insumos",
     href: "/materials",
@@ -46,36 +48,8 @@ const MANAGEMENT_NAV: ReadonlyArray<NavigationItem> = [
     feature: "materiais",
   },
   { label: "Precificação", href: "/pricing", icon: "calculator-outline" },
-  { label: "Financeiro", href: "/finance", icon: "wallet-outline" },
+  { label: "Financeiro", href: "/tabs/finance", icon: "wallet-outline" },
   { label: "Mais opções", href: "/tabs/more", icon: "grid-outline" },
-];
-
-const ROUTE_TITLES: ReadonlyArray<readonly [string, string]> = [
-  ["/tabs/new-sale", "Nova venda"],
-  ["/tabs/sales", "Vendas"],
-  ["/tabs/agenda", "Agenda"],
-  ["/tabs/clients", "Clientes"],
-  ["/tabs/more", "Mais opções"],
-  ["/admin-metrics", "Métricas do produto"],
-  ["/recurring-expenses", "Gastos fixos"],
-  ["/suppliers", "Fornecedores"],
-  ["/purchases", "Compras"],
-  ["/retail", "Operação da Papelaria"],
-  ["/support", "Suporte"],
-  ["/materials", "Insumos"],
-  ["/finance", "Financeiro"],
-  ["/quotes", "Orçamentos"],
-  ["/catalog", "Catálogo online"],
-  ["/fiado", "Fiado"],
-  ["/insights", "Insights"],
-  ["/products", "Produtos"],
-  ["/recipes", "Receitas"],
-  ["/pricing", "Precificação"],
-  ["/plans", "Planos"],
-  ["/labels", "Etiquetas"],
-  ["/packaging", "Embalagens"],
-  ["/settings", "Configurações"],
-  ["/tabs", "Visão geral"],
 ];
 
 function isActiveRoute(pathname: string, href: string): boolean {
@@ -157,15 +131,24 @@ export function DesktopShell({
   const brand = useBrand();
   const brandName = getBrandDisplayName(brand);
   const router = useRouter();
-  const pathname = usePathname();
   const { data: profile } = useProfile();
+  const experienceCopy = businessCopyFor(profile?.businessType, brand.copy);
 
   if (!enabled) return <>{children}</>;
 
   const userName = profile?.name ?? "Minha conta";
   const businessName = profile?.businessName ?? brandName;
-  const pageTitle =
-    ROUTE_TITLES.find(([path]) => isActiveRoute(pathname, path))?.[1] ?? brandName;
+  const managementNav = MANAGEMENT_NAV.map((item) => {
+    if (item.href === "/materials") {
+      return {
+        ...item,
+        label: experienceCopy.materialNounPlural.replace(/^./, (letter) =>
+          letter.toUpperCase(),
+        ),
+      };
+    }
+    return item;
+  });
 
   return (
     <View
@@ -199,7 +182,7 @@ export function DesktopShell({
             accessibilityLabel={brandName}
           />
           <View>
-            <Typography variant="h3" serif color={theme.colors.text}>
+            <Typography variant="h3" color={theme.colors.text}>
               {brandName}
             </Typography>
             <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -214,7 +197,7 @@ export function DesktopShell({
           contentContainerStyle={{ padding: spacing.md, gap: spacing.xl }}
         >
           <SidebarSection title="Principal" items={PRIMARY_NAV} />
-          <SidebarSection title="Gestão" items={MANAGEMENT_NAV} />
+          <SidebarSection title="Gestão" items={managementNav} />
         </ScrollView>
 
         <Pressable
@@ -266,70 +249,25 @@ export function DesktopShell({
         </Pressable>
       </View>
 
-      <View style={{ flex: 1, minWidth: 0 }}>
-        <View
-          style={{
-            height: 76,
-            paddingHorizontal: spacing["3xl"],
-            borderBottomWidth: 1,
-            borderBottomColor: theme.colors.border,
-            backgroundColor: theme.colors.surfaceElevated,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: spacing.xl,
-          }}
-        >
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="h2" serif color={theme.colors.text}>
-              {pageTitle}
-            </Typography>
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              {businessName}
-            </Typography>
-          </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Abrir configurações"
-            onPress={() => router.push("/settings")}
-            style={({ pressed }) => ({
-              minHeight: 42,
-              paddingHorizontal: spacing.lg,
-              borderRadius: radii.full,
-              borderWidth: 1,
-              borderColor: theme.colors.border,
-              backgroundColor: theme.colors.background,
-              flexDirection: "row",
-              alignItems: "center",
-              gap: spacing.sm,
-              opacity: pressed ? 0.72 : 1,
-            })}
-          >
-            <AppIcon name="person-outline" size={18} color={theme.colors.primary} />
-            <Typography variant="bodyBold" color={theme.colors.text}>
-              {userName}
-            </Typography>
-          </Pressable>
-        </View>
-
+      <View
+        style={{
+          flex: 1,
+          minWidth: 0,
+          alignItems: "center",
+          backgroundColor: theme.colors.background,
+        }}
+      >
         <View
           style={{
             flex: 1,
-            alignItems: "center",
-            backgroundColor: theme.colors.background,
+            width: "100%",
+            maxWidth: 1440,
+            paddingHorizontal: spacing["3xl"],
+            paddingTop: spacing["3xl"],
+            minWidth: 0,
           }}
         >
-          <View
-            style={{
-              flex: 1,
-              width: "100%",
-              maxWidth: 1440,
-              paddingHorizontal: spacing["3xl"],
-              minWidth: 0,
-            }}
-          >
-            {children}
-          </View>
+          {children}
         </View>
       </View>
     </View>

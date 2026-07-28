@@ -1,25 +1,31 @@
 # Design System Document
 
-## 1. Overview & Creative North Star: "The Artisanal Atelier"
+## 1. Overview & Creative North Star: "Profissional Quente"
 
-The "Artisanal Atelier" is our Creative North Star. This system rejects the industrial rigidity of modern software in favor of a digital environment that feels curated, tactile, and intentionally soft. Inspired by boutique editorial journals and high-end botanical apps, the interface avoids "app-like" containers. Instead, it treats the screen as a canvas of fine-pressed paper where elements breathe through generous white space (`Spacing 16` to `24`) and organic asymmetry.
+O Lucro Caseiro precisa transmitir acolhimento sem parecer restrito à confeitaria. O norte
+criativo canônico é **Profissional Quente**: canvas neutro, tipografia humana, dados legíveis e
+rosa usado como assinatura — não como preenchimento dominante.
 
-We break the "template" look by allowing organic illustrations to bleed off the edges of cards and by using high-contrast typography scales that prioritize beauty over density. Every screen should feel like a deep breath—calm, sophisticated, and human.
+O app atende da confeiteira ao eletricista. Por isso, ilustrações artesanais podem aparecer em
+momentos editoriais, onboarding e estados vazios, mas não definem todos os fluxos operacionais.
+Telas de trabalho priorizam clareza, previsibilidade e decisões rápidas.
 
 ---
 
 ## 2. Color Palette & Tonal Architecture
 
-Our palette is rooted in warm, earthy tones that evoke home-baked warmth and professional craft.
+Os valores executáveis em `packages/ui/src/theme.ts` são a fonte da verdade.
 
 ### Primary & Functional
 
-- **Primary (Rosa Chá):** `#C4707E` – Used for primary actions and brand emphasis.
-- **Secondary (Rosa Suave):** `#D4919C` – Used for supportive elements.
-- **Background (Creme Rosado):** `#FFF5F0` – The base "paper" of the experience.
-- **Surface (Rosa Neve):** `#F5E1DB` – The primary card and container color.
-- **Text (Marrom Quente):** `#4A3228` – High-contrast readability.
-- **Subtext (Marrom Claro):** `#8B7355` – Secondary information.
+- **Primary (Rosa Queimado):** `#B65F72` — assinatura de marca e destaques sem texto pequeno.
+- **Primary Interactive:** `#A85A67` — botões preenchidos com contraste AA.
+- **Background:** `#FAF8F6` — canvas neutro quente.
+- **Surface:** `#F5F3F1` — agrupamentos discretos.
+- **Surface Elevated:** `#FFFFFF` — cards e campos que precisam se separar do canvas.
+- **Text:** `#2C2A29`.
+- **Text Secondary:** `#6B6660`.
+- **Border:** `#E9E5E2`.
 
 ### Semantic Accents
 
@@ -28,20 +34,28 @@ Our palette is rooted in warm, earthy tones that evoke home-baked warmth and pro
 - **Premium:** `#D4A054` (Dourado)
 - **Info/Tags:** `#B8A9D4` (Lavanda) / `#89A5B5` (Azul Acinzentado)
 
-### The "No-Line" Rule
+### Regra de borda flat
 
-**Strict Prohibition:** 1px solid borders are forbidden for sectioning.
-Boundaries must be defined solely through background color shifts. A `surface-container` (`#F5E1DB`) sitting on a `background` (`#FFF5F0`) provides all the definition needed. If a visual break is required, use white space (from the `8.5rem` or `7rem` scale) rather than a line.
+Cards operacionais usam fundo opaco, raio da escala `radii` e borda hairline do token
+`theme.colors.border`. Divisores internos só entram quando ajudam a comparar dados ou alinhar
+linhas; para separar seções, preferir espaço e mudança de superfície. Bordas escuras, sombras
+hardcoded e raios mágicos são proibidos.
 
 ---
 
 ## 3. Typography: The Editorial Voice
 
-We use a high-contrast typographic pairing to balance tradition (Serif) with modern approachability (Rounded Sans).
+Usamos uma única família em toda a interface, conforme o ADR-0008:
 
-- **Display & Headlines (Playfair Display):** Our "Boutique" voice. Use `display-lg` (3.5rem) for hero screens with tight tracking to create an editorial feel.
-- **Body & Labels (Quicksand):** Our "Welcoming" voice. The rounded terminals of Quicksand complement the 16px-24px corner radii of our UI components.
-- **Data & Numerics (Poppins Bold):** Our "Precision" voice. Use Poppins exclusively for currency, percentages, and counts to ensure financial data feels authoritative and clear.
+- **Nunito Sans 400/600/700/800:** display, títulos, corpo, controles, labels e números.
+- **Hierarquia:** display, h1, h2 e h3 usam Bold; ExtraBold fica reservado a números de destaque.
+- **Hierarquia visível:** display 36/42, h1 28/34 e h2 22/28 permanecem grandes; textos
+  corridos usam body 15/22 e legendas usam caption 13/18.
+- **Dados financeiros:** variantes `money*` do componente `Typography`, com Nunito Sans
+  ExtraBold e números tabulares.
+
+Nunca definir `fontFamily`, `fontWeight` ou tamanhos soltos na tela quando uma variante de
+`Typography` resolve.
 
 ---
 
@@ -49,35 +63,53 @@ We use a high-contrast typographic pairing to balance tradition (Serif) with mod
 
 We do not use shadows to create depth. We use the **Layering Principle**.
 
-- **Surface Nesting:** Depth is achieved by "stacking" tones. Place a white (`#FFFFFF`) card on top of a `surface-container` (`#F5E1DB`), which itself sits on the `background` (`#FFF5F0`). This creates a three-dimensional "paper stack" effect without a single drop shadow.
-- **The Ghost Border:** If a UI element (like an empty state or a subtle button) requires a boundary for accessibility, use the `outline-variant` token at 15% opacity. It should be felt, not seen.
-- **Glassmorphism:** For floating navigation bars or "snack bar" alerts, use the surface color with a 70% opacity and a `20px` backdrop blur. This allows the organic illustrations underneath to bleed through softly, maintaining the "welcoming" atmosphere.
+- **Surface Nesting:** `surfaceElevated` sobre `surface` ou `background`.
+- **Hairline Border:** `theme.colors.border`, nunca hex/rgba local.
+- **Elevation:** exclusivamente `theme.shadows.sm|md|lg`; cards operacionais comuns permanecem
+  flat.
+- **Glassmorphism:** não é identidade principal. Só pode aparecer quando o componente canônico e
+  a plataforma garantirem contraste e fallback.
 
 ---
 
 ## 5. Components
 
-### Buttons: The Tactile Touch
+### Botões: hierarquia calma
 
-- **Primary:** Background `#C4707E`, Text `#FFFFFF`. Corners: `16px`. No shadows.
-- **Secondary:** Background `#F5E1DB`, Text `#4A3228`. Corners: `16px`.
-- **States:** On press, the primary button shifts to a 10% darker tint; no "lifting" animations.
+- **Primário:** preenchimento `theme.colors.primaryInteractive`, texto
+  `theme.colors.textOnPrimary`; existe no máximo um preenchido de rosa por viewport.
+- **Secundário:** superfície neutra, texto grafite e borda hairline. Nunca disputa atenção com o
+  primário.
+- **Texto:** sem superfície; use `text` para ações de marca e `ghost` para voltar, cancelar ou
+  adiar.
+- **CTA de estado vazio:** largura intrínseca, centralizado e próximo da explicação. Se ele existe,
+  a mesma ação não aparece simultaneamente em FAB, cabeçalho ou barra inferior.
+- **Densidade:** `sm` 40 px visuais (alvo de toque 44), `md` 44 px e `lg` 48 px; raio canônico
+  `radii.md`, texto semibold e padding horizontal proporcional ao conteúdo.
+- **Largura:** intrínseca por padrão. Ocupar toda a linha somente em formulários/modais onde a ação
+  precisa compartilhar a barra com outra ação ou onde a ergonomia móvel justificar.
+- **Dourado:** reservado a badge, ícone ou detalhe de plano/conquista; CTA de assinatura continua
+  rosa.
 
 ### Inputs: The Soft Entry
 
-- **Field:** Background `#FFFFFF`, Corners: `12px`.
-- **Focus State:** Instead of a heavy border, use a soft glow (low-opacity Primary color) or a subtle shift in the label color to Marrom Quente.
+- **Field:** 48 px, `surfaceElevated`, `radii.lg`, borda `theme.colors.border`.
+- **Focus State:** foco visível com cor primária AA; no PWA, nunca remover o indicador sem
+  substituto.
 
 ### Cards: The Organic Canvas
 
-- **Architecture:** Corners `xl` (24px) or `lg` (20px). No borders.
-- **Illustration Integration:** Flat, organic illustrations (cakes, whisk, rolling pin) must "peek" from the bottom-right or top-left corners, partially masked by the card's radius.
-- **Spacing:** Minimum internal padding of `Spacing 4` (1.4rem) to ensure elements never feel cramped.
+- **Architecture:** `Card` canônico, raios `xl`/`2xl`, fundo opaco e borda hairline quando
+  `outlined`.
+- **Illustration Integration:** opcional e contextual; nunca presumir confeitaria para todos os
+  públicos.
+- **Spacing:** usar exclusivamente a escala `spacing`.
 
 ### Lists: The Invisible Flow
 
-- **Rule:** Forbid divider lines. Use vertical white space (`Spacing 3` or `3.5`) to separate list items.
-- **Grouping:** Group related list items onto a single `Surface` card to create a visual "bucket" without needing structural lines.
+- **Rule:** priorizar espaço; divisores hairline são permitidos dentro de listas densas quando
+  melhoram varredura.
+- **Grouping:** itens relacionados podem compartilhar um `ListCard` ou `Card`.
 
 ---
 
@@ -85,16 +117,17 @@ We do not use shadows to create depth. We use the **Layering Principle**.
 
 ### Do:
 
-- **Use "Aggressive" White Space:** If in doubt, add more space. The goal is to have "few elements per screen."
-- **Embrace Asymmetry:** Place titles slightly off-center or allow images to overlap container edges to break the "grid" feel.
-- **Prioritize Color Shifts:** Use the difference between `#FFF5F0` and `#F5E1DB` to guide the eye.
+- **Use espaço suficiente:** sem sacrificar densidade operacional ou criar scroll desnecessário.
+- **Use rosa com função:** ação primária, seleção, link ou momento de marca.
+- **Use semântica:** verde, âmbar e vermelho carregam significado operacional.
 
 ### Don’t:
 
-- **No Material Design:** Avoid FABs (Floating Action Buttons), ripples, or standard Material icons.
-- **No Gradients:** Keep colors flat and honest to maintain the "Sophisticated/Clean" aesthetic.
-- **No Heavy Shadows:** Shadows make the interface feel "heavy" and "tech-focused." We want "light" and "home-grown."
-- **No Roboto:** Never use standard system fonts. Stick strictly to the Playfair/Quicksand/Poppins triad.
+- **No paletas locais:** usar `theme.colors`.
+- **No gradients/glass como identidade:** preservar a linguagem flat.
+- **No sombras pesadas/hardcoded:** usar tokens somente quando necessário.
+- **No fontes de sistema em novos componentes:** usar Nunito Sans pelos tokens.
+- **No mobile esticado no desktop:** conter superfícies, formulários e ações.
 
 ---
 
@@ -102,7 +135,9 @@ We do not use shadows to create depth. We use the **Layering Principle**.
 
 In Dark Mode, we maintain warmth by avoiding pure blacks.
 
-- **Background:** `#1E1814` (Deep Espresso)
-- **Cards/Surface:** `#2C2420` (Roasted Cocoa)
-- **Text:** `#F5E1DB` (Rosa Neve)
-- **Interaction:** Maintain the primary `#C4707E` for buttons to ensure brand recognition remains consistent across modes.
+- **Background:** `#1B1917`.
+- **Surface:** `#272422`.
+- **Surface Elevated:** `#33302D`.
+- **Text:** `#F5F4F2`.
+- **Interaction:** usar os pares claros/escuros definidos em `darkTheme`; nunca reutilizar um
+  fill claro sem validar contraste.

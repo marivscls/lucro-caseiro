@@ -30,6 +30,7 @@ import { useProfile } from "../features/subscription/hooks";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { alertError } from "../shared/utils/alerts";
 import { formatCurrency } from "../shared/utils/format";
+import { desktopStretch, desktopWidths, pageGutter } from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { SkeletonList } from "../shared/components/skeleton";
@@ -118,8 +119,8 @@ export default function PurchasesScreen() {
   function renderList() {
     if (isLoading) {
       return (
-        <View style={{ flex: 1, padding: spacing.xl }}>
-          <SkeletonList rows={6} />
+        <View style={{ flex: 1, paddingVertical: spacing.xl, ...pageGutter(isDesktop), ...desktopStretch(isDesktop, desktopWidths.data) }}>
+          <SkeletonList rows={6} variant="purchase" />
         </View>
       );
     }
@@ -152,24 +153,34 @@ export default function PurchasesScreen() {
     return (
       <ScrollView
         contentContainerStyle={{
-          paddingHorizontal: spacing.lg,
+          ...pageGutter(isDesktop, spacing.lg),
+          ...desktopStretch(isDesktop, desktopWidths.data),
           paddingBottom: spacing["3xl"],
           gap: spacing.md,
+          ...(isDesktop ? { flexDirection: "row", flexWrap: "wrap" } : undefined),
         }}
       >
         {items.map((p) => (
-          <PurchaseCard
+          <View
             key={p.id}
-            purchase={p}
-            onPay={() => pay(p.id)}
-            onEdit={() => setEditingPurchase(p)}
-            onDelete={() => confirmDelete(p.id)}
-            isPaying={payingId === p.id}
-            payDisabled={payingId !== null}
-            isDeleting={deletingId === p.id}
-            deleteDisabled={deletingId !== null}
-            editDisabled={payingId !== null || deletingId !== null}
-          />
+            style={
+              isDesktop
+                ? { width: "48%", flexGrow: 1, minWidth: 320 }
+                : { width: "100%" }
+            }
+          >
+            <PurchaseCard
+              purchase={p}
+              onPay={() => pay(p.id)}
+              onEdit={() => setEditingPurchase(p)}
+              onDelete={() => confirmDelete(p.id)}
+              isPaying={payingId === p.id}
+              payDisabled={payingId !== null}
+              isDeleting={deletingId === p.id}
+              deleteDisabled={deletingId !== null}
+              editDisabled={payingId !== null || deletingId !== null}
+            />
+          </View>
         ))}
       </ScrollView>
     );
@@ -192,10 +203,14 @@ export default function PurchasesScreen() {
         <Stack.Screen options={{ headerShown: false }} />
 
         {/* Top bar */}
-        {!isDesktop && <ScreenHeader title="Compras" style={{ gap: spacing.sm }} />}
+        <ScreenHeader title="Compras" hideBack={isDesktop} style={{ gap: spacing.sm }} />
 
         <ScrollView
-          contentContainerStyle={{ padding: spacing.lg, paddingTop: spacing.xl }}
+          contentContainerStyle={{
+            ...pageGutter(isDesktop, spacing.lg),
+            ...desktopStretch(isDesktop, desktopWidths.data),
+            paddingTop: spacing.xl,
+          }}
         >
           <PurchasesPremiumGate onUnlock={() => showPaywall("purchases")} />
         </ScrollView>
@@ -216,29 +231,32 @@ export default function PurchasesScreen() {
         hideBack={isDesktop}
         style={{ gap: spacing.sm }}
         right={
-          <Pressable
-            onPress={openCreate}
-            accessibilityRole="button"
-            accessibilityLabel="Nova compra"
-            style={({ pressed }) => ({
-              width: 44,
-              height: 44,
-              borderRadius: radii.full,
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: theme.colors.primaryInteractive,
-              opacity: pressed ? 0.85 : 1,
-            })}
-          >
-            <AppIcon name="add" size={iconSizes.md} color={theme.colors.textOnPrimary} />
-          </Pressable>
+          items.length > 0 ? (
+            <Pressable
+              onPress={openCreate}
+              accessibilityRole="button"
+              accessibilityLabel="Nova compra"
+              style={({ pressed }) => ({
+                width: 44,
+                height: 44,
+                borderRadius: radii.full,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: theme.colors.primaryInteractive,
+                opacity: pressed ? 0.85 : 1,
+              })}
+            >
+              <AppIcon name="add" size={iconSizes.md} color={theme.colors.textOnPrimary} />
+            </Pressable>
+          ) : undefined
         }
       />
 
       {/* Resumo: a pagar */}
       <View
         style={{
-          marginHorizontal: spacing.lg,
+          ...pageGutter(isDesktop, spacing.lg),
+          ...desktopStretch(isDesktop, desktopWidths.data),
           marginTop: spacing.xl,
           marginBottom: spacing.sm,
           padding: spacing.lg,
@@ -265,7 +283,8 @@ export default function PurchasesScreen() {
         style={{
           flexDirection: "row",
           gap: spacing.sm,
-          paddingHorizontal: spacing.lg,
+          ...pageGutter(isDesktop, spacing.lg),
+          ...desktopStretch(isDesktop, desktopWidths.data),
           paddingBottom: spacing.sm,
         }}
       >

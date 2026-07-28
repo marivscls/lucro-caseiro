@@ -19,10 +19,10 @@ import {
 } from "react-native";
 
 import { useAppAlert, type AppAlertButton } from "./alert-store";
-import successBrigadeiro from "../../assets/success-brigadeiro.png";
 import successChecklist from "../../assets/success-checklist.png";
 import successGrowth from "../../assets/success-growth.png";
 import successModalFrame from "../../assets/success-modal-frame.png";
+import salesEmpty from "../../assets/sales-empty.png";
 import { ResponsiveOverlayModal } from "./responsive-modal-surface";
 
 export { showAlert } from "./alert-store";
@@ -34,7 +34,7 @@ const SUCCESS_FEATURES: Array<{
   image: ImageSourcePropType;
 }> = [
   { label: "Organize suas\nvendas", image: successChecklist },
-  { label: "Acompanhe seus\npedidos", image: successBrigadeiro },
+  { label: "Acompanhe seus\npedidos", image: salesEmpty },
   { label: "Veja seu\nlucro crescer", image: successGrowth },
 ];
 

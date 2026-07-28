@@ -16,6 +16,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CalculatorModal } from "../../../shared/components/calculator-modal";
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { useFieldPalette } from "../../../shared/components/form-field";
+import {
+  desktopSplitLayout,
+  pageGutter,
+} from "../../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import {
   currencyInput,
@@ -25,6 +29,7 @@ import {
 import { alertError, alertValidation } from "../../../shared/utils/alerts";
 import { usePackagingList } from "../../packaging/hooks";
 import { useProducts } from "../../products/hooks";
+import { useBusinessCopy } from "../../subscription/business-copy";
 import { trackAnalyticsAction } from "../../analytics/tracker";
 import { useAuth } from "../../../shared/hooks/use-auth";
 import * as priceCalc from "../calc";
@@ -37,6 +42,10 @@ const MARGIN_PRESETS = [30, 50, 80, 100, 150, 200];
 
 function parseCurrency(text: string): number {
   return parseCurrencyInput(text) || 0;
+}
+
+function capitalize(value: string): string {
+  return value.replace(/^./, (letter) => letter.toUpperCase());
 }
 
 interface PricingCalculatorProps {
@@ -394,6 +403,7 @@ function DicaBox({
 
 export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculatorProps) {
   const { theme } = useTheme();
+  const experienceCopy = useBusinessCopy();
   const isDesktop = useDesktopLayout();
   const pal = useFieldPalette();
   const insets = useSafeAreaInsets();
@@ -452,7 +462,9 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
 
   const handleNext = useCallback(() => {
     if (step === 1 && parseCurrency(ingredientCost) <= 0) {
-      alertValidation("Informe o custo dos insumos para continuar.");
+      alertValidation(
+        `Informe o custo de ${experienceCopy.materialNounPlural} para continuar.`,
+      );
       return;
     }
     const hasAnyLaborValue = laborMin > 0 || laborUnits > 0 || laborHourlyRateValue > 0;
@@ -598,14 +610,17 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
   return (
     <>
       <KeyboardAwareScrollView
-        contentContainerStyle={{
-          padding: spacing.xl,
-          paddingBottom: spacing["5xl"] + insets.bottom,
-          gap: spacing.xl,
-          width: "100%",
-          maxWidth: isDesktop ? 980 : undefined,
-          alignSelf: "center",
-        }}
+        extraScrollHeight={spacing["4xl"]}
+        contentContainerStyle={[
+          {
+            paddingTop: spacing.xl,
+            paddingBottom: spacing["5xl"] + insets.bottom,
+            gap: spacing.xl,
+            width: "100%",
+          },
+          pageGutter(isDesktop),
+          desktopSplitLayout(isDesktop).outer,
+        ]}
       >
         <StepProgress current={stepNumber} />
         <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -619,12 +634,14 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
         {step === 1 && (
           <>
             <StepTitle
-              title="Custo dos insumos"
-              subtitle="Informe quanto você gasta em insumos para produzir uma unidade."
+              title={`Custo de ${experienceCopy.materialNounPlural}`}
+              subtitle={`Informe quanto você gasta em ${experienceCopy.materialNounPlural} para entregar uma unidade.`}
             />
             {costedProducts.length > 0 && !selectedProduct ? (
               <View style={{ gap: spacing.sm }}>
-                <FieldLabel>Puxar o custo de um produto (vem da receita):</FieldLabel>
+                <FieldLabel>
+                  {`Puxar o custo de um ${experienceCopy.productNoun} (vem da ${experienceCopy.formulaNoun}):`}
+                </FieldLabel>
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
@@ -677,7 +694,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
                   </View>
                   <View style={{ flex: 1 }}>
                     <Typography variant="caption" color={theme.colors.textSecondary}>
-                      Produto selecionado
+                      {capitalize(experienceCopy.productNoun)} selecionado
                     </Typography>
                     <Typography variant="h2" color={theme.colors.text}>
                       {selectedProduct.name}
@@ -687,7 +704,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
                 <View style={{ height: 1, backgroundColor: pal.border }} />
                 <View>
                   <Typography variant="caption" color={theme.colors.textSecondary}>
-                    Custo da receita
+                    Custo da {experienceCopy.formulaNoun}
                   </Typography>
                   <Typography variant="money" color={theme.colors.primary}>
                     {formatCurrency(selectedProduct.costPrice ?? 0)}
@@ -697,7 +714,9 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
             ) : null}
 
             <View style={{ gap: spacing.sm }}>
-              <FieldLabel>Valor dos insumos (R$)</FieldLabel>
+              <FieldLabel>
+                {`Valor de ${experienceCopy.materialNounPlural} (R$)`}
+              </FieldLabel>
               <MoneyField
                 value={ingredientCost}
                 onChangeText={(t) => {
@@ -716,7 +735,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
                     color={theme.colors.success}
                   />
                   <Typography variant="caption" color={theme.colors.success}>
-                    Valor importado da receita
+                    Valor importado da {experienceCopy.formulaNoun}
                   </Typography>
                 </View>
               ) : null}
@@ -727,8 +746,8 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
         {step === 2 && (
           <>
             <StepTitle
-              title="Custo da embalagem"
-              subtitle="Informe quanto custa a embalagem utilizada para cada unidade."
+              title={`Custo de ${experienceCopy.packagingNoun}`}
+              subtitle={`Informe o valor de ${experienceCopy.packagingNoun} por unidade.`}
             />
             {selectedProduct ? (
               <View style={cardStyle(theme, pal)}>
@@ -754,7 +773,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
                   </View>
                   <View style={{ flex: 1 }}>
                     <Typography variant="caption" color={theme.colors.textSecondary}>
-                      Produto selecionado
+                      {capitalize(experienceCopy.productNoun)} selecionado
                     </Typography>
                     <Typography variant="h2" color={theme.colors.text}>
                       {selectedProduct.name}
@@ -766,7 +785,9 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
 
             {packagingItems.length > 0 ? (
               <View style={{ gap: spacing.sm }}>
-                <FieldLabel>Escolha uma embalagem cadastrada:</FieldLabel>
+                <FieldLabel>
+                  {`Selecione no cadastro: ${experienceCopy.packagingNoun}`}
+                </FieldLabel>
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
@@ -797,7 +818,9 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
             ) : null}
 
             <View style={{ gap: spacing.sm }}>
-              <FieldLabel>Valor da embalagem (R$)</FieldLabel>
+              <FieldLabel>
+                {`Valor de ${experienceCopy.packagingNoun} (R$)`}
+              </FieldLabel>
               <MoneyField
                 value={packagingCost}
                 onChangeText={(t) => setPackagingCost(maskCurrencyInput(t))}
@@ -1118,8 +1141,8 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
               style={({ pressed }) => ({
                 flex: isDesktop ? undefined : 1,
                 width: isDesktop ? 180 : undefined,
-                minHeight: isDesktop ? 44 : 56,
-                borderRadius: radii.lg,
+                minHeight: 44,
+                borderRadius: radii.md,
                 borderWidth: 1,
                 borderColor: `${theme.colors.primary}66`,
                 flexDirection: "row",
@@ -1129,7 +1152,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
                 opacity: pressed ? 0.7 : 1,
               })}
             >
-              <AppIcon name="arrow-back" size={20} color={theme.colors.primary} />
+              <AppIcon name="chevron-back" size={20} color={theme.colors.primary} />
               <Typography variant="bodyBold" color={theme.colors.primary}>
                 Voltar
               </Typography>
@@ -1141,9 +1164,9 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
             style={({ pressed }) => ({
               flex: isDesktop ? undefined : 1,
               width: isDesktop ? 180 : undefined,
-              minHeight: isDesktop ? 44 : 56,
-              borderRadius: radii.lg,
-              backgroundColor: theme.colors.primary,
+              minHeight: 44,
+              borderRadius: radii.md,
+              backgroundColor: theme.colors.primaryInteractive,
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "center",

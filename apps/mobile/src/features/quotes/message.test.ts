@@ -11,10 +11,25 @@ function makeQuote(overrides: Partial<Quote> = {}): Quote {
     clientName: "Maria",
     title: "Bolo de aniversário",
     items: [
-      { description: "Bolo recheado", quantity: 1, unitPrice: 80 },
-      { description: "Brigadeiro", quantity: 20, unitPrice: 2.5 },
+      {
+        description: "Bolo recheado",
+        quantity: 1,
+        unitPrice: 80,
+      },
+      {
+        description: "Brigadeiro",
+        quantity: 20,
+        unitPrice: 2.5,
+      },
     ],
+    subtotal: 130,
+    discount: 0,
+    discountType: null,
+    discountValue: 0,
     total: 130,
+    estimatedCost: 0,
+    estimatedGain: 130,
+    estimatedMargin: 100,
     status: "pending",
     validUntil: null,
     notes: null,
@@ -51,7 +66,13 @@ describe("buildQuoteMessage", () => {
   it("formata quantidade decimal com virgula", () => {
     const msg = buildQuoteMessage(
       makeQuote({
-        items: [{ description: "Doce a granel", quantity: 1.5, unitPrice: 40 }],
+        items: [
+          {
+            description: "Doce a granel",
+            quantity: 1.5,
+            unitPrice: 40,
+          },
+        ],
       }),
       "X",
     );

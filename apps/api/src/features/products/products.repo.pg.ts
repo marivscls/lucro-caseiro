@@ -1,6 +1,29 @@
-import type { Product, ProductComponent } from "@lucro-caseiro/contracts";
-import { productComponents, products } from "@lucro-caseiro/database/schema";
-import { and, avg, count, eq, ilike, inArray, or, sql } from "drizzle-orm";
+import type {
+  Product,
+  ProductComponent,
+  StockMovement,
+} from "@lucro-caseiro/contracts";
+import {
+  productComponents,
+  products,
+  saleItems,
+  sales,
+  stockMovements,
+} from "@lucro-caseiro/database/schema";
+import {
+  and,
+  avg,
+  count,
+  desc,
+  eq,
+  gte,
+  ilike,
+  inArray,
+  ne,
+  or,
+  sql,
+  sum,
+} from "drizzle-orm";
 import { calculateCompositeCost } from "./products.domain";
 import type { AppDatabase } from "../../shared/db";
 import type {
@@ -247,6 +270,117 @@ export class ProductsRepoPg implements IProductsRepo {
     return !!row;
   }
 
+  async adjustStockWithMovement(
+    userId: string,
+    productId: string,
+    data: {
+      delta: number;
+      variationId?: string | null;
+      reason?: string | null;
+      occurredAt?: string;
+      type?: StockMovement["type"];
+      sourceId?: string | null;
+    },
+  ): Promise<StockMovement | null> {
+    return this.db.transaction(async (tx) => {
+      const [row] = await tx
+        .select()
+        .from(products)
+        .where(and(eq(products.userId, userId), eq(products.id, productId)));
+      if (!row) return null;
+
+      let balanceAfter: number | null = null;
+      if (data.variationId) {
+        const variations = row.variations ?? [];
+        const index = variations.findIndex(
+          (variation) => variation.id === data.variationId,
+        );
+        if (index < 0) return null;
+        const variation = variations[index]!;
+        if (variation.stockQuantity === undefined && data.delta < 0) return null;
+        balanceAfter = (variation.stockQuantity ?? 0) + data.delta;
+        if (balanceAfter < 0) return null;
+        const next = variations.map((item, itemIndex) =>
+          itemIndex === index ? { ...item, stockQuantity: balanceAfter! } : item,
+        );
+        await tx
+          .update(products)
+          .set({ variations: next })
+          .where(and(eq(products.userId, userId), eq(products.id, productId)));
+      } else {
+        if (row.stockQuantity === null && data.delta < 0) return null;
+        balanceAfter = (row.stockQuantity ?? 0) + data.delta;
+        if (balanceAfter < 0) return null;
+        await tx
+          .update(products)
+          .set({ stockQuantity: balanceAfter })
+          .where(and(eq(products.userId, userId), eq(products.id, productId)));
+      }
+
+      const [movement] = await tx
+        .insert(stockMovements)
+        .values({
+          userId,
+          productId,
+          variationId: data.variationId ?? null,
+          type: data.type ?? "adjustment",
+          delta: String(data.delta),
+          balanceAfter: String(balanceAfter),
+          reason: data.reason ?? null,
+          sourceId: data.sourceId ?? null,
+          occurredAt: data.occurredAt ? new Date(data.occurredAt) : new Date(),
+        })
+        .returning();
+      return movement ? this.toStockMovement(movement) : null;
+    });
+  }
+
+  async listStockMovements(
+    userId: string,
+    productId: string,
+    limit: number,
+  ): Promise<StockMovement[]> {
+    const rows = await this.db
+      .select()
+      .from(stockMovements)
+      .where(
+        and(
+          eq(stockMovements.userId, userId),
+          eq(stockMovements.productId, productId),
+        ),
+      )
+      .orderBy(desc(stockMovements.occurredAt))
+      .limit(limit);
+    return rows.map((row) => this.toStockMovement(row));
+  }
+
+  async getSalesVelocity(
+    userId: string,
+    days: number,
+  ): Promise<Array<{ productId: string; quantity: number }>> {
+    const since = new Date();
+    since.setUTCDate(since.getUTCDate() - days);
+    const rows = await this.db
+      .select({
+        productId: saleItems.productId,
+        quantity: sum(saleItems.quantity),
+      })
+      .from(saleItems)
+      .innerJoin(sales, eq(saleItems.saleId, sales.id))
+      .where(
+        and(
+          eq(sales.userId, userId),
+          ne(sales.status, "cancelled"),
+          gte(sales.soldAt, since),
+        ),
+      )
+      .groupBy(saleItems.productId);
+    return rows.map((row) => ({
+      productId: row.productId,
+      quantity: Number(row.quantity ?? 0),
+    }));
+  }
+
   async countByUser(userId: string): Promise<number> {
     const [result] = await this.db
       .select({ value: count() })
@@ -254,6 +388,23 @@ export class ProductsRepoPg implements IProductsRepo {
       .where(and(eq(products.userId, userId), eq(products.isActive, true)));
 
     return result?.value ?? 0;
+  }
+
+  private toStockMovement(
+    row: typeof stockMovements.$inferSelect,
+  ): StockMovement {
+    return {
+      id: row.id,
+      productId: row.productId,
+      variationId: row.variationId,
+      type: row.type as StockMovement["type"],
+      delta: Number(row.delta),
+      balanceAfter:
+        row.balanceAfter == null ? null : Number(row.balanceAfter),
+      reason: row.reason,
+      sourceId: row.sourceId,
+      occurredAt: row.occurredAt.toISOString(),
+    };
   }
 
   async averageActivePrice(userId: string): Promise<number | null> {

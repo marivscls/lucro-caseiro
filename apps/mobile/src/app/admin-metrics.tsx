@@ -20,7 +20,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAdminAnalyticsDashboard } from "../features/analytics/hooks";
 import { ListCard, ListCardItem } from "../shared/components/list-card";
-import { SkeletonCard } from "../shared/components/skeleton";
+import { ScreenHeader } from "../shared/components/screen-header";
+import { Skeleton, SkeletonSummaryStrip, SkeletonList } from "../shared/components/skeleton";
+import { desktopStretch, desktopWidths, pageGutter } from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { ApiError } from "../shared/utils/api-client";
 
@@ -473,7 +475,6 @@ function RetentionSection({ data }: Readonly<{ data: ProductAnalyticsDashboard }
 
 function Dashboard({ data }: Readonly<{ data: ProductAnalyticsDashboard }>) {
   const { theme } = useTheme();
-  const isDesktop = useDesktopLayout();
   const [section, setSection] = useState<DashboardSection>("overview");
   let sectionContent: React.ReactNode = <OverviewSection data={data} />;
   if (section === "usage") sectionContent = <UsageSection data={data} />;
@@ -483,7 +484,6 @@ function Dashboard({ data }: Readonly<{ data: ProductAnalyticsDashboard }>) {
   return (
     <View style={{ gap: spacing.lg }}>
       <View>
-        {!isDesktop && <Typography variant="h1">Métricas do produto</Typography>}
         <Typography variant="body" color={theme.colors.textSecondary}>
           Instalação, uso, conversão e retorno dos usuários.
         </Typography>
@@ -534,6 +534,7 @@ function Dashboard({ data }: Readonly<{ data: ProductAnalyticsDashboard }>) {
 
 export default function AdminMetricsScreen() {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const dashboard = useAdminAnalyticsDashboard();
   const forbidden = dashboard.error instanceof ApiError && dashboard.error.status === 403;
   const errorIcon = forbidden ? "lock-closed-outline" : "cloud-offline-outline";
@@ -545,10 +546,12 @@ export default function AdminMetricsScreen() {
   let content: React.ReactNode;
   if (dashboard.isLoading) {
     content = (
-      <View style={{ flex: 1, padding: spacing.xl, gap: spacing.lg }}>
-        <SkeletonCard lines={2} />
-        <SkeletonCard lines={2} />
-        <SkeletonCard lines={3} />
+      <View
+        style={{ flex: 1, ...pageGutter(isDesktop), ...desktopStretch(isDesktop, desktopWidths.data), paddingVertical: spacing.xl, gap: spacing.lg }}
+      >
+        <Skeleton width="45%" height={18} />
+        <SkeletonSummaryStrip tiles={3} />
+        <SkeletonList rows={4} variant="amount" />
       </View>
     );
   } else if (dashboard.error || !dashboard.data) {
@@ -565,7 +568,12 @@ export default function AdminMetricsScreen() {
   } else {
     content = (
       <ScrollView
-        contentContainerStyle={{ padding: spacing.xl, paddingBottom: spacing["4xl"] }}
+        contentContainerStyle={{
+          ...pageGutter(isDesktop),
+          ...desktopStretch(isDesktop, desktopWidths.data),
+          paddingTop: spacing.xl,
+          paddingBottom: spacing["4xl"],
+        }}
         refreshControl={
           <RefreshControl
             refreshing={dashboard.isRefetching}
@@ -584,7 +592,8 @@ export default function AdminMetricsScreen() {
       style={{ flex: 1, backgroundColor: theme.colors.background }}
       edges={["top", "bottom"]}
     >
-      <Stack.Screen options={{ title: "Métricas", headerBackTitle: "Voltar" }} />
+      <Stack.Screen options={{ headerShown: false }} />
+      <ScreenHeader title="Métricas do produto" hideBack={isDesktop} />
       {content}
     </SafeAreaView>
   );

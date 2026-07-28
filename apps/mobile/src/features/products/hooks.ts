@@ -1,15 +1,22 @@
-import type { CreateProduct, UpdateProduct } from "@lucro-caseiro/contracts";
+import type {
+  CreateProduct,
+  CreateStockAdjustment,
+  UpdateProduct,
+} from "@lucro-caseiro/contracts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "../../shared/hooks/use-auth";
 import { trackAnalyticsAction } from "../analytics/tracker";
 import {
   createProduct,
+  adjustProductStock,
   deleteProduct,
   fetchAllProducts,
   fetchLowStockProducts,
   fetchProduct,
   fetchProducts,
+  fetchSalesVelocity,
+  fetchStockMovements,
   lookupProductByCode,
   updateProduct,
 } from "./api";
@@ -103,5 +110,43 @@ export function useDeleteProduct() {
       void queryClient.invalidateQueries({ queryKey: PRODUCTS_KEY });
       void queryClient.invalidateQueries({ queryKey: ["subscription"] });
     },
+  });
+}
+
+export function useAdjustProductStock() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      productId,
+      data,
+    }: {
+      productId: string;
+      data: CreateStockAdjustment;
+    }) => adjustProductStock(token!, productId, data),
+    onSuccess: (_movement, variables) => {
+      void queryClient.invalidateQueries({ queryKey: PRODUCTS_KEY });
+      void queryClient.invalidateQueries({
+        queryKey: [...PRODUCTS_KEY, variables.productId, "movements"],
+      });
+    },
+  });
+}
+
+export function useStockMovements(productId: string) {
+  const { token } = useAuth();
+  return useQuery({
+    queryKey: [...PRODUCTS_KEY, productId, "movements"],
+    queryFn: () => fetchStockMovements(token!, productId),
+    enabled: !!token && !!productId,
+  });
+}
+
+export function useSalesVelocity() {
+  const { token } = useAuth();
+  return useQuery({
+    queryKey: [...PRODUCTS_KEY, "velocity"],
+    queryFn: () => fetchSalesVelocity(token!),
+    enabled: !!token,
   });
 }

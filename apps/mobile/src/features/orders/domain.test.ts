@@ -23,6 +23,9 @@ function makeOrder(overrides: Partial<Order> = {}): Order {
     photoUrl: null,
     notes: null,
     saleId: null,
+    serviceId: null,
+    serviceName: null,
+    durationMinutes: null,
     createdAt: "2026-05-01T00:00:00.000Z",
     ...overrides,
   };

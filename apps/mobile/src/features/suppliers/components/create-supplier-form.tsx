@@ -1,11 +1,16 @@
 import type { Supplier } from "@lucro-caseiro/contracts";
-import { Button, Input, Typography } from "@lucro-caseiro/ui";
+import { Button, Input, Typography, spacing } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
 import { View } from "react-native";
 
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { StandardModal } from "../../../shared/components/standard-modal";
-import { desktopAction, desktopContained } from "../../../shared/layout/desktop-density";
+import {
+  desktopAction,
+  desktopStretch,
+  desktopWidths,
+  pageGutter,
+} from "../../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
 import { usePaywall } from "../../../shared/hooks/use-paywall";
@@ -16,6 +21,7 @@ import { digitsOnly, duplicateKey } from "../../../shared/utils/duplicates";
 import { isValidEmail } from "../../../shared/utils/email";
 import { isValidBrazilPhone, maskPhoneBR } from "../../../shared/utils/phone";
 import { useCreateSupplier, useSuppliers } from "../hooks";
+import { useBusinessCopy } from "../../subscription/business-copy";
 
 interface CreateSupplierFormProps {
   // Recebe o fornecedor criado para quem quiser auto-selecioná-lo (ex.: SupplierSelector).
@@ -29,6 +35,7 @@ export function CreateSupplierForm({
   modal,
 }: Readonly<CreateSupplierFormProps>) {
   const isDesktop = useDesktopLayout();
+  const experienceCopy = useBusinessCopy();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -119,39 +126,65 @@ export function CreateSupplierForm({
     />
   );
 
+  // No modal (hug estreito) o form usa coluna única; na página cheia, campos
+  // curtos (telefone/email) ficam lado a lado para aproveitar a largura.
+  const wideLayout = isDesktop && !modal;
+
   const fields = (
     <>
-      <Input
-        label="Nome do fornecedor"
-        placeholder="Ex: Atacadão da Festa, Doce Sabor..."
-        value={name}
-        onChangeText={setName}
-        autoFocus
-      />
+      <View
+        style={{
+          flexDirection: wideLayout ? "row" : "column",
+          gap: wideLayout ? spacing.lg : 16,
+        }}
+      >
+        <View style={wideLayout ? { flex: 1 } : undefined}>
+          <Input
+            label="Nome do fornecedor"
+            placeholder={`Ex: ${experienceCopy.supplierExample}`}
+            value={name}
+            onChangeText={setName}
+            autoFocus
+          />
+        </View>
 
-      <Input
-        label="Telefone / WhatsApp (opcional)"
-        placeholder="Ex: (11) 99999-9999"
-        value={phone}
-        onChangeText={(v) => setPhone(maskPhoneBR(v))}
-        keyboardType="phone-pad"
-      />
+        <View style={wideLayout ? { flex: 1, maxWidth: desktopWidths.compact } : undefined}>
+          <Input
+            label="Telefone / WhatsApp (opcional)"
+            placeholder="Ex: (11) 99999-9999"
+            value={phone}
+            onChangeText={(v) => setPhone(maskPhoneBR(v))}
+            keyboardType="phone-pad"
+          />
+        </View>
+      </View>
 
-      <Input
-        label="Email (opcional)"
-        placeholder="Ex: contato@fornecedor.com"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+      <View
+        style={{
+          flexDirection: wideLayout ? "row" : "column",
+          gap: wideLayout ? spacing.lg : 16,
+        }}
+      >
+        <View style={wideLayout ? { flex: 1 } : undefined}>
+          <Input
+            label="Email (opcional)"
+            placeholder="Ex: contato@fornecedor.com"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </View>
 
-      <Input
-        label="Endereço (opcional)"
-        placeholder="Ex: Rua das Flores, 123"
-        value={address}
-        onChangeText={setAddress}
-      />
+        <View style={wideLayout ? { flex: 1 } : undefined}>
+          <Input
+            label="Endereço (opcional)"
+            placeholder="Ex: Rua das Flores, 123"
+            value={address}
+            onChangeText={setAddress}
+          />
+        </View>
+      </View>
 
       <Input
         label="Observações (opcional)"
@@ -181,8 +214,8 @@ export function CreateSupplierForm({
   return (
     <KeyboardAwareScrollView
       contentContainerStyle={[
-        { padding: 20, paddingBottom: 80, gap: 16 },
-        desktopContained(isDesktop, 720),
+        { paddingVertical: 20, paddingBottom: 80, gap: 20, ...pageGutter(isDesktop, 20) },
+        desktopStretch(isDesktop, desktopWidths.form),
       ]}
     >
       <Typography variant="h2">Novo fornecedor</Typography>

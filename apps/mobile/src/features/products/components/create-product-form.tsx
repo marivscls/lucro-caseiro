@@ -1,6 +1,15 @@
 import type { Product, ProductVariationInput, SaleUnit } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
-import { Typography, useFeature, useTheme, radii, spacing } from "@lucro-caseiro/ui";
+import {
+  Typography,
+  useBrand,
+  useFeature,
+  useTheme,
+  fontSizes,
+  fonts,
+  radii,
+  spacing,
+} from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import type { AppIconName } from "../../../shared/components/app-icon";
 import React, { useMemo, useState } from "react";
@@ -22,6 +31,7 @@ import { useImagePicker } from "../../../shared/hooks/use-image-picker";
 import { uploadProductImage } from "../../../shared/utils/upload-image";
 import { useCreateProduct, useProducts } from "../hooks";
 import { useProfile } from "../../subscription/hooks";
+import { businessCopyFor } from "../../subscription/business-copy";
 import {
   ComponentPicker,
   draftsToComponents,
@@ -42,9 +52,14 @@ import {
   parseCurrencyInput,
 } from "../../../shared/utils/currency-input";
 import { confirmPossibleDuplicate, duplicateKey } from "../../../shared/utils/duplicates";
+import {
+  desktopCompactField,
+  desktopSplitLayout,
+} from "../../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
 import { StandardModal } from "../../../shared/components/standard-modal";
+import { FormSection } from "../../../shared/components/form-section";
 import { VariationEditor } from "./variation-editor";
 import { validateVariations } from "../variations";
 import { trackAnalyticsAction } from "../../analytics/tracker";
@@ -123,7 +138,8 @@ function TextFieldCard({ icon, isDesktop = false, ...inputProps }: TextFieldCard
         style={{
           flex: 1,
           color: theme.colors.text,
-          fontSize: 16,
+          fontFamily: fonts.regular,
+          fontSize: fontSizes.md,
           paddingVertical: isDesktop ? spacing.sm : spacing.md,
         }}
         {...inputProps}
@@ -136,11 +152,13 @@ function CategoryField({
   value,
   onChange,
   categories,
+  placeholder,
   isDesktop = false,
 }: Readonly<{
   value: string;
   onChange: (v: string) => void;
   categories: string[];
+  placeholder: string;
   isDesktop?: boolean;
 }>) {
   const { theme } = useTheme();
@@ -184,7 +202,7 @@ function CategoryField({
           numberOfLines={1}
           style={{ flex: 1 }}
         >
-          {value || "Ex: Doces, Salgados, Bolos..."}
+          {value || placeholder}
         </Typography>
         <AppIcon name="chevron-down" size={20} color={theme.colors.textSecondary} />
       </Pressable>
@@ -304,8 +322,8 @@ function CategoryField({
                   return {
                     alignSelf: isDesktop ? "flex-end" : undefined,
                     width: isDesktop ? 180 : undefined,
-                    minHeight: isDesktop ? 44 : 52,
-                    borderRadius: radii.lg,
+                    minHeight: 44,
+                    borderRadius: radii.md,
                     backgroundColor: theme.colors.primaryInteractive,
                     alignItems: "center",
                     justifyContent: "center",
@@ -339,7 +357,7 @@ function PhotoField({
 
   return (
     <View>
-      <FieldLabel label="Foto do produto" />
+      <FieldLabel label="Foto principal" />
       <Typography
         variant="caption"
         color={theme.colors.textSecondary}
@@ -445,7 +463,7 @@ function DescriptionField({
           <TextInput
             value={value}
             onChangeText={(t) => onChange(t.slice(0, MAX))}
-            placeholder="Fale um pouco sobre o produto, ingredientes, diferenciais..."
+            placeholder="Descreva o que você vende, seus diferenciais e detalhes importantes..."
             placeholderTextColor={pal.placeholder}
             multiline
             maxLength={MAX}
@@ -501,8 +519,8 @@ function ExtraPhotosField({
         style={{ marginTop: -spacing.xs, marginBottom: spacing.sm }}
       >
         {isPremium
-          ? `Mostre seu produto de vários ângulos (até ${max + 1} fotos no total).`
-          : `Adicione até ${max + 1} fotos por produto com o Profissional.`}
+          ? `Mostre mais detalhes deste cadastro (até ${max + 1} fotos no total).`
+          : `Adicione até ${max + 1} fotos por cadastro com o Profissional.`}
       </Typography>
       <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
         {uris.map((uri, index) => (
@@ -563,6 +581,7 @@ export function CreateProductForm({
   modal,
 }: CreateProductFormProps) {
   const { theme } = useTheme();
+  const brand = useBrand();
   const variationsEnabled = useFeature("catalogoCores");
   const directCostEnabled = useFeature("custoDireto");
   const weightEnabled = useFeature("vendaPorPeso");
@@ -570,6 +589,7 @@ export function CreateProductForm({
   // No sheet hug (modal) o form usa sempre coluna única: as rows lado a lado com
   // larguras fixas foram pensadas para o uso inline em desktop (fluxo new-sale).
   const wideLayout = isDesktop && !modal;
+  const split = desktopSplitLayout(wideLayout);
   const [name, setName] = useState(initialValues?.name ?? "");
   const [category, setCategory] = useState(initialValues?.category ?? "");
   const [salePrice, setSalePrice] = useState(
@@ -590,6 +610,7 @@ export function CreateProductForm({
   const extraPicker = useImagePicker();
   const [extraUris, setExtraUris] = useState<string[]>([]);
   const { data: profile } = useProfile();
+  const experienceCopy = businessCopyFor(profile?.businessType, brand.copy);
   const canUseCompositeProducts =
     !!profile &&
     hasActiveFeature(profile.plan, profile.planExpiresAt, "compositeProducts");
@@ -625,11 +646,14 @@ export function CreateProductForm({
   const { data: productsData } = useProducts();
 
   const categories = useMemo(() => {
-    const set = new Set(
-      (productsData?.items ?? []).map((p) => p.category).filter((c): c is string => !!c),
-    );
+    const set = new Set([
+      ...experienceCopy.categoryPresets,
+      ...(productsData?.items ?? [])
+        .map((product) => product.category)
+        .filter((category): category is string => !!category),
+    ]);
     return Array.from(set).sort((a, b) => a.localeCompare(b, "pt-BR"));
-  }, [productsData]);
+  }, [experienceCopy.categoryPresets, productsData]);
 
   const isKg = saleUnit === "kg" && !isComposite;
 
@@ -666,10 +690,41 @@ export function CreateProductForm({
     if (duplicatedName) {
       const shouldContinue = await confirmPossibleDuplicate(
         "Produto parecido",
-        "Já existe um produto com esse nome. Confira se não é melhor editar o existente.",
+        `Já existe um ${experienceCopy.productNoun} com esse nome. Confira se não é melhor editar o existente.`,
       );
       if (!shouldContinue) return;
     }
+
+    let stockReview = "Sem controle de estoque";
+    if (saleUnit === "kg") stockReview = "Vendido por peso";
+    else if (stockQuantity) stockReview = `${stockQuantity} em estoque`;
+    const gainReview =
+      cost === undefined
+        ? "Custo não informado"
+        : `Ganho bruto de ${(price - cost).toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          })}`;
+    const confirmed = await new Promise<boolean>((resolve) => {
+      showAlert({
+        title: `Revisar ${experienceCopy.productNoun}`,
+        message: [
+          name.trim(),
+          category.trim(),
+          `Venda: ${price.toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          })}`,
+          gainReview,
+          stockReview,
+        ].join("\n"),
+        buttons: [
+          { text: "Voltar e editar", style: "cancel", onPress: () => resolve(false) },
+          { text: "Cadastrar", onPress: () => resolve(true) },
+        ],
+      });
+    });
+    if (!confirmed) return;
 
     const componentsPayload = isComposite ? draftsToComponents(components) : undefined;
 
@@ -682,8 +737,7 @@ export function CreateProductForm({
       } catch {
         showAlert({
           title: "Foto não enviada",
-          message:
-            "Não consegui enviar a foto agora. Vou salvar o produto sem ela. Você pode adicionar depois.",
+          message: `Não consegui enviar a foto agora. Vou salvar o ${experienceCopy.productNoun} sem ela. Você pode adicionar depois.`,
         });
       } finally {
         setUploading(false);
@@ -748,243 +802,304 @@ export function CreateProductForm({
       alertError(
         e instanceof Error
           ? e.message
-          : "Não foi possível cadastrar o produto. Tente novamente.",
+          : `Não foi possível cadastrar o ${experienceCopy.productNoun}. Tente novamente.`,
       );
     }
   }
 
   const loading = createProduct.isPending || uploading;
+  const parsedSalePrice = salePrice ? parseCurrencyInput(salePrice) : 0;
+  const parsedCostPrice = costPrice ? parseCurrencyInput(costPrice) : null;
+  const estimatedGain =
+    parsedCostPrice === null ? null : parsedSalePrice - parsedCostPrice;
+  const marginOnPrice =
+    estimatedGain === null || parsedSalePrice <= 0
+      ? null
+      : (estimatedGain / parsedSalePrice) * 100;
 
   const fields = (
     <>
-      <View
-        style={{
-          flexDirection: wideLayout ? "row" : "column",
-          gap: wideLayout ? spacing.lg : spacing.xl,
-        }}
+      <FormSection
+        title="Informações básicas"
+        subtitle={`Nome, categoria e tipo do ${experienceCopy.productNoun}`}
+        icon="pricetag-outline"
+        initiallyOpen
       >
-        <View style={wideLayout ? { flex: 1 } : undefined}>
-          <FieldLabel label="Nome do produto" required />
-          <TextFieldCard
-            icon="pricetag-outline"
-            placeholder={
-              directCostEnabled
-                ? "Ex: Caderno universitário, Caneta azul..."
-                : "Ex: Brigadeiro, Bolo de chocolate..."
-            }
-            value={name}
-            onChangeText={setName}
-            autoFocus
-            isDesktop={isDesktop}
-          />
-        </View>
-
-        <View style={wideLayout ? { flex: 1 } : undefined}>
-          <FieldLabel label="Categoria" required />
-          <CategoryField
-            value={category}
-            onChange={setCategory}
-            categories={categories}
-            isDesktop={isDesktop}
-          />
-        </View>
-      </View>
-
-      <CompositeToggle
-        value={isComposite}
-        onChange={handleCompositeChange}
-        locked={!canUseCompositeProducts}
-      />
-
-      {isComposite && <ComponentPicker value={components} onChange={setComponents} />}
-
-      {variationsEnabled && !isComposite ? (
-        <VariationEditor value={variations} onChange={setVariations} />
-      ) : null}
-
-      <View
-        style={{
-          flexDirection: wideLayout ? "row" : "column",
-          alignItems: wideLayout ? "flex-end" : undefined,
-          gap: spacing.xl,
-        }}
-      >
-        {/* Venda por peso (kg) so faz sentido para produto simples. */}
-        {!isComposite && weightEnabled && (
-          <View style={wideLayout ? { flex: 1, maxWidth: 640 } : undefined}>
-            <SaleUnitToggle value={saleUnit} onChange={setSaleUnit} />
-          </View>
-        )}
-
-        <View style={wideLayout ? { width: 360 } : undefined}>
-          <FieldLabel
-            label={isKg ? "Preço por kg (R$)" : "Preço de venda (R$)"}
-            required
-          />
-          <TextFieldCard
-            icon="cash-outline"
-            placeholder={isKg ? "Ex: 80,00" : "Ex: 3,50"}
-            value={salePrice}
-            onChangeText={(value) => setSalePrice(maskCurrencyInput(value))}
-            keyboardType="numeric"
-            isDesktop={isDesktop}
-          />
-        </View>
-
-        {directCostEnabled && !isComposite ? (
-          <View style={wideLayout ? { width: 360 } : undefined}>
-            <FieldLabel label="Custo unitário (R$)" />
+        <View
+          style={{
+            flexDirection: wideLayout ? "row" : "column",
+            gap: wideLayout ? spacing.lg : spacing.xl,
+          }}
+        >
+          <View style={wideLayout ? { flex: 1 } : undefined}>
+            <FieldLabel label={`Nome do ${experienceCopy.productNoun}`} required />
             <TextFieldCard
-              icon="wallet-outline"
-              placeholder="Ex: 2,10"
-              value={costPrice}
-              onChangeText={(value) => setCostPrice(maskCurrencyInput(value))}
+              icon="pricetag-outline"
+              placeholder={`Ex: ${experienceCopy.productExample}`}
+              value={name}
+              onChangeText={setName}
+              autoFocus
+              isDesktop={isDesktop}
+            />
+          </View>
+
+          <View style={wideLayout ? { flex: 1 } : undefined}>
+            <FieldLabel label="Categoria" required />
+            <CategoryField
+              value={category}
+              onChange={setCategory}
+              categories={categories}
+              placeholder={`Ex: ${experienceCopy.categoryExample}...`}
+              isDesktop={isDesktop}
+            />
+          </View>
+        </View>
+
+        <CompositeToggle
+          value={isComposite}
+          onChange={handleCompositeChange}
+          locked={!canUseCompositeProducts}
+        />
+
+        {isComposite && <ComponentPicker value={components} onChange={setComponents} />}
+
+        {variationsEnabled && !isComposite ? (
+          <VariationEditor value={variations} onChange={setVariations} />
+        ) : null}
+      </FormSection>
+
+      <FormSection
+        title="Preço e custo"
+        subtitle="Veja o ganho estimado enquanto preenche"
+        icon="cash-outline"
+        initiallyOpen
+      >
+        <View
+          style={{
+            flexDirection: wideLayout ? "row" : "column",
+            alignItems: wideLayout ? "flex-end" : undefined,
+            gap: spacing.xl,
+          }}
+        >
+          {/* Venda por peso (kg) so faz sentido para produto simples. */}
+          {!isComposite && weightEnabled && (
+            <View style={wideLayout ? { flex: 1, maxWidth: 640 } : undefined}>
+              <SaleUnitToggle value={saleUnit} onChange={setSaleUnit} />
+            </View>
+          )}
+
+          <View style={isDesktop ? desktopCompactField(isDesktop) : undefined}>
+            <FieldLabel
+              label={isKg ? "Preço por kg (R$)" : "Preço de venda (R$)"}
+              required
+            />
+            <TextFieldCard
+              icon="cash-outline"
+              placeholder={isKg ? "Ex: 80,00" : "Ex: 3,50"}
+              value={salePrice}
+              onChangeText={(value) => setSalePrice(maskCurrencyInput(value))}
               keyboardType="numeric"
               isDesktop={isDesktop}
             />
-            {costPrice && salePrice ? (
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                Margem bruta estimada:{" "}
-                {Math.max(
-                  0,
-                  parseCurrencyInput(salePrice) - parseCurrencyInput(costPrice),
-                ).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-              </Typography>
-            ) : null}
           </View>
-        ) : null}
-      </View>
 
-      <View
-        style={{
-          flexDirection: wideLayout ? "row" : "column",
-          alignItems: wideLayout ? "flex-start" : undefined,
-          gap: spacing.xl,
-        }}
-      >
-        <View style={wideLayout ? { width: 480, gap: spacing.lg } : { gap: spacing.xl }}>
-          <PhotoField
-            imageUri={imageUri ?? initialValues?.photoUrl ?? null}
-            onPress={showPicker}
-            isDesktop={isDesktop}
-          />
-
-          <ExtraPhotosField
-            uris={extraUris}
-            onAdd={() => void addExtraPhoto()}
-            onRemove={removeExtraPhoto}
-            max={MAX_EXTRA_PHOTOS}
-            isPremium={canUseExtraPhotos}
-            isDesktop={isDesktop}
-          />
-        </View>
-
-        <View style={wideLayout ? { flex: 1 } : undefined}>
-          <DescriptionField
-            value={description}
-            onChange={setDescription}
-            isDesktop={isDesktop}
-          />
-        </View>
-      </View>
-
-      <View
-        style={{
-          flexDirection: wideLayout ? "row" : "column",
-          alignItems: wideLayout ? "flex-end" : undefined,
-          gap: wideLayout ? spacing.lg : spacing.xl,
-        }}
-      >
-        <View style={wideLayout ? { flex: 1, maxWidth: 480 } : undefined}>
-          <FieldLabel label="Código de barras (opcional)" />
-          <View style={{ flexDirection: "row", gap: spacing.sm }}>
-            <View style={{ flex: 1 }}>
+          {directCostEnabled && !isComposite ? (
+            <View style={isDesktop ? desktopCompactField(isDesktop) : undefined}>
+              <FieldLabel label="Custo unitário (R$)" />
               <TextFieldCard
-                icon="barcode-outline"
-                placeholder="Ex: 789..."
-                value={code}
-                onChangeText={setCode}
+                icon="wallet-outline"
+                placeholder="Ex: 2,10"
+                value={costPrice}
+                onChangeText={(value) => setCostPrice(maskCurrencyInput(value))}
+                keyboardType="numeric"
                 isDesktop={isDesktop}
               />
             </View>
-            <Pressable
-              onPress={() => setShowScanner(true)}
-              accessibilityRole="button"
-              accessibilityLabel="Escanear código"
-              style={{
-                width: isDesktop ? 48 : 60,
-                minHeight: isDesktop ? 48 : 60,
-                borderRadius: radii.lg,
-                backgroundColor: theme.colors.surface,
-                borderWidth: 1,
-                borderColor: theme.colors.border,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <AppIcon name="scan-outline" size={24} color={theme.colors.textSecondary} />
-            </Pressable>
-          </View>
-          <Pressable
-            onPress={() => setCode(createInternalProductCode())}
-            accessibilityRole="button"
-            accessibilityLabel="Gerar código interno"
+          ) : null}
+        </View>
+        {estimatedGain !== null && marginOnPrice !== null && !wideLayout ? (
+          <View
             style={{
-              alignSelf: "flex-start",
-              flexDirection: "row",
-              alignItems: "center",
+              borderRadius: radii.xl,
+              padding: spacing.lg,
               gap: spacing.xs,
-              paddingTop: spacing.sm,
+              backgroundColor:
+                estimatedGain >= 0 ? theme.colors.successBg : theme.colors.alertBg,
             }}
           >
-            <AppIcon name="repeat-outline" size={18} color={theme.colors.primaryStrong} />
-            <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-              Gerar código interno
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              Estimativa com os custos informados
             </Typography>
-          </Pressable>
+            <Typography
+              variant="h3"
+              color={estimatedGain >= 0 ? theme.colors.success : theme.colors.alert}
+            >
+              Ganho bruto:{" "}
+              {estimatedGain.toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              })}
+            </Typography>
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              Margem sobre o preço: {marginOnPrice.toFixed(1).replace(".", ",")}%
+            </Typography>
+          </View>
+        ) : null}
+      </FormSection>
+
+      <FormSection
+        title="Fotos e descrição"
+        subtitle={`Apresentação do ${experienceCopy.productNoun} no catálogo`}
+        icon="camera-outline"
+      >
+        <View
+          style={{
+            flexDirection: wideLayout ? "row" : "column",
+            alignItems: wideLayout ? "flex-start" : undefined,
+            gap: spacing.xl,
+          }}
+        >
+          <View
+            style={wideLayout ? { width: 480, gap: spacing.lg } : { gap: spacing.xl }}
+          >
+            <PhotoField
+              imageUri={imageUri ?? initialValues?.photoUrl ?? null}
+              onPress={showPicker}
+              isDesktop={isDesktop}
+            />
+
+            <ExtraPhotosField
+              uris={extraUris}
+              onAdd={() => void addExtraPhoto()}
+              onRemove={removeExtraPhoto}
+              max={MAX_EXTRA_PHOTOS}
+              isPremium={canUseExtraPhotos}
+              isDesktop={isDesktop}
+            />
+          </View>
+
+          <View style={wideLayout ? { flex: 1 } : undefined}>
+            <DescriptionField
+              value={description}
+              onChange={setDescription}
+              isDesktop={isDesktop}
+            />
+          </View>
         </View>
+      </FormSection>
 
-        {saleUnit === "unit" && !isComposite && variations.length === 0 && (
-          <>
-            <View style={wideLayout ? { flex: 1, maxWidth: 260 } : undefined}>
-              <FieldLabel label="Quantidade em estoque (opcional)" />
-              <TextFieldCard
-                icon="albums-outline"
-                placeholder="Ex: 50"
-                value={stockQuantity}
-                onChangeText={setStockQuantity}
-                keyboardType="number-pad"
-                isDesktop={isDesktop}
-              />
+      <FormSection
+        title="Estoque e identificação"
+        subtitle="Código, quantidade disponível e alerta de reposição"
+        icon="albums-outline"
+        initiallyOpen
+      >
+        <View
+          style={{
+            flexDirection: wideLayout ? "row" : "column",
+            alignItems: wideLayout ? "flex-end" : undefined,
+            gap: wideLayout ? spacing.lg : spacing.xl,
+          }}
+        >
+          <View style={wideLayout ? { flex: 1, maxWidth: 480 } : undefined}>
+            <FieldLabel label="Código de barras (opcional)" />
+            <View style={{ flexDirection: "row", gap: spacing.sm }}>
+              <View style={{ flex: 1 }}>
+                <TextFieldCard
+                  icon="barcode-outline"
+                  placeholder="Ex: 789..."
+                  value={code}
+                  onChangeText={setCode}
+                  isDesktop={isDesktop}
+                />
+              </View>
+              <Pressable
+                onPress={() => setShowScanner(true)}
+                accessibilityRole="button"
+                accessibilityLabel="Escanear código"
+                style={{
+                  width: isDesktop ? 48 : 60,
+                  minHeight: isDesktop ? 48 : 60,
+                  borderRadius: radii.lg,
+                  backgroundColor: theme.colors.surface,
+                  borderWidth: 1,
+                  borderColor: theme.colors.border,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <AppIcon
+                  name="scan-outline"
+                  size={24}
+                  color={theme.colors.textSecondary}
+                />
+              </Pressable>
             </View>
+            <Pressable
+              onPress={() => setCode(createInternalProductCode())}
+              accessibilityRole="button"
+              accessibilityLabel="Gerar código interno"
+              style={{
+                alignSelf: "flex-start",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: spacing.xs,
+                paddingTop: spacing.sm,
+              }}
+            >
+              <AppIcon
+                name="repeat-outline"
+                size={18}
+                color={theme.colors.primaryStrong}
+              />
+              <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+                Gerar código interno
+              </Typography>
+            </Pressable>
+          </View>
 
+          {saleUnit === "unit" && !isComposite && variations.length === 0 && (
+            <>
+              <View style={wideLayout ? { flex: 1, maxWidth: 260 } : undefined}>
+                <FieldLabel label="Quantidade em estoque (opcional)" />
+                <TextFieldCard
+                  icon="albums-outline"
+                  placeholder="Ex: 50"
+                  value={stockQuantity}
+                  onChangeText={setStockQuantity}
+                  keyboardType="number-pad"
+                  isDesktop={isDesktop}
+                />
+              </View>
+
+              <View style={wideLayout ? { flex: 1, maxWidth: 260 } : undefined}>
+                <FieldLabel label="Alerta de estoque baixo (opcional)" />
+                <TextFieldCard
+                  icon="notifications-outline"
+                  placeholder="Ex: 10"
+                  value={stockAlert}
+                  onChangeText={setStockAlert}
+                  keyboardType="number-pad"
+                  isDesktop={isDesktop}
+                />
+              </View>
+            </>
+          )}
+          {saleUnit === "unit" && !isComposite && variations.length > 0 ? (
             <View style={wideLayout ? { flex: 1, maxWidth: 260 } : undefined}>
-              <FieldLabel label="Alerta de estoque baixo (opcional)" />
+              <FieldLabel label="Alerta por variação (opcional)" />
               <TextFieldCard
                 icon="notifications-outline"
-                placeholder="Ex: 10"
+                placeholder="Ex: 3"
                 value={stockAlert}
                 onChangeText={setStockAlert}
                 keyboardType="number-pad"
                 isDesktop={isDesktop}
               />
             </View>
-          </>
-        )}
-        {saleUnit === "unit" && !isComposite && variations.length > 0 ? (
-          <View style={wideLayout ? { flex: 1, maxWidth: 260 } : undefined}>
-            <FieldLabel label="Alerta por variação (opcional)" />
-            <TextFieldCard
-              icon="notifications-outline"
-              placeholder="Ex: 3"
-              value={stockAlert}
-              onChangeText={setStockAlert}
-              keyboardType="number-pad"
-              isDesktop={isDesktop}
-            />
-          </View>
-        ) : null}
-      </View>
+          ) : null}
+        </View>
+      </FormSection>
     </>
   );
 
@@ -999,9 +1114,9 @@ export function CreateProductForm({
         style={({ pressed }) => ({
           alignSelf: isDesktop ? "flex-end" : undefined,
           width: isDesktop ? 220 : undefined,
-          minHeight: isDesktop ? 44 : 58,
-          borderRadius: radii.lg,
-          backgroundColor: theme.colors.primary,
+          minHeight: isDesktop ? 44 : 48,
+          borderRadius: radii.md,
+          backgroundColor: theme.colors.primaryInteractive,
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "center",
@@ -1019,11 +1134,8 @@ export function CreateProductForm({
             color={theme.colors.textOnPrimary}
           />
         )}
-        <Typography
-          variant={isDesktop ? "bodyBold" : "h3"}
-          color={theme.colors.textOnPrimary}
-        >
-          {uploading ? "Enviando foto..." : "Cadastrar produto"}
+        <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
+          {uploading ? "Enviando foto..." : `Cadastrar ${experienceCopy.productNoun}`}
         </Typography>
       </Pressable>
     );
@@ -1040,6 +1152,98 @@ export function CreateProductForm({
     />
   );
 
+  const priceSummaryAside = wideLayout ? (
+    <>
+      <View
+        style={{
+          backgroundColor: theme.colors.surface,
+          borderColor: theme.colors.border,
+          borderRadius: radii.xl,
+          borderWidth: 1,
+          overflow: "hidden",
+        }}
+      >
+        <View style={{ gap: 2, padding: spacing.xl }}>
+          <Typography variant="label">PREÇO DE VENDA</Typography>
+          <Typography
+            variant="moneyHero"
+            color={
+              parsedSalePrice > 0
+                ? theme.colors.primaryStrong
+                : theme.colors.textSecondary
+            }
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.55}
+          >
+            {parsedSalePrice.toLocaleString("pt-BR", {
+              style: "currency",
+              currency: "BRL",
+            })}
+          </Typography>
+        </View>
+        {estimatedGain !== null && marginOnPrice !== null ? (
+          <View
+            style={{
+              borderTopColor: theme.colors.border,
+              borderTopWidth: 1,
+              gap: spacing.sm,
+              padding: spacing.lg,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                Ganho bruto
+              </Typography>
+              <Typography
+                variant="bodyBold"
+                color={estimatedGain >= 0 ? theme.colors.success : theme.colors.alert}
+              >
+                {estimatedGain.toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })}
+              </Typography>
+            </View>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                Margem sobre o preço
+              </Typography>
+              <Typography variant="bodyBold">
+                {marginOnPrice.toFixed(1).replace(".", ",")}%
+              </Typography>
+            </View>
+          </View>
+        ) : (
+          <View
+            style={{
+              borderTopColor: theme.colors.border,
+              borderTopWidth: 1,
+              padding: spacing.lg,
+            }}
+          >
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              Informe o custo unitário para ver o ganho estimado.
+            </Typography>
+          </View>
+        )}
+      </View>
+      {renderSubmitButton({ alignSelf: "stretch", width: "100%", minHeight: 48 })}
+    </>
+  ) : null;
+
   if (modal) {
     return (
       <>
@@ -1047,7 +1251,7 @@ export function CreateProductForm({
           title={modal.title}
           visible={modal.visible}
           onClose={modal.onClose}
-          footer={renderSubmitButton({ flex: 1, alignSelf: undefined, width: undefined })}
+          footer={renderSubmitButton(isDesktop ? undefined : { flex: 1 })}
         >
           <View style={{ flexShrink: 1, gap: isDesktop ? spacing.lg : spacing.xl }}>
             {fields}
@@ -1061,17 +1265,26 @@ export function CreateProductForm({
   return (
     <>
       <KeyboardAwareScrollView
-        contentContainerStyle={{
-          padding: spacing.xl,
-          paddingBottom: spacing["5xl"],
-          gap: isDesktop ? spacing.lg : spacing.xl,
-          width: "100%",
-          maxWidth: isDesktop ? 1040 : undefined,
-          alignSelf: "center",
-        }}
+        contentContainerStyle={[
+          {
+            padding: spacing.xl,
+            paddingBottom: spacing["5xl"],
+            gap: spacing.xl,
+          },
+          split.outer,
+        ]}
       >
-        {fields}
-        {renderSubmitButton()}
+        {wideLayout ? (
+          <View style={split.row}>
+            <View style={split.main}>{fields}</View>
+            <View style={split.aside}>{priceSummaryAside}</View>
+          </View>
+        ) : (
+          <>
+            {fields}
+            {renderSubmitButton()}
+          </>
+        )}
       </KeyboardAwareScrollView>
       {scanner}
     </>

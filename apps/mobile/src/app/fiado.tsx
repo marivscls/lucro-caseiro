@@ -1,5 +1,6 @@
 import type { Sale } from "@lucro-caseiro/contracts";
 import {
+  Button,
   EmptyState,
   fontSizes,
   iconSizes,
@@ -30,7 +31,7 @@ import { isValidBrazilPhone } from "../shared/utils/phone";
 import { openWhatsApp, openWhatsAppShare } from "../shared/utils/whatsapp";
 import fiadoHero from "../assets/fiado-hero.png";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
-import { desktopModalSurface } from "../shared/layout/desktop-density";
+import { desktopModalSurface, desktopStretch, desktopWidths, pageGutter } from "../shared/layout/desktop-density";
 import { ResponsiveOverlayModal } from "../shared/components/responsive-modal-surface";
 import { ScreenHeader } from "../shared/components/screen-header";
 
@@ -254,7 +255,6 @@ function FiadoGroupCard({
           <Typography
             variant="bodyBold"
             color={theme.colors.primaryStrong}
-            serif
             style={{ fontSize: 18 }}
           >
             {initials(group.clientName)}
@@ -458,13 +458,12 @@ function TotalCard({ total }: Readonly<{ total: number }>) {
           opacity: theme.mode === "dark" ? 0.26 : 0.16,
         }}
       />
-      <Typography variant="h3" color={pal.text} serif style={{ fontSize: 20 }}>
+      <Typography variant="h3" color={pal.text} style={{ fontSize: 20 }}>
         Total a receber
       </Typography>
       <Typography
         variant="moneyHero"
         color={pal.text}
-        serif
         style={{ fontSize: 38, lineHeight: 48 }}
       >
         {formatCurrency(total)}
@@ -604,15 +603,23 @@ export default function FiadoScreen() {
   function renderContent() {
     if (isLoading) {
       return (
-        <View style={{ flex: 1, padding: spacing.xl }}>
-          <SkeletonList rows={6} />
+        <View style={{ flex: 1, paddingVertical: spacing.xl, ...pageGutter(isDesktop), ...desktopStretch(isDesktop, desktopWidths.data) }}>
+          <SkeletonList rows={6} variant="fiado" />
         </View>
       );
     }
 
     if (error) {
       return (
-        <View style={{ flex: 1, padding: spacing.xl, justifyContent: "center" }}>
+        <View
+          style={{
+            flex: 1,
+            paddingVertical: spacing.xl,
+            ...pageGutter(isDesktop),
+            ...desktopStretch(isDesktop, desktopWidths.data),
+            justifyContent: isDesktop ? "flex-start" : "center",
+          }}
+        >
           <Typography variant="h2" color={pal.text} style={{ textAlign: "center" }}>
             Algo deu errado
           </Typography>
@@ -634,7 +641,10 @@ export default function FiadoScreen() {
             <Image
               source={fiadoHero}
               resizeMode="contain"
-              style={{ width: 138, height: 138 }}
+              style={{
+                width: isDesktop ? 240 : 220,
+                height: isDesktop ? 240 : 220,
+              }}
             />
           }
           title="Ninguém te deve"
@@ -649,18 +659,22 @@ export default function FiadoScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             flexGrow: 1,
-            paddingHorizontal: spacing.lg,
+            ...pageGutter(isDesktop, spacing.lg),
+            ...desktopStretch(isDesktop, desktopWidths.data),
             paddingTop: spacing.xl,
             paddingBottom: 104 + insets.bottom,
-            justifyContent: "center",
-            alignItems: "center",
+            justifyContent: isDesktop ? "flex-start" : "center",
+            ...(isDesktop ? undefined : { alignItems: "center" }),
             gap: spacing.md,
           }}
         >
           <Image
             source={fiadoHero}
             resizeMode="contain"
-            style={{ width: 126, height: 126 }}
+            style={{
+              width: isDesktop ? 200 : 180,
+              height: isDesktop ? 200 : 180,
+            }}
           />
           <Typography variant="h2" color={pal.text} style={{ textAlign: "center" }}>
             Nada encontrado
@@ -672,27 +686,14 @@ export default function FiadoScreen() {
           >
             Ajuste a busca ou limpe os filtros para ver seus fiados em aberto.
           </Typography>
-          <View style={{ width: "100%" }}>
-            <Pressable
-              onPress={() => {
-                setSearchQuery("");
-                setActiveFilter("all");
-              }}
-              accessibilityRole="button"
-              style={({ pressed }) => ({
-                minHeight: 48,
-                borderRadius: radii.md,
-                backgroundColor: theme.colors.primaryInteractive,
-                alignItems: "center",
-                justifyContent: "center",
-                opacity: pressed ? 0.86 : 1,
-              })}
-            >
-              <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
-                Limpar filtros
-              </Typography>
-            </Pressable>
-          </View>
+          <Button
+            title="Limpar filtros"
+            variant="secondary"
+            onPress={() => {
+              setSearchQuery("");
+              setActiveFilter("all");
+            }}
+          />
         </ScrollView>
       );
     }
@@ -701,7 +702,8 @@ export default function FiadoScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingHorizontal: spacing.lg,
+          ...pageGutter(isDesktop, spacing.lg),
+          ...desktopStretch(isDesktop, desktopWidths.data),
           paddingTop: spacing.xl,
           paddingBottom: 104 + insets.bottom,
           gap: spacing.md,
@@ -709,16 +711,28 @@ export default function FiadoScreen() {
       >
         <TotalCard total={grandTotal} />
 
-        {visibleGroups.map((group) => (
-          <FiadoGroupCard
-            key={group.clientId ?? "avulso"}
-            group={group}
-            phone={group.clientId ? phoneById.get(group.clientId) : undefined}
-            onCharge={handleCharge}
-            onMarkPaid={handleMarkPaid}
-            onMarkAllPaid={handleMarkAllPaid}
-          />
-        ))}
+        <View
+          style={
+            isDesktop
+              ? { flexDirection: "row", flexWrap: "wrap", gap: spacing.md, width: "100%" }
+              : { gap: spacing.md }
+          }
+        >
+          {visibleGroups.map((group) => (
+            <View
+              key={group.clientId ?? "avulso"}
+              style={isDesktop ? { width: "48%", flexGrow: 1, minWidth: 320 } : { width: "100%" }}
+            >
+              <FiadoGroupCard
+                group={group}
+                phone={group.clientId ? phoneById.get(group.clientId) : undefined}
+                onCharge={handleCharge}
+                onMarkPaid={handleMarkPaid}
+                onMarkAllPaid={handleMarkAllPaid}
+              />
+            </View>
+          ))}
+        </View>
 
         <View
           style={{
@@ -819,7 +833,15 @@ export default function FiadoScreen() {
       />
 
       {searchOpen ? (
-        <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.sm }}>
+        <View
+          style={{
+            ...pageGutter(isDesktop, spacing.lg),
+            paddingBottom: spacing.sm,
+            ...(isDesktop
+              ? { alignSelf: "flex-start", maxWidth: 480, width: "100%" }
+              : undefined),
+          }}
+        >
           <View
             style={{
               minHeight: 48,
@@ -865,7 +887,7 @@ export default function FiadoScreen() {
       {filterOpen ? (
         <View
           style={{
-            paddingHorizontal: spacing.lg,
+            ...pageGutter(isDesktop, spacing.lg),
             paddingBottom: spacing.sm,
             flexDirection: "row",
             flexWrap: "wrap",
@@ -966,8 +988,8 @@ export default function FiadoScreen() {
               accessibilityRole="button"
               accessibilityLabel="Novo lançamento"
               style={({ pressed }) => ({
-                width: 66,
-                height: 66,
+                width: 52,
+                height: 52,
                 borderRadius: radii.full,
                 backgroundColor: theme.colors.primaryInteractive,
                 alignItems: "center",
@@ -978,7 +1000,7 @@ export default function FiadoScreen() {
             >
               <AppIcon
                 name="add"
-                size={iconSizes.lg}
+                size={iconSizes.md}
                 color={theme.colors.textOnPrimary}
               />
             </Pressable>

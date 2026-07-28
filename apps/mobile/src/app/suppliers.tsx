@@ -1,4 +1,4 @@
-import { fontSizes, iconSizes, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import { fontSizes, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { AppIcon } from "../shared/components/app-icon";
 import { Stack } from "expo-router";
 import React, { useState } from "react";
@@ -15,6 +15,7 @@ import { LimitBanner } from "../features/subscription/components/limit-banner";
 import { showAlert } from "../shared/components/alert-store";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { alertError } from "../shared/utils/alerts";
+import { pageGutter } from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { StandardModal } from "../shared/components/standard-modal";
 import { ScreenHeader } from "../shared/components/screen-header";
@@ -73,30 +74,12 @@ export default function SuppliersScreen() {
         title="Fornecedores"
         hideBack={isDesktop}
         style={{ gap: spacing.sm }}
-        right={
-          <Pressable
-            onPress={() => setShowCreate(true)}
-            accessibilityRole="button"
-            accessibilityLabel="Novo fornecedor"
-            style={({ pressed }) => ({
-              width: 44,
-              height: 44,
-              borderRadius: radii.full,
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: theme.colors.primaryInteractive,
-              opacity: pressed ? 0.85 : 1,
-            })}
-          >
-            <AppIcon name="add" size={iconSizes.md} color={theme.colors.textOnPrimary} />
-          </Pressable>
-        }
       />
 
       {/* Search */}
       <View
         style={{
-          paddingHorizontal: spacing.lg,
+          ...pageGutter(isDesktop, spacing.lg),
           paddingTop: spacing.xl,
           paddingBottom: spacing.sm,
         }}
@@ -142,7 +125,10 @@ export default function SuppliersScreen() {
         <LimitBanner
           resource="suppliers"
           onUpgrade={() => showPaywall("suppliers")}
-          containerStyle={{ marginHorizontal: spacing.lg, marginTop: spacing.sm }}
+          containerStyle={{
+            marginHorizontal: isDesktop ? 0 : spacing.lg,
+            marginTop: spacing.sm,
+          }}
         />
         {isDesktop ? (
           <SupplierTable

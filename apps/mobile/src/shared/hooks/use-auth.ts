@@ -138,32 +138,69 @@ function setSession(set: (state: Partial<AuthState>) => void, session: Session |
   }
 }
 
-function signUpErrorMessage(error: { message: string; code?: string; status?: number }) {
-  const message = error.message.toLowerCase();
+type SignUpFailure = {
+  readonly message?: unknown;
+  readonly code?: unknown;
+  readonly status?: unknown;
+  readonly name?: unknown;
+};
 
-  if (message.includes("already registered") || message.includes("already exists")) {
+function signUpErrorMessage(error: SignUpFailure) {
+  const rawMessage = typeof error.message === "string" ? error.message.trim() : "";
+  const message = rawMessage.toLowerCase();
+  const code = typeof error.code === "string" ? error.code.toLowerCase() : "";
+  const status = typeof error.status === "number" ? error.status : undefined;
+  const name = typeof error.name === "string" ? error.name : "";
+
+  if (
+    code === "user_already_exists" ||
+    code === "email_exists" ||
+    message.includes("already registered") ||
+    message.includes("already exists")
+  ) {
     return "Esse e-mail já tem uma conta. Tente entrar.";
   }
-  if (message.includes("password should be") || message.includes("weak password")) {
+  if (
+    code === "weak_password" ||
+    message.includes("password should be") ||
+    message.includes("weak password")
+  ) {
     return "Senha muito fraca. Use pelo menos 8 caracteres com letras e numeros.";
   }
-  if (message.includes("invalid email")) {
+  if (code === "email_address_invalid" || message.includes("invalid email")) {
     return "Confira o e-mail digitado e tente novamente.";
   }
-  if (message.includes("email rate limit") || error.status === 429) {
+  if (
+    code === "over_email_send_rate_limit" ||
+    code === "over_request_rate_limit" ||
+    message.includes("email rate limit") ||
+    status === 429
+  ) {
     return "Muitas tentativas seguidas. Espere um pouco e tente novamente.";
   }
-  if (message.includes("signups not allowed")) {
-    return "Cadastro indisponível no momento. Ative novos cadastros no Supabase.";
+  if (
+    code === "signup_disabled" ||
+    code === "email_provider_disabled" ||
+    message.includes("signups not allowed")
+  ) {
+    return "Cadastro indisponível no momento. Tente novamente mais tarde.";
   }
   if (message.includes("confirmation") || message.includes("sending")) {
-    return "Não consegui enviar o e-mail de confirmação. Verifique a configuração de e-mail no Supabase.";
+    return "Não foi possível enviar o e-mail de confirmação. Tente novamente em alguns minutos.";
   }
   if (message.includes("database error") || message.includes("saving new user")) {
-    return "Não consegui preparar sua conta no banco. Verifique o trigger de criação de usuário no Supabase.";
+    return "Não foi possível concluir o cadastro agora. Tente novamente em alguns minutos.";
+  }
+  if (
+    name === "AuthRetryableFetchError" ||
+    status === 0 ||
+    rawMessage === "{}" ||
+    !rawMessage
+  ) {
+    return "Não foi possível conectar para criar sua conta. Verifique sua internet e tente novamente.";
   }
 
-  return `Não foi possível criar a conta: ${error.message}`;
+  return "Não foi possível criar sua conta agora. Tente novamente em alguns instantes.";
 }
 
 export const useAuth = create<AuthState>((set) => ({
@@ -249,47 +286,59 @@ export const useAuth = create<AuthState>((set) => ({
   },
 
   signUpWithEmail: async (email, password, name, businessName) => {
-    const { error, data } = await supabase.auth.signUp({
-      email: email.trim(),
-      password,
-      options: {
-        emailRedirectTo: getAuthRedirectUrl(),
-        data: {
-          name,
-          business_name: businessName,
-          onboarding_completed: false,
+    try {
+      const { error, data } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          emailRedirectTo: getAuthRedirectUrl(),
+          data: {
+            name,
+            business_name: businessName,
+            onboarding_completed: false,
+          },
         },
-      },
-    });
+      });
 
-    if (error) {
-      if (__DEV__) {
-        console.warn("[auth] signUpWithEmail failed", {
-          code: error.code,
-          message: error.message,
-          status: error.status,
-        });
+      if (error) {
+        if (__DEV__) {
+          console.warn("[auth] signUpWithEmail failed", {
+            code: error.code,
+            message: error.message,
+            name: error.name,
+            status: error.status,
+          });
+        }
+        return { error: signUpErrorMessage(error) };
       }
-      return { error: signUpErrorMessage(error) };
-    }
 
-    // Guarda a intenção no momento exato do cadastro. Assim o onboarding ainda
-    // aparece se a confirmação por e-mail mandar a pessoa para o login antes de
-    // criar a sessão. O Supabase devolve `identities: []` quando oculta que um
-    // e-mail já está cadastrado; nesse caso não tratamos a conta como nova.
-    if (data.user?.identities?.length) {
-      useOnboarding.getState().startOnboarding(data.user.id);
-    }
+      // Guarda a intenção no momento exato do cadastro. Assim o onboarding ainda
+      // aparece se a confirmação por e-mail mandar a pessoa para o login antes de
+      // criar a sessão. O Supabase devolve `identities: []` quando oculta que um
+      // e-mail já está cadastrado; nesse caso não tratamos a conta como nova.
+      if (data.user?.identities?.length) {
+        useOnboarding.getState().startOnboarding(data.user.id);
+      }
 
-    // Confirmação de e-mail desativada no Supabase: o signUp já devolve sessão
-    // e o usuário entra na hora. Quando ativada, não há sessão e ele precisa
-    // confirmar pelo e-mail antes de entrar.
-    if (data.session) {
-      setSession(set, data.session);
-      return {};
-    }
+      // Confirmação de e-mail desativada no Supabase: o signUp já devolve sessão
+      // e o usuário entra na hora. Quando ativada, não há sessão e ele precisa
+      // confirmar pelo e-mail antes de entrar.
+      if (data.session) {
+        setSession(set, data.session);
+        return {};
+      }
 
-    return { needsConfirmation: true };
+      return { needsConfirmation: true };
+    } catch (error) {
+      if (__DEV__) {
+        console.warn("[auth] signUpWithEmail threw", error);
+      }
+      return {
+        error: signUpErrorMessage(
+          typeof error === "object" && error !== null ? error : {},
+        ),
+      };
+    }
   },
 
   signInWithGoogle: async () => {

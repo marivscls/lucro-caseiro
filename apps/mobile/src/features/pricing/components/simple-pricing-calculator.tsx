@@ -10,16 +10,32 @@ import {
   useTheme,
 } from "@lucro-caseiro/ui";
 import React, { useCallback, useMemo, useRef, useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import {
+  Image,
+  type ImageSourcePropType,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { AppIcon } from "../../../shared/components/app-icon";
+import pricingCostsIcon from "../../../assets/pricing-costs-icon.png";
+import pricingCostsHero from "../../../assets/pricing-costs-hero.png";
+import pricingResultHero from "../../../assets/pricing-result-hero.png";
+import { AppIcon, type AppIconName } from "../../../shared/components/app-icon";
 import { FieldLabel, TextFieldCard } from "../../../shared/components/form-field";
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
 import { Skeleton } from "../../../shared/components/skeleton";
 import { useAuth } from "../../../shared/hooks/use-auth";
-import { desktopModalSurface } from "../../../shared/layout/desktop-density";
+import {
+  desktopCompactField,
+  desktopModalSurface,
+  desktopSplitLayout,
+  pageGutter,
+} from "../../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { alertError, alertValidation } from "../../../shared/utils/alerts";
 import {
@@ -31,6 +47,7 @@ import { formatCurrency } from "../../../shared/utils/format";
 import { trackAnalyticsAction } from "../../analytics/tracker";
 import { usePackagingList } from "../../packaging/hooks";
 import { useAllProducts } from "../../products/hooks";
+import { useBusinessCopy } from "../../subscription/business-copy";
 import * as priceCalc from "../calc";
 import { useCalculatePricing } from "../hooks";
 
@@ -98,144 +115,157 @@ function CostSourcePicker({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <Pressable
-        onPress={onClose}
-        style={{
-          flex: 1,
-          backgroundColor: theme.colors.overlay,
-          justifyContent: isDesktop ? "center" : "flex-end",
-          padding: isDesktop ? spacing.xl : 0,
-        }}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1, minHeight: 0 }}
       >
         <Pressable
-          style={[
-            {
-              maxHeight: "82%",
-              gap: spacing.md,
-              paddingHorizontal: spacing.lg,
-              paddingTop: spacing.lg,
-              paddingBottom: spacing.lg + insets.bottom,
-              borderTopLeftRadius: radii["2xl"],
-              borderTopRightRadius: radii["2xl"],
-              backgroundColor: theme.colors.surfaceElevated,
-            },
-            desktopModalSurface(isDesktop, 720),
-          ]}
+          onPress={onClose}
+          style={{
+            flex: 1,
+            minHeight: 0,
+            backgroundColor: theme.colors.overlay,
+            justifyContent: isDesktop ? "center" : "flex-end",
+            padding: isDesktop ? spacing.xl : 0,
+          }}
         >
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: spacing.md,
-            }}
+          <Pressable
+            style={[
+              {
+                maxHeight: "82%",
+                minHeight: 0,
+                gap: spacing.md,
+                paddingHorizontal: spacing.lg,
+                paddingTop: spacing.lg,
+                paddingBottom: spacing.lg + insets.bottom,
+                borderTopLeftRadius: radii["2xl"],
+                borderTopRightRadius: radii["2xl"],
+                backgroundColor: theme.colors.surfaceElevated,
+              },
+              desktopModalSurface(isDesktop, 720),
+            ]}
           >
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="h2" numberOfLines={1}>
-                {title}
-              </Typography>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                {subtitle}
-              </Typography>
-            </View>
-            <Pressable
-              onPress={onClose}
-              accessibilityRole="button"
-              accessibilityLabel="Fechar seleção"
-              hitSlop={10}
+            <View
               style={{
-                width: 44,
-                height: 44,
+                flexDirection: "row",
                 alignItems: "center",
-                justifyContent: "center",
+                justifyContent: "space-between",
+                gap: spacing.md,
               }}
             >
-              <AppIcon name="close" size={24} color={theme.colors.textSecondary} />
-            </Pressable>
-          </View>
-
-          <Input
-            placeholder="Buscar..."
-            value={search}
-            onChangeText={setSearch}
-            icon={
-              <AppIcon
-                name="search-outline"
-                size={20}
-                color={theme.colors.textSecondary}
-              />
-            }
-          />
-
-          {loading ? (
-            <View style={{ gap: spacing.sm }}>
-              <Skeleton height={56} borderRadius={radii.lg} />
-              <Skeleton height={56} borderRadius={radii.lg} />
-              <Skeleton height={56} borderRadius={radii.lg} />
-            </View>
-          ) : (
-            <ScrollView
-              nestedScrollEnabled
-              showsVerticalScrollIndicator
-              keyboardShouldPersistTaps="handled"
-              contentContainerStyle={{ gap: spacing.sm }}
-            >
-              {visibleItems.map((item) => {
-                const selected = selectedId === item.id;
-                return (
-                  <Pressable
-                    key={item.id}
-                    onPress={() => onSelect(item)}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected }}
-                    style={({ pressed }) => ({
-                      minHeight: 58,
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: spacing.md,
-                      paddingHorizontal: spacing.md,
-                      paddingVertical: spacing.sm,
-                      borderRadius: radii.lg,
-                      borderWidth: 1,
-                      borderColor: selected ? theme.colors.primary : theme.colors.border,
-                      backgroundColor: selected
-                        ? theme.colors.primaryBg
-                        : theme.colors.surface,
-                      opacity: pressed ? 0.75 : 1,
-                    })}
-                  >
-                    <View style={{ flex: 1, minWidth: 0 }}>
-                      <Typography variant="bodyBold" numberOfLines={1}>
-                        {item.name}
-                      </Typography>
-                      <Typography variant="caption" color={theme.colors.textSecondary}>
-                        {item.costLabel}: {formatCurrency(item.cost)}
-                      </Typography>
-                    </View>
-                    {selected ? (
-                      <AppIcon
-                        name="checkmark-circle"
-                        size={22}
-                        color={theme.colors.primary}
-                      />
-                    ) : null}
-                  </Pressable>
-                );
-              })}
-
-              {visibleItems.length === 0 ? (
-                <Typography
-                  variant="body"
-                  color={theme.colors.textSecondary}
-                  style={{ textAlign: "center", paddingVertical: spacing.xl }}
-                >
-                  {items.length === 0 ? emptyLabel : "Nenhum item encontrado."}
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Typography variant="h2" numberOfLines={1}>
+                  {title}
                 </Typography>
-              ) : null}
-            </ScrollView>
-          )}
+                <Typography variant="caption" color={theme.colors.textSecondary}>
+                  {subtitle}
+                </Typography>
+              </View>
+              <Pressable
+                onPress={onClose}
+                accessibilityRole="button"
+                accessibilityLabel="Fechar seleção"
+                hitSlop={10}
+                style={{
+                  width: 44,
+                  height: 44,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <AppIcon name="close" size={24} color={theme.colors.textSecondary} />
+              </Pressable>
+            </View>
+
+            <Input
+              placeholder="Buscar..."
+              value={search}
+              onChangeText={setSearch}
+              icon={
+                <AppIcon
+                  name="search-outline"
+                  size={20}
+                  color={theme.colors.textSecondary}
+                />
+              }
+            />
+
+            {loading ? (
+              <View style={{ gap: spacing.sm }}>
+                <Skeleton height={56} borderRadius={radii.lg} />
+                <Skeleton height={56} borderRadius={radii.lg} />
+                <Skeleton height={56} borderRadius={radii.lg} />
+              </View>
+            ) : (
+              <ScrollView
+                nestedScrollEnabled
+                showsVerticalScrollIndicator
+                keyboardShouldPersistTaps="handled"
+                style={{ flexShrink: 1 }}
+                contentContainerStyle={{ gap: spacing.sm }}
+              >
+                {visibleItems.map((item) => {
+                  const selected = selectedId === item.id;
+                  return (
+                    <Pressable
+                      key={item.id}
+                      onPress={() => onSelect(item)}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected }}
+                      style={({ pressed }) => ({
+                        minHeight: 58,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: spacing.md,
+                        paddingHorizontal: spacing.md,
+                        paddingVertical: spacing.sm,
+                        borderRadius: radii.lg,
+                        borderWidth: 1,
+                        borderColor: selected
+                          ? theme.colors.primary
+                          : theme.colors.border,
+                        backgroundColor: selected
+                          ? theme.colors.primaryBg
+                          : theme.colors.surface,
+                        opacity: pressed ? 0.75 : 1,
+                      })}
+                    >
+                      <View style={{ flex: 1, minWidth: 0 }}>
+                        <Typography variant="bodyBold" numberOfLines={1}>
+                          {item.name}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          color={theme.colors.textSecondary}
+                        >
+                          {item.costLabel}: {formatCurrency(item.cost)}
+                        </Typography>
+                      </View>
+                      {selected ? (
+                        <AppIcon
+                          name="checkmark-circle"
+                          size={22}
+                          color={theme.colors.primary}
+                        />
+                      ) : null}
+                    </Pressable>
+                  );
+                })}
+
+                {visibleItems.length === 0 ? (
+                  <Typography
+                    variant="body"
+                    color={theme.colors.textSecondary}
+                    style={{ textAlign: "center", paddingVertical: spacing.xl }}
+                  >
+                    {items.length === 0 ? emptyLabel : "Nenhum item encontrado."}
+                  </Typography>
+                ) : null}
+              </ScrollView>
+            )}
+          </Pressable>
         </Pressable>
-      </Pressable>
+      </KeyboardAvoidingView>
     </ResponsiveOverlayModal>
   );
 }
@@ -244,18 +274,159 @@ function CostRow({
   label,
   value,
   color,
-}: Readonly<{ label: string; value: number; color?: string }>) {
+  iconSource,
+}: Readonly<{
+  label: string;
+  value: number;
+  color?: string;
+  iconSource?: ImageSourcePropType;
+}>) {
   const { theme } = useTheme();
   return (
     <View
-      style={{ flexDirection: "row", justifyContent: "space-between", gap: spacing.md }}
+      style={{
+        alignItems: "center",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        gap: spacing.md,
+      }}
     >
-      <Typography variant="body" color={theme.colors.textSecondary}>
-        {label}
-      </Typography>
+      <View style={{ alignItems: "center", flexDirection: "row", gap: spacing.sm }}>
+        {iconSource ? (
+          <Image
+            source={iconSource}
+            resizeMode="contain"
+            style={{ height: 23, width: 25 }}
+            accessible={false}
+          />
+        ) : null}
+        <Typography variant="body" color={theme.colors.textSecondary}>
+          {label}
+        </Typography>
+      </View>
       <Typography variant="bodyBold" color={color}>
         {formatCurrency(value)}
       </Typography>
+    </View>
+  );
+}
+
+function PricingResultRow({
+  highlight = false,
+  icon,
+  info = false,
+  label,
+  value,
+  valueColor,
+}: Readonly<{
+  highlight?: boolean;
+  icon: AppIconName;
+  info?: boolean;
+  label: string;
+  value: number;
+  valueColor?: string;
+}>) {
+  const { theme } = useTheme();
+
+  return (
+    <View
+      style={{
+        alignItems: "center",
+        backgroundColor: highlight ? theme.colors.surfaceElevated : "transparent",
+        borderColor: highlight ? theme.colors.border : "transparent",
+        borderBottomColor: theme.colors.border,
+        borderBottomWidth: highlight ? 0 : 1,
+        borderRadius: highlight ? radii.md : 0,
+        borderWidth: highlight ? 1 : 0,
+        flexDirection: "row",
+        gap: spacing.md,
+        justifyContent: "space-between",
+        marginHorizontal: highlight ? spacing.md : 0,
+        marginTop: highlight ? spacing.sm : 0,
+        minHeight: 44,
+        paddingHorizontal: spacing.md,
+      }}
+    >
+      <View
+        style={{
+          alignItems: "center",
+          flex: 1,
+          flexDirection: "row",
+          gap: spacing.sm,
+          minWidth: 0,
+        }}
+      >
+        <AppIcon name={icon} size={16} color={theme.colors.primaryStrong} />
+        <Typography
+          variant={highlight ? "captionBold" : "caption"}
+          color={highlight ? theme.colors.text : theme.colors.textSecondary}
+          numberOfLines={1}
+          style={{ flexShrink: 1 }}
+        >
+          {label}
+        </Typography>
+        {info ? (
+          <AppIcon
+            name="information-circle-outline"
+            size={14}
+            color={theme.colors.textSecondary}
+          />
+        ) : null}
+      </View>
+      <Typography variant="captionBold" color={valueColor}>
+        {formatCurrency(value)}
+      </Typography>
+    </View>
+  );
+}
+
+function PricingFieldLabel({
+  action,
+  info = false,
+  label,
+  required = false,
+}: Readonly<{
+  action?: React.ReactNode;
+  info?: boolean;
+  label: string;
+  required?: boolean;
+}>) {
+  const { theme } = useTheme();
+  return (
+    <View
+      style={{
+        alignItems: "center",
+        flexDirection: "row",
+        gap: spacing.sm,
+        justifyContent: "space-between",
+      }}
+    >
+      <View
+        style={{
+          alignItems: "center",
+          flex: 1,
+          flexDirection: "row",
+          gap: spacing.xs,
+          minWidth: 0,
+        }}
+      >
+        <Typography variant="captionBold" numberOfLines={1} style={{ flexShrink: 1 }}>
+          {label}
+        </Typography>
+        {info ? (
+          <AppIcon
+            name="information-circle-outline"
+            size={14}
+            color={theme.colors.textSecondary}
+          />
+        ) : null}
+        {required ? (
+          <Typography variant="captionBold" color={theme.colors.primary}>
+            *
+          </Typography>
+        ) : null}
+      </View>
+      {action}
     </View>
   );
 }
@@ -265,6 +436,7 @@ export function SimplePricingCalculator({
   onCreateProduct,
 }: SimplePricingCalculatorProps) {
   const { theme } = useTheme();
+  const experienceCopy = useBusinessCopy();
   const isDesktop = useDesktopLayout();
   const insets = useSafeAreaInsets();
   const { data: allProducts = [], isLoading: loadingProducts } = useAllProducts();
@@ -272,7 +444,9 @@ export function SimplePricingCalculator({
   const calculatePricing = useCalculatePricing();
   const startedTracked = useRef(false);
 
-  const products = allProducts.filter((product) => product.costPrice != null);
+  const products = allProducts.filter(
+    (product) => product.recipeId != null && product.costPrice != null,
+  );
   const packaging = packagingData?.items ?? [];
   const productItems = useMemo(() => products.map(productCostSource), [products]);
   const packagingItems = useMemo(() => packaging.map(packagingCostSource), [packaging]);
@@ -311,7 +485,9 @@ export function SimplePricingCalculator({
 
   const pricingPayload = useCallback(() => {
     if (ingredientCost <= 0) {
-      alertValidation("Informe o custo dos insumos ou escolha um produto com receita.");
+      alertValidation(
+        `Informe o custo de ${experienceCopy.materialNounPlural} ou escolha um ${experienceCopy.productNoun} com ${experienceCopy.formulaNoun}.`,
+      );
       return null;
     }
     if (desiredProfit <= 0) {
@@ -343,6 +519,7 @@ export function SimplePricingCalculator({
     markupPercent,
     packagingCost,
     productId,
+    experienceCopy,
   ]);
 
   const handleSave = useCallback(async () => {
@@ -387,123 +564,302 @@ export function SimplePricingCalculator({
     trackStarted();
   }
 
-  return (
-    <>
-      <KeyboardAwareScrollView
-        contentContainerStyle={{
-          width: "100%",
-          maxWidth: isDesktop ? 760 : undefined,
-          alignSelf: "center",
-          gap: spacing.xl,
-          padding: spacing.xl,
-          paddingBottom: spacing["5xl"] + insets.bottom,
-        }}
-      >
-        <View style={{ gap: spacing.xs }}>
-          <Typography variant="h1">Descubra quanto cobrar</Typography>
-          <Typography variant="body" color={theme.colors.textSecondary}>
-            Comece pela receita e embalagem. O aplicativo faz as contas para você.
-          </Typography>
-        </View>
+  const split = desktopSplitLayout(isDesktop);
+  const compactField = desktopCompactField(isDesktop);
 
-        <View style={{ gap: spacing.sm }}>
-          <FieldLabel label="Produto ou receita (opcional)" />
-          <SourceButton
-            title={selectedProduct?.name ?? "Usar uma receita já cadastrada"}
-            subtitle={
-              selectedProduct
-                ? `Insumos calculados: ${formatCurrency(selectedProduct.costPrice ?? 0)}`
-                : "O custo dos insumos será preenchido automaticamente"
-            }
-            icon="basket-outline"
-            selected={selectedProduct != null}
-            onPress={() => setProductPickerVisible(true)}
-          />
-        </View>
-
-        <Card style={{ gap: spacing.xl }}>
-          <View style={{ gap: spacing.xs }}>
-            <Typography variant="h2">Custos da unidade</Typography>
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              Você informa os dados; as somas e divisões ficam por nossa conta.
-            </Typography>
+  const estimatePanel = (
+        <View
+          style={{
+            backgroundColor: theme.colors.surface,
+            borderColor: theme.colors.border,
+            borderRadius: radii.xl,
+            borderWidth: 1,
+            overflow: "hidden",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: theme.colors.surface,
+              justifyContent: "center",
+              minHeight: 124,
+              overflow: "hidden",
+              paddingHorizontal: spacing.xl,
+              paddingVertical: spacing.xl,
+            }}
+          >
+            <View style={{ gap: 2, maxWidth: "64%", zIndex: 1 }}>
+              <Typography variant="label">ESTIMATIVA DE PREÇO</Typography>
+              <Typography
+                variant="moneyHero"
+                color={
+                  canCalculate ? theme.colors.primaryStrong : theme.colors.textSecondary
+                }
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.55}
+              >
+                {formatCurrency(canCalculate ? finalPrice : 0)}
+              </Typography>
+            </View>
+            <Image
+              source={pricingResultHero}
+              resizeMode="contain"
+              style={{
+                bottom: -spacing.sm,
+                height: 112,
+                position: "absolute",
+                right: -spacing.sm,
+                width: 142,
+              }}
+              accessible={false}
+            />
           </View>
 
-          <View style={{ gap: spacing.sm }}>
-            <FieldLabel label="Insumos da receita" required />
-            <TextFieldCard
-              icon="basket-outline"
-              prefix="R$"
-              value={ingredientInput}
-              onChangeText={(text) => {
-                setIngredientInput(maskCurrencyInput(text));
-                setImportedIngredients(false);
-                trackStarted();
-              }}
-              keyboardType="numeric"
-              placeholder="Ex: 12,50"
-              inputStyle={{ fontFamily: fonts.bold, fontSize: 20 }}
+          <View style={{ paddingVertical: spacing.sm }}>
+            <PricingResultRow
+              icon="briefcase-outline"
+              label="Materiais"
+              value={totalCost}
             />
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              {importedIngredients
-                ? "Preenchido pelo custo da receita cadastrada."
-                : "Sem receita cadastrada, informe apenas o valor dos ingredientes."}
-            </Typography>
-          </View>
-
-          <View style={{ gap: spacing.sm }}>
-            <FieldLabel label="Embalagem por unidade" />
-            <SourceButton
-              title={selectedPackaging?.name ?? "Usar embalagem cadastrada"}
-              subtitle={
-                selectedPackaging
-                  ? `Custo aplicado: ${formatCurrency(selectedPackaging.unitCost)}`
-                  : "Escolha uma embalagem para preencher o custo"
-              }
-              icon="cube-outline"
-              selected={selectedPackaging != null}
-              onPress={() => setPackagingPickerVisible(true)}
-              compact
+            {feesPercent > 0 && feesPercent <= 95 ? (
+              <PricingResultRow
+                icon="percent-outline"
+                info
+                label={`Taxas de venda (${String(feesPercent).replace(".", ",")}%)`}
+                value={feesAmount}
+              />
+            ) : null}
+            <PricingResultRow
+              icon="trending-up"
+              label="Lucro desejado"
+              value={desiredProfit}
             />
-            <TextFieldCard
-              icon="cash-outline"
-              prefix="R$"
-              value={packagingInput}
-              onChangeText={(text) => {
-                setPackagingInput(maskCurrencyInput(text));
-                setPackagingId(null);
-                trackStarted();
-              }}
-              keyboardType="numeric"
-              placeholder="Ou informe o custo da embalagem"
+            <PricingResultRow
+              highlight
+              icon="star"
+              label="Você ganha por unidade"
+              value={desiredProfit}
+              valueColor={theme.colors.success}
             />
           </View>
 
           <View
             style={{
+              alignItems: "center",
+              backgroundColor: theme.colors.surfaceElevated,
+              borderColor: theme.colors.border,
+              borderRadius: radii.md,
+              borderWidth: 1,
+              flexDirection: "row",
+              gap: spacing.md,
+              margin: spacing.md,
+              paddingHorizontal: spacing.md,
+              paddingVertical: spacing.md,
+            }}
+          >
+            <AppIcon
+              name="shield-checkmark-outline"
+              size={20}
+              color={theme.colors.primaryStrong}
+            />
+            <Typography
+              variant="caption"
+              color={theme.colors.textSecondary}
+              style={{ flex: 1 }}
+            >
+              Baseada somente nos custos informados. Mão de obra e gastos mensais não
+              estão incluídos. Confira os dados antes de usar este preço.
+            </Typography>
+          </View>
+        </View>
+  );
+
+  return (
+    <>
+      <KeyboardAwareScrollView
+        extraScrollHeight={spacing["4xl"]}
+        contentContainerStyle={[
+          {
+            width: "100%",
+            gap: spacing.xl,
+            paddingTop: spacing.xl,
+            paddingBottom: spacing["5xl"] + insets.bottom,
+            ...pageGutter(isDesktop),
+          },
+          split.outer,
+        ]}
+      >
+        <View
+          style={
+            isDesktop
+              ? split.row
+              : { width: "100%", gap: spacing.xl }
+          }
+        >
+          <View
+            style={
+              isDesktop
+                ? split.main
+                : { width: "100%", gap: spacing.xl }
+            }
+          >
+        <Card
+          variant="elevated"
+          shadow="sm"
+          padding="lg"
+          style={{ gap: spacing.lg, paddingHorizontal: spacing["2xl"] }}
+        >
+          <View
+            style={{
+              alignItems: "center",
+              flexDirection: "row",
+              gap: spacing.md,
+              minHeight: 84,
+            }}
+          >
+            <View style={{ flex: 1, gap: spacing.xs, minWidth: 0 }}>
+              <Typography variant="h2">Custos da unidade</Typography>
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                Informe os dados abaixo; as somas e divisões ficam por nossa conta.
+              </Typography>
+            </View>
+            <Image
+              source={pricingCostsHero}
+              resizeMode="contain"
+              style={{ height: 96, marginRight: -spacing.xs, width: 108 }}
+              accessible={false}
+            />
+          </View>
+
+          <View style={{ gap: spacing.sm }}>
+            <PricingFieldLabel
+              label="Materiais da ficha técnica"
+              info
+              required
+              action={
+                products.length > 0 ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      selectedProduct ? "Trocar ficha técnica" : "Importar ficha técnica"
+                    }
+                    hitSlop={6}
+                    onPress={() => setProductPickerVisible(true)}
+                    style={({ pressed }) => ({
+                      alignItems: "center",
+                      flexDirection: "row",
+                      gap: spacing.xs,
+                      minHeight: 32,
+                      opacity: pressed ? 0.7 : 1,
+                    })}
+                  >
+                    <AppIcon
+                      name="download-outline"
+                      size={16}
+                      color={theme.colors.primary}
+                    />
+                    <Typography
+                      variant="captionBold"
+                      color={theme.colors.primaryStrong}
+                      numberOfLines={1}
+                    >
+                      {selectedProduct
+                        ? "Trocar ficha técnica"
+                        : "Importar ficha técnica"}
+                    </Typography>
+                  </Pressable>
+                ) : undefined
+              }
+            />
+            <View style={compactField}>
+              <TextFieldCard
+                icon="basket-outline"
+                iconSurface
+                prefix="R$"
+                value={ingredientInput}
+                onChangeText={(text) => {
+                  setIngredientInput(maskCurrencyInput(text));
+                  setImportedIngredients(false);
+                  trackStarted();
+                }}
+                keyboardType="numeric"
+                placeholder="Ex: 12,50"
+                inputStyle={{ fontFamily: fonts.bold, fontSize: 20 }}
+              />
+            </View>
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              {importedIngredients && selectedProduct
+                ? `Custo importado de ${selectedProduct.name}.`
+                : "Sem ficha técnica cadastrada, informe o valor de materiais."}
+            </Typography>
+          </View>
+
+          <View style={{ gap: spacing.sm }}>
+            <PricingFieldLabel label="Embalagem ou acabamento por unidade" info />
+            <SourceButton
+              title={selectedPackaging?.name ?? "Selecionar no cadastro"}
+              subtitle={
+                selectedPackaging
+                  ? `Custo aplicado: ${formatCurrency(selectedPackaging.unitCost)}`
+                  : "Escolha embalagem ou acabamento para preencher o custo"
+              }
+              icon="cube-outline"
+              selected={selectedPackaging != null}
+              onPress={() => setPackagingPickerVisible(true)}
+            />
+            <View style={compactField}>
+              <TextFieldCard
+                icon="cash-outline"
+                iconSurface
+                prefix="R$"
+                value={packagingInput}
+                onChangeText={(text) => {
+                  setPackagingInput(maskCurrencyInput(text));
+                  setPackagingId(null);
+                  trackStarted();
+                }}
+                keyboardType="numeric"
+                placeholder="Ou informe o custo de embalagem ou acabamento"
+              />
+            </View>
+          </View>
+
+          <View
+            style={{
+              borderStyle: "dashed",
               borderTopWidth: 1,
               borderTopColor: theme.colors.border,
               paddingTop: spacing.lg,
             }}
           >
-            <CostRow label="Custos informados" value={totalCost} />
+            <CostRow
+              iconSource={pricingCostsIcon}
+              label="Custos informados"
+              value={totalCost}
+            />
           </View>
         </Card>
 
         <View style={{ gap: spacing.sm }}>
-          <FieldLabel label="Quanto você quer ganhar por unidade?" required />
-          <TextFieldCard
-            icon="trending-up"
-            prefix="R$"
-            value={profitInput}
-            onChangeText={(text) => {
-              setProfitInput(maskCurrencyInput(text));
-              trackStarted();
-            }}
-            keyboardType="numeric"
-            placeholder="Ex: 8,00"
-            inputStyle={{ fontFamily: fonts.bold, fontSize: 20 }}
-          />
+          <PricingFieldLabel label="Quanto você quer ganhar por unidade?" required />
+          <View style={compactField}>
+            <TextFieldCard
+              icon="trending-up"
+              iconSurface
+              prefix="R$"
+              value={profitInput}
+              onChangeText={(text) => {
+                setProfitInput(maskCurrencyInput(text));
+                trackStarted();
+              }}
+              keyboardType="numeric"
+              placeholder="Ex: 8,00"
+              inputStyle={{ fontFamily: fonts.bold, fontSize: 20 }}
+            />
+          </View>
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            Valor do seu lucro desejado por unidade.
+          </Typography>
         </View>
 
         <View style={{ gap: spacing.sm }}>
@@ -512,40 +868,66 @@ export function SimplePricingCalculator({
             accessibilityRole="button"
             accessibilityState={{ expanded: showFees }}
             style={({ pressed }) => ({
-              minHeight: 48,
+              minHeight: 52,
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "space-between",
-              gap: spacing.md,
+              borderColor: theme.colors.border,
+              borderRadius: radii.lg,
+              borderWidth: 1,
+              backgroundColor: theme.colors.surface,
+              overflow: "hidden",
               opacity: pressed ? 0.75 : 1,
             })}
           >
-            <View style={{ flex: 1 }}>
+            <View
+              style={{
+                alignItems: "center",
+                alignSelf: "stretch",
+                backgroundColor: theme.colors.primaryBg,
+                justifyContent: "center",
+                width: 44,
+              }}
+            >
+              <AppIcon name="percent-outline" size={18} color={theme.colors.primary} />
+            </View>
+            <View style={{ flex: 1, paddingHorizontal: spacing.md }}>
               <Typography variant="bodyBold">Tenho taxa de venda</Typography>
               <Typography variant="caption" color={theme.colors.textSecondary}>
                 Cartão, aplicativo ou marketplace
               </Typography>
             </View>
-            <AppIcon
-              name={showFees ? "chevron-up" : "chevron-down"}
-              size={22}
-              color={theme.colors.primary}
-            />
+            <View
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+                width: 42,
+              }}
+            >
+              <AppIcon
+                name={showFees ? "chevron-up" : "chevron-down"}
+                size={20}
+                color={theme.colors.textSecondary}
+              />
+            </View>
           </Pressable>
 
           {showFees ? (
             <View style={{ gap: spacing.sm }}>
               <FieldLabel label="Taxa total sobre a venda (%)" />
-              <TextFieldCard
-                icon="card-outline"
-                value={feesInput}
-                onChangeText={(text) => {
-                  setFeesInput(percentageInput(text));
-                  trackStarted();
-                }}
-                keyboardType="decimal-pad"
-                placeholder="Ex: 12"
-              />
+              <View style={compactField}>
+                <TextFieldCard
+                  icon="card-outline"
+                  iconSurface
+                  value={feesInput}
+                  onChangeText={(text) => {
+                    setFeesInput(percentageInput(text));
+                    trackStarted();
+                  }}
+                  keyboardType="decimal-pad"
+                  placeholder="Ex: 12"
+                />
+              </View>
               {feesPercent > 95 ? (
                 <Typography variant="caption" color={theme.colors.alert}>
                   A taxa precisa ser de no máximo 95%.
@@ -555,65 +937,30 @@ export function SimplePricingCalculator({
           ) : null}
         </View>
 
-        <Card
+        {!isDesktop ? estimatePanel : null}
+
+        <View
           style={{
-            gap: spacing.lg,
-            backgroundColor: canCalculate ? theme.colors.successBg : theme.colors.surface,
+            gap: spacing.md,
+            flexDirection: isDesktop ? "row" : "column",
+            alignItems: isDesktop ? "center" : "stretch",
+            justifyContent: isDesktop ? "flex-start" : undefined,
+            flexWrap: "wrap",
           }}
         >
-          <View style={{ alignItems: "center", gap: spacing.xs }}>
-            <Typography
-              variant="caption"
-              color={canCalculate ? theme.colors.success : theme.colors.textSecondary}
-            >
-              ESTIMATIVA DE PREÇO
-            </Typography>
-            <Typography
-              variant="moneyHero"
-              color={canCalculate ? theme.colors.success : theme.colors.textSecondary}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.55}
-            >
-              {formatCurrency(canCalculate ? finalPrice : 0)}
-            </Typography>
-          </View>
-
-          <View style={{ gap: spacing.sm }}>
-            <CostRow label="Insumos" value={ingredientCost} />
-            {packagingCost > 0 ? (
-              <CostRow label="Embalagem" value={packagingCost} />
-            ) : null}
-            <View style={{ height: 1, backgroundColor: theme.colors.border }} />
-            <CostRow label="Custo total" value={totalCost} />
-            <CostRow
-              label="Você ganha"
-              value={desiredProfit}
-              color={theme.colors.success}
-            />
-            {feesPercent > 0 && feesPercent <= 95 ? (
-              <CostRow label={`Taxa (${feesPercent}%)`} value={feesAmount} />
-            ) : null}
-          </View>
-          <Typography
-            variant="caption"
-            color={theme.colors.textSecondary}
-            style={{ textAlign: "center" }}
-          >
-            Baseada somente em insumos e embalagem. Mão de obra e gastos mensais não estão
-            incluídos. Confira os dados antes de usar este preço.
-          </Typography>
-        </Card>
-
-        <View style={{ gap: spacing.md }}>
           {onCreateProduct && productId === null ? (
             <Button
-              title="Salvar e criar produto"
+              title={`Salvar e criar ${experienceCopy.productNoun}`}
               onPress={() => {
                 void handleCreateProduct();
               }}
               disabled={!canCalculate || feesPercent > 95}
               size="lg"
+              style={
+                isDesktop
+                  ? { minHeight: 48, minWidth: 220, paddingHorizontal: spacing.xl }
+                  : undefined
+              }
             />
           ) : null}
           <Button
@@ -625,16 +972,25 @@ export function SimplePricingCalculator({
             loading={calculatePricing.isPending}
             disabled={!canCalculate || feesPercent > 95}
             size="lg"
+            style={
+              isDesktop
+                ? { minHeight: 48, minWidth: 180, paddingHorizontal: spacing.xl }
+                : undefined
+            }
           />
+        </View>
+          </View>
+
+          {isDesktop ? <View style={split.aside}>{estimatePanel}</View> : null}
         </View>
       </KeyboardAwareScrollView>
 
       <CostSourcePicker
         visible={productPickerVisible}
-        title="Usar produto ou receita"
-        subtitle="O custo dos insumos vem do cadastro escolhido."
+        title={`Usar ${experienceCopy.productNoun} ou ${experienceCopy.formulaNoun}`}
+        subtitle={`O custo de ${experienceCopy.materialNounPlural} vem do cadastro escolhido.`}
         items={productItems}
-        emptyLabel="Nenhum produto com custo de receita disponível."
+        emptyLabel={`Nenhum ${experienceCopy.productNoun} com custo calculado disponível.`}
         selectedId={productId}
         loading={loadingProducts}
         onSelect={selectProduct}
@@ -643,10 +999,10 @@ export function SimplePricingCalculator({
 
       <CostSourcePicker
         visible={packagingPickerVisible}
-        title="Usar embalagem"
+        title={`Usar ${experienceCopy.packagingNoun}`}
         subtitle="O custo por unidade vem do cadastro escolhido."
         items={packagingItems}
-        emptyLabel="Nenhuma embalagem cadastrada."
+        emptyLabel="Nenhum custo adicional cadastrado."
         selectedId={packagingId}
         loading={loadingPackaging}
         onSelect={selectPackaging}
@@ -661,7 +1017,7 @@ function productCostSource(product: Product): CostSourceItem {
     id: product.id,
     name: product.name,
     cost: product.costPrice ?? 0,
-    costLabel: product.recipeId ? "Insumos da receita" : "Custo cadastrado",
+    costLabel: product.recipeId ? "Custo calculado" : "Custo cadastrado",
   };
 }
 
@@ -679,14 +1035,12 @@ function SourceButton({
   subtitle,
   icon,
   selected,
-  compact = false,
   onPress,
 }: Readonly<{
   title: string;
   subtitle: string;
   icon: "basket-outline" | "cube-outline";
   selected: boolean;
-  compact?: boolean;
   onPress: () => void;
 }>) {
   const { theme } = useTheme();
@@ -696,20 +1050,29 @@ function SourceButton({
       accessibilityRole="button"
       accessibilityLabel={title}
       style={({ pressed }) => ({
-        minHeight: compact ? 52 : 56,
+        minHeight: 54,
         flexDirection: "row",
         alignItems: "center",
-        gap: spacing.md,
-        paddingHorizontal: spacing.md,
         borderRadius: radii.lg,
         borderWidth: 1,
         borderColor: selected ? theme.colors.primary : theme.colors.border,
         backgroundColor: theme.colors.surface,
+        overflow: "hidden",
         opacity: pressed ? 0.75 : 1,
       })}
     >
-      <AppIcon name={icon} size={22} color={theme.colors.primary} />
-      <View style={{ flex: 1, minWidth: 0 }}>
+      <View
+        style={{
+          alignItems: "center",
+          alignSelf: "stretch",
+          backgroundColor: theme.colors.primaryBg,
+          justifyContent: "center",
+          width: 44,
+        }}
+      >
+        <AppIcon name={icon} size={18} color={theme.colors.primary} />
+      </View>
+      <View style={{ flex: 1, minWidth: 0, paddingHorizontal: spacing.md }}>
         <Typography variant="bodyBold" numberOfLines={1}>
           {title}
         </Typography>
@@ -717,7 +1080,9 @@ function SourceButton({
           {subtitle}
         </Typography>
       </View>
-      <AppIcon name="chevron-forward" size={20} color={theme.colors.textSecondary} />
+      <View style={{ alignItems: "center", justifyContent: "center", width: 42 }}>
+        <AppIcon name="chevron-forward" size={20} color={theme.colors.textSecondary} />
+      </View>
     </Pressable>
   );
 }

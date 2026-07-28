@@ -13,6 +13,7 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  Platform,
   Pressable,
   TextInput,
   View,
@@ -33,7 +34,9 @@ import {
 import { uploadOrderImage } from "../../../shared/utils/upload-image";
 import { ClientPickerModal } from "../../clients/components/client-picker-modal";
 import { useCreateOrder, useDeleteOrder, useUpdateOrder } from "../hooks";
+import { useCreateService, useServices } from "../../services/hooks";
 import { FormSection } from "../../../shared/components/form-section";
+import { desktopCompactField } from "../../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { alertValidation } from "../../../shared/utils/alerts";
 import {
@@ -41,6 +44,7 @@ import {
   maskCurrencyInput,
   parseCurrencyInput,
 } from "../../../shared/utils/currency-input";
+import { useBusinessCopy } from "../../subscription/business-copy";
 
 interface OrderFormProps {
   readonly order?: Order | null;
@@ -369,7 +373,10 @@ function PersonalizationFields({
 
 export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps) {
   const { theme } = useTheme();
+  const experienceCopy = useBusinessCopy();
   const isDesktop = useDesktopLayout();
+  const compactField = desktopCompactField(isDesktop);
+  const isCompactPwa = Platform.OS === "web" && !isDesktop;
   const pal = formPalette(theme);
   const [title, setTitle] = useState(order?.title ?? "");
   const [dateText, setDateText] = useState(
@@ -392,11 +399,19 @@ export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps
   );
   const [clientName, setClientName] = useState(order?.clientName ?? "");
   const [showClientPicker, setShowClientPicker] = useState(false);
+  const [serviceId, setServiceId] = useState<string | null>(order?.serviceId ?? null);
+  const [durationMinutes, setDurationMinutes] = useState(
+    order?.durationMinutes ? String(order.durationMinutes) : "60",
+  );
+  const [newServiceName, setNewServiceName] = useState("");
+  const [newServiceDuration, setNewServiceDuration] = useState("60");
   const [savedPhotoUrl, setSavedPhotoUrl] = useState(order?.photoUrl ?? null);
   const { imageUri, showPicker, clear } = useImagePicker();
   const [uploading, setUploading] = useState(false);
 
   const createOrder = useCreateOrder();
+  const createService = useCreateService();
+  const { data: services = [] } = useServices();
   const updateOrder = useUpdateOrder();
   const deleteOrder = useDeleteOrder();
   const isEditing = !!order;
@@ -408,9 +423,32 @@ export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps
     setShowDatePicker(true);
   }
 
+  async function handleCreateService() {
+    const duration = Number.parseInt(newServiceDuration, 10);
+    if (!newServiceName.trim() || !Number.isInteger(duration) || duration < 5) {
+      alertValidation("Informe o nome e uma duração de pelo menos 5 minutos.");
+      return;
+    }
+    try {
+      const service = await createService.mutateAsync({
+        name: newServiceName.trim(),
+        durationMinutes: duration,
+      });
+      setServiceId(service.id);
+      setDurationMinutes(String(service.durationMinutes));
+      setTitle((current) => current || service.name);
+      setNewServiceName("");
+    } catch (error) {
+      showAlert({
+        title: "Erro ao cadastrar serviço",
+        message: error instanceof Error ? error.message : "Tente novamente.",
+      });
+    }
+  }
+
   async function handleSave() {
     if (!title.trim()) {
-      alertValidation("Dê um nome para a encomenda.");
+      alertValidation("Dê um nome para este cadastro.");
       return;
     }
     const iso = brToIso(dateText);
@@ -442,7 +480,7 @@ export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps
         showAlert({
           title: "Foto não enviada",
           message:
-            "Não consegui enviar a imagem. A encomenda não foi salva para evitar ficar sem a foto.",
+            "Não consegui enviar a imagem. O cadastro não foi salvo para evitar ficar sem a foto.",
         });
         return;
       } finally {
@@ -456,6 +494,8 @@ export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps
       title: title.trim(),
       deliveryDate: iso,
       deliveryTime: time.trim() || undefined,
+      serviceId: serviceId ?? undefined,
+      durationMinutes: serviceId ? Number.parseInt(durationMinutes, 10) || 60 : undefined,
       clientId: clientId || undefined,
       amount:
         parsedAmount !== undefined && !Number.isNaN(parsedAmount)
@@ -488,9 +528,9 @@ export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps
           }
         }
         showAlert({
-          title: isEditing ? "Imagem não atualizada" : "Encomenda não salva",
+          title: isEditing ? "Imagem não atualizada" : "Cadastro não salvo",
           message:
-            "A API que está rodando ainda não aceita imagem de encomenda. Publique a API nova e aplique a migration photo_url.",
+            "A API que está rodando ainda não aceita a imagem deste cadastro. Publique a API nova e aplique a migration photo_url.",
         });
         return;
       }
@@ -499,14 +539,18 @@ export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps
       const message =
         error instanceof Error
           ? error.message
-          : "Não foi possível salvar a encomenda. Tente novamente.";
+          : "Não foi possível salvar. Tente novamente.";
       showAlert({ title: "Erro ao salvar", message });
     }
   }
 
   return (
     <StandardModal
-      title={isEditing ? "Editar encomenda" : "Nova encomenda"}
+      title={
+        isEditing
+          ? `Editar ${experienceCopy.orderNoun}`
+          : `Adicionar ${experienceCopy.orderNoun}`
+      }
       visible={visible}
       onClose={onClose}
       footer={
@@ -518,16 +562,16 @@ export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps
           accessibilityRole="button"
           style={({ pressed }) => [
             {
-              minHeight: 62,
-              borderRadius: radii.xl,
-              backgroundColor: theme.colors.primary,
+              minHeight: 48,
+              borderRadius: radii.md,
+              backgroundColor: theme.colors.primaryInteractive,
               alignItems: "center",
               justifyContent: "center",
               flexDirection: "row",
               gap: spacing.md,
               opacity: pressed || isSaving ? 0.82 : 1,
             },
-            { flex: 1 },
+            isDesktop ? { minWidth: 220, paddingHorizontal: spacing.xl } : { flex: 1 },
           ]}
         >
           {isSaving ? (
@@ -542,34 +586,14 @@ export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps
           <Typography
             variant="bodyBold"
             color={theme.colors.textOnPrimary}
-            style={{ fontSize: 21 }}
+            style={{ fontSize: 16 }}
           >
-            {uploading ? "Enviando imagem..." : "Salvar encomenda"}
+            {uploading ? "Enviando imagem..." : `Salvar ${experienceCopy.orderNoun}`}
           </Typography>
         </Pressable>
       }
     >
       <View style={{ flexShrink: 1, gap: spacing.lg }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.lg }}>
-          <View
-            style={{
-              width: 64,
-              height: 64,
-              borderRadius: radii.lg,
-              backgroundColor: theme.colors.primaryBg,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <AppIcon name="cube-outline" size={34} color={theme.colors.primaryLight} />
-          </View>
-          <View style={{ flex: 1, gap: spacing.xs }}>
-            <Typography variant="body" color={pal.muted}>
-              Preencha os dados da encomenda
-            </Typography>
-          </View>
-        </View>
-
         <View
           style={{
             borderRadius: 24,
@@ -577,12 +601,12 @@ export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps
             borderColor: pal.border,
             backgroundColor: pal.panel,
             padding: spacing.lg,
-            gap: spacing.lg,
+            gap: spacing["2xl"],
           }}
         >
           <View style={{ gap: spacing.md }}>
             <Typography variant="h3" color={theme.colors.text}>
-              Imagem da encomenda (opcional)
+              Imagem: {experienceCopy.orderNoun} (opcional)
             </Typography>
             <View style={{ flexDirection: "row", gap: spacing.md, alignItems: "center" }}>
               <Pressable
@@ -646,7 +670,7 @@ export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps
                   </Typography>
                 </Pressable>
                 <Typography variant="caption" color={pal.muted}>
-                  Foto opcional para identificar a encomenda.
+                  Foto opcional para identificar este cadastro.
                 </Typography>
                 {currentPhotoUrl ? (
                   <Pressable
@@ -666,29 +690,152 @@ export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps
 
           <View style={{ height: 1, backgroundColor: pal.border }} />
 
+          <View style={{ gap: spacing.md }}>
+            <View>
+              <Typography variant="h3" color={theme.colors.text}>
+                Serviço (opcional)
+              </Typography>
+              <Typography variant="caption" color={pal.muted}>
+                Use para bloquear o horário correto na agenda.
+              </Typography>
+            </View>
+            {services.length > 0 ? (
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+                <Pressable
+                  onPress={() => setServiceId(null)}
+                  style={{
+                    minHeight: 44,
+                    justifyContent: "center",
+                    paddingHorizontal: spacing.md,
+                    borderRadius: radii.full,
+                    borderWidth: 1,
+                    borderColor: serviceId === null ? theme.colors.primary : pal.border,
+                    backgroundColor:
+                      serviceId === null ? theme.colors.primaryBg : pal.surface,
+                  }}
+                >
+                  <Typography variant="caption">Sem serviço</Typography>
+                </Pressable>
+                {services
+                  .filter((service) => service.active)
+                  .map((service) => (
+                    <Pressable
+                      key={service.id}
+                      onPress={() => {
+                        setServiceId(service.id);
+                        setDurationMinutes(String(service.durationMinutes));
+                        setTitle((current) => current || service.name);
+                        if (service.defaultPrice !== null) {
+                          setAmount(currencyInput(service.defaultPrice));
+                        }
+                      }}
+                      style={{
+                        minHeight: 44,
+                        justifyContent: "center",
+                        paddingHorizontal: spacing.md,
+                        borderRadius: radii.full,
+                        borderWidth: 1,
+                        borderColor:
+                          serviceId === service.id ? theme.colors.primary : pal.border,
+                        backgroundColor:
+                          serviceId === service.id ? theme.colors.primaryBg : pal.surface,
+                      }}
+                    >
+                      <Typography variant="caption">{service.name}</Typography>
+                    </Pressable>
+                  ))}
+              </View>
+            ) : null}
+            {serviceId ? (
+              <View style={compactField}>
+                <Field
+                  icon="time-outline"
+                  placeholder="Duração em minutos"
+                  value={durationMinutes}
+                  onChangeText={(value) =>
+                    setDurationMinutes(value.replace(/\D/g, "").slice(0, 4))
+                  }
+                  keyboardType="number-pad"
+                />
+              </View>
+            ) : null}
+            <View
+              style={{
+                flexDirection: isDesktop ? "row" : "column",
+                gap: spacing.sm,
+              }}
+            >
+              <View style={isDesktop ? { flex: 1, minWidth: 0 } : undefined}>
+                <Field
+                  icon="add-circle-outline"
+                  placeholder="Novo serviço"
+                  value={newServiceName}
+                  onChangeText={setNewServiceName}
+                />
+              </View>
+              <View style={isDesktop ? compactField : undefined}>
+                <Field
+                  icon="time-outline"
+                  placeholder="Minutos"
+                  value={newServiceDuration}
+                  onChangeText={(value) =>
+                    setNewServiceDuration(value.replace(/\D/g, "").slice(0, 4))
+                  }
+                  keyboardType="number-pad"
+                />
+              </View>
+              <Pressable
+                onPress={() => void handleCreateService()}
+                disabled={createService.isPending}
+                accessibilityRole="button"
+                style={{
+                  minHeight: 52,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  paddingHorizontal: spacing.lg,
+                  borderRadius: radii.lg,
+                  borderWidth: 1,
+                  borderColor: theme.colors.primary,
+                }}
+              >
+                <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+                  Cadastrar serviço
+                </Typography>
+              </Pressable>
+            </View>
+          </View>
+
+          <View style={{ height: 1, backgroundColor: pal.border }} />
+
           <View
             style={{
               flexDirection: isDesktop ? "row" : "column",
-              gap: spacing.lg,
+              gap: isCompactPwa ? spacing["2xl"] : spacing.lg,
             }}
           >
-            <View style={{ flex: 1, gap: spacing.sm }}>
+            <View style={{ flex: isCompactPwa ? undefined : 1, gap: spacing.sm }}>
               <Typography variant="h3" color={theme.colors.text}>
-                O que é? (encomenda){" "}
+                O que é? ({experienceCopy.orderNoun}){" "}
                 <Typography variant="bodyBold" color={theme.colors.primaryLight}>
                   *
                 </Typography>
               </Typography>
               <Field
                 icon="cube-outline"
-                placeholder="Ex: Bolo de chocolate 2kg"
+                placeholder={`Ex: ${experienceCopy.productExample}`}
                 value={title}
                 onChangeText={setTitle}
                 autoFocus={!isEditing}
               />
             </View>
 
-            <View style={{ flex: 1, gap: spacing.sm, justifyContent: "flex-end" }}>
+            <View
+              style={{
+                flex: isCompactPwa ? undefined : 1,
+                gap: spacing.sm,
+                justifyContent: "flex-end",
+              }}
+            >
               <Typography variant="h3" color={theme.colors.text}>
                 Cliente (opcional)
               </Typography>
@@ -714,10 +861,10 @@ export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps
           <View
             style={{
               flexDirection: isDesktop ? "row" : "column",
-              gap: spacing.lg,
+              gap: isCompactPwa ? spacing["2xl"] : spacing.lg,
             }}
           >
-            <View style={{ flex: 1, gap: spacing.sm }}>
+            <View style={{ flex: isCompactPwa ? undefined : 1, gap: spacing.sm }}>
               <Typography variant="h3" color={theme.colors.text}>
                 Data de entrega{" "}
                 <Typography variant="bodyBold" color={theme.colors.primaryLight}>
@@ -786,7 +933,7 @@ export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps
               />
             </View>
 
-            <View style={{ flex: 1, gap: spacing.sm }}>
+            <View style={{ flex: isCompactPwa ? undefined : 1, gap: spacing.sm }}>
               <Typography variant="h3" color={theme.colors.text}>
                 Horário (opcional)
               </Typography>
@@ -804,10 +951,16 @@ export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps
           <View
             style={{
               flexDirection: isDesktop ? "row" : "column",
-              gap: spacing.lg,
+              gap: isCompactPwa ? spacing["2xl"] : spacing.lg,
+              flexWrap: isDesktop ? "wrap" : undefined,
             }}
           >
-            <View style={{ flex: 1, gap: spacing.sm }}>
+            <View
+              style={[
+                { gap: spacing.sm },
+                isDesktop ? compactField : { flex: isCompactPwa ? undefined : 1 },
+              ]}
+            >
               <Typography variant="h3" color={theme.colors.text}>
                 Valor combinado (opcional)
               </Typography>
@@ -820,7 +973,12 @@ export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps
               />
             </View>
 
-            <View style={{ flex: 1, gap: spacing.sm }}>
+            <View
+              style={[
+                { gap: spacing.sm },
+                isDesktop ? compactField : { flex: isCompactPwa ? undefined : 1 },
+              ]}
+            >
               <Typography variant="h3" color={theme.colors.text}>
                 Sinal recebido (opcional)
               </Typography>
@@ -836,7 +994,7 @@ export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps
 
           <FormSection
             title="Personalização"
-            subtitle="Tema, homenageado e cores (festas e encomendas personalizadas)"
+            subtitle={`Tema, homenageado e cores para ${experienceCopy.orderNounPlural}`}
             icon="sparkles-outline"
             initiallyOpen={!!(orderTheme || honoree || colors)}
           >
@@ -856,7 +1014,7 @@ export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps
             </Typography>
             <Field
               icon="document-text-outline"
-              placeholder="Anotações sobre a encomenda..."
+              placeholder={`Anotações: ${experienceCopy.orderNoun}...`}
               value={notes}
               onChangeText={(value) => setNotes(value.slice(0, 500))}
               multiline

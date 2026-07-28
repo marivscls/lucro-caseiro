@@ -1,5 +1,6 @@
 import {
   CreateProductDto,
+  CreateStockAdjustmentDto,
   PaginationDto,
   ReplaceProductVariationsDto,
   UpdateProductDto,
@@ -105,6 +106,42 @@ export function createProductsRouter(
     try {
       const result = await useCases.lookupByCode(getUserId(req), req.params.code);
       res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.get("/velocity", async (req, res, next) => {
+    try {
+      const days = Math.min(90, Math.max(7, Number(req.query.days ?? 30)));
+      res.json(await useCases.salesVelocity(getUserId(req), days));
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.get("/:id/stock-movements", async (req, res, next) => {
+    try {
+      const limit = Math.min(100, Math.max(1, Number(req.query.limit ?? 30)));
+      const items = await useCases.listStockMovements(
+        getUserId(req),
+        req.params.id,
+        limit,
+      );
+      res.json({ items });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.post("/:id/stock-adjustments", async (req, res, next) => {
+    try {
+      const movement = await useCases.adjustStock(
+        getUserId(req),
+        req.params.id,
+        CreateStockAdjustmentDto.parse(req.body),
+      );
+      res.status(201).json(movement);
     } catch (err) {
       next(err);
     }

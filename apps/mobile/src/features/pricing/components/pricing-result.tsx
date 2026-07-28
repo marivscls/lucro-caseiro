@@ -13,6 +13,10 @@ import type { AppIconName } from "../../../shared/components/app-icon";
 import React from "react";
 import { ScrollView, View } from "react-native";
 
+import { desktopSplitLayout, pageGutter } from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+import { useBusinessCopy } from "../../subscription/business-copy";
+
 interface CostBreakdownItem {
   label: string;
   value: number;
@@ -85,13 +89,24 @@ export function PricingResult({
   isSaving,
 }: PricingResultProps) {
   const { theme } = useTheme();
+  const experienceCopy = useBusinessCopy();
+  const isDesktop = useDesktopLayout();
+  const split = desktopSplitLayout(isDesktop);
 
   const priceToCharge = finalPrice ?? suggestedPrice;
   const hasFees = feesPercent > 0;
 
   const breakdown: CostBreakdownItem[] = [
-    { label: "Insumos", value: ingredientCost, color: theme.colors.premium },
-    { label: "Embalagem", value: packagingCost, color: theme.colors.blue },
+    {
+      label: capitalize(experienceCopy.materialNounPlural),
+      value: ingredientCost,
+      color: theme.colors.premium,
+    },
+    {
+      label: capitalize(experienceCopy.packagingNoun),
+      value: packagingCost,
+      color: theme.colors.blue,
+    },
     { label: "Mão de obra", value: laborCost, color: theme.colors.lavender },
     { label: "Custos fixos", value: fixedCostShare, color: theme.colors.alert },
   ];
@@ -100,15 +115,27 @@ export function PricingResult({
   const monthlyProfit = profitPerUnit * monthlyUnits;
   const profitMarginDisplay =
     suggestedPrice > 0 ? Math.round((profitPerUnit / suggestedPrice) * 100) : 0;
+  const priceScenarios = [
+    { label: "10% abaixo", price: suggestedPrice * 0.9 },
+    { label: "Preço calculado", price: suggestedPrice },
+    { label: "10% acima", price: suggestedPrice * 1.1 },
+  ].map((scenario) => {
+    const gain = scenario.price - totalCost;
+    const margin = scenario.price > 0 ? (gain / scenario.price) * 100 : 0;
+    return { ...scenario, gain, margin };
+  });
 
   return (
     <ScrollView
-      contentContainerStyle={{
-        padding: spacing.xl,
-        gap: spacing.xl,
-      }}
+      contentContainerStyle={[
+        {
+          paddingVertical: spacing.xl,
+          gap: spacing.xl,
+          ...pageGutter(isDesktop),
+        },
+        split.outer,
+      ]}
     >
-      {/* Serif title */}
       <View style={{ gap: spacing.xs }}>
         <Typography variant="h1">Estimativa de preço</Typography>
         <Typography variant="body" color={theme.colors.textSecondary}>
@@ -299,6 +326,64 @@ export function PricingResult({
         </View>
       </Card>
 
+      <Card style={{ gap: spacing.lg }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+          <IconCircle
+            icon="swap-horizontal-outline"
+            tint={theme.colors.blueBg}
+            color={theme.colors.blue}
+          />
+          <View style={{ flex: 1, gap: spacing.xs }}>
+            <Typography variant="h3">Compare antes de decidir</Typography>
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              Simulação sobre o preço base, sem alterar seus dados
+            </Typography>
+          </View>
+        </View>
+
+        {priceScenarios.map((scenario) => {
+          const selected = scenario.label === "Preço calculado";
+          return (
+            <View
+              key={scenario.label}
+              style={{
+                alignItems: "center",
+                backgroundColor: selected
+                  ? theme.colors.primaryBg
+                  : theme.colors.surfaceElevated,
+                borderColor: selected ? theme.colors.primary : theme.colors.border,
+                borderRadius: radii.lg,
+                borderWidth: 1,
+                flexDirection: "row",
+                gap: spacing.md,
+                padding: spacing.md,
+              }}
+            >
+              <View style={{ flex: 1, gap: spacing.xs }}>
+                <Typography
+                  variant="bodyBold"
+                  color={selected ? theme.colors.primaryStrong : theme.colors.text}
+                >
+                  {scenario.label}
+                </Typography>
+                <Typography variant="caption" color={theme.colors.textSecondary}>
+                  Ganho {formatCurrency(scenario.gain)} · margem{" "}
+                  {scenario.margin.toFixed(1).replace(".", ",")}%
+                </Typography>
+              </View>
+              <Typography variant="money" color={theme.colors.text}>
+                {formatCurrency(scenario.price)}
+              </Typography>
+            </View>
+          );
+        })}
+
+        <Typography variant="caption" color={theme.colors.textSecondary}>
+          Baixar o preço não reduz seus custos: a diferença sai diretamente do ganho por
+          unidade.
+        </Typography>
+      </Card>
+
       {/* Monthly projection: só existe quando a pessoa informou a produção. */}
       {monthlyUnits > 0 ? (
         <Card style={{ gap: spacing.lg }}>
@@ -383,13 +468,25 @@ export function PricingResult({
       ) : null}
 
       {/* Actions */}
-      <View style={{ gap: spacing.md }}>
+      <View
+        style={{
+          gap: spacing.md,
+          flexDirection: isDesktop ? "row" : "column",
+          alignItems: isDesktop ? "center" : "stretch",
+          flexWrap: "wrap",
+        }}
+      >
         {onCreateProduct ? (
           <Button
-            title="Salvar e criar produto"
+            title={`Salvar e criar ${experienceCopy.productNoun}`}
             onPress={onCreateProduct}
             loading={isSaving}
             size="lg"
+            style={
+              isDesktop
+                ? { minHeight: 48, minWidth: 220, paddingHorizontal: spacing.xl }
+                : undefined
+            }
           />
         ) : null}
         <Button
@@ -398,9 +495,28 @@ export function PricingResult({
           onPress={onSave}
           loading={isSaving}
           size="lg"
+          style={
+            isDesktop
+              ? { minHeight: 48, minWidth: 200, paddingHorizontal: spacing.xl }
+              : undefined
+          }
         />
-        <Button title="Recalcular" variant="ghost" onPress={onRecalculate} size="lg" />
+        <Button
+          title="Recalcular"
+          variant="ghost"
+          onPress={onRecalculate}
+          size="lg"
+          style={
+            isDesktop
+              ? { minHeight: 48, minWidth: 160, paddingHorizontal: spacing.xl }
+              : undefined
+          }
+        />
       </View>
     </ScrollView>
   );
+}
+
+function capitalize(value: string): string {
+  return value.replace(/^./, (letter) => letter.toUpperCase());
 }

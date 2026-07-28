@@ -35,6 +35,9 @@ export class ClientsRepoPg implements IClientsRepo {
         birthday: data.birthday ?? null,
         notes: data.notes ?? null,
         tags: data.tags ?? [],
+        nextContactAt: data.nextContactAt ?? null,
+        nextContactReason: data.nextContactReason ?? null,
+        nextContactNotes: data.nextContactNotes ?? null,
       })
       .returning();
 
@@ -128,6 +131,12 @@ export class ClientsRepoPg implements IClientsRepo {
     if (data.birthday !== undefined) updateData.birthday = data.birthday;
     if (data.notes !== undefined) updateData.notes = data.notes;
     if (data.tags !== undefined) updateData.tags = data.tags;
+    if (data.nextContactAt !== undefined)
+      updateData.nextContactAt = data.nextContactAt;
+    if (data.nextContactReason !== undefined)
+      updateData.nextContactReason = data.nextContactReason;
+    if (data.nextContactNotes !== undefined)
+      updateData.nextContactNotes = data.nextContactNotes;
 
     if (Object.keys(updateData).length === 0) {
       return this.findById(userId, id);
@@ -185,6 +194,9 @@ export class ClientsRepoPg implements IClientsRepo {
       birthday: row.birthday,
       notes: row.notes,
       tags: row.tags,
+      nextContactAt: row.nextContactAt,
+      nextContactReason: row.nextContactReason,
+      nextContactNotes: row.nextContactNotes,
       totalSpent: Number(row.totalSpent),
       createdAt: row.createdAt.toISOString(),
     };

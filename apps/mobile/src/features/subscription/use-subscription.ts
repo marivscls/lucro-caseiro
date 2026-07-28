@@ -11,7 +11,8 @@ import type { BillingPeriod, PaidPlan } from "@lucro-caseiro/contracts";
 
 import { useAuth } from "../../shared/hooks/use-auth";
 import { trackAnalyticsAction } from "../analytics/tracker";
-import { syncPlan } from "./api";
+import { fetchProfile, syncPlan } from "./api";
+import { isProfilePremiumActive } from "./hooks";
 import { alertError } from "../../shared/utils/alerts";
 import { showAlert } from "../../shared/components/alert-store";
 import {
@@ -251,14 +252,6 @@ export function useSubscription() {
   );
 
   const restore = useCallback(async () => {
-    if (Platform.OS !== "android") {
-      showAlert({
-        title: "Em breve",
-        message: "Restauração iOS será disponibilizada depois.",
-      });
-      return;
-    }
-
     if (!token) {
       alertError("Faça login antes de restaurar.");
       return;
@@ -266,6 +259,27 @@ export function useSubscription() {
 
     setLoading(true);
     try {
+      if (Platform.OS !== "android") {
+        // Stripe vincula a assinatura à conta do Lucro Caseiro. Reconsultar o
+        // perfil restaura esse estado após reinstalação, troca de aparelho ou PWA.
+        const profile = await fetchProfile(token);
+        queryClient.setQueryData(SUBSCRIPTION_PROFILE_KEY, profile);
+        await queryClient.invalidateQueries({ queryKey: SUBSCRIPTION_LIMITS_KEY });
+
+        if (isProfilePremiumActive(profile)) {
+          showAlert({
+            title: "Restaurado!",
+            message: "Sua assinatura foi restaurada.",
+          });
+        } else {
+          showAlert({
+            title: "Nenhuma assinatura encontrada",
+            message: "Não encontramos uma assinatura ativa vinculada a esta conta.",
+          });
+        }
+        return;
+      }
+
       const purchases = await fetchAvailablePurchases({
         includeSuspendedAndroid: false,
       });
@@ -294,7 +308,7 @@ export function useSubscription() {
     } finally {
       setLoading(false);
     }
-  }, [getAvailablePurchases, syncPaidPurchases, token]);
+  }, [getAvailablePurchases, queryClient, syncPaidPurchases, token]);
 
   return { subscribe, restore, loading };
 }

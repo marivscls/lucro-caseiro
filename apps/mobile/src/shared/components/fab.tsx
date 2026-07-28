@@ -34,8 +34,8 @@ export function FAB({ icon, label, accessibilityLabel, style, ...props }: FABPro
       accessibilityLabel={accessibilityLabel}
       style={({ pressed }) => [
         {
-          height: 56,
-          minWidth: 56,
+          height: 52,
+          minWidth: 52,
           paddingHorizontal: label ? spacing.xl : 0,
           borderRadius: radii.full,
           backgroundColor: theme.colors.primaryInteractive,

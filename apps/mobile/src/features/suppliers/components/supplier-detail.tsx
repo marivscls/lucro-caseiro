@@ -110,7 +110,7 @@ export function SupplierDetail({
             variant="secondary"
             size="sm"
             onPress={onEditPress ?? (() => {})}
-            style={{ borderRadius: radii.lg }}
+            style={{ borderRadius: radii.md }}
           />
         </View>
         {supplier.phone && (
@@ -122,7 +122,7 @@ export function SupplierDetail({
               onPress={() => {
                 void openWhatsApp(supplier.phone!);
               }}
-              style={{ borderRadius: radii.lg }}
+              style={{ borderRadius: radii.md }}
             />
           </View>
         )}

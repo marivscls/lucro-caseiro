@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   availableProductStock,
+  summarizeLowStockProducts,
   totalVariationStock,
   validateVariations,
 } from "./variations";
@@ -24,6 +25,20 @@ describe("variações de produto", () => {
       variations: [],
     } as unknown as Product;
     expect(availableProductStock(product)).toBe(12);
+  });
+
+  it("separa produtos sem estoque dos que precisam de reposição", () => {
+    const products = [
+      { stockQuantity: 0, variations: [] },
+      { stockQuantity: 2, variations: [] },
+      { stockQuantity: 99, variations: [{ name: "Rosa", stockQuantity: 0 }] },
+      { stockQuantity: null, variations: [] },
+    ] as unknown as Product[];
+
+    expect(summarizeLowStockProducts(products)).toEqual({
+      outOfStock: 2,
+      lowStock: 1,
+    });
   });
 
   it("rejeita nomes vazios, repetidos e estoque negativo", () => {

@@ -84,6 +84,7 @@ export class CatalogRepoPg implements ICatalogRepo {
       .select({
         id: products.id,
         name: products.name,
+        category: products.category,
         description: products.description,
         photoUrl: products.photoUrl,
         extraPhotos: products.extraPhotos,
@@ -98,6 +99,7 @@ export class CatalogRepoPg implements ICatalogRepo {
     return rows.map((row) => ({
       id: row.id,
       name: row.name,
+      category: row.category,
       description: row.description,
       photoUrl: row.photoUrl,
       extraPhotos: row.extraPhotos ?? [],

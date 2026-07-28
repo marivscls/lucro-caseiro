@@ -12,12 +12,19 @@ import { AppIcon } from "../../shared/components/app-icon";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Image, ScrollView, useWindowDimensions, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { avatarPastel } from "../../features/clients/components/avatar-colors";
 import { useProfile } from "../../features/subscription/hooks";
 import { useAdminAnalyticsAccess } from "../../features/analytics/hooks";
+import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
+import {
+  desktopStretch,
+  desktopWidths,
+  pageGutter,
+} from "../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
+import { businessCopyFor } from "../../features/subscription/business-copy";
 
 // Destaque no topo do "Mais" (ADR-0006): funções de uso diário que perderam
 // atalho na tab bar (Clientes) ou que merecem acesso rápido (Financeiro,
@@ -68,6 +75,12 @@ const menuItems = [
     description: "Seus produtos e estoque",
     icon: "cube-outline" as const,
     route: "/products" as const,
+  },
+  {
+    title: "Serviços",
+    description: "Preços, duração e atendimentos",
+    icon: "briefcase-outline" as const,
+    route: "/services" as const,
   },
   {
     title: "Catálogo online",
@@ -134,8 +147,10 @@ export default function MoreScreen() {
   const brand = useBrand();
   const { width } = useWindowDimensions();
   const isDesktop = useDesktopLayout();
+  const insets = useSafeAreaInsets();
   const { data: profile } = useProfile();
   const { data: adminAccess } = useAdminAnalyticsAccess();
+  const experienceCopy = businessCopyFor(profile?.businessType, brand.copy);
 
   const userName = profile?.name ?? "Minha conta";
   const businessName = profile?.businessName ?? "Ver perfil e assinatura";
@@ -153,16 +168,66 @@ export default function MoreScreen() {
   const menuCardStyle = usesGrid
     ? { width: (contentWidth - spacing.md * (gridColumns - 1)) / gridColumns }
     : { width: "100%" as const };
+  const personalizedMenuItems = menuItems
+    .filter(
+      (item) => !("feature" in item) || !item.feature || brand.features[item.feature],
+    )
+    .map((item) => {
+      if (item.route === "/products") {
+        return {
+          ...item,
+          title: brand.copy.productNounPlural.replace(/^./, (letter) =>
+            letter.toUpperCase(),
+          ),
+          description: "Cadastros, preços e disponibilidade",
+        };
+      }
+      if (item.route === "/materials") {
+        return {
+          ...item,
+          title: "Insumos",
+          description: "Custos, fornecedores e estoque",
+        };
+      }
+      if (item.route === "/recipes") {
+        return {
+          ...item,
+          title: "Receitas",
+          description: `Custos e ${experienceCopy.materialNounPlural}`,
+        };
+      }
+      if (item.route === "/packaging") {
+        return {
+          ...item,
+          title: "Embalagens",
+          description: "Custos adicionais por venda",
+        };
+      }
+      if (item.route === "/labels") {
+        return { ...item, title: brand.copy.labelsLabel };
+      }
+      return item;
+    });
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <ScrollView contentContainerStyle={{ padding: spacing.xl, alignItems: "center" }}>
-        <View style={{ width: "100%", maxWidth: 1280, gap: spacing.md }}>
-          {!isDesktop && (
-            <Typography variant="h1" style={{ marginBottom: spacing.sm }}>
-              Mais opções
-            </Typography>
-          )}
+    <SafeAreaView
+      edges={["top", "left", "right"]}
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+    >
+      <ScrollView
+        contentContainerStyle={{
+          paddingVertical: spacing.xl,
+          paddingBottom: isDesktop
+            ? spacing["3xl"]
+            : floatingTabBarContentPadding(insets.bottom),
+          ...pageGutter(isDesktop),
+          ...desktopStretch(isDesktop, desktopWidths.data),
+        }}
+      >
+        <View style={{ width: "100%", gap: spacing.md }}>
+          <Typography variant="screenTitle" style={{ marginBottom: spacing.sm }}>
+            Mais opções
+          </Typography>
 
           {/* Account header */}
           <Card variant="elevated" onPress={() => router.push("/settings")}>
@@ -299,16 +364,7 @@ export default function MoreScreen() {
             }}
           >
             {[
-              ...menuItems
-                .filter(
-                  (item) =>
-                    !("feature" in item) || !item.feature || brand.features[item.feature],
-                )
-                .map((item) =>
-                  item.route === "/labels"
-                    ? { ...item, title: brand.copy.labelsLabel }
-                    : item,
-                ),
+              ...personalizedMenuItems,
               ...(adminAccess?.allowed
                 ? [
                     {

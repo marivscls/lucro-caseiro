@@ -12,6 +12,11 @@ import {
   TextFieldCard,
   useFieldPalette,
 } from "../../../shared/components/form-field";
+import {
+  desktopAction,
+  desktopCompactField,
+} from "../../../shared/layout/desktop-density";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
 import { usePaywall } from "../../../shared/hooks/use-paywall";
 import { ApiError } from "../../../shared/utils/api-client";
@@ -31,6 +36,7 @@ import {
 import { useCreatePackaging, usePackagingList, useUpdatePackaging } from "../hooks";
 import { PackagingAvatar } from "./packaging-avatar";
 import { SupplierSelector } from "../../suppliers/components/supplier-selector";
+import { useBusinessCopy } from "../../subscription/business-copy";
 
 interface PackagingFormProps {
   readonly packaging?: Packaging | null;
@@ -195,6 +201,8 @@ export function PackagingForm({
   headerRight,
 }: PackagingFormProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
+  const experienceCopy = useBusinessCopy();
   const pal = useFieldPalette();
   const isEditing = !!packaging;
 
@@ -246,7 +254,7 @@ export function PackagingForm({
         item.type === type,
     );
     if (duplicate) {
-      alertValidation("Essa embalagem já está cadastrada com esse tipo.");
+      alertValidation("Já existe um cadastro com esse nome e tipo.");
       return;
     }
 
@@ -275,12 +283,23 @@ export function PackagingForm({
 
   return (
     <StandardModal
-      title={isEditing ? "Editar embalagem" : "Nova embalagem"}
+      title={
+        isEditing
+          ? "Editar embalagem"
+          : "Nova embalagem"
+      }
       visible={visible}
       onClose={onClose}
       right={headerRight}
       footer={
-        <>
+        <View
+          style={{
+            flexDirection: "row",
+            gap: spacing.md,
+            justifyContent: isDesktop ? "flex-end" : undefined,
+            width: "100%",
+          }}
+        >
           <Pressable
             onPress={() => (onCancel ?? onClose)()}
             accessibilityRole="button"
@@ -294,7 +313,7 @@ export function PackagingForm({
                 justifyContent: "center",
                 opacity: pressed ? 0.7 : 1,
               },
-              { flex: 1 },
+              isDesktop ? desktopAction(isDesktop, 160) : { flex: 1 },
             ]}
           >
             <Typography variant="bodyBold" color={theme.colors.text}>
@@ -313,9 +332,9 @@ export function PackagingForm({
             }}
             disabled={saving}
             loading={saving}
-            style={{ flex: 1 }}
+            style={isDesktop ? desktopAction(isDesktop, 220) : { flex: 1 }}
           />
-        </>
+        </View>
       }
     >
       <View style={{ flexShrink: 1, gap: spacing.xl }}>
@@ -338,12 +357,19 @@ export function PackagingForm({
 
         {/* Dados da embalagem */}
         <View style={{ gap: spacing.md }}>
-          <SectionHeader icon="document-text-outline" title="Dados da embalagem" />
+          <SectionHeader
+            icon="document-text-outline"
+            title="Dados da embalagem"
+          />
           <View>
             <FieldLabel label="Nome" required />
             <TextFieldCard
               icon="pricetag-outline"
-              placeholder="Ex: Caixa kraft P, Sacola transparente..."
+              placeholder={
+                experienceCopy.profile === "food"
+                  ? "Ex: Caixa kraft P, Sacola transparente..."
+                  : "Ex: Caixa para envio, sacola, acabamento..."
+              }
               value={name}
               onChangeText={setName}
               autoFocus={!isEditing}
@@ -353,7 +379,7 @@ export function PackagingForm({
 
         {/* Tipo de embalagem */}
         <View style={{ gap: spacing.md }}>
-          <SectionHeader icon="albums-outline" title="Tipo de embalagem" />
+          <SectionHeader icon="albums-outline" title="Tipo do custo adicional" />
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
             {PACKAGING_TYPES.map((t) => {
               const active = type === t.value;
@@ -409,15 +435,17 @@ export function PackagingForm({
 
         {/* Custo */}
         <View style={{ flexDirection: "row", gap: spacing.md }}>
-          <IconInputCard
-            icon="cash-outline"
-            iconColor={theme.colors.success}
-            label="Custo unitário (R$)"
-            placeholder="0,00"
-            value={unitCost}
-            onChangeText={(v: string) => setUnitCost(maskCurrencyInput(v))}
-            keyboardType="numeric"
-          />
+          <View style={isDesktop ? desktopCompactField(isDesktop) : { flex: 1 }}>
+            <IconInputCard
+              icon="cash-outline"
+              iconColor={theme.colors.success}
+              label="Custo unitário (R$)"
+              placeholder="0,00"
+              value={unitCost}
+              onChangeText={(v: string) => setUnitCost(maskCurrencyInput(v))}
+              keyboardType="numeric"
+            />
+          </View>
         </View>
 
         {/* Fornecedor */}

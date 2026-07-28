@@ -10,6 +10,8 @@ export const CreateOrderDto = z.object({
     .regex(/^\d{2}:\d{2}$/)
     .optional(),
   clientId: z.string().uuid().optional(),
+  serviceId: z.string().uuid().nullable().optional(),
+  durationMinutes: z.number().int().min(5).max(1440).nullable().optional(),
   amount: z.number().positive().max(MAX_MONEY).optional(),
   // Sinal (entrada) ja recebido; validado contra o amount no usecase.
   deposit: z.number().min(0).max(MAX_MONEY).nullable().optional(),
@@ -39,6 +41,9 @@ export const OrderDto = z.object({
   userId: z.string().uuid(),
   clientId: z.string().uuid().nullable(),
   clientName: z.string().nullable(),
+  serviceId: z.string().uuid().nullable(),
+  serviceName: z.string().nullable(),
+  durationMinutes: z.number().int().nullable(),
   title: z.string(),
   deliveryDate: z.string(),
   deliveryTime: z.string().nullable(),
