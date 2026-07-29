@@ -15,6 +15,7 @@ import { View } from "react-native";
 import { AppIcon } from "../../../shared/components/app-icon";
 import { FormSection } from "../../../shared/components/form-section";
 import { StandardModal } from "../../../shared/components/standard-modal";
+import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { alertError, alertValidation } from "../../../shared/utils/alerts";
 import {
   currencyInput,
@@ -59,6 +60,7 @@ const DURATION_PRESETS = [
 
 export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFormProps) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const createService = useCreateService();
   const updateService = useUpdateService();
   const servicesQuery = useServices();
@@ -325,7 +327,14 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
         <Typography variant="caption" color={theme.colors.textSecondary}>
           Campos vazios valem zero. O cálculo usa apenas os valores que você informar.
         </Typography>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            alignItems: isDesktop ? "flex-end" : "stretch",
+            gap: spacing.md,
+          }}
+        >
           <Input
             label="Materiais e insumos"
             placeholder="R$ 0,00"
