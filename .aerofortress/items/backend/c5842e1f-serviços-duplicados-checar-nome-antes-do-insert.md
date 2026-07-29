@@ -10,7 +10,7 @@ decay: stable
 created: 2026-07-29T11:20:27.011686300+00:00
 updated: 2026-07-29T11:20:27.011686300+00:00
 validated: 2026-07-29T11:20:27.011686300+00:00
-links: 
+links:
 ---
 
 CORREÇÃO DA USUÁRIA (2026-07-29): ao cadastrar um serviço no PWA, dois cards idênticos foram criados. CAUSA: dois submits quase simultâneos podiam atravessar o `refetch`/`findServiceByName` antes do primeiro insert; `isPending` e a checagem prévia não formavam uma garantia atômica. CORREÇÃO: o formulário usa uma trava síncrona por `useRef` desde o primeiro await até o fim do submit; no Postgres, a criação adquire `pg_advisory_xact_lock` por usuário+nome normalizado, reconsulta dentro da transação e retorna conflito se outro request já criou. COMO EVITAR: todo cadastro que proíbe duplicatas precisa provar dois requests equivalentes concorrentes; trava de UI melhora a experiência, mas a garantia final pertence ao backend/banco.
