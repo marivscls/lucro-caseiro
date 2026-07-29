@@ -34,6 +34,7 @@ import {
 import { uploadOrderImage } from "../../../shared/utils/upload-image";
 import { ClientPickerModal } from "../../clients/components/client-picker-modal";
 import { useCreateOrder, useDeleteOrder, useUpdateOrder } from "../hooks";
+import { createOrderRequestId } from "../request-id";
 import {
   useCreateService,
   useServicePackagePurchases,
@@ -393,6 +394,8 @@ export function OrderForm({
   const compactField = desktopCompactField(isDesktop);
   const isCompactPwa = Platform.OS === "web" && !isDesktop;
   const pal = formPalette(theme);
+  const submittingRef = React.useRef(false);
+  const requestIdRef = React.useRef(createOrderRequestId());
   const [title, setTitle] = useState(order?.title ?? "");
   const [dateText, setDateText] = useState(
     order?.deliveryDate ? isoToBR(order.deliveryDate) : offsetIsoBr(0),
@@ -495,7 +498,7 @@ export function OrderForm({
     }
   }
 
-  async function handleSave() {
+  async function saveOrder() {
     if (!title.trim()) {
       alertValidation("Dê um nome para este cadastro.");
       return;
@@ -540,6 +543,7 @@ export function OrderForm({
     }
 
     const data = {
+      requestId: isEditing ? undefined : requestIdRef.current,
       title: title.trim(),
       deliveryDate: iso,
       deliveryTime: time.trim() || undefined,
@@ -588,6 +592,7 @@ export function OrderForm({
         });
         return;
       }
+      requestIdRef.current = createOrderRequestId();
       onSuccess?.();
     } catch (error) {
       const message =
@@ -595,6 +600,16 @@ export function OrderForm({
           ? error.message
           : "Não foi possível salvar. Tente novamente.";
       showAlert({ title: "Erro ao salvar", message });
+    }
+  }
+
+  async function handleSave() {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
+    try {
+      await saveOrder();
+    } finally {
+      submittingRef.current = false;
     }
   }
 

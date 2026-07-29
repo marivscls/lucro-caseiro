@@ -13,6 +13,7 @@ import type {
 } from "@lucro-caseiro/contracts";
 
 export interface CreateOrderData {
+  requestId?: string;
   title: string;
   deliveryDate: string;
   deliveryTime?: string;

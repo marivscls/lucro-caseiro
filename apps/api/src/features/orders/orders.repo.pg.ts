@@ -49,6 +49,7 @@ export class OrdersRepoPg implements IOrdersRepo {
     const [row] = await this.db
       .insert(orders)
       .values({
+        id: data.requestId,
         userId,
         clientId: data.clientId ?? null,
         serviceId: data.serviceId ?? null,
@@ -77,9 +78,18 @@ export class OrdersRepoPg implements IOrdersRepo {
         completedAt: data.completedAt ? new Date(data.completedAt) : null,
         saleId: data.saleId ?? null,
       })
+      .onConflictDoNothing({ target: orders.id })
       .returning();
 
-    return this.findById(userId, row!.id) as Promise<Order>;
+    const orderId = row?.id ?? data.requestId;
+    if (!orderId) {
+      throw new Error("Não foi possível identificar a encomenda criada");
+    }
+    const order = await this.findById(userId, orderId);
+    if (!order) {
+      throw new Error("Não foi possível recuperar a encomenda criada");
+    }
+    return order;
   }
 
   async findById(userId: string, id: string): Promise<Order | null> {

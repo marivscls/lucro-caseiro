@@ -4,6 +4,7 @@ import { MAX_MONEY, OrderStatus, PaymentMethod } from "./common";
 import { AppointmentLocationMode, ServiceAppointmentStatus } from "./operations";
 
 export const CreateOrderDto = z.object({
+  requestId: z.string().uuid().optional(),
   title: z.string().min(1).max(200),
   deliveryDate: z.string().date(),
   deliveryTime: z
@@ -33,7 +34,7 @@ export const CreateOrderDto = z.object({
 
 export type CreateOrder = z.infer<typeof CreateOrderDto>;
 
-export const UpdateOrderDto = CreateOrderDto.partial();
+export const UpdateOrderDto = CreateOrderDto.omit({ requestId: true }).partial();
 export type UpdateOrder = z.infer<typeof UpdateOrderDto>;
 
 export const DeliverOrderDto = z.object({
