@@ -15,7 +15,7 @@ import {
   spacing,
   useTheme,
 } from "@lucro-caseiro/ui";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 
 import { FormSection } from "../../../shared/components/form-section";
@@ -87,6 +87,7 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
   const createService = useCreateService();
   const updateService = useUpdateService();
   const servicesQuery = useServices();
+  const submittingRef = useRef(false);
   const [name, setName] = useState(service?.name ?? "");
   const [description, setDescription] = useState(service?.description ?? "");
   const [durationMinutes, setDurationMinutes] = useState(
@@ -234,40 +235,42 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
       return;
     }
 
-    const refreshed = await servicesQuery.refetch();
-    const duplicate = refreshed.data?.some(
-      (item) =>
-        item.id !== service?.id &&
-        item.name.trim().toLocaleLowerCase("pt-BR") ===
-          normalizedName.toLocaleLowerCase("pt-BR"),
-    );
-    if (duplicate) {
-      alertValidation("Já existe um serviço com esse nome.");
-      return;
-    }
-
-    const data: CreateService = {
-      name: normalizedName,
-      description: description.trim() || null,
-      durationMinutes: duration,
-      defaultPrice: price,
-      materialCost: moneyValue(materialCost),
-      hourlyRate: moneyValue(hourlyRate),
-      otherCost: moneyValue(otherCost),
-      fixedCostShare: moneyValue(fixedCostShare),
-      markupPercent: markup,
-      feesPercent: fees,
-      locationMode,
-      bufferMinutes: buffer,
-      publicEnabled,
-      bookingInstructions: bookingInstructions.trim() || null,
-      variations,
-      addOns,
-      packages,
-      active,
-    };
-
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     try {
+      const refreshed = await servicesQuery.refetch();
+      const duplicate = refreshed.data?.some(
+        (item) =>
+          item.id !== service?.id &&
+          item.name.trim().toLocaleLowerCase("pt-BR") ===
+            normalizedName.toLocaleLowerCase("pt-BR"),
+      );
+      if (duplicate) {
+        alertValidation("Já existe um serviço com esse nome.");
+        return;
+      }
+
+      const data: CreateService = {
+        name: normalizedName,
+        description: description.trim() || null,
+        durationMinutes: duration,
+        defaultPrice: price,
+        materialCost: moneyValue(materialCost),
+        hourlyRate: moneyValue(hourlyRate),
+        otherCost: moneyValue(otherCost),
+        fixedCostShare: moneyValue(fixedCostShare),
+        markupPercent: markup,
+        feesPercent: fees,
+        locationMode,
+        bufferMinutes: buffer,
+        publicEnabled,
+        bookingInstructions: bookingInstructions.trim() || null,
+        variations,
+        addOns,
+        packages,
+        active,
+      };
+
       if (service) {
         await updateService.mutateAsync({ id: service.id, data });
       } else {
@@ -277,6 +280,8 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
       onClose();
     } catch (error) {
       alertError(error);
+    } finally {
+      submittingRef.current = false;
     }
   }
 
@@ -300,6 +305,7 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
             title={service ? "Salvar" : "Cadastrar"}
             onPress={() => void submit()}
             loading={saving}
+            disabled={saving}
             style={{ flex: 1 }}
           />
         </>

@@ -94,7 +94,7 @@ export interface IOrdersRepo {
     name: string,
     excludeId?: string,
   ): Promise<Service | null>;
-  createService?(userId: string, data: CreateService): Promise<Service>;
+  createService?(userId: string, data: CreateService): Promise<Service | null>;
   updateService?(
     userId: string,
     id: string,

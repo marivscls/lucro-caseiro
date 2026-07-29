@@ -244,30 +244,51 @@ export class OrdersRepoPg implements IOrdersRepo {
     return row ? this.toService(row) : null;
   }
 
-  async createService(userId: string, data: CreateService): Promise<Service> {
-    const [row] = await this.db
-      .insert(services)
-      .values({
-        userId,
-        name: data.name.trim(),
-        description: data.description?.trim() || null,
-        durationMinutes: data.durationMinutes,
-        defaultPrice: data.defaultPrice == null ? null : String(data.defaultPrice),
-        materialCost: String(data.materialCost ?? 0),
-        hourlyRate: String(data.hourlyRate ?? 0),
-        otherCost: String(data.otherCost ?? 0),
-        fixedCostShare: String(data.fixedCostShare ?? 0),
-        markupPercent: String(data.markupPercent ?? 0),
-        feesPercent: String(data.feesPercent ?? 0),
-        locationMode: data.locationMode ?? "flexible",
-        bufferMinutes: data.bufferMinutes ?? 0,
-        publicEnabled: data.publicEnabled ?? false,
-        bookingInstructions: data.bookingInstructions?.trim() || null,
-        active: data.active ?? true,
-      })
-      .returning();
-    await this.syncServiceOfferings(userId, row!.id, data);
-    return this.toService(row!);
+  async createService(userId: string, data: CreateService): Promise<Service | null> {
+    const normalizedName = data.name.trim().toLocaleLowerCase("pt-BR");
+    const lockKey = `${userId}:${normalizedName}`;
+    const row = await this.db.transaction(async (tx) => {
+      await tx.execute(
+        sql`select pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))`,
+      );
+      const [duplicate] = await tx
+        .select({ id: services.id })
+        .from(services)
+        .where(
+          and(
+            eq(services.userId, userId),
+            sql`lower(trim(${services.name})) = ${normalizedName}`,
+          ),
+        )
+        .limit(1);
+      if (duplicate) return null;
+
+      const [created] = await tx
+        .insert(services)
+        .values({
+          userId,
+          name: data.name.trim(),
+          description: data.description?.trim() || null,
+          durationMinutes: data.durationMinutes,
+          defaultPrice: data.defaultPrice == null ? null : String(data.defaultPrice),
+          materialCost: String(data.materialCost ?? 0),
+          hourlyRate: String(data.hourlyRate ?? 0),
+          otherCost: String(data.otherCost ?? 0),
+          fixedCostShare: String(data.fixedCostShare ?? 0),
+          markupPercent: String(data.markupPercent ?? 0),
+          feesPercent: String(data.feesPercent ?? 0),
+          locationMode: data.locationMode ?? "flexible",
+          bufferMinutes: data.bufferMinutes ?? 0,
+          publicEnabled: data.publicEnabled ?? false,
+          bookingInstructions: data.bookingInstructions?.trim() || null,
+          active: data.active ?? true,
+        })
+        .returning();
+      return created ?? null;
+    });
+    if (!row) return null;
+    await this.syncServiceOfferings(userId, row.id, data);
+    return this.toService(row);
   }
 
   async updateService(

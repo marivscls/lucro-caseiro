@@ -224,6 +224,24 @@ describe("OrdersUseCases", () => {
       ).rejects.toThrow(ValidationError);
     });
 
+    it("rejects a concurrent duplicate detected during creation", async () => {
+      const createService = vi.fn(() => Promise.resolve(null));
+      const { sut } = makeSut({
+        repo: {
+          findServiceByName: () => Promise.resolve(null),
+          createService,
+        },
+      });
+
+      await expect(
+        sut.createService(USER_ID, {
+          name: "Manutenção de unhas",
+          durationMinutes: 60,
+        }),
+      ).rejects.toThrow(ValidationError);
+      expect(createService).toHaveBeenCalledOnce();
+    });
+
     it("excludes the current service when validating an edit", async () => {
       const findServiceByName = vi.fn(() => Promise.resolve(null));
       const updateService = vi.fn(() => Promise.resolve(makeService()));

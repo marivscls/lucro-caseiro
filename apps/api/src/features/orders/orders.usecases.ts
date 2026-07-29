@@ -122,7 +122,11 @@ export class OrdersUseCases {
       throw new ValidationError(["Cadastro de serviços indisponível"]);
     }
     await this.assertServiceNameAvailable(userId, data.name);
-    return this.repo.createService(userId, data);
+    const created = await this.repo.createService(userId, data);
+    if (!created) {
+      throw new ValidationError(["Já existe um serviço com esse nome"]);
+    }
+    return created;
   }
 
   async updateService(userId: string, id: string, data: UpdateService): Promise<Service> {
