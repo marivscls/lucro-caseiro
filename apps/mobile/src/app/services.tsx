@@ -30,6 +30,7 @@ import {
   type ServiceFilter,
 } from "../features/services/domain";
 import { useServices } from "../features/services/hooks";
+import { showAlert } from "../shared/components/alert-store";
 import { AppIcon } from "../shared/components/app-icon";
 import type { AppIconName } from "../shared/components/app-icon";
 import { ScreenHeader } from "../shared/components/screen-header";
@@ -548,6 +549,13 @@ export default function ServicesScreen() {
           visible
           initialServiceId={appointmentService.id}
           onClose={() => setAppointmentService(null)}
+          onSuccess={() => {
+            setAppointmentService(null);
+            showAlert({
+              title: "Atendimento agendado",
+              message: "Ele já está disponível na Agenda.",
+            });
+          }}
         />
       ) : null}
     </SafeAreaView>

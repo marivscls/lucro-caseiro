@@ -53,6 +53,7 @@ export function useCreateOrder() {
     mutationFn: (data: CreateOrder) => createOrder(token!, data),
     onSuccess: (order) => {
       void queryClient.invalidateQueries({ queryKey: ORDERS_KEY });
+      void queryClient.invalidateQueries({ queryKey: ["services"] });
       void scheduleOrderReminder(order);
       void trackAnalyticsAction("order_created", token);
     },
