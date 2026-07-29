@@ -60,7 +60,7 @@ export function HeroPreview({ baseColor, businessName, tagline }: HeroPreviewPro
           numberOfLines={1}
           style={{ marginTop: 4 }}
         >
-          {tagline?.trim() || "Catálogo de produtos"}
+          {tagline?.trim() || "Produtos e serviços"}
         </Typography>
       </View>
     </View>

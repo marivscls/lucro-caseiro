@@ -131,6 +131,8 @@ describe("renderCatalogHtml", () => {
     expect(html).toContain("Consultoria");
     expect(html).toContain("Atendimento online");
     expect(html).toContain("Acompanhamento · 4 sessões");
+    expect(html).toContain('class="card service-card"');
+    expect(html).toContain('class="tagline">Serviços</p>');
     expect(html).toContain('id="service-booking-form"');
     expect(html).toContain('fetch(location.pathname + "/service-bookings"');
   });
@@ -229,7 +231,7 @@ describe("renderCatalogHtml", () => {
 
   it("sem produtos, mostra estado vazio", () => {
     const html = renderCatalogHtml(baseCatalog);
-    expect(html).toContain("Nenhum produto disponível no momento.");
+    expect(html).toContain("Nada disponível no momento.");
   });
 
   it("usa a paleta rosa oficial no Lucro Caseiro sem personalizacao", () => {

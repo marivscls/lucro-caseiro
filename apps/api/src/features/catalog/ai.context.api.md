@@ -130,6 +130,11 @@ invariants:
 /c/:slug/service-bookings` recebe solicitações de horário sem criar um
   agendamento automaticamente.
 
+- 2026-07-29: cards de serviço alinhados aos de produto (layout vertical `.card`,
+  bloco visual com inicial, chips `.variant`, tipografia de preço `.price` e CTA
+  preenchido). Seções `Produtos`/`Serviços` com o mesmo grid; tagline do hero
+  adapta ao conteúdo (só produtos, só serviços ou ambos).
+
 - 2026-06-09: criação (MVP). HTML server-rendered pela própria API para não exigir
   novo deploy/web app; pedido via deep link `wa.me` com mensagem pré-preenchida.
 - 2026-06-09: redesign premium da página: hero com gradiente e avatar, tipografia serif,
