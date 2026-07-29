@@ -22,6 +22,8 @@ function makeSale(overrides: Partial<Sale> = {}): Sale {
     discountType: null,
     discountValue: 0,
     total: 20,
+    paidAmount: 0,
+    sourceOrderId: null,
     notes: null,
     items: [],
     soldAt: "2026-05-20T12:00:00.000Z",

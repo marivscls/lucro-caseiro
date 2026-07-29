@@ -1,5 +1,11 @@
 import type { Sale, SaleStatus } from "@lucro-caseiro/contracts";
-import { clients, products, saleItems, sales } from "@lucro-caseiro/database/schema";
+import {
+  clients,
+  products,
+  saleItems,
+  sales,
+  services,
+} from "@lucro-caseiro/database/schema";
 import { and, between, count, eq, sql, sum } from "drizzle-orm";
 import type { AppDatabase } from "../../shared/db";
 import type {
@@ -34,6 +40,8 @@ export class SalesRepoPg implements ISalesRepo {
         discountType: data.discountType ?? null,
         discountValue: String(data.discountValue ?? 0),
         total: String(pricing.total),
+        paidAmount: String(data.paidAmount ?? (status === "paid" ? pricing.total : 0)),
+        sourceOrderId: data.sourceOrderId ?? null,
         notes: data.notes ?? null,
         soldAt: data.soldAt ? new Date(data.soldAt) : new Date(),
       })
@@ -46,7 +54,9 @@ export class SalesRepoPg implements ISalesRepo {
       .values(
         data.items.map((item) => ({
           saleId: sale.id,
-          productId: item.productId,
+          productId: item.productId ?? null,
+          serviceId: item.serviceId ?? null,
+          itemName: item.itemName ?? null,
           quantity: String(item.quantity),
           unitPrice: String(item.unitPrice),
           variationId: item.variationId ?? null,
@@ -96,13 +106,22 @@ export class SalesRepoPg implements ISalesRepo {
 
     if (!row) return null;
 
+    if (row.status === "paid") {
+      await this.db
+        .update(sales)
+        .set({ paidAmount: String(pricing.total) })
+        .where(and(eq(sales.userId, userId), eq(sales.id, id)));
+    }
+
     if (data.items) {
       await this.db.delete(saleItems).where(eq(saleItems.saleId, id));
 
       await this.db.insert(saleItems).values(
         data.items.map((item) => ({
           saleId: id,
-          productId: item.productId,
+          productId: item.productId ?? null,
+          serviceId: item.serviceId ?? null,
+          itemName: item.itemName ?? null,
           quantity: String(item.quantity),
           unitPrice: String(item.unitPrice),
           variationId: item.variationId ?? null,
@@ -127,16 +146,20 @@ export class SalesRepoPg implements ISalesRepo {
       .select({
         id: saleItems.id,
         productId: saleItems.productId,
+        serviceId: saleItems.serviceId,
+        itemName: saleItems.itemName,
         quantity: saleItems.quantity,
         unitPrice: saleItems.unitPrice,
         variationId: saleItems.variationId,
         variationName: saleItems.variationName,
         subtotal: saleItems.subtotal,
         productName: products.name,
+        serviceName: services.name,
         productPhotoUrl: products.photoUrl,
       })
       .from(saleItems)
       .leftJoin(products, eq(saleItems.productId, products.id))
+      .leftJoin(services, eq(saleItems.serviceId, services.id))
       .where(eq(saleItems.saleId, saleRow.id));
 
     let clientName: string | null = null;
@@ -149,6 +172,14 @@ export class SalesRepoPg implements ISalesRepo {
     }
 
     return this.toSaleWithJoins(saleRow, itemRows, clientName);
+  }
+
+  async findBySourceOrderId(userId: string, orderId: string): Promise<Sale | null> {
+    const [row] = await this.db
+      .select({ id: sales.id })
+      .from(sales)
+      .where(and(eq(sales.userId, userId), eq(sales.sourceOrderId, orderId)));
+    return row ? this.findById(userId, row.id) : null;
   }
 
   async findAll(
@@ -203,13 +234,16 @@ export class SalesRepoPg implements ISalesRepo {
       string,
       Array<{
         id: string;
-        productId: string;
+        productId: string | null;
+        serviceId: string | null;
+        itemName: string | null;
         quantity: string;
         unitPrice: string;
         variationId: string | null;
         variationName: string | null;
         subtotal: string;
         productName: string | null;
+        serviceName: string | null;
         productPhotoUrl: string | null;
       }>
     > = {};
@@ -220,16 +254,20 @@ export class SalesRepoPg implements ISalesRepo {
           id: saleItems.id,
           saleId: saleItems.saleId,
           productId: saleItems.productId,
+          serviceId: saleItems.serviceId,
+          itemName: saleItems.itemName,
           quantity: saleItems.quantity,
           unitPrice: saleItems.unitPrice,
           variationId: saleItems.variationId,
           variationName: saleItems.variationName,
           subtotal: saleItems.subtotal,
           productName: products.name,
+          serviceName: services.name,
           productPhotoUrl: products.photoUrl,
         })
         .from(saleItems)
         .leftJoin(products, eq(saleItems.productId, products.id))
+        .leftJoin(services, eq(saleItems.serviceId, services.id))
         .where(sql`${saleItems.saleId} IN ${saleIds}`);
 
       for (const item of allItems) {
@@ -257,7 +295,7 @@ export class SalesRepoPg implements ISalesRepo {
   ): Promise<Sale | null> {
     const [row] = await this.db
       .update(sales)
-      .set({ status })
+      .set(status === "paid" ? { status, paidAmount: sql`${sales.total}` } : { status })
       .where(and(eq(sales.userId, userId), eq(sales.id, id)))
       .returning();
 
@@ -320,11 +358,14 @@ export class SalesRepoPg implements ISalesRepo {
       discountType: row.discountType as Sale["discountType"],
       discountValue: Number(row.discountValue),
       total: Number(row.total),
+      paidAmount: Number(row.paidAmount),
+      sourceOrderId: row.sourceOrderId,
       notes: row.notes,
       items: itemRows.map((item) => ({
         id: item.id,
         productId: item.productId,
-        productName: "Produto",
+        serviceId: item.serviceId,
+        productName: item.itemName ?? (item.serviceId ? "Serviço" : "Produto"),
         quantity: Number(item.quantity),
         unitPrice: Number(item.unitPrice),
         ...(item.variationId ? { variationId: item.variationId } : {}),
@@ -340,13 +381,16 @@ export class SalesRepoPg implements ISalesRepo {
     row: typeof sales.$inferSelect,
     itemRows: Array<{
       id: string;
-      productId: string;
+      productId: string | null;
+      serviceId: string | null;
+      itemName: string | null;
       quantity: string;
       unitPrice: string;
       variationId: string | null;
       variationName: string | null;
       subtotal: string;
       productName: string | null;
+      serviceName: string | null;
       productPhotoUrl: string | null;
     }>,
     clientName: string | null,
@@ -363,11 +407,18 @@ export class SalesRepoPg implements ISalesRepo {
       discountType: row.discountType as Sale["discountType"],
       discountValue: Number(row.discountValue),
       total: Number(row.total),
+      paidAmount: Number(row.paidAmount),
+      sourceOrderId: row.sourceOrderId,
       notes: row.notes,
       items: itemRows.map((item) => ({
         id: item.id,
         productId: item.productId,
-        productName: item.productName ?? "Produto removido",
+        serviceId: item.serviceId,
+        productName:
+          item.itemName ??
+          item.productName ??
+          item.serviceName ??
+          (item.serviceId ? "Serviço removido" : "Produto removido"),
         productPhotoUrl: item.productPhotoUrl,
         quantity: Number(item.quantity),
         unitPrice: Number(item.unitPrice),

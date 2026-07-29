@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { MAX_MONEY, OrderStatus, PaymentMethod } from "./common";
+import { AppointmentLocationMode, ServiceAppointmentStatus } from "./operations";
 
 export const CreateOrderDto = z.object({
   title: z.string().min(1).max(200),
@@ -11,7 +12,13 @@ export const CreateOrderDto = z.object({
     .optional(),
   clientId: z.string().uuid().optional(),
   serviceId: z.string().uuid().nullable().optional(),
+  serviceVariationId: z.string().uuid().nullable().optional(),
+  serviceAddOnIds: z.array(z.string().uuid()).max(50).optional(),
+  servicePackagePurchaseId: z.string().uuid().nullable().optional(),
   durationMinutes: z.number().int().min(5).max(1440).nullable().optional(),
+  appointmentStatus: ServiceAppointmentStatus.nullable().optional(),
+  locationMode: AppointmentLocationMode.nullable().optional(),
+  locationDetails: z.string().trim().max(500).nullable().optional(),
   amount: z.number().positive().max(MAX_MONEY).optional(),
   // Sinal (entrada) ja recebido; validado contra o amount no usecase.
   deposit: z.number().min(0).max(MAX_MONEY).nullable().optional(),
@@ -36,6 +43,31 @@ export const DeliverOrderDto = z.object({
 
 export type DeliverOrder = z.infer<typeof DeliverOrderDto>;
 
+export const CompleteServiceAppointmentDto = z
+  .object({
+    amount: z.number().positive().max(MAX_MONEY),
+    amountReceived: z.number().min(0).max(MAX_MONEY),
+    paymentMethod: PaymentMethod.optional(),
+    actualCost: z.number().min(0).max(MAX_MONEY).default(0),
+  })
+  .superRefine((data, ctx) => {
+    if (data.amountReceived > data.amount) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["amountReceived"],
+        message: "O valor recebido não pode superar o valor cobrado",
+      });
+    }
+    if (data.amountReceived > 0 && !data.paymentMethod) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["paymentMethod"],
+        message: "Informe como o valor recebido foi pago",
+      });
+    }
+  });
+export type CompleteServiceAppointment = z.infer<typeof CompleteServiceAppointmentDto>;
+
 export const OrderDto = z.object({
   id: z.string().uuid(),
   userId: z.string().uuid(),
@@ -43,6 +75,11 @@ export const OrderDto = z.object({
   clientName: z.string().nullable(),
   serviceId: z.string().uuid().nullable(),
   serviceName: z.string().nullable(),
+  serviceVariationId: z.string().uuid().nullable(),
+  serviceVariationName: z.string().nullable(),
+  serviceAddOnIds: z.array(z.string().uuid()),
+  serviceAddOnNames: z.array(z.string()),
+  servicePackagePurchaseId: z.string().uuid().nullable(),
   durationMinutes: z.number().int().nullable(),
   title: z.string(),
   deliveryDate: z.string(),
@@ -55,6 +92,11 @@ export const OrderDto = z.object({
   colors: z.string().nullable(),
   photoUrl: z.string().nullable(),
   notes: z.string().nullable(),
+  appointmentStatus: ServiceAppointmentStatus.nullable(),
+  locationMode: AppointmentLocationMode.nullable(),
+  locationDetails: z.string().nullable(),
+  actualCost: z.number().nullable(),
+  completedAt: z.string().datetime().nullable(),
   saleId: z.string().uuid().nullable(),
   createdAt: z.string().datetime(),
 });

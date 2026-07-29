@@ -125,6 +125,11 @@ invariants:
 
 ## Change log / Decisions
 
+- 2026-07-28: o catálogo público passa a incluir serviços marcados como públicos,
+  com duração, local, opções, adicionais e pacotes. `POST
+/c/:slug/service-bookings` recebe solicitações de horário sem criar um
+  agendamento automaticamente.
+
 - 2026-06-09: criação (MVP). HTML server-rendered pela própria API para não exigir
   novo deploy/web app; pedido via deep link `wa.me` com mensagem pré-preenchida.
 - 2026-06-09: redesign premium da página: hero com gradiente e avatar, tipografia serif,

@@ -35,13 +35,18 @@ export class SalesUseCases {
   }
 
   /** Entrada no caixa para uma venda paga. Best-effort: nunca bloqueia a venda. */
-  private async postIncome(userId: string, sale: Sale): Promise<void> {
+  private async postIncome(
+    userId: string,
+    sale: Sale,
+    amount = sale.paidAmount,
+  ): Promise<void> {
     if (!this.financePoster) return;
+    if (amount <= 0) return;
     try {
       await this.financePoster.postSaleIncome(
         userId,
         sale.id,
-        Number(sale.total),
+        amount,
         this.saleDescription(sale),
         sale.soldAt.slice(0, 10),
       );
@@ -71,6 +76,7 @@ export class SalesUseCases {
     >();
 
     for (const item of items) {
+      if (!item.productId) continue;
       const product = await this.productsRepo.findById(userId, item.productId);
       if (!product) {
         if (multiplier < 0) {
@@ -198,6 +204,7 @@ export class SalesUseCases {
     if (!this.productsRepo || !this.recipeConsumption || !this.materialStock) return;
 
     for (const item of items) {
+      if (!item.productId) continue;
       try {
         const product = await this.productsRepo.findById(userId, item.productId);
         if (!product?.recipeId) continue;
@@ -258,7 +265,7 @@ export class SalesUseCases {
     }
     await this.consumeMaterials(userId, data.items);
     // Venda paga já entra no caixa; fiado (pending) só quando for paga.
-    if (sale.status === "paid") {
+    if (sale.paidAmount > 0) {
       await this.postIncome(userId, sale);
     }
     return sale;
@@ -293,7 +300,9 @@ export class SalesUseCases {
     const items =
       data.items ??
       existing.items.map((i) => ({
-        productId: i.productId,
+        ...(i.productId ? { productId: i.productId } : {}),
+        ...(i.serviceId ? { serviceId: i.serviceId } : {}),
+        itemName: i.productName,
         quantity: i.quantity,
         unitPrice: i.unitPrice,
         ...(i.variationId ? { variationId: i.variationId } : {}),
@@ -321,7 +330,9 @@ export class SalesUseCases {
           await this.collectStockChanges(
             userId,
             existing.items.map((item) => ({
-              productId: item.productId,
+              ...(item.productId ? { productId: item.productId } : {}),
+              ...(item.serviceId ? { serviceId: item.serviceId } : {}),
+              itemName: item.productName,
               quantity: item.quantity,
               unitPrice: item.unitPrice,
               ...(item.variationId ? { variationId: item.variationId } : {}),
@@ -368,12 +379,68 @@ export class SalesUseCases {
     }
 
     // Se a venda está paga, re-sincroniza a entrada no caixa (total/cliente podem ter mudado).
-    if (updated.status === "paid") {
+    if (updated.paidAmount > 0) {
       await this.removeIncome(userId, updated.id);
       await this.postIncome(userId, updated);
     }
 
     return updated;
+  }
+
+  /**
+   * Registra a cobrança de um atendimento ou pacote sem fingir que ele é produto.
+   * `paidAmount` é cumulativo: o saldo restante permanece pendente e aparece no Fiado.
+   */
+  async createServiceSale(
+    userId: string,
+    data: {
+      serviceId: string;
+      itemName: string;
+      total: number;
+      amountReceived: number;
+      paymentMethod?: string;
+      clientId?: string;
+      soldAt?: string;
+      sourceOrderId?: string;
+      notes?: string;
+    },
+  ): Promise<Sale> {
+    if (data.sourceOrderId && this.repo.findBySourceOrderId) {
+      const existing = await this.repo.findBySourceOrderId(userId, data.sourceOrderId);
+      if (existing) return existing;
+    }
+    if (data.total <= 0 || data.amountReceived < 0 || data.amountReceived > data.total) {
+      throw new ValidationError(["Valores inválidos para concluir o atendimento"]);
+    }
+    if (data.amountReceived > 0 && !data.paymentMethod) {
+      throw new ValidationError(["Informe a forma de pagamento"]);
+    }
+
+    const status: SaleStatus = data.amountReceived >= data.total ? "paid" : "pending";
+    const sale = await this.repo.create(
+      userId,
+      {
+        clientId: data.clientId,
+        paymentMethod: status === "pending" ? "credit" : data.paymentMethod!,
+        items: [
+          {
+            serviceId: data.serviceId,
+            itemName: data.itemName,
+            quantity: 1,
+            unitPrice: data.total,
+          },
+        ],
+        soldAt: data.soldAt,
+        notes: data.notes,
+        paidAmount: data.amountReceived,
+        sourceOrderId: data.sourceOrderId,
+      },
+      data.total,
+      status,
+      { subtotal: data.total, discount: 0, total: data.total },
+    );
+    await this.postIncome(userId, sale, data.amountReceived);
+    return sale;
   }
 
   async updateStatus(userId: string, id: string, status: SaleStatus): Promise<Sale> {
@@ -391,7 +458,9 @@ export class SalesUseCases {
         ? await this.collectStockChanges(
             userId,
             existing.items.map((item) => ({
-              productId: item.productId,
+              ...(item.productId ? { productId: item.productId } : {}),
+              ...(item.serviceId ? { serviceId: item.serviceId } : {}),
+              itemName: item.productName,
               quantity: item.quantity,
               unitPrice: item.unitPrice,
               ...(item.variationId ? { variationId: item.variationId } : {}),
@@ -436,7 +505,7 @@ export class SalesUseCases {
 
     // Fiado pago agora entra no caixa; venda paga que é cancelada sai do caixa.
     if (status === "paid" && existing.status !== "paid") {
-      await this.postIncome(userId, updated);
+      await this.postIncome(userId, updated, updated.total);
     } else if (status === "cancelled" && existing.status === "paid") {
       await this.removeIncome(userId, updated.id);
     }

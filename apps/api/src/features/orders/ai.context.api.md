@@ -179,6 +179,11 @@ Services coexist with products and are persisted in the `services` table.
 
 ## Change log / Decisions
 
+- 2026-07-28: serviços v2 adicionam local/intervalo, opções e adicionais,
+  pacotes com validade/recorrência, solicitações públicas, indicadores e histórico.
+  A conclusão de atendimento cria uma venda de serviço idempotente (pagamento
+  parcial alimenta Caixa + Fiado) ou consome exatamente uma sessão do pacote.
+
 - Criação inicial: encomendas com data + status + entrega.
 - v1 sem itens de produto (só title+amount). Conversão a venda real fica p/ v2.
 - `deliver` registra **receita no financeiro** (não cria uma `sale`, pois encomenda não tem itens na v1).

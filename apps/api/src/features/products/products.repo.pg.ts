@@ -1,8 +1,4 @@
-import type {
-  Product,
-  ProductComponent,
-  StockMovement,
-} from "@lucro-caseiro/contracts";
+import type { Product, ProductComponent, StockMovement } from "@lucro-caseiro/contracts";
 import {
   productComponents,
   products,
@@ -19,6 +15,7 @@ import {
   gte,
   ilike,
   inArray,
+  isNotNull,
   ne,
   or,
   sql,
@@ -344,10 +341,7 @@ export class ProductsRepoPg implements IProductsRepo {
       .select()
       .from(stockMovements)
       .where(
-        and(
-          eq(stockMovements.userId, userId),
-          eq(stockMovements.productId, productId),
-        ),
+        and(eq(stockMovements.userId, userId), eq(stockMovements.productId, productId)),
       )
       .orderBy(desc(stockMovements.occurredAt))
       .limit(limit);
@@ -372,13 +366,15 @@ export class ProductsRepoPg implements IProductsRepo {
           eq(sales.userId, userId),
           ne(sales.status, "cancelled"),
           gte(sales.soldAt, since),
+          isNotNull(saleItems.productId),
         ),
       )
       .groupBy(saleItems.productId);
-    return rows.map((row) => ({
-      productId: row.productId,
-      quantity: Number(row.quantity ?? 0),
-    }));
+    return rows.flatMap((row) =>
+      row.productId
+        ? [{ productId: row.productId, quantity: Number(row.quantity ?? 0) }]
+        : [],
+    );
   }
 
   async countByUser(userId: string): Promise<number> {
@@ -390,17 +386,14 @@ export class ProductsRepoPg implements IProductsRepo {
     return result?.value ?? 0;
   }
 
-  private toStockMovement(
-    row: typeof stockMovements.$inferSelect,
-  ): StockMovement {
+  private toStockMovement(row: typeof stockMovements.$inferSelect): StockMovement {
     return {
       id: row.id,
       productId: row.productId,
       variationId: row.variationId,
       type: row.type as StockMovement["type"],
       delta: Number(row.delta),
-      balanceAfter:
-        row.balanceAfter == null ? null : Number(row.balanceAfter),
+      balanceAfter: row.balanceAfter == null ? null : Number(row.balanceAfter),
       reason: row.reason,
       sourceId: row.sourceId,
       occurredAt: row.occurredAt.toISOString(),

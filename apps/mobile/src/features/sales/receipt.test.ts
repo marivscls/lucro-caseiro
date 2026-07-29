@@ -16,11 +16,14 @@ function makeSale(overrides: Partial<Sale> = {}): Sale {
     discountType: null,
     discountValue: 0,
     total: 25,
+    paidAmount: 25,
+    sourceOrderId: null,
     notes: null,
     items: [
       {
         id: "i1",
         productId: "p1",
+        serviceId: null,
         productName: "Brigadeiro",
         quantity: 10,
         unitPrice: 2.5,

@@ -23,7 +23,7 @@ export function openFiados(sales: Sale[]): Sale[] {
 
 /** Soma total devida em uma lista de vendas. */
 export function totalOwed(sales: Sale[]): number {
-  return sales.reduce((sum, s) => sum + s.total, 0);
+  return sales.reduce((sum, sale) => sum + Math.max(0, sale.total - sale.paidAmount), 0);
 }
 
 /**
@@ -37,12 +37,12 @@ export function groupFiados(sales: Sale[]): FiadoGroup[] {
     const existing = map.get(key);
     if (existing) {
       existing.sales.push(sale);
-      existing.total += sale.total;
+      existing.total += Math.max(0, sale.total - sale.paidAmount);
     } else {
       map.set(key, {
         clientId: sale.clientId,
         clientName: sale.clientName ?? "Cliente avulso",
-        total: sale.total,
+        total: Math.max(0, sale.total - sale.paidAmount),
         sales: [sale],
       });
     }
@@ -68,7 +68,11 @@ export function buildChargeMessage(group: FiadoGroup): string {
   lines.push(`${hello} Passando para lembrar do valor em aberto:`);
   lines.push("");
   for (const sale of group.sales) {
-    lines.push(`• ${dateBR(sale.soldAt)}: ${formatCurrency(sale.total)}`);
+    lines.push(
+      `• ${dateBR(sale.soldAt)}: ${formatCurrency(
+        Math.max(0, sale.total - sale.paidAmount),
+      )}`,
+    );
   }
   lines.push("");
   lines.push(`*Total: ${formatCurrency(group.total)}*`);

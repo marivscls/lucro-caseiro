@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+import {
+  ServiceAddOnInputDto,
+  ServiceLocationMode,
+  ServicePackageInputDto,
+  ServiceVariationInputDto,
+} from "./operations";
+
 // Slug da URL publica do catalogo: minusculas, numeros e hifens.
 export const CATALOG_SLUG_REGEX = /^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])?$/;
 
@@ -79,6 +86,42 @@ export const PublicCatalogProductDto = z.object({
   ),
 });
 
+export const PublicCatalogServiceDto = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  description: z.string().nullable(),
+  durationMinutes: z.number().int(),
+  defaultPrice: z.number().nullable(),
+  locationMode: ServiceLocationMode,
+  bookingInstructions: z.string().nullable(),
+  variations: z.array(
+    ServiceVariationInputDto.pick({
+      id: true,
+      name: true,
+      durationMinutes: true,
+      price: true,
+    }).required({ id: true }),
+  ),
+  addOns: z.array(
+    ServiceAddOnInputDto.pick({
+      id: true,
+      name: true,
+      durationMinutes: true,
+      price: true,
+    }).required({ id: true }),
+  ),
+  packages: z.array(
+    ServicePackageInputDto.pick({
+      id: true,
+      name: true,
+      sessions: true,
+      price: true,
+      validityDays: true,
+      recurrenceDays: true,
+    }).required({ id: true }),
+  ),
+});
+
 export const PublicCatalogDto = z.object({
   brandId: z.string(),
   businessName: z.string(),
@@ -90,9 +133,11 @@ export const PublicCatalogDto = z.object({
   tagline: z.string().nullable(),
   promoBanner: z.string().nullable(),
   products: z.array(PublicCatalogProductDto),
+  services: z.array(PublicCatalogServiceDto).optional(),
   // Total real de produtos ativos (free mostra so os primeiros 5).
   totalProducts: z.number(),
 });
 
 export type PublicCatalog = z.infer<typeof PublicCatalogDto>;
 export type PublicCatalogProduct = z.infer<typeof PublicCatalogProductDto>;
+export type PublicCatalogService = z.infer<typeof PublicCatalogServiceDto>;

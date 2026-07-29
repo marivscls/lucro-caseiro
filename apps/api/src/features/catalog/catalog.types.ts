@@ -3,7 +3,10 @@ import type {
   CatalogPatternKey,
   CatalogSettings,
   PlanType,
+  PublicCatalogService,
   PublicCatalogProduct,
+  PublicServiceBookingRequestInput,
+  ServiceBookingRequest,
 } from "@lucro-caseiro/contracts";
 
 export interface CatalogOwner {
@@ -33,5 +36,10 @@ export interface ICatalogRepo {
   slugTaken(slug: string, excludeUserId: string): Promise<boolean>;
   upsert(userId: string, data: CatalogSettingsData): Promise<CatalogSettings>;
   listPublicProducts(userId: string): Promise<PublicCatalogProduct[]>;
+  listPublicServices?(userId: string): Promise<PublicCatalogService[]>;
+  createPublicServiceBooking?(
+    userId: string,
+    data: PublicServiceBookingRequestInput,
+  ): Promise<ServiceBookingRequest | null>;
   getOwnerDefaults(userId: string): Promise<CatalogOwner | null>;
 }

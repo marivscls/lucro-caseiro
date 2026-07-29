@@ -1,5 +1,6 @@
 import type {
   CreateOrder,
+  CompleteServiceAppointment,
   DeliverOrder,
   Order,
   OrdersSummary,
@@ -56,6 +57,18 @@ export async function deliverOrder(
   data: DeliverOrder,
 ): Promise<Order> {
   return apiClient<Order>(`${BASE}/${id}/deliver`, {
+    method: "POST",
+    body: data,
+    token,
+  });
+}
+
+export async function completeServiceAppointment(
+  token: string,
+  id: string,
+  data: CompleteServiceAppointment,
+): Promise<Order> {
+  return apiClient<Order>(`${BASE}/${id}/complete-service`, {
     method: "POST",
     body: data,
     token,

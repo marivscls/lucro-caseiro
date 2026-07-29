@@ -1,6 +1,8 @@
 import type {
   CatalogSettings,
   PublicCatalog,
+  PublicServiceBookingRequestInput,
+  ServiceBookingRequest,
   UpdateCatalogSettings,
 } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
@@ -116,7 +118,10 @@ export class CatalogUseCases {
       throw new NotFoundError("Catálogo não encontrado");
     }
 
-    const allProducts = await this.repo.listPublicProducts(owner.userId);
+    const [allProducts, services] = await Promise.all([
+      this.repo.listPublicProducts(owner.userId),
+      this.repo.listPublicServices?.(owner.userId) ?? Promise.resolve([]),
+    ]);
     // Catálogo completo + personalização aparecem a partir do Essencial (se a
     // assinatura cair, a pagina volta ao tema padrao sem apagar o que foi salvo).
     const hasFullCatalog = hasActiveFeature(
@@ -150,8 +155,22 @@ export class CatalogUseCases {
       tagline: hasFullCatalog ? owner.tagline : null,
       promoBanner: hasFullCatalog ? owner.promoBanner : null,
       products,
+      services,
       totalProducts: allProducts.length,
     };
+  }
+
+  async createPublicServiceBooking(
+    slug: string,
+    data: PublicServiceBookingRequestInput,
+  ): Promise<ServiceBookingRequest> {
+    const owner = await this.repo.findOwnerBySlug(slug);
+    if (!owner || !owner.enabled || !this.repo.createPublicServiceBooking) {
+      throw new NotFoundError("Catálogo não encontrado");
+    }
+    const created = await this.repo.createPublicServiceBooking(owner.userId, data);
+    if (!created) throw new NotFoundError("Serviço não encontrado");
+    return created;
   }
 
   async resolvePublicRetailOwner(

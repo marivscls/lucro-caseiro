@@ -99,7 +99,7 @@ function addProductPhotosToSale(
       ...item,
       productPhotoUrl:
         item.productPhotoUrl ??
-        productPhotosById.get(item.productId) ??
+        (item.productId ? productPhotosById.get(item.productId) : undefined) ??
         productPhotosByName.get(item.productName.trim().toLowerCase()) ??
         null,
     })),
@@ -344,7 +344,12 @@ function StatusSummary({
   count,
   total,
   isDesktop,
-}: Readonly<{ activeFilter: FilterTab; count: number; total: number; isDesktop: boolean }>) {
+}: Readonly<{
+  activeFilter: FilterTab;
+  count: number;
+  total: number;
+  isDesktop: boolean;
+}>) {
   const { theme } = useTheme();
   if (activeFilter === "all") return null;
 
@@ -1175,7 +1180,7 @@ export default function SalesScreen() {
           sale.items.map((item) => item.productId),
         ),
         ...(activeSale?.items ?? []).map((item) => item.productId),
-      ].filter(Boolean),
+      ].filter((productId): productId is string => productId !== null),
     ),
   );
   const productQueries = useQueries({
@@ -1227,130 +1232,130 @@ export default function SalesScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <View style={{ flex: 1, ...desktopStretch(isDesktop, desktopWidths.data) }}>
-      <View
-        style={{
-          paddingTop: spacing.xl,
-          paddingBottom: spacing.sm,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          ...pageGutter(isDesktop),
-        }}
-      >
-        <Typography variant="screenTitle">Vendas</Typography>
-        {!isDesktop ? <AvatarCircle name={profile?.name ?? "Maria"} /> : null}
-      </View>
-
-      {isDesktop ? (
         <View
           style={{
-            flexDirection: "row",
-            gap: spacing.sm,
             paddingTop: spacing.xl,
-            width: 330,
+            paddingBottom: spacing.sm,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
             ...pageGutter(isDesktop),
           }}
         >
-          <FilterPill
-            label="Vendas"
-            selected={operationView === "sales"}
-            onPress={() => setOperationView("sales")}
-          />
-          <FilterPill
-            label="Encomendas"
-            selected={operationView === "orders"}
-            onPress={() => setOperationView("orders")}
-          />
+          <Typography variant="screenTitle">Vendas</Typography>
+          {!isDesktop ? <AvatarCircle name={profile?.name ?? "Maria"} /> : null}
         </View>
-      ) : null}
 
-      {isDesktop ? (
-        <DesktopOperationKpis sales={filteredItems ?? []} orders={orders} />
-      ) : null}
-
-      {operationView === "sales" ? (
-        <>
+        {isDesktop ? (
           <View
             style={{
               flexDirection: "row",
+              gap: spacing.sm,
               paddingTop: spacing.xl,
-              paddingBottom: spacing.xl,
-              gap: spacing.xs,
+              width: 330,
               ...pageGutter(isDesktop),
             }}
           >
-            {FILTER_TABS.map((tab) => (
-              <FilterPill
-                key={tab.key}
-                label={tab.label}
-                selected={activeFilter === tab.key}
-                onPress={() => {
-                  setActiveFilter(tab.key);
-                  setPage(1);
-                }}
-              />
-            ))}
-          </View>
-
-          <View
-            style={{
-              paddingTop: spacing.sm,
-              paddingBottom: spacing.md,
-              ...pageGutter(isDesktop),
-              ...(isDesktop
-                ? { alignSelf: "flex-start", maxWidth: 480, width: "100%" }
-                : undefined),
-            }}
-          >
-            <SearchBar
-              value={searchQuery}
-              onChangeText={(value) => {
-                setSearchQuery(value);
-                setPage(1);
-              }}
-              onFilterPress={() => setShowFilters(true)}
+            <FilterPill
+              label="Vendas"
+              selected={operationView === "sales"}
+              onPress={() => setOperationView("sales")}
+            />
+            <FilterPill
+              label="Encomendas"
+              selected={operationView === "orders"}
+              onPress={() => setOperationView("orders")}
             />
           </View>
+        ) : null}
 
-          <StatusSummary
-            activeFilter={activeFilter}
-            count={filteredItems?.length ?? 0}
-            total={filteredTotal}
-            isDesktop={isDesktop}
-          />
+        {isDesktop ? (
+          <DesktopOperationKpis sales={filteredItems ?? []} orders={orders} />
+        ) : null}
 
-          <SalesContent
-            isLoading={isLoading}
-            error={error}
-            hasItems={!!filteredItems?.length}
-            activeFilter={activeFilter}
-            hasActiveFilters={!!searchQuery.trim()}
-            groups={groups}
-            items={filteredItems ?? []}
-            isDesktop={isDesktop}
-            page={data?.page ?? page}
-            total={data?.total ?? 0}
-            totalPages={data?.totalPages ?? 1}
-            primaryColor={theme.colors.primary}
-            onSalePress={setSelectedSaleId}
-            onMarkPaid={(id) => {
-              void updateSaleStatus.mutateAsync({ id, status: "paid" }).catch(() => {
-                alertError("Não foi possível marcar a venda como paga.");
-              });
-            }}
-            onClearFilters={handleClearFilters}
-            onNewSalePress={() => router.push("/tabs/new-sale")}
-            onRetry={() => void refetch()}
-            onPageChange={setPage}
-            compactEmpty={activeFilter !== "all"}
+        {operationView === "sales" ? (
+          <>
+            <View
+              style={{
+                flexDirection: "row",
+                paddingTop: spacing.xl,
+                paddingBottom: spacing.xl,
+                gap: spacing.xs,
+                ...pageGutter(isDesktop),
+              }}
+            >
+              {FILTER_TABS.map((tab) => (
+                <FilterPill
+                  key={tab.key}
+                  label={tab.label}
+                  selected={activeFilter === tab.key}
+                  onPress={() => {
+                    setActiveFilter(tab.key);
+                    setPage(1);
+                  }}
+                />
+              ))}
+            </View>
+
+            <View
+              style={{
+                paddingTop: spacing.sm,
+                paddingBottom: spacing.md,
+                ...pageGutter(isDesktop),
+                ...(isDesktop
+                  ? { alignSelf: "flex-start", maxWidth: 480, width: "100%" }
+                  : undefined),
+              }}
+            >
+              <SearchBar
+                value={searchQuery}
+                onChangeText={(value) => {
+                  setSearchQuery(value);
+                  setPage(1);
+                }}
+                onFilterPress={() => setShowFilters(true)}
+              />
+            </View>
+
+            <StatusSummary
+              activeFilter={activeFilter}
+              count={filteredItems?.length ?? 0}
+              total={filteredTotal}
+              isDesktop={isDesktop}
+            />
+
+            <SalesContent
+              isLoading={isLoading}
+              error={error}
+              hasItems={!!filteredItems?.length}
+              activeFilter={activeFilter}
+              hasActiveFilters={!!searchQuery.trim()}
+              groups={groups}
+              items={filteredItems ?? []}
+              isDesktop={isDesktop}
+              page={data?.page ?? page}
+              total={data?.total ?? 0}
+              totalPages={data?.totalPages ?? 1}
+              primaryColor={theme.colors.primary}
+              onSalePress={setSelectedSaleId}
+              onMarkPaid={(id) => {
+                void updateSaleStatus.mutateAsync({ id, status: "paid" }).catch(() => {
+                  alertError("Não foi possível marcar a venda como paga.");
+                });
+              }}
+              onClearFilters={handleClearFilters}
+              onNewSalePress={() => router.push("/tabs/new-sale")}
+              onRetry={() => void refetch()}
+              onPageChange={setPage}
+              compactEmpty={activeFilter !== "all"}
+            />
+          </>
+        ) : (
+          <DesktopOrdersTable
+            orders={orders}
+            onOpenAgenda={() => router.push("/tabs/agenda")}
           />
-        </>
-      ) : (
-        <DesktopOrdersTable
-          orders={orders}
-          onOpenAgenda={() => router.push("/tabs/agenda")}
-        />
-      )}
+        )}
       </View>
 
       <ResponsiveOverlayModal

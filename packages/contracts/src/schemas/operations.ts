@@ -2,6 +2,51 @@ import { z } from "zod";
 
 import { MAX_MONEY, MAX_QUANTITY } from "./common";
 
+export const ServiceLocationMode = z.enum(["business", "client", "online", "flexible"]);
+export type ServiceLocationMode = z.infer<typeof ServiceLocationMode>;
+
+export const AppointmentLocationMode = ServiceLocationMode.exclude(["flexible"]);
+export type AppointmentLocationMode = z.infer<typeof AppointmentLocationMode>;
+
+export const ServiceAppointmentStatus = z.enum([
+  "scheduled",
+  "confirmed",
+  "in_progress",
+  "completed",
+  "cancelled",
+  "no_show",
+]);
+export type ServiceAppointmentStatus = z.infer<typeof ServiceAppointmentStatus>;
+
+export const ServiceVariationInputDto = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string().trim().min(1).max(100),
+  durationMinutes: z.number().int().min(5).max(1440),
+  price: z.number().positive().max(MAX_MONEY),
+  active: z.boolean().optional(),
+});
+export type ServiceVariationInput = z.infer<typeof ServiceVariationInputDto>;
+
+export const ServiceAddOnInputDto = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string().trim().min(1).max(100),
+  durationMinutes: z.number().int().min(0).max(1440).default(0),
+  price: z.number().positive().max(MAX_MONEY),
+  active: z.boolean().optional(),
+});
+export type ServiceAddOnInput = z.infer<typeof ServiceAddOnInputDto>;
+
+export const ServicePackageInputDto = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string().trim().min(1).max(100),
+  sessions: z.number().int().min(2).max(365),
+  price: z.number().positive().max(MAX_MONEY),
+  validityDays: z.number().int().min(1).max(3650),
+  recurrenceDays: z.number().int().min(1).max(365).nullable().optional(),
+  active: z.boolean().optional(),
+});
+export type ServicePackageInput = z.infer<typeof ServicePackageInputDto>;
+
 export const StockMovementType = z.enum([
   "sale",
   "purchase",
@@ -50,6 +95,13 @@ export const CreateServiceDto = z.object({
   fixedCostShare: z.number().min(0).max(MAX_MONEY).optional(),
   markupPercent: z.number().min(0).max(1000).optional(),
   feesPercent: z.number().min(0).max(95).optional(),
+  locationMode: ServiceLocationMode.optional(),
+  bufferMinutes: z.number().int().min(0).max(1440).optional(),
+  publicEnabled: z.boolean().optional(),
+  bookingInstructions: z.string().trim().max(500).nullable().optional(),
+  variations: z.array(ServiceVariationInputDto).max(30).optional(),
+  addOns: z.array(ServiceAddOnInputDto).max(50).optional(),
+  packages: z.array(ServicePackageInputDto).max(30).optional(),
   active: z.boolean().optional(),
 });
 export type CreateService = z.infer<typeof CreateServiceDto>;
@@ -69,10 +121,140 @@ export const ServiceDto = z.object({
   fixedCostShare: z.number(),
   markupPercent: z.number(),
   feesPercent: z.number(),
+  locationMode: ServiceLocationMode,
+  bufferMinutes: z.number().int(),
+  publicEnabled: z.boolean(),
+  bookingInstructions: z.string().nullable(),
   active: z.boolean(),
+  variations: z.array(
+    ServiceVariationInputDto.extend({
+      id: z.string().uuid(),
+      active: z.boolean(),
+    }),
+  ),
+  addOns: z.array(
+    ServiceAddOnInputDto.extend({
+      id: z.string().uuid(),
+      active: z.boolean(),
+    }),
+  ),
+  packages: z.array(
+    ServicePackageInputDto.extend({
+      id: z.string().uuid(),
+      active: z.boolean(),
+    }),
+  ),
   createdAt: z.string().datetime(),
 });
 export type Service = z.infer<typeof ServiceDto>;
+
+export const PurchaseServicePackageDto = z.object({
+  clientId: z.string().uuid(),
+  paymentMethod: z.enum(["pix", "cash", "card", "credit", "transfer"]),
+  pricePaid: z.number().positive().max(MAX_MONEY).optional(),
+  purchasedAt: z.string().datetime().optional(),
+});
+export type PurchaseServicePackage = z.infer<typeof PurchaseServicePackageDto>;
+
+export const ServicePackagePurchaseDto = z.object({
+  id: z.string().uuid(),
+  userId: z.string().uuid(),
+  packageId: z.string().uuid(),
+  packageName: z.string(),
+  serviceId: z.string().uuid(),
+  serviceName: z.string(),
+  clientId: z.string().uuid(),
+  clientName: z.string(),
+  sessionsTotal: z.number().int(),
+  sessionsUsed: z.number().int(),
+  pricePaid: z.number(),
+  purchasedAt: z.string().datetime(),
+  expiresAt: z.string().date(),
+  status: z.enum(["active", "completed", "expired", "cancelled"]),
+  saleId: z.string().uuid().nullable(),
+});
+export type ServicePackagePurchase = z.infer<typeof ServicePackagePurchaseDto>;
+
+export const ServiceBookingRequestStatus = z.enum([
+  "new",
+  "contacted",
+  "confirmed",
+  "declined",
+]);
+export type ServiceBookingRequestStatus = z.infer<typeof ServiceBookingRequestStatus>;
+
+export const PublicServiceBookingRequestInputDto = z.object({
+  serviceId: z.string().uuid(),
+  clientName: z.string().trim().min(2).max(120),
+  phone: z.string().trim().min(8).max(30),
+  desiredDate: z.string().date(),
+  desiredTime: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/)
+    .nullable()
+    .optional(),
+  locationMode: AppointmentLocationMode,
+  notes: z.string().trim().max(500).nullable().optional(),
+});
+export type PublicServiceBookingRequestInput = z.infer<
+  typeof PublicServiceBookingRequestInputDto
+>;
+
+export const ServiceBookingRequestDto = z.object({
+  id: z.string().uuid(),
+  serviceId: z.string().uuid(),
+  serviceName: z.string(),
+  clientName: z.string(),
+  phone: z.string(),
+  desiredDate: z.string().date(),
+  desiredTime: z.string().nullable(),
+  locationMode: AppointmentLocationMode,
+  notes: z.string().nullable(),
+  status: ServiceBookingRequestStatus,
+  createdAt: z.string().datetime(),
+});
+export type ServiceBookingRequest = z.infer<typeof ServiceBookingRequestDto>;
+
+export const UpdateServiceBookingRequestDto = z.object({
+  status: ServiceBookingRequestStatus,
+});
+export type UpdateServiceBookingRequest = z.infer<typeof UpdateServiceBookingRequestDto>;
+
+export const ServiceInsightClientDto = z.object({
+  clientId: z.string().uuid().nullable(),
+  clientName: z.string(),
+  appointments: z.number().int(),
+  revenue: z.number(),
+});
+
+export const ServiceInsightsDto = z.object({
+  serviceId: z.string().uuid(),
+  totalAppointments: z.number().int(),
+  completedAppointments: z.number().int(),
+  cancelledAppointments: z.number().int(),
+  noShowAppointments: z.number().int(),
+  revenue: z.number(),
+  cost: z.number(),
+  profit: z.number(),
+  averageTicket: z.number(),
+  totalHours: z.number(),
+  profitPerHour: z.number(),
+  topClients: z.array(ServiceInsightClientDto),
+  recentAppointments: z.array(
+    z.object({
+      id: z.string().uuid(),
+      clientName: z.string(),
+      deliveryDate: z.string().date(),
+      deliveryTime: z.string().nullable(),
+      appointmentStatus: ServiceAppointmentStatus,
+      amount: z.number(),
+      actualCost: z.number(),
+    }),
+  ),
+  packagePurchases: z.array(ServicePackagePurchaseDto),
+  bookingRequests: z.array(ServiceBookingRequestDto),
+});
+export type ServiceInsights = z.infer<typeof ServiceInsightsDto>;
 
 export const ProductionRunStatus = z.enum(["draft", "closed"]);
 export type ProductionRunStatus = z.infer<typeof ProductionRunStatus>;

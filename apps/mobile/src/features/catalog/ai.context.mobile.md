@@ -82,6 +82,9 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
 
 ## Change log / Decisions
 
+- 2026-07-28: a vitrine compartilhável também expõe serviços públicos; pedidos
+  de horário são triados no painel de cada serviço e não confirmam a agenda sozinhos.
+
 - 2026-06-09: criação (MVP). Página pública é HTML da API (sem web app novo); o
   mobile só configura e compartilha o link.
 - 2026-06-09: visual premium — hero com ícone de loja e badge de status, card "Seu link"

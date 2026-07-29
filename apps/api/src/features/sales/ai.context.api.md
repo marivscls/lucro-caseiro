@@ -223,6 +223,10 @@ PATCH /api/v1/sales/sale-1/status
 
 ## Change log / Decisions
 
+- 2026-07-28: vendas aceitam itens de serviço sem produto/estoque,
+  `sourceOrderId` para idempotência e `paidAmount` cumulativo. Conclusões parciais
+  postam apenas o recebido no Caixa e preservam o saldo pendente no Fiado.
+
 - Criacao inicial com CRUD + status + estoque
 - Total auto-calculado a partir dos itens (nunca informado pelo cliente)
 - Itens da venda sao replace (delete + insert) ao atualizar

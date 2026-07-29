@@ -1,8 +1,11 @@
 import {
   CreateOrderDto,
   CreateServiceDto,
+  CompleteServiceAppointmentDto,
   DeliverOrderDto,
   OrderStatus,
+  PurchaseServicePackageDto,
+  ServiceBookingRequestStatus,
   UpdateOrderDto,
   UpdateServiceDto,
 } from "@lucro-caseiro/contracts";
@@ -43,6 +46,65 @@ export function createOrdersRouter(useCases: OrdersUseCases): Router {
         UpdateServiceDto.parse(req.body),
       );
       res.json(service);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.get("/services/:id/insights", async (req, res, next) => {
+    try {
+      res.json(await useCases.getServiceInsights(getUserId(req), req.params.id));
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.get("/services/:id/booking-requests", async (req, res, next) => {
+    try {
+      res.json({
+        items: await useCases.listBookingRequests(getUserId(req), req.params.id),
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.patch("/services/booking-requests/:id", async (req, res, next) => {
+    try {
+      const status = ServiceBookingRequestStatus.parse(req.body?.status);
+      res.json(
+        await useCases.updateBookingRequestStatus(getUserId(req), req.params.id, status),
+      );
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.get("/services/package-purchases", async (req, res, next) => {
+    try {
+      const clientId =
+        typeof req.query.clientId === "string" ? req.query.clientId : undefined;
+      const serviceId =
+        typeof req.query.serviceId === "string" ? req.query.serviceId : undefined;
+      res.json({
+        items: await useCases.listPackagePurchases(getUserId(req), {
+          clientId,
+          serviceId,
+        }),
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.post("/services/packages/:packageId/purchases", async (req, res, next) => {
+    try {
+      const purchase = await useCases.purchaseServicePackage(
+        getUserId(req),
+        req.params.packageId,
+        PurchaseServicePackageDto.parse(req.body),
+      );
+      res.status(201).json(purchase);
     } catch (err) {
       next(err);
     }
@@ -115,6 +177,19 @@ export function createOrdersRouter(useCases: OrdersUseCases): Router {
       const userId = getUserId(req);
       const data = DeliverOrderDto.parse(req.body ?? {});
       const order = await useCases.deliver(userId, req.params.id, data);
+      res.json(order);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.post("/:id/complete-service", async (req, res, next) => {
+    try {
+      const order = await useCases.completeServiceAppointment(
+        getUserId(req),
+        req.params.id,
+        CompleteServiceAppointmentDto.parse(req.body),
+      );
       res.json(order);
     } catch (err) {
       next(err);

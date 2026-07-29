@@ -18,6 +18,8 @@ import { FlatList, Image, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import servicesEmpty from "../assets/services-empty-transparent.png";
+import { OrderForm } from "../features/orders/components/order-form";
+import { ServiceDashboardModal } from "../features/services/components/service-dashboard-modal";
 import { ServiceForm } from "../features/services/components/service-form";
 import {
   buildServiceOverview,
@@ -250,6 +252,8 @@ export default function ServicesScreen() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<ServiceFilter>("active");
   const [editingService, setEditingService] = useState<Service | null>(null);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [appointmentService, setAppointmentService] = useState<Service | null>(null);
   const [showCreate, setShowCreate] = useState(false);
 
   const overview = useMemo(() => buildServiceOverview(services), [services]);
@@ -364,7 +368,7 @@ export default function ServicesScreen() {
         keyExtractor={(service) => service.id}
         renderItem={({ item }) => (
           <View style={isDesktop ? { flex: 1, minWidth: 0 } : undefined}>
-            <ServiceCard service={item} onPress={() => setEditingService(item)} />
+            <ServiceCard service={item} onPress={() => setSelectedService(item)} />
           </View>
         )}
         columnWrapperStyle={isDesktop ? { gap: spacing.md } : undefined}
@@ -520,6 +524,30 @@ export default function ServicesScreen() {
           visible
           service={editingService}
           onClose={() => setEditingService(null)}
+        />
+      ) : null}
+      {selectedService ? (
+        <ServiceDashboardModal
+          key={`dashboard-${selectedService.id}`}
+          visible
+          service={selectedService}
+          onClose={() => setSelectedService(null)}
+          onEdit={() => {
+            setSelectedService(null);
+            setEditingService(selectedService);
+          }}
+          onNewAppointment={() => {
+            setSelectedService(null);
+            setAppointmentService(selectedService);
+          }}
+        />
+      ) : null}
+      {appointmentService ? (
+        <OrderForm
+          key={`appointment-${appointmentService.id}`}
+          visible
+          initialServiceId={appointmentService.id}
+          onClose={() => setAppointmentService(null)}
         />
       ) : null}
     </SafeAreaView>

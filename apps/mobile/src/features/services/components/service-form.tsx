@@ -1,18 +1,23 @@
-import type { CreateService, Service } from "@lucro-caseiro/contracts";
+import type {
+  CreateService,
+  Service,
+  ServiceAddOnInput,
+  ServiceLocationMode,
+  ServicePackageInput,
+  ServiceVariationInput,
+} from "@lucro-caseiro/contracts";
 import {
   Button,
   Card,
   Chip,
   Input,
   Typography,
-  radii,
   spacing,
   useTheme,
 } from "@lucro-caseiro/ui";
 import React, { useMemo, useState } from "react";
 import { View } from "react-native";
 
-import { AppIcon } from "../../../shared/components/app-icon";
 import { FormSection } from "../../../shared/components/form-section";
 import { StandardModal } from "../../../shared/components/standard-modal";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
@@ -51,12 +56,30 @@ function initialMoney(value?: number | null): string {
   return value == null || value === 0 ? "" : currencyInput(value);
 }
 
+function replaceListItem<T>(items: T[], index: number, replacement: T): T[] {
+  return items.map((item, itemIndex) => (itemIndex === index ? replacement : item));
+}
+
+function removeListItem<T>(items: T[], index: number): T[] {
+  return items.filter((_, itemIndex) => itemIndex !== index);
+}
+
 const DURATION_PRESETS = [
   { label: "30 min", value: "30" },
   { label: "1 hora", value: "60" },
   { label: "1h30", value: "90" },
   { label: "2 horas", value: "120" },
 ] as const;
+
+const LOCATION_OPTIONS: {
+  label: string;
+  value: ServiceLocationMode;
+}[] = [
+  { label: "Meu espaço", value: "business" },
+  { label: "Endereço do cliente", value: "client" },
+  { label: "Online", value: "online" },
+  { label: "Flexível", value: "flexible" },
+];
 
 export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFormProps) {
   const { theme } = useTheme();
@@ -83,6 +106,45 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
     service?.feesPercent ? String(service.feesPercent).replace(".", ",") : "",
   );
   const [active, setActive] = useState(service?.active ?? true);
+  const [locationMode, setLocationMode] = useState<ServiceLocationMode>(
+    service?.locationMode ?? "business",
+  );
+  const [bufferMinutes, setBufferMinutes] = useState(String(service?.bufferMinutes ?? 0));
+  const [publicEnabled, setPublicEnabled] = useState(service?.publicEnabled ?? false);
+  const [bookingInstructions, setBookingInstructions] = useState(
+    service?.bookingInstructions ?? "",
+  );
+  const [variations, setVariations] = useState<ServiceVariationInput[]>(
+    service?.variations.map(({ id, name, durationMinutes, price, active }) => ({
+      id,
+      name,
+      durationMinutes,
+      price,
+      active,
+    })) ?? [],
+  );
+  const [addOns, setAddOns] = useState<ServiceAddOnInput[]>(
+    service?.addOns.map(({ id, name, durationMinutes, price, active }) => ({
+      id,
+      name,
+      durationMinutes,
+      price,
+      active,
+    })) ?? [],
+  );
+  const [packages, setPackages] = useState<ServicePackageInput[]>(
+    service?.packages.map(
+      ({ id, name, sessions, price, validityDays, recurrenceDays, active }) => ({
+        id,
+        name,
+        sessions,
+        price,
+        validityDays,
+        recurrenceDays,
+        active,
+      }),
+    ) ?? [],
+  );
 
   const hasPricingData = !!(
     service?.materialCost ||
@@ -144,6 +206,33 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
       alertValidation("As taxas sobre a venda devem ficar entre 0% e 95%.");
       return;
     }
+    const buffer = Number.parseInt(bufferMinutes, 10) || 0;
+    if (buffer < 0 || buffer > 1440) {
+      alertValidation(
+        "O intervalo entre atendimentos deve ficar entre 0 e 1440 minutos.",
+      );
+      return;
+    }
+    if (
+      variations.some(
+        (item) => !item.name.trim() || item.durationMinutes < 5 || item.price <= 0,
+      ) ||
+      addOns.some(
+        (item) => !item.name.trim() || item.durationMinutes < 0 || item.price <= 0,
+      ) ||
+      packages.some(
+        (item) =>
+          !item.name.trim() ||
+          item.sessions < 2 ||
+          item.price <= 0 ||
+          item.validityDays < 1,
+      )
+    ) {
+      alertValidation(
+        "Revise nomes, durações e valores das opções, adicionais e pacotes.",
+      );
+      return;
+    }
 
     const refreshed = await servicesQuery.refetch();
     const duplicate = refreshed.data?.some(
@@ -168,6 +257,13 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
       fixedCostShare: moneyValue(fixedCostShare),
       markupPercent: markup,
       feesPercent: fees,
+      locationMode,
+      bufferMinutes: buffer,
+      publicEnabled,
+      bookingInstructions: bookingInstructions.trim() || null,
+      variations,
+      addOns,
+      packages,
       active,
     };
 
@@ -212,28 +308,9 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
       <Card
         variant="elevated"
         style={{
-          flexDirection: "row",
-          alignItems: "flex-start",
-          gap: spacing.md,
           backgroundColor: theme.colors.surface,
         }}
       >
-        <View
-          style={{
-            width: 44,
-            height: 44,
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: radii.full,
-            backgroundColor: theme.colors.primaryBg,
-          }}
-        >
-          <AppIcon
-            name="briefcase-outline"
-            size={22}
-            color={theme.colors.primaryStrong}
-          />
-        </View>
         <View style={{ flex: 1, gap: spacing.xs }}>
           <Typography variant="bodyBold">
             Serve para diferentes tipos de trabalho
@@ -316,6 +393,315 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
           <Chip label="Disponível" selected={active} onPress={() => setActive(true)} />
           <Chip label="Pausado" selected={!active} onPress={() => setActive(false)} />
         </View>
+      </FormSection>
+
+      <FormSection
+        title="Agenda e divulgação"
+        subtitle="Defina onde acontece, o respiro entre horários e o que aparece na vitrine"
+        icon="calendar-outline"
+        initiallyOpen={!!service?.publicEnabled}
+      >
+        <Typography variant="bodyBold">Onde o atendimento acontece</Typography>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+          {LOCATION_OPTIONS.map((option) => (
+            <Chip
+              key={option.value}
+              label={option.label}
+              selected={locationMode === option.value}
+              onPress={() => setLocationMode(option.value)}
+            />
+          ))}
+        </View>
+        <Input
+          label="Intervalo após cada atendimento"
+          placeholder="0 minutos"
+          value={bufferMinutes}
+          onChangeText={(value) => setBufferMinutes(value.replace(/\D/g, "").slice(0, 4))}
+          keyboardType="number-pad"
+          containerStyle={isDesktop ? { maxWidth: 320 } : undefined}
+        />
+        <Typography variant="caption" color={theme.colors.textSecondary}>
+          Evita horários colados e considera limpeza, deslocamento ou preparação.
+        </Typography>
+        <Typography variant="bodyBold">Vitrine pública</Typography>
+        <Typography variant="caption" color={theme.colors.textSecondary}>
+          Ao publicar, clientes podem conhecer este serviço e solicitar um horário. A
+          solicitação só vira agendamento depois da sua confirmação.
+        </Typography>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+          <Chip
+            label="Visível na vitrine"
+            selected={publicEnabled}
+            onPress={() => setPublicEnabled(true)}
+          />
+          <Chip
+            label="Somente interno"
+            selected={!publicEnabled}
+            onPress={() => setPublicEnabled(false)}
+          />
+        </View>
+        {publicEnabled ? (
+          <Input
+            label="Orientações para agendamento (opcional)"
+            placeholder="Ex.: traga uma foto de referência ou informe o bairro"
+            value={bookingInstructions}
+            onChangeText={setBookingInstructions}
+            maxLength={500}
+            multiline
+            textAlignVertical="top"
+            style={{ height: 88, paddingVertical: spacing.md }}
+          />
+        ) : null}
+      </FormSection>
+
+      <FormSection
+        title="Opções e adicionais"
+        subtitle="Crie versões do serviço e complementos que alteram tempo e valor"
+        icon="options-outline"
+        initiallyOpen={variations.length > 0 || addOns.length > 0}
+      >
+        <Typography variant="bodyBold">Variações</Typography>
+        <Typography variant="caption" color={theme.colors.textSecondary}>
+          Use quando o cliente escolhe uma versão, como curta, completa ou premium.
+        </Typography>
+        {variations.map((variation, index) => (
+          <Card key={variation.id ?? `variation-${index}`} style={{ gap: spacing.md }}>
+            <Input
+              label="Nome da opção"
+              placeholder="Ex.: Sessão completa"
+              value={variation.name}
+              onChangeText={(value) =>
+                setVariations(
+                  replaceListItem(variations, index, { ...variation, name: value }),
+                )
+              }
+            />
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
+              <Input
+                label="Duração"
+                value={String(variation.durationMinutes)}
+                onChangeText={(value) =>
+                  setVariations(
+                    replaceListItem(variations, index, {
+                      ...variation,
+                      durationMinutes: Number(value.replace(/\D/g, "")) || 0,
+                    }),
+                  )
+                }
+                keyboardType="number-pad"
+                containerStyle={{ flex: 1, minWidth: 140 }}
+              />
+              <Input
+                label="Preço"
+                value={currencyInput(variation.price)}
+                onChangeText={(value) =>
+                  setVariations(
+                    replaceListItem(variations, index, {
+                      ...variation,
+                      price: parseCurrencyInput(value) || 0,
+                    }),
+                  )
+                }
+                keyboardType="numeric"
+                containerStyle={{ flex: 1, minWidth: 140 }}
+              />
+            </View>
+            <Button
+              title="Remover opção"
+              variant="secondary"
+              onPress={() => setVariations(removeListItem(variations, index))}
+            />
+          </Card>
+        ))}
+        <Button
+          title="Adicionar variação"
+          variant="secondary"
+          onPress={() =>
+            setVariations((current) => [
+              ...current,
+              {
+                name: "",
+                durationMinutes: Number.parseInt(durationMinutes, 10) || 60,
+                price: moneyValue(defaultPrice),
+                active: true,
+              },
+            ])
+          }
+        />
+
+        <Typography variant="bodyBold" style={{ marginTop: spacing.md }}>
+          Adicionais
+        </Typography>
+        <Typography variant="caption" color={theme.colors.textSecondary}>
+          Use para extras opcionais, como deslocamento, finalização ou material especial.
+        </Typography>
+        {addOns.map((addOn, index) => (
+          <Card key={addOn.id ?? `addon-${index}`} style={{ gap: spacing.md }}>
+            <Input
+              label="Nome do adicional"
+              placeholder="Ex.: Deslocamento"
+              value={addOn.name}
+              onChangeText={(value) =>
+                setAddOns(replaceListItem(addOns, index, { ...addOn, name: value }))
+              }
+            />
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
+              <Input
+                label="Minutos extras"
+                value={String(addOn.durationMinutes)}
+                onChangeText={(value) =>
+                  setAddOns(
+                    replaceListItem(addOns, index, {
+                      ...addOn,
+                      durationMinutes: Number(value.replace(/\D/g, "")) || 0,
+                    }),
+                  )
+                }
+                keyboardType="number-pad"
+                containerStyle={{ flex: 1, minWidth: 140 }}
+              />
+              <Input
+                label="Valor adicional"
+                value={currencyInput(addOn.price)}
+                onChangeText={(value) =>
+                  setAddOns(
+                    replaceListItem(addOns, index, {
+                      ...addOn,
+                      price: parseCurrencyInput(value) || 0,
+                    }),
+                  )
+                }
+                keyboardType="numeric"
+                containerStyle={{ flex: 1, minWidth: 140 }}
+              />
+            </View>
+            <Button
+              title="Remover adicional"
+              variant="secondary"
+              onPress={() => setAddOns(removeListItem(addOns, index))}
+            />
+          </Card>
+        ))}
+        <Button
+          title="Adicionar adicional"
+          variant="secondary"
+          onPress={() =>
+            setAddOns((current) => [
+              ...current,
+              { name: "", durationMinutes: 0, price: 0, active: true },
+            ])
+          }
+        />
+      </FormSection>
+
+      <FormSection
+        title="Pacotes e recorrência"
+        subtitle="Venda várias sessões juntas e controle o saldo usado por cliente"
+        icon="repeat-outline"
+        initiallyOpen={packages.length > 0}
+      >
+        {packages.map((servicePackage, index) => (
+          <Card key={servicePackage.id ?? `package-${index}`} style={{ gap: spacing.md }}>
+            <Input
+              label="Nome do pacote"
+              placeholder="Ex.: Plano mensal"
+              value={servicePackage.name}
+              onChangeText={(value) =>
+                setPackages(
+                  replaceListItem(packages, index, {
+                    ...servicePackage,
+                    name: value,
+                  }),
+                )
+              }
+            />
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
+              <Input
+                label="Sessões"
+                value={String(servicePackage.sessions)}
+                onChangeText={(value) =>
+                  setPackages(
+                    replaceListItem(packages, index, {
+                      ...servicePackage,
+                      sessions: Number(value.replace(/\D/g, "")) || 0,
+                    }),
+                  )
+                }
+                keyboardType="number-pad"
+                containerStyle={{ flex: 1, minWidth: 130 }}
+              />
+              <Input
+                label="Valor do pacote"
+                value={currencyInput(servicePackage.price)}
+                onChangeText={(value) =>
+                  setPackages(
+                    replaceListItem(packages, index, {
+                      ...servicePackage,
+                      price: parseCurrencyInput(value) || 0,
+                    }),
+                  )
+                }
+                keyboardType="numeric"
+                containerStyle={{ flex: 1, minWidth: 160 }}
+              />
+              <Input
+                label="Validade (dias)"
+                value={String(servicePackage.validityDays)}
+                onChangeText={(value) =>
+                  setPackages(
+                    replaceListItem(packages, index, {
+                      ...servicePackage,
+                      validityDays: Number(value.replace(/\D/g, "")) || 0,
+                    }),
+                  )
+                }
+                keyboardType="number-pad"
+                containerStyle={{ flex: 1, minWidth: 150 }}
+              />
+              <Input
+                label="Repetir a cada (dias)"
+                placeholder="Opcional"
+                value={
+                  servicePackage.recurrenceDays
+                    ? String(servicePackage.recurrenceDays)
+                    : ""
+                }
+                onChangeText={(value) =>
+                  setPackages(
+                    replaceListItem(packages, index, {
+                      ...servicePackage,
+                      recurrenceDays: Number(value.replace(/\D/g, "")) || null,
+                    }),
+                  )
+                }
+                keyboardType="number-pad"
+                containerStyle={{ flex: 1, minWidth: 170 }}
+              />
+            </View>
+            <Button
+              title="Remover pacote"
+              variant="secondary"
+              onPress={() => setPackages(removeListItem(packages, index))}
+            />
+          </Card>
+        ))}
+        <Button
+          title="Adicionar pacote"
+          variant="secondary"
+          onPress={() =>
+            setPackages((current) => [
+              ...current,
+              {
+                name: "",
+                sessions: 4,
+                price: Math.max(moneyValue(defaultPrice) * 4, 0),
+                validityDays: 90,
+                recurrenceDays: 7,
+                active: true,
+              },
+            ])
+          }
+        />
       </FormSection>
 
       <FormSection

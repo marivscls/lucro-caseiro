@@ -9,7 +9,7 @@ import {
 } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import type { AppIconName } from "../../../shared/components/app-icon";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -34,7 +34,11 @@ import {
 import { uploadOrderImage } from "../../../shared/utils/upload-image";
 import { ClientPickerModal } from "../../clients/components/client-picker-modal";
 import { useCreateOrder, useDeleteOrder, useUpdateOrder } from "../hooks";
-import { useCreateService, useServices } from "../../services/hooks";
+import {
+  useCreateService,
+  useServicePackagePurchases,
+  useServices,
+} from "../../services/hooks";
 import { FormSection } from "../../../shared/components/form-section";
 import { desktopCompactField } from "../../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
@@ -48,6 +52,7 @@ import { useBusinessCopy } from "../../subscription/business-copy";
 
 interface OrderFormProps {
   readonly order?: Order | null;
+  readonly initialServiceId?: string | null;
   readonly visible: boolean;
   readonly onClose: () => void;
   readonly onSuccess?: () => void;
@@ -172,6 +177,10 @@ function parseColorNames(value: string): string[] {
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
+}
+
+function withoutValue(items: string[], value: string): string[] {
+  return items.filter((item) => item !== value);
 }
 
 function isColorSelected(value: string, name: string): boolean {
@@ -371,7 +380,13 @@ function PersonalizationFields({
   );
 }
 
-export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps) {
+export function OrderForm({
+  order,
+  initialServiceId,
+  visible,
+  onClose,
+  onSuccess,
+}: OrderFormProps) {
   const { theme } = useTheme();
   const experienceCopy = useBusinessCopy();
   const isDesktop = useDesktopLayout();
@@ -399,7 +414,22 @@ export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps
   );
   const [clientName, setClientName] = useState(order?.clientName ?? "");
   const [showClientPicker, setShowClientPicker] = useState(false);
-  const [serviceId, setServiceId] = useState<string | null>(order?.serviceId ?? null);
+  const [serviceId, setServiceId] = useState<string | null>(
+    order?.serviceId ?? initialServiceId ?? null,
+  );
+  const [serviceVariationId, setServiceVariationId] = useState<string | null>(
+    order?.serviceVariationId ?? null,
+  );
+  const [serviceAddOnIds, setServiceAddOnIds] = useState<string[]>(
+    order?.serviceAddOnIds ?? [],
+  );
+  const [servicePackagePurchaseId, setServicePackagePurchaseId] = useState<string | null>(
+    order?.servicePackagePurchaseId ?? null,
+  );
+  const [locationMode, setLocationMode] = useState<
+    "business" | "client" | "online" | null
+  >(order?.locationMode ?? null);
+  const [locationDetails, setLocationDetails] = useState(order?.locationDetails ?? "");
   const [durationMinutes, setDurationMinutes] = useState(
     order?.durationMinutes ? String(order.durationMinutes) : "60",
   );
@@ -412,12 +442,31 @@ export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps
   const createOrder = useCreateOrder();
   const createService = useCreateService();
   const { data: services = [] } = useServices();
+  const { data: packagePurchases = [] } = useServicePackagePurchases(serviceId);
   const updateOrder = useUpdateOrder();
   const deleteOrder = useDeleteOrder();
   const isEditing = !!order;
   const currentPhotoUrl = imageUri ?? savedPhotoUrl;
   const isSaving =
     createOrder.isPending || updateOrder.isPending || deleteOrder.isPending || uploading;
+  const selectedService = services.find((service) => service.id === serviceId);
+
+  useEffect(() => {
+    if (order || !initialServiceId || services.length === 0) return;
+    const initialService = services.find((service) => service.id === initialServiceId);
+    if (!initialService) return;
+    setServiceId(initialService.id);
+    setDurationMinutes(String(initialService.durationMinutes));
+    setTitle((current) => current || initialService.name);
+    setLocationMode(
+      initialService.locationMode === "flexible"
+        ? "business"
+        : initialService.locationMode,
+    );
+    if (initialService.defaultPrice !== null) {
+      setAmount(currencyInput(initialService.defaultPrice));
+    }
+  }, [initialServiceId, order, services]);
 
   function openDatePicker() {
     setShowDatePicker(true);
@@ -495,7 +544,12 @@ export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps
       deliveryDate: iso,
       deliveryTime: time.trim() || undefined,
       serviceId: serviceId ?? undefined,
+      serviceVariationId: serviceVariationId ?? undefined,
+      serviceAddOnIds,
+      servicePackagePurchaseId: servicePackagePurchaseId ?? undefined,
       durationMinutes: serviceId ? Number.parseInt(durationMinutes, 10) || 60 : undefined,
+      locationMode: serviceId ? locationMode : undefined,
+      locationDetails: serviceId ? locationDetails.trim() || null : undefined,
       clientId: clientId || undefined,
       amount:
         parsedAmount !== undefined && !Number.isNaN(parsedAmount)
@@ -702,7 +756,14 @@ export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps
             {services.length > 0 ? (
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
                 <Pressable
-                  onPress={() => setServiceId(null)}
+                  onPress={() => {
+                    setServiceId(null);
+                    setServiceVariationId(null);
+                    setServiceAddOnIds([]);
+                    setServicePackagePurchaseId(null);
+                    setLocationMode(null);
+                    setLocationDetails("");
+                  }}
                   style={{
                     minHeight: 44,
                     justifyContent: "center",
@@ -723,7 +784,15 @@ export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps
                       key={service.id}
                       onPress={() => {
                         setServiceId(service.id);
+                        setServiceVariationId(null);
+                        setServiceAddOnIds([]);
+                        setServicePackagePurchaseId(null);
                         setDurationMinutes(String(service.durationMinutes));
+                        setLocationMode(
+                          service.locationMode === "flexible"
+                            ? "business"
+                            : service.locationMode,
+                        );
                         setTitle((current) => current || service.name);
                         if (service.defaultPrice !== null) {
                           setAmount(currencyInput(service.defaultPrice));
@@ -746,16 +815,226 @@ export function OrderForm({ order, visible, onClose, onSuccess }: OrderFormProps
                   ))}
               </View>
             ) : null}
+            {selectedService?.variations.some((item) => item.active) ? (
+              <View style={{ gap: spacing.sm }}>
+                <Typography variant="caption" color={pal.muted}>
+                  Opção do serviço
+                </Typography>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+                  {selectedService.variations
+                    .filter((item) => item.active)
+                    .map((variation) => (
+                      <Pressable
+                        key={variation.id}
+                        onPress={() => {
+                          setServiceVariationId(variation.id);
+                          setDurationMinutes(String(variation.durationMinutes));
+                          setAmount(currencyInput(variation.price));
+                        }}
+                        style={{
+                          minHeight: 44,
+                          justifyContent: "center",
+                          paddingHorizontal: spacing.md,
+                          borderRadius: radii.full,
+                          borderWidth: 1,
+                          borderColor:
+                            serviceVariationId === variation.id
+                              ? theme.colors.primary
+                              : pal.border,
+                          backgroundColor:
+                            serviceVariationId === variation.id
+                              ? theme.colors.primaryBg
+                              : pal.surface,
+                        }}
+                      >
+                        <Typography variant="caption">
+                          {variation.name} · {variation.durationMinutes} min
+                        </Typography>
+                      </Pressable>
+                    ))}
+                </View>
+              </View>
+            ) : null}
+            {selectedService?.addOns.some((item) => item.active) ? (
+              <View style={{ gap: spacing.sm }}>
+                <Typography variant="caption" color={pal.muted}>
+                  Adicionais
+                </Typography>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+                  {selectedService.addOns
+                    .filter((item) => item.active)
+                    .map((addOn) => {
+                      const selected = serviceAddOnIds.includes(addOn.id);
+                      return (
+                        <Pressable
+                          key={addOn.id}
+                          onPress={() => {
+                            setServiceAddOnIds(
+                              selected
+                                ? withoutValue(serviceAddOnIds, addOn.id)
+                                : [...serviceAddOnIds, addOn.id],
+                            );
+                            const currentAmount = parseCurrencyInput(amount) || 0;
+                            setAmount(
+                              currencyInput(
+                                Math.max(
+                                  0,
+                                  currentAmount + (selected ? -addOn.price : addOn.price),
+                                ),
+                              ),
+                            );
+                            setDurationMinutes((current) =>
+                              String(
+                                Math.max(
+                                  5,
+                                  (Number.parseInt(current, 10) || 0) +
+                                    (selected
+                                      ? -addOn.durationMinutes
+                                      : addOn.durationMinutes),
+                                ),
+                              ),
+                            );
+                          }}
+                          style={{
+                            minHeight: 44,
+                            justifyContent: "center",
+                            paddingHorizontal: spacing.md,
+                            borderRadius: radii.full,
+                            borderWidth: 1,
+                            borderColor: selected ? theme.colors.primary : pal.border,
+                            backgroundColor: selected
+                              ? theme.colors.primaryBg
+                              : pal.surface,
+                          }}
+                        >
+                          <Typography variant="caption">
+                            {addOn.name} · +{currencyInput(addOn.price)}
+                          </Typography>
+                        </Pressable>
+                      );
+                    })}
+                </View>
+              </View>
+            ) : null}
+            {packagePurchases.length > 0 ? (
+              <View style={{ gap: spacing.sm }}>
+                <Typography variant="caption" color={pal.muted}>
+                  Usar sessão de pacote
+                </Typography>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+                  <Pressable
+                    onPress={() => setServicePackagePurchaseId(null)}
+                    style={{
+                      minHeight: 44,
+                      justifyContent: "center",
+                      paddingHorizontal: spacing.md,
+                      borderRadius: radii.full,
+                      borderWidth: 1,
+                      borderColor:
+                        servicePackagePurchaseId === null
+                          ? theme.colors.primary
+                          : pal.border,
+                      backgroundColor:
+                        servicePackagePurchaseId === null
+                          ? theme.colors.primaryBg
+                          : pal.surface,
+                    }}
+                  >
+                    <Typography variant="caption">Cobrança avulsa</Typography>
+                  </Pressable>
+                  {packagePurchases
+                    .filter(
+                      (purchase) =>
+                        purchase.status === "active" &&
+                        (!clientId || purchase.clientId === clientId),
+                    )
+                    .map((purchase) => (
+                      <Pressable
+                        key={purchase.id}
+                        onPress={() => {
+                          setServicePackagePurchaseId(purchase.id);
+                          setClientId(purchase.clientId);
+                          setClientName(purchase.clientName);
+                        }}
+                        style={{
+                          minHeight: 44,
+                          justifyContent: "center",
+                          paddingHorizontal: spacing.md,
+                          borderRadius: radii.full,
+                          borderWidth: 1,
+                          borderColor:
+                            servicePackagePurchaseId === purchase.id
+                              ? theme.colors.primary
+                              : pal.border,
+                          backgroundColor:
+                            servicePackagePurchaseId === purchase.id
+                              ? theme.colors.primaryBg
+                              : pal.surface,
+                        }}
+                      >
+                        <Typography variant="caption">
+                          {purchase.clientName} ·{" "}
+                          {purchase.sessionsTotal - purchase.sessionsUsed} sessões
+                        </Typography>
+                      </Pressable>
+                    ))}
+                </View>
+              </View>
+            ) : null}
             {serviceId ? (
-              <View style={compactField}>
+              <View style={{ gap: spacing.sm }}>
+                <View style={compactField}>
+                  <Field
+                    icon="time-outline"
+                    placeholder="Duração em minutos"
+                    value={durationMinutes}
+                    onChangeText={(value) =>
+                      setDurationMinutes(value.replace(/\D/g, "").slice(0, 4))
+                    }
+                    keyboardType="number-pad"
+                  />
+                </View>
+                <Typography variant="caption" color={pal.muted}>
+                  Local do atendimento
+                </Typography>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+                  {[
+                    { label: "Meu espaço", value: "business" as const },
+                    { label: "Cliente", value: "client" as const },
+                    { label: "Online", value: "online" as const },
+                  ].map((option) => (
+                    <Pressable
+                      key={option.value}
+                      onPress={() => setLocationMode(option.value)}
+                      style={{
+                        minHeight: 44,
+                        justifyContent: "center",
+                        paddingHorizontal: spacing.md,
+                        borderRadius: radii.full,
+                        borderWidth: 1,
+                        borderColor:
+                          locationMode === option.value
+                            ? theme.colors.primary
+                            : pal.border,
+                        backgroundColor:
+                          locationMode === option.value
+                            ? theme.colors.primaryBg
+                            : pal.surface,
+                      }}
+                    >
+                      <Typography variant="caption">{option.label}</Typography>
+                    </Pressable>
+                  ))}
+                </View>
                 <Field
-                  icon="time-outline"
-                  placeholder="Duração em minutos"
-                  value={durationMinutes}
-                  onChangeText={(value) =>
-                    setDurationMinutes(value.replace(/\D/g, "").slice(0, 4))
+                  icon="location-outline"
+                  placeholder={
+                    locationMode === "online"
+                      ? "Link ou plataforma (opcional)"
+                      : "Endereço ou orientação (opcional)"
                   }
-                  keyboardType="number-pad"
+                  value={locationDetails}
+                  onChangeText={setLocationDetails}
                 />
               </View>
             ) : null}

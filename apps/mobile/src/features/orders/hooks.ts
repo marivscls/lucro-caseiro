@@ -1,5 +1,6 @@
 import type {
   CreateOrder,
+  CompleteServiceAppointment,
   DeliverOrder,
   Order,
   OrderStatus,
@@ -11,6 +12,7 @@ import { useAuth } from "../../shared/hooks/use-auth";
 import { trackAnalyticsAction } from "../analytics/tracker";
 import {
   createOrder,
+  completeServiceAppointment,
   deleteOrder,
   deliverOrder,
   fetchOrders,
@@ -101,6 +103,22 @@ export function useDeliverOrder() {
     onSuccess: (order) => {
       void queryClient.invalidateQueries({ queryKey: ORDERS_KEY });
       // Pode ter gerado receita no financeiro.
+      void queryClient.invalidateQueries({ queryKey: ["finance"] });
+      void cancelOrderReminder(order.id);
+    },
+  });
+}
+
+export function useCompleteServiceAppointment() {
+  const { token } = useAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: CompleteServiceAppointment }) =>
+      completeServiceAppointment(token!, id, data),
+    onSuccess: (order) => {
+      void queryClient.invalidateQueries({ queryKey: ORDERS_KEY });
+      void queryClient.invalidateQueries({ queryKey: ["services"] });
+      void queryClient.invalidateQueries({ queryKey: ["sales"] });
       void queryClient.invalidateQueries({ queryKey: ["finance"] });
       void cancelOrderReminder(order.id);
     },

@@ -138,7 +138,16 @@ export class FinanceUseCases {
     date: string,
   ): Promise<void> {
     const existing = await this.repo.findBySaleId(userId, saleId);
-    if (existing) return;
+    if (existing) {
+      if (existing.amount !== amount) {
+        await this.update(userId, existing.id, {
+          amount,
+          description,
+          date,
+        });
+      }
+      return;
+    }
     await this.createFromSale(userId, saleId, amount, description, date);
   }
 

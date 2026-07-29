@@ -4,9 +4,8 @@
 
 ## Purpose
 
-Gerenciar serviços como cadastro separado de produtos, guardar duração e preço
-padrão, conferir opcionalmente a formação do preço e reutilizar serviços ativos na
-Agenda.
+Gerenciar o ciclo completo de serviços: oferta, opções, adicionais, pacotes,
+divulgação pública, solicitações de horário, atendimentos e resultado financeiro.
 
 A tela é propositalmente neutra em relação à profissão: atende desde beleza e
 manutenção até consultoria, aulas, criação e serviços presenciais ou online.
@@ -14,8 +13,6 @@ manutenção até consultoria, aulas, criação e serviços presenciais ou onlin
 ## Non-goals
 
 - Não controla estoque.
-- Não registra serviço como item da venda.
-- Não publica serviços no catálogo.
 - Não detalha materiais individualmente.
 
 ## Boundaries & Ownership
@@ -32,6 +29,8 @@ manutenção até consultoria, aulas, criação e serviços presenciais ou onlin
 - `hooks.ts` — React Query com chave `["services"]`.
 - `domain.ts` — cálculo puro de mão de obra, custo total e preço sugerido.
 - `components/service-form.tsx` — formulário canônico de criação e edição.
+- `components/service-dashboard-modal.tsx` — operação, indicadores, pacotes,
+  solicitações e histórico por serviço.
 - `app/services.tsx` — tela de gestão.
 
 ## Components
@@ -47,6 +46,10 @@ manutenção até consultoria, aulas, criação e serviços presenciais ou onlin
 - `useServices()` — consulta `["services"]` quando existe token de autenticação.
 - `useCreateService()` — cria um serviço e invalida `["services"]`.
 - `useUpdateService()` — atualiza um serviço e invalida `["services"]`.
+- `useServiceInsights()` — faturamento, lucro, ticket, clientes e histórico.
+- `useServiceBookingRequests()` — solicitações vindas da vitrine.
+- `useServicePackagePurchases()` / `usePurchaseServicePackage()` — saldo e venda
+  de pacotes.
 
 ## Invariants
 
@@ -64,11 +67,16 @@ manutenção até consultoria, aulas, criação e serviços presenciais ou onlin
 
 ## API Integration
 
-| Endpoint                      | Verbo | Uso    |
-| ----------------------------- | ----- | ------ |
-| `/api/v1/orders/services`     | GET   | listar |
-| `/api/v1/orders/services`     | POST  | criar  |
-| `/api/v1/orders/services/:id` | PATCH | editar |
+| Endpoint                                         | Verbo | Uso                     |
+| ------------------------------------------------ | ----- | ----------------------- |
+| `/api/v1/orders/services`                        | GET   | listar                  |
+| `/api/v1/orders/services`                        | POST  | criar                   |
+| `/api/v1/orders/services/:id`                    | PATCH | editar                  |
+| `/api/v1/orders/services/:id/insights`           | GET   | indicadores e histórico |
+| `/api/v1/orders/services/:id/booking-requests`   | GET   | pedidos públicos        |
+| `/api/v1/orders/services/booking-requests/:id`   | PATCH | status do pedido        |
+| `/api/v1/orders/services/package-purchases`      | GET   | saldos de pacotes       |
+| `/api/v1/orders/services/packages/:id/purchases` | POST  | vender pacote           |
 
 ## Contracts
 
@@ -123,3 +131,6 @@ const pricing = calculateServicePricing({
   formação opcional de preço e integração com a Agenda.
 - 2026-07-28: a gestão passa a representar prestadores em geral, com visão
   operacional, filtros de revisão, cards financeiros e exemplos neutros.
+- 2026-07-28: expansão v2 adiciona local e intervalo de agenda, divulgação
+  pública, variações, adicionais, pacotes recorrentes, painel de desempenho,
+  histórico e triagem de solicitações.

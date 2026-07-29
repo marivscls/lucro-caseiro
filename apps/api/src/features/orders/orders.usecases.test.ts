@@ -3,7 +3,11 @@ import { describe, expect, it, vi } from "vitest";
 
 import { NotFoundError, ValidationError } from "../../shared/errors";
 import { OrdersUseCases } from "./orders.usecases";
-import type { IIncomeRegistrar, IOrdersRepo } from "./orders.types";
+import type {
+  IIncomeRegistrar,
+  IOrdersRepo,
+  IServiceSaleRegistrar,
+} from "./orders.types";
 
 const USER_ID = "user-123";
 
@@ -24,6 +28,16 @@ function makeOrder(overrides: Partial<Order> = {}): Order {
     colors: null,
     photoUrl: null,
     notes: null,
+    serviceVariationId: null,
+    serviceVariationName: null,
+    serviceAddOnIds: [],
+    serviceAddOnNames: [],
+    servicePackagePurchaseId: null,
+    appointmentStatus: null,
+    locationMode: null,
+    locationDetails: null,
+    actualCost: null,
+    completedAt: null,
     saleId: null,
     createdAt: new Date().toISOString(),
     ...overrides,
@@ -47,6 +61,13 @@ function makeService(overrides: Partial<Service> = {}): Service {
     fixedCostShare: 5,
     markupPercent: 50,
     feesPercent: 3,
+    locationMode: "flexible",
+    bufferMinutes: 0,
+    publicEnabled: false,
+    bookingInstructions: null,
+    variations: [],
+    addOns: [],
+    packages: [],
     active: true,
     createdAt: new Date().toISOString(),
     ...overrides,
@@ -220,6 +241,92 @@ describe("OrdersUseCases", () => {
         "service-1",
       );
       expect(updateService).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe("completeServiceAppointment", () => {
+    it("creates one service sale and closes the appointment", async () => {
+      const createServiceSale = vi.fn(() => Promise.resolve({ id: "sale-1" }));
+      const update = vi.fn((_userId, _id, data) =>
+        Promise.resolve(
+          makeOrder({
+            serviceId: "service-1",
+            serviceName: "Consulta",
+            ...data,
+          }),
+        ),
+      );
+      const repo = makeRepo({
+        findById: () =>
+          Promise.resolve(
+            makeOrder({
+              serviceId: "service-1",
+              serviceName: "Consulta",
+              clientId: "client-1",
+            }),
+          ),
+        update,
+      });
+      const sales: IServiceSaleRegistrar = { createServiceSale };
+      const income: IIncomeRegistrar = {
+        create: () => Promise.resolve({ id: "fin-1" }),
+      };
+      const sut = new OrdersUseCases(repo, income, sales);
+
+      const result = await sut.completeServiceAppointment(USER_ID, "order-1", {
+        amount: 100,
+        amountReceived: 40,
+        paymentMethod: "pix",
+        actualCost: 25,
+      });
+
+      expect(createServiceSale).toHaveBeenCalledWith(
+        USER_ID,
+        expect.objectContaining({
+          total: 100,
+          amountReceived: 40,
+          sourceOrderId: "order-1",
+        }),
+      );
+      expect(result.status).toBe("done");
+      expect(result.appointmentStatus).toBe("completed");
+      expect(result.saleId).toBe("sale-1");
+    });
+
+    it("consumes a package session without creating another sale", async () => {
+      const createServiceSale = vi.fn(() => Promise.resolve({ id: "sale-1" }));
+      const consumePackageSession = vi.fn(() =>
+        Promise.resolve({
+          id: "purchase-1",
+        } as never),
+      );
+      const repo = makeRepo({
+        findById: () =>
+          Promise.resolve(
+            makeOrder({
+              serviceId: "service-1",
+              servicePackagePurchaseId: "purchase-1",
+            }),
+          ),
+        consumePackageSession,
+      });
+      const income: IIncomeRegistrar = {
+        create: () => Promise.resolve({ id: "fin-1" }),
+      };
+      const sut = new OrdersUseCases(repo, income, { createServiceSale });
+
+      await sut.completeServiceAppointment(USER_ID, "order-1", {
+        amount: 100,
+        amountReceived: 0,
+        actualCost: 20,
+      });
+
+      expect(consumePackageSession).toHaveBeenCalledWith(
+        USER_ID,
+        "purchase-1",
+        "order-1",
+      );
+      expect(createServiceSale).not.toHaveBeenCalled();
     });
   });
 });

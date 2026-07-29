@@ -62,25 +62,27 @@ receita ao entregar.
 
 ## Hooks
 
-| Hook                      | Tipo          | Descricao                                                                             |
-| ------------------------- | ------------- | ------------------------------------------------------------------------------------- |
-| `useOrders(opts?)`        | `useQuery`    | Lista de encomendas. Query key: `["orders", opts]`.                                   |
-| `useOrdersSummary(opts?)` | `useQuery`    | Resumo agregado (total/a receber/recebido). Query key: `["orders", "summary", opts]`. |
-| `useCreateOrder()`        | `useMutation` | Cria. Invalida `["orders"]`.                                                          |
-| `useUpdateOrder()`        | `useMutation` | Atualiza (inclui status). Invalida `["orders"]`.                                      |
-| `useDeliverOrder()`       | `useMutation` | Entrega (opcional receita). Invalida `["orders"]` e `["finance"]`.                    |
-| `useDeleteOrder()`        | `useMutation` | Remove. Invalida `["orders"]`.                                                        |
+| Hook                              | Tipo          | Descricao                                                                             |
+| --------------------------------- | ------------- | ------------------------------------------------------------------------------------- |
+| `useOrders(opts?)`                | `useQuery`    | Lista de encomendas. Query key: `["orders", opts]`.                                   |
+| `useOrdersSummary(opts?)`         | `useQuery`    | Resumo agregado (total/a receber/recebido). Query key: `["orders", "summary", opts]`. |
+| `useCreateOrder()`                | `useMutation` | Cria. Invalida `["orders"]`.                                                          |
+| `useUpdateOrder()`                | `useMutation` | Atualiza (inclui status). Invalida `["orders"]`.                                      |
+| `useDeliverOrder()`               | `useMutation` | Entrega (opcional receita). Invalida `["orders"]` e `["finance"]`.                    |
+| `useCompleteServiceAppointment()` | `useMutation` | Conclui serviço, registra pagamento parcial/Fiado ou consome pacote.                  |
+| `useDeleteOrder()`                | `useMutation` | Remove. Invalida `["orders"]`.                                                        |
 
 ## API Integration
 
-| Endpoint                     | Verbo  | Funcao               | Parametros                     |
-| ---------------------------- | ------ | -------------------- | ------------------------------ |
-| `/api/v1/orders`             | GET    | `fetchOrders`        | `?status=&from=&to=`           |
-| `/api/v1/orders/summary`     | GET    | `fetchOrdersSummary` | `?status=&startDate=&endDate=` |
-| `/api/v1/orders`             | POST   | `createOrder`        | body: `CreateOrder`            |
-| `/api/v1/orders/:id`         | PATCH  | `updateOrder`        | body: `UpdateOrder`            |
-| `/api/v1/orders/:id/deliver` | POST   | `deliverOrder`       | body: `DeliverOrder`           |
-| `/api/v1/orders/:id`         | DELETE | `deleteOrder`        | -                              |
+| Endpoint                              | Verbo  | Funcao                       | Parametros                     |
+| ------------------------------------- | ------ | ---------------------------- | ------------------------------ |
+| `/api/v1/orders`                      | GET    | `fetchOrders`                | `?status=&from=&to=`           |
+| `/api/v1/orders/summary`              | GET    | `fetchOrdersSummary`         | `?status=&startDate=&endDate=` |
+| `/api/v1/orders`                      | POST   | `createOrder`                | body: `CreateOrder`            |
+| `/api/v1/orders/:id`                  | PATCH  | `updateOrder`                | body: `UpdateOrder`            |
+| `/api/v1/orders/:id/deliver`          | POST   | `deliverOrder`               | body: `DeliverOrder`           |
+| `/api/v1/orders/:id/complete-service` | POST   | `completeServiceAppointment` | valor, recebido, forma e custo |
+| `/api/v1/orders/:id`                  | DELETE | `deleteOrder`                | -                              |
 
 ## Contracts
 
@@ -121,6 +123,12 @@ receita ao entregar.
 - Selecting a service fills its duration and default price.
 - Quick creation in the order form keeps the short name/duration flow; complete
   management and pricing live at `/services`.
+- A seleção de serviço oferece variação, adicionais, pacote ativo do cliente e
+  local. O backend recalcula snapshots de duração/valor e considera o intervalo
+  do serviço na verificação de conflito.
+- Atendimentos usam estados próprios (`scheduled`, `confirmed`, `in_progress`,
+  `completed`, `cancelled`, `no_show`). A conclusão abre o fluxo financeiro:
+  recebido entra no Caixa, saldo vai ao Fiado e pacote consome uma única sessão.
 
 ## Change log / Decisions
 
@@ -141,3 +149,5 @@ receita ao entregar.
 - 2026-07-24: a Agenda ganhou uma faixa horizontal de sete dias com contagem por data e
   seleção direta. Dias sem encomenda mantêm a navegação visível e oferecem criar uma nova,
   enquanto o filtro completo por data continua acessível no resumo.
+- 2026-07-28: Agenda passa a operar atendimentos completos, com local, variação,
+  adicionais, sessão de pacote, estados próprios e conclusão financeira idempotente.

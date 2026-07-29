@@ -2,7 +2,13 @@ import type {
   CreateService,
   Order,
   OrderStatus,
+  PurchaseServicePackage,
   Service,
+  ServiceBookingRequest,
+  ServiceBookingRequestStatus,
+  ServiceInsights,
+  ServicePackageInput,
+  ServicePackagePurchase,
   UpdateService,
 } from "@lucro-caseiro/contracts";
 
@@ -12,7 +18,25 @@ export interface CreateOrderData {
   deliveryTime?: string;
   clientId?: string;
   serviceId?: string | null;
+  serviceVariationId?: string | null;
+  serviceVariationName?: string | null;
+  serviceAddOnIds?: string[];
+  serviceAddOnNames?: string[];
+  servicePackagePurchaseId?: string | null;
   durationMinutes?: number | null;
+  appointmentStatus?:
+    | "scheduled"
+    | "confirmed"
+    | "in_progress"
+    | "completed"
+    | "cancelled"
+    | "no_show"
+    | null;
+  locationMode?: "business" | "client" | "online" | null;
+  locationDetails?: string | null;
+  actualCost?: number | null;
+  completedAt?: string | null;
+  saleId?: string | null;
   amount?: number;
   deposit?: number | null;
   theme?: string | null;
@@ -76,6 +100,43 @@ export interface IOrdersRepo {
     id: string,
     data: UpdateService,
   ): Promise<Service | null>;
+  findServiceById?(userId: string, id: string): Promise<Service | null>;
+  findServicePackage?(
+    userId: string,
+    packageId: string,
+  ): Promise<(ServicePackageInput & { id: string; serviceId: string }) | null>;
+  createPackagePurchase?(
+    userId: string,
+    packageId: string,
+    serviceId: string,
+    data: PurchaseServicePackage,
+    packageData: ServicePackageInput,
+    expiresAt: string,
+  ): Promise<ServicePackagePurchase>;
+  updatePackagePurchaseSale?(
+    userId: string,
+    purchaseId: string,
+    saleId: string,
+  ): Promise<ServicePackagePurchase | null>;
+  listPackagePurchases?(
+    userId: string,
+    opts?: { clientId?: string; serviceId?: string },
+  ): Promise<ServicePackagePurchase[]>;
+  consumePackageSession?(
+    userId: string,
+    purchaseId: string,
+    orderId: string,
+  ): Promise<ServicePackagePurchase | null>;
+  getServiceInsights?(userId: string, serviceId: string): Promise<ServiceInsights>;
+  listBookingRequests?(
+    userId: string,
+    serviceId: string,
+  ): Promise<ServiceBookingRequest[]>;
+  updateBookingRequestStatus?(
+    userId: string,
+    id: string,
+    status: ServiceBookingRequestStatus,
+  ): Promise<ServiceBookingRequest | null>;
   hasScheduleConflict?(
     userId: string,
     date: string,
@@ -96,6 +157,23 @@ export interface IIncomeRegistrar {
       amount: number;
       description: string;
       date: string;
+    },
+  ): Promise<{ id: string }>;
+}
+
+export interface IServiceSaleRegistrar {
+  createServiceSale(
+    userId: string,
+    data: {
+      serviceId: string;
+      itemName: string;
+      total: number;
+      amountReceived: number;
+      paymentMethod?: string;
+      clientId?: string;
+      soldAt?: string;
+      sourceOrderId?: string;
+      notes?: string;
     },
   ): Promise<{ id: string }>;
 }

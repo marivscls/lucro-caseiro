@@ -93,6 +93,48 @@ describe("renderCatalogHtml", () => {
     totalProducts: 0,
   };
 
+  it("renderiza serviço público e o formulário de solicitação de horário", () => {
+    const html = renderCatalogHtml({
+      ...baseCatalog,
+      services: [
+        {
+          id: "22222222-2222-2222-2222-222222222222",
+          name: "Consultoria",
+          description: "Encontro individual",
+          durationMinutes: 60,
+          defaultPrice: 150,
+          locationMode: "online",
+          bookingInstructions: null,
+          variations: [],
+          addOns: [
+            {
+              id: "33333333-3333-3333-3333-333333333333",
+              name: "Retorno",
+              durationMinutes: 30,
+              price: 50,
+            },
+          ],
+          packages: [
+            {
+              id: "44444444-4444-4444-4444-444444444444",
+              name: "Acompanhamento",
+              sessions: 4,
+              price: 500,
+              validityDays: 90,
+              recurrenceDays: 14,
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(html).toContain("Consultoria");
+    expect(html).toContain("Atendimento online");
+    expect(html).toContain("Acompanhamento · 4 sessões");
+    expect(html).toContain('id="service-booking-form"');
+    expect(html).toContain('fetch(location.pathname + "/service-bookings"');
+  });
+
   it("renderiza a faixa promocional quando definida", () => {
     const html = renderCatalogHtml({
       ...baseCatalog,

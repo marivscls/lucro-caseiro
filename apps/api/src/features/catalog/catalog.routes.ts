@@ -1,4 +1,7 @@
-import { UpdateCatalogSettingsDto } from "@lucro-caseiro/contracts";
+import {
+  PublicServiceBookingRequestInputDto,
+  UpdateCatalogSettingsDto,
+} from "@lucro-caseiro/contracts";
 import { Router } from "express";
 
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
@@ -44,6 +47,18 @@ export function createCatalogRouter(useCases: CatalogUseCases): Router {
 /** Rotas publicas (sem auth): pagina HTML e JSON do catalogo. */
 export function createPublicCatalogRouter(useCases: CatalogUseCases): Router {
   const router = Router();
+
+  router.post("/:slug/service-bookings", async (req, res, next) => {
+    try {
+      const booking = await useCases.createPublicServiceBooking(
+        req.params.slug,
+        PublicServiceBookingRequestInputDto.parse(req.body),
+      );
+      res.status(201).json(booking);
+    } catch (err) {
+      next(err);
+    }
+  });
 
   router.get("/:slug", async (req, res) => {
     try {

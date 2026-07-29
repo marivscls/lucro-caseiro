@@ -272,7 +272,7 @@ const goalsUseCases = new GoalsUseCases(
   salesUseCases,
   productsUseCases,
 );
-const ordersUseCases = new OrdersUseCases(ordersRepo, financeUseCases);
+const ordersUseCases = new OrdersUseCases(ordersRepo, financeUseCases, salesUseCases);
 const insightsUseCases = new InsightsUseCases(insightsRepo);
 
 // Payments (Stripe)

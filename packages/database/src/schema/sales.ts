@@ -10,6 +10,7 @@ import {
 
 import { clients } from "./clients";
 import { products } from "./products";
+import { services } from "./operations";
 import { users } from "./users";
 
 export const saleStatusEnum = pgEnum("sale_status", ["pending", "paid", "cancelled"]);
@@ -41,6 +42,10 @@ export const sales = pgTable(
       .notNull()
       .default("0"),
     total: decimal("total", { precision: 10, scale: 2 }).notNull(),
+    paidAmount: decimal("paid_amount", { precision: 10, scale: 2 })
+      .notNull()
+      .default("0"),
+    sourceOrderId: uuid("source_order_id"),
     notes: text("notes"),
     soldAt: timestamp("sold_at", { withTimezone: true }).notNull().defaultNow(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -57,9 +62,11 @@ export const saleItems = pgTable("sale_items", {
   saleId: uuid("sale_id")
     .notNull()
     .references(() => sales.id, { onDelete: "cascade" }),
-  productId: uuid("product_id")
-    .notNull()
-    .references(() => products.id),
+  productId: uuid("product_id").references(() => products.id),
+  serviceId: uuid("service_id").references(() => services.id, {
+    onDelete: "set null",
+  }),
+  itemName: text("item_name"),
   // numeric(10,3) para suportar venda por peso (ex.: 1.5 kg). Drizzle retorna
   // decimais como string — converter com Number(...) na borda do repo.
   quantity: decimal("quantity", { precision: 10, scale: 3 }).notNull(),

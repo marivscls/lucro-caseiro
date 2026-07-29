@@ -123,6 +123,9 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 
 ## Change log / Decisions
 
+- 2026-07-28: o Fiado considera `paidAmount` e mostra somente o saldo restante
+  de serviços ou produtos pagos parcialmente.
+
 - 2026-07-20: o scanner da Nova Venda deixou de apenas filtrar a primeira página. Agora consulta o
   código exato na API, adiciona o produto diretamente ao carrinho e incrementa a quantidade em
   leituras repetidas. Produto desconhecido oferece cadastro já preenchido; o produto criado entra

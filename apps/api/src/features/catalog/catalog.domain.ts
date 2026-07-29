@@ -1,4 +1,8 @@
-import type { PublicCatalog, PublicCatalogProduct } from "@lucro-caseiro/contracts";
+import type {
+  PublicCatalog,
+  PublicCatalogProduct,
+  PublicCatalogService,
+} from "@lucro-caseiro/contracts";
 import { CATALOG_SLUG_REGEX } from "@lucro-caseiro/contracts";
 import { resolveBrand } from "@lucro-caseiro/brands";
 
@@ -28,6 +32,22 @@ export function isValidSlug(slug: string): boolean {
 
 function formatPrice(value: number): string {
   return `R$ ${value.toFixed(2).replace(".", ",")}`;
+}
+
+function catalogItemCountLabel(productCount: number, serviceCount: number): string {
+  if (productCount > 0 && serviceCount > 0) {
+    const productsLabel = productCount === 1 ? "produto" : "produtos";
+    const servicesLabel = serviceCount === 1 ? "serviço" : "serviços";
+    return `${productCount} ${productsLabel} e ${serviceCount} ${servicesLabel}`;
+  }
+  if (serviceCount > 0) {
+    return serviceCount === 1
+      ? "1 serviço disponível"
+      : `${serviceCount} serviços disponíveis`;
+  }
+  return productCount === 1
+    ? "1 produto disponível"
+    : `${productCount} produtos disponíveis`;
 }
 
 function escapeHtml(text: string): string {
@@ -104,6 +124,51 @@ function productCard(
     ? `<button class="add-cart" data-product-id="${escapeHtml(product.id)}" data-product-name="${escapeHtml(product.name)}" data-price="${product.salePrice}"${cartDisabled}>${cartLabel}</button>`
     : "";
   return `<article class="card" data-category="${escapeHtml(product.category)}" data-name="${escapeHtml(product.name.toLocaleLowerCase("pt-BR"))}" data-price="${product.salePrice}" id="produto-${escapeHtml(product.id)}"><div class="photo">${photo}</div><div class="info">${category}<h2>${escapeHtml(product.name)}</h2>${description}${variations}<div class="bottom"><p class="price">${formatPrice(product.salePrice)}<span class="unit">${unit}</span></p>${cartButton}${orderButton}</div></div></article>`;
+}
+
+function serviceCard(service: PublicCatalogService): string {
+  const locationLabel = {
+    business: "No espaço profissional",
+    client: "No endereço do cliente",
+    online: "Atendimento online",
+    flexible: "Local a combinar",
+  }[service.locationMode];
+  const description = service.description
+    ? `<p class="desc">${escapeHtml(service.description)}</p>`
+    : "";
+  const price =
+    service.defaultPrice === null
+      ? "Preço sob consulta"
+      : `A partir de ${formatPrice(service.defaultPrice)}`;
+  const variations = service.variations.length
+    ? `<div class="service-options"><strong>Opções</strong>${service.variations
+        .map(
+          (variation) =>
+            `<span>${escapeHtml(variation.name)} · ${variation.durationMinutes} min · ${formatPrice(variation.price)}</span>`,
+        )
+        .join("")}</div>`
+    : "";
+  const addOns = service.addOns.length
+    ? `<div class="service-options"><strong>Adicionais</strong>${service.addOns
+        .map(
+          (addOn) =>
+            `<span>+ ${escapeHtml(addOn.name)} · ${formatPrice(addOn.price)}</span>`,
+        )
+        .join("")}</div>`
+    : "";
+  const bookingInstructions = service.bookingInstructions
+    ? `<p class="booking-instructions"><strong>Antes de solicitar:</strong> ${escapeHtml(service.bookingInstructions)}</p>`
+    : "";
+  const packages = service.packages.length
+    ? `<div class="service-options packages"><strong>Pacotes</strong>${service.packages
+        .map(
+          (servicePackage) =>
+            `<span>${escapeHtml(servicePackage.name)} · ${servicePackage.sessions} sessões · ${formatPrice(servicePackage.price)}</span>`,
+        )
+        .join("")}</div>`
+    : "";
+
+  return `<article class="service-card"><div class="service-icon" aria-hidden="true">✦</div><div class="service-content"><p class="category">Serviço</p><h2>${escapeHtml(service.name)}</h2>${description}<div class="service-meta"><span>${service.durationMinutes} min</span><span>${escapeHtml(locationLabel)}</span></div>${variations}${addOns}${packages}${bookingInstructions}<div class="bottom"><p class="service-price">${price}</p><button class="request-service" type="button" data-service-id="${escapeHtml(service.id)}" data-service-name="${escapeHtml(service.name)}">Solicitar horário</button></div></div></article>`;
 }
 
 /** Renderiza a pagina HTML publica do catalogo (mobile-first, sem JS). */
@@ -190,10 +255,14 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   const cards = catalog.products
     .map((product) => productCard(product, catalog.whatsapp, retailOrdering))
     .join("");
+  const publicServices = catalog.services ?? [];
+  const serviceCards = publicServices.map(serviceCard).join("");
   const categories = [
     ...new Set(catalog.products.map((product) => product.category)),
   ].sort((a, b) => a.localeCompare(b, "pt-BR"));
   const count = catalog.products.length;
+  const serviceCount = publicServices.length;
+  const totalCount = count + serviceCount;
   const filters =
     count > 0
       ? `<section class="catalog-tools" aria-label="Filtros do catálogo">
@@ -208,8 +277,7 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
 </section>`
       : "";
   const initial = escapeHtml(catalog.businessName.charAt(0).toUpperCase() || "?");
-  const countLabel =
-    count === 1 ? "1 produto disponível" : `${count} produtos disponíveis`;
+  const countLabel = catalogItemCountLabel(count, serviceCount);
   const headerButton = catalog.whatsapp
     ? `<a class="order hero" href="${whatsappLink(catalog.whatsapp)}">${WHATSAPP_ICON}Fazer pedido no WhatsApp</a>`
     : "";
@@ -237,8 +305,16 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
       ? `<p class="more-note">Mostrando ${count} de ${catalog.totalProducts} produtos</p>`
       : "";
   const empty =
-    count === 0
+    totalCount === 0
       ? `<div class="empty"><div class="empty-icon"><svg viewBox="0 0 120 120" width="104" height="104" aria-hidden="true"><defs><linearGradient id="ebg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7ece4"/><stop offset="1" stop-color="#f0ddd1"/></linearGradient><linearGradient id="ebd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a06a50"/><stop offset="1" stop-color="#7a4c39"/></linearGradient><linearGradient id="erm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#86573f"/><stop offset="1" stop-color="#6e4534"/></linearGradient><linearGradient id="ep1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E8B4BC"/><stop offset="1" stop-color="#C4707E"/></linearGradient><linearGradient id="ep2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9fdcbd"/><stop offset="1" stop-color="#5da883"/></linearGradient><linearGradient id="ep3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ecc78a"/><stop offset="1" stop-color="#c08c3f"/></linearGradient></defs><path d="M60 8 C92 6 112 28 110 60 C108 94 88 112 58 110 C26 108 8 90 10 58 C12 28 30 10 60 8 Z" fill="url(#ebg)"/><path d="M22 30 L24.5 36 L31 38 L24.5 40 L22 46 L19.5 40 L13 38 L19.5 36 Z" fill="#E8B4BC" opacity="0.9"/><path d="M100 78 L101.8 82.5 L106 84 L101.8 85.5 L100 90 L98.2 85.5 L94 84 L98.2 82.5 Z" fill="#D4A054" opacity="0.85"/><ellipse cx="60" cy="102" rx="34" ry="6" fill="#6e4534" opacity="0.14"/><path d="M36 56 Q60 22 84 56" stroke="#6e4534" stroke-width="7" fill="none" stroke-linecap="round"/><circle cx="44" cy="50" r="14" fill="url(#ep1)"/><ellipse cx="40" cy="45" rx="5" ry="3" fill="#fff" opacity="0.5"/><circle cx="66" cy="45" r="12.5" fill="url(#ep2)"/><ellipse cx="62.5" cy="40.5" rx="4.5" ry="2.6" fill="#fff" opacity="0.5"/><circle cx="82" cy="54" r="10" fill="url(#ep3)"/><ellipse cx="79" cy="50.5" rx="3.6" ry="2.2" fill="#fff" opacity="0.55"/><path d="M24 58 L96 58 L89 95 Q87.8 101.5 81.5 101.5 L38.5 101.5 Q32.2 101.5 31 95 Z" fill="url(#ebd)"/><path d="M27.5 76 L92.5 76 L91 83 L29 83 Z" fill="#6e4534" opacity="0.35"/><line x1="42" y1="60" x2="45" y2="100" stroke="#5e3a2b" stroke-width="3.5" opacity="0.45"/><line x1="60" y1="60" x2="60" y2="101" stroke="#5e3a2b" stroke-width="3.5" opacity="0.45"/><line x1="78" y1="60" x2="75" y2="100" stroke="#5e3a2b" stroke-width="3.5" opacity="0.45"/><rect x="22" y="55" width="76" height="10" rx="5" fill="url(#erm)"/><rect x="26" y="57" width="68" height="3" rx="1.5" fill="#a06a50" opacity="0.7"/></svg></div><p>Nenhum produto disponível no momento.</p><p class="empty-sub">Volte em breve — novidades chegando!</p></div>`
+      : "";
+  const servicesSection =
+    serviceCount > 0
+      ? `<section class="services-section" aria-labelledby="services-title"><div class="section-heading"><p class="category">Agende seu atendimento</p><h2 id="services-title">Serviços</h2><p>Escolha o que precisa e envie uma solicitação de horário.</p></div><div class="service-grid">${serviceCards}</div></section>`
+      : "";
+  const bookingDialog =
+    serviceCount > 0
+      ? `<dialog id="service-booking-dialog"><form id="service-booking-form"><button type="button" class="booking-close" aria-label="Fechar">×</button><p class="category">Solicitar horário</p><h2 id="booking-service-name"></h2><input id="booking-service-id" type="hidden"><label>Seu nome<input id="booking-name" required maxlength="120" autocomplete="name"></label><label>WhatsApp<input id="booking-phone" required minlength="8" maxlength="20" inputmode="tel" autocomplete="tel"></label><div class="booking-row"><label>Data desejada<input id="booking-date" type="date" required></label><label>Horário desejado<input id="booking-time" type="time"></label></div><label>Onde prefere ser atendida(o)?<select id="booking-location" required><option value="business">No espaço profissional</option><option value="client">No meu endereço</option><option value="online">Online</option></select></label><label>Observações<textarea id="booking-notes" maxlength="500" placeholder="Conte um pouco do que precisa"></textarea></label><button class="booking-submit" type="submit">Enviar solicitação</button><p id="booking-message" role="status"></p></form></dialog>`
       : "";
   const cart = retailOrdering
     ? `<button id="cart-toggle" class="cart-toggle" hidden>Reserva · <span id="cart-count">0</span> itens</button>
@@ -299,6 +375,50 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
 })();
 </script>`
     : "";
+  const bookingScript =
+    serviceCount > 0
+      ? `<script>
+(() => {
+  const dialog = document.getElementById("service-booking-dialog");
+  const form = document.getElementById("service-booking-form");
+  const message = document.getElementById("booking-message");
+  document.getElementById("booking-date").min = new Date().toISOString().slice(0, 10);
+  document.querySelectorAll(".request-service").forEach((button) => button.addEventListener("click", () => {
+    document.getElementById("booking-service-id").value = button.dataset.serviceId;
+    document.getElementById("booking-service-name").textContent = button.dataset.serviceName;
+    message.textContent = "";
+    dialog.showModal();
+  }));
+  document.querySelector(".booking-close").addEventListener("click", () => dialog.close());
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    message.textContent = "Enviando solicitação…";
+    const preferredDate = document.getElementById("booking-date").value;
+    const preferredTime = document.getElementById("booking-time").value;
+    const response = await fetch(location.pathname + "/service-bookings", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        serviceId: document.getElementById("booking-service-id").value,
+        clientName: document.getElementById("booking-name").value,
+        phone: document.getElementById("booking-phone").value,
+        desiredDate: preferredDate,
+        desiredTime: preferredTime || null,
+        locationMode: document.getElementById("booking-location").value,
+        notes: document.getElementById("booking-notes").value || null,
+      }),
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      message.textContent = result.message || result.details?.join(" · ") || "Não foi possível enviar. Tente novamente.";
+      return;
+    }
+    form.reset();
+    message.textContent = "Solicitação enviada! O negócio entrará em contato para confirmar.";
+  });
+})();
+</script>`
+      : "";
   const catalogScript =
     count > 0
       ? `<script>
@@ -335,9 +455,9 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Catálogo de produtos de ${escapeHtml(catalog.businessName)}. Peça pelo WhatsApp!">
+<meta name="description" content="Produtos e serviços de ${escapeHtml(catalog.businessName)}. Conheça e solicite seu atendimento.">
 <meta property="og:title" content="${escapeHtml(catalog.businessName)} — Catálogo">
-<meta property="og:description" content="${countLabel}. Peça pelo WhatsApp!">
+<meta property="og:description" content="${countLabel}. Conheça a vitrine e solicite seu atendimento.">
 <title>${escapeHtml(catalog.businessName)} — Catálogo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -364,6 +484,22 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   .card { background: #fffdfb; border-radius: 20px; overflow: hidden; border: 1px solid rgba(140, 90, 69, 0.16); display: flex; flex-direction: column; transition: transform 0.15s ease; }
   .card:target { scroll-margin-top: 16px; outline: 3px solid ${palette.light}; outline-offset: 3px; }
   .card:hover { transform: translateY(-2px); }
+  .services-section { max-width: 1160px; margin: 26px auto 10px; padding: 0 16px; position: relative; z-index: 2; }
+  .section-heading { margin-bottom: 16px; }
+  .section-heading h2 { font-size: 26px; color: #4a3228; }
+  .section-heading > p:last-child { margin-top: 4px; color: #7d6354; }
+  .service-grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+  .service-card { display: flex; gap: 16px; padding: 20px; background: #fffdfb; border: 1px solid rgba(140, 90, 69, 0.16); border-radius: 20px; }
+  .service-icon { width: 46px; height: 46px; flex: 0 0 46px; display: grid; place-items: center; border-radius: 14px; color: ${palette.dark}; background: ${palette.bg}; font-size: 22px; }
+  .service-content { min-width: 0; display: flex; flex-direction: column; flex: 1; }
+  .service-content h2 { font-size: 20px; color: #4a3228; }
+  .service-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+  .service-meta span { padding: 5px 9px; border-radius: 999px; background: ${palette.bg}; color: ${palette.dark}; font-size: 12px; font-weight: 700; }
+  .service-options { display: grid; gap: 5px; margin-top: 14px; color: #7d6354; font-size: 13px; }
+  .service-options strong { color: #4a3228; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+  .booking-instructions { margin-top: 14px; padding: 10px 12px; border-radius: 12px; background: ${palette.bg}; color: #7d6354; font-size: 13px; line-height: 1.45; }
+  .service-price { color: #2e7d32; font-size: 17px; font-weight: 800; }
+  .request-service, .booking-submit { width: 100%; min-height: 46px; margin-top: 12px; border: 0; border-radius: 999px; background: ${palette.base}; color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
   .photo img { width: 100%; height: 200px; object-fit: cover; display: block; }
   .gallery { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
   .gallery::-webkit-scrollbar { display: none; }
@@ -387,12 +523,19 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   .add-cart:disabled { opacity: .5; cursor: default; }
   .variation-select, #cart-form input, #cart-form select, #cart-form textarea { width: 100%; margin-top: 8px; border: 1px solid #d8c7bc; border-radius: 10px; padding: 10px; background: #fff; font: inherit; }
   .cart-toggle { position: fixed; right: 18px; bottom: 18px; z-index: 20; border: 0; border-radius: 999px; padding: 14px 20px; background: ${palette.dark}; color: #fff; font-weight: 800; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
-  #cart-dialog { border: 0; border-radius: 18px; padding: 0; width: min(92vw, 480px); color: #3d2b22; }
-  #cart-dialog::backdrop { background: rgba(0,0,0,.45); }
+  #cart-dialog, #service-booking-dialog { border: 0; border-radius: 18px; padding: 0; width: min(92vw, 480px); color: #3d2b22; }
+  #cart-dialog::backdrop, #service-booking-dialog::backdrop { background: rgba(0,0,0,.45); }
   #cart-form { padding: 24px; display: grid; gap: 14px; }
   #cart-form label { font-size: 13px; font-weight: 700; }
   .cart-close { justify-self: end; border: 0; background: transparent; font-size: 28px; }
   .reserve-submit { border: 0; border-radius: 999px; padding: 13px; background: ${palette.base}; color: #fff; font-weight: 800; }
+  #service-booking-form { padding: 24px; display: grid; gap: 14px; }
+  #service-booking-form label { display: grid; gap: 6px; font-size: 13px; font-weight: 700; }
+  #service-booking-form input, #service-booking-form select, #service-booking-form textarea { width: 100%; min-height: 44px; border: 1px solid #d8c7bc; border-radius: 10px; padding: 10px; background: #fff; font: inherit; }
+  #service-booking-form textarea { min-height: 88px; resize: vertical; }
+  .booking-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .booking-close { justify-self: end; border: 0; background: transparent; font-size: 28px; cursor: pointer; }
+  #booking-message { min-height: 20px; color: ${palette.dark}; font-size: 13px; line-height: 1.4; }
   .order.hero { margin-top: 18px; background: #fff; color: ${palette.dark}; box-shadow: 0 8px 22px rgba(0,0,0,0.18); position: relative; z-index: 1; }
   .empty { grid-column: 1 / -1; text-align: center; padding: 56px 20px; background: #fffdfb; border-radius: 20px; box-shadow: 0 10px 30px rgba(61, 43, 34, 0.1); }
   .empty-icon { margin-bottom: 12px; }
@@ -411,6 +554,10 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
     .catalog-tools { margin: -44px 16px 18px; grid-template-columns: 1fr 1fr; }
     .catalog-tools .search { grid-column: 1 / -1; }
     main { grid-template-columns: 1fr; }
+    .service-grid { grid-template-columns: 1fr; }
+    .service-card { display: block; }
+    .service-icon { margin-bottom: 14px; }
+    .booking-row { grid-template-columns: 1fr; }
     .photo img, .placeholder { height: 250px; }
   }
 </style>
@@ -421,20 +568,23 @@ ${promoStrip}
   ${patternOverlay}
   ${avatar}
   <h1>${escapeHtml(catalog.businessName)}</h1>
-  <p class="tagline">Catálogo de produtos</p>
+  <p class="tagline">Produtos e serviços</p>
   ${tagline}
-  ${count > 0 ? `<span class="count">${countLabel}</span>` : ""}
+  ${totalCount > 0 ? `<span class="count">${countLabel}</span>` : ""}
   ${headerButton}
 </div>
 ${filters}
 <main id="catalog-products">${cards}${moreNote}${empty}</main>
+${servicesSection}
 ${cart}
+${bookingDialog}
 <footer>
   <div class="footer-brand"><span>Feito com carinho no <a class="footer-link" href="${catalogPlayStoreUrl(catalog.brandId)}"><strong>${escapeHtml(brand.appName)}</strong></a></span></div>
   <div class="footer-cta"><a href="${catalogPlayStoreUrl(catalog.brandId)}">Crie sua vitrine grátis</a></div>
 </footer>
 ${catalogScript}
 ${cartScript}
+${bookingScript}
 </body>
 </html>`;
 }

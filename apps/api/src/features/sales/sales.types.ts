@@ -1,11 +1,9 @@
-import type {
-  DiscountType,
-  Sale,
-  SaleStatus,
-} from "@lucro-caseiro/contracts";
+import type { DiscountType, Sale, SaleStatus } from "@lucro-caseiro/contracts";
 
 export interface SaleItemData {
-  productId: string;
+  productId?: string;
+  serviceId?: string;
+  itemName?: string;
   quantity: number;
   unitPrice: number;
   variationId?: string;
@@ -20,6 +18,8 @@ export interface CreateSaleData {
   discountValue?: number;
   notes?: string;
   soldAt?: string;
+  paidAmount?: number;
+  sourceOrderId?: string;
 }
 
 export interface UpdateSaleData {
@@ -83,6 +83,7 @@ export interface ISalesRepo {
     pricing?: { subtotal: number; discount: number; total: number },
   ): Promise<Sale>;
   findById(userId: string, id: string): Promise<Sale | null>;
+  findBySourceOrderId?(userId: string, orderId: string): Promise<Sale | null>;
   findAll(
     userId: string,
     opts: FindAllSalesOpts,

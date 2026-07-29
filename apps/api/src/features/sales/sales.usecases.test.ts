@@ -17,11 +17,14 @@ function makeSale(overrides: Partial<Sale> = {}): Sale {
     status: "paid",
     paymentMethod: "pix",
     total: 30,
+    paidAmount: 30,
+    sourceOrderId: null,
     notes: null,
     items: [
       {
         id: "item-1",
         productId: "prod-1",
+        serviceId: null,
         productName: "Brigadeiro",
         quantity: 3,
         unitPrice: 10,
@@ -49,6 +52,7 @@ function makeRepo(overrides: Partial<ISalesRepo> = {}): ISalesRepo {
       Promise.resolve(
         makeSale({
           total,
+          paidAmount: data.paidAmount ?? (status === "paid" ? total : 0),
           paymentMethod: data.paymentMethod as Sale["paymentMethod"],
           status,
         }),
@@ -481,6 +485,7 @@ describe("SalesUseCases", () => {
                 {
                   id: "item-1",
                   productId: "prod-1",
+                  serviceId: null,
                   productName: "Caderno",
                   variationId: "var-azul",
                   variationName: "Azul",

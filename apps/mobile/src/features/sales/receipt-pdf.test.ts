@@ -16,6 +16,8 @@ function makeSale(overrides: Partial<Sale> = {}): Sale {
     discountType: null,
     discountValue: 0,
     total: 45.5,
+    paidAmount: 45.5,
+    sourceOrderId: null,
     soldAt: "2026-06-09T18:30:00.000Z",
     notes: null,
     createdAt: "2026-06-09T18:30:00.000Z",
@@ -23,6 +25,7 @@ function makeSale(overrides: Partial<Sale> = {}): Sale {
       {
         id: "item-1",
         productId: "prod-1",
+        serviceId: null,
         productName: "Bolo de Pote",
         quantity: 2,
         unitPrice: 12.5,
@@ -31,6 +34,7 @@ function makeSale(overrides: Partial<Sale> = {}): Sale {
       {
         id: "item-2",
         productId: "prod-2",
+        serviceId: null,
         productName: "Torta",
         quantity: 0.5,
         unitPrice: 41,

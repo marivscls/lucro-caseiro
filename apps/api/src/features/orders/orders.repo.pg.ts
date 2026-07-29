@@ -1,11 +1,27 @@
 import type {
   CreateService,
   Order,
+  PurchaseServicePackage,
   Service,
+  ServiceBookingRequest,
+  ServiceBookingRequestStatus,
+  ServiceInsights,
+  ServicePackageInput,
+  ServicePackagePurchase,
   UpdateService,
 } from "@lucro-caseiro/contracts";
-import { clients, orders, services } from "@lucro-caseiro/database/schema";
-import { and, asc, count, eq, gte, lte, ne, sql, sum } from "drizzle-orm";
+import {
+  clients,
+  orders,
+  publicServiceBookingRequests,
+  serviceAddOns,
+  servicePackagePurchases,
+  servicePackages,
+  servicePackageSessionUsages,
+  services,
+  serviceVariations,
+} from "@lucro-caseiro/database/schema";
+import { and, asc, count, desc, eq, gte, lte, lt, ne, sql, sum } from "drizzle-orm";
 
 import type { AppDatabase } from "../../shared/db";
 import type {
@@ -17,6 +33,15 @@ import type {
   UpdateOrderData,
 } from "./orders.types";
 
+function resolvedAppointmentStatus(
+  order: Order,
+): NonNullable<Order["appointmentStatus"]> {
+  if (order.appointmentStatus) return order.appointmentStatus;
+  if (order.status === "done") return "completed";
+  if (order.status === "cancelled") return "cancelled";
+  return "scheduled";
+}
+
 export class OrdersRepoPg implements IOrdersRepo {
   constructor(private db: AppDatabase) {}
 
@@ -27,6 +52,11 @@ export class OrdersRepoPg implements IOrdersRepo {
         userId,
         clientId: data.clientId ?? null,
         serviceId: data.serviceId ?? null,
+        serviceVariationId: data.serviceVariationId ?? null,
+        serviceVariationName: data.serviceVariationName ?? null,
+        serviceAddOnIds: data.serviceAddOnIds ?? [],
+        serviceAddOnNames: data.serviceAddOnNames ?? [],
+        servicePackagePurchaseId: data.servicePackagePurchaseId ?? null,
         durationMinutes:
           data.durationMinutes != null ? String(data.durationMinutes) : null,
         title: data.title,
@@ -40,6 +70,12 @@ export class OrdersRepoPg implements IOrdersRepo {
         colors: data.colors ?? null,
         photoUrl: data.photoUrl ?? null,
         notes: data.notes ?? null,
+        appointmentStatus: data.appointmentStatus ?? null,
+        locationMode: data.locationMode ?? null,
+        locationDetails: data.locationDetails ?? null,
+        actualCost: data.actualCost != null ? String(data.actualCost) : null,
+        completedAt: data.completedAt ? new Date(data.completedAt) : null,
+        saleId: data.saleId ?? null,
       })
       .returning();
 
@@ -89,6 +125,15 @@ export class OrdersRepoPg implements IOrdersRepo {
     if (data.deliveryTime !== undefined) set.deliveryTime = data.deliveryTime ?? null;
     if (data.clientId !== undefined) set.clientId = data.clientId ?? null;
     if (data.serviceId !== undefined) set.serviceId = data.serviceId ?? null;
+    if (data.serviceVariationId !== undefined)
+      set.serviceVariationId = data.serviceVariationId ?? null;
+    if (data.serviceVariationName !== undefined)
+      set.serviceVariationName = data.serviceVariationName ?? null;
+    if (data.serviceAddOnIds !== undefined) set.serviceAddOnIds = data.serviceAddOnIds;
+    if (data.serviceAddOnNames !== undefined)
+      set.serviceAddOnNames = data.serviceAddOnNames;
+    if (data.servicePackagePurchaseId !== undefined)
+      set.servicePackagePurchaseId = data.servicePackagePurchaseId ?? null;
     if (data.durationMinutes !== undefined)
       set.durationMinutes =
         data.durationMinutes != null ? String(data.durationMinutes) : null;
@@ -101,6 +146,16 @@ export class OrdersRepoPg implements IOrdersRepo {
     if (data.colors !== undefined) set.colors = data.colors ?? null;
     if (data.photoUrl !== undefined) set.photoUrl = data.photoUrl ?? null;
     if (data.notes !== undefined) set.notes = data.notes ?? null;
+    if (data.appointmentStatus !== undefined)
+      set.appointmentStatus = data.appointmentStatus ?? null;
+    if (data.locationMode !== undefined) set.locationMode = data.locationMode ?? null;
+    if (data.locationDetails !== undefined)
+      set.locationDetails = data.locationDetails ?? null;
+    if (data.actualCost !== undefined)
+      set.actualCost = data.actualCost != null ? String(data.actualCost) : null;
+    if (data.completedAt !== undefined)
+      set.completedAt = data.completedAt ? new Date(data.completedAt) : null;
+    if (data.saleId !== undefined) set.saleId = data.saleId ?? null;
     if (data.status !== undefined) set.status = data.status;
 
     if (Object.keys(set).length === 0) {
@@ -159,7 +214,7 @@ export class OrdersRepoPg implements IOrdersRepo {
       .from(services)
       .where(eq(services.userId, userId))
       .orderBy(asc(services.name));
-    return rows.map((row) => this.toService(row));
+    return Promise.all(rows.map((row) => this.toService(row)));
   }
 
   async findServiceByName(
@@ -181,6 +236,14 @@ export class OrdersRepoPg implements IOrdersRepo {
     return row ? this.toService(row) : null;
   }
 
+  async findServiceById(userId: string, id: string): Promise<Service | null> {
+    const [row] = await this.db
+      .select()
+      .from(services)
+      .where(and(eq(services.userId, userId), eq(services.id, id)));
+    return row ? this.toService(row) : null;
+  }
+
   async createService(userId: string, data: CreateService): Promise<Service> {
     const [row] = await this.db
       .insert(services)
@@ -196,9 +259,14 @@ export class OrdersRepoPg implements IOrdersRepo {
         fixedCostShare: String(data.fixedCostShare ?? 0),
         markupPercent: String(data.markupPercent ?? 0),
         feesPercent: String(data.feesPercent ?? 0),
+        locationMode: data.locationMode ?? "flexible",
+        bufferMinutes: data.bufferMinutes ?? 0,
+        publicEnabled: data.publicEnabled ?? false,
+        bookingInstructions: data.bookingInstructions?.trim() || null,
         active: data.active ?? true,
       })
       .returning();
+    await this.syncServiceOfferings(userId, row!.id, data);
     return this.toService(row!);
   }
 
@@ -221,12 +289,18 @@ export class OrdersRepoPg implements IOrdersRepo {
       set.fixedCostShare = String(data.fixedCostShare);
     if (data.markupPercent !== undefined) set.markupPercent = String(data.markupPercent);
     if (data.feesPercent !== undefined) set.feesPercent = String(data.feesPercent);
+    if (data.locationMode !== undefined) set.locationMode = data.locationMode;
+    if (data.bufferMinutes !== undefined) set.bufferMinutes = data.bufferMinutes;
+    if (data.publicEnabled !== undefined) set.publicEnabled = data.publicEnabled;
+    if (data.bookingInstructions !== undefined)
+      set.bookingInstructions = data.bookingInstructions?.trim() || null;
     if (data.active !== undefined) set.active = data.active;
     if (Object.keys(set).length === 0) {
       const [row] = await this.db
         .select()
         .from(services)
         .where(and(eq(services.userId, userId), eq(services.id, id)));
+      if (row) await this.syncServiceOfferings(userId, id, data);
       return row ? this.toService(row) : null;
     }
     const [row] = await this.db
@@ -234,7 +308,292 @@ export class OrdersRepoPg implements IOrdersRepo {
       .set(set)
       .where(and(eq(services.userId, userId), eq(services.id, id)))
       .returning();
+    if (row) await this.syncServiceOfferings(userId, id, data);
     return row ? this.toService(row) : null;
+  }
+
+  async findServicePackage(
+    userId: string,
+    packageId: string,
+  ): Promise<(ServicePackageInput & { id: string; serviceId: string }) | null> {
+    const [row] = await this.db
+      .select()
+      .from(servicePackages)
+      .where(and(eq(servicePackages.userId, userId), eq(servicePackages.id, packageId)));
+    return row
+      ? {
+          id: row.id,
+          serviceId: row.serviceId,
+          name: row.name,
+          sessions: row.sessions,
+          price: Number(row.price),
+          validityDays: row.validityDays,
+          recurrenceDays: row.recurrenceDays,
+          active: row.active,
+        }
+      : null;
+  }
+
+  async createPackagePurchase(
+    userId: string,
+    packageId: string,
+    serviceId: string,
+    data: PurchaseServicePackage,
+    packageData: ServicePackageInput,
+    expiresAt: string,
+  ): Promise<ServicePackagePurchase> {
+    const [row] = await this.db
+      .insert(servicePackagePurchases)
+      .values({
+        userId,
+        packageId,
+        serviceId,
+        clientId: data.clientId,
+        sessionsTotal: packageData.sessions,
+        pricePaid: String(data.pricePaid ?? packageData.price),
+        purchasedAt: data.purchasedAt ? new Date(data.purchasedAt) : new Date(),
+        expiresAt,
+      })
+      .returning();
+    return (await this.listPackagePurchases(userId)).find((item) => item.id === row!.id)!;
+  }
+
+  async updatePackagePurchaseSale(
+    userId: string,
+    purchaseId: string,
+    saleId: string,
+  ): Promise<ServicePackagePurchase | null> {
+    const [row] = await this.db
+      .update(servicePackagePurchases)
+      .set({ saleId })
+      .where(
+        and(
+          eq(servicePackagePurchases.userId, userId),
+          eq(servicePackagePurchases.id, purchaseId),
+        ),
+      )
+      .returning({ id: servicePackagePurchases.id });
+    if (!row) return null;
+    return (
+      (await this.listPackagePurchases(userId)).find((item) => item.id === purchaseId) ??
+      null
+    );
+  }
+
+  async listPackagePurchases(
+    userId: string,
+    opts: { clientId?: string; serviceId?: string } = {},
+  ): Promise<ServicePackagePurchase[]> {
+    const conditions = [eq(servicePackagePurchases.userId, userId)];
+    if (opts.clientId) {
+      conditions.push(eq(servicePackagePurchases.clientId, opts.clientId));
+    }
+    if (opts.serviceId) {
+      conditions.push(eq(servicePackagePurchases.serviceId, opts.serviceId));
+    }
+    const rows = await this.db
+      .select({
+        purchase: servicePackagePurchases,
+        packageName: servicePackages.name,
+        serviceName: services.name,
+        clientName: clients.name,
+      })
+      .from(servicePackagePurchases)
+      .innerJoin(
+        servicePackages,
+        eq(servicePackagePurchases.packageId, servicePackages.id),
+      )
+      .innerJoin(services, eq(servicePackagePurchases.serviceId, services.id))
+      .innerJoin(clients, eq(servicePackagePurchases.clientId, clients.id))
+      .where(and(...conditions))
+      .orderBy(desc(servicePackagePurchases.purchasedAt));
+    return rows.map((row) =>
+      this.toPackagePurchase(
+        row.purchase,
+        row.packageName,
+        row.serviceName,
+        row.clientName,
+      ),
+    );
+  }
+
+  async consumePackageSession(
+    userId: string,
+    purchaseId: string,
+    orderId: string,
+  ): Promise<ServicePackagePurchase | null> {
+    const consumed = await this.db.transaction(async (tx) => {
+      const [usage] = await tx
+        .insert(servicePackageSessionUsages)
+        .values({ userId, purchaseId, orderId })
+        .onConflictDoNothing({ target: servicePackageSessionUsages.orderId })
+        .returning({ id: servicePackageSessionUsages.id });
+      if (!usage) {
+        const [existingUsage] = await tx
+          .select({ purchaseId: servicePackageSessionUsages.purchaseId })
+          .from(servicePackageSessionUsages)
+          .where(
+            and(
+              eq(servicePackageSessionUsages.userId, userId),
+              eq(servicePackageSessionUsages.orderId, orderId),
+            ),
+          );
+        return existingUsage?.purchaseId === purchaseId;
+      }
+
+      const [updated] = await tx
+        .update(servicePackagePurchases)
+        .set({
+          sessionsUsed: sql`${servicePackagePurchases.sessionsUsed} + 1`,
+          status: sql`CASE
+            WHEN ${servicePackagePurchases.sessionsUsed} + 1 >= ${servicePackagePurchases.sessionsTotal}
+            THEN 'completed'
+            ELSE 'active'
+          END`,
+        })
+        .where(
+          and(
+            eq(servicePackagePurchases.userId, userId),
+            eq(servicePackagePurchases.id, purchaseId),
+            eq(servicePackagePurchases.status, "active"),
+            gte(servicePackagePurchases.expiresAt, new Date().toISOString().slice(0, 10)),
+            lt(
+              servicePackagePurchases.sessionsUsed,
+              servicePackagePurchases.sessionsTotal,
+            ),
+          ),
+        )
+        .returning({ id: servicePackagePurchases.id });
+      if (updated) return true;
+
+      await tx
+        .delete(servicePackageSessionUsages)
+        .where(eq(servicePackageSessionUsages.id, usage.id));
+      return false;
+    });
+    if (!consumed) return null;
+    return (
+      (await this.listPackagePurchases(userId)).find((item) => item.id === purchaseId) ??
+      null
+    );
+  }
+
+  async getServiceInsights(userId: string, serviceId: string): Promise<ServiceInsights> {
+    const service = await this.findServiceById(userId, serviceId);
+    const appointments = await this.findAll(userId, {});
+    const related = appointments.filter((item) => item.serviceId === serviceId);
+    const completed = related.filter(
+      (item) => item.appointmentStatus === "completed" || item.status === "done",
+    );
+    const estimatedCost =
+      (service?.materialCost ?? 0) +
+      (service?.otherCost ?? 0) +
+      (service?.fixedCostShare ?? 0) +
+      ((service?.hourlyRate ?? 0) * (service?.durationMinutes ?? 0)) / 60;
+    const revenue = completed.reduce((total, item) => total + (item.amount ?? 0), 0);
+    const cost = completed.reduce(
+      (total, item) => total + (item.actualCost ?? estimatedCost),
+      0,
+    );
+    const totalHours = completed.reduce(
+      (total, item) => total + (item.durationMinutes ?? 0) / 60,
+      0,
+    );
+    const clientsMap = new Map<
+      string,
+      {
+        clientId: string | null;
+        clientName: string;
+        appointments: number;
+        revenue: number;
+      }
+    >();
+    for (const item of completed) {
+      const key = item.clientId ?? `avulso:${item.clientName ?? "Cliente avulso"}`;
+      const current = clientsMap.get(key);
+      clientsMap.set(key, {
+        clientId: item.clientId,
+        clientName: item.clientName ?? "Cliente avulso",
+        appointments: (current?.appointments ?? 0) + 1,
+        revenue: (current?.revenue ?? 0) + (item.amount ?? 0),
+      });
+    }
+    const packagePurchases = await this.listPackagePurchases(userId, { serviceId });
+    const bookingRequests = await this.listBookingRequests(userId, serviceId);
+    const profit = revenue - cost;
+    return {
+      serviceId,
+      totalAppointments: related.length,
+      completedAppointments: completed.length,
+      cancelledAppointments: related.filter(
+        (item) => item.appointmentStatus === "cancelled",
+      ).length,
+      noShowAppointments: related.filter((item) => item.appointmentStatus === "no_show")
+        .length,
+      revenue,
+      cost,
+      profit,
+      averageTicket: completed.length ? revenue / completed.length : 0,
+      totalHours,
+      profitPerHour: totalHours > 0 ? profit / totalHours : 0,
+      topClients: [...clientsMap.values()]
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, 5),
+      recentAppointments: related
+        .slice()
+        .sort((a, b) =>
+          `${b.deliveryDate}${b.deliveryTime ?? ""}`.localeCompare(
+            `${a.deliveryDate}${a.deliveryTime ?? ""}`,
+          ),
+        )
+        .slice(0, 20)
+        .map((item) => ({
+          id: item.id,
+          clientName: item.clientName ?? "Cliente avulso",
+          deliveryDate: item.deliveryDate,
+          deliveryTime: item.deliveryTime,
+          appointmentStatus: resolvedAppointmentStatus(item),
+          amount: item.amount ?? 0,
+          actualCost: item.actualCost ?? estimatedCost,
+        })),
+      packagePurchases,
+      bookingRequests,
+    };
+  }
+
+  async listBookingRequests(
+    userId: string,
+    serviceId: string,
+  ): Promise<ServiceBookingRequest[]> {
+    const rows = await this.db
+      .select()
+      .from(publicServiceBookingRequests)
+      .where(
+        and(
+          eq(publicServiceBookingRequests.userId, userId),
+          eq(publicServiceBookingRequests.serviceId, serviceId),
+        ),
+      )
+      .orderBy(desc(publicServiceBookingRequests.createdAt));
+    return rows.map((row) => this.toBookingRequest(row));
+  }
+
+  async updateBookingRequestStatus(
+    userId: string,
+    id: string,
+    status: ServiceBookingRequestStatus,
+  ): Promise<ServiceBookingRequest | null> {
+    const [row] = await this.db
+      .update(publicServiceBookingRequests)
+      .set({ status })
+      .where(
+        and(
+          eq(publicServiceBookingRequests.userId, userId),
+          eq(publicServiceBookingRequests.id, id),
+        ),
+      )
+      .returning();
+    return row ? this.toBookingRequest(row) : null;
   }
 
   async hasScheduleConflict(
@@ -261,7 +620,161 @@ export class OrdersRepoPg implements IOrdersRepo {
     });
   }
 
-  private toService(row: typeof services.$inferSelect): Service {
+  private async syncServiceOfferings(
+    userId: string,
+    serviceId: string,
+    data: CreateService | UpdateService,
+  ): Promise<void> {
+    if (data.variations !== undefined) {
+      await this.db
+        .update(serviceVariations)
+        .set({ active: false })
+        .where(
+          and(
+            eq(serviceVariations.userId, userId),
+            eq(serviceVariations.serviceId, serviceId),
+          ),
+        );
+      for (const item of data.variations) {
+        if (item.id) {
+          await this.db
+            .update(serviceVariations)
+            .set({
+              name: item.name.trim(),
+              durationMinutes: item.durationMinutes,
+              price: String(item.price),
+              active: item.active ?? true,
+            })
+            .where(
+              and(
+                eq(serviceVariations.userId, userId),
+                eq(serviceVariations.serviceId, serviceId),
+                eq(serviceVariations.id, item.id),
+              ),
+            );
+        } else {
+          await this.db.insert(serviceVariations).values({
+            userId,
+            serviceId,
+            name: item.name.trim(),
+            durationMinutes: item.durationMinutes,
+            price: String(item.price),
+            active: item.active ?? true,
+          });
+        }
+      }
+    }
+    if (data.addOns !== undefined) {
+      await this.db
+        .update(serviceAddOns)
+        .set({ active: false })
+        .where(
+          and(eq(serviceAddOns.userId, userId), eq(serviceAddOns.serviceId, serviceId)),
+        );
+      for (const item of data.addOns) {
+        if (item.id) {
+          await this.db
+            .update(serviceAddOns)
+            .set({
+              name: item.name.trim(),
+              durationMinutes: item.durationMinutes,
+              price: String(item.price),
+              active: item.active ?? true,
+            })
+            .where(
+              and(
+                eq(serviceAddOns.userId, userId),
+                eq(serviceAddOns.serviceId, serviceId),
+                eq(serviceAddOns.id, item.id),
+              ),
+            );
+        } else {
+          await this.db.insert(serviceAddOns).values({
+            userId,
+            serviceId,
+            name: item.name.trim(),
+            durationMinutes: item.durationMinutes,
+            price: String(item.price),
+            active: item.active ?? true,
+          });
+        }
+      }
+    }
+    if (data.packages !== undefined) {
+      await this.db
+        .update(servicePackages)
+        .set({ active: false })
+        .where(
+          and(
+            eq(servicePackages.userId, userId),
+            eq(servicePackages.serviceId, serviceId),
+          ),
+        );
+      for (const item of data.packages) {
+        if (item.id) {
+          await this.db
+            .update(servicePackages)
+            .set({
+              name: item.name.trim(),
+              sessions: item.sessions,
+              price: String(item.price),
+              validityDays: item.validityDays,
+              recurrenceDays: item.recurrenceDays ?? null,
+              active: item.active ?? true,
+            })
+            .where(
+              and(
+                eq(servicePackages.userId, userId),
+                eq(servicePackages.serviceId, serviceId),
+                eq(servicePackages.id, item.id),
+              ),
+            );
+        } else {
+          await this.db.insert(servicePackages).values({
+            userId,
+            serviceId,
+            name: item.name.trim(),
+            sessions: item.sessions,
+            price: String(item.price),
+            validityDays: item.validityDays,
+            recurrenceDays: item.recurrenceDays ?? null,
+            active: item.active ?? true,
+          });
+        }
+      }
+    }
+  }
+
+  private async toService(row: typeof services.$inferSelect): Promise<Service> {
+    const [variations, addOns, packages] = await Promise.all([
+      this.db
+        .select()
+        .from(serviceVariations)
+        .where(
+          and(
+            eq(serviceVariations.userId, row.userId),
+            eq(serviceVariations.serviceId, row.id),
+          ),
+        )
+        .orderBy(asc(serviceVariations.name)),
+      this.db
+        .select()
+        .from(serviceAddOns)
+        .where(
+          and(eq(serviceAddOns.userId, row.userId), eq(serviceAddOns.serviceId, row.id)),
+        )
+        .orderBy(asc(serviceAddOns.name)),
+      this.db
+        .select()
+        .from(servicePackages)
+        .where(
+          and(
+            eq(servicePackages.userId, row.userId),
+            eq(servicePackages.serviceId, row.id),
+          ),
+        )
+        .orderBy(asc(servicePackages.name)),
+    ]);
     return {
       id: row.id,
       userId: row.userId,
@@ -275,7 +788,79 @@ export class OrdersRepoPg implements IOrdersRepo {
       fixedCostShare: Number(row.fixedCostShare),
       markupPercent: Number(row.markupPercent),
       feesPercent: Number(row.feesPercent),
+      locationMode: row.locationMode as Service["locationMode"],
+      bufferMinutes: row.bufferMinutes,
+      publicEnabled: row.publicEnabled,
+      bookingInstructions: row.bookingInstructions,
       active: row.active,
+      variations: variations.map((item) => ({
+        id: item.id,
+        name: item.name,
+        durationMinutes: item.durationMinutes,
+        price: Number(item.price),
+        active: item.active,
+      })),
+      addOns: addOns.map((item) => ({
+        id: item.id,
+        name: item.name,
+        durationMinutes: item.durationMinutes,
+        price: Number(item.price),
+        active: item.active,
+      })),
+      packages: packages.map((item) => ({
+        id: item.id,
+        name: item.name,
+        sessions: item.sessions,
+        price: Number(item.price),
+        validityDays: item.validityDays,
+        recurrenceDays: item.recurrenceDays,
+        active: item.active,
+      })),
+      createdAt: row.createdAt.toISOString(),
+    };
+  }
+
+  private toPackagePurchase(
+    row: typeof servicePackagePurchases.$inferSelect,
+    packageName: string,
+    serviceName: string,
+    clientName: string,
+  ): ServicePackagePurchase {
+    const expired =
+      row.status === "active" && row.expiresAt < new Date().toISOString().slice(0, 10);
+    return {
+      id: row.id,
+      userId: row.userId,
+      packageId: row.packageId,
+      packageName,
+      serviceId: row.serviceId,
+      serviceName,
+      clientId: row.clientId,
+      clientName,
+      sessionsTotal: row.sessionsTotal,
+      sessionsUsed: row.sessionsUsed,
+      pricePaid: Number(row.pricePaid),
+      purchasedAt: row.purchasedAt.toISOString(),
+      expiresAt: row.expiresAt,
+      status: expired ? "expired" : (row.status as ServicePackagePurchase["status"]),
+      saleId: row.saleId,
+    };
+  }
+
+  private toBookingRequest(
+    row: typeof publicServiceBookingRequests.$inferSelect,
+  ): ServiceBookingRequest {
+    return {
+      id: row.id,
+      serviceId: row.serviceId,
+      serviceName: row.serviceName,
+      clientName: row.clientName,
+      phone: row.phone,
+      desiredDate: row.desiredDate,
+      desiredTime: row.desiredTime,
+      locationMode: row.locationMode as ServiceBookingRequest["locationMode"],
+      notes: row.notes,
+      status: row.status as ServiceBookingRequest["status"],
       createdAt: row.createdAt.toISOString(),
     };
   }
@@ -292,6 +877,11 @@ export class OrdersRepoPg implements IOrdersRepo {
       clientName: clientName ?? null,
       serviceId: row.serviceId,
       serviceName,
+      serviceVariationId: row.serviceVariationId,
+      serviceVariationName: row.serviceVariationName,
+      serviceAddOnIds: row.serviceAddOnIds,
+      serviceAddOnNames: row.serviceAddOnNames,
+      servicePackagePurchaseId: row.servicePackagePurchaseId,
       durationMinutes: row.durationMinutes != null ? Number(row.durationMinutes) : null,
       title: row.title,
       deliveryDate: row.deliveryDate,
@@ -304,6 +894,11 @@ export class OrdersRepoPg implements IOrdersRepo {
       colors: row.colors,
       photoUrl: row.photoUrl,
       notes: row.notes,
+      appointmentStatus: row.appointmentStatus as Order["appointmentStatus"],
+      locationMode: row.locationMode as Order["locationMode"],
+      locationDetails: row.locationDetails,
+      actualCost: row.actualCost == null ? null : Number(row.actualCost),
+      completedAt: row.completedAt?.toISOString() ?? null,
       saleId: row.saleId,
       createdAt: row.createdAt.toISOString(),
     };

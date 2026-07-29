@@ -1,6 +1,21 @@
-import type { CatalogSettings, PublicCatalogProduct } from "@lucro-caseiro/contracts";
+import type {
+  CatalogSettings,
+  PublicCatalogProduct,
+  PublicCatalogService,
+  PublicServiceBookingRequestInput,
+  ServiceBookingRequest,
+} from "@lucro-caseiro/contracts";
 import { normalizePlan } from "@lucro-caseiro/contracts";
-import { catalogSettings, products, users } from "@lucro-caseiro/database/schema";
+import {
+  catalogSettings,
+  products,
+  publicServiceBookingRequests,
+  serviceAddOns,
+  servicePackages,
+  services,
+  serviceVariations,
+  users,
+} from "@lucro-caseiro/database/schema";
 import { and, asc, eq, ne } from "drizzle-orm";
 
 import type { AppDatabase } from "../../shared/db";
@@ -113,6 +128,135 @@ export class CatalogRepoPg implements ICatalogRepo {
         inStock: variation.stockQuantity === undefined || variation.stockQuantity > 0,
       })),
     }));
+  }
+
+  async listPublicServices(userId: string): Promise<PublicCatalogService[]> {
+    const rows = await this.db
+      .select()
+      .from(services)
+      .where(
+        and(
+          eq(services.userId, userId),
+          eq(services.active, true),
+          eq(services.publicEnabled, true),
+        ),
+      )
+      .orderBy(asc(services.name));
+
+    return Promise.all(
+      rows.map(async (service) => {
+        const [variations, addOns, packages] = await Promise.all([
+          this.db
+            .select()
+            .from(serviceVariations)
+            .where(
+              and(
+                eq(serviceVariations.userId, userId),
+                eq(serviceVariations.serviceId, service.id),
+                eq(serviceVariations.active, true),
+              ),
+            )
+            .orderBy(asc(serviceVariations.name)),
+          this.db
+            .select()
+            .from(serviceAddOns)
+            .where(
+              and(
+                eq(serviceAddOns.userId, userId),
+                eq(serviceAddOns.serviceId, service.id),
+                eq(serviceAddOns.active, true),
+              ),
+            )
+            .orderBy(asc(serviceAddOns.name)),
+          this.db
+            .select()
+            .from(servicePackages)
+            .where(
+              and(
+                eq(servicePackages.userId, userId),
+                eq(servicePackages.serviceId, service.id),
+                eq(servicePackages.active, true),
+              ),
+            )
+            .orderBy(asc(servicePackages.name)),
+        ]);
+        return {
+          id: service.id,
+          name: service.name,
+          description: service.description,
+          durationMinutes: service.durationMinutes,
+          defaultPrice:
+            service.defaultPrice == null ? null : Number(service.defaultPrice),
+          locationMode: service.locationMode as PublicCatalogService["locationMode"],
+          bookingInstructions: service.bookingInstructions,
+          variations: variations.map((item) => ({
+            id: item.id,
+            name: item.name,
+            durationMinutes: item.durationMinutes,
+            price: Number(item.price),
+          })),
+          addOns: addOns.map((item) => ({
+            id: item.id,
+            name: item.name,
+            durationMinutes: item.durationMinutes,
+            price: Number(item.price),
+          })),
+          packages: packages.map((item) => ({
+            id: item.id,
+            name: item.name,
+            sessions: item.sessions,
+            price: Number(item.price),
+            validityDays: item.validityDays,
+            recurrenceDays: item.recurrenceDays,
+          })),
+        };
+      }),
+    );
+  }
+
+  async createPublicServiceBooking(
+    userId: string,
+    data: PublicServiceBookingRequestInput,
+  ): Promise<ServiceBookingRequest | null> {
+    const [service] = await this.db
+      .select({ id: services.id, name: services.name })
+      .from(services)
+      .where(
+        and(
+          eq(services.userId, userId),
+          eq(services.id, data.serviceId),
+          eq(services.active, true),
+          eq(services.publicEnabled, true),
+        ),
+      );
+    if (!service) return null;
+    const [row] = await this.db
+      .insert(publicServiceBookingRequests)
+      .values({
+        userId,
+        serviceId: service.id,
+        serviceName: service.name,
+        clientName: data.clientName.trim(),
+        phone: data.phone.trim(),
+        desiredDate: data.desiredDate,
+        desiredTime: data.desiredTime ?? null,
+        locationMode: data.locationMode,
+        notes: data.notes?.trim() || null,
+      })
+      .returning();
+    return {
+      id: row!.id,
+      serviceId: row!.serviceId,
+      serviceName: row!.serviceName,
+      clientName: row!.clientName,
+      phone: row!.phone,
+      desiredDate: row!.desiredDate,
+      desiredTime: row!.desiredTime,
+      locationMode: row!.locationMode as ServiceBookingRequest["locationMode"],
+      notes: row!.notes,
+      status: row!.status as ServiceBookingRequest["status"],
+      createdAt: row!.createdAt.toISOString(),
+    };
   }
 
   async getOwnerDefaults(userId: string): Promise<CatalogOwner | null> {

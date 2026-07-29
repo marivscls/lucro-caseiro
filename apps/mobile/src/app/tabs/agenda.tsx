@@ -24,6 +24,7 @@ import agendaEmpty from "../../assets/agenda-empty-v3.png";
 import { SkeletonList } from "../../shared/components/skeleton";
 import { useClient } from "../../features/clients/hooks";
 import { OrderCard } from "../../features/orders/components/order-card";
+import { CompleteServiceModal } from "../../features/orders/components/complete-service-modal";
 import { OrderForm } from "../../features/orders/components/order-form";
 import {
   STATUS_LABEL,
@@ -241,7 +242,13 @@ function ModernOrderDetail({
   order,
   onClose,
   onEdit,
-}: Readonly<{ order: Order; onClose: () => void; onEdit: () => void }>) {
+  onCompleteService,
+}: Readonly<{
+  order: Order;
+  onClose: () => void;
+  onEdit: () => void;
+  onCompleteService: () => void;
+}>) {
   const { theme } = useTheme();
   const router = useRouter();
   const isDesktop = useDesktopLayout();
@@ -705,6 +712,33 @@ function ModernOrderDetail({
 
       <View style={{ height: 1, backgroundColor: agColors.border }} />
 
+      {order.serviceId && !isFinished ? (
+        <View style={{ gap: spacing.sm }}>
+          <Typography variant="caption">Etapa do atendimento</Typography>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+            {[
+              { value: "scheduled" as const, label: "Agendado" },
+              { value: "confirmed" as const, label: "Confirmado" },
+              { value: "in_progress" as const, label: "Em atendimento" },
+              { value: "no_show" as const, label: "Não compareceu" },
+              { value: "cancelled" as const, label: "Cancelado" },
+            ].map((status) => (
+              <Chip
+                key={status.value}
+                label={status.label}
+                selected={order.appointmentStatus === status.value}
+                onPress={() =>
+                  updateOrder.mutate({
+                    id: order.id,
+                    data: { appointmentStatus: status.value },
+                  })
+                }
+              />
+            ))}
+          </View>
+        </View>
+      ) : null}
+
       {isFinished ? (
         <View style={{ gap: spacing.sm }}>
           <Typography
@@ -733,13 +767,22 @@ function ModernOrderDetail({
               />
             ))}
           </View>
-          <Button
-            title="Marcar como entregue"
-            size="lg"
-            onPress={handleDeliver}
-            loading={deliverOrder.isPending}
-            style={desktopAction(isDesktop, 240)}
-          />
+          {order.serviceId ? (
+            <Button
+              title="Concluir atendimento"
+              size="lg"
+              onPress={onCompleteService}
+              style={desktopAction(isDesktop, 240)}
+            />
+          ) : (
+            <Button
+              title="Marcar como entregue"
+              size="lg"
+              onPress={handleDeliver}
+              loading={deliverOrder.isPending}
+              style={desktopAction(isDesktop, 240)}
+            />
+          )}
         </View>
       )}
 
@@ -1419,6 +1462,7 @@ function AgendaContent() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
+  const [completing, setCompleting] = useState(false);
 
   const dayFilterOptions = useMemo(() => getDayFilterOptions(orders ?? []), [orders]);
   const visibleOrders = useMemo(
@@ -1521,7 +1565,7 @@ function AgendaContent() {
       />
 
       {/* Detalhe */}
-      {selected && !editing ? (
+      {selected && !editing && !completing ? (
         <StandardModal
           visible
           onClose={() => {
@@ -1534,6 +1578,7 @@ function AgendaContent() {
             order={selected}
             onClose={() => setSelectedId(null)}
             onEdit={() => setEditing(true)}
+            onCompleteService={() => setCompleting(true)}
           />
         </StandardModal>
       ) : null}
@@ -1546,6 +1591,18 @@ function AgendaContent() {
           onClose={() => setEditing(false)}
           onSuccess={() => {
             setEditing(false);
+            setSelectedId(null);
+          }}
+        />
+      ) : null}
+
+      {selected && completing ? (
+        <CompleteServiceModal
+          order={selected}
+          visible
+          onClose={() => setCompleting(false)}
+          onSuccess={() => {
+            setCompleting(false);
             setSelectedId(null);
           }}
         />
