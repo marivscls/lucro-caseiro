@@ -28,6 +28,7 @@ API (`/c/:slug`).
 | `apps/mobile/src/features/catalog/api.ts`   | fetch/update settings + `publicCatalogUrl(slug)`            |
 | `apps/mobile/src/features/catalog/hooks.ts` | `useCatalogSettings`, `useUpdateCatalogSettings`            |
 | `apps/mobile/src/app/catalog.tsx`           | Tela de configuração (switch, slug, whatsapp, compartilhar) |
+| `apps/mobile/src/app/c/[slug].tsx`          | Redireciona `/c/:slug` do PWA para a vitrine pública        |
 
 ## Components
 
@@ -81,6 +82,10 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
 - Acesso: aba "Mais" → "Catálogo online". Rota: `/catalog`.
 
 ## Change log / Decisions
+
+- 2026-07-29: rota pública `app/c/[slug].tsx` — quem abre `/c/:slug` no domínio do
+  PWA é redirecionado para `publicCatalogUrl(slug)` (preserva `?produto=`/`#produto-`);
+  fora do `DesktopShell` e sem gate de auth. No nativo abre o link no navegador.
 
 - 2026-07-28: a vitrine compartilhável também expõe serviços públicos; pedidos
   de horário são triados no painel de cada serviço e não confirmam a agenda sozinhos.

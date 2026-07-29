@@ -63,7 +63,8 @@ function AppContent() {
     rootSegment !== "" &&
     rootSegment !== "(auth)" &&
     rootSegment !== "onboarding" &&
-    rootSegment !== "reset-password";
+    rootSegment !== "reset-password" &&
+    rootSegment !== "c";
   const { initialize, isLoading, token, userId, passwordRecovery } = useAuth();
   const router = useRouter();
   const {
