@@ -67,6 +67,14 @@ export function ServiceDashboardModal({
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
   const [packagePaymentMethod, setPackagePaymentMethod] = useState<PaymentMethod>("pix");
   const [showClientPicker, setShowClientPicker] = useState(false);
+  const bookingStatusChipStyle = {
+    flexBasis: 96,
+    flexGrow: 1,
+    minWidth: 96,
+    paddingHorizontal: spacing.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  };
 
   async function shareService() {
     if (!catalog.data?.enabled) {
@@ -202,10 +210,17 @@ export function ServiceDashboardModal({
                 {booking.notes ? (
                   <Typography variant="caption">{booking.notes}</Typography>
                 ) : null}
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-                  <Chip
-                    label="Chamar no WhatsApp"
-                    selected={false}
+                <View style={{ gap: spacing.md }}>
+                  <Button
+                    title="Chamar no WhatsApp"
+                    variant="successOutline"
+                    icon={
+                      <AppIcon
+                        name="logo-whatsapp"
+                        size={20}
+                        color={theme.colors.success}
+                      />
+                    }
                     onPress={() => {
                       void openWhatsApp(
                         booking.phone,
@@ -217,27 +232,42 @@ export function ServiceDashboardModal({
                       });
                     }}
                   />
-                  <Chip
-                    label="Contato feito"
-                    selected={booking.status === "contacted"}
-                    onPress={() =>
-                      updateBooking.mutate({ id: booking.id, status: "contacted" })
-                    }
-                  />
-                  <Chip
-                    label="Confirmar"
-                    selected={booking.status === "confirmed"}
-                    onPress={() =>
-                      updateBooking.mutate({ id: booking.id, status: "confirmed" })
-                    }
-                  />
-                  <Chip
-                    label="Recusar"
-                    selected={booking.status === "declined"}
-                    onPress={() =>
-                      updateBooking.mutate({ id: booking.id, status: "declined" })
-                    }
-                  />
+                  <View style={{ gap: spacing.xs }}>
+                    <Typography variant="caption" color={theme.colors.textSecondary}>
+                      Atualizar status
+                    </Typography>
+                    <View
+                      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
+                    >
+                      <Chip
+                        label="Contato feito"
+                        variant="info"
+                        selected={booking.status === "contacted"}
+                        style={bookingStatusChipStyle}
+                        onPress={() =>
+                          updateBooking.mutate({ id: booking.id, status: "contacted" })
+                        }
+                      />
+                      <Chip
+                        label="Confirmar"
+                        variant="success"
+                        selected={booking.status === "confirmed"}
+                        style={bookingStatusChipStyle}
+                        onPress={() =>
+                          updateBooking.mutate({ id: booking.id, status: "confirmed" })
+                        }
+                      />
+                      <Chip
+                        label="Recusar"
+                        variant="danger"
+                        selected={booking.status === "declined"}
+                        style={bookingStatusChipStyle}
+                        onPress={() =>
+                          updateBooking.mutate({ id: booking.id, status: "declined" })
+                        }
+                      />
+                    </View>
+                  </View>
                 </View>
               </Card>
             ))
