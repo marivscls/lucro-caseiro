@@ -40,6 +40,8 @@ manutenção até consultoria, aulas, criação e serviços presenciais ou onlin
 - `app/services.tsx` — lista serviços ativos e inativos, abre o formulário e
   apresenta visão geral, filtros de disponibilidade/revisão e sinais de saúde do
   preço.
+- `ServiceDashboardModal` — compartilha o serviço diretamente no WhatsApp com a
+  mensagem e o link da vitrine preenchidos.
 
 ## Hooks
 
@@ -134,3 +136,5 @@ const pricing = calculateServicePricing({
 - 2026-07-28: expansão v2 adiciona local e intervalo de agenda, divulgação
   pública, variações, adicionais, pacotes recorrentes, painel de desempenho,
   histórico e triagem de solicitações.
+- 2026-07-31: “Compartilhar no WhatsApp” no painel do serviço abre diretamente o
+  seletor de conversas, sem depender do menu de compartilhamento do Windows.

@@ -14,13 +14,13 @@ import {
   useTheme,
 } from "@lucro-caseiro/ui";
 import React, { useRef, useState } from "react";
-import { Share, View } from "react-native";
+import { View } from "react-native";
 
 import { AppIcon } from "../../../shared/components/app-icon";
 import { StandardModal } from "../../../shared/components/standard-modal";
 import { alertError, alertValidation } from "../../../shared/utils/alerts";
 import { formatCurrency } from "../../../shared/utils/format";
-import { openWhatsApp } from "../../../shared/utils/whatsapp";
+import { openWhatsApp, openWhatsAppShare } from "../../../shared/utils/whatsapp";
 import { publicCatalogUrl } from "../../catalog/api";
 import { useCatalogSettings } from "../../catalog/hooks";
 import { ClientPickerModal } from "../../clients/components/client-picker-modal";
@@ -82,9 +82,9 @@ export function ServiceDashboardModal({
       alertValidation("Ative a vitrine pública antes de divulgar este serviço.");
       return;
     }
-    await Share.share({
-      message: `Conheça o serviço ${service.name} e solicite seu horário:\n\n${publicCatalogUrl(catalog.data.slug)}`,
-    });
+    await openWhatsAppShare(
+      `Conheça o serviço ${service.name} e solicite seu horário:\n\n${publicCatalogUrl(catalog.data.slug)}`,
+    );
   }
 
   async function sellPackage(client: Pick<Client, "id" | "name"> | null) {
@@ -183,8 +183,9 @@ export function ServiceDashboardModal({
             />
           </View>
           <Button
-            title="Compartilhar vitrine"
-            variant="secondary"
+            title="Compartilhar no WhatsApp"
+            variant="successOutline"
+            icon={<AppIcon name="logo-whatsapp" size={20} color={theme.colors.success} />}
             disabled={!service.publicEnabled}
             onPress={() => void shareService()}
           />
