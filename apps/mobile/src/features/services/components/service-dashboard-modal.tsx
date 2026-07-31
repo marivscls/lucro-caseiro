@@ -13,7 +13,7 @@ import {
   spacing,
   useTheme,
 } from "@lucro-caseiro/ui";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Share, View } from "react-native";
 
 import { AppIcon } from "../../../shared/components/app-icon";
@@ -62,8 +62,9 @@ export function ServiceDashboardModal({
   const bookings = useServiceBookingRequests(service.id);
   const purchases = useServicePackagePurchases(service.id);
   const catalog = useCatalogSettings();
-  const updateBooking = useUpdateServiceBookingRequest();
+  const updateBooking = useUpdateServiceBookingRequest(service.id);
   const purchasePackage = usePurchaseServicePackage();
+  const updatingBookingIdRef = useRef<string | null>(null);
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
   const [packagePaymentMethod, setPackagePaymentMethod] = useState<PaymentMethod>("pix");
   const [showClientPicker, setShowClientPicker] = useState(false);
@@ -96,6 +97,18 @@ export function ServiceDashboardModal({
       setSelectedPackageId(null);
     } catch (error) {
       alertError(error);
+    }
+  }
+
+  async function changeBookingStatus(id: string, status: ServiceBookingRequestStatus) {
+    if (updatingBookingIdRef.current) return;
+    updatingBookingIdRef.current = id;
+    try {
+      await updateBooking.mutateAsync({ id, status });
+    } catch (error) {
+      alertError(error);
+    } finally {
+      updatingBookingIdRef.current = null;
     }
   }
 
@@ -226,10 +239,7 @@ export function ServiceDashboardModal({
                         booking.phone,
                         `Olá, ${booking.clientName}! Recebi sua solicitação para ${service.name} no dia ${booking.desiredDate}. Vamos confirmar os detalhes?`,
                       );
-                      updateBooking.mutate({
-                        id: booking.id,
-                        status: "contacted",
-                      });
+                      void changeBookingStatus(booking.id, "contacted");
                     }}
                   />
                   <View style={{ gap: spacing.xs }}>
@@ -243,30 +253,32 @@ export function ServiceDashboardModal({
                         label="Contato feito"
                         variant="info"
                         selected={booking.status === "contacted"}
+                        disabled={updateBooking.isPending}
                         style={bookingStatusChipStyle}
-                        onPress={() =>
-                          updateBooking.mutate({ id: booking.id, status: "contacted" })
-                        }
+                        onPress={() => void changeBookingStatus(booking.id, "contacted")}
                       />
                       <Chip
                         label="Confirmar"
                         variant="success"
                         selected={booking.status === "confirmed"}
+                        disabled={updateBooking.isPending}
                         style={bookingStatusChipStyle}
-                        onPress={() =>
-                          updateBooking.mutate({ id: booking.id, status: "confirmed" })
-                        }
+                        onPress={() => void changeBookingStatus(booking.id, "confirmed")}
                       />
                       <Chip
                         label="Recusar"
                         variant="danger"
                         selected={booking.status === "declined"}
+                        disabled={updateBooking.isPending}
                         style={bookingStatusChipStyle}
-                        onPress={() =>
-                          updateBooking.mutate({ id: booking.id, status: "declined" })
-                        }
+                        onPress={() => void changeBookingStatus(booking.id, "declined")}
                       />
                     </View>
+                    {updateBooking.isPending ? (
+                      <Typography variant="caption" color={theme.colors.textSecondary}>
+                        Salvando status...
+                      </Typography>
+                    ) : null}
                   </View>
                 </View>
               </Card>

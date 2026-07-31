@@ -1,6 +1,7 @@
 import type {
   CreateService,
   PurchaseServicePackage,
+  ServiceBookingRequest,
   ServiceBookingRequestStatus,
   UpdateService,
 } from "@lucro-caseiro/contracts";
@@ -70,14 +71,34 @@ export function useServiceBookingRequests(serviceId?: string | null) {
   });
 }
 
-export function useUpdateServiceBookingRequest() {
+export function useUpdateServiceBookingRequest(serviceId: string) {
   const { token } = useAuth();
   const queryClient = useQueryClient();
+  const bookingRequestsKey = [...SERVICES_KEY, serviceId, "booking-requests"];
   return useMutation({
+    scope: { id: "update-service-booking-request" },
     mutationFn: ({ id, status }: { id: string; status: ServiceBookingRequestStatus }) =>
       updateServiceBookingRequest(token!, id, status),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: SERVICES_KEY });
+    onMutate: async ({ id, status }) => {
+      await queryClient.cancelQueries({ queryKey: bookingRequestsKey });
+      const previous =
+        queryClient.getQueryData<ServiceBookingRequest[]>(bookingRequestsKey);
+      queryClient.setQueryData<ServiceBookingRequest[]>(
+        bookingRequestsKey,
+        (current = []) =>
+          current.map((booking) =>
+            booking.id === id ? { ...booking, status } : booking,
+          ),
+      );
+      return { previous };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(bookingRequestsKey, context.previous);
+      }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: bookingRequestsKey });
     },
   });
 }
