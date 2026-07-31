@@ -1,4 +1,4 @@
-import {Folder, Img, Still, staticFile} from "remotion";
+import {Folder, Img, Interactive, Still, staticFile} from "remotion";
 
 const colors = {
   rose: "#C4707E",
@@ -42,6 +42,164 @@ const Backdrop = () => (
       }}
     />
   </>
+);
+
+const StorePhone = ({
+  screenshot,
+  name,
+  left,
+  top,
+  rotate,
+}: {
+  readonly screenshot: string;
+  readonly name: string;
+  readonly left: number;
+  readonly top: number;
+  readonly rotate: string;
+}) => (
+  <Interactive.Div
+    name={name}
+    style={{
+      position: "absolute",
+      left,
+      top,
+      width: 154,
+      height: 342,
+      padding: 7,
+      overflow: "hidden",
+      borderRadius: 31,
+      background: "#211B19",
+      boxShadow: "0 20px 38px rgba(54, 37, 32, 0.22)",
+      rotate,
+    }}
+  >
+    <Img
+      src={staticFile(`play-store/${screenshot}`)}
+      style={{
+        width: "100%",
+        height: "100%",
+        borderRadius: 24,
+        objectFit: "cover",
+        objectPosition: "top center",
+      }}
+    />
+  </Interactive.Div>
+);
+
+export const FeatureGraphicListing = () => (
+  <div
+    style={{
+      position: "relative",
+      width: 1024,
+      height: 500,
+      overflow: "hidden",
+      background: colors.cream,
+    }}
+  >
+    <Backdrop />
+    <Interactive.Div
+      name="Marca e mensagem"
+      style={{
+        position: "absolute",
+        zIndex: 2,
+        left: 54,
+        top: 42,
+        width: 455,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-start",
+      }}
+    >
+      <div style={{display: "flex", alignItems: "center", gap: 15}}>
+        <div
+          style={{
+            width: 72,
+            height: 72,
+            overflow: "hidden",
+            borderRadius: 19,
+            boxShadow: "0 12px 24px rgba(54, 37, 32, 0.18)",
+          }}
+        >
+          <Img
+            src={staticFile("play-store/icon.png")}
+            style={{width: "100%", height: "100%", scale: 1.42}}
+          />
+        </div>
+        <div
+          style={{
+            color: colors.ink,
+            fontFamily: "FrauncesPromo, Georgia, serif",
+            fontSize: 39,
+            lineHeight: 0.88,
+            letterSpacing: -1.1,
+          }}
+        >
+          Lucro
+          <br />
+          Caseiro
+        </div>
+      </div>
+      <div
+        style={{
+          marginTop: 22,
+          color: colors.ink,
+          fontFamily: "FrauncesPromo, Georgia, serif",
+          fontSize: 39,
+          lineHeight: 1.02,
+          letterSpacing: -0.9,
+        }}
+      >
+        Gestão simples para o
+        <br />
+        <span style={{color: colors.roseDark}}>seu negócio</span>
+      </div>
+      <div
+        style={{
+          maxWidth: 410,
+          marginTop: 14,
+          color: colors.muted,
+          fontFamily: "NunitoSansPromo, Arial, sans-serif",
+          fontSize: 19,
+          lineHeight: 1.2,
+          fontWeight: 600,
+        }}
+      >
+        Controle vendas, agenda, produtos, catálogo e lucro em um só lugar.
+      </div>
+      <div style={{display: "flex", flexWrap: "wrap", gap: 8, marginTop: 18, maxWidth: 430}}>
+        {["Vendas", "Agenda", "Serviços", "Catálogo", "Precificação"].map((label) => (
+          <div
+            key={label}
+            style={{
+              padding: "8px 13px",
+              borderRadius: 999,
+              color: colors.roseDark,
+              background: colors.white,
+              border: `1px solid ${colors.roseSoft}`,
+              fontFamily: "NunitoSansPromo, Arial, sans-serif",
+              fontSize: 14,
+              lineHeight: 1,
+              fontWeight: 800,
+              boxShadow: "0 5px 13px rgba(54, 37, 32, 0.07)",
+            }}
+          >
+            {label}
+          </div>
+        ))}
+      </div>
+    </Interactive.Div>
+    <Interactive.Div name="Telas reais do aplicativo">
+      <StorePhone screenshot="04-agenda.png" name="Agenda" left={500} top={108} rotate="-4deg" />
+      <StorePhone screenshot="01-home.png" name="Início" left={664} top={66} rotate="0deg" />
+      <StorePhone
+        screenshot="07-precificacao.png"
+        name="Precificação"
+        left={827}
+        top={104}
+        rotate="4deg"
+      />
+    </Interactive.Div>
+  </div>
 );
 
 const Eyebrow = ({children}: {readonly children: React.ReactNode}) => (
@@ -268,6 +426,12 @@ export const FeatureGraphicPerson = () => (
 
 export const FeatureGraphicCompositions = () => (
   <Folder name="Play-Store-Feature-Graphic">
+    <Still
+      id="FeatureGraphicListing"
+      component={FeatureGraphicListing}
+      width={1024}
+      height={500}
+    />
     <Still id="FeatureGraphicApp" component={FeatureGraphicApp} width={1024} height={500} />
     <Still id="FeatureGraphicPerson" component={FeatureGraphicPerson} width={1024} height={500} />
   </Folder>
