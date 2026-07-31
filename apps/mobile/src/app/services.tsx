@@ -274,10 +274,98 @@ export default function ServicesScreen() {
     else router.replace("/tabs/more");
   }
 
-  function renderServices() {
+  function renderListHeader() {
+    return (
+      <View style={{ gap: spacing.md }}>
+        {!servicesQuery.isLoading && !servicesQuery.error && services.length > 0 ? (
+          <View style={{ gap: spacing.md, paddingBottom: spacing.lg }}>
+            <View style={{ gap: spacing.xs }}>
+              <Typography variant="bodyBold">Visão geral</Typography>
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                Um retrato rápido dos serviços disponíveis para novos atendimentos.
+              </Typography>
+            </View>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
+              <ServiceMetricCard
+                icon="briefcase-outline"
+                label="Disponíveis"
+                value={String(overview.activeCount)}
+                hint={`de ${overview.totalCount} cadastrados`}
+                compact={!isDesktop}
+              />
+              <ServiceMetricCard
+                icon="cash-outline"
+                label="Preço médio"
+                value={averagePriceLabel}
+                hint={`${overview.pricedCount} com preço definido`}
+                compact={!isDesktop}
+              />
+              <ServiceMetricCard
+                icon="time-outline"
+                label="Duração média"
+                value={averageDurationLabel}
+                hint="por atendimento"
+                compact={!isDesktop}
+              />
+              <ServiceMetricCard
+                icon="alert-circle-outline"
+                label="Revisar preço"
+                value={String(overview.attentionCount)}
+                hint="sem preço ou abaixo do custo"
+                compact={!isDesktop}
+              />
+            </View>
+          </View>
+        ) : null}
+
+        <View style={{ gap: spacing.md, paddingBottom: spacing.sm }}>
+          <Input
+            placeholder="Buscar por nome ou descrição"
+            value={search}
+            onChangeText={setSearch}
+            icon={
+              <AppIcon
+                name="search-outline"
+                size={20}
+                color={theme.colors.textSecondary}
+              />
+            }
+            containerStyle={{
+              width: "100%",
+              maxWidth: isDesktop ? 480 : undefined,
+            }}
+          />
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+            <Chip
+              label="Disponíveis"
+              selected={filter === "active"}
+              onPress={() => setFilter("active")}
+            />
+            <Chip
+              label="Revisar preço"
+              selected={filter === "review"}
+              onPress={() => setFilter("review")}
+            />
+            <Chip
+              label="Pausados"
+              selected={filter === "inactive"}
+              onPress={() => setFilter("inactive")}
+            />
+            <Chip
+              label="Todos"
+              selected={filter === "all"}
+              onPress={() => setFilter("all")}
+            />
+          </View>
+        </View>
+      </View>
+    );
+  }
+
+  function renderListEmpty() {
     if (servicesQuery.isLoading) {
       return (
-        <View style={{ ...pageGutter(isDesktop), paddingTop: spacing.lg }}>
+        <View style={{ paddingTop: spacing.lg }}>
           <SkeletonList rows={6} variant="product" />
         </View>
       );
@@ -285,13 +373,7 @@ export default function ServicesScreen() {
 
     if (servicesQuery.error) {
       return (
-        <Card
-          style={{
-            ...pageGutter(isDesktop),
-            marginTop: spacing.lg,
-            gap: spacing.md,
-          }}
-        >
+        <Card style={{ marginTop: spacing.lg, gap: spacing.md }}>
           <Typography variant="h3">Não foi possível carregar os serviços</Typography>
           <Typography variant="body" color={theme.colors.textSecondary}>
             Verifique sua conexão e tente novamente.
@@ -337,7 +419,7 @@ export default function ServicesScreen() {
       }
 
       return (
-        <View style={{ flex: 1, ...pageGutter(isDesktop) }}>
+        <View style={{ flex: 1 }}>
           <EmptyState
             icon={
               <Image
@@ -361,12 +443,18 @@ export default function ServicesScreen() {
       );
     }
 
+    return null;
+  }
+
+  function renderServices() {
     return (
       <FlatList
         key={isDesktop ? "desktop-services" : "mobile-services"}
-        data={visibleServices}
+        data={servicesQuery.isLoading || servicesQuery.error ? [] : visibleServices}
         numColumns={isDesktop ? 3 : 1}
         keyExtractor={(service) => service.id}
+        ListHeaderComponent={renderListHeader}
+        ListEmptyComponent={renderListEmpty}
         renderItem={({ item }) => (
           <View style={isDesktop ? { flex: 1, minWidth: 0 } : undefined}>
             <ServiceCard service={item} onPress={() => setSelectedService(item)} />
@@ -375,6 +463,7 @@ export default function ServicesScreen() {
         columnWrapperStyle={isDesktop ? { gap: spacing.md } : undefined}
         contentContainerStyle={{
           ...pageGutter(isDesktop),
+          flexGrow: 1,
           gap: spacing.md,
           paddingTop: spacing.md,
           paddingBottom: spacing["3xl"],
@@ -401,100 +490,6 @@ export default function ServicesScreen() {
           onBack={goBack}
           hideBack={isDesktop}
         />
-
-        {!servicesQuery.isLoading && !servicesQuery.error && services.length > 0 ? (
-          <View
-            style={{
-              ...pageGutter(isDesktop),
-              gap: spacing.md,
-              paddingBottom: spacing.lg,
-            }}
-          >
-            <View style={{ gap: spacing.xs }}>
-              <Typography variant="bodyBold">Visão geral</Typography>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                Um retrato rápido dos serviços disponíveis para novos atendimentos.
-              </Typography>
-            </View>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
-              <ServiceMetricCard
-                icon="briefcase-outline"
-                label="Disponíveis"
-                value={String(overview.activeCount)}
-                hint={`de ${overview.totalCount} cadastrados`}
-                compact={!isDesktop}
-              />
-              <ServiceMetricCard
-                icon="cash-outline"
-                label="Preço médio"
-                value={averagePriceLabel}
-                hint={`${overview.pricedCount} com preço definido`}
-                compact={!isDesktop}
-              />
-              <ServiceMetricCard
-                icon="time-outline"
-                label="Duração média"
-                value={averageDurationLabel}
-                hint="por atendimento"
-                compact={!isDesktop}
-              />
-              <ServiceMetricCard
-                icon="alert-circle-outline"
-                label="Revisar preço"
-                value={String(overview.attentionCount)}
-                hint="sem preço ou abaixo do custo"
-                compact={!isDesktop}
-              />
-            </View>
-          </View>
-        ) : null}
-
-        <View
-          style={{
-            ...pageGutter(isDesktop),
-            gap: spacing.md,
-            paddingBottom: spacing.sm,
-          }}
-        >
-          <Input
-            placeholder="Buscar por nome ou descrição"
-            value={search}
-            onChangeText={setSearch}
-            icon={
-              <AppIcon
-                name="search-outline"
-                size={20}
-                color={theme.colors.textSecondary}
-              />
-            }
-            containerStyle={{
-              width: "100%",
-              maxWidth: isDesktop ? 480 : undefined,
-            }}
-          />
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-            <Chip
-              label="Disponíveis"
-              selected={filter === "active"}
-              onPress={() => setFilter("active")}
-            />
-            <Chip
-              label="Revisar preço"
-              selected={filter === "review"}
-              onPress={() => setFilter("review")}
-            />
-            <Chip
-              label="Pausados"
-              selected={filter === "inactive"}
-              onPress={() => setFilter("inactive")}
-            />
-            <Chip
-              label="Todos"
-              selected={filter === "all"}
-              onPress={() => setFilter("all")}
-            />
-          </View>
-        </View>
 
         {renderServices()}
 
