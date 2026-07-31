@@ -173,7 +173,7 @@ function serviceCard(service: PublicCatalogService): string {
     ? `<p class="booking-instructions"><strong>Antes de solicitar:</strong> ${escapeHtml(service.bookingInstructions)}</p>`
     : "";
 
-  return `<article class="card service-card"><div class="photo"><div class="placeholder service-placeholder"><span>${initial}</span></div></div><div class="info"><p class="category">Serviço</p><h2>${escapeHtml(service.name)}</h2>${description}${meta}${variations}${addOns}${packages}${bookingInstructions}<div class="bottom">${price}<button class="request-service" type="button" data-service-id="${escapeHtml(service.id)}" data-service-name="${escapeHtml(service.name)}">Solicitar horário</button></div></div></article>`;
+  return `<article class="card service-card"><div class="info"><div class="service-heading"><div class="service-mark" aria-hidden="true"><span>${initial}</span></div><div class="service-heading-copy"><p class="category">Serviço</p><h2>${escapeHtml(service.name)}</h2></div></div>${description}${meta}${variations}${addOns}${packages}${bookingInstructions}<div class="bottom">${price}<button class="request-service" type="button" data-service-id="${escapeHtml(service.id)}" data-service-name="${escapeHtml(service.name)}">Solicitar horário</button></div></div></article>`;
 }
 
 function catalogHeroTagline(productCount: number, serviceCount: number): string {
@@ -507,6 +507,7 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   .catalog-tools label { display: grid; gap: 6px; font-size: 12px; font-weight: 800; color: #7d6354; }
   .catalog-tools input, .catalog-tools select { width: 100%; min-height: 44px; border: 1px solid #dfd0c8; border-radius: 12px; background: #fff; color: #3d2b22; padding: 0 12px; font: inherit; }
   main { max-width: 1160px; margin: 0 auto; padding: 0 16px 16px; position: relative; z-index: 2; display: grid; gap: 28px; }
+  main.services-only { padding-top: 28px; }
   .catalog-section { display: grid; gap: 16px; }
   .catalog-grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
   .card { background: #fffdfb; border-radius: 20px; overflow: hidden; border: 1px solid rgba(140, 90, 69, 0.16); display: flex; flex-direction: column; transition: transform 0.15s ease; }
@@ -519,6 +520,11 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   .option-label { color: #4a3228; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 2px; }
   .option-group .variants { margin-top: 8px; }
   .service-meta { margin-top: 12px; }
+  .service-heading { display: flex; align-items: center; gap: 12px; }
+  .service-mark { width: 48px; height: 48px; flex: 0 0 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: ${palette.bg}; color: ${palette.dark}; }
+  .service-mark span { font-family: "Nunito Sans", system-ui, sans-serif; font-size: 22px; font-weight: 800; line-height: 1; }
+  .service-heading-copy { min-width: 0; }
+  .service-card .bottom { margin-top: 16px; border-top: 1px solid rgba(140, 90, 69, 0.16); }
   .booking-instructions { margin-top: 14px; padding: 10px 12px; border-radius: 12px; background: ${palette.bg}; color: #7d6354; font-size: 13px; line-height: 1.45; }
   .request-service, .booking-submit { width: 100%; min-height: 48px; margin-top: 12px; border: 0; border-radius: 999px; background: ${palette.base}; color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
   .request-service:active, .booking-submit:active { transform: scale(0.98); }
@@ -527,9 +533,7 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   .gallery::-webkit-scrollbar { display: none; }
   .gallery img { flex: 0 0 100%; scroll-snap-align: center; }
   .placeholder { width: 100%; height: 200px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f3e6dd, #e9d5c8); }
-  .service-placeholder { background: linear-gradient(135deg, ${palette.bg}, ${palette.light}55); }
   .placeholder span { font-family: "Nunito Sans", system-ui, sans-serif; font-size: 64px; color: #b08368; }
-  .service-placeholder span { color: ${palette.dark}; opacity: 0.72; }
   .info { padding: 18px 18px 20px; display: flex; flex-direction: column; flex: 1; }
   .info h2 { font-family: "Nunito Sans", system-ui, sans-serif; font-size: 20px; font-weight: 700; color: #4a3228; }
   .category { color: ${palette.base}; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .7px; margin-bottom: 5px; }
@@ -597,7 +601,7 @@ ${promoStrip}
   ${headerButton}
 </div>
 ${filters}
-<main>
+<main${count === 0 && serviceCount > 0 ? ' class="services-only"' : ""}>
 ${productsSection}
 ${servicesSection}
 </main>
