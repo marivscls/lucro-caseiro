@@ -19,6 +19,10 @@ export const metadata: Metadata = {
   ),
   title: { default: "Central de Marketing", template: "%s · Lucro Caseiro" },
   description: "Planejamento, documentos e inteligência de marketing do Lucro Caseiro.",
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+  },
   manifest: "/manifest.webmanifest",
   robots: { index: false, follow: false },
 };
