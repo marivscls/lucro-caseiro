@@ -29,6 +29,7 @@ import { useImagePicker } from "../shared/hooks/use-image-picker";
 import { useAuth } from "../shared/hooks/use-auth";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { ApiError } from "../shared/utils/api-client";
+import { openWhatsAppShare } from "../shared/utils/whatsapp";
 import { showToast } from "../shared/components/toast";
 import { uploadCatalogCover, uploadCatalogLogo } from "../shared/utils/upload-image";
 import { alertError } from "../shared/utils/alerts";
@@ -213,6 +214,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
   ]);
 
   const url = publicCatalogUrl(settings.slug);
+  const shareMessage = `Oi! 😊 Dá uma olhada na minha vitrine. Você pode conhecer meus produtos e serviços e falar comigo por lá:\n\n${url}`;
 
   async function save(
     data: Parameters<typeof update.mutateAsync>[0],
@@ -345,9 +347,15 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
 
   async function handleShare() {
     await Share.share({
-      message: `Oi! 😊 Dá uma olhada no meu catálogo de produtos. É só escolher e me chamar no WhatsApp:\n\n${url}`,
+      message: shareMessage,
     });
     void trackAnalyticsAction("catalog_shared", useAuth.getState().token);
+  }
+
+  async function handleWhatsAppShare() {
+    if (await openWhatsAppShare(shareMessage)) {
+      void trackAnalyticsAction("catalog_shared", useAuth.getState().token);
+    }
   }
 
   const heroBg = theme.colors.surfaceElevated;
@@ -450,11 +458,22 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                     color={theme.colors.primaryStrong}
                   />
                 </Pressable>
-                <Button
-                  title="Compartilhar com clientes"
-                  onPress={() => void handleShare()}
-                  style={desktopAction(isDesktop, 240)}
-                />
+                <View style={{ flexDirection: isDesktop ? "row" : "column", gap: spacing.sm }}>
+                  <Button
+                    title="Compartilhar no WhatsApp"
+                    variant="success"
+                    icon={<AppIcon name="logo-whatsapp" size={20} color={theme.colors.textOnPrimary} />}
+                    onPress={() => void handleWhatsAppShare()}
+                    style={desktopAction(isDesktop, 240)}
+                  />
+                  <Button
+                    title="Outras opções"
+                    variant="outline"
+                    icon={<AppIcon name="share-social-outline" size={20} color={theme.colors.primaryStrong} />}
+                    onPress={() => void handleShare()}
+                    style={desktopAction(isDesktop, 190)}
+                  />
+                </View>
               </View>
             </Card>
           )}

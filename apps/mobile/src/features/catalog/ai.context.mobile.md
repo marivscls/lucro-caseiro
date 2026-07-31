@@ -36,7 +36,8 @@ API (`/c/:slug`).
 
 - Switch "Catálogo ativo" — salva `enabled` imediatamente.
 - Inputs de endereço (slug) e WhatsApp + botão "Salvar".
-- Botão "Compartilhar link do catálogo" (`Share.share`) quando ativo.
+- Botão "Compartilhar no WhatsApp" abre o seletor de conversas com a mensagem pronta;
+  "Outras opções" mantém o compartilhamento nativo (`Share.share`).
 - Erros 400 da API (slug inválido/em uso) mostram a mensagem do backend no Alert.
 
 ## Hooks
@@ -76,6 +77,7 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
 - [ ] Salvar envia slug normalizado (trim + lowercase) e whatsapp (null se vazio)
 - [ ] Erro 400 mostra mensagem do backend
 - [ ] Compartilhar usa o link `/c/:slug`
+- [ ] WhatsApp abre com a mensagem e o link da vitrine preenchidos
 
 ## Examples
 
