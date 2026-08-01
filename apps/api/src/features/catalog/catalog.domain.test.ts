@@ -137,6 +137,11 @@ describe("renderCatalogHtml", () => {
     expect(html).not.toContain('class="service-placeholder"');
     expect(html).toContain('class="tagline">Serviços</p>');
     expect(html).toContain('id="service-booking-form"');
+    expect(html).toContain('class="booking-header"');
+    expect(html).toContain('class="booking-content"');
+    expect(html).toContain('class="booking-footer"');
+    expect(html).toContain("#service-booking-dialog { inset: 0;");
+    expect(html).toContain("margin: auto; background: #fffdfb;");
     expect(html).toContain('fetch(location.pathname + "/service-bookings"');
   });
 

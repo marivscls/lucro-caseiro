@@ -340,7 +340,26 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   const heroTagline = catalogHeroTagline(count, serviceCount);
   const bookingDialog =
     serviceCount > 0
-      ? `<dialog id="service-booking-dialog"><form id="service-booking-form"><button type="button" class="booking-close" aria-label="Fechar">×</button><p class="category">Solicitar horário</p><h2 id="booking-service-name"></h2><input id="booking-service-id" type="hidden"><label>Seu nome<input id="booking-name" required maxlength="120" autocomplete="name"></label><label>WhatsApp<input id="booking-phone" required minlength="8" maxlength="20" inputmode="tel" autocomplete="tel"></label><div class="booking-row"><label>Data desejada<input id="booking-date" type="date" required></label><label>Horário desejado<input id="booking-time" type="time"></label></div><label>Onde prefere ser atendida(o)?<select id="booking-location" required><option value="business">No espaço profissional</option><option value="client">No meu endereço</option><option value="online">Online</option></select></label><label>Observações<textarea id="booking-notes" maxlength="500" placeholder="Conte um pouco do que precisa"></textarea></label><button class="booking-submit" type="submit">Enviar solicitação</button><p id="booking-message" role="status"></p></form></dialog>`
+      ? `<dialog id="service-booking-dialog">
+  <form id="service-booking-form">
+    <header class="booking-header">
+      <div class="booking-heading"><p class="category">Solicitar horário</p><h2 id="booking-service-name" tabindex="-1"></h2></div>
+      <button type="button" class="booking-close" aria-label="Fechar"><span aria-hidden="true">×</span></button>
+    </header>
+    <div class="booking-content">
+      <input id="booking-service-id" type="hidden">
+      <label>Seu nome<input id="booking-name" required maxlength="120" autocomplete="name"></label>
+      <label>WhatsApp<input id="booking-phone" required minlength="8" maxlength="20" inputmode="tel" autocomplete="tel"></label>
+      <div class="booking-row"><label>Data desejada<input id="booking-date" type="date" required></label><label>Horário desejado<input id="booking-time" type="time"></label></div>
+      <label>Onde prefere ser atendida(o)?<select id="booking-location" required><option value="business">No espaço profissional</option><option value="client">No meu endereço</option><option value="online">Online</option></select></label>
+      <label>Observações<textarea id="booking-notes" maxlength="500" placeholder="Conte um pouco do que precisa"></textarea></label>
+    </div>
+    <footer class="booking-footer">
+      <p id="booking-message" role="status" aria-live="polite"></p>
+      <button class="booking-submit" type="submit">Enviar solicitação</button>
+    </footer>
+  </form>
+</dialog>`
       : "";
   const cart = retailOrdering
     ? `<button id="cart-toggle" class="cart-toggle" hidden>Reserva · <span id="cart-count">0</span> itens</button>
@@ -408,12 +427,14 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   const dialog = document.getElementById("service-booking-dialog");
   const form = document.getElementById("service-booking-form");
   const message = document.getElementById("booking-message");
+  const serviceName = document.getElementById("booking-service-name");
   document.getElementById("booking-date").min = new Date().toISOString().slice(0, 10);
   document.querySelectorAll(".request-service").forEach((button) => button.addEventListener("click", () => {
     document.getElementById("booking-service-id").value = button.dataset.serviceId;
-    document.getElementById("booking-service-name").textContent = button.dataset.serviceName;
+    serviceName.textContent = button.dataset.serviceName;
     message.textContent = "";
     dialog.showModal();
+    serviceName.focus({ preventScroll: true });
   }));
   document.querySelector(".booking-close").addEventListener("click", () => dialog.close());
   form.addEventListener("submit", async (event) => {
@@ -559,13 +580,27 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   #cart-form label { font-size: 13px; font-weight: 700; }
   .cart-close { justify-self: end; border: 0; background: transparent; font-size: 28px; }
   .reserve-submit { border: 0; border-radius: 999px; padding: 13px; background: ${palette.base}; color: #fff; font-weight: 800; }
-  #service-booking-form { padding: 24px; display: grid; gap: 14px; }
-  #service-booking-form label { display: grid; gap: 6px; font-size: 13px; font-weight: 700; }
-  #service-booking-form input, #service-booking-form select, #service-booking-form textarea { width: 100%; min-height: 44px; border: 1px solid #d8c7bc; border-radius: 10px; padding: 10px; background: #fff; font: inherit; }
-  #service-booking-form textarea { min-height: 88px; resize: vertical; }
-  .booking-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .booking-close { justify-self: end; border: 0; background: transparent; font-size: 28px; cursor: pointer; }
-  #booking-message { min-height: 20px; color: ${palette.dark}; font-size: 13px; line-height: 1.4; }
+  #service-booking-dialog { inset: 0; width: min(94vw, 560px); max-height: calc(100dvh - 32px); margin: auto; background: #fffdfb; overflow: hidden; }
+  #service-booking-form { display: flex; flex-direction: column; max-height: calc(100dvh - 32px); }
+  .booking-header { flex: none; display: flex; align-items: center; gap: 12px; padding: 18px 24px; border-bottom: 1px solid #eaded7; }
+  .booking-heading { flex: 1; min-width: 0; }
+  .booking-heading .category { margin-bottom: 2px; }
+  .booking-heading h2 { overflow: hidden; font-size: 24px; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+  .booking-heading h2:focus { outline: 0; }
+  .booking-content { min-height: 0; padding: 20px 24px; display: grid; gap: 16px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  #service-booking-form label { display: grid; min-width: 0; gap: 8px; font-size: 14px; font-weight: 700; }
+  #service-booking-form input, #service-booking-form select, #service-booking-form textarea { width: 100%; min-width: 0; min-height: 48px; border: 1px solid #d8c7bc; border-radius: 16px; padding: 0 14px; background: #fff; color: #3d2b22; font: inherit; }
+  #service-booking-form input:focus, #service-booking-form select:focus, #service-booking-form textarea:focus { border-color: ${palette.base}; box-shadow: 0 0 0 3px ${palette.light}55; outline: 0; }
+  #service-booking-form textarea { min-height: 96px; padding-block: 12px; resize: vertical; }
+  .booking-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+  .booking-close { flex: none; width: 44px; height: 44px; border: 0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: transparent; color: #7d6354; font: inherit; font-size: 28px; line-height: 1; cursor: pointer; }
+  .booking-close:active { background: ${palette.bg}; }
+  .booking-close:focus { outline: 0; }
+  .booking-close:focus-visible { box-shadow: 0 0 0 3px ${palette.light}; }
+  .booking-footer { flex: none; padding: 16px 24px; display: grid; grid-template-columns: minmax(0, 1fr); align-items: stretch; justify-content: stretch; gap: 10px; border-top: 1px solid #eaded7; background: #fffdfb; }
+  .booking-submit { margin-top: 0; border-radius: 12px; }
+  #booking-message { color: ${palette.dark}; font-size: 13px; line-height: 1.4; }
+  #booking-message:empty { display: none; }
   .order.hero { margin-top: 18px; background: #fff; color: ${palette.dark}; box-shadow: 0 8px 22px rgba(0,0,0,0.18); position: relative; z-index: 1; }
   .empty { grid-column: 1 / -1; text-align: center; padding: 56px 20px; background: #fffdfb; border-radius: 20px; box-shadow: 0 10px 30px rgba(61, 43, 34, 0.1); }
   .empty-icon { margin-bottom: 12px; }
@@ -584,8 +619,15 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
     .catalog-tools { margin: -44px 16px 18px; grid-template-columns: 1fr 1fr; }
     .catalog-tools .search { grid-column: 1 / -1; }
     .catalog-grid { grid-template-columns: 1fr; }
-    .booking-row { grid-template-columns: 1fr; }
+    #service-booking-dialog { inset: auto 0 0; width: 100%; max-width: none; max-height: calc(100dvh - max(12px, env(safe-area-inset-top))); margin: auto 0 0; border-radius: 24px 24px 0 0; }
+    #service-booking-form { max-height: calc(100dvh - max(12px, env(safe-area-inset-top))); }
+    .booking-header { padding: 14px 20px; }
+    .booking-content { padding: 18px 20px; }
+    .booking-footer { padding: 14px 20px max(14px, env(safe-area-inset-bottom)); }
     .photo img, .placeholder { height: 220px; }
+  }
+  @media (max-width: 360px) {
+    .booking-row { grid-template-columns: 1fr; }
   }
 </style>
 </head>
