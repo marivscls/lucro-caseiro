@@ -6,6 +6,7 @@ import manicureLogo from "../../../../packages/brands/lucro-manicure/assets/icon
 import papelariaLogo from "../../../../packages/brands/lucro-papelaria/assets/icon.png";
 import agendaEmpty from "../assets/agenda-empty-v3.png";
 import brandLogo from "../assets/auth-house.png";
+import brandLogoLight from "../assets/auth-house-light.png";
 import catalogHero from "../assets/catalog-hero.png";
 import checkoutHero from "../assets/checkout-professional-hero.png";
 import clientsEmpty from "../assets/clients-empty.png";
@@ -41,6 +42,7 @@ import suppliersEmpty from "../assets/suppliers-empty.png";
 
 const staticImageAssets: readonly ImageSourcePropType[] = [
   brandLogo,
+  brandLogoLight,
   manicureLogo,
   papelariaLogo,
   agendaDeliveries,

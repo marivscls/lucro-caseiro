@@ -24,7 +24,7 @@ import { showAlert } from "../../shared/components/alert-store";
 import { desktopContained } from "../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { getBrandDisplayName } from "../../shared/brand-name";
-import { brandLogoById } from "../../shared/brand-logo";
+import { brandLogoByMode } from "../../shared/brand-logo";
 
 export default function LoginScreen() {
   const { theme } = useTheme();
@@ -154,7 +154,7 @@ export default function LoginScreen() {
         {/* Marca + boas-vindas */}
         <View style={{ alignItems: "center", gap: spacing.md }}>
           <Image
-            source={brandLogoById[brand.id]}
+            source={brandLogoByMode[theme.mode][brand.id]}
             resizeMode="contain"
             style={{ width: 112, height: 112 }}
           />

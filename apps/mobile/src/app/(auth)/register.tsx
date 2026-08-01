@@ -28,7 +28,7 @@ import { showAlert } from "../../shared/components/alert-store";
 import { desktopContained } from "../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { getBrandDisplayName } from "../../shared/brand-name";
-import { brandLogoById } from "../../shared/brand-logo";
+import { brandLogoByMode } from "../../shared/brand-logo";
 
 function PasswordStrengthBar({ password }: Readonly<{ password: string }>) {
   const { theme } = useTheme();
@@ -235,7 +235,7 @@ export default function RegisterScreen() {
       >
         <View style={{ alignItems: "center", gap: spacing.md }}>
           <Image
-            source={brandLogoById[brand.id]}
+            source={brandLogoByMode[theme.mode][brand.id]}
             resizeMode="contain"
             style={{ width: 104, height: 104 }}
           />

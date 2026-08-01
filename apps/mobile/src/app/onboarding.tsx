@@ -40,7 +40,7 @@ import { useAuth } from "../shared/hooks/use-auth";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { desktopContained } from "../shared/layout/desktop-density";
 import { useOnboarding } from "../shared/hooks/use-onboarding";
-import { brandLogoById } from "../shared/brand-logo";
+import { brandLogoByMode } from "../shared/brand-logo";
 import { getBrandDisplayName } from "../shared/brand-name";
 import { alertError } from "../shared/utils/alerts";
 
@@ -67,7 +67,9 @@ const LEGACY_NICHE_PROFILE: Record<string, BusinessProfile> = {
 
 function normalizeBusinessProfile(value: string | null): BusinessProfile | null {
   if (!value) return null;
-  const direct = BUSINESS_PROFILE_OPTIONS.find((profile) => profile.value === value)?.value;
+  const direct = BUSINESS_PROFILE_OPTIONS.find(
+    (profile) => profile.value === value,
+  )?.value;
   return direct ?? LEGACY_NICHE_PROFILE[value] ?? null;
 }
 
@@ -168,6 +170,7 @@ function WelcomeStep({
 }: Readonly<{ onNext: () => void; onLogin: () => void; switchingAccount: boolean }>) {
   const { theme } = useTheme();
   const brand = useBrand();
+  const brandLogo = brandLogoByMode[theme.mode][brand.id];
   const slides = brand.features.comprasComEstoque
     ? RETAIL_WELCOME_SLIDES
     : WELCOME_SLIDES;
@@ -212,7 +215,7 @@ function WelcomeStep({
               }}
             >
               <Image
-                source={item.image ?? brandLogoById[brand.id]}
+                source={item.image ?? brandLogo}
                 resizeMode="contain"
                 style={{ width: 168, height: 168 }}
               />
@@ -271,6 +274,7 @@ function NicheStep({
 }>) {
   const { theme } = useTheme();
   const brand = useBrand();
+  const brandLogo = brandLogoByMode[theme.mode][brand.id];
   const pagePadding = spacing.lg;
   const cardGap = spacing.md;
   const background = theme.colors.background;
@@ -292,7 +296,7 @@ function NicheStep({
       >
         <View style={{ alignItems: "center", gap: 0, marginBottom: spacing.md }}>
           <Image
-            source={brandLogoById[brand.id]}
+            source={brandLogo}
             resizeMode="contain"
             style={{ width: 168, height: 96 }}
           />
@@ -595,6 +599,7 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const { theme } = useTheme();
   const brand = useBrand();
+  const brandLogo = brandLogoByMode[theme.mode][brand.id];
   const verticalOnboarding = brand.onboarding?.skipNicheSelection
     ? brand.onboarding
     : undefined;
@@ -620,8 +625,7 @@ export default function OnboardingScreen() {
     updateProfile
       .mutateAsync({
         businessName: name || undefined,
-        businessType:
-          verticalOnboarding?.businessType ?? selectedProfile ?? undefined,
+        businessType: verticalOnboarding?.businessType ?? selectedProfile ?? undefined,
       })
       .catch(() => {});
   }
@@ -697,11 +701,7 @@ export default function OnboardingScreen() {
         {currentStep === 2 && (
           <BusinessNameStep
             example={experienceCopy.businessNameExample}
-            image={
-              selectedProfile
-                ? PROFILE_IMAGES[selectedProfile]
-                : brandLogoById[brand.id]
-            }
+            image={selectedProfile ? PROFILE_IMAGES[selectedProfile] : brandLogo}
             onNext={(name) => {
               setBusinessName(name);
               persistProfile(name);

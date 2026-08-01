@@ -8,7 +8,7 @@ import { Image, Pressable, ScrollView, View } from "react-native";
 
 import { useProfile } from "../../features/subscription/hooks";
 import { businessCopyFor } from "../../features/subscription/business-copy";
-import { brandLogoById } from "../brand-logo";
+import { brandLogoByMode } from "../brand-logo";
 import { getBrandDisplayName } from "../brand-name";
 
 type IconName = AppIconName;
@@ -176,7 +176,10 @@ export function DesktopShell({
           }}
         >
           <Image
-            source={brandLogoById[brand.id] ?? brandLogoById["lucro-caseiro"]}
+            source={
+              brandLogoByMode[theme.mode][brand.id] ??
+              brandLogoByMode[theme.mode]["lucro-caseiro"]
+            }
             style={{ width: 40, height: 40 }}
             resizeMode="contain"
             accessibilityLabel={brandName}

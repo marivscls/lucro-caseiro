@@ -2,7 +2,7 @@ import { fonts, useBrand, useTheme } from "@lucro-caseiro/ui";
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, StyleSheet, View } from "react-native";
 
-import { brandLogoById } from "../brand-logo";
+import { brandLogoByMode } from "../brand-logo";
 import { getBrandDisplayName } from "../brand-name";
 
 const MIN_DURATION = 1900;
@@ -146,7 +146,7 @@ export function BrandIntro({ authReady, onFinish }: BrandIntroProps) {
       ]}
     >
       <Animated.Image
-        source={brandLogoById[brand.id]}
+        source={brandLogoByMode[theme.mode][brand.id]}
         resizeMode="contain"
         style={[styles.logo, { opacity: logoOpacity, transform: [{ scale: logoScale }] }]}
       />
