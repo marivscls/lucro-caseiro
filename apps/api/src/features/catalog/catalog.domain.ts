@@ -362,7 +362,7 @@ export function renderCatalogHtml(
       <input id="booking-service-id" type="hidden">
       <label>Seu nome<input id="booking-name" required maxlength="120" autocomplete="name"></label>
       <label>WhatsApp<input id="booking-phone" required minlength="8" maxlength="20" inputmode="tel" autocomplete="tel"></label>
-      <div class="booking-row"><label>Data desejada<input id="booking-date" type="date" required></label><label>Horário desejado<span class="booking-time-control"><input id="booking-time" type="text" inputmode="numeric" maxlength="5" pattern="(?:[01]\\d|2[0-3]):[0-5]\\d" placeholder="Ex: 14:30" title="Informe um horário entre 00:00 e 23:59"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg></span></label></div>
+      <div class="booking-row"><label>Data desejada<span class="booking-date-control"><input id="booking-date" type="text" inputmode="numeric" maxlength="10" pattern="(?:0[1-9]|[12]\\d|3[01])/(?:0[1-9]|1[0-2])/\\d{4}" placeholder="DD/MM/AAAA" required><button id="booking-date-open" type="button" aria-label="Escolher data no calendário"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="15" rx="2.5"></rect><path d="M8 3.5v4M16 3.5v4M3.5 10h17"></path></svg></button></span></label><label>Horário desejado<span class="booking-time-control"><input id="booking-time" type="text" inputmode="numeric" maxlength="5" pattern="(?:[01]\\d|2[0-3]):[0-5]\\d" placeholder="Ex: 14:30" title="Informe um horário entre 00:00 e 23:59"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg></span></label></div>
       <label>Onde prefere ser atendida(o)?<select id="booking-location" required><option value="business">No espaço profissional</option><option value="client">No meu endereço</option><option value="online">Online</option></select></label>
       <label>Observações<textarea id="booking-notes" maxlength="500" placeholder="Conte um pouco do que precisa"></textarea></label>
     </div>
@@ -371,6 +371,19 @@ export function renderCatalogHtml(
       <button class="booking-submit" type="submit">Enviar solicitação</button>
     </footer>
   </form>
+</dialog>
+<dialog id="booking-calendar-dialog" aria-labelledby="booking-calendar-title" tabindex="-1">
+  <div class="booking-calendar-panel">
+    <div class="booking-calendar-header">
+      <button id="booking-calendar-prev" class="booking-calendar-nav" type="button" aria-label="Mês anterior"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button>
+      <button id="booking-calendar-title" class="booking-calendar-title" type="button" aria-label="Escolher mês ou ano" aria-expanded="false"><span></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"></path></svg></button>
+      <button id="booking-calendar-next" class="booking-calendar-nav" type="button" aria-label="Próximo mês"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></button>
+    </div>
+    <div id="booking-calendar-weekdays" class="booking-calendar-weekdays" aria-hidden="true"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+    <div id="booking-calendar-days" class="booking-calendar-days" role="grid" aria-label="Dias do mês"></div>
+    <div id="booking-calendar-years" class="booking-calendar-years" role="grid" aria-label="Anos" hidden></div>
+    <button id="booking-calendar-close" class="booking-calendar-close" type="button">Fechar</button>
+  </div>
 </dialog>`
       : "";
   const cart = retailOrdering
@@ -441,17 +454,133 @@ export function renderCatalogHtml(
   const message = document.getElementById("booking-message");
   const serviceName = document.getElementById("booking-service-name");
   const bookingContent = dialog.querySelector(".booking-content");
+  const dateInput = document.getElementById("booking-date");
   const timeInput = document.getElementById("booking-time");
+  const calendarDialog = document.getElementById("booking-calendar-dialog");
+  const calendarTitle = document.getElementById("booking-calendar-title");
+  const calendarTitleText = calendarTitle.querySelector("span");
+  const calendarWeekdays = document.getElementById("booking-calendar-weekdays");
+  const calendarDays = document.getElementById("booking-calendar-days");
+  const calendarYears = document.getElementById("booking-calendar-years");
+  const months = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+  const pad2 = (value) => String(value).padStart(2, "0");
+  const isoOf = (date) => date.getFullYear() + "-" + pad2(date.getMonth() + 1) + "-" + pad2(date.getDate());
+  const brOf = (date) => pad2(date.getDate()) + "/" + pad2(date.getMonth() + 1) + "/" + date.getFullYear();
+  const dateFromIso = (iso) => {
+    const [year, month, day] = iso.split("-").map(Number);
+    return new Date(year, month - 1, day);
+  };
+  const isoFromBr = (value) => {
+    const [day, month, year] = value.split("/").map(Number);
+    if (!day || !month || !year) return "";
+    const date = new Date(year, month - 1, day);
+    return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day ? isoOf(date) : "";
+  };
+  const todayIso = isoOf(new Date());
+  let viewMonth = dateFromIso(todayIso);
+  let pickingYear = false;
+  const maskDate = (value) => {
+    const digits = value.replace(/\\D/g, "").slice(0, 8);
+    if (digits.length > 4) return digits.slice(0, 2) + "/" + digits.slice(2, 4) + "/" + digits.slice(4);
+    if (digits.length > 2) return digits.slice(0, 2) + "/" + digits.slice(2);
+    return digits;
+  };
   const maskTime = (value) => {
     const digits = value.replace(/\\D/g, "").slice(0, 4);
     return digits.length > 2 ? digits.slice(0, 2) + ":" + digits.slice(2) : digits;
   };
+  const syncDateValue = () => {
+    const iso = isoFromBr(dateInput.value);
+    dateInput.dataset.iso = iso && iso >= todayIso ? iso : "";
+    if (dateInput.value && !iso) dateInput.setCustomValidity("Informe uma data válida em DD/MM/AAAA.");
+    else if (iso && iso < todayIso) dateInput.setCustomValidity("Escolha hoje ou uma data futura.");
+    else dateInput.setCustomValidity("");
+  };
+  dateInput.addEventListener("input", () => {
+    dateInput.value = maskDate(dateInput.value);
+    syncDateValue();
+  });
   timeInput.addEventListener("input", () => {
     timeInput.value = maskTime(timeInput.value);
   });
-  document.getElementById("booking-date").min = new Date().toISOString().slice(0, 10);
+  const renderCalendar = () => {
+    const year = viewMonth.getFullYear();
+    const month = viewMonth.getMonth();
+    const yearWindowStart = year - (year % 12);
+    calendarTitle.setAttribute("aria-expanded", String(pickingYear));
+    calendarWeekdays.hidden = pickingYear;
+    calendarDays.hidden = pickingYear;
+    calendarYears.hidden = !pickingYear;
+    if (pickingYear) {
+      calendarTitleText.textContent = yearWindowStart + " – " + (yearWindowStart + 11);
+      calendarYears.replaceChildren(...Array.from({ length: 12 }, (_, index) => {
+        const optionYear = yearWindowStart + index;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "booking-calendar-year" + (optionYear === year ? " selected" : "");
+        button.textContent = String(optionYear);
+        button.setAttribute("aria-label", String(optionYear));
+        button.addEventListener("click", () => {
+          viewMonth = new Date(optionYear, month, 1);
+          pickingYear = false;
+          renderCalendar();
+        });
+        return button;
+      }));
+      return;
+    }
+    calendarTitleText.textContent = months[month] + " " + year;
+    const firstDay = new Date(year, month, 1);
+    const start = new Date(year, month, 1 - firstDay.getDay());
+    calendarDays.replaceChildren(...Array.from({ length: 42 }, (_, index) => {
+      const date = new Date(start);
+      date.setDate(start.getDate() + index);
+      const iso = isoOf(date);
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "booking-calendar-day" + (date.getMonth() === month ? "" : " outside") + (dateInput.dataset.iso === iso ? " selected" : "") + (todayIso === iso ? " today" : "");
+      button.textContent = String(date.getDate());
+      button.setAttribute("aria-label", brOf(date));
+      button.setAttribute("role", "gridcell");
+      button.disabled = iso < todayIso;
+      button.addEventListener("click", () => {
+        dateInput.value = brOf(date);
+        dateInput.dataset.iso = iso;
+        dateInput.setCustomValidity("");
+        calendarDialog.close();
+        dateInput.focus({ preventScroll: true });
+      });
+      return button;
+    }));
+  };
+  const openCalendar = () => {
+    viewMonth = dateInput.dataset.iso ? dateFromIso(dateInput.dataset.iso) : dateFromIso(todayIso);
+    pickingYear = false;
+    renderCalendar();
+    calendarDialog.showModal();
+    requestAnimationFrame(() => calendarDialog.focus({ preventScroll: true }));
+  };
+  document.getElementById("booking-date-open").addEventListener("click", openCalendar);
+  calendarTitle.addEventListener("click", () => {
+    pickingYear = !pickingYear;
+    renderCalendar();
+  });
+  document.getElementById("booking-calendar-prev").addEventListener("click", () => {
+    viewMonth = pickingYear ? new Date(viewMonth.getFullYear() - 12, viewMonth.getMonth(), 1) : new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1);
+    renderCalendar();
+  });
+  document.getElementById("booking-calendar-next").addEventListener("click", () => {
+    viewMonth = pickingYear ? new Date(viewMonth.getFullYear() + 12, viewMonth.getMonth(), 1) : new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1);
+    renderCalendar();
+  });
+  document.getElementById("booking-calendar-close").addEventListener("click", () => calendarDialog.close());
+  calendarDialog.addEventListener("click", (event) => {
+    if (event.target === calendarDialog) calendarDialog.close();
+  });
   document.querySelectorAll(".request-service").forEach((button) => button.addEventListener("click", () => {
     form.reset();
+    dateInput.dataset.iso = "";
+    dateInput.setCustomValidity("");
     document.getElementById("booking-service-id").value = button.dataset.serviceId;
     serviceName.textContent = button.dataset.serviceName;
     message.textContent = "";
@@ -468,7 +597,9 @@ export function renderCatalogHtml(
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     message.textContent = "Enviando solicitação…";
-    const preferredDate = document.getElementById("booking-date").value;
+    syncDateValue();
+    if (!dateInput.reportValidity()) return;
+    const preferredDate = dateInput.dataset.iso;
     const preferredTime = document.getElementById("booking-time").value;
     const response = await fetch(location.pathname + "/service-bookings", {
       method: "POST",
@@ -489,6 +620,7 @@ export function renderCatalogHtml(
       return;
     }
     form.reset();
+    dateInput.dataset.iso = "";
     message.textContent = "Solicitação enviada! O negócio entrará em contato para confirmar.";
   });
 })();
@@ -600,8 +732,9 @@ export function renderCatalogHtml(
   .add-cart:disabled { opacity: .5; cursor: default; }
   .variation-select, #cart-form input, #cart-form select, #cart-form textarea { width: 100%; margin-top: 8px; border: 1px solid #d8c7bc; border-radius: 10px; padding: 10px; background: #fff; font: inherit; }
   .cart-toggle { position: fixed; right: 18px; bottom: 18px; z-index: 20; border: 0; border-radius: 999px; padding: 14px 20px; background: ${palette.dark}; color: #fff; font-weight: 800; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
-  #cart-dialog, #service-booking-dialog { border: 0; border-radius: 18px; padding: 0; width: min(92vw, 480px); color: #3d2b22; }
-  #cart-dialog::backdrop, #service-booking-dialog::backdrop { background: rgba(0,0,0,.45); }
+  #cart-dialog, #service-booking-dialog, #booking-calendar-dialog { border: 0; border-radius: 18px; padding: 0; color: #3d2b22; }
+  #cart-dialog, #service-booking-dialog { width: min(92vw, 480px); }
+  #cart-dialog::backdrop, #service-booking-dialog::backdrop, #booking-calendar-dialog::backdrop { background: rgba(0,0,0,.45); }
   #cart-form { padding: 24px; display: grid; gap: 14px; }
   #cart-form label { font-size: 13px; font-weight: 700; }
   .cart-close { justify-self: end; border: 0; background: transparent; font-size: 28px; }
@@ -619,9 +752,38 @@ export function renderCatalogHtml(
   #service-booking-form input:focus, #service-booking-form select:focus, #service-booking-form textarea:focus { border-color: ${palette.base}; box-shadow: 0 0 0 3px ${palette.light}55; outline: 0; }
   #service-booking-form textarea { min-height: 96px; padding-block: 12px; resize: vertical; }
   .booking-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
-  .booking-time-control { position: relative; display: block; }
-  #service-booking-form .booking-time-control input { padding-right: 44px; }
-  .booking-time-control svg { position: absolute; top: 50%; right: 14px; width: 18px; height: 18px; transform: translateY(-50%); fill: none; stroke: #7d6354; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+  .booking-date-control, .booking-time-control { position: relative; display: block; }
+  #service-booking-form .booking-date-control input, #service-booking-form .booking-time-control input { padding-right: 48px; }
+  .booking-date-control > button { position: absolute; top: 0; right: 0; width: 48px; height: 48px; border: 0; display: inline-flex; align-items: center; justify-content: center; background: transparent; color: ${palette.base}; cursor: pointer; }
+  .booking-date-control svg, .booking-time-control svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .booking-time-control > svg { position: absolute; top: 50%; right: 15px; transform: translateY(-50%); color: #7d6354; pointer-events: none; }
+  #booking-calendar-dialog { inset: 0; width: min(92vw, 520px); max-width: 520px; margin: auto; border-radius: 24px; background: #fffdfb; overflow: hidden; }
+  #booking-calendar-dialog:focus { outline: 0; }
+  .booking-calendar-panel { padding: 24px; }
+  .booking-calendar-header { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 4px; margin-bottom: 12px; }
+  .booking-calendar-nav, .booking-calendar-title { min-height: 44px; border: 0; background: transparent; color: ${palette.base}; cursor: pointer; }
+  .booking-calendar-nav:focus, .booking-calendar-title:focus, .booking-calendar-close:focus { outline: 0; }
+  .booking-calendar-nav:focus-visible, .booking-calendar-title:focus-visible, .booking-calendar-close:focus-visible { box-shadow: 0 0 0 3px ${palette.light}; }
+  .booking-calendar-nav { display: inline-flex; align-items: center; justify-content: center; }
+  .booking-calendar-nav svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .booking-calendar-title { min-width: 0; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; color: #3d2b22; font: inherit; font-size: 19px; font-weight: 800; }
+  .booking-calendar-title span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .booking-calendar-title svg { flex: none; width: 18px; height: 18px; fill: none; stroke: #7d6354; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform .15s ease; }
+  .booking-calendar-title[aria-expanded="true"] svg { transform: rotate(180deg); }
+  .booking-calendar-weekdays, .booking-calendar-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .booking-calendar-weekdays[hidden], .booking-calendar-days[hidden] { display: none; }
+  .booking-calendar-weekdays { margin-bottom: 4px; color: ${palette.base}; font-size: 12px; font-weight: 800; text-align: center; }
+  .booking-calendar-weekdays span { padding: 4px 0; }
+  .booking-calendar-day { width: 38px; height: 38px; margin: 2px auto; border: 0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: transparent; color: #3d2b22; font: inherit; font-weight: 700; cursor: pointer; }
+  .booking-calendar-day.outside { color: #9b8275; opacity: .55; }
+  .booking-calendar-day.today:not(.selected) { border: 1.5px solid ${palette.base}; }
+  .booking-calendar-day.selected { background: ${palette.base}; color: #fff; }
+  .booking-calendar-day:disabled { opacity: .25; cursor: default; }
+  .booking-calendar-years { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .booking-calendar-years:not([hidden]) { display: grid; }
+  .booking-calendar-year { min-height: 48px; border: 1px solid #eaded7; border-radius: 12px; background: ${palette.bg}; color: #3d2b22; font: inherit; font-weight: 700; cursor: pointer; }
+  .booking-calendar-year.selected { border-color: ${palette.base}; background: ${palette.base}; color: #fff; }
+  .booking-calendar-close { width: 100%; min-height: 44px; margin-top: 16px; border: 0; border-radius: 12px; background: ${palette.bg}; color: #3d2b22; font: inherit; font-weight: 800; cursor: pointer; }
   .booking-close { flex: none; width: 44px; height: 44px; border: 0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: transparent; color: #7d6354; font: inherit; font-size: 28px; line-height: 1; cursor: pointer; }
   .booking-close:active { background: ${palette.bg}; }
   .booking-close:focus { outline: 0; }
