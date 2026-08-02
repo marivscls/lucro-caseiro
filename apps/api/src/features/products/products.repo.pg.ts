@@ -59,6 +59,7 @@ export class ProductsRepoPg implements IProductsRepo {
         stockQuantity: data.stockQuantity ?? null,
         stockAlertThreshold: data.stockAlertThreshold ?? null,
         isComposite: data.isComposite ?? false,
+        publicEnabled: data.publicEnabled ?? true,
         variations: (data.variations ?? []).map((variation) => ({
           ...variation,
           id: variation.id!,
@@ -184,6 +185,7 @@ export class ProductsRepoPg implements IProductsRepo {
     if (data.stockAlertThreshold !== undefined)
       updateData.stockAlertThreshold = data.stockAlertThreshold;
     if (data.isComposite !== undefined) updateData.isComposite = data.isComposite;
+    if (data.publicEnabled !== undefined) updateData.publicEnabled = data.publicEnabled;
     if (data.variations !== undefined)
       updateData.variations = data.variations.map((variation) => ({
         ...variation,
@@ -492,6 +494,7 @@ export class ProductsRepoPg implements IProductsRepo {
       ...(row.isComposite ? { components } : {}),
       variations: row.variations ?? [],
       isActive: row.isActive,
+      publicEnabled: row.publicEnabled,
       createdAt: row.createdAt.toISOString(),
     };
   }

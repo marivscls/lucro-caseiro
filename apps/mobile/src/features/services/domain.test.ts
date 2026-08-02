@@ -5,6 +5,7 @@ import {
   buildServiceOverview,
   calculateServicePricing,
   filterServices,
+  findServiceItemValidationError,
   servicePriceHealth,
 } from "./domain";
 
@@ -154,5 +155,55 @@ describe("calculateServicePricing", () => {
       filterServices(services, "all", "endereço").map((service) => service.id),
     ).toEqual(["service-2"]);
     expect(filterServices(services, "inactive", "")).toHaveLength(1);
+  });
+
+  it("identifies the exact incomplete item when a service has multiple options", () => {
+    expect(
+      findServiceItemValidationError({
+        variations: [
+          {
+            name: "Sessão curta",
+            durationMinutes: 30,
+            price: 80,
+            active: true,
+          },
+          {
+            name: "Sessão completa",
+            durationMinutes: 60,
+            price: 0,
+            active: true,
+          },
+        ],
+        addOns: [],
+        packages: [],
+      }),
+    ).toEqual({
+      kind: "variation",
+      index: 1,
+      field: "price",
+      message: "Informe um preço maior que zero para a opção 2.",
+    });
+  });
+
+  it("accepts multiple complete options, add-ons and packages", () => {
+    expect(
+      findServiceItemValidationError({
+        variations: [
+          { name: "Curta", durationMinutes: 30, price: 80, active: true },
+          { name: "Completa", durationMinutes: 60, price: 140, active: true },
+        ],
+        addOns: [{ name: "Deslocamento", durationMinutes: 20, price: 30, active: true }],
+        packages: [
+          {
+            name: "Mensal",
+            sessions: 4,
+            price: 500,
+            validityDays: 45,
+            recurrenceDays: 7,
+            active: true,
+          },
+        ],
+      }),
+    ).toBeNull();
   });
 });

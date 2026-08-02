@@ -21,6 +21,7 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
     stockAlertThreshold: 3,
     isComposite: false,
     isActive: true,
+    publicEnabled: true,
     createdAt: "2026-06-01T12:00:00.000Z",
     ...overrides,
   };

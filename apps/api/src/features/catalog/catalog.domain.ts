@@ -140,7 +140,6 @@ function serviceCard(service: PublicCatalogService): string {
     online: "Atendimento online",
     flexible: "Local a combinar",
   }[service.locationMode];
-  const initial = escapeHtml(service.name.charAt(0).toUpperCase() || "S");
   const description = service.description
     ? `<p class="desc">${escapeHtml(service.description)}</p>`
     : "";
@@ -173,7 +172,7 @@ function serviceCard(service: PublicCatalogService): string {
     ? `<p class="booking-instructions"><strong>Antes de solicitar:</strong> ${escapeHtml(service.bookingInstructions)}</p>`
     : "";
 
-  return `<article class="card service-card"><div class="info"><div class="service-heading"><div class="service-mark" aria-hidden="true"><span>${initial}</span></div><div class="service-heading-copy"><p class="category">Serviço</p><h2>${escapeHtml(service.name)}</h2></div></div>${description}${meta}${variations}${addOns}${packages}${bookingInstructions}<div class="bottom">${price}<button class="request-service" type="button" data-service-id="${escapeHtml(service.id)}" data-service-name="${escapeHtml(service.name)}">Solicitar horário</button></div></div></article>`;
+  return `<article class="card service-card" id="servico-${escapeHtml(service.id)}"><div class="info"><p class="category">Serviço</p><h2>${escapeHtml(service.name)}</h2>${description}${meta}${variations}${addOns}${packages}${bookingInstructions}<div class="bottom">${price}<button class="catalog-action request-service" type="button" data-service-id="${escapeHtml(service.id)}" data-service-name="${escapeHtml(service.name)}">Solicitar horário</button></div></div></article>`;
 }
 
 function catalogHeroTagline(productCount: number, serviceCount: number): string {
@@ -203,7 +202,7 @@ const BROWN_PALETTE: AccentPalette = {
 
 export const CATALOG_ACCENT_PRESETS: Record<string, AccentPalette> = {
   brown: BROWN_PALETTE,
-  rose: { dark: "#9c3d5c", base: "#c2557b", light: "#d97a9c", bg: "#faf0f3" },
+  rose: { dark: "#A85A67", base: "#B65F72", light: "#C98593", bg: "#F5E5E8" },
   green: { dark: "#2f5d3e", base: "#447a55", light: "#639672", bg: "#eff5f0" },
   lavender: { dark: "#5c4a8c", base: "#7a64b0", light: "#9883cc", bg: "#f4f1fa" },
   blue: { dark: "#2c5577", base: "#3f74a0", light: "#6494bd", bg: "#eef4f8" },
@@ -256,22 +255,28 @@ function resolvePalette(accentColor: string | null): AccentPalette {
   return CATALOG_ACCENT_PRESETS[accentColor] ?? BROWN_PALETTE;
 }
 
-export function renderCatalogHtml(catalog: PublicCatalog): string {
+export type CatalogSection = "all" | "products" | "services";
+
+export function renderCatalogHtml(
+  catalog: PublicCatalog,
+  section: CatalogSection = "all",
+): string {
   const brand = resolveBrand(catalog.brandId);
   const palette =
     catalog.accentColor === null && catalog.brandId === "lucro-caseiro"
       ? (CATALOG_ACCENT_PRESETS.rose ?? BROWN_PALETTE)
       : resolvePalette(catalog.accentColor);
   const retailOrdering = catalog.brandId === "lucro-papelaria";
-  const cards = catalog.products
+  const publicProducts = section === "services" ? [] : catalog.products;
+  const cards = publicProducts
     .map((product) => productCard(product, catalog.whatsapp, retailOrdering))
     .join("");
-  const publicServices = catalog.services ?? [];
+  const publicServices = section === "products" ? [] : (catalog.services ?? []);
   const serviceCards = publicServices.map(serviceCard).join("");
-  const categories = [
-    ...new Set(catalog.products.map((product) => product.category)),
-  ].sort((a, b) => a.localeCompare(b, "pt-BR"));
-  const count = catalog.products.length;
+  const categories = [...new Set(publicProducts.map((product) => product.category))].sort(
+    (a, b) => a.localeCompare(b, "pt-BR"),
+  );
+  const count = publicProducts.length;
   const serviceCount = publicServices.length;
   const totalCount = count + serviceCount;
   const filters =
@@ -289,8 +294,10 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
       : "";
   const initial = escapeHtml(catalog.businessName.charAt(0).toUpperCase() || "?");
   const countLabel = catalogItemCountLabel(count, serviceCount);
+  const headerButtonLabel =
+    count > 0 && serviceCount === 0 ? "Fazer pedido no WhatsApp" : "Falar no WhatsApp";
   const headerButton = catalog.whatsapp
-    ? `<a class="order hero" href="${whatsappLink(catalog.whatsapp)}">${WHATSAPP_ICON}Fazer pedido no WhatsApp</a>`
+    ? `<a class="order hero" href="${whatsappLink(catalog.whatsapp)}">${WHATSAPP_ICON}${headerButtonLabel}</a>`
     : "";
   // Capa integrada: vira o fundo do proprio hero, com um veu da cor por cima
   // para manter nome/frase legiveis (evita "banner duplo" capa + cor).
@@ -310,7 +317,7 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   const promoStrip = catalog.promoBanner
     ? `<div class="promo">${escapeHtml(catalog.promoBanner)}</div>`
     : "";
-  const hiddenCount = catalog.totalProducts - count;
+  const hiddenCount = section === "services" ? 0 : catalog.totalProducts - count;
   const moreNote =
     hiddenCount > 0
       ? `<p class="more-note">Mostrando ${count} de ${catalog.totalProducts} produtos</p>`
@@ -320,7 +327,7 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
       ? `<div class="empty"><div class="empty-icon"><svg viewBox="0 0 120 120" width="104" height="104" aria-hidden="true"><defs><linearGradient id="ebg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7ece4"/><stop offset="1" stop-color="#f0ddd1"/></linearGradient><linearGradient id="ebd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a06a50"/><stop offset="1" stop-color="#7a4c39"/></linearGradient><linearGradient id="erm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#86573f"/><stop offset="1" stop-color="#6e4534"/></linearGradient><linearGradient id="ep1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E8B4BC"/><stop offset="1" stop-color="#C4707E"/></linearGradient><linearGradient id="ep2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9fdcbd"/><stop offset="1" stop-color="#5da883"/></linearGradient><linearGradient id="ep3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ecc78a"/><stop offset="1" stop-color="#c08c3f"/></linearGradient></defs><path d="M60 8 C92 6 112 28 110 60 C108 94 88 112 58 110 C26 108 8 90 10 58 C12 28 30 10 60 8 Z" fill="url(#ebg)"/><path d="M22 30 L24.5 36 L31 38 L24.5 40 L22 46 L19.5 40 L13 38 L19.5 36 Z" fill="#E8B4BC" opacity="0.9"/><path d="M100 78 L101.8 82.5 L106 84 L101.8 85.5 L100 90 L98.2 85.5 L94 84 L98.2 82.5 Z" fill="#D4A054" opacity="0.85"/><ellipse cx="60" cy="102" rx="34" ry="6" fill="#6e4534" opacity="0.14"/><path d="M36 56 Q60 22 84 56" stroke="#6e4534" stroke-width="7" fill="none" stroke-linecap="round"/><circle cx="44" cy="50" r="14" fill="url(#ep1)"/><ellipse cx="40" cy="45" rx="5" ry="3" fill="#fff" opacity="0.5"/><circle cx="66" cy="45" r="12.5" fill="url(#ep2)"/><ellipse cx="62.5" cy="40.5" rx="4.5" ry="2.6" fill="#fff" opacity="0.5"/><circle cx="82" cy="54" r="10" fill="url(#ep3)"/><ellipse cx="79" cy="50.5" rx="3.6" ry="2.2" fill="#fff" opacity="0.55"/><path d="M24 58 L96 58 L89 95 Q87.8 101.5 81.5 101.5 L38.5 101.5 Q32.2 101.5 31 95 Z" fill="url(#ebd)"/><path d="M27.5 76 L92.5 76 L91 83 L29 83 Z" fill="#6e4534" opacity="0.35"/><line x1="42" y1="60" x2="45" y2="100" stroke="#5e3a2b" stroke-width="3.5" opacity="0.45"/><line x1="60" y1="60" x2="60" y2="101" stroke="#5e3a2b" stroke-width="3.5" opacity="0.45"/><line x1="78" y1="60" x2="75" y2="100" stroke="#5e3a2b" stroke-width="3.5" opacity="0.45"/><rect x="22" y="55" width="76" height="10" rx="5" fill="url(#erm)"/><rect x="26" y="57" width="68" height="3" rx="1.5" fill="#a06a50" opacity="0.7"/></svg></div><p>Nada disponível no momento.</p><p class="empty-sub">Volte em breve — novidades chegando!</p></div>`
       : "";
   const productsHeading =
-    count > 0 && serviceCount > 0
+    count > 0
       ? `<div class="section-heading"><p class="category">Compre agora</p><h2 id="products-title">Produtos</h2><p>Escolha o que deseja e peça pelo WhatsApp.</p></div>`
       : "";
   const servicesHeading =
@@ -331,13 +338,16 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
     serviceCount > 0
       ? `<section class="catalog-section services-section" aria-labelledby="services-title">${servicesHeading}<div class="catalog-grid">${serviceCards}</div></section>`
       : "";
-  const productsAriaLabel =
-    count > 0 && serviceCount > 0 ? ' aria-labelledby="products-title"' : "";
+  const productsAriaLabel = count > 0 ? ' aria-labelledby="products-title"' : "";
   const productsSection =
     count > 0 || totalCount === 0
       ? `<section class="catalog-section products-section"${productsAriaLabel}>${productsHeading}<div class="catalog-grid" id="catalog-products">${cards}${moreNote}${empty}</div></section>`
       : "";
   const heroTagline = catalogHeroTagline(count, serviceCount);
+  const sectionNav =
+    section === "all" && count > 0 && serviceCount > 0
+      ? `<nav class="catalog-section-nav" aria-label="Seções do catálogo"><a href="?tipo=produtos#products-title">Produtos <span>${count}</span></a><a href="?tipo=servicos#services-title">Serviços <span>${serviceCount}</span></a></nav>`
+      : "";
   const bookingDialog =
     serviceCount > 0
       ? `<dialog id="service-booking-dialog">
@@ -428,13 +438,21 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   const form = document.getElementById("service-booking-form");
   const message = document.getElementById("booking-message");
   const serviceName = document.getElementById("booking-service-name");
+  const bookingContent = dialog.querySelector(".booking-content");
   document.getElementById("booking-date").min = new Date().toISOString().slice(0, 10);
   document.querySelectorAll(".request-service").forEach((button) => button.addEventListener("click", () => {
+    form.reset();
     document.getElementById("booking-service-id").value = button.dataset.serviceId;
     serviceName.textContent = button.dataset.serviceName;
     message.textContent = "";
+    dialog.scrollTop = 0;
+    bookingContent.scrollTop = 0;
     dialog.showModal();
-    serviceName.focus({ preventScroll: true });
+    requestAnimationFrame(() => {
+      dialog.scrollTop = 0;
+      bookingContent.scrollTop = 0;
+      serviceName.focus({ preventScroll: true });
+    });
   }));
   document.querySelector(".booking-close").addEventListener("click", () => dialog.close());
   form.addEventListener("submit", async (event) => {
@@ -512,7 +530,7 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
 <style>
   :root { color-scheme: light; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: "Nunito Sans", system-ui, sans-serif; background: ${palette.bg}; color: #3d2b22; -webkit-font-smoothing: antialiased; }
+  body { font-family: "Nunito Sans", system-ui, sans-serif; background: ${palette.bg}; color: #3d2b22; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
   .promo { background: ${palette.dark}; color: #fff; text-align: center; font-size: 14px; font-weight: 700; padding: 11px 16px; letter-spacing: 0.3px; }
   .hero-bg { ${heroBackground} padding: 44px 20px 72px; text-align: center; color: #fff; position: relative; overflow: hidden; }
   .bio { margin-top: 10px; font-size: 15px; line-height: 1.5; opacity: 0.92; max-width: 480px; margin-left: auto; margin-right: auto; position: relative; z-index: 1; }
@@ -525,12 +543,12 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   .tagline { margin-top: 6px; font-size: 14px; letter-spacing: 2.5px; text-transform: uppercase; opacity: 0.78; position: relative; z-index: 1; }
   .count { display: inline-block; margin-top: 14px; font-size: 13px; background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.25); padding: 6px 14px; border-radius: 999px; position: relative; z-index: 1; }
   .catalog-tools { max-width: 1160px; margin: -44px auto 18px; padding: 16px; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; position: relative; z-index: 3; background: #fffdfb; border: 1px solid rgba(140,90,69,.16); border-radius: 18px; }
-  .catalog-tools label { display: grid; gap: 6px; font-size: 12px; font-weight: 800; color: #7d6354; }
-  .catalog-tools input, .catalog-tools select { width: 100%; min-height: 44px; border: 1px solid #dfd0c8; border-radius: 12px; background: #fff; color: #3d2b22; padding: 0 12px; font: inherit; }
-  main { max-width: 1160px; margin: 0 auto; padding: 0 16px 16px; position: relative; z-index: 2; display: grid; gap: 28px; }
+  .catalog-tools label { min-width: 0; display: grid; gap: 6px; font-size: 12px; font-weight: 800; color: #7d6354; }
+  .catalog-tools input, .catalog-tools select { width: 100%; min-width: 0; min-height: 44px; border: 1px solid #dfd0c8; border-radius: 12px; background: #fff; color: #3d2b22; padding: 0 12px; font: inherit; }
+  main { min-width: 0; max-width: 1160px; margin: 0 auto; padding: 0 16px 16px; position: relative; z-index: 2; display: grid; gap: 28px; }
   main.services-only { padding-top: 28px; }
-  .catalog-section { display: grid; gap: 16px; }
-  .catalog-grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  .catalog-section { min-width: 0; display: grid; gap: 16px; }
+  .catalog-grid { min-width: 0; display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
   .card { background: #fffdfb; border-radius: 20px; overflow: hidden; border: 1px solid rgba(140, 90, 69, 0.16); display: flex; flex-direction: column; transition: transform 0.15s ease; }
   .card:target { scroll-margin-top: 16px; outline: 3px solid ${palette.light}; outline-offset: 3px; }
   .card:hover { transform: translateY(-2px); }
@@ -541,12 +559,10 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   .option-label { color: #4a3228; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 2px; }
   .option-group .variants { margin-top: 8px; }
   .service-meta { margin-top: 12px; }
-  .service-heading { display: flex; align-items: center; gap: 12px; }
-  .service-mark { width: 48px; height: 48px; flex: 0 0 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: ${palette.bg}; color: ${palette.dark}; }
-  .service-mark span { font-family: "Nunito Sans", system-ui, sans-serif; font-size: 22px; font-weight: 800; line-height: 1; }
-  .service-heading-copy { min-width: 0; }
-  .service-card .bottom { margin-top: 16px; border-top: 1px solid rgba(140, 90, 69, 0.16); }
-  .booking-instructions { margin-top: 14px; padding: 10px 12px; border-radius: 12px; background: ${palette.bg}; color: #7d6354; font-size: 13px; line-height: 1.45; }
+  .catalog-section-nav { max-width: 1160px; margin: 0 auto 20px; padding: 0 16px; display: flex; gap: 10px; }
+  .catalog-section-nav a { flex: 1; min-width: 0; min-height: 48px; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid ${palette.light}; border-radius: 14px; background: #fffdfb; color: ${palette.dark}; text-decoration: none; font-weight: 800; }
+  .catalog-section-nav span { min-width: 24px; padding: 2px 7px; border-radius: 999px; background: ${palette.bg}; font-size: 12px; text-align: center; }
+  .booking-instructions { margin-top: 14px; padding: 10px 12px; border-radius: 12px; background: ${palette.bg}; color: #7d6354; font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
   .request-service, .booking-submit { width: 100%; min-height: 48px; margin-top: 12px; border: 0; border-radius: 999px; background: ${palette.base}; color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
   .request-service:active, .booking-submit:active { transform: scale(0.98); }
   .photo img { width: 100%; height: 200px; object-fit: cover; display: block; }
@@ -555,12 +571,12 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   .gallery img { flex: 0 0 100%; scroll-snap-align: center; }
   .placeholder { width: 100%; height: 200px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f3e6dd, #e9d5c8); }
   .placeholder span { font-family: "Nunito Sans", system-ui, sans-serif; font-size: 64px; color: #b08368; }
-  .info { padding: 18px 18px 20px; display: flex; flex-direction: column; flex: 1; }
+  .info { min-width: 0; padding: 18px 18px 20px; display: flex; flex-direction: column; flex: 1; }
   .info h2 { font-family: "Nunito Sans", system-ui, sans-serif; font-size: 20px; font-weight: 700; color: #4a3228; }
   .category { color: ${palette.base}; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .7px; margin-bottom: 5px; }
   .desc { margin-top: 6px; font-size: 14px; line-height: 1.5; color: #7d6354; }
   .variants { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
-  .variant { border: 1px solid ${palette.light}; color: ${palette.dark}; background: ${palette.bg}; border-radius: 999px; padding: 5px 9px; font-size: 12px; font-weight: 650; }
+  .variant { max-width: 100%; border: 1px solid ${palette.light}; color: ${palette.dark}; background: ${palette.bg}; border-radius: 999px; padding: 5px 9px; font-size: 12px; font-weight: 650; overflow-wrap: anywhere; }
   .variant.sold-out { opacity: 0.55; text-decoration: line-through; }
   .bottom { margin-top: auto; padding-top: 14px; }
   .price { font-size: 24px; font-weight: 800; color: #2e7d32; letter-spacing: -0.3px; }
@@ -582,7 +598,7 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   .reserve-submit { border: 0; border-radius: 999px; padding: 13px; background: ${palette.base}; color: #fff; font-weight: 800; }
   #service-booking-dialog { inset: 0; width: min(94vw, 560px); max-height: calc(100dvh - 32px); margin: auto; background: #fffdfb; overflow: hidden; }
   #service-booking-form { display: flex; flex-direction: column; max-height: calc(100dvh - 32px); }
-  .booking-header { flex: none; display: flex; align-items: center; gap: 12px; padding: 18px 24px; border-bottom: 1px solid #eaded7; }
+  .booking-header { flex: none; position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 12px; padding: 18px 24px; border-bottom: 1px solid #eaded7; background: #fffdfb; }
   .booking-heading { flex: 1; min-width: 0; }
   .booking-heading .category { margin-bottom: 2px; }
   .booking-heading h2 { overflow: hidden; font-size: 24px; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
@@ -597,11 +613,11 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   .booking-close:active { background: ${palette.bg}; }
   .booking-close:focus { outline: 0; }
   .booking-close:focus-visible { box-shadow: 0 0 0 3px ${palette.light}; }
-  .booking-footer { flex: none; padding: 16px 24px; display: grid; grid-template-columns: minmax(0, 1fr); align-items: stretch; justify-content: stretch; gap: 10px; border-top: 1px solid #eaded7; background: #fffdfb; }
+  .booking-footer { flex: none; position: sticky; bottom: 0; z-index: 2; padding: 16px 24px; display: grid; grid-template-columns: minmax(0, 1fr); align-items: stretch; justify-content: stretch; gap: 10px; border-top: 1px solid #eaded7; background: #fffdfb; }
   .booking-submit { margin-top: 0; border-radius: 12px; }
   #booking-message { color: ${palette.dark}; font-size: 13px; line-height: 1.4; }
   #booking-message:empty { display: none; }
-  .order.hero { margin-top: 18px; background: #fff; color: ${palette.dark}; box-shadow: 0 8px 22px rgba(0,0,0,0.18); position: relative; z-index: 1; }
+  .order.hero { width: fit-content; max-width: 100%; margin: 18px auto 0; display: flex; justify-content: center; background: #fff; color: ${palette.dark}; box-shadow: 0 8px 22px rgba(0,0,0,0.18); position: relative; z-index: 1; }
   .empty { grid-column: 1 / -1; text-align: center; padding: 56px 20px; background: #fffdfb; border-radius: 20px; box-shadow: 0 10px 30px rgba(61, 43, 34, 0.1); }
   .empty-icon { margin-bottom: 12px; }
   .empty-icon svg { display: inline-block; }
@@ -616,8 +632,10 @@ export function renderCatalogHtml(catalog: PublicCatalog): string {
   footer .footer-cta { font-size: 13px; }
   footer .footer-cta a { color: ${palette.base}; background: transparent; border: 1px solid ${palette.base}; text-decoration: none; font-weight: 700; padding: 7px 15px; border-radius: 999px; display: inline-block; margin-top: 2px; }
   @media (max-width: 720px) {
-    .catalog-tools { margin: -44px 16px 18px; grid-template-columns: 1fr 1fr; }
+    .catalog-tools { margin: -44px 16px 18px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
     .catalog-tools .search { grid-column: 1 / -1; }
+    .catalog-section-nav { padding: 0 16px; }
+    .catalog-section-nav a { font-size: 14px; }
     .catalog-grid { grid-template-columns: 1fr; }
     #service-booking-dialog { inset: auto 0 0; width: 100%; max-width: none; max-height: calc(100dvh - max(12px, env(safe-area-inset-top))); margin: auto 0 0; border-radius: 24px 24px 0 0; }
     #service-booking-form { max-height: calc(100dvh - max(12px, env(safe-area-inset-top))); }
@@ -643,6 +661,7 @@ ${promoStrip}
   ${headerButton}
 </div>
 ${filters}
+${sectionNav}
 <main${count === 0 && serviceCount > 0 ? ' class="services-only"' : ""}>
 ${productsSection}
 ${servicesSection}

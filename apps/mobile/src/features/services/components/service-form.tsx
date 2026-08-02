@@ -16,7 +16,7 @@ import {
   useTheme,
 } from "@lucro-caseiro/ui";
 import React, { useMemo, useRef, useState } from "react";
-import { View } from "react-native";
+import { Switch, View } from "react-native";
 
 import { FormSection } from "../../../shared/components/form-section";
 import { StandardModal } from "../../../shared/components/standard-modal";
@@ -28,7 +28,11 @@ import {
   parseCurrencyInput,
 } from "../../../shared/utils/currency-input";
 import { formatCurrency } from "../../../shared/utils/format";
-import { calculateServicePricing } from "../domain";
+import {
+  calculateServicePricing,
+  findServiceItemValidationError,
+  type ServiceItemValidationError,
+} from "../domain";
 import { useCreateService, useServices, useUpdateService } from "../hooks";
 
 interface ServiceFormProps {
@@ -112,9 +116,7 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
   );
   const [bufferMinutes, setBufferMinutes] = useState(String(service?.bufferMinutes ?? 0));
   const [publicEnabled, setPublicEnabled] = useState(service?.publicEnabled ?? false);
-  const [bookingInstructions, setBookingInstructions] = useState(
-    service?.bookingInstructions ?? "",
-  );
+  const bookingInstructions = service?.bookingInstructions ?? "";
   const [variations, setVariations] = useState<ServiceVariationInput[]>(
     service?.variations.map(({ id, name, durationMinutes, price, active }) => ({
       id,
@@ -145,6 +147,11 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
         active,
       }),
     ) ?? [],
+  );
+  const [showItemValidationErrors, setShowItemValidationErrors] = useState(false);
+  const itemValidationError = useMemo(
+    () => findServiceItemValidationError({ variations, addOns, packages }),
+    [addOns, packages, variations],
   );
 
   const hasPricingData = !!(
@@ -181,6 +188,19 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
 
   const saving = createService.isPending || updateService.isPending;
 
+  function fieldError(
+    kind: ServiceItemValidationError["kind"],
+    index: number,
+    field: ServiceItemValidationError["field"],
+  ): string | undefined {
+    return showItemValidationErrors &&
+      itemValidationError?.kind === kind &&
+      itemValidationError.index === index &&
+      itemValidationError.field === field
+      ? itemValidationError.message
+      : undefined;
+  }
+
   async function submit() {
     const normalizedName = name.trim();
     const duration = Number.parseInt(durationMinutes, 10);
@@ -214,26 +234,12 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
       );
       return;
     }
-    if (
-      variations.some(
-        (item) => !item.name.trim() || item.durationMinutes < 5 || item.price <= 0,
-      ) ||
-      addOns.some(
-        (item) => !item.name.trim() || item.durationMinutes < 0 || item.price <= 0,
-      ) ||
-      packages.some(
-        (item) =>
-          !item.name.trim() ||
-          item.sessions < 2 ||
-          item.price <= 0 ||
-          item.validityDays < 1,
-      )
-    ) {
-      alertValidation(
-        "Revise nomes, durações e valores das opções, adicionais e pacotes.",
-      );
+    if (itemValidationError) {
+      setShowItemValidationErrors(true);
+      alertValidation(itemValidationError.message);
       return;
     }
+    setShowItemValidationErrors(false);
 
     if (submittingRef.current) return;
     submittingRef.current = true;
@@ -402,10 +408,10 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
       </FormSection>
 
       <FormSection
-        title="Agenda e divulgação"
-        subtitle="Defina onde acontece, o respiro entre horários e o que aparece na vitrine"
+        title="Agenda"
+        subtitle="Defina onde acontece e o respiro entre horários"
         icon="calendar-outline"
-        initiallyOpen={!!service?.publicEnabled}
+        initiallyOpen
       >
         <Typography variant="bodyBold">Onde o atendimento acontece</Typography>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
@@ -429,35 +435,27 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
         <Typography variant="caption" color={theme.colors.textSecondary}>
           Evita horários colados e considera limpeza, deslocamento ou preparação.
         </Typography>
-        <Typography variant="bodyBold">Vitrine pública</Typography>
-        <Typography variant="caption" color={theme.colors.textSecondary}>
-          Ao publicar, clientes podem conhecer este serviço e solicitar um horário. A
-          solicitação só vira agendamento depois da sua confirmação.
-        </Typography>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-          <Chip
-            label="Visível na vitrine"
-            selected={publicEnabled}
-            onPress={() => setPublicEnabled(true)}
-          />
-          <Chip
-            label="Somente interno"
-            selected={!publicEnabled}
-            onPress={() => setPublicEnabled(false)}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: spacing.md,
+            paddingTop: spacing.sm,
+          }}
+        >
+          <View style={{ flex: 1, gap: spacing.xs }}>
+            <Typography variant="bodyBold">Exibir no catálogo</Typography>
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              A curadoria e o compartilhamento ficam em Catálogo online.
+            </Typography>
+          </View>
+          <Switch
+            value={publicEnabled}
+            onValueChange={setPublicEnabled}
+            trackColor={{ true: theme.colors.primary }}
+            accessibilityLabel="Exibir serviço no catálogo"
           />
         </View>
-        {publicEnabled ? (
-          <Input
-            label="Orientações para agendamento (opcional)"
-            placeholder="Ex.: traga uma foto de referência ou informe o bairro"
-            value={bookingInstructions}
-            onChangeText={setBookingInstructions}
-            maxLength={500}
-            multiline
-            textAlignVertical="top"
-            style={{ height: 88, paddingVertical: spacing.md }}
-          />
-        ) : null}
       </FormSection>
 
       <FormSection
@@ -476,6 +474,7 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
               label="Nome da opção"
               placeholder="Ex.: Sessão completa"
               value={variation.name}
+              error={fieldError("variation", index, "name")}
               onChangeText={(value) =>
                 setVariations(
                   replaceListItem(variations, index, { ...variation, name: value }),
@@ -486,6 +485,7 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
               <Input
                 label="Duração"
                 value={String(variation.durationMinutes)}
+                error={fieldError("variation", index, "durationMinutes")}
                 onChangeText={(value) =>
                   setVariations(
                     replaceListItem(variations, index, {
@@ -500,6 +500,7 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
               <Input
                 label="Preço"
                 value={currencyInput(variation.price)}
+                error={fieldError("variation", index, "price")}
                 onChangeText={(value) =>
                   setVariations(
                     replaceListItem(variations, index, {
@@ -547,6 +548,7 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
               label="Nome do adicional"
               placeholder="Ex.: Deslocamento"
               value={addOn.name}
+              error={fieldError("addOn", index, "name")}
               onChangeText={(value) =>
                 setAddOns(replaceListItem(addOns, index, { ...addOn, name: value }))
               }
@@ -555,6 +557,7 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
               <Input
                 label="Minutos extras"
                 value={String(addOn.durationMinutes)}
+                error={fieldError("addOn", index, "durationMinutes")}
                 onChangeText={(value) =>
                   setAddOns(
                     replaceListItem(addOns, index, {
@@ -569,6 +572,7 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
               <Input
                 label="Valor adicional"
                 value={currencyInput(addOn.price)}
+                error={fieldError("addOn", index, "price")}
                 onChangeText={(value) =>
                   setAddOns(
                     replaceListItem(addOns, index, {
@@ -612,6 +616,7 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
               label="Nome do pacote"
               placeholder="Ex.: Plano mensal"
               value={servicePackage.name}
+              error={fieldError("package", index, "name")}
               onChangeText={(value) =>
                 setPackages(
                   replaceListItem(packages, index, {
@@ -625,6 +630,7 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
               <Input
                 label="Sessões"
                 value={String(servicePackage.sessions)}
+                error={fieldError("package", index, "sessions")}
                 onChangeText={(value) =>
                   setPackages(
                     replaceListItem(packages, index, {
@@ -639,6 +645,7 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
               <Input
                 label="Valor do pacote"
                 value={currencyInput(servicePackage.price)}
+                error={fieldError("package", index, "price")}
                 onChangeText={(value) =>
                   setPackages(
                     replaceListItem(packages, index, {
@@ -653,6 +660,7 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
               <Input
                 label="Validade (dias)"
                 value={String(servicePackage.validityDays)}
+                error={fieldError("package", index, "validityDays")}
                 onChangeText={(value) =>
                   setPackages(
                     replaceListItem(packages, index, {
@@ -672,6 +680,7 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
                     ? String(servicePackage.recurrenceDays)
                     : ""
                 }
+                error={fieldError("package", index, "recurrenceDays")}
                 onChangeText={(value) =>
                   setPackages(
                     replaceListItem(packages, index, {

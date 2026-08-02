@@ -156,6 +156,7 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
     isComposite: false,
     variations: [],
     isActive: true,
+    publicEnabled: true,
     createdAt: new Date().toISOString(),
     ...overrides,
   };

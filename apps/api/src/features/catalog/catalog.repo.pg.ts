@@ -108,7 +108,13 @@ export class CatalogRepoPg implements ICatalogRepo {
         variations: products.variations,
       })
       .from(products)
-      .where(and(eq(products.userId, userId), eq(products.isActive, true)))
+      .where(
+        and(
+          eq(products.userId, userId),
+          eq(products.isActive, true),
+          eq(products.publicEnabled, true),
+        ),
+      )
       .orderBy(asc(products.name));
 
     return rows.map((row) => ({

@@ -1,9 +1,15 @@
-import type { CatalogAccentColorValue, CatalogSettings } from "@lucro-caseiro/contracts";
+import type {
+  CatalogAccentColorValue,
+  CatalogSettings,
+  Product,
+  Service,
+} from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import {
   Badge,
   Button,
   Card,
+  Chip,
   Input,
   Typography,
   useTheme,
@@ -14,11 +20,19 @@ import { AppIcon } from "../shared/components/app-icon";
 import type { AppIconName } from "../shared/components/app-icon";
 import { Stack } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Image, Pressable, Share, Switch, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  Linking,
+  Pressable,
+  Share,
+  Switch,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { trackAnalyticsAction } from "../features/analytics/tracker";
-import { publicCatalogUrl } from "../features/catalog/api";
+import { publicCatalogSectionUrl, publicCatalogUrl } from "../features/catalog/api";
 import { ColorPickerModal } from "../shared/components/color-picker-modal";
 import { HeroPreview } from "../features/catalog/components/hero-preview";
 import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
@@ -35,15 +49,24 @@ import { uploadCatalogCover, uploadCatalogLogo } from "../shared/utils/upload-im
 import { alertError } from "../shared/utils/alerts";
 import catalogStorefront from "../assets/catalog-hero.png";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
-import { desktopAction, desktopCompactField, desktopSplitLayout, desktopStretch, pageGutter } from "../shared/layout/desktop-density";
+import {
+  desktopAction,
+  desktopCompactField,
+  desktopSplitLayout,
+  desktopStretch,
+  pageGutter,
+} from "../shared/layout/desktop-density";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { useBusinessCopy } from "../features/subscription/business-copy";
+import { useAllProducts, useUpdateProduct } from "../features/products/hooks";
+import { useServices, useUpdateService } from "../features/services/hooks";
+import { formatCurrency } from "../shared/utils/format";
 
 // Mesmas chaves/cores dos presets do backend (CATALOG_ACCENT_PRESETS).
 const ACCENT_SWATCHES: { key: CatalogAccentColorValue; color: string; label: string }[] =
   [
     { key: "brown", color: "#8c5a45", label: "Marrom" },
-    { key: "rose", color: "#c2557b", label: "Rosa" },
+    { key: "rose", color: "#B65F72", label: "Rosa" },
     { key: "green", color: "#447a55", label: "Verde" },
     { key: "lavender", color: "#7a64b0", label: "Lilás" },
     { key: "blue", color: "#3f74a0", label: "Azul" },
@@ -120,7 +143,11 @@ function CatalogIntro({
             <AppIcon name="rocket-outline" size={20} color={theme.colors.textOnPrimary} />
           }
           accessibilityLabel="Ativar meu catálogo"
-          style={{ alignSelf: isDesktop ? undefined : "stretch", minHeight: 56, ...desktopAction(isDesktop, 240) }}
+          style={{
+            alignSelf: isDesktop ? undefined : "stretch",
+            minHeight: 56,
+            ...desktopAction(isDesktop, 240),
+          }}
         />
         <Typography
           variant="caption"
@@ -162,6 +189,285 @@ function AppearanceEssentialTeaser({ onUnlock }: Readonly<{ onUnlock: () => void
         icon={<AppIcon name="diamond" size={18} color={theme.colors.textOnPrimary} />}
         style={{ alignSelf: "center", marginTop: spacing.xs }}
       />
+    </View>
+  );
+}
+
+type CatalogContentTab = "products" | "services";
+
+function serviceCatalogDescription(service: Service): string {
+  if (!service.active) return "Pausado — reative na tela Serviços";
+  const price =
+    service.defaultPrice == null
+      ? "Preço sob consulta"
+      : formatCurrency(service.defaultPrice);
+  return `${service.durationMinutes} min · ${price}`;
+}
+
+function CatalogItemVisibility({
+  title,
+  description,
+  imageUrl,
+  icon,
+  enabled,
+  disabled = false,
+  pending,
+  onChange,
+}: Readonly<{
+  title: string;
+  description: string;
+  imageUrl?: string | null;
+  icon: AppIconName;
+  enabled: boolean;
+  disabled?: boolean;
+  pending: boolean;
+  onChange: (enabled: boolean) => void;
+}>) {
+  const { theme } = useTheme();
+  return (
+    <Card padding="md">
+      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+        {imageUrl ? (
+          <Image
+            source={{ uri: imageUrl }}
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: radii.lg,
+              backgroundColor: theme.colors.surface,
+            }}
+          />
+        ) : (
+          <View
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: radii.lg,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: theme.colors.primaryBg,
+            }}
+          >
+            <AppIcon name={icon} size={23} color={theme.colors.primaryStrong} />
+          </View>
+        )}
+        <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+          <Typography variant="bodyBold" numberOfLines={1}>
+            {title}
+          </Typography>
+          <Typography variant="caption" color={theme.colors.textSecondary}>
+            {pending ? "Salvando visibilidade..." : description}
+          </Typography>
+        </View>
+        <Switch
+          value={enabled}
+          disabled={disabled || pending}
+          onValueChange={onChange}
+          trackColor={{ true: theme.colors.primary }}
+          accessibilityLabel={`${enabled ? "Ocultar" : "Exibir"} ${title} no catálogo`}
+        />
+      </View>
+    </Card>
+  );
+}
+
+function CatalogContentManager({ slug }: Readonly<{ slug: string }>) {
+  const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
+  const [tab, setTab] = useState<CatalogContentTab>("products");
+  const [pending, setPending] = useState<{
+    type: CatalogContentTab;
+    id: string;
+    enabled: boolean;
+  } | null>(null);
+  const productsQuery = useAllProducts();
+  const servicesQuery = useServices();
+  const updateProduct = useUpdateProduct();
+  const updateService = useUpdateService();
+  const products = productsQuery.data ?? [];
+  const services = servicesQuery.data ?? [];
+  const visibleProducts = products.filter((product) => product.publicEnabled).length;
+  const visibleServices = services.filter(
+    (service) => service.active && service.publicEnabled,
+  ).length;
+  const isProductsTab = tab === "products";
+  const sectionLabel = isProductsTab ? "produtos" : "serviços";
+  const sectionUrl = publicCatalogSectionUrl(
+    slug,
+    isProductsTab ? "produtos" : "servicos",
+  );
+  const sectionCount = isProductsTab ? visibleProducts : visibleServices;
+  const sectionShareMessage = isProductsTab
+    ? `Oi! 😊 Veja meus produtos e faça seu pedido por aqui:\n\n${sectionUrl}`
+    : `Oi! 😊 Veja meus serviços e solicite seu horário por aqui:\n\n${sectionUrl}`;
+
+  function resolvedVisibility(
+    type: CatalogContentTab,
+    id: string,
+    current: boolean,
+  ): boolean {
+    return pending?.type === type && pending.id === id ? pending.enabled : current;
+  }
+
+  async function setProductVisibility(product: Product, enabled: boolean) {
+    setPending({ type: "products", id: product.id, enabled });
+    try {
+      await updateProduct.mutateAsync({
+        id: product.id,
+        data: { publicEnabled: enabled },
+      });
+      await productsQuery.refetch();
+    } catch {
+      alertError("Não foi possível atualizar esse produto no catálogo.");
+    } finally {
+      setPending(null);
+    }
+  }
+
+  async function setServiceVisibility(service: Service, enabled: boolean) {
+    setPending({ type: "services", id: service.id, enabled });
+    try {
+      await updateService.mutateAsync({
+        id: service.id,
+        data: { publicEnabled: enabled },
+      });
+      await servicesQuery.refetch();
+    } catch {
+      alertError("Não foi possível atualizar esse serviço no catálogo.");
+    } finally {
+      setPending(null);
+    }
+  }
+
+  async function previewSection() {
+    await Linking.openURL(sectionUrl);
+  }
+
+  async function shareSection() {
+    if (await openWhatsAppShare(sectionShareMessage)) {
+      void trackAnalyticsAction("catalog_shared", useAuth.getState().token);
+    }
+  }
+
+  const query = tab === "products" ? productsQuery : servicesQuery;
+  const itemsAreEmpty =
+    tab === "products" ? products.length === 0 : services.length === 0;
+  const emptyMessage =
+    tab === "products"
+      ? "Cadastre produtos para escolher quais aparecem na vitrine."
+      : "Cadastre serviços para escolher quais aparecem na vitrine.";
+
+  let content: React.ReactNode;
+  if (query.isLoading) {
+    content = (
+      <View style={{ gap: spacing.sm }}>
+        <SkeletonCard lines={2} />
+        <SkeletonCard lines={2} />
+      </View>
+    );
+  } else if (query.error) {
+    content = (
+      <Card style={{ gap: spacing.md }}>
+        <Typography variant="bodyBold">Não foi possível carregar o conteúdo</Typography>
+        <Button
+          title="Tentar novamente"
+          variant="secondary"
+          onPress={() => void query.refetch()}
+        />
+      </Card>
+    );
+  } else if (itemsAreEmpty) {
+    content = (
+      <Card>
+        <Typography variant="body" color={theme.colors.textSecondary}>
+          {emptyMessage}
+        </Typography>
+      </Card>
+    );
+  } else if (tab === "products") {
+    content = (
+      <View style={{ gap: spacing.sm }}>
+        {products.map((product) => (
+          <CatalogItemVisibility
+            key={product.id}
+            title={product.name}
+            description={`${product.category} · ${formatCurrency(product.salePrice)}`}
+            imageUrl={product.photoUrl}
+            icon="cube-outline"
+            enabled={resolvedVisibility("products", product.id, product.publicEnabled)}
+            pending={pending?.type === "products" && pending.id === product.id}
+            onChange={(enabled) => void setProductVisibility(product, enabled)}
+          />
+        ))}
+      </View>
+    );
+  } else {
+    content = (
+      <View style={{ gap: spacing.sm }}>
+        {services.map((service) => (
+          <CatalogItemVisibility
+            key={service.id}
+            title={service.name}
+            description={serviceCatalogDescription(service)}
+            icon="briefcase-outline"
+            enabled={resolvedVisibility(
+              "services",
+              service.id,
+              service.active && service.publicEnabled,
+            )}
+            disabled={!service.active}
+            pending={pending?.type === "services" && pending.id === service.id}
+            onChange={(enabled) => void setServiceVisibility(service, enabled)}
+          />
+        ))}
+      </View>
+    );
+  }
+
+  return (
+    <View style={{ gap: spacing.md }}>
+      <View style={{ gap: spacing.xs }}>
+        <Typography variant="h3">Conteúdo da vitrine</Typography>
+        <Typography variant="caption" color={theme.colors.textSecondary}>
+          Escolha o que seus clientes encontram no mesmo catálogo online.
+        </Typography>
+      </View>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+        <Chip
+          label={`Produtos · ${visibleProducts}`}
+          selected={tab === "products"}
+          onPress={() => setTab("products")}
+        />
+        <Chip
+          label={`Serviços · ${visibleServices}`}
+          selected={tab === "services"}
+          onPress={() => setTab("services")}
+        />
+      </View>
+      <View style={{ flexDirection: isDesktop ? "row" : "column", gap: spacing.sm }}>
+        <Button
+          title={`Ver ${sectionLabel}`}
+          variant="secondary"
+          disabled={sectionCount === 0}
+          icon={
+            <AppIcon name="eye-outline" size={20} color={theme.colors.primaryStrong} />
+          }
+          onPress={() => void previewSection()}
+          style={desktopAction(isDesktop, 180)}
+        />
+        <Button
+          title={`Compartilhar ${sectionLabel}`}
+          variant="success"
+          disabled={sectionCount === 0}
+          icon={
+            <AppIcon name="logo-whatsapp" size={20} color={theme.colors.textOnPrimary} />
+          }
+          onPress={() => void shareSection()}
+          style={desktopAction(isDesktop, 230)}
+        />
+      </View>
+
+      {content}
     </View>
   );
 }
@@ -358,6 +664,10 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
     }
   }
 
+  async function handlePreview() {
+    await Linking.openURL(url);
+  }
+
   const heroBg = theme.colors.surfaceElevated;
   const split = desktopSplitLayout(isDesktop);
 
@@ -395,8 +705,8 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
           color={theme.colors.textSecondary}
           style={{ textAlign: "center", paddingHorizontal: spacing.lg }}
         >
-          Uma página linda com seus produtos. Compartilhe o link e receba pedidos direto
-          no WhatsApp.
+          Uma página linda com seus produtos e serviços. Compartilhe o link e receba
+          pedidos direto no WhatsApp.
         </Typography>
         <Badge
           label={settings.enabled ? "✓ Catálogo no ar" : "Catálogo desativado"}
@@ -414,344 +724,414 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
 
       {settings.enabled && (
         <View style={canCustomizeCatalog && isDesktop ? split.row : undefined}>
-          <View style={canCustomizeCatalog && isDesktop ? split.main : { gap: spacing.lg }}>
-          {/* Link compartilhável */}
-          {settings.enabled && (
-            <Card padding="lg" style={{ backgroundColor: heroBg }}>
-              <View style={{ gap: spacing.md }}>
-                <Typography variant="label">SEU LINK</Typography>
-                <Pressable
-                  onPress={() => void handleShare()}
-                  accessibilityRole="button"
-                  accessibilityLabel="Compartilhar link do catálogo"
-                  style={({ pressed }) => [
-                    {
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: spacing.sm,
-                      backgroundColor: theme.colors.surface,
-                      borderWidth: 1,
-                      borderColor: theme.colors.border,
-                      borderRadius: radii.xl,
-                      paddingVertical: spacing.md,
-                      paddingHorizontal: spacing.lg,
-                      opacity: pressed ? 0.8 : 1,
-                    },
-                  ]}
-                >
-                  <AppIcon
-                    name="link-outline"
-                    size={20}
-                    color={theme.colors.primaryStrong}
-                  />
-                  <Typography
-                    variant="caption"
-                    style={{ flex: 1 }}
-                    numberOfLines={1}
-                    color={theme.colors.text}
-                  >
-                    {url.replace(/^https?:\/\//, "")}
-                  </Typography>
-                  <AppIcon
-                    name="share-social-outline"
-                    size={20}
-                    color={theme.colors.primaryStrong}
-                  />
-                </Pressable>
-                <View style={{ flexDirection: isDesktop ? "row" : "column", gap: spacing.sm }}>
-                  <Button
-                    title="Compartilhar no WhatsApp"
-                    variant="success"
-                    icon={<AppIcon name="logo-whatsapp" size={20} color={theme.colors.textOnPrimary} />}
-                    onPress={() => void handleWhatsAppShare()}
-                    style={desktopAction(isDesktop, 240)}
-                  />
-                  <Button
-                    title="Outras opções"
-                    variant="outline"
-                    icon={<AppIcon name="share-social-outline" size={20} color={theme.colors.primaryStrong} />}
+          <View
+            style={canCustomizeCatalog && isDesktop ? split.main : { gap: spacing.lg }}
+          >
+            {/* Link compartilhável */}
+            {settings.enabled && (
+              <Card padding="lg" style={{ backgroundColor: heroBg }}>
+                <View style={{ gap: spacing.md }}>
+                  <Typography variant="label">SEU LINK</Typography>
+                  <Pressable
                     onPress={() => void handleShare()}
-                    style={desktopAction(isDesktop, 190)}
-                  />
-                </View>
-              </View>
-            </Card>
-          )}
-
-          {/* Gatilho de upgrade: free mostra ate 3 produtos no catalogo */}
-          {!canShowFullCatalog && (
-            <Card
-              padding="lg"
-              onPress={() => showPaywall("catalog", "essential")}
-              style={{
-                borderLeftWidth: 3,
-                borderLeftColor: theme.colors.premium,
-              }}
-            >
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
-              >
-                <AppIcon name="diamond-outline" size={24} color={theme.colors.premium} />
-                <View style={{ flex: 1 }}>
-                  <Typography variant="bodyBold">
-                    Seu catálogo mostra até 3 produtos
-                  </Typography>
-                  <Typography variant="caption">
-                    Mostre seu catálogo completo e personalize as cores no Essencial.
-                  </Typography>
-                </View>
-                <AppIcon
-                  name="chevron-forward"
-                  size={18}
-                  color={theme.colors.textSecondary}
-                />
-              </View>
-            </Card>
-          )}
-
-          {/* Ativação */}
-          <Card padding="lg">
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: spacing.md,
-              }}
-            >
-              <View
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: radii.lg,
-                  backgroundColor: settings.enabled
-                    ? theme.colors.successBg
-                    : theme.colors.surface,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <AppIcon
-                  name={settings.enabled ? "globe-outline" : "eye-off-outline"}
-                  size={22}
-                  color={
-                    settings.enabled ? theme.colors.success : theme.colors.textSecondary
-                  }
-                />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Typography variant="h3">Catálogo ativo</Typography>
-                <Typography variant="caption">
-                  {settings.enabled
-                    ? "Qualquer pessoa com o link pode ver seus produtos."
-                    : "Ative para compartilhar com seus clientes."}
-                </Typography>
-              </View>
-              <Switch
-                value={settings.enabled}
-                onValueChange={(value) => void handleToggle(value)}
-                trackColor={{ true: theme.colors.primary }}
-                accessibilityLabel="Ativar catálogo"
-              />
-            </View>
-          </Card>
-
-          {/* Configurações */}
-          <Card padding="lg">
-            <View style={{ gap: spacing.md }}>
-              <Typography variant="label">PERSONALIZAR</Typography>
-              <Input
-                label="Endereço do catálogo"
-                value={slug}
-                onChangeText={setSlug}
-                autoCapitalize="none"
-                autoCorrect={false}
-                placeholder="meu-negocio"
-              />
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                Só letras minúsculas, números e hífens.
-              </Typography>
-              <Input
-                label="WhatsApp para pedidos"
-                value={whatsapp}
-                onChangeText={setWhatsapp}
-                keyboardType="phone-pad"
-                placeholder="11 99999-8888"
-              />
-            </View>
-          </Card>
-
-          {/* Aparência (Essencial) */}
-          <Card padding="lg">
-            <View style={{ gap: spacing.md }}>
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
-              >
-                <Typography variant="label" style={{ flex: 1 }}>
-                  APARÊNCIA
-                </Typography>
-                {!canCustomizeCatalog && <Badge label="Essencial" variant="premium" />}
-              </View>
-
-              {!canCustomizeCatalog ? (
-                <AppearanceEssentialTeaser
-                  onUnlock={() => showPaywall("catalog", "essential")}
-                />
-              ) : (
-                <>
-                  {/* Capa */}
-                  <View
-                    style={[
-                      desktopStretch(isDesktop, 480),
-                      isDesktop ? { alignSelf: "flex-start" } : undefined,
+                    accessibilityRole="button"
+                    accessibilityLabel="Compartilhar link do catálogo"
+                    style={({ pressed }) => [
+                      {
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: spacing.sm,
+                        backgroundColor: theme.colors.surface,
+                        borderWidth: 1,
+                        borderColor: theme.colors.border,
+                        borderRadius: radii.xl,
+                        paddingVertical: spacing.md,
+                        paddingHorizontal: spacing.lg,
+                        opacity: pressed ? 0.8 : 1,
+                      },
                     ]}
                   >
-                  <Pressable
-                    onPress={() => void handlePickCover()}
-                    accessibilityRole="button"
-                    accessibilityLabel="Foto de capa do catálogo"
-                    style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
-                  >
-                    {(settings.coverUrl ?? coverPreview) ? (
-                      <Image
-                        source={{ uri: settings.coverUrl ?? coverPreview! }}
-                        style={{
-                          width: "100%",
-                          height: 120,
-                          borderRadius: radii.xl,
-                          backgroundColor: theme.colors.surface,
-                        }}
-                      />
-                    ) : (
-                      <View
-                        style={{
-                          height: 120,
-                          borderRadius: radii.xl,
-                          borderWidth: 1.5,
-                          borderStyle: "dashed",
-                          borderColor: theme.colors.primaryLight,
-                          backgroundColor: theme.colors.primaryBg,
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: spacing.xs,
-                        }}
-                      >
-                        {uploadingCover ? (
-                          <ActivityIndicator color={theme.colors.primary} />
-                        ) : (
-                          <>
-                            <AppIcon
-                              name="image-outline"
-                              size={28}
-                              color={theme.colors.primaryLight}
-                            />
-                            <Typography variant="caption">
-                              Adicionar foto de fundo do topo
-                            </Typography>
-                          </>
-                        )}
-                      </View>
-                    )}
-                  </Pressable>
-                  {settings.coverUrl && (
-                    <Pressable
-                      onPress={() => void handleRemoveCover()}
-                      accessibilityRole="button"
+                    <AppIcon
+                      name="link-outline"
+                      size={20}
+                      color={theme.colors.primaryStrong}
+                    />
+                    <Typography
+                      variant="caption"
+                      style={{ flex: 1 }}
+                      numberOfLines={1}
+                      color={theme.colors.text}
                     >
-                      <Typography variant="caption" color={theme.colors.alert}>
-                        Remover capa
-                      </Typography>
-                    </Pressable>
-                  )}
-                  </View>
-
-                  {/* Foto de perfil / logo */}
-                  <Typography variant="caption" color={theme.colors.textSecondary}>
-                    Foto de perfil (aparece no topo do catálogo)
-                  </Typography>
+                      {url.replace(/^https?:\/\//, "")}
+                    </Typography>
+                    <AppIcon
+                      name="share-social-outline"
+                      size={20}
+                      color={theme.colors.primaryStrong}
+                    />
+                  </Pressable>
                   <View
                     style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: spacing.md,
+                      flexDirection: isDesktop ? "row" : "column",
+                      gap: spacing.sm,
                     }}
                   >
-                    <Pressable
-                      onPress={() => void handlePickLogo()}
-                      accessibilityRole="button"
-                      accessibilityLabel="Foto de perfil do catálogo"
-                      style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
-                    >
-                      {(settings.logoUrl ?? logoPreview) ? (
-                        <Image
-                          source={{ uri: settings.logoUrl ?? logoPreview! }}
-                          style={{
-                            width: 72,
-                            height: 72,
-                            borderRadius: radii.full,
-                            backgroundColor: theme.colors.surface,
-                          }}
+                    <Button
+                      title="Ver vitrine"
+                      variant="secondary"
+                      icon={
+                        <AppIcon
+                          name="globe-outline"
+                          size={20}
+                          color={theme.colors.primaryStrong}
                         />
-                      ) : (
-                        <View
-                          style={{
-                            width: 72,
-                            height: 72,
-                            borderRadius: radii.full,
-                            borderWidth: 1.5,
-                            borderStyle: "dashed",
-                            borderColor: theme.colors.primaryLight,
-                            backgroundColor: theme.colors.primaryBg,
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          {uploadingLogo ? (
-                            <ActivityIndicator color={theme.colors.primary} />
-                          ) : (
-                            <AppIcon
-                              name="person-circle-outline"
-                              size={32}
-                              color={theme.colors.primaryLight}
-                            />
-                          )}
-                        </View>
-                      )}
-                    </Pressable>
-                    <View style={{ flex: 1, gap: spacing.xs }}>
-                      <Typography variant="caption">
-                        {settings.logoUrl
-                          ? "Toque na foto para trocar."
-                          : "Toque para adicionar sua logo ou uma foto sua."}
-                      </Typography>
-                      {settings.logoUrl && (
+                      }
+                      onPress={() => void handlePreview()}
+                      style={desktopAction(isDesktop, 160)}
+                    />
+                    <Button
+                      title="Compartilhar no WhatsApp"
+                      variant="success"
+                      icon={
+                        <AppIcon
+                          name="logo-whatsapp"
+                          size={20}
+                          color={theme.colors.textOnPrimary}
+                        />
+                      }
+                      onPress={() => void handleWhatsAppShare()}
+                      style={desktopAction(isDesktop, 240)}
+                    />
+                    <Button
+                      title="Outras opções"
+                      variant="outline"
+                      icon={
+                        <AppIcon
+                          name="share-social-outline"
+                          size={20}
+                          color={theme.colors.primaryStrong}
+                        />
+                      }
+                      onPress={() => void handleShare()}
+                      style={desktopAction(isDesktop, 190)}
+                    />
+                  </View>
+                </View>
+              </Card>
+            )}
+
+            <CatalogContentManager slug={settings.slug} />
+
+            {/* Gatilho de upgrade: free mostra ate 3 produtos no catalogo */}
+            {!canShowFullCatalog && (
+              <Card
+                padding="lg"
+                onPress={() => showPaywall("catalog", "essential")}
+                style={{
+                  borderLeftWidth: 3,
+                  borderLeftColor: theme.colors.premium,
+                }}
+              >
+                <View
+                  style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
+                >
+                  <AppIcon
+                    name="diamond-outline"
+                    size={24}
+                    color={theme.colors.premium}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <Typography variant="bodyBold">
+                      Seu catálogo mostra até 3 produtos
+                    </Typography>
+                    <Typography variant="caption">
+                      Mostre seu catálogo completo e personalize as cores no Essencial.
+                    </Typography>
+                  </View>
+                  <AppIcon
+                    name="chevron-forward"
+                    size={18}
+                    color={theme.colors.textSecondary}
+                  />
+                </View>
+              </Card>
+            )}
+
+            {/* Ativação */}
+            <Card padding="lg">
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: spacing.md,
+                }}
+              >
+                <View
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: radii.lg,
+                    backgroundColor: settings.enabled
+                      ? theme.colors.successBg
+                      : theme.colors.surface,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <AppIcon
+                    name={settings.enabled ? "globe-outline" : "eye-off-outline"}
+                    size={22}
+                    color={
+                      settings.enabled ? theme.colors.success : theme.colors.textSecondary
+                    }
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Typography variant="h3">Catálogo ativo</Typography>
+                  <Typography variant="caption">
+                    {settings.enabled
+                      ? "Qualquer pessoa com o link pode ver os itens publicados."
+                      : "Ative para compartilhar com seus clientes."}
+                  </Typography>
+                </View>
+                <Switch
+                  value={settings.enabled}
+                  onValueChange={(value) => void handleToggle(value)}
+                  trackColor={{ true: theme.colors.primary }}
+                  accessibilityLabel="Ativar catálogo"
+                />
+              </View>
+            </Card>
+
+            {/* Configurações */}
+            <Card padding="lg">
+              <View style={{ gap: spacing.md }}>
+                <Typography variant="label">PERSONALIZAR</Typography>
+                <Input
+                  label="Endereço do catálogo"
+                  value={slug}
+                  onChangeText={setSlug}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  placeholder="meu-negocio"
+                />
+                <Typography variant="caption" color={theme.colors.textSecondary}>
+                  Só letras minúsculas, números e hífens.
+                </Typography>
+                <Input
+                  label="WhatsApp para pedidos"
+                  value={whatsapp}
+                  onChangeText={setWhatsapp}
+                  keyboardType="phone-pad"
+                  placeholder="11 99999-8888"
+                />
+              </View>
+            </Card>
+
+            {/* Aparência (Essencial) */}
+            <Card padding="lg">
+              <View style={{ gap: spacing.md }}>
+                <View
+                  style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
+                >
+                  <Typography variant="label" style={{ flex: 1 }}>
+                    APARÊNCIA
+                  </Typography>
+                  {!canCustomizeCatalog && <Badge label="Essencial" variant="premium" />}
+                </View>
+
+                {!canCustomizeCatalog ? (
+                  <AppearanceEssentialTeaser
+                    onUnlock={() => showPaywall("catalog", "essential")}
+                  />
+                ) : (
+                  <>
+                    {/* Capa */}
+                    <View
+                      style={[
+                        desktopStretch(isDesktop, 480),
+                        isDesktop ? { alignSelf: "flex-start" } : undefined,
+                      ]}
+                    >
+                      <Pressable
+                        onPress={() => void handlePickCover()}
+                        accessibilityRole="button"
+                        accessibilityLabel="Foto de capa do catálogo"
+                        style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
+                      >
+                        {(settings.coverUrl ?? coverPreview) ? (
+                          <Image
+                            source={{ uri: settings.coverUrl ?? coverPreview! }}
+                            style={{
+                              width: "100%",
+                              height: 120,
+                              borderRadius: radii.xl,
+                              backgroundColor: theme.colors.surface,
+                            }}
+                          />
+                        ) : (
+                          <View
+                            style={{
+                              height: 120,
+                              borderRadius: radii.xl,
+                              borderWidth: 1.5,
+                              borderStyle: "dashed",
+                              borderColor: theme.colors.primaryLight,
+                              backgroundColor: theme.colors.primaryBg,
+                              alignItems: "center",
+                              justifyContent: "center",
+                              gap: spacing.xs,
+                            }}
+                          >
+                            {uploadingCover ? (
+                              <ActivityIndicator color={theme.colors.primary} />
+                            ) : (
+                              <>
+                                <AppIcon
+                                  name="image-outline"
+                                  size={28}
+                                  color={theme.colors.primaryLight}
+                                />
+                                <Typography variant="caption">
+                                  Adicionar foto de fundo do topo
+                                </Typography>
+                              </>
+                            )}
+                          </View>
+                        )}
+                      </Pressable>
+                      {settings.coverUrl && (
                         <Pressable
-                          onPress={() => void handleRemoveLogo()}
+                          onPress={() => void handleRemoveCover()}
                           accessibilityRole="button"
                         >
                           <Typography variant="caption" color={theme.colors.alert}>
-                            Remover foto de perfil
+                            Remover capa
                           </Typography>
                         </Pressable>
                       )}
                     </View>
-                  </View>
 
-                  {/* Cor do tema */}
-                  <View style={desktopCompactField(isDesktop)}>
-                  <Typography variant="caption" color={theme.colors.textSecondary}>
-                    Cor do catálogo
-                  </Typography>
-                  <View
-                    style={{ flexDirection: "row", gap: spacing.md, flexWrap: "wrap" }}
-                  >
-                    {ACCENT_SWATCHES.map((swatch) => {
-                      const selected = (accentColor ?? "brown") === swatch.key;
-                      return (
+                    {/* Foto de perfil / logo */}
+                    <Typography variant="caption" color={theme.colors.textSecondary}>
+                      Foto de perfil (aparece no topo do catálogo)
+                    </Typography>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: spacing.md,
+                      }}
+                    >
+                      <Pressable
+                        onPress={() => void handlePickLogo()}
+                        accessibilityRole="button"
+                        accessibilityLabel="Foto de perfil do catálogo"
+                        style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
+                      >
+                        {(settings.logoUrl ?? logoPreview) ? (
+                          <Image
+                            source={{ uri: settings.logoUrl ?? logoPreview! }}
+                            style={{
+                              width: 72,
+                              height: 72,
+                              borderRadius: radii.full,
+                              backgroundColor: theme.colors.surface,
+                            }}
+                          />
+                        ) : (
+                          <View
+                            style={{
+                              width: 72,
+                              height: 72,
+                              borderRadius: radii.full,
+                              borderWidth: 1.5,
+                              borderStyle: "dashed",
+                              borderColor: theme.colors.primaryLight,
+                              backgroundColor: theme.colors.primaryBg,
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            {uploadingLogo ? (
+                              <ActivityIndicator color={theme.colors.primary} />
+                            ) : (
+                              <AppIcon
+                                name="person-circle-outline"
+                                size={32}
+                                color={theme.colors.primaryLight}
+                              />
+                            )}
+                          </View>
+                        )}
+                      </Pressable>
+                      <View style={{ flex: 1, gap: spacing.xs }}>
+                        <Typography variant="caption">
+                          {settings.logoUrl
+                            ? "Toque na foto para trocar."
+                            : "Toque para adicionar sua logo ou uma foto sua."}
+                        </Typography>
+                        {settings.logoUrl && (
+                          <Pressable
+                            onPress={() => void handleRemoveLogo()}
+                            accessibilityRole="button"
+                          >
+                            <Typography variant="caption" color={theme.colors.alert}>
+                              Remover foto de perfil
+                            </Typography>
+                          </Pressable>
+                        )}
+                      </View>
+                    </View>
+
+                    {/* Cor do tema */}
+                    <View style={desktopCompactField(isDesktop)}>
+                      <Typography variant="caption" color={theme.colors.textSecondary}>
+                        Cor do catálogo
+                      </Typography>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          gap: spacing.md,
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        {ACCENT_SWATCHES.map((swatch) => {
+                          const selected = (accentColor ?? "brown") === swatch.key;
+                          return (
+                            <Pressable
+                              key={swatch.key}
+                              onPress={() => handlePickColor(swatch.key)}
+                              accessibilityRole="button"
+                              accessibilityLabel={`Cor ${swatch.label}`}
+                              style={{ alignItems: "center", gap: spacing.xs }}
+                            >
+                              <View
+                                style={{
+                                  width: 44,
+                                  height: 44,
+                                  borderRadius: radii.full,
+                                  backgroundColor: swatch.color,
+                                  borderWidth: selected ? 3 : 0,
+                                  borderColor: theme.colors.text,
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                {selected && (
+                                  <AppIcon name="checkmark" size={20} color="#fff" />
+                                )}
+                              </View>
+                              <Typography variant="caption">{swatch.label}</Typography>
+                            </Pressable>
+                          );
+                        })}
+
+                        {/* Cor personalizada: bolinha "+" abre o seletor de cores */}
                         <Pressable
-                          key={swatch.key}
-                          onPress={() => handlePickColor(swatch.key)}
+                          onPress={handleOpenColorModal}
                           accessibilityRole="button"
-                          accessibilityLabel={`Cor ${swatch.label}`}
+                          accessibilityLabel="Escolher cor personalizada"
                           style={{ alignItems: "center", gap: spacing.xs }}
                         >
                           <View
@@ -759,126 +1139,81 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                               width: 44,
                               height: 44,
                               borderRadius: radii.full,
-                              backgroundColor: swatch.color,
-                              borderWidth: selected ? 3 : 0,
-                              borderColor: theme.colors.text,
+                              backgroundColor: isCustomColor
+                                ? accentColor
+                                : theme.colors.surface,
+                              borderWidth: isCustomColor ? 3 : 1.5,
+                              borderStyle: isCustomColor ? "solid" : "dashed",
+                              borderColor: customCircleBorderColor,
                               alignItems: "center",
                               justifyContent: "center",
                             }}
                           >
-                            {selected && (
-                              <AppIcon name="checkmark" size={20} color="#fff" />
-                            )}
+                            <AppIcon
+                              name={isCustomColor ? "checkmark" : "add"}
+                              size={22}
+                              color={isCustomColor ? "#fff" : theme.colors.textSecondary}
+                            />
                           </View>
-                          <Typography variant="caption">{swatch.label}</Typography>
+                          <Typography variant="caption">
+                            {isCustomColor ? "Sua cor" : "Outra"}
+                          </Typography>
                         </Pressable>
-                      );
-                    })}
-
-                    {/* Cor personalizada: bolinha "+" abre o seletor de cores */}
-                    <Pressable
-                      onPress={handleOpenColorModal}
-                      accessibilityRole="button"
-                      accessibilityLabel="Escolher cor personalizada"
-                      style={{ alignItems: "center", gap: spacing.xs }}
-                    >
-                      <View
-                        style={{
-                          width: 44,
-                          height: 44,
-                          borderRadius: radii.full,
-                          backgroundColor: isCustomColor
-                            ? accentColor
-                            : theme.colors.surface,
-                          borderWidth: isCustomColor ? 3 : 1.5,
-                          borderStyle: isCustomColor ? "solid" : "dashed",
-                          borderColor: customCircleBorderColor,
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <AppIcon
-                          name={isCustomColor ? "checkmark" : "add"}
-                          size={22}
-                          color={isCustomColor ? "#fff" : theme.colors.textSecondary}
-                        />
                       </View>
-                      <Typography variant="caption">
-                        {isCustomColor ? "Sua cor" : "Outra"}
-                      </Typography>
-                    </Pressable>
-                  </View>
-                  </View>
+                    </View>
 
-                  {!isDesktop ? (
-                    <>
-                      <Typography variant="caption" color={theme.colors.textSecondary}>
-                        Prévia do topo do catálogo
-                      </Typography>
-                      <HeroPreview
-                        baseColor={resolvedBaseColor}
-                        businessName={profile?.businessName ?? profile?.name ?? "Seu negócio"}
-                        tagline={tagline}
-                      />
-                    </>
-                  ) : null}
+                    {!isDesktop ? (
+                      <>
+                        <Typography variant="caption" color={theme.colors.textSecondary}>
+                          Prévia do topo do catálogo
+                        </Typography>
+                        <HeroPreview
+                          baseColor={resolvedBaseColor}
+                          businessName={
+                            profile?.businessName ?? profile?.name ?? "Seu negócio"
+                          }
+                          tagline={tagline}
+                        />
+                      </>
+                    ) : null}
 
-                  <ColorPickerModal
-                    visible={colorModalVisible}
-                    initialColor={isCustomColor ? accentColor : "#8c5a45"}
-                    onConfirm={handleConfirmCustomColor}
-                    onCancel={() => setColorModalVisible(false)}
-                  />
+                    <ColorPickerModal
+                      visible={colorModalVisible}
+                      initialColor={isCustomColor ? accentColor : "#8c5a45"}
+                      onConfirm={handleConfirmCustomColor}
+                      onCancel={() => setColorModalVisible(false)}
+                    />
 
-                  {/* Frase de apresentação */}
-                  <Input
-                    label="Frase de apresentação"
-                    value={tagline}
-                    onChangeText={setTagline}
-                    placeholder={`Conheça meus ${experienceCopy.productNounPlural}`}
-                    maxLength={120}
-                  />
+                    {/* Frase de apresentação */}
+                    <Input
+                      label="Frase de apresentação"
+                      value={tagline}
+                      onChangeText={setTagline}
+                      placeholder={`Conheça meus ${experienceCopy.productNounPlural}`}
+                      maxLength={120}
+                    />
 
-                  {/* Faixa promocional (topo do catálogo) */}
-                  <Input
-                    label="Faixa promocional"
-                    value={promo}
-                    onChangeText={setPromo}
-                    placeholder="Frete grátis hoje 🚚"
-                    maxLength={60}
-                  />
-                </>
-              )}
-            </View>
-          </Card>
+                    {/* Faixa promocional (topo do catálogo) */}
+                    <Input
+                      label="Faixa promocional"
+                      value={promo}
+                      onChangeText={setPromo}
+                      placeholder="Frete grátis hoje 🚚"
+                      maxLength={60}
+                    />
+                  </>
+                )}
+              </View>
+            </Card>
 
-          {/* Salvar geral (endereco, whatsapp e frase) */}
-          <Button
-            title={update.isPending ? "Salvando..." : "Salvar"}
-            variant="outline"
-            onPress={() => void handleSave()}
-            disabled={update.isPending}
-            style={desktopAction(isDesktop, 220)}
-          />
-
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: spacing.sm,
-              paddingHorizontal: spacing.sm,
-            }}
-          >
-            <AppIcon
-              name="information-circle-outline"
-              size={18}
-              color={theme.colors.textSecondary}
+            {/* Salvar geral (endereco, whatsapp e frase) */}
+            <Button
+              title={update.isPending ? "Salvando..." : "Salvar"}
+              variant="outline"
+              onPress={() => void handleSave()}
+              disabled={update.isPending}
+              style={desktopAction(isDesktop, 220)}
             />
-            <Typography variant="caption" style={{ flex: 1 }}>
-              Aparecem no catálogo todos os seus produtos ativos, com foto, descrição e
-              preço.
-            </Typography>
-          </View>
           </View>
 
           {canCustomizeCatalog && isDesktop ? (
@@ -909,12 +1244,19 @@ export default function CatalogScreen() {
     content = <CatalogForm settings={settings} />;
   } else if (isLoading) {
     content = (
-      <View style={{ ...pageGutter(isDesktop), paddingVertical: spacing.xl, gap: spacing.lg }}>
+      <View
+        style={{ ...pageGutter(isDesktop), paddingVertical: spacing.xl, gap: spacing.lg }}
+      >
         <Skeleton width="40%" height={18} />
         <Skeleton height={120} borderRadius={radii.lg} />
         <SkeletonCard lines={4} />
         <SkeletonCard lines={3} />
-        <Skeleton width={220} height={48} borderRadius={radii.md} style={{ alignSelf: "flex-end" }} />
+        <Skeleton
+          width={220}
+          height={48}
+          borderRadius={radii.md}
+          style={{ alignSelf: "flex-end" }}
+        />
       </View>
     );
   } else {

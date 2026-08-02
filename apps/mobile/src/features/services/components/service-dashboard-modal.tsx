@@ -18,11 +18,9 @@ import { View } from "react-native";
 
 import { AppIcon } from "../../../shared/components/app-icon";
 import { StandardModal } from "../../../shared/components/standard-modal";
-import { alertError, alertValidation } from "../../../shared/utils/alerts";
+import { alertError } from "../../../shared/utils/alerts";
 import { formatCurrency } from "../../../shared/utils/format";
-import { openWhatsApp, openWhatsAppShare } from "../../../shared/utils/whatsapp";
-import { publicCatalogUrl } from "../../catalog/api";
-import { useCatalogSettings } from "../../catalog/hooks";
+import { openWhatsApp } from "../../../shared/utils/whatsapp";
 import { ClientPickerModal } from "../../clients/components/client-picker-modal";
 import {
   usePurchaseServicePackage,
@@ -61,7 +59,6 @@ export function ServiceDashboardModal({
   const insights = useServiceInsights(service.id);
   const bookings = useServiceBookingRequests(service.id);
   const purchases = useServicePackagePurchases(service.id);
-  const catalog = useCatalogSettings();
   const updateBooking = useUpdateServiceBookingRequest(service.id);
   const purchasePackage = usePurchaseServicePackage();
   const updatingBookingIdRef = useRef<string | null>(null);
@@ -76,16 +73,6 @@ export function ServiceDashboardModal({
     borderWidth: 1,
     borderColor: theme.colors.border,
   };
-
-  async function shareService() {
-    if (!catalog.data?.enabled) {
-      alertValidation("Ative a vitrine pública antes de divulgar este serviço.");
-      return;
-    }
-    await openWhatsAppShare(
-      `Conheça o serviço ${service.name} e solicite seu horário:\n\n${publicCatalogUrl(catalog.data.slug)}`,
-    );
-  }
 
   async function sellPackage(client: Pick<Client, "id" | "name"> | null) {
     if (!client || !selectedPackageId) return;
@@ -118,7 +105,7 @@ export function ServiceDashboardModal({
         visible={visible}
         onClose={onClose}
         title={service.name}
-        subtitle="Atendimentos, resultado, pacotes e pedidos da vitrine"
+        subtitle="Atendimentos, resultados, agenda, solicitações e pacotes"
         wide
         footer={
           <>
@@ -158,38 +145,6 @@ export function ServiceDashboardModal({
             </Card>
           ))}
         </View>
-
-        <Card style={{ gap: spacing.md }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: spacing.md,
-            }}
-          >
-            <View style={{ flex: 1, gap: spacing.xs }}>
-              <Typography variant="bodyBold">Divulgação e agendamento</Typography>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                {service.publicEnabled
-                  ? "Visível na vitrine; solicitações chegam abaixo para confirmação."
-                  : "Este serviço está somente no controle interno."}
-              </Typography>
-            </View>
-            <AppIcon
-              name={service.publicEnabled ? "globe-outline" : "eye-off-outline"}
-              size={22}
-              color={theme.colors.primaryStrong}
-            />
-          </View>
-          <Button
-            title="Compartilhar no WhatsApp"
-            variant="successOutline"
-            icon={<AppIcon name="logo-whatsapp" size={20} color={theme.colors.success} />}
-            disabled={!service.publicEnabled}
-            onPress={() => void shareService()}
-          />
-        </Card>
 
         <View style={{ gap: spacing.sm }}>
           <Typography variant="h3">Solicitações de horário</Typography>

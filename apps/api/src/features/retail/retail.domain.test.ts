@@ -21,6 +21,7 @@ const product = {
   isComposite: false,
   variations: [],
   isActive: true,
+  publicEnabled: true,
   createdAt: new Date().toISOString(),
 } satisfies Product;
 

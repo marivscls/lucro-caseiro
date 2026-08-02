@@ -56,11 +56,17 @@ export const products = pgTable(
       .notNull()
       .default([]),
     isActive: boolean("is_active").notNull().default(true),
+    publicEnabled: boolean("public_enabled").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
     index("idx_products_user").on(table.userId),
     index("idx_products_user_name").on(table.userId, table.name),
     index("idx_products_user_code").on(table.userId, table.code),
+    index("idx_products_user_public").on(
+      table.userId,
+      table.isActive,
+      table.publicEnabled,
+    ),
   ],
 );

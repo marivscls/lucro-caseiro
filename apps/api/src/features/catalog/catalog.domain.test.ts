@@ -93,46 +93,47 @@ describe("renderCatalogHtml", () => {
     totalProducts: 0,
   };
 
+  const service = {
+    id: "22222222-2222-2222-2222-222222222222",
+    name: "Consultoria",
+    description: "Encontro individual",
+    durationMinutes: 60,
+    defaultPrice: 150,
+    locationMode: "online" as const,
+    bookingInstructions: null,
+    variations: [],
+    addOns: [
+      {
+        id: "33333333-3333-3333-3333-333333333333",
+        name: "Retorno",
+        durationMinutes: 30,
+        price: 50,
+      },
+    ],
+    packages: [
+      {
+        id: "44444444-4444-4444-4444-444444444444",
+        name: "Acompanhamento",
+        sessions: 4,
+        price: 500,
+        validityDays: 90,
+        recurrenceDays: 14,
+      },
+    ],
+  };
+
   it("renderiza serviço público e o formulário de solicitação de horário", () => {
     const html = renderCatalogHtml({
       ...baseCatalog,
-      services: [
-        {
-          id: "22222222-2222-2222-2222-222222222222",
-          name: "Consultoria",
-          description: "Encontro individual",
-          durationMinutes: 60,
-          defaultPrice: 150,
-          locationMode: "online",
-          bookingInstructions: null,
-          variations: [],
-          addOns: [
-            {
-              id: "33333333-3333-3333-3333-333333333333",
-              name: "Retorno",
-              durationMinutes: 30,
-              price: 50,
-            },
-          ],
-          packages: [
-            {
-              id: "44444444-4444-4444-4444-444444444444",
-              name: "Acompanhamento",
-              sessions: 4,
-              price: 500,
-              validityDays: 90,
-              recurrenceDays: 14,
-            },
-          ],
-        },
-      ],
+      services: [service],
     });
 
     expect(html).toContain("Consultoria");
     expect(html).toContain("Atendimento online");
     expect(html).toContain("Acompanhamento · 4 sessões");
     expect(html).toContain('class="card service-card"');
-    expect(html).toContain('class="service-mark"');
+    expect(html).toContain('<div class="info"><p class="category">Serviço</p>');
+    expect(html).not.toContain('class="service-mark"');
     expect(html).toContain('<main class="services-only">');
     expect(html).not.toContain('class="service-placeholder"');
     expect(html).toContain('class="tagline">Serviços</p>');
@@ -142,7 +143,59 @@ describe("renderCatalogHtml", () => {
     expect(html).toContain('class="booking-footer"');
     expect(html).toContain("#service-booking-dialog { inset: 0;");
     expect(html).toContain("margin: auto; background: #fffdfb;");
+    expect(html).toContain("bookingContent.scrollTop = 0");
     expect(html).toContain('fetch(location.pathname + "/service-bookings"');
+  });
+
+  it("link de serviços renderiza somente serviços", () => {
+    const html = renderCatalogHtml(
+      {
+        ...baseCatalog,
+        products: [product],
+        totalProducts: 1,
+        services: [service],
+      },
+      "services",
+    );
+
+    expect(html).toContain("Consultoria");
+    expect(html).not.toContain("Bolo de Pote");
+    expect(html).not.toContain('class="products-section"');
+    expect(html).not.toContain('class="catalog-tools"');
+    expect(html).toContain('class="tagline">Serviços</p>');
+    expect(html).toContain("1 serviço disponível");
+  });
+
+  it("link de produtos renderiza somente produtos", () => {
+    const html = renderCatalogHtml(
+      {
+        ...baseCatalog,
+        products: [product],
+        totalProducts: 1,
+        services: [service],
+      },
+      "products",
+    );
+
+    expect(html).toContain("Bolo de Pote");
+    expect(html).not.toContain("Consultoria");
+    expect(html).not.toContain('class="services-section"');
+    expect(html).not.toContain('id="service-booking-form"');
+    expect(html).toContain('class="tagline">Catálogo de produtos</p>');
+  });
+
+  it("catálogo completo oferece navegação entre produtos e serviços", () => {
+    const html = renderCatalogHtml({
+      ...baseCatalog,
+      products: [product],
+      totalProducts: 1,
+      services: [service],
+    });
+
+    expect(html).toContain('class="catalog-section-nav"');
+    expect(html).toContain("?tipo=produtos#products-title");
+    expect(html).toContain("?tipo=servicos#services-title");
+    expect(html).toContain("grid-template-columns: minmax(0, 1fr) minmax(0, 1fr)");
   });
 
   it("renderiza a faixa promocional quando definida", () => {
@@ -244,7 +297,7 @@ describe("renderCatalogHtml", () => {
 
   it("usa a paleta rosa oficial no Lucro Caseiro sem personalizacao", () => {
     const html = renderCatalogHtml(baseCatalog);
-    expect(html).toContain("#c2557b");
+    expect(html).toContain("#B65F72");
   });
 
   it("aplica preset de cor quando definido", () => {
@@ -254,7 +307,7 @@ describe("renderCatalogHtml", () => {
       accentColor: "rose",
       products: [product],
     });
-    expect(html).toContain("#c2557b");
+    expect(html).toContain("#B65F72");
     expect(html).not.toContain("#8c5a45");
   });
 

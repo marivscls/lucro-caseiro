@@ -4,7 +4,12 @@ import {
   suggestedPrice,
   totalCost,
 } from "@lucro-caseiro/contracts";
-import type { Service } from "@lucro-caseiro/contracts";
+import type {
+  Service,
+  ServiceAddOnInput,
+  ServicePackageInput,
+  ServiceVariationInput,
+} from "@lucro-caseiro/contracts";
 
 export interface ServicePricingInput {
   durationMinutes: number;
@@ -33,6 +38,161 @@ export interface ServiceOverview {
   attentionCount: number;
   averagePrice: number | null;
   averageDurationMinutes: number | null;
+}
+
+export interface ServiceItemValidationError {
+  kind: "variation" | "addOn" | "package";
+  index: number;
+  field:
+    | "name"
+    | "durationMinutes"
+    | "price"
+    | "sessions"
+    | "validityDays"
+    | "recurrenceDays";
+  message: string;
+}
+
+function serviceItemError(
+  kind: ServiceItemValidationError["kind"],
+  index: number,
+  field: ServiceItemValidationError["field"],
+  message: string,
+): ServiceItemValidationError {
+  return { kind, index, field, message };
+}
+
+export function findServiceItemValidationError({
+  variations,
+  addOns,
+  packages,
+}: {
+  variations: readonly ServiceVariationInput[];
+  addOns: readonly ServiceAddOnInput[];
+  packages: readonly ServicePackageInput[];
+}): ServiceItemValidationError | null {
+  for (const [index, variation] of variations.entries()) {
+    const position = index + 1;
+    if (!variation.name.trim()) {
+      return serviceItemError(
+        "variation",
+        index,
+        "name",
+        `Preencha o nome da opção ${position}.`,
+      );
+    }
+    if (
+      !Number.isInteger(variation.durationMinutes) ||
+      variation.durationMinutes < 5 ||
+      variation.durationMinutes > 1440
+    ) {
+      return serviceItemError(
+        "variation",
+        index,
+        "durationMinutes",
+        `A duração da opção ${position} deve ficar entre 5 minutos e 24 horas.`,
+      );
+    }
+    if (!Number.isFinite(variation.price) || variation.price <= 0) {
+      return serviceItemError(
+        "variation",
+        index,
+        "price",
+        `Informe um preço maior que zero para a opção ${position}.`,
+      );
+    }
+  }
+
+  for (const [index, addOn] of addOns.entries()) {
+    const position = index + 1;
+    if (!addOn.name.trim()) {
+      return serviceItemError(
+        "addOn",
+        index,
+        "name",
+        `Preencha o nome do adicional ${position}.`,
+      );
+    }
+    if (
+      !Number.isInteger(addOn.durationMinutes) ||
+      addOn.durationMinutes < 0 ||
+      addOn.durationMinutes > 1440
+    ) {
+      return serviceItemError(
+        "addOn",
+        index,
+        "durationMinutes",
+        `Os minutos extras do adicional ${position} devem ficar entre 0 e 1440.`,
+      );
+    }
+    if (!Number.isFinite(addOn.price) || addOn.price <= 0) {
+      return serviceItemError(
+        "addOn",
+        index,
+        "price",
+        `Informe um valor maior que zero para o adicional ${position}.`,
+      );
+    }
+  }
+
+  for (const [index, servicePackage] of packages.entries()) {
+    const position = index + 1;
+    if (!servicePackage.name.trim()) {
+      return serviceItemError(
+        "package",
+        index,
+        "name",
+        `Preencha o nome do pacote ${position}.`,
+      );
+    }
+    if (
+      !Number.isInteger(servicePackage.sessions) ||
+      servicePackage.sessions < 2 ||
+      servicePackage.sessions > 365
+    ) {
+      return serviceItemError(
+        "package",
+        index,
+        "sessions",
+        `O pacote ${position} deve ter entre 2 e 365 sessões.`,
+      );
+    }
+    if (!Number.isFinite(servicePackage.price) || servicePackage.price <= 0) {
+      return serviceItemError(
+        "package",
+        index,
+        "price",
+        `Informe um valor maior que zero para o pacote ${position}.`,
+      );
+    }
+    if (
+      !Number.isInteger(servicePackage.validityDays) ||
+      servicePackage.validityDays < 1 ||
+      servicePackage.validityDays > 3650
+    ) {
+      return serviceItemError(
+        "package",
+        index,
+        "validityDays",
+        `A validade do pacote ${position} deve ficar entre 1 e 3650 dias.`,
+      );
+    }
+    if (
+      servicePackage.recurrenceDays != null &&
+      (!Number.isInteger(servicePackage.recurrenceDays) ||
+        servicePackage.recurrenceDays < 1 ||
+        servicePackage.recurrenceDays > 365)
+    ) {
+      return serviceItemError(
+        "package",
+        index,
+        "recurrenceDays",
+        `A repetição do pacote ${position} deve ficar entre 1 e 365 dias.`,
+      );
+    }
+  }
+
+  return null;
 }
 
 export function calculateServicePricing(

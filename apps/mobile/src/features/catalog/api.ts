@@ -32,6 +32,16 @@ export function publicCatalogUrl(slug: string): string {
   return `${base}/c/${slug}`;
 }
 
+export type PublicCatalogSection = "produtos" | "servicos";
+
+/** URL que abre somente uma seção da vitrine pública. */
+export function publicCatalogSectionUrl(
+  slug: string,
+  section: PublicCatalogSection,
+): string {
+  return `${publicCatalogUrl(slug)}?tipo=${section}`;
+}
+
 /** URL que abre o catalogo ja posicionado no card de um produto. */
 export function publicCatalogProductUrl(slug: string, productId: string): string {
   const encodedProductId = encodeURIComponent(productId);

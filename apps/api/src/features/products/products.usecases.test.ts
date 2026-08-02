@@ -29,6 +29,7 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
     stockAlertThreshold: null,
     isComposite: false,
     isActive: true,
+    publicEnabled: true,
     createdAt: new Date().toISOString(),
     ...overrides,
   };

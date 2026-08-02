@@ -52,6 +52,7 @@ const ProductBaseDto = z.object({
   isComposite: z.boolean().optional(),
   components: z.array(ProductComponentInputDto).optional(),
   variations: z.array(ProductVariationInputDto).max(100).optional(),
+  publicEnabled: z.boolean().optional(),
 });
 
 /** Um produto composto precisa de pelo menos um componente. */
@@ -110,6 +111,7 @@ export const ProductDto = z.object({
   components: z.array(ProductComponentDto).optional(),
   variations: z.array(ProductVariationDto).optional(),
   isActive: z.boolean(),
+  publicEnabled: z.boolean(),
   createdAt: z.string().datetime(),
 });
 

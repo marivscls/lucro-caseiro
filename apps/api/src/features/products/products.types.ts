@@ -94,6 +94,7 @@ export interface CreateProductData {
   isComposite?: boolean;
   components?: ProductComponentInput[];
   variations?: ProductVariationInput[];
+  publicEnabled?: boolean;
 }
 
 export interface FindAllOpts {

@@ -10,6 +10,12 @@ import { renderCatalogErrorHtml, renderCatalogHtml } from "./catalog.domain";
 import type { CatalogUseCases } from "./catalog.usecases";
 import { DEFAULT_BRAND_ID } from "@lucro-caseiro/brands";
 
+function publicCatalogSection(value: unknown): "products" | "services" | "all" {
+  if (value === "produtos") return "products";
+  if (value === "servicos") return "services";
+  return "all";
+}
+
 /** Rotas autenticadas: configuracoes do catalogo do usuario. */
 export function createCatalogRouter(useCases: CatalogUseCases): Router {
   const router = Router();
@@ -65,7 +71,10 @@ export function createPublicCatalogRouter(useCases: CatalogUseCases): Router {
       const focusedProductId =
         typeof req.query.produto === "string" ? req.query.produto : undefined;
       const catalog = await useCases.getPublicCatalog(req.params.slug, focusedProductId);
-      res.type("html").send(renderCatalogHtml(catalog));
+      const section = focusedProductId
+        ? "products"
+        : publicCatalogSection(req.query.tipo);
+      res.type("html").send(renderCatalogHtml(catalog, section));
     } catch (error) {
       const status = error instanceof NotFoundError ? 404 : 500;
       res.status(status).type("html").send(renderCatalogErrorHtml());
