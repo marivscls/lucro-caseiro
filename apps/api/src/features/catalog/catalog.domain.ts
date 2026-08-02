@@ -362,7 +362,7 @@ export function renderCatalogHtml(
       <input id="booking-service-id" type="hidden">
       <label>Seu nome<input id="booking-name" required maxlength="120" autocomplete="name"></label>
       <label>WhatsApp<input id="booking-phone" required minlength="8" maxlength="20" inputmode="tel" autocomplete="tel"></label>
-      <div class="booking-row"><label>Data desejada<input id="booking-date" type="date" required></label><label>Horário desejado<input id="booking-time" type="time"></label></div>
+      <div class="booking-row"><label>Data desejada<input id="booking-date" type="date" required></label><label>Horário desejado<span class="booking-time-control"><input id="booking-time" type="text" inputmode="numeric" maxlength="5" pattern="(?:[01]\\d|2[0-3]):[0-5]\\d" placeholder="Ex: 14:30" title="Informe um horário entre 00:00 e 23:59"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg></span></label></div>
       <label>Onde prefere ser atendida(o)?<select id="booking-location" required><option value="business">No espaço profissional</option><option value="client">No meu endereço</option><option value="online">Online</option></select></label>
       <label>Observações<textarea id="booking-notes" maxlength="500" placeholder="Conte um pouco do que precisa"></textarea></label>
     </div>
@@ -441,6 +441,14 @@ export function renderCatalogHtml(
   const message = document.getElementById("booking-message");
   const serviceName = document.getElementById("booking-service-name");
   const bookingContent = dialog.querySelector(".booking-content");
+  const timeInput = document.getElementById("booking-time");
+  const maskTime = (value) => {
+    const digits = value.replace(/\\D/g, "").slice(0, 4);
+    return digits.length > 2 ? digits.slice(0, 2) + ":" + digits.slice(2) : digits;
+  };
+  timeInput.addEventListener("input", () => {
+    timeInput.value = maskTime(timeInput.value);
+  });
   document.getElementById("booking-date").min = new Date().toISOString().slice(0, 10);
   document.querySelectorAll(".request-service").forEach((button) => button.addEventListener("click", () => {
     form.reset();
@@ -611,6 +619,9 @@ export function renderCatalogHtml(
   #service-booking-form input:focus, #service-booking-form select:focus, #service-booking-form textarea:focus { border-color: ${palette.base}; box-shadow: 0 0 0 3px ${palette.light}55; outline: 0; }
   #service-booking-form textarea { min-height: 96px; padding-block: 12px; resize: vertical; }
   .booking-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+  .booking-time-control { position: relative; display: block; }
+  #service-booking-form .booking-time-control input { padding-right: 44px; }
+  .booking-time-control svg { position: absolute; top: 50%; right: 14px; width: 18px; height: 18px; transform: translateY(-50%); fill: none; stroke: #7d6354; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
   .booking-close { flex: none; width: 44px; height: 44px; border: 0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: transparent; color: #7d6354; font: inherit; font-size: 28px; line-height: 1; cursor: pointer; }
   .booking-close:active { background: ${palette.bg}; }
   .booking-close:focus { outline: 0; }

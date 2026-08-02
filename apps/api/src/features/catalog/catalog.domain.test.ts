@@ -144,6 +144,10 @@ describe("renderCatalogHtml", () => {
     expect(html).toContain('class="booking-header"');
     expect(html).toContain('class="booking-content"');
     expect(html).toContain('class="booking-footer"');
+    expect(html).toContain('id="booking-time" type="text"');
+    expect(html).toContain('placeholder="Ex: 14:30"');
+    expect(html).not.toContain('id="booking-time" type="time"');
+    expect(html).toContain("timeInput.value = maskTime(timeInput.value)");
     expect(html).toContain("#service-booking-dialog { inset: 0;");
     expect(html).toContain("margin: auto; background: #fffdfb;");
     expect(html).toContain("bookingContent.scrollTop = 0");
