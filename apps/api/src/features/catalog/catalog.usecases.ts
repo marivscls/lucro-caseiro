@@ -19,7 +19,10 @@ function wantsCustomization(data: UpdateCatalogSettings): boolean {
     data.accentColor !== undefined ||
     data.pattern !== undefined ||
     data.tagline !== undefined ||
-    data.promoBanner !== undefined
+    data.promoBanner !== undefined ||
+    data.serviceCoverUrl !== undefined ||
+    data.serviceTagline !== undefined ||
+    data.servicePromoBanner !== undefined
   );
 }
 
@@ -59,6 +62,9 @@ export class CatalogUseCases {
       pattern: null,
       tagline: null,
       promoBanner: null,
+      serviceCoverUrl: null,
+      serviceTagline: null,
+      servicePromoBanner: null,
     });
   }
 
@@ -105,6 +111,16 @@ export class CatalogUseCases {
       tagline: data.tagline === undefined ? current.tagline : data.tagline,
       promoBanner:
         data.promoBanner === undefined ? current.promoBanner : data.promoBanner,
+      serviceCoverUrl:
+        data.serviceCoverUrl === undefined
+          ? current.serviceCoverUrl
+          : data.serviceCoverUrl,
+      serviceTagline:
+        data.serviceTagline === undefined ? current.serviceTagline : data.serviceTagline,
+      servicePromoBanner:
+        data.servicePromoBanner === undefined
+          ? current.servicePromoBanner
+          : data.servicePromoBanner,
     });
   }
 
@@ -154,6 +170,9 @@ export class CatalogUseCases {
       pattern: hasFullCatalog ? owner.pattern : null,
       tagline: hasFullCatalog ? owner.tagline : null,
       promoBanner: hasFullCatalog ? owner.promoBanner : null,
+      serviceCoverUrl: hasFullCatalog ? owner.serviceCoverUrl : null,
+      serviceTagline: hasFullCatalog ? owner.serviceTagline : null,
+      servicePromoBanner: hasFullCatalog ? owner.servicePromoBanner : null,
       products,
       services,
       totalProducts: allProducts.length,

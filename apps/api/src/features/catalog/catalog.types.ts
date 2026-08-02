@@ -28,6 +28,9 @@ export interface CatalogSettingsData {
   pattern: CatalogPatternKey | null;
   tagline: string | null;
   promoBanner: string | null;
+  serviceCoverUrl: string | null;
+  serviceTagline: string | null;
+  servicePromoBanner: string | null;
 }
 
 export interface ICatalogRepo {

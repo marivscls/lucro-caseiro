@@ -267,6 +267,10 @@ export function renderCatalogHtml(
       ? (CATALOG_ACCENT_PRESETS.rose ?? BROWN_PALETTE)
       : resolvePalette(catalog.accentColor);
   const retailOrdering = catalog.brandId === "lucro-papelaria";
+  const coverUrl = section === "services" ? catalog.serviceCoverUrl : catalog.coverUrl;
+  const taglineText = section === "services" ? catalog.serviceTagline : catalog.tagline;
+  const promoBanner =
+    section === "services" ? catalog.servicePromoBanner : catalog.promoBanner;
   const publicProducts = section === "services" ? [] : catalog.products;
   const cards = publicProducts
     .map((product) => productCard(product, catalog.whatsapp, retailOrdering))
@@ -301,21 +305,19 @@ export function renderCatalogHtml(
     : "";
   // Capa integrada: vira o fundo do proprio hero, com um veu da cor por cima
   // para manter nome/frase legiveis (evita "banner duplo" capa + cor).
-  const heroBackground = catalog.coverUrl
-    ? `background-image: linear-gradient(160deg, ${palette.dark}e6 0%, ${palette.base}cc 55%, ${palette.light}b3 100%), url('${escapeHtml(catalog.coverUrl)}'); background-size: cover; background-position: center;`
+  const heroBackground = coverUrl
+    ? `background-image: linear-gradient(160deg, ${palette.dark}e6 0%, ${palette.base}cc 55%, ${palette.light}b3 100%), url('${escapeHtml(coverUrl)}'); background-size: cover; background-position: center;`
     : `background: linear-gradient(160deg, ${palette.dark} 0%, ${palette.base} 55%, ${palette.light} 100%);`;
   // Com capa, a estampa sairia poluida — so aplica pattern sem capa.
   const patternCss =
-    catalog.pattern && !catalog.coverUrl ? (HERO_PATTERNS[catalog.pattern] ?? "") : "";
+    catalog.pattern && !coverUrl ? (HERO_PATTERNS[catalog.pattern] ?? "") : "";
   const patternOverlay = patternCss ? `<div class="pattern"></div>` : "";
   const avatar = catalog.logoUrl
     ? `<div class="avatar"><img src="${escapeHtml(catalog.logoUrl)}" alt=""></div>`
     : `<div class="avatar">${initial}</div>`;
-  const tagline = catalog.tagline
-    ? `<p class="bio">${escapeHtml(catalog.tagline)}</p>`
-    : "";
-  const promoStrip = catalog.promoBanner
-    ? `<div class="promo">${escapeHtml(catalog.promoBanner)}</div>`
+  const tagline = taglineText ? `<p class="bio">${escapeHtml(taglineText)}</p>` : "";
+  const promoStrip = promoBanner
+    ? `<div class="promo">${escapeHtml(promoBanner)}</div>`
     : "";
   const hiddenCount = section === "services" ? 0 : catalog.totalProducts - count;
   const moreNote =

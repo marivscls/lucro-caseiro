@@ -19,6 +19,9 @@ function makeSettings(overrides: Partial<CatalogSettings> = {}): CatalogSettings
     accentColor: null,
     tagline: null,
     promoBanner: null,
+    serviceCoverUrl: null,
+    serviceTagline: null,
+    servicePromoBanner: null,
     updatedAt: new Date().toISOString(),
     ...overrides,
   };
@@ -151,6 +154,9 @@ describe("CatalogUseCases.updateSettings", () => {
     await expect(
       sut.updateSettings(USER_ID, { promoBanner: "Frete grátis hoje" }),
     ).rejects.toBeInstanceOf(LimitExceededError);
+    await expect(
+      sut.updateSettings(USER_ID, { serviceTagline: "Agenda aberta" }),
+    ).rejects.toBeInstanceOf(LimitExceededError);
   });
 
   it("permite personalizacao para plano essential", async () => {
@@ -181,12 +187,18 @@ describe("CatalogUseCases.updateSettings", () => {
       tagline: "Bolos artesanais",
       coverUrl: "https://cdn.x/capa.jpg",
       promoBanner: "Frete grátis hoje",
+      serviceCoverUrl: "https://cdn.x/servicos.jpg",
+      serviceTagline: "Atendimento personalizado",
+      servicePromoBanner: "Agenda aberta",
     });
 
     expect(settings.accentColor).toBe("rose");
     expect(settings.tagline).toBe("Bolos artesanais");
     expect(settings.coverUrl).toBe("https://cdn.x/capa.jpg");
     expect(settings.promoBanner).toBe("Frete grátis hoje");
+    expect(settings.serviceCoverUrl).toBe("https://cdn.x/servicos.jpg");
+    expect(settings.serviceTagline).toBe("Atendimento personalizado");
+    expect(settings.servicePromoBanner).toBe("Agenda aberta");
   });
 
   it("campos basicos (slug/enabled/whatsapp) seguem livres no plano free", async () => {
@@ -298,6 +310,9 @@ describe("CatalogUseCases.getPublicCatalog", () => {
               accentColor: "rose",
               tagline: "Feito com amor",
               promoBanner: "Frete grátis hoje",
+              serviceCoverUrl: "https://cdn.x/servicos.jpg",
+              serviceTagline: "Agenda personalizada",
+              servicePromoBanner: "Vagas abertas",
             }),
             ...makeOwner({ plan: "free" }),
           }),
@@ -310,6 +325,9 @@ describe("CatalogUseCases.getPublicCatalog", () => {
     expect(catalog.accentColor).toBeNull();
     expect(catalog.tagline).toBeNull();
     expect(catalog.promoBanner).toBeNull();
+    expect(catalog.serviceCoverUrl).toBeNull();
+    expect(catalog.serviceTagline).toBeNull();
+    expect(catalog.servicePromoBanner).toBeNull();
   });
 
   it("exibe personalizacao quando o dono e essential", async () => {
@@ -321,6 +339,9 @@ describe("CatalogUseCases.getPublicCatalog", () => {
               accentColor: "rose",
               tagline: "Feito com amor",
               promoBanner: "Frete grátis hoje",
+              serviceCoverUrl: "https://cdn.x/servicos.jpg",
+              serviceTagline: "Agenda personalizada",
+              servicePromoBanner: "Vagas abertas",
             }),
             ...makeOwner({ plan: "essential" }),
           }),
@@ -332,6 +353,9 @@ describe("CatalogUseCases.getPublicCatalog", () => {
     expect(catalog.accentColor).toBe("rose");
     expect(catalog.tagline).toBe("Feito com amor");
     expect(catalog.promoBanner).toBe("Frete grátis hoje");
+    expect(catalog.serviceCoverUrl).toBe("https://cdn.x/servicos.jpg");
+    expect(catalog.serviceTagline).toBe("Agenda personalizada");
+    expect(catalog.servicePromoBanner).toBe("Vagas abertas");
   });
 
   it("404 quando slug nao existe", async () => {

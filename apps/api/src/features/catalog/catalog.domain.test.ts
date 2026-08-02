@@ -89,6 +89,9 @@ describe("renderCatalogHtml", () => {
     pattern: null,
     tagline: null,
     promoBanner: null,
+    serviceCoverUrl: null,
+    serviceTagline: null,
+    servicePromoBanner: null,
     products: [] as (typeof product)[],
     totalProducts: 0,
   };
@@ -164,6 +167,29 @@ describe("renderCatalogHtml", () => {
     expect(html).not.toContain('class="catalog-tools"');
     expect(html).toContain('class="tagline">Serviços</p>');
     expect(html).toContain("1 serviço disponível");
+  });
+
+  it("link de serviços usa apresentação própria", () => {
+    const html = renderCatalogHtml(
+      {
+        ...baseCatalog,
+        coverUrl: "https://cdn.example.com/produtos.jpg",
+        tagline: "Produtos artesanais",
+        promoBanner: "Frete grátis",
+        serviceCoverUrl: "https://cdn.example.com/servicos.jpg",
+        serviceTagline: "Atendimento feito para você",
+        servicePromoBanner: "Agenda aberta neste mês",
+        services: [service],
+      },
+      "services",
+    );
+
+    expect(html).toContain("https://cdn.example.com/servicos.jpg");
+    expect(html).toContain("Atendimento feito para você");
+    expect(html).toContain("Agenda aberta neste mês");
+    expect(html).not.toContain("https://cdn.example.com/produtos.jpg");
+    expect(html).not.toContain("Produtos artesanais");
+    expect(html).not.toContain("Frete grátis");
   });
 
   it("link de produtos renderiza somente produtos", () => {

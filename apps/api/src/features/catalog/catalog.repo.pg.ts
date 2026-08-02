@@ -87,6 +87,9 @@ export class CatalogRepoPg implements ICatalogRepo {
           pattern: values.pattern,
           tagline: values.tagline,
           promoBanner: values.promoBanner,
+          serviceCoverUrl: values.serviceCoverUrl,
+          serviceTagline: values.serviceTagline,
+          servicePromoBanner: values.servicePromoBanner,
           updatedAt: values.updatedAt,
         },
       })
@@ -304,6 +307,9 @@ export class CatalogRepoPg implements ICatalogRepo {
         : null,
       tagline: row.tagline,
       promoBanner: row.promoBanner,
+      serviceCoverUrl: row.serviceCoverUrl,
+      serviceTagline: row.serviceTagline,
+      servicePromoBanner: row.servicePromoBanner,
       updatedAt: row.updatedAt.toISOString(),
     };
   }

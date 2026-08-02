@@ -58,8 +58,8 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
 
 ## Contracts
 
-- `CatalogSettings` — `{ slug, enabled, whatsapp, updatedAt }`.
-- `UpdateCatalogSettings` — `{ slug?, enabled?, whatsapp? }`.
+- `CatalogSettings` inclui identidade compartilhada e apresentação separada de Produtos/Serviços.
+- `UpdateCatalogSettings` aceita `serviceCoverUrl`, `serviceTagline` e `servicePromoBanner` para a vitrine de serviços.
 
 ## Error Handling
 
@@ -84,6 +84,8 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
 - Acesso: aba "Mais" → "Catálogo online". Rota: `/catalog`.
 
 ## Change log / Decisions
+
+- 2026-08-01: a área Aparência alterna entre Produtos e Serviços. Capa, frase e faixa promocional são próprias de cada vitrine; foto de perfil, WhatsApp e cor permanecem compartilhados.
 
 - 2026-07-29: rota pública `app/c/[slug].tsx` — quem abre `/c/:slug` no domínio do
   PWA é redirecionado para `publicCatalogUrl(slug)` (preserva `?produto=`/`#produto-`);

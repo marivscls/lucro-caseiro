@@ -194,6 +194,7 @@ function AppearanceEssentialTeaser({ onUnlock }: Readonly<{ onUnlock: () => void
 }
 
 type CatalogContentTab = "products" | "services";
+type CatalogAppearanceSection = "products" | "services";
 
 function serviceCatalogDescription(service: Service): string {
   if (!service.active) return "Pausado — reative na tela Serviços";
@@ -481,6 +482,10 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
   const [whatsapp, setWhatsapp] = useState(settings.whatsapp ?? "");
   const [tagline, setTagline] = useState(settings.tagline ?? "");
   const [promo, setPromo] = useState(settings.promoBanner ?? "");
+  const [serviceTagline, setServiceTagline] = useState(settings.serviceTagline ?? "");
+  const [servicePromo, setServicePromo] = useState(settings.servicePromoBanner ?? "");
+  const [appearanceSection, setAppearanceSection] =
+    useState<CatalogAppearanceSection>("products");
   const [accentColor, setAccentColor] = useState<CatalogAccentColorValue | null>(
     settings.accentColor,
   );
@@ -490,6 +495,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   // Previa local imediata apos escolher a imagem (enquanto o upload/salvar roda).
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [serviceCoverPreview, setServiceCoverPreview] = useState<string | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const { data: profile } = useProfile();
   const showPaywall = usePaywall((s) => s.show);
@@ -510,14 +516,27 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
     setWhatsapp(settings.whatsapp ?? "");
     setTagline(settings.tagline ?? "");
     setPromo(settings.promoBanner ?? "");
+    setServiceTagline(settings.serviceTagline ?? "");
+    setServicePromo(settings.servicePromoBanner ?? "");
     setAccentColor(settings.accentColor);
   }, [
     settings.slug,
     settings.whatsapp,
     settings.tagline,
     settings.promoBanner,
+    settings.serviceTagline,
+    settings.servicePromoBanner,
     settings.accentColor,
   ]);
+
+  const isServiceAppearance = appearanceSection === "services";
+  const appearanceCoverUrl = isServiceAppearance
+    ? (serviceCoverPreview ?? settings.serviceCoverUrl)
+    : (coverPreview ?? settings.coverUrl);
+  const appearanceTagline = isServiceAppearance ? serviceTagline : tagline;
+  const setAppearanceTagline = isServiceAppearance ? setServiceTagline : setTagline;
+  const appearancePromo = isServiceAppearance ? servicePromo : promo;
+  const setAppearancePromo = isServiceAppearance ? setServicePromo : setPromo;
 
   const url = publicCatalogUrl(settings.slug);
   const shareMessage = `Oi! 😊 Dá uma olhada na minha vitrine. Você pode conhecer meus produtos e serviços e falar comigo por lá:\n\n${url}`;
@@ -552,12 +571,20 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
     if (requireEssential()) return;
     const uri = await pickFromGallery();
     if (!uri) return;
-    setCoverPreview(uri);
+    const targetSection = appearanceSection;
+    if (targetSection === "services") setServiceCoverPreview(uri);
+    else setCoverPreview(uri);
     setUploadingCover(true);
     try {
       const coverUrl = await uploadCatalogCover(uri);
-      if (!(await save({ coverUrl }))) setCoverPreview(null);
+      await save(
+        targetSection === "services" ? { serviceCoverUrl: coverUrl } : { coverUrl },
+      );
+      if (targetSection === "services") setServiceCoverPreview(null);
+      else setCoverPreview(null);
     } catch {
+      if (targetSection === "services") setServiceCoverPreview(null);
+      else setCoverPreview(null);
       alertError("Não foi possível enviar a capa. Tente novamente.");
     } finally {
       setUploadingCover(false);
@@ -565,6 +592,11 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
   }
 
   async function handleRemoveCover() {
+    if (appearanceSection === "services") {
+      setServiceCoverPreview(null);
+      await save({ serviceCoverUrl: null });
+      return;
+    }
     setCoverPreview(null);
     await save({ coverUrl: null });
   }
@@ -629,11 +661,15 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
     if (canCustomizeCatalog) {
       const normalizedTagline = tagline.trim() || null;
       const normalizedPromo = promo.trim() || null;
+      const normalizedServiceTagline = serviceTagline.trim() || null;
+      const normalizedServicePromo = servicePromo.trim() || null;
       const customizedSettings = await save({
         accentColor,
         pattern: null,
         tagline: normalizedTagline,
         promoBanner: normalizedPromo,
+        serviceTagline: normalizedServiceTagline,
+        servicePromoBanner: normalizedServicePromo,
       });
       if (!customizedSettings) return;
 
@@ -641,7 +677,9 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
         customizedSettings.accentColor !== accentColor ||
         customizedSettings.pattern !== null ||
         customizedSettings.tagline !== normalizedTagline ||
-        customizedSettings.promoBanner !== normalizedPromo
+        customizedSettings.promoBanner !== normalizedPromo ||
+        customizedSettings.serviceTagline !== normalizedServiceTagline ||
+        customizedSettings.servicePromoBanner !== normalizedServicePromo
       ) {
         alertError("A API não confirmou as personalizações. Tente novamente.");
         return;
@@ -946,6 +984,34 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                   />
                 ) : (
                   <>
+                    <View style={{ gap: spacing.sm }}>
+                      <Typography variant="caption" color={theme.colors.textSecondary}>
+                        Personalizar o topo de
+                      </Typography>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          flexWrap: "wrap",
+                          gap: spacing.sm,
+                        }}
+                      >
+                        <Chip
+                          label="Produtos"
+                          selected={appearanceSection === "products"}
+                          onPress={() => setAppearanceSection("products")}
+                        />
+                        <Chip
+                          label="Serviços"
+                          selected={appearanceSection === "services"}
+                          onPress={() => setAppearanceSection("services")}
+                        />
+                      </View>
+                      <Typography variant="caption" color={theme.colors.textSecondary}>
+                        Capa, frase e promoção são próprias de cada vitrine. Foto de
+                        perfil e cor continuam compartilhadas.
+                      </Typography>
+                    </View>
+
                     {/* Capa */}
                     <View
                       style={[
@@ -956,12 +1022,14 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                       <Pressable
                         onPress={() => void handlePickCover()}
                         accessibilityRole="button"
-                        accessibilityLabel="Foto de capa do catálogo"
+                        accessibilityLabel={`Foto de capa da vitrine de ${
+                          isServiceAppearance ? "serviços" : "produtos"
+                        }`}
                         style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
                       >
-                        {(settings.coverUrl ?? coverPreview) ? (
+                        {appearanceCoverUrl ? (
                           <Image
-                            source={{ uri: settings.coverUrl ?? coverPreview! }}
+                            source={{ uri: appearanceCoverUrl }}
                             style={{
                               width: "100%",
                               height: 120,
@@ -1000,7 +1068,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                           </View>
                         )}
                       </Pressable>
-                      {settings.coverUrl && (
+                      {appearanceCoverUrl && (
                         <Pressable
                           onPress={() => void handleRemoveCover()}
                           accessibilityRole="button"
@@ -1013,6 +1081,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                     </View>
 
                     {/* Foto de perfil / logo */}
+                    <Typography variant="label">IDENTIDADE COMPARTILHADA</Typography>
                     <Typography variant="caption" color={theme.colors.textSecondary}>
                       Foto de perfil (aparece no topo do catálogo)
                     </Typography>
@@ -1172,7 +1241,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
                           businessName={
                             profile?.businessName ?? profile?.name ?? "Seu negócio"
                           }
-                          tagline={tagline}
+                          tagline={appearanceTagline}
                         />
                       </>
                     ) : null}
@@ -1186,19 +1255,31 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
 
                     {/* Frase de apresentação */}
                     <Input
-                      label="Frase de apresentação"
-                      value={tagline}
-                      onChangeText={setTagline}
-                      placeholder={`Conheça meus ${experienceCopy.productNounPlural}`}
+                      label={`Frase de apresentação de ${
+                        isServiceAppearance ? "serviços" : "produtos"
+                      }`}
+                      value={appearanceTagline}
+                      onChangeText={setAppearanceTagline}
+                      placeholder={
+                        isServiceAppearance
+                          ? "Atendimento feito para você"
+                          : `Conheça meus ${experienceCopy.productNounPlural}`
+                      }
                       maxLength={120}
                     />
 
                     {/* Faixa promocional (topo do catálogo) */}
                     <Input
-                      label="Faixa promocional"
-                      value={promo}
-                      onChangeText={setPromo}
-                      placeholder="Frete grátis hoje 🚚"
+                      label={`Faixa promocional de ${
+                        isServiceAppearance ? "serviços" : "produtos"
+                      }`}
+                      value={appearancePromo}
+                      onChangeText={setAppearancePromo}
+                      placeholder={
+                        isServiceAppearance
+                          ? "Agenda aberta para este mês"
+                          : "Frete grátis hoje 🚚"
+                      }
                       maxLength={60}
                     />
                   </>
@@ -1224,7 +1305,7 @@ function CatalogForm({ settings }: Readonly<{ settings: CatalogSettings }>) {
               <HeroPreview
                 baseColor={resolvedBaseColor}
                 businessName={profile?.businessName ?? profile?.name ?? "Seu negócio"}
-                tagline={tagline}
+                tagline={appearanceTagline}
               />
             </View>
           ) : null}

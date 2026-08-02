@@ -88,7 +88,7 @@ invariants:
 ## Contracts (Zod/DTO)
 
 - `CatalogSettingsDto` — inclui `brandId`, slug, estado e personalização.
-- `UpdateCatalogSettingsDto` — `{ slug?, enabled?, whatsapp?, coverUrl?, logoUrl?, accentColor?, pattern?, tagline? (máx 120), promoBanner? (máx 60) }` (campos de personalização exigem Premium; slug validado por regex)
+- `UpdateCatalogSettingsDto` — inclui os campos compartilhados e, para a vitrine de serviços, `serviceCoverUrl?`, `serviceTagline?` (máx 120) e `servicePromoBanner?` (máx 60). Campos de personalização exigem Essencial; slug é validado por regex.
 - `PublicCatalogDto` — inclui `brandId`; produtos expõem variações com `inStock`, sem quantidade/custo.
 
 ## Errors
@@ -124,6 +124,8 @@ invariants:
 - `PUT /api/v1/catalog/settings` `{ "enabled": true, "slug": "doces-da-maria" }`.
 
 ## Change log / Decisions
+
+- 2026-08-01: links `?tipo=produtos` e `?tipo=servicos` renderizam somente a seção escolhida. A vitrine de serviços ganhou capa, frase e faixa promocional próprias (`service_*`, migration 047); logo, WhatsApp, cor e pattern continuam compartilhados.
 
 - 2026-07-28: o catálogo público passa a incluir serviços marcados como públicos,
   com duração, local, opções, adicionais e pacotes. `POST

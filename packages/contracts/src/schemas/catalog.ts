@@ -45,6 +45,9 @@ export const CatalogSettingsDto = z.object({
   tagline: z.string().nullable(),
   // Faixa promocional opcional no topo do catalogo (ex.: "Frete gratis hoje").
   promoBanner: z.string().nullable(),
+  serviceCoverUrl: z.string().nullable(),
+  serviceTagline: z.string().nullable(),
+  servicePromoBanner: z.string().nullable(),
   updatedAt: z.string().datetime(),
 });
 
@@ -61,6 +64,9 @@ export const UpdateCatalogSettingsDto = z.object({
   pattern: CatalogPattern.nullable().optional(),
   tagline: z.string().max(120).nullable().optional(),
   promoBanner: z.string().max(60).nullable().optional(),
+  serviceCoverUrl: z.string().url().nullable().optional(),
+  serviceTagline: z.string().max(120).nullable().optional(),
+  servicePromoBanner: z.string().max(60).nullable().optional(),
 });
 
 export type UpdateCatalogSettings = z.infer<typeof UpdateCatalogSettingsDto>;
@@ -132,6 +138,9 @@ export const PublicCatalogDto = z.object({
   pattern: CatalogPattern.nullable(),
   tagline: z.string().nullable(),
   promoBanner: z.string().nullable(),
+  serviceCoverUrl: z.string().nullable(),
+  serviceTagline: z.string().nullable(),
+  servicePromoBanner: z.string().nullable(),
   products: z.array(PublicCatalogProductDto),
   services: z.array(PublicCatalogServiceDto).optional(),
   // Total real de produtos ativos (free mostra so os primeiros 5).
