@@ -49,6 +49,8 @@ Adotamos as seguintes regras arquiteturais obrigatórias.
   buckets fixos. Isso evita depender de Redis inexistente e mantém consistência entre instâncias.
 - Quotas são específicas por operação; um limite global não substitui proteção de billing, IA,
   analytics ou formulários públicos.
+- O acesso aos buckets usa o query builder tipado do Drizzle; mocks unitários não substituem o probe
+  contra PostgreSQL real antes de concluir um rollout.
 
 ### 2.5 Supply chain e segredos são gates
 
@@ -126,3 +128,12 @@ se o web app ganhar backend-for-frontend; não bloqueia o hardening atual.
 - sondagem HTTP de headers, CORS e limites após deploy;
 - compra de teste Google Play e evento Stripe de teste válidos;
 - checklist de release do PRD.
+
+## 7. Estado observado em produção
+
+Em 2026-08-04, `ad4f1f3` e `75013cb` foram publicados na Railway. Os domínios oficiais responderam
+com CSP, HSTS e `nosniff`; CORS permitiu a origem oficial e omitiu ACAO para origem arbitrária; o
+parser rejeitou 270 KB com 413; a assinatura Stripe inválida foi rejeitada com 400; e o limitador
+PostgreSQL respondeu 429 exatamente após as 20 chamadas permitidas. As migrações idempotentes são
+executadas antes do boot da API com a conexão do ambiente, evitando o projeto Supabase incorreto
+vinculado à CLI local.

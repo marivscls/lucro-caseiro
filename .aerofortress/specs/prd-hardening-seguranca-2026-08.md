@@ -1,6 +1,6 @@
 # PRD — Hardening de segurança do aplicativo, PWA, site e API
 
-**Status:** Implementado no código; rollout de produção pendente
+**Status:** Concluído e validado em produção com probes não destrutivos
 **Data:** 2026-08-04
 **Responsável:** Lucro Caseiro
 **Escopo:** `apps/api`, `apps/mobile`, `apps/web`, banco, CI e operação Railway/Supabase/Stripe/Google Play
@@ -169,8 +169,8 @@ funcional do produto.
 - [x] Compra Google Play não ativa conta diferente da vinculada.
 - [x] Hash de token não pode pertencer a dois usuários.
 - [x] Auditoria de produção não contém vulnerabilidade conhecida corrigível.
-- [ ] Domínios oficiais enviam os headers acordados e continuam carregando sem erro CSP.
-- [ ] Origem arbitrária não recebe CORS; PWA, site, catálogo e app nativo funcionam em produção.
+- [x] Domínios oficiais enviam os headers acordados e continuam carregando sem erro CSP.
+- [x] Origem arbitrária não recebe CORS; PWA, site, catálogo e app nativo funcionam em produção.
 - [x] Endpoints sensíveis retornam 429 ao exceder sua quota em teste automatizado.
 - [x] Payload acima do teto é rejeitado com 413 em teste automatizado.
 - [x] Testes de autenticação, IDOR, assinatura e replay passam.
@@ -180,11 +180,15 @@ funcional do produto.
 
 ## 7. Rollout e rollback
 
-1. Aplicar migração de vínculo de compra antes de publicar a API.
-2. Confirmar segredos Stripe e Google Play no Railway sem imprimir valores.
-3. Publicar API com regras de pagamento e limites; validar rejeições e fluxos válidos.
-4. Publicar site/PWA com CSP em modo de relatório durante a validação local, depois enforcement.
-5. Atualizar app Android se a biblioteca/configuração de compra mudar.
+1. As migrações `049` e `050` são idempotentes e executam com a `DATABASE_URL` do ambiente antes de
+   a API começar a aceitar tráfego.
+2. O health de produção confirma Stripe e Google Play configurados sem expor seus valores.
+3. API, site e PWA foram publicados pela Railway a partir de `ad4f1f3`; a correção do store de rate
+   limit foi publicada em `75013cb`.
+4. CSP foi publicada diretamente em enforcement após builds e probes locais; os três serviços
+   concluíram o deploy e responderam pelos domínios oficiais.
+5. Não foi necessário novo binário Android: biblioteca e configuração de compra no cliente não
+   mudaram neste hardening.
 6. Em rollback, nunca reativar o webhook sem assinatura nem remover a unicidade de compra; pode-se
    relaxar somente uma diretiva CSP específica e documentada enquanto se corrige o recurso bloqueado.
 
@@ -203,7 +207,8 @@ funcional do produto.
 
 - Webhook Stripe falha fechado e possui testes isolados de segredo/assinatura.
 - Google Play compara a conta ofuscada e registra somente SHA-256 do token em vínculo único.
-- Migrações `049_subscription_purchase_claims.sql` e `050_api_rate_limit_buckets.sql` estão prontas.
+- Migrações `049_subscription_purchase_claims.sql` e `050_api_rate_limit_buckets.sql` foram aplicadas
+  pelo boot idempotente da API no banco configurado na Railway.
 - Auditoria caiu de 52 ocorrências para zero vulnerabilidades conhecidas em produção.
 - Next respondeu localmente com CSP/nonce variável, HSTS e `nosniff`; PWA respondeu com CSP, HSTS e
   `nosniff`; catálogo aplica nonce por resposta.
@@ -211,8 +216,14 @@ funcional do produto.
   compartilhados no PostgreSQL com falha fechada.
 - CI executa auditoria e scanner de segredos; actions externas estão fixadas por commit.
 - Duas contas de serviço locais foram movidas para `C:\Users\maria\.secrets\lucro-caseiro`.
-- Validação observada: lint, 7 typechecks, 1.118 testes, build de API/Next/PWA, Sherif, scanner e
+- Validação observada: lint, 7 typechecks, 1.119 testes, build de API/Next/PWA, Sherif, scanner e
   auditoria passaram. Knip continua acusando débitos preexistentes fora do escopo deste hardening.
-
-Permanecem como rollout externo: aplicar as duas migrações, configurar a allowlist/segredos no
-Railway, publicar os serviços e repetir headers/CORS/compra nos domínios e sandboxes oficiais.
+- Produção confirmou HSTS e `nosniff` na API, site, PWA e catálogo; nonce no CSP do Next; hash no CSP
+  do PWA; origem oficial aceita e origem arbitrária sem ACAO; payload de 270 KB rejeitado com 413;
+  assinatura Stripe inválida rejeitada com 400; e contador PostgreSQL retornando 429 na 21ª chamada.
+- O primeiro probe do limitador revelou 503 na consulta SQL bruta. A implementação foi corrigida para
+  o query builder tipado do Drizzle, republicada e comprovada contra o PostgreSQL real.
+- O job do GitHub Actions passou scanner, auditoria, lint, tipos, testes e Sherif, mas o status geral
+  permaneceu vermelho no `knip:full` por dívida preexistente já registrada, sem relação com os gates
+  de segurança. Uma compra real não foi criada durante os probes não destrutivos; fluxos válidos de
+  Stripe e Google Play permanecem cobertos por testes e pela confirmação de configuração no health.
