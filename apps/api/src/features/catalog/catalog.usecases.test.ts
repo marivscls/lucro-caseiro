@@ -381,3 +381,64 @@ describe("CatalogUseCases.getPublicCatalog", () => {
     );
   });
 });
+
+describe("CatalogUseCases.createPublicServiceBooking", () => {
+  const booking = {
+    id: "33333333-3333-4333-8333-333333333333",
+    serviceId: "22222222-2222-4222-8222-222222222222",
+    serviceName: "Teste de serviço 2",
+    clientName: "Maria Cliente",
+    phone: "11999998888",
+    desiredDate: "2026-08-10",
+    desiredTime: "14:30",
+    locationMode: "business" as const,
+    notes: null,
+    status: "new" as const,
+    createdAt: "2026-08-04T12:00:00.000Z",
+  };
+  const request = {
+    serviceId: booking.serviceId,
+    clientName: booking.clientName,
+    phone: booking.phone,
+    desiredDate: booking.desiredDate,
+    desiredTime: booking.desiredTime,
+    locationMode: booking.locationMode,
+    notes: booking.notes,
+  };
+
+  it("avisa o dono do catálogo depois de persistir a solicitação", async () => {
+    const notify = vi.fn(() => Promise.resolve());
+    const sut = new CatalogUseCases(
+      makeRepo({ createPublicServiceBooking: () => Promise.resolve(booking) }),
+      notify,
+    );
+
+    await expect(
+      sut.createPublicServiceBooking("doces-da-maria", request),
+    ).resolves.toEqual(booking);
+    expect(notify).toHaveBeenCalledWith(
+      USER_ID,
+      "lucro-caseiro",
+      booking.serviceId,
+      booking.serviceName,
+      booking.id,
+    );
+  });
+
+  it("mantém a solicitação criada quando o push falha", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const sut = new CatalogUseCases(
+      makeRepo({ createPublicServiceBooking: () => Promise.resolve(booking) }),
+      () => Promise.reject(new Error("Expo indisponível")),
+    );
+
+    await expect(
+      sut.createPublicServiceBooking("doces-da-maria", request),
+    ).resolves.toEqual(booking);
+    expect(warn).toHaveBeenCalledWith(
+      "Service booking push notification failed",
+      expect.any(Error),
+    );
+    warn.mockRestore();
+  });
+});

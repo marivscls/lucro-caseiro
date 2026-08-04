@@ -1,4 +1,5 @@
 export * from "./users";
+export * from "./notifications";
 export * from "./products";
 export * from "./product-components";
 export * from "./clients";

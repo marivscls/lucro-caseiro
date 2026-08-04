@@ -27,7 +27,16 @@ function wantsCustomization(data: UpdateCatalogSettings): boolean {
 }
 
 export class CatalogUseCases {
-  constructor(private repo: ICatalogRepo) {}
+  constructor(
+    private repo: ICatalogRepo,
+    private notifyServiceBooking?: (
+      userId: string,
+      brandId: string,
+      serviceId: string,
+      serviceName: string,
+      bookingRequestId: string,
+    ) => Promise<void>,
+  ) {}
 
   /** Retorna as configuracoes do catalogo, criando defaults na primeira vez. */
   async getSettings(
@@ -189,6 +198,19 @@ export class CatalogUseCases {
     }
     const created = await this.repo.createPublicServiceBooking(owner.userId, data);
     if (!created) throw new NotFoundError("Serviço não encontrado");
+    if (this.notifyServiceBooking) {
+      try {
+        await this.notifyServiceBooking(
+          owner.userId,
+          owner.brandId,
+          created.serviceId,
+          created.serviceName,
+          created.id,
+        );
+      } catch (error) {
+        console.warn("Service booking push notification failed", error);
+      }
+    }
     return created;
   }
 

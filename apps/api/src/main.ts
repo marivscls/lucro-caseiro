@@ -100,6 +100,10 @@ import {
 } from "./features/marketing/marketing-ai.provider";
 import { MarketingRepoPg } from "./features/marketing/marketing.repo.pg";
 import { MarketingUseCases } from "./features/marketing/marketing.usecases";
+import { createExpoPushSender } from "./features/notifications/expo-push";
+import { createNotificationsRouter } from "./features/notifications/notifications.routes";
+import { NotificationsRepoPg } from "./features/notifications/notifications.repo.pg";
+import { NotificationsUseCases } from "./features/notifications/notifications.usecases";
 import {
   createPromotionsRouter,
   createPublicRetailRouter,
@@ -242,7 +246,13 @@ const marketingUseCases = new MarketingUseCases(
     : undefined,
 );
 
-const catalogUseCases = new CatalogUseCases(new CatalogRepoPg(db));
+const notificationsUseCases = new NotificationsUseCases(
+  new NotificationsRepoPg(db),
+  createExpoPushSender(),
+);
+const catalogUseCases = new CatalogUseCases(new CatalogRepoPg(db), (...args) =>
+  notificationsUseCases.notifyServiceBooking(...args),
+);
 // Conversao orcamento -> encomenda reusa o usecase de orders (injetado adiante).
 
 const purchasesUseCases = new PurchasesUseCases(
@@ -331,6 +341,7 @@ app.use(
   createAnalyticsRouter(analyticsUseCases, config.adminUserIds),
 );
 app.use("/api/v1/marketing", createMarketingRouter(marketingUseCases));
+app.use("/api/v1/notifications", createNotificationsRouter(notificationsUseCases));
 app.use(
   "/api/v1/products",
   createProductsRouter(

@@ -9,6 +9,7 @@ export const NOTIFICATION_TYPES = {
   WEEKLY_SUMMARY: "WEEKLY_SUMMARY",
   DAILY_REMINDER: "DAILY_REMINDER",
   TRIAL_EXPIRING: "TRIAL_EXPIRING",
+  SERVICE_BOOKING: "SERVICE_BOOKING",
 } as const;
 
 export type NotificationType =
@@ -22,7 +23,12 @@ type NotificationData =
   | { type: typeof NOTIFICATION_TYPES.DELIVERY }
   | { type: typeof NOTIFICATION_TYPES.WEEKLY_SUMMARY }
   | { type: typeof NOTIFICATION_TYPES.DAILY_REMINDER }
-  | { type: typeof NOTIFICATION_TYPES.TRIAL_EXPIRING };
+  | { type: typeof NOTIFICATION_TYPES.TRIAL_EXPIRING }
+  | {
+      type: typeof NOTIFICATION_TYPES.SERVICE_BOOKING;
+      serviceId: string;
+      bookingRequestId: string;
+    };
 
 /**
  * Roteia o usuário para a tela correta ao tocar na notificacao.
@@ -51,6 +57,9 @@ export function handleNotificationResponse(response: NotificationResponse): void
       break;
     case NOTIFICATION_TYPES.TRIAL_EXPIRING:
       router.push("/plans");
+      break;
+    case NOTIFICATION_TYPES.SERVICE_BOOKING:
+      router.push("/services");
       break;
   }
 }

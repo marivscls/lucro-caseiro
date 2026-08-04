@@ -141,6 +141,11 @@ vi.mock("expo-notifications", () => ({
   setNotificationChannelAsync: vi.fn(),
   getPermissionsAsync: vi.fn().mockResolvedValue({ status: "granted" }),
   requestPermissionsAsync: vi.fn().mockResolvedValue({ status: "granted" }),
+  getExpoPushTokenAsync: vi
+    .fn()
+    .mockResolvedValue({ data: "ExponentPushToken[test-token]" }),
+  getLastNotificationResponse: vi.fn().mockReturnValue(null),
+  clearLastNotificationResponse: vi.fn(),
   addNotificationReceivedListener: vi.fn().mockReturnValue({ remove: vi.fn() }),
   addNotificationResponseReceivedListener: vi.fn().mockReturnValue({ remove: vi.fn() }),
   AndroidImportance: { MAX: 5 },

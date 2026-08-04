@@ -25,6 +25,7 @@ describe("NOTIFICATION_TYPES", () => {
     expect(NOTIFICATION_TYPES.WEEKLY_SUMMARY).toBe("WEEKLY_SUMMARY");
     expect(NOTIFICATION_TYPES.DAILY_REMINDER).toBe("DAILY_REMINDER");
     expect(NOTIFICATION_TYPES.TRIAL_EXPIRING).toBe("TRIAL_EXPIRING");
+    expect(NOTIFICATION_TYPES.SERVICE_BOOKING).toBe("SERVICE_BOOKING");
   });
 });
 
@@ -61,6 +62,11 @@ describe("handleNotificationResponse", () => {
   it("navigates to /plans for TRIAL_EXPIRING", () => {
     handleNotificationResponse(makeResponse("TRIAL_EXPIRING"));
     expect(router.push).toHaveBeenCalledWith("/plans");
+  });
+
+  it("navigates to /services for SERVICE_BOOKING", () => {
+    handleNotificationResponse(makeResponse("SERVICE_BOOKING"));
+    expect(router.push).toHaveBeenCalledWith("/services");
   });
 
   it("does not navigate when data is undefined", () => {
