@@ -34,12 +34,9 @@ describe("security middleware", () => {
   });
 
   it("bloqueia acima da quota e não persiste o bearer token", async () => {
-    const execute = vi
-      .fn()
-      .mockResolvedValueOnce([{ count: 1 }])
-      .mockResolvedValueOnce([{ count: 2 }]);
+    const increment = vi.fn().mockResolvedValueOnce(1).mockResolvedValueOnce(2);
     const middleware = postgresRateLimit({
-      db: { execute },
+      store: { increment, cleanup: vi.fn() },
       scope: "billing",
       windowMs: 60_000,
       max: 1,
@@ -62,12 +59,15 @@ describe("security middleware", () => {
       "Retry-After",
       expect.any(String),
     );
-    expect(JSON.stringify(execute.mock.calls)).not.toContain("secret-token");
+    expect(JSON.stringify(increment.mock.calls)).not.toContain("secret-token");
   });
 
   it("falha fechado quando o armazenamento compartilhado cai", async () => {
     const middleware = postgresRateLimit({
-      db: { execute: vi.fn().mockRejectedValue(new Error("db offline")) },
+      store: {
+        increment: vi.fn().mockRejectedValue(new Error("db offline")),
+        cleanup: vi.fn(),
+      },
       scope: "billing",
       windowMs: 60_000,
       max: 1,

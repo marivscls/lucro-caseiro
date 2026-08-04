@@ -1,15 +1,21 @@
 import { createHash } from "node:crypto";
-import { sql, type SQL } from "drizzle-orm";
+import { lt, sql } from "drizzle-orm";
 import type { NextFunction, Request, Response } from "express";
+import { apiRateLimitBuckets, createClient } from "@lucro-caseiro/database";
 
 import { ServiceUnavailableError } from "../errors";
 
-interface RateLimitDatabase {
-  execute(query: SQL): Promise<unknown>;
+interface RateLimitStore {
+  increment(input: {
+    keyHash: string;
+    bucketStart: Date;
+    expiresAt: Date;
+  }): Promise<number>;
+  cleanup(expiredBefore: Date): Promise<void>;
 }
 
 interface PostgresRateLimitOptions {
-  db: RateLimitDatabase;
+  store: RateLimitStore;
   scope: string;
   windowMs: number;
   max: number;
@@ -20,8 +26,36 @@ function clientKey(req: Request): string {
   return authorization ? `auth:${authorization}` : `ip:${req.ip ?? "unknown"}`;
 }
 
+export function createPostgresRateLimitStore(
+  db: ReturnType<typeof createClient>,
+): RateLimitStore {
+  return {
+    async increment({ keyHash, bucketStart, expiresAt }) {
+      const [bucket] = await db
+        .insert(apiRateLimitBuckets)
+        .values({ keyHash, bucketStart, expiresAt })
+        .onConflictDoUpdate({
+          target: [apiRateLimitBuckets.keyHash, apiRateLimitBuckets.bucketStart],
+          set: {
+            count: sql`${apiRateLimitBuckets.count} + 1`,
+            expiresAt,
+          },
+        })
+        .returning({ count: apiRateLimitBuckets.count });
+
+      if (!bucket) throw new Error("Rate limit bucket was not returned");
+      return bucket.count;
+    },
+    async cleanup(expiredBefore) {
+      await db
+        .delete(apiRateLimitBuckets)
+        .where(lt(apiRateLimitBuckets.expiresAt, expiredBefore));
+    },
+  };
+}
+
 export function postgresRateLimit({
-  db,
+  store,
   scope,
   windowMs,
   max,
@@ -36,18 +70,11 @@ export function postgresRateLimit({
       .digest("hex");
 
     try {
-      const rows = (await db.execute(sql`
-        INSERT INTO api_rate_limit_buckets (key_hash, bucket_start, count, expires_at)
-        VALUES (${keyHash}, ${bucketStart}, 1, ${expiresAt})
-        ON CONFLICT (key_hash, bucket_start)
-        DO UPDATE SET count = api_rate_limit_buckets.count + 1
-        RETURNING count
-      `)) as Array<{ count: number }>;
-      const count = Number(rows[0]?.count ?? max + 1);
+      const count = await store.increment({ keyHash, bucketStart, expiresAt });
 
       if (now >= nextCleanupAt) {
-        void db
-          .execute(sql`DELETE FROM api_rate_limit_buckets WHERE expires_at < NOW()`)
+        void store
+          .cleanup(new Date(now))
           .catch((error: unknown) => console.error("Rate limit cleanup failed:", error));
         nextCleanupAt = now + windowMs;
       }

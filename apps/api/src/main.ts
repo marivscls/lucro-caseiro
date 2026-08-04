@@ -88,7 +88,10 @@ import {
   requireFeatureForExtraPhotos,
 } from "./shared/middleware/require-feature";
 import { rateLimit } from "./shared/middleware/rate-limit";
-import { postgresRateLimit } from "./shared/middleware/postgres-rate-limit";
+import {
+  createPostgresRateLimitStore,
+  postgresRateLimit,
+} from "./shared/middleware/postgres-rate-limit";
 import { securityHeaders } from "./shared/middleware/security-headers";
 import { healthRouter } from "./shared/health";
 import { setDb } from "./shared/db";
@@ -335,26 +338,27 @@ app.use(
 // Barreira contra abuso/rajada (webhook do Stripe fica de fora, montado antes).
 app.use(rateLimit({ windowMs: 60_000, max: 300 }));
 
+const sharedRateLimitStore = createPostgresRateLimitStore(db);
 const publicWriteLimit = postgresRateLimit({
-  db,
+  store: sharedRateLimitStore,
   scope: "public-write",
   windowMs: 10 * 60_000,
   max: 20,
 });
 const billingLimit = postgresRateLimit({
-  db,
+  store: sharedRateLimitStore,
   scope: "billing",
   windowMs: 10 * 60_000,
   max: 10,
 });
 const expensiveLimit = postgresRateLimit({
-  db,
+  store: sharedRateLimitStore,
   scope: "expensive",
   windowMs: 10 * 60_000,
   max: 30,
 });
 const analyticsWriteLimit = postgresRateLimit({
-  db,
+  store: sharedRateLimitStore,
   scope: "analytics-write",
   windowMs: 60_000,
   max: 120,
