@@ -151,7 +151,13 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         backgroundColor: activeBrand.theme.primarySoft ?? "#F7DFD6",
       },
       package: activeBrand.androidPackage,
-      versionCode: 21,
+      ...(activeBrand.id === "lucro-caseiro"
+        ? {
+            googleServicesFile:
+              process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
+          }
+        : {}),
+      versionCode: 22,
       softwareKeyboardLayoutMode: "resize",
       permissions: [],
     },

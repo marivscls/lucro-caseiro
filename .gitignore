@@ -54,6 +54,7 @@ lucro-caseiro-*.json
 *service-account*.json
 *serviceaccount*.json
 *-gcp-key*.json
+/apps/mobile/google-services.json
 
 # tooling cache
 *.tsbuildinfo

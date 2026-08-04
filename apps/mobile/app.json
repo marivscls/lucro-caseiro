@@ -22,7 +22,8 @@
         "backgroundColor": "#1B1917"
       },
       "package": "br.com.orionseven.lucrocaseiro",
-      "versionCode": 21,
+      "googleServicesFile": "./google-services.json",
+      "versionCode": 22,
       "softwareKeyboardLayoutMode": "resize",
       "permissions": []
     },
