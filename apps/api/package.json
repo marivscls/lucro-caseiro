@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch --env-file=.env src/main.ts",
     "build": "tsc",
-    "start": "node --import tsx src/main.ts",
+    "start": "node --import tsx src/start.ts",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -29,7 +29,7 @@
     "pdfkit": "^0.18.0",
     "postgres": "^3.4.5",
     "stripe": "^22.1.1",
-    "tsx": "^4.19.0",
+    "tsx": "^4.23.5",
     "zod": "^3.24.1"
   },
   "devDependencies": {

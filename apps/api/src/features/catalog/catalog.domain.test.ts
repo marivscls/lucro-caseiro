@@ -390,6 +390,16 @@ describe("renderCatalogHtml", () => {
     });
     expect(html).toContain("https://cdn.example.com/logo.jpg");
   });
+
+  it("marca scripts funcionais com o nonce da resposta", () => {
+    const html = renderCatalogHtml(
+      { ...baseCatalog, products: [product] },
+      "all",
+      "nonce-seguro",
+    );
+    expect(html).toContain('<script nonce="nonce-seguro">');
+    expect(html).not.toMatch(/<script>/);
+  });
 });
 
 describe("renderCatalogErrorHtml", () => {
@@ -397,6 +407,7 @@ describe("renderCatalogErrorHtml", () => {
     const html = renderCatalogErrorHtml();
     expect(html).toContain("Não foi possível abrir o catálogo");
     expect(html).toContain("Tentar novamente");
-    expect(html).toContain("location.reload()");
+    expect(html).toContain('<a href="">Tentar novamente</a>');
+    expect(html).not.toContain("onclick=");
   });
 });

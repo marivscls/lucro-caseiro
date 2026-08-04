@@ -24,6 +24,9 @@ type SubscriptionState =
 
 interface GooglePlaySubscriptionPurchase {
   subscriptionState?: SubscriptionState;
+  externalAccountIdentifiers?: {
+    obfuscatedExternalAccountId?: string;
+  };
   lineItems?: Array<{
     productId?: string;
     expiryTime?: string;
@@ -125,14 +128,19 @@ export class GooglePlayClient implements ISubscriptionStatusProvider {
       .find((resolved): resolved is PaidPlan => resolved !== null);
 
     if (!plan) {
-      return { plan: "free", expiresAt: null };
+      return { plan: "free", expiresAt: null, purchaseOwnerId: null };
     }
 
     const expiresAt = getLatestExpiry(subscription);
     if (!isActiveState(subscription.subscriptionState, expiresAt)) {
-      return { plan: "free", expiresAt: null };
+      return { plan: "free", expiresAt: null, purchaseOwnerId: null };
     }
 
-    return { plan, expiresAt };
+    return {
+      plan,
+      expiresAt,
+      purchaseOwnerId:
+        subscription.externalAccountIdentifiers?.obfuscatedExternalAccountId ?? null,
+    };
   }
 }

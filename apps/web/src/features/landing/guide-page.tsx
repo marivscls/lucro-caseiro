@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { headers } from "next/headers";
 
 import { PublicPage, publicPageStyles as styles } from "./public-page";
 import { SITE_URL } from "./site-constants";
@@ -11,7 +12,8 @@ type GuidePageProps = {
   readonly children: ReactNode;
 };
 
-export function GuidePage({ title, description, slug, children }: GuidePageProps) {
+export async function GuidePage({ title, description, slug, children }: GuidePageProps) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   const schema = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -28,6 +30,7 @@ export function GuidePage({ title, description, slug, children }: GuidePageProps
   return (
     <PublicPage eyebrow="Guia de precificação" title={title} description={description}>
       <script
+        nonce={nonce}
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
       />

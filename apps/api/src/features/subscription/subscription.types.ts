@@ -9,6 +9,11 @@ export interface ISubscriptionRepo {
     expiresAt: Date | null,
   ): Promise<UserProfile | null>;
   getResourceCounts(userId: string): Promise<ResourceCounts>;
+  claimPurchaseToken(
+    userId: string,
+    provider: "google-play",
+    tokenHash: string,
+  ): Promise<boolean>;
 }
 
 export interface UpsertProfileData {
@@ -37,6 +42,7 @@ export interface AndroidPurchaseData {
 export interface ProviderPlanState {
   plan: PlanType;
   expiresAt: Date | null;
+  purchaseOwnerId: string | null;
 }
 
 export interface ISubscriptionStatusProvider {

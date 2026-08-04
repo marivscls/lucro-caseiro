@@ -4,11 +4,9 @@ import type Stripe from "stripe";
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
 import type { StripeUseCases } from "./stripe.usecases";
 import type { BillingPeriod, PaidPlan } from "./payments.types";
+import { buildStripeEvent, type StripeWebhookOptions } from "./stripe.webhook";
 
-export interface StripeRouterOptions {
-  stripe: Pick<Stripe, "webhooks"> | null;
-  webhookSecret: string;
-}
+export type StripeRouterOptions = StripeWebhookOptions;
 
 export function createStripeCheckoutRouter(useCases: StripeUseCases): Router {
   const router = Router();
@@ -48,42 +46,29 @@ export function createStripeWebhookRouter(
 ): Router {
   const router = Router();
 
-  router.post("/stripe", raw({ type: "application/json" }), async (req, res, next) => {
-    let event: Stripe.Event;
-    try {
-      event = buildStripeEvent(req.body as Buffer, req.headers, {
-        stripe,
-        webhookSecret,
-      });
-    } catch {
-      res.status(400).json({ error: "INVALID_STRIPE_SIGNATURE" });
-      return;
-    }
+  router.post(
+    "/stripe",
+    raw({ type: "application/json", limit: "256kb" }),
+    async (req, res, next) => {
+      let event: Stripe.Event;
+      try {
+        event = buildStripeEvent(req.body as Buffer, req.headers, {
+          stripe,
+          webhookSecret,
+        });
+      } catch {
+        res.status(400).json({ error: "INVALID_STRIPE_SIGNATURE" });
+        return;
+      }
 
-    try {
-      await useCases.handleEvent(event);
-      res.status(200).json({ ok: true });
-    } catch (err) {
-      next(err);
-    }
-  });
+      try {
+        await useCases.handleEvent(event);
+        res.status(200).json({ ok: true });
+      } catch (err) {
+        next(err);
+      }
+    },
+  );
 
   return router;
-}
-
-function buildStripeEvent(
-  body: Buffer,
-  headers: Record<string, unknown>,
-  { stripe, webhookSecret }: StripeRouterOptions,
-): Stripe.Event {
-  if (!webhookSecret) {
-    return JSON.parse(body.toString("utf8")) as Stripe.Event;
-  }
-
-  const signature = headers["stripe-signature"];
-  if (!stripe || typeof signature !== "string") {
-    throw new Error("Assinatura Stripe invalida");
-  }
-
-  return stripe.webhooks.constructEvent(body, signature, webhookSecret);
 }

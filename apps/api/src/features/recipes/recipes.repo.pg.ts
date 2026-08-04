@@ -181,16 +181,6 @@ export class RecipesRepoPg implements IRecipesRepo {
     return result?.value ?? 0;
   }
 
-  async updateCosts(id: string, totalCost: number, costPerUnit: number): Promise<void> {
-    await this.db
-      .update(recipes)
-      .set({
-        totalCost: String(totalCost),
-        costPerUnit: String(costPerUnit),
-      })
-      .where(eq(recipes.id, id));
-  }
-
   private toRecipe(
     row: typeof recipes.$inferSelect,
     lineRows: {

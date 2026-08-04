@@ -5,7 +5,7 @@ import type {
 } from "@lucro-caseiro/contracts";
 import { describe, expect, it, vi } from "vitest";
 
-import { NotFoundError } from "../../shared/errors";
+import { ForbiddenError, NotFoundError } from "../../shared/errors";
 import { SubscriptionUseCases } from "./subscription.usecases";
 import type {
   ISubscriptionRepo,
@@ -58,6 +58,7 @@ function makeRepo(overrides: Partial<ISubscriptionRepo> = {}): ISubscriptionRepo
         makeProfile({ plan, planExpiresAt: expiresAt?.toISOString() ?? null }),
       ),
     getResourceCounts: () => Promise.resolve(makeCounts()),
+    claimPurchaseToken: () => Promise.resolve(true),
     ...overrides,
   };
 }
@@ -66,7 +67,12 @@ function makeStatusProvider(
   overrides: Partial<ISubscriptionStatusProvider> = {},
 ): ISubscriptionStatusProvider {
   return {
-    getPlanState: () => Promise.resolve({ plan: "professional", expiresAt: null }),
+    getPlanState: () =>
+      Promise.resolve({
+        plan: "professional",
+        expiresAt: null,
+        purchaseOwnerId: USER_ID,
+      }),
     ...overrides,
   };
 }
@@ -262,7 +268,12 @@ describe("SubscriptionUseCases", () => {
       const { sut } = makeSut(
         {},
         makeStatusProvider({
-          getPlanState: () => Promise.resolve({ plan: "essential", expiresAt: null }),
+          getPlanState: () =>
+            Promise.resolve({
+              plan: "essential",
+              expiresAt: null,
+              purchaseOwnerId: USER_ID,
+            }),
         }),
       );
       const result = await sut.syncPlanFromProvider(USER_ID, ANDROID_PURCHASE);
@@ -275,11 +286,62 @@ describe("SubscriptionUseCases", () => {
           getProfile: () => Promise.resolve(makeProfile({ plan: "professional" })),
         },
         makeStatusProvider({
-          getPlanState: () => Promise.resolve({ plan: "free", expiresAt: null }),
+          getPlanState: () =>
+            Promise.resolve({ plan: "free", expiresAt: null, purchaseOwnerId: null }),
         }),
       );
       const result = await sut.syncPlanFromProvider(USER_ID, ANDROID_PURCHASE);
       expect(result.plan).toBe("professional");
+    });
+
+    it("rejects an active purchase linked to another account", async () => {
+      const { sut } = makeSut(
+        {},
+        makeStatusProvider({
+          getPlanState: () =>
+            Promise.resolve({
+              plan: "professional",
+              expiresAt: null,
+              purchaseOwnerId: "other-user",
+            }),
+        }),
+      );
+
+      await expect(sut.syncPlanFromProvider(USER_ID, ANDROID_PURCHASE)).rejects.toThrow(
+        ForbiddenError,
+      );
+    });
+
+    it("rejects legacy purchases without an account binding", async () => {
+      const { sut } = makeSut(
+        {},
+        makeStatusProvider({
+          getPlanState: () =>
+            Promise.resolve({
+              plan: "professional",
+              expiresAt: null,
+              purchaseOwnerId: null,
+            }),
+        }),
+      );
+
+      await expect(sut.syncPlanFromProvider(USER_ID, ANDROID_PURCHASE)).rejects.toThrow(
+        ForbiddenError,
+      );
+    });
+
+    it("rejects a purchase token already claimed by another account", async () => {
+      const claimPurchaseToken = vi.fn(() => Promise.resolve(false));
+      const { sut } = makeSut({ claimPurchaseToken }, makeStatusProvider());
+
+      await expect(sut.syncPlanFromProvider(USER_ID, ANDROID_PURCHASE)).rejects.toThrow(
+        ForbiddenError,
+      );
+      expect(claimPurchaseToken).toHaveBeenCalledWith(
+        USER_ID,
+        "google-play",
+        expect.stringMatching(/^[a-f0-9]{64}$/),
+      );
     });
 
     it("does not sync when provider is not configured", async () => {

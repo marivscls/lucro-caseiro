@@ -23,6 +23,7 @@ describe("GooglePlayClient", () => {
     request.mockResolvedValue({
       data: {
         subscriptionState: "SUBSCRIPTION_STATE_ACTIVE",
+        externalAccountIdentifiers: { obfuscatedExternalAccountId: "user-1" },
         lineItems: [{ productId: "lucrocaseiro_premium_monthly", expiryTime: expiry }],
       },
     });
@@ -35,6 +36,7 @@ describe("GooglePlayClient", () => {
 
     expect(result.plan).toBe("professional");
     expect(result.expiresAt?.toISOString()).toBe(expiry);
+    expect(result.purchaseOwnerId).toBe("user-1");
   });
 
   it("returns essential for an active essential subscription", async () => {
@@ -42,6 +44,7 @@ describe("GooglePlayClient", () => {
     request.mockResolvedValue({
       data: {
         subscriptionState: "SUBSCRIPTION_STATE_ACTIVE",
+        externalAccountIdentifiers: { obfuscatedExternalAccountId: "user-1" },
         lineItems: [{ productId: "lucrocaseiro_essential_monthly", expiryTime: expiry }],
       },
     });
@@ -61,6 +64,7 @@ describe("GooglePlayClient", () => {
     request.mockResolvedValue({
       data: {
         subscriptionState: "SUBSCRIPTION_STATE_ACTIVE",
+        externalAccountIdentifiers: { obfuscatedExternalAccountId: "user-1" },
         lineItems: [
           { productId: "lucrocaseiro_professional_annual", expiryTime: expiry },
         ],
@@ -81,6 +85,7 @@ describe("GooglePlayClient", () => {
     request.mockResolvedValue({
       data: {
         subscriptionState: "SUBSCRIPTION_STATE_CANCELED",
+        externalAccountIdentifiers: { obfuscatedExternalAccountId: "user-1" },
         lineItems: [
           { productId: "lucrocaseiro_professional_annual", expiryTime: expiry },
         ],
@@ -101,6 +106,7 @@ describe("GooglePlayClient", () => {
     request.mockResolvedValue({
       data: {
         subscriptionState: "SUBSCRIPTION_STATE_ACTIVE",
+        externalAccountIdentifiers: { obfuscatedExternalAccountId: "user-1" },
         lineItems: [
           {
             productId: "lucrocaseiro_premium",
@@ -139,7 +145,7 @@ describe("GooglePlayClient", () => {
         productId: "lucrocaseiro_professional_monthly",
         purchaseToken: "token-1",
       }),
-    ).resolves.toEqual({ plan: "free", expiresAt: null });
+    ).resolves.toEqual({ plan: "free", expiresAt: null, purchaseOwnerId: null });
   });
 
   it("returns free for active non-paid subscription ids", async () => {
@@ -161,7 +167,7 @@ describe("GooglePlayClient", () => {
         productId: "lucrocaseiro_professional_monthly",
         purchaseToken: "token-1",
       }),
-    ).resolves.toEqual({ plan: "free", expiresAt: null });
+    ).resolves.toEqual({ plan: "free", expiresAt: null, purchaseOwnerId: null });
   });
 
   it("fails when service account is missing", async () => {

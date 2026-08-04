@@ -271,7 +271,7 @@ export class MarketingUseCases {
       const session = await this.repo.createSession(userId, input.message.slice(0, 72));
       sessionId = session.id;
     }
-    await this.repo.addMessage(sessionId, "user", input.message, input.context);
+    await this.repo.addMessage(userId, sessionId, "user", input.message, input.context);
     const [session, instruction, knowledge, examples, resources] = await Promise.all([
       this.repo.getSession(userId, sessionId),
       this.repo.activeInstruction(userId),
@@ -315,6 +315,7 @@ export class MarketingUseCases {
       prompt: context,
     });
     const message = await this.repo.addMessage(
+      userId,
       sessionId,
       "assistant",
       result.text,
@@ -528,10 +529,11 @@ export class MarketingUseCases {
     },
   ) {
     const session = await this.repo.createSession(userId, title);
-    await this.repo.addMessage(session.id, "user", JSON.stringify(input), {
+    await this.repo.addMessage(userId, session.id, "user", JSON.stringify(input), {
       source: "campaign-studio",
     });
     const message = await this.repo.addMessage(
+      userId,
       session.id,
       "assistant",
       result.text,

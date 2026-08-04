@@ -1,5 +1,6 @@
 import { readFile, stat } from "node:fs/promises";
 import { createServer } from "node:http";
+import { createHash } from "node:crypto";
 import { extname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -41,6 +42,43 @@ await stat(indexPath).catch(() => {
   throw new Error(`Gere o PWA ${brandId} antes de inicia-lo.`);
 });
 
+function inlineScriptHashes(html) {
+  return [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)].map(
+    ([, source]) => `'sha256-${createHash("sha256").update(source).digest("base64")}'`,
+  );
+}
+
+const indexHtml = await readFile(indexPath, "utf8");
+const apiOrigin = process.env.EXPO_PUBLIC_API_URL
+  ? new URL(process.env.EXPO_PUBLIC_API_URL).origin
+  : "";
+const supabaseOrigin = process.env.EXPO_PUBLIC_SUPABASE_URL
+  ? new URL(process.env.EXPO_PUBLIC_SUPABASE_URL).origin
+  : "";
+const createCsp = (html) =>
+  [
+    "default-src 'self'",
+    `script-src 'self' ${inlineScriptHashes(html).join(" ")}`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https:",
+    "font-src 'self' data:",
+    `connect-src 'self' ${apiOrigin} ${supabaseOrigin}`,
+    "worker-src 'self' blob:",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    "upgrade-insecure-requests",
+  ].join("; ");
+const securityHeaders = (html = indexHtml) => ({
+  "Content-Security-Policy": createCsp(html),
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+});
+
 const contentTypes = {
   ".css": "text/css; charset=utf-8",
   ".html": "text/html; charset=utf-8",
@@ -77,6 +115,7 @@ createServer(async (request, response) => {
     const url = new URL(request.url ?? "/", "http://localhost");
     if (url.pathname === "/__preview/reset") {
       response.writeHead(200, {
+        ...securityHeaders(previewResetHtml),
         "Cache-Control": "no-store",
         "Clear-Site-Data": '"cache"',
         "Content-Type": "text/html; charset=utf-8",
@@ -95,12 +134,15 @@ createServer(async (request, response) => {
     const noCache = extension === ".html" || filePath.endsWith("sw.js");
     const body = await readFile(filePath);
     response.writeHead(200, {
+      ...securityHeaders(),
       "Cache-Control": noCache ? "no-cache" : "public, max-age=3600",
       "Content-Type": contentTypes[extension] ?? "application/octet-stream",
     });
     response.end(body);
   } catch {
-    response.writeHead(503, { "Retry-After": "1" }).end("PWA sendo atualizado");
+    response
+      .writeHead(503, { ...securityHeaders(), "Retry-After": "1" })
+      .end("PWA sendo atualizado");
   }
 }).listen(port, "0.0.0.0", () => {
   console.log(`PWA ${brandId} em http://localhost:${port}`);

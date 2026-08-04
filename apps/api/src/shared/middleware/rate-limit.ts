@@ -13,6 +13,7 @@ interface RateLimitOptions {
  */
 export function rateLimit({ windowMs, max }: RateLimitOptions) {
   const hits = new Map<string, { count: number; resetAt: number }>();
+  let nextSweepAt = Date.now() + windowMs;
 
   return (req: Request, res: Response, next: NextFunction): void => {
     const now = Date.now();
@@ -26,10 +27,11 @@ export function rateLimit({ windowMs, max }: RateLimitOptions) {
     entry.count += 1;
 
     // Limpeza preguiçosa pra o Map não crescer indefinidamente.
-    if (hits.size > 5000) {
+    if (now >= nextSweepAt) {
       for (const [k, v] of hits) {
         if (now >= v.resetAt) hits.delete(k);
       }
+      nextSweepAt = now + windowMs;
     }
 
     if (entry.count > max) {

@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 
 import { SiteAnalytics } from "@/features/landing/site-analytics";
 
@@ -14,10 +15,11 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function LandingLayout({ children }: { children: React.ReactNode }) {
+export default async function LandingLayout({ children }: { children: React.ReactNode }) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <div>
-      <SiteAnalytics />
+      <SiteAnalytics nonce={nonce} />
       {children}
     </div>
   );

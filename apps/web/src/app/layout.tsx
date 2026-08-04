@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Nunito_Sans } from "next/font/google";
+import { headers } from "next/headers";
 
 import "./globals.css";
 import { BrandProvider } from "./brand-provider";
@@ -29,13 +30,14 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { themeColor: "#C4707E", colorScheme: "light" };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html lang="pt-BR">
       <body className={sans.variable}>
         {/* Whitelabel (ADR-0009): overrides de CSS vars da marca ativa,
             aplicados sobre o globals.css (que segue sendo a base). */}
-        <BrandThemeStyle />
+        <BrandThemeStyle nonce={nonce} />
         <BrandProvider>
           <Providers>{children}</Providers>
         </BrandProvider>

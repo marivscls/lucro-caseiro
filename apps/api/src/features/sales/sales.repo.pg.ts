@@ -8,6 +8,7 @@ import {
 } from "@lucro-caseiro/database/schema";
 import { and, between, count, eq, sql, sum } from "drizzle-orm";
 import type { AppDatabase } from "../../shared/db";
+import { ValidationError } from "../../shared/errors";
 import type {
   CreateSaleData,
   DaySummary,
@@ -28,6 +29,7 @@ export class SalesRepoPg implements ISalesRepo {
     status: SaleStatus,
     pricing = { subtotal: total, discount: 0, total },
   ): Promise<Sale> {
+    if (data.clientId) await this.assertOwnedClient(userId, data.clientId);
     const [saleRow] = await this.db
       .insert(sales)
       .values({
@@ -76,6 +78,7 @@ export class SalesRepoPg implements ISalesRepo {
     total: number,
     pricing = { subtotal: total, discount: 0, total },
   ): Promise<Sale | null> {
+    if (data.clientId) await this.assertOwnedClient(userId, data.clientId);
     const setFields: Record<string, unknown> = {
       subtotal: String(pricing.subtotal),
       discount: String(pricing.discount),
@@ -167,7 +170,7 @@ export class SalesRepoPg implements ISalesRepo {
       const [clientRow] = await this.db
         .select({ name: clients.name })
         .from(clients)
-        .where(eq(clients.id, saleRow.clientId));
+        .where(and(eq(clients.id, saleRow.clientId), eq(clients.userId, userId)));
       clientName = clientRow?.name ?? null;
     }
 
@@ -220,7 +223,10 @@ export class SalesRepoPg implements ISalesRepo {
           clientName: clients.name,
         })
         .from(sales)
-        .leftJoin(clients, eq(sales.clientId, clients.id))
+        .leftJoin(
+          clients,
+          and(eq(sales.clientId, clients.id), eq(clients.userId, userId)),
+        )
         .where(where)
         .limit(opts.limit)
         .offset(offset)
@@ -339,6 +345,14 @@ export class SalesRepoPg implements ISalesRepo {
     const averageTicket = totalSales > 0 ? totalAmount / totalSales : 0;
 
     return { totalSales, totalAmount, averageTicket };
+  }
+
+  private async assertOwnedClient(userId: string, clientId: string): Promise<void> {
+    const [client] = await this.db
+      .select({ id: clients.id })
+      .from(clients)
+      .where(and(eq(clients.id, clientId), eq(clients.userId, userId)));
+    if (!client) throw new ValidationError(["Cliente não encontrado"]);
   }
 
   private toSale(

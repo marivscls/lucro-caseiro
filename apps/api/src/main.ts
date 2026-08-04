@@ -88,6 +88,8 @@ import {
   requireFeatureForExtraPhotos,
 } from "./shared/middleware/require-feature";
 import { rateLimit } from "./shared/middleware/rate-limit";
+import { postgresRateLimit } from "./shared/middleware/postgres-rate-limit";
+import { securityHeaders } from "./shared/middleware/security-headers";
 import { healthRouter } from "./shared/health";
 import { setDb } from "./shared/db";
 import { createClient } from "@lucro-caseiro/database";
@@ -299,7 +301,30 @@ app.disable("x-powered-by");
 // Railway fica atrás de 1 proxy → req.ip vira o IP real do cliente (essencial p/ rate limit).
 app.set("trust proxy", 1);
 
-app.use(cors({ origin: config.corsOrigin }));
+app.use(securityHeaders);
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      const normalized = origin.replace(/\/$/, "");
+      let localDevelopment = false;
+      if (config.env !== "production") {
+        try {
+          const url = new URL(normalized);
+          localDevelopment =
+            (url.protocol === "http:" || url.protocol === "https:") &&
+            (url.hostname === "localhost" || url.hostname === "127.0.0.1");
+        } catch {
+          localDevelopment = false;
+        }
+      }
+      callback(null, localDevelopment || config.corsOrigins.includes(normalized));
+    },
+  }),
+);
 app.use(
   "/api/v1/webhooks",
   createStripeWebhookRouter(stripeUseCases, {
@@ -307,10 +332,43 @@ app.use(
     webhookSecret: config.stripeWebhookSecret,
   }),
 );
-app.use(express.json());
-
-// Barreira contra abuso/rajada (webhook do Stripe fica de fora — montado antes do json).
+// Barreira contra abuso/rajada (webhook do Stripe fica de fora, montado antes).
 app.use(rateLimit({ windowMs: 60_000, max: 300 }));
+
+const publicWriteLimit = postgresRateLimit({
+  db,
+  scope: "public-write",
+  windowMs: 10 * 60_000,
+  max: 20,
+});
+const billingLimit = postgresRateLimit({
+  db,
+  scope: "billing",
+  windowMs: 10 * 60_000,
+  max: 10,
+});
+const expensiveLimit = postgresRateLimit({
+  db,
+  scope: "expensive",
+  windowMs: 10 * 60_000,
+  max: 30,
+});
+const analyticsWriteLimit = postgresRateLimit({
+  db,
+  scope: "analytics-write",
+  windowMs: 60_000,
+  max: 120,
+});
+
+app.use("/c/:slug/service-bookings", publicWriteLimit);
+app.use("/api/v1/public/retail/catalog-orders", publicWriteLimit);
+app.use(["/api/v1/analytics/open", "/api/v1/analytics/events"], analyticsWriteLimit);
+app.use(
+  ["/api/v1/payments/stripe/checkout", "/api/v1/subscription/sync-plan"],
+  billingLimit,
+);
+app.use("/api/v1/marketing/ai", expensiveLimit);
+app.use(express.json({ limit: "256kb" }));
 
 // Structured request log for multi-brand operation (ADR-0009).
 app.use((req, res, next) => {

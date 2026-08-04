@@ -18,9 +18,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { getSupabase } from "@/shared/lib/supabase";
-import { clearApiCache } from "@/shared/lib/api-client";
+import { clearLocalUserData } from "@/shared/lib/api-client";
 import { useBrand } from "@/app/brand-provider";
 
 const links = [
@@ -42,8 +43,10 @@ export function Sidebar() {
   const brand = useBrand();
   const pathname = usePathname();
   const router = useRouter();
+  const queryClient = useQueryClient();
   async function logout() {
-    clearApiCache();
+    clearLocalUserData();
+    queryClient.clear();
     await getSupabase().auth.signOut();
     router.replace("/login");
   }

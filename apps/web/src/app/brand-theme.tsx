@@ -41,7 +41,7 @@ export function createBrandScale(primary: string): Record<string, string> {
   };
 }
 
-export function BrandThemeStyle() {
+export function BrandThemeStyle({ nonce }: { readonly nonce?: string }) {
   const { theme } = getActiveBrand();
   const scale = createBrandScale(theme.primary);
   const vars: Record<string, string | undefined> = {
@@ -67,6 +67,7 @@ export function BrandThemeStyle() {
   return (
     <style
       id="brand-theme-overrides"
+      nonce={nonce}
       dangerouslySetInnerHTML={{ __html: `:root {\n${css}\n}` }}
     />
   );

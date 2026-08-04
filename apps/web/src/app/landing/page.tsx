@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 
 import { LandingPage } from "@/features/landing/landing-page";
 import { PLAY_STORE_URL, SITE_URL } from "@/features/landing/site-constants";
@@ -19,7 +20,8 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function Page() {
+export default async function Page() {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   const schema = {
     "@context": "https://schema.org",
     "@type": "MobileApplication",
@@ -40,6 +42,7 @@ export default function Page() {
   return (
     <>
       <script
+        nonce={nonce}
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
       />

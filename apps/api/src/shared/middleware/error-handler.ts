@@ -15,6 +15,13 @@ export function errorHandler(
   res: Response,
   _next: NextFunction,
 ) {
+  if ((err as Error & { type?: string }).type === "entity.too.large") {
+    res.status(413).json({
+      error: "PAYLOAD_TOO_LARGE",
+      message: "O corpo da requisicao excede o limite permitido.",
+    });
+    return;
+  }
   if (err instanceof ZodError) {
     res.status(400).json({
       error: "VALIDATION_ERROR",

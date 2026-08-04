@@ -260,7 +260,9 @@ export type CatalogSection = "all" | "products" | "services";
 export function renderCatalogHtml(
   catalog: PublicCatalog,
   section: CatalogSection = "all",
+  nonce = "",
 ): string {
+  const scriptNonce = nonce ? ` nonce="${nonce}"` : "";
   const brand = resolveBrand(catalog.brandId);
   const palette =
     catalog.accentColor === null && catalog.brandId === "lucro-caseiro"
@@ -391,7 +393,7 @@ export function renderCatalogHtml(
 <dialog id="cart-dialog"><form id="cart-form"><button type="button" class="cart-close" aria-label="Fechar">×</button><h2>Reservar produtos</h2><div id="cart-items"></div><label>Seu nome<input id="customer-name" required maxlength="120"></label><label>WhatsApp<input id="customer-phone" required minlength="8" maxlength="20" inputmode="tel"></label><label>Recebimento<select id="fulfillment"><option value="pickup">Retirar na loja</option><option value="delivery">Entrega</option></select></label><label>Observações<textarea id="order-notes" maxlength="500"></textarea></label><button class="reserve-submit" type="submit">Confirmar reserva</button><p id="cart-message" role="status"></p></form></dialog>`
     : "";
   const cartScript = retailOrdering
-    ? `<script>
+    ? `<script${scriptNonce}>
 (() => {
   const cart = new Map();
   const toggle = document.getElementById("cart-toggle");
@@ -447,7 +449,7 @@ export function renderCatalogHtml(
     : "";
   const bookingScript =
     serviceCount > 0
-      ? `<script>
+      ? `<script${scriptNonce}>
 (() => {
   const dialog = document.getElementById("service-booking-dialog");
   const form = document.getElementById("service-booking-form");
@@ -628,7 +630,7 @@ export function renderCatalogHtml(
       : "";
   const catalogScript =
     count > 0
-      ? `<script>
+      ? `<script${scriptNonce}>
 (() => {
   const root = document.getElementById("catalog-products");
   const search = document.getElementById("catalog-search");
@@ -869,9 +871,9 @@ export function renderCatalogErrorHtml(): string {
 main{width:min(100%,520px);padding:32px;background:#fff;border:1px solid #eadedb;border-radius:20px;text-align:center}
 .mark{width:64px;height:64px;margin:0 auto 18px;display:grid;place-items:center;border-radius:50%;background:#fde8ec;color:#b45b6d;font-size:30px}
 h1{margin:0;font:700 30px/1.15 "Nunito Sans",system-ui,sans-serif}p{margin:12px 0 22px;color:#716866;line-height:1.55}
-button{min-height:48px;border:1px solid #b45b6d;border-radius:999px;background:#fff;color:#a94e61;padding:0 22px;font:800 15px "Nunito Sans",sans-serif;cursor:pointer}
+a{min-height:48px;border:1px solid #b45b6d;border-radius:999px;background:#fff;color:#a94e61;padding:0 22px;display:inline-flex;align-items:center;text-decoration:none;font:800 15px "Nunito Sans",sans-serif;cursor:pointer}
 </style>
 </head>
-<body><main><div class="mark" aria-hidden="true">!</div><h1>Não foi possível abrir o catálogo</h1><p>Verifique sua conexão e tente carregar novamente.</p><button type="button" onclick="location.reload()">Tentar novamente</button></main></body>
+<body><main><div class="mark" aria-hidden="true">!</div><h1>Não foi possível abrir o catálogo</h1><p>Verifique sua conexão e tente carregar novamente.</p><a href="">Tentar novamente</a></main></body>
 </html>`;
 }

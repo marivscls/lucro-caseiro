@@ -12,7 +12,7 @@ declare global {
 
 const measurementId = process.env.NEXT_PUBLIC_GA_ID;
 
-export function SiteAnalytics() {
+export function SiteAnalytics({ nonce }: { readonly nonce?: string }) {
   useEffect(() => {
     function trackClick(event: MouseEvent) {
       const target =
@@ -36,10 +36,11 @@ export function SiteAnalytics() {
   return (
     <>
       <Script
+        nonce={nonce}
         src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}
         strategy="afterInteractive"
       />
-      <Script id="lucro-caseiro-ga" strategy="afterInteractive">
+      <Script id="lucro-caseiro-ga" strategy="afterInteractive" nonce={nonce}>
         {`window.dataLayer=window.dataLayer||[];window.gtag=function(){dataLayer.push(arguments)};window.gtag('js',new Date());window.gtag('config','${measurementId}',{anonymize_ip:true});`}
       </Script>
     </>

@@ -1,0 +1,101 @@
+import type { NextFunction, Request, Response } from "express";
+import { describe, expect, it, vi } from "vitest";
+
+import { ServiceUnavailableError } from "../errors";
+import { errorHandler } from "./error-handler";
+import { postgresRateLimit } from "./postgres-rate-limit";
+import { securityHeaders } from "./security-headers";
+
+function responseMock() {
+  const response = {
+    set: vi.fn(),
+    setHeader: vi.fn(),
+    status: vi.fn(),
+    json: vi.fn(),
+  };
+  response.status.mockReturnValue(response);
+  response.json.mockReturnValue(response);
+  return response;
+}
+
+describe("security middleware", () => {
+  it("envia headers defensivos nas respostas da API", () => {
+    const response = responseMock();
+    const next = vi.fn();
+    securityHeaders({} as Request, response as unknown as Response, next);
+
+    expect(response.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+      }),
+    );
+    expect(next).toHaveBeenCalledOnce();
+  });
+
+  it("bloqueia acima da quota e não persiste o bearer token", async () => {
+    const execute = vi
+      .fn()
+      .mockResolvedValueOnce([{ count: 1 }])
+      .mockResolvedValueOnce([{ count: 2 }]);
+    const middleware = postgresRateLimit({
+      db: { execute },
+      scope: "billing",
+      windowMs: 60_000,
+      max: 1,
+    });
+    const request = {
+      ip: "127.0.0.1",
+      header: (name: string) =>
+        name === "authorization" ? "Bearer secret-token" : undefined,
+    } as Request;
+    const firstResponse = responseMock();
+    const secondResponse = responseMock();
+    const next = vi.fn() as unknown as NextFunction;
+
+    await middleware(request, firstResponse as unknown as Response, next);
+    await middleware(request, secondResponse as unknown as Response, next);
+
+    expect(next).toHaveBeenCalledOnce();
+    expect(secondResponse.status).toHaveBeenCalledWith(429);
+    expect(secondResponse.setHeader).toHaveBeenCalledWith(
+      "Retry-After",
+      expect.any(String),
+    );
+    expect(JSON.stringify(execute.mock.calls)).not.toContain("secret-token");
+  });
+
+  it("falha fechado quando o armazenamento compartilhado cai", async () => {
+    const middleware = postgresRateLimit({
+      db: { execute: vi.fn().mockRejectedValue(new Error("db offline")) },
+      scope: "billing",
+      windowMs: 60_000,
+      max: 1,
+    });
+    const next = vi.fn();
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    await middleware(
+      { ip: "127.0.0.1", header: () => undefined } as unknown as Request,
+      responseMock() as unknown as Response,
+      next,
+    );
+
+    expect(next.mock.calls[0]?.[0]).toBeInstanceOf(ServiceUnavailableError);
+    consoleError.mockRestore();
+  });
+
+  it("traduz payload acima do teto para 413", () => {
+    const response = responseMock();
+    const error = Object.assign(new Error("too large"), { type: "entity.too.large" });
+
+    errorHandler(
+      error,
+      {} as Request,
+      response as unknown as Response,
+      vi.fn() as unknown as NextFunction,
+    );
+
+    expect(response.status).toHaveBeenCalledWith(413);
+  });
+});

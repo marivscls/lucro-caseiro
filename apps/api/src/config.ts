@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const envSchema = z.object({
+const baseEnvSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   PORT: z.coerce.number().optional(),
   API_PORT: z.coerce.number().default(3001),
@@ -16,7 +16,7 @@ const envSchema = z.object({
   GOOGLE_GENERATIVE_AI_API_KEY: z.string().default(""),
   COSMOS_API_TOKEN: z.string().default(""),
   COSMOS_USER_AGENT: z.string().default(""),
-  CORS_ORIGIN: z.string().default("*"),
+  CORS_ORIGIN: z.string().default(""),
   GOOGLE_PLAY_PACKAGE_NAME: z.string().default("br.com.orionseven.lucrocaseiro"),
   GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: z.string().default(""),
   STRIPE_SECRET_KEY: z.string().default(""),
@@ -29,12 +29,46 @@ const envSchema = z.object({
   STRIPE_CANCEL_URL: z.string().default("https://lucrocaseiro.app/checkout/cancel"),
 });
 
+const envSchema = baseEnvSchema.superRefine((env, ctx) => {
+  if (env.NODE_ENV !== "production") return;
+
+  const requiredStripeFields = [
+    "STRIPE_SECRET_KEY",
+    "STRIPE_WEBHOOK_SECRET",
+    "STRIPE_PRICE_ESSENTIAL_MONTHLY_ID",
+    "STRIPE_PRICE_ESSENTIAL_ANNUAL_ID",
+    "STRIPE_PRICE_PROFESSIONAL_MONTHLY_ID",
+    "STRIPE_PRICE_PROFESSIONAL_ANNUAL_ID",
+  ] as const;
+
+  for (const field of requiredStripeFields) {
+    if (!env[field]) {
+      ctx.addIssue({
+        code: "custom",
+        path: [field],
+        message: `${field} e obrigatorio em producao`,
+      });
+    }
+  }
+});
+
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
   console.error("Invalid environment variables:", parsed.error.flatten().fieldErrors);
   process.exit(1);
 }
+
+const productionCorsOrigins = [
+  "https://lucrocaseiro.com.br",
+  "https://www.lucrocaseiro.com.br",
+  "https://app.lucrocaseiro.com.br",
+  "https://catalogo.lucrocaseiro.com.br",
+];
+
+const configuredCorsOrigins = parsed.data.CORS_ORIGIN.split(",")
+  .map((origin) => origin.trim().replace(/\/$/, ""))
+  .filter((origin) => origin && origin !== "*");
 
 export const config = {
   env: parsed.data.NODE_ENV,
@@ -53,7 +87,10 @@ export const config = {
   googleGenerativeAiApiKey: parsed.data.GOOGLE_GENERATIVE_AI_API_KEY,
   cosmosApiToken: parsed.data.COSMOS_API_TOKEN,
   cosmosUserAgent: parsed.data.COSMOS_USER_AGENT,
-  corsOrigin: parsed.data.CORS_ORIGIN,
+  corsOrigins: [
+    ...(parsed.data.NODE_ENV === "production" ? productionCorsOrigins : []),
+    ...configuredCorsOrigins,
+  ].filter((origin, index, origins) => origins.indexOf(origin) === index),
   googlePlayPackageName: parsed.data.GOOGLE_PLAY_PACKAGE_NAME,
   googlePlayServiceAccountJson: parsed.data.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON,
   stripeSecretKey: parsed.data.STRIPE_SECRET_KEY,

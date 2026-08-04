@@ -16,6 +16,7 @@ import {
 import { and, asc, desc, eq, gte, lte, max, sql } from "drizzle-orm";
 
 import type { AppDatabase } from "../../shared/db";
+import { NotFoundError } from "../../shared/errors";
 
 type ResourceInput = typeof marketingResources.$inferInsert;
 type DocumentInput = Pick<
@@ -230,12 +231,24 @@ export class MarketingRepoPg {
   }
 
   async addMessage(
+    userId: string,
     sessionId: string,
     role: "user" | "assistant",
     body: string,
     context: Record<string, unknown> = {},
     model?: string,
   ) {
+    const [ownedSession] = await this.db
+      .select({ id: marketingAiSessions.id })
+      .from(marketingAiSessions)
+      .where(
+        and(
+          eq(marketingAiSessions.id, sessionId),
+          eq(marketingAiSessions.userId, userId),
+        ),
+      );
+    if (!ownedSession) throw new NotFoundError("Conversa não encontrada");
+
     const [row] = await this.db
       .insert(marketingAiMessages)
       .values({ sessionId, role, body, context, model })
@@ -243,7 +256,12 @@ export class MarketingRepoPg {
     await this.db
       .update(marketingAiSessions)
       .set({ updatedAt: new Date() })
-      .where(eq(marketingAiSessions.id, sessionId));
+      .where(
+        and(
+          eq(marketingAiSessions.id, sessionId),
+          eq(marketingAiSessions.userId, userId),
+        ),
+      );
     return row!;
   }
 

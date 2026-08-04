@@ -6,6 +6,7 @@ import {
   products,
   recipes,
   sales,
+  subscriptionPurchaseClaims,
   suppliers,
   users,
 } from "@lucro-caseiro/database/schema";
@@ -77,6 +78,49 @@ export class SubscriptionRepoPg implements ISubscriptionRepo {
       .returning();
 
     return row ? this.toProfile(row) : null;
+  }
+
+  async claimPurchaseToken(
+    userId: string,
+    provider: "google-play",
+    tokenHash: string,
+  ): Promise<boolean> {
+    const [claimed] = await this.db
+      .insert(subscriptionPurchaseClaims)
+      .values({ userId, provider, tokenHash })
+      .onConflictDoNothing({
+        target: [
+          subscriptionPurchaseClaims.provider,
+          subscriptionPurchaseClaims.tokenHash,
+        ],
+      })
+      .returning({ userId: subscriptionPurchaseClaims.userId });
+
+    if (claimed) return true;
+
+    const [existing] = await this.db
+      .select({ userId: subscriptionPurchaseClaims.userId })
+      .from(subscriptionPurchaseClaims)
+      .where(
+        and(
+          eq(subscriptionPurchaseClaims.provider, provider),
+          eq(subscriptionPurchaseClaims.tokenHash, tokenHash),
+        ),
+      );
+
+    if (existing?.userId !== userId) return false;
+
+    await this.db
+      .update(subscriptionPurchaseClaims)
+      .set({ lastVerifiedAt: new Date() })
+      .where(
+        and(
+          eq(subscriptionPurchaseClaims.provider, provider),
+          eq(subscriptionPurchaseClaims.tokenHash, tokenHash),
+          eq(subscriptionPurchaseClaims.userId, userId),
+        ),
+      );
+    return true;
   }
 
   async getResourceCounts(userId: string): Promise<ResourceCounts> {

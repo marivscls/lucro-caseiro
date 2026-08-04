@@ -2,7 +2,8 @@ import {
   PublicServiceBookingRequestInputDto,
   UpdateCatalogSettingsDto,
 } from "@lucro-caseiro/contracts";
-import { Router } from "express";
+import { randomBytes } from "node:crypto";
+import { Router, type Response } from "express";
 
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
 import { NotFoundError } from "../../shared/errors";
@@ -14,6 +15,30 @@ function publicCatalogSection(value: unknown): "products" | "services" | "all" {
   if (value === "produtos") return "products";
   if (value === "servicos") return "services";
   return "all";
+}
+
+function catalogSecurityHeaders(res: Response, nonce?: string): void {
+  const scriptSource = nonce ? `'nonce-${nonce}'` : "'none'";
+  res.set({
+    "Content-Security-Policy": [
+      "default-src 'self'",
+      `script-src 'self' ${scriptSource}`,
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "img-src 'self' data: https:",
+      "font-src 'self' https://fonts.gstatic.com",
+      "connect-src 'self'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+      "upgrade-insecure-requests",
+    ].join("; "),
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+  });
 }
 
 /** Rotas autenticadas: configuracoes do catalogo do usuario. */
@@ -68,15 +93,18 @@ export function createPublicCatalogRouter(useCases: CatalogUseCases): Router {
 
   router.get("/:slug", async (req, res) => {
     try {
+      const nonce = randomBytes(18).toString("base64");
       const focusedProductId =
         typeof req.query.produto === "string" ? req.query.produto : undefined;
       const catalog = await useCases.getPublicCatalog(req.params.slug, focusedProductId);
       const section = focusedProductId
         ? "products"
         : publicCatalogSection(req.query.tipo);
-      res.type("html").send(renderCatalogHtml(catalog, section));
+      catalogSecurityHeaders(res, nonce);
+      res.type("html").send(renderCatalogHtml(catalog, section, nonce));
     } catch (error) {
       const status = error instanceof NotFoundError ? 404 : 500;
+      catalogSecurityHeaders(res);
       res.status(status).type("html").send(renderCatalogErrorHtml());
     }
   });

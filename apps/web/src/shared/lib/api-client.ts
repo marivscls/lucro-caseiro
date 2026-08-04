@@ -71,6 +71,14 @@ export function clearApiCache() {
   }
 }
 
+export function clearLocalUserData() {
+  clearApiCache();
+  for (let index = window.localStorage.length - 1; index >= 0; index -= 1) {
+    const key = window.localStorage.key(index);
+    if (key?.startsWith("lucro-marketing-draft:")) window.localStorage.removeItem(key);
+  }
+}
+
 export async function authenticatedDownload(path: string, filename: string) {
   const { data } = await getSupabase().auth.getSession();
   const response = await fetch(`${API_URL}/api/v1/marketing${path}`, {

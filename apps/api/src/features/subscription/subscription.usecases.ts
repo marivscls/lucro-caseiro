@@ -4,8 +4,13 @@ import type {
   PlanType,
   UserProfile,
 } from "@lucro-caseiro/contracts";
+import { createHash } from "node:crypto";
 
-import { NotFoundError, ServiceUnavailableError } from "../../shared/errors";
+import {
+  ForbiddenError,
+  NotFoundError,
+  ServiceUnavailableError,
+} from "../../shared/errors";
 import { buildFreemiumLimits, resolvePlan } from "./subscription.domain";
 import type {
   AndroidPurchaseData,
@@ -123,6 +128,22 @@ export class SubscriptionUseCases {
     const state = await this.statusProvider.getPlanState(userId, purchase);
 
     if (state.plan !== "free") {
+      if (state.purchaseOwnerId !== userId) {
+        throw new ForbiddenError("Esta compra do Google Play nao pertence a esta conta.");
+      }
+
+      const tokenHash = createHash("sha256").update(purchase.purchaseToken).digest("hex");
+      const claimed = await this.repo.claimPurchaseToken(
+        userId,
+        "google-play",
+        tokenHash,
+      );
+      if (!claimed) {
+        throw new ForbiddenError(
+          "Esta compra do Google Play ja esta vinculada a outra conta.",
+        );
+      }
+
       return this.activatePlan(userId, state.plan, state.expiresAt);
     }
 
