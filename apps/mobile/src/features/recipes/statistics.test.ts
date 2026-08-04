@@ -49,6 +49,7 @@ function product(
     stockAlertThreshold: null,
     isComposite: false,
     isActive,
+    publicEnabled: true,
     createdAt: "2026-07-20T12:00:00.000Z",
   };
 }
