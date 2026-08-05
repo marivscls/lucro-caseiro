@@ -38,12 +38,17 @@ import { AppIcon } from "../shared/components/app-icon";
 import { showAlert } from "../shared/components/alert-store";
 import { DateField } from "../shared/components/date-field";
 import { FormSection } from "../shared/components/form-section";
+import { FAB } from "../shared/components/fab";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { SkeletonList } from "../shared/components/skeleton";
 import { StandardModal } from "../shared/components/standard-modal";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
 import { usePaywall } from "../shared/hooks/use-paywall";
-import { desktopStretch, desktopWidths, pageGutter } from "../shared/layout/desktop-density";
+import {
+  desktopStretch,
+  desktopWidths,
+  pageGutter,
+} from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { alertError, alertValidation } from "../shared/utils/alerts";
 import { maskPhoneBR } from "../shared/utils/phone";
@@ -525,7 +530,14 @@ export default function LabelsScreen() {
   function renderContent() {
     if (isLoading) {
       return (
-        <View style={{ flex: 1, paddingVertical: spacing.xl, ...pageGutter(isDesktop), ...desktopStretch(isDesktop, desktopWidths.data) }}>
+        <View
+          style={{
+            flex: 1,
+            paddingVertical: spacing.xl,
+            ...pageGutter(isDesktop),
+            ...desktopStretch(isDesktop, desktopWidths.data),
+          }}
+        >
           <SkeletonList rows={5} variant="label" />
         </View>
       );
@@ -564,8 +576,26 @@ export default function LabelsScreen() {
         numColumns={isDesktop ? 2 : 1}
         columnWrapperStyle={isDesktop ? { gap: spacing.md } : undefined}
         keyExtractor={(item) => item.id}
+        ListFooterComponent={
+          <View
+            style={{
+              paddingTop: spacing.sm,
+              paddingBottom: spacing.lg + insets.bottom,
+              alignItems: isDesktop ? "flex-end" : "stretch",
+            }}
+          >
+            <Button
+              title="Nova etiqueta"
+              onPress={() => setShowCreate(true)}
+              icon={<AppIcon name="add" size={20} color={theme.colors.textOnPrimary} />}
+              style={
+                isDesktop ? { alignSelf: "flex-end" } : { width: "100%", minHeight: 52 }
+              }
+            />
+          </View>
+        }
         contentContainerStyle={{
-          paddingVertical: spacing.xl,
+          paddingTop: spacing.xl,
           ...pageGutter(isDesktop),
           ...desktopStretch(isDesktop, desktopWidths.data),
           gap: spacing.md,
@@ -609,25 +639,16 @@ export default function LabelsScreen() {
         onBack={handleBack}
         backLabel={backToHome ? "Ir para o início" : "Voltar"}
         hideBack={isDesktop}
+        right={
+          <FAB
+            icon="add"
+            header
+            accessibilityLabel="Nova etiqueta"
+            onPress={() => setShowCreate(true)}
+          />
+        }
       />
       <View style={{ flex: 1 }}>{renderContent()}</View>
-      {data?.items.length ? (
-        <View
-          style={{
-            ...pageGutter(isDesktop),
-            ...desktopStretch(isDesktop, desktopWidths.data),
-            paddingTop: spacing.sm,
-            paddingBottom: spacing.sm + insets.bottom,
-            alignItems: isDesktop ? "flex-end" : "center",
-          }}
-        >
-          <Button
-            title="Nova etiqueta"
-            onPress={() => setShowCreate(true)}
-            icon={<AppIcon name="add" size={20} color={theme.colors.textOnPrimary} />}
-          />
-        </View>
-      ) : null}
 
       <CreateLabelForm
         visible={showCreate}

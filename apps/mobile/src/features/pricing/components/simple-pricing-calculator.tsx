@@ -234,10 +234,7 @@ function CostSourcePicker({
                         <Typography variant="bodyBold" numberOfLines={1}>
                           {item.name}
                         </Typography>
-                        <Typography
-                          variant="caption"
-                          color={theme.colors.textSecondary}
-                        >
+                        <Typography variant="caption" color={theme.colors.textSecondary}>
                           {item.costLabel}: {formatCurrency(item.cost)}
                         </Typography>
                       </View>
@@ -568,110 +565,104 @@ export function SimplePricingCalculator({
   const compactField = desktopCompactField(isDesktop);
 
   const estimatePanel = (
-        <View
-          style={{
-            backgroundColor: theme.colors.surface,
-            borderColor: theme.colors.border,
-            borderRadius: radii.xl,
-            borderWidth: 1,
-            overflow: "hidden",
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: theme.colors.surface,
-              justifyContent: "center",
-              minHeight: 124,
-              overflow: "hidden",
-              paddingHorizontal: spacing.xl,
-              paddingVertical: spacing.xl,
-            }}
+    <View
+      style={{
+        backgroundColor: theme.colors.surface,
+        borderColor: theme.colors.border,
+        borderRadius: radii.xl,
+        borderWidth: 1,
+        overflow: "hidden",
+      }}
+    >
+      <View
+        style={{
+          backgroundColor: theme.colors.surface,
+          justifyContent: "center",
+          minHeight: 124,
+          overflow: "hidden",
+          paddingHorizontal: spacing.xl,
+          paddingVertical: spacing.xl,
+        }}
+      >
+        <View style={{ gap: 2, maxWidth: "64%", zIndex: 1 }}>
+          <Typography variant="label">ESTIMATIVA DE PREÇO</Typography>
+          <Typography
+            variant="moneyHero"
+            color={canCalculate ? theme.colors.primaryStrong : theme.colors.textSecondary}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.55}
           >
-            <View style={{ gap: 2, maxWidth: "64%", zIndex: 1 }}>
-              <Typography variant="label">ESTIMATIVA DE PREÇO</Typography>
-              <Typography
-                variant="moneyHero"
-                color={
-                  canCalculate ? theme.colors.primaryStrong : theme.colors.textSecondary
-                }
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.55}
-              >
-                {formatCurrency(canCalculate ? finalPrice : 0)}
-              </Typography>
-            </View>
-            <Image
-              source={pricingResultHero}
-              resizeMode="contain"
-              style={{
-                bottom: -spacing.sm,
-                height: 112,
-                position: "absolute",
-                right: -spacing.sm,
-                width: 142,
-              }}
-              accessible={false}
-            />
-          </View>
-
-          <View style={{ paddingVertical: spacing.sm }}>
-            <PricingResultRow
-              icon="briefcase-outline"
-              label="Materiais"
-              value={totalCost}
-            />
-            {feesPercent > 0 && feesPercent <= 95 ? (
-              <PricingResultRow
-                icon="percent-outline"
-                info
-                label={`Taxas de venda (${String(feesPercent).replace(".", ",")}%)`}
-                value={feesAmount}
-              />
-            ) : null}
-            <PricingResultRow
-              icon="trending-up"
-              label="Lucro desejado"
-              value={desiredProfit}
-            />
-            <PricingResultRow
-              highlight
-              icon="star"
-              label="Você ganha por unidade"
-              value={desiredProfit}
-              valueColor={theme.colors.success}
-            />
-          </View>
-
-          <View
-            style={{
-              alignItems: "center",
-              backgroundColor: theme.colors.surfaceElevated,
-              borderColor: theme.colors.border,
-              borderRadius: radii.md,
-              borderWidth: 1,
-              flexDirection: "row",
-              gap: spacing.md,
-              margin: spacing.md,
-              paddingHorizontal: spacing.md,
-              paddingVertical: spacing.md,
-            }}
-          >
-            <AppIcon
-              name="shield-checkmark-outline"
-              size={20}
-              color={theme.colors.primaryStrong}
-            />
-            <Typography
-              variant="caption"
-              color={theme.colors.textSecondary}
-              style={{ flex: 1 }}
-            >
-              Baseada somente nos custos informados. Mão de obra e gastos mensais não
-              estão incluídos. Confira os dados antes de usar este preço.
-            </Typography>
-          </View>
+            {formatCurrency(canCalculate ? finalPrice : 0)}
+          </Typography>
         </View>
+        <Image
+          source={pricingResultHero}
+          resizeMode="contain"
+          style={{
+            bottom: -spacing.sm,
+            height: 112,
+            position: "absolute",
+            right: -spacing.sm,
+            width: 142,
+          }}
+          accessible={false}
+        />
+      </View>
+
+      <View style={{ paddingVertical: spacing.sm }}>
+        <PricingResultRow icon="briefcase-outline" label="Materiais" value={totalCost} />
+        {feesPercent > 0 && feesPercent <= 95 ? (
+          <PricingResultRow
+            icon="percent-outline"
+            info
+            label={`Taxas de venda (${String(feesPercent).replace(".", ",")}%)`}
+            value={feesAmount}
+          />
+        ) : null}
+        <PricingResultRow
+          icon="trending-up"
+          label="Lucro desejado"
+          value={desiredProfit}
+        />
+        <PricingResultRow
+          highlight
+          icon="star"
+          label="Você ganha por unidade"
+          value={desiredProfit}
+          valueColor={theme.colors.success}
+        />
+      </View>
+
+      <View
+        style={{
+          alignItems: "center",
+          backgroundColor: theme.colors.surfaceElevated,
+          borderColor: theme.colors.border,
+          borderRadius: radii.md,
+          borderWidth: 1,
+          flexDirection: "row",
+          gap: spacing.md,
+          margin: spacing.md,
+          paddingHorizontal: spacing.md,
+          paddingVertical: spacing.md,
+        }}
+      >
+        <AppIcon
+          name="shield-checkmark-outline"
+          size={20}
+          color={theme.colors.primaryStrong}
+        />
+        <Typography
+          variant="caption"
+          color={theme.colors.textSecondary}
+          style={{ flex: 1 }}
+        >
+          Baseada somente nos custos informados. Mão de obra e gastos mensais não estão
+          incluídos. Confira os dados antes de usar este preço.
+        </Typography>
+      </View>
+    </View>
   );
 
   return (
@@ -689,296 +680,291 @@ export function SimplePricingCalculator({
           split.outer,
         ]}
       >
-        <View
-          style={
-            isDesktop
-              ? split.row
-              : { width: "100%", gap: spacing.xl }
-          }
-        >
-          <View
-            style={
-              isDesktop
-                ? split.main
-                : { width: "100%", gap: spacing.xl }
-            }
-          >
-        <Card
-          variant="elevated"
-          shadow="sm"
-          padding="lg"
-          style={{ gap: spacing.lg, paddingHorizontal: spacing["2xl"] }}
-        >
-          <View
-            style={{
-              alignItems: "center",
-              flexDirection: "row",
-              gap: spacing.md,
-              minHeight: 84,
-            }}
-          >
-            <View style={{ flex: 1, gap: spacing.xs, minWidth: 0 }}>
-              <Typography variant="h2">Custos da unidade</Typography>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                Informe os dados abaixo; as somas e divisões ficam por nossa conta.
-              </Typography>
-            </View>
-            <Image
-              source={pricingCostsHero}
-              resizeMode="contain"
-              style={{ height: 96, marginRight: -spacing.xs, width: 108 }}
-              accessible={false}
-            />
-          </View>
-
-          <View style={{ gap: spacing.sm }}>
-            <PricingFieldLabel
-              label="Materiais da ficha técnica"
-              info
-              required
-              action={
-                products.length > 0 ? (
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={
-                      selectedProduct ? "Trocar ficha técnica" : "Importar ficha técnica"
-                    }
-                    hitSlop={6}
-                    onPress={() => setProductPickerVisible(true)}
-                    style={({ pressed }) => ({
-                      alignItems: "center",
-                      flexDirection: "row",
-                      gap: spacing.xs,
-                      minHeight: 32,
-                      opacity: pressed ? 0.7 : 1,
-                    })}
-                  >
-                    <AppIcon
-                      name="download-outline"
-                      size={16}
-                      color={theme.colors.primary}
-                    />
-                    <Typography
-                      variant="captionBold"
-                      color={theme.colors.primaryStrong}
-                      numberOfLines={1}
-                    >
-                      {selectedProduct
-                        ? "Trocar ficha técnica"
-                        : "Importar ficha técnica"}
-                    </Typography>
-                  </Pressable>
-                ) : undefined
-              }
-            />
-            <View style={compactField}>
-              <TextFieldCard
-                icon="basket-outline"
-                iconSurface
-                prefix="R$"
-                value={ingredientInput}
-                onChangeText={(text) => {
-                  setIngredientInput(maskCurrencyInput(text));
-                  setImportedIngredients(false);
-                  trackStarted();
-                }}
-                keyboardType="numeric"
-                placeholder="Ex: 12,50"
-                inputStyle={{ fontFamily: fonts.bold, fontSize: 20 }}
-              />
-            </View>
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              {importedIngredients && selectedProduct
-                ? `Custo importado de ${selectedProduct.name}.`
-                : "Sem ficha técnica cadastrada, informe o valor de materiais."}
-            </Typography>
-          </View>
-
-          <View style={{ gap: spacing.sm }}>
-            <PricingFieldLabel label="Embalagem ou acabamento por unidade" info />
-            <SourceButton
-              title={selectedPackaging?.name ?? "Selecionar no cadastro"}
-              subtitle={
-                selectedPackaging
-                  ? `Custo aplicado: ${formatCurrency(selectedPackaging.unitCost)}`
-                  : "Escolha embalagem ou acabamento para preencher o custo"
-              }
-              icon="cube-outline"
-              selected={selectedPackaging != null}
-              onPress={() => setPackagingPickerVisible(true)}
-            />
-            <View style={compactField}>
-              <TextFieldCard
-                icon="cash-outline"
-                iconSurface
-                prefix="R$"
-                value={packagingInput}
-                onChangeText={(text) => {
-                  setPackagingInput(maskCurrencyInput(text));
-                  setPackagingId(null);
-                  trackStarted();
-                }}
-                keyboardType="numeric"
-                placeholder="Ou informe o custo de embalagem ou acabamento"
-              />
-            </View>
-          </View>
-
-          <View
-            style={{
-              borderStyle: "dashed",
-              borderTopWidth: 1,
-              borderTopColor: theme.colors.border,
-              paddingTop: spacing.lg,
-            }}
-          >
-            <CostRow
-              iconSource={pricingCostsIcon}
-              label="Custos informados"
-              value={totalCost}
-            />
-          </View>
-        </Card>
-
-        <View style={{ gap: spacing.sm }}>
-          <PricingFieldLabel label="Quanto você quer ganhar por unidade?" required />
-          <View style={compactField}>
-            <TextFieldCard
-              icon="trending-up"
-              iconSurface
-              prefix="R$"
-              value={profitInput}
-              onChangeText={(text) => {
-                setProfitInput(maskCurrencyInput(text));
-                trackStarted();
-              }}
-              keyboardType="numeric"
-              placeholder="Ex: 8,00"
-              inputStyle={{ fontFamily: fonts.bold, fontSize: 20 }}
-            />
-          </View>
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            Valor do seu lucro desejado por unidade.
-          </Typography>
-        </View>
-
-        <View style={{ gap: spacing.sm }}>
-          <Pressable
-            onPress={() => setShowFees((current) => !current)}
-            accessibilityRole="button"
-            accessibilityState={{ expanded: showFees }}
-            style={({ pressed }) => ({
-              minHeight: 52,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              borderColor: theme.colors.border,
-              borderRadius: radii.lg,
-              borderWidth: 1,
-              backgroundColor: theme.colors.surface,
-              overflow: "hidden",
-              opacity: pressed ? 0.75 : 1,
-            })}
-          >
-            <View
-              style={{
-                alignItems: "center",
-                alignSelf: "stretch",
-                backgroundColor: theme.colors.primaryBg,
-                justifyContent: "center",
-                width: 44,
-              }}
+        <View style={isDesktop ? split.row : { width: "100%", gap: spacing.xl }}>
+          <View style={isDesktop ? split.main : { width: "100%", gap: spacing.xl }}>
+            <Card
+              variant="elevated"
+              shadow="sm"
+              padding="lg"
+              style={{ gap: spacing.lg, paddingHorizontal: spacing["2xl"] }}
             >
-              <AppIcon name="percent-outline" size={18} color={theme.colors.primary} />
-            </View>
-            <View style={{ flex: 1, paddingHorizontal: spacing.md }}>
-              <Typography variant="bodyBold">Tenho taxa de venda</Typography>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                Cartão, aplicativo ou marketplace
-              </Typography>
-            </View>
-            <View
-              style={{
-                alignItems: "center",
-                justifyContent: "center",
-                width: 42,
-              }}
-            >
-              <AppIcon
-                name={showFees ? "chevron-up" : "chevron-down"}
-                size={20}
-                color={theme.colors.textSecondary}
-              />
-            </View>
-          </Pressable>
-
-          {showFees ? (
-            <View style={{ gap: spacing.sm }}>
-              <FieldLabel label="Taxa total sobre a venda (%)" />
-              <View style={compactField}>
-                <TextFieldCard
-                  icon="card-outline"
-                  iconSurface
-                  value={feesInput}
-                  onChangeText={(text) => {
-                    setFeesInput(percentageInput(text));
-                    trackStarted();
-                  }}
-                  keyboardType="decimal-pad"
-                  placeholder="Ex: 12"
+              <View
+                style={{
+                  alignItems: "center",
+                  flexDirection: "row",
+                  gap: spacing.md,
+                  minHeight: 84,
+                }}
+              >
+                <View style={{ flex: 1, gap: spacing.xs, minWidth: 0 }}>
+                  <Typography variant="h2">Custos da unidade</Typography>
+                  <Typography variant="caption" color={theme.colors.textSecondary}>
+                    Informe os dados abaixo; as somas e divisões ficam por nossa conta.
+                  </Typography>
+                </View>
+                <Image
+                  source={pricingCostsHero}
+                  resizeMode="contain"
+                  style={{ height: 96, marginRight: -spacing.xs, width: 108 }}
+                  accessible={false}
                 />
               </View>
-              {feesPercent > 95 ? (
-                <Typography variant="caption" color={theme.colors.alert}>
-                  A taxa precisa ser de no máximo 95%.
+
+              <View style={{ gap: spacing.sm }}>
+                <PricingFieldLabel
+                  label="Materiais da ficha técnica"
+                  info
+                  required
+                  action={
+                    products.length > 0 ? (
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={
+                          selectedProduct
+                            ? "Trocar ficha técnica"
+                            : "Importar ficha técnica"
+                        }
+                        hitSlop={6}
+                        onPress={() => setProductPickerVisible(true)}
+                        style={({ pressed }) => ({
+                          alignItems: "center",
+                          flexDirection: "row",
+                          gap: spacing.xs,
+                          minHeight: 32,
+                          opacity: pressed ? 0.7 : 1,
+                        })}
+                      >
+                        <AppIcon
+                          name="download-outline"
+                          size={16}
+                          color={theme.colors.primary}
+                        />
+                        <Typography
+                          variant="captionBold"
+                          color={theme.colors.primaryStrong}
+                          numberOfLines={1}
+                        >
+                          {selectedProduct
+                            ? "Trocar ficha técnica"
+                            : "Importar ficha técnica"}
+                        </Typography>
+                      </Pressable>
+                    ) : undefined
+                  }
+                />
+                <View style={compactField}>
+                  <TextFieldCard
+                    icon="basket-outline"
+                    iconSurface
+                    prefix="R$"
+                    value={ingredientInput}
+                    onChangeText={(text) => {
+                      setIngredientInput(maskCurrencyInput(text));
+                      setImportedIngredients(false);
+                      trackStarted();
+                    }}
+                    keyboardType="numeric"
+                    placeholder="Ex: 12,50"
+                    inputStyle={{ fontFamily: fonts.bold, fontSize: 20 }}
+                  />
+                </View>
+                <Typography variant="caption" color={theme.colors.textSecondary}>
+                  {importedIngredients && selectedProduct
+                    ? `Custo importado de ${selectedProduct.name}.`
+                    : "Sem ficha técnica cadastrada, informe o valor de materiais."}
                 </Typography>
+              </View>
+
+              <View style={{ gap: spacing.sm }}>
+                <PricingFieldLabel label="Embalagem ou acabamento por unidade" info />
+                <SourceButton
+                  title={selectedPackaging?.name ?? "Selecionar no cadastro"}
+                  subtitle={
+                    selectedPackaging
+                      ? `Custo aplicado: ${formatCurrency(selectedPackaging.unitCost)}`
+                      : "Escolha embalagem ou acabamento para preencher o custo"
+                  }
+                  icon="cube-outline"
+                  selected={selectedPackaging != null}
+                  onPress={() => setPackagingPickerVisible(true)}
+                />
+                <View style={compactField}>
+                  <TextFieldCard
+                    icon="cash-outline"
+                    iconSurface
+                    prefix="R$"
+                    value={packagingInput}
+                    onChangeText={(text) => {
+                      setPackagingInput(maskCurrencyInput(text));
+                      setPackagingId(null);
+                      trackStarted();
+                    }}
+                    keyboardType="numeric"
+                    placeholder="Ou informe o custo de embalagem ou acabamento"
+                  />
+                </View>
+              </View>
+
+              <View
+                style={{
+                  borderStyle: "dashed",
+                  borderTopWidth: 1,
+                  borderTopColor: theme.colors.border,
+                  paddingTop: spacing.lg,
+                }}
+              >
+                <CostRow
+                  iconSource={pricingCostsIcon}
+                  label="Custos informados"
+                  value={totalCost}
+                />
+              </View>
+            </Card>
+
+            <View style={{ gap: spacing.sm }}>
+              <PricingFieldLabel label="Quanto você quer ganhar por unidade?" required />
+              <View style={compactField}>
+                <TextFieldCard
+                  icon="trending-up"
+                  iconSurface
+                  prefix="R$"
+                  value={profitInput}
+                  onChangeText={(text) => {
+                    setProfitInput(maskCurrencyInput(text));
+                    trackStarted();
+                  }}
+                  keyboardType="numeric"
+                  placeholder="Ex: 8,00"
+                  inputStyle={{ fontFamily: fonts.bold, fontSize: 20 }}
+                />
+              </View>
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                Valor do seu lucro desejado por unidade.
+              </Typography>
+            </View>
+
+            <View style={{ gap: spacing.sm }}>
+              <Pressable
+                onPress={() => setShowFees((current) => !current)}
+                accessibilityRole="button"
+                accessibilityState={{ expanded: showFees }}
+                style={({ pressed }) => ({
+                  minHeight: 52,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  borderColor: theme.colors.border,
+                  borderRadius: radii.lg,
+                  borderWidth: 1,
+                  backgroundColor: theme.colors.surface,
+                  overflow: "hidden",
+                  opacity: pressed ? 0.75 : 1,
+                })}
+              >
+                <View
+                  style={{
+                    alignItems: "center",
+                    alignSelf: "stretch",
+                    backgroundColor: theme.colors.primaryBg,
+                    justifyContent: "center",
+                    width: 44,
+                  }}
+                >
+                  <AppIcon
+                    name="percent-outline"
+                    size={18}
+                    color={theme.colors.primary}
+                  />
+                </View>
+                <View style={{ flex: 1, paddingHorizontal: spacing.md }}>
+                  <Typography variant="bodyBold">Tenho taxa de venda</Typography>
+                  <Typography variant="caption" color={theme.colors.textSecondary}>
+                    Cartão, aplicativo ou marketplace
+                  </Typography>
+                </View>
+                <View
+                  style={{
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 42,
+                  }}
+                >
+                  <AppIcon
+                    name={showFees ? "chevron-up" : "chevron-down"}
+                    size={20}
+                    color={theme.colors.textSecondary}
+                  />
+                </View>
+              </Pressable>
+
+              {showFees ? (
+                <View style={{ gap: spacing.sm }}>
+                  <FieldLabel label="Taxa total sobre a venda (%)" />
+                  <View style={compactField}>
+                    <TextFieldCard
+                      icon="card-outline"
+                      iconSurface
+                      value={feesInput}
+                      onChangeText={(text) => {
+                        setFeesInput(percentageInput(text));
+                        trackStarted();
+                      }}
+                      keyboardType="decimal-pad"
+                      placeholder="Ex: 12"
+                    />
+                  </View>
+                  {feesPercent > 95 ? (
+                    <Typography variant="caption" color={theme.colors.alert}>
+                      A taxa precisa ser de no máximo 95%.
+                    </Typography>
+                  ) : null}
+                </View>
               ) : null}
             </View>
-          ) : null}
-        </View>
 
-        {!isDesktop ? estimatePanel : null}
+            {!isDesktop ? estimatePanel : null}
 
-        <View
-          style={{
-            gap: spacing.md,
-            flexDirection: isDesktop ? "row" : "column",
-            alignItems: isDesktop ? "center" : "stretch",
-            justifyContent: isDesktop ? "flex-start" : undefined,
-            flexWrap: "wrap",
-          }}
-        >
-          {onCreateProduct && productId === null ? (
-            <Button
-              title={`Salvar e criar ${experienceCopy.productNoun}`}
-              onPress={() => {
-                void handleCreateProduct();
+            <View
+              style={{
+                gap: isDesktop ? spacing.md : spacing.sm,
+                flexDirection: isDesktop ? "row" : "column",
+                alignItems: isDesktop ? "center" : "stretch",
+                justifyContent: isDesktop ? "flex-start" : undefined,
+                flexWrap: "wrap",
+                width: "100%",
               }}
-              disabled={!canCalculate || feesPercent > 95}
-              size="lg"
-              style={
-                isDesktop
-                  ? { minHeight: 48, minWidth: 220, paddingHorizontal: spacing.xl }
-                  : undefined
-              }
-            />
-          ) : null}
-          <Button
-            title="Salvar cálculo"
-            variant={onCreateProduct && productId === null ? "outline" : "primary"}
-            onPress={() => {
-              void handleSave();
-            }}
-            loading={calculatePricing.isPending}
-            disabled={!canCalculate || feesPercent > 95}
-            size="lg"
-            style={
-              isDesktop
-                ? { minHeight: 48, minWidth: 180, paddingHorizontal: spacing.xl }
-                : undefined
-            }
-          />
-        </View>
+            >
+              {onCreateProduct && productId === null ? (
+                <Button
+                  title={`Salvar e criar ${experienceCopy.productNoun}`}
+                  onPress={() => {
+                    void handleCreateProduct();
+                  }}
+                  disabled={!canCalculate || feesPercent > 95}
+                  size="lg"
+                  style={
+                    isDesktop
+                      ? { minHeight: 48, minWidth: 220, paddingHorizontal: spacing.xl }
+                      : { minHeight: 52, width: "100%" }
+                  }
+                />
+              ) : null}
+              <Button
+                title="Salvar cálculo"
+                variant={onCreateProduct && productId === null ? "outline" : "primary"}
+                onPress={() => {
+                  void handleSave();
+                }}
+                loading={calculatePricing.isPending}
+                disabled={!canCalculate || feesPercent > 95}
+                size="lg"
+                style={
+                  isDesktop
+                    ? { minHeight: 48, minWidth: 180, paddingHorizontal: spacing.xl }
+                    : { minHeight: 52, width: "100%" }
+                }
+              />
+            </View>
           </View>
 
           {isDesktop ? <View style={split.aside}>{estimatePanel}</View> : null}

@@ -1,0 +1,59 @@
+{
+  "compiled_at": "2026-08-05T01:47:28.863281400+00:00",
+  "description": "Materialized from a compile candidate sequence.",
+  "id": "live-query-658f4a4971",
+  "name": "Live query fan-out (5->1): 0001 plano de testes telas, 0003 testes lógica cálculos, +3",
+  "origin": "live",
+  "recipe": {
+    "name": "Live query fan-out (5->1): 0001 plano de testes telas, 0003 testes lógica cálculos, +3",
+    "outputs": {
+      "item_1": "item_1.output",
+      "item_2": "item_2.output",
+      "item_3": "item_3.output",
+      "item_4": "item_4.output",
+      "item_5": "item_5.output"
+    },
+    "recipe": {
+      "items": [
+        {
+          "limit": 5,
+          "q": "0001 plano de testes telas",
+          "slug": "docs"
+        },
+        {
+          "limit": 5,
+          "q": "0003 testes lógica cálculos",
+          "slug": "docs"
+        },
+        {
+          "limit": 5,
+          "q": "0002 regras de validação telas",
+          "slug": "docs"
+        },
+        {
+          "limit": 5,
+          "q": "Rótulo publicado tabela simplificada informação nutricional",
+          "slug": "compliance"
+        },
+        {
+          "limit": 5,
+          "q": "Seed idempotente rótulos conta Mariana",
+          "slug": "database"
+        }
+      ],
+      "kind": "fan_out",
+      "node_prefix": "item_",
+      "tool": "query"
+    },
+    "tools": {
+      "query": {
+        "adapter": "harness"
+      }
+    },
+    "version": "0"
+  },
+  "schema": 2,
+  "source": "workspace",
+  "status": "ready",
+  "version": 1
+}

@@ -23,6 +23,7 @@ import { useClient } from "../features/clients/hooks";
 import { QuoteForm } from "../features/quotes/components/quote-form";
 import { showAlert } from "../shared/components/alert-store";
 import { ScreenHeader } from "../shared/components/screen-header";
+import { FAB } from "../shared/components/fab";
 import { SkeletonList } from "../shared/components/skeleton";
 import {
   useConvertQuote,
@@ -38,7 +39,11 @@ import { showToast } from "../shared/components/toast";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { useAuth } from "../shared/hooks/use-auth";
 import { brToIso } from "../shared/utils/date";
-import { desktopStretch, desktopWidths, pageGutter } from "../shared/layout/desktop-density";
+import {
+  desktopStretch,
+  desktopWidths,
+  pageGutter,
+} from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { StandardModal } from "../shared/components/standard-modal";
 import { formatCurrency } from "../shared/utils/format";
@@ -521,6 +526,14 @@ export default function QuotesScreen() {
         onBack={handleBack}
         backLabel={backToMore ? "Ir para Mais opções" : "Voltar"}
         hideBack={isDesktop}
+        right={
+          <FAB
+            icon="add"
+            header
+            accessibilityLabel="Novo orçamento"
+            onPress={() => setShowCreate(true)}
+          />
+        }
       />
 
       {/* Filtros (chips) */}
@@ -566,7 +579,13 @@ export default function QuotesScreen() {
         </ScrollView>
       </View>
 
-      <View style={{ flex: 1, ...pageGutter(isDesktop), ...desktopStretch(isDesktop, desktopWidths.data) }}>
+      <View
+        style={{
+          flex: 1,
+          ...pageGutter(isDesktop),
+          ...desktopStretch(isDesktop, desktopWidths.data),
+        }}
+      >
         {isLoading && (
           <View style={{ marginTop: spacing["3xl"] }}>
             <SkeletonList rows={5} variant="quote" />
@@ -614,27 +633,26 @@ export default function QuotesScreen() {
                 <QuoteCard quote={quote} onPress={() => setSelectedId(quote.id)} />
               </View>
             ))}
+            <View
+              style={{
+                width: "100%",
+                paddingTop: spacing.sm,
+                paddingBottom: spacing.lg + insets.bottom,
+                alignItems: isDesktop ? "flex-end" : "stretch",
+              }}
+            >
+              <Button
+                title="Novo orçamento"
+                onPress={() => setShowCreate(true)}
+                icon={<AppIcon name="add" size={20} color={theme.colors.textOnPrimary} />}
+                style={
+                  isDesktop ? { alignSelf: "flex-end" } : { width: "100%", minHeight: 52 }
+                }
+              />
+            </View>
           </ScrollView>
         )}
       </View>
-
-      {/* Ação principal: novo orçamento */}
-      {quotes.length > 0 ? (
-        <View
-          style={{
-            ...pageGutter(isDesktop),
-            paddingTop: spacing.sm,
-            paddingBottom: spacing.sm + insets.bottom,
-            alignItems: isDesktop ? "flex-end" : "center",
-          }}
-        >
-          <Button
-            title="Novo orçamento"
-            onPress={() => setShowCreate(true)}
-            icon={<AppIcon name="add" size={20} color={theme.colors.textOnPrimary} />}
-          />
-        </View>
-      ) : null}
 
       {/* Criar */}
       <QuoteForm

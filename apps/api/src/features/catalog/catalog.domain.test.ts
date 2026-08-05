@@ -96,6 +96,21 @@ describe("renderCatalogHtml", () => {
     totalProducts: 0,
   };
 
+  it("usa o seletor visual do catálogo em vez de expor a lista nativa do Android", () => {
+    const html = renderCatalogHtml({
+      ...baseCatalog,
+      products: [product],
+      totalProducts: 1,
+    });
+
+    expect(html).toContain('class="catalog-select-native" id="catalog-category" hidden');
+    expect(html).toContain('trigger.className = "catalog-select-trigger"');
+    expect(html).toContain('dialog.className = "catalog-select-dialog"');
+    expect(html).toContain('dialog.setAttribute("role", "dialog")');
+    expect(html).not.toContain("dialog.showModal()");
+    expect(html).toContain("[category, sort].forEach(enhanceSelect)");
+  });
+
   const service = {
     id: "22222222-2222-2222-2222-222222222222",
     name: "Consultoria",

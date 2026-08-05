@@ -363,16 +363,12 @@ export function RecipeList({ onRecipePress, onAddPress }: RecipeListProps) {
             style={{
               flexDirection: "row",
               alignItems: "center",
-              justifyContent: "space-between",
               gap: spacing.md,
             }}
           >
             <Typography variant="body" style={{ flex: 1 }}>
               Gerencie seus custos e margens de lucro
             </Typography>
-            {onAddPress ? (
-              <Button title="Nova receita" size="sm" onPress={onAddPress} />
-            ) : null}
           </View>
 
           {/* Filter chips */}
@@ -405,6 +401,17 @@ export function RecipeList({ onRecipePress, onAddPress }: RecipeListProps) {
             ))}
           </View>
         </View>
+      }
+      ListFooterComponent={
+        onAddPress ? (
+          <View style={{ paddingTop: spacing.sm }}>
+            <Button
+              title="Adicionar receita"
+              onPress={onAddPress}
+              style={{ width: "100%" }}
+            />
+          </View>
+        ) : null
       }
     />
   );

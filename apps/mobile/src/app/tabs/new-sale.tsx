@@ -2091,9 +2091,8 @@ export default function NewSaleScreen() {
           <Button
             title="Próximo"
             style={{
-              flex: step === 1 ? undefined : 1,
+              flex: 1,
               borderRadius: radii.md,
-              ...(step === 1 ? { minWidth: 138 } : null),
             }}
             disabled={!canAdvance()}
             onPress={() => setStep((s) => (s + 1) as Step)}

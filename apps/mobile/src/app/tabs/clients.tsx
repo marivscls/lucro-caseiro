@@ -16,7 +16,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Image,
-  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -42,13 +41,10 @@ import { alertValidation } from "../../shared/utils/alerts";
 import { showAlert } from "../../shared/components/alert-store";
 import { SkeletonList } from "../../shared/components/skeleton";
 import { AnimatedListItem } from "../../shared/components/animated-list-item";
+import { FAB } from "../../shared/components/fab";
 import { CalendarModal } from "../../shared/components/calendar-modal";
 import { DesktopPagination } from "../../shared/components/desktop-pagination";
-import {
-  FLOATING_TAB_BAR_HEIGHT,
-  floatingTabBarBottomOffset,
-  floatingTabBarContentPadding,
-} from "../../shared/layout/floating-tab-bar";
+import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
 import {
   desktopStretch,
   desktopWidths,
@@ -67,8 +63,6 @@ type ClientGroup = {
   letter: string;
   data: Client[];
 };
-
-const CLIENTS_TIP_MIN_HEIGHT = 68;
 
 // Paleta derivada do tema ativo (antes constantes fixas de dark).
 function clientsPalette(theme: { mode: string; colors: Record<string, string> }) {
@@ -408,7 +402,6 @@ function ClientsListScreen({
   const isDesktop = useDesktopLayout();
   const pal = clientsPalette(theme);
   const showPaywall = usePaywall((s) => s.show);
-  const [showTip, setShowTip] = useState(true);
   const [page, setPage] = useState(1);
   const { data, isLoading, error, refetch, isRefetching } = useClients({
     page: isDesktop ? page : undefined,
@@ -418,18 +411,7 @@ function ClientsListScreen({
   const groups = useMemo(() => groupClientsByInitial(data?.items ?? []), [data?.items]);
   const totalClients = groups.reduce((sum, group) => sum + group.data.length, 0);
   const tabBarClearance = floatingTabBarContentPadding(0);
-  const tipBottom =
-    Platform.OS === "web"
-      ? FLOATING_TAB_BAR_HEIGHT + floatingTabBarBottomOffset(0) + spacing.md
-      : 34;
-  let listBottomPadding = tabBarClearance;
-  if (showTip) {
-    listBottomPadding =
-      Platform.OS === "web"
-        ? tipBottom + CLIENTS_TIP_MIN_HEIGHT + spacing.xl
-        : Math.max(126, tabBarClearance);
-  }
-  if (isDesktop) listBottomPadding = spacing["3xl"];
+  const listBottomPadding = isDesktop ? spacing["3xl"] : tabBarClearance;
   let clientsContent: React.ReactNode;
 
   if (isLoading) {
@@ -539,29 +521,12 @@ function ClientsListScreen({
           </View>
 
           {groups.length > 0 ? (
-            <Pressable
+            <FAB
+              icon="add"
+              header
+              accessibilityLabel="Novo cliente"
               onPress={onCreatePress}
-              style={({ pressed }) => [
-                surfaceStyle(pal, {
-                  borderRadius: radii.md,
-                  minHeight: 44,
-                  paddingHorizontal: isDesktop ? spacing.md : spacing.sm,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: isDesktop ? spacing.md : spacing.sm,
-                  opacity: pressed ? 0.86 : 1,
-                }),
-              ]}
-            >
-              <AppIcon name="person-add-outline" size={20} color={pal.muted} />
-              <Typography
-                variant="bodyBold"
-                color={theme.colors.text}
-                style={{ fontSize: fontSizes.sm }}
-              >
-                Novo cliente
-              </Typography>
-            </Pressable>
+            />
           ) : null}
         </View>
 
@@ -591,62 +556,15 @@ function ClientsListScreen({
         <LimitBanner resource="clients" onUpgrade={() => showPaywall("clients")} />
 
         {clientsContent}
-      </ScrollView>
 
-      {!isDesktop && showTip && (
-        <View
-          style={[
-            surfaceStyle(pal, {
-              position: "absolute",
-              left: spacing.xl,
-              right: spacing.xl,
-              bottom: tipBottom,
-              borderRadius: radii.xl,
-              minHeight: CLIENTS_TIP_MIN_HEIGHT,
-              padding: spacing.sm,
-              flexDirection: "row",
-              alignItems: "center",
-              gap: spacing.md,
-            }),
-          ]}
-        >
-          <View
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: radii.full,
-              backgroundColor: pal.subtleFill,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <AppIcon name="people-outline" size={20} color={pal.muted} />
-          </View>
-          <View style={{ flex: 1, gap: spacing.xs }}>
-            <Typography
-              variant="bodyBold"
-              color={theme.colors.text}
-              style={{ fontSize: fontSizes.xs }}
-            >
-              Dica rápida
-            </Typography>
-            <Typography
-              variant="body"
-              color={theme.colors.text}
-              style={{ fontSize: fontSizes.xs, lineHeight: 16 }}
-            >
-              Mantenha seus clientes atualizados para uma comunicação mais eficiente.
-            </Typography>
-          </View>
-          <Pressable
-            onPress={() => setShowTip(false)}
-            accessibilityLabel="Fechar dica"
-            hitSlop={10}
-          >
-            <AppIcon name="close" size={24} color={pal.muted} />
-          </Pressable>
-        </View>
-      )}
+        {groups.length > 0 ? (
+          <Button
+            title="Adicionar cliente"
+            onPress={onCreatePress}
+            style={{ width: "100%" }}
+          />
+        ) : null}
+      </ScrollView>
     </>
   );
 }

@@ -15,6 +15,8 @@ export type FABProps = Readonly<
     icon: AppIconName;
     /** Texto do FAB estendido; sem label vira o círculo clássico de 56px. */
     label?: string;
+    /** Variante compacta para a área de ações do ScreenHeader. */
+    header?: boolean;
     accessibilityLabel: string;
     style?: StyleProp<ViewStyle>;
   } & Omit<PressableProps, "style" | "children">
@@ -25,8 +27,17 @@ export type FABProps = Readonly<
  * `theme.shadows.md`, ícone `iconSizes.md`, 56px de altura. Use no lugar dos
  * botões flutuantes montados à mão em cada tela.
  */
-export function FAB({ icon, label, accessibilityLabel, style, ...props }: FABProps) {
+export function FAB({
+  icon,
+  label,
+  header = false,
+  accessibilityLabel,
+  style,
+  ...props
+}: FABProps) {
   const { theme } = useTheme();
+  let horizontalPadding = 0;
+  if (label) horizontalPadding = header ? spacing.md : spacing.xl;
 
   return (
     <Pressable
@@ -34,9 +45,9 @@ export function FAB({ icon, label, accessibilityLabel, style, ...props }: FABPro
       accessibilityLabel={accessibilityLabel}
       style={({ pressed }) => [
         {
-          height: 52,
-          minWidth: 52,
-          paddingHorizontal: label ? spacing.xl : 0,
+          height: header ? 44 : 52,
+          minWidth: header ? 44 : 52,
+          paddingHorizontal: horizontalPadding,
           borderRadius: radii.full,
           backgroundColor: theme.colors.primaryInteractive,
           flexDirection: "row",

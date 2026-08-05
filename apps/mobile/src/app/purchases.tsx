@@ -2,7 +2,6 @@ import {
   Badge,
   Button,
   EmptyState,
-  iconSizes,
   Typography,
   useTheme,
   spacing,
@@ -30,10 +29,15 @@ import { useProfile } from "../features/subscription/hooks";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { alertError } from "../shared/utils/alerts";
 import { formatCurrency } from "../shared/utils/format";
-import { desktopStretch, desktopWidths, pageGutter } from "../shared/layout/desktop-density";
+import {
+  desktopStretch,
+  desktopWidths,
+  pageGutter,
+} from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { SkeletonList } from "../shared/components/skeleton";
+import { FAB } from "../shared/components/fab";
 
 type Filter = "all" | "pending" | "paid";
 
@@ -119,7 +123,14 @@ export default function PurchasesScreen() {
   function renderList() {
     if (isLoading) {
       return (
-        <View style={{ flex: 1, paddingVertical: spacing.xl, ...pageGutter(isDesktop), ...desktopStretch(isDesktop, desktopWidths.data) }}>
+        <View
+          style={{
+            flex: 1,
+            paddingVertical: spacing.xl,
+            ...pageGutter(isDesktop),
+            ...desktopStretch(isDesktop, desktopWidths.data),
+          }}
+        >
           <SkeletonList rows={6} variant="purchase" />
         </View>
       );
@@ -164,9 +175,7 @@ export default function PurchasesScreen() {
           <View
             key={p.id}
             style={
-              isDesktop
-                ? { width: "48%", flexGrow: 1, minWidth: 320 }
-                : { width: "100%" }
+              isDesktop ? { width: "48%", flexGrow: 1, minWidth: 320 } : { width: "100%" }
             }
           >
             <PurchaseCard
@@ -182,6 +191,13 @@ export default function PurchasesScreen() {
             />
           </View>
         ))}
+        <View style={{ width: "100%", paddingTop: spacing.sm }}>
+          <Button
+            title="Adicionar compra"
+            onPress={openCreate}
+            style={{ width: "100%" }}
+          />
+        </View>
       </ScrollView>
     );
   }
@@ -232,22 +248,12 @@ export default function PurchasesScreen() {
         style={{ gap: spacing.sm }}
         right={
           items.length > 0 ? (
-            <Pressable
+            <FAB
+              icon="add"
+              header
               onPress={openCreate}
-              accessibilityRole="button"
               accessibilityLabel="Nova compra"
-              style={({ pressed }) => ({
-                width: 44,
-                height: 44,
-                borderRadius: radii.full,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: theme.colors.primaryInteractive,
-                opacity: pressed ? 0.85 : 1,
-              })}
-            >
-              <AppIcon name="add" size={iconSizes.md} color={theme.colors.textOnPrimary} />
-            </Pressable>
+            />
           ) : undefined
         }
       />
@@ -257,17 +263,18 @@ export default function PurchasesScreen() {
         style={{
           ...pageGutter(isDesktop, spacing.lg),
           ...desktopStretch(isDesktop, desktopWidths.data),
-          marginTop: spacing.xl,
+          marginTop: spacing.md,
           marginBottom: spacing.sm,
-          padding: spacing.lg,
-          borderRadius: radii.xl,
+          paddingHorizontal: spacing.lg,
+          paddingVertical: spacing.sm,
+          borderRadius: radii.lg,
           backgroundColor: theme.colors.yellowBg,
           flexDirection: "row",
           alignItems: "center",
           gap: spacing.md,
         }}
       >
-        <AppIcon name="time-outline" size={24} color={theme.colors.yellow} />
+        <AppIcon name="time-outline" size={20} color={theme.colors.yellow} />
         <View style={{ flex: 1 }}>
           <Typography variant="caption" color={theme.colors.textSecondary}>
             Total a pagar

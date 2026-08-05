@@ -36,8 +36,11 @@ export function StandardModal({
 }: Readonly<StandardModalProps>) {
   const { theme } = useTheme();
   const internalScrollRef = React.useRef<ScrollView>(null);
-  const { scrollFocusedInput, trackScroll } =
-    useScrollFocusedInputIntoView(internalScrollRef, spacing.xl, visible);
+  const { scrollFocusedInput, trackScroll } = useScrollFocusedInputIntoView(
+    internalScrollRef,
+    spacing.xl,
+    visible,
+  );
 
   if (!visible) return null;
 
@@ -98,7 +101,11 @@ export function StandardModal({
             if (scrollRef) scrollRef.current = node;
           }}
           style={{ flexGrow: 0, flexShrink: 1, minHeight: 0 }}
-          contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}
+          contentContainerStyle={{
+            padding: spacing.xl,
+            paddingBottom: footer ? spacing["3xl"] : spacing.xl,
+            gap: spacing.lg,
+          }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}

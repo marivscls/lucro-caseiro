@@ -43,7 +43,12 @@ import { ApiError } from "../shared/utils/api-client";
 import { alertError, alertValidation } from "../shared/utils/alerts";
 import { maskCurrencyInput, parseCurrencyInput } from "../shared/utils/currency-input";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
-import { desktopAction, desktopCompactField, desktopStretch, pageGutter } from "../shared/layout/desktop-density";
+import {
+  desktopAction,
+  desktopCompactField,
+  desktopStretch,
+  pageGutter,
+} from "../shared/layout/desktop-density";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { useBusinessCopy } from "../features/subscription/business-copy";
 
@@ -723,20 +728,15 @@ function RecurringPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) 
 }
 
 function EmptyRecurringState() {
-  const { theme, styles } = useRecurringTheme();
-
   return (
     <EmptyState
-      style={{ flex: 0, paddingTop: 0, paddingHorizontal: spacing.sm }}
-      icon={
-        <View style={styles.emptyIconCircle}>
-          <AppIcon
-            name="receipt-outline"
-            size={iconSizes.lg}
-            color={theme.colors.primaryStrong}
-          />
-        </View>
-      }
+      style={{
+        flex: 0,
+        width: "100%",
+        alignSelf: "center",
+        paddingTop: 0,
+        paddingHorizontal: spacing.sm,
+      }}
       title="Nenhum gasto fixo ainda"
       description="Cadastre seus custos mensais e deixe o app lançar pra você."
     />
@@ -862,15 +862,6 @@ function createStyles(theme: Theme) {
     detailTextBlock: {
       flex: 1,
       gap: 2,
-    },
-    emptyIconCircle: {
-      alignItems: "center",
-      backgroundColor: pal.cardStrong,
-      borderRadius: radii.full,
-      height: 54,
-      justifyContent: "center",
-      marginBottom: 1,
-      width: 54,
     },
     expenseCard: {
       alignItems: "center",

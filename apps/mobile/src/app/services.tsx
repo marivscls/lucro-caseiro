@@ -34,6 +34,7 @@ import { showAlert } from "../shared/components/alert-store";
 import { AppIcon } from "../shared/components/app-icon";
 import type { AppIconName } from "../shared/components/app-icon";
 import { ScreenHeader } from "../shared/components/screen-header";
+import { FAB } from "../shared/components/fab";
 import { SkeletonList } from "../shared/components/skeleton";
 import {
   desktopStretch,
@@ -455,6 +456,26 @@ export default function ServicesScreen() {
         keyExtractor={(service) => service.id}
         ListHeaderComponent={renderListHeader}
         ListEmptyComponent={renderListEmpty}
+        ListFooterComponent={
+          services.length > 0 ? (
+            <View
+              style={{
+                paddingTop: spacing.sm,
+                paddingBottom: spacing.lg + insets.bottom,
+                alignItems: isDesktop ? "flex-end" : "stretch",
+              }}
+            >
+              <Button
+                title="Cadastrar serviço"
+                onPress={() => setShowCreate(true)}
+                icon={<AppIcon name="add" size={20} color={theme.colors.textOnPrimary} />}
+                style={
+                  isDesktop ? { alignSelf: "flex-end" } : { width: "100%", minHeight: 52 }
+                }
+              />
+            </View>
+          ) : null
+        }
         renderItem={({ item }) => (
           <View style={isDesktop ? { flex: 1, minWidth: 0 } : undefined}>
             <ServiceCard service={item} onPress={() => setSelectedService(item)} />
@@ -466,7 +487,7 @@ export default function ServicesScreen() {
           flexGrow: 1,
           gap: spacing.md,
           paddingTop: spacing.md,
-          paddingBottom: spacing["3xl"],
+          paddingBottom: spacing.lg,
         }}
       />
     );
@@ -489,26 +510,17 @@ export default function ServicesScreen() {
           subtitle={`${overview.activeCount} disponíveis de ${overview.totalCount} cadastrados`}
           onBack={goBack}
           hideBack={isDesktop}
+          right={
+            <FAB
+              icon="add"
+              header
+              accessibilityLabel="Cadastrar serviço"
+              onPress={() => setShowCreate(true)}
+            />
+          }
         />
 
         {renderServices()}
-
-        {services.length > 0 ? (
-          <View
-            style={{
-              paddingHorizontal: isDesktop ? 0 : spacing.xl,
-              paddingTop: spacing.sm,
-              paddingBottom: spacing.sm + insets.bottom,
-              alignItems: isDesktop ? "flex-end" : "center",
-            }}
-          >
-            <Button
-              title="Cadastrar serviço"
-              onPress={() => setShowCreate(true)}
-              icon={<AppIcon name="add" size={20} color={theme.colors.textOnPrimary} />}
-            />
-          </View>
-        ) : null}
       </View>
 
       {showCreate ? (

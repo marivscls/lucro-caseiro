@@ -87,10 +87,14 @@ export function SupplierList({
         paddingBottom: spacing["3xl"],
         gap: spacing.md,
       }}
-      ListHeaderComponent={
+      ListFooterComponent={
         onAddPress ? (
-          <View style={{ alignItems: "flex-end" }}>
-            <Button title="Novo fornecedor" size="sm" onPress={onAddPress} />
+          <View style={{ paddingTop: spacing.sm }}>
+            <Button
+              title="Adicionar fornecedor"
+              onPress={onAddPress}
+              style={{ width: "100%" }}
+            />
           </View>
         ) : null
       }

@@ -1014,3 +1014,16 @@
 {"deferred":1,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-04T23:09:10.881141700+00:00"}
 {"deferred":1,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-04T23:10:58.258716900+00:00"}
 {"deferred":1,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-04T23:55:44.403844600+00:00"}
+{"deferred":1,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-05T00:55:29.702146600+00:00"}
+{"deferred":1,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-05T01:01:48.481823100+00:00"}
+{"deferred":1,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-05T01:09:14.672462500+00:00"}
+{"deferred":0,"linked":1,"materialized":1,"min_occurrences":3,"observed":0,"promoted":[{"name":"Live query fan-out (5->1): 0001 plano de testes telas, 0003 testes lógica cálculos, +3","occurrences":2,"recipe_id":"live-query-658f4a4971","structural_key":"run:harness:query"}],"skipped":0,"ts":"2026-08-05T01:47:28.866413600+00:00"}
+{"deferred":0,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-05T02:03:54.265993500+00:00"}
+{"deferred":0,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-05T02:05:17.476599900+00:00"}
+{"deferred":0,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-05T02:06:50.711536700+00:00"}
+{"deferred":0,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-05T02:11:44.590523900+00:00"}
+{"deferred":0,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-05T02:14:33.599165500+00:00"}
+{"deferred":0,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-05T02:17:22.673508100+00:00"}
+{"deferred":0,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-05T02:26:52.063022800+00:00"}
+{"deferred":0,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-05T14:05:28.400825600+00:00"}
+{"deferred":0,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-05T15:24:17.778268100+00:00"}

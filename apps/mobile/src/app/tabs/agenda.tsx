@@ -15,6 +15,7 @@ import {
 import { AppIcon } from "../../shared/components/app-icon";
 import type { AppIconName } from "../../shared/components/app-icon";
 import { ScreenHeader } from "../../shared/components/screen-header";
+import { FAB } from "../../shared/components/fab";
 import { Redirect, Stack, useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import { Image, Platform, Pressable, ScrollView, View } from "react-native";
@@ -1545,7 +1546,19 @@ function AgendaContent() {
     >
       <Stack.Screen options={{ headerShown: false }} />
 
-      <ScreenHeader title="Agenda" fallbackRoute="/tabs" hideBack={isDesktop} />
+      <ScreenHeader
+        title="Agenda"
+        fallbackRoute="/tabs"
+        hideBack={isDesktop}
+        right={
+          <FAB
+            icon="add"
+            header
+            accessibilityLabel="Nova encomenda"
+            onPress={() => setShowCreate(true)}
+          />
+        }
+      />
 
       {renderContent()}
 

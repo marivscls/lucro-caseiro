@@ -3,7 +3,6 @@ import {
   Button,
   EmptyState,
   fontSizes,
-  iconSizes,
   Typography,
   fonts,
   useTheme,
@@ -26,6 +25,7 @@ import { useDeletePackaging, usePackagingList } from "../features/packaging/hook
 import { LimitBanner } from "../features/subscription/components/limit-banner";
 import { showAlert } from "../shared/components/alert-store";
 import { ScreenHeader } from "../shared/components/screen-header";
+import { FAB } from "../shared/components/fab";
 import { SkeletonList, SkeletonSummaryStrip } from "../shared/components/skeleton";
 import { FeatureRouteGuard } from "../shared/components/feature-route-guard";
 import { usePaywall } from "../shared/hooks/use-paywall";
@@ -235,7 +235,12 @@ function PackagingScreenContent() {
           <View
             style={
               isDesktop
-                ? { flexDirection: "row", flexWrap: "wrap", gap: spacing.md, width: "100%" }
+                ? {
+                    flexDirection: "row",
+                    flexWrap: "wrap",
+                    gap: spacing.md,
+                    width: "100%",
+                  }
                 : { gap: spacing.md }
             }
           >
@@ -310,24 +315,12 @@ function PackagingScreenContent() {
         hideBack={isDesktop}
         style={{ gap: spacing.sm }}
         right={
-          items.length > 0 ? (
-            <Pressable
-              onPress={() => setShowCreate(true)}
-              accessibilityRole="button"
-              accessibilityLabel="Nova embalagem"
-              style={({ pressed }) => ({
-                width: 44,
-                height: 44,
-                borderRadius: radii.full,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: theme.colors.primaryInteractive,
-                opacity: pressed ? 0.85 : 1,
-              })}
-            >
-              <AppIcon name="add" size={iconSizes.md} color={theme.colors.textOnPrimary} />
-            </Pressable>
-          ) : undefined
+          <FAB
+            icon="add"
+            header
+            onPress={() => setShowCreate(true)}
+            accessibilityLabel="Nova embalagem"
+          />
         }
       />
 

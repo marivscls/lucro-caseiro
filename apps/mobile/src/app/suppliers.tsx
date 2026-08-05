@@ -19,6 +19,7 @@ import { pageGutter } from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { StandardModal } from "../shared/components/standard-modal";
 import { ScreenHeader } from "../shared/components/screen-header";
+import { FAB } from "../shared/components/fab";
 
 export default function SuppliersScreen() {
   const { theme } = useTheme();
@@ -74,6 +75,14 @@ export default function SuppliersScreen() {
         title="Fornecedores"
         hideBack={isDesktop}
         style={{ gap: spacing.sm }}
+        right={
+          <FAB
+            icon="add"
+            header
+            accessibilityLabel="Novo fornecedor"
+            onPress={() => setShowCreate(true)}
+          />
+        }
       />
 
       {/* Search */}

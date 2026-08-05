@@ -18,7 +18,7 @@ import { AppIcon } from "../shared/components/app-icon";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { Image, Pressable, TextInput, View } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
   ComponentPicker,
@@ -42,6 +42,7 @@ import { businessCopyFor } from "../features/subscription/business-copy";
 import { showAlert } from "../shared/components/alert-store";
 import { BarcodeScanner } from "../shared/components/barcode-scanner";
 import { ScreenHeader } from "../shared/components/screen-header";
+import { FAB } from "../shared/components/fab";
 import { Skeleton, SkeletonCard } from "../shared/components/skeleton";
 import { StandardModal } from "../shared/components/standard-modal";
 import { FormSection } from "../shared/components/form-section";
@@ -1083,9 +1084,7 @@ export default function ProductsScreen() {
     { value: "all", label: "Todos" },
     {
       value: "product",
-      label: brand.copy.productNounPlural.replace(/^./, (letter) =>
-        letter.toUpperCase(),
-      ),
+      label: brand.copy.productNounPlural.replace(/^./, (letter) => letter.toUpperCase()),
     },
     {
       value: "kit",
@@ -1103,7 +1102,6 @@ export default function ProductsScreen() {
     salePrice?: string;
     stock?: string;
   }>();
-  const insets = useSafeAreaInsets();
   const [showCreate, setShowCreate] = useState(create === "from-pricing");
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -1119,7 +1117,6 @@ export default function ProductsScreen() {
   const productsQuery = useAllProducts();
   const products = productsQuery.data ?? [];
   const { data: velocity } = useSalesVelocity();
-  const hasProducts = products.length > 0;
   const backToHome = from === "onboarding" || !router.canGoBack();
   const categories = useMemo(
     () =>
@@ -1189,268 +1186,261 @@ export default function ProductsScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <View style={{ flex: 1, ...desktopStretch(isDesktop, desktopWidths.data) }}>
-      <ScreenHeader
-        title={brand.copy.productNounPlural.replace(/^./, (letter) =>
-          letter.toUpperCase(),
-        )}
-        onBack={handleBack}
-        backLabel={backToHome ? "Ir para o início" : "Voltar"}
-        hideBack={isDesktop}
-      />
-
-      <View
-        style={{
-          ...pageGutter(isDesktop),
-          paddingBottom: spacing.sm,
-          ...(isDesktop
-            ? { alignSelf: "flex-start", maxWidth: 480, width: "100%" }
-            : undefined),
-        }}
-      >
-        <View
-          style={{
-            width: "100%",
-            minHeight: 48,
-            borderRadius: radii.md,
-            borderWidth: 1,
-            borderColor: `${theme.colors.text}1f`,
-            flexDirection: "row",
-            alignItems: "center",
-            paddingHorizontal: spacing.md,
-            gap: spacing.sm,
-          }}
-        >
-          <AppIcon name="search-outline" size={20} color={theme.colors.textSecondary} />
-          <TextInput
-            value={search}
-            onChangeText={setSearch}
-            placeholder={`Buscar ${brand.copy.productNoun}`}
-            placeholderTextColor={theme.colors.textSecondary}
-            style={{
-              flex: 1,
-              color: theme.colors.text,
-              fontSize: 16,
-              paddingVertical: 0,
-            }}
-          />
-        </View>
-      </View>
-
-      <View
-        style={{
-          ...pageGutter(isDesktop),
-          paddingBottom: spacing.sm,
-        }}
-      >
-        <View
-          style={{
-            width: "100%",
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: spacing.sm,
-          }}
-        >
-          {productTypeFilters.map((filter) => (
-            <Chip
-              key={filter.value}
-              label={filter.label}
-              selected={typeFilter === filter.value}
-              onPress={() => setTypeFilter(filter.value)}
+        <ScreenHeader
+          title={brand.copy.productNounPlural.replace(/^./, (letter) =>
+            letter.toUpperCase(),
+          )}
+          onBack={handleBack}
+          backLabel={backToHome ? "Ir para o início" : "Voltar"}
+          hideBack={isDesktop}
+          right={
+            <FAB
+              icon="add"
+              header
+              accessibilityLabel={`Novo ${brand.copy.productNoun}`}
+              onPress={() => setShowCreate(true)}
             />
-          ))}
+          }
+        />
 
-          <Pressable
-            onPress={() => setFiltersOpen(true)}
-            accessibilityRole="button"
-            accessibilityLabel={
-              activeFilterCount > 0
-                ? `Filtros, ${activeFilterCount} ativos`
-                : "Abrir filtros"
-            }
-            style={({ pressed }) => ({
-              minHeight: 44,
-              borderRadius: radii.full,
+        <View
+          style={{
+            ...pageGutter(isDesktop),
+            paddingBottom: spacing.sm,
+            ...(isDesktop
+              ? { alignSelf: "flex-start", maxWidth: 480, width: "100%" }
+              : undefined),
+          }}
+        >
+          <View
+            style={{
+              width: "100%",
+              minHeight: 48,
+              borderRadius: radii.md,
               borderWidth: 1,
-              borderColor:
-                activeFilterCount > 0
-                  ? theme.colors.primaryInteractive
-                  : theme.colors.border,
-              backgroundColor:
-                activeFilterCount > 0 ? theme.colors.primaryBg : theme.colors.surface,
-              paddingHorizontal: spacing.md,
+              borderColor: `${theme.colors.text}1f`,
               flexDirection: "row",
               alignItems: "center",
-              justifyContent: "center",
+              paddingHorizontal: spacing.md,
               gap: spacing.sm,
-              opacity: pressed ? 0.82 : 1,
-            })}
+            }}
           >
-            <AppIcon
-              name="options-outline"
-              size={20}
-              color={
-                activeFilterCount > 0
-                  ? theme.colors.primaryStrong
-                  : theme.colors.textSecondary
-              }
-            />
-            <Typography
-              variant="bodyBold"
-              color={
-                activeFilterCount > 0
-                  ? theme.colors.primaryStrong
-                  : theme.colors.textSecondary
-              }
-            >
-              {activeFilterCount > 0 ? `Filtros (${activeFilterCount})` : "Filtros"}
-            </Typography>
-          </Pressable>
-        </View>
-      </View>
-
-      <StandardModal
-        visible={filtersOpen}
-        onClose={() => setFiltersOpen(false)}
-        title="Filtros"
-        subtitle="Abra somente a opção que quiser mudar"
-        footer={
-          <>
-            <Button
-              title="Limpar"
-              variant="secondary"
-              onPress={() => {
-                setStatusFilter("all");
-                setCategoryFilter(null);
-                setSort("name");
+            <AppIcon name="search-outline" size={20} color={theme.colors.textSecondary} />
+            <TextInput
+              value={search}
+              onChangeText={setSearch}
+              placeholder={`Buscar ${brand.copy.productNoun}`}
+              placeholderTextColor={theme.colors.textSecondary}
+              style={{
+                flex: 1,
+                color: theme.colors.text,
+                fontSize: 16,
+                paddingVertical: 0,
               }}
-              style={{ flex: 1 }}
             />
-            <Button
-              title="Ver produtos"
-              onPress={() => setFiltersOpen(false)}
-              style={{ flex: 1 }}
-            />
-          </>
-        }
-      >
-        {stockEnabled ? (
+          </View>
+        </View>
+
+        <View
+          style={{
+            ...pageGutter(isDesktop),
+            paddingBottom: spacing.sm,
+          }}
+        >
+          <View
+            style={{
+              width: "100%",
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: spacing.sm,
+            }}
+          >
+            {productTypeFilters.map((filter) => (
+              <Chip
+                key={filter.value}
+                label={filter.label}
+                selected={typeFilter === filter.value}
+                onPress={() => setTypeFilter(filter.value)}
+              />
+            ))}
+
+            <Pressable
+              onPress={() => setFiltersOpen(true)}
+              accessibilityRole="button"
+              accessibilityLabel={
+                activeFilterCount > 0
+                  ? `Filtros, ${activeFilterCount} ativos`
+                  : "Abrir filtros"
+              }
+              style={({ pressed }) => ({
+                minHeight: 44,
+                borderRadius: radii.full,
+                borderWidth: 1,
+                borderColor:
+                  activeFilterCount > 0
+                    ? theme.colors.primaryInteractive
+                    : theme.colors.border,
+                backgroundColor:
+                  activeFilterCount > 0 ? theme.colors.primaryBg : theme.colors.surface,
+                paddingHorizontal: spacing.md,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: spacing.sm,
+                opacity: pressed ? 0.82 : 1,
+              })}
+            >
+              <AppIcon
+                name="options-outline"
+                size={20}
+                color={
+                  activeFilterCount > 0
+                    ? theme.colors.primaryStrong
+                    : theme.colors.textSecondary
+                }
+              />
+              <Typography
+                variant="bodyBold"
+                color={
+                  activeFilterCount > 0
+                    ? theme.colors.primaryStrong
+                    : theme.colors.textSecondary
+                }
+              >
+                {activeFilterCount > 0 ? `Filtros (${activeFilterCount})` : "Filtros"}
+              </Typography>
+            </Pressable>
+          </View>
+        </View>
+
+        <StandardModal
+          visible={filtersOpen}
+          onClose={() => setFiltersOpen(false)}
+          title="Filtros"
+          subtitle="Abra somente a opção que quiser mudar"
+          footer={
+            <>
+              <Button
+                title="Limpar"
+                variant="secondary"
+                onPress={() => {
+                  setStatusFilter("all");
+                  setCategoryFilter(null);
+                  setSort("name");
+                }}
+                style={{ flex: 1 }}
+              />
+              <Button
+                title="Ver produtos"
+                onPress={() => setFiltersOpen(false)}
+                style={{ flex: 1 }}
+              />
+            </>
+          }
+        >
+          {stockEnabled ? (
+            <FormSection
+              title="Situação"
+              subtitle={selectedStatusLabel}
+              icon="trending-up-outline"
+            >
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+                {PRODUCT_STATUS_FILTERS.map((filter) => (
+                  <Chip
+                    key={filter.value}
+                    label={filter.label}
+                    selected={statusFilter === filter.value}
+                    onPress={() => setStatusFilter(filter.value)}
+                  />
+                ))}
+              </View>
+            </FormSection>
+          ) : null}
+
           <FormSection
-            title="Situação"
-            subtitle={selectedStatusLabel}
-            icon="trending-up-outline"
+            title="Categoria"
+            subtitle={categoryFilter ?? "Todas"}
+            icon="grid-outline"
           >
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-              {PRODUCT_STATUS_FILTERS.map((filter) => (
+              <Chip
+                label="Todas"
+                selected={categoryFilter === null}
+                onPress={() => setCategoryFilter(null)}
+              />
+              {categories.map((item) => (
                 <Chip
-                  key={filter.value}
-                  label={filter.label}
-                  selected={statusFilter === filter.value}
-                  onPress={() => setStatusFilter(filter.value)}
+                  key={item}
+                  label={item}
+                  selected={categoryFilter === item}
+                  onPress={() => setCategoryFilter(item)}
                 />
               ))}
             </View>
           </FormSection>
-        ) : null}
 
-        <FormSection
-          title="Categoria"
-          subtitle={categoryFilter ?? "Todas"}
-          icon="grid-outline"
-        >
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-            <Chip
-              label="Todas"
-              selected={categoryFilter === null}
-              onPress={() => setCategoryFilter(null)}
-            />
-            {categories.map((item) => (
-              <Chip
-                key={item}
-                label={item}
-                selected={categoryFilter === item}
-                onPress={() => setCategoryFilter(item)}
-              />
-            ))}
-          </View>
-        </FormSection>
-
-        <FormSection
-          title="Ordenação"
-          subtitle={PRODUCT_SORT_LABELS[sort]}
-          icon="swap-horizontal-outline"
-        >
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-            {(
-              Object.entries(PRODUCT_SORT_LABELS) as Array<[ProductSort, string]>
-            ).map(([value, label]) => (
-              <Chip
-                key={value}
-                label={label}
-                selected={sort === value}
-                onPress={() => setSort(value)}
-              />
-            ))}
-          </View>
-        </FormSection>
-      </StandardModal>
-
-      <View style={{ flex: 1 }}>
-        <LimitBanner
-          resource="products"
-          onUpgrade={() => showPaywall("products")}
-          containerStyle={{
-            marginHorizontal: isDesktop ? 0 : spacing.lg,
-            marginTop: spacing.sm,
-          }}
-        />
-        {productsQuery.error ? (
-          <Card
-            style={{
-              marginHorizontal: isDesktop ? 0 : spacing.lg,
-              marginVertical: spacing.lg,
-            }}
+          <FormSection
+            title="Ordenação"
+            subtitle={PRODUCT_SORT_LABELS[sort]}
+            icon="swap-horizontal-outline"
           >
-            <View style={{ gap: spacing.md }}>
-              <Typography variant="h3">Não foi possível carregar os produtos</Typography>
-              <Typography variant="body" color={theme.colors.textSecondary}>
-                Verifique sua conexão e tente novamente.
-              </Typography>
-              <Button
-                title="Tentar novamente"
-                variant="secondary"
-                onPress={() => void productsQuery.refetch()}
-              />
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+              {(Object.entries(PRODUCT_SORT_LABELS) as Array<[ProductSort, string]>).map(
+                ([value, label]) => (
+                  <Chip
+                    key={value}
+                    label={label}
+                    selected={sort === value}
+                    onPress={() => setSort(value)}
+                  />
+                ),
+              )}
             </View>
-          </Card>
-        ) : (
-          <>
-            <LowStockBanner onPress={() => setStatusFilter("stock")} />
-            <ProductList
-              items={visibleProducts}
-              onProductPress={(id) => setSelectedProductId(id)}
-              onAddPress={() => setShowCreate(true)}
-            />
-          </>
-        )}
-      </View>
+          </FormSection>
+        </StandardModal>
 
-      {hasProducts ? (
-        <View
-          style={{
-            paddingHorizontal: isDesktop ? 0 : spacing.xl,
-            paddingTop: spacing.sm,
-            paddingBottom: spacing.sm + insets.bottom,
-          }}
-        >
-          <Button
-            title={`Novo ${brand.copy.productNoun}`}
-            onPress={() => setShowCreate(true)}
-            accessibilityLabel={`Novo ${brand.copy.productNoun}`}
-            icon={<AppIcon name="add" size={20} color={theme.colors.textOnPrimary} />}
-            style={{ alignSelf: isDesktop ? "flex-end" : "center" }}
+        <View style={{ flex: 1 }}>
+          <LimitBanner
+            resource="products"
+            onUpgrade={() => showPaywall("products")}
+            containerStyle={{
+              marginHorizontal: isDesktop ? 0 : spacing.lg,
+              marginTop: spacing.sm,
+            }}
           />
+          {productsQuery.error ? (
+            <Card
+              style={{
+                marginHorizontal: isDesktop ? 0 : spacing.lg,
+                marginVertical: spacing.lg,
+              }}
+            >
+              <View style={{ gap: spacing.md }}>
+                <Typography variant="h3">
+                  Não foi possível carregar os produtos
+                </Typography>
+                <Typography variant="body" color={theme.colors.textSecondary}>
+                  Verifique sua conexão e tente novamente.
+                </Typography>
+                <Button
+                  title="Tentar novamente"
+                  variant="secondary"
+                  onPress={() => void productsQuery.refetch()}
+                />
+              </View>
+            </Card>
+          ) : (
+            <>
+              <LowStockBanner onPress={() => setStatusFilter("stock")} />
+              <ProductList
+                items={visibleProducts}
+                onProductPress={(id) => setSelectedProductId(id)}
+                onAddPress={() => setShowCreate(true)}
+                addButtonTitle={`Novo ${brand.copy.productNoun}`}
+              />
+            </>
+          )}
         </View>
-      ) : null}
       </View>
 
       {/* Modal - criar item da marca */}

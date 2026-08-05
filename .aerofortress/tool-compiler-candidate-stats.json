@@ -83,11 +83,11 @@
     },
     "run:harness:query": {
       "first_seen_ts": "2026-07-19T20:37:02.434969800+00:00",
-      "last_call_count": 5,
-      "last_candidate_key": "57790b4f9fa74df2",
-      "last_seen_ts": "2026-07-19T20:37:02.434969800+00:00",
-      "materializable_occurrences": 1,
-      "occurrences": 1,
+      "last_call_count": 6,
+      "last_candidate_key": "25fb0459c875e46d",
+      "last_seen_ts": "2026-08-05T01:44:08.798415700+00:00",
+      "materializable_occurrences": 2,
+      "occurrences": 2,
       "shape": {
         "calls": [
           {
@@ -134,9 +134,18 @@
               "slug": "string"
             },
             "tool": "query"
+          },
+          {
+            "adapter": "harness",
+            "input": {
+              "limit": "int",
+              "q": "string",
+              "slug": "string"
+            },
+            "tool": "query"
           }
         ],
-        "count": 5,
+        "count": 6,
         "kind": "calls"
       },
       "structural_key": "run:harness:query",
@@ -217,6 +226,6 @@
       "unique_tools": ["scars"]
     }
   },
-  "updated_ts": "2026-07-29T01:32:37.962310700+00:00",
+  "updated_ts": "2026-08-05T01:44:08.798415700+00:00",
   "version": 1
 }

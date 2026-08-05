@@ -29,6 +29,13 @@ export { showAlert } from "./alert-store";
 
 const OK_BUTTON: AppAlertButton[] = [{ text: "OK" }];
 
+export function shouldStackAlertButtons(buttons: readonly AppAlertButton[]): boolean {
+  return (
+    buttons.length > 2 ||
+    (buttons.length === 2 && buttons.some(({ text }) => text.length > 18))
+  );
+}
+
 const SUCCESS_FEATURES: Array<{
   label: string;
   image: ImageSourcePropType;
@@ -65,7 +72,7 @@ export function AlertHost() {
 
   const buttons =
     options.buttons && options.buttons.length > 0 ? options.buttons : OK_BUTTON;
-  const stacked = buttons.length > 2;
+  const stacked = shouldStackAlertButtons(buttons);
   const cancelButton = buttons.find((b) => b.style === "cancel");
 
   const press = (button: AppAlertButton) => {

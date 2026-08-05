@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
   logo: {
     width: 132,
     height: 128,
-    marginBottom: 26,
+    marginBottom: 4,
   },
   word: {
     fontFamily: fonts.bold,

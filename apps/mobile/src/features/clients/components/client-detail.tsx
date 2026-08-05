@@ -25,6 +25,7 @@ import {
   desktopWidths,
   pageGutter,
 } from "../../../shared/layout/desktop-density";
+import { floatingTabBarContentPadding } from "../../../shared/layout/floating-tab-bar";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 
 interface ClientDetailProps {
@@ -112,13 +113,13 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
     <ScrollView
       contentContainerStyle={[
         {
-          paddingBottom: spacing["3xl"],
+          paddingBottom: isDesktop ? spacing["3xl"] : floatingTabBarContentPadding(0),
           gap: spacing.xl,
           ...pageGutter(isDesktop, spacing.xl),
         },
-          desktopStretch(isDesktop, desktopWidths.data),
-        ]}
-      >
+        desktopStretch(isDesktop, desktopWidths.data),
+      ]}
+    >
       {/* Avatar and name header */}
       <View
         style={{
@@ -143,7 +144,9 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
             {initial}
           </Typography>
         </View>
-        <View style={{ alignItems: isDesktop ? "flex-start" : "center", gap: spacing.xs }}>
+        <View
+          style={{ alignItems: isDesktop ? "flex-start" : "center", gap: spacing.xs }}
+        >
           <Typography variant="h1">{client.name}</Typography>
           <Typography variant="caption">
             cliente desde{" "}

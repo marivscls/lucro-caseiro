@@ -31,6 +31,7 @@ import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { SkeletonList } from "../shared/components/skeleton";
 import { FeatureRouteGuard } from "../shared/components/feature-route-guard";
+import { FAB } from "../shared/components/fab";
 
 function LowStockBanner() {
   const { theme } = useTheme();
@@ -211,7 +212,7 @@ function MaterialsScreenContent() {
           ...pageGutter(isDesktop),
           ...desktopStretch(isDesktop, desktopWidths.data),
           paddingTop: spacing.xl,
-          paddingBottom: spacing.lg,
+          paddingBottom: 0,
           gap: spacing.md,
           ...(isDesktop ? { flexDirection: "row", flexWrap: "wrap" } : undefined),
         }}
@@ -223,9 +224,7 @@ function MaterialsScreenContent() {
           <View
             key={material.id}
             style={
-              isDesktop
-                ? { width: "31%", flexGrow: 1, minWidth: 280 }
-                : { width: "100%" }
+              isDesktop ? { width: "31%", flexGrow: 1, minWidth: 280 } : { width: "100%" }
             }
           >
             <MaterialCard
@@ -234,6 +233,34 @@ function MaterialsScreenContent() {
             />
           </View>
         ))}
+        <View
+          style={{
+            width: "100%",
+            paddingTop: spacing.sm,
+            paddingBottom: spacing.lg + insets.bottom,
+            gap: spacing.md,
+            alignItems: isDesktop ? "flex-end" : "stretch",
+          }}
+        >
+          <Button
+            title="Novo insumo"
+            onPress={() => setShowCreate(true)}
+            icon={<AppIcon name="add" size={20} color={theme.colors.textOnPrimary} />}
+            style={
+              isDesktop ? { alignSelf: "flex-end" } : { width: "100%", minHeight: 52 }
+            }
+          />
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+            <AppIcon name="bulb-outline" size={16} color={theme.colors.textSecondary} />
+            <Typography
+              variant="caption"
+              color={theme.colors.textSecondary}
+              style={{ flex: 1 }}
+            >
+              Dica: mantenha seu estoque atualizado para uma gestão mais eficiente.
+            </Typography>
+          </View>
+        </View>
       </ScrollView>
     );
   }
@@ -285,6 +312,12 @@ function MaterialsScreenContent() {
                 color={lowOnly ? theme.colors.primaryStrong : theme.colors.text}
               />
             </Pressable>
+            <FAB
+              icon="add"
+              header
+              accessibilityLabel="Novo insumo"
+              onPress={() => setShowCreate(true)}
+            />
           </>
         }
       />
@@ -364,34 +397,6 @@ function MaterialsScreenContent() {
       ) : null}
 
       <View style={{ flex: 1 }}>{renderContent()}</View>
-
-      {items.length > 0 ? (
-        <View
-          style={{
-            ...pageGutter(isDesktop),
-            paddingTop: spacing.sm,
-            paddingBottom: spacing.sm + insets.bottom,
-            gap: spacing.md,
-            alignItems: isDesktop ? "flex-end" : "center",
-          }}
-        >
-          <Button
-            title="Novo insumo"
-            onPress={() => setShowCreate(true)}
-            icon={<AppIcon name="add" size={20} color={theme.colors.textOnPrimary} />}
-          />
-          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-            <AppIcon name="bulb-outline" size={16} color={theme.colors.textSecondary} />
-            <Typography
-              variant="caption"
-              color={theme.colors.textSecondary}
-              style={{ flex: 1 }}
-            >
-              Dica: mantenha seu estoque atualizado para uma gestão mais eficiente.
-            </Typography>
-          </View>
-        </View>
-      ) : null}
 
       <MaterialForm
         visible={showCreate}

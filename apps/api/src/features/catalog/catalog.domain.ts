@@ -289,13 +289,13 @@ export function renderCatalogHtml(
     count > 0
       ? `<section class="catalog-tools" aria-label="Filtros do catálogo">
   <label class="search"><span>Buscar</span><input id="catalog-search" type="search" placeholder="Nome do produto"></label>
-  <label><span>Categoria</span><select id="catalog-category"><option value="">Todas</option>${categories
+  <div class="catalog-select-field"><span>Categoria</span><select aria-label="Categoria" class="catalog-select-native" id="catalog-category" hidden><option value="">Todas</option>${categories
     .map(
       (category) =>
         `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`,
     )
-    .join("")}</select></label>
-  <label><span>Ordenar</span><select id="catalog-sort"><option value="name">Nome</option><option value="price-asc">Menor preço</option><option value="price-desc">Maior preço</option></select></label>
+    .join("")}</select></div>
+  <div class="catalog-select-field"><span>Ordenar</span><select aria-label="Ordenar" class="catalog-select-native" id="catalog-sort" hidden><option value="name">Nome</option><option value="price-asc">Menor preço</option><option value="price-desc">Maior preço</option></select></div>
 </section>`
       : "";
   const initial = escapeHtml(catalog.businessName.charAt(0).toUpperCase() || "?");
@@ -655,6 +655,87 @@ export function renderCatalogHtml(
   search.addEventListener("input", update);
   category.addEventListener("change", update);
   sort.addEventListener("change", update);
+  const enhanceSelect = (select) => {
+    const field = select.closest(".catalog-select-field");
+    const fieldLabel = field.querySelector("span").textContent;
+    const trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.className = "catalog-select-trigger";
+    trigger.setAttribute("aria-haspopup", "listbox");
+    trigger.setAttribute("aria-expanded", "false");
+    trigger.setAttribute("aria-label", "Escolher " + fieldLabel.toLocaleLowerCase("pt-BR"));
+
+    const dialog = document.createElement("div");
+    dialog.className = "catalog-select-dialog";
+    dialog.hidden = true;
+    dialog.setAttribute("role", "dialog");
+    dialog.setAttribute("aria-modal", "true");
+    dialog.setAttribute("aria-label", fieldLabel);
+    const panel = document.createElement("div");
+    panel.className = "catalog-select-panel";
+    const header = document.createElement("div");
+    header.className = "catalog-select-header";
+    const title = document.createElement("h2");
+    title.textContent = fieldLabel;
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "catalog-select-close";
+    close.setAttribute("aria-label", "Fechar");
+    close.textContent = "×";
+    const options = document.createElement("div");
+    options.className = "catalog-select-options";
+    options.setAttribute("role", "listbox");
+    header.append(title, close);
+    panel.append(header, options);
+    dialog.append(panel);
+
+    const syncTrigger = () => {
+      trigger.textContent = select.selectedOptions[0]?.textContent || "Selecionar";
+    };
+    const renderOptions = () => {
+      options.replaceChildren(...[...select.options].map((option) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "catalog-select-option" + (option.selected ? " selected" : "");
+        button.setAttribute("role", "option");
+        button.setAttribute("aria-selected", String(option.selected));
+        button.textContent = option.textContent;
+        button.addEventListener("click", () => {
+          select.value = option.value;
+          select.dispatchEvent(new Event("change", { bubbles: true }));
+          syncTrigger();
+          closeDialog();
+        });
+        return button;
+      }));
+    };
+
+    const closeDialog = () => {
+      dialog.hidden = true;
+      document.body.classList.remove("catalog-select-open");
+      trigger.setAttribute("aria-expanded", "false");
+      trigger.focus({ preventScroll: true });
+    };
+    trigger.addEventListener("click", () => {
+      renderOptions();
+      trigger.setAttribute("aria-expanded", "true");
+      dialog.hidden = false;
+      document.body.classList.add("catalog-select-open");
+      requestAnimationFrame(() => options.querySelector('[aria-selected="true"]')?.focus({ preventScroll: true }));
+    });
+    close.addEventListener("click", closeDialog);
+    dialog.addEventListener("click", (event) => {
+      if (event.target === dialog) closeDialog();
+    });
+    dialog.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeDialog();
+    });
+
+    field.append(trigger);
+    document.body.append(dialog);
+    syncTrigger();
+  };
+  [category, sort].forEach(enhanceSelect);
   update();
 })();
 </script>`
@@ -687,8 +768,23 @@ export function renderCatalogHtml(
   .tagline { margin-top: 6px; font-size: 14px; letter-spacing: 2.5px; text-transform: uppercase; opacity: 0.78; position: relative; z-index: 1; }
   .count { display: inline-block; margin-top: 14px; font-size: 13px; background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.25); padding: 6px 14px; border-radius: 999px; position: relative; z-index: 1; }
   .catalog-tools { max-width: 1160px; margin: -44px auto 18px; padding: 16px; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; position: relative; z-index: 3; background: #fffdfb; border: 1px solid rgba(140,90,69,.16); border-radius: 18px; }
-  .catalog-tools label { min-width: 0; display: grid; gap: 6px; font-size: 12px; font-weight: 800; color: #7d6354; }
+  .catalog-tools label, .catalog-tools .catalog-select-field { min-width: 0; display: grid; gap: 6px; font-size: 12px; font-weight: 800; color: #7d6354; }
   .catalog-tools input, .catalog-tools select { width: 100%; min-width: 0; min-height: 44px; border: 1px solid #dfd0c8; border-radius: 12px; background: #fff; color: #3d2b22; padding: 0 12px; font: inherit; }
+  .catalog-select-native { display: none; }
+  .catalog-select-trigger { width: 100%; min-width: 0; min-height: 44px; border: 1px solid #dfd0c8; border-radius: 12px; background: #fff; color: #3d2b22; padding: 0 38px 0 12px; font: inherit; font-weight: 700; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; position: relative; cursor: pointer; }
+  .catalog-select-trigger::after { content: "⌄"; position: absolute; right: 13px; top: 50%; color: ${palette.base}; font-size: 21px; transform: translateY(-58%); }
+  .catalog-select-trigger:focus-visible { border-color: ${palette.base}; box-shadow: 0 0 0 3px ${palette.light}55; outline: 0; }
+  .catalog-select-open { overflow: hidden; }
+  .catalog-select-dialog { position: fixed; inset: 0; z-index: 100; padding: 16px; display: flex; align-items: center; justify-content: center; background: rgba(61,43,34,.5); color: #3d2b22; }
+  .catalog-select-dialog[hidden] { display: none; }
+  .catalog-select-panel { width: min(92vw, 460px); max-height: min(76dvh, 620px); border-radius: 24px; background: #fffdfb; overflow: hidden; display: flex; flex-direction: column; }
+  .catalog-select-header { flex: none; min-height: 64px; padding: 10px 12px 10px 20px; border-bottom: 1px solid #eaded7; display: flex; align-items: center; gap: 12px; }
+  .catalog-select-header h2 { flex: 1; min-width: 0; font-size: 21px; font-weight: 800; }
+  .catalog-select-close { width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: #7d6354; font: 400 30px/1 "Nunito Sans", system-ui, sans-serif; cursor: pointer; }
+  .catalog-select-options { min-height: 0; padding: 10px; display: grid; gap: 4px; overflow-y: auto; overscroll-behavior: contain; }
+  .catalog-select-option { width: 100%; min-height: 52px; padding: 0 14px; border: 1px solid transparent; border-radius: 14px; background: transparent; color: #3d2b22; font: 700 16px "Nunito Sans", system-ui, sans-serif; text-align: left; cursor: pointer; }
+  .catalog-select-option.selected { border-color: ${palette.light}; background: ${palette.bg}; color: ${palette.dark}; }
+  .catalog-select-option:focus-visible { border-color: ${palette.base}; box-shadow: 0 0 0 2px ${palette.light}55; outline: 0; }
   main { min-width: 0; max-width: 1160px; margin: 0 auto; padding: 0 16px 16px; position: relative; z-index: 2; display: grid; gap: 28px; }
   main.services-only { padding-top: 28px; }
   .catalog-section { min-width: 0; display: grid; gap: 16px; }
@@ -814,6 +910,8 @@ export function renderCatalogHtml(
     .catalog-section-nav { padding: 0 16px; }
     .catalog-section-nav a { font-size: 14px; }
     .catalog-grid { grid-template-columns: 1fr; }
+    .catalog-select-dialog { padding: max(12px, env(safe-area-inset-top)) 0 0; align-items: flex-end; }
+    .catalog-select-panel { width: 100%; max-height: calc(100dvh - max(12px, env(safe-area-inset-top))); border-radius: 24px 24px 0 0; padding-bottom: max(10px, env(safe-area-inset-bottom)); }
     #service-booking-dialog { inset: auto 0 0; width: 100%; max-width: none; max-height: calc(100dvh - max(12px, env(safe-area-inset-top))); margin: auto 0 0; border-radius: 24px 24px 0 0; }
     #service-booking-form { max-height: calc(100dvh - max(12px, env(safe-area-inset-top))); }
     .booking-header { padding: 14px 20px; }

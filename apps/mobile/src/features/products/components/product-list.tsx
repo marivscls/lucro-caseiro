@@ -1,7 +1,8 @@
-import { Button, EmptyState, Typography, spacing } from "@lucro-caseiro/ui";
+import { Button, EmptyState, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import type { Product } from "@lucro-caseiro/contracts";
 import React, { useEffect, useState } from "react";
 import { FlatList, Image, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import productsEmpty from "../../../assets/products-empty.png";
 import { SkeletonList } from "../../../shared/components/skeleton";
@@ -15,6 +16,7 @@ import { DesktopPagination } from "../../../shared/components/desktop-pagination
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { useLowStockProducts, useProducts } from "../hooks";
 import { ProductCard } from "./product-card";
+import { AppIcon } from "../../../shared/components/app-icon";
 
 interface ProductListProps {
   readonly category?: string;
@@ -24,6 +26,7 @@ interface ProductListProps {
   readonly items?: Product[];
   readonly onProductPress?: (id: string) => void;
   readonly onAddPress?: () => void;
+  readonly addButtonTitle?: string;
 }
 
 export function ProductList({
@@ -34,7 +37,10 @@ export function ProductList({
   items,
   onProductPress,
   onAddPress,
+  addButtonTitle = "Cadastrar produto",
 }: ProductListProps) {
+  const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const isDesktop = useDesktopLayout();
   const showAds = useShowAds();
   const [page, setPage] = useState(1);
@@ -127,7 +133,7 @@ export function ProductList({
         description={emptyDescription}
         action={
           !stockOnly && onAddPress ? (
-            <Button title="Cadastrar produto" onPress={onAddPress} />
+            <Button title={addButtonTitle} onPress={onAddPress} />
           ) : undefined
         }
       />
@@ -169,18 +175,35 @@ export function ProductList({
         paddingTop: 20,
         paddingBottom: 32,
       }}
-      ListHeaderComponent={
-        <Typography variant="caption">{itemCountLabel}</Typography>
-      }
+      ListHeaderComponent={<Typography variant="caption">{itemCountLabel}</Typography>}
       ListFooterComponent={
-        isDesktop && !stockOnly && !items ? (
-          <DesktopPagination
-            page={data.page}
-            total={data.total}
-            totalPages={data.totalPages}
-            onPageChange={setPage}
-          />
-        ) : null
+        <View style={{ gap: spacing.md, paddingTop: spacing.sm }}>
+          {isDesktop && !stockOnly && !items ? (
+            <DesktopPagination
+              page={data.page}
+              total={data.total}
+              totalPages={data.totalPages}
+              onPageChange={setPage}
+            />
+          ) : null}
+          {!stockOnly && onAddPress ? (
+            <View
+              style={{
+                paddingBottom: spacing.lg + insets.bottom,
+                alignItems: isDesktop ? "flex-end" : "stretch",
+              }}
+            >
+              <Button
+                title={addButtonTitle}
+                onPress={onAddPress}
+                icon={<AppIcon name="add" size={20} color={theme.colors.textOnPrimary} />}
+                style={
+                  isDesktop ? { alignSelf: "flex-end" } : { width: "100%", minHeight: 52 }
+                }
+              />
+            </View>
+          ) : null}
+        </View>
       }
     />
   );

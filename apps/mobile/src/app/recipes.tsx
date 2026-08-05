@@ -17,6 +17,7 @@ import { StandardModal } from "../shared/components/standard-modal";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { FeatureRouteGuard } from "../shared/components/feature-route-guard";
 import { AppIcon } from "../shared/components/app-icon";
+import { FAB } from "../shared/components/fab";
 
 type ModalState =
   | { type: "none" }
@@ -51,22 +52,39 @@ function RecipesContent() {
         title="Receitas"
         hideBack={isDesktop}
         right={
-          <Pressable
-            onPress={() => setModal({ type: "statistics" })}
-            accessibilityRole="button"
-            accessibilityLabel="Estatísticas de receitas"
-            hitSlop={10}
-            style={{ flexDirection: "row", alignItems: "center", gap: 6, minHeight: 44 }}
-          >
-            <AppIcon
-              name="stats-chart"
-              size={iconSizes.sm}
-              color={theme.colors.primaryStrong}
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>
+            <Pressable
+              onPress={() => setModal({ type: "statistics" })}
+              accessibilityRole="button"
+              accessibilityLabel="Estatísticas de receitas"
+              hitSlop={10}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                minWidth: 44,
+                minHeight: 44,
+              }}
+            >
+              <AppIcon
+                name="stats-chart"
+                size={iconSizes.sm}
+                color={theme.colors.primaryStrong}
+              />
+              {isDesktop ? (
+                <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+                  Estatísticas
+                </Typography>
+              ) : null}
+            </Pressable>
+            <FAB
+              icon="add"
+              header
+              accessibilityLabel="Nova receita"
+              onPress={() => setModal({ type: "create" })}
             />
-            <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-              Estatísticas
-            </Typography>
-          </Pressable>
+          </View>
         }
       />
 
