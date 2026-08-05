@@ -542,6 +542,7 @@ export default function ServicesScreen() {
         <OrderForm
           key={`appointment-${appointmentService.id}`}
           visible
+          mode="appointment"
           initialServiceId={appointmentService.id}
           onClose={() => setAppointmentService(null)}
           onSuccess={() => {

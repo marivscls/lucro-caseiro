@@ -1,26 +1,30 @@
 {
-  "compiled_at": "2026-07-26T02:37:11.104587800+00:00",
+  "compiled_at": "2026-07-28T22:15:01.357766100+00:00",
   "description": "Materialized from a compile candidate sequence.",
   "id": "live-explore-721187cb2f",
-  "name": "Live explore fan-out (3->1): Lucro Caseiro proposta de va, Lucro Caseiro planos preços , +1",
+  "name": "Live explore fan-out (4->1): Serviços Lucro Caseiro públi, Serviços deve atender públic, +2",
   "origin": "live",
   "recipe": {
-    "name": "Live explore fan-out (3->1): Lucro Caseiro proposta de va, Lucro Caseiro planos preços , +1",
+    "name": "Live explore fan-out (4->1): Serviços Lucro Caseiro públi, Serviços deve atender públic, +2",
     "outputs": {
       "item_1": "item_1.output",
       "item_2": "item_2.output",
-      "item_3": "item_3.output"
+      "item_3": "item_3.output",
+      "item_4": "item_4.output"
     },
     "recipe": {
       "items": [
         {
-          "q": "Lucro Caseiro proposta de valor público alvo funcionalidades site landing conversão"
+          "q": "Serviços Lucro Caseiro público geral prestadores cadastro duração preço custo agenda PRD decisão"
         },
         {
-          "q": "Lucro Caseiro planos preços gratuito profissional limites assinatura"
+          "q": "Serviços deve atender público geral prestadores de serviço experiência profunda realista gestão operacional"
         },
         {
-          "q": "Lucro Caseiro identidade visual logo paleta fonte site público"
+          "q": "Serviços público geral realisticamente profissões categorias local atendimento intervalo recorrência preparo profissionais autônomos"
+        },
+        {
+          "q": "Serviços tela profunda realista adaptada público geral decisão usuária 2026-07-28"
         }
       ],
       "kind": "fan_out",
@@ -37,5 +41,5 @@
   "schema": 2,
   "source": "workspace",
   "status": "ready",
-  "version": 1
+  "version": 2
 }

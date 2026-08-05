@@ -18,6 +18,7 @@ REFERÊNCIA APROVADA: Precificação (simple/advanced) — conteúdo alinhado à
 CORREÇÃO (2026-07-26): “só trocar contained→stretch” NÃO basta. Nova Venda ainda parecia mobile porque usava `desktopWidths.form` (1040) + wizard single-column + footer absoluto — sem aside. Checklist: `apps/mobile/src/shared/layout/desktop-screen-checklist.md`.
 
 REGRA CANÔNICA (`apps/mobile/src/shared/layout/desktop-density.ts`):
+
 1. Páginas autenticadas full-page → `desktopStretch(isDesktop, data 1280)` (+ `pageGutter`). Nunca `desktopContained` nem cap `form` 1040 no chrome da página.
 2. Form/wizard com resumo → `desktopSplitLayout` + aside sticky com total + CTAs (padrão Nova Venda / Precificação).
 3. Dinheiro/qty/% → `desktopCompactField`. Busca → maxWidth ~480.

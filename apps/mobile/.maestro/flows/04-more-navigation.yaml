@@ -32,10 +32,20 @@ tags:
 - assertVisible: "Mais opções"
 
 # Produtos
+- scrollUntilVisible:
+    element:
+      text: "Produtos"
+    direction: DOWN
+    visibilityPercentage: 100
+    centerElement: true
 - tapOn: "Produtos"
 - assertNotVisible: "Mais opções"
 - assertVisible: "Produtos"
 - back
+- scrollUntilVisible:
+    element:
+      text: "Mais opções"
+    direction: UP
 - assertVisible: "Mais opções"
 
 # Financeiro
@@ -43,6 +53,10 @@ tags:
 - assertNotVisible: "Mais opções"
 - assertVisible: "Financeiro"
 - back
+- scrollUntilVisible:
+    element:
+      text: "Mais opções"
+    direction: UP
 - assertVisible: "Mais opções"
 
 # Receitas (mais abaixo na lista do menu -> rola até aparecer)

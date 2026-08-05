@@ -26,6 +26,7 @@ function TabLabel({ children, color }: Readonly<{ children: string; color: strin
       numberOfLines={1}
       adjustsFontSizeToFit
       minimumFontScale={0.78}
+      maxFontSizeMultiplier={1}
       style={styles.tabLabel}
     >
       {children}

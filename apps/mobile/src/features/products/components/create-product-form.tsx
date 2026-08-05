@@ -872,7 +872,7 @@ export function CreateProductForm({
         title="Preço e custo"
         subtitle="Veja o ganho estimado enquanto preenche"
         icon="cash-outline"
-        initiallyOpen
+        initiallyOpen={!modal || isDesktop}
       >
         <View
           style={{
@@ -992,7 +992,7 @@ export function CreateProductForm({
         title="Estoque e identificação"
         subtitle="Código, quantidade disponível e alerta de reposição"
         icon="albums-outline"
-        initiallyOpen
+        initiallyOpen={!modal || isDesktop}
       >
         <View
           style={{

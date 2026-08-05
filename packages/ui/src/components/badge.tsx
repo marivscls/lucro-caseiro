@@ -13,10 +13,11 @@ export type BadgeVariant = SemanticVariant;
 interface BadgeProps {
   label: string;
   variant?: BadgeVariant;
+  numberOfLines?: number;
   style?: ViewStyle;
 }
 
-export function Badge({ label, variant = "neutral", style }: BadgeProps) {
+export function Badge({ label, variant = "neutral", numberOfLines, style }: BadgeProps) {
   const variantColors = useSemanticVariantColors();
   const c = variantColors[variant];
 
@@ -33,7 +34,10 @@ export function Badge({ label, variant = "neutral", style }: BadgeProps) {
         style,
       ]}
     >
-      <Text style={{ fontSize: fontSizes.xs, fontFamily: fonts.bold, color: c.text }}>
+      <Text
+        numberOfLines={numberOfLines}
+        style={{ fontSize: fontSizes.xs, fontFamily: fonts.bold, color: c.text }}
+      >
         {label}
       </Text>
     </View>

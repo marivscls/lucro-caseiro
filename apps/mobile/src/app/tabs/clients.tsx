@@ -16,6 +16,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Image,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -43,8 +44,16 @@ import { SkeletonList } from "../../shared/components/skeleton";
 import { AnimatedListItem } from "../../shared/components/animated-list-item";
 import { CalendarModal } from "../../shared/components/calendar-modal";
 import { DesktopPagination } from "../../shared/components/desktop-pagination";
-import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
-import { desktopStretch, desktopWidths, pageGutter } from "../../shared/layout/desktop-density";
+import {
+  FLOATING_TAB_BAR_HEIGHT,
+  floatingTabBarBottomOffset,
+  floatingTabBarContentPadding,
+} from "../../shared/layout/floating-tab-bar";
+import {
+  desktopStretch,
+  desktopWidths,
+  pageGutter,
+} from "../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { StandardModal } from "../../shared/components/standard-modal";
 import clientsEmpty from "../../assets/clients-empty.png";
@@ -58,6 +67,8 @@ type ClientGroup = {
   letter: string;
   data: Client[];
 };
+
+const CLIENTS_TIP_MIN_HEIGHT = 68;
 
 // Paleta derivada do tema ativo (antes constantes fixas de dark).
 function clientsPalette(theme: { mode: string; colors: Record<string, string> }) {
@@ -407,7 +418,17 @@ function ClientsListScreen({
   const groups = useMemo(() => groupClientsByInitial(data?.items ?? []), [data?.items]);
   const totalClients = groups.reduce((sum, group) => sum + group.data.length, 0);
   const tabBarClearance = floatingTabBarContentPadding(0);
-  let listBottomPadding = showTip ? Math.max(126, tabBarClearance) : tabBarClearance;
+  const tipBottom =
+    Platform.OS === "web"
+      ? FLOATING_TAB_BAR_HEIGHT + floatingTabBarBottomOffset(0) + spacing.md
+      : 34;
+  let listBottomPadding = tabBarClearance;
+  if (showTip) {
+    listBottomPadding =
+      Platform.OS === "web"
+        ? tipBottom + CLIENTS_TIP_MIN_HEIGHT + spacing.xl
+        : Math.max(126, tabBarClearance);
+  }
   if (isDesktop) listBottomPadding = spacing["3xl"];
   let clientsContent: React.ReactNode;
 
@@ -509,11 +530,7 @@ function ClientsListScreen({
             </Pressable>
           ) : null}
           <View style={{ flex: 1, gap: spacing.sm }}>
-            <Typography
-              variant="screenTitle"
-              color={theme.colors.text}
-              numberOfLines={1}
-            >
+            <Typography variant="screenTitle" color={theme.colors.text} numberOfLines={1}>
               Clientes
             </Typography>
             <Typography variant="caption" color={pal.muted}>
@@ -583,9 +600,9 @@ function ClientsListScreen({
               position: "absolute",
               left: spacing.xl,
               right: spacing.xl,
-              bottom: 34,
+              bottom: tipBottom,
               borderRadius: radii.xl,
-              minHeight: 68,
+              minHeight: CLIENTS_TIP_MIN_HEIGHT,
               padding: spacing.sm,
               flexDirection: "row",
               alignItems: "center",

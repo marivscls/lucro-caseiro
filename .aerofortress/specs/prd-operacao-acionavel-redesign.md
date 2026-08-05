@@ -264,17 +264,17 @@ precificação, produtos/serviços, venda, agenda e dinheiro do negócio.
 
 ### Por superfície
 
-| Superfície | Mobile | Desktop/PWA |
-| --- | --- | --- |
-| Home | “Hoje”, alertas e ações em ordem vertical | duas colunas reais por prioridade |
-| Venda | stepper compacto, total fixo, revisão como recibo | seleção e resumo lado a lado |
-| Produtos | busca fixa, chips, cards escaneáveis e reposição | grid/tabela adaptativa e painel de detalhe |
-| Financeiro | resumo, fluxo, alertas e movimentos | indicadores/alertas ao lado do histórico |
-| Orçamento | formulário e revisão em tela cheia | formulário à esquerda, prévia à direita |
-| Agenda | semana + linha do tempo | calendário/linha do tempo e detalhe lado a lado |
-| Insights | até três decisões prioritárias | cards e evidências em grid moderado |
-| Vendas | cards | tabela operacional |
-| Catálogo | foto, nome, preço e CTA | grade editorial com detalhe rico |
+| Superfície | Mobile                                            | Desktop/PWA                                     |
+| ---------- | ------------------------------------------------- | ----------------------------------------------- |
+| Home       | “Hoje”, alertas e ações em ordem vertical         | duas colunas reais por prioridade               |
+| Venda      | stepper compacto, total fixo, revisão como recibo | seleção e resumo lado a lado                    |
+| Produtos   | busca fixa, chips, cards escaneáveis e reposição  | grid/tabela adaptativa e painel de detalhe      |
+| Financeiro | resumo, fluxo, alertas e movimentos               | indicadores/alertas ao lado do histórico        |
+| Orçamento  | formulário e revisão em tela cheia                | formulário à esquerda, prévia à direita         |
+| Agenda     | semana + linha do tempo                           | calendário/linha do tempo e detalhe lado a lado |
+| Insights   | até três decisões prioritárias                    | cards e evidências em grid moderado             |
+| Vendas     | cards                                             | tabela operacional                              |
+| Catálogo   | foto, nome, preço e CTA                           | grade editorial com detalhe rico                |
 
 ### Referências
 
@@ -351,19 +351,19 @@ substitui a validação autenticada; bloqueios externos devem permanecer explici
 
 ## 16. Implementação observada em 2026-07-24
 
-| Área | Resultado implementado | Evidência principal |
-| --- | --- | --- |
-| Financeiro | contas vencidas/a vencer, pagamento por registro, orçamento vencendo, anomalia determinística, entradas × saídas | `features/finance/components/finance-dashboard.tsx` |
-| Venda | observações, desconto em valor/percentual, subtotal/desconto/total e recibo; sem status de entrega | `app/tabs/new-sale.tsx`, `features/sales/receipt.ts` |
-| Estoque | reposição rápida, filtros/ordenação, velocidade e movimentos de venda, compra, ajuste, cancelamento e produção | `app/products.tsx`, API `features/products`, `features/sales` e `features/purchases` |
-| Vendas web | KPIs, tabelas distintas de vendas/encomendas, busca, filtros e ações; cards preservados no mobile | `app/tabs/sales.tsx` |
-| Agenda | serviços, duração, conflito no servidor, faixa semanal, linha do tempo livre/ocupado, remarcação e lembrete | `app/tabs/agenda.tsx`, API `features/orders` |
-| Insights | até três decisões e perguntas de reposição/margem | `app/insights.tsx`, `features/insights/domain.ts` |
-| Orçamento | custo/ganho/margem internos, desconto, validade, revisão e documento comercial sem custos | `features/quotes/components/quote-form.tsx` |
-| Produção | backend transacional preservado; tela mobile retirada por decisão de produto em 2026-07-25 | API `features/production` |
-| Promoções | gestão com produto/categoria, valor/tipo e vigência reutilizando o núcleo de varejo | `app/promotions.tsx`, rota `/api/v1/promotions` |
-| Clientes | próximo contato, motivo/observação e lista de contatos de hoje/atrasados na Home | `features/clients/components/edit-client-form.tsx`, `app/tabs/index.tsx` |
-| Catálogo | busca, categoria, ordenação, cards editoriais, descrição/variações, CTA e estados vazio/erro | API `features/catalog/catalog.domain.ts` |
+| Área       | Resultado implementado                                                                                           | Evidência principal                                                                  |
+| ---------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Financeiro | contas vencidas/a vencer, pagamento por registro, orçamento vencendo, anomalia determinística, entradas × saídas | `features/finance/components/finance-dashboard.tsx`                                  |
+| Venda      | observações, desconto em valor/percentual, subtotal/desconto/total e recibo; sem status de entrega               | `app/tabs/new-sale.tsx`, `features/sales/receipt.ts`                                 |
+| Estoque    | reposição rápida, filtros/ordenação, velocidade e movimentos de venda, compra, ajuste, cancelamento e produção   | `app/products.tsx`, API `features/products`, `features/sales` e `features/purchases` |
+| Vendas web | KPIs, tabelas distintas de vendas/encomendas, busca, filtros e ações; cards preservados no mobile                | `app/tabs/sales.tsx`                                                                 |
+| Agenda     | serviços, duração, conflito no servidor, faixa semanal, linha do tempo livre/ocupado, remarcação e lembrete      | `app/tabs/agenda.tsx`, API `features/orders`                                         |
+| Insights   | até três decisões e perguntas de reposição/margem                                                                | `app/insights.tsx`, `features/insights/domain.ts`                                    |
+| Orçamento  | custo/ganho/margem internos, desconto, validade, revisão e documento comercial sem custos                        | `features/quotes/components/quote-form.tsx`                                          |
+| Produção   | backend transacional preservado; tela mobile retirada por decisão de produto em 2026-07-25                       | API `features/production`                                                            |
+| Promoções  | gestão com produto/categoria, valor/tipo e vigência reutilizando o núcleo de varejo                              | `app/promotions.tsx`, rota `/api/v1/promotions`                                      |
+| Clientes   | próximo contato, motivo/observação e lista de contatos de hoje/atrasados na Home                                 | `features/clients/components/edit-client-form.tsx`, `app/tabs/index.tsx`             |
+| Catálogo   | busca, categoria, ordenação, cards editoriais, descrição/variações, CTA e estados vazio/erro                     | API `features/catalog/catalog.domain.ts`                                             |
 
 ### Prova técnica e visual
 
@@ -380,6 +380,7 @@ manual desproporcional ao valor entregue e aproximava o Lucro Caseiro de uma ope
 A rota, o item do menu Mais, o cliente mobile e o alerta correspondente de Insights foram removidos.
 A API, os contratos e as tabelas permanecem preservados, sem migração destrutiva, para manter a
 integridade de dados já registrados e permitir reavaliação futura somente se houver demanda validada.
+
 - Context lint: API e mobile passaram.
 - Build PWA Lucro Caseiro: passou.
 - Capturas de dados: mobile, tablet retrato, tablet paisagem e desktop.

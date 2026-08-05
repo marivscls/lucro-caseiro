@@ -50,7 +50,12 @@ import {
 } from "../shared/hooks/notification-types";
 import { isPrefEnabled, useNotificationPrefs } from "../shared/hooks/notification-prefs";
 import { usePaywall } from "../shared/hooks/use-paywall";
-import { desktopAction, desktopStretch, desktopWidths, pageGutter } from "../shared/layout/desktop-density";
+import {
+  desktopAction,
+  desktopStretch,
+  desktopWidths,
+  pageGutter,
+} from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { ApiError } from "../shared/utils/api-client";
 import { alertError, alertValidation } from "../shared/utils/alerts";
@@ -390,7 +395,12 @@ export default function SettingsScreen() {
 
   function renderPlanActions() {
     const actionRowStyle = isDesktop
-      ? { flexDirection: "row" as const, flexWrap: "wrap" as const, gap: spacing.md, alignItems: "center" as const }
+      ? {
+          flexDirection: "row" as const,
+          flexWrap: "wrap" as const,
+          gap: spacing.md,
+          alignItems: "center" as const,
+        }
       : { gap: spacing.sm };
 
     if (currentPlan === "free") {
@@ -577,7 +587,12 @@ export default function SettingsScreen() {
                   flexWrap: "wrap",
                 }}
               >
-                <Badge label={businessName} variant="neutral" />
+                <Badge
+                  label={businessName}
+                  variant="neutral"
+                  numberOfLines={1}
+                  style={{ maxWidth: "100%" }}
+                />
                 {businessType ? (
                   <Badge label={businessTypeLabel(businessType)} variant="primary" />
                 ) : null}
@@ -590,7 +605,8 @@ export default function SettingsScreen() {
               accessibilityLabel="Editar perfil"
               style={{
                 minHeight: 44,
-                paddingHorizontal: spacing.md,
+                width: isDesktop ? undefined : 44,
+                paddingHorizontal: isDesktop ? spacing.md : 0,
                 borderRadius: radii.md,
                 borderWidth: 1,
                 borderColor: theme.colors.border,
@@ -606,9 +622,11 @@ export default function SettingsScreen() {
                 size={17}
                 color={theme.colors.primaryStrong}
               />
-              <Typography variant="body" color={theme.colors.text}>
-                Editar perfil
-              </Typography>
+              {isDesktop ? (
+                <Typography variant="body" color={theme.colors.text}>
+                  Editar perfil
+                </Typography>
+              ) : null}
             </Pressable>
           </View>
         </Card>

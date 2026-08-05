@@ -76,7 +76,12 @@ export function Chip({
       ]}
     >
       {icon ? <View>{icon}</View> : null}
-      <Text style={{ fontSize: fontSizes.sm, fontFamily: fonts.semiBold, color: fg }}>{label}</Text>
+      <Text
+        numberOfLines={1}
+        style={{ fontSize: fontSizes.sm, fontFamily: fonts.semiBold, color: fg }}
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }

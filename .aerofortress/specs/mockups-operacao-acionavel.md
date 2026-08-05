@@ -152,31 +152,31 @@ marketplace genérico.
 
 ## Matriz de prova
 
-| Superfície | Mobile | Tablet retrato | Tablet paisagem | Desktop | Vazio | Erro |
-| --- | --- | --- | --- | --- | --- | --- |
-| Home | obrigatório | obrigatório | obrigatório | obrigatório | obrigatório | obrigatório |
-| Venda | obrigatório | obrigatório | obrigatório | obrigatório | obrigatório | obrigatório |
-| Produtos | obrigatório | obrigatório | obrigatório | obrigatório | obrigatório | obrigatório |
-| Financeiro | obrigatório | obrigatório | obrigatório | obrigatório | obrigatório | obrigatório |
-| Orçamento | obrigatório | obrigatório | obrigatório | obrigatório | obrigatório | obrigatório |
-| Agenda | obrigatório | obrigatório | obrigatório | obrigatório | obrigatório | obrigatório |
-| Insights | obrigatório | obrigatório | obrigatório | obrigatório | obrigatório | obrigatório |
-| Vendas | obrigatório | obrigatório | obrigatório | obrigatório | obrigatório | obrigatório |
-| Catálogo | obrigatório | obrigatório | obrigatório | obrigatório | obrigatório | obrigatório |
+| Superfície | Mobile      | Tablet retrato | Tablet paisagem | Desktop     | Vazio       | Erro        |
+| ---------- | ----------- | -------------- | --------------- | ----------- | ----------- | ----------- |
+| Home       | obrigatório | obrigatório    | obrigatório     | obrigatório | obrigatório | obrigatório |
+| Venda      | obrigatório | obrigatório    | obrigatório     | obrigatório | obrigatório | obrigatório |
+| Produtos   | obrigatório | obrigatório    | obrigatório     | obrigatório | obrigatório | obrigatório |
+| Financeiro | obrigatório | obrigatório    | obrigatório     | obrigatório | obrigatório | obrigatório |
+| Orçamento  | obrigatório | obrigatório    | obrigatório     | obrigatório | obrigatório | obrigatório |
+| Agenda     | obrigatório | obrigatório    | obrigatório     | obrigatório | obrigatório | obrigatório |
+| Insights   | obrigatório | obrigatório    | obrigatório     | obrigatório | obrigatório | obrigatório |
+| Vendas     | obrigatório | obrigatório    | obrigatório     | obrigatório | obrigatório | obrigatório |
+| Catálogo   | obrigatório | obrigatório    | obrigatório     | obrigatório | obrigatório | obrigatório |
 
 ## Matriz de comparação executada
 
-| Superfície | Referência adotada | Captura real correspondente |
-| --- | --- | --- |
-| Home | dashboards modulares | `.aerofortress/tmp/design-audit/desktop-home.png` |
-| Venda | Ecomiq Order Creation/Mobile Flow | `.aerofortress/tmp/design-audit/mobile-new-sale-products.png` |
-| Produtos/Estoque | StockIt/KYROBAR/Ecomiq | `.aerofortress/tmp/design-audit/mobile-products.png` |
-| Financeiro | Transactions/Lightweight Finance | `.aerofortress/tmp/design-audit/desktop-finance.png` |
-| Orçamento | Invoice Maker/Flowly | `.aerofortress/tmp/design-audit/desktop-quotes-form.png` |
-| Agenda | Beauty Booking/Travel Itinerary | `.aerofortress/tmp/design-audit/mobile-agenda-timeline.png` |
-| Insights | Business Analytics/Smart Production | `.aerofortress/tmp/design-audit/mobile-insights-actions.png` |
-| Vendas web | Motoserv Work Orders | `.aerofortress/tmp/design-audit/desktop-sales.png` e `desktop-orders.png` |
-| Catálogo | Real Estate/Fashion editorial | `.aerofortress/tmp/design-audit/desktop-catalog.png` |
+| Superfície       | Referência adotada                  | Captura real correspondente                                               |
+| ---------------- | ----------------------------------- | ------------------------------------------------------------------------- |
+| Home             | dashboards modulares                | `.aerofortress/tmp/design-audit/desktop-home.png`                         |
+| Venda            | Ecomiq Order Creation/Mobile Flow   | `.aerofortress/tmp/design-audit/mobile-new-sale-products.png`             |
+| Produtos/Estoque | StockIt/KYROBAR/Ecomiq              | `.aerofortress/tmp/design-audit/mobile-products.png`                      |
+| Financeiro       | Transactions/Lightweight Finance    | `.aerofortress/tmp/design-audit/desktop-finance.png`                      |
+| Orçamento        | Invoice Maker/Flowly                | `.aerofortress/tmp/design-audit/desktop-quotes-form.png`                  |
+| Agenda           | Beauty Booking/Travel Itinerary     | `.aerofortress/tmp/design-audit/mobile-agenda-timeline.png`               |
+| Insights         | Business Analytics/Smart Production | `.aerofortress/tmp/design-audit/mobile-insights-actions.png`              |
+| Vendas web       | Motoserv Work Orders                | `.aerofortress/tmp/design-audit/desktop-sales.png` e `desktop-orders.png` |
+| Catálogo         | Real Estate/Fashion editorial       | `.aerofortress/tmp/design-audit/desktop-catalog.png`                      |
 
 As fontes recuperadas e as decisões “adotar/adaptar/recusar” ficam na matriz de
 `design-inspiracoes-operacionais.md`; esta tabela liga cada referência à composição real executada.

@@ -16,7 +16,14 @@ import { AppIcon } from "../../shared/components/app-icon";
 import type { AppIconName } from "../../shared/components/app-icon";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Image, Platform, Pressable, ScrollView, View, type ViewStyle } from "react-native";
+import {
+  Image,
+  Platform,
+  Pressable,
+  ScrollView,
+  View,
+  type ViewStyle,
+} from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
 
@@ -45,7 +52,11 @@ import { NOTIFICATION_TYPES } from "../../shared/hooks/notification-types";
 import { useOnboarding } from "../../shared/hooks/use-onboarding";
 import { usePaywall } from "../../shared/hooks/use-paywall";
 import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
-import { desktopStretch, desktopWidths, pageGutter } from "../../shared/layout/desktop-density";
+import {
+  desktopStretch,
+  desktopWidths,
+  pageGutter,
+} from "../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 
 function getMonthName(): string {
@@ -548,10 +559,16 @@ function LucroHighlightCard({
           <Typography variant="label" color={tone}>
             LUCRO EM {monthName}
           </Typography>
-          <Typography variant="moneyLg" color={tone} numberOfLines={1}>
+          <Typography
+            variant="moneyLg"
+            color={tone}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.72}
+          >
             {amount}
           </Typography>
-          <Typography variant="caption" numberOfLines={1}>
+          <Typography variant="caption" numberOfLines={2}>
             {income} entradas · {expenses} despesas
           </Typography>
         </View>

@@ -1,9 +1,9 @@
-# 03 — Navegação entre as abas (Início, Vendas, Clientes, Mais).
+# 03 — Navegação entre as abas (Início, Vendas, Nova venda, Agenda, Mais).
 # Reaproveita a sessão se já estiver logado; senão faz login.
 #
 # Abas tocadas por COORDENADA (ícone, ~94% da altura): o rótulo fica na faixa de gesto
 # do sistema e não registra o toque. Centros x: Início 10%, Vendas 30%, (+) 50%,
-# Clientes 70%, Mais 90%.
+# Agenda 70%, Mais 90%.
 #
 # O LogBox de erro do IAP (dev/emulador, sem Google Play billing) é intermitente e
 # REAPARECE, sobrepondo a tab bar e interceptando o toque (expande pra tela cheia,
@@ -39,7 +39,7 @@ tags:
 - assertVisible: "Todas"
 - takeScreenshot: .maestro/screenshots/03-vendas
 
-# Clientes -> busca exclusiva dessa tela
+# Agenda -> resumo exclusivo dessa tela
 - repeat:
     times: 8
     commands:
@@ -50,12 +50,12 @@ tags:
             - tapOn: "Dismiss"
       - runFlow:
           when:
-            notVisible: "Buscar por nome ou telefone..."
+            notVisible: "Resumo do dia"
           commands:
             - tapOn:
                 point: "70%,94%"
-- assertVisible: "Buscar por nome ou telefone..."
-- takeScreenshot: .maestro/screenshots/03-clientes
+- assertVisible: "Resumo do dia"
+- takeScreenshot: .maestro/screenshots/03-agenda
 
 # Mais -> cabeçalho "Mais opções"
 - repeat:

@@ -106,13 +106,13 @@ Benefícios universais aparecem antes de ferramentas específicas. “Receitas�
 
 O projeto reutiliza o enum já persistido no perfil:
 
-| Valor existente | Apresentação no onboarding | Ênfase da experiência |
-|---|---|---|
-| `crafts` | Produzo sob encomenda | produtos, fichas técnicas, materiais e pedidos |
-| `other` | Vendo produtos em estoque | produtos, estoque, compras e vendas |
-| `services` | Presto serviços | serviços, agenda, clientes, tempo e preço |
-| `beauty` | Trabalho com beleza e atendimentos | serviços, agenda, materiais e clientes |
-| `food` | Trabalho com alimentação | receitas, insumos, rendimento e encomendas |
+| Valor existente | Apresentação no onboarding         | Ênfase da experiência                          |
+| --------------- | ---------------------------------- | ---------------------------------------------- |
+| `crafts`        | Produzo sob encomenda              | produtos, fichas técnicas, materiais e pedidos |
+| `other`         | Vendo produtos em estoque          | produtos, estoque, compras e vendas            |
+| `services`      | Presto serviços                    | serviços, agenda, clientes, tempo e preço      |
+| `beauty`        | Trabalho com beleza e atendimentos | serviços, agenda, materiais e clientes         |
+| `food`          | Trabalho com alimentação           | receitas, insumos, rendimento e encomendas     |
 
 Essa ordem é canônica: alimentação deixa de ocupar a primeira posição sem perder visibilidade.
 
@@ -124,15 +124,15 @@ Essa ordem é canônica: alimentação deixa de ocupar a primeira posição sem 
 
 ## 8. Dicionário contextual
 
-| Conceito interno | Neutro | Alimentação | Produção artesanal | Comércio | Serviços/beleza |
-|---|---|---|---|---|---|
-| `product` | produto | produto | produto | produto/mercadoria | serviço |
-| `recipe` | ficha de custo | receita | ficha técnica | composição de custo | ficha do serviço |
-| `material` | material | insumo | material | item de custo | material utilizado |
-| `yield` | quantidade final | rendimento | quantidade produzida | unidades | duração/atendimentos |
-| `packaging` | custo adicional | embalagem | embalagem/acabamento | embalagem | material adicional |
-| `order` | pedido | encomenda | encomenda | pedido | atendimento |
-| `production` | custos e operação | produção | produção | estoque e compras | serviços e agenda |
+| Conceito interno | Neutro            | Alimentação | Produção artesanal   | Comércio            | Serviços/beleza      |
+| ---------------- | ----------------- | ----------- | -------------------- | ------------------- | -------------------- |
+| `product`        | produto           | produto     | produto              | produto/mercadoria  | serviço              |
+| `recipe`         | ficha de custo    | receita     | ficha técnica        | composição de custo | ficha do serviço     |
+| `material`       | material          | insumo      | material             | item de custo       | material utilizado   |
+| `yield`          | quantidade final  | rendimento  | quantidade produzida | unidades            | duração/atendimentos |
+| `packaging`      | custo adicional   | embalagem   | embalagem/acabamento | embalagem           | material adicional   |
+| `order`          | pedido            | encomenda   | encomenda            | pedido              | atendimento          |
+| `production`     | custos e operação | produção    | produção             | estoque e compras   | serviços e agenda    |
 
 O dicionário é de apresentação. Nomes de rotas, tabelas, chaves de cache e contratos não mudam.
 
@@ -279,65 +279,65 @@ Cada opção usa ícone funcional ou ilustração neutra e grava o valor existen
 
 ### Onda 1 — primeira impressão e navegação
 
-| Tela | Mudança obrigatória | Aceite |
-|---|---|---|
-| Login | subtítulo universal; composição mais neutra | não citar segmento |
-| Cadastro | exemplo de negócio neutro | remover “Doces da Maria” |
-| Onboarding | novo perfil operacional e exemplos contextuais | alimentação não aparece primeiro |
-| Home | remover coração; promessa e atalhos contextuais | rosa restrito à ação primária |
-| Tabs | ícones e estados ativos funcionais | nenhum novo fill rosa dominante |
-| Mais | títulos de ficha/material adaptados | mesma rota e feature gate |
-| Desktop shell | mesmas nomenclaturas da Home/Mais | nenhum conflito entre mobile e PWA |
+| Tela          | Mudança obrigatória                             | Aceite                             |
+| ------------- | ----------------------------------------------- | ---------------------------------- |
+| Login         | subtítulo universal; composição mais neutra     | não citar segmento                 |
+| Cadastro      | exemplo de negócio neutro                       | remover “Doces da Maria”           |
+| Onboarding    | novo perfil operacional e exemplos contextuais  | alimentação não aparece primeiro   |
+| Home          | remover coração; promessa e atalhos contextuais | rosa restrito à ação primária      |
+| Tabs          | ícones e estados ativos funcionais              | nenhum novo fill rosa dominante    |
+| Mais          | títulos de ficha/material adaptados             | mesma rota e feature gate          |
+| Desktop shell | mesmas nomenclaturas da Home/Mais               | nenhum conflito entre mobile e PWA |
 
 ### Onda 2 — venda e relacionamento
 
-| Tela | Mudança obrigatória | Aceite |
-|---|---|---|
-| Produtos | produto/serviço contextual; exemplos neutros | busca e FAB coerentes |
-| Nova venda | produto/serviço e observações contextuais | cálculo e payload intactos |
-| Vendas | nome universal e estados sem rosa semântico | status usam cor funcional |
-| Agenda | pedido/atendimento conforme perfil | agenda continua atendendo alimentação |
-| Clientes | textos universais | nenhum exemplo alimentar |
-| Orçamentos | item/serviço contextual | PDF não muda regra financeira |
-| Fiado | linguagem universal | sem ilustração temática dominante |
+| Tela       | Mudança obrigatória                          | Aceite                                |
+| ---------- | -------------------------------------------- | ------------------------------------- |
+| Produtos   | produto/serviço contextual; exemplos neutros | busca e FAB coerentes                 |
+| Nova venda | produto/serviço e observações contextuais    | cálculo e payload intactos            |
+| Vendas     | nome universal e estados sem rosa semântico  | status usam cor funcional             |
+| Agenda     | pedido/atendimento conforme perfil           | agenda continua atendendo alimentação |
+| Clientes   | textos universais                            | nenhum exemplo alimentar              |
+| Orçamentos | item/serviço contextual                      | PDF não muda regra financeira         |
+| Fiado      | linguagem universal                          | sem ilustração temática dominante     |
 
 ### Onda 3 — custo e operação
 
-| Tela | Mudança obrigatória | Aceite |
-|---|---|---|
-| Receitas/fichas | título, categorias, formulário e detalhes contextuais | dados continuam em `recipes` |
-| Insumos/materiais | título, formulário e vazio contextuais | dados continuam em `materials` |
-| Embalagens/adicionais | nomenclatura contextual onde fizer sentido | não esconder custo existente |
-| Precificação simples | material/ficha e exemplos contextuais | cálculo idêntico |
-| Precificação completa | etapas contextuais | mão de obra e custos preservados |
-| Produtos — cadastro | categorias e placeholders contextuais | nenhum preset só alimentar |
-| Fornecedores | descrição e exemplos neutros | contatos e vínculo intactos |
-| Compras | produto/material contextual | estoque preservado |
+| Tela                  | Mudança obrigatória                                   | Aceite                           |
+| --------------------- | ----------------------------------------------------- | -------------------------------- |
+| Receitas/fichas       | título, categorias, formulário e detalhes contextuais | dados continuam em `recipes`     |
+| Insumos/materiais     | título, formulário e vazio contextuais                | dados continuam em `materials`   |
+| Embalagens/adicionais | nomenclatura contextual onde fizer sentido            | não esconder custo existente     |
+| Precificação simples  | material/ficha e exemplos contextuais                 | cálculo idêntico                 |
+| Precificação completa | etapas contextuais                                    | mão de obra e custos preservados |
+| Produtos — cadastro   | categorias e placeholders contextuais                 | nenhum preset só alimentar       |
+| Fornecedores          | descrição e exemplos neutros                          | contatos e vínculo intactos      |
+| Compras               | produto/material contextual                           | estoque preservado               |
 
 ### Onda 4 — gestão e apresentação
 
-| Tela | Mudança obrigatória | Aceite |
-|---|---|---|
-| Finanças | exemplos universais; cores estritamente semânticas | rosa não representa receita |
-| Insights | exemplos e ações contextuais | dados observados apenas |
-| Catálogo | tagline neutra e contextual | sem aparência de doceria por padrão |
-| Etiquetas | exemplos contextuais | aviso regulatório preservado |
-| Gastos fixos | revisão visual neutra | paywall preservado |
-| Planos | benefícios contextuais sem esconder limites | preços e gates intactos |
-| Configurações | seleção de perfil alinhada ao onboarding | mudança reflete após salvar |
-| Suporte | textos de recuperação universais | não prometer entidade inexistente |
-| Métricas admin | nomes técnicos claros | analytics continua com mesmas chaves |
+| Tela           | Mudança obrigatória                                | Aceite                               |
+| -------------- | -------------------------------------------------- | ------------------------------------ |
+| Finanças       | exemplos universais; cores estritamente semânticas | rosa não representa receita          |
+| Insights       | exemplos e ações contextuais                       | dados observados apenas              |
+| Catálogo       | tagline neutra e contextual                        | sem aparência de doceria por padrão  |
+| Etiquetas      | exemplos contextuais                               | aviso regulatório preservado         |
+| Gastos fixos   | revisão visual neutra                              | paywall preservado                   |
+| Planos         | benefícios contextuais sem esconder limites        | preços e gates intactos              |
+| Configurações  | seleção de perfil alinhada ao onboarding           | mudança reflete após salvar          |
+| Suporte        | textos de recuperação universais                   | não prometer entidade inexistente    |
+| Métricas admin | nomes técnicos claros                              | analytics continua com mesmas chaves |
 
 ### Onda 5 — auditoria
 
-| Área | Verificação |
-|---|---|
-| Estados vazios | nenhuma imagem alimentar usada como fallback universal |
-| Alertas e celebrações | variedade visual; sem brigadeiro como sucesso global |
-| Dark mode | neutros quentes e contraste AA |
-| PWA desktop | nomenclatura idêntica ao mobile e superfícies contidas |
-| Acessibilidade | rótulos falados correspondem ao texto contextual |
-| Loja e screenshots | demonstrar pelo menos três perfis de negócio |
+| Área                  | Verificação                                            |
+| --------------------- | ------------------------------------------------------ |
+| Estados vazios        | nenhuma imagem alimentar usada como fallback universal |
+| Alertas e celebrações | variedade visual; sem brigadeiro como sucesso global   |
+| Dark mode             | neutros quentes e contraste AA                         |
+| PWA desktop           | nomenclatura idêntica ao mobile e superfícies contidas |
+| Acessibilidade        | rótulos falados correspondem ao texto contextual       |
+| Loja e screenshots    | demonstrar pelo menos três perfis de negócio           |
 
 ## 14. Requisitos de conteúdo
 
@@ -450,19 +450,19 @@ Cada etapa deve terminar com:
 
 ### 21.1 Entregue
 
-| Onda | Estado | Evidência principal |
-|---|---|---|
-| Fundação | implementada | `features/subscription/business-copy.ts` e 7 testes de perfis/fallback |
-| Onboarding | implementado | entrada por modo de operação, alimentação por último, exemplo e imagem contextuais |
-| Primeira impressão | implementada | posicionamento universal, coração removido da Home, alerta global sem brigadeiro |
-| Navegação | implementada | Home, Mais, títulos de rota e desktop shell usam o perfil |
-| Produtos e pedidos | implementada | títulos, exemplos, categorias e encomenda/atendimento contextuais |
-| Fichas e materiais | implementada | lista, criação, edição, detalhes, estatísticas, ícones e PDF contextuais |
-| Embalagens/adicionais | implementada | listagem, formulário, busca, limites e custos contextuais |
-| Precificação | implementada | calculadoras simples/completa e resultado usam ficha, material e adicional do perfil |
-| Finanças e compras | implementada | exemplos e categorias contextuais em lançamentos, compras e gastos fixos |
-| Catálogo, etiquetas e fornecedores | implementada | placeholders e descrições acompanham o negócio |
-| Planos, limites e suporte | implementada | benefícios, banners, paywall, confirmação e FAQ contextuais |
+| Onda                               | Estado       | Evidência principal                                                                  |
+| ---------------------------------- | ------------ | ------------------------------------------------------------------------------------ |
+| Fundação                           | implementada | `features/subscription/business-copy.ts` e 7 testes de perfis/fallback               |
+| Onboarding                         | implementado | entrada por modo de operação, alimentação por último, exemplo e imagem contextuais   |
+| Primeira impressão                 | implementada | posicionamento universal, coração removido da Home, alerta global sem brigadeiro     |
+| Navegação                          | implementada | Home, Mais, títulos de rota e desktop shell usam o perfil                            |
+| Produtos e pedidos                 | implementada | títulos, exemplos, categorias e encomenda/atendimento contextuais                    |
+| Fichas e materiais                 | implementada | lista, criação, edição, detalhes, estatísticas, ícones e PDF contextuais             |
+| Embalagens/adicionais              | implementada | listagem, formulário, busca, limites e custos contextuais                            |
+| Precificação                       | implementada | calculadoras simples/completa e resultado usam ficha, material e adicional do perfil |
+| Finanças e compras                 | implementada | exemplos e categorias contextuais em lançamentos, compras e gastos fixos             |
+| Catálogo, etiquetas e fornecedores | implementada | placeholders e descrições acompanham o negócio                                       |
+| Planos, limites e suporte          | implementada | benefícios, banners, paywall, confirmação e FAQ contextuais                          |
 
 Não houve migração, alteração de DTO ou reinterpretação dos dados existentes. O valor salvo continua
 sendo o `businessType` já suportado pela aplicação.

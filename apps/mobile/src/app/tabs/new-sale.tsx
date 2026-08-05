@@ -62,6 +62,7 @@ import {
   ResponsiveModal,
   ResponsiveOverlayModal,
 } from "../../shared/components/responsive-modal-surface";
+import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import {
   desktopCompactField,
@@ -121,8 +122,7 @@ const STEP_TITLES: Record<Step, string> = {
 };
 
 const TOTAL_STEPS = 4;
-const FIXED_ACTION_BOTTOM_OFFSET = 46;
-const FIXED_ACTION_SCROLL_PADDING = 190;
+const FIXED_ACTION_MIN_HEIGHT = 68;
 
 const STEP_SUBTITLES: Record<Step, string> = {
   1: "Escolha um cliente existente ou continue sem cliente.",
@@ -360,6 +360,9 @@ export default function NewSaleScreen() {
   const isDesktop = useDesktopLayout();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const fixedActionBottomOffset = floatingTabBarContentPadding(insets.bottom);
+  const fixedActionScrollPadding =
+    fixedActionBottomOffset + FIXED_ACTION_MIN_HEIGHT + spacing["2xl"];
   const { show: showInterstitial } = useInterstitial();
   const { checkAndBlock: checkSalesLimit } = useLimitCheck("sales");
   const showPaywall = usePaywall((s) => s.show);
@@ -722,7 +725,9 @@ export default function NewSaleScreen() {
           <Typography variant="label">RESUMO DA VENDA</Typography>
           <Typography
             variant="moneyHero"
-            color={summaryTotal > 0 ? theme.colors.primaryStrong : theme.colors.textSecondary}
+            color={
+              summaryTotal > 0 ? theme.colors.primaryStrong : theme.colors.textSecondary
+            }
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.55}
@@ -836,952 +841,29 @@ export default function NewSaleScreen() {
           ...pageZone,
         }}
       >
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          paddingTop: spacing.lg,
-          justifyContent: "space-between",
-        }}
-      >
         <View
-          style={{
-            flex: 1,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: spacing.md,
-          }}
-        >
-          {!isDesktop ? (
-            <Pressable
-              onPress={() =>
-                step > 1 ? setStep((s) => (s - 1) as Step) : router.push("/tabs/sales")
-              }
-              accessibilityRole="button"
-              accessibilityLabel="Voltar"
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: radii.full,
-                backgroundColor: theme.colors.surface,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <AppIcon name="chevron-back" size={25} color={theme.colors.textSecondary} />
-            </Pressable>
-          ) : null}
-          <Typography variant="screenTitle">Nova Venda</Typography>
-        </View>
-        <Pressable
-          onPress={handleHelpPress}
-          accessibilityRole="button"
-          accessibilityLabel="Ajuda"
           style={{
             flexDirection: "row",
             alignItems: "center",
-            gap: 4,
-            minHeight: 48,
-            paddingHorizontal: spacing.sm,
+            paddingTop: spacing.lg,
+            justifyContent: "space-between",
           }}
         >
-          <AppIcon
-            name="help-circle-outline"
-            size={24}
-            color={theme.colors.textSecondary}
-          />
-          <Typography variant="caption" color={theme.colors.textSecondary}>
-            Ajuda
-          </Typography>
-        </Pressable>
-      </View>
-
-      <StepIndicator step={step} align={isDesktop ? "flex-start" : "center"} />
-
-      <View style={{ paddingBottom: spacing.xl }}>
-        <Typography variant="h1">{STEP_TITLES[step]}</Typography>
-        <Typography variant="body" style={{ marginTop: spacing.sm }}>
-          {STEP_SUBTITLES[step]}
-        </Typography>
-      </View>
-
-      <View style={[{ flex: 1 }, isDesktop ? split.row : undefined]}>
-      <View style={[{ flex: 1, minWidth: 0 }, isDesktop ? split.main : undefined]}>
-
-      {/* Step 2: Select Products */}
-      {step === 2 && (
-        <View style={{ flex: 1 }}>
           <View
             style={{
-              gap: spacing.lg,
-              paddingBottom: spacing.lg,
-            }}
-          >
-            <View style={searchFieldStyle}>
-              <SearchBox
-                placeholder="Buscar produto..."
-                value={productSearch}
-                onChangeText={setProductSearch}
-                onTrailingPress={() => setShowScanner(true)}
-              />
-            </View>
-            <Typography
-              variant="caption"
-              color={theme.colors.textSecondary}
-              style={{ height: 0, overflow: "hidden" }}
-            >
-              Toque pra adicionar. Use o - pra tirar uma unidade.
-            </Typography>
-          </View>
-
-          <View
-            style={{
-              gap: spacing.lg,
-              paddingBottom: spacing.lg,
-            }}
-          >
-            <View
-              style={{
-                flexDirection: "row",
-                flexWrap: "wrap",
-                gap: spacing.md,
-                maxWidth: isDesktop ? 720 : undefined,
-              }}
-            >
-              <QuickActionCard
-                icon="add-circle-outline"
-                title="Adicionar produto"
-                subtitle="Criar novo item"
-                onPress={() => {
-                  setCreateProductInitial(undefined);
-                  setShowCreateProduct(true);
-                }}
-              />
-              <QuickActionCard
-                icon="barcode-outline"
-                title="Usar código"
-                subtitle="Escanear produto"
-                onPress={() => setShowScanner(true)}
-              />
-            </View>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
-              >
-                <AppIcon
-                  name="pricetag-outline"
-                  size={22}
-                  color={theme.colors.textSecondary}
-                />
-                <Typography variant="bodyBold">Produtos frequentes</Typography>
-              </View>
-              <Pressable
-                onPress={() => router.push("/products")}
-                accessibilityRole="button"
-                hitSlop={10}
-              >
-                <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-                  Ver todos
-                </Typography>
-              </Pressable>
-            </View>
-          </View>
-
-          {productsQuery.error ? (
-            <View style={{ paddingVertical: spacing.xl, gap: spacing.md }}>
-              <Typography variant="h3">Não foi possível carregar os produtos</Typography>
-              <Typography variant="body" color={theme.colors.textSecondary}>
-                Verifique sua conexão e tente novamente.
-              </Typography>
-              <Button
-                title="Tentar novamente"
-                variant="secondary"
-                onPress={() => void productsQuery.refetch()}
-              />
-            </View>
-          ) : null}
-          {loadingProducts && (
-            <View style={{ flex: 1 }}>
-              <SkeletonList rows={5} variant="picker" />
-            </View>
-          )}
-          {!loadingProducts && !productsQuery.error && !!filteredProducts?.length && (
-            <ScrollView
-              style={{ flex: 1 }}
-              contentContainerStyle={{
-                paddingBottom:
-                  cart.length > 0 && !isDesktop
-                    ? FIXED_ACTION_SCROLL_PADDING
-                    : spacing.lg,
-              }}
-              showsVerticalScrollIndicator={false}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  justifyContent: "flex-start",
-                  gap: spacing.md,
-                }}
-              >
-                {productGridItems.map((item, index) => {
-                  if (!item) {
-                    return (
-                      <View
-                        key={`product-spacer-${index}`}
-                        style={{ width: isDesktop ? "31%" : "48%" }}
-                      />
-                    );
-                  }
-                  const qty = getCartQuantity(item.id);
-                  const cartItem = getCartItem(item.id);
-                  const stockLabel = productStockLabel(item);
-                  return (
-                    <Pressable
-                      key={item.id}
-                      onPress={() => addToCart(item)}
-                      onLongPress={() => removeFromCart(item.id)}
-                      style={{
-                        width: isDesktop ? "31%" : "48%",
-                        maxWidth: isDesktop ? "31%" : "48%",
-                        minWidth: isDesktop ? 220 : undefined,
-                        flexGrow: 0,
-                        flexShrink: 0,
-                        alignSelf: "flex-start",
-                        borderRadius: radii.xl,
-                        minHeight: 112,
-                        padding: spacing.sm,
-                        gap: spacing.xs,
-                        borderWidth: qty > 0 ? 2 : 1,
-                        borderColor:
-                          qty > 0 ? theme.colors.primary : theme.colors.surface,
-                        ...getSurfaceStyle(theme),
-                      }}
-                    >
-                      <View
-                        style={{
-                          width: 42,
-                          height: 42,
-                          borderRadius: radii.full,
-                          overflow: "hidden",
-                          backgroundColor: getAvatarColor(index),
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        {item.photoUrl ? (
-                          <Image
-                            source={{ uri: item.photoUrl }}
-                            style={{ width: "100%", height: "100%" }}
-                            resizeMode="cover"
-                          />
-                        ) : (
-                          <Typography variant="h3" color={theme.colors.textOnPrimary}>
-                            {item.name.charAt(0).toUpperCase()}
-                          </Typography>
-                        )}
-                      </View>
-                      <Pressable
-                        onPress={(event) => {
-                          event.stopPropagation();
-                          addToCart(item);
-                        }}
-                        hitSlop={10}
-                        accessibilityRole="button"
-                        accessibilityLabel={`Adicionar ${item.name}`}
-                        style={{
-                          position: "absolute",
-                          top: spacing.sm,
-                          right: spacing.sm,
-                          backgroundColor: theme.colors.surface,
-                          borderWidth: 1,
-                          borderColor: theme.colors.border,
-                          borderRadius: radii.full,
-                          width: 28,
-                          height: 28,
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <AppIcon name="add" size={18} color={theme.colors.text} />
-                      </Pressable>
-                      <Typography
-                        variant="bodyBold"
-                        color={theme.colors.text}
-                        style={{ marginTop: spacing.md }}
-                        numberOfLines={2}
-                      >
-                        {item.name}
-                      </Typography>
-                      <Typography variant="bodyBold" color={theme.colors.success}>
-                        {item.saleUnit === "kg"
-                          ? `${formatCurrency(item.salePrice)}/kg`
-                          : formatCurrency(item.salePrice)}
-                      </Typography>
-                      {stockLabel ? (
-                        <Typography
-                          variant="caption"
-                          color={
-                            stockLabel.includes("baixo") || stockLabel === "Sem estoque"
-                              ? theme.colors.alert
-                              : theme.colors.textSecondary
-                          }
-                          numberOfLines={2}
-                        >
-                          {stockLabel}
-                        </Typography>
-                      ) : null}
-                      {qty > 0 && (
-                        <View
-                          style={{
-                            position: "absolute",
-                            top: spacing.sm,
-                            right: 44,
-                            backgroundColor: theme.colors.primaryBg,
-                            borderRadius: radii.full,
-                            minWidth: 24,
-                            height: 24,
-                            paddingHorizontal:
-                              cartItem?.saleUnit === "kg" ? spacing.sm : 0,
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <Typography
-                            variant="caption"
-                            color={theme.colors.primaryStrong}
-                            style={{ fontFamily: fonts.bold }}
-                          >
-                            {cartItem ? cartQuantityLabel(cartItem) : qty}
-                          </Typography>
-                        </View>
-                      )}
-                      {qty > 0 && (
-                        <Pressable
-                          onPress={(event) => {
-                            event.stopPropagation();
-                            removeFromCart(item.id);
-                          }}
-                          hitSlop={10}
-                          accessibilityRole="button"
-                          accessibilityLabel={`Tirar uma unidade de ${item.name}`}
-                          style={{
-                            position: "absolute",
-                            top: spacing.sm,
-                            left: spacing.sm,
-                            backgroundColor: theme.colors.surfaceElevated,
-                            borderRadius: radii.full,
-                            width: 24,
-                            height: 24,
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <AppIcon name="remove" size={16} color={theme.colors.text} />
-                        </Pressable>
-                      )}
-                    </Pressable>
-                  );
-                })}
-              </View>
-              <View
-                style={{
-                  marginTop: spacing.lg,
-                  borderRadius: radii.xl,
-                  padding: spacing.md,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: spacing.sm,
-                  ...getSurfaceStyle(theme),
-                }}
-              >
-                <View
-                  style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: radii.full,
-                    backgroundColor: theme.colors.surface,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <AppIcon
-                    name="sparkles-outline"
-                    size={20}
-                    color={theme.colors.textSecondary}
-                  />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Typography variant="bodyBold">Dica rápida</Typography>
-                  <Typography variant="caption">
-                    Toque em um produto para adicioná-lo à venda ou use o buscador para
-                    encontrar mais rápido.
-                  </Typography>
-                </View>
-              </View>
-            </ScrollView>
-          )}
-        </View>
-      )}
-
-      {/* Step 1: Select Client */}
-      {step === 1 && (
-        <View
-          style={{
-            flex: 1,
-            gap: spacing.lg,
-          }}
-        >
-          <Pressable
-            onPress={() => {
-              setSelectedClient(null);
-              setStep(2);
-            }}
-            accessibilityRole="button"
-            style={({ pressed }) => ({
-              minHeight: 74,
-              borderRadius: radii.xl,
-              paddingHorizontal: spacing.lg,
-              paddingVertical: spacing.md,
+              flex: 1,
               flexDirection: "row",
               alignItems: "center",
               gap: spacing.md,
-              opacity: pressed ? 0.86 : 1,
-              maxWidth: isDesktop ? 560 : undefined,
-              width: isDesktop ? "100%" : undefined,
-              ...getSurfaceStyle(theme),
-            })}
-          >
-            <View
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: radii.full,
-                backgroundColor: theme.colors.surface,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <AppIcon
-                name="person-outline"
-                size={iconSizes.md}
-                color={theme.colors.textSecondary}
-              />
-            </View>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="bodyBold" color={theme.colors.text} numberOfLines={1}>
-                Sem cliente (avulso)
-              </Typography>
-              <Typography
-                variant="body"
-                color={theme.colors.textSecondary}
-                numberOfLines={1}
-              >
-                Continuar sem selecionar um cliente
-              </Typography>
-            </View>
-            <AppIcon
-              name="chevron-forward"
-              size={24}
-              color={theme.colors.textSecondary}
-            />
-          </Pressable>
-
-          <View style={searchFieldStyle}>
-            <SearchBox
-              placeholder="Buscar cliente..."
-              value={clientSearch}
-              onChangeText={setClientSearch}
-              trailingIcon="filter-outline"
-              onTrailingPress={() => setShowClientFilter(true)}
-            />
-          </View>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              maxWidth: isDesktop ? 720 : undefined,
             }}
           >
-            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-              <AppIcon
-                name="person-outline"
-                size={22}
-                color={theme.colors.textSecondary}
-              />
-              <Typography variant="bodyBold">Clientes recentes</Typography>
-            </View>
-            <Pressable
-              onPress={() => router.push("/tabs/clients")}
-              accessibilityRole="button"
-              hitSlop={10}
-            >
-              <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-                Ver todos
-              </Typography>
-            </Pressable>
-          </View>
-
-          {clientsQuery.error ? (
-            <View style={{ gap: spacing.md }}>
-              <Typography variant="h3">Não foi possível carregar os clientes</Typography>
-              <Typography variant="body" color={theme.colors.textSecondary}>
-                Você ainda pode continuar como venda avulsa ou tentar novamente.
-              </Typography>
-              <Button
-                title="Tentar novamente"
-                variant="secondary"
-                onPress={() => void clientsQuery.refetch()}
-              />
-            </View>
-          ) : null}
-          {!clientsQuery.error && loadingClients ? (
-            <SkeletonList rows={4} variant="client" />
-          ) : null}
-          {!clientsQuery.error && !loadingClients ? (
-            <FlatList
-              key={isDesktop ? "clients-desktop" : "clients-mobile"}
-              data={filteredClients}
-              keyExtractor={(item) => item.id}
-              numColumns={isDesktop ? 2 : 1}
-              columnWrapperStyle={
-                isDesktop ? { gap: spacing.md } : undefined
-              }
-              contentContainerStyle={{
-                gap: spacing.sm,
-                paddingBottom: isDesktop ? spacing.lg : FIXED_ACTION_SCROLL_PADDING,
-              }}
-              renderItem={({ item }: { item: Client }) => (
-                <Pressable
-                  onPress={() => {
-                    setSelectedClient({ id: item.id, name: item.name });
-                    setStep(2);
-                  }}
-                  style={({ pressed }) => [
-                    {
-                      minHeight: 82,
-                      borderRadius: radii.xl,
-                      padding: spacing.lg,
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: spacing.md,
-                      borderWidth: selectedClient?.id === item.id ? 2 : 1,
-                      borderColor:
-                        selectedClient?.id === item.id
-                          ? theme.colors.primary
-                          : theme.colors.surface,
-                      opacity: pressed ? 0.86 : 1,
-                      flex: isDesktop ? 1 : undefined,
-                      marginBottom: isDesktop ? spacing.sm : 0,
-                      ...getSurfaceStyle(theme),
-                    },
-                  ]}
-                >
-                  <ClientPickerAvatar name={item.name} />
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <Typography variant="bodyBold" numberOfLines={1}>
-                      {item.name}
-                    </Typography>
-                    {item.phone && (
-                      <Typography variant="caption">{item.phone}</Typography>
-                    )}
-                  </View>
-                  <AppIcon
-                    name="chevron-forward"
-                    size={24}
-                    color={theme.colors.textSecondary}
-                  />
-                </Pressable>
-              )}
-              ListEmptyComponent={
-                clientSearch ? (
-                  <Typography variant="caption" color={theme.colors.textSecondary}>
-                    Nenhum cliente encontrado
-                  </Typography>
-                ) : (
-                  <Typography variant="caption" color={theme.colors.textSecondary}>
-                    Nenhum cliente para este filtro
-                  </Typography>
-                )
-              }
-            />
-          ) : null}
-        </View>
-      )}
-
-      {/* Step 3: Payment Method */}
-      {step === 3 && (
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{
-            gap: spacing.md,
-            paddingBottom: isDesktop ? spacing.lg : FIXED_ACTION_SCROLL_PADDING,
-          }}
-        >
-          <View
-            style={{
-              flexDirection: isDesktop ? "row" : "column",
-              flexWrap: "wrap",
-              gap: spacing.sm,
-            }}
-          >
-          {PAYMENT_OPTIONS.map((option) => {
-            const isSelected = paymentMethod === option.value;
-            // Selecionado: fundo OPACO (nunca translúcido) — bg translúcido + a
-            // elevation do surface faz o Android pintar uma "caixa branca" atrás.
-            // Selecao = fundo rosado suave (primaryBg); demais = neutro.
-            const cardBackgroundColor = isSelected
-              ? theme.colors.primaryBg
-              : theme.colors.surfaceElevated;
-            const subtitles: Record<PaymentMethod, string> = {
-              pix: "Pagamento instantâneo",
-              cash: "Pagamento em espécie",
-              card: "Débito ou crédito",
-              credit: "Pagamento para depois",
-              transfer: "TED, DOC ou outro banco",
-            };
-            return (
+            {!isDesktop ? (
               <Pressable
-                key={option.value}
-                onPress={() => setPaymentMethod(option.value)}
+                onPress={() =>
+                  step > 1 ? setStep((s) => (s - 1) as Step) : router.push("/tabs/sales")
+                }
                 accessibilityRole="button"
-                accessibilityState={{ selected: isSelected }}
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: spacing.md,
-                  minHeight: 78,
-                  paddingVertical: spacing.md,
-                  paddingHorizontal: spacing.lg,
-                  borderRadius: radii.xl,
-                  ...getSurfaceStyle(theme),
-                  borderWidth: isSelected ? 2 : 1,
-                  borderColor: isSelected ? theme.colors.primary : theme.colors.surface,
-                  backgroundColor: cardBackgroundColor,
-                  width: isDesktop ? "48%" : "100%",
-                  maxWidth: isDesktop ? "48%" : undefined,
-                  minWidth: isDesktop ? 280 : undefined,
-                }}
-              >
-                <View
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: radii.lg,
-                    backgroundColor: isSelected
-                      ? theme.colors.primaryBg
-                      : theme.colors.surface,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <AppIcon
-                    name={option.icon as AppIconName}
-                    size={24}
-                    color={
-                      isSelected ? theme.colors.primaryStrong : theme.colors.textSecondary
-                    }
-                  />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Typography variant="bodyBold">{option.label}</Typography>
-                  <Typography variant="caption">{subtitles[option.value]}</Typography>
-                </View>
-                <AppIcon
-                  name={isSelected ? "checkmark-circle" : "chevron-forward"}
-                  size={24}
-                  color={
-                    isSelected ? theme.colors.primaryStrong : theme.colors.textSecondary
-                  }
-                />
-              </Pressable>
-            );
-          })}
-          </View>
-          <Card
-            style={{
-              ...getSurfaceStyle(theme),
-              ...(isDesktop ? { maxWidth: 720, width: "100%" } : null),
-            }}
-          >
-            <Typography variant="h3">Ajustes da venda</Typography>
-            <Typography
-              variant="caption"
-              color={theme.colors.textSecondary}
-              style={{ marginTop: spacing.xs, marginBottom: spacing.md }}
-            >
-              Adicione desconto e observações antes da revisão.
-            </Typography>
-            <View
-              style={{
-                flexDirection: "row",
-                flexWrap: "wrap",
-                gap: spacing.sm,
-                marginBottom: spacing.md,
-              }}
-            >
-              {[
-                { value: null, label: "Sem desconto" },
-                { value: "fixed" as const, label: "Valor em R$" },
-                { value: "percentage" as const, label: "Porcentagem" },
-              ].map((option) => {
-                const selected = discountType === option.value;
-                return (
-                  <Pressable
-                    key={option.label}
-                    onPress={() => {
-                      setDiscountType(option.value);
-                      if (option.value === null) setDiscountInput("");
-                    }}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected }}
-                    style={{
-                      minHeight: 44,
-                      justifyContent: "center",
-                      paddingHorizontal: spacing.md,
-                      borderRadius: radii.full,
-                      backgroundColor: selected
-                        ? theme.colors.primaryBg
-                        : theme.colors.surface,
-                      borderWidth: 1,
-                      borderColor: selected ? theme.colors.primary : theme.colors.border,
-                    }}
-                  >
-                    <Typography
-                      variant="caption"
-                      color={
-                        selected ? theme.colors.primaryStrong : theme.colors.textSecondary
-                      }
-                    >
-                      {option.label}
-                    </Typography>
-                  </Pressable>
-                );
-              })}
-            </View>
-            {discountType ? (
-              <View style={desktopCompactField(isDesktop)}>
-                <Input
-                  label={discountType === "percentage" ? "Desconto (%)" : "Desconto (R$)"}
-                  value={discountInput}
-                  onChangeText={setDiscountInput}
-                  keyboardType="decimal-pad"
-                  placeholder={discountType === "percentage" ? "Ex.: 10" : "Ex.: 5,00"}
-                  error={
-                    pricing.total <= 0
-                      ? "O desconto deve ser menor que o subtotal."
-                      : undefined
-                  }
-                  containerStyle={{ marginBottom: spacing.md }}
-                />
-              </View>
-            ) : null}
-            <Input
-              label="Observações do pedido"
-              value={notes}
-              onChangeText={setNotes}
-              placeholder="Ex.: separar em duas embalagens"
-              maxLength={500}
-              multiline
-              numberOfLines={3}
-              style={{ height: 80, textAlignVertical: "top", paddingTop: spacing.md }}
-            />
-          </Card>
-          <View
-            style={{
-              marginTop: spacing.sm,
-              borderRadius: radii.xl,
-              padding: spacing.lg,
-              flexDirection: "row",
-              alignItems: "center",
-              gap: spacing.md,
-              ...getSurfaceStyle(theme),
-            }}
-          >
-            <View
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: radii.full,
-                backgroundColor: theme.colors.surface,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <AppIcon
-                name="information-circle-outline"
-                size={22}
-                color={theme.colors.textSecondary}
-              />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Typography variant="bodyBold">Dica rápida</Typography>
-              <Typography variant="caption">
-                Você poderá revisar os dados da venda antes de finalizar.
-              </Typography>
-            </View>
-          </View>
-        </ScrollView>
-      )}
-
-      {/* Step 4: Review & Confirm */}
-      {step === 4 && (
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{
-            gap: spacing.lg,
-            paddingBottom: isDesktop ? spacing.lg : FIXED_ACTION_SCROLL_PADDING,
-            maxWidth: isDesktop ? 720 : undefined,
-            width: "100%",
-          }}
-        >
-          <Card style={getSurfaceStyle(theme)}>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: spacing.md,
-              }}
-            >
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
-              >
-                <View
-                  style={{
-                    width: 46,
-                    height: 46,
-                    borderRadius: radii.full,
-                    backgroundColor: theme.colors.surface,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <AppIcon
-                    name="bag-check-outline"
-                    size={24}
-                    color={theme.colors.textSecondary}
-                  />
-                </View>
-                <Typography variant="h3">Itens da venda</Typography>
-              </View>
-              <Pressable
-                onPress={() => setStep(2)}
-                accessibilityRole="button"
-                style={{
-                  minHeight: 44,
-                  borderRadius: radii.full,
-                  paddingHorizontal: spacing.md,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: spacing.xs,
-                  backgroundColor: theme.colors.surface,
-                  borderWidth: 1,
-                  borderColor: theme.colors.border,
-                }}
-              >
-                <AppIcon
-                  name="pencil-outline"
-                  size={iconSizes.xs}
-                  color={theme.colors.textSecondary}
-                />
-                <Typography variant="caption" color={theme.colors.textSecondary}>
-                  Editar itens
-                </Typography>
-              </Pressable>
-            </View>
-            {cart.map((item) => {
-              const photoUrl = getCartItemPhotoUrl(item);
-              return (
-                <View
-                  key={`${item.productId}:${item.variationId ?? "default"}`}
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    paddingVertical: spacing.md,
-                    borderBottomWidth: 1,
-                    borderBottomColor: theme.colors.border,
-                  }}
-                >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: spacing.md,
-                      flex: 1,
-                      minWidth: 0,
-                    }}
-                  >
-                    <View
-                      style={{
-                        width: 58,
-                        height: 58,
-                        borderRadius: radii.lg,
-                        overflow: "hidden",
-                        backgroundColor: theme.colors.surface,
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      {photoUrl ? (
-                        <Image
-                          source={{ uri: photoUrl }}
-                          style={{ width: "100%", height: "100%" }}
-                          resizeMode="cover"
-                        />
-                      ) : (
-                        <Typography variant="h3" color={theme.colors.textSecondary}>
-                          {item.productName.charAt(0).toUpperCase()}
-                        </Typography>
-                      )}
-                    </View>
-                    <View style={{ flex: 1, minWidth: 0 }}>
-                      <Typography variant="bodyBold" numberOfLines={2}>
-                        {item.productName}
-                      </Typography>
-                      {item.variationName ? (
-                        <Typography variant="caption">{item.variationName}</Typography>
-                      ) : null}
-                      <Typography variant="caption">
-                        {item.saleUnit === "kg"
-                          ? `${formatWeight(item.quantity)} x ${formatCurrency(item.unitPrice)}/kg`
-                          : `${item.quantity}x ${formatCurrency(item.unitPrice)}`}
-                      </Typography>
-                    </View>
-                  </View>
-                  <Typography
-                    variant="bodyBold"
-                    color={theme.colors.success}
-                    style={{ marginLeft: spacing.sm }}
-                  >
-                    {formatCurrency(item.unitPrice * item.quantity)}
-                  </Typography>
-                </View>
-              );
-            })}
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                paddingTop: spacing.md,
-              }}
-            >
-              <Typography variant="body">{cart.length} itens</Typography>
-              <Typography variant="money">{formatCurrency(pricing.subtotal)}</Typography>
-            </View>
-          </Card>
-
-          <Card style={getSurfaceStyle(theme)}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-              <View
+                accessibilityLabel="Voltar"
                 style={{
                   width: 48,
                   height: 48,
@@ -1792,159 +874,1149 @@ export default function NewSaleScreen() {
                 }}
               >
                 <AppIcon
-                  name="person-outline"
-                  size={27}
+                  name="chevron-back"
+                  size={25}
                   color={theme.colors.textSecondary}
                 />
-              </View>
+              </Pressable>
+            ) : null}
+            <Typography variant="screenTitle">Nova Venda</Typography>
+          </View>
+          <Pressable
+            onPress={handleHelpPress}
+            accessibilityRole="button"
+            accessibilityLabel="Ajuda"
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 4,
+              minHeight: 48,
+              paddingHorizontal: spacing.sm,
+            }}
+          >
+            <AppIcon
+              name="help-circle-outline"
+              size={24}
+              color={theme.colors.textSecondary}
+            />
+            <Typography variant="caption" color={theme.colors.textSecondary}>
+              Ajuda
+            </Typography>
+          </Pressable>
+        </View>
+
+        <StepIndicator step={step} align={isDesktop ? "flex-start" : "center"} />
+
+        <View style={{ paddingBottom: spacing.xl }}>
+          <Typography variant="h1">{STEP_TITLES[step]}</Typography>
+          <Typography variant="body" style={{ marginTop: spacing.sm }}>
+            {STEP_SUBTITLES[step]}
+          </Typography>
+        </View>
+
+        <View style={[{ flex: 1 }, isDesktop ? split.row : undefined]}>
+          <View style={[{ flex: 1, minWidth: 0 }, isDesktop ? split.main : undefined]}>
+            {/* Step 2: Select Products */}
+            {step === 2 && (
               <View style={{ flex: 1 }}>
-                <Typography variant="caption">Cliente</Typography>
-                <Typography variant="caption">Pagamento</Typography>
-              </View>
-              <View style={{ alignItems: "flex-end", flexShrink: 1, minWidth: 0 }}>
-                <Typography
-                  variant="caption"
-                  numberOfLines={1}
-                  style={{ fontFamily: fonts.bold }}
+                <View
+                  style={{
+                    gap: spacing.lg,
+                    paddingBottom: spacing.lg,
+                  }}
                 >
-                  {selectedClient?.name ?? "Cliente avulso"}
-                </Typography>
-                <Typography
-                  variant="caption"
-                  numberOfLines={1}
-                  style={{ fontFamily: fonts.bold }}
-                >
-                  {PAYMENT_OPTIONS.find((o) => o.value === paymentMethod)?.label ?? "-"}
-                </Typography>
-              </View>
-              <AppIcon
-                name="chevron-forward"
-                size={24}
-                color={theme.colors.textSecondary}
-              />
-            </View>
-          </Card>
-
-          {(pricing.discount > 0 || Boolean(notes.trim())) && (
-            <Card style={getSurfaceStyle(theme)}>
-              {pricing.discount > 0 ? (
-                <>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      marginBottom: spacing.sm,
-                    }}
-                  >
-                    <Typography variant="body">Subtotal</Typography>
-                    <Typography variant="bodyBold">
-                      {formatCurrency(pricing.subtotal)}
-                    </Typography>
+                  <View style={searchFieldStyle}>
+                    <SearchBox
+                      placeholder="Buscar produto..."
+                      value={productSearch}
+                      onChangeText={setProductSearch}
+                      onTrailingPress={() => setShowScanner(true)}
+                    />
                   </View>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      marginBottom: notes.trim() ? spacing.lg : 0,
-                    }}
+                  <Typography
+                    variant="caption"
+                    color={theme.colors.textSecondary}
+                    style={{ height: 0, overflow: "hidden" }}
                   >
-                    <Typography variant="body" color={theme.colors.success}>
-                      Desconto
-                    </Typography>
-                    <Typography variant="bodyBold" color={theme.colors.success}>
-                      − {formatCurrency(pricing.discount)}
-                    </Typography>
-                  </View>
-                </>
-              ) : null}
-              {notes.trim() ? (
-                <View>
-                  <Typography variant="caption" color={theme.colors.textSecondary}>
-                    Observações
+                    Toque pra adicionar. Use o - pra tirar uma unidade.
                   </Typography>
-                  <Typography variant="body">{notes.trim()}</Typography>
                 </View>
-              ) : null}
-            </Card>
-          )}
 
-          <Card style={getSurfaceStyle(theme)}>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: spacing.md,
-              }}
-            >
+                <View
+                  style={{
+                    gap: spacing.lg,
+                    paddingBottom: spacing.lg,
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      flexWrap: "wrap",
+                      gap: spacing.md,
+                      maxWidth: isDesktop ? 720 : undefined,
+                    }}
+                  >
+                    <QuickActionCard
+                      icon="add-circle-outline"
+                      title="Adicionar produto"
+                      subtitle="Criar novo item"
+                      onPress={() => {
+                        setCreateProductInitial(undefined);
+                        setShowCreateProduct(true);
+                      }}
+                    />
+                    <QuickActionCard
+                      icon="barcode-outline"
+                      title="Usar código"
+                      subtitle="Escanear produto"
+                      onPress={() => setShowScanner(true)}
+                    />
+                  </View>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: spacing.sm,
+                      }}
+                    >
+                      <AppIcon
+                        name="pricetag-outline"
+                        size={22}
+                        color={theme.colors.textSecondary}
+                      />
+                      <Typography variant="bodyBold">Produtos frequentes</Typography>
+                    </View>
+                    <Pressable
+                      onPress={() => router.push("/products")}
+                      accessibilityRole="button"
+                      hitSlop={10}
+                    >
+                      <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+                        Ver todos
+                      </Typography>
+                    </Pressable>
+                  </View>
+                </View>
+
+                {productsQuery.error ? (
+                  <View style={{ paddingVertical: spacing.xl, gap: spacing.md }}>
+                    <Typography variant="h3">
+                      Não foi possível carregar os produtos
+                    </Typography>
+                    <Typography variant="body" color={theme.colors.textSecondary}>
+                      Verifique sua conexão e tente novamente.
+                    </Typography>
+                    <Button
+                      title="Tentar novamente"
+                      variant="secondary"
+                      onPress={() => void productsQuery.refetch()}
+                    />
+                  </View>
+                ) : null}
+                {loadingProducts && (
+                  <View style={{ flex: 1 }}>
+                    <SkeletonList rows={5} variant="picker" />
+                  </View>
+                )}
+                {!loadingProducts &&
+                  !productsQuery.error &&
+                  !!filteredProducts?.length && (
+                    <ScrollView
+                      style={{ flex: 1 }}
+                      contentContainerStyle={{
+                        paddingBottom:
+                          cart.length > 0 && !isDesktop
+                            ? fixedActionScrollPadding
+                            : spacing.lg,
+                      }}
+                      showsVerticalScrollIndicator={false}
+                    >
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          flexWrap: "wrap",
+                          justifyContent: "flex-start",
+                          gap: spacing.md,
+                        }}
+                      >
+                        {productGridItems.map((item, index) => {
+                          if (!item) {
+                            return (
+                              <View
+                                key={`product-spacer-${index}`}
+                                style={{ width: isDesktop ? "31%" : "48%" }}
+                              />
+                            );
+                          }
+                          const qty = getCartQuantity(item.id);
+                          const cartItem = getCartItem(item.id);
+                          const stockLabel = productStockLabel(item);
+                          return (
+                            <Pressable
+                              key={item.id}
+                              onPress={() => addToCart(item)}
+                              onLongPress={() => removeFromCart(item.id)}
+                              style={{
+                                width: isDesktop ? "31%" : "48%",
+                                maxWidth: isDesktop ? "31%" : "48%",
+                                minWidth: isDesktop ? 220 : undefined,
+                                flexGrow: 0,
+                                flexShrink: 0,
+                                alignSelf: "flex-start",
+                                borderRadius: radii.xl,
+                                minHeight: 112,
+                                padding: spacing.sm,
+                                gap: spacing.xs,
+                                borderWidth: qty > 0 ? 2 : 1,
+                                borderColor:
+                                  qty > 0 ? theme.colors.primary : theme.colors.surface,
+                                ...getSurfaceStyle(theme),
+                              }}
+                            >
+                              <View
+                                style={{
+                                  width: 42,
+                                  height: 42,
+                                  borderRadius: radii.full,
+                                  overflow: "hidden",
+                                  backgroundColor: getAvatarColor(index),
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                {item.photoUrl ? (
+                                  <Image
+                                    source={{ uri: item.photoUrl }}
+                                    style={{ width: "100%", height: "100%" }}
+                                    resizeMode="cover"
+                                  />
+                                ) : (
+                                  <Typography
+                                    variant="h3"
+                                    color={theme.colors.textOnPrimary}
+                                  >
+                                    {item.name.charAt(0).toUpperCase()}
+                                  </Typography>
+                                )}
+                              </View>
+                              <Pressable
+                                onPress={(event) => {
+                                  event.stopPropagation();
+                                  addToCart(item);
+                                }}
+                                hitSlop={10}
+                                accessibilityRole="button"
+                                accessibilityLabel={`Adicionar ${item.name}`}
+                                style={{
+                                  position: "absolute",
+                                  top: spacing.sm,
+                                  right: spacing.sm,
+                                  backgroundColor: theme.colors.surface,
+                                  borderWidth: 1,
+                                  borderColor: theme.colors.border,
+                                  borderRadius: radii.full,
+                                  width: 28,
+                                  height: 28,
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <AppIcon name="add" size={18} color={theme.colors.text} />
+                              </Pressable>
+                              <Typography
+                                variant="bodyBold"
+                                color={theme.colors.text}
+                                style={{ marginTop: spacing.md }}
+                                numberOfLines={2}
+                              >
+                                {item.name}
+                              </Typography>
+                              <Typography variant="bodyBold" color={theme.colors.success}>
+                                {item.saleUnit === "kg"
+                                  ? `${formatCurrency(item.salePrice)}/kg`
+                                  : formatCurrency(item.salePrice)}
+                              </Typography>
+                              {stockLabel ? (
+                                <Typography
+                                  variant="caption"
+                                  color={
+                                    stockLabel.includes("baixo") ||
+                                    stockLabel === "Sem estoque"
+                                      ? theme.colors.alert
+                                      : theme.colors.textSecondary
+                                  }
+                                  numberOfLines={2}
+                                >
+                                  {stockLabel}
+                                </Typography>
+                              ) : null}
+                              {qty > 0 && (
+                                <View
+                                  style={{
+                                    position: "absolute",
+                                    top: spacing.sm,
+                                    right: 44,
+                                    backgroundColor: theme.colors.primaryBg,
+                                    borderRadius: radii.full,
+                                    minWidth: 24,
+                                    height: 24,
+                                    paddingHorizontal:
+                                      cartItem?.saleUnit === "kg" ? spacing.sm : 0,
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                  }}
+                                >
+                                  <Typography
+                                    variant="caption"
+                                    color={theme.colors.primaryStrong}
+                                    style={{ fontFamily: fonts.bold }}
+                                  >
+                                    {cartItem ? cartQuantityLabel(cartItem) : qty}
+                                  </Typography>
+                                </View>
+                              )}
+                              {qty > 0 && (
+                                <Pressable
+                                  onPress={(event) => {
+                                    event.stopPropagation();
+                                    removeFromCart(item.id);
+                                  }}
+                                  hitSlop={10}
+                                  accessibilityRole="button"
+                                  accessibilityLabel={`Tirar uma unidade de ${item.name}`}
+                                  style={{
+                                    position: "absolute",
+                                    top: spacing.sm,
+                                    left: spacing.sm,
+                                    backgroundColor: theme.colors.surfaceElevated,
+                                    borderRadius: radii.full,
+                                    width: 24,
+                                    height: 24,
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                  }}
+                                >
+                                  <AppIcon
+                                    name="remove"
+                                    size={16}
+                                    color={theme.colors.text}
+                                  />
+                                </Pressable>
+                              )}
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+                      <View
+                        style={{
+                          marginTop: spacing.lg,
+                          borderRadius: radii.xl,
+                          padding: spacing.md,
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: spacing.sm,
+                          ...getSurfaceStyle(theme),
+                        }}
+                      >
+                        <View
+                          style={{
+                            width: 38,
+                            height: 38,
+                            borderRadius: radii.full,
+                            backgroundColor: theme.colors.surface,
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <AppIcon
+                            name="sparkles-outline"
+                            size={20}
+                            color={theme.colors.textSecondary}
+                          />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Typography variant="bodyBold">Dica rápida</Typography>
+                          <Typography variant="caption">
+                            Toque em um produto para adicioná-lo à venda ou use o buscador
+                            para encontrar mais rápido.
+                          </Typography>
+                        </View>
+                      </View>
+                    </ScrollView>
+                  )}
+              </View>
+            )}
+
+            {/* Step 1: Select Client */}
+            {step === 1 && (
               <View
-                style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
+                style={{
+                  flex: 1,
+                  gap: spacing.lg,
+                }}
+              >
+                <Pressable
+                  onPress={() => {
+                    setSelectedClient(null);
+                    setStep(2);
+                  }}
+                  accessibilityRole="button"
+                  style={({ pressed }) => ({
+                    minHeight: 74,
+                    borderRadius: radii.xl,
+                    paddingHorizontal: spacing.lg,
+                    paddingVertical: spacing.md,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: spacing.md,
+                    opacity: pressed ? 0.86 : 1,
+                    maxWidth: isDesktop ? 560 : undefined,
+                    width: isDesktop ? "100%" : undefined,
+                    ...getSurfaceStyle(theme),
+                  })}
+                >
+                  <View
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: radii.full,
+                      backgroundColor: theme.colors.surface,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <AppIcon
+                      name="person-outline"
+                      size={iconSizes.md}
+                      color={theme.colors.textSecondary}
+                    />
+                  </View>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Typography
+                      variant="bodyBold"
+                      color={theme.colors.text}
+                      numberOfLines={1}
+                    >
+                      Sem cliente (avulso)
+                    </Typography>
+                    <Typography
+                      variant="body"
+                      color={theme.colors.textSecondary}
+                      numberOfLines={1}
+                    >
+                      Continuar sem selecionar um cliente
+                    </Typography>
+                  </View>
+                  <AppIcon
+                    name="chevron-forward"
+                    size={24}
+                    color={theme.colors.textSecondary}
+                  />
+                </Pressable>
+
+                <View style={searchFieldStyle}>
+                  <SearchBox
+                    placeholder="Buscar cliente..."
+                    value={clientSearch}
+                    onChangeText={setClientSearch}
+                    trailingIcon="filter-outline"
+                    onTrailingPress={() => setShowClientFilter(true)}
+                  />
+                </View>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    maxWidth: isDesktop ? 720 : undefined,
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: spacing.sm,
+                    }}
+                  >
+                    <AppIcon
+                      name="person-outline"
+                      size={22}
+                      color={theme.colors.textSecondary}
+                    />
+                    <Typography variant="bodyBold">Clientes recentes</Typography>
+                  </View>
+                  <Pressable
+                    onPress={() => router.push("/tabs/clients")}
+                    accessibilityRole="button"
+                    hitSlop={10}
+                  >
+                    <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+                      Ver todos
+                    </Typography>
+                  </Pressable>
+                </View>
+
+                {clientsQuery.error ? (
+                  <View style={{ gap: spacing.md }}>
+                    <Typography variant="h3">
+                      Não foi possível carregar os clientes
+                    </Typography>
+                    <Typography variant="body" color={theme.colors.textSecondary}>
+                      Você ainda pode continuar como venda avulsa ou tentar novamente.
+                    </Typography>
+                    <Button
+                      title="Tentar novamente"
+                      variant="secondary"
+                      onPress={() => void clientsQuery.refetch()}
+                    />
+                  </View>
+                ) : null}
+                {!clientsQuery.error && loadingClients ? (
+                  <SkeletonList rows={4} variant="client" />
+                ) : null}
+                {!clientsQuery.error && !loadingClients ? (
+                  <FlatList
+                    key={isDesktop ? "clients-desktop" : "clients-mobile"}
+                    data={filteredClients}
+                    keyExtractor={(item) => item.id}
+                    numColumns={isDesktop ? 2 : 1}
+                    columnWrapperStyle={isDesktop ? { gap: spacing.md } : undefined}
+                    contentContainerStyle={{
+                      gap: spacing.sm,
+                      paddingBottom: isDesktop ? spacing.lg : fixedActionScrollPadding,
+                    }}
+                    renderItem={({ item }: { item: Client }) => (
+                      <Pressable
+                        onPress={() => {
+                          setSelectedClient({ id: item.id, name: item.name });
+                          setStep(2);
+                        }}
+                        style={({ pressed }) => [
+                          {
+                            minHeight: 82,
+                            borderRadius: radii.xl,
+                            padding: spacing.lg,
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: spacing.md,
+                            borderWidth: selectedClient?.id === item.id ? 2 : 1,
+                            borderColor:
+                              selectedClient?.id === item.id
+                                ? theme.colors.primary
+                                : theme.colors.surface,
+                            opacity: pressed ? 0.86 : 1,
+                            flex: isDesktop ? 1 : undefined,
+                            marginBottom: isDesktop ? spacing.sm : 0,
+                            ...getSurfaceStyle(theme),
+                          },
+                        ]}
+                      >
+                        <ClientPickerAvatar name={item.name} />
+                        <View style={{ flex: 1, minWidth: 0 }}>
+                          <Typography variant="bodyBold" numberOfLines={1}>
+                            {item.name}
+                          </Typography>
+                          {item.phone && (
+                            <Typography variant="caption">{item.phone}</Typography>
+                          )}
+                        </View>
+                        <AppIcon
+                          name="chevron-forward"
+                          size={24}
+                          color={theme.colors.textSecondary}
+                        />
+                      </Pressable>
+                    )}
+                    ListEmptyComponent={
+                      clientSearch ? (
+                        <Typography variant="caption" color={theme.colors.textSecondary}>
+                          Nenhum cliente encontrado
+                        </Typography>
+                      ) : (
+                        <Typography variant="caption" color={theme.colors.textSecondary}>
+                          Nenhum cliente para este filtro
+                        </Typography>
+                      )
+                    }
+                  />
+                ) : null}
+              </View>
+            )}
+
+            {/* Step 3: Payment Method */}
+            {step === 3 && (
+              <ScrollView
+                style={{ flex: 1 }}
+                contentContainerStyle={{
+                  gap: spacing.md,
+                  paddingBottom: isDesktop ? spacing.lg : fixedActionScrollPadding,
+                }}
               >
                 <View
                   style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: radii.full,
-                    backgroundColor: theme.colors.surface,
-                    alignItems: "center",
-                    justifyContent: "center",
+                    flexDirection: isDesktop ? "row" : "column",
+                    flexWrap: "wrap",
+                    gap: spacing.sm,
                   }}
                 >
-                  <AppIcon
-                    name="pricetag-outline"
-                    size={27}
-                    color={theme.colors.textSecondary}
-                  />
+                  {PAYMENT_OPTIONS.map((option) => {
+                    const isSelected = paymentMethod === option.value;
+                    // Selecionado: fundo OPACO (nunca translúcido) — bg translúcido + a
+                    // elevation do surface faz o Android pintar uma "caixa branca" atrás.
+                    // Selecao = fundo rosado suave (primaryBg); demais = neutro.
+                    const cardBackgroundColor = isSelected
+                      ? theme.colors.primaryBg
+                      : theme.colors.surfaceElevated;
+                    const subtitles: Record<PaymentMethod, string> = {
+                      pix: "Pagamento instantâneo",
+                      cash: "Pagamento em espécie",
+                      card: "Débito ou crédito",
+                      credit: "Pagamento para depois",
+                      transfer: "TED, DOC ou outro banco",
+                    };
+                    return (
+                      <Pressable
+                        key={option.value}
+                        onPress={() => setPaymentMethod(option.value)}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: isSelected }}
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: spacing.md,
+                          minHeight: 78,
+                          paddingVertical: spacing.md,
+                          paddingHorizontal: spacing.lg,
+                          borderRadius: radii.xl,
+                          ...getSurfaceStyle(theme),
+                          borderWidth: isSelected ? 2 : 1,
+                          borderColor: isSelected
+                            ? theme.colors.primary
+                            : theme.colors.surface,
+                          backgroundColor: cardBackgroundColor,
+                          width: isDesktop ? "48%" : "100%",
+                          maxWidth: isDesktop ? "48%" : undefined,
+                          minWidth: isDesktop ? 280 : undefined,
+                        }}
+                      >
+                        <View
+                          style={{
+                            width: 48,
+                            height: 48,
+                            borderRadius: radii.lg,
+                            backgroundColor: isSelected
+                              ? theme.colors.primaryBg
+                              : theme.colors.surface,
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <AppIcon
+                            name={option.icon as AppIconName}
+                            size={24}
+                            color={
+                              isSelected
+                                ? theme.colors.primaryStrong
+                                : theme.colors.textSecondary
+                            }
+                          />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Typography variant="bodyBold">{option.label}</Typography>
+                          <Typography variant="caption">
+                            {subtitles[option.value]}
+                          </Typography>
+                        </View>
+                        <AppIcon
+                          name={isSelected ? "checkmark-circle" : "chevron-forward"}
+                          size={24}
+                          color={
+                            isSelected
+                              ? theme.colors.primaryStrong
+                              : theme.colors.textSecondary
+                          }
+                        />
+                      </Pressable>
+                    );
+                  })}
                 </View>
-                <Typography variant="h3">Total da venda</Typography>
-              </View>
-              <Typography variant="money" style={{ flexShrink: 0 }}>
-                {formatCurrency(pricing.total)}
-              </Typography>
-            </View>
-          </Card>
-
-          {!isDesktop ? (
-            <>
-              <Button
-                title={copy.saleLabel}
-                size="lg"
-                style={{ borderRadius: radii.md }}
-                onPress={() => {
-                  void handleSubmit();
-                }}
-                loading={createSale.isPending}
-                icon={
-                  <AppIcon
-                    name="checkmark-circle"
-                    size={18}
-                    color={theme.colors.textOnPrimary}
+                <Card
+                  style={{
+                    ...getSurfaceStyle(theme),
+                    ...(isDesktop ? { maxWidth: 720, width: "100%" } : null),
+                  }}
+                >
+                  <Typography variant="h3">Ajustes da venda</Typography>
+                  <Typography
+                    variant="caption"
+                    color={theme.colors.textSecondary}
+                    style={{ marginTop: spacing.xs, marginBottom: spacing.md }}
+                  >
+                    Adicione desconto e observações antes da revisão.
+                  </Typography>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      flexWrap: "wrap",
+                      gap: spacing.sm,
+                      marginBottom: spacing.md,
+                    }}
+                  >
+                    {[
+                      { value: null, label: "Sem desconto" },
+                      { value: "fixed" as const, label: "Valor em R$" },
+                      { value: "percentage" as const, label: "Porcentagem" },
+                    ].map((option) => {
+                      const selected = discountType === option.value;
+                      return (
+                        <Pressable
+                          key={option.label}
+                          onPress={() => {
+                            setDiscountType(option.value);
+                            if (option.value === null) setDiscountInput("");
+                          }}
+                          accessibilityRole="button"
+                          accessibilityState={{ selected }}
+                          style={{
+                            minHeight: 44,
+                            justifyContent: "center",
+                            paddingHorizontal: spacing.md,
+                            borderRadius: radii.full,
+                            backgroundColor: selected
+                              ? theme.colors.primaryBg
+                              : theme.colors.surface,
+                            borderWidth: 1,
+                            borderColor: selected
+                              ? theme.colors.primary
+                              : theme.colors.border,
+                          }}
+                        >
+                          <Typography
+                            variant="caption"
+                            color={
+                              selected
+                                ? theme.colors.primaryStrong
+                                : theme.colors.textSecondary
+                            }
+                          >
+                            {option.label}
+                          </Typography>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                  {discountType ? (
+                    <View style={desktopCompactField(isDesktop)}>
+                      <Input
+                        label={
+                          discountType === "percentage" ? "Desconto (%)" : "Desconto (R$)"
+                        }
+                        value={discountInput}
+                        onChangeText={setDiscountInput}
+                        keyboardType="decimal-pad"
+                        placeholder={
+                          discountType === "percentage" ? "Ex.: 10" : "Ex.: 5,00"
+                        }
+                        error={
+                          pricing.total <= 0
+                            ? "O desconto deve ser menor que o subtotal."
+                            : undefined
+                        }
+                        containerStyle={{ marginBottom: spacing.md }}
+                      />
+                    </View>
+                  ) : null}
+                  <Input
+                    label="Observações do pedido"
+                    value={notes}
+                    onChangeText={setNotes}
+                    placeholder="Ex.: separar em duas embalagens"
+                    maxLength={500}
+                    multiline
+                    numberOfLines={3}
+                    style={{
+                      height: 80,
+                      textAlignVertical: "top",
+                      paddingTop: spacing.md,
+                    }}
                   />
-                }
-              />
-              <View
-                style={{
-                  alignItems: "center",
-                  flexDirection: "row",
-                  justifyContent: "center",
-                  gap: spacing.sm,
+                </Card>
+                <View
+                  style={{
+                    marginTop: spacing.sm,
+                    borderRadius: radii.xl,
+                    padding: spacing.lg,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: spacing.md,
+                    ...getSurfaceStyle(theme),
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: radii.full,
+                      backgroundColor: theme.colors.surface,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <AppIcon
+                      name="information-circle-outline"
+                      size={22}
+                      color={theme.colors.textSecondary}
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Typography variant="bodyBold">Dica rápida</Typography>
+                    <Typography variant="caption">
+                      Você poderá revisar os dados da venda antes de finalizar.
+                    </Typography>
+                  </View>
+                </View>
+              </ScrollView>
+            )}
+
+            {/* Step 4: Review & Confirm */}
+            {step === 4 && (
+              <ScrollView
+                style={{ flex: 1 }}
+                contentContainerStyle={{
+                  gap: spacing.lg,
+                  paddingBottom: isDesktop ? spacing.lg : fixedActionScrollPadding,
+                  maxWidth: isDesktop ? 720 : undefined,
+                  width: "100%",
                 }}
               >
-                <AppIcon
-                  name="lock-closed-outline"
-                  size={18}
-                  color={theme.colors.textSecondary}
-                />
-                <Typography variant="body">Venda segura e protegida</Typography>
-              </View>
-            </>
-          ) : null}
-        </ScrollView>
-      )}
+                <Card style={getSurfaceStyle(theme)}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      marginBottom: spacing.md,
+                    }}
+                  >
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: spacing.md,
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: 46,
+                          height: 46,
+                          borderRadius: radii.full,
+                          backgroundColor: theme.colors.surface,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <AppIcon
+                          name="bag-check-outline"
+                          size={24}
+                          color={theme.colors.textSecondary}
+                        />
+                      </View>
+                      <Typography variant="h3">Itens da venda</Typography>
+                    </View>
+                    <Pressable
+                      onPress={() => setStep(2)}
+                      accessibilityRole="button"
+                      style={{
+                        minHeight: 44,
+                        borderRadius: radii.full,
+                        paddingHorizontal: spacing.md,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: spacing.xs,
+                        backgroundColor: theme.colors.surface,
+                        borderWidth: 1,
+                        borderColor: theme.colors.border,
+                      }}
+                    >
+                      <AppIcon
+                        name="pencil-outline"
+                        size={iconSizes.xs}
+                        color={theme.colors.textSecondary}
+                      />
+                      <Typography variant="caption" color={theme.colors.textSecondary}>
+                        Editar itens
+                      </Typography>
+                    </Pressable>
+                  </View>
+                  {cart.map((item) => {
+                    const photoUrl = getCartItemPhotoUrl(item);
+                    return (
+                      <View
+                        key={`${item.productId}:${item.variationId ?? "default"}`}
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          paddingVertical: spacing.md,
+                          borderBottomWidth: 1,
+                          borderBottomColor: theme.colors.border,
+                        }}
+                      >
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: spacing.md,
+                            flex: 1,
+                            minWidth: 0,
+                          }}
+                        >
+                          <View
+                            style={{
+                              width: 58,
+                              height: 58,
+                              borderRadius: radii.lg,
+                              overflow: "hidden",
+                              backgroundColor: theme.colors.surface,
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            {photoUrl ? (
+                              <Image
+                                source={{ uri: photoUrl }}
+                                style={{ width: "100%", height: "100%" }}
+                                resizeMode="cover"
+                              />
+                            ) : (
+                              <Typography variant="h3" color={theme.colors.textSecondary}>
+                                {item.productName.charAt(0).toUpperCase()}
+                              </Typography>
+                            )}
+                          </View>
+                          <View style={{ flex: 1, minWidth: 0 }}>
+                            <Typography variant="bodyBold" numberOfLines={2}>
+                              {item.productName}
+                            </Typography>
+                            {item.variationName ? (
+                              <Typography variant="caption">
+                                {item.variationName}
+                              </Typography>
+                            ) : null}
+                            <Typography variant="caption">
+                              {item.saleUnit === "kg"
+                                ? `${formatWeight(item.quantity)} x ${formatCurrency(item.unitPrice)}/kg`
+                                : `${item.quantity}x ${formatCurrency(item.unitPrice)}`}
+                            </Typography>
+                          </View>
+                        </View>
+                        <Typography
+                          variant="bodyBold"
+                          color={theme.colors.success}
+                          style={{ marginLeft: spacing.sm }}
+                        >
+                          {formatCurrency(item.unitPrice * item.quantity)}
+                        </Typography>
+                      </View>
+                    );
+                  })}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      paddingTop: spacing.md,
+                    }}
+                  >
+                    <Typography variant="body">{cart.length} itens</Typography>
+                    <Typography variant="money">
+                      {formatCurrency(pricing.subtotal)}
+                    </Typography>
+                  </View>
+                </Card>
 
-      </View>
-      {desktopSummaryAside}
-      </View>
+                <Card style={getSurfaceStyle(theme)}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: spacing.md,
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: radii.full,
+                        backgroundColor: theme.colors.surface,
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <AppIcon
+                        name="person-outline"
+                        size={27}
+                        color={theme.colors.textSecondary}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Typography variant="caption">Cliente</Typography>
+                      <Typography variant="caption">Pagamento</Typography>
+                    </View>
+                    <View style={{ alignItems: "flex-end", flexShrink: 1, minWidth: 0 }}>
+                      <Typography
+                        variant="caption"
+                        numberOfLines={1}
+                        style={{ fontFamily: fonts.bold }}
+                      >
+                        {selectedClient?.name ?? "Cliente avulso"}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        numberOfLines={1}
+                        style={{ fontFamily: fonts.bold }}
+                      >
+                        {PAYMENT_OPTIONS.find((o) => o.value === paymentMethod)?.label ??
+                          "-"}
+                      </Typography>
+                    </View>
+                    <AppIcon
+                      name="chevron-forward"
+                      size={24}
+                      color={theme.colors.textSecondary}
+                    />
+                  </View>
+                </Card>
+
+                {(pricing.discount > 0 || Boolean(notes.trim())) && (
+                  <Card style={getSurfaceStyle(theme)}>
+                    {pricing.discount > 0 ? (
+                      <>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            marginBottom: spacing.sm,
+                          }}
+                        >
+                          <Typography variant="body">Subtotal</Typography>
+                          <Typography variant="bodyBold">
+                            {formatCurrency(pricing.subtotal)}
+                          </Typography>
+                        </View>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            marginBottom: notes.trim() ? spacing.lg : 0,
+                          }}
+                        >
+                          <Typography variant="body" color={theme.colors.success}>
+                            Desconto
+                          </Typography>
+                          <Typography variant="bodyBold" color={theme.colors.success}>
+                            − {formatCurrency(pricing.discount)}
+                          </Typography>
+                        </View>
+                      </>
+                    ) : null}
+                    {notes.trim() ? (
+                      <View>
+                        <Typography variant="caption" color={theme.colors.textSecondary}>
+                          Observações
+                        </Typography>
+                        <Typography variant="body">{notes.trim()}</Typography>
+                      </View>
+                    ) : null}
+                  </Card>
+                )}
+
+                <Card style={getSurfaceStyle(theme)}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: spacing.md,
+                    }}
+                  >
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: spacing.md,
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: radii.full,
+                          backgroundColor: theme.colors.surface,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <AppIcon
+                          name="pricetag-outline"
+                          size={27}
+                          color={theme.colors.textSecondary}
+                        />
+                      </View>
+                      <Typography variant="h3">Total da venda</Typography>
+                    </View>
+                    <Typography variant="money" style={{ flexShrink: 0 }}>
+                      {formatCurrency(pricing.total)}
+                    </Typography>
+                  </View>
+                </Card>
+
+                {!isDesktop ? (
+                  <>
+                    <Button
+                      title={copy.saleLabel}
+                      size="lg"
+                      style={{ borderRadius: radii.md }}
+                      onPress={() => {
+                        void handleSubmit();
+                      }}
+                      loading={createSale.isPending}
+                      icon={
+                        <AppIcon
+                          name="checkmark-circle"
+                          size={18}
+                          color={theme.colors.textOnPrimary}
+                        />
+                      }
+                    />
+                    <View
+                      style={{
+                        alignItems: "center",
+                        flexDirection: "row",
+                        justifyContent: "center",
+                        gap: spacing.sm,
+                      }}
+                    >
+                      <AppIcon
+                        name="lock-closed-outline"
+                        size={18}
+                        color={theme.colors.textSecondary}
+                      />
+                      <Typography variant="body">Venda segura e protegida</Typography>
+                    </View>
+                  </>
+                ) : null}
+              </ScrollView>
+            )}
+          </View>
+          {desktopSummaryAside}
+        </View>
       </View>
 
       {!isDesktop && step === 2 && cart.length > 0 && (
@@ -1953,8 +2025,8 @@ export default function NewSaleScreen() {
             position: "absolute",
             left: spacing.xl,
             right: spacing.xl,
-            bottom: FIXED_ACTION_BOTTOM_OFFSET,
-            minHeight: 68,
+            bottom: fixedActionBottomOffset,
+            minHeight: FIXED_ACTION_MIN_HEIGHT,
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "space-between",
@@ -1993,8 +2065,8 @@ export default function NewSaleScreen() {
             position: "absolute",
             left: spacing.xl,
             right: spacing.xl,
-            bottom: FIXED_ACTION_BOTTOM_OFFSET,
-            minHeight: 68,
+            bottom: fixedActionBottomOffset,
+            minHeight: FIXED_ACTION_MIN_HEIGHT,
             flexDirection: "row",
             alignItems: "center",
             justifyContent: step === 1 ? "flex-end" : undefined,
@@ -2355,16 +2427,14 @@ export default function NewSaleScreen() {
                 keyboardType="decimal-pad"
                 autoFocus
               />
-              {weightProduct &&
-                !isNaN(parseFloat(weightInput.replace(",", "."))) && (
-                  <Typography variant="bodyBold" color={theme.colors.success}>
-                    Subtotal:{" "}
-                    {formatCurrency(
-                      parseFloat(weightInput.replace(",", ".")) *
-                        weightProduct.salePrice,
-                    )}
-                  </Typography>
-                )}
+              {weightProduct && !isNaN(parseFloat(weightInput.replace(",", "."))) && (
+                <Typography variant="bodyBold" color={theme.colors.success}>
+                  Subtotal:{" "}
+                  {formatCurrency(
+                    parseFloat(weightInput.replace(",", ".")) * weightProduct.salePrice,
+                  )}
+                </Typography>
+              )}
               <Button title="Adicionar" size="lg" onPress={confirmWeight} />
             </Pressable>
           </Pressable>
