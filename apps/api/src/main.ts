@@ -93,6 +93,7 @@ import {
   postgresRateLimit,
 } from "./shared/middleware/postgres-rate-limit";
 import { securityHeaders } from "./shared/middleware/security-headers";
+import { isAllowedCorsOrigin } from "./shared/middleware/cors";
 import { healthRouter } from "./shared/health";
 import { setDb } from "./shared/db";
 import { createClient } from "@lucro-caseiro/database";
@@ -312,19 +313,7 @@ app.use(
         callback(null, true);
         return;
       }
-      const normalized = origin.replace(/\/$/, "");
-      let localDevelopment = false;
-      if (config.env !== "production") {
-        try {
-          const url = new URL(normalized);
-          localDevelopment =
-            (url.protocol === "http:" || url.protocol === "https:") &&
-            (url.hostname === "localhost" || url.hostname === "127.0.0.1");
-        } catch {
-          localDevelopment = false;
-        }
-      }
-      callback(null, localDevelopment || config.corsOrigins.includes(normalized));
+      callback(null, isAllowedCorsOrigin(origin, config.corsOrigins));
     },
   }),
 );

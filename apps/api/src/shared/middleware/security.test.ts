@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { describe, expect, it, vi } from "vitest";
 
 import { ServiceUnavailableError } from "../errors";
+import { isAllowedCorsOrigin } from "./cors";
 import { errorHandler } from "./error-handler";
 import { postgresRateLimit } from "./postgres-rate-limit";
 import { securityHeaders } from "./security-headers";
@@ -19,6 +20,14 @@ function responseMock() {
 }
 
 describe("security middleware", () => {
+  it("permite o preflight do PWA local contra a API de producao", () => {
+    expect(
+      isAllowedCorsOrigin("http://localhost:8083", ["https://app.lucrocaseiro.com.br"]),
+    ).toBe(true);
+    expect(isAllowedCorsOrigin("http://127.0.0.1:8085", [])).toBe(true);
+    expect(isAllowedCorsOrigin("https://malicioso.example", [])).toBe(false);
+  });
+
   it("envia headers defensivos nas respostas da API", () => {
     const response = responseMock();
     const next = vi.fn();
