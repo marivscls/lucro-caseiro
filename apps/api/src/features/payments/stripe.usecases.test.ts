@@ -43,9 +43,11 @@ function makeSut(
 
   const activatePlan = vi.fn().mockResolvedValue(undefined);
   const deactivatePlan = vi.fn().mockResolvedValue(undefined);
+  const notifyPaymentFailed = vi.fn().mockResolvedValue(undefined);
   const subscription = {
     activatePlan,
     deactivatePlan,
+    notifyPaymentFailed,
   } as unknown as SubscriptionUseCases;
 
   const sut = new StripeUseCases(stripe, subscription, {
@@ -54,7 +56,14 @@ function makeSut(
     cancelUrl: "https://lucrocaseiro.app/cancel",
   });
 
-  return { sut, createSession, retrieveSubscription, activatePlan, deactivatePlan };
+  return {
+    sut,
+    createSession,
+    retrieveSubscription,
+    activatePlan,
+    deactivatePlan,
+    notifyPaymentFailed,
+  };
 }
 
 describe("StripeUseCases.createCheckoutUrl", () => {
@@ -184,6 +193,18 @@ describe("StripeUseCases.handleEvent", () => {
     } as Stripe.Event);
 
     expect(deactivatePlan).toHaveBeenCalledWith(USER_ID);
+  });
+
+  it("notifies a failed renewal when the subscription becomes past due", async () => {
+    const { sut, notifyPaymentFailed } = makeSut();
+
+    await sut.handleEvent({
+      id: "evt_payment_failed",
+      type: "customer.subscription.updated",
+      data: { object: makeSubscription({ status: "past_due" }) },
+    } as Stripe.Event);
+
+    expect(notifyPaymentFailed).toHaveBeenCalledWith(USER_ID, "evt_payment_failed");
   });
 
   it("ignores unrelated events", async () => {

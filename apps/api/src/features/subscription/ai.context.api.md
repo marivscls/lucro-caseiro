@@ -19,6 +19,7 @@ Backend ownership for user profile, plan state (Free / Essencial / Profissional)
   - `subscription.repo.pg.ts` for profile and plan persistence.
   - `subscription.domain.ts` for freemium limit calculation.
   - `google-play.client.ts` for Android purchase-token validation fallback.
+  - `features/email/subscription-lifecycle-email.ts` for best-effort transactional notifications.
 - **Dependents:**
   - Mobile profile/settings/plans screens.
   - Payments use cases call `activatePlan(userId, plan, expiresAt)` / `deactivatePlan`.
@@ -54,6 +55,8 @@ Backend ownership for user profile, plan state (Free / Essencial / Profissional)
 - Provider sync activates a paid plan only after server-side validation; the tier comes from the purchased product id.
 - If Google Play returns free/inactive, `/sync-plan` returns the current profile instead of downgrading other payment channels.
 - Canceled but unexpired Google Play subscriptions remain paid until their expiry time.
+- A Free→paid transition sends `activated`; an expiration extension on the same paid plan sends `renewed`; a paid→Free transition sends `cancelled`. Provider retries are deduplicated by stable email keys.
+- Email delivery failure is logged without reverting a provider-confirmed plan change.
 
 ## Operations
 
@@ -113,6 +116,7 @@ api:
 - `activatePlan(userId, plan, expiresAt)` writes the paid plan state.
 - `deactivatePlan` writes Free plan state.
 - `syncPlanFromProvider` may update plan state after provider validation.
+- Plan transitions may send lifecycle emails; `notifyPaymentFailed` sends the Stripe retry warning without changing plan state.
 - `getLimits` reads usage counters and returns the active plan's limits.
 
 ## Performance
@@ -134,6 +138,7 @@ api:
 - Profile fetch/update.
 - Premium activation/deactivation.
 - Google Play active/canceled/expired/mismatched purchase handling.
+- Activation, renewal, cancellation and payment-failure notification transitions.
 - Provider unavailable error paths.
 
 ## Examples
@@ -170,6 +175,7 @@ Content-Type: application/json
 - 2026-06-16: **free enxuto (recalibração)** — `maxSalesPerMonth` 200→**50**/mês e `maxProducts` 20→**15**; catálogo público free 5→**3** produtos. Motivo: dev solo bootstrapped — o free precisa converter cedo e ser barato de servir (o caro — catálogo público, exportação, relatórios completos — fica no Premium). `maxClients` (20), `maxRecipes` (5) e `maxPackaging` (3) mantidos.
 - 2026-07-01: **planos comerciais — free/premium → free/essential/professional** (migration `029_commercial_plans.sql`; ver `docs/planos-comerciais.md`). O enum `plan_type` ganha `essential` e `professional`; assinantes `premium` migram para `professional` (o legado `premium` continua no enum, mas o repo normaliza para `professional` na leitura). A matriz de planos (limites + features) vira fonte única em `@lucro-caseiro/contracts` (`PLAN_LIMITS`, `PLAN_FEATURES`, `planLimit`, `planHasFeature`, `resolveActivePlan`, `hasActiveFeature`). **Limites:** `maxSalesPerMonth` free 50→**30**; Essencial remove os limites de volume (vendas/clientes/produtos/receitas/embalagens ilimitados) mas mantém **fornecedores em 3** (Fornecedores/Compras são diferenciais do Profissional); Profissional é ilimitado. **Gates de feature** (exclusivos do Profissional): `require-premium.ts`/`require-premium-photos.ts` foram substituídos por `require-feature.ts` (`requireFeature(repo, feature)` + `requireFeatureForExtraPhotos`); features: extraPhotos, catalogPremium, catalogCustomization, advancedReports, export, purchases, recurringExpenses, labelsPremium, quotesPdf, compositeProducts. Catálogo/labels passam a usar `hasActiveFeature`. Domínio: `resolvePlan`/`isPaidPlanActive`/`buildFreemiumLimits(counts, plan)`/`isLimitExceeded(resource, counts, plan)`. Usecases: `activatePlan(userId, plan, expiresAt)`/`deactivatePlan`/`getActivePlan`/`syncPlanFromProvider`; provider `getPlanState` retorna o tier pelo product id. Stripe: 4 price ids (`STRIPE_PRICE_{ESSENTIAL,PROFESSIONAL}_{MONTHLY,ANNUAL}_ID`), checkout recebe `{tier, period}` e o webhook resolve o tier pela metadata/price (fallback `professional`). Preços: Essencial R$ 29,90/mês (R$ 299/ano), Profissional R$ 69,90/mês (R$ 699/ano). **Pendências externas (fora do código):** criar os produtos/preços no painel Stripe e no Google Play e preencher os ids no `.env`.
 - 2026-07-11: **`exportBasic` — Essencial ganha 1 diferencial qualitativo** (PRD melhorias pré-lançamento item 2.1, ADR-0005). Nova `PlanFeature` `exportBasic` (exportar o resumo mensal em PDF simples) entra na matriz do Essencial **e** do Profissional (`ESSENTIAL_FEATURES` em `plans.ts`, `PLAN_FEATURES.professional = essential ∪ profissional-only`). `export` (Excel + relatórios avançados) segue exclusivo do Profissional. Gate: `finance.routes.ts` — `GET /export/pdf` passa por `requireFeature(repo, "exportBasic")`, `GET /export/xlsx` continua por `requireFeature(repo, "export")` (`createFinanceRouter(useCases, exportBasicGuard?, exportGuard?, recurringGuard?)`, 4º arg agora é `recurringGuard`). Fronteira a manter (ADR-0005): se o PDF básico crescer (gráficos extras, períodos custom), isso vira `export`/Profissional — não inflar `exportBasic`.
+
 ## Atualização de tier do Catálogo — 2026-07-25
 
 Esta regra substitui as menções anteriores que colocavam `catalogPremium` e

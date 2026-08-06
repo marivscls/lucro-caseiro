@@ -52,6 +52,7 @@ No payment tables. Mapping is derived from Stripe metadata:
 - `active` and `trialing` subscriptions activate the plan; the tier comes from `subscription.metadata.tier` (fallback: match the price id; last resort `professional`, covering legacy Premium subs).
 - `canceled`, `incomplete_expired`, `paused`, and `unpaid` subscriptions deactivate the plan (back to Free).
 - `past_due` is ignored so Stripe retry settings can run without immediate downgrade.
+- A `customer.subscription.updated` event with `past_due` sends the idempotent payment-failure email while preserving the paid plan during Stripe retries.
 
 ## Operations
 
@@ -118,6 +119,7 @@ env:
 
 - `createCheckoutUrl` creates a hosted Stripe Checkout Session.
 - `handleEvent` activates/deactivates Premium via `SubscriptionUseCases`.
+- `past_due` calls `SubscriptionUseCases.notifyPaymentFailed`; plan state is unchanged.
 - Webhook handling is idempotent at the plan-state level.
 
 ## Performance
@@ -151,6 +153,7 @@ env:
 - Missing Price ID error.
 - Checkout completion activates Premium.
 - Deleted subscription deactivates Premium.
+- Past-due subscription sends the failed-payment notification using the Stripe event id as the deduplication key.
 - Unrelated events ignored.
 
 ## Examples

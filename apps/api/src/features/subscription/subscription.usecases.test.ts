@@ -11,6 +11,7 @@ import type {
   ISubscriptionRepo,
   ISubscriptionStatusProvider,
   ResourceCounts,
+  SubscriptionLifecycleNotifier,
   UpsertProfileData,
 } from "./subscription.types";
 
@@ -81,10 +82,16 @@ function makeSut(
   repoOverrides: Partial<ISubscriptionRepo> = {},
   statusProvider?: ISubscriptionStatusProvider,
   recordLifecycleEvent?: (userId: string, action: AnalyticsActionName) => Promise<void>,
+  notifyLifecycle?: SubscriptionLifecycleNotifier,
 ) {
   const repo = makeRepo(repoOverrides);
   return {
-    sut: new SubscriptionUseCases(repo, statusProvider, recordLifecycleEvent),
+    sut: new SubscriptionUseCases(
+      repo,
+      statusProvider,
+      recordLifecycleEvent,
+      notifyLifecycle,
+    ),
     repo,
   };
 }
@@ -227,6 +234,44 @@ describe("SubscriptionUseCases", () => {
       );
     });
 
+    it("notifies activation without using the profile name", async () => {
+      const notifyLifecycle = vi.fn(() => Promise.resolve());
+      const expiresAt = new Date("2026-09-06T16:13:15.823Z");
+      const { sut } = makeSut({}, undefined, undefined, notifyLifecycle);
+
+      await sut.activatePlan(USER_ID, "professional", expiresAt);
+
+      expect(notifyLifecycle).toHaveBeenCalledWith({
+        kind: "activated",
+        userId: USER_ID,
+        email: "maria@email.com",
+        plan: "professional",
+        expiresAt: expiresAt.toISOString(),
+        deduplicationKey: `professional:${expiresAt.toISOString()}`,
+      });
+    });
+
+    it("notifies renewal only when the paid expiration advances", async () => {
+      const notifyLifecycle = vi.fn(() => Promise.resolve());
+      const previous = makeProfile({
+        plan: "professional",
+        planExpiresAt: "2026-09-01T00:00:00.000Z",
+      });
+      const expiresAt = new Date("2026-10-01T00:00:00.000Z");
+      const { sut } = makeSut(
+        { getProfile: () => Promise.resolve(previous) },
+        undefined,
+        undefined,
+        notifyLifecycle,
+      );
+
+      await sut.activatePlan(USER_ID, "professional", expiresAt);
+
+      expect(notifyLifecycle).toHaveBeenCalledWith(
+        expect.objectContaining({ kind: "renewed", expiresAt: expiresAt.toISOString() }),
+      );
+    });
+
     it("throws NotFoundError when profile not found", async () => {
       const { sut } = makeSut({ updatePlan: () => Promise.resolve(null) });
       await expect(sut.activatePlan(USER_ID, "professional", null)).rejects.toThrow(
@@ -238,10 +283,12 @@ describe("SubscriptionUseCases", () => {
   describe("deactivatePlan", () => {
     it("deactivates to free plan", async () => {
       const recordLifecycleEvent = vi.fn(() => Promise.resolve());
+      const notifyLifecycle = vi.fn(() => Promise.resolve());
       const { sut } = makeSut(
         { getProfile: () => Promise.resolve(makeProfile({ plan: "essential" })) },
         undefined,
         recordLifecycleEvent,
+        notifyLifecycle,
       );
       const result = await sut.deactivatePlan(USER_ID);
       expect(result.plan).toBe("free");
@@ -249,11 +296,38 @@ describe("SubscriptionUseCases", () => {
         USER_ID,
         "subscription_cancelled",
       );
+      expect(notifyLifecycle).toHaveBeenCalledWith(
+        expect.objectContaining({ kind: "cancelled", plan: "essential" }),
+      );
     });
 
     it("throws NotFoundError when profile not found", async () => {
       const { sut } = makeSut({ updatePlan: () => Promise.resolve(null) });
       await expect(sut.deactivatePlan(USER_ID)).rejects.toThrow(NotFoundError);
+    });
+  });
+
+  describe("notifyPaymentFailed", () => {
+    it("notifies only an active paid account", async () => {
+      const notifyLifecycle = vi.fn(() => Promise.resolve());
+      const { sut } = makeSut(
+        {
+          getProfile: () => Promise.resolve(makeProfile({ plan: "professional" })),
+        },
+        undefined,
+        undefined,
+        notifyLifecycle,
+      );
+
+      await sut.notifyPaymentFailed(USER_ID, "evt_123");
+
+      expect(notifyLifecycle).toHaveBeenCalledWith(
+        expect.objectContaining({
+          kind: "payment_failed",
+          plan: "professional",
+          deduplicationKey: "evt_123",
+        }),
+      );
     });
   });
 

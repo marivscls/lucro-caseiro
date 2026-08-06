@@ -117,6 +117,8 @@ import {
 } from "./features/retail/retail.routes";
 import { RetailRepoPg } from "./features/retail/retail.repo.pg";
 import { RetailUseCases } from "./features/retail/retail.usecases";
+import { createResendEmailSender } from "./features/email/resend-email";
+import { createSubscriptionEmailNotifier } from "./features/email/subscription-lifecycle-email";
 
 // Database
 const db = createClient(config.databaseUrl);
@@ -222,6 +224,12 @@ const accountUseCases = new AccountUseCases(accountRepo, {
   },
 });
 const analyticsUseCases = new AnalyticsUseCases(new AnalyticsRepoPg(db));
+const subscriptionEmailNotifier = config.resendApiKey
+  ? createSubscriptionEmailNotifier(
+      createResendEmailSender(config.resendApiKey, config.emailFrom),
+      config.emailReplyTo || undefined,
+    )
+  : undefined;
 const marketingAi = config.googleGenerativeAiApiKey
   ? createGoogleGenerativeAI({ apiKey: config.googleGenerativeAiApiKey })
   : null;
@@ -281,6 +289,7 @@ const subscriptionUseCases = new SubscriptionUseCases(
   subscriptionRepo,
   googlePlayClient,
   (userId, action) => analyticsUseCases.recordUserAction(userId, action),
+  subscriptionEmailNotifier,
 );
 const goalsUseCases = new GoalsUseCases(
   goalsRepo,

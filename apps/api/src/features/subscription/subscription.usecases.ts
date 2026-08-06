@@ -1,6 +1,7 @@
 import type {
   AnalyticsActionName,
   FreemiumLimits,
+  PaidPlan,
   PlanType,
   UserProfile,
 } from "@lucro-caseiro/contracts";
@@ -16,8 +17,20 @@ import type {
   AndroidPurchaseData,
   ISubscriptionRepo,
   ISubscriptionStatusProvider,
+  SubscriptionLifecycleEvent,
+  SubscriptionLifecycleNotifier,
   UpsertProfileData,
 } from "./subscription.types";
+
+function isPaidPlan(plan: PlanType): plan is PaidPlan {
+  return plan === "essential" || plan === "professional";
+}
+
+function isLaterExpiration(previous: string | null, updated: string | null): boolean {
+  if (!updated) return false;
+  if (!previous) return true;
+  return new Date(updated).getTime() > new Date(previous).getTime();
+}
 
 export class SubscriptionUseCases {
   constructor(
@@ -27,6 +40,7 @@ export class SubscriptionUseCases {
       userId: string,
       action: AnalyticsActionName,
     ) => Promise<void>,
+    private notifyLifecycle?: SubscriptionLifecycleNotifier,
   ) {}
 
   async getProfile(userId: string): Promise<UserProfile> {
@@ -93,12 +107,41 @@ export class SubscriptionUseCases {
     if (!updated) {
       throw new NotFoundError("Perfil não encontrado");
     }
-    if (
-      previous &&
-      resolvePlan(previous.plan, previous.planExpiresAt) === "free" &&
-      resolvePlan(updated.plan, updated.planExpiresAt) !== "free"
-    ) {
+    const previousPlan = previous
+      ? resolvePlan(previous.plan, previous.planExpiresAt)
+      : "free";
+    const activePlan = resolvePlan(updated.plan, updated.planExpiresAt);
+
+    if (previous && previousPlan === "free" && isPaidPlan(activePlan)) {
       await this.recordLifecycleEvent?.(userId, "subscription_completed");
+      await this.sendLifecycleNotification({
+        kind: "activated",
+        userId,
+        email: updated.email,
+        plan: activePlan,
+        expiresAt: updated.planExpiresAt,
+        deduplicationKey: `${activePlan}:${updated.planExpiresAt ?? "none"}`,
+      });
+    } else if (previous && isPaidPlan(previousPlan) && isPaidPlan(activePlan)) {
+      if (previousPlan !== activePlan) {
+        await this.sendLifecycleNotification({
+          kind: "activated",
+          userId,
+          email: updated.email,
+          plan: activePlan,
+          expiresAt: updated.planExpiresAt,
+          deduplicationKey: `${activePlan}:${updated.planExpiresAt ?? "none"}`,
+        });
+      } else if (isLaterExpiration(previous.planExpiresAt, updated.planExpiresAt)) {
+        await this.sendLifecycleNotification({
+          kind: "renewed",
+          userId,
+          email: updated.email,
+          plan: activePlan,
+          expiresAt: updated.planExpiresAt,
+          deduplicationKey: `${activePlan}:${updated.planExpiresAt}`,
+        });
+      }
     }
     return updated;
   }
@@ -111,8 +154,35 @@ export class SubscriptionUseCases {
     }
     if (previous && resolvePlan(previous.plan, previous.planExpiresAt) !== "free") {
       await this.recordLifecycleEvent?.(userId, "subscription_cancelled");
+      const previousPlan = resolvePlan(previous.plan, previous.planExpiresAt);
+      if (isPaidPlan(previousPlan)) {
+        await this.sendLifecycleNotification({
+          kind: "cancelled",
+          userId,
+          email: previous.email,
+          plan: previousPlan,
+          expiresAt: null,
+          deduplicationKey: `${previousPlan}:${previous.planExpiresAt ?? "none"}`,
+        });
+      }
     }
     return updated;
+  }
+
+  async notifyPaymentFailed(userId: string, deduplicationKey: string): Promise<void> {
+    const profile = await this.repo.getProfile(userId);
+    if (!profile) return;
+    const activePlan = resolvePlan(profile.plan, profile.planExpiresAt);
+    if (!isPaidPlan(activePlan)) return;
+
+    await this.sendLifecycleNotification({
+      kind: "payment_failed",
+      userId,
+      email: profile.email,
+      plan: activePlan,
+      expiresAt: profile.planExpiresAt,
+      deduplicationKey,
+    });
   }
 
   async syncPlanFromProvider(
@@ -148,5 +218,20 @@ export class SubscriptionUseCases {
     }
 
     return this.getProfile(userId);
+  }
+
+  private async sendLifecycleNotification(
+    event: SubscriptionLifecycleEvent,
+  ): Promise<void> {
+    if (!this.notifyLifecycle) return;
+    try {
+      await this.notifyLifecycle(event);
+    } catch (error) {
+      console.error("Subscription lifecycle email failed", {
+        kind: event.kind,
+        userId: event.userId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   }
 }

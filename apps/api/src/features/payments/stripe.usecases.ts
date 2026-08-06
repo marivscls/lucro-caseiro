@@ -77,6 +77,13 @@ export class StripeUseCases {
       const userId = getStripeSubscriptionUserId(stripeSubscription);
       if (!userId) return;
 
+      if (
+        event.type === "customer.subscription.updated" &&
+        stripeSubscription.status === "past_due"
+      ) {
+        await this.subscription.notifyPaymentFailed(userId, event.id);
+      }
+
       await this.applySubscriptionState(userId, stripeSubscription);
     }
   }

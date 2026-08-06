@@ -1,4 +1,23 @@
-import type { PlanType, UserProfile } from "@lucro-caseiro/contracts";
+import type { PaidPlan, PlanType, UserProfile } from "@lucro-caseiro/contracts";
+
+export type SubscriptionLifecycleKind =
+  | "activated"
+  | "renewed"
+  | "payment_failed"
+  | "cancelled";
+
+export interface SubscriptionLifecycleEvent {
+  kind: SubscriptionLifecycleKind;
+  userId: string;
+  email: string;
+  plan: PaidPlan;
+  expiresAt: string | null;
+  deduplicationKey: string;
+}
+
+export type SubscriptionLifecycleNotifier = (
+  event: SubscriptionLifecycleEvent,
+) => Promise<void>;
 
 export interface ISubscriptionRepo {
   getProfile(userId: string): Promise<UserProfile | null>;

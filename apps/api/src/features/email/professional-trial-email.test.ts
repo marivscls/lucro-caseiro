@@ -34,5 +34,8 @@ describe("buildProfessionalTrialEmail", () => {
     expect(content.html).toContain('href="lucrocaseiro://"');
     expect(content.html).not.toContain('href="https://app.lucrocaseiro.com.br"');
     expect(content.html).not.toContain("teste de envio");
+    expect(content.text.startsWith("Oi!\n")).toBe(true);
+    expect(content.html).toContain(">Oi!</p>");
+    expect(`${content.text}\n${content.html}`).not.toContain("Mariana");
   });
 });
