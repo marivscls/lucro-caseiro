@@ -33,6 +33,25 @@ Lista completa em [apps/api/.env.example](../apps/api/.env.example). Resumo:
 | `STRIPE_PRICE_PROFESSIONAL_ANNUAL_ID`  | sim         | Price anual do Profissional (`price_...`)                    |
 | `STRIPE_SUCCESS_URL`                   | sim         | URL de retorno apos checkout aprovado                        |
 | `STRIPE_CANCEL_URL`                    | sim         | URL de retorno apos checkout cancelado                       |
+| `RESEND_API_KEY`                       | nao         | Chave backend do Resend para e-mail transacional             |
+| `EMAIL_FROM`                           | nao         | Remetente em dominio verificado no Resend                    |
+| `EMAIL_REPLY_TO`                       | nao         | Endereco opcional que recebe respostas                       |
+
+---
+
+## E-mail transacional (Resend)
+
+`lucrocaseiro.com.br` ja esta verificado no Resend, na regiao de Sao Paulo (`sa-east-1`). Nao altere os registros DNS nem as chaves `supabase-smtp` e `Onboarding` existentes.
+
+1. Crie uma API key separada com permissao **Sending access**, restrita a `lucrocaseiro.com.br`, e grave-a somente como `RESEND_API_KEY` no servico `@lucro-caseiro/api` do Railway.
+2. Configure `EMAIL_FROM=Lucro Caseiro <notificacoes@lucrocaseiro.com.br>`. Defina `EMAIL_REPLY_TO` apenas quando houver uma caixa real para receber respostas.
+3. Valide uma unica entrega, de forma explicita:
+
+   ```bash
+   pnpm --filter @lucro-caseiro/api email:test -- pessoa@example.com --confirm
+   ```
+
+O probe usa uma chave de idempotencia por destinatario e dia UTC. Repetir o mesmo comando no mesmo dia nao deve gerar uma segunda mensagem.
 
 ---
 

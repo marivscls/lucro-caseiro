@@ -27,6 +27,9 @@ const baseEnvSchema = z.object({
   STRIPE_PRICE_PROFESSIONAL_ANNUAL_ID: z.string().default(""),
   STRIPE_SUCCESS_URL: z.string().default("https://lucrocaseiro.app/checkout/success"),
   STRIPE_CANCEL_URL: z.string().default("https://lucrocaseiro.app/checkout/cancel"),
+  RESEND_API_KEY: z.string().default(""),
+  EMAIL_FROM: z.string().default("Lucro Caseiro <notificacoes@lucrocaseiro.com.br>"),
+  EMAIL_REPLY_TO: z.string().default(""),
 });
 
 const envSchema = baseEnvSchema.superRefine((env, ctx) => {
@@ -107,4 +110,7 @@ export const config = {
   },
   stripeSuccessUrl: parsed.data.STRIPE_SUCCESS_URL,
   stripeCancelUrl: parsed.data.STRIPE_CANCEL_URL,
+  resendApiKey: parsed.data.RESEND_API_KEY,
+  emailFrom: parsed.data.EMAIL_FROM,
+  emailReplyTo: parsed.data.EMAIL_REPLY_TO,
 };
