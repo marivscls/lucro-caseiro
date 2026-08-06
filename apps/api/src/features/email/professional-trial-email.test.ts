@@ -29,7 +29,8 @@ describe("buildProfessionalTrialEmail", () => {
     expect(content.html).toContain(theme.primaryStrong);
     expect(content.html).toContain(theme.primarySoft);
     expect(content.text).toContain("Esse presente não gera cobrança automática");
-    expect(content.text).toContain("https://app.lucrocaseiro.com.br");
+    expect(content.html).toContain('href="lucrocaseiro://"');
+    expect(content.html).not.toContain('href="https://app.lucrocaseiro.com.br"');
     expect(content.html).not.toContain("teste de envio");
   });
 });

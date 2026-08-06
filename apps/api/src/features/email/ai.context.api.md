@@ -37,6 +37,7 @@ No database table is used. Resend returns a provider message id for operational 
 - Transactional sending uses the already verified `lucrocaseiro.com.br` domain.
 - Existing `supabase-smtp` and `Onboarding` keys are not reused or changed; the API gets its own domain-restricted sending key.
 - Branded HTML uses the canonical `@lucro-caseiro/brands` palette and loads dedicated illustrations from public HTTPS assets on `lucrocaseiro.com.br`; images must not be email attachments because Gmail exposes them as downloadable files.
+- The primary CTA uses the existing production native scheme `lucrocaseiro://`; it must not point to the PWA URL.
 
 ## Operations
 

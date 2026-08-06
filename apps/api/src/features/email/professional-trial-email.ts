@@ -34,7 +34,7 @@ export function buildProfessionalTrialEmail(): {
       "",
       "Esse presente n\u00e3o gera cobran\u00e7a autom\u00e1tica. Quando o per\u00edodo terminar, voc\u00ea poder\u00e1 escolher se quer continuar no Profissional.",
       "",
-      "Explore seu plano: https://app.lucrocaseiro.com.br",
+      "Abra o aplicativo Lucro Caseiro no seu celular para explorar seu plano.",
       "",
       "Aproveite ao m\u00e1ximo!",
       "Esse \u00e9 o nosso jeito de agradecer por confiar no Lucro Caseiro.",
@@ -159,7 +159,7 @@ export function buildProfessionalTrialEmail(): {
                                   <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="right">
                                     <tr>
                                       <td bgcolor="${primary}" style="background-color:${primary};background-image:linear-gradient(135deg,${primaryStrong},${primary});border-radius:11px">
-                                        <a href="https://app.lucrocaseiro.com.br" style="display:inline-block;padding:14px 24px;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none">Explorar meu plano</a>
+                                        <a href="lucrocaseiro://" style="display:inline-block;padding:14px 24px;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none">Explorar meu plano</a>
                                       </td>
                                     </tr>
                                   </table>
