@@ -20,7 +20,8 @@ export function buildProfessionalTrialEmail(): {
   const background = theme.background ?? "#FAFAF8";
 
   return {
-    subject: "Voc\u00ea ganhou 1 m\u00eas de Profissional gr\u00e1tis \ud83c\udf81",
+    subject:
+      "Um presente para o seu neg\u00f3cio: 1 m\u00eas de Profissional \ud83c\udf81",
     text: [
       "Oi!",
       "",

@@ -11,11 +11,13 @@ import {
 } from "./professional-trial-email";
 
 describe("buildProfessionalTrialEmail", () => {
-  it("usa conteúdo final, logo inline e paleta canônica", () => {
+  it("usa conteudo final, assets HTTPS e paleta canonica", () => {
     const content = buildProfessionalTrialEmail();
     const { theme } = resolveBrand("lucro-caseiro");
 
-    expect(content.subject).toContain("1 mês de Profissional grátis");
+    expect(content.subject).toBe(
+      "Um presente para o seu neg\u00f3cio: 1 m\u00eas de Profissional \ud83c\udf81",
+    );
     expect(content.html).toContain("PRESENTE ESPECIAL");
     expect(content.html).toContain(PROFESSIONAL_TRIAL_GIFT_URL);
     expect(content.html).toContain(PROFESSIONAL_TRIAL_DASHBOARD_URL);

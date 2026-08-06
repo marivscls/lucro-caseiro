@@ -15,7 +15,7 @@ const sendEmail = createResendEmailSender(config.resendApiKey, config.emailFrom)
 const result = await sendEmail({
   to: recipient,
   ...content,
-  idempotencyKey: `professional-trial-preview-v7-${date}-${recipientHash}`,
+  idempotencyKey: `professional-trial-preview-v8-${date}-${recipientHash}`,
   ...(config.emailReplyTo ? { replyTo: config.emailReplyTo } : {}),
 });
 
