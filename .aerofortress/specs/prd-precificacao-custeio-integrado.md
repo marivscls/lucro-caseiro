@@ -1,6 +1,6 @@
 # PRD — Precificação com custeio integrado e preços por canal
 
-**Status:** implementado no código; migração preparada para o deploy
+**Status:** publicado em produção
 **Data:** 2026-08-08
 **Produto:** Lucro Caseiro — Android e PWA
 **Responsável:** Produto e Engenharia
@@ -190,7 +190,7 @@ e exigirá uma ação explícita antes de entrar no cálculo.
 - Contracts, migration, schema, API, mobile e testes entregues.
 - Contextos técnicos de Pricing atualizados.
 - PRD indexado na rede de conhecimento.
-- Migration criada, mas não aplicada externamente.
+- Migration criada e aplicada no Supabase de produção.
 - Revisão final confirma os scars: sem premissas silenciosas, sem chamar markup de margem e sem
   bloquear “Salvar e criar produto” na persistência remota.
 
@@ -200,4 +200,10 @@ e exigirá uma ação explícita antes de entrar no cálculo.
 - 712 testes da API e 427 testes do app aprovados em 2026-08-08.
 - Typecheck de contracts, database, API e mobile aprovado.
 - Lint de API e mobile, context lint e build PWA `lucro-caseiro` aprovados.
-- A migration foi criada no repositório e não foi aplicada em banco externo nesta sessão.
+- A migration 051 foi aplicada no Supabase `ujwxvpceqigvyxcqolch`; as novas colunas e a tabela
+  `pricing_preferences` foram verificadas após a transação.
+- API e PWA publicadas pelo commit `93839a0`; deploys Railway
+  `aa904abf-5100-4a80-8370-b776fbcd2b7c` e `113913d5-1c43-49e3-b41e-2042b050004a` concluídos
+  com sucesso.
+- Smoke de produção confirmou health da API, HTML, bundle com as novas telas e service worker em
+  HTTP 200.
