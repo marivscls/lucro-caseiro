@@ -266,6 +266,15 @@ function AppContent() {
             }}
           />
           <Stack.Screen
+            name="buy-materials"
+            options={{
+              headerShown: !showDesktopShell,
+              title: "Comprar insumos",
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.text,
+            }}
+          />
+          <Stack.Screen
             name="finance"
             options={{
               headerShown: !showDesktopShell,

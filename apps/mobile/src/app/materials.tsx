@@ -10,14 +10,14 @@ import {
   radii,
 } from "@lucro-caseiro/ui";
 import { AppIcon } from "../shared/components/app-icon";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
-import { Image, Pressable, ScrollView, Share, TextInput, View } from "react-native";
+import { Image, Pressable, ScrollView, TextInput, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { MaterialCard } from "../features/materials/components/material-card";
 import { MaterialForm } from "../features/materials/components/material-form";
-import { buildShoppingList, isLowStock } from "../features/materials/domain";
+import { isLowStock } from "../features/materials/domain";
 import { useLowStockMaterials, useMaterials } from "../features/materials/hooks";
 import materialsEmpty from "../assets/materials-empty.png";
 import { useNotificationEnabled } from "../shared/hooks/notification-prefs";
@@ -35,15 +35,11 @@ import { FAB } from "../shared/components/fab";
 
 function LowStockBanner() {
   const { theme } = useTheme();
+  const router = useRouter();
   const { data } = useLowStockMaterials();
   const enabled = useNotificationEnabled(NOTIFICATION_TYPES.LOW_STOCK);
   // Respeita a preferência "Estoque baixo" das configurações (igual a Produtos).
   if (!enabled || !data || data.length === 0) return null;
-
-  function shareList() {
-    if (!data) return;
-    void Share.share({ message: buildShoppingList(data) });
-  }
 
   return (
     <View
@@ -81,9 +77,9 @@ function LowStockBanner() {
         </Typography>
       </View>
       <Pressable
-        onPress={shareList}
+        onPress={() => router.push("/buy-materials")}
         accessibilityRole="button"
-        accessibilityLabel="Compartilhar lista de compras"
+        accessibilityLabel="Ver lista de compras de insumos"
         style={{
           flexDirection: "row",
           alignItems: "center",
@@ -101,7 +97,7 @@ function LowStockBanner() {
           color={theme.colors.primaryStrong}
           style={{ fontSize: fontSizes.sm }}
         >
-          Lista
+          Ver lista de compras
         </Typography>
       </Pressable>
     </View>

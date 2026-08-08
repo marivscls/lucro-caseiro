@@ -38,10 +38,39 @@ export function formatCost(value: number, unit: string): string {
 
 /** Monta uma lista de compras (texto pronto p/ compartilhar) a partir de insumos baixos/zerados. */
 export function buildShoppingList(items: Material[]): string {
-  const lines = items.map((m) => {
-    const status =
-      m.stockQuantity <= 0 ? "acabou" : `tem ${formatQty(m.stockQuantity)} ${m.unit}`;
-    return `• ${m.name} (${status})`;
-  });
-  return `🛒 Lista de compras\n\n${lines.join("\n")}`;
+  const { outOfStock, lowStock } = groupShoppingListItems(items);
+
+  function section(title: string, sectionItems: Material[]): string[] {
+    if (sectionItems.length === 0) return [];
+    return [
+      title,
+      ...sectionItems.map((material) => {
+        const current = `${formatQty(material.stockQuantity)} ${material.unit}`;
+        const minimum =
+          material.stockAlertThreshold == null
+            ? "não definido"
+            : `${formatQty(material.stockAlertThreshold)} ${material.unit}`;
+        return `• ${material.name} — atual: ${current} · mínimo: ${minimum}`;
+      }),
+    ];
+  }
+
+  return [
+    "🛒 Lista de compras de insumos",
+    "",
+    ...section("SEM ESTOQUE", outOfStock),
+    ...(outOfStock.length > 0 && lowStock.length > 0 ? [""] : []),
+    ...section("ESTOQUE BAIXO", lowStock),
+  ].join("\n");
+}
+
+/** Separa a lista de compra pela urgência sem misturar produtos acabados. */
+export function groupShoppingListItems(items: Material[]): {
+  outOfStock: Material[];
+  lowStock: Material[];
+} {
+  return {
+    outOfStock: items.filter((material) => material.stockQuantity <= 0),
+    lowStock: items.filter((material) => material.stockQuantity > 0),
+  };
 }

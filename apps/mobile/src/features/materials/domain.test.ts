@@ -2,9 +2,11 @@ import type { Material } from "@lucro-caseiro/contracts";
 import { describe, expect, it } from "vitest";
 
 import {
+  buildShoppingList,
   currentStockLabel,
   formatCost,
   formatQty,
+  groupShoppingListItems,
   isLowStock,
   stockBadge,
 } from "./domain";
@@ -78,5 +80,41 @@ describe("formatQty", () => {
 describe("formatCost", () => {
   it("formats currency per unit", () => {
     expect(formatCost(4.5, "kg")).toBe("R$ 4,50/kg");
+  });
+});
+
+describe("lista de compras de insumos", () => {
+  const flour = makeMaterial({
+    id: "flour",
+    name: "Farinha",
+    stockQuantity: 0,
+    stockAlertThreshold: 3,
+  });
+  const sugar = makeMaterial({
+    id: "sugar",
+    name: "Açúcar",
+    stockQuantity: 1.5,
+    stockAlertThreshold: 2,
+  });
+
+  it("separa itens sem estoque dos itens com estoque baixo", () => {
+    expect(groupShoppingListItems([sugar, flour])).toEqual({
+      outOfStock: [flour],
+      lowStock: [sugar],
+    });
+  });
+
+  it("inclui estoque atual e mínimo no texto compartilhado", () => {
+    expect(buildShoppingList([sugar, flour])).toBe(
+      [
+        "🛒 Lista de compras de insumos",
+        "",
+        "SEM ESTOQUE",
+        "• Farinha — atual: 0 kg · mínimo: 3 kg",
+        "",
+        "ESTOQUE BAIXO",
+        "• Açúcar — atual: 1,5 kg · mínimo: 2 kg",
+      ].join("\n"),
+    );
   });
 });
