@@ -5,10 +5,14 @@ import {
   fixedCostShare,
   laborCost,
   laborCostPerUnit,
+  overheadPercent,
+  revenueCosting,
   profitMarkupPercent,
   profitPerUnit,
   suggestedPrice,
   totalCost,
+  averagePositiveRevenue,
+  previousCompletedMonths,
 } from "./calc";
 
 describe("laborCost", () => {
@@ -32,6 +36,39 @@ describe("fixedCostShare", () => {
     expect(fixedCostShare(300, 100)).toBe(3);
     expect(fixedCostShare(300, 0)).toBe(0);
     expect(fixedCostShare(0, 100)).toBe(0);
+  });
+});
+
+describe("overheadPercent", () => {
+  it("calcula a taxa usando custos confirmados e base de faturamento", () => {
+    expect(overheadPercent(10_000, 50_000)).toBe(20);
+    expect(overheadPercent(10_000, 0)).toBe(0);
+  });
+});
+
+describe("revenueCosting", () => {
+  it("reserva custeio sem consumir o lucro desejado", () => {
+    const result = revenueCosting(100, 50, 20);
+    expect(result.suggestedPrice).toBe(187.5);
+    expect(result.overheadAmount).toBe(37.5);
+    expect(result.totalCost).toBe(137.5);
+    expect(result.profitAmount).toBe(50);
+    expect(result.suggestedPrice - result.totalCost).toBe(50);
+  });
+});
+
+describe("referências de faturamento", () => {
+  it("gera os três meses completos anteriores cruzando o ano", () => {
+    expect(previousCompletedMonths(new Date(2026, 1, 15))).toEqual([
+      { month: 1, year: 2026, key: "2026-01" },
+      { month: 12, year: 2025, key: "2025-12" },
+      { month: 11, year: 2025, key: "2025-11" },
+    ]);
+  });
+
+  it("ignora meses sem faturamento na média", () => {
+    expect(averagePositiveRevenue([10_000, 0, 20_000])).toBe(15_000);
+    expect(averagePositiveRevenue([0, 0])).toBe(0);
   });
 });
 

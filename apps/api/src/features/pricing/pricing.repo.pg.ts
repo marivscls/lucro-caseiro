@@ -1,5 +1,9 @@
-import type { Pricing } from "@lucro-caseiro/contracts";
-import { pricingCalculations } from "@lucro-caseiro/database/schema";
+import type {
+  Pricing,
+  PricingPreferences,
+  UpsertPricingPreferences,
+} from "@lucro-caseiro/contracts";
+import { pricingCalculations, pricingPreferences } from "@lucro-caseiro/database/schema";
 import { and, count, eq, sql } from "drizzle-orm";
 import type { AppDatabase } from "../../shared/db";
 import type { CreatePricingData, FindAllOpts, IPricingRepo } from "./pricing.types";
@@ -23,6 +27,12 @@ export class PricingRepoPg implements IPricingRepo {
         feesPercent: String(data.feesPercent),
         feesAmount: String(data.feesAmount),
         finalPrice: String(data.finalPrice),
+        allocationMode: data.allocationMode,
+        monthlyFixedCosts:
+          data.monthlyFixedCosts != null ? String(data.monthlyFixedCosts) : null,
+        revenueBasis: data.revenueBasis != null ? String(data.revenueBasis) : null,
+        overheadPercent: String(data.overheadPercent),
+        channelName: data.channelName ?? null,
       })
       .returning();
 
@@ -83,6 +93,29 @@ export class PricingRepoPg implements IPricingRepo {
     return rows.map((r) => this.toPricing(r));
   }
 
+  async getPreferences(userId: string): Promise<PricingPreferences | null> {
+    const [row] = await this.db
+      .select()
+      .from(pricingPreferences)
+      .where(eq(pricingPreferences.userId, userId));
+    return row ? this.toPreferences(row) : null;
+  }
+
+  async upsertPreferences(
+    userId: string,
+    data: UpsertPricingPreferences,
+  ): Promise<PricingPreferences> {
+    const [row] = await this.db
+      .insert(pricingPreferences)
+      .values({ userId, channelFees: data.channelFees, updatedAt: new Date() })
+      .onConflictDoUpdate({
+        target: pricingPreferences.userId,
+        set: { channelFees: data.channelFees, updatedAt: new Date() },
+      })
+      .returning();
+    return this.toPreferences(row!);
+  }
+
   private toPricing(row: typeof pricingCalculations.$inferSelect): Pricing {
     return {
       id: row.id,
@@ -98,7 +131,21 @@ export class PricingRepoPg implements IPricingRepo {
       feesPercent: Number(row.feesPercent),
       feesAmount: Number(row.feesAmount),
       finalPrice: Number(row.finalPrice),
+      allocationMode: row.allocationMode as Pricing["allocationMode"],
+      monthlyFixedCosts:
+        row.monthlyFixedCosts != null ? Number(row.monthlyFixedCosts) : null,
+      revenueBasis: row.revenueBasis != null ? Number(row.revenueBasis) : null,
+      overheadPercent: Number(row.overheadPercent),
+      channelName: row.channelName,
       createdAt: row.createdAt.toISOString(),
+    };
+  }
+
+  private toPreferences(row: typeof pricingPreferences.$inferSelect): PricingPreferences {
+    return {
+      userId: row.userId,
+      channelFees: row.channelFees,
+      updatedAt: row.updatedAt.toISOString(),
     };
   }
 }

@@ -1,4 +1,9 @@
-import type { Pricing } from "@lucro-caseiro/contracts";
+import type {
+  Pricing,
+  PricingAllocationMode,
+  PricingPreferences,
+  UpsertPricingPreferences,
+} from "@lucro-caseiro/contracts";
 
 export interface IPricingRepo {
   create(userId: string, data: CreatePricingData): Promise<Pricing>;
@@ -8,6 +13,11 @@ export interface IPricingRepo {
     opts: FindAllOpts,
   ): Promise<{ items: Pricing[]; total: number }>;
   findByProduct(userId: string, productId: string): Promise<Pricing[]>;
+  getPreferences(userId: string): Promise<PricingPreferences | null>;
+  upsertPreferences(
+    userId: string,
+    data: UpsertPricingPreferences,
+  ): Promise<PricingPreferences>;
 }
 
 export interface CreatePricingData {
@@ -22,6 +32,11 @@ export interface CreatePricingData {
   feesPercent: number;
   feesAmount: number;
   finalPrice: number;
+  allocationMode: PricingAllocationMode;
+  monthlyFixedCosts?: number;
+  revenueBasis?: number;
+  overheadPercent: number;
+  channelName?: string;
 }
 
 export interface FindAllOpts {

@@ -1,4 +1,9 @@
-import type { CreatePricing, Pricing } from "@lucro-caseiro/contracts";
+import type {
+  CreatePricing,
+  Pricing,
+  PricingPreferences,
+  UpsertPricingPreferences,
+} from "@lucro-caseiro/contracts";
 
 import { apiClient } from "../../shared/utils/api-client";
 
@@ -24,6 +29,23 @@ export async function fetchPricingHistory(
 
 export async function fetchPricing(token: string, id: string): Promise<Pricing> {
   return apiClient<Pricing>(`${BASE}/${id}`, { token });
+}
+
+export async function fetchPricingPreferences(
+  token: string,
+): Promise<PricingPreferences> {
+  return apiClient<PricingPreferences>(`${BASE}/preferences`, { token });
+}
+
+export async function updatePricingPreferences(
+  token: string,
+  data: UpsertPricingPreferences,
+): Promise<PricingPreferences> {
+  return apiClient<PricingPreferences>(`${BASE}/preferences`, {
+    method: "PUT",
+    body: data,
+    token,
+  });
 }
 
 interface PaginatedPricing {

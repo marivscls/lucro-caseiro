@@ -1,4 +1,4 @@
-import { decimal, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
+import { decimal, jsonb, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
 import { products } from "./products";
 import { users } from "./users";
@@ -22,5 +22,23 @@ export const pricingCalculations = pgTable("pricing_calculations", {
   feesPercent: decimal("fees_percent", { precision: 5, scale: 2 }).notNull().default("0"),
   feesAmount: decimal("fees_amount", { precision: 10, scale: 2 }).notNull().default("0"),
   finalPrice: decimal("final_price", { precision: 10, scale: 2 }).notNull().default("0"),
+  allocationMode: varchar("allocation_mode", { length: 20 }).notNull().default("unit"),
+  monthlyFixedCosts: decimal("monthly_fixed_costs", { precision: 12, scale: 2 }),
+  revenueBasis: decimal("revenue_basis", { precision: 12, scale: 2 }),
+  overheadPercent: decimal("overhead_percent", { precision: 5, scale: 2 })
+    .notNull()
+    .default("0"),
+  channelName: varchar("channel_name", { length: 60 }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const pricingPreferences = pgTable("pricing_preferences", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  channelFees: jsonb("channel_fees")
+    .$type<Array<{ id: string; name: string; percent: number }>>()
+    .notNull()
+    .default([]),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

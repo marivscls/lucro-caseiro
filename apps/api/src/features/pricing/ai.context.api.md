@@ -33,26 +33,37 @@ Calcular e armazenar precificacao de produtos do negocio, somando custos de ingr
 
 ### Tabela: `pricing_calculations`
 
-| Coluna         | Tipo      | Constraints                    |
-| -------------- | --------- | ------------------------------ |
-| id             | uuid      | PK                             |
-| userId         | uuid      | FK users, NOT NULL             |
-| productId      | uuid      | nullable, FK products          |
-| ingredientCost | decimal   | NOT NULL                       |
-| packagingCost  | decimal   | NOT NULL                       |
-| laborCost      | decimal   | NOT NULL                       |
-| fixedCostShare | decimal   | NOT NULL                       |
-| totalCost      | decimal   | NOT NULL (calculado)           |
-| marginPercent  | decimal   | NOT NULL                       |
-| suggestedPrice | decimal   | NOT NULL (calculado)           |
-| feesPercent    | decimal   | NOT NULL default 0             |
-| feesAmount     | decimal   | NOT NULL default 0 (calculado) |
-| finalPrice     | decimal   | NOT NULL default 0 (calculado) |
-| createdAt      | timestamp | default now()                  |
+| Coluna            | Tipo      | Constraints                    |
+| ----------------- | --------- | ------------------------------ |
+| id                | uuid      | PK                             |
+| userId            | uuid      | FK users, NOT NULL             |
+| productId         | uuid      | nullable, FK products          |
+| ingredientCost    | decimal   | NOT NULL                       |
+| packagingCost     | decimal   | NOT NULL                       |
+| laborCost         | decimal   | NOT NULL                       |
+| fixedCostShare    | decimal   | NOT NULL                       |
+| totalCost         | decimal   | NOT NULL (calculado)           |
+| marginPercent     | decimal   | NOT NULL                       |
+| suggestedPrice    | decimal   | NOT NULL (calculado)           |
+| feesPercent       | decimal   | NOT NULL default 0             |
+| feesAmount        | decimal   | NOT NULL default 0 (calculado) |
+| finalPrice        | decimal   | NOT NULL default 0 (calculado) |
+| allocationMode    | varchar   | NOT NULL default `unit`        |
+| monthlyFixedCosts | decimal   | nullable                       |
+| revenueBasis      | decimal   | nullable                       |
+| overheadPercent   | decimal   | NOT NULL default 0             |
+| channelName       | varchar   | nullable                       |
+| createdAt         | timestamp | default now()                  |
 
-> `feesPercent` = soma das taxas % sobre a venda (iFood, cartão...). `finalPrice` e
+> `feesPercent` = taxa do perfil de canal escolhido (uma alternativa por cálculo). `finalPrice` e
 > `feesAmount` são derivados via **gross-up** (ver Invariants). Colunas adicionadas na
 > migration `004_pricing_percentage_fees.sql` (existentes: `final_price = suggested_price`).
+
+### Tabela: `pricing_preferences`
+
+- Uma linha por usuário (`userId` PK).
+- `channelFees` JSONB guarda até oito perfis `{ id, name, percent }`.
+- GET retorna defaults iFood/Cartão sem criar linha; PUT persiste por upsert.
 
 ## Invariants
 
@@ -65,6 +76,9 @@ Calcular e armazenar precificacao de produtos do negocio, somando custos de ingr
 - finalPrice = suggestedPrice / (1 - feesPercent / 100) — **gross-up**: a taxa incide
   sobre a venda, não sobre o custo; preserva a margem (vendedor recebe `suggestedPrice`)
 - feesAmount = finalPrice - suggestedPrice
+- No modo `revenue`: `overheadPercent = monthlyFixedCosts / revenueBasis × 100`, menor que 95%;
+  `precoBase = (custoDireto + lucroAlvo) / (1 - overheadPercent/100)`; o custo indireto é reservado
+  sem consumir o lucro alvo.
 - Toda query escopada por `userId`
 
 ## Operations
@@ -88,6 +102,13 @@ api:
     - method: GET
       path: /:id
       response: Pricing
+    - method: GET
+      path: /preferences
+      response: PricingPreferences
+    - method: PUT
+      path: /preferences
+      dto: UpsertPricingPreferencesDto
+      response: PricingPreferences
     - method: GET
       path: /product/:productId/history
       response: Pricing[]
@@ -119,8 +140,9 @@ invariants:
 
 ## Contracts (Zod/DTO)
 
-- **CreatePricingDto**: `{ productId?, ingredientCost, packagingCost, laborCost, fixedCostShare, marginPercent, feesPercent? (0–95) }`
-- **Pricing**: `{ id, userId, productId, ingredientCost, packagingCost, laborCost, fixedCostShare, totalCost, marginPercent, suggestedPrice, feesPercent, feesAmount, finalPrice, createdAt }`
+- **CreatePricingDto**: custos + acréscimo, taxa/canal e bases opcionais para `allocationMode=revenue`.
+- **Pricing**: preserva os campos anteriores e registra forma de rateio, bases, taxa de custeio e canal.
+- **UpsertPricingPreferencesDto**: `{ channelFees: PricingChannelFee[] }` (máximo 8).
 
 ## Errors
 
@@ -178,13 +200,17 @@ GET /api/v1/pricing/product/prod-1/history
 
 ## Change log / Decisions
 
+- 2026-08-08: migration `051_pricing_costing_preferences.sql` adicionou custeio por faturamento,
+  evidências históricas e preferências de canal. O servidor calcula a taxa e permanece autoridade;
+  cálculos antigos usam `allocationMode=unit`. Perfis são alternativas, não percentuais somados.
+
 - 2026-07-16: `calculateTotalCost`, `calculateSuggestedPrice`, `calculateProfitPerUnit` e
   gross-up de taxas passaram a consumir a fonte única em `@lucro-caseiro/contracts`, também usada
   pela calculadora pública e pelo mobile; validação e persistência continuam no domínio da API.
 - Criacao inicial com calculo + historico
 - Pricing e append-only (sem update/delete) para manter historico
 - Funcao `calculateProfitPerUnit` disponivel no dominio mas nao exposta via API
-- **Taxas/despesas em % (iFood, cartão)**: `feesPercent` opcional no calculo. Aplicado via
+- **Taxa do canal em % (iFood, cartão, marketplace)**: `feesPercent` opcional no calculo. Aplicado via
   **gross-up** (`finalPrice = suggestedPrice / (1 - feesPercent/100)`) para que a taxa
   incida sobre a venda e a margem do vendedor seja preservada. Somar `preço × taxa%` ao
   custo estaria errado (subestima). Colunas `fees_percent/fees_amount/final_price` na

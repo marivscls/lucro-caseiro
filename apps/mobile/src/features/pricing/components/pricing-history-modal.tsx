@@ -75,6 +75,16 @@ function PricingHistoryCard({
             <Typography variant="caption" color={theme.colors.textSecondary}>
               {new Date(item.createdAt).toLocaleDateString("pt-BR")}
             </Typography>
+            {item.channelName || item.allocationMode === "revenue" ? (
+              <Typography variant="caption" color={theme.colors.textSecondary}>
+                {[
+                  item.allocationMode === "revenue" ? "Custeio por faturamento" : null,
+                  item.channelName ? `Canal: ${item.channelName}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </Typography>
+            ) : null}
           </View>
           <Typography variant="h3" color={theme.colors.success}>
             {formatCurrency(price)}

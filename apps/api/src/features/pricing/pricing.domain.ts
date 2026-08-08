@@ -1,6 +1,8 @@
 import {
   finalPriceWithFees,
+  overheadPercent,
   profitPerUnit,
+  revenueCosting,
   suggestedPrice,
   totalCost,
 } from "@lucro-caseiro/contracts";
@@ -8,6 +10,8 @@ import {
 export const calculateTotalCost = totalCost;
 export const calculateSuggestedPrice = suggestedPrice;
 export const calculateProfitPerUnit = profitPerUnit;
+export const calculateOverheadPercent = overheadPercent;
+export const calculateRevenueCosting = revenueCosting;
 
 /**
  * Aplica taxas percentuais (iFood, cartão, comissão) sobre o PREÇO DE VENDA — não
@@ -32,6 +36,9 @@ interface PricingInput {
   fixedCostShare: number;
   marginPercent: number;
   feesPercent?: number;
+  allocationMode?: "unit" | "revenue";
+  monthlyFixedCosts?: number;
+  revenueBasis?: number;
 }
 
 export function validatePricingData(data: PricingInput): string[] {
@@ -54,11 +61,11 @@ export function validatePricingData(data: PricingInput): string[] {
   }
 
   if (data.marginPercent < 0) {
-    errors.push("Margem de lucro não pode ser negativa");
+    errors.push("Acréscimo sobre o custo não pode ser negativo");
   }
 
   if (data.marginPercent > 1000) {
-    errors.push("Margem de lucro não pode exceder 1000%");
+    errors.push("Acréscimo sobre o custo não pode exceder 1000%");
   }
 
   if (data.feesPercent !== undefined) {
@@ -67,6 +74,22 @@ export function validatePricingData(data: PricingInput): string[] {
     }
     if (data.feesPercent >= 100) {
       errors.push("Taxas em % não podem chegar a 100%");
+    }
+  }
+
+  if (data.allocationMode === "revenue") {
+    if (!(data.monthlyFixedCosts && data.monthlyFixedCosts > 0)) {
+      errors.push("Custos mensais confirmados são obrigatórios");
+    }
+    if (!(data.revenueBasis && data.revenueBasis > 0)) {
+      errors.push("Base de faturamento confirmada é obrigatória");
+    }
+    if (
+      data.monthlyFixedCosts &&
+      data.revenueBasis &&
+      calculateOverheadPercent(data.monthlyFixedCosts, data.revenueBasis) >= 95
+    ) {
+      errors.push("Taxa de custeio precisa ser menor que 95%");
     }
   }
 

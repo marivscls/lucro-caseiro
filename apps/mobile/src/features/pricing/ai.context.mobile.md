@@ -47,12 +47,18 @@ As funções de cálculo vivem em `packages/contracts/src/pricing-calculator.ts`
      Só lista produtos com `costPrice != null`.
   2. Custo da embalagem (R$), com escolha exata de embalagem cadastrada
   3. Mao de obra (tempo do lote + rendimento + valor/hora, calculo por unidade)
-  4. Custos fixos rateados por unidade (R$)
-  5. Acrescimo sobre o custo (% presets ou custom) + **taxas de venda opcionais** (iFood % e
-     cartão %), somadas em `feesPercent`.
+  4. Custos indiretos opcionais com duas formas explícitas: rateio por unidades ou custeio por
+     faturamento. Pode selecionar gastos recorrentes ativos, média positiva dos três meses completos
+     anteriores, faturamento necessário da Meta de pró-labore ou bases manuais. Nada é aplicado sem
+     seleção.
+  5. Acrescimo sobre o custo (% presets ou custom) + **um perfil de canal opcional**. Perfis de
+     iFood, cartão ou outros canais são persistidos na conta; combinações viram um perfil próprio.
 - Barra de progresso visual.
-- Calculo local: `totalCost = ingredientes + embalagem + maoDeObra + fixos`;
-  `precoBase = totalCost * (1 + acrescimo/100)`; com taxas, **gross-up**:
+- No rateio por unidades: `totalCost = ingredientes + embalagem + maoDeObra + fixos`;
+  `precoBase = totalCost * (1 + acrescimo/100)`.
+- No custeio por faturamento: `taxa = custosMensais / faturamento`; `lucroAlvo = custoDireto ×
+acrescimo`; `precoBase = (custoDireto + lucroAlvo) / (1 - taxa)`.
+- Com canal, **gross-up**:
   `precoFinal = precoBase / (1 - feesPercent/100)` (a taxa incide sobre a venda, preservando
   o lucro desejado).
 - Botoes Voltar/Proximo em cada step.
@@ -69,26 +75,32 @@ As funções de cálculo vivem em `packages/contracts/src/pricing-calculator.ts`
 
 ## Hooks
 
-| Hook                           | Tipo          | Descricao                                                                                                                        |
-| ------------------------------ | ------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `useCalculatePricing()`        | `useMutation` | Salva calculo no backend.                                                                                                        |
-| `usePricingList(opts?)`        | `useQuery`    | Lista completa dos calculos do usuario (filtro opcional `productId`). Usado no Historico. Query key: `["pricing", "list", opts]` |
-| `usePricingHistory(productId)` | `useQuery`    | Historico por produto (endpoint dedicado). Query key: `["pricing", "history", productId]`                                        |
-| `usePricing(id)`               | `useQuery`    | Detalhe de um calculo. Query key: `["pricing", id]`                                                                              |
+| Hook                            | Tipo          | Descricao                                                                                                                        |
+| ------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `useCalculatePricing()`         | `useMutation` | Salva calculo no backend.                                                                                                        |
+| `usePricingList(opts?)`         | `useQuery`    | Lista completa dos calculos do usuario (filtro opcional `productId`). Usado no Historico. Query key: `["pricing", "list", opts]` |
+| `usePricingHistory(productId)`  | `useQuery`    | Historico por produto (endpoint dedicado). Query key: `["pricing", "history", productId]`                                        |
+| `usePricing(id)`                | `useQuery`    | Detalhe de um calculo. Query key: `["pricing", id]`                                                                              |
+| `usePricingPreferences()`       | `useQuery`    | Perfis persistidos de taxas por canal.                                                                                           |
+| `useUpdatePricingPreferences()` | `useMutation` | Salva perfis e atualiza o cache imediatamente.                                                                                   |
+| `usePricingRevenueHistory()`    | `useQueries`  | Média dos três meses completos anteriores que têm receita positiva.                                                              |
 
 ## API Integration
 
-| Endpoint                                     | Verbo | Funcao                | Parametros                             |
-| -------------------------------------------- | ----- | --------------------- | -------------------------------------- |
-| `/api/v1/pricing/calculate`                  | POST  | `calculatePricing`    | body: `CreatePricing`                  |
-| `/api/v1/pricing`                            | GET   | `fetchPricingList`    | `?page&limit&productId?` (lista geral) |
-| `/api/v1/pricing/product/:productId/history` | GET   | `fetchPricingHistory` | path param `productId`                 |
-| `/api/v1/pricing/:id`                        | GET   | `fetchPricing`        | path param `id`                        |
+| Endpoint                                     | Verbo | Funcao                     | Parametros                             |
+| -------------------------------------------- | ----- | -------------------------- | -------------------------------------- |
+| `/api/v1/pricing/calculate`                  | POST  | `calculatePricing`         | body: `CreatePricing`                  |
+| `/api/v1/pricing`                            | GET   | `fetchPricingList`         | `?page&limit&productId?` (lista geral) |
+| `/api/v1/pricing/product/:productId/history` | GET   | `fetchPricingHistory`      | path param `productId`                 |
+| `/api/v1/pricing/:id`                        | GET   | `fetchPricing`             | path param `id`                        |
+| `/api/v1/pricing/preferences`                | GET   | `fetchPricingPreferences`  | -                                      |
+| `/api/v1/pricing/preferences`                | PUT   | `updatePricingPreferences` | `{ channelFees }`                      |
 
 ## Contracts
 
-- `CreatePricing` — payload (ingredientCost, packagingCost, laborCost, fixedCostShare, marginPercent, `feesPercent?` 0–95).
-- `Pricing` — resultado salvo (inclui `feesPercent`, `feesAmount`, `finalPrice`).
+- `CreatePricing` — custos, acréscimo, canal e bases opcionais de custeio por faturamento.
+- `Pricing` — resultado salvo inclui forma de rateio, bases, taxa de custeio, canal e preço final.
+- `PricingPreferences` — perfis de canal sincronizados por conta.
 
 ## Error Handling
 
@@ -144,3 +156,7 @@ As funções de cálculo vivem em `packages/contracts/src/pricing-calculator.ts`
 - 2026-07-22: a tela Completa passou a exigir a feature `advancedPricing`, exclusiva do plano
   Profissional. Contas sem a feature veem a apresentação e o CTA antes de qualquer formulário;
   a Simples continua disponível com toda a matemática básica necessária.
+- 2026-08-08: a etapa 4 integrou Gastos Fixos, faturamento histórico positivo e Meta de pró-labore
+  como referências confirmadas e adicionou custeio por faturamento. A etapa 5 substituiu a soma fixa
+  iFood+cartão por perfis alternativos persistidos; um cálculo aplica um canal por vez. O modo Simples
+  permaneceu inalterado.

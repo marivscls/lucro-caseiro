@@ -64,6 +64,11 @@ interface PricingResultProps {
   readonly feesAmount?: number;
   readonly finalPrice?: number;
   readonly monthlyUnits?: number;
+  readonly allocationMode?: "unit" | "revenue";
+  readonly overheadPercent?: number;
+  readonly monthlyFixedCosts?: number;
+  readonly revenueBasis?: number;
+  readonly channelName?: string;
   readonly onRecalculate: () => void;
   readonly onSave: () => void;
   readonly onCreateProduct?: () => void;
@@ -83,6 +88,11 @@ export function PricingResult({
   feesAmount = 0,
   finalPrice,
   monthlyUnits = 0,
+  allocationMode = "unit",
+  overheadPercent = 0,
+  monthlyFixedCosts,
+  revenueBasis,
+  channelName,
   onRecalculate,
   onSave,
   onCreateProduct,
@@ -108,7 +118,11 @@ export function PricingResult({
       color: theme.colors.blue,
     },
     { label: "Mão de obra", value: laborCost, color: theme.colors.lavender },
-    { label: "Custos fixos", value: fixedCostShare, color: theme.colors.alert },
+    {
+      label: allocationMode === "revenue" ? "Custos indiretos" : "Custos fixos",
+      value: fixedCostShare,
+      color: theme.colors.alert,
+    },
   ];
 
   const monthlyRevenue = priceToCharge * monthlyUnits;
@@ -167,11 +181,32 @@ export function PricingResult({
         </Typography>
         {hasFees && (
           <Typography variant="caption" color={theme.colors.success}>
-            Base {formatCurrency(suggestedPrice)} + {feesPercent}% de taxas (
+            Base {formatCurrency(suggestedPrice)} + {feesPercent}%
+            {channelName ? ` de ${channelName}` : " de taxas"} (
             {formatCurrency(feesAmount)})
           </Typography>
         )}
       </Card>
+
+      {allocationMode === "revenue" ? (
+        <Card style={{ gap: spacing.sm }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+            <IconCircle
+              icon="analytics-outline"
+              tint={theme.colors.blueBg}
+              color={theme.colors.blue}
+            />
+            <Typography variant="bodyBold">Custeio confirmado</Typography>
+          </View>
+          <Typography variant="body" color={theme.colors.textSecondary}>
+            {formatCurrency(monthlyFixedCosts ?? 0)} de custos mensais sobre uma base de
+            faturamento de {formatCurrency(revenueBasis ?? 0)}.
+          </Typography>
+          <Typography variant="captionBold" color={theme.colors.primaryStrong}>
+            Taxa de custeio: {overheadPercent.toFixed(1).replace(".", ",")}%
+          </Typography>
+        </Card>
+      ) : null}
 
       {/* Cost composition */}
       <Card style={{ gap: spacing.lg }}>

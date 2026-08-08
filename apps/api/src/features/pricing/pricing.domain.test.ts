@@ -166,7 +166,7 @@ describe("validatePricingData", () => {
       fixedCostShare: 0,
       marginPercent: -1,
     });
-    expect(errors).toContain("Margem de lucro não pode ser negativa");
+    expect(errors).toContain("Acréscimo sobre o custo não pode ser negativo");
   });
 
   it("rejects margin over 1000%", () => {
@@ -177,7 +177,7 @@ describe("validatePricingData", () => {
       fixedCostShare: 0,
       marginPercent: 1001,
     });
-    expect(errors).toContain("Margem de lucro não pode exceder 1000%");
+    expect(errors).toContain("Acréscimo sobre o custo não pode exceder 1000%");
   });
 
   it("rejects negative feesPercent", () => {
@@ -214,6 +214,33 @@ describe("validatePricingData", () => {
       feesPercent: 18,
     });
     expect(errors).toEqual([]);
+  });
+
+  it("requires confirmed monthly costs and revenue in revenue mode", () => {
+    const errors = validatePricingData({
+      ingredientCost: 10,
+      packagingCost: 0,
+      laborCost: 0,
+      fixedCostShare: 0,
+      marginPercent: 50,
+      allocationMode: "revenue",
+    });
+    expect(errors).toContain("Custos mensais confirmados são obrigatórios");
+    expect(errors).toContain("Base de faturamento confirmada é obrigatória");
+  });
+
+  it("rejects a costing rate of 95% or more", () => {
+    const errors = validatePricingData({
+      ingredientCost: 10,
+      packagingCost: 0,
+      laborCost: 0,
+      fixedCostShare: 0,
+      marginPercent: 50,
+      allocationMode: "revenue",
+      monthlyFixedCosts: 95,
+      revenueBasis: 100,
+    });
+    expect(errors).toContain("Taxa de custeio precisa ser menor que 95%");
   });
 
   it("accumulates multiple errors", () => {

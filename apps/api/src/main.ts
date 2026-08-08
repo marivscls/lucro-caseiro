@@ -449,7 +449,13 @@ app.use(
   createRecipesRouter(recipesUseCases, freemiumGuard(subscriptionRepo, "recipes")),
 );
 app.use("/api/v1/ingredients", createIngredientsRouter(ingredientsUseCases));
-app.use("/api/v1/pricing", createPricingRouter(pricingUseCases));
+app.use(
+  "/api/v1/pricing",
+  createPricingRouter(
+    pricingUseCases,
+    requireFeature(subscriptionRepo, "advancedPricing"),
+  ),
+);
 app.use("/api/v1/labels", createLabelsRouter(labelsUseCases));
 app.use(
   "/api/v1/packaging",

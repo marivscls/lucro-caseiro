@@ -8,7 +8,7 @@ import type { CreatePricingData, IPricingRepo } from "./pricing.types";
 const USER_ID = "user-123";
 
 function makePricing(overrides: Partial<Pricing> = {}): Pricing {
-  return {
+  const base: Pricing = {
     id: "price-1",
     userId: USER_ID,
     productId: null,
@@ -22,9 +22,14 @@ function makePricing(overrides: Partial<Pricing> = {}): Pricing {
     feesPercent: 0,
     feesAmount: 0,
     finalPrice: 30,
+    allocationMode: "unit",
+    monthlyFixedCosts: null,
+    revenueBasis: null,
+    overheadPercent: 0,
+    channelName: null,
     createdAt: new Date().toISOString(),
-    ...overrides,
   };
+  return { ...base, ...overrides };
 }
 
 function makeRepo(overrides: Partial<IPricingRepo> = {}): IPricingRepo {
@@ -42,11 +47,23 @@ function makeRepo(overrides: Partial<IPricingRepo> = {}): IPricingRepo {
           feesPercent: data.feesPercent,
           feesAmount: data.feesAmount,
           finalPrice: data.finalPrice,
+          allocationMode: data.allocationMode,
+          monthlyFixedCosts: data.monthlyFixedCosts ?? null,
+          revenueBasis: data.revenueBasis ?? null,
+          overheadPercent: data.overheadPercent,
+          channelName: data.channelName ?? null,
         }),
       ),
     findById: () => Promise.resolve(makePricing()),
     findAll: () => Promise.resolve({ items: [makePricing()], total: 1 }),
     findByProduct: () => Promise.resolve([makePricing()]),
+    getPreferences: () => Promise.resolve(null),
+    upsertPreferences: (userId, data) =>
+      Promise.resolve({
+        userId,
+        channelFees: data.channelFees,
+        updatedAt: new Date().toISOString(),
+      }),
     ...overrides,
   };
 }
@@ -132,6 +149,31 @@ describe("PricingUseCases", () => {
       expect(result.feesAmount).toBeCloseTo(6.59, 2);
     });
 
+    it("reserves revenue-based overhead without consuming target profit", async () => {
+      const { sut } = makeSut();
+      const result = await sut.calculate(USER_ID, {
+        ingredientCost: 100,
+        packagingCost: 0,
+        laborCost: 0,
+        fixedCostShare: 0,
+        marginPercent: 50,
+        allocationMode: "revenue",
+        monthlyFixedCosts: 10_000,
+        revenueBasis: 50_000,
+        channelName: "iFood",
+        feesPercent: 10,
+      });
+
+      expect(result.allocationMode).toBe("revenue");
+      expect(result.overheadPercent).toBe(20);
+      expect(result.fixedCostShare).toBe(37.5);
+      expect(result.totalCost).toBe(137.5);
+      expect(result.suggestedPrice).toBe(187.5);
+      expect(result.suggestedPrice - result.totalCost).toBe(50);
+      expect(result.finalPrice).toBeCloseTo(208.33, 2);
+      expect(result.channelName).toBe("iFood");
+    });
+
     it("throws ValidationError for fees of 100% or more", async () => {
       const { sut } = makeSut();
       await expect(
@@ -173,6 +215,38 @@ describe("PricingUseCases", () => {
         findById: () => Promise.resolve(null),
       });
       await expect(sut.getById(USER_ID, "nope")).rejects.toThrow(NotFoundError);
+    });
+  });
+
+  describe("preferences", () => {
+    it("returns safe defaults without creating a row", async () => {
+      const { sut } = makeSut();
+      const result = await sut.getPreferences(USER_ID);
+      expect(result.channelFees.map((item) => item.name)).toEqual(["iFood", "Cartão"]);
+    });
+
+    it("persists normalized channel profiles", async () => {
+      const { sut } = makeSut();
+      const result = await sut.updatePreferences(USER_ID, {
+        channelFees: [{ id: "delivery", name: "  Delivery  ", percent: 12 }],
+      });
+      expect(result.channelFees[0]).toEqual({
+        id: "delivery",
+        name: "Delivery",
+        percent: 12,
+      });
+    });
+
+    it("rejects duplicate channel names", async () => {
+      const { sut } = makeSut();
+      await expect(
+        sut.updatePreferences(USER_ID, {
+          channelFees: [
+            { id: "a", name: "iFood", percent: 10 },
+            { id: "b", name: "IFOOD", percent: 12 },
+          ],
+        }),
+      ).rejects.toThrow(ValidationError);
     });
   });
 

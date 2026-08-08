@@ -19,6 +19,41 @@ export function fixedCostShare(monthlyFixed: number, monthlyProduction: number):
   return monthlyFixed / monthlyProduction;
 }
 
+/** Taxa de custos indiretos sobre o faturamento planejado. */
+export function overheadPercent(monthlyFixed: number, revenueBasis: number): number {
+  if (monthlyFixed <= 0 || revenueBasis <= 0) return 0;
+  return (monthlyFixed / revenueBasis) * 100;
+}
+
+/**
+ * Reserva custos indiretos como percentual da venda sem consumir o lucro desejado.
+ *
+ * precoBase = (custoDireto + lucroDesejado) / (1 - taxaCusteio)
+ */
+export function revenueCosting(
+  directCost: number,
+  markupPercent: number,
+  costingPercent: number,
+): {
+  suggestedPrice: number;
+  overheadAmount: number;
+  totalCost: number;
+  profitAmount: number;
+} {
+  const safeDirectCost = Math.max(0, directCost);
+  const safeMarkup = Math.max(0, markupPercent);
+  const safeCosting = costingPercent > 0 && costingPercent < 100 ? costingPercent : 0;
+  const profitAmount = safeDirectCost * (safeMarkup / 100);
+  const suggestedPrice = (safeDirectCost + profitAmount) / (1 - safeCosting / 100);
+  const overheadAmount = suggestedPrice * (safeCosting / 100);
+  return {
+    suggestedPrice,
+    overheadAmount,
+    totalCost: safeDirectCost + overheadAmount,
+    profitAmount,
+  };
+}
+
 /** Custo total = insumos + embalagem + mão de obra + rateio de custo fixo. */
 export function totalCost(
   ingredient: number,

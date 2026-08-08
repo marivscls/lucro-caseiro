@@ -1,19 +1,59 @@
-import { CreatePricingDto, PaginationDto } from "@lucro-caseiro/contracts";
-import { Router } from "express";
+import {
+  CreatePricingDto,
+  PaginationDto,
+  UpsertPricingPreferencesDto,
+} from "@lucro-caseiro/contracts";
+import { Router, type RequestHandler } from "express";
 
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
 import type { PricingUseCases } from "./pricing.usecases";
 
-export function createPricingRouter(useCases: PricingUseCases): Router {
+export function createPricingRouter(
+  useCases: PricingUseCases,
+  advancedPricingGuard?: RequestHandler,
+): Router {
   const router = Router();
   router.use(authMiddleware);
 
-  router.post("/calculate", async (req, res, next) => {
+  const requireAdvancedPricing: RequestHandler = (req, res, next) => {
+    if (!advancedPricingGuard) {
+      next();
+      return;
+    }
+    return advancedPricingGuard(req, res, next);
+  };
+
+  const requireAdvancedRevenuePricing: RequestHandler = (req, res, next) => {
+    if (req.body?.allocationMode !== "revenue") {
+      next();
+      return;
+    }
+    return requireAdvancedPricing(req, res, next);
+  };
+
+  router.post("/calculate", requireAdvancedRevenuePricing, async (req, res, next) => {
     try {
       const userId = getUserId(req);
       const data = CreatePricingDto.parse(req.body);
       const result = await useCases.calculate(userId, data);
       res.status(201).json(result);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.get("/preferences", requireAdvancedPricing, async (req, res, next) => {
+    try {
+      res.json(await useCases.getPreferences(getUserId(req)));
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.put("/preferences", requireAdvancedPricing, async (req, res, next) => {
+    try {
+      const data = UpsertPricingPreferencesDto.parse(req.body);
+      res.json(await useCases.updatePreferences(getUserId(req), data));
     } catch (err) {
       next(err);
     }
