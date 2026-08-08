@@ -563,6 +563,8 @@ export function SimplePricingCalculator({
 
   const split = desktopSplitLayout(isDesktop);
   const compactField = desktopCompactField(isDesktop);
+  const formattedFinalPrice = formatCurrency(canCalculate ? finalPrice : 0);
+  const estimatePriceVariant = formattedFinalPrice.length > 9 ? "moneyLg" : "moneyHero";
 
   const estimatePanel = (
     <View
@@ -584,16 +586,16 @@ export function SimplePricingCalculator({
           paddingVertical: spacing.xl,
         }}
       >
-        <View style={{ gap: 2, maxWidth: "64%", zIndex: 1 }}>
+        <View style={{ gap: 2, maxWidth: "72%", zIndex: 1 }}>
           <Typography variant="label">ESTIMATIVA DE PREÇO</Typography>
           <Typography
-            variant="moneyHero"
+            variant={estimatePriceVariant}
             color={canCalculate ? theme.colors.primaryStrong : theme.colors.textSecondary}
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.55}
           >
-            {formatCurrency(canCalculate ? finalPrice : 0)}
+            {formattedFinalPrice}
           </Typography>
         </View>
         <Image
