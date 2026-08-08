@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { productionCorsOrigins } from "./shared/middleware/cors";
+
 const baseEnvSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   PORT: z.coerce.number().optional(),
@@ -61,13 +63,6 @@ if (!parsed.success) {
   console.error("Invalid environment variables:", parsed.error.flatten().fieldErrors);
   process.exit(1);
 }
-
-const productionCorsOrigins = [
-  "https://lucrocaseiro.com.br",
-  "https://www.lucrocaseiro.com.br",
-  "https://app.lucrocaseiro.com.br",
-  "https://catalogo.lucrocaseiro.com.br",
-];
 
 const configuredCorsOrigins = parsed.data.CORS_ORIGIN.split(",")
   .map((origin) => origin.trim().replace(/\/$/, ""))

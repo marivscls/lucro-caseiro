@@ -1,3 +1,12 @@
+export const productionCorsOrigins = [
+  "https://lucrocaseiro.com.br",
+  "https://www.lucrocaseiro.com.br",
+  "https://app.lucrocaseiro.com.br",
+  "https://catalogo.lucrocaseiro.com.br",
+  "https://lucro-caseiroweb-production.up.railway.app",
+  "https://lucro-caseiromobile-production.up.railway.app",
+] as const;
+
 export function isAllowedCorsOrigin(origin: string, allowedOrigins: readonly string[]) {
   const normalized = origin.replace(/\/$/, "");
 

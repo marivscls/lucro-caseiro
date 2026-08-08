@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { describe, expect, it, vi } from "vitest";
 
 import { ServiceUnavailableError } from "../errors";
-import { isAllowedCorsOrigin } from "./cors";
+import { isAllowedCorsOrigin, productionCorsOrigins } from "./cors";
 import { errorHandler } from "./error-handler";
 import { postgresRateLimit } from "./postgres-rate-limit";
 import { securityHeaders } from "./security-headers";
@@ -26,6 +26,27 @@ describe("security middleware", () => {
     ).toBe(true);
     expect(isAllowedCorsOrigin("http://127.0.0.1:8085", [])).toBe(true);
     expect(isAllowedCorsOrigin("https://malicioso.example", [])).toBe(false);
+  });
+
+  it("permite os dominios oficiais e gerados pela Railway", () => {
+    expect(
+      isAllowedCorsOrigin(
+        "https://lucro-caseiromobile-production.up.railway.app",
+        productionCorsOrigins,
+      ),
+    ).toBe(true);
+    expect(
+      isAllowedCorsOrigin(
+        "https://lucro-caseiroweb-production.up.railway.app",
+        productionCorsOrigins,
+      ),
+    ).toBe(true);
+    expect(
+      isAllowedCorsOrigin(
+        "https://outro-app-production.up.railway.app",
+        productionCorsOrigins,
+      ),
+    ).toBe(false);
   });
 
   it("envia headers defensivos nas respostas da API", () => {
