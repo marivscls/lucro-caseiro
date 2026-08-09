@@ -1,5 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+const PUBLIC_SITE_HOSTS = new Set(["lucrocaseiro.com.br", "www.lucrocaseiro.com.br"]);
+
+export function shouldServePublicSiteAtRoot(hostname: string, pathname: string): boolean {
+  return pathname === "/" && PUBLIC_SITE_HOSTS.has(hostname.toLowerCase());
+}
+
 function configuredOrigins(): string[] {
   const values = [process.env.NEXT_PUBLIC_API_URL, process.env.NEXT_PUBLIC_SUPABASE_URL];
   return values.flatMap((value) => {
@@ -34,7 +40,11 @@ export function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("Content-Security-Policy", csp);
-  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  const response = shouldServePublicSiteAtRoot(request.nextUrl.hostname, request.nextUrl.pathname)
+    ? NextResponse.rewrite(new URL("/landing", request.url), {
+        request: { headers: requestHeaders },
+      })
+    : NextResponse.next({ request: { headers: requestHeaders } });
 
   response.headers.set("Content-Security-Policy", csp);
   response.headers.set("X-Content-Type-Options", "nosniff");
