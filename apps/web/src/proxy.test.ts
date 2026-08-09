@@ -1,6 +1,20 @@
 import { describe, expect, it } from "vitest";
 
-import { shouldServePublicSiteAtRoot } from "./proxy";
+import { resolveRequestHostname, shouldServePublicSiteAtRoot } from "./proxy";
+
+describe("resolveRequestHostname", () => {
+  it("prefers the original host forwarded by Railway", () => {
+    expect(
+      resolveRequestHostname("lucrocaseiro.com.br", "web.railway.internal:8080", "localhost"),
+    ).toBe("lucrocaseiro.com.br");
+  });
+
+  it("falls back to Host and removes its port", () => {
+    expect(resolveRequestHostname(null, "central.lucrocaseiro.com.br:443", "localhost")).toBe(
+      "central.lucrocaseiro.com.br",
+    );
+  });
+});
 
 describe("shouldServePublicSiteAtRoot", () => {
   it.each(["lucrocaseiro.com.br", "www.lucrocaseiro.com.br"])(

@@ -6,6 +6,15 @@ export function shouldServePublicSiteAtRoot(hostname: string, pathname: string):
   return pathname === "/" && PUBLIC_SITE_HOSTS.has(hostname.toLowerCase());
 }
 
+export function resolveRequestHostname(
+  forwardedHost: string | null,
+  host: string | null,
+  fallback: string,
+): string {
+  const hostname = forwardedHost?.split(",", 1)[0]?.trim() || host?.trim() || fallback;
+  return hostname.replace(/:\d+$/, "").toLowerCase();
+}
+
 function configuredOrigins(): string[] {
   const values = [process.env.NEXT_PUBLIC_API_URL, process.env.NEXT_PUBLIC_SUPABASE_URL];
   return values.flatMap((value) => {
@@ -40,7 +49,12 @@ export function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("Content-Security-Policy", csp);
-  const response = shouldServePublicSiteAtRoot(request.nextUrl.hostname, request.nextUrl.pathname)
+  const hostname = resolveRequestHostname(
+    request.headers.get("x-forwarded-host"),
+    request.headers.get("host"),
+    request.nextUrl.hostname,
+  );
+  const response = shouldServePublicSiteAtRoot(hostname, request.nextUrl.pathname)
     ? NextResponse.rewrite(new URL("/landing", request.url), {
         request: { headers: requestHeaders },
       })
