@@ -4,6 +4,7 @@ import type { MarketingCampaignPlan } from "@/shared/types";
 
 import {
   campaignAiBriefingFields,
+  campaignDestinations,
   campaignNeedsStrategyEnrichment,
   mergeCampaignStrategyEnrichment,
 } from "./campaign-strategy";
@@ -19,6 +20,29 @@ const oldPlan: MarketingCampaignPlan = {
 };
 
 describe("campaign strategy enrichment", () => {
+  it("restaura os destinos já publicados ao recarregar a campanha", () => {
+    expect(
+      campaignDestinations({
+        0: {
+          destination: "content",
+          targetId: "content-id",
+          publishedAt: "2026-08-10T13:00:00.000Z",
+        },
+        1: {
+          destination: "document",
+          targetId: "document-id",
+          publishedAt: "2026-08-10T13:01:00.000Z",
+        },
+        invalid: { destination: "outside" },
+        x: {
+          destination: "content",
+          targetId: "invalid-index",
+          publishedAt: "2026-08-10T13:02:00.000Z",
+        },
+      }),
+    ).toEqual({ 0: "content", 1: "document" });
+  });
+
   it("keeps empty optional fields compatible with the published campaign API", () => {
     const fields = campaignAiBriefingFields("", "");
 

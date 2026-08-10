@@ -2,6 +2,7 @@ import type {
   MarketingAiResourceDraft,
   MarketingCampaignBriefInput,
   MarketingCampaignCopiesInput,
+  MarketingCampaignVariantPublishInput,
   MarketingContentIdeas,
   MarketingDocumentInput,
   MarketingLearningPolicy,
@@ -29,6 +30,7 @@ import {
   IDEA_BANK_SYSTEM_PROMPT,
   MARKET_POSITIONING_GUARDRAIL,
   REFINE_STRATEGY_SYSTEM_PROMPT,
+  VISUAL_ART_DIRECTION_GUARDRAIL,
 } from "./marketing.system-prompt";
 import type { MarketingRepoPg } from "./marketing.repo.pg";
 
@@ -138,6 +140,28 @@ export class MarketingUseCases {
     });
     if (!row) throw new NotFoundError("Item de marketing não encontrado");
     return row;
+  }
+
+  async mergeResourceData(userId: string, id: string, data: Record<string, unknown>) {
+    const row = await this.repo.mergeResourceData(userId, id, data);
+    if (!row) throw new NotFoundError("Item de marketing não encontrado");
+    return row;
+  }
+
+  async publishCampaignVariant(
+    userId: string,
+    campaignId: string,
+    index: number,
+    input: MarketingCampaignVariantPublishInput,
+  ) {
+    const result = await this.repo.publishCampaignVariant(
+      userId,
+      campaignId,
+      index,
+      input.destination,
+    );
+    if (!result) throw new NotFoundError("Campanha não encontrada");
+    return result;
   }
 
   async deleteResource(userId: string, id: string) {
@@ -780,9 +804,12 @@ export function marketingSystemPrompt(activeInstruction?: string) {
   const withContent = base.includes(CONTENT_MARKETING_SYSTEM_PROMPT)
     ? base
     : `${base}\n\n${CONTENT_MARKETING_SYSTEM_PROMPT}`;
-  return withContent.includes(MARKET_POSITIONING_GUARDRAIL)
+  const withPositioning = withContent.includes(MARKET_POSITIONING_GUARDRAIL)
     ? withContent
     : `${withContent}\n\n${MARKET_POSITIONING_GUARDRAIL}`;
+  return withPositioning.includes(VISUAL_ART_DIRECTION_GUARDRAIL)
+    ? withPositioning
+    : `${withPositioning}\n\n${VISUAL_ART_DIRECTION_GUARDRAIL}`;
 }
 
 function resourceDraftDataInstructions(kind: MarketingResourceKind) {

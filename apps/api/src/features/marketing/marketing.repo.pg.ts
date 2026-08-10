@@ -13,6 +13,10 @@ import {
   marketingDocumentVersions,
   marketingResources,
 } from "@lucro-caseiro/database/schema";
+import {
+  MarketingCreativeBundleSchema,
+  type MarketingCreativeBundle,
+} from "@lucro-caseiro/contracts";
 import { and, asc, desc, eq, gte, lte, max, sql } from "drizzle-orm";
 
 import type { AppDatabase } from "../../shared/db";
@@ -23,6 +27,12 @@ type DocumentInput = Pick<
   typeof marketingDocuments.$inferInsert,
   "slug" | "title" | "body" | "tags" | "source"
 >;
+type CampaignPublicationDestination = "content" | "document";
+type CampaignPublication = {
+  destination: CampaignPublicationDestination;
+  targetId: string;
+  publishedAt: string;
+};
 
 export class MarketingRepoPg {
   constructor(private db: AppDatabase) {}
@@ -58,6 +68,116 @@ export class MarketingRepoPg {
       .where(and(eq(marketingResources.userId, userId), eq(marketingResources.id, id)))
       .returning();
     return row ?? null;
+  }
+
+  async mergeResourceData(userId: string, id: string, data: Record<string, unknown>) {
+    const [row] = await this.db
+      .update(marketingResources)
+      .set({
+        data: sql`${marketingResources.data} || ${JSON.stringify(data)}::jsonb`,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(marketingResources.userId, userId), eq(marketingResources.id, id)))
+      .returning();
+    return row ?? null;
+  }
+
+  async publishCampaignVariant(
+    userId: string,
+    campaignId: string,
+    index: number,
+    destination: CampaignPublicationDestination,
+  ) {
+    return this.db.transaction(async (tx) => {
+      const [campaign] = await tx
+        .select()
+        .from(marketingResources)
+        .where(
+          and(
+            eq(marketingResources.userId, userId),
+            eq(marketingResources.id, campaignId),
+            eq(marketingResources.kind, "campaign"),
+          ),
+        )
+        .for("update");
+      if (!campaign) return null;
+
+      const savedVariants = campaignPublications(campaign.data.savedVariants);
+      const existing = savedVariants.get(index);
+      if (existing) {
+        return { campaign, publication: existing, created: false };
+      }
+
+      const bundle = MarketingCreativeBundleSchema.safeParse(campaign.data.copyBundle);
+      const variant = bundle.success ? bundle.data.variants.at(index) : undefined;
+      if (!variant) throw new NotFoundError("Variante da campanha não encontrada");
+
+      const slug = `copy-campanha-${campaign.id}-${index}`;
+      let targetId: string;
+      if (destination === "content") {
+        const [content] = await tx
+          .insert(marketingResources)
+          .values({
+            userId,
+            kind: "content",
+            slug,
+            title: variant.headline,
+            summary: variant.body,
+            status: "ready",
+            scheduledFor: null,
+            data: campaignContentData(campaign.id, variant, campaign.data.promptRuns),
+          })
+          .returning();
+        targetId = content!.id;
+      } else {
+        const body = creativeVariantDocument(variant);
+        const [document] = await tx
+          .insert(marketingDocuments)
+          .values({
+            userId,
+            title: variant.headline,
+            slug,
+            body,
+            tags: ["ia", "copy", variant.channel],
+            source: "ai",
+          })
+          .returning();
+        await tx.insert(marketingDocumentVersions).values({
+          documentId: document!.id,
+          version: 1,
+          title: document!.title,
+          body,
+          note: "Versão inicial",
+        });
+        targetId = document!.id;
+      }
+
+      const publication: CampaignPublication = {
+        destination,
+        targetId,
+        publishedAt: new Date().toISOString(),
+      };
+      const [updatedCampaign] = await tx
+        .update(marketingResources)
+        .set({
+          data: {
+            ...campaign.data,
+            savedVariants: Object.fromEntries([
+              ...savedVariants,
+              [index, publication] as const,
+            ]),
+          },
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(marketingResources.userId, userId),
+            eq(marketingResources.id, campaignId),
+          ),
+        )
+        .returning();
+      return { campaign: updatedCampaign!, publication, created: true };
+    });
   }
 
   async deleteResource(userId: string, id: string) {
@@ -486,4 +606,74 @@ export class MarketingRepoPg {
       .where(eq(marketingAiFeedback.userId, userId));
     return row?.value ?? 0;
   }
+}
+
+function campaignPublications(value: unknown): Map<number, CampaignPublication> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return new Map();
+  return new Map(
+    Object.entries(value).flatMap(([key, publication]) => {
+      if (!publication || typeof publication !== "object" || Array.isArray(publication))
+        return [];
+      const index = Number(key);
+      if (!Number.isInteger(index) || index < 0) return [];
+      const candidate = publication as Record<string, unknown>;
+      if (
+        (candidate.destination !== "content" && candidate.destination !== "document") ||
+        typeof candidate.targetId !== "string" ||
+        typeof candidate.publishedAt !== "string"
+      )
+        return [];
+      return [
+        [
+          index,
+          {
+            destination: candidate.destination,
+            targetId: candidate.targetId,
+            publishedAt: candidate.publishedAt,
+          },
+        ],
+      ];
+    }),
+  );
+}
+
+function campaignContentData(
+  campaignResourceId: string,
+  variant: MarketingCreativeBundle["variants"][number],
+  promptRuns: unknown,
+) {
+  const runs = Array.isArray(promptRuns) ? promptRuns : [];
+  return {
+    source: "ad-copywriter",
+    campaignResourceId,
+    channel: variant.channel,
+    format: variant.format,
+    headline: variant.headline,
+    hook: variant.hook,
+    landing: variant.landing,
+    body: variant.body,
+    retentionBeats: variant.retentionBeats,
+    productionNotes: variant.productionNotes,
+    evidence: variant.evidence,
+    cta: variant.cta,
+    prompt: runs.at(-1),
+  };
+}
+
+function creativeVariantDocument(variant: MarketingCreativeBundle["variants"][number]) {
+  const retentionBeats = variant.retentionBeats.map((beat) => `- ${beat}`).join("\n");
+  return [
+    `# ${variant.headline}`,
+    "",
+    `**Canal:** ${variant.channel}`,
+    `**Formato:** ${variant.format}`,
+    "",
+    `## Gancho\n${variant.hook}`,
+    `## Abertura\n${variant.landing}`,
+    `## Corpo\n${variant.body}`,
+    `## Retenção\n${retentionBeats}`,
+    `## Produção\n${variant.productionNotes}`,
+    `## Evidência\n${variant.evidence}`,
+    `## CTA\n${variant.cta}`,
+  ].join("\n\n");
 }

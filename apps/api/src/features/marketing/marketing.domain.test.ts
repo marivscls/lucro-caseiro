@@ -5,6 +5,7 @@ import {
   DEFAULT_MARKETING_SYSTEM_PROMPT,
   IDEA_BANK_SYSTEM_PROMPT,
   REFINE_STRATEGY_SYSTEM_PROMPT,
+  VISUAL_ART_DIRECTION_GUARDRAIL,
 } from "./marketing.system-prompt";
 import {
   initialMarketingDocumentDefinitions,
@@ -49,6 +50,22 @@ describe("marketing intelligence", () => {
     expect(DEFAULT_MARKETING_SYSTEM_PROMPT).toContain("não é exclusivo de confeiteiras");
     expect(marketingSystemPrompt("Instrução personalizada.")).toContain(
       "mercado amplo da marca",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain("um único foco dominante");
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
+      "fotografia e a tipografia devem carregar aproximadamente 90%",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
+      "Hostpoint somente como referência de linguagem compositiva",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
+      "A paleta é sempre a do Lucro Caseiro",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
+      "A peça deve parecer uma campanha de marca",
+    );
+    expect(marketingSystemPrompt("Instrução personalizada.")).toContain(
+      "Este elemento melhora claramente a narrativa ou apenas ocupa espaço?",
     );
   });
 

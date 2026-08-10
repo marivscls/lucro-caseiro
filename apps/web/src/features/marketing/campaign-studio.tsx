@@ -16,6 +16,7 @@ import type {
 
 import {
   campaignAiBriefingFields,
+  campaignDestinations,
   campaignNeedsStrategyEnrichment,
   mergeCampaignStrategyEnrichment,
 } from "./campaign-strategy";
@@ -30,7 +31,16 @@ type Briefing = {
 
 type CopyStyle = "promotional" | "organic";
 type Destination = "content" | "document";
-type CreativeVariant = MarketingCreativeBundle["variants"][number];
+type CampaignVariantPublication = {
+  destination: Destination;
+  targetId: string;
+  publishedAt: string;
+};
+type CampaignVariantPublicationResult = {
+  campaign: MarketingResource;
+  publication: CampaignVariantPublication;
+  created: boolean;
+};
 
 const initialBriefing: Briefing = {
   segment: "pme",
@@ -48,6 +58,7 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
   const [plan, setPlan] = useState<MarketingCampaignPlan | null>(null);
   const [strategyApproved, setStrategyApproved] = useState(false);
   const [campaignResourceId, setCampaignResourceId] = useState<string>();
+  const [campaignResource, setCampaignResource] = useState<MarketingResource>();
   const [strategyRaw, setStrategyRaw] = useState("");
   const [strategyMessageId, setStrategyMessageId] = useState<string>();
   const [strategyTelemetry, setStrategyTelemetry] = useState<MarketingPromptTelemetry>();
@@ -55,7 +66,6 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
   const [bundle, setBundle] = useState<MarketingCreativeBundle | null>(null);
   const [copyRaw, setCopyRaw] = useState("");
   const [copyMessageId, setCopyMessageId] = useState<string>();
-  const [copyTelemetry, setCopyTelemetry] = useState<MarketingPromptTelemetry>();
   const [savedVariants, setSavedVariants] = useState<Record<number, Destination>>({});
   const [feedbackSent, setFeedbackSent] = useState<Record<string, boolean>>({});
 
@@ -63,11 +73,13 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
     if (!restored || restored.resource.id === restoredId) return;
     setRestoredId(restored.resource.id);
     setCampaignResourceId(restored.resource.id);
+    setCampaignResource(restored.resource);
     setBriefing(restored.briefing);
     setPlan(restored.plan);
     setStrategyApproved(true);
     const storedBundle = creativeBundleFromData(restored.resource.data.copyBundle);
     if (storedBundle) setBundle(storedBundle);
+    setSavedVariants(campaignDestinations(restored.resource.data.savedVariants));
   }, [restored, restoredId]);
 
   const generateStrategy = useMutation({
@@ -115,6 +127,8 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
       };
     },
     onMutate: () => {
+      setCampaignResourceId(undefined);
+      setCampaignResource(undefined);
       setPlan(null);
       setBundle(null);
       setStrategyRaw("");
@@ -134,12 +148,13 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
       if (!plan || !strategyTelemetry)
         throw new Error("Gere a estratégia antes de aprovar.");
       const data = {
-        ...currentCampaignData(campaigns, campaignResourceId),
+        ...(campaignResource?.data ?? currentCampaignData(campaigns, campaignResourceId)),
         adBriefing: { ...briefing, budget: Number(briefing.budget) || null },
         adStrategy: plan,
         adStrategyApprovedAt: new Date().toISOString(),
         promptRuns: appendPromptRun(
-          currentCampaignData(campaigns, campaignResourceId).promptRuns,
+          campaignResource?.data.promptRuns ??
+            currentCampaignData(campaigns, campaignResourceId).promptRuns,
           strategyTelemetry,
         ),
       };
@@ -169,6 +184,7 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
     },
     onSuccess: (resource) => {
       setCampaignResourceId(resource.id);
+      setCampaignResource(resource);
       setRestoredId(resource.id);
       setStrategyApproved(true);
       setBundle(null);
@@ -178,39 +194,50 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
   });
 
   const generateCopies = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       if (!plan || !strategyApproved)
         throw new Error("Aprove a estratégia antes de gerar as copies.");
-      return apiClient<MarketingCampaignCopiesGeneration>("/ai/campaigns/copies", {
-        method: "POST",
-        timeoutMs: 55_000,
-        body: { plan, style },
-      });
+      const result = await apiClient<MarketingCampaignCopiesGeneration>(
+        "/ai/campaigns/copies",
+        {
+          method: "POST",
+          timeoutMs: 55_000,
+          body: { plan, style },
+        },
+      );
+      if (!result.bundle || !campaignResourceId) return { result };
+      const campaign = await apiClient<MarketingResource>(
+        `/resources/${campaignResourceId}/data`,
+        {
+          method: "PATCH",
+          body: {
+            data: {
+              copyBundle: result.bundle,
+              copyStyle: style,
+              copyGeneratedAt: new Date().toISOString(),
+              savedVariants: {},
+              promptRuns: appendPromptRun(
+                campaignResource?.data.promptRuns,
+                result.telemetry,
+              ),
+            },
+          },
+        },
+      );
+      return { result, campaign };
     },
     onMutate: () => {
       setBundle(null);
       setCopyRaw("");
-      setSavedVariants({});
     },
-    onSuccess: async (result) => {
+    onSuccess: ({ result, campaign }) => {
       setCopyRaw(result.bundle ? "" : result.raw);
       setCopyMessageId(result.messageId);
-      setCopyTelemetry(result.telemetry);
       setBundle(result.bundle);
-      if (!result.bundle || !campaignResourceId) return;
-      const data = currentCampaignData(campaigns, campaignResourceId);
-      await apiClient(`/resources/${campaignResourceId}`, {
-        method: "PATCH",
-        body: {
-          data: {
-            ...data,
-            copyBundle: result.bundle,
-            copyStyle: style,
-            copyGeneratedAt: new Date().toISOString(),
-            promptRuns: appendPromptRun(data.promptRuns, result.telemetry),
-          },
-        },
-      });
+      if (campaign) {
+        setCampaignResource(campaign);
+        setSavedVariants(campaignDestinations(campaign.data.savedVariants));
+      }
       void queryClient.invalidateQueries({ queryKey: ["resources", "campaign"] });
     },
   });
@@ -225,50 +252,19 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
     }) => {
       const variant = bundle?.variants[index];
       if (!variant) throw new Error("Variante não encontrada.");
-      if (destination === "content") {
-        await apiClient("/resources", {
-          method: "POST",
-          body: {
-            kind: "content",
-            slug: `copy-campanha-${Date.now()}-${index}`,
-            title: variant.headline,
-            summary: variant.body,
-            status: "ready",
-            scheduledFor: null,
-            data: {
-              source: "ad-copywriter",
-              campaignResourceId,
-              channel: variant.channel,
-              format: variant.format,
-              headline: variant.headline,
-              hook: variant.hook,
-              landing: variant.landing,
-              body: variant.body,
-              retentionBeats: variant.retentionBeats ?? [],
-              productionNotes: variant.productionNotes,
-              evidence: variant.evidence,
-              cta: variant.cta,
-              prompt: copyTelemetry,
-            },
-          },
-        });
-      } else {
-        await apiClient("/documents", {
-          method: "POST",
-          body: {
-            title: variant.headline,
-            slug: `copy-campanha-${Date.now()}-${index}`,
-            body: creativeVariantDocument(variant),
-            tags: ["ia", "copy", variant.channel],
-            source: "ai",
-          },
-        });
-      }
-      return { index, destination };
+      if (!campaignResourceId) throw new Error("Campanha não encontrada.");
+      return apiClient<CampaignVariantPublicationResult>(
+        `/campaigns/${campaignResourceId}/variants/${index}/publish`,
+        { method: "POST", body: { destination } },
+      );
     },
-    onSuccess: ({ index, destination }) => {
-      setSavedVariants((current) => ({ ...current, [index]: destination }));
-      void queryClient.invalidateQueries({ queryKey: ["resources", "content"] });
+    onSuccess: (result) => {
+      setCampaignResource(result.campaign);
+      setSavedVariants(campaignDestinations(result.campaign.data.savedVariants));
+      if (result.publication.destination === "content")
+        void queryClient.invalidateQueries({ queryKey: ["resources", "content"] });
+      else void queryClient.invalidateQueries({ queryKey: ["documents"] });
+      void queryClient.invalidateQueries({ queryKey: ["resources", "campaign"] });
     },
   });
 
@@ -595,6 +591,7 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
                 </article>
               ))}
             </div>
+            {saveVariant.error && <p className="form-error">{saveVariant.error.message}</p>}
             {reviewBlocksApproval && (
               <p className="notice warning">
                 A autorrevisão encontrou uma lacuna impeditiva. Regere as copies ou reabra
@@ -1176,20 +1173,6 @@ Use somente o briefing, o plano e o conhecimento confirmado da Central. Não inv
 No objeto data da resposta, devolva exatamente estas duas chaves:
 {"research":{"audienceSlice":"...","audienceLanguage":["..."],"realDesire":"...","saturatedSolutions":["..."],"problemMechanism":"...","solutionMechanism":"...","differentiators":["..."],"proofs":["..."],"saturationNotes":"..."},"creativeStrategy":{"bigIdea":"...","angle":"...","promise":"...","reasonToBelieve":"...","stickyName":"...","commonEnemy":"...","organicInsight":"...","avatar":"...","format":"...","visualHook":"...","landing":"...","retentionBeats":["..."],"productionNotes":["..."]}}.
 Preencha todos os campos com conteúdo específico. proofs pode ser [] e stickyName/commonEnemy podem ficar vazios quando não houver fundamento.`;
-
-function creativeVariantDocument(variant: CreativeVariant) {
-  const retentionItems = variant.retentionBeats?.map((item) => "- " + item).join("\n");
-  const retention = retentionItems
-    ? `\n\n## Movimentos de retenção\n\n${retentionItems}`
-    : "";
-  const production = variant.productionNotes
-    ? `\n\n## Produção\n\n${variant.productionNotes}`
-    : "";
-  const evidence = variant.evidence
-    ? `\n\n## Evidência usada\n\n${variant.evidence}`
-    : "";
-  return `# ${variant.headline}\n\n**Canal:** ${variant.channel}\n**Formato:** ${variant.format}\n\n## Gancho\n\n${variant.hook || variant.headline}\n\n## Aterrissagem\n\n${variant.landing || "—"}\n\n## Corpo\n\n${variant.body}${retention}${production}${evidence}\n\n## CTA\n\n${variant.cta}`;
-}
 
 function splitList(value: string) {
   return value

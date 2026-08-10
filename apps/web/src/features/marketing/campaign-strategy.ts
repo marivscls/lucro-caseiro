@@ -17,6 +17,23 @@ export function campaignAiBriefingFields(audience: string, offer: string) {
   };
 }
 
+export function campaignDestinations(
+  value: unknown,
+): Record<number, "content" | "document"> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return Object.fromEntries(
+    Object.entries(value).flatMap(([index, publication]) => {
+      if (!publication || typeof publication !== "object" || Array.isArray(publication))
+        return [];
+      const variantIndex = Number(index);
+      if (!Number.isInteger(variantIndex) || variantIndex < 0) return [];
+      const destination = (publication as Record<string, unknown>).destination;
+      if (destination !== "content" && destination !== "document") return [];
+      return [[variantIndex, destination]];
+    }),
+  );
+}
+
 export function campaignNeedsStrategyEnrichment(plan: MarketingCampaignPlan) {
   const research = plan.research;
   const creativeStrategy = plan.creativeStrategy;

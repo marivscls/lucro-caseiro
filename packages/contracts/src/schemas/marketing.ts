@@ -44,6 +44,10 @@ export const MarketingResourcePatchSchema = MarketingResourceInputSchema.partial
   kind: true,
 });
 
+export const MarketingResourceDataPatchSchema = z.object({
+  data: z.record(z.unknown()),
+});
+
 export const MarketingResourceQuerySchema = z.object({
   kind: MarketingResourceKindSchema.optional(),
   status: z.string().trim().optional(),
@@ -216,6 +220,10 @@ export const MarketingCampaignCopiesInputSchema = z.object({
   style: z.enum(["promotional", "organic"]).default("promotional"),
 });
 
+export const MarketingCampaignVariantPublishSchema = z.object({
+  destination: z.enum(["content", "document"]),
+});
+
 export const MarketingPromptTelemetrySchema = z.object({
   promptId: z.string(),
   promptVersion: z.string(),
@@ -340,6 +348,9 @@ export type MarketingCampaignBriefInput = z.infer<
 >;
 export type MarketingCampaignCopiesInput = z.infer<
   typeof MarketingCampaignCopiesInputSchema
+>;
+export type MarketingCampaignVariantPublishInput = z.infer<
+  typeof MarketingCampaignVariantPublishSchema
 >;
 export type MarketingContentIdea = z.infer<typeof MarketingContentIdeaSchema>;
 export type MarketingContentIdeas = z.infer<typeof MarketingContentIdeasSchema>;

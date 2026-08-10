@@ -54,6 +54,7 @@ campanhas e resultados sem expor esses dados às usuárias do app comercial.
 
 - `GET /dashboard`, `POST /seed`.
 - CRUD `/resources` e `/documents`; anexos em `/documents/:id/attachments`.
+- Merge de dados gerados em `PATCH /resources/:id/data`, sem substituir chaves anteriores.
 - Export em `/documents/:id/export.md|pdf`.
 - Conversas em `/ai/sessions` e `POST /ai/chat`; feedback em `/ai/feedback`.
 - Rascunhos em `POST /ai/resources/draft`; banco ranqueado em `POST /ai/content/ideas`.
@@ -62,6 +63,9 @@ campanhas e resultados sem expor esses dados às usuárias do app comercial.
   explícita antes do handoff para o copywriter. O pacote final inclui gancho, aterrissagem,
   retenção, produção, evidência e autorrevisão estruturada. Público e oferta podem ficar vazios:
   nesse caso, o estrategista deriva o melhor recorte sustentado pelo contexto confirmado da Central.
+- `POST /campaigns/:id/variants/:index/publish` publica uma variante aprovada em Conteúdo ou
+  Documentos dentro de uma única transação. A campanha guarda `savedVariants`; repetir a mesma
+  publicação devolve o vínculo existente sem criar duplicata.
 - Governança em `/ai/training`: instruções, conhecimento, exemplos, avaliações e settings.
 
 ## Authorization & RLS

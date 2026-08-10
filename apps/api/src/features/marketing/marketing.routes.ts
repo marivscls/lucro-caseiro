@@ -3,6 +3,7 @@ import {
   MarketingAiResourceDraftInputSchema,
   MarketingCampaignBriefInputSchema,
   MarketingCampaignCopiesInputSchema,
+  MarketingCampaignVariantPublishSchema,
   MarketingContentIdeasInputSchema,
   MarketingAttachmentInputSchema,
   MarketingDocumentInputSchema,
@@ -13,6 +14,7 @@ import {
   MarketingKnowledgeInputSchema,
   MarketingLearningPolicySchema,
   MarketingResourceInputSchema,
+  MarketingResourceDataPatchSchema,
   MarketingResourcePatchSchema,
   MarketingResourceQuerySchema,
 } from "@lucro-caseiro/contracts";
@@ -89,6 +91,33 @@ export function createMarketingRouter(useCases: MarketingUseCases): Router {
           getUserId(req),
           req.params.id,
           MarketingResourcePatchSchema.parse(req.body),
+        ),
+      );
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.patch("/resources/:id/data", async (req, res, next) => {
+    try {
+      const input = MarketingResourceDataPatchSchema.parse(req.body);
+      res.json(
+        await useCases.mergeResourceData(getUserId(req), req.params.id, input.data),
+      );
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/campaigns/:id/variants/:index/publish", async (req, res, next) => {
+    try {
+      const index = z.coerce.number().int().nonnegative().parse(req.params.index);
+      res.json(
+        await useCases.publishCampaignVariant(
+          getUserId(req),
+          req.params.id,
+          index,
+          MarketingCampaignVariantPublishSchema.parse(req.body),
         ),
       );
     } catch (error) {

@@ -1,8 +1,8 @@
 # Playbook de conteúdo por canal
 
 **Status:** Diretriz operacional
-**Versão:** 1.0
-**Data:** 16 de julho de 2026
+**Versão:** 1.1
+**Data:** 10 de agosto de 2026
 
 ## Objetivo editorial
 
@@ -64,6 +64,22 @@ final: uma ação
 
 Cada slide deve sustentar uma ideia. A legenda complementa; não repete todo o carrossel.
 
+## Direção visual permanente
+
+A linguagem visual é editorial, contemporânea, humana e comercial. A Hostpoint é referência somente para o estilo de composição — fotografia imersiva, recortes em grande escala, headline de alto impacto, assimetria e ritmo de campanha. Sua paleta azul/verde não deve ser copiada: toda cor continua vindo da identidade do Lucro Caseiro. Fotografia e tipografia carregam aproximadamente 90% da mensagem; grafismos apenas apoiam a narrativa.
+
+- uma única fotografia editorial forte e um único foco dominante;
+- aproximadamente 55–70% de fotografia contextual e cinematográfica, quando adequado;
+- bloco tipográfico amplo, headline curta e leitura principal em menos de dois segundos;
+- bastante espaço negativo e no máximo dois ou três elementos gráficos secundários;
+- off-white e vinho/rosa dominantes, com lima concentrado em um único gesto;
+- separação assimétrica ou recorte orgânico estrutural entre fotografia e tipografia;
+- variação de enquadramento e posição do campo tipográfico ao longo de uma série.
+
+Não usar a estética de cartilha educativa: página branca carregada de explicações, contas manuscritas, gráficos de pizza, setas, círculos, listas de despesas, fileiras de cápsulas ou ilustração literal de toda a copy. Também não usar botões sem interface real, colagens financeiras ou dashboards fictícios. A peça deve parecer uma campanha de marca, não um material didático do Sebrae.
+
+Antes de aprovar cada elemento, perguntar: “Isto melhora claramente a narrativa ou apenas ocupa espaço?”. Se apenas decora, remover. O DNA da marca vem da paleta, tipografia, fotografia, acabamento, proporção, ritmo e tom editorial — não da repetição automática da geometria ou dos grafismos de uma peça anterior.
+
 ## Stories
 
 Usar para pesquisa, relacionamento e bastidores: enquete, caixa de perguntas, demonstração curta, resultado do conteúdo anterior e convite para a próxima pauta. Perguntas devem produzir aprendizado acionável, não apenas interação vazia.
@@ -94,4 +110,10 @@ Uma pauta pode gerar vários materiais, mas cada canal precisa de abertura, ritm
 - recursos mostrados existem na versão publicada;
 - há uma única ação principal;
 - textos e telas são legíveis no celular;
+- existe um único foco dominante e a fotografia contextual mantém protagonismo;
+- há no máximo dois ou três elementos gráficos secundários;
+- o lima está concentrado em um único gesto;
+- a paleta é integralmente do Lucro Caseiro, sem azul/verde copiado da referência;
+- nenhum elemento foi incluído apenas para preencher espaço;
+- a composição parece campanha de marca, não cartilha, infográfico ou interface fictícia;
 - a métrica escolhida corresponde ao objetivo da peça.
