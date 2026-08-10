@@ -1,6 +1,7 @@
 export * from "./users";
 export * from "./notifications";
 export * from "./subscription-purchases";
+export * from "./professional-trial-campaign";
 export * from "./api-rate-limits";
 export * from "./products";
 export * from "./product-components";

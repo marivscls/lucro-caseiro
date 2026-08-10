@@ -17,6 +17,7 @@ import type {
   AndroidPurchaseData,
   ISubscriptionRepo,
   ISubscriptionStatusProvider,
+  ProfessionalTrialCampaignNotifier,
   SubscriptionLifecycleEvent,
   SubscriptionLifecycleNotifier,
   UpsertProfileData,
@@ -41,6 +42,7 @@ export class SubscriptionUseCases {
       action: AnalyticsActionName,
     ) => Promise<void>,
     private notifyLifecycle?: SubscriptionLifecycleNotifier,
+    private notifyProfessionalTrialCampaign?: ProfessionalTrialCampaignNotifier,
   ) {}
 
   async getProfile(userId: string): Promise<UserProfile> {
@@ -48,6 +50,7 @@ export class SubscriptionUseCases {
     if (!profile) {
       throw new NotFoundError("Perfil não encontrado");
     }
+    await this.sendProfessionalTrialCampaignEmail(userId);
     return profile;
   }
 
@@ -231,6 +234,28 @@ export class SubscriptionUseCases {
         kind: event.kind,
         userId: event.userId,
         error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  private async sendProfessionalTrialCampaignEmail(userId: string): Promise<void> {
+    if (!this.notifyProfessionalTrialCampaign) return;
+
+    const claim = await this.repo.claimProfessionalTrialCampaignEmail(userId);
+    if (!claim) return;
+
+    try {
+      const result = await this.notifyProfessionalTrialCampaign({
+        ...claim,
+        idempotencyKey: `professional-trial-campaign-2026-${claim.userId}`,
+      });
+      await this.repo.completeProfessionalTrialCampaignEmail(userId, result.id);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      await this.repo.releaseProfessionalTrialCampaignEmail(userId, message);
+      console.error("Professional trial campaign email failed", {
+        userId,
+        error: message,
       });
     }
   }

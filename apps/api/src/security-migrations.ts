@@ -5,6 +5,7 @@ import postgres from "postgres";
 export const securityMigrationFiles = [
   "../../../packages/database/src/migrations/049_subscription_purchase_claims.sql",
   "../../../packages/database/src/migrations/050_api_rate_limit_buckets.sql",
+  "../../../packages/database/src/migrations/052_professional_trial_campaign.sql",
 ] as const;
 
 export function getSecurityMigrationPaths(baseUrl = import.meta.url): string[] {

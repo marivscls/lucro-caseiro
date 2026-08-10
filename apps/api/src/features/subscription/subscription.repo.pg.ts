@@ -3,6 +3,7 @@ import { normalizePlan } from "@lucro-caseiro/contracts";
 import {
   clients,
   packaging,
+  professionalTrialCampaignGrants,
   products,
   recipes,
   sales,
@@ -10,10 +11,11 @@ import {
   suppliers,
   users,
 } from "@lucro-caseiro/database/schema";
-import { and, count, eq, gte } from "drizzle-orm";
+import { and, count, eq, gt, gte, isNull, lt, or, sql } from "drizzle-orm";
 import type { AppDatabase } from "../../shared/db";
 import type {
   ISubscriptionRepo,
+  ProfessionalTrialCampaignEmailClaim,
   ResourceCounts,
   UpsertProfileData,
 } from "./subscription.types";
@@ -121,6 +123,75 @@ export class SubscriptionRepoPg implements ISubscriptionRepo {
         ),
       );
     return true;
+  }
+
+  async claimProfessionalTrialCampaignEmail(
+    userId: string,
+  ): Promise<ProfessionalTrialCampaignEmailClaim | null> {
+    const claimExpiredBefore = new Date(Date.now() - 15 * 60 * 1000);
+    const [claim] = await this.db
+      .update(professionalTrialCampaignGrants)
+      .set({
+        emailClaimedAt: new Date(),
+        emailAttempts: sql`${professionalTrialCampaignGrants.emailAttempts} + 1`,
+        emailLastError: null,
+      })
+      .where(
+        and(
+          eq(professionalTrialCampaignGrants.userId, userId),
+          isNull(professionalTrialCampaignGrants.emailSentAt),
+          gt(professionalTrialCampaignGrants.expiresAt, new Date()),
+          or(
+            isNull(professionalTrialCampaignGrants.emailClaimedAt),
+            lt(professionalTrialCampaignGrants.emailClaimedAt, claimExpiredBefore),
+          ),
+        ),
+      )
+      .returning({
+        userId: professionalTrialCampaignGrants.userId,
+        email: professionalTrialCampaignGrants.email,
+        expiresAt: professionalTrialCampaignGrants.expiresAt,
+      });
+
+    return claim ? { ...claim, expiresAt: claim.expiresAt.toISOString() } : null;
+  }
+
+  async completeProfessionalTrialCampaignEmail(
+    userId: string,
+    messageId: string,
+  ): Promise<void> {
+    await this.db
+      .update(professionalTrialCampaignGrants)
+      .set({
+        emailClaimedAt: null,
+        emailSentAt: new Date(),
+        emailMessageId: messageId,
+        emailLastError: null,
+      })
+      .where(
+        and(
+          eq(professionalTrialCampaignGrants.userId, userId),
+          isNull(professionalTrialCampaignGrants.emailSentAt),
+        ),
+      );
+  }
+
+  async releaseProfessionalTrialCampaignEmail(
+    userId: string,
+    error: string,
+  ): Promise<void> {
+    await this.db
+      .update(professionalTrialCampaignGrants)
+      .set({
+        emailClaimedAt: null,
+        emailLastError: error.slice(0, 2000),
+      })
+      .where(
+        and(
+          eq(professionalTrialCampaignGrants.userId, userId),
+          isNull(professionalTrialCampaignGrants.emailSentAt),
+        ),
+      );
   }
 
   async getResourceCounts(userId: string): Promise<ResourceCounts> {

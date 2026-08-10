@@ -10,6 +10,7 @@ import { SubscriptionUseCases } from "./subscription.usecases";
 import type {
   ISubscriptionRepo,
   ISubscriptionStatusProvider,
+  ProfessionalTrialCampaignNotifier,
   ResourceCounts,
   SubscriptionLifecycleNotifier,
   UpsertProfileData,
@@ -60,6 +61,9 @@ function makeRepo(overrides: Partial<ISubscriptionRepo> = {}): ISubscriptionRepo
       ),
     getResourceCounts: () => Promise.resolve(makeCounts()),
     claimPurchaseToken: () => Promise.resolve(true),
+    claimProfessionalTrialCampaignEmail: () => Promise.resolve(null),
+    completeProfessionalTrialCampaignEmail: () => Promise.resolve(),
+    releaseProfessionalTrialCampaignEmail: () => Promise.resolve(),
     ...overrides,
   };
 }
@@ -83,6 +87,7 @@ function makeSut(
   statusProvider?: ISubscriptionStatusProvider,
   recordLifecycleEvent?: (userId: string, action: AnalyticsActionName) => Promise<void>,
   notifyLifecycle?: SubscriptionLifecycleNotifier,
+  notifyProfessionalTrialCampaign?: ProfessionalTrialCampaignNotifier,
 ) {
   const repo = makeRepo(repoOverrides);
   return {
@@ -91,6 +96,7 @@ function makeSut(
       statusProvider,
       recordLifecycleEvent,
       notifyLifecycle,
+      notifyProfessionalTrialCampaign,
     ),
     repo,
   };
@@ -107,6 +113,59 @@ describe("SubscriptionUseCases", () => {
     it("throws NotFoundError when not found", async () => {
       const { sut } = makeSut({ getProfile: () => Promise.resolve(null) });
       await expect(sut.getProfile(USER_ID)).rejects.toThrow(NotFoundError);
+    });
+
+    it("sends and completes a pending professional trial campaign email", async () => {
+      const complete = vi.fn(() => Promise.resolve());
+      const notify = vi.fn(() => Promise.resolve({ id: "email-campaign-1" }));
+      const { sut } = makeSut(
+        {
+          claimProfessionalTrialCampaignEmail: () =>
+            Promise.resolve({
+              userId: USER_ID,
+              email: "maria@email.com",
+              expiresAt: "2026-09-10T12:00:00.000Z",
+            }),
+          completeProfessionalTrialCampaignEmail: complete,
+        },
+        undefined,
+        undefined,
+        undefined,
+        notify,
+      );
+
+      await sut.getProfile(USER_ID);
+
+      expect(notify).toHaveBeenCalledWith({
+        userId: USER_ID,
+        email: "maria@email.com",
+        expiresAt: "2026-09-10T12:00:00.000Z",
+        idempotencyKey: `professional-trial-campaign-2026-${USER_ID}`,
+      });
+      expect(complete).toHaveBeenCalledWith(USER_ID, "email-campaign-1");
+    });
+
+    it("releases a pending campaign email after a delivery failure", async () => {
+      const release = vi.fn(() => Promise.resolve());
+      const notify = vi.fn(() => Promise.reject(new Error("Resend indisponivel")));
+      const { sut } = makeSut(
+        {
+          claimProfessionalTrialCampaignEmail: () =>
+            Promise.resolve({
+              userId: USER_ID,
+              email: "maria@email.com",
+              expiresAt: "2026-09-10T12:00:00.000Z",
+            }),
+          releaseProfessionalTrialCampaignEmail: release,
+        },
+        undefined,
+        undefined,
+        undefined,
+        notify,
+      );
+
+      await expect(sut.getProfile(USER_ID)).resolves.toMatchObject({ id: USER_ID });
+      expect(release).toHaveBeenCalledWith(USER_ID, "Resend indisponivel");
     });
   });
 

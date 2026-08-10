@@ -118,6 +118,7 @@ import {
 import { RetailRepoPg } from "./features/retail/retail.repo.pg";
 import { RetailUseCases } from "./features/retail/retail.usecases";
 import { createResendEmailSender } from "./features/email/resend-email";
+import { buildProfessionalTrialEmail } from "./features/email/professional-trial-email";
 import { createSubscriptionEmailNotifier } from "./features/email/subscription-lifecycle-email";
 
 // Database
@@ -224,11 +225,21 @@ const accountUseCases = new AccountUseCases(accountRepo, {
   },
 });
 const analyticsUseCases = new AnalyticsUseCases(new AnalyticsRepoPg(db));
-const subscriptionEmailNotifier = config.resendApiKey
-  ? createSubscriptionEmailNotifier(
-      createResendEmailSender(config.resendApiKey, config.emailFrom),
-      config.emailReplyTo || undefined,
-    )
+const emailSender = config.resendApiKey
+  ? createResendEmailSender(config.resendApiKey, config.emailFrom)
+  : undefined;
+const subscriptionEmailNotifier = emailSender
+  ? createSubscriptionEmailNotifier(emailSender, config.emailReplyTo || undefined)
+  : undefined;
+const professionalTrialCampaignEmail = buildProfessionalTrialEmail();
+const professionalTrialCampaignNotifier = emailSender
+  ? (event: { email: string; idempotencyKey: string }) =>
+      emailSender({
+        to: event.email,
+        ...professionalTrialCampaignEmail,
+        idempotencyKey: event.idempotencyKey,
+        ...(config.emailReplyTo ? { replyTo: config.emailReplyTo } : {}),
+      })
   : undefined;
 const marketingAi = config.googleGenerativeAiApiKey
   ? createGoogleGenerativeAI({ apiKey: config.googleGenerativeAiApiKey })
@@ -290,6 +301,7 @@ const subscriptionUseCases = new SubscriptionUseCases(
   googlePlayClient,
   (userId, action) => analyticsUseCases.recordUserAction(userId, action),
   subscriptionEmailNotifier,
+  professionalTrialCampaignNotifier,
 );
 const goalsUseCases = new GoalsUseCases(
   goalsRepo,

@@ -19,6 +19,23 @@ export type SubscriptionLifecycleNotifier = (
   event: SubscriptionLifecycleEvent,
 ) => Promise<void>;
 
+export interface ProfessionalTrialCampaignEmail {
+  userId: string;
+  email: string;
+  expiresAt: string;
+  idempotencyKey: string;
+}
+
+export type ProfessionalTrialCampaignNotifier = (
+  event: ProfessionalTrialCampaignEmail,
+) => Promise<{ id: string }>;
+
+export interface ProfessionalTrialCampaignEmailClaim {
+  userId: string;
+  email: string;
+  expiresAt: string;
+}
+
 export interface ISubscriptionRepo {
   getProfile(userId: string): Promise<UserProfile | null>;
   upsertProfile(userId: string, data: UpsertProfileData): Promise<UserProfile>;
@@ -33,6 +50,14 @@ export interface ISubscriptionRepo {
     provider: "google-play",
     tokenHash: string,
   ): Promise<boolean>;
+  claimProfessionalTrialCampaignEmail(
+    userId: string,
+  ): Promise<ProfessionalTrialCampaignEmailClaim | null>;
+  completeProfessionalTrialCampaignEmail(
+    userId: string,
+    messageId: string,
+  ): Promise<void>;
+  releaseProfessionalTrialCampaignEmail(userId: string, error: string): Promise<void>;
 }
 
 export interface UpsertProfileData {
