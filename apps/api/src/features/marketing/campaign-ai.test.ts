@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import { MarketingCreativeBundleSchema } from "@lucro-caseiro/contracts";
 
-import { NON_HUMAN_VISUAL_GUARDRAIL } from "./marketing.system-prompt";
+import {
+  AI_CHARACTER_CAROUSEL_GUARDRAIL,
+  NON_HUMAN_VISUAL_GUARDRAIL,
+} from "./marketing.system-prompt";
 
 import {
   buildAdCopywriterPrompt,
@@ -85,7 +88,7 @@ describe("campaign AI", () => {
       },
     );
     expect(built.promptId).toBe("campaign-strategist");
-    expect(built.promptVersion).toBe("13");
+    expect(built.promptVersion).toBe("14");
     expect(built.prompt).toContain("Confeiteiras iniciantes");
     expect(built.prompt).toContain("R$ 300");
     expect(built.prompt).toContain("Não prometa renda.");
@@ -213,7 +216,7 @@ describe("campaign AI", () => {
       },
     );
     expect(built.promptId).toBe("ad-copywriter");
-    expect(built.promptVersion).toBe("12");
+    expect(built.promptVersion).toBe("13");
     expect(built.prompt).toContain("ESTRATÉGIA APROVADA E IMUTÁVEL");
     expect(built.prompt).toContain("nunca conteúdo a copiar");
     expect(built.prompt).toContain(plan.audienceSummary);
@@ -371,6 +374,68 @@ describe("campaign AI", () => {
           slidePrompts: [1, 2, 3, 4].map(
             (slide) =>
               `SLIDE ${slide}\nFAMÍLIA DE LAYOUT: ${CAROUSEL_LAYOUT_FAMILIES[slide - 1]}\nVARIAÇÃO VISUAL: Produto ou serviço em ação\n${NON_HUMAN_VISUAL_GUARDRAIL}\nMostre o produto, o ambiente e as ferramentas indispensáveis.`,
+          ),
+          productionNotes: carouselExecutionContract(4),
+          cta: "Organize agora.",
+        },
+      ],
+    });
+
+    expect(creativeBundleContractViolations(bundle, plan)).toEqual([]);
+  });
+
+  it("rejects an AI-character carousel made only of character portraits", () => {
+    const bundle = MarketingCreativeBundleSchema.parse({
+      variants: [
+        {
+          channel: "instagram",
+          format: "carrossel",
+          headline: "Venda com clareza",
+          body: "VARIAÇÃO VISUAL: Editorial com personagem IA",
+          slidePrompts: [
+            "foto-dominante",
+            "campo-tipografico",
+            "recorte-editorial",
+            "encerramento-editorial",
+          ].map(
+            (family, index) =>
+              `SLIDE ${index + 1}\nFAMÍLIA DE LAYOUT: ${family}\nVARIAÇÃO VISUAL: Editorial com personagem IA\n${AI_CHARACTER_CAROUSEL_GUARDRAIL}\nRetrato editorial da mesma personagem.`,
+          ),
+          productionNotes: carouselExecutionContract(4),
+          cta: "Organize agora.",
+        },
+      ],
+    });
+
+    expect(creativeBundleContractViolations(bundle, plan)).toEqual(
+      expect.arrayContaining([
+        "Variante 1: a variação Editorial com personagem IA exige ao menos um slide interface-real.",
+        "Variante 1: a variação Editorial com personagem IA exige uma cena explícita de interação entre personagem e tela.",
+      ]),
+    );
+  });
+
+  it("accepts an AI-character carousel that alternates character, typography and screens", () => {
+    const families = [
+      "foto-dominante",
+      "campo-tipografico",
+      "recorte-editorial",
+      "interface-real",
+    ];
+    const bundle = MarketingCreativeBundleSchema.parse({
+      variants: [
+        {
+          channel: "instagram",
+          format: "carrossel",
+          headline: "Venda com clareza",
+          body: "VARIAÇÃO VISUAL: Editorial com personagem IA",
+          slidePrompts: families.map(
+            (family, index) =>
+              `SLIDE ${index + 1}\nFAMÍLIA DE LAYOUT: ${family}\nVARIAÇÃO VISUAL: Editorial com personagem IA\n${AI_CHARACTER_CAROUSEL_GUARDRAIL}\n${
+                index === 2
+                  ? "INTERAÇÃO PERSONAGEM-TELA: a mesma personagem usa um tablet com a tela real de cálculo confirmada."
+                  : "Alterne a função narrativa deste slide dentro da campanha."
+              }`,
           ),
           productionNotes: carouselExecutionContract(4),
           cta: "Organize agora.",

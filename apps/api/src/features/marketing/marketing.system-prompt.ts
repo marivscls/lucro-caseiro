@@ -5,6 +5,9 @@ O Lucro Caseiro não é exclusivo de confeiteiras, mulheres de uma faixa etária
 Confeitaria, alimentação, artesanato, papelaria, beleza e costura são segmentos e exemplos de entrada, nunca a definição global nem o teto do produto. Separe sempre o mercado amplo da marca do público tático de uma campanha ou peça. Uma campanha pode escolher uma fatia específica e usar a linguagem dela, mas nunca apresente essa fatia como se resumisse todo o Lucro Caseiro. Quando nenhum segmento tiver sido escolhido, não favoreça um nicho apenas porque aparece primeiro ou mais vezes no contexto; compare as alternativas e preserve o posicionamento amplo da marca.`;
 
 export const AI_CHARACTER_VISUAL_VARIATION = "Editorial com personagem IA";
+export const AI_CHARACTER_CAROUSEL_GUARDRAIL =
+  "PERSONAGEM IA + TELAS: preserve a mesma personagem como fio narrativo e alterne cenas da personagem, passos tipográficos, interação com dispositivo e interface real confirmada; não faça uma sequência composta só por retratos.";
+export const AI_CHARACTER_SCREEN_INTERACTION_PREFIX = "INTERAÇÃO PERSONAGEM-TELA:";
 export const NON_HUMAN_VISUAL_GUARDRAIL =
   "PESSOAS GERADAS POR IA: PROIBIDAS — não mostre pessoa, personagem, rosto, corpo, mãos humanas nem retrato gerados por IA.";
 
@@ -26,6 +29,8 @@ Esta é a linha visual canônica do Lucro Caseiro e deve aparecer em todo prompt
 - A variação selecionada é um contrato exclusivo e prevalece sobre qualquer regra genérica deste Visual DNA. Nunca misture elementos reservados a outra variação.
 - Pessoa ou personagem humana gerada por IA só é permitida na variação “${AI_CHARACTER_VISUAL_VARIATION}”. Em qualquer outra variação, construa a cena com produto, serviço, ação sem figura humana, ambiente, objetos, tipografia ou interface real confirmada.
 - Todo prompt de arte, individual ou completo, deve declarar \`VARIAÇÃO VISUAL: <nome selecionado>\`. Se a variação não for “${AI_CHARACTER_VISUAL_VARIATION}”, repita literalmente em cada prompt: \`${NON_HUMAN_VISUAL_GUARDRAIL}\`
+- Quando a variação for “${AI_CHARACTER_VISUAL_VARIATION}”, repita literalmente em cada prompt individual: \`${AI_CHARACTER_CAROUSEL_GUARDRAIL}\` A personagem é o fio narrativo do carrossel, não o único foco de todos os slides: alterne personagem em ação, passo tipográfico, personagem usando celular, tablet ou computador, close da interface e encerramento editorial. Inclua ao menos um slide da família \`interface-real\` e ao menos uma cena de uso que comece por \`${AI_CHARACTER_SCREEN_INTERACTION_PREFIX}\`, descrevendo a mesma personagem interagindo de modo plausível com uma tela fornecida ou confirmada. Não entregue um carrossel composto apenas por retratos ou fotografias da personagem.
+- A composição tutorial mostrada em uma referência é uma possibilidade, não um template obrigatório para todos os posts. Preserve o DNA e a progressão narrativa, mas varie geometria, enquadramento e distribuição de foto, texto e interface entre campanhas.
 - A proibição inclui figuras humanas ao fundo ou parcialmente visíveis. Mãos humanas também são proibidas; represente processos por objetos, estado da cena, produto, ferramenta ou interface real.
 
 ### Ritmo de carrossel

@@ -144,6 +144,12 @@ describe("marketing intelligence", () => {
     expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
       "Pessoa ou personagem humana gerada por IA só é permitida na variação “Editorial com personagem IA”",
     );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
+      "A personagem é o fio narrativo do carrossel, não o único foco de todos os slides",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
+      "uma possibilidade, não um template obrigatório para todos os posts",
+    );
     expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain("PESSOAS GERADAS POR IA: PROIBIDAS");
     expect(VISUAL_ART_DIRECTION_GUARDRAIL).not.toContain(
       "mantenha exatamente a identidade da personagem",

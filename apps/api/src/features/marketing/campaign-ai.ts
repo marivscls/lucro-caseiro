@@ -8,6 +8,8 @@ import {
 } from "@lucro-caseiro/contracts";
 
 import {
+  AI_CHARACTER_CAROUSEL_GUARDRAIL,
+  AI_CHARACTER_SCREEN_INTERACTION_PREFIX,
   AI_CHARACTER_VISUAL_VARIATION,
   MARKET_POSITIONING_GUARDRAIL,
   NON_HUMAN_VISUAL_GUARDRAIL,
@@ -15,9 +17,9 @@ import {
 } from "./marketing.system-prompt";
 
 export const CAMPAIGN_STRATEGIST_PROMPT_ID = "campaign-strategist";
-export const CAMPAIGN_STRATEGIST_PROMPT_VERSION = "13";
+export const CAMPAIGN_STRATEGIST_PROMPT_VERSION = "14";
 export const AD_COPYWRITER_PROMPT_ID = "ad-copywriter";
-export const AD_COPYWRITER_PROMPT_VERSION = "12";
+export const AD_COPYWRITER_PROMPT_VERSION = "13";
 
 export const CAROUSEL_LAYOUT_FAMILIES = [
   "foto-dominante",
@@ -140,6 +142,7 @@ Princípios universais:
 - Para carrosséis, devolva em slidePrompts exatamente N prompts individuais completos, um por slide e na ordem 1..N. Cada item deve funcionar sozinho e começar por SLIDE X. Não resuma nem crie uma versão alternativa para productionNotes: o sistema montará o prompt total por concatenação literal desses N itens.
 - Logo após SLIDE X, cada item deve declarar FAMÍLIA DE LAYOUT: nome-canônico e descrever a composição completa correspondente. Use somente: ${CAROUSEL_LAYOUT_FAMILIES.join(", ")}. Empregue ao menos três famílias no carrossel, não repita a mesma em slides consecutivos e use divisao-vertical no máximo uma vez.
 - Cada prompt visual deve declarar VARIAÇÃO VISUAL: nome selecionado. Somente “${AI_CHARACTER_VISUAL_VARIATION}” permite pessoa ou personagem humana gerada por IA. Para qualquer outra variação, repita literalmente em cada slidePrompt: ${NON_HUMAN_VISUAL_GUARDRAIL}
+- Quando a variação selecionada for “${AI_CHARACTER_VISUAL_VARIATION}”, repita literalmente em cada slidePrompt: ${AI_CHARACTER_CAROUSEL_GUARDRAIL} O carrossel deve incluir ao menos uma família interface-real e ao menos um slide com a linha ${AI_CHARACTER_SCREEN_INTERACTION_PREFIX} seguida pela descrição da personagem usando uma tela fornecida ou confirmada. Alterne personagem, tipografia, interação e interface; não entregue somente retratos.
 - Em carrosséis, productionNotes deve conter somente o contrato de execução fornecido no prompt do usuário. Esse contrato é condicional: sem âncora, gera somente o slide 1 e encerra; com a âncora já existente, não regenera o slide 1 e gera somente 2..N. Nunca ordene gerar 1..N na mesma solicitação, nunca escreva “execute todas as N gerações” e nunca mande continuar automaticamente depois do slide 1.
 - Toda copy delimitada por [HEADLINE], [APOIO] ou [CTA] deve aparecer completa. Nunca corte copy com “...” ou “…” e nunca use reticências como placeholder.
 - Sem arquivo oficial de logo, use a assinatura textual canônica “lucro caseiro”; não mande deixar a assinatura vazia e não descreva “Lucro Caseiro” como texto em minúsculas.
@@ -550,6 +553,11 @@ export function creativeBundleContractViolations(
       !visualVariation.startsWith(
         AI_CHARACTER_VISUAL_VARIATION.toLocaleLowerCase("pt-BR"),
       );
+    const usesAiCharacter =
+      visualVariation !== null &&
+      visualVariation.startsWith(
+        AI_CHARACTER_VISUAL_VARIATION.toLocaleLowerCase("pt-BR"),
+      );
 
     if (variant.slidePrompts.length !== carouselSlides)
       violations.push(
@@ -585,12 +593,37 @@ export function creativeBundleContractViolations(
         violations.push(
           `${label}: slidePrompts[${slideIndex}] omite a proibição de pessoas geradas por IA da variação selecionada.`,
         );
+      if (usesAiCharacter && !slidePrompt.includes(AI_CHARACTER_CAROUSEL_GUARDRAIL))
+        violations.push(
+          `${label}: slidePrompts[${slideIndex}] omite o contrato de personagem IA com telas.`,
+        );
     });
 
     if (forbidsAiPeople && hasPositiveHumanDirection(fullText))
       violations.push(
         `${label}: a variação visual selecionada proíbe pessoa ou personagem gerada por IA.`,
       );
+
+    if (usesAiCharacter) {
+      if (!layoutFamilies.includes("interface-real"))
+        violations.push(
+          `${label}: a variação Editorial com personagem IA exige ao menos um slide interface-real.`,
+        );
+      if (
+        !variant.slidePrompts.some((slidePrompt) =>
+          slidePrompt
+            .split("\n")
+            .some(
+              (line) =>
+                line.trim().startsWith(AI_CHARACTER_SCREEN_INTERACTION_PREFIX) &&
+                line.trim().length > AI_CHARACTER_SCREEN_INTERACTION_PREFIX.length,
+            ),
+        )
+      )
+        violations.push(
+          `${label}: a variação Editorial com personagem IA exige uma cena explícita de interação entre personagem e tela.`,
+        );
+    }
 
     if (layoutFamilies.length === carouselSlides) {
       const requiredVariety = Math.min(3, carouselSlides);
