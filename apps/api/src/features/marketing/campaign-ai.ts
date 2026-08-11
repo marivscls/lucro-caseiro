@@ -7,22 +7,47 @@ import {
   type MarketingCreativeBundle,
 } from "@lucro-caseiro/contracts";
 
-import { MARKET_POSITIONING_GUARDRAIL } from "./marketing.system-prompt";
+import {
+  AI_CHARACTER_VISUAL_VARIATION,
+  MARKET_POSITIONING_GUARDRAIL,
+  NON_HUMAN_VISUAL_GUARDRAIL,
+  VISUAL_ART_DIRECTION_GUARDRAIL,
+} from "./marketing.system-prompt";
 
 export const CAMPAIGN_STRATEGIST_PROMPT_ID = "campaign-strategist";
-export const CAMPAIGN_STRATEGIST_PROMPT_VERSION = "4";
+export const CAMPAIGN_STRATEGIST_PROMPT_VERSION = "13";
 export const AD_COPYWRITER_PROMPT_ID = "ad-copywriter";
-export const AD_COPYWRITER_PROMPT_VERSION = "2";
+export const AD_COPYWRITER_PROMPT_VERSION = "12";
+
+export const CAROUSEL_LAYOUT_FAMILIES = [
+  "foto-dominante",
+  "campo-tipografico",
+  "divisao-horizontal",
+  "recorte-editorial",
+  "divisao-vertical",
+  "interface-real",
+  "encerramento-editorial",
+] as const;
+
+type CampaignResourceContext = {
+  kind: string;
+  slug?: string;
+  title: string;
+  summary: string | null;
+  data: unknown;
+};
 
 type CampaignContext = {
   instruction?: string;
   knowledge: Array<{ title: string; body: string }>;
-  resources: Array<{
-    kind: string;
-    title: string;
-    summary: string | null;
-    data: unknown;
-  }>;
+  resources: CampaignResourceContext[];
+};
+
+export type AutomaticCampaignDirection = {
+  feature: string;
+  benefit: string;
+  audience: string;
+  recentCampaigns: string[];
 };
 
 export type BrandProfile = {
@@ -37,6 +62,8 @@ const CAMPAIGN_SYSTEM = `Você é o Estrategista de Anúncios do Lucro Caseiro.
 Sua função é pesquisar o contexto disponível e transformar o briefing em um plano de campanha multicanal claro, específico e defensável.
 
 ${MARKET_POSITIONING_GUARDRAIL}
+
+${VISUAL_ART_DIRECTION_GUARDRAIL}
 
 Princípios:
 - Evite promessas absolutas de resultado e nunca invente fatos, provas ou funcionalidades.
@@ -81,6 +108,7 @@ Schema de saída (JSON):
     "organicInsight": string,
     "avatar": string,
     "format": string,
+    "carouselSlides": number,
     "visualHook": string,
     "landing": string,
     "retentionBeats": string[],
@@ -97,6 +125,8 @@ Schema de saída (JSON):
 const COPYWRITER_SYSTEM = `Você é o Copywriter de Anúncios do Lucro Caseiro.
 Recebe uma estratégia de campanha já aprovada e devolve um pacote criativo coerente entre canais.
 
+${VISUAL_ART_DIRECTION_GUARDRAIL}
+
 Princípios universais:
 - Reaproveite ideias entre canais: mesma promessa, formatos diferentes.
 - Respeite a voz, as restrições e os exemplos aprovados da marca.
@@ -106,6 +136,13 @@ Princípios universais:
 - O gancho deve qualificar o público, a aterrissagem deve sustentar a atenção e o corpo deve renovar o interesse.
 - Escreva a partir da função psicológica da estratégia, nunca por substituição superficial de palavras.
 - Faça uma autorrevisão, corrija o pacote antes de responder e marque ready=false somente se restar risco de prova, contradição com o plano ou lacuna impeditiva.
+- Para formatos visuais, productionNotes deve desdobrar o Visual DNA em instruções executáveis para a arte final. Em carrosséis, identifique o papel e a composição de cada slide, exija uma imagem separada por slide e preserve a copy obrigatória; não devolva apenas recomendações genéricas de estilo.
+- Para carrosséis, devolva em slidePrompts exatamente N prompts individuais completos, um por slide e na ordem 1..N. Cada item deve funcionar sozinho e começar por SLIDE X. Não resuma nem crie uma versão alternativa para productionNotes: o sistema montará o prompt total por concatenação literal desses N itens.
+- Logo após SLIDE X, cada item deve declarar FAMÍLIA DE LAYOUT: nome-canônico e descrever a composição completa correspondente. Use somente: ${CAROUSEL_LAYOUT_FAMILIES.join(", ")}. Empregue ao menos três famílias no carrossel, não repita a mesma em slides consecutivos e use divisao-vertical no máximo uma vez.
+- Cada prompt visual deve declarar VARIAÇÃO VISUAL: nome selecionado. Somente “${AI_CHARACTER_VISUAL_VARIATION}” permite pessoa ou personagem humana gerada por IA. Para qualquer outra variação, repita literalmente em cada slidePrompt: ${NON_HUMAN_VISUAL_GUARDRAIL}
+- Em carrosséis, productionNotes deve conter somente o contrato de execução fornecido no prompt do usuário. Esse contrato é condicional: sem âncora, gera somente o slide 1 e encerra; com a âncora já existente, não regenera o slide 1 e gera somente 2..N. Nunca ordene gerar 1..N na mesma solicitação, nunca escreva “execute todas as N gerações” e nunca mande continuar automaticamente depois do slide 1.
+- Toda copy delimitada por [HEADLINE], [APOIO] ou [CTA] deve aparecer completa. Nunca corte copy com “...” ou “…” e nunca use reticências como placeholder.
+- Sem arquivo oficial de logo, use a assinatura textual canônica “lucro caseiro”; não mande deixar a assinatura vazia e não descreva “Lucro Caseiro” como texto em minúsculas.
 - Devolva JSON válido sem texto fora do JSON.
 
 REGRA CRÍTICA SOBRE A ESTRATÉGIA:
@@ -129,6 +166,7 @@ Schema de saída:
     "landing": string,
     "body": string,
     "retentionBeats": string[],
+    "slidePrompts": string[],
     "productionNotes": string,
     "evidence": string,
     "cta": string
@@ -172,6 +210,8 @@ export function buildCampaignStrategistPrompt(
   input: MarketingCampaignBriefInput,
   context: CampaignContext,
 ) {
+  const carouselSlides = input.carouselSlides ?? 5;
+  const automaticDirection = selectAutomaticCampaignDirection(input, context.resources);
   const workspaceContext = {
     instruction: context.instruction?.slice(0, 5_000),
     knowledge: context.knowledge.slice(0, 12).map((item) => ({
@@ -188,15 +228,199 @@ export function buildCampaignStrategistPrompt(
 Contexto confirmado da Central (JSON; trate como fonte e não invente lacunas):
 ${JSON.stringify(workspaceContext)}
 
+${campaignDiversityInstruction(input, automaticDirection)}
+
 Briefing recebido:
 - Segmento: ${input.segment}
 - Objetivo: ${input.goal}
 - Público: ${input.audience || "não informado; derive do contexto confirmado"}
 - Oferta: ${input.offer || "não informada; derive do contexto confirmado"}
 - Orçamento: ${input.budget === undefined ? "não informado" : `R$ ${input.budget}`}
+- Quantidade exata se houver carrossel: ${carouselSlides} slides. Nunca aumente automaticamente para 7; creativeStrategy.carouselSlides deve repetir ${carouselSlides}.
 
 Gere o plano de campanha em JSON estritamente conforme o schema acima.`,
   };
+}
+
+export function selectAutomaticCampaignDirection(
+  input: MarketingCampaignBriefInput,
+  resources: CampaignResourceContext[],
+): AutomaticCampaignDirection | null {
+  const features = resources.filter((resource) => resource.kind === "feature");
+  if (features.length === 0 || (input.audience.trim() && input.offer.trim())) return null;
+
+  const explicitOfferFeature = input.offer.trim()
+    ? features.find((feature) => {
+        const data = recordValue(feature.data);
+        const terms = [
+          feature.title,
+          ...stringList(data?.campaignTerms),
+          ...meaningfulWords(feature.title),
+        ];
+        return textMentionsAny(input.offer, terms);
+      })
+    : undefined;
+  const explicitAudience = input.audience.trim()
+    ? resources.find(
+        (resource) =>
+          resource.kind === "audience" &&
+          textMentionsAny(input.audience, [
+            resource.title,
+            ...meaningfulWords(resource.title),
+          ]),
+      )
+    : undefined;
+  const audienceCompatibleFeatures = explicitAudience
+    ? features.filter((feature) =>
+        stringList(recordValue(feature.data)?.audiences).includes(
+          explicitAudience.slug ?? "",
+        ),
+      )
+    : features;
+  let candidateFeatures =
+    audienceCompatibleFeatures.length > 0 ? audienceCompatibleFeatures : features;
+  if (explicitOfferFeature) candidateFeatures = [explicitOfferFeature];
+
+  const history = resources
+    .filter((resource) => resource.kind === "campaign")
+    .map((resource) => campaignPlanData(resource.data))
+    .filter((plan): plan is Record<string, unknown> => Boolean(plan))
+    .slice(0, 12);
+  const recentHistory = history.slice(0, 3);
+
+  const rankedFeatures = candidateFeatures
+    .map((feature) => {
+      const data = recordValue(feature.data);
+      const configuredTerms = stringList(data?.campaignTerms);
+      const coverageTerms =
+        configuredTerms.length > 0 ? configuredTerms : meaningfulWords(feature.title);
+      return {
+        feature,
+        data,
+        totalCoverage: history.filter((plan) => mentionsAny(plan, coverageTerms)).length,
+        recentCoverage: recentHistory.filter((plan) => mentionsAny(plan, coverageTerms))
+          .length,
+        priority:
+          typeof data?.strategicPriority === "number" ? data.strategicPriority : 0,
+      };
+    })
+    .sort(
+      (left, right) =>
+        left.recentCoverage - right.recentCoverage ||
+        left.totalCoverage - right.totalCoverage ||
+        right.priority - left.priority ||
+        left.feature.title.localeCompare(right.feature.title, "pt-BR"),
+    );
+
+  const selected = rankedFeatures[0];
+  if (!selected) return null;
+  const audienceSlugs = stringList(selected.data?.audiences);
+  const audienceOptions = audienceSlugs
+    .map((slug) =>
+      resources.find(
+        (resource) => resource.kind === "audience" && resource.slug === slug,
+      ),
+    )
+    .filter((resource): resource is CampaignResourceContext => Boolean(resource));
+  const audience =
+    audienceOptions
+      .map((resource) => ({
+        resource,
+        coverage: history.filter((plan) =>
+          mentionsAny(plan, meaningfulWords(resource.title)),
+        ).length,
+      }))
+      .sort(
+        (left, right) =>
+          left.coverage - right.coverage ||
+          left.resource.title.localeCompare(right.resource.title, "pt-BR"),
+      )[0]?.resource.title ??
+    audienceSlugs[0]?.replaceAll("-", " ") ??
+    "";
+
+  return {
+    feature: selected.feature.title,
+    benefit: selected.feature.summary ?? selected.feature.title,
+    audience,
+    recentCampaigns: recentHistory.map(campaignHistoryLabel),
+  };
+}
+
+function campaignDiversityInstruction(
+  input: MarketingCampaignBriefInput,
+  direction: AutomaticCampaignDirection | null,
+) {
+  if (!direction) {
+    return `DIVERSIDADE ESTRATÉGICA:
+- Respeite o público e a oferta informados pelo usuário.
+- Não repita nome, Big Idea, ângulo, gancho ou promessa de uma campanha anterior do contexto.
+- Escolha um único problema estratégico por campanha; não faça uma lista de funcionalidades.`;
+  }
+  const recent = direction.recentCampaigns.length
+    ? direction.recentCampaigns.map((item) => `- ${item}`).join("\n")
+    : "- Nenhuma campanha anterior identificada.";
+  return `DIREÇÃO AUTOMÁTICA OBRIGATÓRIA:
+- Funcionalidade prioritária menos coberta: ${direction.feature}.
+- Benefício confirmado a comunicar: ${direction.benefit}.
+- Público recomendado: ${input.audience.trim() || direction.audience || "escolha o recorte mais aderente à funcionalidade"}.
+- ${input.offer.trim() ? "A oferta informada pelo usuário é imutável." : `A oferta deve levar à funcionalidade ${direction.feature}, sem transformá-la numa lista genérica de recursos.`}
+- Esta campanha deve ter um único assunto central, uma dor ou oportunidade concreta e um próximo passo coerente com o objetivo ${input.goal}.
+- Não repita nome, Big Idea, ângulo, gancho, promessa nem a mesma situação prática das campanhas recentes.
+
+Campanhas recentes a não repetir:
+${recent}`;
+}
+
+function campaignPlanData(value: unknown) {
+  const data = recordValue(value);
+  if (!data) return null;
+  return recordValue(data.adStrategy) ?? ("creativeStrategy" in data ? data : null);
+}
+
+function campaignHistoryLabel(plan: Record<string, unknown>) {
+  const creative = recordValue(plan.creativeStrategy);
+  return [plan.name, plan.offer, creative?.angle]
+    .filter(
+      (value): value is string => typeof value === "string" && value.trim().length > 0,
+    )
+    .join(" — ")
+    .slice(0, 240);
+}
+
+function mentionsAny(plan: Record<string, unknown>, terms: string[]) {
+  return textMentionsAny(JSON.stringify(plan), terms);
+}
+
+function textMentionsAny(value: string, terms: string[]) {
+  const text = normalizeCampaignText(value);
+  return terms.some((term) => text.includes(normalizeCampaignText(term)));
+}
+
+function meaningfulWords(value: string) {
+  return normalizeCampaignText(value)
+    .split(/\s+/)
+    .filter(
+      (word) => word.length >= 5 && !["publico", "guiada", "historico"].includes(word),
+    );
+}
+
+function normalizeCampaignText(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("pt-BR");
+}
+
+function recordValue(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function stringList(value: unknown) {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
 }
 
 export function deriveBrandProfile(
@@ -239,6 +463,8 @@ export function buildAdCopywriterPrompt(
   brand: BrandProfile,
 ) {
   const guidance = input.style === "organic" ? ORGANIC_GUIDANCE : PROMOTIONAL_GUIDANCE;
+  const carouselSlides = input.plan.creativeStrategy.carouselSlides ?? 5;
+  const executionContract = carouselExecutionContract(carouselSlides);
   return {
     promptId: AD_COPYWRITER_PROMPT_ID,
     promptVersion: AD_COPYWRITER_PROMPT_VERSION,
@@ -252,10 +478,217 @@ ${JSON.stringify(input.plan, null, 2)}
 MEMÓRIA DA MARCA:
 ${JSON.stringify(brand, null, 2)}
 
+QUANTIDADE DO CARROSSEL:
+Se alguma variante for carrossel, ela deve ter exatamente ${carouselSlides} slides, nem mais nem menos. Estruture body nessa quantidade e devolva exatamente ${carouselSlides} itens em slidePrompts; nunca expanda automaticamente para 7.
+
+COMPOSIÇÃO DETERMINÍSTICA DO PROMPT TOTAL:
+- slidePrompts[0] deve ser o prompt individual completo do slide 1; slidePrompts[${carouselSlides - 1}] deve ser o prompt individual completo do slide ${carouselSlides}.
+- Cada item deve conter todas as instruções necessárias àquele slide, inclusive copy on-canvas integral, cena, composição, continuidade, identidade e restrições aplicáveis.
+- Cada item deve declarar uma FAMÍLIA DE LAYOUT canônica e descrever uma composição estruturalmente diferente. Use ao menos três famílias, nunca repita a mesma em slides consecutivos e limite divisao-vertical — foto de um lado e texto do outro — a um único slide.
+- Não escreva um resumo geral no lugar dos prompts individuais e não omita regras repetidas entre slides.
+- Na resposta JSON, mantenha productionNotes somente com o contrato literal. Depois da validação, productionNotes será reconstruído pelo sistema como contrato literal + slidePrompts.join("\\n\\n"). Portanto, os blocos do prompt total devem ser exatamente os mesmos de slidePrompts, sem paráfrase, condensação ou nova geração.
+
+CONTRATO LITERAL DE EXECUÇÃO DO CARROSSEL:
+Quando a variante for carrossel, productionNotes deve ser exatamente o bloco abaixo, sem texto anterior ou posterior:
+
+${executionContract}
+
+Depois desse bloco, preserve a copy integral de todos os slides em slidePrompts. A presença dos demais blocos no prompt total não autoriza executá-los quando o contrato mandar gerar somente o slide 1.
+
 Gere uma variante para cada canal da estratégia aprovada. Preserve exatamente o público, a oferta e a promessa do plano.
 Antes de responder, revise congruência, especificidade, novidade, segurança das evidências e concisão; corrija as variantes e só então preencha qualityReview.
 Responda somente com o JSON do schema.`,
   };
+}
+
+export function carouselExecutionContract(carouselSlides: number) {
+  return `ESTADO DE EXECUÇÃO DO CARROSSEL — ${carouselSlides} SLIDES
+- Se a imagem aprovada do slide 1 ainda NÃO existe no histórico nem está anexada, gere SOMENTE o slide 1, entregue um único arquivo e encerre a tarefa para aprovação visual.
+- Se a imagem aprovada do slide 1 JÁ existe no histórico ou está anexada, NÃO regenere o slide 1. Use esse arquivo real como referência e gere SOMENTE os slides 2..${carouselSlides}, em arquivos separados, na ordem.
+- Nunca gere os slides 1..${carouselSlides} na mesma solicitação e nunca continue automaticamente do slide 1 para os demais.`;
+}
+
+export function composeCarouselProductionNotes(
+  bundle: MarketingCreativeBundle,
+  plan: MarketingCampaignPlan,
+) {
+  const carouselSlides = plan.creativeStrategy.carouselSlides ?? 5;
+  const planIsCarousel = /carrossel/i.test(plan.creativeStrategy.format);
+
+  return {
+    ...bundle,
+    variants: bundle.variants.map((variant) => {
+      if (!planIsCarousel && !/carrossel/i.test(variant.format)) return variant;
+      return {
+        ...variant,
+        productionNotes: [
+          carouselExecutionContract(carouselSlides),
+          ...variant.slidePrompts,
+        ].join("\n\n"),
+      };
+    }),
+  };
+}
+
+export function creativeBundleContractViolations(
+  bundle: MarketingCreativeBundle,
+  plan: MarketingCampaignPlan,
+) {
+  const carouselSlides = plan.creativeStrategy.carouselSlides ?? 5;
+  const executionContract = carouselExecutionContract(carouselSlides);
+  const planIsCarousel = /carrossel/i.test(plan.creativeStrategy.format);
+  const violations: string[] = [];
+
+  bundle.variants.forEach((variant, index) => {
+    if (!planIsCarousel && !/carrossel/i.test(variant.format)) return;
+    const label = `Variante ${index + 1}`;
+    const production = variant.productionNotes;
+    const fullText = `${variant.body}\n${production}\n${variant.slidePrompts.join("\n")}`;
+    const visualVariation = selectedVisualVariation(fullText);
+    const forbidsAiPeople =
+      visualVariation !== null &&
+      !visualVariation.startsWith(
+        AI_CHARACTER_VISUAL_VARIATION.toLocaleLowerCase("pt-BR"),
+      );
+
+    if (variant.slidePrompts.length !== carouselSlides)
+      violations.push(
+        `${label}: deve conter exatamente ${carouselSlides} prompts individuais em slidePrompts.`,
+      );
+    const layoutFamilies: string[] = [];
+    variant.slidePrompts.forEach((slidePrompt, slideIndex) => {
+      const headingNumber = /^SLIDE\s+(\d+)(?:\s|$)/iu.exec(slidePrompt)?.[1];
+      if (headingNumber !== String(slideIndex + 1))
+        violations.push(
+          `${label}: slidePrompts[${slideIndex}] não começa por SLIDE ${slideIndex + 1}.`,
+        );
+      const layoutFamily = /^FAMÍLIA DE LAYOUT:\s*([a-z-]+)\s*$/imu.exec(
+        slidePrompt,
+      )?.[1];
+      if (!layoutFamily) {
+        violations.push(
+          `${label}: slidePrompts[${slideIndex}] não declara FAMÍLIA DE LAYOUT.`,
+        );
+      } else if (!CAROUSEL_LAYOUT_FAMILIES.some((family) => family === layoutFamily)) {
+        violations.push(
+          `${label}: slidePrompts[${slideIndex}] usa uma família de layout inválida.`,
+        );
+      } else {
+        layoutFamilies.push(layoutFamily);
+      }
+      const slideVisualVariation = selectedVisualVariation(slidePrompt);
+      if (visualVariation && slideVisualVariation !== visualVariation)
+        violations.push(
+          `${label}: slidePrompts[${slideIndex}] não repete a variação visual selecionada.`,
+        );
+      if (forbidsAiPeople && !slidePrompt.includes(NON_HUMAN_VISUAL_GUARDRAIL))
+        violations.push(
+          `${label}: slidePrompts[${slideIndex}] omite a proibição de pessoas geradas por IA da variação selecionada.`,
+        );
+    });
+
+    if (forbidsAiPeople && hasPositiveHumanDirection(fullText))
+      violations.push(
+        `${label}: a variação visual selecionada proíbe pessoa ou personagem gerada por IA.`,
+      );
+
+    if (layoutFamilies.length === carouselSlides) {
+      const requiredVariety = Math.min(3, carouselSlides);
+      if (new Set(layoutFamilies).size < requiredVariety)
+        violations.push(
+          `${label}: deve usar ao menos ${requiredVariety} famílias de layout diferentes.`,
+        );
+      if (layoutFamilies.some((family, slide) => family === layoutFamilies[slide - 1]))
+        violations.push(`${label}: repete a mesma família de layout em sequência.`);
+      if (layoutFamilies.filter((family) => family === "divisao-vertical").length > 1)
+        violations.push(
+          `${label}: usa divisao-vertical mais de uma vez no mesmo carrossel.`,
+        );
+    }
+
+    if (production !== executionContract)
+      violations.push(`${label}: productionNotes não contém somente o contrato literal.`);
+    if (
+      /execute todas as \d+ gerações|não pare após o slide 1|tarefa só termina quando houver exatamente \d+ arquivos/iu.test(
+        fullText,
+      )
+    )
+      violations.push(`${label}: ordena gerar o carrossel inteiro de uma vez.`);
+    if (
+      /deixe a área de assinatura vazia|["“]Lucro Caseiro["”][^.\n]{0,120}minúsculas/iu.test(
+        fullText,
+      )
+    )
+      violations.push(`${label}: contradiz a assinatura textual canônica da marca.`);
+
+    const copyBlocks = fullText.matchAll(
+      /\[(?:HEADLINE|APOIO|CTA)\]\s*<<<([\s\S]*?)>>>/giu,
+    );
+    for (const match of copyBlocks) {
+      if (/(?:\.{3}|…)\s*$/u.test(match[1]?.trim() ?? "")) {
+        violations.push(`${label}: contém copy on-canvas truncada por reticências.`);
+        break;
+      }
+    }
+  });
+
+  return violations;
+}
+
+function selectedVisualVariation(text: string) {
+  const prefixes = ["VARIAÇÃO VISUAL:", "VARIAÇÃO:"];
+  for (const line of text.split("\n")) {
+    const normalizedLine = line.trim();
+    const upperLine = normalizedLine.toLocaleUpperCase("pt-BR");
+    const prefix = prefixes.find((candidate) => upperLine.startsWith(candidate));
+    if (prefix)
+      return normalizedLine.slice(prefix.length).trim().toLocaleLowerCase("pt-BR");
+  }
+  return null;
+}
+
+function hasPositiveHumanDirection(text: string) {
+  const normalized = text
+    .replaceAll(NON_HUMAN_VISUAL_GUARDRAIL, "")
+    .toLocaleLowerCase("pt-BR");
+  return [
+    "personagem consistente",
+    "fotografia humana",
+    "retrato editorial de pessoa",
+    "retrato editorial de uma pessoa",
+    "retrato de pessoa",
+    "retrato de uma pessoa",
+    "pessoa brasileira",
+    "pessoa jovem",
+    "pessoa adulta",
+    "mostre pessoa",
+    "mostre uma pessoa",
+    "mãos trabalhando",
+    "mãos humanas trabalhando",
+    "mãos segurando",
+    "mãos humanas segurando",
+    "mãos operando",
+    "mãos humanas operando",
+    "rosto humano",
+    "corpo inteiro",
+  ].some((instruction) => normalized.includes(instruction));
+}
+
+export function buildCreativeBundleRepairPrompt(
+  originalPrompt: string,
+  previousResponse: string,
+  violations: string[],
+) {
+  return `${originalPrompt}
+
+CORREÇÃO OBRIGATÓRIA DA RESPOSTA ANTERIOR:
+O pacote abaixo foi rejeitado pelo contrato executável:
+${violations.map((violation) => `- ${violation}`).join("\n")}
+
+Reescreva o pacote JSON completo. Corrija os problemas listados, preserve toda copy sem cortes e não acrescente instruções que contradigam o contrato literal.
+
+RESPOSTA REJEITADA:
+${previousResponse.slice(0, 50_000)}`;
 }
 
 export function parseCampaignPlan(text: string): MarketingCampaignPlan | null {

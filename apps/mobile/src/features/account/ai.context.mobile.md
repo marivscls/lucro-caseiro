@@ -27,6 +27,9 @@ irreversível e apaga os dados do usuário no servidor.
 - `hooks.ts` — `useDeleteAccount()` (mutation): no sucesso faz `signOut()` e
   `queryClient.clear()`.
 - UI + confirmação: `app/settings.tsx` (`handleDeleteAccount`, `runDeleteAccount`).
+  Contas pagas recebem antes um aviso explícito de que excluir dados não cancela
+  a cobrança, com acesso ao Google Play no Android ou ao suporte no Stripe e uma
+  confirmação de que o cancelamento já foi solicitado.
 
 ## Components
 

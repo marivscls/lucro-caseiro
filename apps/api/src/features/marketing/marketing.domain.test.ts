@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { MarketingCampaignBriefInputSchema } from "@lucro-caseiro/contracts";
+
 import { initialMarketingResources } from "./marketing.seed";
 import {
   DEFAULT_MARKETING_SYSTEM_PROMPT,
@@ -33,6 +35,43 @@ describe("marketing intelligence", () => {
     expect(market?.data.rule).toContain("não limitam o mercado da marca");
   });
 
+  it("accepts an explicit carousel size within the editorial limit", () => {
+    const input = MarketingCampaignBriefInputSchema.parse({
+      goal: "leads",
+      carouselSlides: 4,
+    });
+
+    expect(input.carouselSlides).toBe(4);
+    expect(() =>
+      MarketingCampaignBriefInputSchema.parse({ goal: "leads", carouselSlides: 2 }),
+    ).toThrow();
+    expect(() =>
+      MarketingCampaignBriefInputSchema.parse({ goal: "leads", carouselSlides: 11 }),
+    ).toThrow();
+  });
+
+  it("covers the product portfolio beyond pricing campaigns", () => {
+    const features = initialMarketingResources.filter((item) => item.kind === "feature");
+    const slugs = new Set(features.map((item) => item.slug));
+
+    expect(features.length).toBeGreaterThanOrEqual(11);
+    expect([...slugs]).toEqual(
+      expect.arrayContaining([
+        "precificacao",
+        "servicos-e-agenda",
+        "clientes-e-historico",
+        "produtos-e-receitas",
+        "catalogo",
+        "vendas-e-pedidos",
+        "financeiro",
+        "estoque-e-compras",
+        "alertas-e-lembretes",
+        "offline-e-sincronizacao",
+        "relatorios-e-exportacoes",
+      ]),
+    );
+  });
+
   it("keeps the protected AI rules in the official instruction", () => {
     expect(DEFAULT_MARKETING_SYSTEM_PROMPT).toContain("Não invente resultados");
     expect(DEFAULT_MARKETING_SYSTEM_PROMPT).toContain("ações externas são protegidos");
@@ -53,20 +92,80 @@ describe("marketing intelligence", () => {
     );
     expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain("um único foco dominante");
     expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
-      "fotografia e a tipografia devem carregar aproximadamente 90%",
+      "Fotografia e tipografia carregam aproximadamente 90%",
     );
     expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
-      "Hostpoint somente como referência de linguagem compositiva",
+      "referências aprovadas validam o sistema de composição",
     );
     expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
-      "A paleta é sempre a do Lucro Caseiro",
+      "rosa #B65F72 ocupa no máximo 15–20%",
     );
     expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
-      "A peça deve parecer uma campanha de marca",
+      "nunca repita a mesma em slides consecutivos",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
+      "O slide 1 é a âncora visual imutável",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
+      "Não avance para o slide 2 sem vincular a imagem do slide 1",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain("`1/N`, `2/N`, `3/N`");
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain("pelo menos 40% de espaço negativo");
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
+      "O último slide deve parecer encerramento",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
+      "“lucro caseiro”, todo em minúsculas, numa única linha",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
+      "Nunca acrescente estrela, brilho, ponto, símbolo, ícone",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
+      "Não empilhe “lucro” sobre “caseiro”",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
+      "Quando ela não for informada, use 5 slides",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
+      "não precisam aparecer sempre como duas metades lado a lado",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
+      "Nunca transforme “foto de um lado e texto do outro” no template padrão",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
+      "A família divisao-vertical — foto de um lado e texto do outro — pode aparecer no máximo uma vez",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
+      "uma palavra-chave de peso semântico — como “vende”",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
+      "Nunca desenhe linha, onda, rabisco, pincelada ou sublinhado abaixo",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
+      "Pessoa ou personagem humana gerada por IA só é permitida na variação “Editorial com personagem IA”",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain("PESSOAS GERADAS POR IA: PROIBIDAS");
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).not.toContain(
+      "mantenha exatamente a identidade da personagem",
     );
     expect(marketingSystemPrompt("Instrução personalizada.")).toContain(
       "Este elemento melhora claramente a narrativa ou apenas ocupa espaço?",
     );
+  });
+
+  it("replaces a persisted legacy visual prompt instead of keeping conflicting rules", () => {
+    const prompt = marketingSystemPrompt(`Instrução personalizada.
+
+## Direção de arte permanente — Visual DNA aprovado
+Regra visual antiga que não pode continuar ativa.
+
+## Limites personalizados
+Preserve este limite.`);
+
+    expect(prompt).not.toContain("Regra visual antiga");
+    expect(prompt).toContain("O slide 1 é a âncora visual imutável");
+    expect(prompt).toContain("## Limites personalizados\nPreserve este limite.");
+    expect(prompt.match(/## Direção de arte permanente/g)).toHaveLength(1);
   });
 
   it("keeps refinement focused on strategy instead of final content", () => {

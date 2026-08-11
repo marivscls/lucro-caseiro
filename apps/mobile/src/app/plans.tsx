@@ -9,13 +9,12 @@ import {
 import { AppIcon } from "../shared/components/app-icon";
 import { Stack } from "expo-router";
 import React from "react";
-import { Linking, Platform, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { activePlan, useProfile, useLimits } from "../features/subscription/hooks";
 import { tierBenefitsFor } from "../features/subscription/plan-benefits";
 import { businessCopyFor } from "../features/subscription/business-copy";
-import { showAlert } from "../shared/components/alert-store";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
@@ -25,9 +24,7 @@ import {
   desktopWidths,
   pageGutter,
 } from "../shared/layout/desktop-density";
-
-// Mesmo package do apps/mobile/app.json (expo.android.package).
-const ANDROID_PACKAGE = "br.com.orionseven.lucrocaseiro";
+import { openSubscriptionManagement } from "../shared/utils/subscription-management";
 
 /** Dias até `expiresAt` (negativo se já passou). */
 function daysUntil(expiresAt: string): number {
@@ -65,21 +62,6 @@ function expiryWarning(planLabel: string, expiresAt: string): ExpiryWarning | nu
     };
   }
   return null;
-}
-
-function openStoreSubscriptionManagement() {
-  const url =
-    Platform.OS === "android"
-      ? `https://play.google.com/store/account/subscriptions?package=${ANDROID_PACKAGE}`
-      : "https://apps.apple.com/account/subscriptions";
-
-  Linking.openURL(url).catch(() => {
-    showAlert({
-      title: "Cancelar assinatura",
-      message:
-        "Não foi possível abrir a loja. Entre em contato pelo suporte para cancelar sua assinatura.",
-    });
-  });
 }
 
 const RANK: Record<PlanType, number> = { free: 0, essential: 1, professional: 2 };
@@ -258,128 +240,128 @@ export default function PlansScreen() {
               : { gap: spacing.xl }
           }
         >
-        {visiblePlans.map((plan) => {
-          const isCurrent = plan === current;
-          const isUpgrade = RANK[plan] > RANK[current];
-          const highlight = plan === "professional";
-          return (
-            <View
-              key={plan}
-              style={isDesktop ? { flex: 1, minWidth: 320 } : { width: "100%" }}
-            >
-            <Card
-              padding={highlight ? "2xl" : "xl"}
-              style={{
-                gap: spacing.md,
-                borderWidth: highlight ? 2 : 1,
-                borderColor: highlight ? theme.colors.premium : theme.colors.surface,
-                backgroundColor: highlight
-                  ? theme.colors.premiumBg
-                  : theme.colors.surfaceElevated,
-              }}
-            >
+          {visiblePlans.map((plan) => {
+            const isCurrent = plan === current;
+            const isUpgrade = RANK[plan] > RANK[current];
+            const highlight = plan === "professional";
+            return (
               <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
+                key={plan}
+                style={isDesktop ? { flex: 1, minWidth: 320 } : { width: "100%" }}
               >
-                <Typography
-                  variant="h2"
-                  color={highlight ? theme.colors.premium : theme.colors.text}
+                <Card
+                  padding={highlight ? "2xl" : "xl"}
+                  style={{
+                    gap: spacing.md,
+                    borderWidth: highlight ? 2 : 1,
+                    borderColor: highlight ? theme.colors.premium : theme.colors.surface,
+                    backgroundColor: highlight
+                      ? theme.colors.premiumBg
+                      : theme.colors.surfaceElevated,
+                  }}
                 >
-                  {PLAN_LABELS[plan]}
-                </Typography>
-                {isCurrent && (
                   <View
-                    style={{
-                      backgroundColor: theme.colors.success,
-                      paddingHorizontal: spacing.sm,
-                      paddingVertical: 2,
-                      borderRadius: radii.full,
-                    }}
-                  >
-                    <Typography variant="label" color={theme.colors.textOnPrimary}>
-                      PLANO ATUAL
-                    </Typography>
-                  </View>
-                )}
-                {highlight && !isCurrent && (
-                  <View
-                    style={{
-                      backgroundColor: theme.colors.surfaceElevated,
-                      paddingHorizontal: spacing.sm,
-                      paddingVertical: 2,
-                      borderRadius: radii.full,
-                    }}
-                  >
-                    <Typography variant="label" color={theme.colors.premium}>
-                      RECOMENDADO
-                    </Typography>
-                  </View>
-                )}
-              </View>
-
-              <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 4 }}>
-                <Typography variant="moneyLg" color={theme.colors.text}>
-                  {priceLabel(plan)}
-                </Typography>
-                <Typography
-                  variant="body"
-                  color={theme.colors.textSecondary}
-                  style={{ marginBottom: 4 }}
-                >
-                  /mês
-                </Typography>
-              </View>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                {annualLabel(plan)}
-              </Typography>
-
-              <View style={{ gap: spacing.sm, marginTop: spacing.xs }}>
-                {planFeatures[plan].map((f) => (
-                  <View
-                    key={f}
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
-                      gap: spacing.sm,
+                      justifyContent: "space-between",
                     }}
                   >
-                    <AppIcon
-                      name="checkmark-circle"
-                      size={20}
-                      color={theme.colors.success}
-                    />
+                    <Typography
+                      variant="h2"
+                      color={highlight ? theme.colors.premium : theme.colors.text}
+                    >
+                      {PLAN_LABELS[plan]}
+                    </Typography>
+                    {isCurrent && (
+                      <View
+                        style={{
+                          backgroundColor: theme.colors.success,
+                          paddingHorizontal: spacing.sm,
+                          paddingVertical: 2,
+                          borderRadius: radii.full,
+                        }}
+                      >
+                        <Typography variant="label" color={theme.colors.textOnPrimary}>
+                          PLANO ATUAL
+                        </Typography>
+                      </View>
+                    )}
+                    {highlight && !isCurrent && (
+                      <View
+                        style={{
+                          backgroundColor: theme.colors.surfaceElevated,
+                          paddingHorizontal: spacing.sm,
+                          paddingVertical: 2,
+                          borderRadius: radii.full,
+                        }}
+                      >
+                        <Typography variant="label" color={theme.colors.premium}>
+                          RECOMENDADO
+                        </Typography>
+                      </View>
+                    )}
+                  </View>
+
+                  <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 4 }}>
+                    <Typography variant="moneyLg" color={theme.colors.text}>
+                      {priceLabel(plan)}
+                    </Typography>
                     <Typography
                       variant="body"
-                      color={theme.colors.text}
-                      style={{ flex: 1 }}
+                      color={theme.colors.textSecondary}
+                      style={{ marginBottom: 4 }}
                     >
-                      {f}
+                      /mês
                     </Typography>
                   </View>
-                ))}
-              </View>
+                  <Typography variant="caption" color={theme.colors.textSecondary}>
+                    {annualLabel(plan)}
+                  </Typography>
 
-              {isUpgrade && (
-                <Button
-                  title={
-                    current === "free"
-                      ? `Assinar ${PLAN_LABELS[plan]}`
-                      : `Fazer upgrade para o ${PLAN_LABELS[plan]}`
-                  }
-                  variant={highlight ? "premium" : "primary"}
-                  size="lg"
-                  onPress={() => showPaywall("plans", plan)}
-                  style={desktopAction(isDesktop, 240)}
-                />
-              )}
-            </Card>
-            </View>
-          );
-        })}
+                  <View style={{ gap: spacing.sm, marginTop: spacing.xs }}>
+                    {planFeatures[plan].map((f) => (
+                      <View
+                        key={f}
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: spacing.sm,
+                        }}
+                      >
+                        <AppIcon
+                          name="checkmark-circle"
+                          size={20}
+                          color={theme.colors.success}
+                        />
+                        <Typography
+                          variant="body"
+                          color={theme.colors.text}
+                          style={{ flex: 1 }}
+                        >
+                          {f}
+                        </Typography>
+                      </View>
+                    ))}
+                  </View>
+
+                  {isUpgrade && (
+                    <Button
+                      title={
+                        current === "free"
+                          ? `Assinar ${PLAN_LABELS[plan]}`
+                          : `Fazer upgrade para o ${PLAN_LABELS[plan]}`
+                      }
+                      variant={highlight ? "premium" : "primary"}
+                      size="lg"
+                      onPress={() => showPaywall("plans", plan)}
+                      style={desktopAction(isDesktop, 240)}
+                    />
+                  )}
+                </Card>
+              </View>
+            );
+          })}
         </View>
 
         {current !== "free" && (
@@ -387,7 +369,7 @@ export default function PlansScreen() {
             title="Cancelar assinatura"
             variant="outline"
             size="lg"
-            onPress={openStoreSubscriptionManagement}
+            onPress={() => void openSubscriptionManagement()}
             style={desktopAction(isDesktop, 240)}
           />
         )}

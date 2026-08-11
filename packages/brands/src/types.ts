@@ -3,6 +3,7 @@ export interface BrandThemeOverrides {
   primaryLight?: string;
   primaryDark?: string;
   primaryStrong?: string;
+  primaryStrongDark?: string;
   primaryInteractive?: string;
   /** Fill primario no tema escuro: pastel luminoso (o rotulo vira textOnPrimary escuro). */
   primaryInteractiveDark?: string;

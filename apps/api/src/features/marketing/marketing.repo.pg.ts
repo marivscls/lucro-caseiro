@@ -653,6 +653,7 @@ function campaignContentData(
     landing: variant.landing,
     body: variant.body,
     retentionBeats: variant.retentionBeats,
+    slidePrompts: variant.slidePrompts,
     productionNotes: variant.productionNotes,
     evidence: variant.evidence,
     cta: variant.cta,

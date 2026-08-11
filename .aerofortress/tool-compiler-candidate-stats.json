@@ -191,10 +191,10 @@
     "run:harness:scars": {
       "first_seen_ts": "2026-07-14T02:37:43.252445100+00:00",
       "last_call_count": 3,
-      "last_candidate_key": "e1eb623c7ae3169e",
-      "last_seen_ts": "2026-07-29T01:32:37.962310700+00:00",
-      "materializable_occurrences": 11,
-      "occurrences": 11,
+      "last_candidate_key": "006a6a946b42b16b",
+      "last_seen_ts": "2026-08-10T22:59:24.812864300+00:00",
+      "materializable_occurrences": 13,
+      "occurrences": 13,
       "shape": {
         "calls": [
           {
@@ -226,6 +226,6 @@
       "unique_tools": ["scars"]
     }
   },
-  "updated_ts": "2026-08-05T01:44:08.798415700+00:00",
+  "updated_ts": "2026-08-10T22:59:24.812864300+00:00",
   "version": 1
 }

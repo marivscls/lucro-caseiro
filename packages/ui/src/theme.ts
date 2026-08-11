@@ -202,6 +202,7 @@ export interface ThemeOverrides {
   primaryLight?: string;
   primaryDark?: string;
   primaryStrong?: string;
+  primaryStrongDark?: string;
   primaryInteractive?: string;
   /** Fill primario no tema escuro: pastel luminoso (o rotulo vira textOnPrimary escuro). */
   primaryInteractiveDark?: string;
@@ -401,7 +402,8 @@ export function buildThemes(overrides?: ThemeOverrides): {
         ...darkTheme.colors,
         primary: overrides.primary,
         primaryLight,
-        primaryStrong: overrides.primaryLight ?? primaryStrong,
+        primaryStrong:
+          overrides.primaryStrongDark ?? overrides.primaryLight ?? primaryStrong,
         // No escuro o fill primario pode ter um pastel proprio (par primarySoftDark).
         primaryInteractive: overrides.primaryInteractiveDark ?? primaryInteractive,
         primaryBg: overrides.primarySoftDark ?? darkTheme.colors.primaryBg,

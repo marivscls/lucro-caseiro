@@ -26,6 +26,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useDeleteAccount } from "../features/account/hooks";
+import { paidAccountDeletionCopy } from "../features/account/delete-account-copy";
 import { ProlaboreGoalForm } from "../features/goals/components/prolabore-goal-form";
 import { formatCurrency } from "../features/goals/domain";
 import { useProlaboreStatus } from "../features/goals/hooks";
@@ -61,6 +62,10 @@ import { ApiError } from "../shared/utils/api-client";
 import { alertError, alertValidation } from "../shared/utils/alerts";
 import { maskPhoneBR } from "../shared/utils/phone";
 import { uploadProfilePhoto } from "../shared/utils/upload-image";
+import {
+  openSubscriptionManagement,
+  subscriptionManagementTarget,
+} from "../shared/utils/subscription-management";
 
 const PRIVACY_POLICY_URL =
   "https://www.orionseven.com.br/lucro-caseiro/politica-de-privacidade";
@@ -354,11 +359,18 @@ export default function SettingsScreen() {
     }
   }
 
-  function handleDeleteAccount() {
+  function showDeleteAccountWarning() {
+    let finalMessage =
+      "Ao confirmar, sua conta e todos os dados serão apagados para sempre.";
+    if (hasPaidPlan) {
+      finalMessage +=
+        " Você também confirma que cancelou a assinatura antes de continuar.";
+    }
+
     showAlert({
       title: "Excluir conta",
       message:
-        "Isso apaga DEFINITIVAMENTE sua conta e todos os seus dados (vendas, clientes, finanças, produtos e receitas). Não tem como desfazer.",
+        "Isso apaga definitivamente sua conta e todos os seus dados: vendas, clientes, finanças, produtos e receitas. Não tem como desfazer.",
       buttons: [
         { text: "Cancelar", style: "cancel" },
         {
@@ -367,8 +379,7 @@ export default function SettingsScreen() {
           onPress: () => {
             showAlert({
               title: "Tem certeza?",
-              message:
-                "Esta é sua última chance. Ao confirmar, sua conta e todos os dados serão apagados para sempre.",
+              message: finalMessage,
               buttons: [
                 { text: "Cancelar", style: "cancel" },
                 {
@@ -379,6 +390,30 @@ export default function SettingsScreen() {
               ],
             });
           },
+        },
+      ],
+    });
+  }
+
+  function handleDeleteAccount() {
+    if (!hasPaidPlan) {
+      showDeleteAccountWarning();
+      return;
+    }
+
+    const target = subscriptionManagementTarget();
+    const copy = paidAccountDeletionCopy(PLAN_LABELS[currentPlan], target.providerLabel);
+    showAlert({
+      ...copy,
+      buttons: [
+        { text: "Voltar", style: "cancel" },
+        {
+          text: target.actionLabel,
+          onPress: () => void openSubscriptionManagement(),
+        },
+        {
+          text: "Já cancelei",
+          onPress: showDeleteAccountWarning,
         },
       ],
     });

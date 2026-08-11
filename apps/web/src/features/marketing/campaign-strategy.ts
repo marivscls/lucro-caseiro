@@ -10,6 +10,23 @@ const AUTO_CAMPAIGN_AUDIENCE =
 const AUTO_CAMPAIGN_OFFER =
   "Defina a oferta mais relevante para esse público usando apenas o contexto confirmado da Central.";
 
+export const DEFAULT_CAROUSEL_SLIDES = 5;
+
+export function normalizeCarouselSlides(value: unknown) {
+  return typeof value === "number" && Number.isInteger(value) && value >= 3 && value <= 10
+    ? value
+    : DEFAULT_CAROUSEL_SLIDES;
+}
+
+export function campaignStrategyEnrichmentPrompt(carouselSlides: number) {
+  return `Complete os blocos Pesquisa estratégica e Big Idea e produção da campanha atual.
+Use somente o briefing, o plano e o conhecimento confirmado da Central. Não invente provas.
+Se o formato for carrossel, preserve exatamente ${carouselSlides} slides, conforme adBriefing.carouselSlides. Em productionNotes, determine que o slide 1 seja gerado uma única vez com o marcador 1/${carouselSlides} e fixado como âncora visual real; depois gere somente os slides 2..${carouselSlides} como continuações referenciadas, numeradas de 2/${carouselSlides} até ${carouselSlides}/${carouselSlides}, sem reiniciar a direção de arte. Preserve a identidade, mas alterne famílias de composição; o layout vertical com foto de um lado e texto do outro pode aparecer no máximo uma vez.
+No objeto data da resposta, devolva exatamente estas duas chaves:
+{"research":{"audienceSlice":"...","audienceLanguage":["..."],"realDesire":"...","saturatedSolutions":["..."],"problemMechanism":"...","solutionMechanism":"...","differentiators":["..."],"proofs":["..."],"saturationNotes":"..."},"creativeStrategy":{"bigIdea":"...","angle":"...","promise":"...","reasonToBelieve":"...","stickyName":"...","commonEnemy":"...","organicInsight":"...","avatar":"...","format":"...","carouselSlides":${carouselSlides},"visualHook":"...","landing":"...","retentionBeats":["..."],"productionNotes":["..."]}}.
+Preencha todos os campos com conteúdo específico. proofs pode ser [] e stickyName/commonEnemy podem ficar vazios quando não houver fundamento.`;
+}
+
 export function campaignAiBriefingFields(audience: string, offer: string) {
   return {
     audience: audience.trim() || AUTO_CAMPAIGN_AUDIENCE,
@@ -74,7 +91,11 @@ export function mergeCampaignStrategyEnrichment(
   return {
     ...plan,
     research: research.data,
-    creativeStrategy: creativeStrategy.data,
+    creativeStrategy: {
+      ...creativeStrategy.data,
+      carouselSlides:
+        creativeStrategy.data.carouselSlides ?? plan.creativeStrategy?.carouselSlides,
+    },
   };
 }
 

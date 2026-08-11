@@ -18,7 +18,10 @@ import {
   campaignAiBriefingFields,
   campaignDestinations,
   campaignNeedsStrategyEnrichment,
+  campaignStrategyEnrichmentPrompt,
+  DEFAULT_CAROUSEL_SLIDES,
   mergeCampaignStrategyEnrichment,
+  normalizeCarouselSlides,
 } from "./campaign-strategy";
 
 type Briefing = {
@@ -27,6 +30,7 @@ type Briefing = {
   audience: string;
   offer: string;
   budget: string;
+  carouselSlides: number;
 };
 
 type CopyStyle = "promotional" | "organic";
@@ -48,6 +52,7 @@ const initialBriefing: Briefing = {
   audience: "",
   offer: "",
   budget: "",
+  carouselSlides: DEFAULT_CAROUSEL_SLIDES,
 };
 
 export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }) {
@@ -106,7 +111,7 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
           body: {
             kind: "campaign",
             intent: "refine",
-            prompt: campaignStrategyEnrichmentPrompt,
+            prompt: campaignStrategyEnrichmentPrompt(briefing.carouselSlides),
             current: {
               title: result.plan.name,
               summary: result.plan.nextBestAction ?? result.plan.offer ?? "",
@@ -289,6 +294,26 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
     : "Preencher todos os campos com IA";
   if (generateStrategy.isPending) strategyButtonLabel = "Preenchendo todos os campos…";
 
+  const startNewCampaign = () => {
+    setBriefing(initialBriefing);
+    setPlan(null);
+    setStrategyApproved(false);
+    setCampaignResourceId(undefined);
+    setCampaignResource(undefined);
+    setStrategyRaw("");
+    setStrategyMessageId(undefined);
+    setStrategyTelemetry(undefined);
+    setStyle("promotional");
+    setBundle(null);
+    setCopyRaw("");
+    setCopyMessageId(undefined);
+    setSavedVariants({});
+    generateStrategy.reset();
+    approveStrategy.reset();
+    generateCopies.reset();
+    saveVariant.reset();
+  };
+
   return (
     <section className="campaign-studio" aria-label="Criação de campanha com IA">
       <div className="campaign-studio-intro">
@@ -378,6 +403,22 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
               }
             />
           </label>
+          <label>
+            Telas do carrossel
+            <select
+              value={briefing.carouselSlides}
+              onChange={(event) =>
+                setBriefing({ ...briefing, carouselSlides: Number(event.target.value) })
+              }
+            >
+              {Array.from({ length: 8 }, (_, index) => index + 3).map((count) => (
+                <option key={count} value={count}>
+                  {count} telas
+                </option>
+              ))}
+            </select>
+            <small>Usado somente quando a campanha incluir carrossel.</small>
+          </label>
         </fieldset>
         {!strategyApproved && (
           <button
@@ -409,6 +450,9 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
             {strategyApproved ? (
               <>
                 <span className="approval-mark">Estratégia aprovada</span>
+                <button className="button primary" onClick={startNewCampaign}>
+                  Nova campanha
+                </button>
                 <button
                   className="button secondary"
                   onClick={() => {
@@ -591,7 +635,9 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
                 </article>
               ))}
             </div>
-            {saveVariant.error && <p className="form-error">{saveVariant.error.message}</p>}
+            {saveVariant.error && (
+              <p className="form-error">{saveVariant.error.message}</p>
+            )}
             {reviewBlocksApproval && (
               <p className="notice warning">
                 A autorrevisão encontrou uma lacuna impeditiva. Regere as copies ou reabra
@@ -1116,6 +1162,7 @@ function briefingFromData(value: unknown): Briefing {
     audience: typeof raw.audience === "string" ? raw.audience : "",
     offer: typeof raw.offer === "string" ? raw.offer : "",
     budget: typeof raw.budget === "number" ? String(raw.budget) : "",
+    carouselSlides: normalizeCarouselSlides(raw.carouselSlides),
   };
 }
 
@@ -1167,12 +1214,6 @@ function campaignCreativeStrategy(
     productionNotes: plan.creativeStrategy?.productionNotes ?? [],
   };
 }
-
-const campaignStrategyEnrichmentPrompt = `Complete os blocos Pesquisa estratégica e Big Idea e produção da campanha atual.
-Use somente o briefing, o plano e o conhecimento confirmado da Central. Não invente provas.
-No objeto data da resposta, devolva exatamente estas duas chaves:
-{"research":{"audienceSlice":"...","audienceLanguage":["..."],"realDesire":"...","saturatedSolutions":["..."],"problemMechanism":"...","solutionMechanism":"...","differentiators":["..."],"proofs":["..."],"saturationNotes":"..."},"creativeStrategy":{"bigIdea":"...","angle":"...","promise":"...","reasonToBelieve":"...","stickyName":"...","commonEnemy":"...","organicInsight":"...","avatar":"...","format":"...","visualHook":"...","landing":"...","retentionBeats":["..."],"productionNotes":["..."]}}.
-Preencha todos os campos com conteúdo específico. proofs pode ser [] e stickyName/commonEnemy podem ficar vazios quando não houver fundamento.`;
 
 function splitList(value: string) {
   return value

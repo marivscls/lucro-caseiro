@@ -107,6 +107,8 @@ export const initialMarketingResources: MarketingResourceInput[] = [
       angle: "Pare de chutar preço",
       proof: "mostre o cálculo na tela",
       cta: "Calcule seu primeiro produto",
+      campaignTerms: ["precificação", "preço", "margem", "custo"],
+      strategicPriority: 11,
     },
   },
   {
@@ -123,6 +125,8 @@ export const initialMarketingResources: MarketingResourceInput[] = [
       ],
       angle: "Cadastre uma vez, divulgue sempre",
       cta: "Monte seu catálogo",
+      campaignTerms: ["catálogo", "vitrine", "compartilhar", "divulgar"],
+      strategicPriority: 11,
     },
   },
   {
@@ -135,6 +139,8 @@ export const initialMarketingResources: MarketingResourceInput[] = [
       audiences: ["empreendedoras-organizando-negocio", "marmitas-e-alimentos"],
       angle: "Da precificação à venda sem digitar tudo de novo",
       cta: "Organize a próxima venda",
+      campaignTerms: ["venda", "pedido", "pago", "cancelado"],
+      strategicPriority: 12,
     },
   },
   {
@@ -147,6 +153,8 @@ export const initialMarketingResources: MarketingResourceInput[] = [
       audiences: ["empreendedoras-organizando-negocio", "beleza-e-servicos"],
       angle: "Faturamento não é lucro",
       cta: "Veja para onde o dinheiro vai",
+      campaignTerms: ["financeiro", "lucro", "entrada", "saída", "despesa"],
+      strategicPriority: 11,
     },
   },
   {
@@ -159,6 +167,109 @@ export const initialMarketingResources: MarketingResourceInput[] = [
       audiences: ["marmitas-e-alimentos", "artesaos-e-personalizados"],
       angle: "Comprar melhor protege sua margem",
       cta: "Organize seus insumos",
+      campaignTerms: ["estoque", "compra", "fornecedor", "reposição"],
+      strategicPriority: 9,
+    },
+  },
+  {
+    kind: "feature",
+    slug: "servicos-e-agenda",
+    title: "Serviços e agenda",
+    summary: "Organiza serviços, preços, duração, atendimentos e a capacidade da agenda.",
+    status: "active",
+    data: {
+      audiences: ["beleza-e-servicos", "empreendedoras-organizando-negocio"],
+      angle: "Agenda cheia só vale quando cada atendimento compensa",
+      cta: "Organize seus serviços",
+      campaignTerms: ["serviço", "atendimento", "agenda", "horário"],
+      strategicPriority: 12,
+    },
+  },
+  {
+    kind: "feature",
+    slug: "clientes-e-historico",
+    title: "Clientes e histórico",
+    summary:
+      "Centraliza contatos, anotações, aniversários e o histórico de compras de cada cliente.",
+    status: "active",
+    data: {
+      audiences: ["beleza-e-servicos", "empreendedoras-organizando-negocio"],
+      angle: "Atenda melhor sem depender da memória ou de anotações soltas",
+      cta: "Organize seus clientes",
+      campaignTerms: ["cliente", "histórico", "aniversário", "contato"],
+      strategicPriority: 9,
+    },
+  },
+  {
+    kind: "feature",
+    slug: "produtos-e-receitas",
+    title: "Produtos, receitas e custos",
+    summary:
+      "Reúne produtos, receitas, ingredientes, embalagens e o custo calculado de cada item.",
+    status: "active",
+    data: {
+      audiences: [
+        "confeiteiras-iniciantes",
+        "marmitas-e-alimentos",
+        "artesaos-e-personalizados",
+      ],
+      angle: "Saiba o custo do que você vende antes de definir o preço",
+      cta: "Cadastre um produto real",
+      campaignTerms: ["produto", "receita", "ingrediente", "embalagem"],
+      strategicPriority: 10,
+    },
+  },
+  {
+    kind: "feature",
+    slug: "alertas-e-lembretes",
+    title: "Alertas e lembretes",
+    summary:
+      "Destaca estoque baixo, vendas pendentes e aniversários de clientes no momento certo.",
+    status: "active",
+    data: {
+      audiences: [
+        "empreendedoras-organizando-negocio",
+        "marmitas-e-alimentos",
+        "beleza-e-servicos",
+      ],
+      angle: "O que precisa de atenção não pode ficar perdido no caderno",
+      cta: "Veja o que precisa de atenção",
+      campaignTerms: ["alerta", "lembrete", "pendente", "estoque baixo"],
+      strategicPriority: 7,
+    },
+  },
+  {
+    kind: "feature",
+    slug: "offline-e-sincronizacao",
+    title: "Uso offline e sincronização",
+    summary:
+      "Permite registrar vendas e clientes sem internet e sincroniza os dados quando a conexão volta.",
+    status: "active",
+    data: {
+      audiences: [
+        "empreendedoras-organizando-negocio",
+        "marmitas-e-alimentos",
+        "beleza-e-servicos",
+      ],
+      angle: "Seu negócio continua mesmo quando a internet falha",
+      cta: "Organize de onde estiver",
+      campaignTerms: ["offline", "sem internet", "sincronização", "conexão"],
+      strategicPriority: 6,
+    },
+  },
+  {
+    kind: "feature",
+    slug: "relatorios-e-exportacoes",
+    title: "Relatórios e exportações",
+    summary:
+      "Transforma os dados do negócio em resumos, relatórios e exportações para acompanhar decisões.",
+    status: "active",
+    data: {
+      audiences: ["empreendedoras-organizando-negocio"],
+      angle: "Decida olhando o negócio inteiro, não só o saldo do dia",
+      cta: "Acompanhe seus resultados",
+      campaignTerms: ["relatório", "exportação", "resumo mensal", "resultado"],
+      strategicPriority: 8,
     },
   },
   {

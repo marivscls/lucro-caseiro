@@ -222,7 +222,7 @@ BEGIN
     VALUES (v_user,product_ids[i],CASE WHEN i%2=0 THEN 'minimalista' ELSE 'classico' END,
       '[massa] Rotulo ' || i,
       jsonb_build_object('brand','Delicias da Mariana','product',(SELECT name FROM products WHERE id=product_ids[i]),'validity','5 dias','ingredients','Produzido artesanalmente'),
-      'https://catalogo.lucrocaseiro.com.br/c/mariana-demo?produto=' || product_ids[i]::text || '#produto-' || product_ids[i]::text,
+      'https://catalogo.lucrocaseiro.com.br/c/mariana-vasconcelos-demo?produto=' || product_ids[i]::text || '#produto-' || product_ids[i]::text,
       now()-i*interval '4 days');
   END LOOP;
 
@@ -238,8 +238,12 @@ BEGIN
     v_status := CASE WHEN i%13=0 THEN 'cancelled'::sale_status WHEN i%7=0 THEN 'pending'::sale_status ELSE 'paid'::sale_status END;
     v_payment := (ARRAY['pix','cash','card','credit','transfer']::payment_method[])[1+(i%5)];
     IF v_status='pending' THEN v_payment := 'credit'; END IF;
-    INSERT INTO sales (user_id,client_id,status,payment_method,total,notes,sold_at,created_at)
-    VALUES (v_user,client_ids[1+(i%24)],v_status,v_payment,v_total,'[massa]',v_when,v_when)
+    INSERT INTO sales (user_id,client_id,status,payment_method,subtotal,total,paid_amount,notes,sold_at,created_at)
+    VALUES (
+      v_user,client_ids[1+(i%24)],v_status,v_payment,v_total,v_total,
+      CASE WHEN v_status='paid' THEN v_total ELSE 0 END,
+      '[massa]',v_when,v_when
+    )
     RETURNING id INTO v_sale;
     INSERT INTO sale_items (sale_id,product_id,quantity,unit_price,subtotal) VALUES (v_sale,v_product,v_qty,v_price,v_total);
     IF v_status='paid' THEN
@@ -309,13 +313,13 @@ BEGIN
       RETURNING id INTO v_order;
     ELSE v_order := NULL;
     END IF;
-    INSERT INTO quotes (user_id,client_id,title,items,total,status,valid_until,notes,order_id,created_at,updated_at)
+    INSERT INTO quotes (user_id,client_id,title,items,subtotal,total,status,valid_until,notes,order_id,created_at,updated_at)
     VALUES (v_user,client_ids[1+(i%24)],'[massa] Orcamento evento #'||i,
       jsonb_build_array(
         jsonb_build_object('description','Bolo personalizado','quantity',1,'unitPrice',120+i*5),
         jsonb_build_object('description','Doces gourmet','quantity',50+i*5,'unitPrice',4.5),
         jsonb_build_object('description','Entrega','quantity',1,'unitPrice',25)
-      ),370+i*32,
+      ),370+i*27.5,370+i*27.5,
       CASE WHEN i%4=0 THEN 'accepted' WHEN i%4=2 THEN 'rejected' ELSE 'pending' END,
       current_date+i+7,'Proposta detalhada enviada pelo WhatsApp',v_order,now()-i*interval '5 days',now()-i*interval '4 days');
   END LOOP;
@@ -328,7 +332,7 @@ BEGIN
   INSERT INTO catalog_settings (user_id,slug,enabled,whatsapp,accent_color,pattern,tagline,promo_banner)
   VALUES (v_user,'mariana-vasconcelos-demo',true,'5511987654321','#C96F82','confetti','Doces feitos com carinho para transformar seus momentos.','Encomendas abertas para este mes!');
 
-  RAISE NOTICE 'Massa completa criada para %: 24 clientes, 8 fornecedores, 16 insumos, 8 receitas, 18 produtos, 8 embalagens, 72 vendas, 18 encomendas, 12 orcamentos, 14 compras e dados avancados.', v_user;
+  RAISE NOTICE 'Massa completa criada para %: 24 clientes, 8 fornecedores, 16 insumos, 8 receitas, 18 produtos, 8 embalagens, 72 vendas, 21 encomendas (18 diretas e 3 de orcamentos aceitos), 12 orcamentos, 14 compras e dados avancados.', v_user;
 END $$;
 
 -- Conferencia rapida apos executar:

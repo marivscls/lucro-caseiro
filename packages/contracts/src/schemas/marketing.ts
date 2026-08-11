@@ -138,6 +138,7 @@ export const MarketingCampaignCreativeStrategySchema = z
     organicInsight: z.string().trim().default(""),
     avatar: z.string().trim().default(""),
     format: z.string().trim().default(""),
+    carouselSlides: z.number().int().min(3).max(10).optional(),
     visualHook: z.string().trim().default(""),
     landing: z.string().trim().default(""),
     retentionBeats: z.array(z.string().trim().min(1)).default([]),
@@ -174,6 +175,7 @@ export const MarketingCampaignBriefInputSchema = z.object({
   audience: z.string().trim().max(2_000).default(""),
   offer: z.string().trim().max(2_000).default(""),
   budget: z.number().nonnegative().optional(),
+  carouselSlides: z.number().int().min(3).max(10).optional(),
 });
 
 export const MarketingCreativeBundleSchema = z.object({
@@ -188,6 +190,7 @@ export const MarketingCreativeBundleSchema = z.object({
         landing: z.string().trim().default(""),
         body: z.string().trim().min(1),
         retentionBeats: z.array(z.string().trim().min(1)).default([]),
+        slidePrompts: z.array(z.string().trim().min(1)).default([]),
         productionNotes: z.string().trim().default(""),
         evidence: z.string().trim().default(""),
         cta: z.string().trim().min(1),

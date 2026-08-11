@@ -66,17 +66,26 @@ Cada slide deve sustentar uma ideia. A legenda complementa; não repete todo o c
 
 ## Direção visual permanente
 
-A linguagem visual é editorial, contemporânea, humana e comercial. A Hostpoint é referência somente para o estilo de composição — fotografia imersiva, recortes em grande escala, headline de alto impacto, assimetria e ritmo de campanha. Sua paleta azul/verde não deve ser copiada: toda cor continua vindo da identidade do Lucro Caseiro. Fotografia e tipografia carregam aproximadamente 90% da mensagem; grafismos apenas apoiam a narrativa.
+A linha aprovada é editorial, contemporânea, humana e comercial: uma fotografia forte encontra um bloco cromático ou tipográfico amplo em divisão assimétrica limpa. As referências aprovam esse sistema, não uma pessoa, um nicho, uma fotografia ou um layout para copiar. Fotografia e tipografia carregam aproximadamente 90% da mensagem; grafismos apenas apoiam a narrativa.
 
-- uma única fotografia editorial forte e um único foco dominante;
-- aproximadamente 55–70% de fotografia contextual e cinematográfica, quando adequado;
-- bloco tipográfico amplo, headline curta e leitura principal em menos de dois segundos;
-- bastante espaço negativo e no máximo dois ou três elementos gráficos secundários;
-- off-white e vinho/rosa dominantes, com lima concentrado em um único gesto;
-- separação assimétrica ou recorte orgânico estrutural entre fotografia e tipografia;
-- variação de enquadramento e posição do campo tipográfico ao longo de uma série.
+- uma única fotografia editorial e um único foco dominante;
+- pelo menos 40% de espaço negativo, com uma pessoa ou ação e no máximo dois objetos de apoio;
+- off-white `#FAF8F6` dominante, vinho `#4A2332` estrutural, rosa `#B65F72` limitado a 15–20% e lima `#DCE86A` em um único gesto;
+- Nunito Sans 700/800 dominante e Fraunces restrita a uma única palavra-chave de peso semântico, como `vende`;
+- nenhum sublinhado decorativo: não desenhar linha, onda, rabisco ou pincelada abaixo de headline, apoio, CTA ou qualquer texto;
+- headline curta, uma frase de apoio e um único CTA, todos legíveis na área segura;
+- em carrosséis de feed, 1080×1350 px (4:5), com uma arte final separada por slide;
+- quantidade definida no briefing, com padrão de 5 slides quando não houver escolha; nunca expandir automaticamente para 7;
+- slide 1 tratado como âncora visual imutável: depois de aprovado, não é regenerado e seu arquivo real acompanha como referência todas as gerações seguintes;
+- continuidade exata de personagem, tratamento fotográfico, recortes, curvas, proporções, tipografia, paleta, assinatura, materiais e luz dentro do carrossel, acompanhada de mudança real de cena, ação, apoio, distância da câmera e composição dentro do mesmo sistema aprovado;
+- marcador sequencial obrigatório, discreto e consistente em todos os arquivos (`1/N`, `2/N`, até `N/N`), sempre alinhado ao bloco de copy ativo;
+- alternância entre capa fotográfica, slide tipográfico, passo tutorial, interface real e encerramento, sem repetir layout em sequência;
+- divisão em até dois campos editoriais largos, verticais ou horizontais — vinho/foto ou foto/texto —, sem criar várias listras finas;
+- último slide tratado como fechamento, com uma única ação e sem cartão rosa dominante ou conteúdo adicional concorrente.
 
-Não usar a estética de cartilha educativa: página branca carregada de explicações, contas manuscritas, gráficos de pizza, setas, círculos, listas de despesas, fileiras de cápsulas ou ilustração literal de toda a copy. Também não usar botões sem interface real, colagens financeiras ou dashboards fictícios. A peça deve parecer uma campanha de marca, não um material didático do Sebrae.
+Só mostrar interface real, fornecida ou confirmada. Em texto corrido, escrever `Lucro Caseiro`. A assinatura visual tem um único tratamento: `lucro caseiro`, minúscula, em uma única linha, Nunito Sans 800, vinho sobre fundo claro ou off-white sobre fundo vinho. Não usar estrela, brilho, ponto, símbolo, ícone, efeito, lettering alternativo ou versão empilhada. Se o logo oficial estiver anexado, usar o arquivo sem redesenhar. Entre campanhas, alternar pessoas, idades, produtos e serviços para o Lucro Caseiro não parecer restrito a um gênero, faixa etária ou nicho físico.
+
+Não usar flat lay carregado, colagem, scrapbook, checklist literal, contas manuscritas, gráficos decorativos, fileiras de cápsulas, sublinhados decorativos, botões sem interface real, dashboards fictícios ou ilustração literal de toda a copy. A peça deve parecer campanha de marca, não folder, cartilha, apostila, infográfico escolar, apresentação corporativa ou template genérico.
 
 Antes de aprovar cada elemento, perguntar: “Isto melhora claramente a narrativa ou apenas ocupa espaço?”. Se apenas decora, remover. O DNA da marca vem da paleta, tipografia, fotografia, acabamento, proporção, ritmo e tom editorial — não da repetição automática da geometria ou dos grafismos de uma peça anterior.
 

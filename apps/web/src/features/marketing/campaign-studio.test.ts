@@ -6,7 +6,10 @@ import {
   campaignAiBriefingFields,
   campaignDestinations,
   campaignNeedsStrategyEnrichment,
+  campaignStrategyEnrichmentPrompt,
+  DEFAULT_CAROUSEL_SLIDES,
   mergeCampaignStrategyEnrichment,
+  normalizeCarouselSlides,
 } from "./campaign-strategy";
 
 const oldPlan: MarketingCampaignPlan = {
@@ -59,6 +62,27 @@ describe("campaign strategy enrichment", () => {
     });
   });
 
+  it("uses five carousel slides by default and preserves an explicit choice", () => {
+    expect(normalizeCarouselSlides(undefined)).toBe(DEFAULT_CAROUSEL_SLIDES);
+    expect(normalizeCarouselSlides(4)).toBe(4);
+    expect(normalizeCarouselSlides(2)).toBe(DEFAULT_CAROUSEL_SLIDES);
+    expect(normalizeCarouselSlides(11)).toBe(DEFAULT_CAROUSEL_SLIDES);
+  });
+
+  it("keeps the approved first slide as the anchor for every later carousel slide", () => {
+    const prompt = campaignStrategyEnrichmentPrompt(7);
+
+    expect(prompt).toContain("slide 1 seja gerado uma única vez");
+    expect(prompt).toContain("marcador 1/7");
+    expect(prompt).toContain("somente os slides 2..7");
+    expect(prompt).toContain("2/7 até 7/7");
+    expect(prompt).toContain("sem reiniciar a direção de arte");
+    expect(prompt).toContain("alterne famílias de composição");
+    expect(prompt).toContain(
+      "foto de um lado e texto do outro pode aparecer no máximo uma vez",
+    );
+  });
+
   it("detects plans returned by the legacy campaign API", () => {
     expect(campaignNeedsStrategyEnrichment(oldPlan)).toBe(true);
   });
@@ -86,6 +110,7 @@ describe("campaign strategy enrichment", () => {
         organicInsight: "Bastidores de encomendas",
         avatar: "Confeiteira preparando um pedido",
         format: "Vídeo curto",
+        carouselSlides: 4,
         visualHook: "Pedido pronto com custos surgindo na tela",
         landing: "Seu faturamento ainda não é o seu lucro",
         retentionBeats: ["Revelar custo esquecido"],
@@ -95,6 +120,7 @@ describe("campaign strategy enrichment", () => {
 
     expect(enriched.research?.problemMechanism).toContain("Custos invisíveis");
     expect(enriched.creativeStrategy?.bigIdea).toContain("valor da venda");
+    expect(enriched.creativeStrategy?.carouselSlides).toBe(4);
     expect(campaignNeedsStrategyEnrichment(enriched)).toBe(false);
   });
 });

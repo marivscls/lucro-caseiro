@@ -2,7 +2,6 @@ import { formatCurrency } from "../../shared/utils/format";
 import { hasActiveFeature, type Client } from "@lucro-caseiro/contracts";
 import {
   Card,
-  colors,
   fontSizes,
   iconSizes,
   Typography,
@@ -106,6 +105,35 @@ function getCardStyle(theme: ReturnType<typeof useTheme>["theme"]): ViewStyle {
     backgroundColor: theme.colors.surfaceElevated,
     borderWidth: 1,
     borderColor: theme.colors.border,
+  };
+}
+
+/** A Home concentra a assinatura forte; as demais telas recebem os mesmos papeis via tema. */
+function getHomePalette(theme: ReturnType<typeof useTheme>["theme"], brandId: string) {
+  const active = brandId === "lucro-caseiro";
+  const dark = theme.mode === "dark";
+  let heroBackground = theme.colors.surfaceElevated;
+  let heroBorder = theme.colors.border;
+  let heroText = theme.colors.text;
+  let heroMuted = theme.colors.textSecondary;
+
+  if (active) {
+    heroBackground = dark ? "#442330" : "#4A1427";
+    heroBorder = dark ? "#6B374A" : "#4A1427";
+    heroText = "#FFF9F7";
+    heroMuted = dark ? "#E9C2CA" : "#F0CCD4";
+  }
+
+  return {
+    active,
+    wine: theme.colors.primaryStrong,
+    heroBackground,
+    heroBorder,
+    heroText,
+    heroMuted,
+    lime: dark ? "#D8ED62" : "#CDEB45",
+    roseInteractive: theme.colors.primaryInteractive,
+    roseSoft: theme.colors.primaryBg,
   };
 }
 
@@ -453,6 +481,8 @@ function HeroTodayCard({
   onNewSale: () => void;
 }>) {
   const { theme } = useTheme();
+  const brand = useBrand();
+  const homePalette = getHomePalette(theme, brand.id);
   return (
     <Pressable
       onPress={hasSales ? onOpenSales : onNewSale}
@@ -460,22 +490,25 @@ function HeroTodayCard({
       accessibilityLabel={`Vendas de hoje, ${amount}. ${salesLabel}`}
       style={({ pressed }) => [
         {
-          backgroundColor: theme.colors.surfaceElevated,
+          backgroundColor: homePalette.heroBackground,
           borderRadius: radii["2xl"],
           borderWidth: 1,
-          borderColor: theme.colors.border,
+          borderColor: homePalette.heroBorder,
           padding: spacing["2xl"],
           opacity: pressed ? 0.95 : 1,
         },
         theme.shadows.sm,
       ]}
     >
-      <Typography variant="label" color={theme.colors.primaryStrong}>
+      <Typography
+        variant="label"
+        color={homePalette.active ? homePalette.lime : theme.colors.primaryStrong}
+      >
         VENDAS DE HOJE
       </Typography>
       <Typography
         variant="moneyHero"
-        color={theme.colors.text}
+        color={homePalette.heroText}
         numberOfLines={1}
         adjustsFontSizeToFit
         minimumFontScale={0.55}
@@ -485,7 +518,7 @@ function HeroTodayCard({
       </Typography>
       <Typography
         variant="body"
-        color={theme.colors.textSecondary}
+        color={homePalette.heroMuted}
         style={{ marginTop: spacing.xs }}
       >
         {salesLabel}
@@ -500,7 +533,7 @@ function HeroTodayCard({
           flexDirection: "row",
           alignItems: "center",
           gap: spacing.sm,
-          backgroundColor: theme.colors.primaryInteractive,
+          backgroundColor: homePalette.roseInteractive,
           borderRadius: radii.full,
           paddingHorizontal: spacing.xl,
           minHeight: 48,
@@ -508,8 +541,8 @@ function HeroTodayCard({
           opacity: pressed ? 0.85 : 1,
         })}
       >
-        <AppIcon name="add" size={iconSizes.sm} color={colors.textOnPrimary} />
-        <Typography variant="bodyBold" color={colors.textOnPrimary}>
+        <AppIcon name="add" size={iconSizes.sm} color={theme.colors.textOnPrimary} />
+        <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
           {saleActionLabel}
         </Typography>
       </Pressable>
@@ -532,15 +565,49 @@ function LucroHighlightCard({
   onPress: () => void;
 }>) {
   const { theme } = useTheme();
+  const brand = useBrand();
+  const homePalette = getHomePalette(theme, brand.id);
   const negative = amount.trim().startsWith("-");
-  const tone = negative ? theme.colors.alert : theme.colors.success;
-  const toneBg = negative ? theme.colors.alertBg : theme.colors.successBg;
+  const positiveBrandPalette = homePalette.active && !negative;
+  let tone = theme.colors.success;
+  let toneBg = theme.colors.successBg;
+  let cardBackground = toneBg;
+  let cardBorder = toneBg;
+
+  if (positiveBrandPalette) {
+    tone = homePalette.wine;
+    cardBackground = theme.colors.surfaceElevated;
+    cardBorder = theme.colors.border;
+  }
+  if (negative) {
+    tone = theme.colors.alert;
+    toneBg = theme.colors.alertBg;
+    cardBackground = toneBg;
+    cardBorder = toneBg;
+  }
+  let iconBg = toneBg;
+  let iconColor = tone;
+  let detailsTone = theme.colors.textSecondary;
+
+  if (positiveBrandPalette) {
+    iconBg = homePalette.lime;
+    detailsTone = homePalette.wine;
+
+    if (theme.mode === "dark") {
+      iconBg = homePalette.heroBackground;
+      iconColor = homePalette.heroText;
+    }
+  }
   return (
     <Card
       variant="surface"
       padding="lg"
       onPress={onPress}
-      style={{ ...getCardStyle(theme), borderColor: toneBg }}
+      style={{
+        ...getCardStyle(theme),
+        backgroundColor: cardBackground,
+        borderColor: cardBorder,
+      }}
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
         <View
@@ -548,12 +615,12 @@ function LucroHighlightCard({
             width: 46,
             height: 46,
             borderRadius: radii.full,
-            backgroundColor: toneBg,
+            backgroundColor: iconBg,
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <AppIcon name="trending-up-outline" size={iconSizes.md} color={tone} />
+          <AppIcon name="trending-up-outline" size={iconSizes.md} color={iconColor} />
         </View>
         <View style={{ flex: 1, gap: 2 }}>
           <Typography variant="label" color={tone}>
@@ -568,7 +635,7 @@ function LucroHighlightCard({
           >
             {amount}
           </Typography>
-          <Typography variant="caption" numberOfLines={2}>
+          <Typography variant="caption" color={detailsTone} numberOfLines={2}>
             {income} entradas · {expenses} despesas
           </Typography>
         </View>
@@ -580,6 +647,10 @@ function LucroHighlightCard({
 
 function ProgressRing({ value }: Readonly<{ value: number }>) {
   const { theme } = useTheme();
+  const brand = useBrand();
+  const homePalette = getHomePalette(theme, brand.id);
+  const progressColor = homePalette.active ? homePalette.lime : theme.colors.primary;
+  const progressText = homePalette.active ? homePalette.wine : theme.colors.primary;
   const size = 86;
   const strokeWidth = 6;
   const radius = (size - strokeWidth) / 2;
@@ -601,7 +672,7 @@ function ProgressRing({ value }: Readonly<{ value: number }>) {
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke={theme.colors.surface}
+          stroke={homePalette.active ? homePalette.roseSoft : theme.colors.surface}
           strokeWidth={strokeWidth}
         />
         <Circle
@@ -609,7 +680,7 @@ function ProgressRing({ value }: Readonly<{ value: number }>) {
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke={theme.colors.primary}
+          stroke={progressColor}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeDasharray={`${circumference} ${circumference}`}
@@ -623,12 +694,12 @@ function ProgressRing({ value }: Readonly<{ value: number }>) {
           justifyContent: "center",
         }}
       >
-        <Typography variant="bodyBold" color={theme.colors.primary}>
+        <Typography variant="bodyBold" color={progressText}>
           {Math.round(progress)}%
         </Typography>
         <Typography
           variant="caption"
-          color={theme.colors.primary}
+          color={progressText}
           style={{ fontSize: fontSizes.xs }}
         >
           da meta
@@ -794,8 +865,6 @@ function GettingStartedCard({
       padding="xl"
       style={{
         ...getCardStyle(theme),
-        borderLeftWidth: 3,
-        borderLeftColor: theme.colors.primary,
         gap: spacing.md,
       }}
     >
@@ -811,11 +880,9 @@ function GettingStartedCard({
           style={{
             flexDirection: "row",
             alignItems: "center",
-            gap: spacing.sm,
             flex: 1,
           }}
         >
-          <AppIcon name="sparkles" size={20} color={theme.colors.primary} />
           <Typography variant="h3">Comece por aqui</Typography>
         </View>
         <Pressable
@@ -854,6 +921,7 @@ function GettingStartedCard({
 export default function HomeScreen() {
   const { theme } = useTheme();
   const brand = useBrand();
+  const homePalette = getHomePalette(theme, brand.id);
   const { copy } = brand;
   const hasStock = useFeature("estoque");
   const hasScheduling = useFeature("agendamento");
@@ -942,6 +1010,8 @@ export default function HomeScreen() {
   }));
   const goalConfig = prolaboreData?.config;
   const goalProgress = prolaboreData?.progress;
+  let goalProgressBarColor = theme.colors.primary;
+  if (goalProgress?.reached) goalProgressBarColor = theme.colors.success;
 
   const goalModal = (
     <ProlaboreGoalForm
@@ -977,8 +1047,17 @@ export default function HomeScreen() {
           }}
         >
           <View style={{ flex: 1, paddingRight: spacing.md }}>
-            <Typography variant="screenTitle">Olá, {firstName}!</Typography>
-            <Typography variant="body" style={{ marginTop: spacing.xs }}>
+            <Typography
+              variant="screenTitle"
+              color={homePalette.active ? homePalette.wine : theme.colors.text}
+            >
+              Olá, {firstName}!
+            </Typography>
+            <Typography
+              variant="body"
+              color={theme.colors.textSecondary}
+              style={{ marginTop: spacing.xs }}
+            >
               {getFormattedDate()}
             </Typography>
           </View>
@@ -1055,7 +1134,6 @@ export default function HomeScreen() {
               style={{
                 alignItems: "stretch",
                 flexDirection: isDesktop ? "row" : "column",
-                gap: spacing.lg,
               }}
             >
               <View style={{ flex: 1 }}>
@@ -1069,57 +1147,65 @@ export default function HomeScreen() {
               </View>
 
               {hasScheduling && upcomingDeliveries > 0 ? (
-                <Card
-                  variant="surface"
-                  padding="lg"
-                  onPress={() => router.push("/tabs/agenda")}
-                  style={{ ...cardStyle, flex: 1 }}
+                <View
+                  style={{
+                    flex: isDesktop ? 1 : undefined,
+                    marginTop: isDesktop ? 0 : spacing.lg,
+                    marginLeft: isDesktop ? spacing.lg : 0,
+                  }}
                 >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: spacing.sm,
-                    }}
+                  <Card
+                    variant="surface"
+                    padding="lg"
+                    onPress={() => router.push("/tabs/agenda")}
+                    style={{ ...cardStyle, flex: 1 }}
                   >
                     <View
                       style={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: radii.full,
-                        backgroundColor: theme.colors.alertBg,
+                        flexDirection: "row",
                         alignItems: "center",
-                        justifyContent: "center",
+                        gap: spacing.sm,
                       }}
                     >
+                      <View
+                        style={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: radii.full,
+                          backgroundColor: theme.colors.alertBg,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <AppIcon
+                          name="calendar"
+                          size={iconSizes.md}
+                          color={theme.colors.textSecondary}
+                        />
+                      </View>
+                      <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+                        <Typography variant="h3">Agenda</Typography>
+                        <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+                          {upcomingDeliveries}{" "}
+                          {upcomingDeliveries === 1 ? "entrega" : "entregas"}
+                        </Typography>
+                        <Typography variant="caption" numberOfLines={3}>
+                          Hoje, amanhã ou em atraso
+                        </Typography>
+                      </View>
+                      <Image
+                        source={agendaDeliveries}
+                        resizeMode="contain"
+                        style={{ width: isDesktop ? 82 : 72, height: 70 }}
+                      />
                       <AppIcon
-                        name="calendar"
-                        size={iconSizes.md}
+                        name="chevron-forward"
+                        size={iconSizes.sm}
                         color={theme.colors.textSecondary}
                       />
                     </View>
-                    <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
-                      <Typography variant="h3">Agenda</Typography>
-                      <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
-                        {upcomingDeliveries}{" "}
-                        {upcomingDeliveries === 1 ? "entrega" : "entregas"}
-                      </Typography>
-                      <Typography variant="caption" numberOfLines={3}>
-                        Hoje, amanhã ou em atraso
-                      </Typography>
-                    </View>
-                    <Image
-                      source={agendaDeliveries}
-                      resizeMode="contain"
-                      style={{ width: isDesktop ? 82 : 72, height: 70 }}
-                    />
-                    <AppIcon
-                      name="chevron-forward"
-                      size={iconSizes.sm}
-                      color={theme.colors.textSecondary}
-                    />
-                  </View>
-                </Card>
+                  </Card>
+                </View>
               ) : null}
             </View>
 
@@ -1200,9 +1286,7 @@ export default function HomeScreen() {
                         width: `${Math.min(Math.max(goalProgress?.progressPct ?? 0, 1), 100)}%`,
                         height: "100%",
                         borderRadius: radii.full,
-                        backgroundColor: goalProgress?.reached
-                          ? theme.colors.success
-                          : theme.colors.primary,
+                        backgroundColor: goalProgressBarColor,
                       }}
                     />
                   </View>

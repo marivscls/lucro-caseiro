@@ -1,0 +1,43 @@
+{
+  "patterns": {
+    "run:harness:query": {
+      "first_seen_ts": "2026-08-10T17:58:18.803609500+00:00",
+      "last_call_count": 3,
+      "last_candidate_key": "719f1e08675dcc78",
+      "last_seen_ts": "2026-08-10T17:58:18.803609500+00:00",
+      "materializable_occurrences": 1,
+      "occurrences": 1,
+      "shape": {
+        "calls": [
+          {
+            "adapter": "harness",
+            "input": {
+              "q": "string"
+            },
+            "tool": "query"
+          },
+          {
+            "adapter": "harness",
+            "input": {
+              "q": "string"
+            },
+            "tool": "query"
+          },
+          {
+            "adapter": "harness",
+            "input": {
+              "q": "string"
+            },
+            "tool": "query"
+          }
+        ],
+        "count": 3,
+        "kind": "calls"
+      },
+      "structural_key": "run:harness:query",
+      "unique_tools": ["query"]
+    }
+  },
+  "updated_ts": "2026-08-10T17:58:18.803609500+00:00",
+  "version": 1
+}

@@ -10,7 +10,7 @@ decay: stable
 created: 2026-08-06T13:29:43.481058100+00:00
 updated: 2026-08-06T13:29:43.481058100+00:00
 validated: 2026-08-06T13:29:43.481058100+00:00
-links: 
+links:
 ---
 
 SINTOMA (2026-08-06): `pnpm --filter @lucro-caseiro/api email:test -- destinatario --confirm` repassou `"--"` em `process.argv`; o script escolheu esse primeiro argumento como destinatário e o Zod falhou com `Invalid email`. Nenhum request chegou ao Resend. CORREÇÃO: o parser do probe remove `--` e flags conhecidas, exige exatamente um argumento posicional e tem teste de regressão com a forma documentada. PREVENÇÃO: scripts operacionais chamados por `pnpm run` não devem assumir que o separador é consumido; testar a linha de comando exatamente como aparece na documentação antes de usar credenciais reais.

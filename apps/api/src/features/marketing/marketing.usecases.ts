@@ -19,6 +19,9 @@ import { NotFoundError, ServiceUnavailableError } from "../../shared/errors";
 import {
   buildAdCopywriterPrompt,
   buildCampaignStrategistPrompt,
+  buildCreativeBundleRepairPrompt,
+  composeCarouselProductionNotes,
+  creativeBundleContractViolations,
   deriveBrandProfile,
   parseCampaignPlan,
   parseCreativeBundle,
@@ -375,33 +378,45 @@ export class MarketingUseCases {
       this.repo.listResources(userId),
     ]);
     const intent = input.intent ?? "generate";
-    const result = await this.generate({
-      system: resourceDraftSystemPrompt(instruction?.body, intent, input.kind),
-      prompt: [
-        `Crie um único rascunho de ${resourceKindLabel(input.kind)} para o Lucro Caseiro.`,
-        resourceDraftIntentInstructions(intent, input.kind),
-        `PEDIDO: ${input.prompt}`,
-        `CAMPOS ATUAIS: ${JSON.stringify(input.current ?? {})}`,
-        `CONHECIMENTO CANÔNICO: ${knowledge
-          .slice(0, 12)
-          .map((item) => `${item.title}: ${item.body}`)
-          .join("\n")}`,
-        `EXEMPLOS APROVADOS: ${examples
-          .slice(0, 5)
-          .map((item) => `Entrada: ${item.input}\nSaída: ${item.output}`)
-          .join("\n\n")}`,
-        `ITENS JÁ CADASTRADOS: ${resources
-          .filter((item) => item.kind === input.kind)
-          .slice(0, 30)
-          .map((item) => `${item.title}: ${item.summary ?? ""}`)
-          .join("\n")}`,
-        'FORMATO EXATO: {"title":"...","summary":"...","status":"...","scheduledFor":null,"data":{}}',
-        `STATUS PERMITIDOS: ${statusOptions(input.kind).join(", ")}.`,
-        "Use scheduledFor em ISO 8601 apenas se o pedido definir uma data; caso contrário, use null. Em data, inclua somente contexto estruturado útil e específico para este tipo de item.",
-        resourceDraftDataInstructions(input.kind),
-      ].join("\n\n"),
-    });
-    return parseMarketingResourceDraft(result.text, input.kind);
+    const system = resourceDraftSystemPrompt(instruction?.body, intent, input.kind);
+    const prompt = [
+      `Crie um único rascunho de ${resourceKindLabel(input.kind)} para o Lucro Caseiro.`,
+      resourceDraftIntentInstructions(intent, input.kind),
+      `PEDIDO: ${input.prompt}`,
+      `CAMPOS ATUAIS: ${JSON.stringify(input.current ?? {})}`,
+      `CONHECIMENTO CANÔNICO: ${knowledge
+        .slice(0, 12)
+        .map((item) => `${item.title}: ${item.body}`)
+        .join("\n")}`,
+      `EXEMPLOS APROVADOS: ${examples
+        .slice(0, 5)
+        .map((item) => `Entrada: ${item.input}\nSaída: ${item.output}`)
+        .join("\n\n")}`,
+      `ITENS JÁ CADASTRADOS: ${resources
+        .filter((item) => item.kind === input.kind)
+        .slice(0, 30)
+        .map((item) => `${item.title}: ${item.summary ?? ""}`)
+        .join("\n")}`,
+      'FORMATO EXATO: {"title":"...","summary":"...","status":"...","scheduledFor":null,"data":{}}',
+      `STATUS PERMITIDOS: ${statusOptions(input.kind).join(", ")}.`,
+      "Use scheduledFor em ISO 8601 apenas se o pedido definir uma data; caso contrário, use null. Em data, inclua somente contexto estruturado útil e específico para este tipo de item.",
+      resourceDraftDataInstructions(input.kind),
+    ].join("\n\n");
+    let result = await this.generate({ system, prompt });
+    let draft = parseMarketingResourceDraft(result.text, input.kind);
+    if (
+      input.kind === "content" &&
+      intent === "generate" &&
+      input.current &&
+      resourceDraftIsMateriallyUnchanged(input.current, draft)
+    ) {
+      result = await this.generate({
+        system,
+        prompt: buildResourceDraftNoveltyRepairPrompt(prompt, result.text),
+      });
+      draft = parseMarketingResourceDraft(result.text, input.kind);
+    }
+    return draft;
   }
 
   async generateContentIdeas(
@@ -474,7 +489,7 @@ export class MarketingUseCases {
     const built = buildCampaignStrategistPrompt(input, {
       instruction: instruction?.body,
       knowledge,
-      resources,
+      resources: campaignPlanningResources(resources),
     });
     const result = await this.generate({
       system: "Siga integralmente as instruções do prompt e responda somente com JSON.",
@@ -518,11 +533,24 @@ export class MarketingUseCases {
         resources,
       }),
     );
-    const result = await this.generate({
+    let result = await this.generate({
       system: "Siga integralmente as instruções do prompt e responda somente com JSON.",
       prompt: built.prompt,
     });
-    const bundle = parseCreativeBundle(result.text);
+    let bundle = parseCreativeBundle(result.text);
+    let violations = bundle ? creativeBundleContractViolations(bundle, input.plan) : [];
+    if (bundle && violations.length > 0) {
+      result = await this.generate({
+        system: "Corrija integralmente a resposta e devolva somente o JSON completo.",
+        prompt: buildCreativeBundleRepairPrompt(built.prompt, result.text, violations),
+      });
+      bundle = parseCreativeBundle(result.text);
+      violations = bundle ? creativeBundleContractViolations(bundle, input.plan) : [];
+    }
+    bundle =
+      bundle && violations.length === 0
+        ? composeCarouselProductionNotes(bundle, input.plan)
+        : null;
     const telemetry = {
       promptId: built.promptId,
       promptVersion: built.promptVersion,
@@ -744,6 +772,78 @@ export function parseMarketingResourceDraft(
   }
 }
 
+export function resourceDraftIsMateriallyUnchanged(
+  current: {
+    title: string;
+    summary: string;
+    data: Record<string, unknown>;
+  },
+  draft: MarketingAiResourceDraft,
+) {
+  const currentValues = editorialStringValues({
+    title: current.title,
+    summary: current.summary,
+    data: current.data,
+  });
+  if (currentValues.size === 0) return false;
+  const draftValues = editorialStringValues({
+    title: draft.title,
+    summary: draft.summary,
+    data: draft.data,
+  });
+  const unchanged = [...currentValues].filter(
+    ([path, value]) => draftValues.get(path) === value,
+  ).length;
+  return unchanged / Math.max(currentValues.size, draftValues.size) >= 0.8;
+}
+
+function editorialStringValues(value: unknown) {
+  const values = new Map<string, string>();
+  visitEditorialStrings(value, "", values);
+  return values;
+}
+
+function visitEditorialStrings(
+  value: unknown,
+  path: string,
+  values: Map<string, string>,
+) {
+  if (typeof value === "string") {
+    const normalized = value
+      .trim()
+      .toLocaleLowerCase("pt-BR")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, " ");
+    if (normalized) values.set(path, normalized);
+    return;
+  }
+  if (Array.isArray(value)) {
+    value.forEach((item, index) =>
+      visitEditorialStrings(item, `${path}[${index}]`, values),
+    );
+    return;
+  }
+  if (!value || typeof value !== "object") return;
+  Object.entries(value).forEach(([key, item]) => {
+    if (key === "analysis") return;
+    visitEditorialStrings(item, path ? `${path}.${key}` : key, values);
+  });
+}
+
+function buildResourceDraftNoveltyRepairPrompt(
+  originalPrompt: string,
+  previousResponse: string,
+) {
+  return `${originalPrompt}
+
+CORREÇÃO OBRIGATÓRIA DA RESPOSTA ANTERIOR:
+A resposta repetiu quase todos os CAMPOS ATUAIS e não entregou uma nova sugestão. Gere uma alternativa editorial materialmente nova, preservando somente fatos, restrições, tema, canal e formato confirmados. Mude de verdade título, gancho, desenvolvimento, headlines, textos dos slides, orientação visual e CTA aplicáveis. Não trate mudança de status, metadados, scores ou analysis como novidade e não devolva apenas uma paráfrase superficial.
+
+RESPOSTA REJEITADA:
+${previousResponse.slice(0, 50_000)}`;
+}
+
 export function parseMarketingContentIdeas(text: string): MarketingContentIdeas {
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
@@ -807,9 +907,24 @@ export function marketingSystemPrompt(activeInstruction?: string) {
   const withPositioning = withContent.includes(MARKET_POSITIONING_GUARDRAIL)
     ? withContent
     : `${withContent}\n\n${MARKET_POSITIONING_GUARDRAIL}`;
-  return withPositioning.includes(VISUAL_ART_DIRECTION_GUARDRAIL)
-    ? withPositioning
-    : `${withPositioning}\n\n${VISUAL_ART_DIRECTION_GUARDRAIL}`;
+  return replacePromptSection(
+    withPositioning,
+    "## Direção de arte permanente — Visual DNA aprovado",
+    VISUAL_ART_DIRECTION_GUARDRAIL,
+  );
+}
+
+function replacePromptSection(source: string, heading: string, canonical: string) {
+  const start = source.indexOf(heading);
+  if (start < 0) return `${source}\n\n${canonical}`;
+  const nextHeading = source.indexOf("\n## ", start + heading.length);
+  return [
+    source.slice(0, start).trimEnd(),
+    canonical,
+    nextHeading < 0 ? "" : source.slice(nextHeading).trimStart(),
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 function resourceDraftDataInstructions(kind: MarketingResourceKind) {
@@ -847,7 +962,58 @@ function resourceDraftIntentInstructions(
   if (intent === "refine") {
     return "TAREFA: refine o briefing atual. Preserve fatos e restrições, aumente a especificidade estratégica e otimize CTA, gancho, persona, formato e conversão. Recalcule toda a análise depois das melhorias. Nunca invente fatos, provas ou resultados.";
   }
-  return "TAREFA: transforme o título, resumo, ideia, texto ou transcrição em um briefing completo. Preencha automaticamente apenas o que o contexto sustentar; quando não houver base segura, deixe o campo de fora. Gere também a análise estratégica e as sugestões de melhoria.";
+  return "TAREFA: gere uma nova sugestão editorial completa a partir do título, resumo, ideia, texto ou transcrição. CAMPOS ATUAIS servem como contexto e não como resposta a copiar: quando já estiverem preenchidos, crie uma alternativa materialmente diferente em título, gancho, desenvolvimento, slides, orientação visual e CTA, preservando apenas fatos, restrições, tema, canal e formato confirmados. Preencha apenas o que o contexto sustentar; quando não houver base segura, deixe o campo de fora. Gere também a análise estratégica e as sugestões de melhoria.";
+}
+
+function campaignPlanningResources(
+  resources: Array<{
+    kind: string;
+    slug: string;
+    title: string;
+    summary: string | null;
+    data: unknown;
+  }>,
+) {
+  const canonicalFeatures = initialMarketingResources.filter(
+    (resource) => resource.kind === "feature",
+  );
+  const canonicalSlugs = new Set(canonicalFeatures.map((resource) => resource.slug));
+  const otherResources = resources
+    .filter(
+      (resource) => resource.kind !== "feature" || !canonicalSlugs.has(resource.slug),
+    )
+    .map(({ kind, slug, title, summary, data }) => ({
+      kind,
+      slug,
+      title,
+      summary,
+      data,
+    }));
+
+  return [
+    ...otherResources,
+    ...canonicalFeatures.map((feature) => {
+      const stored = resources.find(
+        (resource) => resource.kind === "feature" && resource.slug === feature.slug,
+      );
+      return {
+        kind: feature.kind,
+        slug: feature.slug,
+        title: feature.title,
+        summary: feature.summary ?? null,
+        data: {
+          ...objectValue(stored?.data),
+          ...objectValue(feature.data),
+        },
+      };
+    }),
+  ];
+}
+
+function objectValue(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
 }
 
 function statusOptions(kind: MarketingResourceKind) {

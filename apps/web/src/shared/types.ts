@@ -56,6 +56,7 @@ export interface MarketingCampaignPlan {
     organicInsight: string;
     avatar: string;
     format: string;
+    carouselSlides?: number;
     visualHook: string;
     landing: string;
     retentionBeats: string[];
@@ -79,6 +80,7 @@ export interface MarketingCreativeBundle {
     landing?: string;
     body: string;
     retentionBeats?: string[];
+    slidePrompts?: string[];
     productionNotes?: string;
     evidence?: string;
     cta: string;
