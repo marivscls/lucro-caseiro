@@ -19,7 +19,7 @@ if (mode !== "build" && mode !== "start") {
   process.exit(1);
 }
 
-const result = spawnSync("pnpm", ["--filter", service, mode], {
+const result = spawnSync("pnpm", ["--filter", service, "--fail-if-no-match", mode], {
   stdio: "inherit",
   shell: process.platform === "win32",
 });

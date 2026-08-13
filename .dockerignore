@@ -15,8 +15,6 @@
 
 docs
 tasks
-apps/mobile
-packages/ui
 
 *.jks
 *.keystore
