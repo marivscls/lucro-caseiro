@@ -105,7 +105,16 @@ import {
   MarketingAiQuotaError,
 } from "./features/marketing/marketing-ai.provider";
 import { MarketingRepoPg } from "./features/marketing/marketing.repo.pg";
-import { MarketingUseCases } from "./features/marketing/marketing.usecases";
+import {
+  MarketingUseCases,
+  type MarketingAiGenerator,
+} from "./features/marketing/marketing.usecases";
+import { VideoPromptRepoPg } from "./features/marketing/video-prompt.repo.pg";
+import { VideoPromptUseCases } from "./features/marketing/video-prompt.usecases";
+import { OpenAiVideoEditor } from "./features/marketing/openai-video-editor";
+import { VideoEditorProcessor } from "./features/marketing/video-editor.processor";
+import { VideoEditorRepoPg } from "./features/marketing/video-editor.repo.pg";
+import { VideoEditorUseCases } from "./features/marketing/video-editor.usecases";
 import { createExpoPushSender } from "./features/notifications/expo-push";
 import { createNotificationsRouter } from "./features/notifications/notifications.routes";
 import { NotificationsRepoPg } from "./features/notifications/notifications.repo.pg";
@@ -244,32 +253,63 @@ const professionalTrialCampaignNotifier = emailSender
 const marketingAi = config.googleGenerativeAiApiKey
   ? createGoogleGenerativeAI({ apiKey: config.googleGenerativeAiApiKey })
   : null;
-const marketingUseCases = new MarketingUseCases(
-  new MarketingRepoPg(db),
-  marketingAi
-    ? async ({ system, prompt }) => {
-        try {
-          return await generateMarketingAiWithFallback(async (model, abortSignal) => {
-            const result = await generateText({
-              model: marketingAi(model),
-              system,
-              prompt,
-              abortSignal,
-              maxRetries: 0,
-            });
-            return result.text;
+const marketingRepo = new MarketingRepoPg(db);
+const marketingGenerate: MarketingAiGenerator | undefined = marketingAi
+  ? async ({ system, prompt }) => {
+      try {
+        return await generateMarketingAiWithFallback(async (model, abortSignal) => {
+          const result = await generateText({
+            model: marketingAi(model),
+            system,
+            prompt,
+            abortSignal,
+            maxRetries: 0,
           });
-        } catch (error) {
-          console.error("Marketing AI generation failed:", error);
-          throw new ServiceUnavailableError(
-            error instanceof MarketingAiQuotaError
-              ? "O limite de uso da IA foi atingido. Tente novamente mais tarde."
-              : "A IA est\u00e1 temporariamente indispon\u00edvel. Tente novamente em instantes.",
-          );
-        }
+          return result.text;
+        });
+      } catch (error) {
+        console.error("Marketing AI generation failed:", error);
+        throw new ServiceUnavailableError(
+          error instanceof MarketingAiQuotaError
+            ? "O limite de uso da IA foi atingido. Tente novamente mais tarde."
+            : "A IA est\u00e1 temporariamente indispon\u00edvel. Tente novamente em instantes.",
+        );
       }
-    : undefined,
+    }
+  : undefined;
+const marketingUseCases = new MarketingUseCases(marketingRepo, marketingGenerate);
+const videoPromptUseCases = new VideoPromptUseCases(
+  new VideoPromptRepoPg(db),
+  marketingRepo,
+  marketingGenerate,
 );
+const videoEditorRepo = new VideoEditorRepoPg(db);
+const openAiVideoEditor = config.openAiApiKey
+  ? new OpenAiVideoEditor(config.openAiApiKey)
+  : undefined;
+const videoEditorProcessor =
+  supabaseAdmin && openAiVideoEditor
+    ? new VideoEditorProcessor(
+        videoEditorRepo,
+        supabaseAdmin,
+        openAiVideoEditor,
+        config.videoEditorFfmpegPath,
+        config.videoEditorFfprobePath,
+      )
+    : undefined;
+const videoEditorUseCases = new VideoEditorUseCases(
+  videoEditorRepo,
+  supabaseAdmin ?? undefined,
+  videoEditorProcessor,
+);
+
+if (videoEditorProcessor)
+  void videoEditorProcessor
+    .recover()
+    .then((count) => {
+      if (count) console.warn(`Retomando ${count} edição(ões) de vídeo interrompida(s).`);
+    })
+    .catch((error) => console.error("Falha ao retomar edições de vídeo:", error));
 
 const notificationsUseCases = new NotificationsUseCases(
   new NotificationsRepoPg(db),
@@ -412,7 +452,10 @@ app.use(
   "/api/v1/analytics",
   createAnalyticsRouter(analyticsUseCases, config.adminUserIds),
 );
-app.use("/api/v1/marketing", createMarketingRouter(marketingUseCases));
+app.use(
+  "/api/v1/marketing",
+  createMarketingRouter(marketingUseCases, videoPromptUseCases, videoEditorUseCases),
+);
 app.use("/api/v1/notifications", createNotificationsRouter(notificationsUseCases));
 app.use(
   "/api/v1/products",

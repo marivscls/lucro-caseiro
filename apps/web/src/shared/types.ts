@@ -221,6 +221,13 @@ export interface DashboardData {
     minimumSamples: number;
     minimumScore: number;
   };
+  videoJobs: Array<{
+    id: string;
+    title: string;
+    status: "ready_for_review" | "failed" | "needs_input";
+    error: string | null;
+    updatedAt: string;
+  }>;
 }
 
 export interface TrainingData {

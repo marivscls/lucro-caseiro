@@ -2,7 +2,7 @@
  * Lucro Caseiro — Design Tokens (v2)
  *
  * Fonte unica da verdade visual do produto (mobile, PWA e desktop).
- * Identidade canonica (ADR-0008): rose quente + Nunito Sans em toda a
+ * Identidade canonica (ADR-0008): rose quente + Manrope em toda a
  * interface. O app web espelha estes valores via CSS custom
  * properties em `apps/web/src/app/globals.css` — ao mudar algo aqui,
  * atualize la tambem (o cabecalho do globals.css aponta para ca).
@@ -135,17 +135,17 @@ export const lineHeights = {
 } as const;
 
 /**
- * Familia tipografica oficial (ADR-0008): Nunito Sans em toda a interface.
- * Os nomes batem com os exports de `@expo-google-fonts/nunito-sans`
+ * Familia tipografica oficial (ADR-0008): Manrope em toda a interface.
+ * Os nomes batem com os exports de `@expo-google-fonts/manrope`
  * carregados no RootLayout do mobile via `useFonts`.
  * Nunca use `fontWeight` junto com estas familias (Android ignora/faz faux
  * bold) — escolha a familia do peso certo.
  */
 export const fonts = {
-  regular: "NunitoSans_400Regular",
-  semiBold: "NunitoSans_600SemiBold",
-  bold: "NunitoSans_700Bold",
-  extraBold: "NunitoSans_800ExtraBold",
+  regular: "Manrope_400Regular",
+  semiBold: "Manrope_600SemiBold",
+  bold: "Manrope_700Bold",
+  extraBold: "Manrope_800ExtraBold",
 } as const;
 
 /**

@@ -75,6 +75,12 @@ describe("campaign strategy enrichment", () => {
     expect(prompt).toContain("slide 1 seja gerado uma única vez");
     expect(prompt).toContain("marcador 1/7");
     expect(prompt).toContain("somente os slides 2..7");
+    expect(prompt).toContain("mantendo um cursor de slide ativo");
+    expect(prompt).toContain("receba somente o bloco SLIDE X");
+    expect(prompt).toContain("nunca o prompt total, o bloco SLIDE 1");
+    expect(prompt).toContain("Se a saída repetir 1/7 ou a copy da capa");
+    expect(prompt).toContain("Continue automaticamente até entregar 7/7");
+    expect(prompt).toContain("não pare no primeiro arquivo restante");
     expect(prompt).toContain("2/7 até 7/7");
     expect(prompt).toContain("sem reiniciar a direção de arte");
     expect(prompt).toContain("alterne famílias de composição");

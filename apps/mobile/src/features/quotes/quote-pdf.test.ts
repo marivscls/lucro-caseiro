@@ -41,5 +41,7 @@ describe("buildQuoteHtml", () => {
     expect(html).toContain("@media screen and (max-width: 600px)");
     expect(html).toContain("@media print");
     expect(html).toContain('<main class="quote-page">');
+    expect(html).toContain('font-family: "Manrope", Arial, sans-serif');
+    expect(html).not.toContain("Georgia");
   });
 });

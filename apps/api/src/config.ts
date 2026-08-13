@@ -16,6 +16,9 @@ const baseEnvSchema = z.object({
   ADMIN_USER_IDS: z.string().default(""),
   MARKETING_USER_IDS: z.string().default(""),
   GOOGLE_GENERATIVE_AI_API_KEY: z.string().default(""),
+  OPENAI_API_KEY: z.string().default(""),
+  VIDEO_EDITOR_FFMPEG_PATH: z.string().default("ffmpeg"),
+  VIDEO_EDITOR_FFPROBE_PATH: z.string().default("ffprobe"),
   COSMOS_API_TOKEN: z.string().default(""),
   COSMOS_USER_AGENT: z.string().default(""),
   CORS_ORIGIN: z.string().default(""),
@@ -83,6 +86,9 @@ export const config = {
     .map((id) => id.trim())
     .filter(Boolean),
   googleGenerativeAiApiKey: parsed.data.GOOGLE_GENERATIVE_AI_API_KEY,
+  openAiApiKey: parsed.data.OPENAI_API_KEY,
+  videoEditorFfmpegPath: parsed.data.VIDEO_EDITOR_FFMPEG_PATH,
+  videoEditorFfprobePath: parsed.data.VIDEO_EDITOR_FFPROBE_PATH,
   cosmosApiToken: parsed.data.COSMOS_API_TOKEN,
   cosmosUserAgent: parsed.data.COSMOS_USER_AGENT,
   corsOrigins: [

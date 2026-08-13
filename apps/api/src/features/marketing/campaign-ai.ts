@@ -11,15 +11,30 @@ import {
   AI_CHARACTER_CAROUSEL_GUARDRAIL,
   AI_CHARACTER_SCREEN_INTERACTION_PREFIX,
   AI_CHARACTER_VISUAL_VARIATION,
+  CANONICAL_LOGO_GUARDRAIL,
   MARKET_POSITIONING_GUARDRAIL,
   NON_HUMAN_VISUAL_GUARDRAIL,
   VISUAL_ART_DIRECTION_GUARDRAIL,
 } from "./marketing.system-prompt";
 
 export const CAMPAIGN_STRATEGIST_PROMPT_ID = "campaign-strategist";
-export const CAMPAIGN_STRATEGIST_PROMPT_VERSION = "14";
+export const CAMPAIGN_STRATEGIST_PROMPT_VERSION = "16";
 export const AD_COPYWRITER_PROMPT_ID = "ad-copywriter";
-export const AD_COPYWRITER_PROMPT_VERSION = "13";
+export const AD_COPYWRITER_PROMPT_VERSION = "17";
+export const LIME_GESTURE_PREFIX = "GESTO LIMA:";
+
+const LIME_GESTURE_PRESETS = [
+  "GESTO LIMA: forma=arco curto; posição=canto superior esquerdo; função=conduzir à headline.",
+  "GESTO LIMA: forma=colchete vertical; posição=margem direita; função=delimitar a etapa.",
+  "GESTO LIMA: forma=seta curva; posição=base da fotografia; função=indicar o foco.",
+  "GESTO LIMA: forma=ponto expandido; posição=ao lado do apoio; função=marcar uma pausa visual.",
+  "GESTO LIMA: forma=meia-lua aberta; posição=canto superior direito; função=envolver o resultado.",
+  "GESTO LIMA: forma=curva ascendente; posição=canto inferior esquerdo; função=levar ao próximo passo.",
+  "GESTO LIMA: forma=diagonal interrompida; posição=entre foto e texto; função=separar os campos editoriais.",
+  "GESTO LIMA: forma=moldura aberta; posição=ao redor do foco; função=destacar a ação principal.",
+  "GESTO LIMA: forma=espiral parcial; posição=margem inferior direita; função=sinalizar revisão.",
+  "GESTO LIMA: forma=traço vertical segmentado; posição=margem esquerda; função=marcar a conclusão.",
+] as const;
 
 export const CAROUSEL_LAYOUT_FAMILIES = [
   "foto-dominante",
@@ -141,11 +156,13 @@ Princípios universais:
 - Para formatos visuais, productionNotes deve desdobrar o Visual DNA em instruções executáveis para a arte final. Em carrosséis, identifique o papel e a composição de cada slide, exija uma imagem separada por slide e preserve a copy obrigatória; não devolva apenas recomendações genéricas de estilo.
 - Para carrosséis, devolva em slidePrompts exatamente N prompts individuais completos, um por slide e na ordem 1..N. Cada item deve funcionar sozinho e começar por SLIDE X. Não resuma nem crie uma versão alternativa para productionNotes: o sistema montará o prompt total por concatenação literal desses N itens.
 - Logo após SLIDE X, cada item deve declarar FAMÍLIA DE LAYOUT: nome-canônico e descrever a composição completa correspondente. Use somente: ${CAROUSEL_LAYOUT_FAMILIES.join(", ")}. Empregue ao menos três famílias no carrossel, não repita a mesma em slides consecutivos e use divisao-vertical no máximo uma vez.
+- Cada slidePrompt deve declarar uma linha ${LIME_GESTURE_PREFIX} forma=<forma concreta>; posição=<posição relativa>; função=<função narrativa>. O gesto lima responde à composição daquele slide: varie forma, posição, escala, direção e função entre todos os slides. Nunca repita a mesma forma, especialmente o mesmo “V”, ao longo do carrossel.
+- Cada slidePrompt deve repetir literalmente: ${CANONICAL_LOGO_GUARDRAIL} Esta regra prevalece sobre qualquer exemplo ou instrução anterior de assinatura. Nunca proponha uma segunda logo, o antigo círculo com “lc” nem um wordmark textual.
 - Cada prompt visual deve declarar VARIAÇÃO VISUAL: nome selecionado. Somente “${AI_CHARACTER_VISUAL_VARIATION}” permite pessoa ou personagem humana gerada por IA. Para qualquer outra variação, repita literalmente em cada slidePrompt: ${NON_HUMAN_VISUAL_GUARDRAIL}
 - Quando a variação selecionada for “${AI_CHARACTER_VISUAL_VARIATION}”, repita literalmente em cada slidePrompt: ${AI_CHARACTER_CAROUSEL_GUARDRAIL} O carrossel deve incluir ao menos uma família interface-real e ao menos um slide com a linha ${AI_CHARACTER_SCREEN_INTERACTION_PREFIX} seguida pela descrição da personagem usando uma tela fornecida ou confirmada. Alterne personagem, tipografia, interação e interface; não entregue somente retratos.
-- Em carrosséis, productionNotes deve conter somente o contrato de execução fornecido no prompt do usuário. Esse contrato é condicional: sem âncora, gera somente o slide 1 e encerra; com a âncora já existente, não regenera o slide 1 e gera somente 2..N. Nunca ordene gerar 1..N na mesma solicitação, nunca escreva “execute todas as N gerações” e nunca mande continuar automaticamente depois do slide 1.
+- Em carrosséis, productionNotes deve conter somente o contrato de execução fornecido no prompt do usuário. Esse contrato é condicional: sem âncora, gera somente o slide 1 e encerra para aprovação; com a âncora já aprovada, não regenera o slide 1, mantém um cursor de slide ativo e faz uma chamada de geração individual para cada slide 2..N. Em cada chamada, envie à ferramenta de imagem somente o bloco SLIDE X correspondente ao cursor — nunca o prompt total nem o bloco SLIDE 1 — e avance o cursor apenas depois de receber X/N. Nunca ordene gerar 1..N na mesma solicitação nem pule a aprovação visual da âncora.
 - Toda copy delimitada por [HEADLINE], [APOIO] ou [CTA] deve aparecer completa. Nunca corte copy com “...” ou “…” e nunca use reticências como placeholder.
-- Sem arquivo oficial de logo, use a assinatura textual canônica “lucro caseiro”; não mande deixar a assinatura vazia e não descreva “Lucro Caseiro” como texto em minúsculas.
+- A única logo é o asset oficial icone/logo-lucrocaseiro-l.png. Exija que ele seja anexado como referência em toda geração visual; se estiver ausente, reserve a área e não gere logo, símbolo ou assinatura substituta.
 - Devolva JSON válido sem texto fora do JSON.
 
 REGRA CRÍTICA SOBRE A ESTRATÉGIA:
@@ -488,6 +505,8 @@ COMPOSIÇÃO DETERMINÍSTICA DO PROMPT TOTAL:
 - slidePrompts[0] deve ser o prompt individual completo do slide 1; slidePrompts[${carouselSlides - 1}] deve ser o prompt individual completo do slide ${carouselSlides}.
 - Cada item deve conter todas as instruções necessárias àquele slide, inclusive copy on-canvas integral, cena, composição, continuidade, identidade e restrições aplicáveis.
 - Cada item deve declarar uma FAMÍLIA DE LAYOUT canônica e descrever uma composição estruturalmente diferente. Use ao menos três famílias, nunca repita a mesma em slides consecutivos e limite divisao-vertical — foto de um lado e texto do outro — a um único slide.
+- Cada item deve declarar ${LIME_GESTURE_PREFIX} forma=<forma concreta>; posição=<posição relativa>; função=<função narrativa>. A forma deve ser diferente em cada slide; não aceite descrições distintas para repetir a mesma silhueta em “V”.
+- Cada item deve repetir literalmente ${CANONICAL_LOGO_GUARDRAIL} A logo oficial deve ser anexada como referência de imagem em cada chamada; sem o asset, não improvise nem gere uma substituta.
 - Não escreva um resumo geral no lugar dos prompts individuais e não omita regras repetidas entre slides.
 - Na resposta JSON, mantenha productionNotes somente com o contrato literal. Depois da validação, productionNotes será reconstruído pelo sistema como contrato literal + slidePrompts.join("\\n\\n"). Portanto, os blocos do prompt total devem ser exatamente os mesmos de slidePrompts, sem paráfrase, condensação ou nova geração.
 
@@ -506,9 +525,13 @@ Responda somente com o JSON do schema.`,
 
 export function carouselExecutionContract(carouselSlides: number) {
   return `ESTADO DE EXECUÇÃO DO CARROSSEL — ${carouselSlides} SLIDES
+- Este prompt total é um roteiro para o ORQUESTRADOR, não o texto de uma única geração de imagem. Nunca envie o prompt total, dois blocos SLIDE X ou a sequência completa de blocos para a ferramenta de imagem.
 - Se a imagem aprovada do slide 1 ainda NÃO existe no histórico nem está anexada, gere SOMENTE o slide 1, entregue um único arquivo e encerre a tarefa para aprovação visual.
-- Se a imagem aprovada do slide 1 JÁ existe no histórico ou está anexada, NÃO regenere o slide 1. Use esse arquivo real como referência e gere SOMENTE os slides 2..${carouselSlides}, em arquivos separados, na ordem.
-- Nunca gere os slides 1..${carouselSlides} na mesma solicitação e nunca continue automaticamente do slide 1 para os demais.`;
+- Se a imagem aprovada do slide 1 JÁ existe no histórico ou está anexada, considere o slide 1 concluído, NÃO o regenere e inicie o cursor em SLIDE ATIVO = 2.
+- Para cada SLIDE ATIVO X, selecione somente o bloco que começa em SLIDE X e termina antes do próximo cabeçalho SLIDE. Faça uma única chamada de imagem contendo uma instrução curta "GERE SOMENTE X/${carouselSlides}; NÃO GERE 1/${carouselSlides}" + esse bloco literal + a imagem real do slide 1 e o arquivo oficial icone/logo-lucrocaseiro-l.png como referências. Não inclua na chamada o bloco SLIDE 1 nem qualquer outro bloco.
+- Só marque X como concluído e avance o cursor para X + 1 quando a saída exibir X/${carouselSlides} e aplicar a copy e a cena do bloco SLIDE X. Se a saída repetir 1/${carouselSlides}, a headline, a copy ou a cena da capa, descarte-a como falha e refaça o mesmo X; nunca aceite outra capa como próximo slide.
+- No estado pós-aprovação, continue automaticamente após cada arquivo válido e só encerre quando todos os slides 2..${carouselSlides} tiverem sido entregues, terminando em ${carouselSlides}/${carouselSlides}; não pare após o primeiro slide restante.
+- Nunca gere os slides 1..${carouselSlides} na mesma solicitação. A pausa para aprovação acontece somente depois da criação inicial do slide 1.`;
 }
 
 export function composeCarouselProductionNotes(
@@ -531,6 +554,35 @@ export function composeCarouselProductionNotes(
       };
     }),
   };
+}
+
+export function normalizeStoredCarouselProductionNotes(data: Record<string, unknown>) {
+  const plan = MarketingCampaignPlanSchema.safeParse(data.adStrategy);
+  const bundle = MarketingCreativeBundleSchema.safeParse(data.copyBundle);
+  if (!plan.success || !bundle.success) return data;
+
+  const planIsCarousel = /carrossel/i.test(plan.data.creativeStrategy.format);
+  const bundleWithCurrentVisualContract = {
+    ...bundle.data,
+    variants: bundle.data.variants.map((variant) => {
+      if (!planIsCarousel && !/carrossel/i.test(variant.format)) return variant;
+      return {
+        ...variant,
+        slidePrompts: variant.slidePrompts.map((slidePrompt, slideIndex) =>
+          addCanonicalLogoGuardrail(addStoredLimeGesture(slidePrompt, slideIndex)),
+        ),
+      };
+    }),
+  };
+  const normalizedBundle = composeCarouselProductionNotes(
+    bundleWithCurrentVisualContract,
+    plan.data,
+  );
+  const changed = normalizedBundle.variants.some(
+    (variant, index) =>
+      variant.productionNotes !== bundle.data.variants.at(index)?.productionNotes,
+  );
+  return changed ? { ...data, copyBundle: normalizedBundle } : data;
 }
 
 export function creativeBundleContractViolations(
@@ -564,6 +616,7 @@ export function creativeBundleContractViolations(
         `${label}: deve conter exatamente ${carouselSlides} prompts individuais em slidePrompts.`,
       );
     const layoutFamilies: string[] = [];
+    const limeGestureShapes: Array<string | null> = [];
     variant.slidePrompts.forEach((slidePrompt, slideIndex) => {
       const headingNumber = /^SLIDE\s+(\d+)(?:\s|$)/iu.exec(slidePrompt)?.[1];
       if (headingNumber !== String(slideIndex + 1))
@@ -584,6 +637,23 @@ export function creativeBundleContractViolations(
       } else {
         layoutFamilies.push(layoutFamily);
       }
+      const limeGestureShape = parseLimeGestureShape(slidePrompt);
+      if (!limeGestureShape) {
+        limeGestureShapes.push(null);
+        violations.push(
+          `${label}: slidePrompts[${slideIndex}] não declara forma, posição e função em ${LIME_GESTURE_PREFIX}`,
+        );
+      } else {
+        limeGestureShapes.push(limeGestureShape);
+      }
+      if (!slidePrompt.includes(CANONICAL_LOGO_GUARDRAIL))
+        violations.push(
+          `${label}: slidePrompts[${slideIndex}] omite a única logo canônica permitida.`,
+        );
+      if (hasCompetingLogoDirection(slidePrompt))
+        violations.push(
+          `${label}: slidePrompts[${slideIndex}] propõe uma logo ou assinatura concorrente.`,
+        );
       const slideVisualVariation = selectedVisualVariation(slidePrompt);
       if (visualVariation && slideVisualVariation !== visualVariation)
         violations.push(
@@ -598,6 +668,12 @@ export function creativeBundleContractViolations(
           `${label}: slidePrompts[${slideIndex}] omite o contrato de personagem IA com telas.`,
         );
     });
+
+    if (
+      limeGestureShapes.every((shape): shape is string => shape !== null) &&
+      new Set(limeGestureShapes).size !== limeGestureShapes.length
+    )
+      violations.push(`${label}: repete a mesma forma do gesto lima entre slides.`);
 
     if (forbidsAiPeople && hasPositiveHumanDirection(fullText))
       violations.push(
@@ -647,13 +723,6 @@ export function creativeBundleContractViolations(
       )
     )
       violations.push(`${label}: ordena gerar o carrossel inteiro de uma vez.`);
-    if (
-      /deixe a área de assinatura vazia|["“]Lucro Caseiro["”][^.\n]{0,120}minúsculas/iu.test(
-        fullText,
-      )
-    )
-      violations.push(`${label}: contradiz a assinatura textual canônica da marca.`);
-
     const copyBlocks = fullText.matchAll(
       /\[(?:HEADLINE|APOIO|CTA)\]\s*<<<([\s\S]*?)>>>/giu,
     );
@@ -678,6 +747,114 @@ function selectedVisualVariation(text: string) {
       return normalizedLine.slice(prefix.length).trim().toLocaleLowerCase("pt-BR");
   }
   return null;
+}
+
+function addCanonicalLogoGuardrail(slidePrompt: string) {
+  const lines = slidePrompt.split("\n").filter((line) => {
+    if (line.trim() === CANONICAL_LOGO_GUARDRAIL) return true;
+    const normalized = normalizeSearchText(line);
+    return !(
+      (normalized.includes("assinatura") &&
+        /lucro caseiro|wordmark|logo|logotipo/u.test(normalized)) ||
+      (normalized.includes("logo") &&
+        /\blc\b|circulo|estrela|selo|wordmark|texto|minusc|empilh|icone|simbolo/u.test(
+          normalized,
+        ))
+    );
+  });
+  if (lines.some((line) => line.trim() === CANONICAL_LOGO_GUARDRAIL))
+    return lines.join("\n");
+
+  const gestureIndex = lines.findIndex((line) =>
+    line.trim().startsWith(LIME_GESTURE_PREFIX),
+  );
+  lines.splice(gestureIndex >= 0 ? gestureIndex + 1 : 1, 0, CANONICAL_LOGO_GUARDRAIL);
+  return lines.join("\n");
+}
+
+function hasCompetingLogoDirection(slidePrompt: string) {
+  const normalized = normalizeSearchText(
+    slidePrompt.replaceAll(CANONICAL_LOGO_GUARDRAIL, ""),
+  );
+  return (
+    /(?:logo|logotipo|wordmark|assinatura visual)[^\n]{0,180}(?:\blc\b|circulo|estrela|selo|nome digitado|texto|minusc|empilh|outro icone|outro simbolo)/u.test(
+      normalized,
+    ) ||
+    /(?:\blc\b|circulo|estrela|selo|wordmark)[^\n]{0,180}(?:logo|logotipo|assinatura)/u.test(
+      normalized,
+    )
+  );
+}
+
+function normalizeSearchText(text: string) {
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/gu, "")
+    .toLocaleLowerCase("pt-BR");
+}
+
+function addStoredLimeGesture(slidePrompt: string, slideIndex: number) {
+  if (parseLimeGestureShape(slidePrompt)) return slidePrompt;
+
+  const lines = slidePrompt.split("\n");
+  const preset =
+    LIME_GESTURE_PRESETS.at(slideIndex % LIME_GESTURE_PRESETS.length) ??
+    LIME_GESTURE_PRESETS[0];
+  const existingGesture = lines.findIndex((line) =>
+    line.trim().startsWith(LIME_GESTURE_PREFIX),
+  );
+  let gestureIndex = existingGesture;
+  if (existingGesture >= 0) lines.splice(existingGesture, 1, preset);
+  else {
+    const layoutFamily = lines.findIndex((line) =>
+      line.trim().startsWith("FAMÍLIA DE LAYOUT:"),
+    );
+    gestureIndex = layoutFamily >= 0 ? layoutFamily + 1 : 1;
+    lines.splice(gestureIndex, 0, preset);
+  }
+  lines.splice(
+    gestureIndex + 1,
+    0,
+    "Este gesto é exclusivo deste slide; não reutilize a silhueta nem o mesmo V dos demais slides.",
+  );
+  return lines.join("\n");
+}
+
+function parseLimeGestureShape(slidePrompt: string) {
+  const line = slidePrompt
+    .split("\n")
+    .map((candidate) => candidate.trim())
+    .find((candidate) => candidate.startsWith(LIME_GESTURE_PREFIX));
+  if (!line) return null;
+
+  const fields = line
+    .slice(LIME_GESTURE_PREFIX.length)
+    .split(";")
+    .map((field) => field.trim());
+  if (fields.length !== 3) return null;
+  const [shapeField, positionField, functionField] = fields;
+  if (
+    !shapeField?.startsWith("forma=") ||
+    !positionField?.startsWith("posição=") ||
+    !functionField?.startsWith("função=")
+  )
+    return null;
+
+  const shape = shapeField.slice("forma=".length).trim();
+  const position = positionField.slice("posição=".length).trim();
+  const narrativeFunction = functionField.slice("função=".length).trim();
+  if (!shape || !position || !narrativeFunction) return null;
+  return normalizeLimeGestureShape(shape);
+}
+
+function normalizeLimeGestureShape(shape: string) {
+  const normalized = shape
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/gu, "")
+    .trim()
+    .toLocaleLowerCase("pt-BR")
+    .replace(/\s+/gu, " ");
+  return /\b(?:v|chevron)\b/u.test(normalized) ? "v" : normalized;
 }
 
 function hasPositiveHumanDirection(text: string) {

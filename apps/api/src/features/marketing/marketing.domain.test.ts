@@ -4,6 +4,7 @@ import { MarketingCampaignBriefInputSchema } from "@lucro-caseiro/contracts";
 
 import { initialMarketingResources } from "./marketing.seed";
 import {
+  CANONICAL_LOGO_GUARDRAIL,
   DEFAULT_MARKETING_SYSTEM_PROMPT,
   IDEA_BANK_SYSTEM_PROMPT,
   REFINE_STRATEGY_SYSTEM_PROMPT,
@@ -107,21 +108,29 @@ describe("marketing intelligence", () => {
       "O slide 1 é a âncora visual imutável",
     );
     expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
-      "Não avance para o slide 2 sem vincular a imagem do slide 1",
+      "envie somente o bloco do slide ativo",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
+      "continue automaticamente até entregar `N/N`",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
+      "Não encerre o estado pós-aprovação após apenas um slide restante",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
+      "uma nova capa `1/N` é uma falha a descartar",
     );
     expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain("`1/N`, `2/N`, `3/N`");
     expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain("pelo menos 40% de espaço negativo");
     expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
       "O último slide deve parecer encerramento",
     );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(CANONICAL_LOGO_GUARDRAIL);
     expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
-      "“lucro caseiro”, todo em minúsculas, numa única linha",
+      "monograma tridimensional em forma de L vinho/bordô com um único ponto circular lima",
     );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain("usar o antigo círculo com “lc”");
     expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
-      "Nunca acrescente estrela, brilho, ponto, símbolo, ícone",
-    );
-    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
-      "Não empilhe “lucro” sobre “caseiro”",
+      "não gere logo nem assinatura visual",
     );
     expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
       "Quando ela não for informada, use 5 slides",
@@ -139,7 +148,10 @@ describe("marketing intelligence", () => {
       "uma palavra-chave de peso semântico — como “vende”",
     );
     expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
-      "Nunca desenhe linha, onda, rabisco, pincelada ou sublinhado abaixo",
+      "nunca repita a mesma silhueta entre slides nem transforme o mesmo “V”",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
+      "GESTO LIMA: forma=<forma concreta>; posição=<posição relativa>; função=<função narrativa>",
     );
     expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
       "Pessoa ou personagem humana gerada por IA só é permitida na variação “Editorial com personagem IA”",
@@ -149,6 +161,12 @@ describe("marketing intelligence", () => {
     );
     expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
       "uma possibilidade, não um template obrigatório para todos os posts",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
+      "Não acrescente o rótulo “Ilustração” nem qualquer aviso equivalente",
+    );
+    expect(VISUAL_ART_DIRECTION_GUARDRAIL).not.toContain(
+      "devem ser marcados claramente como ilustração",
     );
     expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain("PESSOAS GERADAS POR IA: PROIBIDAS");
     expect(VISUAL_ART_DIRECTION_GUARDRAIL).not.toContain(

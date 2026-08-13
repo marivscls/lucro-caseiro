@@ -1,21 +1,13 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  ArrowRight,
-  Bot,
-  CalendarCheck2,
-  FileText,
-  Flame,
-  Megaphone,
-  RefreshCw,
-  Sparkles,
-} from "lucide-react";
+import { ArrowRight, Bot, CheckCircle2, Library, PenTool, RefreshCw } from "lucide-react";
 import Link from "next/link";
 
 import { PageHeader } from "@/features/marketing/page-header";
+import { buildTodayActions, type TodayAction } from "@/features/marketing/today-actions";
 import { apiClient } from "@/shared/lib/api-client";
-import type { DashboardData, MarketingResource } from "@/shared/types";
+import type { DashboardData } from "@/shared/types";
 
 export default function TodayPage() {
   const client = useQueryClient();
@@ -28,18 +20,33 @@ export default function TodayPage() {
     onSuccess: () => void client.invalidateQueries(),
   });
   const resources = query.data?.resources ?? [];
-  const ideas = resources
-    .filter((item) => item.kind === "content" && item.status !== "published")
-    .slice(0, 4);
-  const outreach = resources.filter((item) => item.kind === "outreach").slice(0, 3);
+  const actions = buildTodayActions(resources, new Date(), query.data?.videoJobs).slice(0, 8);
   const hasData = resources.length > 0;
+  let queue: React.ReactNode = (
+    <div className="today-clear">
+      <CheckCircle2 />
+      <div>
+        <h2>Fila em dia</h2>
+        <p>Use a Selenita para iniciar uma campanha ou produzir a próxima peça.</p>
+      </div>
+    </div>
+  );
+  if (query.isLoading) queue = <p className="empty-inline">Organizando a fila…</p>;
+  else if (actions.length)
+    queue = (
+      <ol>
+        {actions.map((item, index) => (
+          <ActionRow action={item} index={index + 1} key={item.id} />
+        ))}
+      </ol>
+    );
 
   return (
     <>
       <PageHeader
         eyebrow="Seu centro de comando"
         title="O que merece atenção hoje?"
-        description="Uma visão curta para transformar estratégia em ação — sem perder ideias, contexto ou aprendizado."
+        description="Uma fila curta para decidir, produzir, publicar e aprender sem procurar a próxima etapa."
         action={
           <button
             className="button secondary"
@@ -47,68 +54,32 @@ export default function TodayPage() {
             disabled={seed.isPending}
           >
             <RefreshCw size={17} className={seed.isPending ? "spin" : ""} />
-            {hasData ? "Sincronizar base inicial" : "Importar estratégia completa"}
+            {hasData ? "Sincronizar base" : "Importar estratégia"}
           </button>
         }
       />
       {query.error && <div className="notice error">{query.error.message}</div>}
       {seed.isSuccess && (
         <div className="notice success">
-          Base inicial sincronizada: {seed.data.imported} itens estruturados.
+          Base sincronizada: {seed.data.imported} itens estruturados.
         </div>
       )}
-      <section className="metric-grid">
-        <Metric
-          icon={Megaphone}
-          value={resources.filter((item) => item.kind === "content").length}
-          label="ideias e posts"
-          color="amber"
-        />
-        <Metric
-          icon={CalendarCheck2}
-          value={
-            resources.filter((item) => item.kind === "content" && item.scheduledFor)
-              .length
-          }
-          label="agendados"
-          color="green"
-        />
-        <Metric
-          icon={FileText}
-          value={query.data?.documents.length ?? 0}
-          label="documentos"
-          color="blue"
-        />
-        <Metric
-          icon={Sparkles}
-          value={query.data?.learning.length ?? 0}
-          label="aprendizados da IA"
-          color="rose"
-        />
+      <section className="today-summary" aria-label="Resumo da fila">
+        <strong>{actions.length}</strong>
+        <div>
+          <span>{actions.length === 1 ? "próxima ação" : "próximas ações"}</span>
+          <p>A ordem considera prazo, campanhas sem peça e fechamento de resultados.</p>
+        </div>
       </section>
       <section className="dashboard-layout">
-        <div className="dashboard-column dashboard-main">
-          <div className="panel next-panel">
-            <PanelHeading icon={Flame} title="Próximas peças" link="/content" />
-            {ideas.length ? (
-              <div className="task-list">
-                {ideas.map((item) => (
-                  <TaskRow key={item.id} item={item} />
-                ))}
-              </div>
-            ) : (
-              <EmptyInline text="Importe a estratégia inicial para receber 4 semanas de ideias." />
-            )}
+        <div className="panel today-queue">
+          <div className="panel-heading">
+            <h2>
+              <CheckCircle2 size={19} />
+              Próximas decisões
+            </h2>
           </div>
-          <div className="panel outreach-panel">
-            <PanelHeading icon={Megaphone} title="Onde chegar" link="/outreach" />
-            {outreach.map((item) => (
-              <div className="mini-row" key={item.id}>
-                <strong>{item.title}</strong>
-                <span>{item.summary}</span>
-              </div>
-            ))}
-          </div>
+          {queue}
         </div>
         <aside className="dashboard-column dashboard-rail">
           <div className="panel ai-panel">
@@ -116,96 +87,53 @@ export default function TodayPage() {
               <Bot />
             </div>
             <div className="ai-panel-copy">
-              <p className="eyebrow">Consultoria IA</p>
-              <h2>Transforme uma dúvida em plano de ação.</h2>
+              <p className="eyebrow">Selenita</p>
+              <h2>Transforme intenção em trabalho organizado.</h2>
               <p>
-                Peça uma semana de posts, um roteiro, uma campanha ou a revisão de uma ideia.
+                Converse, revise a proposta e confirme a criação de campanha, briefing,
+                calendário, resultado ou edição autônoma de vídeo.
               </p>
               <Link className="button light" href="/ai">
-                Conversar com a IA <ArrowRight size={17} />
+                Conversar com a Selenita <ArrowRight size={17} />
               </Link>
             </div>
           </div>
-          <div className="panel documents-panel">
-            <PanelHeading icon={FileText} title="Documentos recentes" link="/documents" />
-            {query.data?.documents.slice(0, 3).map((item) => (
-              <div className="mini-row" key={item.id}>
-                <strong>{item.title}</strong>
-                <span>{new Date(item.updatedAt).toLocaleDateString("pt-BR")}</span>
-              </div>
-            ))}
-            {!query.data?.documents.length && (
-              <EmptyInline text="Centralize aqui briefings, campanhas e pesquisas." />
-            )}
-          </div>
+          <nav className="panel today-shortcuts" aria-label="Atalhos da Central">
+            <Link href="/produce">
+              <PenTool size={18} />
+              <span>
+                <strong>Produzir</strong>
+                Posts, campanhas e calendário
+              </span>
+              <ArrowRight size={16} />
+            </Link>
+            <Link href="/library">
+              <Library size={18} />
+              <span>
+                <strong>Biblioteca</strong>
+                Contexto para toda a Central
+              </span>
+              <ArrowRight size={16} />
+            </Link>
+          </nav>
         </aside>
       </section>
     </>
   );
 }
 
-function Metric({
-  icon: Icon,
-  value,
-  label,
-  color,
-}: {
-  icon: typeof Megaphone;
-  value: number;
-  label: string;
-  color: string;
-}) {
+function ActionRow({ action, index }: { action: TodayAction; index: number }) {
   return (
-    <article className="metric">
-      <span className={`metric-icon ${color}`}>
-        <Icon size={20} />
-      </span>
+    <li>
+      <span className="today-action-index">{String(index).padStart(2, "0")}</span>
       <div>
-        <strong>{value}</strong>
-        <span>{label}</span>
+        <span className="today-action-label">{action.label}</span>
+        <strong>{action.title}</strong>
+        <p>{action.summary}</p>
       </div>
-    </article>
-  );
-}
-function PanelHeading({
-  icon: Icon,
-  title,
-  link,
-}: {
-  icon: typeof Megaphone;
-  title: string;
-  link: string;
-}) {
-  return (
-    <div className="panel-heading">
-      <h2>
-        <Icon size={19} />
-        {title}
-      </h2>
-      <Link href={link}>
-        Ver tudo <ArrowRight size={15} />
+      <Link href={action.href} aria-label={`${action.label}: ${action.title}`}>
+        Abrir <ArrowRight size={15} />
       </Link>
-    </div>
+    </li>
   );
-}
-function TaskRow({ item }: { item: MarketingResource }) {
-  return (
-    <div className="task-row">
-      <div>
-        <span className={`status ${item.status}`}>
-          {item.status === "idea" ? "Ideia" : item.status}
-        </span>
-      </div>
-      <div>
-        <strong>{item.title}</strong>
-        <p>{item.summary}</p>
-      </div>
-      <span className="channel">
-        {typeof item.data.format === "string" ? item.data.format : "Post"}
-      </span>
-    </div>
-  );
-}
-function EmptyInline({ text }: { text: string }) {
-  return <p className="empty-inline">{text}</p>;
 }

@@ -9,6 +9,10 @@ import {
 import { getBrandDisplayName } from "../../shared/brand-name";
 import { showAlert } from "../../shared/components/alert-store";
 import { exportHtmlPdf } from "../../shared/utils/export-html";
+import {
+  MANROPE_CSS_FONT_FAMILY,
+  MANROPE_HTML_HEAD,
+} from "../../shared/utils/manrope-html";
 import { resolveLabelStyle } from "./components/label-preview";
 import { isoToBR } from "./dates";
 import { buildQrSvg } from "./qr";
@@ -97,10 +101,11 @@ export function buildLabelHtml(
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    ${MANROPE_HTML_HEAD}
+    <style>
     * { box-sizing: border-box; }
     @page { size: A4; margin: 10mm; }
     body {
@@ -114,7 +119,7 @@ export function buildLabelHtml(
       justify-content: center;
       align-items: flex-start;
       align-content: flex-start;
-      font-family: ${style.font};
+      font-family: ${MANROPE_CSS_FONT_FAMILY};
       background: #ffffff;
     }
     .label-card {

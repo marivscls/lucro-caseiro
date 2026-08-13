@@ -47,11 +47,11 @@ hardcoded e raios mágicos são proibidos.
 
 Usamos uma única família em toda a interface, conforme o ADR-0008:
 
-- **Nunito Sans 400/600/700/800:** display, títulos, corpo, controles, labels e números.
+- **Manrope 400/600/700/800:** display, títulos, corpo, controles, labels e números.
 - **Hierarquia:** display, h1, h2 e h3 usam Bold; ExtraBold fica reservado a números de destaque.
 - **Hierarquia visível:** display 36/42, h1 28/34 e h2 22/28 permanecem grandes; textos
   corridos usam body 15/22 e legendas usam caption 13/18.
-- **Dados financeiros:** variantes `money*` do componente `Typography`, com Nunito Sans
+- **Dados financeiros:** variantes `money*` do componente `Typography`, com Manrope
   ExtraBold e números tabulares.
 
 Nunca definir `fontFamily`, `fontWeight` ou tamanhos soltos na tela quando uma variante de
@@ -126,7 +126,7 @@ We do not use shadows to create depth. We use the **Layering Principle**.
 - **No paletas locais:** usar `theme.colors`.
 - **No gradients/glass como identidade:** preservar a linguagem flat.
 - **No sombras pesadas/hardcoded:** usar tokens somente quando necessário.
-- **No fontes de sistema em novos componentes:** usar Nunito Sans pelos tokens.
+- **No fontes de sistema em novos componentes:** usar Manrope pelos tokens.
 - **No mobile esticado no desktop:** conter superfícies, formulários e ações.
 
 ---

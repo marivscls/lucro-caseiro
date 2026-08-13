@@ -2,9 +2,16 @@ import { readFile, stat } from "node:fs/promises";
 import { createServer } from "node:http";
 import { createHash } from "node:crypto";
 import { extname, join, resolve, sep } from "node:path";
+import { loadEnvFile } from "node:process";
 import { fileURLToPath } from "node:url";
 
 const appRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
+try {
+  loadEnvFile(join(appRoot, ".env"));
+} catch (error) {
+  if (error?.code !== "ENOENT") throw error;
+}
+
 const brandId = process.argv[2]?.trim();
 const port = Number(process.argv[3] ?? process.env.PORT ?? 8083);
 

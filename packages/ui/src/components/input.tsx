@@ -1,5 +1,13 @@
 import React from "react";
-import { Text, TextInput, View, type TextInputProps, type ViewStyle } from "react-native";
+import {
+  Platform,
+  Text,
+  TextInput,
+  View,
+  type TextInputProps,
+  type TextStyle,
+  type ViewStyle,
+} from "react-native";
 
 import { useTheme } from "../theme-context";
 import { fonts, fontSizes, radii, spacing } from "../theme";
@@ -20,6 +28,10 @@ export function Input({
   ...props
 }: InputProps) {
   const { theme } = useTheme();
+  const webAutofillSurface: TextStyle | undefined =
+    Platform.OS === "web"
+      ? { boxShadow: `inset 0 0 0 1000px ${theme.colors.surfaceElevated}` }
+      : undefined;
 
   return (
     <View style={[{ gap: spacing.sm }, containerStyle]}>
@@ -58,6 +70,7 @@ export function Input({
               fontFamily: fonts.regular,
               color: theme.colors.text,
             },
+            webAutofillSurface,
             style,
           ]}
           {...props}
@@ -65,7 +78,11 @@ export function Input({
       </View>
       {error && (
         <Text
-          style={{ fontSize: fontSizes.sm, fontFamily: fonts.regular, color: theme.colors.alert }}
+          style={{
+            fontSize: fontSizes.sm,
+            fontFamily: fonts.regular,
+            color: theme.colors.alert,
+          }}
         >
           {error}
         </Text>

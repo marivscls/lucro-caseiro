@@ -12,15 +12,17 @@ import {
   marketingDocuments,
   marketingDocumentVersions,
   marketingResources,
+  videoEditJobs,
 } from "@lucro-caseiro/database/schema";
 import {
   MarketingCreativeBundleSchema,
   type MarketingCreativeBundle,
 } from "@lucro-caseiro/contracts";
-import { and, asc, desc, eq, gte, lte, max, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lte, max, sql } from "drizzle-orm";
 
 import type { AppDatabase } from "../../shared/db";
 import { NotFoundError } from "../../shared/errors";
+import { normalizeStoredCarouselProductionNotes } from "./campaign-ai";
 
 type ResourceInput = typeof marketingResources.$inferInsert;
 type DocumentInput = Pick<
@@ -37,7 +39,7 @@ type CampaignPublication = {
 export class MarketingRepoPg {
   constructor(private db: AppDatabase) {}
 
-  listResources(
+  async listResources(
     userId: string,
     filters: { kind?: string; status?: string; from?: Date; to?: Date } = {},
   ) {
@@ -46,11 +48,28 @@ export class MarketingRepoPg {
     if (filters.status) conditions.push(eq(marketingResources.status, filters.status));
     if (filters.from) conditions.push(gte(marketingResources.scheduledFor, filters.from));
     if (filters.to) conditions.push(lte(marketingResources.scheduledFor, filters.to));
-    return this.db
+    const rows = await this.db
       .select()
       .from(marketingResources)
       .where(and(...conditions))
       .orderBy(asc(marketingResources.scheduledFor), desc(marketingResources.updatedAt));
+    const migrated = rows.map((row) => {
+      if (row.kind !== "campaign") return row;
+      const data = normalizeStoredCarouselProductionNotes(row.data);
+      return data === row.data ? row : { ...row, data };
+    });
+    const changed = migrated.filter((row, index) => row.data !== rows.at(index)?.data);
+    await Promise.all(
+      changed.map((row) =>
+        this.db
+          .update(marketingResources)
+          .set({ data: row.data })
+          .where(
+            and(eq(marketingResources.userId, userId), eq(marketingResources.id, row.id)),
+          ),
+      ),
+    );
+    return migrated;
   }
 
   async createResource(userId: string, data: Omit<ResourceInput, "userId">) {
@@ -102,13 +121,14 @@ export class MarketingRepoPg {
         .for("update");
       if (!campaign) return null;
 
-      const savedVariants = campaignPublications(campaign.data.savedVariants);
+      const campaignData = normalizeStoredCarouselProductionNotes(campaign.data);
+      const savedVariants = campaignPublications(campaignData.savedVariants);
       const existing = savedVariants.get(index);
       if (existing) {
         return { campaign, publication: existing, created: false };
       }
 
-      const bundle = MarketingCreativeBundleSchema.safeParse(campaign.data.copyBundle);
+      const bundle = MarketingCreativeBundleSchema.safeParse(campaignData.copyBundle);
       const variant = bundle.success ? bundle.data.variants.at(index) : undefined;
       if (!variant) throw new NotFoundError("Variante da campanha não encontrada");
 
@@ -125,7 +145,7 @@ export class MarketingRepoPg {
             summary: variant.body,
             status: "ready",
             scheduledFor: null,
-            data: campaignContentData(campaign.id, variant, campaign.data.promptRuns),
+            data: campaignContentData(campaign.id, variant, campaignData.promptRuns),
           })
           .returning();
         targetId = content!.id;
@@ -149,6 +169,16 @@ export class MarketingRepoPg {
           body,
           note: "Versão inicial",
         });
+        await tx.insert(marketingAiKnowledge).values({
+          userId,
+          title: document!.title,
+          body,
+          sourceType: "document",
+          sourceId: document!.id,
+          tags: ["ia", "copy", variant.channel],
+          canonical: false,
+          active: true,
+        });
         targetId = document!.id;
       }
 
@@ -161,7 +191,7 @@ export class MarketingRepoPg {
         .update(marketingResources)
         .set({
           data: {
-            ...campaign.data,
+            ...campaignData,
             savedVariants: Object.fromEntries([
               ...savedVariants,
               [index, publication] as const,
@@ -252,6 +282,16 @@ export class MarketingRepoPg {
         body: document!.body,
         note: "Versão inicial",
       });
+      await tx.insert(marketingAiKnowledge).values({
+        userId,
+        title: document!.title,
+        body: document!.body,
+        sourceType: "document",
+        sourceId: document!.id,
+        tags: document!.tags,
+        canonical: document!.source === "imported",
+        active: true,
+      });
       return document!;
     });
   }
@@ -289,16 +329,64 @@ export class MarketingRepoPg {
         body: nextBody,
         note: data.versionNote ?? "Salvamento",
       });
+      const [knowledge] = await tx
+        .select({ id: marketingAiKnowledge.id })
+        .from(marketingAiKnowledge)
+        .where(
+          and(
+            eq(marketingAiKnowledge.userId, userId),
+            eq(marketingAiKnowledge.sourceType, "document"),
+            eq(marketingAiKnowledge.sourceId, id),
+          ),
+        );
+      const knowledgeData = {
+        title: document!.title,
+        body: document!.body,
+        tags: document!.tags,
+        canonical: document!.source === "imported",
+        active: true,
+        updatedAt: new Date(),
+      };
+      if (knowledge) {
+        await tx
+          .update(marketingAiKnowledge)
+          .set(knowledgeData)
+          .where(
+            and(
+              eq(marketingAiKnowledge.userId, userId),
+              eq(marketingAiKnowledge.id, knowledge.id),
+            ),
+          );
+      } else {
+        await tx.insert(marketingAiKnowledge).values({
+          userId,
+          sourceType: "document",
+          sourceId: id,
+          ...knowledgeData,
+        });
+      }
       return document!;
     });
   }
 
   async deleteDocument(userId: string, id: string) {
-    const [row] = await this.db
-      .delete(marketingDocuments)
-      .where(and(eq(marketingDocuments.userId, userId), eq(marketingDocuments.id, id)))
-      .returning({ id: marketingDocuments.id });
-    return !!row;
+    return this.db.transaction(async (tx) => {
+      await tx
+        .update(marketingAiKnowledge)
+        .set({ active: false, updatedAt: new Date() })
+        .where(
+          and(
+            eq(marketingAiKnowledge.userId, userId),
+            eq(marketingAiKnowledge.sourceType, "document"),
+            eq(marketingAiKnowledge.sourceId, id),
+          ),
+        );
+      const [row] = await tx
+        .delete(marketingDocuments)
+        .where(and(eq(marketingDocuments.userId, userId), eq(marketingDocuments.id, id)))
+        .returning({ id: marketingDocuments.id });
+      return !!row;
+    });
   }
 
   async addAttachment(
@@ -576,14 +664,42 @@ export class MarketingRepoPg {
   }
 
   async dashboard(userId: string) {
-    const [resources, documents, sessions, learning, settings] = await Promise.all([
-      this.listResources(userId),
-      this.listDocuments(userId),
-      this.listSessions(userId),
-      this.listLearning(userId),
-      this.getSettings(userId),
-    ]);
-    return { resources, documents, sessions, learning: learning.slice(0, 20), settings };
+    const [resources, documents, sessions, learning, settings, videoJobs] =
+      await Promise.all([
+        this.listResources(userId),
+        this.listDocuments(userId),
+        this.listSessions(userId),
+        this.listLearning(userId),
+        this.getSettings(userId),
+        this.db
+          .select({
+            id: videoEditJobs.id,
+            title: videoEditJobs.title,
+            status: videoEditJobs.status,
+            error: videoEditJobs.error,
+            updatedAt: videoEditJobs.updatedAt,
+          })
+          .from(videoEditJobs)
+          .where(
+            and(
+              eq(videoEditJobs.userId, userId),
+              inArray(videoEditJobs.status, [
+                "ready_for_review",
+                "failed",
+                "needs_input",
+              ]),
+            ),
+          )
+          .orderBy(desc(videoEditJobs.updatedAt)),
+      ]);
+    return {
+      resources,
+      documents,
+      sessions,
+      learning: learning.slice(0, 20),
+      settings,
+      videoJobs,
+    };
   }
 
   async training(userId: string) {

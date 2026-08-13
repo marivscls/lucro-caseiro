@@ -24,7 +24,7 @@ interface TypographyProps extends TextProps {
   color?: string;
 }
 
-// Escala tipografica oficial (ADR-0008). Nunito Sans em toda a interface.
+// Escala tipografica oficial (ADR-0008). Manrope em toda a interface.
 // Nao passe fontSize/fontWeight/fontFamily via `style` — escolha a variante
 // certa; o peso vem da familia (faux bold no Android quebra a fonte).
 export function Typography({

@@ -26,6 +26,10 @@ import { config } from "../../config";
 import { ForbiddenError } from "../../shared/errors";
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
 import type { MarketingUseCases } from "./marketing.usecases";
+import { createVideoPromptRouter } from "./video-prompt.routes";
+import type { VideoPromptUseCases } from "./video-prompt.usecases";
+import { createVideoEditorRouter } from "./video-editor.routes";
+import type { VideoEditorUseCases } from "./video-editor.usecases";
 
 const ExampleInputSchema = z.object({
   input: z.string().trim().min(2),
@@ -33,9 +37,15 @@ const ExampleInputSchema = z.object({
   tags: z.array(z.string()).default([]),
 });
 
-export function createMarketingRouter(useCases: MarketingUseCases): Router {
+export function createMarketingRouter(
+  useCases: MarketingUseCases,
+  videoPromptUseCases: VideoPromptUseCases,
+  videoEditorUseCases: VideoEditorUseCases,
+): Router {
   const router = Router();
   router.use(authMiddleware, privateMarketingAccess);
+  router.use("/video-prompts", createVideoPromptRouter(videoPromptUseCases));
+  router.use("/video-editor", createVideoEditorRouter(videoEditorUseCases));
 
   router.get("/dashboard", async (req, res, next) => {
     try {

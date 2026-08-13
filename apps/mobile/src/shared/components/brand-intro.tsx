@@ -14,9 +14,9 @@ interface BrandIntroProps {
 }
 
 /**
- * Abertura da marca: wordmark revelado em cascata, linha verde que se
- * desenha e uma tagline. Fundo escuro = transicao continua pro app. Pure
- * Animated (sem libs nativas), reaproveita o tempo do initialize() da auth.
+ * Abertura da marca com logo e wordmark revelados em cascata. Fundo escuro =
+ * transicao continua pro app. Pure Animated (sem libs nativas), reaproveita o
+ * tempo do initialize() da auth.
  */
 export function BrandIntro({ authReady, onFinish }: BrandIntroProps) {
   const { theme } = useTheme();
@@ -34,9 +34,6 @@ export function BrandIntro({ authReady, onFinish }: BrandIntroProps) {
   const l1Y = useRef(new Animated.Value(16)).current;
   const l2Opacity = useRef(new Animated.Value(0)).current;
   const l2Y = useRef(new Animated.Value(16)).current;
-
-  const underline = useRef(new Animated.Value(0)).current;
-  const tagOpacity = useRef(new Animated.Value(0)).current;
 
   const [minElapsed, setMinElapsed] = useState(false);
 
@@ -81,25 +78,11 @@ export function BrandIntro({ authReady, onFinish }: BrandIntroProps) {
       }),
       reveal(l1Opacity, l1Y, 150),
       reveal(l2Opacity, l2Y, 320),
-      Animated.timing(underline, {
-        toValue: 1,
-        duration: 700,
-        delay: 600,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
-      Animated.timing(tagOpacity, {
-        toValue: 1,
-        duration: 650,
-        delay: 950,
-        easing: Easing.out(Easing.quad),
-        useNativeDriver: true,
-      }),
     ]).start();
 
     const timer = setTimeout(() => setMinElapsed(true), MIN_DURATION);
     return () => clearTimeout(timer);
-  }, [logoOpacity, logoScale, l1Opacity, l1Y, l2Opacity, l2Y, underline, tagOpacity]);
+  }, [logoOpacity, logoScale, l1Opacity, l1Y, l2Opacity, l2Y]);
 
   useEffect(() => {
     if (!minElapsed || !authReady) return;
@@ -177,21 +160,6 @@ export function BrandIntro({ authReady, onFinish }: BrandIntroProps) {
           {remainingWords.join(" ")}
         </Animated.Text>
       </View>
-
-      {/* Linha verde que se desenha */}
-      <Animated.View
-        style={[
-          styles.underline,
-          { transform: [{ scaleX: underline }], backgroundColor: theme.colors.primary },
-        ]}
-      />
-
-      {/* Tagline */}
-      <Animated.Text
-        style={[styles.tagline, { opacity: tagOpacity, color: theme.colors.primary }]}
-      >
-        GESTÃO PARA CRESCER
-      </Animated.Text>
     </Animated.View>
   );
 }
@@ -216,17 +184,5 @@ const styles = StyleSheet.create({
     lineHeight: 54,
     letterSpacing: 0.5,
     textAlign: "center",
-  },
-  underline: {
-    width: 88,
-    height: 2,
-    borderRadius: 1,
-    marginTop: 18,
-  },
-  tagline: {
-    marginTop: 16,
-    fontSize: 12,
-    letterSpacing: 5,
-    fontFamily: fonts.semiBold,
   },
 });

@@ -1,47 +1,9 @@
 import {Folder, Img, Interactive, Still, staticFile} from "remotion";
 
-const colors = {
-  rose: "#C4707E",
-  roseDark: "#A85A67",
-  roseSoft: "#F9E7EA",
-  cream: "#FAFAF8",
-  ink: "#2A2422",
-  muted: "#655D59",
-  white: "#FFFFFF",
-};
+import {MARKETING_COLORS, MARKETING_FONTS} from "./marketing-brand";
 
 const Backdrop = () => (
-  <>
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        background: `linear-gradient(145deg, ${colors.cream} 0%, #FFF9F7 58%, ${colors.roseSoft} 100%)`,
-      }}
-    />
-    <div
-      style={{
-        position: "absolute",
-        width: 520,
-        height: 520,
-        borderRadius: "50%",
-        background: colors.roseSoft,
-        top: -360,
-        left: -210,
-      }}
-    />
-    <div
-      style={{
-        position: "absolute",
-        width: 630,
-        height: 630,
-        borderRadius: "50%",
-        border: "58px solid rgba(196,112,126,0.10)",
-        right: -420,
-        bottom: -470,
-      }}
-    />
-  </>
+  <div style={{position: "absolute", inset: 0, background: MARKETING_COLORS.canvas}} />
 );
 
 const StorePhone = ({
@@ -50,12 +12,14 @@ const StorePhone = ({
   left,
   top,
   rotate,
+  scale = 1,
 }: {
   readonly screenshot: string;
   readonly name: string;
   readonly left: number;
   readonly top: number;
   readonly rotate: string;
+  readonly scale?: number;
 }) => (
   <Interactive.Div
     name={name}
@@ -71,6 +35,7 @@ const StorePhone = ({
       background: "#211B19",
       boxShadow: "0 20px 38px rgba(54, 37, 32, 0.22)",
       rotate,
+      scale,
     }}
   >
     <Img
@@ -86,6 +51,23 @@ const StorePhone = ({
   </Interactive.Div>
 );
 
+const ListingBackdrop = () => (
+  <>
+    <div style={{position: "absolute", inset: 0, background: MARKETING_COLORS.canvas}} />
+    <div
+      style={{
+        position: "absolute",
+        width: 570,
+        height: 620,
+        right: -70,
+        top: -58,
+        borderRadius: "250px 0 0 250px",
+        background: MARKETING_COLORS.wine,
+      }}
+    />
+  </>
+);
+
 export const FeatureGraphicListing = () => (
   <div
     style={{
@@ -93,132 +75,192 @@ export const FeatureGraphicListing = () => (
       width: 1024,
       height: 500,
       overflow: "hidden",
-      background: colors.cream,
+      background: MARKETING_COLORS.canvas,
     }}
   >
-    <Backdrop />
+    <ListingBackdrop />
     <Interactive.Div
       name="Marca e mensagem"
       style={{
         position: "absolute",
         zIndex: 2,
         left: 54,
-        top: 42,
-        width: 455,
+        top: 40,
+        width: 470,
         display: "flex",
         flexDirection: "column",
         alignItems: "flex-start",
       }}
     >
-      <div style={{display: "flex", alignItems: "center", gap: 15}}>
+      <div style={{display: "flex", alignItems: "center", gap: 14}}>
         <div
           style={{
-            width: 72,
-            height: 72,
+            width: 64,
+            height: 64,
             overflow: "hidden",
-            borderRadius: 19,
-            boxShadow: "0 12px 24px rgba(54, 37, 32, 0.18)",
+            borderRadius: 18,
+            boxShadow: "0 12px 26px rgba(74, 35, 50, 0.16)",
           }}
         >
           <Img
             src={staticFile("play-store/icon.png")}
-            style={{width: "100%", height: "100%", scale: 1.42}}
+            style={{width: "100%", height: "100%", scale: 1.18}}
           />
         </div>
         <div
           style={{
-            color: colors.ink,
-            fontFamily: "FrauncesPromo, Georgia, serif",
-            fontSize: 39,
-            lineHeight: 0.88,
-            letterSpacing: -1.1,
+            color: MARKETING_COLORS.wine,
+            fontFamily: MARKETING_FONTS.display,
+            fontSize: 29,
+            lineHeight: 1,
+            fontWeight: 800,
+            letterSpacing: -0.8,
           }}
         >
-          Lucro
-          <br />
-          Caseiro
+          lucro caseiro
         </div>
       </div>
       <div
         style={{
-          marginTop: 22,
-          color: colors.ink,
-          fontFamily: "FrauncesPromo, Georgia, serif",
-          fontSize: 39,
-          lineHeight: 1.02,
-          letterSpacing: -0.9,
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          marginTop: 28,
+          color: MARKETING_COLORS.rose,
+          fontFamily: MARKETING_FONTS.body,
+          fontSize: 15,
+          lineHeight: 1,
+          fontWeight: 800,
+          letterSpacing: 2.1,
+          textTransform: "uppercase",
         }}
       >
-        Gestão simples para o
-        <br />
-        <span style={{color: colors.roseDark}}>seu negócio</span>
+        <div
+          style={{
+            width: 11,
+            height: 11,
+            borderRadius: "50%",
+            background: MARKETING_COLORS.lime,
+          }}
+        />
+        Tudo no seu ritmo
       </div>
       <div
         style={{
-          maxWidth: 410,
-          marginTop: 14,
-          color: colors.muted,
-          fontFamily: "NunitoSansPromo, Arial, sans-serif",
-          fontSize: 19,
-          lineHeight: 1.2,
-          fontWeight: 600,
+          marginTop: 17,
+          color: MARKETING_COLORS.ink,
+          fontFamily: MARKETING_FONTS.display,
+          fontSize: 46,
+          lineHeight: 0.96,
+          fontWeight: 800,
+          letterSpacing: -1.8,
         }}
       >
-        Controle vendas, agenda, produtos, catálogo e lucro em um só lugar.
+        Gestão simples
+        <br />
+        para o seu
+        <br />
+        <span style={{fontFamily: MARKETING_FONTS.accent, fontWeight: 700}}>negócio.</span>
       </div>
-      <div style={{display: "flex", flexWrap: "wrap", gap: 8, marginTop: 18, maxWidth: 430}}>
-        {["Vendas", "Agenda", "Serviços", "Catálogo", "Precificação"].map((label) => (
-          <div
-            key={label}
-            style={{
-              padding: "8px 13px",
-              borderRadius: 999,
-              color: colors.roseDark,
-              background: colors.white,
-              border: `1px solid ${colors.roseSoft}`,
-              fontFamily: "NunitoSansPromo, Arial, sans-serif",
-              fontSize: 14,
-              lineHeight: 1,
-              fontWeight: 800,
-              boxShadow: "0 5px 13px rgba(54, 37, 32, 0.07)",
-            }}
-          >
-            {label}
-          </div>
-        ))}
+      <div
+        style={{
+          maxWidth: 405,
+          marginTop: 17,
+          color: MARKETING_COLORS.muted,
+          fontFamily: MARKETING_FONTS.body,
+          fontSize: 20,
+          lineHeight: 1.22,
+          fontWeight: 700,
+        }}
+      >
+        Controle vendas, agenda, produtos e lucro em um só lugar.
       </div>
     </Interactive.Div>
-    <Interactive.Div name="Telas reais do aplicativo">
-      <StorePhone screenshot="04-agenda.png" name="Agenda" left={500} top={108} rotate="-4deg" />
-      <StorePhone screenshot="01-home.png" name="Início" left={664} top={66} rotate="0deg" />
+    <Interactive.Div name="Interface real do aplicativo">
+      <StorePhone
+        screenshot="01-home.png"
+        name="Início"
+        left={605}
+        top={78}
+        rotate="-3deg"
+        scale={1.18}
+      />
       <StorePhone
         screenshot="07-precificacao.png"
         name="Precificação"
-        left={827}
-        top={104}
+        left={824}
+        top={108}
         rotate="4deg"
+        scale={0.96}
       />
     </Interactive.Div>
   </div>
 );
 
-const Eyebrow = ({children}: {readonly children: React.ReactNode}) => (
+const BrandLockup = () => (
   <div
     style={{
-      alignSelf: "flex-start",
-      padding: "8px 17px",
-      borderRadius: 999,
-      background: colors.roseSoft,
-      color: colors.roseDark,
-      fontFamily: "NunitoSansPromo, Arial, sans-serif",
-      fontSize: 17,
+      position: "relative",
+      zIndex: 5,
+      display: "flex",
+      alignItems: "center",
+      gap: 13,
+    }}
+  >
+    <div
+      style={{
+        width: 56,
+        height: 56,
+        overflow: "hidden",
+        borderRadius: 16,
+        boxShadow: "0 10px 24px rgba(74, 35, 50, 0.15)",
+      }}
+    >
+      <Img
+        src={staticFile("play-store/icon.png")}
+        style={{width: "100%", height: "100%", scale: 1.18}}
+      />
+    </div>
+    <div
+      style={{
+        color: MARKETING_COLORS.wine,
+        fontFamily: MARKETING_FONTS.display,
+        fontSize: 27,
+        lineHeight: 1,
+        fontWeight: 800,
+        letterSpacing: -0.7,
+      }}
+    >
+      lucro caseiro
+    </div>
+  </div>
+);
+
+const SignalLine = ({children}: {readonly children: React.ReactNode}) => (
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      color: MARKETING_COLORS.rose,
+      fontFamily: MARKETING_FONTS.body,
+      fontSize: 14,
       lineHeight: 1,
       fontWeight: 800,
-      letterSpacing: 2.2,
+      letterSpacing: 2,
       textTransform: "uppercase",
     }}
   >
-    {children}
+    <div
+      style={{
+        width: 10,
+        height: 10,
+        flex: "0 0 10px",
+        borderRadius: "50%",
+        background: MARKETING_COLORS.lime,
+      }}
+    />
+    <div>{children}</div>
   </div>
 );
 
@@ -226,30 +268,30 @@ const PhoneArtwork = () => (
   <div
     style={{
       position: "absolute",
-      width: 300,
+      width: 430,
       height: 500,
-      right: 32,
+      right: 0,
       top: 0,
+      clipPath: "polygon(14% 0, 100% 0, 100% 100%, 0 100%)",
+      background: `linear-gradient(145deg, ${MARKETING_COLORS.roseSoft} 0%, ${MARKETING_COLORS.surface} 54%, ${MARKETING_COLORS.canvas} 100%)`,
       overflow: "hidden",
     }}
   >
-    <Img
-      src={staticFile("feature-graphics/venda-organizacao-square.png")}
-      style={{
-        position: "absolute",
-        width: 500,
-        height: 500,
-        left: -252,
-        top: 0,
-        objectFit: "cover",
-      }}
+    <StorePhone
+      screenshot="01-home.png"
+      name="Início em destaque"
+      left={105}
+      top={54}
+      rotate="-3deg"
+      scale={1.18}
     />
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        background: "linear-gradient(90deg, #FFF9F7 0%, rgba(255,249,247,0.72) 9%, rgba(255,249,247,0) 28%)",
-      }}
+    <StorePhone
+      screenshot="07-precificacao.png"
+      name="Precificação em apoio"
+      left={274}
+      top={116}
+      rotate="4deg"
+      scale={0.82}
     />
   </div>
 );
@@ -261,7 +303,7 @@ export const FeatureGraphicApp = () => (
       width: 1024,
       height: 500,
       overflow: "hidden",
-      background: colors.cream,
+      background: MARKETING_COLORS.canvas,
     }}
   >
     <Backdrop />
@@ -269,41 +311,45 @@ export const FeatureGraphicApp = () => (
       style={{
         position: "absolute",
         zIndex: 2,
-        width: 615,
-        left: 62,
-        top: 64,
+        width: 540,
+        left: 54,
+        top: 38,
         display: "flex",
         flexDirection: "column",
         alignItems: "flex-start",
       }}
     >
-      <Eyebrow>Lucro Caseiro</Eyebrow>
+      <BrandLockup />
+      <div style={{marginTop: 29}}>
+        <SignalLine>Gestão no mesmo lugar</SignalLine>
+      </div>
       <div
         style={{
-          marginTop: 24,
-          color: colors.ink,
-          fontFamily: "FrauncesPromo, Georgia, serif",
-          fontSize: 68,
-          lineHeight: 0.91,
+          marginTop: 17,
+          color: MARKETING_COLORS.ink,
+          fontFamily: MARKETING_FONTS.display,
+          fontSize: 51,
+          lineHeight: 0.94,
+          fontWeight: 700,
           letterSpacing: -1.8,
         }}
       >
         Venda mais.
         <br />
-        <span style={{color: colors.roseDark}}>Organize melhor.</span>
+        Organize <span style={{fontFamily: MARKETING_FONTS.accent, fontWeight: 700}}>melhor.</span>
       </div>
       <div
         style={{
-          maxWidth: 500,
-          marginTop: 24,
-          color: colors.muted,
-          fontFamily: "NunitoSansPromo, Arial, sans-serif",
-          fontSize: 25,
-          lineHeight: 1.18,
-          fontWeight: 600,
+          maxWidth: 470,
+          marginTop: 19,
+          color: MARKETING_COLORS.muted,
+          fontFamily: MARKETING_FONTS.body,
+          fontSize: 21,
+          lineHeight: 1.22,
+          fontWeight: 700,
         }}
       >
-        Pedidos, produtos e dinheiro no mesmo lugar.
+        Pedidos, produtos e caixa organizados em um só app.
       </div>
     </div>
     <PhoneArtwork />
@@ -314,10 +360,12 @@ const PersonArtwork = () => (
   <div
     style={{
       position: "absolute",
-      width: 360,
+      width: 440,
       height: 500,
       right: 0,
       top: 0,
+      clipPath: "polygon(14% 0, 100% 0, 100% 100%, 0 100%)",
+      background: `linear-gradient(145deg, ${MARKETING_COLORS.roseSoft} 0%, ${MARKETING_COLORS.surface} 100%)`,
       overflow: "hidden",
     }}
   >
@@ -325,9 +373,9 @@ const PersonArtwork = () => (
       src={staticFile("feature-graphics/pedido-lucro-square.png")}
       style={{
         position: "absolute",
-        width: 627,
-        height: 627,
-        left: -300,
+        width: 740,
+        height: 740,
+        left: -315,
         top: 0,
         objectFit: "cover",
       }}
@@ -336,7 +384,7 @@ const PersonArtwork = () => (
       style={{
         position: "absolute",
         inset: 0,
-        background: "linear-gradient(90deg, #FFF9F7 0%, rgba(255,249,247,0.70) 9%, rgba(255,249,247,0) 28%)",
+        background: "linear-gradient(90deg, rgba(250,248,246,0.36) 0%, rgba(250,248,246,0) 23%)",
       }}
     />
   </div>
@@ -347,27 +395,23 @@ const Benefit = ({children}: {readonly children: React.ReactNode}) => (
     style={{
       display: "flex",
       alignItems: "center",
-      gap: 12,
-      color: colors.muted,
-      fontFamily: "NunitoSansPromo, Arial, sans-serif",
-      fontSize: 22,
+      gap: 13,
+      color: MARKETING_COLORS.muted,
+      fontFamily: MARKETING_FONTS.body,
+      fontSize: 18,
       lineHeight: 1.1,
       fontWeight: 700,
     }}
   >
     <div
       style={{
-        width: 28,
-        height: 28,
-        flex: "0 0 28px",
-        borderRadius: "50%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: colors.roseSoft,
-        color: colors.roseDark,
-        fontSize: 17,
+        width: 24,
+        flex: "0 0 24px",
+        color: MARKETING_COLORS.rose,
+        fontSize: 20,
+        lineHeight: 1,
         fontWeight: 800,
+        textAlign: "center",
       }}
     >
       ✓
@@ -383,7 +427,7 @@ export const FeatureGraphicPerson = () => (
       width: 1024,
       height: 500,
       overflow: "hidden",
-      background: colors.cream,
+      background: MARKETING_COLORS.canvas,
     }}
   >
     <Backdrop />
@@ -391,30 +435,34 @@ export const FeatureGraphicPerson = () => (
       style={{
         position: "absolute",
         zIndex: 2,
-        width: 570,
-        left: 62,
-        top: 54,
+        width: 530,
+        left: 54,
+        top: 38,
         display: "flex",
         flexDirection: "column",
         alignItems: "flex-start",
       }}
     >
-      <Eyebrow>Seu negócio organizado</Eyebrow>
+      <BrandLockup />
+      <div style={{marginTop: 27}}>
+        <SignalLine>Seu negócio organizado</SignalLine>
+      </div>
       <div
         style={{
-          marginTop: 22,
-          color: colors.ink,
-          fontFamily: "FrauncesPromo, Georgia, serif",
-          fontSize: 66,
-          lineHeight: 0.91,
-          letterSpacing: -1.7,
+          marginTop: 16,
+          color: MARKETING_COLORS.ink,
+          fontFamily: MARKETING_FONTS.display,
+          fontSize: 50,
+          lineHeight: 0.94,
+          fontWeight: 700,
+          letterSpacing: -1.8,
         }}
       >
         Do pedido
         <br />
-        ao <span style={{color: colors.roseDark}}>lucro.</span>
+        ao <span style={{fontFamily: MARKETING_FONTS.accent, fontWeight: 700}}>lucro.</span>
       </div>
-      <div style={{display: "flex", flexDirection: "column", gap: 13, marginTop: 24}}>
+      <div style={{display: "flex", flexDirection: "column", gap: 11, marginTop: 20}}>
         <Benefit>Acompanhe suas vendas</Benefit>
         <Benefit>Organize pedidos e entregas</Benefit>
         <Benefit>Entenda quanto realmente sobra</Benefit>

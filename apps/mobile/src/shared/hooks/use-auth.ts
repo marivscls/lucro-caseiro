@@ -138,14 +138,42 @@ function setSession(set: (state: Partial<AuthState>) => void, session: Session |
   }
 }
 
-type SignUpFailure = {
+type AuthFailure = {
   readonly message?: unknown;
   readonly code?: unknown;
   readonly status?: unknown;
   readonly name?: unknown;
 };
 
-function signUpErrorMessage(error: SignUpFailure) {
+function signInErrorMessage(error: AuthFailure) {
+  const rawMessage = typeof error.message === "string" ? error.message.trim() : "";
+  const message = rawMessage.toLowerCase();
+  const code = typeof error.code === "string" ? error.code.toLowerCase() : "";
+  const status = typeof error.status === "number" ? error.status : undefined;
+  const name = typeof error.name === "string" ? error.name : "";
+
+  if (code === "invalid_credentials" || message.includes("invalid login credentials")) {
+    return "E-mail ou senha incorretos";
+  }
+  if (code === "email_not_confirmed" || message.includes("email not confirmed")) {
+    return "Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.";
+  }
+  if (code === "over_request_rate_limit" || status === 429) {
+    return "Muitas tentativas seguidas. Espere um pouco e tente novamente.";
+  }
+  if (
+    name === "AuthRetryableFetchError" ||
+    status === 0 ||
+    rawMessage === "{}" ||
+    !rawMessage
+  ) {
+    return "Não foi possível conectar. Verifique sua internet e tente novamente.";
+  }
+
+  return "Não foi possível entrar agora. Tente novamente em alguns instantes.";
+}
+
+function signUpErrorMessage(error: AuthFailure) {
   const rawMessage = typeof error.message === "string" ? error.message.trim() : "";
   const message = rawMessage.toLowerCase();
   const code = typeof error.code === "string" ? error.code.toLowerCase() : "";
@@ -262,27 +290,38 @@ export const useAuth = create<AuthState>((set) => ({
   },
 
   signInWithEmail: async (email, password) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
 
-    if (error) {
-      if (error.message.includes("Invalid login credentials")) {
-        return { error: "E-mail ou senha incorretos" };
+      if (error) {
+        if (__DEV__) {
+          console.warn("[auth] signInWithEmail failed", {
+            code: error.code,
+            message: error.message,
+            name: error.name,
+            status: error.status,
+          });
+        }
+        return { error: signInErrorMessage(error) };
       }
-      if (error.message.includes("Email not confirmed")) {
-        return {
-          error: "Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.",
-        };
+
+      // Não marca onboarding como concluído aqui: quem decide é o index.tsx pelo
+      // businessName do perfil (servidor). Forçar aqui pulava o onboarding de
+      // contas novas que entram por "Entrar" em vez de "Criar conta".
+      return {};
+    } catch (error) {
+      if (__DEV__) {
+        console.warn("[auth] signInWithEmail threw", error);
       }
-      return { error: "Erro ao entrar. Tente novamente." };
+      return {
+        error: signInErrorMessage(
+          typeof error === "object" && error !== null ? error : {},
+        ),
+      };
     }
-
-    // Não marca onboarding como concluído aqui: quem decide é o index.tsx pelo
-    // businessName do perfil (servidor). Forçar aqui pulava o onboarding de
-    // contas novas que entram por "Entrar" em vez de "Criar conta".
-    return {};
   },
 
   signUpWithEmail: async (email, password, name, businessName) => {

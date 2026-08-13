@@ -61,6 +61,8 @@ describe("buildReceiptHtml", () => {
     expect(html).toContain("Bolo de Pote");
     expect(html).toContain("R$ 45,50");
     expect(html).toContain("Pix");
+    expect(html).toContain('font-family: "Manrope", Arial, sans-serif');
+    expect(html).not.toContain("Georgia");
   });
 
   it("formata quantidade por peso com kg", () => {

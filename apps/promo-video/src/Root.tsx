@@ -1,4 +1,5 @@
 import "./index.css";
+import { AvatarDemoComposition } from "./AvatarDemo";
 import { CampaignCompositions } from "./Campaigns";
 import { FeatureGraphicCompositions } from "./FeatureGraphics";
 import { MyComposition } from "./Composition";
@@ -9,6 +10,7 @@ import { TourComposition } from "./TourVideo";
 export const RemotionRoot: React.FC = () => {
   return (
     <>
+      <AvatarDemoComposition />
       <MyComposition />
       <CampaignCompositions />
       <FeatureGraphicCompositions />

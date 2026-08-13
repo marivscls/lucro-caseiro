@@ -44,8 +44,7 @@ export default function LoginScreen() {
   const [emailSuggestion, setEmailSuggestion] = useState<string>();
   const [passwordError, setPasswordError] = useState<string>();
 
-  const cardBg = theme.colors.surfaceElevated;
-  const cardBorder = theme.colors.border;
+  const controlBorder = theme.colors.border;
 
   function validateForm(): boolean {
     let valid = true;
@@ -143,54 +142,48 @@ export default function LoginScreen() {
           {
             flexGrow: 1,
             justifyContent: "center",
-            padding: spacing["2xl"],
-            gap: spacing.xl,
+            padding: spacing.xl,
+            gap: spacing["2xl"],
           },
-          desktopContained(isDesktop, 480),
+          desktopContained(isDesktop, 420),
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Marca + boas-vindas */}
-        <View style={{ alignItems: "center", gap: spacing.md }}>
-          <Image
-            source={brandLogoByMode[theme.mode][brand.id]}
-            resizeMode="contain"
-            style={{ width: 112, height: 112 }}
-          />
-          <Typography
-            variant="caption"
-            color={theme.colors.primaryLight}
-            style={{ letterSpacing: 3, textTransform: "uppercase" }}
-          >
-            {brandName}
-          </Typography>
-          <Typography variant="display" style={{ textAlign: "center" }}>
-            Que bom te ver!
-          </Typography>
-          <Typography
-            variant="body"
-            color={theme.colors.textSecondary}
-            style={{ textAlign: "center" }}
-          >
-            Seu negócio organizado, do orçamento ao lucro.
-          </Typography>
+        {/* Um único lockup reduz a competição entre símbolo, nome e saudação. */}
+        <View style={{ alignItems: "center", gap: spacing.lg }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+            <Image
+              source={brandLogoByMode[theme.mode][brand.id]}
+              resizeMode="contain"
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: radii.xl,
+                borderWidth: 1,
+                borderColor: controlBorder,
+              }}
+            />
+            <Typography
+              variant="bodyBold"
+              color={theme.colors.primaryStrong}
+              style={{ letterSpacing: 1.8, textTransform: "uppercase" }}
+            >
+              {brandName}
+            </Typography>
+          </View>
+
+          <View style={{ alignItems: "center", gap: spacing.xs }}>
+            <Typography variant="h1" style={{ textAlign: "center" }}>
+              Que bom te ver!
+            </Typography>
+          </View>
         </View>
 
-        {/* Card do formulário */}
-        <View
-          style={{
-            backgroundColor: cardBg,
-            borderWidth: 1,
-            borderColor: cardBorder,
-            borderRadius: radii["2xl"],
-            padding: spacing.xl,
-            gap: spacing.lg,
-          }}
-        >
+        <View style={{ gap: spacing.lg }}>
           <Button
             title="Entrar com Google"
-            variant="secondary"
+            variant="outline"
             size="lg"
             icon={<AppIcon name="logo-google" size={20} color={theme.colors.text} />}
             onPress={() => {
@@ -201,15 +194,14 @@ export default function LoginScreen() {
             style={{
               width: "100%",
               backgroundColor: theme.colors.surfaceElevated,
-              borderWidth: 1.5,
-              borderColor: cardBorder,
+              borderColor: controlBorder,
             }}
           />
 
           <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-            <View style={{ flex: 1, height: 1, backgroundColor: cardBorder }} />
-            <Typography variant="caption">ou com e-mail</Typography>
-            <View style={{ flex: 1, height: 1, backgroundColor: cardBorder }} />
+            <View style={{ flex: 1, height: 1, backgroundColor: controlBorder }} />
+            <Typography variant="caption">ou</Typography>
+            <View style={{ flex: 1, height: 1, backgroundColor: controlBorder }} />
           </View>
 
           <Input
@@ -256,29 +248,32 @@ export default function LoginScreen() {
               hitSlop={10}
               style={{
                 position: "absolute",
-                right: spacing.md,
-                top: 30,
-                flexDirection: "row",
+                right: spacing.xs,
+                top: spacing["2xl"],
                 alignItems: "center",
-                gap: 6,
+                justifyContent: "center",
+                width: 44,
                 minHeight: 44,
-                paddingHorizontal: spacing.xs,
               }}
             >
               <AppIcon
                 name={showPassword ? "eye-off-outline" : "eye-outline"}
                 size={20}
-                color={theme.colors.primary}
+                color={theme.colors.primaryStrong}
               />
-              <Typography
-                variant="bodyBold"
-                color={theme.colors.primary}
-                style={{ fontSize: 14 }}
-              >
-                {showPassword ? "Ocultar" : "Mostrar"}
-              </Typography>
             </Pressable>
           </View>
+
+          <Pressable
+            style={{ alignSelf: "flex-end", minHeight: 44, justifyContent: "center" }}
+            disabled={resetLoading}
+            accessibilityRole="button"
+            onPress={handleForgotPassword}
+          >
+            <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+              {resetLoading ? "Enviando..." : "Esqueci minha senha"}
+            </Typography>
+          </Pressable>
 
           <Button
             title="Entrar"
@@ -296,27 +291,16 @@ export default function LoginScreen() {
             loading={emailLoading}
             disabled={emailLoading || googleLoading}
           />
-
-          <Pressable
-            style={{ alignSelf: "center", minHeight: 44, justifyContent: "center" }}
-            disabled={resetLoading}
-            accessibilityRole="button"
-            onPress={handleForgotPassword}
-          >
-            <Typography
-              variant="bodyBold"
-              color={theme.colors.primary}
-              style={{ fontSize: 14 }}
-            >
-              {resetLoading ? "Enviando..." : "Esqueci minha senha"}
-            </Typography>
-          </Pressable>
         </View>
 
         <View style={{ flexDirection: "row", justifyContent: "center", gap: spacing.xs }}>
           <Typography variant="body">Primeira vez?</Typography>
-          <Pressable onPress={() => router.push("/(auth)/register")} hitSlop={8}>
-            <Typography variant="bodyBold" color={theme.colors.primary}>
+          <Pressable
+            onPress={() => router.push("/(auth)/register")}
+            hitSlop={8}
+            accessibilityRole="link"
+          >
+            <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
               Criar conta
             </Typography>
           </Pressable>

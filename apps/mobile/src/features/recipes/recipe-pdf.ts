@@ -4,6 +4,10 @@ import { getActiveBrand } from "@lucro-caseiro/brands";
 import { getBrandDisplayName } from "../../shared/brand-name";
 import { exportHtmlPdf } from "../../shared/utils/export-html";
 import { formatCurrency } from "../../shared/utils/format";
+import {
+  MANROPE_CSS_FONT_FAMILY,
+  MANROPE_HTML_HEAD,
+} from "../../shared/utils/manrope-html";
 import { playStoreUrl } from "../../shared/utils/store-link";
 
 export interface RecipePdfCopy {
@@ -64,14 +68,15 @@ export function buildRecipeHtml(
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+${MANROPE_HTML_HEAD}
+<style>
     * { box-sizing: border-box; }
     @page { size: A4; margin: 16mm; }
     body {
       margin: 0;
-      font-family: -apple-system, Roboto, "Segoe UI", sans-serif;
+      font-family: ${MANROPE_CSS_FONT_FAMILY};
       color: #1f2937;
       background: #ffffff;
     }

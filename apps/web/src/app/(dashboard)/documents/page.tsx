@@ -9,6 +9,7 @@ import {
   Paperclip,
   RotateCcw,
   Save,
+  Sparkles,
   Trash2,
   X,
 } from "lucide-react";
@@ -156,7 +157,7 @@ export default function DocumentsPage() {
       <PageHeader
         eyebrow="Memória da marca"
         title="Documentos de marketing"
-        description="Crie briefings, pesquisas, campanhas e playbooks em Markdown, com salvamento e histórico de versões."
+        description="Crie briefings, pesquisas, campanhas e playbooks. Cada edição atualiza o contexto usado pela Selenita."
         action={
           <button
             type="button"
@@ -218,6 +219,10 @@ export default function DocumentsPage() {
               <span className={saved ? "saved" : "saving"}>
                 <Save size={16} />
                 {saveLabel}
+              </span>
+              <span className="document-ai-status">
+                <Sparkles size={15} />
+                Contexto da Selenita
               </span>
               <div>
                 <label className="button ghost file-button document-file-action">

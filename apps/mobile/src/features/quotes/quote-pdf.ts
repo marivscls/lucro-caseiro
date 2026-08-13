@@ -3,6 +3,10 @@ import { getActiveBrand } from "@lucro-caseiro/brands";
 
 import { getBrandDisplayName } from "../../shared/brand-name";
 import { exportHtmlPdf } from "../../shared/utils/export-html";
+import {
+  MANROPE_CSS_FONT_FAMILY,
+  MANROPE_HTML_HEAD,
+} from "../../shared/utils/manrope-html";
 import { playStoreUrl } from "../../shared/utils/store-link";
 
 export interface QuoteBusiness {
@@ -71,20 +75,21 @@ export function buildQuoteHtml(quote: Quote, business: QuoteBusiness): string {
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+${MANROPE_HTML_HEAD}
 <style>
   * { box-sizing: border-box; margin: 0; }
   @page { size: A5 portrait; margin: 12mm; }
-  body { font-family: 'Segoe UI', system-ui, sans-serif; color: #3d2b22; font-size: 13px; }
+  body { font-family: ${MANROPE_CSS_FONT_FAMILY}; color: #3d2b22; font-size: 13px; }
   .quote-page { width: 100%; }
   .head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #8c5a45; padding-bottom: 14px; }
   .brand { min-width: 0; }
-  .brand h1 { font-family: Georgia, serif; font-size: 22px; color: #6e4534; }
+  .brand h1 { font-size: 22px; color: #6e4534; }
   .contact { margin-top: 4px; color: #7d6354; font-size: 12px; }
   .doc { flex-shrink: 0; text-align: right; }
   .doc .kind { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #9b8275; }
   .doc .num { font-size: 16px; font-weight: 700; color: #6e4534; }
   .doc .date { margin-top: 2px; font-size: 12px; color: #7d6354; }
-  h2 { font-family: Georgia, serif; font-size: 17px; color: #4a3228; margin: 14px 0 4px; }
+  h2 { font-size: 17px; color: #4a3228; margin: 14px 0 4px; }
   .meta { margin: 8px 0 4px; display: flex; flex-direction: column; gap: 4px; }
   .meta-row { display: flex; justify-content: space-between; font-size: 13px; }
   .meta-row span { color: #9b8275; }
@@ -95,7 +100,7 @@ export function buildQuoteHtml(quote: Quote, business: QuoteBusiness): string {
   .subtotal { font-weight: 700; }
   .total { margin-top: 14px; background: #f7efe9; border-radius: 10px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; }
   .total .label { font-size: 13px; color: #7d6354; }
-  .total .value { font-family: Georgia, serif; font-size: 24px; font-weight: 700; color: #6e4534; }
+  .total .value { font-size: 24px; font-weight: 700; color: #6e4534; }
   .notes { margin-top: 12px; font-size: 12px; color: #7d6354; background: #faf5f0; border-radius: 8px; padding: 10px 12px; }
   footer { margin-top: 26px; text-align: center; font-size: 11px; color: #9b8275; border-top: 1px solid #e7d9cf; padding-top: 12px; }
   footer strong { color: #8c5a45; }

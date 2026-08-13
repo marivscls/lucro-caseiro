@@ -1,9 +1,7 @@
-import {
-  NunitoSans_400Regular,
-  NunitoSans_600SemiBold,
-  NunitoSans_700Bold,
-  NunitoSans_800ExtraBold,
-} from "@expo-google-fonts/nunito-sans";
+import { Manrope_400Regular } from "@expo-google-fonts/manrope/400Regular";
+import { Manrope_600SemiBold } from "@expo-google-fonts/manrope/600SemiBold";
+import { Manrope_700Bold } from "@expo-google-fonts/manrope/700Bold";
+import { Manrope_800ExtraBold } from "@expo-google-fonts/manrope/800ExtraBold";
 import {
   BrandProvider,
   ThemeProvider,
@@ -443,10 +441,10 @@ export default function RootLayout() {
   // @lucro-caseiro/ui. Segura o mount até carregar pra nao piscar fonte de
   // sistema (o BrandIntro cobre a espera logo em seguida).
   const [fontsLoaded, fontError] = useFonts({
-    NunitoSans_400Regular,
-    NunitoSans_600SemiBold,
-    NunitoSans_700Bold,
-    NunitoSans_800ExtraBold,
+    Manrope_400Regular,
+    Manrope_600SemiBold,
+    Manrope_700Bold,
+    Manrope_800ExtraBold,
   });
 
   // Preferencias ou fontes indisponiveis nao podem manter o app inteiro em

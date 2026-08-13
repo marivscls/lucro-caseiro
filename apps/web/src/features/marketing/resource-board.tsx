@@ -496,10 +496,10 @@ export function ResourceBoard({
                   />
                 ) : (
                   <details>
-                    <summary>Contexto estruturado</summary>
+                    <summary>Configurações avançadas</summary>
                     <p className="field-help">
-                      Use JSON para público, formato, canais, CTA, hipótese, métrica e
-                      outros detalhes que a IA deve considerar.
+                      Edite o JSON apenas quando os campos comuns não cobrirem um detalhe
+                      técnico necessário para a IA.
                     </p>
                     <textarea
                       className="json-editor"

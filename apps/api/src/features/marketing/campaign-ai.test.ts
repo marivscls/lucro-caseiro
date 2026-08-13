@@ -4,6 +4,7 @@ import { MarketingCreativeBundleSchema } from "@lucro-caseiro/contracts";
 
 import {
   AI_CHARACTER_CAROUSEL_GUARDRAIL,
+  CANONICAL_LOGO_GUARDRAIL,
   NON_HUMAN_VISUAL_GUARDRAIL,
 } from "./marketing.system-prompt";
 
@@ -15,6 +16,7 @@ import {
   composeCarouselProductionNotes,
   creativeBundleContractViolations,
   extractJsonObject,
+  normalizeStoredCarouselProductionNotes,
   parseCampaignPlan,
   parseCreativeBundle,
   selectAutomaticCampaignDirection,
@@ -61,6 +63,13 @@ const plan = {
   nextBestAction: "Publicar o carrossel",
 };
 
+const limeGestures = [
+  "GESTO LIMA: forma=arco curto; posição=canto superior esquerdo; função=conduzir à headline.",
+  "GESTO LIMA: forma=colchete vertical; posição=margem direita; função=delimitar a etapa.",
+  "GESTO LIMA: forma=seta curva; posição=base da fotografia; função=indicar o foco.",
+  "GESTO LIMA: forma=ponto expandido; posição=ao lado do CTA; função=marcar a conclusão.",
+];
+
 describe("campaign AI", () => {
   it("extracts balanced JSON from fences and surrounding text", () => {
     const text =
@@ -88,7 +97,7 @@ describe("campaign AI", () => {
       },
     );
     expect(built.promptId).toBe("campaign-strategist");
-    expect(built.promptVersion).toBe("14");
+    expect(built.promptVersion).toBe("16");
     expect(built.prompt).toContain("Confeiteiras iniciantes");
     expect(built.prompt).toContain("R$ 300");
     expect(built.prompt).toContain("Não prometa renda.");
@@ -216,7 +225,7 @@ describe("campaign AI", () => {
       },
     );
     expect(built.promptId).toBe("ad-copywriter");
-    expect(built.promptVersion).toBe("13");
+    expect(built.promptVersion).toBe("17");
     expect(built.prompt).toContain("ESTRATÉGIA APROVADA E IMUTÁVEL");
     expect(built.prompt).toContain("nunca conteúdo a copiar");
     expect(built.prompt).toContain(plan.audienceSummary);
@@ -226,14 +235,28 @@ describe("campaign AI", () => {
     expect(built.prompt).toContain("Visual DNA aprovado");
     expect(built.prompt).toContain("imagem separada por slide");
     expect(built.prompt).toContain("O slide 1 é a âncora visual imutável");
-    expect(built.prompt).toContain("não o regenere");
+    expect(built.prompt).toContain("não a regenere");
     expect(built.prompt).toContain("`1/N`, `2/N`, `3/N`");
     expect(built.prompt).toContain("Nunca gere os slides 1..4 na mesma solicitação");
-    expect(built.prompt).toContain("nunca repita a mesma em slides consecutivos");
+    expect(built.prompt).toContain("Para cada SLIDE ATIVO X");
     expect(built.prompt).toContain(
-      "Nunca desenhe linha, onda, rabisco, pincelada ou sublinhado abaixo",
+      "só encerre quando todos os slides 2..4 tiverem sido entregues",
     );
-    expect(built.prompt).toContain("não crie versões diferentes entre slides ou peças");
+    expect(built.prompt).toContain("terminando em 4/4");
+    expect(built.prompt).toContain("Este prompt total é um roteiro para o ORQUESTRADOR");
+    expect(built.prompt).toContain("SLIDE ATIVO = 2");
+    expect(built.prompt).toContain(
+      '"GERE SOMENTE X/4; NÃO GERE 1/4" + esse bloco literal',
+    );
+    expect(built.prompt).toContain("Se a saída repetir 1/4");
+    expect(built.prompt).toContain("nunca repita a mesma em slides consecutivos");
+    expect(built.prompt).toContain("GESTO LIMA:");
+    expect(built.prompt).toContain("nunca repita a mesma silhueta entre slides");
+    expect(built.prompt).toContain("especialmente o mesmo “V”");
+    expect(built.prompt).toContain(CANONICAL_LOGO_GUARDRAIL);
+    expect(built.prompt).toContain("icone/logo-lucrocaseiro-l.png");
+    expect(built.prompt).toContain("o antigo círculo com “lc”");
+    expect(built.prompt).toContain("Nunca proponha uma segunda logo");
     expect(built.prompt).toContain("exatamente 4 slides, nem mais nem menos");
     expect(built.prompt).toContain(
       "não precisam aparecer sempre como duas metades lado a lado",
@@ -250,20 +273,19 @@ describe("campaign AI", () => {
     });
   });
 
-  it("rejects a carousel prompt that regenerates slide 1 or truncates on-canvas copy", () => {
+  it("rejects a carousel prompt that invents a logo, regenerates slide 1 or truncates copy", () => {
     const bundle = MarketingCreativeBundleSchema.parse({
       variants: [
         {
           channel: "instagram",
           format: "carrossel",
           headline: "Venda entrou hoje",
-          body: `Escreva sempre exatamente "Lucro Caseiro" em minúsculas.
-[APOIO] <<< Quando vendas e despesas ficam em anotações soltas… >>>`,
+          body: "[APOIO] <<< Quando vendas e despesas ficam em anotações soltas… >>>",
           slidePrompts: [
-            "SLIDE 1\nFAMÍLIA DE LAYOUT: foto-dominante\nPrompt 1.",
-            "SLIDE 2\nFAMÍLIA DE LAYOUT: campo-tipografico\nPrompt 2.",
-            "SLIDE 3\nFAMÍLIA DE LAYOUT: recorte-editorial\nPrompt 3.",
-            "SLIDE 4\nFAMÍLIA DE LAYOUT: encerramento-editorial\nPrompt 4.",
+            `SLIDE 1\nFAMÍLIA DE LAYOUT: foto-dominante\n${limeGestures[0]}\n${CANONICAL_LOGO_GUARDRAIL}\nLOGO: crie um círculo com as letras lc.\nPrompt 1.`,
+            `SLIDE 2\nFAMÍLIA DE LAYOUT: campo-tipografico\n${limeGestures[1]}\n${CANONICAL_LOGO_GUARDRAIL}\nPrompt 2.`,
+            `SLIDE 3\nFAMÍLIA DE LAYOUT: recorte-editorial\n${limeGestures[2]}\n${CANONICAL_LOGO_GUARDRAIL}\nPrompt 3.`,
+            `SLIDE 4\nFAMÍLIA DE LAYOUT: encerramento-editorial\n${limeGestures[3]}\n${CANONICAL_LOGO_GUARDRAIL}\nPrompt 4.`,
           ],
           productionNotes:
             "Execute todas as 4 gerações nesta mesma solicitação. Não pare após o slide 1.",
@@ -273,9 +295,9 @@ describe("campaign AI", () => {
     });
 
     expect(creativeBundleContractViolations(bundle, plan)).toEqual([
+      "Variante 1: slidePrompts[0] propõe uma logo ou assinatura concorrente.",
       "Variante 1: productionNotes não contém somente o contrato literal.",
       "Variante 1: ordena gerar o carrossel inteiro de uma vez.",
-      "Variante 1: contradiz a assinatura textual canônica da marca.",
       "Variante 1: contém copy on-canvas truncada por reticências.",
     ]);
   });
@@ -289,10 +311,10 @@ describe("campaign AI", () => {
           headline: "Venda entrou hoje",
           body: "[APOIO] <<< Organize cada movimento separadamente. >>>",
           slidePrompts: [
-            "SLIDE 1\nFAMÍLIA DE LAYOUT: foto-dominante\nCrie a arte final do slide 1.",
-            "SLIDE 2\nFAMÍLIA DE LAYOUT: campo-tipografico\nCrie a arte final do slide 2.",
-            "SLIDE 3\nFAMÍLIA DE LAYOUT: divisao-horizontal\nCrie a arte final do slide 3.",
-            "SLIDE 4\nFAMÍLIA DE LAYOUT: encerramento-editorial\nCrie a arte final do slide 4.",
+            `SLIDE 1\nFAMÍLIA DE LAYOUT: foto-dominante\n${limeGestures[0]}\n${CANONICAL_LOGO_GUARDRAIL}\nCrie a arte final do slide 1.`,
+            `SLIDE 2\nFAMÍLIA DE LAYOUT: campo-tipografico\n${limeGestures[1]}\n${CANONICAL_LOGO_GUARDRAIL}\nCrie a arte final do slide 2.`,
+            `SLIDE 3\nFAMÍLIA DE LAYOUT: divisao-horizontal\n${limeGestures[2]}\n${CANONICAL_LOGO_GUARDRAIL}\nCrie a arte final do slide 3.`,
+            `SLIDE 4\nFAMÍLIA DE LAYOUT: encerramento-editorial\n${limeGestures[3]}\n${CANONICAL_LOGO_GUARDRAIL}\nCrie a arte final do slide 4.`,
           ],
           productionNotes: carouselExecutionContract(4),
           cta: "Organize agora.",
@@ -308,6 +330,62 @@ describe("campaign AI", () => {
     parsed.variants[0]!.slidePrompts.forEach((slidePrompt) => {
       expect(bundle.variants[0]?.productionNotes.split(slidePrompt)).toHaveLength(2);
     });
+    expect(bundle.variants[0]?.productionNotes).toContain(
+      "continue automaticamente após cada arquivo",
+    );
+    expect(bundle.variants[0]?.productionNotes).toContain(
+      "não pare após o primeiro slide restante",
+    );
+    expect(bundle.variants[0]?.productionNotes).toContain("Nunca envie o prompt total");
+    expect(bundle.variants[0]?.productionNotes).toContain(
+      '"GERE SOMENTE X/4; NÃO GERE 1/4"',
+    );
+  });
+
+  it("migrates a persisted carousel prompt without regenerating its slide copy", () => {
+    const slidePrompts = [1, 2, 3, 4].map(
+      (slide) =>
+        `SLIDE ${slide}\nFAMÍLIA DE LAYOUT: foto-dominante\nASSINATURA VISUAL: use um círculo com lc e o nome lucro caseiro.\nCopy original ${slide}.`,
+    );
+    const data = {
+      adStrategy: plan,
+      copyBundle: {
+        variants: [
+          {
+            channel: "instagram",
+            format: "carrossel",
+            headline: "Venda entrou hoje",
+            body: "Organize cada movimento.",
+            slidePrompts,
+            productionNotes: "Contrato antigo que repete a capa.",
+            cta: "Organize agora.",
+          },
+        ],
+      },
+    };
+
+    const normalized = normalizeStoredCarouselProductionNotes(data);
+    const bundle = MarketingCreativeBundleSchema.parse(normalized.copyBundle);
+
+    expect(normalized).not.toBe(data);
+    const migratedSlidePrompts = bundle.variants[0]!.slidePrompts;
+    migratedSlidePrompts.forEach((slidePrompt, index) => {
+      expect(slidePrompt).toContain(`Copy original ${index + 1}.`);
+      expect(slidePrompt).toContain("GESTO LIMA: forma=");
+      expect(slidePrompt).toContain("Este gesto é exclusivo deste slide");
+      expect(slidePrompt).toContain(CANONICAL_LOGO_GUARDRAIL);
+      expect(slidePrompt).not.toContain("círculo com lc");
+    });
+    const gestureLines = migratedSlidePrompts.map((slidePrompt) =>
+      slidePrompt.split("\n").find((line) => line.startsWith("GESTO LIMA:")),
+    );
+    expect(new Set(gestureLines).size).toBe(4);
+    expect(bundle.variants[0]?.productionNotes).toBe(
+      [carouselExecutionContract(4), ...migratedSlidePrompts].join("\n\n"),
+    );
+    expect(data.copyBundle.variants[0]?.productionNotes).toBe(
+      "Contrato antigo que repete a capa.",
+    );
   });
 
   it("rejects a carousel that repeats the side-by-side photo and text template", () => {
@@ -320,7 +398,7 @@ describe("campaign AI", () => {
           body: "[APOIO] <<< Organize cada movimento separadamente. >>>",
           slidePrompts: [1, 2, 3, 4].map(
             (slide) =>
-              `SLIDE ${slide}\nFAMÍLIA DE LAYOUT: divisao-vertical\nFoto de um lado e texto do outro.`,
+              `SLIDE ${slide}\nFAMÍLIA DE LAYOUT: divisao-vertical\n${CANONICAL_LOGO_GUARDRAIL}\nFoto de um lado e texto do outro.`,
           ),
           productionNotes: carouselExecutionContract(4),
           cta: "Organize agora.",
@@ -337,6 +415,29 @@ describe("campaign AI", () => {
     );
   });
 
+  it("rejects a carousel that repeats the same lime V across slides", () => {
+    const bundle = MarketingCreativeBundleSchema.parse({
+      variants: [
+        {
+          channel: "instagram",
+          format: "carrossel",
+          headline: "Venda entrou hoje",
+          body: "[APOIO] <<< Organize cada movimento separadamente. >>>",
+          slidePrompts: CAROUSEL_LAYOUT_FAMILIES.slice(0, 4).map(
+            (family, index) =>
+              `SLIDE ${index + 1}\nFAMÍLIA DE LAYOUT: ${family}\nGESTO LIMA: forma=${index % 2 === 0 ? "V aberto" : "chevron inclinado"}; posição=canto ${index + 1}; função=conduzir a leitura.\n${CANONICAL_LOGO_GUARDRAIL}`,
+          ),
+          productionNotes: carouselExecutionContract(4),
+          cta: "Organize agora.",
+        },
+      ],
+    });
+
+    expect(creativeBundleContractViolations(bundle, plan)).toContain(
+      "Variante 1: repete a mesma forma do gesto lima entre slides.",
+    );
+  });
+
   it("rejects an AI character in every visual variation except the editorial one", () => {
     const bundle = MarketingCreativeBundleSchema.parse({
       variants: [
@@ -347,7 +448,7 @@ describe("campaign AI", () => {
           body: "VARIAÇÃO VISUAL: Produto ou serviço em ação",
           slidePrompts: [1, 2, 3, 4].map(
             (slide) =>
-              `SLIDE ${slide}\nFAMÍLIA DE LAYOUT: ${CAROUSEL_LAYOUT_FAMILIES[slide - 1]}\nVARIAÇÃO VISUAL: Produto ou serviço em ação\nPersonagem consistente: pessoa brasileira jovem em seu negócio.`,
+              `SLIDE ${slide}\nFAMÍLIA DE LAYOUT: ${CAROUSEL_LAYOUT_FAMILIES[slide - 1]}\n${CANONICAL_LOGO_GUARDRAIL}\nVARIAÇÃO VISUAL: Produto ou serviço em ação\nPersonagem consistente: pessoa brasileira jovem em seu negócio.`,
           ),
           productionNotes: carouselExecutionContract(4),
           cta: "Organize agora.",
@@ -373,7 +474,7 @@ describe("campaign AI", () => {
           body: "VARIAÇÃO VISUAL: Produto ou serviço em ação",
           slidePrompts: [1, 2, 3, 4].map(
             (slide) =>
-              `SLIDE ${slide}\nFAMÍLIA DE LAYOUT: ${CAROUSEL_LAYOUT_FAMILIES[slide - 1]}\nVARIAÇÃO VISUAL: Produto ou serviço em ação\n${NON_HUMAN_VISUAL_GUARDRAIL}\nMostre o produto, o ambiente e as ferramentas indispensáveis.`,
+              `SLIDE ${slide}\nFAMÍLIA DE LAYOUT: ${CAROUSEL_LAYOUT_FAMILIES[slide - 1]}\n${limeGestures.at(slide - 1)}\n${CANONICAL_LOGO_GUARDRAIL}\nVARIAÇÃO VISUAL: Produto ou serviço em ação\n${NON_HUMAN_VISUAL_GUARDRAIL}\nMostre o produto, o ambiente e as ferramentas indispensáveis.`,
           ),
           productionNotes: carouselExecutionContract(4),
           cta: "Organize agora.",
@@ -399,7 +500,7 @@ describe("campaign AI", () => {
             "encerramento-editorial",
           ].map(
             (family, index) =>
-              `SLIDE ${index + 1}\nFAMÍLIA DE LAYOUT: ${family}\nVARIAÇÃO VISUAL: Editorial com personagem IA\n${AI_CHARACTER_CAROUSEL_GUARDRAIL}\nRetrato editorial da mesma personagem.`,
+              `SLIDE ${index + 1}\nFAMÍLIA DE LAYOUT: ${family}\n${CANONICAL_LOGO_GUARDRAIL}\nVARIAÇÃO VISUAL: Editorial com personagem IA\n${AI_CHARACTER_CAROUSEL_GUARDRAIL}\nRetrato editorial da mesma personagem.`,
           ),
           productionNotes: carouselExecutionContract(4),
           cta: "Organize agora.",
@@ -431,7 +532,7 @@ describe("campaign AI", () => {
           body: "VARIAÇÃO VISUAL: Editorial com personagem IA",
           slidePrompts: families.map(
             (family, index) =>
-              `SLIDE ${index + 1}\nFAMÍLIA DE LAYOUT: ${family}\nVARIAÇÃO VISUAL: Editorial com personagem IA\n${AI_CHARACTER_CAROUSEL_GUARDRAIL}\n${
+              `SLIDE ${index + 1}\nFAMÍLIA DE LAYOUT: ${family}\n${limeGestures.at(index)}\n${CANONICAL_LOGO_GUARDRAIL}\nVARIAÇÃO VISUAL: Editorial com personagem IA\n${AI_CHARACTER_CAROUSEL_GUARDRAIL}\n${
                 index === 2
                   ? "INTERAÇÃO PERSONAGEM-TELA: a mesma personagem usa um tablet com a tela real de cálculo confirmada."
                   : "Alterne a função narrativa deste slide dentro da campanha."

@@ -256,12 +256,10 @@ async function listFiles(directory) {
 const normalizePath = (filePath) =>
   `/${relative(distRoot, filePath).split(sep).join("/")}`;
 const essentialFontNames = [
-  "Fraunces_600SemiBold",
-  "Fraunces_700Bold",
-  "NunitoSans_400Regular",
-  "NunitoSans_600SemiBold",
-  "NunitoSans_700Bold",
-  "NunitoSans_800ExtraBold",
+  "Manrope_400Regular",
+  "Manrope_600SemiBold",
+  "Manrope_700Bold",
+  "Manrope_800ExtraBold",
 ];
 
 const webBundleDirectory = join(distRoot, "_expo", "static", "js", "web");

@@ -1,67 +1,15 @@
 import {Folder, Img, Still, staticFile, useVideoConfig} from "remotion";
 
-const palette = {
-  rose: "#C4707E",
-  roseDark: "#A85A67",
-  roseSoft: "#F9E7EA",
-  roseMist: "#FDF3F4",
-  cream: "#FAFAF8",
-  ink: "#2A2422",
-  muted: "#6F6662",
-  white: "#FFFFFF",
-};
+import {MARKETING_COLORS, MARKETING_FONTS} from "./marketing-brand";
 
 type StoreScreenshotProps = {
   readonly eyebrow: string;
   readonly title: string;
   readonly subtitle: string;
   readonly screenshot: string;
-  readonly accentAsset: string;
   readonly device: "phone" | "tablet";
   readonly layout: "left" | "right";
 };
-
-const DecorativeBackdrop = ({layout}: Pick<StoreScreenshotProps, "layout">) => (
-  <>
-    <div
-      style={{
-        position: "absolute",
-        width: 720,
-        height: 720,
-        borderRadius: "50%",
-        background: palette.roseSoft,
-        top: -350,
-        left: layout === "left" ? -310 : undefined,
-        right: layout === "right" ? -310 : undefined,
-      }}
-    />
-    <div
-      style={{
-        position: "absolute",
-        width: 680,
-        height: 680,
-        borderRadius: "50%",
-        border: `90px solid ${palette.roseMist}`,
-        bottom: -430,
-        left: layout === "right" ? -370 : undefined,
-        right: layout === "left" ? -370 : undefined,
-      }}
-    />
-    <div
-      style={{
-        position: "absolute",
-        width: 250,
-        height: 250,
-        borderRadius: 72,
-        background: palette.roseSoft,
-        rotate: "24deg",
-        top: "40%",
-        left: layout === "left" ? -155 : undefined,
-        right: layout === "right" ? -155 : undefined,
-      }}
-    />
-  </>
-);
 
 const DeviceFrame = ({
   screenshot,
@@ -83,9 +31,9 @@ const DeviceFrame = ({
         height,
         padding,
         borderRadius: radius,
-        background: "linear-gradient(145deg, #1E1A19 0%, #4B4240 50%, #171312 100%)",
-        boxShadow: "0 46px 90px rgba(78, 45, 47, 0.25), 0 12px 26px rgba(78, 45, 47, 0.16)",
-        rotate: isPhone ? (layout === "left" ? "-2.2deg" : "2.2deg") : "0deg",
+        background: "linear-gradient(145deg, #171315 0%, #3A3035 48%, #120F11 100%)",
+        boxShadow: "0 52px 100px rgba(74, 35, 50, 0.18), 0 16px 30px rgba(74, 35, 50, 0.12)",
+        rotate: isPhone ? (layout === "left" ? "-1.6deg" : "1.6deg") : "0deg",
       }}
     >
       <div
@@ -94,7 +42,7 @@ const DeviceFrame = ({
           height: "100%",
           overflow: "hidden",
           borderRadius: radius - padding,
-          background: palette.white,
+          background: MARKETING_COLORS.white,
           boxShadow: "0 0 0 2px rgba(255,255,255,0.32)",
         }}
       >
@@ -143,7 +91,6 @@ export const StoreScreenshot = ({
   title,
   subtitle,
   screenshot,
-  accentAsset,
   device,
   layout,
 }: StoreScreenshotProps) => {
@@ -160,32 +107,83 @@ export const StoreScreenshot = ({
         scale: width / 1080,
         transformOrigin: "top left",
         overflow: "hidden",
-        background: `linear-gradient(155deg, ${palette.cream} 0%, #FFF9F7 58%, ${palette.roseSoft} 100%)`,
-        color: palette.ink,
-        fontFamily: "NunitoSansPromo, Arial, sans-serif",
+        background: MARKETING_COLORS.canvas,
+        color: MARKETING_COLORS.ink,
+        fontFamily: MARKETING_FONTS.body,
       }}
     >
-      <DecorativeBackdrop layout={layout} />
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          top: isPhone ? 650 : 680,
+          bottom: 0,
+          borderRadius: "120px 120px 0 0",
+          border: "2px solid rgba(182, 95, 114, 0.12)",
+          borderBottom: 0,
+          background: `linear-gradient(180deg, ${MARKETING_COLORS.roseSoft} 0%, ${MARKETING_COLORS.surface} 42%, ${MARKETING_COLORS.canvas} 100%)`,
+        }}
+      />
+
+      <div
+        style={{
+          position: "absolute",
+          zIndex: 3,
+          top: 66,
+          left: 68,
+          display: "flex",
+          alignItems: "center",
+          gap: 18,
+        }}
+      >
+        <div
+          style={{
+            width: 82,
+            height: 82,
+            overflow: "hidden",
+            borderRadius: 23,
+            boxShadow: "0 14px 28px rgba(74, 35, 50, 0.15)",
+          }}
+        >
+          <Img
+            src={staticFile("play-store/icon.png")}
+            style={{width: "100%", height: "100%", scale: 1.18}}
+          />
+        </div>
+        <div
+          style={{
+            color: MARKETING_COLORS.wine,
+            fontFamily: MARKETING_FONTS.display,
+            fontSize: 37,
+            lineHeight: 1,
+            fontWeight: 800,
+            letterSpacing: -1,
+          }}
+        >
+          lucro caseiro
+        </div>
+      </div>
 
       <div
         style={{
           position: "absolute",
           zIndex: 2,
-          top: isPhone ? 74 : 64,
-          left: 70,
-          right: 70,
+          top: isPhone ? 200 : 196,
+          left: 68,
+          right: 68,
           display: "flex",
           flexDirection: "column",
-          alignItems: "center",
-          textAlign: "center",
+          alignItems: "flex-start",
+          textAlign: "left",
         }}
       >
         <div
           style={{
-            padding: "12px 25px",
-            borderRadius: 999,
-            background: palette.roseSoft,
-            color: palette.roseDark,
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            color: MARKETING_COLORS.rose,
             fontSize: isPhone ? 24 : 23,
             lineHeight: 1,
             fontWeight: 800,
@@ -193,16 +191,27 @@ export const StoreScreenshot = ({
             textTransform: "uppercase",
           }}
         >
-          {eyebrow}
+          <div
+            style={{
+              width: 16,
+              height: 16,
+              flex: "0 0 16px",
+              borderRadius: "50%",
+              background: MARKETING_COLORS.lime,
+            }}
+          />
+          <div>{eyebrow}</div>
         </div>
         <div
           style={{
             maxWidth: isPhone ? 930 : 900,
-            marginTop: 26,
-            fontFamily: "FrauncesPromo, Georgia, serif",
-            fontSize: isPhone ? 77 : 70,
-            lineHeight: 0.98,
-            letterSpacing: -2.1,
+            marginTop: 30,
+            color: MARKETING_COLORS.ink,
+            fontFamily: MARKETING_FONTS.display,
+            fontSize: isPhone ? 76 : 70,
+            lineHeight: 0.96,
+            fontWeight: 800,
+            letterSpacing: -2.5,
             textWrap: "balance",
           }}
         >
@@ -211,11 +220,12 @@ export const StoreScreenshot = ({
         <div
           style={{
             maxWidth: 850,
-            marginTop: 20,
-            color: palette.muted,
+            marginTop: 22,
+            color: MARKETING_COLORS.muted,
+            fontFamily: MARKETING_FONTS.body,
             fontSize: isPhone ? 31 : 29,
-            lineHeight: 1.18,
-            fontWeight: 600,
+            lineHeight: 1.2,
+            fontWeight: 700,
             textWrap: "balance",
           }}
         >
@@ -227,36 +237,14 @@ export const StoreScreenshot = ({
         style={{
           position: "absolute",
           zIndex: 1,
-          left: 0,
+          left: layout === "left" ? -54 : 54,
           right: 0,
-          bottom: isPhone ? 24 : 20,
+          bottom: isPhone ? -72 : -30,
           display: "flex",
           justifyContent: "center",
         }}
       >
         <DeviceFrame screenshot={screenshot} device={device} layout={layout} />
-      </div>
-
-      <div
-        style={{
-          position: "absolute",
-          zIndex: 3,
-          width: isPhone ? 190 : 180,
-          height: isPhone ? 190 : 180,
-          left: layout === "left" ? 42 : undefined,
-          right: layout === "right" ? 42 : undefined,
-          bottom: isPhone ? 115 : 105,
-          padding: 12,
-          borderRadius: 50,
-          background: "rgba(255,255,255,0.86)",
-          boxShadow: "0 24px 58px rgba(91, 55, 58, 0.18)",
-          backdropFilter: "blur(14px)",
-        }}
-      >
-        <Img
-          src={staticFile(accentAsset)}
-          style={{width: "100%", height: "100%", objectFit: "contain"}}
-        />
       </div>
     </div>
   );
@@ -268,7 +256,6 @@ const phoneScreens: Array<{
   title: string;
   subtitle: string;
   screenshot: string;
-  accentAsset: string;
   layout: "left" | "right";
 }> = [
   {
@@ -277,7 +264,6 @@ const phoneScreens: Array<{
     title: "Seu negócio na palma da mão",
     subtitle: "Vendas, agenda e resultados em um só lugar.",
     screenshot: "play-store/01-home.png",
-    accentAsset: "agenda-3d.png",
     layout: "right",
   },
   {
@@ -286,7 +272,6 @@ const phoneScreens: Array<{
     title: "Registre cada pedido em poucos passos",
     subtitle: "Cliente, produto, pagamento e status organizados.",
     screenshot: "play-store/02-nova-venda.png",
-    accentAsset: "vendas-3d.png",
     layout: "left",
   },
   {
@@ -295,7 +280,6 @@ const phoneScreens: Array<{
     title: "Saiba o que vendeu e recebeu",
     subtitle: "Acompanhe pedidos pagos, pendentes e cancelados.",
     screenshot: "play-store/03-vendas.png",
-    accentAsset: "vendas-3d.png",
     layout: "right",
   },
   {
@@ -304,7 +288,6 @@ const phoneScreens: Array<{
     title: "Nenhuma entrega fica para trás",
     subtitle: "Visualize prazos e pedidos importantes do seu dia.",
     screenshot: "play-store/04-agenda.png",
-    accentAsset: "agenda-3d.png",
     layout: "left",
   },
   {
@@ -313,7 +296,6 @@ const phoneScreens: Array<{
     title: "Entenda para onde vai seu dinheiro",
     subtitle: "Entradas, despesas e resultados apresentados com clareza.",
     screenshot: "play-store/05-financeiro.png",
-    accentAsset: "insights-3d.png",
     layout: "right",
   },
   {
@@ -322,7 +304,6 @@ const phoneScreens: Array<{
     title: "Seus produtos sempre organizados",
     subtitle: "Consulte receitas, preços e informações importantes.",
     screenshot: "play-store/06-produtos.png",
-    accentAsset: "produtos-3d.png",
     layout: "left",
   },
   {
@@ -331,7 +312,6 @@ const phoneScreens: Array<{
     title: "Calcule um preço mais consciente",
     subtitle: "Considere custos, embalagem e quanto você quer ganhar.",
     screenshot: "play-store/07-precificacao.png",
-    accentAsset: "calculadora.png",
     layout: "right",
   },
   {
@@ -340,7 +320,6 @@ const phoneScreens: Array<{
     title: "Acompanhe seu negócio com números claros",
     subtitle: "Indicadores simples para entender seus resultados.",
     screenshot: "play-store/08-insights.png",
-    accentAsset: "insights-3d.png",
     layout: "left",
   },
 ];
@@ -360,7 +339,6 @@ export const StoreScreenshotCompositions = () => (
             title: screen.title,
             subtitle: screen.subtitle,
             screenshot: screen.screenshot,
-            accentAsset: screen.accentAsset,
             device: "phone",
             layout: screen.layout,
           }}
@@ -379,7 +357,6 @@ export const StoreScreenshotCompositions = () => (
           title: "Organização para cada parte do negócio",
           subtitle: "Vendas, produção e ferramentas sempre por perto.",
           screenshot: "play-store/tablets/tablet-7-01-recursos.png",
-          accentAsset: "produtos-3d.png",
           device: "tablet",
           layout: "right",
         }}
@@ -394,7 +371,6 @@ export const StoreScreenshotCompositions = () => (
           title: "Descubra quanto cobrar",
           subtitle: "Custos e ganhos por unidade em uma conta simples.",
           screenshot: "play-store/tablets/tablet-7-02-precificacao.png",
-          accentAsset: "calculadora.png",
           device: "tablet",
           layout: "left",
         }}
@@ -409,7 +385,6 @@ export const StoreScreenshotCompositions = () => (
           title: "Acompanhe o que vendeu e recebeu",
           subtitle: "Pedidos pagos, pendentes e cancelados sempre à vista.",
           screenshot: "play-store/tablets/tablet-7-03-vendas.png",
-          accentAsset: "vendas-3d.png",
           device: "tablet",
           layout: "right",
         }}
@@ -424,7 +399,6 @@ export const StoreScreenshotCompositions = () => (
           title: "Organize pedidos e entregas",
           subtitle: "Prazos, valores e status reunidos em uma só tela.",
           screenshot: "play-store/tablets/tablet-7-04-agenda.png",
-          accentAsset: "agenda-3d.png",
           device: "tablet",
           layout: "left",
         }}
@@ -442,7 +416,6 @@ export const StoreScreenshotCompositions = () => (
           title: "Comece pelos custos da unidade",
           subtitle: "Uma conta direta para chegar a um preço mais consciente.",
           screenshot: "play-store/tablets/tablet-10-01-precificacao.png",
-          accentAsset: "calculadora.png",
           device: "tablet",
           layout: "right",
         }}
@@ -457,7 +430,6 @@ export const StoreScreenshotCompositions = () => (
           title: "Considere tudo o que custa produzir",
           subtitle: "Mão de obra, gastos mensais e lucro desejado na mesma conta.",
           screenshot: "play-store/tablets/tablet-10-02-precificacao-completa.png",
-          accentAsset: "insights-3d.png",
           device: "tablet",
           layout: "left",
         }}
@@ -472,7 +444,6 @@ export const StoreScreenshotCompositions = () => (
           title: "Acompanhe o que vendeu e recebeu",
           subtitle: "Pedidos pagos, pendentes e cancelados sempre à vista.",
           screenshot: "play-store/tablets/tablet-10-03-vendas.png",
-          accentAsset: "vendas-3d.png",
           device: "tablet",
           layout: "right",
         }}
@@ -487,7 +458,6 @@ export const StoreScreenshotCompositions = () => (
           title: "Organize pedidos e entregas",
           subtitle: "Prazos, valores e status reunidos em uma só tela.",
           screenshot: "play-store/tablets/tablet-10-04-agenda.png",
-          accentAsset: "agenda-3d.png",
           device: "tablet",
           layout: "left",
         }}

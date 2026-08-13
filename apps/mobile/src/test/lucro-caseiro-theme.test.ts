@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { lucroCaseiroBrand } from "../../../../packages/brands/src/lucro-caseiro";
-import { buildThemes } from "../../../../packages/ui/src/theme";
+import { buildThemes, fonts } from "../../../../packages/ui/src/theme";
 
 describe("paleta do Lucro Caseiro", () => {
   it("mantem vinho e rosa de marca sem substituir o verde semantico", () => {
@@ -19,5 +19,16 @@ describe("paleta do Lucro Caseiro", () => {
       success: "#8FD4B0",
       successBg: "#2D5A42",
     });
+  });
+});
+
+describe("tipografia do app", () => {
+  it("usa apenas pesos da Manrope no design system", () => {
+    expect(Object.values(fonts)).toEqual([
+      "Manrope_400Regular",
+      "Manrope_600SemiBold",
+      "Manrope_700Bold",
+      "Manrope_800ExtraBold",
+    ]);
   });
 });

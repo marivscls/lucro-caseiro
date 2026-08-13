@@ -53,6 +53,50 @@ describe("getAuthRedirectUrl", () => {
     expect(openAuthSession).not.toHaveBeenCalled();
   });
 
+  it("usa o código do Supabase para explicar credenciais inválidas", async () => {
+    vi.spyOn(supabase.auth, "signInWithPassword").mockResolvedValue({
+      data: { user: null, session: null },
+      error: {
+        name: "AuthApiError",
+        message: "Unexpected provider wording",
+        code: "invalid_credentials",
+        status: 400,
+      } as AuthError,
+    });
+
+    const result = await useAuth.getState().signInWithEmail("conta@exemplo.com", "senha");
+
+    expect(result).toEqual({ error: "E-mail ou senha incorretos" });
+  });
+
+  it("explica falha de conexão no login sem exibir o erro técnico", async () => {
+    vi.spyOn(supabase.auth, "signInWithPassword").mockResolvedValue({
+      data: { user: null, session: null },
+      error: {
+        name: "AuthRetryableFetchError",
+        message: "{}",
+        status: 0,
+      } as AuthError,
+    });
+
+    const result = await useAuth.getState().signInWithEmail("conta@exemplo.com", "senha");
+
+    expect(result).toEqual({
+      error: "Não foi possível conectar. Verifique sua internet e tente novamente.",
+    });
+    expect(result.error).not.toContain("{}");
+  });
+
+  it("trata exceção de transporte durante o login", async () => {
+    vi.spyOn(supabase.auth, "signInWithPassword").mockRejectedValue({});
+
+    const result = await useAuth.getState().signInWithEmail("conta@exemplo.com", "senha");
+
+    expect(result).toEqual({
+      error: "Não foi possível conectar. Verifique sua internet e tente novamente.",
+    });
+  });
+
   it("mantem o onboarding pendente quando o cadastro exige login depois", async () => {
     const userId = "67e5db17-3f41-46ee-9dbd-9df536cf3d2c";
     const user = {

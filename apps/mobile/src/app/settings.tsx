@@ -11,6 +11,7 @@ import {
   radii,
 } from "@lucro-caseiro/ui";
 import { hasActiveFeature, PLAN_LABELS } from "@lucro-caseiro/contracts";
+import * as Clipboard from "expo-clipboard";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -20,6 +21,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  Share,
   Switch,
   View,
 } from "react-native";
@@ -69,6 +71,7 @@ import {
 
 const PRIVACY_POLICY_URL =
   "https://www.orionseven.com.br/lucro-caseiro/politica-de-privacidade";
+const LUCRO_CASEIRO_WEB_APP_URL = "https://app.lucrocaseiro.com.br";
 
 const BUSINESS_TYPES = BUSINESS_PROFILE_OPTIONS.map((option) => ({
   value: option.value,
@@ -237,7 +240,8 @@ function SettingsRow({
 export default function SettingsScreen() {
   const router = useRouter();
   const { theme, mode, toggleTheme } = useTheme();
-  const brandName = getBrandDisplayName(useBrand());
+  const brand = useBrand();
+  const brandName = getBrandDisplayName(brand);
   const hasStock = useFeature("estoque");
   const hasScheduling = useFeature("agendamento");
   const isDesktop = useDesktopLayout();
@@ -251,6 +255,7 @@ export default function SettingsScreen() {
 
   const [showGoal, setShowGoal] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showDesktopAccess, setShowDesktopAccess] = useState(false);
   const [editName, setEditName] = useState("");
   const [editBusinessName, setEditBusinessName] = useState("");
   const [editBusinessType, setEditBusinessType] = useState("");
@@ -277,6 +282,35 @@ export default function SettingsScreen() {
   const hasPrioritySupport =
     !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "prioritySupport");
   const appVersion = "v1.0.0";
+  const configuredWebAppUrl = process.env.EXPO_PUBLIC_WEB_APP_URL?.trim();
+  const webAppUrl =
+    configuredWebAppUrl ||
+    (brand.id === "lucro-caseiro" ? LUCRO_CASEIRO_WEB_APP_URL : undefined);
+
+  async function copyWebAppUrl() {
+    if (!webAppUrl) return;
+    try {
+      await Clipboard.setStringAsync(webAppUrl);
+      showAlert({
+        title: "Endereço copiado!",
+        message: "Agora é só colar no navegador do computador.",
+      });
+    } catch {
+      alertError("Não foi possível copiar o endereço. Tente novamente.");
+    }
+  }
+
+  async function shareWebAppUrl() {
+    if (!webAppUrl) return;
+    try {
+      await Share.share({
+        title: `Usar ${brandName} no computador`,
+        message: `Acesse ${brandName} pelo computador e entre com a mesma conta: ${webAppUrl}`,
+      });
+    } catch {
+      alertError("Não foi possível compartilhar o endereço. Tente novamente.");
+    }
+  }
 
   function openEditProfile() {
     setEditName(profile?.name ?? "");
@@ -937,6 +971,20 @@ export default function SettingsScreen() {
           </Card>
         ) : null}
 
+        {Platform.OS !== "web" && webAppUrl ? (
+          <Card variant="elevated" shadow="sm" padding="lg">
+            <SettingsRow
+              icon="globe-outline"
+              iconColor={theme.colors.primary}
+              iconBackground={theme.colors.primaryBg}
+              title="Usar no computador"
+              subtitle="Acesse seus dados em qualquer computador"
+              onPress={() => setShowDesktopAccess(true)}
+              showChevron
+            />
+          </Card>
+        ) : null}
+
         <View
           style={
             isDesktop
@@ -1026,6 +1074,65 @@ export default function SettingsScreen() {
         onClose={() => setShowGoal(false)}
         onSuccess={() => setShowGoal(false)}
       />
+
+      {webAppUrl ? (
+        <StandardModal
+          title="Usar no computador"
+          subtitle={brandName}
+          visible={showDesktopAccess}
+          onClose={() => setShowDesktopAccess(false)}
+          footer={
+            <>
+              <Button
+                title="Copiar endereço"
+                variant="outline"
+                size="lg"
+                onPress={() => void copyWebAppUrl()}
+                style={{ flex: 1 }}
+              />
+              <Button
+                title="Compartilhar link"
+                size="lg"
+                onPress={() => void shareWebAppUrl()}
+                style={{ flex: 1 }}
+              />
+            </>
+          }
+        >
+          <View style={{ alignItems: "center", gap: spacing.lg }}>
+            <IconSurface
+              name="globe-outline"
+              color={theme.colors.primary}
+              backgroundColor={theme.colors.primaryBg}
+              size={56}
+              iconSize={28}
+            />
+            <View style={{ alignItems: "center", gap: spacing.sm }}>
+              <Typography variant="body" style={{ textAlign: "center" }}>
+                No computador, abra este endereço e entre com a mesma conta que você usa
+                no aplicativo.
+              </Typography>
+              <View
+                style={{
+                  paddingHorizontal: spacing.lg,
+                  paddingVertical: spacing.md,
+                  borderRadius: radii.md,
+                  backgroundColor: theme.colors.surface,
+                }}
+              >
+                <Typography
+                  variant="bodyBold"
+                  color={theme.colors.primaryStrong}
+                  selectable
+                  style={{ textAlign: "center" }}
+                >
+                  {webAppUrl.replace(/^https?:\/\//, "")}
+                </Typography>
+              </View>
+            </View>
+          </View>
+        </StandardModal>
+      ) : null}
 
       <StandardModal
         title="Editar perfil"

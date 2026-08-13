@@ -33,6 +33,14 @@ describe("buildLabelHtml", () => {
     expect(html).not.toContain("Ingredientes:");
   });
 
+  it("mantem Manrope mesmo para estilos antigos que pediam serifa", () => {
+    const html = buildLabelHtml({ ...labelData(), style: { font: "serif" } }, "classico");
+
+    expect(html).toContain("family=Manrope");
+    expect(html).toContain('font-family: "Manrope", Arial, sans-serif');
+    expect(html).not.toContain("font-family: serif");
+  });
+
   it("gera oito etiquetas em uma folha cheia", () => {
     const html = buildLabelHtml(labelData(), "classico", null, null, 8);
 

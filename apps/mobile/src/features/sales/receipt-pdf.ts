@@ -3,6 +3,10 @@ import { getActiveBrand } from "@lucro-caseiro/brands";
 
 import { getBrandDisplayName } from "../../shared/brand-name";
 import { exportHtmlPdf } from "../../shared/utils/export-html";
+import {
+  MANROPE_CSS_FONT_FAMILY,
+  MANROPE_HTML_HEAD,
+} from "../../shared/utils/manrope-html";
 import { playStoreUrl } from "../../shared/utils/store-link";
 
 import { paymentLabel } from "./payment";
@@ -69,12 +73,13 @@ export function buildReceiptHtml(sale: Sale, business: ReceiptBusiness): string 
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8" />
+${MANROPE_HTML_HEAD}
 <style>
   * { box-sizing: border-box; margin: 0; }
   @page { size: A5 portrait; margin: 12mm; }
-  body { font-family: 'Segoe UI', system-ui, sans-serif; color: #3d2b22; font-size: 13px; }
+  body { font-family: ${MANROPE_CSS_FONT_FAMILY}; color: #3d2b22; font-size: 13px; }
   .head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #8c5a45; padding-bottom: 14px; }
-  .brand h1 { font-family: Georgia, serif; font-size: 22px; color: #6e4534; }
+  .brand h1 { font-size: 22px; color: #6e4534; }
   .contact { margin-top: 4px; color: #7d6354; font-size: 12px; }
   .doc { text-align: right; }
   .doc .kind { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #9b8275; }
@@ -90,7 +95,7 @@ export function buildReceiptHtml(sale: Sale, business: ReceiptBusiness): string 
   .subtotal { font-weight: 700; }
   .total { margin-top: 14px; background: #f7efe9; border-radius: 10px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; }
   .total .label { font-size: 13px; color: #7d6354; }
-  .total .value { font-family: Georgia, serif; font-size: 24px; font-weight: 700; color: #2e7d32; }
+  .total .value { font-size: 24px; font-weight: 700; color: #2e7d32; }
   .badge { display: inline-block; margin-top: 10px; padding: 5px 14px; border-radius: 999px; font-size: 12px; font-weight: 700; ${
     paid ? "background: #e7f4ec; color: #2e7d32;" : "background: #fdf3e0; color: #9c6f26;"
   } }

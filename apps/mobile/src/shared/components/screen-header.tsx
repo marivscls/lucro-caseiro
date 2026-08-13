@@ -25,7 +25,7 @@ export type ScreenHeaderProps = Readonly<{
 }>;
 
 /**
- * Cabeçalho canônico das telas empilhadas: voltar + título (Nunito Sans) +
+ * Cabeçalho canônico das telas empilhadas: voltar + título (Manrope) +
  * ações à direita. Substitui o bloco Pressable+Typography que
  * era copiado em cada tela. Deve ficar dentro de uma SafeAreaView (a tela
  * controla as edges); alvo de toque do voltar >= 44px.

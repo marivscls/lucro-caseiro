@@ -9,11 +9,6 @@ import { ColorPickerModal } from "../../../shared/components/color-picker-modal"
 // Cores de destaque sugeridas (mesma vibe dos templates + extras).
 const ACCENT_PRESETS = ["#92400E", "#9D174D", "#5B21B6", "#1E40AF", "#166534", "#111827"];
 
-const FONT_OPTIONS: { key: NonNullable<LabelStyle["font"]>; label: string }[] = [
-  { key: "serif", label: "Clássica" },
-  { key: "sans", label: "Moderna" },
-];
-
 const BORDER_OPTIONS: {
   key: NonNullable<LabelStyle["borderStyle"]>;
   label: string;
@@ -81,7 +76,7 @@ interface LabelStyleEditorProps {
 
 /**
  * Editor do estilo customizado do rotulo (Premium): cor de destaque (presets +
- * seletor livre), fonte, borda e cantos. `undefined`/campos vazios = visual do
+ * seletor livre), borda e cantos. `undefined`/campos vazios = visual do
  * template escolhido.
  */
 export function LabelStyleEditor({
@@ -167,18 +162,6 @@ export function LabelStyleEditor({
               color={isCustomAccent ? "#fff" : theme.colors.primaryLight}
             />
           </Pressable>
-        </View>
-
-        <Typography variant="caption">Fonte</Typography>
-        <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
-          {FONT_OPTIONS.map((option) => (
-            <Pill
-              key={option.key}
-              label={option.label}
-              selected={style.font === option.key}
-              onPress={() => set("font", option.key)}
-            />
-          ))}
         </View>
 
         <Typography variant="caption">Borda</Typography>

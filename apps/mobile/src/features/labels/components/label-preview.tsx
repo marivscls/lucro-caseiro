@@ -34,27 +34,19 @@ type TemplateStyle = {
   bg: string;
   accent: string;
   border: string;
-  font: string;
 };
 
 export const TEMPLATE_STYLES: Record<string, TemplateStyle> = {
-  classico: { bg: "#FFFBEB", accent: "#92400E", border: "#D97706", font: "serif" },
-  moderno: { bg: "#FFFFFF", accent: "#1E40AF", border: "#3B82F6", font: "sans-serif" },
+  classico: { bg: "#FFFBEB", accent: "#92400E", border: "#D97706" },
+  moderno: { bg: "#FFFFFF", accent: "#1E40AF", border: "#3B82F6" },
   minimalista: {
     bg: "#FFFFFF",
     accent: "#111827",
     border: "#E5E7EB",
-    font: "sans-serif",
   },
-  artesanal: { bg: "#FDF2F8", accent: "#9D174D", border: "#EC4899", font: "serif" },
-  gourmet: { bg: "#F5F3FF", accent: "#5B21B6", border: "#8B5CF6", font: "serif" },
+  artesanal: { bg: "#FDF2F8", accent: "#9D174D", border: "#EC4899" },
+  gourmet: { bg: "#F5F3FF", accent: "#5B21B6", border: "#8B5CF6" },
 };
-
-function resolveFont(custom: "serif" | "sans" | undefined, fallback: string): string {
-  if (custom === "sans") return "sans-serif";
-  if (custom === "serif") return "serif";
-  return fallback;
-}
 
 function tint(hex: string, ratio = 0.93): string {
   const channels = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
@@ -82,7 +74,6 @@ export function resolveLabelStyle(
     accent,
     border: custom?.accentColor ?? base.border,
     bg: custom?.bgColor ?? (custom?.accentColor ? tint(custom.accentColor) : base.bg),
-    font: resolveFont(custom?.font, base.font),
     borderStyle: custom?.borderStyle ?? "solid",
     corner: custom?.corner ?? "rounded",
   };

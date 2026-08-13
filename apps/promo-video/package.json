@@ -6,6 +6,7 @@
   "license": "UNLICENSED",
   "private": true,
   "dependencies": {
+    "@remotion/captions": "4.0.489",
     "@remotion/cli": "4.0.489",
     "@remotion/media": "4.0.489",
     "@remotion/transitions": "4.0.489",
@@ -27,6 +28,7 @@
     "upgrade": "remotion upgrade",
     "lint": "eslint src && tsc",
     "render": "remotion render LucroCaseiroPromo out/lucro-caseiro-promo.mp4",
+    "render:avatar-demo": "remotion render LucroCaseiroAvatarDemo out/lucro-caseiro-avatar-demo-ptbr-corrigido.mp4",
     "render:campaigns": "remotion render LucroCaseiroFinanceiro out/lucro-caseiro-financeiro.mp4 && remotion render LucroCaseiroCatalogo out/lucro-caseiro-catalogo.mp4 && remotion render LucroCaseiroProfissional out/lucro-caseiro-profissional.mp4",
     "render:tour": "remotion render LucroCaseiroTourReal out/lucro-caseiro-tour-real.mp4",
     "render:play-store": "remotion render LucroCaseiroPlayStore out/lucro-caseiro-play-store.mp4"

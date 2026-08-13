@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { MarketingCampaignPlanSchema } from "@lucro-caseiro/contracts";
 
 import { carouselExecutionContract } from "./campaign-ai";
+import { CANONICAL_LOGO_GUARDRAIL } from "./marketing.system-prompt";
 import type { MarketingRepoPg } from "./marketing.repo.pg";
 import { MarketingUseCases } from "./marketing.usecases";
 
@@ -102,9 +103,9 @@ describe("marketing use cases", () => {
           headline: "Venda entrou hoje",
           body: "[APOIO] <<< Organize cada movimento separadamente. >>>",
           slidePrompts: [
-            "SLIDE 1\nFAMÍLIA DE LAYOUT: foto-dominante\nCrie a arte final do slide 1.",
-            "SLIDE 2\nFAMÍLIA DE LAYOUT: campo-tipografico\nCrie a arte final do slide 2.",
-            "SLIDE 3\nFAMÍLIA DE LAYOUT: encerramento-editorial\nCrie a arte final do slide 3.",
+            `SLIDE 1\nFAMÍLIA DE LAYOUT: foto-dominante\nGESTO LIMA: forma=arco curto; posição=canto superior esquerdo; função=conduzir à headline.\n${CANONICAL_LOGO_GUARDRAIL}\nCrie a arte final do slide 1.`,
+            `SLIDE 2\nFAMÍLIA DE LAYOUT: campo-tipografico\nGESTO LIMA: forma=colchete vertical; posição=margem direita; função=delimitar a etapa.\n${CANONICAL_LOGO_GUARDRAIL}\nCrie a arte final do slide 2.`,
+            `SLIDE 3\nFAMÍLIA DE LAYOUT: encerramento-editorial\nGESTO LIMA: forma=seta curva; posição=base da fotografia; função=indicar o foco.\n${CANONICAL_LOGO_GUARDRAIL}\nCrie a arte final do slide 3.`,
           ],
           productionNotes: carouselExecutionContract(3),
           cta: "Organize agora.",

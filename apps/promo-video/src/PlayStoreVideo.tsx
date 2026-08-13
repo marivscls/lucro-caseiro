@@ -13,21 +13,24 @@ import {
   useCurrentFrame,
 } from "remotion";
 
+import {MARKETING_COLORS, MARKETING_FONTS} from "./marketing-brand";
+
 const COLORS = {
-  background: "#FAFAF8",
-  ink: "#2A2421",
-  muted: "#716964",
-  primary: "#C4707E",
-  primaryDark: "#A84857",
-  primarySoft: "#F9E7EA",
-  surface: "#F4F3F1",
-  green: "#2E8B62",
-  brown: "#342824",
-  white: "#FFFFFF",
+  background: MARKETING_COLORS.canvas,
+  ink: MARKETING_COLORS.ink,
+  muted: MARKETING_COLORS.muted,
+  primary: MARKETING_COLORS.rose,
+  primaryDark: MARKETING_COLORS.wine,
+  primarySoft: MARKETING_COLORS.roseSoft,
+  surface: MARKETING_COLORS.surface,
+  green: MARKETING_COLORS.lime,
+  brown: MARKETING_COLORS.wine,
+  white: MARKETING_COLORS.white,
 };
 
-const FONT_DISPLAY = "FrauncesPromo, Georgia, serif";
-const FONT_BODY = "NunitoSansPromo, Arial, sans-serif";
+const FONT_DISPLAY = MARKETING_FONTS.display;
+const FONT_ACCENT = MARKETING_FONTS.accent;
+const FONT_BODY = MARKETING_FONTS.body;
 
 const easing = {
   easing: Easing.bezier(0.16, 1, 0.3, 1),
@@ -40,47 +43,28 @@ const reveal = (frame: number, delay = 0, duration = 18) =>
 
 const Background = ({dark = false}: {dark?: boolean}) => {
   const frame = useCurrentFrame();
-  const base = dark ? COLORS.brown : COLORS.background;
-  const accent = dark ? "#523A35" : COLORS.primarySoft;
 
   return (
-    <AbsoluteFill style={{backgroundColor: base, overflow: "hidden"}}>
+    <AbsoluteFill
+      style={{
+        backgroundColor: dark ? COLORS.brown : COLORS.background,
+        overflow: "hidden",
+      }}
+    >
       <div
         style={{
           position: "absolute",
-          width: 760,
-          height: 760,
-          borderRadius: "50%",
-          backgroundColor: accent,
-          right: -300,
-          top: -410,
-          translate: `${interpolate(frame, [0, 130], [0, -45])}px ${interpolate(frame, [0, 130], [0, 55])}px`,
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          width: 560,
-          height: 560,
-          borderRadius: "50%",
-          border: `72px solid ${accent}`,
-          left: -350,
-          bottom: -330,
-          translate: `${interpolate(frame, [0, 130], [0, 50])}px 0px`,
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          width: 14,
-          height: 14,
-          borderRadius: "50%",
-          backgroundColor: dark ? "#E7A6B2" : COLORS.primary,
-          left: 86,
-          top: 82,
-          boxShadow: dark
-            ? "28px 0 0 #E7A6B2, 56px 0 0 #E7A6B2"
-            : `28px 0 0 ${COLORS.primary}, 56px 0 0 ${COLORS.primary}`,
+          width: 1110,
+          height: 1240,
+          borderRadius: 520,
+          backgroundColor: dark ? "#5B3040" : COLORS.brown,
+          right: -270,
+          top: -80,
+          translate: `${interpolate(frame, [0, 130], [0, -34])}px ${interpolate(
+            frame,
+            [0, 130],
+            [0, 24],
+          )}px`,
         }}
       />
     </AbsoluteFill>
@@ -191,8 +175,8 @@ const FeatureScene = ({
   ...screens
 }: FeatureSceneProps) => {
   const frame = useCurrentFrame();
-  const textColor = dark ? COLORS.white : COLORS.ink;
-  const bodyColor = dark ? "#EBDDD7" : COLORS.muted;
+  const textColor = dark ? MARKETING_COLORS.canvas : COLORS.ink;
+  const bodyColor = dark ? "#EADDE1" : COLORS.muted;
 
   return (
     <AbsoluteFill>
@@ -213,30 +197,42 @@ const FeatureScene = ({
             display: "flex",
             flexDirection: "column",
             alignItems: "flex-start",
-            gap: 26,
+            gap: 23,
           }}
         >
           <div
             style={{
-              color: dark ? "#E7A6B2" : COLORS.primaryDark,
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+              color: dark ? MARKETING_COLORS.canvas : COLORS.primary,
               fontFamily: FONT_BODY,
-              fontSize: 30,
+              fontSize: 29,
               fontWeight: 800,
-              letterSpacing: 3.2,
+              letterSpacing: 2.8,
               textTransform: "uppercase",
               opacity: reveal(frame),
               translate: `${interpolate(reveal(frame), [0, 1], [-35, 0])}px 0px`,
             }}
           >
+            <div
+              style={{
+                width: 14,
+                height: 14,
+                borderRadius: "50%",
+                backgroundColor: COLORS.green,
+              }}
+            />
             {kicker}
           </div>
           <div
             style={{
               color: textColor,
               fontFamily: FONT_DISPLAY,
-              fontSize: 92,
-              lineHeight: 0.98,
-              letterSpacing: -2.4,
+              fontSize: 90,
+              lineHeight: 0.96,
+              fontWeight: 800,
+              letterSpacing: -3.2,
               opacity: reveal(frame, 3),
               translate: `${interpolate(reveal(frame, 3), [0, 1], [-42, 0])}px 0px`,
             }}
@@ -245,11 +241,12 @@ const FeatureScene = ({
           </div>
           <div
             style={{
-              maxWidth: 660,
+              maxWidth: 650,
               color: bodyColor,
               fontFamily: FONT_BODY,
-              fontSize: 42,
-              lineHeight: 1.22,
+              fontSize: 39,
+              lineHeight: 1.2,
+              fontWeight: 600,
               opacity: reveal(frame, 10),
             }}
           >
@@ -257,26 +254,16 @@ const FeatureScene = ({
           </div>
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 13,
-              marginTop: 8,
-              color: dark ? "#F0C5CD" : COLORS.primaryDark,
+              marginTop: 9,
+              color: dark ? MARKETING_COLORS.canvas : COLORS.primaryDark,
               fontFamily: FONT_BODY,
-              fontSize: 28,
+              fontSize: 29,
               fontWeight: 800,
+              letterSpacing: -0.3,
               opacity: reveal(frame, 16),
             }}
           >
-            <div
-              style={{
-                width: 13,
-                height: 13,
-                borderRadius: "50%",
-                backgroundColor: dark ? "#E7A6B2" : COLORS.primary,
-              }}
-            />
-            Lucro Caseiro
+            lucro caseiro
           </div>
         </Interactive.Div>
         <ScreenPair {...screens} />
@@ -293,33 +280,20 @@ const Closing = () => {
     <AbsoluteFill>
       <Background dark />
       <PhoneScreen
-        name="Tela de precificação ao fundo"
-        src="07-precificacao.png"
-        style={{
-          width: 350,
-          height: 778,
-          left: 70,
-          top: 190,
-          rotate: "-8deg",
-          opacity: 0.42,
-        }}
-      />
-      <PhoneScreen
         name="Tela financeira ao fundo"
         src="05-financeiro.png"
-        delay={4}
+        delay={3}
         style={{
-          width: 350,
-          height: 778,
-          left: 390,
-          top: 150,
-          rotate: "6deg",
-          opacity: 0.42,
+          width: 390,
+          height: 867,
+          left: 240,
+          top: 110,
+          rotate: "-5deg",
         }}
       />
       <AbsoluteFill
         style={{
-          padding: "90px 90px 90px 870px",
+          padding: "90px 90px 90px 820px",
           justifyContent: "center",
           alignItems: "flex-start",
           gap: 24,
@@ -328,11 +302,11 @@ const Closing = () => {
         <Interactive.Div
           name="Ícone atual do Lucro Caseiro"
           style={{
-            width: 190,
-            height: 190,
-            borderRadius: 48,
+            width: 170,
+            height: 170,
+            borderRadius: 44,
             overflow: "hidden",
-            boxShadow: "0 30px 70px rgba(0, 0, 0, 0.3)",
+            boxShadow: "0 30px 70px rgba(0, 0, 0, 0.24)",
             opacity: iconProgress,
             scale: interpolate(iconProgress, [0, 1], [0.78, 1]),
           }}
@@ -340,30 +314,32 @@ const Closing = () => {
           <Img
             alt="Ícone do Lucro Caseiro"
             src={staticFile("play-store/icon.png")}
-            style={{width: "100%", height: "100%", scale: 1.65}}
+            style={{width: "100%", height: "100%", scale: 1.18}}
           />
         </Interactive.Div>
         <div
           style={{
-            color: COLORS.white,
+            color: MARKETING_COLORS.canvas,
             fontFamily: FONT_DISPLAY,
-            fontSize: 96,
-            lineHeight: 0.98,
-            letterSpacing: -2.5,
+            fontSize: 92,
+            lineHeight: 0.96,
+            fontWeight: 800,
+            letterSpacing: -3.2,
             opacity: reveal(frame, 9),
           }}
         >
-          Seu negócio
+          Seu negócio merece
           <br />
-          merece clareza.
+          <span style={{fontFamily: FONT_ACCENT, fontWeight: 700}}>clareza.</span>
         </div>
         <div
           style={{
-            maxWidth: 790,
-            color: "#EBDDD7",
+            maxWidth: 850,
+            color: "#EADDE1",
             fontFamily: FONT_BODY,
             fontSize: 40,
             lineHeight: 1.2,
+            fontWeight: 600,
             opacity: reveal(frame, 15),
           }}
         >
@@ -371,11 +347,11 @@ const Closing = () => {
         </div>
         <div
           style={{
-            marginTop: 14,
-            padding: "22px 38px",
-            borderRadius: 999,
-            color: COLORS.white,
-            backgroundColor: COLORS.primary,
+            display: "flex",
+            alignItems: "center",
+            gap: 16,
+            marginTop: 15,
+            color: MARKETING_COLORS.canvas,
             fontFamily: FONT_BODY,
             fontSize: 34,
             fontWeight: 800,
@@ -383,6 +359,14 @@ const Closing = () => {
             scale: interpolate(reveal(frame, 20), [0, 1], [0.9, 1]),
           }}
         >
+          <div
+            style={{
+              width: 18,
+              height: 18,
+              borderRadius: "50%",
+              backgroundColor: COLORS.green,
+            }}
+          />
           Disponível para Android
         </div>
       </AbsoluteFill>

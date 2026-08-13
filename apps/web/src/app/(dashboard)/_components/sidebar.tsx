@@ -1,21 +1,6 @@
 "use client";
 
-import {
-  Bot,
-  CalendarDays,
-  ChartNoAxesCombined,
-  FileText,
-  House,
-  Layers3,
-  Library,
-  LogOut,
-  Megaphone,
-  MessagesSquare,
-  PackageSearch,
-  Route,
-  Sparkles,
-  Users,
-} from "lucide-react";
+import { Bot, ChartNoAxesCombined, House, Library, LogOut, PenTool } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
@@ -25,18 +10,36 @@ import { clearLocalUserData } from "@/shared/lib/api-client";
 import { useBrand } from "@/app/brand-provider";
 
 const links = [
-  ["/", "Hoje", House],
-  ["/calendar", "Calendário", CalendarDays],
-  ["/content", "Conteúdo", Megaphone],
-  ["/documents", "Documentos", FileText],
-  ["/audiences", "Públicos", Users],
-  ["/interviews", "Entrevistas", MessagesSquare],
-  ["/features", "Funcionalidades", PackageSearch],
-  ["/outreach", "Onde chegar", Route],
-  ["/campaigns", "Campanhas", Layers3],
-  ["/results", "Resultados", ChartNoAxesCombined],
-  ["/ai", "Consultoria IA", Bot],
-  ["/ai/training", "Treinamento", Sparkles],
+  ["/", "Hoje", House, ["/"]],
+  [
+    "/produce",
+    "Produzir",
+    PenTool,
+    [
+      "/produce",
+      "/content",
+      "/campaigns",
+      "/calendar",
+      "/video-prompts",
+      "/video-editor",
+    ],
+  ],
+  [
+    "/library",
+    "Biblioteca",
+    Library,
+    [
+      "/library",
+      "/documents",
+      "/audiences",
+      "/features",
+      "/topics",
+      "/interviews",
+      "/outreach",
+    ],
+  ],
+  ["/results", "Resultados", ChartNoAxesCombined, ["/results"]],
+  ["/ai", "Selenita", Bot, ["/ai", "/ai/training"]],
 ] as const;
 
 export function Sidebar() {
@@ -67,8 +70,12 @@ export function Sidebar() {
         </div>
       </div>
       <nav>
-        {links.map(([href, label, Icon]) => (
-          <Link key={href} href={href} className={pathname === href ? "active" : ""}>
+        {links.map(([href, label, Icon, paths]) => (
+          <Link
+            key={href}
+            href={href}
+            className={paths.some((path) => path === pathname) ? "active" : ""}
+          >
             <Icon size={18} />
             <span>{label}</span>
           </Link>

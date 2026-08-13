@@ -21,7 +21,7 @@ type Tab = "instructions" | "knowledge" | "examples" | "evaluations" | "learning
 
 export default function TrainingPage() {
   const client = useQueryClient();
-  const [tab, setTab] = useState<Tab>("instructions");
+  const [tab, setTab] = useState<Tab>("knowledge");
   const query = useQuery({
     queryKey: ["ai-training"],
     queryFn: () => apiClient<TrainingData>("/ai/training"),
@@ -41,35 +41,20 @@ export default function TrainingPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Governança e evolução"
-        title="Treinamento da inteligência"
-        description="Versione instruções, organize conhecimento, aprove exemplos, execute avaliações e acompanhe cada adaptação automática."
+        eyebrow="Configurações avançadas"
+        title="Como a Selenita aprende"
+        description="Organize conhecimento, aprove exemplos e acompanhe apenas adaptações baseadas em feedback explícito."
       />
-      <section className="guardrail-grid">
+      <section className="explicit-learning-card">
         <Guardrail
           className="A"
-          title="Automático"
-          description="Tags, preferências explícitas, deduplicação, ranking e recuperação."
+          title="Aprendizado explícito"
+          description="Feedback, conhecimento aprovado e exemplos podem orientar respostas futuras e permanecem auditáveis."
           active={data?.settings.classAEnabled ?? true}
-        />
-        <Guardrail
-          className="B"
-          title="Com gates"
-          description="Candidatos de prompt e estratégia passam por shadow, avaliação e rollback."
-          active={data?.settings.classBEnabled ?? true}
-        />
-        <Guardrail
-          className="C"
-          title="Protegido"
-          description="Missão, ética, permissões, fatos financeiros e ações externas não se autoalteram."
-          active={data?.settings.classCEnabled ?? false}
-          protected
         />
       </section>
       <div className="training-tabs">
-        {(
-          ["instructions", "knowledge", "examples", "evaluations", "learning"] as Tab[]
-        ).map((item) => (
+        {(["knowledge", "examples", "learning"] as Tab[]).map((item) => (
           <button
             className={tab === item ? "active" : ""}
             onClick={() => setTab(item)}
@@ -79,6 +64,42 @@ export default function TrainingPage() {
           </button>
         ))}
       </div>
+      <details className="training-advanced">
+        <summary>Ferramentas avançadas da inteligência</summary>
+        <p>
+          Instruções, avaliações e classes experimentais ficam isoladas do trabalho
+          diário. A classe B ainda produz somente candidatos em shadow.
+        </p>
+        <div className="guardrail-grid">
+          <Guardrail
+            className="B"
+            title="Experimental"
+            description="Registra candidatos em shadow, sem promoção automática."
+            active={data?.settings.classBEnabled ?? true}
+          />
+          <Guardrail
+            className="C"
+            title="Protegido"
+            description="Missão, ética, permissões e ações externas não se autoalteram."
+            active={data?.settings.classCEnabled ?? false}
+            protected
+          />
+        </div>
+        <div className="advanced-tab-actions">
+          <button
+            className={`button ghost ${tab === "instructions" ? "active" : ""}`}
+            onClick={() => setTab("instructions")}
+          >
+            Instruções do sistema
+          </button>
+          <button
+            className={`button ghost ${tab === "evaluations" ? "active" : ""}`}
+            onClick={() => setTab("evaluations")}
+          >
+            Avaliações técnicas
+          </button>
+        </div>
+      </details>
       <section className="training-panel">
         {tab === "instructions" && (
           <>
