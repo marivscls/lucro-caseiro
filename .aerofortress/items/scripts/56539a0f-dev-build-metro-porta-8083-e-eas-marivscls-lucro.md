@@ -10,7 +10,7 @@ decay: seasonal
 created: 2026-06-26T12:41:07.397607100+00:00
 updated: 2026-08-13T17:04:17.826344+00:00
 validated: 2026-08-13T17:04:17.826344+00:00
-links: 
+links:
 ---
 
 Para testar no aparelho físico com dev client:

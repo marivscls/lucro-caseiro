@@ -10,7 +10,7 @@ decay: volatile
 created: 2026-08-13T18:45:00.910303900+00:00
 updated: 2026-08-13T18:45:00.910303900+00:00
 validated: 2026-08-13T18:45:00.910303900+00:00
-links: 
+links:
 ---
 
 Em 2026-08-13, o Supabase Auth confirmou duas contas distintas. `marivscls@gmail.com` está confirmada, tem apenas identidade Google e não possui senha; `marivscls@gmail.comm` (dois “m”) está confirmada, tem identidade e senha de e-mail e foi a conta usada no aparelho naquele dia. Portanto, tentar senha na conta `.com` retorna credenciais inválidas até a proprietária usar o fluxo de recuperação para criar uma senha; a conta `.comm` contém um erro de digitação e não deve virar a identidade canônica.
