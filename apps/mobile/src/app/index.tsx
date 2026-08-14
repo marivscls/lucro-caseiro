@@ -6,7 +6,7 @@ import { useProfile } from "../features/subscription/hooks";
 import { Skeleton } from "../shared/components/skeleton";
 import { useAuth } from "../shared/hooks/use-auth";
 import { useOnboarding } from "../shared/hooks/use-onboarding";
-import { needsOnboarding } from "../shared/utils/new-account";
+import { onboardingDestination } from "../shared/utils/new-account";
 
 function Loading() {
   return (
@@ -40,25 +40,16 @@ export default function Index() {
     return <Loading />;
   }
 
-  // Onboarding ja concluido neste aparelho: na sessao atual (`completed`) ou em
-  // sessao anterior por esta conta (`completedUserIds`, sobrevive ao relogin).
-  if (completed || (userId && completedUserIds.includes(userId))) {
-    return <Redirect href="/tabs" />;
-  }
-
-  // Conta criada agora (ou neste aparelho antes da confirmação por e-mail)
-  // sempre passa pelo onboarding, mesmo se o cadastro já trouxe nome do negócio.
-  if (
-    needsOnboarding(
-      userId,
-      user?.created_at,
-      pendingUserIds,
-      Date.now(),
-      user?.user_metadata?.onboarding_completed,
-    )
-  ) {
-    return <Redirect href="/onboarding" />;
-  }
+  const destination = onboardingDestination({
+    userId,
+    createdAt: user?.created_at,
+    pendingUserIds,
+    completed,
+    completedUserIds,
+    onboardingCompleted: user?.user_metadata?.onboarding_completed,
+    now: Date.now(),
+  });
+  if (destination) return <Redirect href={destination} />;
 
   // Aparelho novo, mas a conta pode ja estar configurada (usuario retornando).
   // Espera o perfil pra decidir e evita mostrar onboarding pra quem ja tem conta.

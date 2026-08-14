@@ -20,6 +20,7 @@ export type { ComponentDraft };
 interface ComponentPickerProps {
   readonly value: ComponentDraft[];
   readonly onChange: (next: ComponentDraft[]) => void;
+  readonly onCreateSimpleProduct?: () => void;
   /** Id do produto sendo editado (para nao se listar como componente). */
   readonly excludeProductId?: string;
 }
@@ -32,6 +33,7 @@ interface ComponentPickerProps {
 export function ComponentPicker({
   value,
   onChange,
+  onCreateSimpleProduct,
   excludeProductId,
 }: ComponentPickerProps) {
   const { theme } = useTheme();
@@ -79,6 +81,15 @@ export function ComponentPicker({
     });
   }
 
+  function handleFooterPress() {
+    if (available.length === 0 && onCreateSimpleProduct) {
+      setPickerOpen(false);
+      onCreateSimpleProduct();
+      return;
+    }
+    setPickerOpen(false);
+  }
+
   // Custo total do kit ao vivo.
   const totalCost = kitTotalCost(value, (id) => productById.get(id)?.costPrice);
 
@@ -89,9 +100,10 @@ export function ComponentPicker({
     <View style={{ gap: spacing.md }}>
       <View
         style={{
-          flexDirection: "row",
-          alignItems: "center",
+          flexDirection: isDesktop ? "row" : "column",
+          alignItems: isDesktop ? "center" : "flex-start",
           justifyContent: "space-between",
+          gap: isDesktop ? spacing.md : spacing.sm,
         }}
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>
@@ -413,20 +425,37 @@ export function ComponentPicker({
             </ScrollView>
 
             <Pressable
-              onPress={() => setPickerOpen(false)}
+              onPress={handleFooterPress}
               accessibilityRole="button"
+              accessibilityLabel={
+                available.length === 0 && onCreateSimpleProduct
+                  ? "Cadastrar produto simples"
+                  : "Concluir seleção de produtos"
+              }
               style={({ pressed }) => ({
                 minHeight: 44,
                 borderRadius: radii.md,
-                backgroundColor: theme.colors.surface,
+                backgroundColor:
+                  available.length === 0 && onCreateSimpleProduct
+                    ? theme.colors.primaryInteractive
+                    : theme.colors.surface,
                 alignItems: "center",
                 justifyContent: "center",
                 marginTop: spacing.xs,
                 opacity: pressed ? 0.85 : 1,
               })}
             >
-              <Typography variant="bodyBold" color={theme.colors.text}>
-                Concluir
+              <Typography
+                variant="bodyBold"
+                color={
+                  available.length === 0 && onCreateSimpleProduct
+                    ? theme.colors.textOnPrimary
+                    : theme.colors.text
+                }
+              >
+                {available.length === 0 && onCreateSimpleProduct
+                  ? "Cadastrar produto simples"
+                  : "Concluir"}
               </Typography>
             </Pressable>
           </Pressable>

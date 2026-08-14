@@ -73,6 +73,13 @@ export const initialMarketingDocumentDefinitions = [
     aiKnowledge: true,
   },
   {
+    slug: "comercio-celulares-importados",
+    title: "Comércio de celulares, acessórios e importados",
+    fileName: "comercio-celulares-importados.md",
+    tags: ["comércio", "celulares", "acessórios", "importados", "públicos"],
+    aiKnowledge: true,
+  },
+  {
     slug: "objecoes-e-respostas",
     title: "Objeções e respostas comerciais",
     fileName: "objecoes-e-respostas.md",
@@ -306,6 +313,7 @@ export class MarketingUseCases {
       this.repo.listExamples(userId),
       this.repo.listResources(userId),
     ]);
+    const contextResources = canonicalMarketingResources(resources);
     const history = session!.messages
       .slice(-10)
       .map(
@@ -321,7 +329,7 @@ export class MarketingUseCases {
       .slice(0, 5)
       .map((item) => `Entrada: ${item.input}\nSaída: ${item.output}`)
       .join("\n\n");
-    const resourcesContext = resources
+    const resourcesContext = contextResources
       .slice(0, 60)
       .map(
         (item) =>
@@ -377,6 +385,7 @@ export class MarketingUseCases {
       this.repo.listExamples(userId),
       this.repo.listResources(userId),
     ]);
+    const contextResources = canonicalMarketingResources(resources);
     const intent = input.intent ?? "generate";
     const system = resourceDraftSystemPrompt(instruction?.body, intent, input.kind);
     const prompt = [
@@ -392,7 +401,7 @@ export class MarketingUseCases {
         .slice(0, 5)
         .map((item) => `Entrada: ${item.input}\nSaída: ${item.output}`)
         .join("\n\n")}`,
-      `ITENS JÁ CADASTRADOS: ${resources
+      `ITENS JÁ CADASTRADOS: ${contextResources
         .filter((item) => item.kind === input.kind)
         .slice(0, 30)
         .map((item) => `${item.title}: ${item.summary ?? ""}`)
@@ -440,8 +449,9 @@ export class MarketingUseCases {
       this.repo.listExamples(userId),
       this.repo.listResources(userId),
     ]);
-    const existingContent = resources.filter((item) => item.kind === "content");
-    const relatedContext = resources.filter((item) => item.kind !== "content");
+    const contextResources = canonicalMarketingResources(resources);
+    const existingContent = contextResources.filter((item) => item.kind === "content");
+    const relatedContext = contextResources.filter((item) => item.kind !== "content");
     const result = await this.generate({
       system: `${marketingSystemPrompt(instruction?.body)}\n\n${IDEA_BANK_SYSTEM_PROMPT}\n\nResponda somente com o JSON solicitado, sem markdown ou comentários.`,
       prompt: [
@@ -489,7 +499,7 @@ export class MarketingUseCases {
     const built = buildCampaignStrategistPrompt(input, {
       instruction: instruction?.body,
       knowledge,
-      resources: campaignPlanningResources(resources),
+      resources: canonicalMarketingResources(resources),
     });
     const result = await this.generate({
       system: "Siga integralmente as instruções do prompt e responda somente com JSON.",
@@ -524,13 +534,14 @@ export class MarketingUseCases {
       this.repo.listExamples(userId),
       this.repo.listResources(userId),
     ]);
+    const contextResources = canonicalMarketingResources(resources);
     const built = buildAdCopywriterPrompt(
       input,
       deriveBrandProfile({
         instruction: instruction?.body,
         knowledge,
         examples,
-        resources,
+        resources: contextResources,
       }),
     );
     let result = await this.generate({
@@ -965,7 +976,7 @@ function resourceDraftIntentInstructions(
   return "TAREFA: gere uma nova sugestão editorial completa a partir do título, resumo, ideia, texto ou transcrição. CAMPOS ATUAIS servem como contexto e não como resposta a copiar: quando já estiverem preenchidos, crie uma alternativa materialmente diferente em título, gancho, desenvolvimento, slides, orientação visual e CTA, preservando apenas fatos, restrições, tema, canal e formato confirmados. Preencha apenas o que o contexto sustentar; quando não houver base segura, deixe o campo de fora. Gere também a análise estratégica e as sugestões de melhoria.";
 }
 
-function campaignPlanningResources(
+function canonicalMarketingResources(
   resources: Array<{
     kind: string;
     slug: string;
@@ -974,14 +985,14 @@ function campaignPlanningResources(
     data: unknown;
   }>,
 ) {
-  const canonicalFeatures = initialMarketingResources.filter(
-    (resource) => resource.kind === "feature",
+  const canonicalResources = initialMarketingResources.filter(
+    (resource) => resource.kind === "feature" || resource.kind === "audience",
   );
-  const canonicalSlugs = new Set(canonicalFeatures.map((resource) => resource.slug));
+  const canonicalKeys = new Set(
+    canonicalResources.map((resource) => `${resource.kind}:${resource.slug}`),
+  );
   const otherResources = resources
-    .filter(
-      (resource) => resource.kind !== "feature" || !canonicalSlugs.has(resource.slug),
-    )
+    .filter((resource) => !canonicalKeys.has(`${resource.kind}:${resource.slug}`))
     .map(({ kind, slug, title, summary, data }) => ({
       kind,
       slug,
@@ -992,18 +1003,19 @@ function campaignPlanningResources(
 
   return [
     ...otherResources,
-    ...canonicalFeatures.map((feature) => {
+    ...canonicalResources.map((canonical) => {
       const stored = resources.find(
-        (resource) => resource.kind === "feature" && resource.slug === feature.slug,
+        (resource) =>
+          resource.kind === canonical.kind && resource.slug === canonical.slug,
       );
       return {
-        kind: feature.kind,
-        slug: feature.slug,
-        title: feature.title,
-        summary: feature.summary ?? null,
+        kind: canonical.kind,
+        slug: canonical.slug,
+        title: canonical.title,
+        summary: canonical.summary ?? null,
         data: {
           ...objectValue(stored?.data),
-          ...objectValue(feature.data),
+          ...objectValue(canonical.data),
         },
       };
     }),
@@ -1118,6 +1130,14 @@ export async function loadInitialMarketingDocument(fileName: string) {
     case "publicos-e-contextos.md":
       return readFile(
         new URL("../../../../../docs/marketing/publicos-e-contextos.md", import.meta.url),
+        "utf8",
+      );
+    case "comercio-celulares-importados.md":
+      return readFile(
+        new URL(
+          "../../../../../docs/marketing/comercio-celulares-importados.md",
+          import.meta.url,
+        ),
         "utf8",
       );
     case "objecoes-e-respostas.md":

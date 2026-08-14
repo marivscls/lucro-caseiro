@@ -36,6 +36,46 @@ describe("marketing intelligence", () => {
     expect(market?.data.rule).toContain("não limitam o mercado da marca");
   });
 
+  it("feeds commerce audiences into the compatible marketing portfolio", () => {
+    const targetAudienceSlugs = [
+      "lojas-de-celulares-e-acessorios",
+      "revendedores-de-importados",
+    ];
+    const audiences = initialMarketingResources.filter(
+      (item) => item.kind === "audience" && targetAudienceSlugs.includes(item.slug),
+    );
+
+    expect(audiences.map((item) => item.title)).toEqual([
+      "Lojas de celulares e acessórios",
+      "Revendedores de importados",
+    ]);
+    audiences.forEach((audience) => {
+      expect(audience.data.pains).toBeInstanceOf(Array);
+      expect(audience.data.language).toBeInstanceOf(Array);
+      expect(audience.data.strategicPriority).toBe(12);
+    });
+
+    const compatibleFeatureSlugs = [
+      "precificacao",
+      "catalogo",
+      "vendas-e-pedidos",
+      "financeiro",
+      "estoque-e-compras",
+      "clientes-e-historico",
+      "produtos-e-receitas",
+      "alertas-e-lembretes",
+      "offline-e-sincronizacao",
+      "relatorios-e-exportacoes",
+    ];
+    const compatibleFeatures = initialMarketingResources.filter(
+      (item) => item.kind === "feature" && compatibleFeatureSlugs.includes(item.slug),
+    );
+    expect(compatibleFeatures).toHaveLength(compatibleFeatureSlugs.length);
+    compatibleFeatures.forEach((feature) => {
+      expect(feature.data.audiences).toEqual(expect.arrayContaining(targetAudienceSlugs));
+    });
+  });
+
   it("accepts an explicit carousel size within the editorial limit", () => {
     const input = MarketingCampaignBriefInputSchema.parse({
       goal: "leads",
@@ -88,6 +128,9 @@ describe("marketing intelligence", () => {
     );
     expect(DEFAULT_MARKETING_SYSTEM_PROMPT).toContain("potencial de salvamento");
     expect(DEFAULT_MARKETING_SYSTEM_PROMPT).toContain("não é exclusivo de confeiteiras");
+    expect(DEFAULT_MARKETING_SYSTEM_PROMPT).toContain(
+      "comércio de celulares e acessórios e revenda de importados",
+    );
     expect(marketingSystemPrompt("Instrução personalizada.")).toContain(
       "mercado amplo da marca",
     );
@@ -213,13 +256,13 @@ Preserve este limite.`);
   });
 
   it("ships distinct operational documents as canonical AI knowledge", () => {
-    expect(initialMarketingDocumentDefinitions).toHaveLength(8);
+    expect(initialMarketingDocumentDefinitions).toHaveLength(9);
     expect(
       new Set(initialMarketingDocumentDefinitions.map((document) => document.slug)).size,
     ).toBe(initialMarketingDocumentDefinitions.length);
     expect(
       initialMarketingDocumentDefinitions.filter((document) => document.aiKnowledge),
-    ).toHaveLength(7);
+    ).toHaveLength(8);
   });
 
   it("loads every initial marketing document from the repository", async () => {

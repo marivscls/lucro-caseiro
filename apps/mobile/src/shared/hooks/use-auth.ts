@@ -308,9 +308,9 @@ export const useAuth = create<AuthState>((set) => ({
         return { error: signInErrorMessage(error) };
       }
 
-      // Não marca onboarding como concluído aqui: quem decide é o index.tsx pelo
-      // businessName do perfil (servidor). Forçar aqui pulava o onboarding de
-      // contas novas que entram por "Entrar" em vez de "Criar conta".
+      // Não marca onboarding como concluído aqui: quem decide é o index.tsx pela
+      // metadata persistida e pelos fallbacks de conta nova. Forçar aqui pulava
+      // o onboarding de contas novas que entram por "Entrar".
       return {};
     } catch (error) {
       if (__DEV__) {

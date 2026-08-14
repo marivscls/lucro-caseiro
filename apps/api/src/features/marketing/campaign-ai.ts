@@ -18,7 +18,7 @@ import {
 } from "./marketing.system-prompt";
 
 export const CAMPAIGN_STRATEGIST_PROMPT_ID = "campaign-strategist";
-export const CAMPAIGN_STRATEGIST_PROMPT_VERSION = "16";
+export const CAMPAIGN_STRATEGIST_PROMPT_VERSION = "17";
 export const AD_COPYWRITER_PROMPT_ID = "ad-copywriter";
 export const AD_COPYWRITER_PROMPT_VERSION = "17";
 export const LIME_GESTURE_PREFIX = "GESTO LIMA:";
@@ -344,15 +344,20 @@ export function selectAutomaticCampaignDirection(
     .filter((resource): resource is CampaignResourceContext => Boolean(resource));
   const audience =
     audienceOptions
-      .map((resource) => ({
-        resource,
-        coverage: history.filter((plan) =>
-          mentionsAny(plan, meaningfulWords(resource.title)),
-        ).length,
-      }))
+      .map((resource) => {
+        const priority = recordValue(resource.data)?.strategicPriority;
+        return {
+          resource,
+          coverage: history.filter((plan) =>
+            mentionsAny(plan, meaningfulWords(resource.title)),
+          ).length,
+          priority: typeof priority === "number" ? priority : 0,
+        };
+      })
       .sort(
         (left, right) =>
           left.coverage - right.coverage ||
+          right.priority - left.priority ||
           left.resource.title.localeCompare(right.resource.title, "pt-BR"),
       )[0]?.resource.title ??
     audienceSlugs[0]?.replaceAll("-", " ") ??

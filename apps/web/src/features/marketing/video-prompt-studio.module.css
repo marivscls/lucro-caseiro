@@ -865,7 +865,7 @@
   counter-reset: influencer-stage;
   display: grid;
   grid-column: 1 / -1;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 6px;
   margin: 0;
   padding: 0;
@@ -982,7 +982,7 @@
 }
 .referenceKitInputs {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 150px;
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
   align-items: end;
 }

@@ -50,15 +50,13 @@ describe("video prompt project", () => {
     character.immutableTraits.hair = "cacheado castanho-escuro";
     const kit = createInfluencerReferenceKit(character, {
       scene: "Lia organiza encomendas em uma cozinha de produção",
-      selectedFrame: 2,
     });
 
     expect(kit.map((step) => step.id)).toEqual([
       "base",
       "face-board",
       "body-board",
-      "scene-board",
-      "extract",
+      "complete-scene",
       "animate",
     ]);
     expect(kit.find((step) => step.id === "face-board")?.prompt).toContain(
@@ -67,10 +65,13 @@ describe("video prompt project", () => {
     expect(kit.find((step) => step.id === "body-board")?.prompt).toContain(
       "seis vistas da mesma personagem",
     );
-    expect(kit.find((step) => step.id === "scene-board")?.prompt).toContain(
-      "exatamente três fotografias verticais",
+    expect(kit.find((step) => step.id === "complete-scene")?.prompt).toContain(
+      "personagem e todo o cenário na mesma composição",
     );
-    expect(kit.find((step) => step.id === "extract")?.title).toBe("Extrair o quadro 2");
+    expect(kit.find((step) => step.id === "complete-scene")?.prompt).toContain(
+      "interagir de modo visível com o produto, dispositivo, utensílio ou elemento central",
+    );
+    expect(kit.find((step) => step.id === "complete-scene")?.aspectRatio).toBe("9:16");
     expect(kit.find((step) => step.id === "animate")?.prompt).toContain(
       "uma única ação dominante",
     );

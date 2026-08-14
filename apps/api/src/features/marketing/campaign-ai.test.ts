@@ -97,7 +97,7 @@ describe("campaign AI", () => {
       },
     );
     expect(built.promptId).toBe("campaign-strategist");
-    expect(built.promptVersion).toBe("16");
+    expect(built.promptVersion).toBe("17");
     expect(built.prompt).toContain("Confeiteiras iniciantes");
     expect(built.prompt).toContain("R$ 300");
     expect(built.prompt).toContain("Não prometa renda.");
@@ -189,6 +189,71 @@ describe("campaign AI", () => {
       "Funcionalidade prioritária menos coberta: Serviços e agenda",
     );
     expect(built.prompt).toContain("Campanhas recentes a não repetir");
+  });
+
+  it("brings priority commerce audiences into automatic campaign rotation", () => {
+    const resources = [
+      {
+        kind: "audience",
+        slug: "empreendedoras-organizando-negocio",
+        title: "Empreendedoras organizando o negócio",
+        summary: null,
+        data: {},
+      },
+      {
+        kind: "audience",
+        slug: "lojas-de-celulares-e-acessorios",
+        title: "Lojas de celulares e acessórios",
+        summary: null,
+        data: { strategicPriority: 12 },
+      },
+      {
+        kind: "audience",
+        slug: "revendedores-de-importados",
+        title: "Revendedores de importados",
+        summary: null,
+        data: { strategicPriority: 12 },
+      },
+      {
+        kind: "feature",
+        slug: "estoque-e-compras",
+        title: "Estoque e compras",
+        summary: "Acompanha itens, fornecedores e reposição.",
+        data: {
+          audiences: [
+            "empreendedoras-organizando-negocio",
+            "lojas-de-celulares-e-acessorios",
+            "revendedores-de-importados",
+          ],
+          campaignTerms: ["estoque", "reposição"],
+        },
+      },
+    ];
+
+    expect(
+      selectAutomaticCampaignDirection(
+        { segment: "pme", goal: "leads", audience: "", offer: "" },
+        resources,
+      )?.audience,
+    ).toBe("Lojas de celulares e acessórios");
+
+    expect(
+      selectAutomaticCampaignDirection(
+        { segment: "pme", goal: "leads", audience: "", offer: "" },
+        [
+          ...resources,
+          {
+            kind: "campaign",
+            title: "Campanha para lojas de celulares",
+            summary: null,
+            data: {
+              audienceSummary: "Lojas de celulares e acessórios",
+              creativeStrategy: { angle: "Margem por aparelho" },
+            },
+          },
+        ],
+      )?.audience,
+    ).toBe("Revendedores de importados");
   });
 
   it("keeps explicit audience and offer above automatic rotation", () => {

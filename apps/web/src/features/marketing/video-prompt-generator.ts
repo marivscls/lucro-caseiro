@@ -424,7 +424,7 @@ export function createEmptyCharacterProfile(
 }
 
 export type InfluencerReferenceKitStep = {
-  id: "base" | "face-board" | "body-board" | "scene-board" | "extract" | "animate";
+  id: "base" | "face-board" | "body-board" | "complete-scene" | "animate";
   number: string;
   title: string;
   purpose: string;
@@ -457,11 +457,10 @@ function removeGlossyQualityBuzzwords(prompt: string) {
 
 export function createInfluencerReferenceKit(
   character: CharacterProfileInput,
-  options: { scene?: string; selectedFrame?: 1 | 2 | 3 } = {},
+  options: { scene?: string } = {},
 ): InfluencerReferenceKitStep[] {
   const identity = characterIdentitySummary(character);
   const variableDirection = characterVariableSummary(character);
-  const selectedFrame = options.selectedFrame ?? 1;
   const scene =
     options.scene?.trim() ||
     [
@@ -514,26 +513,18 @@ export function createInfluencerReferenceKit(
       prompt: `${continuityContract}\n\n${influencerPhotographicRealismPrompt}\n\nUse as referências anexadas como âncoras. Crie uma prancha horizontal de corpo inteiro com seis vistas da mesma personagem: frente; três-quartos esquerdo; perfil esquerdo; costas; perfil direito; três-quartos direito. Cabeça e pés inteiros em todos os quadros, postura neutra, braços relaxados, mesma roupa básica, escala, distância focal, luz e fundo. Preserve exatamente altura, silhueta e proporções; a prancha é técnica e não uma sessão de moda.\n\n${negativePrompt}`,
     },
     {
-      id: "scene-board",
+      id: "complete-scene",
       number: "04",
-      title: "Três opções de cena",
-      purpose: "Criar variedade sem perder a identidade.",
-      aspectRatio: "16:9",
-      references: "Anexe as pranchas de rosto e corpo; roupa é opcional",
-      prompt: `${continuityContract}\n\n${influencerPhotographicRealismPrompt}\n\nCENA: ${scene}. DIREÇÃO VARIÁVEL: ${variableDirection}.\n\nCrie uma única prancha horizontal com exatamente três fotografias verticais independentes da mesma personagem e do mesmo momento: 1) plano aberto contextual mostrando a ação; 2) plano médio espontâneo, com olhar ou gesto ligado à ação; 3) selfie ou enquadramento próximo plausível para o ambiente. Inclua pessoas desfocadas ao fundo somente quando o local for público. Se houver uma terceira referência de roupa, use somente a roupa dessa imagem e ignore descrições textuais concorrentes. Preserve rosto, corpo e elementos contínuos entre os três quadros. Nenhuma das fotos deve conter texto ou parecer um mosaico dentro do próprio quadro.\n\n${negativePrompt}`,
-    },
-    {
-      id: "extract",
-      number: "05",
-      title: `Extrair o quadro ${selectedFrame}`,
-      purpose: "Transformar a opção escolhida em arquivo vertical.",
+      title: "Cena completa com a influencer",
+      purpose: "Gerar personagem, ambiente e ação juntos no arquivo final.",
       aspectRatio: "9:16",
-      references: "Anexe a prancha com três opções",
-      prompt: `${influencerPhotographicRealismPrompt}\n\nUse a prancha anexada como única fonte visual. Extraia somente o quadro ${selectedFrame}, contando da esquerda para a direita, e entregue uma imagem vertical 9:16 em alta resolução. Preserve exatamente a pessoa, expressão, roupa, mãos, objetos, cenário, luz, enquadramento e profundidade do quadro original. Não redesenhe, não complete uma nova cena, não combine elementos dos outros quadros e não altere o rosto. ${negativePrompt}`,
+      references:
+        "Anexe as pranchas de rosto e corpo e, quando houver, referências reais do produto e do ambiente",
+      prompt: `${continuityContract}\n\n${influencerPhotographicRealismPrompt}\n\nBRIEFING VISUAL COMPLETO: ${scene}. DIREÇÃO VARIÁVEL: ${variableDirection}.\n\nCrie uma única fotografia vertical 9:16 final, nunca prancha, grade, colagem ou estudo. Construa a personagem e todo o cenário na mesma composição: a influencer deve estar fisicamente inserida no ambiente, com escala, perspectiva, sombras e luz coerentes, realizando a ação descrita com expressão, postura e gesto naturais. Ela não pode posar parada como retrato; deve interagir de modo visível com o produto, dispositivo, utensílio ou elemento central da cena.\n\nO cenário é parte da narrativa, não um fundo genérico. Mostre espaço suficiente para entender onde a ação acontece e componha arquitetura, superfícies, mobiliário, objetos de trabalho, sinais de uso cotidiano, primeiro plano, plano médio e profundidade. Complete apenas os detalhes ambientais plausíveis que estiverem ausentes do briefing, sem trocar a ação, a roupa ou o local definidos. Preserve a legibilidade das mãos e do objeto manipulado. Se houver tela ou interface, use somente referência real anexada, sem inventar telas, textos, logotipos ou funcionalidades.\n\nUse um único enquadramento editorial documental, espontâneo e funcional à ação. Entregue a cena pronta para ser usada como primeiro quadro de animação, com continuidade espacial clara e espaço de movimento plausível. Não inclua texto sobreposto na imagem.\n\n${negativePrompt}`,
     },
     {
       id: "animate",
-      number: "06",
+      number: "05",
       title: "Animar a foto",
       purpose: "Gerar movimento curto sem deformar a personagem.",
       aspectRatio: "9:16 · 6 s",

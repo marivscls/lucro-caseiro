@@ -8,6 +8,30 @@ import type { MarketingRepoPg } from "./marketing.repo.pg";
 import { MarketingUseCases } from "./marketing.usecases";
 
 describe("marketing use cases", () => {
+  it("includes canonical commerce audiences when stored resources are still empty", async () => {
+    const generate = vi.fn().mockResolvedValue({ text: "Resposta", model: "test-model" });
+    const repo = {
+      createSession: vi.fn().mockResolvedValue({ id: "session-id" }),
+      getSession: vi.fn().mockResolvedValue({ id: "session-id", messages: [] }),
+      addMessage: vi.fn().mockResolvedValue({ id: "message-id" }),
+      activeInstruction: vi.fn().mockResolvedValue(null),
+      listKnowledge: vi.fn().mockResolvedValue([]),
+      listExamples: vi.fn().mockResolvedValue([]),
+      listResources: vi.fn().mockResolvedValue([]),
+    } as unknown as MarketingRepoPg;
+
+    await new MarketingUseCases(repo, generate).chat("user-id", {
+      message: "Sugira oportunidades para os próximos públicos.",
+      context: {},
+      mode: "consultoria",
+    });
+
+    expect(generate.mock.calls[0]?.[0].prompt).toContain(
+      "Lojas de celulares e acessórios",
+    );
+    expect(generate.mock.calls[0]?.[0].prompt).toContain("Revendedores de importados");
+  });
+
   it("repairs an automatic content suggestion that repeats the current post", async () => {
     const current = {
       title: "Consulte o histórico antes de registrar uma nova venda",

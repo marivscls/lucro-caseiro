@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { NEW_ACCOUNT_WINDOW_MS, isNewAccount, needsOnboarding } from "./new-account";
+import {
+  NEW_ACCOUNT_WINDOW_MS,
+  isNewAccount,
+  needsOnboarding,
+  onboardingDestination,
+} from "./new-account";
 
 describe("isNewAccount", () => {
   const now = new Date("2026-07-11T12:00:00.000Z").getTime();
@@ -60,5 +65,64 @@ describe("needsOnboarding", () => {
     expect(needsOnboarding("user-new", recentCreatedAt, ["user-new"], now, true)).toBe(
       false,
     );
+  });
+});
+
+describe("onboardingDestination", () => {
+  const now = new Date("2026-07-11T12:00:00.000Z").getTime();
+  const oldCreatedAt = new Date(now - 24 * 60 * 60 * 1000).toISOString();
+
+  it("prioriza a pendencia persistida da conta sobre conclusao local antiga", () => {
+    expect(
+      onboardingDestination({
+        userId: "new-user",
+        createdAt: oldCreatedAt,
+        pendingUserIds: [],
+        completed: true,
+        completedUserIds: ["old-user"],
+        onboardingCompleted: false,
+        now,
+      }),
+    ).toBe("/onboarding");
+  });
+
+  it("envia conta Google recem-criada sem metadata para o onboarding", () => {
+    expect(
+      onboardingDestination({
+        userId: "google-user",
+        createdAt: new Date(now - 30 * 1000).toISOString(),
+        pendingUserIds: [],
+        completed: false,
+        completedUserIds: [],
+        now,
+      }),
+    ).toBe("/onboarding");
+  });
+
+  it("libera conta marcada como concluida no servidor", () => {
+    expect(
+      onboardingDestination({
+        userId: "returning-user",
+        createdAt: oldCreatedAt,
+        pendingUserIds: ["returning-user"],
+        completed: false,
+        completedUserIds: [],
+        onboardingCompleted: true,
+        now,
+      }),
+    ).toBe("/tabs");
+  });
+
+  it("deixa conta legada sem sinais para a verificacao de perfil", () => {
+    expect(
+      onboardingDestination({
+        userId: "legacy-user",
+        createdAt: oldCreatedAt,
+        pendingUserIds: [],
+        completed: false,
+        completedUserIds: [],
+        now,
+      }),
+    ).toBeNull();
   });
 });

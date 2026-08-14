@@ -12,6 +12,7 @@ Esta pasta contém as fontes canônicas usadas para planejar marketing, vendas e
 
 - [guia-de-mensagens.md](guia-de-mensagens.md): promessa, pilares, vocabulário, CTAs e estrutura de copy.
 - [publicos-e-contextos.md](publicos-e-contextos.md): segmentos, situações, dores, desejos e linguagem por nicho.
+- [comercio-celulares-importados.md](comercio-celulares-importados.md): contexto, linguagem e ângulos para lojas de celulares, acessórios e revendedores de importados.
 - [objecoes-e-respostas.md](objecoes-e-respostas.md): respostas comerciais e limites para dúvidas recorrentes.
 - [playbook-de-conteudo.md](playbook-de-conteudo.md): produção e adaptação de conteúdo para cada canal.
 - [experimentos-e-metricas.md](experimentos-e-metricas.md): hipóteses, eventos, métricas e critérios de decisão.

@@ -13,8 +13,10 @@ comerciantes, equipes e negócios em diferentes estágios de maturidade. O ponto
 gênero, idade, segmento ou trabalhar em casa: é precisar formar preços, entender custos e lucro,
 organizar produtos ou serviços, pedidos, vendas e a operação sem depender de um sistema complicado.
 
-Confeitaria, alimentação, artesanato, papelaria, beleza e costura são segmentos de entrada e fontes
-de exemplos concretos. Eles não definem sozinhos a marca nem limitam até onde o produto pode chegar.
+Confeitaria, alimentação, artesanato, papelaria, beleza, costura, comércio de celulares e acessórios
+e revenda de importados são segmentos de entrada e fontes de exemplos concretos. Eles não definem
+sozinhos a marca nem limitam até onde o produto pode chegar. O contexto detalhado dos dois segmentos
+de comércio está em [comercio-celulares-importados.md](comercio-celulares-importados.md).
 
 ## Recorte inicial de aquisição
 

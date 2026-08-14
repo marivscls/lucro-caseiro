@@ -76,7 +76,13 @@ interface CreateProductFormProps {
     photoUrl?: string;
   };
   readonly analyticsSource?: "pricing";
-  readonly modal?: { visible: boolean; onClose: () => void; title: string };
+  readonly simpleOnly?: boolean;
+  readonly modal?: {
+    visible: boolean;
+    onClose: () => void;
+    title: string;
+    returnAction?: { label: string; onPress: () => void };
+  };
 }
 
 /** Cores derivadas do tema para os campos (funciona em claro e escuro). */
@@ -578,6 +584,7 @@ export function CreateProductForm({
   initialSalePrice,
   initialValues,
   analyticsSource,
+  simpleOnly = false,
   modal,
 }: CreateProductFormProps) {
   const { theme } = useTheme();
@@ -605,6 +612,7 @@ export function CreateProductForm({
   const [stockAlert, setStockAlert] = useState("");
   const [isComposite, setIsComposite] = useState(false);
   const [components, setComponents] = useState<ComponentDraft[]>([]);
+  const [creatingComponent, setCreatingComponent] = useState(false);
   const { imageUri, showPicker } = useImagePicker();
   const [uploading, setUploading] = useState(false);
   const extraPicker = useImagePicker();
@@ -855,13 +863,21 @@ export function CreateProductForm({
           </View>
         </View>
 
-        <CompositeToggle
-          value={isComposite}
-          onChange={handleCompositeChange}
-          locked={!canUseCompositeProducts}
-        />
+        {!simpleOnly ? (
+          <CompositeToggle
+            value={isComposite}
+            onChange={handleCompositeChange}
+            locked={!canUseCompositeProducts}
+          />
+        ) : null}
 
-        {isComposite && <ComponentPicker value={components} onChange={setComponents} />}
+        {isComposite ? (
+          <ComponentPicker
+            value={components}
+            onChange={setComponents}
+            onCreateSimpleProduct={() => setCreatingComponent(true)}
+          />
+        ) : null}
 
         {variationsEnabled && !isComposite ? (
           <VariationEditor value={variations} onChange={setVariations} />
@@ -1244,19 +1260,85 @@ export function CreateProductForm({
     </>
   ) : null;
 
+  const componentCreationModal = creatingComponent ? (
+    <CreateProductForm
+      simpleOnly
+      modal={{
+        visible: modal?.visible ?? true,
+        title: "Novo produto simples",
+        onClose: () => setCreatingComponent(false),
+        returnAction: {
+          label: "Voltar ao kit",
+          onPress: () => setCreatingComponent(false),
+        },
+      }}
+      onSuccess={(product) => {
+        setComponents((current) => [
+          ...current.filter((component) => component.componentProductId !== product.id),
+          { componentProductId: product.id, quantity: "1" },
+        ]);
+        setCreatingComponent(false);
+      }}
+    />
+  ) : null;
+
   if (modal) {
+    const returnButton = modal.returnAction ? (
+      <Pressable
+        onPress={modal.returnAction.onPress}
+        accessibilityRole="button"
+        accessibilityLabel={modal.returnAction.label}
+        style={({ pressed }) => ({
+          flex: isDesktop ? 1 : undefined,
+          width: isDesktop ? undefined : "100%",
+          minHeight: 48,
+          borderRadius: radii.md,
+          borderWidth: 1,
+          borderColor: theme.colors.border,
+          backgroundColor: theme.colors.surface,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: spacing.sm,
+          opacity: pressed ? 0.82 : 1,
+        })}
+      >
+        <AppIcon name="arrow-back" size={20} color={theme.colors.primaryStrong} />
+        <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+          {modal.returnAction.label}
+        </Typography>
+      </Pressable>
+    ) : null;
+
     return (
       <>
         <StandardModal
           title={modal.title}
-          visible={modal.visible}
-          onClose={modal.onClose}
-          footer={renderSubmitButton(isDesktop ? undefined : { flex: 1 })}
+          visible={modal.visible && !creatingComponent}
+          onClose={() => {
+            setCreatingComponent(false);
+            modal.onClose();
+          }}
+          footer={
+            <View
+              style={{
+                flex: 1,
+                flexDirection: isDesktop ? "row" : "column",
+                gap: spacing.md,
+              }}
+            >
+              {returnButton}
+              {renderSubmitButton(
+                isDesktop ? undefined : { alignSelf: "stretch", width: "100%" },
+              )}
+            </View>
+          }
         >
           <View style={{ flexShrink: 1, gap: isDesktop ? spacing.lg : spacing.xl }}>
             {fields}
           </View>
         </StandardModal>
+        {componentCreationModal}
         {scanner}
       </>
     );
@@ -1286,6 +1368,7 @@ export function CreateProductForm({
           </>
         )}
       </KeyboardAwareScrollView>
+      {componentCreationModal}
       {scanner}
     </>
   );

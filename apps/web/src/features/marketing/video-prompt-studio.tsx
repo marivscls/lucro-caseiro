@@ -2605,11 +2605,9 @@ function CharacterEditor({
   onUpload: (file: File) => void;
 }) {
   const [sceneDescription, setSceneDescription] = useState("");
-  const [selectedFrame, setSelectedFrame] = useState<1 | 2 | 3>(1);
   const [copiedStep, setCopiedStep] = useState<string>();
   const referenceKit = createInfluencerReferenceKit(draft, {
     scene: sceneDescription,
-    selectedFrame,
   });
   const immutableLabels: Record<keyof typeof draft.immutableTraits, string> = {
     apparentAge: "Faixa etária aparente",
@@ -2689,17 +2687,16 @@ function CharacterEditor({
           <span>Influenciadora com IA</span>
           <h3 id="influencer-title">Uma identidade, muitos conteúdos</h3>
           <p>
-            Defina a pessoa uma vez, gere as pranchas de rosto e corpo e use essas âncoras
-            em fotos e vídeos. Os prompts abaixo seguem esse fluxo sem depender de um
-            fornecedor específico.
+            Defina a pessoa uma vez e use as pranchas de rosto e corpo como âncoras.
+            Depois, um único prompt cria a influencer já inserida no cenário completo e
+            deixa a imagem pronta para animar.
           </p>
         </div>
         <ol className={styles.influencerStages}>
           <li>Base</li>
           <li>Rosto 3×3</li>
           <li>Corpo</li>
-          <li>Cenas</li>
-          <li>Extrair</li>
+          <li>Cena completa</li>
           <li>Animar</li>
         </ol>
       </section>
@@ -2832,20 +2829,8 @@ function CharacterEditor({
             <textarea
               value={sceneDescription}
               onChange={(event) => setSceneDescription(event.target.value)}
-              placeholder="Ex.: A influenciadora organiza pedidos em uma cozinha de produção, no fim da tarde."
+              placeholder="Ex.: A influencer confere os pedidos no celular, gesticula para a tela e organiza embalagens em uma cozinha de produção no fim da tarde."
             />
-          </Field>
-          <Field label="Quadro para extrair">
-            <select
-              value={selectedFrame}
-              onChange={(event) =>
-                setSelectedFrame(Number(event.target.value) as 1 | 2 | 3)
-              }
-            >
-              <option value={1}>1 · esquerda</option>
-              <option value={2}>2 · centro</option>
-              <option value={3}>3 · direita</option>
-            </select>
           </Field>
         </div>
         <div className={styles.referenceSteps}>

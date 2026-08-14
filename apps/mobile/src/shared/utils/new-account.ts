@@ -26,3 +26,32 @@ export function needsOnboarding(
   if (onboardingCompleted === false) return true;
   return (!!userId && pendingUserIds.includes(userId)) || isNewAccount(createdAt, now);
 }
+
+export function onboardingDestination({
+  userId,
+  createdAt,
+  pendingUserIds,
+  completed,
+  completedUserIds,
+  onboardingCompleted,
+  now,
+}: Readonly<{
+  userId: string | null | undefined;
+  createdAt: string | null | undefined;
+  pendingUserIds: readonly string[];
+  completed: boolean;
+  completedUserIds: readonly string[];
+  onboardingCompleted?: unknown;
+  now: number;
+}>): "/onboarding" | "/tabs" | null {
+  // A conta é a fonte de verdade: uma pendência explícita nunca pode ser
+  // anulada pelo estado local deixado por outra sessão no aparelho.
+  if (onboardingCompleted === false) return "/onboarding";
+  if (onboardingCompleted === true) return "/tabs";
+
+  if (completed || (!!userId && completedUserIds.includes(userId))) return "/tabs";
+  if (needsOnboarding(userId, createdAt, pendingUserIds, now)) return "/onboarding";
+
+  // Conta legada sem metadata: o chamador consulta o perfil antes de liberar.
+  return null;
+}
