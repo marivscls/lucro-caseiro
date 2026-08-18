@@ -22,6 +22,7 @@ import type { AppDatabase } from "../../shared/db";
 import type { CatalogOwner, CatalogSettingsData, ICatalogRepo } from "./catalog.types";
 
 const ACCENT_KEYS = ["brown", "rose", "green", "lavender", "blue", "amber"];
+const HEX_COLOR_REGEX = /^#[0-9a-fA-F]{6}$/;
 
 export class CatalogRepoPg implements ICatalogRepo {
   constructor(private db: AppDatabase) {}
@@ -84,12 +85,18 @@ export class CatalogRepoPg implements ICatalogRepo {
           coverUrl: values.coverUrl,
           logoUrl: values.logoUrl,
           accentColor: values.accentColor,
+          titleColor: values.titleColor,
+          descriptionColor: values.descriptionColor,
           pattern: values.pattern,
           tagline: values.tagline,
           promoBanner: values.promoBanner,
+          promoBannerEnabled: values.promoBannerEnabled,
           serviceCoverUrl: values.serviceCoverUrl,
+          serviceTitleColor: values.serviceTitleColor,
+          serviceDescriptionColor: values.serviceDescriptionColor,
           serviceTagline: values.serviceTagline,
           servicePromoBanner: values.servicePromoBanner,
+          servicePromoBannerEnabled: values.servicePromoBannerEnabled,
           updatedAt: values.updatedAt,
         },
       })
@@ -299,17 +306,33 @@ export class CatalogRepoPg implements ICatalogRepo {
       logoUrl: row.logoUrl,
       accentColor:
         ACCENT_KEYS.includes(row.accentColor ?? "") ||
-        /^#[0-9a-fA-F]{6}$/.test(row.accentColor ?? "")
+        HEX_COLOR_REGEX.test(row.accentColor ?? "")
           ? row.accentColor
+          : null,
+      titleColor:
+        row.titleColor && HEX_COLOR_REGEX.test(row.titleColor) ? row.titleColor : null,
+      descriptionColor:
+        row.descriptionColor && HEX_COLOR_REGEX.test(row.descriptionColor)
+          ? row.descriptionColor
           : null,
       pattern: ["dots", "bubbles", "grid", "stripes"].includes(row.pattern ?? "")
         ? (row.pattern as CatalogSettings["pattern"])
         : null,
       tagline: row.tagline,
       promoBanner: row.promoBanner,
+      promoBannerEnabled: row.promoBannerEnabled,
       serviceCoverUrl: row.serviceCoverUrl,
+      serviceTitleColor:
+        row.serviceTitleColor && HEX_COLOR_REGEX.test(row.serviceTitleColor)
+          ? row.serviceTitleColor
+          : null,
+      serviceDescriptionColor:
+        row.serviceDescriptionColor && HEX_COLOR_REGEX.test(row.serviceDescriptionColor)
+          ? row.serviceDescriptionColor
+          : null,
       serviceTagline: row.serviceTagline,
       servicePromoBanner: row.servicePromoBanner,
+      servicePromoBannerEnabled: row.servicePromoBannerEnabled,
       updatedAt: row.updatedAt.toISOString(),
     };
   }

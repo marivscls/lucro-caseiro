@@ -13,6 +13,7 @@ export const CATALOG_SLUG_REGEX = /^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])?$/;
 // Cor do catálogo (personalização do Essencial): preset nomeado OU hex livre (#rrggbb).
 // A chave/hex e persistida; as paletas concretas ficam no dominio da API.
 export const CATALOG_HEX_COLOR_REGEX = /^#[0-9a-fA-F]{6}$/;
+export const CatalogHexColor = z.string().regex(CATALOG_HEX_COLOR_REGEX);
 
 export const CatalogAccentPreset = z.enum([
   "brown",
@@ -23,10 +24,7 @@ export const CatalogAccentPreset = z.enum([
   "amber",
 ]);
 
-export const CatalogAccentColor = z.union([
-  CatalogAccentPreset,
-  z.string().regex(CATALOG_HEX_COLOR_REGEX),
-]);
+export const CatalogAccentColor = z.union([CatalogAccentPreset, CatalogHexColor]);
 export type CatalogAccentColorValue = z.infer<typeof CatalogAccentColor>;
 
 // Pattern decorativo sobre a cor do hero (personalização do Essencial).
@@ -41,13 +39,19 @@ export const CatalogSettingsDto = z.object({
   coverUrl: z.string().nullable(),
   logoUrl: z.string().nullable(),
   accentColor: CatalogAccentColor.nullable(),
+  titleColor: CatalogHexColor.nullable(),
+  descriptionColor: CatalogHexColor.nullable(),
   pattern: CatalogPattern.nullable(),
   tagline: z.string().nullable(),
   // Faixa promocional opcional no topo do catalogo (ex.: "Frete gratis hoje").
   promoBanner: z.string().nullable(),
+  promoBannerEnabled: z.boolean(),
   serviceCoverUrl: z.string().nullable(),
+  serviceTitleColor: CatalogHexColor.nullable(),
+  serviceDescriptionColor: CatalogHexColor.nullable(),
   serviceTagline: z.string().nullable(),
   servicePromoBanner: z.string().nullable(),
+  servicePromoBannerEnabled: z.boolean(),
   updatedAt: z.string().datetime(),
 });
 
@@ -61,12 +65,18 @@ export const UpdateCatalogSettingsDto = z.object({
   coverUrl: z.string().url().nullable().optional(),
   logoUrl: z.string().url().nullable().optional(),
   accentColor: CatalogAccentColor.nullable().optional(),
+  titleColor: CatalogHexColor.nullable().optional(),
+  descriptionColor: CatalogHexColor.nullable().optional(),
   pattern: CatalogPattern.nullable().optional(),
   tagline: z.string().max(120).nullable().optional(),
   promoBanner: z.string().max(60).nullable().optional(),
+  promoBannerEnabled: z.boolean().optional(),
   serviceCoverUrl: z.string().url().nullable().optional(),
+  serviceTitleColor: CatalogHexColor.nullable().optional(),
+  serviceDescriptionColor: CatalogHexColor.nullable().optional(),
   serviceTagline: z.string().max(120).nullable().optional(),
   servicePromoBanner: z.string().max(60).nullable().optional(),
+  servicePromoBannerEnabled: z.boolean().optional(),
 });
 
 export type UpdateCatalogSettings = z.infer<typeof UpdateCatalogSettingsDto>;
@@ -135,10 +145,14 @@ export const PublicCatalogDto = z.object({
   coverUrl: z.string().nullable(),
   logoUrl: z.string().nullable(),
   accentColor: CatalogAccentColor.nullable(),
+  titleColor: CatalogHexColor.nullable(),
+  descriptionColor: CatalogHexColor.nullable(),
   pattern: CatalogPattern.nullable(),
   tagline: z.string().nullable(),
   promoBanner: z.string().nullable(),
   serviceCoverUrl: z.string().nullable(),
+  serviceTitleColor: CatalogHexColor.nullable(),
+  serviceDescriptionColor: CatalogHexColor.nullable(),
   serviceTagline: z.string().nullable(),
   servicePromoBanner: z.string().nullable(),
   products: z.array(PublicCatalogProductDto),

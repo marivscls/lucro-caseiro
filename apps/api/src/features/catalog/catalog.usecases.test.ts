@@ -17,11 +17,17 @@ function makeSettings(overrides: Partial<CatalogSettings> = {}): CatalogSettings
     logoUrl: null,
     pattern: null,
     accentColor: null,
+    titleColor: null,
+    descriptionColor: null,
     tagline: null,
     promoBanner: null,
+    promoBannerEnabled: true,
     serviceCoverUrl: null,
+    serviceTitleColor: null,
+    serviceDescriptionColor: null,
     serviceTagline: null,
     servicePromoBanner: null,
+    servicePromoBannerEnabled: true,
     updatedAt: new Date().toISOString(),
     ...overrides,
   };
@@ -102,6 +108,30 @@ describe("CatalogUseCases.getSettings", () => {
   });
 });
 
+describe("CatalogUseCases.getSlugAvailability", () => {
+  it("informa formato inválido sem consultar conflito", async () => {
+    const slugTaken = vi.fn();
+    const sut = new CatalogUseCases(makeRepo({ slugTaken }));
+
+    await expect(sut.getSlugAvailability(USER_ID, "Endereço inválido")).resolves.toEqual({
+      available: false,
+      reason: expect.stringContaining("letras minúsculas"),
+    });
+    expect(slugTaken).not.toHaveBeenCalled();
+  });
+
+  it("informa disponibilidade sem persistir o endereço", async () => {
+    const sut = new CatalogUseCases(
+      makeRepo({ slugTaken: () => Promise.resolve(false) }),
+    );
+
+    await expect(sut.getSlugAvailability(USER_ID, "novo-endereco")).resolves.toEqual({
+      available: true,
+      reason: null,
+    });
+  });
+});
+
 describe("CatalogUseCases.updateSettings", () => {
   it("atualiza slug e enabled", async () => {
     const sut = new CatalogUseCases(makeRepo());
@@ -168,10 +198,14 @@ describe("CatalogUseCases.updateSettings", () => {
 
     const settings = await sut.updateSettings(USER_ID, {
       accentColor: "rose",
+      titleColor: "#24181E",
+      descriptionColor: "#4A2332",
       tagline: "Bolos artesanais",
     });
 
     expect(settings.accentColor).toBe("rose");
+    expect(settings.titleColor).toBe("#24181E");
+    expect(settings.descriptionColor).toBe("#4A2332");
     expect(settings.tagline).toBe("Bolos artesanais");
   });
 
@@ -184,21 +218,33 @@ describe("CatalogUseCases.updateSettings", () => {
 
     const settings = await sut.updateSettings(USER_ID, {
       accentColor: "rose",
+      titleColor: "#24181E",
+      descriptionColor: "#4A2332",
       tagline: "Bolos artesanais",
       coverUrl: "https://cdn.x/capa.jpg",
       promoBanner: "Frete grátis hoje",
+      promoBannerEnabled: false,
       serviceCoverUrl: "https://cdn.x/servicos.jpg",
+      serviceTitleColor: "#FFFFFF",
+      serviceDescriptionColor: "#F5E5E8",
       serviceTagline: "Atendimento personalizado",
       servicePromoBanner: "Agenda aberta",
+      servicePromoBannerEnabled: false,
     });
 
     expect(settings.accentColor).toBe("rose");
+    expect(settings.titleColor).toBe("#24181E");
+    expect(settings.descriptionColor).toBe("#4A2332");
     expect(settings.tagline).toBe("Bolos artesanais");
     expect(settings.coverUrl).toBe("https://cdn.x/capa.jpg");
     expect(settings.promoBanner).toBe("Frete grátis hoje");
+    expect(settings.promoBannerEnabled).toBe(false);
     expect(settings.serviceCoverUrl).toBe("https://cdn.x/servicos.jpg");
+    expect(settings.serviceTitleColor).toBe("#FFFFFF");
+    expect(settings.serviceDescriptionColor).toBe("#F5E5E8");
     expect(settings.serviceTagline).toBe("Atendimento personalizado");
     expect(settings.servicePromoBanner).toBe("Agenda aberta");
+    expect(settings.servicePromoBannerEnabled).toBe(false);
   });
 
   it("campos basicos (slug/enabled/whatsapp) seguem livres no plano free", async () => {
@@ -356,6 +402,28 @@ describe("CatalogUseCases.getPublicCatalog", () => {
     expect(catalog.serviceCoverUrl).toBe("https://cdn.x/servicos.jpg");
     expect(catalog.serviceTagline).toBe("Agenda personalizada");
     expect(catalog.servicePromoBanner).toBe("Vagas abertas");
+  });
+
+  it("preserva a faixa salva, mas não a expõe quando sua exibição está desligada", async () => {
+    const sut = new CatalogUseCases(
+      makeRepo({
+        findOwnerBySlug: () =>
+          Promise.resolve({
+            ...makeSettings({
+              promoBanner: "Frete grátis hoje",
+              promoBannerEnabled: false,
+              servicePromoBanner: "Vagas abertas",
+              servicePromoBannerEnabled: false,
+            }),
+            ...makeOwner({ plan: "essential" }),
+          }),
+      }),
+    );
+
+    const catalog = await sut.getPublicCatalog("doces-da-maria");
+
+    expect(catalog.promoBanner).toBeNull();
+    expect(catalog.servicePromoBanner).toBeNull();
   });
 
   it("404 quando slug nao existe", async () => {

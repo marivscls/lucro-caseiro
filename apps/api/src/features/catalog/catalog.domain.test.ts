@@ -86,15 +86,31 @@ describe("renderCatalogHtml", () => {
     coverUrl: null,
     logoUrl: null,
     accentColor: null,
+    titleColor: null,
+    descriptionColor: null,
     pattern: null,
     tagline: null,
     promoBanner: null,
     serviceCoverUrl: null,
+    serviceTitleColor: null,
+    serviceDescriptionColor: null,
     serviceTagline: null,
     servicePromoBanner: null,
     products: [] as (typeof product)[],
     totalProducts: 0,
   };
+
+  it("aplica cores personalizadas ao título e à descrição do hero", () => {
+    const html = renderCatalogHtml({
+      ...baseCatalog,
+      titleColor: "#123456",
+      descriptionColor: "#654321",
+      tagline: "Feito com carinho",
+    });
+
+    expect(html).toContain('style="color:#123456"');
+    expect(html).toContain('class="bio" style="color:#654321"');
+  });
 
   it("usa o seletor visual do catálogo em vez de expor a lista nativa do Android", () => {
     const html = renderCatalogHtml({
@@ -108,7 +124,7 @@ describe("renderCatalogHtml", () => {
     expect(html).toContain('dialog.className = "catalog-select-dialog"');
     expect(html).toContain('dialog.setAttribute("role", "dialog")');
     expect(html).not.toContain("dialog.showModal()");
-    expect(html).toContain("[category, sort].forEach(enhanceSelect)");
+    expect(html).toContain("[category, sort].filter(Boolean).forEach(enhanceSelect)");
   });
 
   const service = {
@@ -149,10 +165,10 @@ describe("renderCatalogHtml", () => {
     expect(html).toContain("Consultoria");
     expect(html).toContain("Atendimento online");
     expect(html).toContain("Acompanhamento · 4 sessões");
-    expect(html).toContain('class="card service-card"');
+    expect(html).toContain('class="card catalog-item service-card"');
     expect(html).toContain('<div class="info"><p class="category">Serviço</p>');
     expect(html).not.toContain('class="service-mark"');
-    expect(html).toContain('<main class="services-only">');
+    expect(html).toContain('<main id="catalog-content" class="services-only">');
     expect(html).not.toContain('class="service-placeholder"');
     expect(html).toContain('class="tagline">Serviços</p>');
     expect(html).toContain('id="service-booking-form"');
@@ -189,9 +205,10 @@ describe("renderCatalogHtml", () => {
     expect(html).toContain("Consultoria");
     expect(html).not.toContain("Bolo de Pote");
     expect(html).not.toContain('class="products-section"');
-    expect(html).not.toContain('class="catalog-tools"');
-    expect(html).toContain('class="tagline">Serviços</p>');
-    expect(html).toContain("1 serviço disponível");
+    expect(html).toContain('class="catalog-tools"');
+    expect(html).toContain('placeholder="O que você procura?"');
+    expect(html).toContain('class="tagline">Produtos e serviços</p>');
+    expect(html).toContain("1 produto e 1 serviço");
   });
 
   it("link de serviços usa apresentação própria", () => {
@@ -232,7 +249,7 @@ describe("renderCatalogHtml", () => {
     expect(html).not.toContain("Consultoria");
     expect(html).not.toContain('class="services-section"');
     expect(html).not.toContain('id="service-booking-form"');
-    expect(html).toContain('class="tagline">Catálogo de produtos</p>');
+    expect(html).toContain('class="tagline">Produtos e serviços</p>');
   });
 
   it("catálogo completo oferece navegação entre produtos e serviços", () => {
@@ -244,9 +261,9 @@ describe("renderCatalogHtml", () => {
     });
 
     expect(html).toContain('class="catalog-section-nav"');
-    expect(html).toContain("?tipo=produtos#products-title");
-    expect(html).toContain("?tipo=servicos#services-title");
-    expect(html).toContain("grid-template-columns: minmax(0, 1fr) minmax(0, 1fr)");
+    expect(html).toContain("?tipo=produtos#catalog-content");
+    expect(html).toContain("?tipo=servicos#catalog-content");
+    expect(html).toContain("grid-template-columns: repeat(2, minmax(0, 1fr))");
   });
 
   it("renderiza a faixa promocional quando definida", () => {
@@ -338,7 +355,8 @@ describe("renderCatalogHtml", () => {
 
   it("sem whatsapp, nao renderiza botao de pedido", () => {
     const html = renderCatalogHtml({ ...baseCatalog, products: [product] });
-    expect(html).not.toContain("wa.me");
+    expect(html).not.toContain('class="order product-order"');
+    expect(html).not.toContain('class="floating-whatsapp"');
   });
 
   it("sem produtos, mostra estado vazio", () => {
@@ -396,6 +414,138 @@ describe("renderCatalogHtml", () => {
   it("sem pattern, nao renderiza overlay", () => {
     const html = renderCatalogHtml(baseCatalog);
     expect(html).not.toContain('class="pattern"');
+  });
+
+  it("cria busca por nome, descricao e categoria sem acentos", () => {
+    const html = renderCatalogHtml({
+      ...baseCatalog,
+      products: [
+        {
+          ...product,
+          name: "Açúcar mascavo",
+          description: "Maçã e canela",
+          category: "Bolos especiais",
+        },
+      ],
+    });
+
+    expect(html).toContain('data-search="acucar mascavo maca e canela bolos especiais"');
+    expect(html).toContain('placeholder="O que você procura?"');
+    expect(html).toContain("searchTimer = setTimeout(update, 140)");
+    expect(html).toContain('id="catalog-no-results" hidden');
+  });
+
+  it("renderiza chips somente a partir das categorias reais", () => {
+    const html = renderCatalogHtml({
+      ...baseCatalog,
+      products: [
+        { ...product, category: "Tortas" },
+        { ...product, id: "55555555-5555-5555-5555-555555555555", category: "Kits" },
+      ],
+    });
+
+    expect(html).toContain('data-category-filter="Tortas"');
+    expect(html).toContain('data-category-filter="Kits"');
+    expect(html).not.toContain('data-category-filter="Salgados"');
+  });
+
+  it("declara dimensoes e prioriza apenas as primeiras imagens", () => {
+    const html = renderCatalogHtml({
+      ...baseCatalog,
+      products: [
+        { ...product, photoUrl: "https://cdn.x/primeira.jpg" },
+        {
+          ...product,
+          id: "55555555-5555-5555-5555-555555555555",
+          photoUrl: "https://cdn.x/segunda.jpg",
+        },
+        {
+          ...product,
+          id: "66666666-6666-6666-6666-666666666666",
+          photoUrl: "https://cdn.x/terceira.jpg",
+        },
+      ],
+    });
+
+    expect(html).toContain(
+      'width="640" height="480" loading="eager" fetchpriority="high"',
+    );
+    expect(html).toContain(
+      'src="https://cdn.x/terceira.jpg" alt="Bolo de Pote" width="640" height="480" loading="lazy"',
+    );
+  });
+
+  it("exige variacao antes de montar o pedido completo do WhatsApp", () => {
+    const html = renderCatalogHtml({
+      ...baseCatalog,
+      whatsapp: "11999998888",
+      products: [
+        {
+          ...product,
+          variations: [
+            {
+              id: "77777777-7777-7777-7777-777777777777",
+              name: "Grande",
+              inStock: true,
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(html).toContain('<option value="">Selecionar variação</option>');
+    expect(html).toContain("Escolha uma variação antes de pedir.");
+    expect(html).toContain('itemUrl.searchParams.set("produto", link.dataset.productId)');
+    expect(html).toContain('aria-label="Pedir Bolo de Pote pelo WhatsApp"');
+  });
+
+  it("adapta contraste e inclui os breakpoints responsivos pedidos", () => {
+    const html = renderCatalogHtml({
+      ...baseCatalog,
+      accentColor: "#ffff00",
+      products: [product],
+    });
+
+    expect(html).toContain("--catalog-accent-text: #24181E");
+    expect(html).toContain("@media (max-width: 359px)");
+    expect(html).toContain("@media (min-width: 360px)");
+    expect(html).toContain("@media (min-width: 680px)");
+    expect(html).toContain("env(safe-area-inset-bottom)");
+    expect(html).toContain("@media (prefers-reduced-motion: reduce)");
+  });
+
+  it("usa a capa real no hero e nos metadados de compartilhamento", () => {
+    const html = renderCatalogHtml({
+      ...baseCatalog,
+      coverUrl: "https://cdn.example.com/capa.jpg",
+      products: [product],
+    });
+
+    expect(html).toContain('class="hero-cover"');
+    expect(html).toContain('alt="Capa de Doces"');
+    expect(html).toContain(
+      '<meta property="og:image" content="https://cdn.example.com/capa.jpg">',
+    );
+  });
+
+  it("usa fotos dos produtos e o cupcake da marca quando a vitrine nao tem capa", () => {
+    const html = renderCatalogHtml({
+      ...baseCatalog,
+      products: [
+        { ...product, photoUrl: "https://cdn.x/primeira.jpg" },
+        {
+          ...product,
+          id: "55555555-5555-5555-5555-555555555555",
+          photoUrl: "https://cdn.x/segunda.jpg",
+        },
+      ],
+    });
+
+    expect(html).toContain('class="hero-showcase hero-showcase-2"');
+    expect(html).toContain('class="hero-showcase-item hero-showcase-item-1"');
+    expect(html).toContain('class="avatar default-avatar"');
+    expect(html).toContain('class="hero-shell has-visual"');
+    expect(html).not.toContain('class="hero-cover"');
   });
 
   it("renderiza a foto de perfil no avatar quando definida", () => {

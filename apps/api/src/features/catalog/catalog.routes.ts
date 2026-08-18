@@ -34,6 +34,8 @@ function catalogSecurityHeaders(res: Response, nonce?: string): void {
       "upgrade-insecure-requests",
     ].join("; "),
     "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+    "Cache-Control": "no-store, max-age=0",
+    "Surrogate-Control": "no-store",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
     "X-Content-Type-Options": "nosniff",
@@ -53,6 +55,15 @@ export function createCatalogRouter(useCases: CatalogUseCases): Router {
         req.header("x-brand")?.trim() || DEFAULT_BRAND_ID,
       );
       res.json(settings);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.get("/slug-availability", async (req, res, next) => {
+    try {
+      const slug = typeof req.query.slug === "string" ? req.query.slug : "";
+      res.json(await useCases.getSlugAvailability(getUserId(req), slug));
     } catch (err) {
       next(err);
     }

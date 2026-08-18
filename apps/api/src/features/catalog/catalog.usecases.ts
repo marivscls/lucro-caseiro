@@ -17,12 +17,18 @@ function wantsCustomization(data: UpdateCatalogSettings): boolean {
     data.coverUrl !== undefined ||
     data.logoUrl !== undefined ||
     data.accentColor !== undefined ||
+    data.titleColor !== undefined ||
+    data.descriptionColor !== undefined ||
     data.pattern !== undefined ||
     data.tagline !== undefined ||
     data.promoBanner !== undefined ||
+    data.promoBannerEnabled !== undefined ||
     data.serviceCoverUrl !== undefined ||
+    data.serviceTitleColor !== undefined ||
+    data.serviceDescriptionColor !== undefined ||
     data.serviceTagline !== undefined ||
-    data.servicePromoBanner !== undefined
+    data.servicePromoBanner !== undefined ||
+    data.servicePromoBannerEnabled !== undefined
   );
 }
 
@@ -68,13 +74,36 @@ export class CatalogUseCases {
       coverUrl: null,
       logoUrl: null,
       accentColor: null,
+      titleColor: null,
+      descriptionColor: null,
       pattern: null,
       tagline: null,
       promoBanner: null,
+      promoBannerEnabled: true,
       serviceCoverUrl: null,
+      serviceTitleColor: null,
+      serviceDescriptionColor: null,
       serviceTagline: null,
       servicePromoBanner: null,
+      servicePromoBannerEnabled: true,
     });
+  }
+
+  async getSlugAvailability(
+    userId: string,
+    slug: string,
+  ): Promise<{ available: boolean; reason: string | null }> {
+    if (!isValidSlug(slug)) {
+      return {
+        available: false,
+        reason: "Use apenas letras minúsculas, números e hífens, sem hífen nas pontas.",
+      };
+    }
+    const available = !(await this.repo.slugTaken(slug, userId));
+    return {
+      available,
+      reason: available ? null : "Este endereço já está em uso. Escolha outro.",
+    };
   }
 
   async updateSettings(
@@ -116,20 +145,41 @@ export class CatalogUseCases {
       logoUrl: data.logoUrl === undefined ? current.logoUrl : data.logoUrl,
       accentColor:
         data.accentColor === undefined ? current.accentColor : data.accentColor,
+      titleColor: data.titleColor === undefined ? current.titleColor : data.titleColor,
+      descriptionColor:
+        data.descriptionColor === undefined
+          ? current.descriptionColor
+          : data.descriptionColor,
       pattern: data.pattern === undefined ? current.pattern : data.pattern,
       tagline: data.tagline === undefined ? current.tagline : data.tagline,
       promoBanner:
         data.promoBanner === undefined ? current.promoBanner : data.promoBanner,
+      promoBannerEnabled:
+        data.promoBannerEnabled === undefined
+          ? current.promoBannerEnabled
+          : data.promoBannerEnabled,
       serviceCoverUrl:
         data.serviceCoverUrl === undefined
           ? current.serviceCoverUrl
           : data.serviceCoverUrl,
+      serviceTitleColor:
+        data.serviceTitleColor === undefined
+          ? current.serviceTitleColor
+          : data.serviceTitleColor,
+      serviceDescriptionColor:
+        data.serviceDescriptionColor === undefined
+          ? current.serviceDescriptionColor
+          : data.serviceDescriptionColor,
       serviceTagline:
         data.serviceTagline === undefined ? current.serviceTagline : data.serviceTagline,
       servicePromoBanner:
         data.servicePromoBanner === undefined
           ? current.servicePromoBanner
           : data.servicePromoBanner,
+      servicePromoBannerEnabled:
+        data.servicePromoBannerEnabled === undefined
+          ? current.servicePromoBannerEnabled
+          : data.servicePromoBannerEnabled,
     });
   }
 
@@ -176,12 +226,19 @@ export class CatalogUseCases {
       coverUrl: hasFullCatalog ? owner.coverUrl : null,
       logoUrl: hasFullCatalog ? owner.logoUrl : null,
       accentColor: hasFullCatalog ? owner.accentColor : null,
+      titleColor: hasFullCatalog ? owner.titleColor : null,
+      descriptionColor: hasFullCatalog ? owner.descriptionColor : null,
       pattern: hasFullCatalog ? owner.pattern : null,
       tagline: hasFullCatalog ? owner.tagline : null,
-      promoBanner: hasFullCatalog ? owner.promoBanner : null,
+      promoBanner: hasFullCatalog && owner.promoBannerEnabled ? owner.promoBanner : null,
       serviceCoverUrl: hasFullCatalog ? owner.serviceCoverUrl : null,
+      serviceTitleColor: hasFullCatalog ? owner.serviceTitleColor : null,
+      serviceDescriptionColor: hasFullCatalog ? owner.serviceDescriptionColor : null,
       serviceTagline: hasFullCatalog ? owner.serviceTagline : null,
-      servicePromoBanner: hasFullCatalog ? owner.servicePromoBanner : null,
+      servicePromoBanner:
+        hasFullCatalog && owner.servicePromoBannerEnabled
+          ? owner.servicePromoBanner
+          : null,
       products,
       services,
       totalProducts: allProducts.length,

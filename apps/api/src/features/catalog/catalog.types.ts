@@ -25,12 +25,18 @@ export interface CatalogSettingsData {
   coverUrl: string | null;
   logoUrl: string | null;
   accentColor: CatalogAccentColorValue | null;
+  titleColor: string | null;
+  descriptionColor: string | null;
   pattern: CatalogPatternKey | null;
   tagline: string | null;
   promoBanner: string | null;
+  promoBannerEnabled: boolean;
   serviceCoverUrl: string | null;
+  serviceTitleColor: string | null;
+  serviceDescriptionColor: string | null;
   serviceTagline: string | null;
   servicePromoBanner: string | null;
+  servicePromoBannerEnabled: boolean;
 }
 
 export interface ICatalogRepo {

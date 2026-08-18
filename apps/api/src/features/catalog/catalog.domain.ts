@@ -34,6 +34,17 @@ function formatPrice(value: number): string {
   return `R$ ${value.toFixed(2).replace(".", ",")}`;
 }
 
+function normalizeSearchText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("pt-BR");
+}
+
+function productUnitLabel(saleUnit: string): string {
+  return saleUnit === "kg" ? "/kg" : "";
+}
+
 function catalogItemCountLabel(productCount: number, serviceCount: number): string {
   if (productCount > 0 && serviceCount > 0) {
     const productsLabel = productCount === 1 ? "produto" : "produtos";
@@ -58,9 +69,13 @@ function escapeHtml(text: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function whatsappLink(phone: string, productName?: string, priceLabel?: string): string {
+function whatsappNumber(phone: string): string {
   const digits = phone.replace(/\D/g, "");
-  const number = digits.startsWith("55") ? digits : `55${digits}`;
+  return digits.startsWith("55") ? digits : `55${digits}`;
+}
+
+function whatsappLink(phone: string, productName?: string, priceLabel?: string): string {
+  const number = whatsappNumber(phone);
   const priceSuffix = priceLabel ? ` — ${priceLabel}` : "";
   const message = productName
     ? `Olá! 😊 Vi seu catálogo e adorei. Gostaria de encomendar: *${productName}${priceSuffix}* 🛍️`
@@ -68,18 +83,24 @@ function whatsappLink(phone: string, productName?: string, priceLabel?: string):
   return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
 }
 
-const WHATSAPP_ICON = `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.2 14.2c-.2.6-1.2 1.2-1.7 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.4l.9 2.2c.1.2.1.4 0 .6l-.4.6-.5.5c-.2.2-.3.4-.1.7.2.3.9 1.5 2 2.4 1.4 1.2 2.5 1.6 2.8 1.7.3.1.5.1.7-.1l1-1.1c.2-.3.4-.2.7-.1l2.1 1c.3.2.5.3.6.4 0 .1 0 .7-.2 1.3Z"/></svg>`;
+const WHATSAPP_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.7a8 8 0 0 1-11.8 7L4 20l1.4-4A8 8 0 1 1 20 11.7Z"/><path d="M8.1 8.1c.2-.4.5-.5.8-.5h.5c.2 0 .4.1.5.4l.8 1.9c.1.3.1.5-.1.7l-.6.8c-.2.2-.2.4 0 .7.7 1.2 1.8 2.2 3.1 2.8.3.1.5.1.7-.1l.8-1c.2-.2.4-.3.7-.2l1.8.9c.3.1.4.3.4.5-.1.8-.5 1.5-1.1 1.9-.6.4-1.4.5-2.1.3-3.5-1-6.2-3.7-7.2-7.1-.2-.7-.1-1.4.2-2Z"/></svg>`;
+const SEARCH_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>`;
+const CUPCAKE_ICON = `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 29c-5-8 3-15 10-12 2-9 16-8 17 2 8-1 11 10 4 14H19c-1-1-1-2-1-4Z"/><path d="M20 33h28l-4 22H24l-4-22Z"/><path d="m28 36 2 16m7-16-2 16"/><path d="M32 13c0-4 3-7 7-8"/></svg>`;
 
 function productCard(
   product: PublicCatalogProduct,
   whatsapp: string | null,
   retailOrdering: boolean,
+  index: number,
 ): string {
   const allPhotos = [product.photoUrl, ...product.extraPhotos].filter(
     (url): url is string => !!url,
   );
-  const img = (url: string) =>
-    `<img src="${escapeHtml(url)}" alt="${escapeHtml(product.name)}" loading="lazy">`;
+  const img = (url: string) => {
+    const priority =
+      index < 2 ? ' loading="eager" fetchpriority="high"' : ' loading="lazy"';
+    return `<img src="${escapeHtml(url)}" alt="${escapeHtml(product.name)}" width="640" height="480"${priority}>`;
+  };
   let photo: string;
   if (allPhotos.length === 0) {
     photo = `<div class="placeholder"><span>${escapeHtml(product.name.charAt(0).toUpperCase())}</span></div>`;
@@ -89,19 +110,21 @@ function productCard(
     // Tira de miniaturas: carrossel horizontal com scroll-snap (CSS puro, sem JS).
     photo = `<div class="gallery">${allPhotos.map(img).join("")}</div>`;
   }
-  const unit = product.saleUnit === "kg" ? "/kg" : "";
+  const unit = productUnitLabel(product.saleUnit);
   const description = product.description
     ? `<p class="desc">${escapeHtml(product.description)}</p>`
     : "";
   const category = `<p class="category">${escapeHtml(product.category)}</p>`;
-  const variationSelect = retailOrdering
-    ? `<select class="variation-select" aria-label="Variação de ${escapeHtml(product.name)}">${product.variations
+  const availableVariations = product.variations.filter((variation) => variation.inStock);
+  const variationVisibility = retailOrdering ? "" : " hidden";
+  const variationSelect = product.variations.length
+    ? `<label class="variation-field"${variationVisibility}><span>Escolha uma opção</span><select class="variation-select" aria-label="Variação de ${escapeHtml(product.name)}"><option value="">Selecionar variação</option>${availableVariations
         .filter((variation) => variation.inStock)
         .map(
           (variation) =>
-            `<option value="${escapeHtml(variation.id)}">${escapeHtml(variation.name)}</option>`,
+            `<option value="${escapeHtml(variation.id)}" data-variation-name="${escapeHtml(variation.name)}">${escapeHtml(variation.name)}</option>`,
         )
-        .join("")}</select>`
+        .join("")}</select><span class="variation-error" role="alert"></span></label>`
     : "";
   const variations = product.variations.length
     ? `<div class="variants">${product.variations
@@ -112,18 +135,24 @@ function productCard(
         .join("")}</div>${variationSelect}`
     : "";
   const priceLabel = `${formatPrice(product.salePrice)}${unit}`;
-  const orderButton = whatsapp
-    ? `<a class="order" href="${whatsappLink(whatsapp, product.name, priceLabel)}">${WHATSAPP_ICON}Pedir no WhatsApp</a>`
-    : "";
   const canAdd =
     product.variations.length === 0 ||
     product.variations.some((variation) => variation.inStock);
+  let orderButton = "";
+  if (whatsapp && canAdd) {
+    orderButton = `<a class="order product-order" href="${whatsappLink(whatsapp, product.name, priceLabel)}" aria-label="Pedir ${escapeHtml(product.name)} pelo WhatsApp" data-whatsapp="${whatsappNumber(whatsapp)}" data-product-id="${escapeHtml(product.id)}" data-product-name="${escapeHtml(product.name)}" data-price-label="${escapeHtml(priceLabel)}" data-unit-label="${product.saleUnit === "kg" ? "quilo" : "unidade"}">${WHATSAPP_ICON}<span>Pedir</span></a>`;
+  } else if (!canAdd) {
+    orderButton = `<p class="availability" role="status">Produto indisponível</p>`;
+  }
   const cartLabel = canAdd ? "Adicionar à reserva" : "Produto esgotado";
   const cartDisabled = canAdd ? "" : " disabled";
   const cartButton = retailOrdering
     ? `<button class="add-cart" data-product-id="${escapeHtml(product.id)}" data-product-name="${escapeHtml(product.name)}" data-price="${product.salePrice}"${cartDisabled}>${cartLabel}</button>`
     : "";
-  return `<article class="card" data-category="${escapeHtml(product.category)}" data-name="${escapeHtml(product.name.toLocaleLowerCase("pt-BR"))}" data-price="${product.salePrice}" id="produto-${escapeHtml(product.id)}"><div class="photo">${photo}</div><div class="info">${category}<h2>${escapeHtml(product.name)}</h2>${description}${variations}<div class="bottom"><p class="price">${formatPrice(product.salePrice)}<span class="unit">${unit}</span></p>${cartButton}${orderButton}</div></div></article>`;
+  const searchableText = normalizeSearchText(
+    [product.name, product.description ?? "", product.category].join(" "),
+  );
+  return `<article class="card catalog-item product-card" data-kind="product" data-category="${escapeHtml(product.category)}" data-name="${escapeHtml(normalizeSearchText(product.name))}" data-search="${escapeHtml(searchableText)}" data-price="${product.salePrice}" id="produto-${escapeHtml(product.id)}"><div class="photo">${photo}</div><div class="info">${category}<h2>${escapeHtml(product.name)}</h2>${description}${variations}<div class="bottom"><p class="price">${formatPrice(product.salePrice)}<span class="unit">${unit}</span></p>${cartButton}${orderButton}</div></div></article>`;
 }
 
 function serviceOptionGroup(label: string, chips: string[]): string {
@@ -172,7 +201,11 @@ function serviceCard(service: PublicCatalogService): string {
     ? `<p class="booking-instructions"><strong>Antes de solicitar:</strong> ${escapeHtml(service.bookingInstructions)}</p>`
     : "";
 
-  return `<article class="card service-card" id="servico-${escapeHtml(service.id)}"><div class="info"><p class="category">Serviço</p><h2>${escapeHtml(service.name)}</h2>${description}${meta}${variations}${addOns}${packages}${bookingInstructions}<div class="bottom">${price}<button class="catalog-action request-service" type="button" data-service-id="${escapeHtml(service.id)}" data-service-name="${escapeHtml(service.name)}">Solicitar horário</button></div></div></article>`;
+  const searchableText = normalizeSearchText(
+    [service.name, service.description ?? "", locationLabel, "serviço"].join(" "),
+  );
+  const sortablePrice = service.defaultPrice ?? Number.MAX_SAFE_INTEGER;
+  return `<article class="card catalog-item service-card" data-kind="service" data-category="__services" data-name="${escapeHtml(normalizeSearchText(service.name))}" data-search="${escapeHtml(searchableText)}" data-price="${sortablePrice}" id="servico-${escapeHtml(service.id)}"><div class="info"><p class="category">Serviço</p><h2>${escapeHtml(service.name)}</h2>${description}${meta}${variations}${addOns}${packages}${bookingInstructions}<div class="bottom">${price}<button class="catalog-action request-service" type="button" data-service-id="${escapeHtml(service.id)}" data-service-name="${escapeHtml(service.name)}">Solicitar horário</button></div></div></article>`;
 }
 
 function catalogHeroTagline(productCount: number, serviceCount: number): string {
@@ -202,7 +235,7 @@ const BROWN_PALETTE: AccentPalette = {
 
 export const CATALOG_ACCENT_PRESETS: Record<string, AccentPalette> = {
   brown: BROWN_PALETTE,
-  rose: { dark: "#A85A67", base: "#B65F72", light: "#C98593", bg: "#F5E5E8" },
+  rose: { dark: "#4A2332", base: "#B65F72", light: "#D58A9A", bg: "#F5E5E8" },
   green: { dark: "#2f5d3e", base: "#447a55", light: "#639672", bg: "#eff5f0" },
   lavender: { dark: "#5c4a8c", base: "#7a64b0", light: "#9883cc", bg: "#f4f1fa" },
   blue: { dark: "#2c5577", base: "#3f74a0", light: "#6494bd", bg: "#eef4f8" },
@@ -210,6 +243,46 @@ export const CATALOG_ACCENT_PRESETS: Record<string, AccentPalette> = {
 };
 
 const HEX_COLOR_REGEX = /^#[0-9a-fA-F]{6}$/;
+
+function colorChannels(hex: string): [number, number, number] {
+  return [
+    parseInt(hex.slice(1, 3), 16),
+    parseInt(hex.slice(3, 5), 16),
+    parseInt(hex.slice(5, 7), 16),
+  ];
+}
+
+function relativeLuminance(hex: string): number {
+  const channels = colorChannels(hex).map((channel) => {
+    const normalized = channel / 255;
+    return normalized <= 0.03928
+      ? normalized / 12.92
+      : ((normalized + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * channels[0]! + 0.7152 * channels[1]! + 0.0722 * channels[2]!;
+}
+
+function contrastRatio(first: string, second: string): number {
+  const light = Math.max(relativeLuminance(first), relativeLuminance(second));
+  const dark = Math.min(relativeLuminance(first), relativeLuminance(second));
+  return (light + 0.05) / (dark + 0.05);
+}
+
+function contrastTextColor(background: string): "#FFFFFF" | "#24181E" {
+  return contrastRatio(background, "#FFFFFF") >= 4.5 ? "#FFFFFF" : "#24181E";
+}
+
+function darkenForWhiteText(hex: string): string {
+  let [r, g, b] = colorChannels(hex);
+  let result = hex;
+  while (contrastRatio(result, "#FFFFFF") < 4.5) {
+    r = mixChannel(r, 0, 0.1);
+    g = mixChannel(g, 0, 0.1);
+    b = mixChannel(b, 0, 0.1);
+    result = `#${[r, g, b].map((channel) => channel.toString(16).padStart(2, "0")).join("")}`;
+  }
+  return result;
+}
 
 /** Mistura um canal RGB com um alvo (0 = preto, 255 = branco) na proporcao dada. */
 function mixChannel(channel: number, target: number, ratio: number): number {
@@ -252,7 +325,20 @@ const HERO_PATTERNS: Record<string, string> = {
 function resolvePalette(accentColor: string | null): AccentPalette {
   if (!accentColor) return BROWN_PALETTE;
   if (HEX_COLOR_REGEX.test(accentColor)) return paletteFromHex(accentColor);
-  return CATALOG_ACCENT_PRESETS[accentColor] ?? BROWN_PALETTE;
+  switch (accentColor) {
+    case "rose":
+      return CATALOG_ACCENT_PRESETS.rose ?? BROWN_PALETTE;
+    case "green":
+      return CATALOG_ACCENT_PRESETS.green ?? BROWN_PALETTE;
+    case "lavender":
+      return CATALOG_ACCENT_PRESETS.lavender ?? BROWN_PALETTE;
+    case "blue":
+      return CATALOG_ACCENT_PRESETS.blue ?? BROWN_PALETTE;
+    case "amber":
+      return CATALOG_ACCENT_PRESETS.amber ?? BROWN_PALETTE;
+    default:
+      return BROWN_PALETTE;
+  }
 }
 
 export type CatalogSection = "all" | "products" | "services";
@@ -268,16 +354,41 @@ export function renderCatalogHtml(
     catalog.accentColor === null && catalog.brandId === "lucro-caseiro"
       ? (CATALOG_ACCENT_PRESETS.rose ?? BROWN_PALETTE)
       : resolvePalette(catalog.accentColor);
+  const heroDark =
+    catalog.accentColor === null && catalog.brandId === "lucro-caseiro"
+      ? "#4A2332"
+      : darkenForWhiteText(palette.dark);
+  const accentText = contrastTextColor(palette.base);
   const retailOrdering = catalog.brandId === "lucro-papelaria";
-  const coverUrl = section === "services" ? catalog.serviceCoverUrl : catalog.coverUrl;
-  const taglineText = section === "services" ? catalog.serviceTagline : catalog.tagline;
+  const allProducts = catalog.products;
+  const allServices = catalog.services ?? [];
+  let effectiveSection: Exclude<CatalogSection, "all">;
+  if (section === "all") {
+    effectiveSection =
+      allProducts.length > 0 || allServices.length === 0 ? "products" : "services";
+  } else {
+    effectiveSection = section;
+  }
+  const coverUrl =
+    effectiveSection === "services" ? catalog.serviceCoverUrl : catalog.coverUrl;
+  const titleColor =
+    (effectiveSection === "services" ? catalog.serviceTitleColor : catalog.titleColor) ??
+    "#ffffff";
+  const descriptionColor =
+    (effectiveSection === "services"
+      ? catalog.serviceDescriptionColor
+      : catalog.descriptionColor) ?? "#ffffff";
+  const taglineText =
+    effectiveSection === "services" ? catalog.serviceTagline : catalog.tagline;
   const promoBanner =
-    section === "services" ? catalog.servicePromoBanner : catalog.promoBanner;
-  const publicProducts = section === "services" ? [] : catalog.products;
+    effectiveSection === "services" ? catalog.servicePromoBanner : catalog.promoBanner;
+  const publicProducts = effectiveSection === "services" ? [] : allProducts;
   const cards = publicProducts
-    .map((product) => productCard(product, catalog.whatsapp, retailOrdering))
+    .map((product, index) =>
+      productCard(product, catalog.whatsapp, retailOrdering, index),
+    )
     .join("");
-  const publicServices = section === "products" ? [] : (catalog.services ?? []);
+  const publicServices = effectiveSection === "products" ? [] : allServices;
   const serviceCards = publicServices.map(serviceCard).join("");
   const categories = [...new Set(publicProducts.map((product) => product.category))].sort(
     (a, b) => a.localeCompare(b, "pt-BR"),
@@ -285,43 +396,88 @@ export function renderCatalogHtml(
   const count = publicProducts.length;
   const serviceCount = publicServices.length;
   const totalCount = count + serviceCount;
-  const filters =
-    count > 0
-      ? `<section class="catalog-tools" aria-label="Filtros do catálogo">
-  <label class="search"><span>Buscar</span><input id="catalog-search" type="search" placeholder="Nome do produto"></label>
-  <div class="catalog-select-field"><span>Categoria</span><select aria-label="Categoria" class="catalog-select-native" id="catalog-category" hidden><option value="">Todas</option>${categories
+  const totalProductCount = catalog.totalProducts ?? allProducts.length;
+  const totalServiceCount = allServices.length;
+  const filterOptions = categories
     .map(
       (category) =>
         `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`,
     )
-    .join("")}</select></div>
-  <div class="catalog-select-field"><span>Ordenar</span><select aria-label="Ordenar" class="catalog-select-native" id="catalog-sort" hidden><option value="name">Nome</option><option value="price-asc">Menor preço</option><option value="price-desc">Maior preço</option></select></div>
+    .join("");
+  const categoryChips = categories
+    .map(
+      (category) =>
+        `<button type="button" class="category-chip" data-category-filter="${escapeHtml(category)}" aria-pressed="false">${escapeHtml(category)}</button>`,
+    )
+    .join("");
+  const filterField =
+    categories.length > 0
+      ? `<div class="catalog-select-field filter-field" data-trigger-label="Filtrar" data-trigger-icon="filter"><span class="visually-hidden">Filtrar por categoria</span><select aria-label="Filtrar por categoria" class="catalog-select-native" id="catalog-category" hidden><option value="">Todos</option>${filterOptions}</select></div>`
+      : "";
+  const servicesChip =
+    totalServiceCount > 0
+      ? `<a class="category-chip service-category-chip" href="?tipo=servicos#catalog-content">Serviços</a>`
+      : "";
+  const categoryChipList =
+    categoryChips || servicesChip
+      ? `<div class="category-chips" role="group" aria-label="Categorias"><button type="button" class="category-chip selected" data-category-filter="" aria-pressed="true">Todos</button>${categoryChips}${servicesChip}</div>`
+      : "";
+  const filters =
+    totalCount > 0
+      ? `<section class="catalog-tools" aria-label="Busca e filtros do catálogo">
+  <div class="search-row">
+    <label class="search-control" for="catalog-search">${SEARCH_ICON}<span class="visually-hidden">Buscar no catálogo</span><input id="catalog-search" type="search" placeholder="O que você procura?" autocomplete="off"><button id="catalog-search-clear" class="search-clear" type="button" aria-label="Limpar busca" hidden>×</button></label>
+    ${filterField}
+  </div>
+  ${categoryChipList}
 </section>`
       : "";
   const initial = escapeHtml(catalog.businessName.charAt(0).toUpperCase() || "?");
-  const countLabel = catalogItemCountLabel(count, serviceCount);
-  const headerButtonLabel =
-    count > 0 && serviceCount === 0 ? "Fazer pedido no WhatsApp" : "Falar no WhatsApp";
+  const countLabel = catalogItemCountLabel(totalProductCount, totalServiceCount);
+  const visualCountLabel = countLabel.replace(" e ", " • ");
   const headerButton = catalog.whatsapp
-    ? `<a class="order hero" href="${whatsappLink(catalog.whatsapp)}">${WHATSAPP_ICON}${headerButtonLabel}</a>`
+    ? `<a class="order hero" href="${whatsappLink(catalog.whatsapp)}" aria-label="Falar no WhatsApp">${WHATSAPP_ICON}<span>Falar no WhatsApp</span></a>`
     : "";
-  // Capa integrada: vira o fundo do proprio hero, com um veu da cor por cima
-  // para manter nome/frase legiveis (evita "banner duplo" capa + cor).
-  const heroBackground = coverUrl
-    ? `background-image: linear-gradient(160deg, ${palette.dark}e6 0%, ${palette.base}cc 55%, ${palette.light}b3 100%), url('${escapeHtml(coverUrl)}'); background-size: cover; background-position: center;`
-    : `background: linear-gradient(160deg, ${palette.dark} 0%, ${palette.base} 55%, ${palette.light} 100%);`;
-  // Com capa, a estampa sairia poluida — so aplica pattern sem capa.
-  const patternCss =
-    catalog.pattern && !coverUrl ? (HERO_PATTERNS[catalog.pattern] ?? "") : "";
+  const heroBackground = `background: linear-gradient(135deg, ${heroDark} 0%, ${palette.dark} 48%, ${palette.base} 100%);`;
+  const patternCss = catalog.pattern ? (HERO_PATTERNS[catalog.pattern] ?? "") : "";
   const patternOverlay = patternCss ? `<div class="pattern"></div>` : "";
-  const avatar = catalog.logoUrl
-    ? `<div class="avatar"><img src="${escapeHtml(catalog.logoUrl)}" alt=""></div>`
-    : `<div class="avatar">${initial}</div>`;
-  const tagline = taglineText ? `<p class="bio">${escapeHtml(taglineText)}</p>` : "";
+  const coverFigure = coverUrl
+    ? `<figure class="hero-cover"><img src="${escapeHtml(coverUrl)}" alt="Capa de ${escapeHtml(catalog.businessName)}" width="760" height="600" loading="eager" fetchpriority="high"></figure>`
+    : "";
+  const heroPhotoUrls =
+    effectiveSection === "products"
+      ? [
+          ...new Set(
+            allProducts
+              .map((product) => product.photoUrl)
+              .filter((url): url is string => Boolean(url)),
+          ),
+        ].slice(0, 3)
+      : [];
+  const heroShowcase =
+    !coverUrl && heroPhotoUrls.length > 0
+      ? `<figure class="hero-showcase hero-showcase-${heroPhotoUrls.length}" aria-hidden="true">${heroPhotoUrls
+          .map(
+            (url, index) =>
+              `<img class="hero-showcase-item hero-showcase-item-${index + 1}" src="${escapeHtml(url)}" alt="" width="520" height="420" loading="eager"${index === 0 ? ' fetchpriority="high"' : ""}>`,
+          )
+          .join("")}</figure>`
+      : "";
+  const hasHeroVisual = Boolean(coverFigure || heroShowcase);
+  let avatar = `<div class="avatar" aria-hidden="true">${initial}</div>`;
+  if (catalog.brandId === "lucro-caseiro") {
+    avatar = `<div class="avatar default-avatar" aria-hidden="true">${CUPCAKE_ICON}</div>`;
+  }
+  if (catalog.logoUrl) {
+    avatar = `<div class="avatar"><img src="${escapeHtml(catalog.logoUrl)}" alt="Logo de ${escapeHtml(catalog.businessName)}" width="96" height="96" loading="eager"></div>`;
+  }
+  const tagline = taglineText
+    ? `<p class="bio" style="color:${descriptionColor}">${escapeHtml(taglineText)}</p>`
+    : "";
   const promoStrip = promoBanner
     ? `<div class="promo">${escapeHtml(promoBanner)}</div>`
     : "";
-  const hiddenCount = section === "services" ? 0 : catalog.totalProducts - count;
+  const hiddenCount = effectiveSection === "services" ? 0 : catalog.totalProducts - count;
   const moreNote =
     hiddenCount > 0
       ? `<p class="more-note">Mostrando ${count} de ${catalog.totalProducts} produtos</p>`
@@ -331,27 +487,45 @@ export function renderCatalogHtml(
       ? `<div class="empty"><div class="empty-icon"><svg viewBox="0 0 120 120" width="104" height="104" aria-hidden="true"><defs><linearGradient id="ebg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7ece4"/><stop offset="1" stop-color="#f0ddd1"/></linearGradient><linearGradient id="ebd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a06a50"/><stop offset="1" stop-color="#7a4c39"/></linearGradient><linearGradient id="erm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#86573f"/><stop offset="1" stop-color="#6e4534"/></linearGradient><linearGradient id="ep1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E8B4BC"/><stop offset="1" stop-color="#C4707E"/></linearGradient><linearGradient id="ep2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9fdcbd"/><stop offset="1" stop-color="#5da883"/></linearGradient><linearGradient id="ep3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ecc78a"/><stop offset="1" stop-color="#c08c3f"/></linearGradient></defs><path d="M60 8 C92 6 112 28 110 60 C108 94 88 112 58 110 C26 108 8 90 10 58 C12 28 30 10 60 8 Z" fill="url(#ebg)"/><path d="M22 30 L24.5 36 L31 38 L24.5 40 L22 46 L19.5 40 L13 38 L19.5 36 Z" fill="#E8B4BC" opacity="0.9"/><path d="M100 78 L101.8 82.5 L106 84 L101.8 85.5 L100 90 L98.2 85.5 L94 84 L98.2 82.5 Z" fill="#D4A054" opacity="0.85"/><ellipse cx="60" cy="102" rx="34" ry="6" fill="#6e4534" opacity="0.14"/><path d="M36 56 Q60 22 84 56" stroke="#6e4534" stroke-width="7" fill="none" stroke-linecap="round"/><circle cx="44" cy="50" r="14" fill="url(#ep1)"/><ellipse cx="40" cy="45" rx="5" ry="3" fill="#fff" opacity="0.5"/><circle cx="66" cy="45" r="12.5" fill="url(#ep2)"/><ellipse cx="62.5" cy="40.5" rx="4.5" ry="2.6" fill="#fff" opacity="0.5"/><circle cx="82" cy="54" r="10" fill="url(#ep3)"/><ellipse cx="79" cy="50.5" rx="3.6" ry="2.2" fill="#fff" opacity="0.55"/><path d="M24 58 L96 58 L89 95 Q87.8 101.5 81.5 101.5 L38.5 101.5 Q32.2 101.5 31 95 Z" fill="url(#ebd)"/><path d="M27.5 76 L92.5 76 L91 83 L29 83 Z" fill="#6e4534" opacity="0.35"/><line x1="42" y1="60" x2="45" y2="100" stroke="#5e3a2b" stroke-width="3.5" opacity="0.45"/><line x1="60" y1="60" x2="60" y2="101" stroke="#5e3a2b" stroke-width="3.5" opacity="0.45"/><line x1="78" y1="60" x2="75" y2="100" stroke="#5e3a2b" stroke-width="3.5" opacity="0.45"/><rect x="22" y="55" width="76" height="10" rx="5" fill="url(#erm)"/><rect x="26" y="57" width="68" height="3" rx="1.5" fill="#a06a50" opacity="0.7"/></svg></div><p>Nada disponível no momento.</p><p class="empty-sub">Volte em breve — novidades chegando!</p></div>`
       : "";
   const productsHeading =
-    count > 0
-      ? `<div class="section-heading"><p class="category">Compre agora</p><h2 id="products-title">Produtos</h2><p>Escolha o que deseja e peça pelo WhatsApp.</p></div>`
-      : "";
+    count > 0 ? `<h2 class="visually-hidden" id="products-title">Produtos</h2>` : "";
   const servicesHeading =
     serviceCount > 0
-      ? `<div class="section-heading"><p class="category">Agende seu atendimento</p><h2 id="services-title">Serviços</h2><p>Escolha o que precisa e envie uma solicitação de horário.</p></div>`
+      ? `<h2 class="visually-hidden" id="services-title">Serviços</h2>`
       : "";
   const servicesSection =
     serviceCount > 0
-      ? `<section class="catalog-section services-section" aria-labelledby="services-title">${servicesHeading}<div class="catalog-grid">${serviceCards}</div></section>`
+      ? `<section class="catalog-section services-section" aria-labelledby="services-title">${servicesHeading}<div class="catalog-grid" id="catalog-services">${serviceCards}</div></section>`
       : "";
   const productsAriaLabel = count > 0 ? ' aria-labelledby="products-title"' : "";
   const productsSection =
     count > 0 || totalCount === 0
       ? `<section class="catalog-section products-section"${productsAriaLabel}>${productsHeading}<div class="catalog-grid" id="catalog-products">${cards}${moreNote}${empty}</div></section>`
       : "";
-  const heroTagline = catalogHeroTagline(count, serviceCount);
-  const sectionNav =
-    section === "all" && count > 0 && serviceCount > 0
-      ? `<nav class="catalog-section-nav" aria-label="Seções do catálogo"><a href="?tipo=produtos#products-title">Produtos <span>${count}</span></a><a href="?tipo=servicos#services-title">Serviços <span>${serviceCount}</span></a></nav>`
+  const heroTagline = catalogHeroTagline(totalProductCount, totalServiceCount);
+  const listingDescription =
+    effectiveSection === "services"
+      ? "Envie sua solicitação e combine o melhor horário."
+      : "Faça seu pedido diretamente pelo WhatsApp.";
+  const listingHeader =
+    totalCount > 0
+      ? `<header class="listing-header"><div><h2>Escolha o que deseja</h2><p>${listingDescription}</p></div><div class="catalog-select-field sort-field" data-trigger-label="Ordenar" data-trigger-icon="sort"><span class="visually-hidden">Ordenar catálogo</span><select aria-label="Ordenar catálogo" class="catalog-select-native" id="catalog-sort" hidden><option value="name">Nome</option><option value="price-asc">Menor preço</option><option value="price-desc">Maior preço</option></select></div></header><div class="results-status" id="catalog-results-status" role="status" aria-live="polite"></div><div class="no-results" id="catalog-no-results" hidden><h3>Nenhum resultado encontrado</h3><p>Não encontramos itens para <strong id="catalog-no-results-term"></strong>.</p><div><button id="catalog-clear-search" type="button">Limpar busca</button><button id="catalog-clear-filters" type="button">Remover filtros</button></div></div>`
       : "";
+  const activeProductsClass = effectiveSection === "products" ? " active" : "";
+  const activeServicesClass = effectiveSection === "services" ? " active" : "";
+  const productsCurrent = effectiveSection === "products" ? ' aria-current="page"' : "";
+  const servicesCurrent = effectiveSection === "services" ? ' aria-current="page"' : "";
+  const sectionNav =
+    totalProductCount > 0 && totalServiceCount > 0
+      ? `<nav class="catalog-section-nav" aria-label="Seções do catálogo"><a class="${activeProductsClass.trim()}" href="?tipo=produtos#catalog-content"${productsCurrent}>Produtos <span>${totalProductCount}</span></a><a class="${activeServicesClass.trim()}" href="?tipo=servicos#catalog-content"${servicesCurrent}>Serviços <span>${totalServiceCount}</span></a></nav>`
+      : "";
+  const floatingWhatsapp =
+    catalog.whatsapp && totalCount > 0 && !retailOrdering
+      ? `<a class="floating-whatsapp" href="${whatsappLink(catalog.whatsapp)}" aria-label="Falar no WhatsApp">${WHATSAPP_ICON}</a>`
+      : "";
+  const shareImageUrl = coverUrl ?? catalog.logoUrl;
+  const shareImageMeta = shareImageUrl
+    ? `<meta property="og:image" content="${escapeHtml(shareImageUrl)}">`
+    : "";
   const bookingDialog =
     serviceCount > 0
       ? `<dialog id="service-booking-dialog">
@@ -414,6 +588,12 @@ export function renderCatalogHtml(
   document.querySelectorAll(".add-cart").forEach((button) => button.addEventListener("click", () => {
     const card = button.closest(".card");
     const select = card.querySelector(".variation-select");
+    if (select && !select.value) {
+      const error = card.querySelector(".variation-error");
+      if (error) error.textContent = "Escolha uma variação antes de adicionar.";
+      select.focus();
+      return;
+    }
     const variationId = select?.value || undefined;
     const variationName = select?.selectedOptions?.[0]?.textContent || undefined;
     const key = button.dataset.productId + ":" + (variationId || "product");
@@ -629,41 +809,85 @@ export function renderCatalogHtml(
 </script>`
       : "";
   const catalogScript =
-    count > 0
+    totalCount > 0
       ? `<script${scriptNonce}>
 (() => {
-  const root = document.getElementById("catalog-products");
+  const root = document.getElementById("catalog-content");
   const search = document.getElementById("catalog-search");
   const category = document.getElementById("catalog-category");
   const sort = document.getElementById("catalog-sort");
-  const cards = [...root.querySelectorAll(".card")];
-  const update = () => {
-    const query = search.value.trim().toLocaleLowerCase("pt-BR");
-    cards.forEach((card) => {
-      const matchesName = !query || card.dataset.name.includes(query);
-      const matchesCategory = !category.value || card.dataset.category === category.value;
-      card.hidden = !(matchesName && matchesCategory);
+  const clearSearch = document.getElementById("catalog-search-clear");
+  const noResults = document.getElementById("catalog-no-results");
+  const noResultsTerm = document.getElementById("catalog-no-results-term");
+  const resultsStatus = document.getElementById("catalog-results-status");
+  const cards = [...root.querySelectorAll(".catalog-item")];
+  const normalize = (value) => value.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLocaleLowerCase("pt-BR");
+  const syncChips = () => {
+    document.querySelectorAll("[data-category-filter]").forEach((chip) => {
+      const selected = (category?.value || "") === chip.dataset.categoryFilter;
+      chip.classList.toggle("selected", selected);
+      chip.setAttribute("aria-pressed", String(selected));
     });
-    const ordered = [...cards].sort((a, b) => {
-      if (sort.value === "price-asc") return Number(a.dataset.price) - Number(b.dataset.price);
-      if (sort.value === "price-desc") return Number(b.dataset.price) - Number(a.dataset.price);
-      return a.dataset.name.localeCompare(b.dataset.name, "pt-BR");
-    });
-    const anchor = root.querySelector(".more-note");
-    ordered.forEach((card) => root.insertBefore(card, anchor));
   };
-  search.addEventListener("input", update);
-  category.addEventListener("change", update);
+  const update = () => {
+    const query = normalize(search.value.trim());
+    const selectedCategory = category?.value || "";
+    let visibleCount = 0;
+    cards.forEach((card) => {
+      const matchesSearch = !query || card.dataset.search.includes(query);
+      const matchesCategory = !selectedCategory || card.dataset.category === selectedCategory;
+      const visible = matchesSearch && matchesCategory;
+      card.hidden = !visible;
+      if (visible) visibleCount += 1;
+    });
+    root.querySelectorAll(".catalog-grid").forEach((grid) => {
+      const ordered = [...grid.querySelectorAll(".catalog-item")].sort((a, b) => {
+        if (sort.value === "price-asc") return Number(a.dataset.price) - Number(b.dataset.price);
+        if (sort.value === "price-desc") return Number(b.dataset.price) - Number(a.dataset.price);
+        return a.dataset.name.localeCompare(b.dataset.name, "pt-BR");
+      });
+      const anchor = grid.querySelector(".more-note");
+      ordered.forEach((card) => grid.insertBefore(card, anchor));
+    });
+    clearSearch.hidden = search.value.length === 0;
+    noResults.hidden = visibleCount > 0;
+    noResultsTerm.textContent = query ? '"' + search.value.trim() + '"' : "os filtros selecionados";
+    const hasActiveFilter = Boolean(query || selectedCategory);
+    resultsStatus.textContent = hasActiveFilter ? visibleCount + (visibleCount === 1 ? " resultado" : " resultados") : "";
+    syncChips();
+  };
+  let searchTimer;
+  search.addEventListener("input", () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(update, 140);
+  });
+  clearSearch.addEventListener("click", () => { search.value = ""; update(); search.focus(); });
+  category?.addEventListener("change", update);
   sort.addEventListener("change", update);
+  document.querySelectorAll("[data-category-filter]").forEach((chip) => chip.addEventListener("click", () => {
+    if (!category) return;
+    category.value = chip.dataset.categoryFilter;
+    category.dispatchEvent(new Event("change", { bubbles: true }));
+  }));
+  document.getElementById("catalog-clear-search")?.addEventListener("click", () => { search.value = ""; update(); search.focus(); });
+  document.getElementById("catalog-clear-filters")?.addEventListener("click", () => { if (category) category.value = ""; update(); });
+
   const enhanceSelect = (select) => {
     const field = select.closest(".catalog-select-field");
-    const fieldLabel = field.querySelector("span").textContent;
+    const fieldLabel = field.dataset.triggerLabel || select.getAttribute("aria-label") || "Selecionar";
     const trigger = document.createElement("button");
     trigger.type = "button";
     trigger.className = "catalog-select-trigger";
     trigger.setAttribute("aria-haspopup", "listbox");
     trigger.setAttribute("aria-expanded", "false");
-    trigger.setAttribute("aria-label", "Escolher " + fieldLabel.toLocaleLowerCase("pt-BR"));
+    trigger.setAttribute("aria-label", fieldLabel);
+    const triggerIcon = document.createElement("span");
+    triggerIcon.className = "catalog-select-trigger-icon";
+    triggerIcon.setAttribute("aria-hidden", "true");
+    triggerIcon.textContent = "☷";
+    const triggerText = document.createElement("span");
+    triggerText.className = "catalog-select-trigger-text";
+    trigger.append(triggerIcon, triggerText);
 
     const dialog = document.createElement("div");
     dialog.className = "catalog-select-dialog";
@@ -690,7 +914,11 @@ export function renderCatalogHtml(
     dialog.append(panel);
 
     const syncTrigger = () => {
-      trigger.textContent = select.selectedOptions[0]?.textContent || "Selecionar";
+      const selectedText = select.selectedOptions[0]?.textContent || fieldLabel;
+      const filterActive = field.classList.contains("filter-field") && Boolean(select.value);
+      triggerText.textContent = filterActive ? selectedText : fieldLabel;
+      trigger.classList.toggle("active", filterActive);
+      trigger.title = filterActive ? "Filtro: " + selectedText : fieldLabel;
     };
     const renderOptions = () => {
       options.replaceChildren(...[...select.options].map((option) => {
@@ -735,7 +963,55 @@ export function renderCatalogHtml(
     document.body.append(dialog);
     syncTrigger();
   };
-  [category, sort].forEach(enhanceSelect);
+  [category, sort].filter(Boolean).forEach(enhanceSelect);
+  document.querySelectorAll(".product-order").forEach((link) => link.addEventListener("click", (event) => {
+    const card = link.closest(".product-card");
+    const variation = card.querySelector(".variation-select");
+    const error = card.querySelector(".variation-error");
+    if (variation && !variation.closest("[hidden]") && !variation.value) {
+      event.preventDefault();
+      error.textContent = "Escolha uma variação antes de pedir.";
+      variation.focus();
+      return;
+    }
+    if (error) error.textContent = "";
+    const variationName = variation?.selectedOptions?.[0]?.dataset.variationName;
+    const itemUrl = new URL(location.origin + location.pathname);
+    itemUrl.searchParams.set("produto", link.dataset.productId);
+    itemUrl.hash = "produto-" + link.dataset.productId;
+    const parts = [
+      "Olá! Vi seu catálogo e gostaria de pedir:",
+      "*" + link.dataset.productName + "*",
+      variationName ? "Variação: " + variationName : "",
+      "Valor: " + link.dataset.priceLabel,
+      "Unidade: " + link.dataset.unitLabel,
+      "Link: " + itemUrl.toString(),
+    ].filter(Boolean);
+    link.href = "https://wa.me/" + link.dataset.whatsapp + "?text=" + encodeURIComponent(parts.join("\\n"));
+  }));
+  document.querySelectorAll(".variation-select").forEach((select) => select.addEventListener("change", () => {
+    const error = select.closest(".variation-field")?.querySelector(".variation-error");
+    if (error) error.textContent = "";
+  }));
+  const floatingWhatsapp = document.querySelector(".floating-whatsapp");
+  if (floatingWhatsapp) {
+    const blockers = [...document.querySelectorAll(".catalog-tools, .catalog-section-nav, .listing-header, .variation-field, .catalog-item .bottom, .order, .request-service, .add-cart, .cart-toggle")];
+    let floatingFrame;
+    const syncFloatingWhatsapp = () => {
+      cancelAnimationFrame(floatingFrame);
+      floatingFrame = requestAnimationFrame(() => {
+        const floatingBox = floatingWhatsapp.getBoundingClientRect();
+        const overlapsAction = blockers.some((blocker) => {
+          const box = blocker.getBoundingClientRect();
+          return box.bottom > floatingBox.top && box.top < floatingBox.bottom && box.right > floatingBox.left && box.left < floatingBox.right;
+        });
+        floatingWhatsapp.classList.toggle("obscured", overlapsAction);
+      });
+    };
+    addEventListener("scroll", syncFloatingWhatsapp, { passive: true });
+    addEventListener("resize", syncFloatingWhatsapp, { passive: true });
+    syncFloatingWhatsapp();
+  }
   update();
 })();
 </script>`
@@ -748,6 +1024,7 @@ export function renderCatalogHtml(
 <meta name="description" content="${escapeHtml(heroTagline)} de ${escapeHtml(catalog.businessName)}. Conheça a vitrine e solicite seu atendimento.">
 <meta property="og:title" content="${escapeHtml(catalog.businessName)} — Catálogo">
 <meta property="og:description" content="${countLabel}. Conheça a vitrine e solicite seu atendimento.">
+${shareImageMeta}
 <title>${escapeHtml(catalog.businessName)} — Catálogo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -922,27 +1199,744 @@ export function renderCatalogHtml(
   @media (max-width: 360px) {
     .booking-row { grid-template-columns: 1fr; }
   }
+
+  /* Vitrine pública: composição comercial inspirada na identidade configurada. */
+  :root { --catalog-accent: ${palette.base}; --catalog-dark: ${heroDark}; --catalog-soft: ${palette.bg}; --catalog-accent-text: ${accentText}; --ink: #24181e; --muted: #6d6266; --paper: #faf8f6; }
+  body { background: var(--paper); color: var(--ink); padding-bottom: env(safe-area-inset-bottom); }
+  .visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0,0,0,0) !important; white-space: nowrap !important; border: 0 !important; }
+  .promo { min-height: 42px; padding: calc(10px + env(safe-area-inset-top)) 18px 10px; display: grid; place-items: center; background: var(--catalog-dark); color: #fff; font-size: clamp(13px, 2.5vw, 15px); line-height: 1.35; }
+  .hero-bg { ${heroBackground} min-height: 410px; padding: calc(48px + env(safe-area-inset-top)) 20px 88px; border-radius: 0 0 34px 34px; color: #fff; text-align: left; isolation: isolate; }
+  .promo + .hero-bg { padding-top: 48px; }
+  .hero-bg::before { z-index: -1; top: -42%; right: 35%; width: 760px; height: 520px; border: 2px solid ${palette.light}66; border-radius: 50%; background: transparent; transform: rotate(-16deg); }
+  .hero-bg::after { z-index: -1; inset: 0; width: auto; height: auto; border-radius: 0; background: linear-gradient(90deg, rgba(15,6,10,.18), transparent 70%); }
+  .pattern { z-index: -1; opacity: .32; }
+  .hero-shell { width: min(100%, 1160px); min-height: 360px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, .9fr) minmax(320px, 1.1fr); align-items: center; gap: clamp(20px, 4vw, 54px); position: relative; z-index: 1; }
+  .hero-shell.no-visual { grid-template-columns: minmax(0, 680px); justify-content: center; text-align: center; }
+  .hero-shell.no-visual .hero-identity { align-items: center; }
+  .hero-shell.no-visual .order.hero { margin-inline: auto; }
+  .hero-copy { min-width: 0; }
+  .hero-identity { display: flex; align-items: flex-start; flex-direction: column; gap: 18px; }
+  .avatar { flex: none; width: 88px; height: 88px; margin: 0; border: 4px solid rgba(255,255,255,.82); background: #fffaf8; color: var(--catalog-dark); box-shadow: 0 10px 26px rgba(20,8,12,.22); font-size: 36px; }
+  .default-avatar { display: grid; place-items: center; }
+  .default-avatar svg { width: 54px; height: 54px; color: var(--catalog-accent); }
+  .hero-title { min-width: 0; }
+  h1 { font-size: clamp(34px, 5vw, 52px); line-height: 1.02; letter-spacing: -.035em; text-wrap: balance; }
+  .tagline { margin-top: 10px; font-size: 13px; line-height: 1.3; letter-spacing: .2em; font-weight: 800; opacity: .72; }
+  .bio { max-width: 560px; margin: 22px 0 0; font-size: clamp(16px, 2vw, 19px); line-height: 1.55; opacity: .94; }
+  .count { margin-top: 18px; padding: 8px 15px; border-color: rgba(255,255,255,.22); background: rgba(255,255,255,.12); font-size: 14px; font-weight: 700; backdrop-filter: blur(8px); }
+  .order.hero { min-height: 50px; margin: 20px 0 0; padding: 0 21px; background: #fff; color: var(--catalog-dark); border-color: #fff; box-shadow: 0 12px 28px rgba(19,7,11,.2); }
+  .hero-cover { width: 100%; aspect-ratio: 1.2; margin: 0; border: 8px solid rgba(255,255,255,.14); border-radius: 34% 18% 30% 16%; overflow: hidden; background: rgba(255,255,255,.1); box-shadow: 0 24px 45px rgba(18,6,11,.3); transform: rotate(1.5deg); }
+  .hero-cover img { width: 100%; height: 100%; display: block; object-fit: cover; }
+  .hero-showcase { width: min(100%, 570px); min-height: 390px; margin: 0; position: relative; filter: drop-shadow(0 24px 24px rgba(18,6,11,.28)); }
+  .hero-showcase::before { content: ""; position: absolute; inset: 10% 5% 3% 10%; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.2), transparent 67%); }
+  .hero-showcase-item { position: absolute; display: block; object-fit: cover; border: 5px solid rgba(255,255,255,.2); background: var(--catalog-soft); box-shadow: 0 16px 32px rgba(19,7,11,.3); }
+  .hero-showcase-item-1 { z-index: 3; top: 0; right: 3%; width: 50%; height: 52%; border-radius: 48% 48% 24% 24%; }
+  .hero-showcase-item-2 { z-index: 2; left: 1%; bottom: 2%; width: 59%; height: 48%; border-radius: 50% 30% 28% 42%; transform: rotate(-2deg); }
+  .hero-showcase-item-3 { z-index: 4; right: -2%; bottom: -3%; width: 54%; height: 45%; border-radius: 48% 48% 28% 28%; transform: rotate(1.5deg); }
+  .hero-showcase-1 .hero-showcase-item-1 { inset: 4% 2% 0 auto; width: 88%; height: 90%; border-radius: 42% 20% 34% 18%; }
+  .hero-showcase-2 .hero-showcase-item-1 { width: 58%; height: 58%; }
+  .hero-showcase-2 .hero-showcase-item-2 { left: 4%; width: 66%; height: 54%; }
+
+  .catalog-tools { width: min(calc(100% - 32px), 1160px); margin: -48px auto 20px; padding: 18px; display: block; border: 1px solid rgba(182,95,114,.18); border-radius: 24px; background: #fff; box-shadow: 0 16px 34px rgba(74,35,50,.12); }
+  .search-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; }
+  .catalog-tools .search-control { min-height: 52px; padding: 0 12px 0 16px; display: flex; align-items: center; gap: 11px; border: 1px solid #eadde0; border-radius: 16px; background: #fff; color: #a2989c; }
+  .search-control > svg { flex: none; width: 23px; height: 23px; }
+  .catalog-tools .search-control input { min-height: 50px; padding: 0; border: 0; border-radius: 0; outline: 0; color: var(--ink); font-size: 16px; }
+  .search-control:focus-within { border-color: var(--catalog-accent); box-shadow: 0 0 0 3px ${palette.light}44; }
+  .search-clear { flex: none; width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font: 600 25px/1 "Nunito Sans", sans-serif; cursor: pointer; }
+  .catalog-tools .catalog-select-field { display: block; }
+  .catalog-select-trigger { min-height: 52px; padding: 0 16px; display: inline-flex; align-items: center; justify-content: center; gap: 9px; border-color: #eadde0; border-radius: 16px; color: var(--catalog-dark); font-weight: 800; text-align: center; }
+  .catalog-select-trigger::after { content: none; }
+  .filter-field .catalog-select-trigger { min-width: 108px; padding-inline: 12px; }
+  .catalog-select-trigger.active { border-color: var(--catalog-accent); background: var(--catalog-soft); }
+  .catalog-select-trigger-icon { flex: none; width: 22px; font-size: 21px; line-height: 1; text-align: center; }
+  .catalog-select-trigger-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .category-chips { margin-top: 15px; display: flex; gap: 10px; overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-width: none; scroll-snap-type: x proximity; }
+  .category-chips::-webkit-scrollbar { display: none; }
+  .category-chip { flex: 0 0 auto; min-height: 44px; padding: 0 20px; border: 1px solid ${palette.light}; border-radius: 999px; background: #fff; color: var(--catalog-dark); font: 800 14px "Nunito Sans", sans-serif; cursor: pointer; scroll-snap-align: start; }
+  .category-chip.selected { border-color: var(--catalog-dark); background: var(--catalog-dark); color: #fff; }
+
+  .catalog-section-nav { width: min(calc(100% - 32px), 1160px); margin: 28px auto; padding: 0; gap: 8px; border-radius: 17px; }
+  .catalog-section-nav a { min-height: 56px; border-color: ${palette.light}; border-radius: 16px; color: var(--catalog-dark); font-size: 16px; }
+  .catalog-section-nav a.active { border-color: var(--catalog-dark); background: var(--catalog-dark); color: #fff; box-shadow: 0 9px 22px rgba(74,35,50,.18); }
+  .catalog-section-nav span { background: ${palette.light}33; color: inherit; }
+  .catalog-section-nav a.active span { background: rgba(255,255,255,.16); }
+  main, main.services-only { max-width: 1160px; padding: 4px 16px 34px; gap: 18px; }
+  .listing-header { display: flex; align-items: end; justify-content: space-between; gap: 18px; }
+  .listing-header h2 { color: var(--ink); font-size: clamp(25px, 3vw, 32px); line-height: 1.12; font-weight: 800; letter-spacing: -.025em; }
+  .listing-header p { margin-top: 5px; color: var(--muted); font-size: 15px; line-height: 1.4; }
+  .sort-field { flex: none; }
+  .sort-field .catalog-select-trigger { min-height: 44px; padding-inline: 10px; border-color: transparent; background: transparent; }
+  .results-status { min-height: 0; color: var(--muted); font-size: 13px; }
+  .results-status:empty { display: none; }
+  .catalog-section { gap: 0; }
+  .catalog-grid { gap: 14px; grid-template-columns: minmax(0, 1fr); align-items: stretch; }
+  .card { min-width: 0; border-color: rgba(182,95,114,.16); border-radius: 20px; background: #fff; box-shadow: 0 8px 22px rgba(74,35,50,.08); }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(74,35,50,.12); }
+  .photo { width: 100%; aspect-ratio: 4 / 3; overflow: hidden; background: var(--catalog-soft); }
+  .photo img, .placeholder { width: 100%; height: 100%; object-fit: cover; }
+  .photo .gallery { width: 100%; height: 100%; }
+  .info { padding: 16px; }
+  .info h2 { color: var(--ink); font-size: 19px; line-height: 1.24; font-weight: 800; display: -webkit-box; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .category { margin-bottom: 6px; color: var(--catalog-accent); font-size: 11px; letter-spacing: .11em; }
+  .desc { color: var(--muted); line-height: 1.45; display: -webkit-box; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .product-card .variants .variant:nth-child(n+4) { display: none; }
+  .variant { border-color: ${palette.light}; background: #fff; color: var(--catalog-dark); }
+  .variation-field { margin-top: 12px; display: grid; gap: 6px; color: var(--muted); font-size: 12px; font-weight: 800; }
+  .variation-field[hidden] { display: none !important; }
+  .variation-select { min-height: 44px; margin: 0; border-radius: 13px; color: var(--ink); }
+  .variation-error { min-height: 0; color: #a13f54; font-size: 12px; font-weight: 700; }
+  .variation-error:empty { display: none; }
+  .bottom { padding-top: 15px; }
+  .price { color: var(--catalog-accent); font-size: 25px; }
+  .price .unit, .price .from { color: var(--catalog-dark); }
+  .order { width: 100%; min-height: 46px; padding: 0 14px; justify-content: center; border-color: var(--catalog-accent); color: var(--catalog-accent); }
+  .availability { min-height: 44px; margin-top: 12px; display: grid; place-items: center; border-radius: 999px; background: #f2edef; color: var(--muted); font-size: 13px; font-weight: 800; }
+  .request-service, .booking-submit, .add-cart, .reserve-submit { min-height: 48px; background: var(--catalog-accent); color: var(--catalog-accent-text); }
+  .service-card .info { padding: 20px; }
+  .service-card .info h2 { font-size: 21px; }
+  .no-results { padding: 34px 20px; border: 1px dashed ${palette.light}; border-radius: 20px; background: #fff; text-align: center; }
+  .no-results h3 { font-size: 21px; }
+  .no-results p { margin-top: 7px; color: var(--muted); }
+  .no-results > div { margin-top: 18px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+  .no-results button { min-height: 44px; padding: 0 16px; border: 1px solid var(--catalog-accent); border-radius: 999px; background: #fff; color: var(--catalog-dark); font: 800 14px "Nunito Sans", sans-serif; cursor: pointer; }
+  .floating-whatsapp { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: max(18px, calc(env(safe-area-inset-bottom) + 14px)); z-index: 25; width: 58px; height: 58px; display: grid; place-items: center; border: 4px solid #fff; border-radius: 50%; background: var(--catalog-accent); color: var(--catalog-accent-text); box-shadow: 0 12px 28px rgba(36,24,30,.24); transition: opacity .15s ease, transform .15s ease; }
+  .floating-whatsapp svg { width: 29px; height: 29px; }
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid ${palette.light}; outline-offset: 3px; }
+  footer { padding-bottom: max(52px, calc(env(safe-area-inset-bottom) + 34px)); }
+  footer .footer-brand a, footer .footer-cta a { min-height: 44px; display: inline-flex; align-items: center; }
+  .floating-whatsapp.obscured { opacity: 0; pointer-events: none; transform: translateY(10px); }
+
+  @media (min-width: 360px) {
+    .products-section .catalog-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .product-card .info { padding: 13px; }
+    .product-card .info h2 { font-size: 17px; }
+    .product-card .price { font-size: 21px; }
+    .product-card .variant { padding: 4px 7px; font-size: 11px; }
+  }
+  @media (min-width: 680px) {
+    .services-section .catalog-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .product-card .info { padding: 18px; }
+    .product-card .info h2 { font-size: 20px; }
+    .product-card .price { font-size: 25px; }
+  }
+  @media (min-width: 1040px) {
+    .products-section .catalog-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+  }
+  @media (max-width: 720px) {
+    .hero-bg { min-height: 520px; padding: calc(38px + env(safe-area-inset-top)) 18px 88px; }
+    .promo + .hero-bg { padding-top: 38px; }
+    .hero-shell { min-height: 390px; grid-template-columns: minmax(0, 1.03fr) minmax(150px, .97fr); gap: 8px; }
+    .hero-identity { align-items: flex-start; flex-direction: column; gap: 14px; }
+    .avatar { width: 74px; height: 74px; }
+    h1 { font-size: clamp(30px, 8vw, 39px); }
+    .tagline { font-size: 11px; letter-spacing: .16em; }
+    .bio { margin-top: 16px; font-size: 15px; }
+    .count { margin-top: 14px; font-size: 12px; }
+    .order.hero { min-height: 48px; margin-top: 16px; }
+    .hero-cover { aspect-ratio: .82; border-width: 5px; border-radius: 38% 16% 34% 18%; }
+    .hero-showcase { min-height: 340px; margin-right: -54px; }
+    .hero-showcase-item { border-width: 3px; }
+    .catalog-tools { margin-top: -48px; }
+    .catalog-section-nav { margin-block: 24px; }
+    .catalog-section-nav a { font-size: 14px; }
+  }
+  @media (max-width: 359px) {
+    .hero-bg { padding-inline: 16px; }
+    .hero-shell { grid-template-columns: 1fr; text-align: center; }
+    .hero-identity { align-items: center; }
+    .hero-cover { width: min(100%, 250px); max-height: 190px; margin: 0 auto; aspect-ratio: 1.35; }
+    .hero-showcase { width: min(100%, 280px); min-height: 220px; margin: 0 auto; }
+    .order.hero { margin-inline: auto; }
+    .catalog-tools { width: calc(100% - 24px); padding: 13px; }
+    .search-row { grid-template-columns: minmax(0, 1fr); }
+    .filter-field .catalog-select-trigger { width: 100%; }
+    .listing-header { align-items: flex-start; flex-direction: column; }
+    .sort-field { align-self: flex-end; }
+    .booking-row { grid-template-columns: 1fr; }
+  }
+  @media (min-width: 360px) and (max-width: 430px) {
+    .catalog-tools .search-control { padding-inline: 12px 8px; gap: 8px; }
+    .catalog-tools .search-control input { font-size: 14px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+  }
+
+  /* Contrato visual da vitrine pública — referência 862 × 1800. */
+  :root {
+    --wine: #4A2332;
+    --pink: #B65F72;
+    --lime: #DCE86A;
+    --off-white: #FAF8F6;
+    --soft-pink: #F5E5E8;
+    --surface: #FFFFFF;
+    --ink: #24181E;
+    --warm-gray: #6D6266;
+  }
+  html { overflow-x: hidden; background: var(--off-white); }
+  body { min-width: 0; overflow-x: hidden; background: var(--off-white); color: var(--ink); }
+  .promo {
+    min-height: 58px;
+    padding: 0 20px;
+    display: grid;
+    place-items: center;
+    border-bottom: 1px solid rgba(182,95,114,.58);
+    background: var(--wine);
+    color: #fff;
+    font-size: 19px;
+    line-height: 1.2;
+    font-weight: 800;
+    text-align: center;
+  }
+  .public-catalog-hero,
+  .hero-bg {
+    position: relative;
+    min-height: 624px;
+    height: 624px;
+    padding: 0;
+    overflow: hidden;
+    isolation: isolate;
+    border-radius: 0 0 18px 18px;
+    background: radial-gradient(circle at 58% 34%, #5A1B31 0, var(--wine) 56%, #351521 100%);
+    color: #fff;
+    text-align: left;
+  }
+  .promo + .hero-bg { padding-top: 0; }
+  .hero-bg::before,
+  .hero-bg::after {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    pointer-events: none;
+    background: transparent;
+  }
+  .hero-bg::before {
+    top: -210px;
+    left: -200px;
+    width: 480px;
+    height: 470px;
+    border: 2px solid rgba(182,95,114,.62);
+    border-radius: 46%;
+    transform: rotate(30deg);
+  }
+  .hero-bg::after {
+    top: 72px;
+    left: 166px;
+    width: 760px;
+    height: 430px;
+    border: 2px solid rgba(182,95,114,.48);
+    border-radius: 50%;
+    transform: rotate(-12deg);
+  }
+  .pattern { z-index: 0; opacity: .16; }
+  .hero-shell,
+  .hero-shell.no-visual {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: none;
+    min-height: 624px;
+    height: 624px;
+    margin: 0;
+    display: block;
+    text-align: left;
+  }
+  .hero-copy {
+    position: absolute;
+    z-index: 4;
+    top: 50px;
+    left: 48px;
+    width: 410px;
+    min-width: 0;
+  }
+  .hero-identity,
+  .hero-shell.no-visual .hero-identity {
+    display: block;
+    text-align: left;
+  }
+  .avatar {
+    width: 138px;
+    height: 138px;
+    margin: 0;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border: 5px solid rgba(255,255,255,.28);
+    border-radius: 50%;
+    background: var(--off-white);
+    color: var(--wine);
+    box-shadow: 0 12px 28px rgba(25,7,14,.24);
+    font-size: 45px;
+    font-weight: 800;
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .default-avatar svg { width: 72px; height: 72px; color: var(--pink); }
+  .hero-title { margin-top: 21px; }
+  h1,
+  .hero-title h1 {
+    margin: 0;
+    max-width: 410px;
+    color: #fff;
+    font-size: 44px;
+    line-height: 1.08;
+    font-weight: 800;
+    letter-spacing: -.035em;
+    text-wrap: nowrap;
+  }
+  .tagline {
+    margin-top: 17px;
+    color: #D77B8E;
+    font-size: 19px;
+    line-height: 1.2;
+    font-weight: 800;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    opacity: 1;
+  }
+  .bio {
+    max-width: 390px;
+    margin: 25px 0 0;
+    color: #fff;
+    font-size: 22px;
+    line-height: 1.58;
+    font-weight: 500;
+    opacity: 1;
+  }
+  .count {
+    min-width: 246px;
+    min-height: 48px;
+    margin-top: 22px;
+    margin-left: -5px;
+    padding: 0 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 999px;
+    background: linear-gradient(100deg, rgba(182,95,114,.72), rgba(182,95,114,.94));
+    color: #fff;
+    font-size: 17px;
+    line-height: 1;
+    font-weight: 600;
+    backdrop-filter: none;
+  }
+  .order.hero,
+  .hero-shell.no-visual .order.hero {
+    width: max-content;
+    min-width: 294px;
+    min-height: 60px;
+    margin: 26px 0 0 -5px;
+    padding: 0 22px;
+    display: inline-flex;
+    justify-content: center;
+    gap: 13px;
+    border: 0;
+    border-radius: 999px;
+    background: #fff;
+    color: var(--wine);
+    box-shadow: 0 12px 28px rgba(24,7,13,.18);
+    font-size: 19px;
+    font-weight: 800;
+  }
+  .order.hero svg { width: 27px; height: 27px; }
+  .public-catalog-cover,
+  .hero-cover {
+    position: absolute;
+    z-index: 2;
+    right: 0;
+    bottom: 0;
+    width: 57.66%;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    transform: none;
+    pointer-events: none;
+  }
+  .hero-cover img {
+    width: 100%;
+    height: auto;
+    height: 624px;
+    max-height: 624px;
+    display: block;
+    object-fit: fill;
+    object-position: right bottom;
+  }
+  .hero-showcase {
+    position: absolute;
+    z-index: 2;
+    right: -16px;
+    bottom: -4px;
+    width: 57%;
+    height: 590px;
+    min-height: 0;
+    margin: 0;
+    filter: drop-shadow(0 22px 24px rgba(20,5,12,.28));
+    pointer-events: none;
+  }
+  .hero-showcase::before { display: none; }
+  .hero-showcase-item {
+    position: absolute;
+    display: block;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    object-fit: cover;
+  }
+  .hero-showcase-item-1 { z-index: 2; top: 28px; right: 8px; width: 48%; height: 250px; border-radius: 48% 48% 28% 28%; transform: none; }
+  .hero-showcase-item-2 { z-index: 3; left: 0; bottom: 74px; width: 62%; height: 280px; border-radius: 50% 38% 42% 44%; transform: rotate(-3deg); }
+  .hero-showcase-item-3 { z-index: 4; right: -6px; bottom: -8px; width: 62%; height: 296px; border-radius: 50% 50% 18% 18%; transform: none; }
+  .hero-showcase-1 .hero-showcase-item-1 { inset: auto 0 0 auto; width: 100%; height: 90%; border-radius: 0; object-fit: contain; }
+  .hero-showcase-2 .hero-showcase-item-1 { width: 57%; height: 50%; }
+  .hero-showcase-2 .hero-showcase-item-2 { left: 1%; width: 69%; height: 58%; }
+
+  .catalog-tools {
+    position: relative;
+    z-index: 6;
+    width: calc(100% - 40px);
+    max-width: none;
+    min-height: 204px;
+    margin: -46px 20px 0;
+    height: 204px;
+    padding: 26px 26px 20px;
+    display: block;
+    overflow: hidden;
+    border: 1px solid rgba(74,35,50,.08);
+    border-radius: 22px;
+    background: #fff;
+    box-shadow: 0 15px 30px rgba(74,35,50,.11);
+  }
+  .search-row { display: grid; grid-template-columns: minmax(0, 1fr) 158px; gap: 16px; }
+  .catalog-tools .search-control {
+    min-height: 70px;
+    padding: 0 20px;
+    gap: 16px;
+    border: 1px solid #E5D8DB;
+    border-radius: 18px;
+    background: #fff;
+    color: #B1A8AB;
+  }
+  .search-control > svg { width: 31px; height: 31px; stroke-width: 1.8; }
+  .catalog-tools .search-control input {
+    min-width: 0;
+    min-height: 68px;
+    font-size: 20px;
+    font-weight: 500;
+  }
+  .catalog-tools .search-control input::placeholder { color: #B8B0B3; opacity: 1; }
+  .catalog-select-trigger {
+    min-height: 70px;
+    border: 1px solid #E5D8DB;
+    border-radius: 18px;
+    background: #fff;
+    color: var(--pink);
+    font-size: 18px;
+    font-weight: 800;
+  }
+  .filter-field .catalog-select-trigger { width: 158px; min-width: 158px; padding: 0 20px; }
+  .catalog-select-trigger-icon {
+    width: 29px;
+    height: 29px;
+    flex: none;
+    overflow: hidden;
+    background: center / 27px 27px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23B65F72' stroke-width='1.8' stroke-linecap='round'%3E%3Cpath d='M4 7h6m4 0h6M4 12h10m4 0h2M4 17h3m4 0h9'/%3E%3Ccircle cx='12' cy='7' r='2'/%3E%3Ccircle cx='16' cy='12' r='2'/%3E%3Ccircle cx='9' cy='17' r='2'/%3E%3C/svg%3E");
+    color: transparent;
+    font-size: 0;
+  }
+  .category-chips {
+    width: 100%;
+    margin-top: 25px;
+    padding: 0 1px 2px;
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scroll-padding-inline: 1px;
+    scroll-snap-type: x mandatory;
+  }
+  .category-chip {
+    min-width: 0;
+    min-height: 58px;
+    padding: 0 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 auto;
+    border: 1px solid var(--pink);
+    border-radius: 20px;
+    background: #fff;
+    color: var(--wine);
+    font-size: 18px;
+    font-weight: 800;
+    text-decoration: none;
+    scroll-snap-align: start;
+  }
+  .category-chip.selected { border-color: var(--wine); background: var(--wine); color: #fff; }
+  .catalog-section-nav {
+    width: calc(100% - 68px);
+    max-width: none;
+    min-height: 64px;
+    margin: 35px 34px 27px;
+    gap: 8px;
+  }
+  .catalog-section-nav a {
+    min-height: 64px;
+    border: 1px solid var(--pink);
+    border-radius: 17px;
+    background: #fff;
+    color: var(--wine);
+    font-size: 20px;
+    font-weight: 800;
+  }
+  .catalog-section-nav a.active {
+    border-color: transparent;
+    background: linear-gradient(100deg, var(--wine), var(--pink));
+    color: #fff;
+    box-shadow: none;
+  }
+  .catalog-section-nav span { min-width: 32px; padding: 3px 9px; border-radius: 999px; background: var(--soft-pink); color: var(--pink); }
+  .catalog-section-nav a.active span { background: rgba(255,255,255,.17); color: #fff; }
+  main,
+  main.services-only {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0 34px 70px;
+    display: grid;
+    gap: 26px;
+  }
+  .listing-header {
+    min-height: 68px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+  }
+  .listing-header h2 { color: var(--wine); font-size: 29px; line-height: 1.1; font-weight: 800; letter-spacing: -.025em; }
+  .listing-header p { margin-top: 8px; color: var(--warm-gray); font-size: 17px; line-height: 1.35; }
+  .sort-field .catalog-select-trigger {
+    min-width: 136px;
+    min-height: 52px;
+    padding: 0 4px;
+    border: 0;
+    background: transparent;
+    color: var(--wine);
+    font-size: 17px;
+  }
+  .results-status {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    white-space: nowrap !important;
+  }
+  .catalog-section { min-width: 0; gap: 0; }
+  .catalog-grid,
+  .products-section .catalog-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    align-items: stretch;
+  }
+  .card {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid rgba(182,95,114,.15);
+    border-radius: 19px;
+    background: #fff;
+    box-shadow: 0 8px 22px rgba(74,35,50,.08);
+  }
+  .card:hover { transform: none; box-shadow: 0 8px 22px rgba(74,35,50,.08); }
+  .photo { width: 100%; height: 228px; aspect-ratio: auto; overflow: hidden; background: var(--soft-pink); }
+  .photo img,
+  .photo .gallery,
+  .placeholder { width: 100%; height: 100%; object-fit: cover; }
+  .gallery { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; }
+  .gallery img { min-width: 100%; scroll-snap-align: start; }
+  .info,
+  .product-card .info { min-width: 0; min-height: 310px; padding: 22px 19px 17px; display: flex; flex-direction: column; }
+  .category { margin: 0 0 10px; color: var(--pink); font-size: 14px; line-height: 1; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+  .info h2,
+  .product-card .info h2 {
+    color: var(--ink);
+    font-size: 23px;
+    line-height: 1.18;
+    font-weight: 800;
+    letter-spacing: -.015em;
+    -webkit-line-clamp: 2;
+  }
+  .desc { margin-top: 12px; color: var(--warm-gray); font-size: 17px; line-height: 1.42; -webkit-line-clamp: 2; }
+  .variants { margin-top: 14px; gap: 9px; }
+  .variant,
+  .product-card .variant { padding: 7px 13px; border: 1px solid var(--pink); border-radius: 999px; background: #fff; color: var(--pink); font-size: 14px; font-weight: 700; }
+  .variation-field { margin-top: 12px; }
+  .variation-select { min-height: 44px; }
+  .bottom { margin-top: auto; padding-top: 20px; }
+  .price,
+  .product-card .price { margin: 0 0 24px; color: var(--pink); font-size: 30px; line-height: 1; font-weight: 900; }
+  .price .unit { margin-left: 2px; color: var(--pink); font-size: 17px; font-weight: 700; }
+  .order:not(.hero) {
+    width: 100%;
+    min-height: 51px;
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    border: 1px solid var(--pink);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--pink);
+    font-size: 18px;
+    font-weight: 800;
+  }
+  .order:not(.hero) svg { width: 25px; height: 25px; }
+  .floating-whatsapp {
+    right: max(22px, env(safe-area-inset-right));
+    bottom: max(22px, calc(env(safe-area-inset-bottom) + 18px));
+    width: 96px;
+    height: 96px;
+    border: 5px solid #fff;
+    background: var(--pink);
+    color: #fff;
+    box-shadow: 0 12px 28px rgba(36,24,30,.24);
+  }
+  .floating-whatsapp svg { width: 48px; height: 48px; }
+
+  @media (min-width: 1040px) {
+    .products-section .catalog-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (min-width: 768px) {
+    .avatar { margin-left: 48px; }
+  }
+  @media (max-width: 767px) {
+    .promo { min-height: 48px; padding: 0 16px; font-size: 13px; }
+    .public-catalog-hero,
+    .hero-bg { min-height: 520px; height: 520px; border-radius: 0 0 18px 18px; }
+    .hero-shell,
+    .hero-shell.no-visual { min-height: 520px; height: 520px; }
+    .hero-bg::before { top: -165px; left: -250px; width: 450px; height: 420px; }
+    .hero-bg::after { top: 46px; left: -105px; width: 570px; height: 340px; }
+    .hero-copy { top: 32px; left: 20px; width: 52%; padding-left: 0; text-align: left; }
+    .avatar { width: 86px; height: 86px; border-width: 4px; font-size: 32px; }
+    .default-avatar svg { width: 49px; height: 49px; }
+    .hero-title { margin-top: 14px; }
+    h1,
+    .hero-title h1 { max-width: 100%; font-size: clamp(28px, 6.2vw, 34px); line-height: 1.06; text-wrap: wrap; }
+    .tagline { margin-top: 12px; font-size: 10px; line-height: 1.25; letter-spacing: .13em; }
+    .bio { max-width: 100%; margin-top: 15px; font-size: 14px; line-height: 1.45; }
+    .count { min-width: 0; min-height: 36px; margin-top: 14px; margin-left: 0; padding: 0 12px; font-size: 11px; white-space: nowrap; }
+    .order.hero,
+    .hero-shell.no-visual .order.hero { min-width: 0; min-height: 48px; margin: 15px 0 0; padding: 0 15px; gap: 8px; font-size: 13px; white-space: nowrap; }
+    .order.hero svg { width: 20px; height: 20px; }
+    .public-catalog-cover,
+    .hero-cover { right: -18px; bottom: 0; width: 64%; }
+    .hero-cover img { height: auto; max-height: 500px; object-fit: contain; }
+    .hero-showcase { right: -34px; bottom: 0; width: 64%; height: 450px; margin: 0; }
+    .hero-showcase-item-1 { top: 38px; right: 8px; height: 175px; }
+    .hero-showcase-item-2 { bottom: 66px; height: 205px; }
+    .hero-showcase-item-3 { bottom: -5px; height: 215px; }
+    .catalog-tools { width: calc(100% - 28px); min-height: 154px; height: 154px; margin: -45px 14px 0; padding: 16px; border-radius: 22px; }
+    .search-row { grid-template-columns: minmax(0, 1fr) 108px; gap: 12px; }
+    .catalog-tools .search-control { min-height: 62px; padding: 0 14px; gap: 10px; border-radius: 16px; }
+    .search-control > svg { width: 24px; height: 24px; }
+    .catalog-tools .search-control input { min-height: 60px; font-size: 14px; font-weight: 700; }
+    .filter-field .catalog-select-trigger { width: 108px; min-width: 108px; min-height: 62px; padding: 0 9px; gap: 7px; border-radius: 16px; font-size: 12px; }
+    .catalog-select-trigger-icon { width: 22px; height: 22px; background-size: 22px 22px; }
+    .category-chips { margin-top: 16px; gap: 8px; padding-right: 1px; }
+    .category-chip { flex: 0 0 auto; min-width: max-content; min-height: 44px; padding: 0 15px; border-radius: 999px; font-size: 12px; }
+    .catalog-section-nav { width: calc(100% - 28px); min-height: 56px; margin: 24px 14px 23px; }
+    .catalog-section-nav a { min-height: 56px; border-radius: 16px; font-size: 13px; }
+    .catalog-section-nav span { min-width: 26px; padding: 3px 7px; }
+    main,
+    main.services-only { padding: 0 14px 58px; gap: 20px; }
+    .listing-header { min-height: 66px; align-items: center; }
+    .listing-header h2 { font-size: 24px; }
+    .listing-header p { margin-top: 6px; font-size: 13px; }
+    .sort-field .catalog-select-trigger { min-width: 104px; min-height: 44px; font-size: 14px; }
+    .catalog-grid,
+    .products-section .catalog-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .photo { height: clamp(142px, 32vw, 170px); }
+    .info,
+    .product-card .info { min-height: 266px; padding: 14px 12px 12px; }
+    .category { margin-bottom: 8px; font-size: 10px; }
+    .info h2,
+    .product-card .info h2 { font-size: 17px; line-height: 1.2; }
+    .desc { margin-top: 8px; font-size: 13px; line-height: 1.4; }
+    .variants { margin-top: 10px; gap: 6px; }
+    .variant,
+    .product-card .variant { padding: 5px 8px; font-size: 10px; }
+    .variation-field { margin-top: 9px; font-size: 10px; }
+    .variation-select { min-height: 38px; font-size: 11px; }
+    .bottom { padding-top: 14px; }
+    .price,
+    .product-card .price { margin-bottom: 16px; font-size: 22px; }
+    .price .unit { font-size: 12px; }
+    .order:not(.hero) { min-height: 45px; gap: 7px; font-size: 14px; }
+    .order:not(.hero) svg { width: 21px; height: 21px; }
+    .floating-whatsapp { right: 16px; width: 68px; height: 68px; border-width: 4px; }
+    .floating-whatsapp svg { width: 34px; height: 34px; }
+  }
+  @media (max-width: 430px) {
+    .hero-copy { width: 55%; }
+    .bio { font-size: 13px; }
+    .order.hero { padding-inline: 12px; font-size: 12px; }
+    .search-row { grid-template-columns: minmax(0, 1fr) 94px; gap: 8px; }
+    .filter-field .catalog-select-trigger { width: 94px; min-width: 94px; }
+    .catalog-tools .search-control input { font-size: 13px; }
+  }
+  @media (max-width: 359px) {
+    .hero-shell,
+    .hero-shell.no-visual { display: block; text-align: left; }
+    .hero-copy { width: 58%; }
+    .hero-identity { text-align: left; }
+    .avatar { width: 76px; height: 76px; }
+    .bio { font-size: 12px; }
+    .count { font-size: 10px; }
+    .order.hero { margin-inline: 0; font-size: 11px; }
+    .hero-cover { width: 68%; }
+    .catalog-tools { width: calc(100% - 24px); margin-inline: 12px; padding: 13px; }
+    .search-row { grid-template-columns: minmax(0, 1fr) 82px; }
+    .filter-field .catalog-select-trigger { width: 82px; min-width: 82px; padding-inline: 6px; }
+    .catalog-select-trigger-text { font-size: 11px; }
+    .listing-header { flex-direction: row; align-items: center; }
+    .sort-field { align-self: center; }
+    .catalog-grid,
+    .products-section .catalog-grid { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
 ${promoStrip}
-<div class="hero-bg">
+<section class="hero-bg" aria-labelledby="catalog-title">
   ${patternOverlay}
-  ${avatar}
-  <h1>${escapeHtml(catalog.businessName)}</h1>
-  <p class="tagline">${escapeHtml(heroTagline)}</p>
-  ${tagline}
-  ${totalCount > 0 ? `<span class="count">${countLabel}</span>` : ""}
-  ${headerButton}
-</div>
+  <div class="hero-shell ${hasHeroVisual ? "has-visual" : "no-visual"}">
+    <div class="hero-copy">
+      <div class="hero-identity">${avatar}<div class="hero-title"><h1 id="catalog-title" style="color:${titleColor}">${escapeHtml(catalog.businessName)}</h1><p class="tagline">${escapeHtml(heroTagline)}</p></div></div>
+      ${tagline}
+      ${totalProductCount + totalServiceCount > 0 ? `<span class="count">${visualCountLabel}</span>` : ""}
+      ${headerButton}
+    </div>
+    ${coverFigure || heroShowcase}
+  </div>
+</section>
 ${filters}
 ${sectionNav}
-<main${count === 0 && serviceCount > 0 ? ' class="services-only"' : ""}>
+<main id="catalog-content"${count === 0 && serviceCount > 0 ? ' class="services-only"' : ""}>
+${listingHeader}
 ${productsSection}
 ${servicesSection}
 </main>
 ${cart}
 ${bookingDialog}
+${floatingWhatsapp}
 <footer>
   <div class="footer-brand"><span>Feito com carinho no <a class="footer-link" href="${catalogPlayStoreUrl(catalog.brandId)}"><strong>${escapeHtml(brand.appName)}</strong></a></span></div>
   <div class="footer-cta"><a href="${catalogPlayStoreUrl(catalog.brandId)}">Crie sua vitrine grátis</a></div>
