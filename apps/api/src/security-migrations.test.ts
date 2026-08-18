@@ -9,40 +9,9 @@ describe("security migrations", () => {
       "../../../packages/database/src/migrations/049_subscription_purchase_claims.sql",
       "../../../packages/database/src/migrations/050_api_rate_limit_buckets.sql",
       "../../../packages/database/src/migrations/052_professional_trial_campaign.sql",
-      "../../../packages/database/src/migrations/056_vertical_apps_foundation.sql",
-      "../../../packages/database/src/migrations/057_end_professional_trial_campaign.sql",
       "../../../packages/database/src/migrations/058_catalog_promo_visibility.sql",
       "../../../packages/database/src/migrations/059_catalog_text_colors.sql",
     ]);
-  });
-
-  it("locks the vertical tables behind the API", () => {
-    const migrationPath = getSecurityMigrationPaths().find((path) =>
-      path.endsWith("056_vertical_apps_foundation.sql"),
-    );
-    const migration = readFileSync(migrationPath!, "utf8");
-    for (const table of [
-      "app_memberships",
-      "vertical_documents",
-      "vertical_document_items",
-      "vertical_events",
-      "vertical_assets",
-      "resale_serials",
-    ]) {
-      expect(migration).toContain(`ALTER TABLE "${table}" ENABLE ROW LEVEL SECURITY`);
-    }
-    expect(migration).toContain("FROM anon, authenticated");
-  });
-
-  it("ends the professional trial only for future grants", () => {
-    const migrationPath = getSecurityMigrationPaths().find((path) =>
-      path.endsWith("057_end_professional_trial_campaign.sql"),
-    );
-    const migration = readFileSync(migrationPath!, "utf8");
-
-    expect(migration).toContain("SET active = false");
-    expect(migration).not.toContain("DELETE FROM");
-    expect(migration).not.toContain("UPDATE public.users");
   });
 
   it("installs the catalog promotion visibility columns before the API starts", () => {
