@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
 
 import {
+  ConflictError,
   ForbiddenError,
   LimitExceededError,
   NotFoundError,
@@ -43,6 +44,14 @@ export function errorHandler(
   if (err instanceof NotFoundError) {
     res.status(404).json({
       error: "NOT_FOUND",
+      message: err.message,
+    });
+    return;
+  }
+
+  if (err instanceof ConflictError) {
+    res.status(409).json({
+      error: "CONFLICT",
       message: err.message,
     });
     return;

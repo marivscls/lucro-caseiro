@@ -1,4 +1,9 @@
-import type { Supplier } from "@lucro-caseiro/contracts";
+import type {
+  Supplier,
+  SupplierAvatarType,
+  SupplierCategory,
+  SuppliersOverview,
+} from "@lucro-caseiro/contracts";
 
 export interface ISuppliersRepo {
   create(userId: string, data: CreateSupplierData): Promise<Supplier>;
@@ -12,6 +17,7 @@ export interface ISuppliersRepo {
     userId: string,
     opts: FindAllOpts,
   ): Promise<{ items: Supplier[]; total: number }>;
+  getOverview(userId: string, now: Date): Promise<SuppliersOverview>;
   update(
     userId: string,
     id: string,
@@ -23,10 +29,20 @@ export interface ISuppliersRepo {
 
 export interface CreateSupplierData {
   name: string;
-  phone?: string;
-  email?: string;
-  address?: string;
-  notes?: string;
+  category?: SupplierCategory;
+  phone?: string | null;
+  hasWhatsApp?: boolean;
+  email?: string | null;
+  address?: string | null;
+  purchaseDescription?: string | null;
+  notes?: string | null;
+  isPreferred?: boolean;
+  avatarType?: SupplierAvatarType;
+  avatarPresetId?: string | null;
+  avatarUrl?: string | null;
+  needsFollowUp?: boolean;
+  restockSoon?: boolean;
+  isActive?: boolean;
 }
 
 export interface FindAllOpts {

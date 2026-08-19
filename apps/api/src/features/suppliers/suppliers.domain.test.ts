@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { validateSupplierData } from "./suppliers.domain";
+import { monthlySupplierPurchaseSummary, validateSupplierData } from "./suppliers.domain";
 import type { CreateSupplierData } from "./suppliers.types";
 
 function makeData(overrides: Partial<CreateSupplierData> = {}): CreateSupplierData {
@@ -27,13 +27,19 @@ describe("validateSupplierData", () => {
     );
   });
 
+  it("rejects a one-character name", () => {
+    expect(validateSupplierData(makeData({ name: "A" }))).toContain(
+      "Nome do fornecedor deve ter pelo menos 2 caracteres",
+    );
+  });
+
   it("accepts a valid phone", () => {
     expect(validateSupplierData(makeData({ phone: "11999998888" }))).toEqual([]);
   });
 
   it("rejects a phone with too few digits", () => {
     expect(validateSupplierData(makeData({ phone: "1199" }))).toContain(
-      "Telefone deve ter entre 8 e 15 dígitos",
+      "Telefone brasileiro deve ter DDD e 10 ou 11 dígitos",
     );
   });
 
@@ -53,5 +59,26 @@ describe("validateSupplierData", () => {
 
   it("ignores an empty email string", () => {
     expect(validateSupplierData(makeData({ email: "" }))).toEqual([]);
+  });
+});
+
+describe("monthlySupplierPurchaseSummary", () => {
+  it("sums only the current month and counts distinct suppliers", () => {
+    const summary = monthlySupplierPurchaseSummary(
+      [
+        { purchasedAt: "2026-08-01", amount: "100.10", supplierId: "a" },
+        { purchasedAt: "2026-08-18", amount: "42.90", supplierId: "a" },
+        { purchasedAt: "2026-08-10", amount: 50, supplierId: "b" },
+        { purchasedAt: "2026-07-31", amount: 999, supplierId: "c" },
+      ],
+      new Date("2026-08-18T12:00:00.000Z"),
+    );
+    expect(summary).toEqual({ totalAmount: 193, purchaseCount: 3, supplierCount: 2 });
+  });
+
+  it("returns a coherent zero state", () => {
+    expect(
+      monthlySupplierPurchaseSummary([], new Date("2026-08-18T12:00:00.000Z")),
+    ).toEqual({ totalAmount: 0, purchaseCount: 0, supplierCount: 0 });
   });
 });

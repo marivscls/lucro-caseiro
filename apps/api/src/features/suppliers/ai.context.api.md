@@ -1,169 +1,101 @@
 # ai.context.api.md — Suppliers
 
----
-
 ## Purpose
 
-Gerenciar o cadastro de fornecedores do negocio (nome, telefone, email, endereco e notas). Substitui o antigo campo de texto livre `supplier` que existia em ingredients/packaging por uma entidade reutilizavel, escopada por usuario.
+Gerencia fornecedores reutilizáveis por usuário e entrega a visão agregada da tela. Compras e itens
+continuam em `purchases`; resumo mensal, última compra e pedido aberto são derivados.
 
 ## Non-goals
 
-- Nao registra compras nem contas a pagar (isso pertence a feature Purchases — fase futura)
-- Nao cria lancamento financeiro (isso pertence a feature Finance)
-- Nao faz integracao com WhatsApp (apenas guarda o telefone)
-- Nao faz enforcement de limites freemium internamente (isso e feito via Subscription/freemiumGuard)
+- Não mantém orçamento de compras; por isso `planningStatus` permanece `none`.
+- Não duplica valores ou itens de compra na tabela `suppliers`.
+- Não envia mensagens nem registra uma recompra automaticamente.
 
 ## Boundaries & Ownership
 
-- **Depende de**: `@lucro-caseiro/contracts` (CreateSupplierDto, UpdateSupplierDto, PaginationDto, Supplier), `@lucro-caseiro/database/schema` (suppliers table)
-- **Dependentes**: Subscription (conta fornecedores para limites freemium); Materials e Packaging referenciam `supplierId` (FK opcional, ON DELETE SET NULL — migration `021`); Purchases referencia `supplierId` (FK opcional — migration `022`)
-- **Nao importa**: nenhuma outra feature interna
+- Depende de contracts, schema Drizzle, `purchases` e `purchase_items`.
+- Subscription aplica o limite freemium no cadastro.
+- Materials, Packaging e Purchases mantêm FKs opcionais para fornecedor.
 
 ## Code pointers
 
-- `apps/api/src/features/suppliers/suppliers.routes.ts` — rotas Express
-- `apps/api/src/features/suppliers/suppliers.usecases.ts` — logica de negocio
-- `apps/api/src/features/suppliers/suppliers.domain.ts` — validacoes e funcoes puras
-- `apps/api/src/features/suppliers/suppliers.repo.pg.ts` — persistencia Drizzle/Postgres
-- `apps/api/src/features/suppliers/suppliers.types.ts` — interfaces e tipos
-- `apps/api/src/features/suppliers/suppliers.domain.test.ts` — testes de dominio
-- `apps/api/src/features/suppliers/suppliers.usecases.test.ts` — testes de usecases
+- `suppliers.routes.ts`: CRUD e overview.
+- `suppliers.usecases.ts`: validação e duplicidade.
+- `suppliers.domain.ts`: regras puras e cálculo mensal.
+- `suppliers.repo.pg.ts`: persistência e agregação.
+- `packages/contracts/src/schemas/supplier.ts`: DTOs.
+- `packages/database/src/migrations/061_supplier_management.sql`: migração.
 
 ## Data Model
 
-### Tabela: `suppliers`
-
-| Coluna    | Tipo      | Constraints        |
-| --------- | --------- | ------------------ |
-| id        | uuid      | PK                 |
-| userId    | uuid      | FK users, NOT NULL |
-| name      | text      | NOT NULL           |
-| phone     | text      | nullable           |
-| email     | text      | nullable           |
-| address   | text      | nullable           |
-| notes     | text      | nullable           |
-| createdAt | timestamp | default now()      |
+`suppliers` persiste nome, categoria, contatos, descrição de compra, preferência, avatar, flags
+explícitas de acompanhamento/reposição e `isActive`. Compras continuam em suas entidades próprias.
+A migração 061 adiciona defaults compatíveis aos registros antigos, que usam iniciais como avatar.
 
 ## Invariants
 
-- Nome do fornecedor e obrigatorio (trim > 0 caracteres)
-- Nome do fornecedor deve ter no maximo 200 caracteres
-- Telefone, quando presente, deve ter entre 8 e 15 digitos (ignorando caracteres nao numericos)
-- Email, quando presente, deve ser valido
-- Toda query e escopada por `userId` — nunca retorna fornecedores de outro usuario
-- Delete e fisico (hard delete)
+- Cada query é isolada por `userId`.
+- Nome e categoria são obrigatórios; email e telefone são validados quando preenchidos.
+- `hasWhatsApp` exige telefone.
+- Preset exige `avatarPresetId`; upload exige `avatarUrl`.
+- Duplicidade e limite contam apenas fornecedores ativos.
+- A lista omite arquivados, mas o mês inclui compras ainda vinculadas a eles.
+- `hasOpenOrder` exige `paymentStatus = pending`.
 
 ## Operations
 
-```yaml
-feature: suppliers
-app: api
-mobile_counterpart: suppliers
-api:
-  base: /api/v1/suppliers
-  endpoints:
-    - method: POST
-      path: /
-      dto: CreateSupplierDto
-      response: Supplier (201)
-    - method: GET
-      path: /
-      query: page, limit, search
-      dto: PaginationDto
-      response: { items: Supplier[], total, page, totalPages }
-    - method: GET
-      path: /:id
-      response: Supplier
-    - method: PATCH
-      path: /:id
-      dto: UpdateSupplierDto
-      response: Supplier
-    - method: DELETE
-      path: /:id
-      response: 204
-db:
-  tables:
-    - suppliers
-  indexes:
-    - (userId)
-    - (userId, name)
-invariants:
-  - name.trim().length > 0
-  - name.length <= 200
-  - phone digits entre 8 e 15 (quando presente)
-  - email valido (quando presente)
-  - todas as queries escopadas por userId
-freemium:
-  resource: suppliers
-  free_limit: 3
-  enforced_by: freemiumGuard(subscriptionRepo, "suppliers") no POST /
-```
+| Verbo  | Caminho                      | Resultado                          |
+| ------ | ---------------------------- | ---------------------------------- |
+| GET    | `/api/v1/suppliers/overview` | painel mensal e cards enriquecidos |
+| GET    | `/api/v1/suppliers`          | lista paginada ativa               |
+| GET    | `/api/v1/suppliers/:id`      | detalhe                            |
+| POST   | `/api/v1/suppliers`          | cadastro                           |
+| PATCH  | `/api/v1/suppliers/:id`      | edição, status e arquivo           |
+| DELETE | `/api/v1/suppliers/:id`      | exclusão física confirmada         |
 
 ## Authorization & RLS
 
-- Todas as rotas protegidas por `authMiddleware`
-- `userId` extraido do token JWT via `getUserId(req)`
-- Toda query filtra por `userId` — isolamento por tenant garantido no repo
+As rotas usam `authMiddleware`; o id vem do JWT e é aplicado em cada consulta do repositório.
 
 ## Contracts (Zod/DTO)
 
-- **CreateSupplierDto** (de `@lucro-caseiro/contracts`): `{ name, phone?, email?, address?, notes? }`
-- **UpdateSupplierDto** (de `@lucro-caseiro/contracts`): `Partial<CreateSupplierDto>`
-- **PaginationDto** (de `@lucro-caseiro/contracts`): `{ page, limit }`
-- **Supplier** (de `@lucro-caseiro/contracts`): `{ id, userId, name, phone, email, address, notes, createdAt }`
+`CreateSupplierDto`, `UpdateSupplierDto`, `SupplierDto` e `SuppliersOverviewDto` são os contratos
+públicos. Categorias: `supplies`, `packaging`, `food`, `other`; avatares: `preset`, `upload`,
+`initials`.
 
 ## Errors
 
-| Status | Quando                                                | Mensagem                                |
-| ------ | ----------------------------------------------------- | --------------------------------------- |
-| 400    | Dados invalidos (nome vazio, telefone/email invalido) | Array de strings com erros de validacao |
-| 403    | Limite freemium de fornecedores atingido (free)       | LIMIT_EXCEEDED (mensagem de upgrade)    |
-| 404    | Fornecedor nao encontrado (getById, update, remove)   | "Fornecedor nao encontrado"             |
+- 400 para payload inválido ou WhatsApp sem telefone.
+- 403 `LIMIT_EXCEEDED` no limite freemium.
+- 404 quando o id não pertence ao usuário.
+- 409 para fornecedor ativo duplicado.
 
 ## Events / Side effects
 
-- Nenhum evento async ou side effect
+Mutations escrevem somente no banco. Upload ocorre no cliente antes do POST/PATCH e a recompra abre
+o fluxo de purchases para confirmação.
 
 ## Performance
 
-- Listagem usa paginacao com `LIMIT/OFFSET`
-- Busca por nome e telefone via `ILIKE`
-- Contagem paralela com `Promise.all`
+Listagem usa paginação. Overview busca fornecedores ativos, compras vinculadas e somente os itens das
+últimas compras necessárias. Valores monetários são somados em centavos.
 
 ## Security
 
-- Dados de fornecedores incluem contato (telefone/email) — tratados com isolamento por `userId`
-- Isolamento por `userId` impede acesso cruzado
+Contato e endereço são dados privados, sempre isolados por `userId`. Exclusão mantém integridade das
+compras via `ON DELETE SET NULL`; arquivamento é preferido quando existe histórico.
 
 ## Test matrix
 
-### Domain (suppliers.domain.test.ts)
-
-- validateSupplierData: nome vazio, nome > 200, telefone < 8 ou > 15 digitos, telefone vazio, email valido, email invalido, email vazio
-
-### UseCases (suppliers.usecases.test.ts)
-
-- create: dados validos, ValidationError para nome vazio
-- getById: encontrado, NotFoundError
-- list: paginacao
-- update: dados validos, NotFoundError, ValidationError
-- remove: existente, NotFoundError
+`suppliers.domain.test.ts` cobre validação e cálculo mensal; `suppliers.usecases.test.ts` cobre CRUD,
+duplicidade e falhas; `security-migrations.test.ts` garante a enumeração da migration 061.
 
 ## Examples
 
-```
-POST /api/v1/suppliers
-{ "name": "Atacadão da Festa", "phone": "11999887766", "email": "contato@atacadao.com" }
-=> 201 { "id": "...", "name": "Atacadão da Festa", ... }
-
-GET /api/v1/suppliers?page=1&limit=20&search=atacad
-=> 200 { "items": [...], "total": 2, "page": 1, "totalPages": 1 }
-```
+`GET /api/v1/suppliers/overview` retorna `{ month, items }`; cada item pode trazer a última compra com
+seus itens, totais históricos e flags contextuais.
 
 ## Change log / Decisions
 
-- Criacao inicial da feature com CRUD completo
-- Limite freemium: 3 fornecedores no plano gratuito, ilimitado no Premium
-- Fase 2 (migration `021_supplier_links.sql`): `materials.supplier_id` e `packaging.supplier_id`
-  passam a referenciar suppliers (FK opcional, ON DELETE SET NULL). Excluir um fornecedor solta
-  os vínculos, não bloqueia. O mobile usa um `SupplierSelector` reutilizável nos forms de insumo/embalagem.
+- 2026-08-18: categoria, avatares, flags, arquivo e overview real foram adicionados.
+- O domínio ainda não possui orçamento de compras; a interface exibe estado neutro.

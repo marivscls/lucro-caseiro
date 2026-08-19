@@ -11,7 +11,20 @@ describe("security migrations", () => {
       "../../../packages/database/src/migrations/052_professional_trial_campaign.sql",
       "../../../packages/database/src/migrations/058_catalog_promo_visibility.sql",
       "../../../packages/database/src/migrations/059_catalog_text_colors.sql",
+      "../../../packages/database/src/migrations/061_supplier_management.sql",
     ]);
+  });
+
+  it("installs supplier management fields before startup", () => {
+    const migrationPath = getSecurityMigrationPaths().find((path) =>
+      path.endsWith("061_supplier_management.sql"),
+    );
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    const migration = readFileSync(migrationPath!, "utf8");
+
+    expect(migration).toContain("category text NOT NULL DEFAULT 'other'");
+    expect(migration).toContain("has_whatsapp boolean NOT NULL DEFAULT false");
+    expect(migration).toContain("is_active boolean NOT NULL DEFAULT true");
   });
 
   it("installs the catalog promotion visibility columns before the API starts", () => {

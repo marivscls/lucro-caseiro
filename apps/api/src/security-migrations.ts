@@ -8,6 +8,7 @@ export const securityMigrationFiles = [
   "../../../packages/database/src/migrations/052_professional_trial_campaign.sql",
   "../../../packages/database/src/migrations/058_catalog_promo_visibility.sql",
   "../../../packages/database/src/migrations/059_catalog_text_colors.sql",
+  "../../../packages/database/src/migrations/061_supplier_management.sql",
 ] as const;
 
 export function getSecurityMigrationPaths(baseUrl = import.meta.url): string[] {

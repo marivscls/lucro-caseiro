@@ -44,6 +44,14 @@ export function createSuppliersRouter(
     }
   });
 
+  router.get("/overview", async (req, res, next) => {
+    try {
+      res.json(await useCases.overview(getUserId(req)));
+    } catch (err) {
+      next(err);
+    }
+  });
+
   router.get("/:id", async (req, res, next) => {
     try {
       const userId = getUserId(req);

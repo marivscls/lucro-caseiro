@@ -11,12 +11,23 @@ function makeSupplier(overrides: Partial<Supplier> = {}): Supplier {
   return {
     id: "sup-1",
     userId: USER_ID,
+    category: "other",
+    hasWhatsApp: false,
+    purchaseDescription: null,
+    isPreferred: false,
+    avatarType: "initials",
+    avatarPresetId: null,
+    avatarUrl: null,
+    needsFollowUp: false,
+    restockSoon: false,
+    isActive: true,
     name: "Atacadão da Festa",
     phone: null,
     email: null,
     address: null,
     notes: null,
     createdAt: new Date("2026-01-01").toISOString(),
+    updatedAt: new Date("2026-01-01").toISOString(),
     ...overrides,
   };
 }
@@ -28,6 +39,16 @@ function makeRepo(overrides: Partial<ISuppliersRepo> = {}): ISuppliersRepo {
     findById: () => Promise.resolve(makeSupplier()),
     findDuplicate: () => Promise.resolve(null),
     findAll: () => Promise.resolve({ items: [makeSupplier()], total: 1 }),
+    getOverview: () =>
+      Promise.resolve({
+        month: {
+          totalAmount: 0,
+          purchaseCount: 0,
+          supplierCount: 0,
+          planningStatus: "none",
+        },
+        items: [],
+      }),
     update: (_userId: string, _id: string, data: Partial<CreateSupplierData>) =>
       Promise.resolve(makeSupplier({ ...data })),
     delete: () => Promise.resolve(true),
@@ -42,6 +63,12 @@ describe("SuppliersUseCases", () => {
       const sut = new SuppliersUseCases(makeRepo());
       const result = await sut.create(USER_ID, { name: "Atacadão da Festa" });
       expect(result.name).toBe("Atacadão da Festa");
+    });
+
+    it("normalizes surrounding spaces before persistence", async () => {
+      const sut = new SuppliersUseCases(makeRepo());
+      const result = await sut.create(USER_ID, { name: "  Central  " });
+      expect(result.name).toBe("Central");
     });
 
     it("throws ValidationError for an empty name", async () => {
