@@ -22,9 +22,8 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import pricingCostsIcon from "../../../assets/pricing-costs-icon.png";
-import pricingCostsHero from "../../../assets/pricing-costs-hero.png";
-import pricingResultHero from "../../../assets/pricing-result-hero.png";
 import { AppIcon, type AppIconName } from "../../../shared/components/app-icon";
+import { useBrandIllustration } from "../../../shared/brand-illustrations";
 import { FieldLabel, TextFieldCard } from "../../../shared/components/form-field";
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
@@ -433,6 +432,8 @@ export function SimplePricingCalculator({
   onCreateProduct,
 }: SimplePricingCalculatorProps) {
   const { theme } = useTheme();
+  const pricingCostsHero = useBrandIllustration("pricingCostsHero");
+  const pricingResultHero = useBrandIllustration("pricingResultHero");
   const experienceCopy = useBusinessCopy();
   const isDesktop = useDesktopLayout();
   const insets = useSafeAreaInsets();
@@ -692,10 +693,9 @@ export function SimplePricingCalculator({
             >
               <View
                 style={{
-                  alignItems: "center",
+                  alignItems: "flex-start",
                   flexDirection: "row",
                   gap: spacing.md,
-                  minHeight: 84,
                 }}
               >
                 <View style={{ flex: 1, gap: spacing.xs, minWidth: 0 }}>

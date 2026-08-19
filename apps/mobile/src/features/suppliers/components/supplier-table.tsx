@@ -13,7 +13,7 @@ import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useEffect, useMemo, useState } from "react";
 import { Image, Pressable, ScrollView, View } from "react-native";
 
-import suppliersEmpty from "../../../assets/suppliers-empty.png";
+import { useBrandIllustration } from "../../../shared/brand-illustrations";
 import { SkeletonTable } from "../../../shared/components/skeleton";
 import {
   desktopStretch,
@@ -42,6 +42,7 @@ export function SupplierTable({
   onAddPress,
 }: Readonly<SupplierTableProps>) {
   const { theme } = useTheme();
+  const suppliersEmpty = useBrandIllustration("suppliersEmpty");
   const isDesktop = useDesktopLayout();
   const experienceCopy = useBusinessCopy();
   const { data, isLoading, error } = useSuppliers({ search });

@@ -1,4 +1,5 @@
 import { Manrope_400Regular } from "@expo-google-fonts/manrope/400Regular";
+import { Manrope_500Medium } from "@expo-google-fonts/manrope/500Medium";
 import { Manrope_600SemiBold } from "@expo-google-fonts/manrope/600SemiBold";
 import { Manrope_700Bold } from "@expo-google-fonts/manrope/700Bold";
 import { Manrope_800ExtraBold } from "@expo-google-fonts/manrope/800ExtraBold";
@@ -246,6 +247,24 @@ function AppContent() {
           <Stack.Screen name="onboarding" />
           <Stack.Screen name="tabs" />
           <Stack.Screen
+            name="operations"
+            options={{
+              headerShown: false,
+              title: activeBrand.vertical.operationLabel,
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.text,
+            }}
+          />
+          <Stack.Screen
+            name="lucro-apps"
+            options={{
+              headerShown: false,
+              title: "Conheça também",
+              headerStyle: { backgroundColor: theme.colors.background },
+              headerTintColor: theme.colors.text,
+            }}
+          />
+          <Stack.Screen
             name="agenda"
             options={{
               headerShown: !showDesktopShell,
@@ -442,6 +461,7 @@ export default function RootLayout() {
   // sistema (o BrandIntro cobre a espera logo em seguida).
   const [fontsLoaded, fontError] = useFonts({
     Manrope_400Regular,
+    Manrope_500Medium,
     Manrope_600SemiBold,
     Manrope_700Bold,
     Manrope_800ExtraBold,

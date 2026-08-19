@@ -251,7 +251,7 @@ export function ColorPickerModal({
                 borderRadius: radii.full,
                 backgroundColor: hex,
                 borderWidth: 1,
-                borderColor: "rgba(0,0,0,0.15)",
+                borderColor: theme.colors.border,
               }}
             />
             <View style={{ flex: 1 }}>

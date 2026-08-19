@@ -213,7 +213,12 @@ export function CreateFinanceEntry({
             <Typography variant="bodyBold" style={styles.fieldLabel}>
               Categoria
             </Typography>
-            <View style={styles.categoryGrid}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.categoryScroller}
+              contentContainerStyle={styles.categoryGrid}
+            >
               {categories.map((item) => (
                 <Pressable
                   key={item.key}
@@ -232,14 +237,13 @@ export function CreateFinanceEntry({
                         ? theme.colors.text
                         : theme.colors.textSecondary
                     }
-                    style={{ flex: 1 }}
                     numberOfLines={1}
                   >
                     {item.label}
                   </Typography>
                 </Pressable>
               ))}
-            </View>
+            </ScrollView>
           </View>
 
           <FormCard label="Data (opcional)">
@@ -397,7 +401,6 @@ function createStyles(theme: Theme) {
       gap: 8,
       height: 46,
       paddingHorizontal: 12,
-      width: "48.2%",
     },
     categoryButtonSelected: {
       backgroundColor: theme.colors.primaryBg,
@@ -405,8 +408,11 @@ function createStyles(theme: Theme) {
     },
     categoryGrid: {
       flexDirection: "row",
-      flexWrap: "wrap",
       gap: 8,
+      paddingHorizontal: 13,
+    },
+    categoryScroller: {
+      marginHorizontal: -13,
     },
     content: {
       gap: 12,

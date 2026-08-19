@@ -1,7 +1,9 @@
 import type { Client } from "@lucro-caseiro/contracts";
 import {
   Button,
+  Chip,
   EmptyState,
+  FilterChipRow,
   fontSizes,
   fonts,
   PressableScale,
@@ -23,6 +25,7 @@ import {
   View,
   type TextInputProps,
   type ViewStyle,
+  useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -30,6 +33,15 @@ import { ClientDetail } from "../../features/clients/components/client-detail";
 import { avatarPastel } from "../../features/clients/components/avatar-colors";
 import { EditClientForm } from "../../features/clients/components/edit-client-form";
 import { useClient, useClients, useCreateClient } from "../../features/clients/hooks";
+import {
+  buildClientListInsights,
+  countClientListFilters,
+  filterAndSortClientInsights,
+  type ClientListFilter,
+  type ClientListInsight,
+  type ClientListSort,
+} from "../../features/clients/client-list";
+import { useSales } from "../../features/sales/hooks";
 import { LimitBanner } from "../../features/subscription/components/limit-banner";
 import { useLimitCheck } from "../../shared/hooks/use-limit-check";
 import { usePaywall } from "../../shared/hooks/use-paywall";
@@ -52,63 +64,40 @@ import {
 } from "../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { StandardModal } from "../../shared/components/standard-modal";
-import clientsEmpty from "../../assets/clients-empty.png";
+import { useBrandIllustration } from "../../shared/brand-illustrations";
+import {
+  useBrandScreenPalette,
+  type BrandScreenPalette,
+} from "../../shared/brand-palette";
+import { formatCurrency } from "../../shared/utils/format";
+import clientsCommunity from "../../assets/clients-community.png";
 
 type Screen =
   | { name: "list" }
   | { name: "detail"; clientId: string }
   | { name: "create" };
 
-type ClientGroup = {
-  letter: string;
-  data: Client[];
-};
+const FILTER_OPTIONS: ReadonlyArray<{ key: ClientListFilter; label: string }> = [
+  { key: "all", label: "Todos" },
+  { key: "recent", label: "Recentes" },
+  { key: "frequent", label: "Frequentes" },
+  { key: "credit", label: "Com fiado" },
+];
 
-// Paleta derivada do tema ativo (antes constantes fixas de dark).
-function clientsPalette(theme: { mode: string; colors: Record<string, string> }) {
-  return {
-    cardBg: theme.colors.surfaceElevated,
-    cardBorder: theme.colors.border,
-    muted: theme.colors.textSecondary,
-    divider: theme.colors.border,
-    subtleFill: theme.colors.surface,
-  };
-}
+const SORT_OPTIONS: ReadonlyArray<{ key: ClientListSort; label: string }> = [
+  { key: "recent", label: "Mais recentes" },
+  { key: "alphabetical", label: "Ordem A–Z" },
+  { key: "highest", label: "Maior valor comprado" },
+  { key: "frequent", label: "Clientes frequentes" },
+];
 
-function surfaceStyle(
-  pal: ReturnType<typeof clientsPalette>,
-  extra?: ViewStyle,
-): ViewStyle {
+function surfaceStyle(pal: BrandScreenPalette, extra?: ViewStyle): ViewStyle {
   return {
-    backgroundColor: pal.cardBg,
+    backgroundColor: pal.white,
     borderWidth: 1,
-    borderColor: pal.cardBorder,
+    borderColor: pal.border,
     ...extra,
   };
-}
-
-function groupClientsByInitial(items: Client[]): ClientGroup[] {
-  const map = new Map<string, Client[]>();
-  const seen = new Set<string>();
-
-  for (const item of items) {
-    if (seen.has(item.id)) continue;
-    seen.add(item.id);
-
-    const letter = (item.name.trim().charAt(0) || "#").toUpperCase();
-    const current = map.get(letter) ?? [];
-    current.push(item);
-    map.set(letter, current);
-  }
-
-  const entries = [...map.entries()];
-  entries.sort(([a], [b]) => a.localeCompare(b, "pt-BR"));
-
-  return entries.map(([letter, data]) => {
-    const sortedData = [...data];
-    sortedData.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
-    return { letter, data: sortedData };
-  });
 }
 
 interface SearchBoxProps {
@@ -126,47 +115,53 @@ function SearchBox({
   placeholder,
   filterIcon = "options-outline",
 }: Readonly<SearchBoxProps>) {
-  const { theme } = useTheme();
-  const pal = clientsPalette(theme);
+  const pal = useBrandScreenPalette();
 
   return (
     <View
-      style={[
-        surfaceStyle(pal, {
-          minHeight: 48,
-          borderRadius: radii.xl,
-          flexDirection: "row",
-          alignItems: "center",
-          paddingHorizontal: spacing.lg,
-          gap: spacing.sm,
-        }),
-      ]}
+      style={{
+        minHeight: 58,
+        borderRadius: 22,
+        flexDirection: "row",
+        alignItems: "center",
+        paddingLeft: spacing.lg,
+        backgroundColor: pal.white,
+        borderWidth: 1,
+        borderColor: pal.border,
+      }}
     >
-      <AppIcon name="search-outline" size={20} color={pal.muted} />
+      <AppIcon name="search-outline" size={24} color={pal.muted} />
       <TextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={theme.colors.textSecondary}
+        placeholderTextColor={pal.muted}
         style={{
           flex: 1,
-          color: theme.colors.text,
+          minWidth: 0,
+          color: pal.ink,
           fontSize: fontSizes.md,
-          fontFamily: fonts.semiBold,
+          fontFamily: fonts.regular,
+          paddingHorizontal: spacing.md,
           paddingVertical: 0,
         }}
       />
       <Pressable
         onPress={onFilterPress}
         accessibilityLabel="Abrir filtros"
+        accessibilityRole="button"
         hitSlop={10}
-        style={{
+        style={({ pressed }) => ({
+          width: 58,
+          height: 40,
           borderLeftWidth: 1,
-          borderLeftColor: pal.divider,
-          paddingLeft: spacing.md,
-        }}
+          borderLeftColor: pal.border,
+          alignItems: "center",
+          justifyContent: "center",
+          opacity: pressed ? 0.6 : 1,
+        })}
       >
-        <AppIcon name={filterIcon} size={21} color={pal.muted} />
+        <AppIcon name={filterIcon} size={23} color={pal.muted} />
       </Pressable>
     </View>
   );
@@ -178,8 +173,7 @@ interface AvatarProps {
 }
 
 function Avatar({ label, size = 44 }: Readonly<AvatarProps>) {
-  const { theme } = useTheme();
-  const pastel = avatarPastel(label, theme.mode);
+  const pastel = avatarPastel(label, "light");
   return (
     <View
       style={{
@@ -205,37 +199,82 @@ function Avatar({ label, size = 44 }: Readonly<AvatarProps>) {
 }
 
 interface ClientCardProps {
-  client: Client;
+  insight: ClientListInsight;
   onPress: () => void;
 }
 
-function ClientCard({ client, onPress }: Readonly<ClientCardProps>) {
-  const { theme } = useTheme();
-  const pal = clientsPalette(theme);
+function daysAgoLabel(date: string, now = new Date()): string {
+  const difference = Math.max(
+    0,
+    Math.floor((now.getTime() - new Date(date).getTime()) / 86_400_000),
+  );
+  if (difference === 0) return "Comprou hoje";
+  if (difference === 1) return "Comprou há 1 dia";
+  return `Comprou há ${difference} dias`;
+}
+
+function clientSecondaryLabel(insight: ClientListInsight): string {
+  if (insight.monthOrders > 1) {
+    return `${insight.monthOrders} pedidos neste mês`;
+  }
+  if (insight.lastSaleAt) return daysAgoLabel(insight.lastSaleAt);
+  return "Sem compras registradas";
+}
+
+function ClientCard({ insight, onPress }: Readonly<ClientCardProps>) {
+  const pal = useBrandScreenPalette();
+  const { width } = useWindowDimensions();
+  const isNarrow = width < 360;
+  const { client } = insight;
+  let badge: "credit" | "frequent" | null = null;
+  if (insight.pendingTotal > 0) badge = "credit";
+  else if (insight.frequent) badge = "frequent";
 
   return (
     <PressableScale
       onPress={onPress}
-      style={surfaceStyle(pal, {
-        borderRadius: radii["2xl"],
-        minHeight: 62,
-        paddingHorizontal: spacing.md,
-        paddingVertical: spacing.sm,
+      style={{
+        backgroundColor: pal.white,
+        borderWidth: 1,
+        borderColor: pal.border,
+        borderRadius: 22,
+        minHeight: 108,
+        paddingHorizontal: isNarrow ? 10 : spacing.md,
+        paddingVertical: spacing.md,
         flexDirection: "row",
         alignItems: "center",
         gap: spacing.sm,
-      })}
+      }}
     >
-      <Avatar label={client.name} />
-      <View style={{ flex: 1, gap: spacing.xs }}>
-        <Typography
-          variant="h3"
-          color={theme.colors.text}
-          numberOfLines={1}
-          style={{ fontSize: fontSizes.md }}
-        >
-          {client.name}
-        </Typography>
+      <Avatar label={client.name} size={isNarrow ? 44 : 48} />
+      <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+          <Typography
+            variant="h3"
+            color={pal.ink}
+            numberOfLines={1}
+            style={{ flex: 1, minWidth: 0, fontSize: isNarrow ? 15 : fontSizes.md }}
+          >
+            {client.name}
+          </Typography>
+          {badge !== "credit" ? (
+            <Typography
+              variant="bodyBold"
+              color={pal.ink}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.78}
+              style={{
+                maxWidth: isNarrow ? 78 : 94,
+                flexShrink: 0,
+                fontSize: isNarrow ? 13 : fontSizes.sm,
+              }}
+            >
+              {formatCurrency(client.totalSpent)}
+            </Typography>
+          ) : null}
+          <AppIcon name="chevron-forward" size={isNarrow ? 18 : 20} color={pal.muted} />
+        </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
           <AppIcon name="call" size={14} color={pal.muted} />
           <Typography
@@ -247,9 +286,234 @@ function ClientCard({ client, onPress }: Readonly<ClientCardProps>) {
             {client.phone || "Sem telefone"}
           </Typography>
         </View>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+          <Typography
+            variant="caption"
+            color={insight.lastSaleAt ? pal.rose : pal.muted}
+            numberOfLines={1}
+            style={{ flex: 1, minWidth: 0, fontSize: fontSizes.xs }}
+          >
+            {clientSecondaryLabel(insight)}
+          </Typography>
+          {badge ? (
+            <View
+              style={{
+                maxWidth: isNarrow ? 108 : 116,
+                flexShrink: 0,
+                paddingHorizontal: spacing.sm,
+                paddingVertical: 5,
+                borderRadius: radii.full,
+                backgroundColor: badge === "frequent" ? pal.lime : pal.softRose,
+                borderWidth: badge === "credit" ? 1 : 0,
+                borderColor: pal.border,
+              }}
+            >
+              <Typography
+                variant="caption"
+                color={badge === "frequent" ? pal.onLime : pal.rose}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.75}
+                style={{ fontSize: isNarrow ? 10 : 11 }}
+              >
+                {badge === "frequent"
+                  ? "Cliente frequente"
+                  : `Fiado ${formatCurrency(insight.pendingTotal)}`}
+              </Typography>
+            </View>
+          ) : null}
+        </View>
       </View>
-      <AppIcon name="chevron-forward" size={22} color={pal.muted} />
     </PressableScale>
+  );
+}
+
+function ClienteleSummary({
+  total,
+  boughtThisMonth,
+  withCredit,
+}: Readonly<{ total: number; boughtThisMonth: number; withCredit: number }>) {
+  const pal = useBrandScreenPalette();
+  const { width } = useWindowDimensions();
+  const isNarrow = width < 360;
+  const cardPadding = isNarrow ? spacing.xl : spacing["2xl"];
+  let illustrationSize = 104;
+  if (isNarrow) illustrationSize = Math.max(68, width * 0.23);
+  else if (width < 430) illustrationSize = 88;
+  const metrics = [
+    { value: total, label: "clientes", flex: 1 },
+    { value: boughtThisMonth, label: "compraram\nno mês", flex: 1.25 },
+    { value: withCredit, label: "com fiado", flex: 1 },
+  ];
+
+  return (
+    <View
+      style={{
+        padding: cardPadding,
+        borderRadius: 24,
+        borderWidth: 1,
+        borderColor: pal.border,
+        backgroundColor: pal.white,
+      }}
+    >
+      <Typography
+        variant="h2"
+        color={pal.wine}
+        numberOfLines={1}
+        style={{
+          fontSize: isNarrow ? 19 : 21,
+          lineHeight: isNarrow ? 24 : 27,
+          marginBottom: 18,
+        }}
+      >
+        Sua clientela
+      </Typography>
+
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.sm,
+        }}
+      >
+        <View
+          style={{
+            flex: 13,
+            minWidth: 0,
+            minHeight: illustrationSize,
+            flexDirection: "row",
+            alignItems: "center",
+          }}
+        >
+          {metrics.map((metric, index) => (
+            <React.Fragment key={metric.label}>
+              {index > 0 ? (
+                <View
+                  style={{
+                    width: 1,
+                    height: isNarrow ? 42 : 46,
+                    marginHorizontal: isNarrow ? spacing.xs : 6,
+                    backgroundColor: pal.border,
+                    alignSelf: "center",
+                  }}
+                />
+              ) : null}
+              <View
+                style={{
+                  flex: metric.flex,
+                  minWidth: 0,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Typography
+                  variant="h1"
+                  color={pal.wine}
+                  numberOfLines={1}
+                  style={{
+                    fontSize: isNarrow ? 27 : 31,
+                    lineHeight: isNarrow ? 34 : 38,
+                    textAlign: "center",
+                  }}
+                >
+                  {metric.value}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  color={pal.muted}
+                  style={{
+                    minHeight: 30,
+                    fontSize: isNarrow ? 9.5 : 11,
+                    lineHeight: 15,
+                    textAlign: "center",
+                  }}
+                >
+                  {metric.label}
+                </Typography>
+              </View>
+            </React.Fragment>
+          ))}
+        </View>
+
+        <View
+          style={{
+            flex: 7,
+            minWidth: 0,
+            alignSelf: "stretch",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Image
+            source={clientsCommunity}
+            resizeMode="contain"
+            accessibilityIgnoresInvertColors
+            style={{
+              width: illustrationSize,
+              height: illustrationSize,
+              maxWidth: "100%",
+              objectFit: "contain",
+            }}
+          />
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function OptionsModal<T extends string>({
+  visible,
+  title,
+  options,
+  selected,
+  onSelect,
+  onClose,
+}: Readonly<{
+  visible: boolean;
+  title: string;
+  options: ReadonlyArray<{ key: T; label: string }>;
+  selected: T;
+  onSelect: (value: T) => void;
+  onClose: () => void;
+}>) {
+  const pal = useBrandScreenPalette();
+
+  return (
+    <StandardModal visible={visible} onClose={onClose} title={title}>
+      <View style={{ gap: spacing.sm }}>
+        {options.map((option) => {
+          const active = option.key === selected;
+          return (
+            <Pressable
+              key={option.key}
+              onPress={() => {
+                onSelect(option.key);
+                onClose();
+              }}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+              style={({ pressed }) => ({
+                minHeight: 52,
+                paddingHorizontal: spacing.lg,
+                borderRadius: radii.xl,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                backgroundColor: active ? pal.softRose : pal.white,
+                borderWidth: 1,
+                borderColor: active ? pal.rose : pal.border,
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
+              <Typography variant="bodyBold" color={active ? pal.wine : pal.muted}>
+                {option.label}
+              </Typography>
+              {active ? <AppIcon name="checkmark" size={20} color={pal.rose} /> : null}
+            </Pressable>
+          );
+        })}
+      </View>
+    </StandardModal>
   );
 }
 
@@ -268,8 +532,7 @@ function DesktopClientsTable({
   onClientPress: (id: string) => void;
   onPageChange: (page: number) => void;
 }>) {
-  const { theme } = useTheme();
-  const pal = clientsPalette(theme);
+  const pal = useBrandScreenPalette();
   const headerStyle = {
     fontFamily: fonts.bold,
     fontSize: fontSizes.xs,
@@ -287,22 +550,38 @@ function DesktopClientsTable({
         style={{
           minHeight: 46,
           paddingHorizontal: spacing.lg,
-          backgroundColor: theme.colors.surface,
+          backgroundColor: pal.surface,
           flexDirection: "row",
           alignItems: "center",
           gap: spacing.lg,
         }}
       >
-        <Typography variant="caption" style={[headerStyle, { flex: 1.6 }]}>
+        <Typography
+          variant="caption"
+          color={pal.muted}
+          style={[headerStyle, { flex: 1.6 }]}
+        >
           Cliente
         </Typography>
-        <Typography variant="caption" style={[headerStyle, { flex: 1.1 }]}>
+        <Typography
+          variant="caption"
+          color={pal.muted}
+          style={[headerStyle, { flex: 1.1 }]}
+        >
           Telefone
         </Typography>
-        <Typography variant="caption" style={[headerStyle, { flex: 0.9 }]}>
+        <Typography
+          variant="caption"
+          color={pal.muted}
+          style={[headerStyle, { flex: 0.9 }]}
+        >
           Aniversário
         </Typography>
-        <Typography variant="caption" style={[headerStyle, { flex: 1.8 }]}>
+        <Typography
+          variant="caption"
+          color={pal.muted}
+          style={[headerStyle, { flex: 1.8 }]}
+        >
           Observações
         </Typography>
         <View style={{ width: 20 }} />
@@ -317,8 +596,8 @@ function DesktopClientsTable({
             minHeight: 62,
             paddingHorizontal: spacing.lg,
             borderTopWidth: 1,
-            borderTopColor: theme.colors.border,
-            backgroundColor: pressed ? theme.colors.primaryBg : pal.cardBg,
+            borderTopColor: pal.border,
+            backgroundColor: pressed ? pal.softRose : pal.white,
             flexDirection: "row",
             alignItems: "center",
             gap: spacing.lg,
@@ -334,14 +613,24 @@ function DesktopClientsTable({
             }}
           >
             <Avatar label={client.name} size={36} />
-            <Typography variant="bodyBold" numberOfLines={1} style={{ flex: 1 }}>
+            <Typography
+              variant="bodyBold"
+              color={pal.ink}
+              numberOfLines={1}
+              style={{ flex: 1 }}
+            >
               {client.name}
             </Typography>
           </View>
-          <Typography variant="body" numberOfLines={1} style={{ flex: 1.1 }}>
+          <Typography
+            variant="body"
+            color={pal.ink}
+            numberOfLines={1}
+            style={{ flex: 1.1 }}
+          >
             {client.phone || "—"}
           </Typography>
-          <Typography variant="body" style={{ flex: 0.9 }}>
+          <Typography variant="body" color={pal.ink} style={{ flex: 0.9 }}>
             {client.birthday
               ? new Date(`${client.birthday}T12:00:00`).toLocaleDateString("pt-BR", {
                   day: "2-digit",
@@ -349,7 +638,12 @@ function DesktopClientsTable({
                 })
               : "—"}
           </Typography>
-          <Typography variant="body" numberOfLines={1} style={{ flex: 1.8 }}>
+          <Typography
+            variant="body"
+            color={pal.ink}
+            numberOfLines={1}
+            style={{ flex: 1.8 }}
+          >
             {client.notes || "—"}
           </Typography>
           <AppIcon name="chevron-forward" size={20} color={pal.muted} />
@@ -367,6 +661,7 @@ function DesktopClientsTable({
 }
 
 function EmptyClients({ onCreatePress }: Readonly<{ onCreatePress: () => void }>) {
+  const clientsEmpty = useBrandIllustration("clientsEmpty");
   return (
     <EmptyState
       icon={
@@ -398,32 +693,68 @@ function ClientsListScreen({
   onCreatePress,
   onClientPress,
 }: Readonly<ClientsListScreenProps>) {
-  const { theme } = useTheme();
+  const pal = useBrandScreenPalette();
   const isDesktop = useDesktopLayout();
-  const pal = clientsPalette(theme);
+  const { width } = useWindowDimensions();
   const showPaywall = usePaywall((s) => s.show);
   const [page, setPage] = useState(1);
-  const { data, isLoading, error, refetch, isRefetching } = useClients({
+  const [filter, setFilter] = useState<ClientListFilter>("all");
+  const [sort, setSort] = useState<ClientListSort>("recent");
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [sortModalOpen, setSortModalOpen] = useState(false);
+  const baseClientsQuery = useClients({
+    page: isDesktop ? page : undefined,
+  });
+  const listClientsQuery = useClients({
     page: isDesktop ? page : undefined,
     search: search.trim() || undefined,
   });
-
-  const groups = useMemo(() => groupClientsByInitial(data?.items ?? []), [data?.items]);
-  const totalClients = groups.reduce((sum, group) => sum + group.data.length, 0);
+  const salesQuery = useSales();
+  const summaryInsights = useMemo(
+    () =>
+      buildClientListInsights(
+        baseClientsQuery.data?.items ?? [],
+        salesQuery.data?.items ?? [],
+      ),
+    [baseClientsQuery.data?.items, salesQuery.data?.items],
+  );
+  const listInsights = useMemo(
+    () =>
+      buildClientListInsights(
+        listClientsQuery.data?.items ?? [],
+        salesQuery.data?.items ?? [],
+      ),
+    [listClientsQuery.data?.items, salesQuery.data?.items],
+  );
+  const visibleInsights = useMemo(
+    () => filterAndSortClientInsights(listInsights, filter, sort),
+    [filter, listInsights, sort],
+  );
+  const totalClients = baseClientsQuery.data?.total ?? summaryInsights.length;
+  const boughtThisMonth = summaryInsights.filter(
+    (insight) => insight.monthOrders > 0,
+  ).length;
+  const withCredit = summaryInsights.filter((insight) => insight.pendingTotal > 0).length;
+  const filterCounts = useMemo(
+    () => countClientListFilters(summaryInsights),
+    [summaryInsights],
+  );
   const tabBarClearance = floatingTabBarContentPadding(0);
   const listBottomPadding = isDesktop ? spacing["3xl"] : tabBarClearance;
+  const selectedSortLabel =
+    SORT_OPTIONS.find((option) => option.key === sort)?.label ?? "Mais recentes";
   let clientsContent: React.ReactNode;
 
-  if (isLoading) {
+  if (listClientsQuery.isLoading) {
     clientsContent = (
       <View style={{ minHeight: 180 }}>
         <SkeletonList rows={6} variant="client" />
       </View>
     );
-  } else if (error) {
+  } else if (listClientsQuery.error) {
     clientsContent = (
       <View style={{ minHeight: 180, alignItems: "center", justifyContent: "center" }}>
-        <Typography variant="h3" color={theme.colors.text}>
+        <Typography variant="h3" color={pal.ink}>
           Algo deu errado
         </Typography>
         <Typography variant="body" color={pal.muted}>
@@ -431,39 +762,52 @@ function ClientsListScreen({
         </Typography>
       </View>
     );
-  } else if (groups.length === 0) {
+  } else if (totalClients === 0 && !search.trim()) {
     clientsContent = <EmptyClients onCreatePress={onCreatePress} />;
+  } else if (visibleInsights.length === 0) {
+    clientsContent = (
+      <View
+        style={{
+          minHeight: 150,
+          padding: spacing.xl,
+          borderRadius: 22,
+          alignItems: "center",
+          justifyContent: "center",
+          gap: spacing.sm,
+          backgroundColor: pal.white,
+          borderWidth: 1,
+          borderColor: pal.border,
+        }}
+      >
+        <Typography variant="h3" color={pal.ink}>
+          Nenhum cliente encontrado
+        </Typography>
+        <Typography variant="body" color={pal.muted} style={{ textAlign: "center" }}>
+          Ajuste a busca ou escolha outro filtro.
+        </Typography>
+      </View>
+    );
   } else if (isDesktop) {
     clientsContent = (
       <DesktopClientsTable
-        items={data?.items ?? []}
-        page={data?.page ?? page}
-        total={data?.total ?? 0}
-        totalPages={data?.totalPages ?? 1}
+        items={visibleInsights.map((insight) => insight.client)}
+        page={listClientsQuery.data?.page ?? page}
+        total={listClientsQuery.data?.total ?? 0}
+        totalPages={listClientsQuery.data?.totalPages ?? 1}
         onClientPress={onClientPress}
         onPageChange={setPage}
       />
     );
   } else {
     clientsContent = (
-      <View style={{ gap: spacing.lg }}>
-        {groups.map((group) => (
-          <View key={group.letter} style={{ gap: spacing.sm }}>
-            <Typography
-              variant="h2"
-              color={pal.muted}
-              style={{ fontSize: fontSizes.md, fontFamily: fonts.bold }}
-            >
-              {group.letter}
-            </Typography>
-            <View style={{ gap: spacing.sm }}>
-              {group.data.map((client, i) => (
-                <AnimatedListItem key={client.id} index={i}>
-                  <ClientCard client={client} onPress={() => onClientPress(client.id)} />
-                </AnimatedListItem>
-              ))}
-            </View>
-          </View>
+      <View style={{ gap: spacing.sm }}>
+        {visibleInsights.map((insight, index) => (
+          <AnimatedListItem key={insight.client.id} index={index}>
+            <ClientCard
+              insight={insight}
+              onPress={() => onClientPress(insight.client.id)}
+            />
+          </AnimatedListItem>
         ))}
       </View>
     );
@@ -474,30 +818,35 @@ function ClientsListScreen({
       <ScrollView
         refreshControl={
           <RefreshControl
-            refreshing={isRefetching}
+            refreshing={listClientsQuery.isRefetching || salesQuery.isRefetching}
             onRefresh={() => {
-              void refetch();
+              void Promise.all([
+                baseClientsQuery.refetch(),
+                listClientsQuery.refetch(),
+                salesQuery.refetch(),
+              ]);
             }}
-            colors={[theme.colors.primary]}
-            tintColor={theme.colors.primary}
+            colors={[pal.rose]}
+            tintColor={pal.rose}
           />
         }
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
           flexGrow: 1,
-          paddingTop: spacing.xl,
+          paddingTop: spacing.md,
           paddingBottom: listBottomPadding,
-          gap: spacing.md,
-          ...pageGutter(isDesktop),
+          gap: spacing.xl,
+          ...pageGutter(isDesktop, width < 390 ? spacing.md : spacing.xl),
           ...desktopStretch(isDesktop, desktopWidths.data),
         }}
       >
         <View
           style={{
             flexDirection: "row",
-            alignItems: "flex-start",
+            alignItems: "center",
             justifyContent: "space-between",
             gap: isDesktop ? spacing.md : spacing.sm,
-            marginBottom: spacing.sm,
           }}
         >
           {!isDesktop ? (
@@ -506,36 +855,72 @@ function ClientsListScreen({
               accessibilityRole="button"
               accessibilityLabel="Voltar"
               hitSlop={10}
-              style={{ width: 44, height: 44, justifyContent: "center" }}
+              style={{
+                width: 44,
+                height: 44,
+                alignItems: "flex-start",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
             >
-              <AppIcon name="chevron-back" size={24} color={theme.colors.text} />
+              <AppIcon name="chevron-back" size={28} color={pal.wine} />
             </Pressable>
           ) : null}
-          <View style={{ flex: 1, gap: spacing.sm }}>
-            <Typography variant="screenTitle" color={theme.colors.text} numberOfLines={1}>
+          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+            <Typography
+              variant="screenTitle"
+              color={pal.wine}
+              numberOfLines={1}
+              style={{
+                fontSize: width < 360 ? 29 : 32,
+                lineHeight: width < 360 ? 36 : 40,
+              }}
+            >
               Clientes
             </Typography>
-            <Typography variant="caption" color={pal.muted}>
-              {totalClients} clientes cadastrados
+            <Typography
+              variant="body"
+              color={pal.muted}
+              numberOfLines={1}
+              style={{ fontSize: width < 360 ? 13 : fontSizes.md }}
+            >
+              {totalClients} pessoas no seu negócio
             </Typography>
           </View>
 
-          {groups.length > 0 ? (
-            <FAB
-              icon="add"
-              header
-              accessibilityLabel="Novo cliente"
-              onPress={onCreatePress}
-            />
-          ) : null}
+          <FAB
+            icon="add"
+            accessibilityLabel="Novo cliente"
+            onPress={onCreatePress}
+            style={{
+              width: 52,
+              height: 52,
+              minWidth: 52,
+              backgroundColor: pal.rose,
+            }}
+          />
         </View>
 
         <View
-          style={
-            isDesktop
-              ? { alignSelf: "flex-start", maxWidth: 480, width: "100%" }
-              : undefined
-          }
+          style={{
+            alignSelf: "flex-start",
+            maxWidth: isDesktop ? 760 : undefined,
+            width: "100%",
+          }}
+        >
+          <ClienteleSummary
+            total={totalClients}
+            boughtThisMonth={boughtThisMonth}
+            withCredit={withCredit}
+          />
+        </View>
+
+        <View
+          style={{
+            alignSelf: "flex-start",
+            maxWidth: isDesktop ? 760 : undefined,
+            width: "100%",
+          }}
         >
           <SearchBox
             value={search}
@@ -543,28 +928,88 @@ function ClientsListScreen({
               setSearch(value);
               setPage(1);
             }}
-            placeholder="Buscar por nome ou telefone..."
-            onFilterPress={() => {
-              showAlert({
-                title: "Filtro de clientes",
-                message: "Use a busca para filtrar por nome ou telefone.",
-              });
-            }}
+            placeholder="Buscar cliente"
+            onFilterPress={() => setFilterModalOpen(true)}
           />
         </View>
 
+        <FilterChipRow style={isDesktop ? { maxWidth: 760 } : undefined}>
+          {FILTER_OPTIONS.map((option) => (
+            <Chip
+              key={option.key}
+              label={option.label}
+              count={filterCounts[option.key]}
+              selected={filter === option.key}
+              onPress={() => setFilter(option.key)}
+            />
+          ))}
+        </FilterChipRow>
+
         <LimitBanner resource="clients" onUpgrade={() => showPaywall("clients")} />
 
-        {clientsContent}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: spacing.md,
+          }}
+        >
+          <Typography
+            variant="h2"
+            color={pal.ink}
+            numberOfLines={1}
+            style={{ fontSize: width < 360 ? 21 : 23 }}
+          >
+            Seus clientes
+          </Typography>
+          <Pressable
+            onPress={() => setSortModalOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel={`Ordenar clientes: ${selectedSortLabel}`}
+            style={({ pressed }) => ({
+              minHeight: 44,
+              maxWidth: "52%",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              gap: spacing.xs,
+              opacity: pressed ? 0.6 : 1,
+            })}
+          >
+            <Typography
+              variant="body"
+              color={pal.wine}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.82}
+              style={{ fontSize: fontSizes.sm }}
+            >
+              {selectedSortLabel}
+            </Typography>
+            <AppIcon name="chevron-down" size={19} color={pal.wine} />
+          </Pressable>
+        </View>
 
-        {groups.length > 0 ? (
-          <Button
-            title="Adicionar cliente"
-            onPress={onCreatePress}
-            style={{ width: "100%" }}
-          />
-        ) : null}
+        {clientsContent}
       </ScrollView>
+
+      <OptionsModal
+        visible={filterModalOpen}
+        title="Filtrar clientes"
+        options={FILTER_OPTIONS}
+        selected={filter}
+        onSelect={setFilter}
+        onClose={() => setFilterModalOpen(false)}
+      />
+      <OptionsModal
+        visible={sortModalOpen}
+        title="Ordenar clientes"
+        options={SORT_OPTIONS}
+        selected={sort}
+        onSelect={setSort}
+        onClose={() => setSortModalOpen(false)}
+      />
     </>
   );
 }
@@ -590,8 +1035,7 @@ function NewClientField({
   style,
   ...inputProps
 }: Readonly<NewClientFieldProps>) {
-  const { theme } = useTheme();
-  const pal = clientsPalette(theme);
+  const pal = useBrandScreenPalette();
 
   return (
     <View
@@ -611,7 +1055,7 @@ function NewClientField({
           width: 42,
           height: 48,
           borderRadius: radii.xl,
-          backgroundColor: pal.subtleFill,
+          backgroundColor: pal.surface,
           alignItems: "center",
           justifyContent: "center",
         }}
@@ -621,16 +1065,16 @@ function NewClientField({
       <View style={{ flex: 1, minWidth: 0 }}>
         <Typography
           variant="bodyBold"
-          color={theme.colors.text}
+          color={pal.ink}
           style={{ fontSize: fontSizes.md, marginBottom: 0 }}
         >
           {label}
         </Typography>
         <TextInput
-          placeholderTextColor={theme.colors.textSecondary}
+          placeholderTextColor={pal.muted}
           style={[
             {
-              color: theme.colors.text,
+              color: pal.ink,
               fontSize: fontSizes.md,
               lineHeight: 22,
               padding: 0,
@@ -673,7 +1117,7 @@ interface NewClientModalProps {
 
 function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
   const { theme } = useTheme();
-  const pal = clientsPalette(theme);
+  const pal = useBrandScreenPalette();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
@@ -827,7 +1271,7 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
                 alignItems: "center",
                 gap: spacing.md,
                 borderLeftWidth: 3,
-                borderLeftColor: theme.colors.primaryLight,
+                borderLeftColor: pal.wine,
                 marginTop: spacing.sm,
               }),
             ]}
@@ -837,7 +1281,7 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
                 width: 42,
                 height: 48,
                 borderRadius: radii.xl,
-                backgroundColor: pal.subtleFill,
+                backgroundColor: pal.surface,
                 alignItems: "center",
                 justifyContent: "center",
               }}
@@ -847,7 +1291,7 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
             <View style={{ flex: 1, gap: spacing.xs }}>
               <Typography
                 variant="bodyBold"
-                color={theme.colors.text}
+                color={pal.ink}
                 style={{ fontSize: fontSizes.md }}
               >
                 Preencha os dados do cliente.
@@ -908,7 +1352,7 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
             count={`${notes.length}/200`}
           />
           <Typography variant="body" color={pal.muted} style={{ fontSize: fontSizes.sm }}>
-            <Typography variant="bodyBold" color={theme.colors.text}>
+            <Typography variant="bodyBold" color={pal.ink}>
               *
             </Typography>{" "}
             Campos obrigatórios
@@ -938,6 +1382,7 @@ function isClientDuplicateError(error: unknown): boolean {
 
 export default function ClientsScreen() {
   const { theme } = useTheme();
+  const pal = useBrandScreenPalette();
   const isDesktop = useDesktopLayout();
   const router = useRouter();
   const { clientId } = useLocalSearchParams<{ clientId?: string }>();
@@ -962,7 +1407,13 @@ export default function ClientsScreen() {
   }, [router]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        backgroundColor:
+          screen.name === "list" ? pal.background : theme.colors.background,
+      }}
+    >
       {screen.name === "list" && (
         <ClientsListScreen
           search={search}

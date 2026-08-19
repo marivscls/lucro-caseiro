@@ -1,0 +1,54 @@
+{
+  "id": "lucro-revenda",
+  "appName": "Lucro na Revenda",
+  "slug": "lucro-revenda",
+  "scheme": "lucrorevenda",
+  "iosBundleId": "com.lucronarevenda.app",
+  "androidPackage": "br.com.orionseven.lucrorevenda",
+  "theme": {
+    "primary": "#2457C5",
+    "primaryLight": "#4B75D4",
+    "primaryDark": "#173E91",
+    "primaryStrong": "#17304F",
+    "primaryInteractive": "#1D4FB9",
+    "primarySoft": "#E5ECFA",
+    "primarySoftDark": "#253044",
+    "background": "#F4F7FB",
+    "surface": "#FFFFFF",
+    "backgroundDark": "#161C25",
+    "surfaceDark": "#222B38"
+  },
+  "copy": {
+    "productNoun": "mercadoria",
+    "productNounPlural": "mercadorias",
+    "saleLabel": "Registrar venda",
+    "stockLabel": "Estoque disponível",
+    "revenueLabel": "Vendas",
+    "labelsLabel": "Etiquetas e códigos"
+  },
+  "features": {
+    "estoque": true,
+    "agendamento": false,
+    "catalogoCores": true,
+    "fichaTecnica": false,
+    "materiais": false,
+    "embalagens": false,
+    "vendaPorPeso": false,
+    "custoDireto": true,
+    "comprasComEstoque": true,
+    "varejoPapelaria": false,
+    "operacaoVertical": true,
+    "familiaLucro": true
+  },
+  "vertical": {
+    "domain": "revenda",
+    "operationLabel": "Operação da Revenda",
+    "operationDescription": "Compras, lotes, seriais, atacado e pós-venda",
+    "primaryActionLabel": "Registrar venda"
+  },
+  "onboarding": {
+    "businessType": "other",
+    "nicheId": "revenda",
+    "skipNicheSelection": true
+  }
+}

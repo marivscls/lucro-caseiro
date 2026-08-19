@@ -162,3 +162,6 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 - 2026-07-24: o wizard passou a seguir cliente → produtos → pagamento → revisão. A grade
   mostra a disponibilidade de estoque e o sucesso oferece abrir Vendas para acessar o
   detalhe, WhatsApp e recibo, além de iniciar outra venda.
+- 2026-08-18: filtros de lista em Vendas e Fiado usam o `Chip` compartilhado.
+  Fiado mantém o badge com totais já calculados na tela; Vendas não inventa
+  contagem porque a lista é paginada por status.

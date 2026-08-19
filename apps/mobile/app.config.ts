@@ -148,7 +148,10 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     android: {
       adaptiveIcon: {
         foregroundImage: brandAsset("adaptive-icon.png"),
-        backgroundColor: activeBrand.theme.primarySoft ?? "#F7DFD6",
+        backgroundColor:
+          activeBrand.id === DEFAULT_BRAND_ID
+            ? "#FAF5F2"
+            : activeBrand.theme.primarySoft ?? "#F7DFD6",
       },
       package: activeBrand.androidPackage,
       ...(activeBrand.id === "lucro-caseiro"
@@ -157,7 +160,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
               process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
           }
         : {}),
-      versionCode: 25,
+      versionCode: 26,
       softwareKeyboardLayoutMode: "resize",
       permissions: [],
     },

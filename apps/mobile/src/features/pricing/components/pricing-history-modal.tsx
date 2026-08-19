@@ -1,19 +1,20 @@
 import type { Pricing } from "@lucro-caseiro/contracts";
 import {
   Card,
+  Chip,
   EmptyState,
+  FilterChipRow,
   Typography,
   fontSizes,
   iconSizes,
-  radii,
   spacing,
   useTheme,
 } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
-import { FlatList, Image, Pressable, ScrollView, View } from "react-native";
+import { FlatList, Image, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import pricingEmpty from "../../../assets/pricing-empty.png";
+import { useBrandIllustration } from "../../../shared/brand-illustrations";
 import { AppIcon } from "../../../shared/components/app-icon";
 import { ResponsiveModal } from "../../../shared/components/responsive-modal-surface";
 import { SkeletonList } from "../../../shared/components/skeleton";
@@ -118,6 +119,7 @@ export function PricingHistoryModal({
   onClose,
 }: Readonly<{ visible: boolean; onClose: () => void }>) {
   const { theme } = useTheme();
+  const pricingEmpty = useBrandIllustration("pricingEmpty");
   const { data: products = [] } = useAllProducts();
   const { data, isLoading, error } = usePricingList();
   const [filter, setFilter] = useState<string>("all");
@@ -212,41 +214,16 @@ export function PricingHistoryModal({
 
         {chips.length > 1 ? (
           <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.sm }}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: spacing.sm }}
-            >
-              {chips.map((chip) => {
-                const active = filter === chip.key;
-                return (
-                  <Pressable
-                    key={chip.key}
-                    onPress={() => setFilter(chip.key)}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: active }}
-                    style={{
-                      minHeight: 44,
-                      justifyContent: "center",
-                      paddingHorizontal: spacing.lg,
-                      borderRadius: radii.full,
-                      backgroundColor: active
-                        ? theme.colors.primaryBg
-                        : theme.colors.surface,
-                    }}
-                  >
-                    <Typography
-                      variant="captionBold"
-                      color={
-                        active ? theme.colors.primaryStrong : theme.colors.textSecondary
-                      }
-                    >
-                      {chip.label}
-                    </Typography>
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
+            <FilterChipRow>
+              {chips.map((chip) => (
+                <Chip
+                  key={chip.key}
+                  label={chip.label}
+                  selected={filter === chip.key}
+                  onPress={() => setFilter(chip.key)}
+                />
+              ))}
+            </FilterChipRow>
           </View>
         ) : null}
 

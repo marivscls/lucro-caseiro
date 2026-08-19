@@ -35,7 +35,24 @@ export interface BrandFeatures {
   custoDireto: boolean;
   comprasComEstoque: boolean;
   varejoPapelaria: boolean;
+  operacaoVertical: boolean;
+  familiaLucro: boolean;
   [key: string]: boolean;
+}
+
+export type VerticalDomain =
+  | "caseiro"
+  | "papelaria"
+  | "beleza"
+  | "revenda"
+  | "oficina"
+  | "obra";
+
+export interface BrandVerticalConfig {
+  domain: VerticalDomain;
+  operationLabel: string;
+  operationDescription: string;
+  primaryActionLabel: string;
 }
 
 export interface BrandOnboardingConfig {
@@ -65,6 +82,7 @@ export interface BrandConfig {
   theme: BrandThemeOverrides;
   copy: BrandCopy;
   features: BrandFeatures;
+  vertical: BrandVerticalConfig;
   onboarding?: BrandOnboardingConfig;
   admob?: BrandAdMobConfig;
 }

@@ -5,11 +5,22 @@ import {
   UpdateFinanceEntryDto,
   UpdateRecurringExpenseDto,
 } from "@lucro-caseiro/contracts";
-import { Router, type RequestHandler } from "express";
+import { DEFAULT_BRAND_ID, resolveBrand } from "@lucro-caseiro/brands";
+import { Router, type Request, type RequestHandler } from "express";
 
+import { ValidationError } from "../../shared/errors";
 import { authMiddleware, getUserId } from "../../shared/middleware/auth";
 import { generateFinanceExcel, generateFinancePdf } from "./finance.export";
 import type { FinanceUseCases } from "./finance.usecases";
+
+function requestBrand(req: Request) {
+  const brandId = req.header("x-brand")?.trim() || DEFAULT_BRAND_ID;
+  try {
+    return resolveBrand(brandId);
+  } catch {
+    throw new ValidationError([`Marca desconhecida: ${brandId}`]);
+  }
+}
 
 export function createFinanceRouter(
   useCases: FinanceUseCases,
@@ -161,9 +172,9 @@ export function createFinanceRouter(
 
       const summary = await useCases.getMonthlySummary(userId, month, year);
       const period = `${String(month).padStart(2, "0")}/${year}`;
-      const businessName = "Lucro Caseiro";
+      const brand = requestBrand(req);
 
-      const pdfBuffer = await generateFinancePdf(entries, summary, businessName, period);
+      const pdfBuffer = await generateFinancePdf(entries, summary, brand, period);
 
       const filename = `relatório-financeiro-${year}-${String(month).padStart(2, "0")}.pdf`;
       res.setHeader("Content-Type", "application/pdf");
@@ -205,8 +216,9 @@ export function createFinanceRouter(
 
       const summary = await useCases.getMonthlySummary(userId, month, year);
       const period = `${String(month).padStart(2, "0")}/${year}`;
+      const brand = requestBrand(req);
 
-      const xlsxBuffer = await generateFinanceExcel(entries, summary, period);
+      const xlsxBuffer = await generateFinanceExcel(entries, summary, brand, period);
 
       const filename = `relatório-financeiro-${year}-${String(month).padStart(2, "0")}.xlsx`;
       res.setHeader(

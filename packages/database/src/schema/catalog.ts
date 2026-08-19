@@ -1,4 +1,12 @@
-import { boolean, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  index,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 import { users } from "./users";
 
@@ -31,6 +39,10 @@ export const catalogSettings = pgTable(
     servicePromoBannerEnabled: boolean("service_promo_banner_enabled")
       .notNull()
       .default(true),
+    customization: jsonb("customization"),
+    publishedCustomization: jsonb("published_customization"),
+    publishedProducts: jsonb("published_products"),
+    publishedServices: jsonb("published_services"),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("idx_catalog_settings_slug").on(table.slug)],

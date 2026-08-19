@@ -1,16 +1,24 @@
 -- Massa completa para TODAS as telas do Lucro Caseiro.
--- Conta: marianadosreisvasconcelos7@gmail.com
+-- Conta padrao: marianadosreisvasconcelos7@gmail.com
+-- Para outra conta, execute antes: SET app.seed_email = 'conta@exemplo.com';
 -- Execute no SQL Editor do Supabase. Idempotente: remove apenas dados [massa] desta conta.
 -- ATENCAO: promove a conta para o plano professional para liberar os recursos avancados.
 
 DO $$
 DECLARE
+  v_email text := COALESCE(NULLIF(current_setting('app.seed_email', true), ''), 'marianadosreisvasconcelos7@gmail.com');
   v_user uuid;
   v_sale uuid;
   v_finance uuid;
   v_order uuid;
+  v_purchase uuid;
   v_product uuid;
   v_recipe uuid;
+  v_service uuid;
+  v_service_package uuid;
+  v_service_purchase uuid;
+  v_production uuid;
+  v_retail_document uuid;
   v_total numeric;
   v_price numeric;
   v_qty numeric;
@@ -23,14 +31,15 @@ DECLARE
   supplier_ids uuid[];
   recipe_ids uuid[];
   packaging_ids uuid[];
+  service_ids uuid[];
   i integer;
 BEGIN
   SELECT id INTO v_user
   FROM public.users
-  WHERE lower(email) = lower('marianadosreisvasconcelos7@gmail.com');
+  WHERE lower(email) = lower(v_email);
 
   IF v_user IS NULL THEN
-    RAISE EXCEPTION 'Usuario marianadosreisvasconcelos7@gmail.com nao encontrado em public.users';
+    RAISE EXCEPTION 'Usuario % nao encontrado em public.users', v_email;
   END IF;
 
   -- Libera todas as telas e deixa o perfil pronto para demonstracao.
@@ -45,11 +54,25 @@ BEGIN
   WHERE id = v_user;
 
   -- =============================== LIMPEZA SEGURA ===============================
+  DELETE FROM service_package_session_usages WHERE user_id = v_user;
+  DELETE FROM public_service_booking_requests WHERE user_id = v_user AND notes LIKE '[massa]%';
+  DELETE FROM service_package_purchases WHERE user_id = v_user;
+  DELETE FROM service_packages WHERE user_id = v_user AND name LIKE '[massa]%';
+  DELETE FROM service_add_ons WHERE user_id = v_user AND name LIKE '[massa]%';
+  DELETE FROM service_variations WHERE user_id = v_user AND name LIKE '[massa]%';
+  DELETE FROM retail_promotions WHERE user_id = v_user AND name LIKE '[massa]%';
+  DELETE FROM retail_business_accounts WHERE user_id = v_user AND legal_name LIKE '[massa]%';
+  DELETE FROM retail_price_changes WHERE user_id = v_user AND reason LIKE '[massa]%';
+  DELETE FROM retail_documents WHERE user_id = v_user AND title LIKE '[massa]%';
+  DELETE FROM retail_documents WHERE user_id = v_user AND kind = 'cash_session' AND status = 'open';
+  DELETE FROM production_runs WHERE user_id = v_user AND notes LIKE '[massa]%';
+  DELETE FROM stock_movements WHERE user_id = v_user AND reason LIKE '[massa]%';
   DELETE FROM labels WHERE user_id = v_user AND name LIKE '[massa]%';
   DELETE FROM pricing_calculations WHERE user_id = v_user
     AND product_id IN (SELECT id FROM products WHERE user_id = v_user AND name LIKE '[massa]%');
   DELETE FROM quotes WHERE user_id = v_user AND title LIKE '[massa]%';
   DELETE FROM orders WHERE user_id = v_user AND title LIKE '[massa]%';
+  DELETE FROM services WHERE user_id = v_user AND name LIKE '[massa]%';
   DELETE FROM purchases WHERE user_id = v_user AND description LIKE '[massa]%';
   DELETE FROM recurring_expenses WHERE user_id = v_user AND description LIKE '[massa]%';
   DELETE FROM product_components WHERE product_id IN (SELECT id FROM products WHERE user_id = v_user AND name LIKE '[massa]%');
@@ -67,6 +90,7 @@ BEGIN
   DELETE FROM clients WHERE user_id = v_user AND notes LIKE '[massa]%';
   DELETE FROM business_goals WHERE user_id = v_user;
   DELETE FROM catalog_settings WHERE user_id = v_user;
+  DELETE FROM pricing_preferences WHERE user_id = v_user;
 
   -- =============================== CLIENTES (24) ================================
   INSERT INTO clients (user_id, name, phone, address, birthday, tags, notes, created_at)
@@ -103,6 +127,11 @@ BEGIN
     WHERE user_id = v_user AND phone = '11990001001';
   UPDATE clients SET birthday = (date_trunc('month', current_date) + interval '12 days')::date
     WHERE user_id = v_user AND phone = '11990001008';
+  UPDATE clients
+  SET next_contact_at = current_date + 2,
+      next_contact_reason = 'Confirmar encomenda',
+      next_contact_notes = '[massa] Cliente pediu retorno pelo WhatsApp'
+  WHERE user_id = v_user AND phone IN ('11990001003', '11990001010', '11990001017');
 
   SELECT array_agg(id ORDER BY name) INTO client_ids FROM clients WHERE user_id = v_user AND notes LIKE '[massa]%';
 
@@ -180,6 +209,32 @@ BEGIN
     (v_user,'[massa] Produto sazonal inativo','Edicao de Pascoa','Sazonal','789100000018',35.00,'unit',14.00,NULL,0,5,false,false);
   SELECT array_agg(id ORDER BY name) INTO product_ids FROM products WHERE user_id = v_user AND name LIKE '[massa]%';
 
+  UPDATE products
+  SET photo_url = CASE
+    WHEN name IN ('[massa] Bolo de chocolate','[massa] Mini bolo afetivo','[massa] Kit festa 20 pessoas')
+      THEN 'https://images.unsplash.com/photo-1540337706094-da10342c93d8?auto=format&fit=crop&w=600&h=600&q=82'
+    WHEN name IN ('[massa] Bolo de pote morango','[massa] Torta de morango')
+      THEN 'https://images.unsplash.com/photo-1551198297-e490636298ba?auto=format&fit=crop&w=600&h=600&q=82'
+    WHEN name IN ('[massa] Brownie recheado','[massa] Pao de mel','[massa] Produto sazonal inativo')
+      THEN 'https://images.unsplash.com/photo-1426869884541-df7117556757?auto=format&fit=crop&w=600&h=600&q=82'
+    WHEN name IN ('[massa] Brigadeiro gourmet','[massa] Caixa 6 brigadeiros','[massa] Kit degustacao','[massa] Cupcake decorado')
+      THEN 'https://images.unsplash.com/photo-1502597276204-a3833c063739?auto=format&fit=crop&w=600&h=600&q=82'
+    WHEN name IN ('[massa] Coxinha cento','[massa] Marmita fit','[massa] Torta salgada')
+      THEN 'https://images.unsplash.com/photo-1668665771959-b217076ddde3?auto=format&fit=crop&w=600&h=600&q=82'
+    ELSE 'https://images.unsplash.com/photo-1644780764837-ada1e0023cb5?auto=format&fit=crop&w=600&h=600&q=82'
+  END
+  WHERE user_id = v_user AND name LIKE '[massa]%';
+
+  -- Variações para estoque, venda, compra e PDV.
+  UPDATE products
+  SET variations = jsonb_build_array(
+    jsonb_build_object('id', gen_random_uuid()::text, 'name', 'Pequeno', 'size', 'P', 'stockQuantity', 18),
+    jsonb_build_object('id', gen_random_uuid()::text, 'name', 'Grande', 'size', 'G', 'stockQuantity', 9)
+  )
+  WHERE user_id = v_user AND name IN ('[massa] Bolo de pote morango', '[massa] Brownie recheado');
+  UPDATE products SET public_enabled = false
+  WHERE user_id = v_user AND name IN ('[massa] Produto sazonal inativo', '[massa] Torta salgada');
+
   -- Componentes dos kits (tela de produtos compostos).
   INSERT INTO product_components (product_id,component_product_id,quantity)
   SELECT kit.id, item.id, q.qty FROM
@@ -215,6 +270,10 @@ BEGIN
     VALUES
       (v_user,v_product,8+i*2,1.20+i*0.15,5+i,3.50,17.70+i*3.15,60,28.32+i*5.04,4.99,1.41+i*0.25,29.90+i*5.29,now()-i*interval '6 days');
   END LOOP;
+  INSERT INTO pricing_preferences (user_id, channel_fees)
+  VALUES (v_user, '[{"id":"ifood","name":"iFood","percent":23},{"id":"card","name":"Cartao","percent":4.99}]'::jsonb)
+  ON CONFLICT (user_id) DO UPDATE
+  SET channel_fees = EXCLUDED.channel_fees, updated_at = now();
 
   -- ================================= ROTULOS (8) ==================================
   FOR i IN 1..8 LOOP
@@ -286,10 +345,85 @@ BEGIN
       RETURNING id INTO v_finance;
       INSERT INTO purchases (user_id,supplier_id,description,amount,category,payment_status,purchased_at,due_date,paid_at,finance_entry_id)
       VALUES (v_user,supplier_ids[1+(i%8)],'[massa] Pedido fornecedor #'||i,70+i*18,(CASE WHEN i%2=0 THEN 'packaging' ELSE 'material' END)::expense_category,'paid',current_date-(i*3),current_date-(i*3)+7,current_date-(i*3)+5,v_finance);
+      SELECT id INTO v_purchase FROM purchases
+      WHERE user_id=v_user AND description='[massa] Pedido fornecedor #'||i;
     ELSE
       INSERT INTO purchases (user_id,supplier_id,description,amount,category,payment_status,purchased_at,due_date)
-      VALUES (v_user,supplier_ids[1+(i%8)],'[massa] Pedido fornecedor #'||i,70+i*18,(CASE WHEN i%2=0 THEN 'packaging' ELSE 'material' END)::expense_category,'pending',current_date-(i*2),current_date+(i%10)+1);
+      VALUES (v_user,supplier_ids[1+(i%8)],'[massa] Pedido fornecedor #'||i,70+i*18,(CASE WHEN i%2=0 THEN 'packaging' ELSE 'material' END)::expense_category,'pending',current_date-(i*2),current_date+(i%10)+1)
+      RETURNING id INTO v_purchase;
     END IF;
+    INSERT INTO purchase_items (purchase_id,product_id,product_name,quantity,unit_cost,subtotal)
+    SELECT v_purchase,p.id,p.name,2,round((70+i*18)::numeric/2,2),70+i*18
+    FROM products p WHERE p.id=product_ids[1+(i%10)];
+  END LOOP;
+
+  -- ============================ SERVICOS E PACOTES =============================
+  INSERT INTO services
+    (user_id,name,description,duration_minutes,default_price,material_cost,hourly_rate,other_cost,fixed_cost_share,markup_percent,fees_percent,location_mode,buffer_minutes,public_enabled,booking_instructions,active)
+  VALUES
+    (v_user,'[massa] Bolo personalizado','Planejamento, producao e acabamento de bolo tematico.',180,280,72,45,18,22,55,4.99,'business',30,true,'Enviar tema e quantidade de convidados.',true),
+    (v_user,'[massa] Oficina de brigadeiros','Aula pratica para pequenos grupos.',120,190,38,50,12,20,45,4.99,'business',20,true,'Confirmar numero de participantes.',true),
+    (v_user,'[massa] Consultoria de cardapio','Revisao de custos, mix e precos do cardapio.',90,150,0,70,10,15,35,3.50,'online',15,true,'Enviar cardapio atual antes do encontro.',true),
+    (v_user,'[massa] Montagem de mesa','Servico pausado para eventos.',240,NULL,95,40,25,30,50,4.99,'client',60,false,NULL,false);
+  SELECT array_agg(id ORDER BY name) INTO service_ids
+  FROM services WHERE user_id = v_user AND name LIKE '[massa]%';
+
+  v_service := service_ids[1];
+  INSERT INTO service_variations (user_id,service_id,name,duration_minutes,price) VALUES
+    (v_user,v_service,'[massa] Ate 20 pessoas',150,240),
+    (v_user,v_service,'[massa] Ate 50 pessoas',240,420);
+  INSERT INTO service_add_ons (user_id,service_id,name,duration_minutes,price) VALUES
+    (v_user,v_service,'[massa] Topo personalizado',20,45),
+    (v_user,v_service,'[massa] Entrega expressa',30,35);
+  INSERT INTO service_packages (user_id,service_id,name,sessions,price,validity_days,recurrence_days)
+  VALUES (v_user,v_service,'[massa] Pacote 4 celebracoes',4,840,365,30)
+  RETURNING id INTO v_service_package;
+  INSERT INTO service_package_purchases
+    (user_id,package_id,service_id,client_id,sessions_total,sessions_used,price_paid,purchased_at,expires_at,status)
+  VALUES
+    (v_user,v_service_package,v_service,client_ids[1],4,1,840,now()-interval '20 days',current_date+345,'active')
+  RETURNING id INTO v_service_purchase;
+  INSERT INTO public_service_booking_requests
+    (user_id,service_id,service_name,client_name,phone,desired_date,desired_time,location_mode,notes,status)
+  VALUES
+    (v_user,v_service,'[massa] Bolo personalizado','Beatriz Almeida','11995550101',current_date+8,'14:00','business','[massa] Tema jardim, 30 convidados','new'),
+    (v_user,service_ids[2],'[massa] Consultoria de cardapio','Luciana Prado','11995550102',current_date+12,'10:00','online','[massa] Quer revisar precos','contacted');
+
+  FOR i IN 1..6 LOOP
+    INSERT INTO orders
+      (user_id,client_id,title,delivery_date,delivery_time,status,amount,deposit,notes,service_id,duration_minutes,appointment_status,location_mode,location_details,actual_cost,completed_at,service_package_purchase_id)
+    VALUES
+      (v_user,client_ids[1+(i%24)],'[massa] Atendimento #'||i,current_date+(i-2),lpad((9+i)::text,2,'0')||':00','pending',120+i*25,
+       CASE WHEN i%2=0 THEN 120+i*25 ELSE round((120+i*25)*0.5,2) END,'[massa] Atendimento de demonstracao',service_ids[1+(i%4)],60+(i*15),
+       (ARRAY['scheduled','confirmed','in_progress','completed','cancelled','no_show'])[i],
+       (ARRAY['business','client','online'])[1+(i%3)],'Detalhes combinados pelo WhatsApp',45+i*8,
+       CASE WHEN i=4 THEN now()-interval '2 days' ELSE NULL END,
+       CASE WHEN i=1 THEN v_service_purchase ELSE NULL END);
+  END LOOP;
+
+  -- ======================== ESTOQUE E PRODUCAO RASTREADOS =======================
+  FOR i IN 1..12 LOOP
+    INSERT INTO stock_movements (user_id,product_id,type,delta,balance_after,reason,occurred_at)
+    VALUES (
+      v_user,product_ids[1+(i%10)],
+      (ARRAY['purchase','sale','adjustment','production'])[1+(i%4)],
+      CASE WHEN i%3=0 THEN -2 ELSE 5 END,
+      20+i,
+      '[massa] Movimento de demonstracao #'||i,
+      now()-i*interval '2 days'
+    );
+  END LOOP;
+  FOR i IN 1..4 LOOP
+    INSERT INTO production_runs
+      (user_id,product_id,recipe_id,planned_quantity,produced_quantity,planned_cost,actual_cost,waste_cost,status,notes,created_at,closed_at)
+    VALUES
+      (v_user,product_ids[i],recipe_ids[i],40+i*10,38+i*10,80+i*15,84+i*16,4+i,'closed','[massa] Lote de demonstracao #'||i,now()-i*interval '9 days',now()-i*interval '9 days'+interval '4 hours')
+    RETURNING id INTO v_production;
+    INSERT INTO production_run_items
+      (production_run_id,material_id,planned_quantity,actual_quantity,waste_quantity,unit_cost)
+    VALUES
+      (v_production,material_ids[i],4,4.2,0.2,5.80+i),
+      (v_production,material_ids[i+1],2,2.1,0.1,6.20+i);
   END LOOP;
 
   -- =============================== AGENDA (18) ====================================
@@ -324,15 +458,64 @@ BEGIN
       current_date+i+7,'Proposta detalhada enviada pelo WhatsApp',v_order,now()-i*interval '5 days',now()-i*interval '4 days');
   END LOOP;
 
+  -- =============================== OPERACAO / PDV ===============================
+  INSERT INTO retail_documents
+    (user_id,kind,status,title,party_id,amount,deposit,due_at,reserved_until,payload,created_at,updated_at)
+  VALUES
+    (v_user,'cash_session','open','[massa] Caixa de hoje',NULL,150,150,NULL,NULL,'{"openingFloat":150,"note":"Caixa de demonstracao"}'::jsonb,now()-interval '4 hours',now()),
+    (v_user,'school_list','active','[massa] Lista escolar Colegio Horizonte',client_ids[2],680,200,current_date+15,NULL,'{"student":"Laura","grade":"5o ano"}'::jsonb,now()-interval '8 days',now()-interval '1 day'),
+    (v_user,'inventory_count','counting','[massa] Contagem de estoque agosto',NULL,0,0,current_date+2,NULL,'{"section":"Estoque principal"}'::jsonb,now()-interval '2 days',now()),
+    (v_user,'purchase_order','sent','[massa] Reposicao de embalagens',NULL,420,0,current_date+7,NULL,'{"supplier":"Embalagens Bella"}'::jsonb,now()-interval '6 days',now()-interval '3 days'),
+    (v_user,'service_order','production','[massa] Identidade visual festa',client_ids[3],540,270,current_date+9,NULL,'{"briefing":"Tema floral rosa e dourado"}'::jsonb,now()-interval '10 days',now()),
+    (v_user,'catalog_order','ready','[massa] Pedido catalogo Gabriela',client_ids[4],186,93,current_date+1,now()+interval '1 day','{"fulfillment":"pickup","customerPhone":"11990001004"}'::jsonb,now()-interval '3 days',now()),
+    (v_user,'fiscal_document','authorized','[massa] NFC-e venda demonstracao',client_ids[5],128,128,NULL,NULL,'{"type":"nfce","provider":"demonstracao"}'::jsonb,now()-interval '1 day',now());
+
+  INSERT INTO retail_document_items
+    (document_id,product_id,name,quantity,unit_price,subtotal,metadata)
+  SELECT d.id,p.id,p.name,g.n,p.sale_price,round(p.sale_price*g.n,2),jsonb_build_object('seed','[massa]')
+  FROM retail_documents d
+  CROSS JOIN generate_series(1,2) AS g(n)
+  JOIN products p ON p.id=product_ids[1+((g.n + CASE d.kind
+    WHEN 'school_list' THEN 1 WHEN 'inventory_count' THEN 3 WHEN 'purchase_order' THEN 5
+    WHEN 'service_order' THEN 7 WHEN 'catalog_order' THEN 9 ELSE 2 END) % 10)]
+  WHERE d.user_id=v_user AND d.title LIKE '[massa]%' AND d.kind <> 'cash_session';
+
+  SELECT id INTO v_retail_document FROM retail_documents
+  WHERE user_id=v_user AND title='[massa] Caixa de hoje';
+  INSERT INTO retail_cash_movements (session_id,type,payment_method,amount,note,created_at) VALUES
+    (v_retail_document,'supply','cash',150,'[massa] Fundo de caixa',now()-interval '4 hours'),
+    (v_retail_document,'sale','pix',186,'[massa] Venda no PDV',now()-interval '2 hours'),
+    (v_retail_document,'sale','card',128,'[massa] Venda no cartao',now()-interval '1 hour'),
+    (v_retail_document,'withdrawal','cash',40,'[massa] Pequena retirada',now()-interval '30 minutes');
+
+  INSERT INTO retail_promotions
+    (user_id,name,type,value,buy_quantity,pay_quantity,product_id,category,starts_at,ends_at,active)
+  VALUES
+    (v_user,'[massa] 10% em doces','percentage',10,NULL,NULL,NULL,'Doces',now()-interval '7 days',now()+interval '21 days',true),
+    (v_user,'[massa] Leve 3 pague 2','buy_x_pay_y',1,3,2,product_ids[1],NULL,now()-interval '2 days',now()+interval '12 days',true),
+    (v_user,'[massa] Desconto sazonal','fixed',3,NULL,NULL,product_ids[4],NULL,now()-interval '30 days',now()-interval '2 days',false);
+  INSERT INTO retail_business_accounts
+    (user_id,client_id,kind,legal_name,document,contact_name,credit_limit,used_credit,due_days,discount_percent,active)
+  VALUES
+    (v_user,client_ids[5],'company','[massa] Empresa Horizonte','12.345.678/0001-90','Paula Andrade',2500,680,30,8,true),
+    (v_user,client_ids[6],'school','[massa] Colegio Primavera','98.765.432/0001-10','Fernanda Lima',4000,1120,45,10,true);
+  FOR i IN 1..6 LOOP
+    INSERT INTO retail_price_changes (user_id,product_id,previous_price,new_price,reason,created_at)
+    SELECT v_user,p.id,p.sale_price-2,p.sale_price,'[massa] Reajuste de custos #'||i,now()-i*interval '12 days'
+    FROM products p WHERE p.id=product_ids[i];
+  END LOOP;
+
   -- ================================= METAS ========================================
   INSERT INTO business_goals (user_id,monthly_prolabore_goal,estimated_monthly_costs,avg_ticket_override)
   VALUES (v_user,5000.00,2850.00,95.00);
 
   -- ================================ CATALOGO ======================================
-  INSERT INTO catalog_settings (user_id,slug,enabled,whatsapp,accent_color,pattern,tagline,promo_banner)
-  VALUES (v_user,'mariana-vasconcelos-demo',true,'5511987654321','#C96F82','confetti','Doces feitos com carinho para transformar seus momentos.','Encomendas abertas para este mes!');
+  INSERT INTO catalog_settings
+    (user_id,slug,enabled,whatsapp,accent_color,pattern,tagline,promo_banner,service_tagline,service_promo_banner)
+  VALUES
+    (v_user,'mariana-vasconcelos-demo',true,'5511987654321','#C96F82','confetti','Doces feitos com carinho para transformar seus momentos.','Encomendas abertas para este mes!','Servicos personalizados para celebrar e organizar seu negocio.','Agenda de atendimentos aberta para este mes!');
 
-  RAISE NOTICE 'Massa completa criada para %: 24 clientes, 8 fornecedores, 16 insumos, 8 receitas, 18 produtos, 8 embalagens, 72 vendas, 21 encomendas (18 diretas e 3 de orcamentos aceitos), 12 orcamentos, 14 compras e dados avancados.', v_user;
+  RAISE NOTICE 'Massa completa criada para %: 24 clientes, 8 fornecedores, 16 insumos, 8 receitas, 18 produtos, 8 embalagens, 4 servicos, 72 vendas, 27 encomendas, 12 orcamentos, 14 compras, operacao/PDV e dados avancados.', v_user;
 END $$;
 
 -- Conferencia rapida apos executar:
@@ -348,5 +531,8 @@ SELECT
   (SELECT count(*) FROM recipes r WHERE r.user_id=u.id AND r.name LIKE '[massa]%') AS receitas,
   (SELECT count(*) FROM suppliers s WHERE s.user_id=u.id AND s.notes='[massa]') AS fornecedores,
   (SELECT count(*) FROM purchases p WHERE p.user_id=u.id AND p.description LIKE '[massa]%') AS compras
+  ,(SELECT count(*) FROM services s WHERE s.user_id=u.id AND s.name LIKE '[massa]%') AS servicos
+  ,(SELECT count(*) FROM retail_documents d WHERE d.user_id=u.id AND d.title LIKE '[massa]%') AS documentos_operacionais
+  ,(SELECT count(*) FROM production_runs pr WHERE pr.user_id=u.id AND pr.notes LIKE '[massa]%') AS lotes_producao
 FROM public.users u
-WHERE lower(u.email)=lower('marianadosreisvasconcelos7@gmail.com');
+WHERE lower(u.email)=lower(COALESCE(NULLIF(current_setting('app.seed_email', true), ''), 'marianadosreisvasconcelos7@gmail.com'));

@@ -253,6 +253,10 @@ Preserve este limite.`);
       "Não repita títulos, ganchos, CTAs nem emoções principais",
     );
     expect(IDEA_BANK_SYSTEM_PROMPT).toContain("briefing pronto para revisão");
+    expect(IDEA_BANK_SYSTEM_PROMPT).toContain(
+      "Promoção, Entretenimento, Debate, Aprendizado e Ligação",
+    );
+    expect(IDEA_BANK_SYSTEM_PROMPT).toContain("não a uma cota fixa");
   });
 
   it("ships distinct operational documents as canonical AI knowledge", () => {
@@ -324,12 +328,14 @@ Preserve este limite.`);
       hook: "O preço da concorrência não conhece os seus custos.",
       cta: "Compare com o seu cálculo.",
     });
+    first.brief.contentIntent = "Promoção";
 
-    expect(
-      parseMarketingContentIdeas(
-        `\`\`\`json\n${JSON.stringify({ ideas: [first, repeatedEmotion, second] })}\n\`\`\``,
-      ).ideas.map((idea) => idea.title),
-    ).toEqual([first.title, second.title]);
+    const parsed = parseMarketingContentIdeas(
+      `\`\`\`json\n${JSON.stringify({ ideas: [first, repeatedEmotion, second] })}\n\`\`\``,
+    );
+
+    expect(parsed.ideas.map((idea) => idea.title)).toEqual([first.title, second.title]);
+    expect(parsed.ideas[0]?.brief.contentIntent).toBe("Aprendizado");
   });
 });
 
@@ -348,6 +354,7 @@ function contentIdea(
   return {
     title,
     example: title,
+    contentIntent: "Aprendizado",
     category: "Educativos",
     objective: "Ensinar precificação",
     persona: "Confeiteira que vende por encomenda",
@@ -368,6 +375,7 @@ function contentIdea(
     },
     brief: {
       theme: "Precificação",
+      contentIntent: "Aprendizado",
       category: "Educativos",
       persona: "Confeiteira que vende por encomenda",
       contentObjective: "Ensinar precificação",

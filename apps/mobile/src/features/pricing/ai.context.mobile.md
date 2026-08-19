@@ -160,3 +160,5 @@ acrescimo`; `precoBase = (custoDireto + lucroAlvo) / (1 - taxa)`.
   como referências confirmadas e adicionou custeio por faturamento. A etapa 5 substituiu a soma fixa
   iFood+cartão por perfis alternativos persistidos; um cálculo aplica um canal por vez. O modo Simples
   permaneceu inalterado.
+- 2026-08-18: o filtro por produto no histórico de precificação usa o `Chip`
+  compartilhado. Sem badge: a lista já vem do `usePricingList()`.

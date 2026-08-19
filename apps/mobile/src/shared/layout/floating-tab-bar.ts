@@ -4,7 +4,7 @@ import { Platform } from "react-native";
 export const FLOATING_TAB_BAR_HEIGHT = Platform.select({
   ios: 88,
   web: 72,
-  default: 64,
+  default: 76,
 });
 
 export function floatingTabBarBottomOffset(bottomInset: number): number {

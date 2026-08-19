@@ -53,6 +53,46 @@ describe("getAuthRedirectUrl", () => {
     expect(openAuthSession).not.toHaveBeenCalled();
   });
 
+  it("conclui no Android quando o deep link chega depois de o navegador retornar dismiss", async () => {
+    platform.OS = "android";
+    vi.stubEnv("EXPO_PUBLIC_AUTH_REDIRECT_URL", "lucrocaseiro://auth/callback");
+    vi.spyOn(supabase.auth, "signInWithOAuth").mockResolvedValue({
+      data: { provider: "google", url: "https://accounts.google.com/oauth" },
+      error: null,
+    });
+    vi.spyOn(supabase.auth, "getSession").mockResolvedValue({
+      data: { session: null },
+      error: null,
+    });
+    const setSession = vi.spyOn(supabase.auth, "setSession").mockResolvedValue({
+      data: { user: null, session: null },
+      error: null,
+    });
+    let deliverCallback: ((event: { url: string }) => void) | undefined;
+    vi.spyOn(Linking, "addEventListener").mockImplementation((_type, handler) => {
+      deliverCallback = handler;
+      return {
+        remove: vi.fn(),
+      } as unknown as ReturnType<typeof Linking.addEventListener>;
+    });
+    vi.mocked(WebBrowser.openAuthSessionAsync).mockImplementation(() => {
+      deliverCallback?.({
+        url: "lucrocaseiro://auth/callback#access_token=access&refresh_token=refresh",
+      });
+      return Promise.resolve({ type: "dismiss" }) as ReturnType<
+        typeof WebBrowser.openAuthSessionAsync
+      >;
+    });
+
+    const result = await useAuth.getState().signInWithGoogle();
+
+    expect(result).toEqual({});
+    expect(setSession).toHaveBeenCalledWith({
+      access_token: "access",
+      refresh_token: "refresh",
+    });
+  });
+
   it("usa o código do Supabase para explicar credenciais inválidas", async () => {
     vi.spyOn(supabase.auth, "signInWithPassword").mockResolvedValue({
       data: { user: null, session: null },

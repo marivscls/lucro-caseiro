@@ -4,6 +4,7 @@ import { AppIcon } from "../../../shared/components/app-icon";
 import React from "react";
 import { Image, View } from "react-native";
 
+import { brandScreenPalette } from "../../../shared/brand-palette";
 import { formatCurrency } from "../../../shared/utils/format";
 import { paymentLabel } from "../payment";
 
@@ -25,8 +26,12 @@ function getStatusColors(
   color: "success" | "warning" | "danger",
   theme: ReturnType<typeof useTheme>["theme"],
 ) {
+  const palette = brandScreenPalette(theme);
   if (color === "success") {
-    return { text: theme.colors.success, bg: theme.colors.successBg };
+    return {
+      text: palette.wine,
+      bg: palette.softRose,
+    };
   }
   if (color === "warning") {
     return { text: theme.colors.yellow, bg: theme.colors.yellowBg };
@@ -36,6 +41,7 @@ function getStatusColors(
 
 export function SaleCard({ sale, onPress }: SaleCardProps) {
   const { theme } = useTheme();
+  const palette = brandScreenPalette(theme);
   const status = STATUS_MAP[sale.status] ?? {
     label: sale.status,
     color: "danger" as const,
@@ -61,20 +67,27 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
       onPress={onPress}
       accessibilityRole="button"
       style={{
-        minHeight: 96,
+        minHeight: 108,
         borderRadius: radii.xl,
         padding: spacing.md,
-        backgroundColor: theme.colors.surfaceElevated,
+        backgroundColor: palette.white,
         borderWidth: 1,
-        borderColor: theme.colors.border,
+        borderColor: palette.border,
+        borderLeftWidth: 4,
+        borderLeftColor: palette.rose,
+        shadowColor: theme.shadows.sm.shadowColor,
+        shadowOffset: theme.shadows.sm.shadowOffset,
+        shadowOpacity: theme.shadows.sm.shadowOpacity,
+        shadowRadius: theme.shadows.sm.shadowRadius,
+        elevation: 2,
       }}
     >
-      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
         <View
           style={{
-            width: 62,
-            height: 62,
-            borderRadius: radii.xl,
+            width: 58,
+            height: 58,
+            borderRadius: radii.lg,
             backgroundColor: theme.colors.surface,
             alignItems: "center",
             justifyContent: "center",
@@ -96,40 +109,45 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
           )}
         </View>
 
-        <View style={{ flex: 1, gap: spacing.xs }}>
-          <Typography variant="bodyBold" numberOfLines={1} color={theme.colors.text}>
+        <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
+          <Typography variant="bodyBold" numberOfLines={2} color={theme.colors.text}>
             {title}
             {extraCount > 0 ? ` +${extraCount}` : ""}
           </Typography>
-          <Typography variant="caption" numberOfLines={1}>
-            {sale.clientName ?? itemsSummary ?? "Cliente avulso"}
-          </Typography>
-          <Typography variant="caption" numberOfLines={1}>
-            {soldDate} • {payment}
-          </Typography>
-        </View>
-
-        <View style={{ alignItems: "flex-end", gap: spacing.sm }}>
-          <Typography variant="bodyBold" color={theme.colors.success}>
-            {formatCurrency(sale.total)}
-          </Typography>
-          <View
-            style={{
-              minHeight: 28,
-              paddingHorizontal: spacing.md,
-              borderRadius: radii.full,
-              backgroundColor: statusColors.bg,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Typography variant="caption" color={statusColors.text}>
-              {status.label}
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+            <Typography
+              variant="caption"
+              numberOfLines={1}
+              style={{ flex: 1, minWidth: 0 }}
+            >
+              {sale.clientName ?? itemsSummary ?? "Cliente avulso"}
             </Typography>
+            <Typography variant="bodyBold" color={palette.wine} numberOfLines={1}>
+              {formatCurrency(sale.total)}
+            </Typography>
+          </View>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+            <Typography variant="caption" numberOfLines={1} style={{ flex: 1 }}>
+              {soldDate} • {payment}
+            </Typography>
+            <View
+              style={{
+                minHeight: 28,
+                paddingHorizontal: spacing.md,
+                borderRadius: radii.lg,
+                backgroundColor: statusColors.bg,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Typography variant="caption" color={statusColors.text}>
+                {status.label}
+              </Typography>
+            </View>
           </View>
         </View>
 
-        <AppIcon name="chevron-forward" size={24} color={theme.colors.textSecondary} />
+        <AppIcon name="chevron-forward" size={22} color={theme.colors.text} />
       </View>
     </PressableScale>
   );

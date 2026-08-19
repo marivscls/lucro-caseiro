@@ -1,5 +1,6 @@
 import {
   contentFormatOptions,
+  contentIntentOptions,
   scoreContentBrief,
   type ContentBrief,
   type ContentBriefAnalysis,
@@ -102,6 +103,43 @@ export function ContentBriefEditor({
         {ideasError && <p className="form-error">{ideasError}</p>}
         {ideas.length > 0 && <IdeaBank ideas={ideas} onUseIdea={onUseIdea} />}
       </section>
+
+      <fieldset>
+        <legend>Intenção editorial</legend>
+        <p className="field-help">
+          Escolha o papel desta pauta. A categoria define o assunto; a intenção define o
+          efeito que o conteúdo deve produzir.
+        </p>
+        <div className="content-format-grid content-intent-grid">
+          {contentIntentOptions.map((intent) => (
+            <label
+              key={intent.value}
+              className="content-format-option content-intent-option"
+            >
+              <input
+                type="radio"
+                name="content-intent"
+                value={intent.value}
+                checked={value.contentIntent === intent.value}
+                onChange={() => update("contentIntent", intent.value)}
+              />
+              <span>
+                <strong>{intent.value}</strong>
+                <small>{intent.description}</small>
+              </span>
+            </label>
+          ))}
+        </div>
+        {value.contentIntent && (
+          <button
+            type="button"
+            className="button secondary content-intent-clear"
+            onClick={() => update("contentIntent", "")}
+          >
+            Limpar intenção
+          </button>
+        )}
+      </fieldset>
 
       <fieldset>
         <legend>Estratégia e persona</legend>
@@ -275,6 +313,7 @@ function IdeaBank({
           <article className="idea-card" key={`${idea.title}-${index}`}>
             <header>
               <span className="idea-rank">#{index + 1}</span>
+              <span className="idea-intent">{idea.contentIntent}</span>
               <span className="idea-category">{idea.category}</span>
               <span
                 className="idea-stars"

@@ -3,6 +3,7 @@ import type {
   PublicCatalog,
   PublicServiceBookingRequestInput,
   ServiceBookingRequest,
+  StorefrontCustomization,
   UpdateCatalogSettings,
 } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
@@ -28,7 +29,8 @@ function wantsCustomization(data: UpdateCatalogSettings): boolean {
     data.serviceDescriptionColor !== undefined ||
     data.serviceTagline !== undefined ||
     data.servicePromoBanner !== undefined ||
-    data.servicePromoBannerEnabled !== undefined
+    data.servicePromoBannerEnabled !== undefined ||
+    data.customization !== undefined
   );
 }
 
@@ -52,7 +54,11 @@ export class CatalogUseCases {
     const existing = await this.repo.findByUser(userId);
     if (existing) {
       if (existing.brandId === brandId) return existing;
-      return this.repo.upsert(userId, { ...existing, brandId });
+      return this.repo.upsert(userId, {
+        ...existing,
+        brandId,
+        publishedCustomization: existing.publishedCustomization ?? null,
+      });
     }
 
     const owner = await this.repo.getOwnerDefaults(userId);
@@ -86,6 +92,8 @@ export class CatalogUseCases {
       serviceTagline: null,
       servicePromoBanner: null,
       servicePromoBannerEnabled: true,
+      customization: null,
+      publishedCustomization: null,
     });
   }
 
@@ -136,6 +144,13 @@ export class CatalogUseCases {
       }
     }
 
+    const publishedItems = data.publishStorefront
+      ? await Promise.all([
+          this.repo.listPublicProducts(userId),
+          this.repo.listPublicServices?.(userId) ?? Promise.resolve([]),
+        ])
+      : null;
+
     return this.repo.upsert(userId, {
       brandId,
       slug,
@@ -180,6 +195,14 @@ export class CatalogUseCases {
         data.servicePromoBannerEnabled === undefined
           ? current.servicePromoBannerEnabled
           : data.servicePromoBannerEnabled,
+      customization:
+        data.customization === undefined ? current.customization : data.customization,
+      publishedCustomization: data.publishStorefront
+        ? (data.customization ?? current.customization)
+        : (current.publishedCustomization ?? null),
+      ...(publishedItems
+        ? { publishedProducts: publishedItems[0], publishedServices: publishedItems[1] }
+        : {}),
     });
   }
 
@@ -193,10 +216,6 @@ export class CatalogUseCases {
       throw new NotFoundError("Catálogo não encontrado");
     }
 
-    const [allProducts, services] = await Promise.all([
-      this.repo.listPublicProducts(owner.userId),
-      this.repo.listPublicServices?.(owner.userId) ?? Promise.resolve([]),
-    ]);
     // Catálogo completo + personalização aparecem a partir do Essencial (se a
     // assinatura cair, a pagina volta ao tema padrao sem apagar o que foi salvo).
     const hasFullCatalog = hasActiveFeature(
@@ -204,6 +223,18 @@ export class CatalogUseCases {
       owner.planExpiresAt,
       "catalogPremium",
     );
+    const hasPublishedItemSnapshot =
+      hasFullCatalog &&
+      owner.publishedCustomization !== null &&
+      owner.publishedCustomization !== undefined &&
+      owner.publishedProducts != null &&
+      owner.publishedServices != null;
+    const [allProducts, services] = hasPublishedItemSnapshot
+      ? [owner.publishedProducts!, owner.publishedServices!]
+      : await Promise.all([
+          this.repo.listPublicProducts(owner.userId),
+          this.repo.listPublicServices?.(owner.userId) ?? Promise.resolve([]),
+        ]);
     // O plano gratuito exibe no máximo 3 produtos na vitrine
     // (gatilho de conversao; o app mostra "Mostre seu catalogo completo").
     let products = allProducts;
@@ -221,6 +252,7 @@ export class CatalogUseCases {
     }
     return {
       brandId: owner.brandId,
+      slug: owner.slug,
       businessName: owner.businessName,
       whatsapp: owner.whatsapp ?? owner.phone,
       coverUrl: hasFullCatalog ? owner.coverUrl : null,
@@ -239,9 +271,54 @@ export class CatalogUseCases {
         hasFullCatalog && owner.servicePromoBannerEnabled
           ? owner.servicePromoBanner
           : null,
+      customization: hasFullCatalog ? owner.publishedCustomization : null,
       products,
       services,
       totalProducts: allProducts.length,
+    };
+  }
+
+  /** Renderer protegido do rascunho; independe de o catalogo estar publicado. */
+  async getStorefrontPreview(
+    userId: string,
+    customization: StorefrontCustomization,
+    brandId = DEFAULT_BRAND_ID,
+  ): Promise<PublicCatalog> {
+    const settings = await this.getSettings(userId, brandId);
+    const owner = await this.repo.getOwnerDefaults(userId);
+    if (!owner) throw new NotFoundError("UsuÃ¡rio nÃ£o encontrado");
+    const [products, services] = await Promise.all([
+      this.repo.listPublicProducts(userId),
+      this.repo.listPublicServices?.(userId) ?? Promise.resolve([]),
+    ]);
+    return {
+      brandId: settings.brandId,
+      slug: customization.publication.slug,
+      businessName: owner.businessName,
+      whatsapp: settings.whatsapp ?? owner.phone,
+      coverUrl: settings.coverUrl,
+      logoUrl: settings.logoUrl,
+      accentColor: settings.accentColor,
+      titleColor: settings.titleColor,
+      descriptionColor: settings.descriptionColor,
+      pattern: settings.pattern,
+      tagline: settings.tagline,
+      promoBanner:
+        settings.promoBannerEnabled && settings.promoBanner
+          ? settings.promoBanner
+          : null,
+      serviceCoverUrl: settings.serviceCoverUrl,
+      serviceTitleColor: settings.serviceTitleColor,
+      serviceDescriptionColor: settings.serviceDescriptionColor,
+      serviceTagline: settings.serviceTagline,
+      servicePromoBanner:
+        settings.servicePromoBannerEnabled && settings.servicePromoBanner
+          ? settings.servicePromoBanner
+          : null,
+      customization,
+      products,
+      services,
+      totalProducts: products.length,
     };
   }
 

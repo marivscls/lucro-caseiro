@@ -24,4 +24,5 @@ export * from "./schemas/video-prompts";
 export * from "./schemas/video-editor";
 export * from "./schemas/retail";
 export * from "./schemas/operations";
+export * from "./schemas/verticals";
 export * from "./pricing-calculator";

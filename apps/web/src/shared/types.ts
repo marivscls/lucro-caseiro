@@ -126,6 +126,7 @@ export interface MarketingCampaignCopiesGeneration {
 export interface MarketingContentIdea {
   title: string;
   example: string;
+  contentIntent: string;
   category: string;
   objective: string;
   persona: string;
@@ -146,6 +147,7 @@ export interface MarketingContentIdea {
   };
   brief: {
     theme: string;
+    contentIntent: string;
     category: string;
     persona: string;
     contentObjective: string;

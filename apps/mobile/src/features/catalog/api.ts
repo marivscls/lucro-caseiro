@@ -1,4 +1,8 @@
-import type { CatalogSettings, UpdateCatalogSettings } from "@lucro-caseiro/contracts";
+import type {
+  CatalogSettings,
+  StorefrontCustomization,
+  UpdateCatalogSettings,
+} from "@lucro-caseiro/contracts";
 
 import { apiClient } from "../../shared/utils/api-client";
 
@@ -16,6 +20,33 @@ export async function updateCatalogSettings(
     method: "PUT",
     body: data,
     token,
+  });
+}
+
+export type CatalogSlugAvailability = Readonly<{
+  available: boolean;
+  reason: string | null;
+}>;
+
+export async function fetchCatalogSlugAvailability(
+  token: string,
+  slug: string,
+): Promise<CatalogSlugAvailability> {
+  return apiClient<CatalogSlugAvailability>(
+    `${BASE}/slug-availability?slug=${encodeURIComponent(slug)}`,
+    { token },
+  );
+}
+
+export async function fetchStorefrontPreviewHtml(
+  token: string,
+  customization: StorefrontCustomization,
+): Promise<string> {
+  return apiClient<string>(`${BASE}/preview`, {
+    method: "POST",
+    body: { customization },
+    token,
+    responseType: "text",
   });
 }
 

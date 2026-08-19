@@ -40,6 +40,17 @@ export interface ServiceOverview {
   averageDurationMinutes: number | null;
 }
 
+const SERVICE_CATEGORY_LABELS: Record<Service["locationMode"], string> = {
+  business: "Meu espaço",
+  client: "A domicílio",
+  online: "Online",
+  flexible: "Flexível",
+};
+
+export function serviceCategoryLabel(service: Service): string {
+  return SERVICE_CATEGORY_LABELS[service.locationMode];
+}
+
 export interface ServiceItemValidationError {
   kind: "variation" | "addOn" | "package";
   index: number;
@@ -237,6 +248,22 @@ export function serviceHasCostData(service: Service): boolean {
   );
 }
 
+export function serviceMarginPercent(service: Service): number | null {
+  const price = service.defaultPrice;
+  if (
+    price == null ||
+    !Number.isFinite(price) ||
+    price <= 0 ||
+    !serviceHasCostData(service)
+  ) {
+    return null;
+  }
+
+  const cost = calculateStoredServicePricing(service).totalCost;
+  if (!Number.isFinite(cost)) return null;
+  return Math.round(((price - cost) / price) * 100);
+}
+
 export function servicePriceHealth(service: Service): ServicePriceHealth {
   if (service.defaultPrice == null) return "missing-price";
   if (!serviceHasCostData(service)) return "price-only";
@@ -294,7 +321,8 @@ export function filterServices(
     const matchesSearch =
       !query ||
       service.name.toLocaleLowerCase("pt-BR").includes(query) ||
-      service.description?.toLocaleLowerCase("pt-BR").includes(query);
+      service.description?.toLocaleLowerCase("pt-BR").includes(query) ||
+      serviceCategoryLabel(service).toLocaleLowerCase("pt-BR").includes(query);
     return matchesFilter && matchesSearch;
   });
 }

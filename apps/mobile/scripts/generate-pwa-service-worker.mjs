@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { copyFile, readFile, readdir, writeFile } from "node:fs/promises";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -94,9 +95,9 @@ function replaceRequired(source, pattern, replacement, label) {
 
 function pwaIconSource(size) {
   const brandIcon = join(brandsRoot, activeBrandId, "assets", `pwa-icon-${size}.png`);
-  return activeBrandId === DEFAULT_BRAND_ID
-    ? join(appRoot, "public", `icon-${size}.png`)
-    : brandIcon;
+  return activeBrandId !== DEFAULT_BRAND_ID && existsSync(brandIcon)
+    ? brandIcon
+    : join(appRoot, "public", `icon-${size}.png`);
 }
 
 const icon192 = await readFile(pwaIconSource(192));
@@ -111,10 +112,14 @@ const pwaProductNoun =
     : activeBrand.copy.productNoun;
 const shortcuts = [
   {
-    name: activeBrand.copy.saleLabel,
-    short_name: activeBrand.copy.saleLabel.replace(/^Registrar\s+/i, ""),
-    description: `${activeBrand.copy.saleLabel} no ${activeBrand.appName}`,
-    url: "/tabs/new-sale",
+    name: activeBrand.features.operacaoVertical
+      ? activeBrand.vertical.primaryActionLabel
+      : activeBrand.copy.saleLabel,
+    short_name: activeBrand.features.operacaoVertical ? "Operação" : activeBrand.copy.saleLabel.replace(/^Registrar\s+/i, ""),
+    description: activeBrand.features.operacaoVertical
+      ? activeBrand.vertical.operationDescription
+      : `${activeBrand.copy.saleLabel} no ${activeBrand.appName}`,
+    url: activeBrand.features.operacaoVertical ? "/operations" : "/tabs/new-sale",
     icons: shortcutIcon,
   },
   {

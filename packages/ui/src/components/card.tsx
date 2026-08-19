@@ -50,7 +50,7 @@ export function Card({
 
   if (onPress) {
     return (
-      <PressableScale onPress={onPress} style={cardStyle}>
+      <PressableScale accessibilityRole="button" onPress={onPress} style={cardStyle}>
         {children}
       </PressableScale>
     );

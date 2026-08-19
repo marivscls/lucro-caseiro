@@ -16,6 +16,7 @@ const STATIC_SCREENS: Record<string, AnalyticsScreenName> = {
   "/tabs/new-sale": "new_sale",
   "/tabs/agenda": "agenda",
   "/tabs/clients": "clients",
+  "/tabs/materials": "materials",
   "/tabs/more": "more",
   "/admin-metrics": "admin_metrics",
 };

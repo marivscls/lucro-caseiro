@@ -1,5 +1,6 @@
 import {
   PublicServiceBookingRequestInputDto,
+  StorefrontCustomizationDto,
   UpdateCatalogSettingsDto,
 } from "@lucro-caseiro/contracts";
 import { randomBytes } from "node:crypto";
@@ -64,6 +65,23 @@ export function createCatalogRouter(useCases: CatalogUseCases): Router {
     try {
       const slug = typeof req.query.slug === "string" ? req.query.slug : "";
       res.json(await useCases.getSlugAvailability(getUserId(req), slug));
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.post("/preview", async (req, res, next) => {
+    try {
+      const nonce = randomBytes(18).toString("base64");
+      const customization = StorefrontCustomizationDto.parse(req.body.customization);
+      const catalog = await useCases.getStorefrontPreview(
+        getUserId(req),
+        customization,
+        req.header("x-brand")?.trim() || DEFAULT_BRAND_ID,
+      );
+      catalogSecurityHeaders(res, nonce);
+      res.set("X-Robots-Tag", "noindex, nofollow");
+      res.type("html").send(renderCatalogHtml(catalog, "all", nonce, { preview: true }));
     } catch (err) {
       next(err);
     }

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildChargeMessage,
+  fiadoTiming,
   groupFiados,
   oldFiadoSummary,
   openFiados,
@@ -70,6 +71,32 @@ describe("oldFiadoSummary", () => {
   it("returns zero when nothing is old enough", () => {
     const sales = [makeSale({ soldAt: "2026-06-09T12:00:00.000Z" })];
     expect(oldFiadoSummary(sales, now, 7)).toEqual({ count: 0, total: 0 });
+  });
+});
+
+describe("fiadoTiming", () => {
+  const now = new Date("2026-06-10T12:00:00.000Z");
+
+  it("classifies the existing seven-day threshold as overdue", () => {
+    expect(fiadoTiming("2026-06-03T12:00:00.000Z", now)).toEqual({
+      kind: "overdue",
+      days: 0,
+    });
+    expect(fiadoTiming("2026-06-01T12:00:00.000Z", now)).toEqual({
+      kind: "overdue",
+      days: 2,
+    });
+  });
+
+  it("separates the next three days from regular open charges", () => {
+    expect(fiadoTiming("2026-06-06T12:00:00.000Z", now)).toEqual({
+      kind: "upcoming",
+      days: 3,
+    });
+    expect(fiadoTiming("2026-06-09T12:00:00.000Z", now)).toEqual({
+      kind: "open",
+      days: 6,
+    });
   });
 });
 

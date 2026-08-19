@@ -109,6 +109,78 @@
         "EXPO_PUBLIC_BRAND": "lucro-manicure",
         "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucromanicure://auth/callback"
       }
+    },
+    "revenda-development": {
+      "extends": "development-base",
+      "env": {
+        "BRAND": "lucro-revenda",
+        "EXPO_PUBLIC_BRAND": "lucro-revenda",
+        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucrorevenda://auth/callback"
+      }
+    },
+    "revenda-preview": {
+      "extends": "preview-base",
+      "env": {
+        "BRAND": "lucro-revenda",
+        "EXPO_PUBLIC_BRAND": "lucro-revenda",
+        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucrorevenda://auth/callback"
+      }
+    },
+    "revenda-production": {
+      "extends": "production-base",
+      "env": {
+        "BRAND": "lucro-revenda",
+        "EXPO_PUBLIC_BRAND": "lucro-revenda",
+        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucrorevenda://auth/callback"
+      }
+    },
+    "oficina-development": {
+      "extends": "development-base",
+      "env": {
+        "BRAND": "lucro-oficina",
+        "EXPO_PUBLIC_BRAND": "lucro-oficina",
+        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucrooficina://auth/callback"
+      }
+    },
+    "oficina-preview": {
+      "extends": "preview-base",
+      "env": {
+        "BRAND": "lucro-oficina",
+        "EXPO_PUBLIC_BRAND": "lucro-oficina",
+        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucrooficina://auth/callback"
+      }
+    },
+    "oficina-production": {
+      "extends": "production-base",
+      "env": {
+        "BRAND": "lucro-oficina",
+        "EXPO_PUBLIC_BRAND": "lucro-oficina",
+        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucrooficina://auth/callback"
+      }
+    },
+    "obra-development": {
+      "extends": "development-base",
+      "env": {
+        "BRAND": "lucro-obra",
+        "EXPO_PUBLIC_BRAND": "lucro-obra",
+        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucroobra://auth/callback"
+      }
+    },
+    "obra-preview": {
+      "extends": "preview-base",
+      "env": {
+        "BRAND": "lucro-obra",
+        "EXPO_PUBLIC_BRAND": "lucro-obra",
+        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucroobra://auth/callback"
+      }
+    },
+    "obra-production": {
+      "extends": "production-base",
+      "env": {
+        "BRAND": "lucro-obra",
+        "EXPO_PUBLIC_BRAND": "lucro-obra",
+        "EXPO_PUBLIC_AUTH_REDIRECT_URL": "lucroobra://auth/callback"
+      }
     }
   },
   "submit": {
@@ -126,6 +198,15 @@
       "android": {
         "track": "internal"
       }
+    },
+    "revenda-production": {
+      "android": { "track": "internal" }
+    },
+    "oficina-production": {
+      "android": { "track": "internal" }
+    },
+    "obra-production": {
+      "android": { "track": "internal" }
     }
   }
 }

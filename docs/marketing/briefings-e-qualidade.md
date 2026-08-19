@@ -1,8 +1,8 @@
 # Briefings e critérios de qualidade para a IA
 
 **Status:** Diretriz operacional
-**Versão:** 1.3
-**Data:** 16 de julho de 2026
+**Versão:** 1.4
+**Data:** 15 de agosto de 2026
 
 ## Regra de execução
 
@@ -17,6 +17,7 @@ fatos, provas e resultados nunca devem ser inventados.
 
 ```markdown
 - Tema:
+- Intenção editorial: Promoção | Entretenimento | Debate | Aprendizado | Ligação
 - Categoria:
 - Persona:
 - Objetivo do conteúdo:
@@ -41,6 +42,10 @@ Antes de gerar, a IA deve analisar todos os campos informados, adaptar a linguag
 da persona e considerar dor, desejo, emoção e objetivo. Gatilhos devem aparecer de forma
 natural. Se algum campo não for informado, a IA deve fazer apenas inferências conservadoras,
 sem contradizer dados existentes, e sinalizar suposições materialmente relevantes.
+
+A intenção editorial define o papel da pauta e não substitui categoria, objetivo, pilar, etapa
+da persona ou formato. Quando não houver escolha explícita, a IA pode inferi-la pelo contexto;
+ao gerar várias ideias, deve variar intenções sem obedecer a cotas fixas.
 
 Formatos disponíveis: post para Instagram, carrossel, Reels, Stories, Threads, Facebook,
 LinkedIn, e-mail, artigo, blog, push notification, roteiro de vídeo, legenda, título, CTA,

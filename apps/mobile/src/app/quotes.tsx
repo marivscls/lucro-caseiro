@@ -4,25 +4,31 @@ import {
   Badge,
   Button,
   Card,
+  Chip,
   EmptyState,
+  FilterChipRow,
   Input,
   Typography,
   useTheme,
+  fontSizes,
+  iconSizes,
   radii,
   spacing,
 } from "@lucro-caseiro/ui";
 import { AppIcon } from "../shared/components/app-icon";
 import { Stack, useRouter } from "expo-router";
-import React, { useState } from "react";
-import { Image, Pressable, ScrollView, View } from "react-native";
+import React, { useMemo, useState } from "react";
+import { Image, Pressable, ScrollView, useWindowDimensions, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-import quotesEmpty from "../assets/quotes-empty.png";
+import quotesDocument3d from "../assets/orcamentos-documento-3d.png";
 import { trackAnalyticsAction } from "../features/analytics/tracker";
 import { useClient } from "../features/clients/hooks";
 import { QuoteForm } from "../features/quotes/components/quote-form";
 import { showAlert } from "../shared/components/alert-store";
 import { ScreenHeader } from "../shared/components/screen-header";
+import { useBrandIllustration } from "../shared/brand-illustrations";
+import { useBrandScreenPalette } from "../shared/brand-palette";
 import { FAB } from "../shared/components/fab";
 import { SkeletonList } from "../shared/components/skeleton";
 import {
@@ -80,27 +86,316 @@ const FILTERS: { key: QuoteStatusType | "all"; label: string }[] = [
   { key: "rejected", label: "Recusados" },
 ];
 
-function QuoteCard({ quote, onPress }: Readonly<{ quote: Quote; onPress: () => void }>) {
+function normalizeQuoteSearch(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLocaleLowerCase("pt-BR");
+}
+
+function formatSentDate(createdAt: string): string {
+  const created = new Date(createdAt);
+  if (Number.isNaN(created.getTime())) return "Enviado recentemente";
+
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const sentDay = new Date(created.getFullYear(), created.getMonth(), created.getDate());
+  const daysAgo = Math.floor((today.getTime() - sentDay.getTime()) / 86_400_000);
+
+  if (daysAgo === 0) return "Enviado hoje";
+  if (daysAgo === 1) return "Enviado ontem";
+
+  const compactDate = new Intl.DateTimeFormat("pt-BR", {
+    day: "numeric",
+    month: "short",
+  })
+    .format(created)
+    .replace(" de ", " ")
+    .replace(".", "");
+  return `Enviado ${compactDate}`;
+}
+
+function QuoteStatusChip({ status }: Readonly<{ status: string }>) {
   const { theme } = useTheme();
-  const meta = quoteStatusMeta(quote.status);
+  const pal = useBrandScreenPalette();
+  const meta = quoteStatusMeta(status);
+  let backgroundColor = theme.colors.yellowBg;
+  let dotColor: string = pal.lime;
+  let textColor = theme.colors.yellow;
+
+  if (status === "accepted") {
+    backgroundColor = theme.colors.successBg;
+    dotColor = theme.colors.success;
+    textColor = theme.colors.success;
+  } else if (status === "rejected") {
+    backgroundColor = theme.colors.alertBg;
+    dotColor = theme.colors.alert;
+    textColor = theme.colors.alert;
+  }
+
   return (
-    <Card onPress={onPress} padding="lg">
-      <View style={{ gap: spacing.sm }}>
-        <View style={{ flex: 1, gap: 2 }}>
-          <Typography variant="h3" numberOfLines={2} style={{ lineHeight: 25 }}>
+    <View
+      style={{
+        minHeight: 30,
+        paddingHorizontal: spacing.md,
+        borderRadius: radii.md,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: spacing.sm,
+        backgroundColor,
+      }}
+    >
+      <View
+        style={{
+          width: 7,
+          height: 7,
+          borderRadius: radii.full,
+          backgroundColor: dotColor,
+        }}
+      />
+      <Typography variant="caption" color={textColor} numberOfLines={1}>
+        {meta.label}
+      </Typography>
+    </View>
+  );
+}
+
+function QuoteSummaryHero({
+  quotes,
+  width,
+}: Readonly<{ quotes: Quote[]; width: number }>) {
+  const pal = useBrandScreenPalette();
+  const pendingQuotes = quotes.filter((quote) => quote.status === "pending");
+  const pendingTotal = pendingQuotes.reduce((total, quote) => total + quote.total, 0);
+  const compact = width < 360;
+  const imageSize = Math.min(160, Math.max(96, (width - spacing["3xl"]) * 0.36));
+  const cardHeight = compact ? 164 : 176;
+  const textWidth = Math.max(
+    132,
+    width - spacing["3xl"] - imageSize - (compact ? spacing.xs : spacing.md),
+  );
+  const proposalLabel =
+    pendingQuotes.length === 1
+      ? "1 proposta aguardando"
+      : `${pendingQuotes.length} propostas aguardando`;
+
+  return (
+    <View
+      style={{
+        width: "100%",
+        height: cardHeight,
+        borderRadius: radii["2xl"],
+        backgroundColor: pal.wineFill,
+        overflow: "hidden",
+        paddingHorizontal: spacing.xl,
+        justifyContent: "center",
+      }}
+    >
+      <View style={{ width: textWidth, gap: spacing.sm, zIndex: 1 }}>
+        <Typography variant="body" color={pal.onWine} numberOfLines={1}>
+          Em negociação
+        </Typography>
+        <Typography
+          variant={compact ? "moneyLg" : "homeFinancialValue"}
+          color={pal.onWine}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.76}
+          style={{ width: "100%", fontVariant: ["tabular-nums"] }}
+        >
+          {formatCurrency(pendingTotal)}
+        </Typography>
+        <Typography variant="body" color={pal.onWine} numberOfLines={compact ? 2 : 1}>
+          {proposalLabel}
+        </Typography>
+      </View>
+
+      <Image
+        source={quotesDocument3d}
+        resizeMode="contain"
+        accessibilityIgnoresInvertColors
+        style={{
+          position: "absolute",
+          right: spacing.md,
+          top: (cardHeight - imageSize) / 2,
+          width: imageSize,
+          height: imageSize,
+        }}
+      />
+    </View>
+  );
+}
+
+function QuoteCard({
+  quote,
+  number,
+  narrow,
+  onPress,
+}: Readonly<{ quote: Quote; number: number; narrow: boolean; onPress: () => void }>) {
+  const pal = useBrandScreenPalette();
+  const quoteLabel = `ORÇAMENTO #${String(number).padStart(2, "0")}`;
+  const itemLabel = quote.items.length === 1 ? "1 item" : `${quote.items.length} itens`;
+
+  if (narrow) {
+    return (
+      <Card
+        onPress={onPress}
+        variant="elevated"
+        shadow="sm"
+        padding="lg"
+        style={{ minHeight: 154, backgroundColor: pal.white }}
+      >
+        <View style={{ flex: 1, gap: spacing.xs }}>
+          <View
+            style={{ flexDirection: "row", alignItems: "flex-start", gap: spacing.sm }}
+          >
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Typography
+                variant="caption"
+                color={pal.muted}
+                numberOfLines={1}
+                style={{ textTransform: "uppercase" }}
+              >
+                {quoteLabel}
+              </Typography>
+              <Typography variant="h3" color={pal.ink} numberOfLines={2}>
+                {quote.title}
+              </Typography>
+            </View>
+            <View
+              style={{
+                width: 120,
+                flexShrink: 0,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "flex-end",
+                gap: spacing.xs,
+              }}
+            >
+              <Typography
+                variant="h3"
+                color={pal.wine}
+                numberOfLines={1}
+                style={{ flex: 1, textAlign: "right", fontSize: 16, lineHeight: 22 }}
+              >
+                {formatCurrency(quote.total)}
+              </Typography>
+              <AppIcon name="chevron-forward" size={iconSizes.xs} color={pal.ink} />
+            </View>
+          </View>
+
+          <Typography
+            variant="body"
+            color={pal.ink}
+            numberOfLines={1}
+            style={{ fontSize: fontSizes.sm }}
+          >
+            {quote.clientName ?? "Sem cliente"} · {itemLabel}
+          </Typography>
+
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: spacing.sm,
+              marginTop: spacing.xs,
+            }}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+              <AppIcon name="calendar-outline" size={iconSizes.xs} color={pal.muted} />
+              <Typography variant="caption" color={pal.muted} numberOfLines={1}>
+                {formatSentDate(quote.createdAt)}
+              </Typography>
+            </View>
+            <QuoteStatusChip status={quote.status} />
+          </View>
+        </View>
+      </Card>
+    );
+  }
+
+  return (
+    <Card
+      onPress={onPress}
+      variant="elevated"
+      shadow="sm"
+      padding="lg"
+      style={{ minHeight: 136, backgroundColor: pal.white }}
+    >
+      <View
+        style={{
+          flex: 1,
+          minWidth: 0,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.md,
+        }}
+      >
+        <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+          <Typography
+            variant="caption"
+            color={pal.muted}
+            numberOfLines={1}
+            style={{ textTransform: "uppercase" }}
+          >
+            {quoteLabel}
+          </Typography>
+          <Typography
+            variant="h3"
+            color={pal.ink}
+            numberOfLines={2}
+            style={{ marginBottom: 2 }}
+          >
             {quote.title}
           </Typography>
-          <Typography variant="caption" numberOfLines={1}>
-            {quote.clientName ?? "Sem cliente"} ·{" "}
-            {quote.items.length === 1 ? "1 item" : `${quote.items.length} itens`}
+          <Typography
+            variant="body"
+            color={pal.ink}
+            numberOfLines={1}
+            style={{ fontSize: fontSizes.sm }}
+          >
+            {quote.clientName ?? "Sem cliente"} · {itemLabel}
           </Typography>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: spacing.sm,
+              marginTop: spacing.xs,
+            }}
+          >
+            <AppIcon name="calendar-outline" size={iconSizes.xs} color={pal.muted} />
+            <Typography variant="caption" color={pal.muted} numberOfLines={1}>
+              {formatSentDate(quote.createdAt)}
+            </Typography>
+          </View>
         </View>
-        <View style={{ alignItems: "flex-end", gap: 6 }}>
-          <Typography variant="bodyBold" color={theme.colors.success}>
+
+        <View
+          style={{
+            width: 122,
+            flexShrink: 0,
+            alignItems: "flex-end",
+            justifyContent: "center",
+            gap: spacing.md,
+          }}
+        >
+          <Typography
+            variant="money"
+            color={pal.wine}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.72}
+            style={{ width: "100%", textAlign: "right" }}
+          >
             {formatCurrency(quote.total)}
           </Typography>
-          <Badge label={meta.label} variant={meta.variant} />
+          <QuoteStatusChip status={quote.status} />
         </View>
+
+        <AppIcon name="chevron-forward" size={iconSizes.sm} color={pal.ink} />
       </View>
     </Card>
   );
@@ -490,21 +785,52 @@ function QuoteDetail({
 }
 
 export default function QuotesScreen() {
+  const quotesEmpty = useBrandIllustration("quotesEmpty");
   const { theme } = useTheme();
+  const pal = useBrandScreenPalette();
   const router = useRouter();
   const isDesktop = useDesktopLayout();
   const insets = useSafeAreaInsets();
+  const { width: viewportWidth } = useWindowDimensions();
   const [filter, setFilter] = useState<QuoteStatusType | "all">("all");
+  const [search, setSearch] = useState("");
+  const [contentWidth, setContentWidth] = useState(() =>
+    Math.max(280, Math.min(viewportWidth - spacing.xl * 2, desktopWidths.wide)),
+  );
   const [showCreate, setShowCreate] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
-  const { data, isLoading, error, refetch } = useQuotes(
-    filter === "all" ? undefined : { status: filter },
-  );
+  const { data, isLoading, error, refetch } = useQuotes();
 
   const quotes = data?.items ?? [];
+  const filterCounts = useMemo<Record<QuoteStatusType | "all", number>>(
+    () => ({
+      all: quotes.length,
+      pending: quotes.filter((quote) => quote.status === "pending").length,
+      accepted: quotes.filter((quote) => quote.status === "accepted").length,
+      rejected: quotes.filter((quote) => quote.status === "rejected").length,
+    }),
+    [quotes],
+  );
+  const filteredQuotes = useMemo(() => {
+    const normalizedSearch = normalizeQuoteSearch(search);
+    return quotes.filter((quote) => {
+      if (filter !== "all" && quote.status !== filter) return false;
+      if (!normalizedSearch) return true;
+      const searchable = normalizeQuoteSearch(`${quote.title} ${quote.clientName ?? ""}`);
+      return searchable.includes(normalizedSearch);
+    });
+  }, [filter, quotes, search]);
+  const quoteNumberById = useMemo(
+    () => new Map(quotes.map((quote, index) => [quote.id, index + 1])),
+    [quotes],
+  );
+
   const selected = quotes.find((q) => q.id === selectedId) ?? null;
   const backToMore = !router.canGoBack();
+  const narrowCards = contentWidth < 350;
+  const sectionCountLabel =
+    filteredQuotes.length === 1 ? "1 proposta" : `${filteredQuotes.length} propostas`;
 
   function handleBack() {
     if (backToMore) {
@@ -516,143 +842,151 @@ export default function QuotesScreen() {
 
   return (
     <SafeAreaView
-      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      style={{ flex: 1, backgroundColor: pal.background }}
       edges={["top", "bottom"]}
     >
       <Stack.Screen options={{ headerShown: false }} />
 
       <ScreenHeader
         title="Orçamentos"
+        subtitle="Propostas organizadas, pedidos mais perto."
+        subtitleNumberOfLines={2}
         onBack={handleBack}
         backLabel={backToMore ? "Ir para Mais opções" : "Voltar"}
         hideBack={isDesktop}
+        style={{ paddingBottom: spacing.lg }}
+        titleStyle={{ color: pal.wine }}
+        subtitleStyle={{ lineHeight: 18 }}
         right={
           <FAB
             icon="add"
-            header
             accessibilityLabel="Novo orçamento"
             onPress={() => setShowCreate(true)}
+            style={{
+              width: 52,
+              height: 52,
+              minWidth: 52,
+              backgroundColor: pal.rose,
+            }}
           />
         }
       />
 
-      {/* Filtros (chips) */}
-      <View
-        style={{
-          ...pageGutter(isDesktop, spacing.lg),
-          ...desktopStretch(isDesktop, desktopWidths.data),
-          paddingTop: spacing.xl,
-          paddingBottom: spacing.sm,
-        }}
-      >
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: spacing.sm }}
-        >
-          {FILTERS.map((f) => {
-            const active = filter === f.key;
-            return (
-              <Pressable
-                key={f.key}
-                onPress={() => setFilter(f.key)}
-                accessibilityRole="button"
-                accessibilityState={{ selected: active }}
-                style={{
-                  minHeight: 44,
-                  paddingHorizontal: spacing.lg,
-                  borderRadius: radii.full,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: active ? theme.colors.primaryBg : theme.colors.surface,
-                }}
-              >
-                <Typography
-                  variant="bodyBold"
-                  color={active ? theme.colors.primaryStrong : theme.colors.text}
-                >
-                  {f.label}
-                </Typography>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-      </View>
-
-      <View
-        style={{
-          flex: 1,
+      <ScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
           ...pageGutter(isDesktop),
-          ...desktopStretch(isDesktop, desktopWidths.data),
+          ...desktopStretch(isDesktop, desktopWidths.wide),
+          paddingBottom: spacing["3xl"] + insets.bottom,
         }}
       >
-        {isLoading && (
-          <View style={{ marginTop: spacing["3xl"] }}>
-            <SkeletonList rows={5} variant="quote" />
-          </View>
-        )}
+        <View
+          onLayout={(event) => setContentWidth(event.nativeEvent.layout.width)}
+          style={{ width: "100%", gap: spacing.xl }}
+        >
+          {isLoading ? <SkeletonList rows={5} variant="quote" /> : null}
 
-        {!isLoading && error ? (
-          <EmptyState
-            title="Não foi possível carregar os orçamentos"
-            description="Verifique sua conexão e tente novamente."
-            action={<Button title="Tentar novamente" onPress={() => void refetch()} />}
-          />
-        ) : null}
+          {!isLoading && error ? (
+            <EmptyState
+              title="Não foi possível carregar os orçamentos"
+              description="Verifique sua conexão e tente novamente."
+              action={<Button title="Tentar novamente" onPress={() => void refetch()} />}
+            />
+          ) : null}
 
-        {!isLoading && !error && quotes.length === 0 && (
-          <EmptyState
-            icon={
-              <Image
-                source={quotesEmpty}
-                resizeMode="contain"
-                style={{
-                  width: isDesktop ? 240 : 220,
-                  height: isDesktop ? 240 : 220,
-                }}
-              />
-            }
-            title="Nenhum orçamento ainda"
-            description="Monte o orçamento, envie no WhatsApp e, quando aprovar, vire encomenda com um toque."
-            action={<Button title="Novo orçamento" onPress={() => setShowCreate(true)} />}
-          />
-        )}
+          {!isLoading && !error ? (
+            <>
+              <QuoteSummaryHero quotes={quotes} width={contentWidth} />
 
-        {!isLoading && !error && quotes.length > 0 && (
-          <ScrollView
-            contentContainerStyle={{
-              flexDirection: isDesktop ? "row" : "column",
-              flexWrap: isDesktop ? "wrap" : "nowrap",
-              gap: spacing.md,
-              paddingBottom: spacing.lg,
-            }}
-            showsVerticalScrollIndicator={false}
-          >
-            {quotes.map((quote) => (
-              <View key={quote.id} style={isDesktop ? { width: "48%" } : undefined}>
-                <QuoteCard quote={quote} onPress={() => setSelectedId(quote.id)} />
-              </View>
-            ))}
-            <View
-              style={{
-                width: "100%",
-                paddingTop: spacing.sm,
-                paddingBottom: spacing.lg + insets.bottom,
-                alignItems: isDesktop ? "flex-end" : "stretch",
-              }}
-            >
-              <Button
-                title="Novo orçamento"
-                onPress={() => setShowCreate(true)}
-                icon={<AppIcon name="add" size={20} color={theme.colors.textOnPrimary} />}
-                style={
-                  isDesktop ? { alignSelf: "flex-end" } : { width: "100%", minHeight: 52 }
+              <Input
+                value={search}
+                onChangeText={setSearch}
+                placeholder="Buscar orçamento ou cliente"
+                accessibilityLabel="Buscar orçamento ou cliente"
+                returnKeyType="search"
+                icon={
+                  <AppIcon name="search-outline" size={iconSizes.md} color={pal.muted} />
                 }
+                containerStyle={{ width: "100%" }}
+                style={{ height: 50 }}
               />
-            </View>
-          </ScrollView>
-        )}
-      </View>
+
+              <FilterChipRow>
+                {FILTERS.map((filterOption) => (
+                  <Chip
+                    key={filterOption.key}
+                    label={filterOption.label}
+                    count={filterCounts[filterOption.key]}
+                    selected={filter === filterOption.key}
+                    onPress={() => setFilter(filterOption.key)}
+                  />
+                ))}
+              </FilterChipRow>
+
+              <View style={{ gap: 2 }}>
+                <Typography variant="h2" color={pal.ink}>
+                  Orçamentos recentes
+                </Typography>
+                <Typography variant="body" color={pal.muted}>
+                  {sectionCountLabel}
+                </Typography>
+              </View>
+
+              {quotes.length === 0 ? (
+                <EmptyState
+                  icon={
+                    <Image
+                      source={quotesEmpty}
+                      resizeMode="contain"
+                      style={{
+                        width: isDesktop ? 220 : 180,
+                        height: isDesktop ? 220 : 180,
+                      }}
+                    />
+                  }
+                  title="Nenhum orçamento ainda"
+                  description="Monte o orçamento, envie no WhatsApp e, quando aprovar, vire encomenda com um toque."
+                  action={
+                    <Button title="Novo orçamento" onPress={() => setShowCreate(true)} />
+                  }
+                />
+              ) : null}
+
+              {quotes.length > 0 && filteredQuotes.length === 0 ? (
+                <EmptyState
+                  title="Nenhum orçamento encontrado"
+                  description="Tente outro termo ou escolha um filtro diferente."
+                />
+              ) : null}
+
+              {filteredQuotes.length > 0 ? (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    flexWrap: "wrap",
+                    gap: spacing.md,
+                  }}
+                >
+                  {filteredQuotes.map((quote) => (
+                    <View
+                      key={quote.id}
+                      style={isDesktop ? { width: "49%" } : { width: "100%" }}
+                    >
+                      <QuoteCard
+                        quote={quote}
+                        number={quoteNumberById.get(quote.id) ?? 1}
+                        narrow={narrowCards}
+                        onPress={() => setSelectedId(quote.id)}
+                      />
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+            </>
+          ) : null}
+        </View>
+      </ScrollView>
 
       {/* Criar */}
       <QuoteForm

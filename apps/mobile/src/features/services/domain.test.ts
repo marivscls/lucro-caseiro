@@ -6,6 +6,7 @@ import {
   calculateServicePricing,
   filterServices,
   findServiceItemValidationError,
+  serviceMarginPercent,
   servicePriceHealth,
 } from "./domain";
 
@@ -155,6 +156,42 @@ describe("calculateServicePricing", () => {
       filterServices(services, "all", "endereço").map((service) => service.id),
     ).toEqual(["service-2"]);
     expect(filterServices(services, "inactive", "")).toHaveLength(1);
+  });
+
+  it("searches the service classification without changing the API model", () => {
+    const services = [
+      makeService({
+        id: "service-1",
+        description: "Sessão por videochamada",
+        locationMode: "online",
+      }),
+      makeService({
+        id: "service-2",
+        description: "Atendimento presencial",
+        locationMode: "client",
+      }),
+    ];
+
+    expect(
+      filterServices(services, "all", "online").map((service) => service.id),
+    ).toEqual(["service-1"]);
+    expect(
+      filterServices(services, "all", "domicílio").map((service) => service.id),
+    ).toEqual(["service-2"]);
+  });
+
+  it("calculates the displayed margin from current price and total cost", () => {
+    expect(serviceMarginPercent(makeService({ defaultPrice: 120 }))).toBe(50);
+    expect(serviceMarginPercent(makeService({ defaultPrice: 0 }))).toBeNull();
+    expect(
+      serviceMarginPercent(
+        makeService({
+          defaultPrice: 120,
+          hourlyRate: 0,
+          fixedCostShare: 0,
+        }),
+      ),
+    ).toBeNull();
   });
 
   it("identifies the exact incomplete item when a service has multiple options", () => {

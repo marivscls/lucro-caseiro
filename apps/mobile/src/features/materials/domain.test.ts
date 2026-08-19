@@ -6,8 +6,12 @@ import {
   currentStockLabel,
   formatCost,
   formatQty,
+  getStockStatus,
   groupShoppingListItems,
   isLowStock,
+  materialCategory,
+  materialStockValue,
+  stockLevelRatio,
   stockBadge,
 } from "./domain";
 
@@ -40,7 +44,7 @@ describe("stockBadge", () => {
       makeMaterial({ stockQuantity: 0.8, stockAlertThreshold: 1, unit: "kg" }),
     );
     expect(badge.tone).toBe("warn");
-    expect(badge.label).toBe("Baixo • 1 kg");
+    expect(badge.label).toBe("Baixo . 1 kg");
   });
 
   it("shows quantity + unit when ok", () => {
@@ -59,6 +63,38 @@ describe("isLowStock", () => {
       false,
     );
     expect(isLowStock(makeMaterial({ stockAlertThreshold: null }))).toBe(false);
+  });
+});
+
+describe("despensa status", () => {
+  it("separa baixo, atenção e em dia a partir do limite real", () => {
+    expect(
+      getStockStatus(makeMaterial({ stockQuantity: 3, stockAlertThreshold: 3 })),
+    ).toBe("low");
+    expect(
+      getStockStatus(makeMaterial({ stockQuantity: 3.5, stockAlertThreshold: 3 })),
+    ).toBe("attention");
+    expect(
+      getStockStatus(makeMaterial({ stockQuantity: 4, stockAlertThreshold: 3 })),
+    ).toBe("ok");
+  });
+
+  it("não divide por zero e limita a barra", () => {
+    expect(
+      stockLevelRatio(makeMaterial({ stockQuantity: 2, stockAlertThreshold: 0 })),
+    ).toBe(1);
+    expect(
+      stockLevelRatio(makeMaterial({ stockQuantity: 99, stockAlertThreshold: 3 })),
+    ).toBe(1);
+  });
+
+  it("deriva categoria da unidade e calcula o valor atual", () => {
+    expect(materialCategory(makeMaterial({ unit: "kg" }))).toBe("Peso");
+    expect(materialCategory(makeMaterial({ unit: "ml" }))).toBe("Volume");
+    expect(materialCategory(makeMaterial({ unit: "un" }))).toBe("Unidades");
+    expect(materialStockValue(makeMaterial({ stockQuantity: 2.5, costPerUnit: 4 }))).toBe(
+      10,
+    );
   });
 });
 
@@ -92,7 +128,7 @@ describe("lista de compras de insumos", () => {
   });
   const sugar = makeMaterial({
     id: "sugar",
-    name: "Açúcar",
+    name: "A��car",
     stockQuantity: 1.5,
     stockAlertThreshold: 2,
   });
@@ -104,16 +140,16 @@ describe("lista de compras de insumos", () => {
     });
   });
 
-  it("inclui estoque atual e mínimo no texto compartilhado", () => {
+  it("inclui estoque atual e m�nimo no texto compartilhado", () => {
     expect(buildShoppingList([sugar, flour])).toBe(
       [
-        "🛒 Lista de compras de insumos",
+        "?? Lista de compras de insumos",
         "",
         "SEM ESTOQUE",
-        "• Farinha — atual: 0 kg · mínimo: 3 kg",
+        ". Farinha - atual: 0 kg � m�nimo: 3 kg",
         "",
         "ESTOQUE BAIXO",
-        "• Açúcar — atual: 1,5 kg · mínimo: 2 kg",
+        ". A��car - atual: 1,5 kg � m�nimo: 2 kg",
       ].join("\n"),
     );
   });

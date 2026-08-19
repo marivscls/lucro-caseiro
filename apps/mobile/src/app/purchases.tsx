@@ -15,7 +15,7 @@ import React, { useRef, useState } from "react";
 import { Image, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import purchasesEmpty from "../assets/purchases-empty.png";
+import { useBrandIllustration } from "../shared/brand-illustrations";
 import { CreatePurchaseForm } from "../features/purchases/components/create-purchase-form";
 import { PurchaseCard } from "../features/purchases/components/purchase-card";
 import { pendingTotal, sortPurchasesPendingFirst } from "../features/purchases/domain";
@@ -49,6 +49,7 @@ const FILTERS: { value: Filter; label: string }[] = [
 
 export default function PurchasesScreen() {
   const { theme } = useTheme();
+  const purchasesEmpty = useBrandIllustration("purchasesEmpty");
   const isDesktop = useDesktopLayout();
   const { data: profile } = useProfile();
   const isPremium =
@@ -150,14 +151,15 @@ export default function PurchasesScreen() {
             <Image
               source={purchasesEmpty}
               resizeMode="contain"
-              style={{ width: 146, height: 146 }}
+              style={{
+                width: isDesktop ? 240 : 220,
+                height: isDesktop ? 240 : 220,
+              }}
             />
           }
           title="Nenhuma compra aqui"
           description="Registre sua primeira compra de fornecedor para acompanhar suas contas a pagar e o caixa."
-          action={
-            <Button title="Registrar compra" variant="outline" onPress={openCreate} />
-          }
+          action={<Button title="Registrar compra" onPress={openCreate} />}
         />
       );
     }
@@ -268,13 +270,13 @@ export default function PurchasesScreen() {
           paddingHorizontal: spacing.lg,
           paddingVertical: spacing.sm,
           borderRadius: radii.lg,
-          backgroundColor: theme.colors.yellowBg,
+          backgroundColor: theme.colors.primaryBg,
           flexDirection: "row",
           alignItems: "center",
           gap: spacing.md,
         }}
       >
-        <AppIcon name="time-outline" size={20} color={theme.colors.yellow} />
+        <AppIcon name="time-outline" size={20} color={theme.colors.primaryStrong} />
         <View style={{ flex: 1 }}>
           <Typography variant="caption" color={theme.colors.textSecondary}>
             Total a pagar

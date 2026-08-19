@@ -1,4 +1,4 @@
-import { Typography, fontSizes, fonts, useFeature, useTheme } from "@lucro-caseiro/ui";
+import { Typography, useFeature, useTheme } from "@lucro-caseiro/ui";
 import { Tabs } from "expo-router";
 import {
   CalendarDays,
@@ -18,15 +18,16 @@ import {
 } from "../../shared/layout/floating-tab-bar";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 
-function TabLabel({ children, color }: Readonly<{ children: string; color: string }>) {
+function TabLabel({
+  active,
+  children,
+  color,
+}: Readonly<{ active: boolean; children: string; color: string }>) {
   return (
     <Typography
-      variant="captionBold"
+      variant={active ? "homeNavigationActive" : "homeNavigation"}
       color={color}
       numberOfLines={1}
-      adjustsFontSizeToFit
-      minimumFontScale={0.78}
-      maxFontSizeMultiplier={1}
       style={styles.tabLabel}
     >
       {children}
@@ -34,17 +35,42 @@ function TabLabel({ children, color }: Readonly<{ children: string; color: strin
   );
 }
 
-function NewSaleIcon({ color }: Readonly<{ color: string }>) {
+function TabIcon({
+  active,
+  children,
+}: Readonly<{ active: boolean; children: React.ReactNode }>) {
   const { theme } = useTheme();
 
   return (
-    <View>
-      <ShoppingBag size={23} color={color} strokeWidth={1.9} />
-      <View
-        style={[styles.plusBadge, { backgroundColor: theme.colors.primaryInteractive }]}
-      >
-        <Plus size={12} color={theme.colors.textOnPrimary} strokeWidth={2.2} />
-      </View>
+    <View
+      style={[
+        styles.tabIcon,
+        active ? { backgroundColor: theme.colors.primaryBg } : undefined,
+      ]}
+    >
+      {children}
+    </View>
+  );
+}
+
+function NewSaleIcon() {
+  const { theme } = useTheme();
+
+  return (
+    <View
+      style={[
+        styles.newSaleButton,
+        {
+          backgroundColor: theme.colors.primary,
+          borderColor: theme.colors.surfaceElevated,
+          shadowColor: theme.shadows.md.shadowColor,
+          shadowOffset: theme.shadows.md.shadowOffset,
+          shadowOpacity: theme.shadows.md.shadowOpacity,
+          shadowRadius: theme.shadows.md.shadowRadius,
+        },
+      ]}
+    >
+      <Plus size={26} color="#FFFFFF" strokeWidth={2.1} />
     </View>
   );
 }
@@ -77,7 +103,7 @@ export default function TabLayout() {
               width: "auto",
               backgroundColor: theme.colors.surfaceElevated,
               borderColor: theme.colors.border,
-              borderRadius: 24,
+              borderRadius: 28,
               borderTopWidth: 1,
               borderWidth: 1,
               elevation: 8,
@@ -86,24 +112,9 @@ export default function TabLayout() {
               shadowOpacity: theme.shadows.md.shadowOpacity,
               shadowRadius: theme.shadows.md.shadowRadius,
             },
-        tabBarLabelStyle: {
-          // Piso de 13px (publico com idosos): nunca abaixo de fontSizes.xs.
-          fontSize: fontSizes.xs,
-          lineHeight: 17,
-          fontFamily: fonts.semiBold,
-          marginBottom: 3,
-        },
-        tabBarIconStyle: { marginTop: 3 },
-        tabBarItemStyle: {
-          borderRadius: 20,
-          flex: 1,
-          marginHorizontal: 2,
-          minWidth: 0,
-          overflow: "hidden",
-          paddingHorizontal: 0,
-          paddingVertical: 0,
-        },
-        tabBarActiveBackgroundColor: theme.colors.primaryBg,
+        tabBarIconStyle: { marginTop: 2 },
+        tabBarItemStyle: styles.tabItem,
+        tabBarActiveBackgroundColor: "transparent",
         tabBarActiveTintColor: theme.colors.primaryStrong,
         tabBarInactiveTintColor: theme.colors.textSecondary,
       }}
@@ -112,18 +123,34 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Início",
-          tabBarLabel: ({ color }) => <TabLabel color={color}>Início</TabLabel>,
-          tabBarIcon: ({ color }) => <House size={23} color={color} strokeWidth={1.9} />,
+          tabBarLabel: ({ color, focused }) => (
+            <TabLabel active={focused} color={color}>
+              Início
+            </TabLabel>
+          ),
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon active={focused}>
+              <House size={23} color={color} strokeWidth={1.9} />
+            </TabIcon>
+          ),
+          tabBarItemStyle: [styles.tabItem, styles.homeItem],
         }}
       />
       <Tabs.Screen
         name="sales"
         options={{
           title: "Vendas",
-          tabBarLabel: ({ color }) => <TabLabel color={color}>Vendas</TabLabel>,
-          tabBarIcon: ({ color }) => (
-            <ShoppingBag size={23} color={color} strokeWidth={1.9} />
+          tabBarLabel: ({ color, focused }) => (
+            <TabLabel active={focused} color={color}>
+              Vendas
+            </TabLabel>
           ),
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon active={focused}>
+              <ShoppingBag size={23} color={color} strokeWidth={1.9} />
+            </TabIcon>
+          ),
+          tabBarItemStyle: [styles.tabItem, styles.salesItem],
         }}
       />
       <Tabs.Screen
@@ -134,11 +161,23 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="materials"
+        options={{
+          href: null,
+          title: "Insumos",
+        }}
+      />
+      <Tabs.Screen
         name="new-sale"
         options={{
           title: "Nova venda",
-          tabBarLabel: ({ color }) => <TabLabel color={color}>Nova venda</TabLabel>,
-          tabBarIcon: ({ color }) => <NewSaleIcon color={color} />,
+          tabBarLabel: ({ color, focused }) => (
+            <TabLabel active={focused} color={color}>
+              Nova venda
+            </TabLabel>
+          ),
+          tabBarIcon: () => <NewSaleIcon />,
+          tabBarItemStyle: [styles.tabItem, styles.newSaleItem],
         }}
       />
       <Tabs.Screen
@@ -146,10 +185,17 @@ export default function TabLayout() {
         options={{
           href: hasScheduling ? undefined : null,
           title: "Agenda",
-          tabBarLabel: ({ color }) => <TabLabel color={color}>Agenda</TabLabel>,
-          tabBarIcon: ({ color }) => (
-            <CalendarDays size={23} color={color} strokeWidth={1.9} />
+          tabBarLabel: ({ color, focused }) => (
+            <TabLabel active={focused} color={color}>
+              Agenda
+            </TabLabel>
           ),
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon active={focused}>
+              <CalendarDays size={23} color={color} strokeWidth={1.9} />
+            </TabIcon>
+          ),
+          tabBarItemStyle: [styles.tabItem, styles.agendaItem],
         }}
       />
       <Tabs.Screen
@@ -157,20 +203,34 @@ export default function TabLayout() {
         options={{
           href: hasScheduling ? null : undefined,
           title: "Clientes",
-          tabBarLabel: ({ color }) => <TabLabel color={color}>Clientes</TabLabel>,
-          tabBarIcon: ({ color }) => <Users size={23} color={color} strokeWidth={1.9} />,
+          tabBarLabel: ({ color, focused }) => (
+            <TabLabel active={focused} color={color}>
+              Clientes
+            </TabLabel>
+          ),
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon active={focused}>
+              <Users size={23} color={color} strokeWidth={1.9} />
+            </TabIcon>
+          ),
+          tabBarItemStyle: [styles.tabItem, styles.agendaItem],
         }}
       />
       <Tabs.Screen
         name="more"
         options={{
           title: "Mais",
-          tabBarLabel: ({ color }) => <TabLabel color={color}>Mais</TabLabel>,
-          tabBarIcon: ({ color }) => (
-            <View style={[styles.moreIcon, { backgroundColor: theme.colors.surface }]}>
-              <Ellipsis size={25} color={color} strokeWidth={2.2} />
-            </View>
+          tabBarLabel: ({ color, focused }) => (
+            <TabLabel active={focused} color={color}>
+              Mais
+            </TabLabel>
           ),
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon active={focused}>
+              <Ellipsis size={25} color={color} strokeWidth={2.2} />
+            </TabIcon>
+          ),
+          tabBarItemStyle: styles.tabItem,
         }}
       />
     </Tabs>
@@ -178,27 +238,45 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
-  moreIcon: {
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 18,
-    height: 36,
-    marginBottom: 4,
-    width: 36,
+  agendaItem: {
+    flex: 1.1,
   },
-  plusBadge: {
+  homeItem: {
+    flex: 0.9,
+  },
+  newSaleItem: {
+    flex: 1.4,
+  },
+  salesItem: {
+    flex: 1,
+  },
+  tabItem: {
+    borderRadius: 20,
+    flex: 1,
+    marginHorizontal: 2,
+    minWidth: 0,
+    overflow: "visible",
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+  },
+  tabIcon: {
     alignItems: "center",
-    borderRadius: 9,
-    height: 18,
+    borderRadius: 18,
+    height: 34,
     justifyContent: "center",
-    position: "absolute",
-    right: -8,
-    top: -6,
-    width: 18,
+    width: 44,
+  },
+  newSaleButton: {
+    alignItems: "center",
+    borderRadius: 26,
+    borderWidth: 3,
+    elevation: 4,
+    height: 52,
+    justifyContent: "center",
+    marginTop: -12,
+    width: 52,
   },
   tabLabel: {
-    fontSize: fontSizes.xs,
-    lineHeight: 17,
     marginBottom: 3,
     maxWidth: "100%",
     textAlign: "center",

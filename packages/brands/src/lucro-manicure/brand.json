@@ -37,7 +37,15 @@
     "vendaPorPeso": false,
     "custoDireto": false,
     "comprasComEstoque": false,
-    "varejoPapelaria": false
+    "varejoPapelaria": false,
+    "operacaoVertical": false,
+    "familiaLucro": true
+  },
+  "vertical": {
+    "domain": "beleza",
+    "operationLabel": "Agenda de atendimentos",
+    "operationDescription": "Serviços, clientes e retornos",
+    "primaryActionLabel": "Agendar atendimento"
   },
   "onboarding": {
     "businessType": "beauty",

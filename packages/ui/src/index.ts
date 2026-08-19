@@ -5,6 +5,7 @@ export {
   colors,
   fonts,
   fontSizes,
+  homeTypography,
   lineHeights,
   spacing,
   radii,
@@ -30,7 +31,7 @@ export { Typography } from "./components/typography";
 export { IconButton } from "./components/icon-button";
 export { Badge } from "./components/badge";
 export type { BadgeVariant } from "./components/badge";
-export { Chip } from "./components/chip";
+export { Chip, FilterChipRow } from "./components/chip";
 export type { ChipVariant } from "./components/chip";
 export type { SemanticVariant } from "./components/semantic-variant";
 export { EmptyState } from "./components/empty-state";

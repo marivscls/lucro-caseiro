@@ -1,11 +1,17 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { CalendarDays, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
 import { PageHeader } from "@/features/marketing/page-header";
+import {
+  editorialWeekDays,
+  itemsForEditorialDay,
+  pedalIntentClass,
+} from "@/features/marketing/calendar-week";
+import { contentIntentOptions } from "@/features/marketing/content-brief";
 import { apiClient } from "@/shared/lib/api-client";
 import type { MarketingResource } from "@/shared/types";
 
@@ -15,15 +21,13 @@ export default function CalendarPage() {
     queryKey: ["calendar-content"],
     queryFn: () => apiClient<MarketingResource[]>("/resources?kind=content"),
   });
-  const items = (query.data ?? [])
-    .filter((item) => Number(item.data.week ?? 1) === week)
-    .sort((a, b) => Number(a.data.weekday ?? 0) - Number(b.data.weekday ?? 0));
+  const items = query.data ?? [];
   return (
     <>
       <PageHeader
-        eyebrow="Ritmo editorial"
-        title="Calendário de publicação"
-        description="Uma cadência semanal equilibrada entre dor, educação, demonstração, objeção, prova e planejamento."
+        eyebrow="Semana PEDAL"
+        title="Calendário semanal"
+        description="Cada carta representa um post. Distribua as intenções editoriais pelos dias conforme a pauta pedir."
       />
       <div className="week-picker">
         {[1, 2, 3, 4].map((value) => (
@@ -36,46 +40,63 @@ export default function CalendarPage() {
           </button>
         ))}
       </div>
-      <section className="calendar-list">
-        {items.map((item, index) => (
-          <Link
-            aria-label={`Abrir ${item.title}`}
-            className="calendar-card"
-            href={`/content?edit=${encodeURIComponent(item.id)}`}
-            key={item.id}
-          >
-            <div className="calendar-day">
-              <span>{index + 1}</span>
-              <strong>{item.title.split(":")[0]}</strong>
-            </div>
-            <div className="calendar-copy">
-              <span className="status idea">{asText(item.data.format, "Conteúdo")}</span>
-              <h2>{item.summary}</h2>
-              <p>
-                <strong>Público:</strong> {asText(item.data.audience, "Geral")}
-              </p>
-              <p>
-                <strong>CTA:</strong> {asText(item.data.cta, "Salvar e compartilhar")}
-              </p>
-            </div>
-            <ChevronRight />
-          </Link>
+      <div className="pedal-legend" aria-label="Intenções editoriais PEDAL">
+        {contentIntentOptions.map((intent) => (
+          <span className={`pedal-${pedalIntentClass(intent.value)}`} key={intent.value}>
+            {intent.value}
+          </span>
         ))}
+      </div>
+      <section className="calendar-list" aria-label={`Planejamento da semana ${week}`}>
+        {editorialWeekDays.map((day) => {
+          const dayItems = itemsForEditorialDay(items, week, day.number);
+          return (
+            <article className="calendar-day" key={day.number}>
+              <header>
+                <span>{day.short}</span>
+                <strong>{day.label}</strong>
+                <small>{dayItems.length || "—"}</small>
+              </header>
+              <div className="calendar-day-posts">
+                {dayItems.map((item) => {
+                  const intent = asText(item.data.contentIntent, "Sem intenção");
+                  return (
+                    <Link
+                      aria-label={`Abrir ${item.title}`}
+                      className={`calendar-card pedal-${pedalIntentClass(item.data.contentIntent)}`}
+                      href={`/content?edit=${encodeURIComponent(item.id)}`}
+                      key={item.id}
+                    >
+                      <span className="calendar-card-intent">{intent}</span>
+                      <span className="calendar-card-format">
+                        {asText(item.data.format, "Conteúdo")}
+                      </span>
+                      <h2>{item.summary || titleWithoutDay(item.title)}</h2>
+                      <p>{titleWithoutDay(item.title)}</p>
+                      <span className="calendar-card-action">
+                        Abrir carta <ChevronRight aria-hidden="true" />
+                      </span>
+                    </Link>
+                  );
+                })}
+                {!dayItems.length && (
+                  <Link className="calendar-day-empty" href="/content">
+                    <span>+</span>
+                    Planejar um post
+                  </Link>
+                )}
+              </div>
+            </article>
+          );
+        })}
       </section>
-      {!items.length && (
-        <section className="empty-state">
-          <div className="empty-icon">
-            <CalendarDays />
-          </div>
-          <h2>Calendário ainda vazio</h2>
-          <p>
-            Importe a estratégia inicial na página Hoje ou crie conteúdos e atribua semana
-            e dia.
-          </p>
-        </section>
-      )}
     </>
   );
+}
+
+function titleWithoutDay(title: string) {
+  const separator = title.indexOf(":");
+  return separator >= 0 ? title.slice(separator + 1).trim() : title;
 }
 
 function asText(value: unknown, fallback: string) {

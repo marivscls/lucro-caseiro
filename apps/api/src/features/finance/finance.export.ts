@@ -1,25 +1,43 @@
 import type { FinanceEntry, FinanceSummary } from "@lucro-caseiro/contracts";
+import type { BrandConfig } from "@lucro-caseiro/brands";
 import ExcelJS from "exceljs";
 import PDFDocument from "pdfkit";
 
-const BRAND = "#22C55E"; // verde da marca — faixa do titulo
-const ROSE = "#C4707E"; // primary — header da tabela
 const INK = "#1F2937";
 const MUTED = "#6B7280";
 const ZEBRA = "#F3F4F6";
 const INCOME = "#16A34A";
 const EXPENSE = "#DC2626";
 const TRACK = "#ECECEC";
-// Paleta da marca para as barras por categoria.
-const PALETTE = [
-  "#C4707E",
-  "#D4A054",
-  "#89A5B5",
-  "#B8A9D4",
-  "#6BBF96",
-  "#E8C555",
-  "#E07272",
-];
+
+export interface FinanceExportTheme {
+  name: string;
+  primary: string;
+  primaryLight: string;
+  primaryDark: string;
+  primaryStrong: string;
+  categoryPalette: string[];
+}
+
+export function getFinanceExportTheme(brand: BrandConfig): FinanceExportTheme {
+  const primary = brand.theme.primary;
+  const primaryLight = brand.theme.primaryLight ?? primary;
+  const primaryDark = brand.theme.primaryDark ?? primary;
+  const primaryStrong = brand.theme.primaryStrong ?? primaryDark;
+
+  return {
+    name: brand.appName,
+    primary,
+    primaryLight,
+    primaryDark,
+    primaryStrong,
+    categoryPalette: [primary, primaryLight, primaryDark, primaryStrong],
+  };
+}
+
+function toArgb(hex: string): string {
+  return `FF${hex.replace("#", "").toUpperCase()}`;
+}
 
 function formatCurrency(value: number): string {
   return `R$ ${value.toFixed(2).replace(".", ",")}`;
@@ -60,10 +78,11 @@ const VALUE_RIGHT = 545;
 export function generateFinancePdf(
   entries: FinanceEntry[],
   summary: FinanceSummary,
-  businessName: string,
+  brand: BrandConfig,
   period: string,
 ): Promise<Buffer> {
   return new Promise((resolve, reject) => {
+    const exportTheme = getFinanceExportTheme(brand);
     const doc = new PDFDocument({ margin: 50, size: "A4" });
     const chunks: Buffer[] = [];
 
@@ -71,13 +90,13 @@ export function generateFinancePdf(
     doc.on("end", () => resolve(Buffer.concat(chunks)));
     doc.on("error", reject);
 
-    // Header band (titulo) — verde da marca
-    doc.rect(0, 0, doc.page.width, 96).fill(BRAND);
+    // Header band (titulo) — cor forte da marca ativa
+    doc.rect(0, 0, doc.page.width, 96).fill(exportTheme.primaryStrong);
     doc
       .fillColor("#FFFFFF")
       .font("Helvetica-Bold")
       .fontSize(22)
-      .text(businessName, 50, 30);
+      .text(exportTheme.name, 50, 30);
     doc.font("Helvetica").fontSize(12).text(`Relatório Financeiro · ${period}`, 50, 62);
 
     // Summary box
@@ -170,7 +189,8 @@ export function generateFinancePdf(
           translateCategory(cat),
           val,
           maxCat,
-          PALETTE[idx % PALETTE.length] ?? INCOME,
+          exportTheme.categoryPalette[idx % exportTheme.categoryPalette.length] ??
+            exportTheme.primary,
         );
       });
       y += 12;
@@ -184,8 +204,8 @@ export function generateFinancePdf(
     doc.fillColor(INK).font("Helvetica-Bold").fontSize(13).text("Lançamentos", LEFT, y);
     y += 22;
 
-    // Table header — rosa da marca
-    doc.rect(50, y - 4, 495, 20).fill(ROSE);
+    // Table header — cor principal da marca ativa
+    doc.rect(50, y - 4, 495, 20).fill(exportTheme.primary);
     doc.fillColor("#FFFFFF").font("Helvetica-Bold").fontSize(9);
     doc.text("Data", COLS.date + 6, y);
     doc.text("Tipo", COLS.type + 6, y);
@@ -249,7 +269,10 @@ export function generateFinancePdf(
       .fillColor(MUTED)
       .font("Helvetica")
       .fontSize(8)
-      .text("Gerado pelo Lucro Caseiro", 50, 800, { width: 495, align: "center" });
+      .text(`Gerado pelo ${exportTheme.name}`, 50, 800, {
+        width: 495,
+        align: "center",
+      });
 
     doc.fillColor(INK);
     doc.end();
@@ -259,13 +282,15 @@ export function generateFinancePdf(
 export async function generateFinanceExcel(
   entries: FinanceEntry[],
   summary: FinanceSummary,
+  brand: BrandConfig,
   period: string,
 ): Promise<Buffer> {
+  const exportTheme = getFinanceExportTheme(brand);
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = "Lucro Caseiro";
+  workbook.creator = exportTheme.name;
 
   const currencyFmt = '"R$" #,##0.00';
-  const HEADER_BG = "FF22C55E";
+  const HEADER_BG = toArgb(exportTheme.primary);
   const ZEBRA_BG = "FFF3F4F6";
   const MUTED = "FF6B7280";
   const INK = "FF1F2937";
@@ -296,7 +321,11 @@ export async function generateFinanceExcel(
   sheet.mergeCells("A1:E1");
   const title = sheet.getCell("A1");
   title.value = "Relatório Financeiro";
-  title.font = { bold: true, size: 18, color: { argb: INK } };
+  title.font = {
+    bold: true,
+    size: 18,
+    color: { argb: toArgb(exportTheme.primaryStrong) },
+  };
   title.alignment = { vertical: "middle" };
   sheet.getRow(1).height = 26;
 
@@ -363,7 +392,11 @@ export async function generateFinanceExcel(
   summarySheet.mergeCells("A1:B1");
   const sTitle = summarySheet.getCell("A1");
   sTitle.value = "Resumo do mês";
-  sTitle.font = { bold: true, size: 18, color: { argb: INK } };
+  sTitle.font = {
+    bold: true,
+    size: 18,
+    color: { argb: toArgb(exportTheme.primaryStrong) },
+  };
   sTitle.alignment = { vertical: "middle" };
   summarySheet.getRow(1).height = 26;
 

@@ -52,6 +52,20 @@ const dailyItems = [
 
 const menuItems = [
   {
+    title: "Conheça também",
+    description: "Abra suas extensões com a mesma conta",
+    icon: "apps-outline" as const,
+    route: "/lucro-apps" as const,
+    feature: "familiaLucro" as const,
+  },
+  {
+    title: "Operação",
+    description: "Fluxo principal do seu negócio",
+    icon: "clipboard-outline" as const,
+    route: "/operations" as const,
+    feature: "operacaoVertical" as const,
+  },
+  {
     title: "Operação da Papelaria",
     description: "PDV, caixa, listas, inventário e serviços",
     icon: "storefront-outline" as const,
@@ -92,7 +106,7 @@ const menuItems = [
     title: "Insumos",
     description: "Matéria-prima e estoque",
     icon: "flask-outline" as const,
-    route: "/materials" as const,
+    route: "/tabs/materials" as const,
     feature: "materiais" as const,
   },
   {
@@ -173,6 +187,13 @@ export default function MoreScreen() {
       (item) => !("feature" in item) || !item.feature || brand.features[item.feature],
     )
     .map((item) => {
+      if (item.route === "/operations") {
+        return {
+          ...item,
+          title: brand.vertical.operationLabel,
+          description: brand.vertical.operationDescription,
+        };
+      }
       if (item.route === "/products") {
         return {
           ...item,
@@ -182,7 +203,7 @@ export default function MoreScreen() {
           description: "Cadastros, preços e disponibilidade",
         };
       }
-      if (item.route === "/materials") {
+      if (item.route === "/tabs/materials") {
         return {
           ...item,
           title: "Insumos",

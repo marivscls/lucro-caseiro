@@ -28,6 +28,7 @@ export function useCreatePurchase() {
     mutationFn: (data: CreatePurchase) => createPurchase(token!, data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: PURCHASES_KEY });
+      void queryClient.invalidateQueries({ queryKey: ["suppliers", "overview"] });
       // Criar uma compra já paga gera uma saída no caixa → atualiza o financeiro.
       void queryClient.invalidateQueries({ queryKey: ["finance"] });
       void queryClient.invalidateQueries({ queryKey: ["products"] });
@@ -43,6 +44,7 @@ export function usePayPurchase() {
     mutationFn: (id: string) => payPurchase(token!, id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: PURCHASES_KEY });
+      void queryClient.invalidateQueries({ queryKey: ["suppliers", "overview"] });
       void queryClient.invalidateQueries({ queryKey: ["finance"] });
     },
   });
@@ -56,6 +58,7 @@ export function useUpdatePurchase() {
       updatePurchase(token!, id, data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: PURCHASES_KEY });
+      void queryClient.invalidateQueries({ queryKey: ["suppliers", "overview"] });
       void queryClient.invalidateQueries({ queryKey: ["finance"] });
       void queryClient.invalidateQueries({ queryKey: ["products"] });
     },
@@ -69,6 +72,7 @@ export function useDeletePurchase() {
     mutationFn: (id: string) => deletePurchase(token!, id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: PURCHASES_KEY });
+      void queryClient.invalidateQueries({ queryKey: ["suppliers", "overview"] });
     },
   });
 }

@@ -28,6 +28,8 @@ export function Input({
   ...props
 }: InputProps) {
   const { theme } = useTheme();
+  const errorId = React.useId();
+  const [focused, setFocused] = React.useState(false);
   const webAutofillSurface: TextStyle | undefined =
     Platform.OS === "web"
       ? { boxShadow: `inset 0 0 0 1000px ${theme.colors.surfaceElevated}` }
@@ -53,7 +55,11 @@ export function Input({
           backgroundColor: theme.colors.surfaceElevated,
           borderRadius: radii.lg,
           borderWidth: 1,
-          borderColor: theme.colors.border,
+          borderColor: error
+            ? theme.colors.alert
+            : focused
+              ? theme.colors.primaryInteractive
+              : theme.colors.border,
           paddingHorizontal: spacing.lg,
           gap: spacing.sm,
         }}
@@ -74,10 +80,27 @@ export function Input({
             style,
           ]}
           {...props}
+          accessibilityLabel={props.accessibilityLabel ?? label}
+          {...(Platform.OS === "web"
+            ? ({
+                "aria-invalid": !!error,
+                "aria-describedby": error ? errorId : undefined,
+              } as Record<string, unknown>)
+            : {})}
+          onFocus={(event) => {
+            setFocused(true);
+            props.onFocus?.(event);
+          }}
+          onBlur={(event) => {
+            setFocused(false);
+            props.onBlur?.(event);
+          }}
         />
       </View>
       {error && (
         <Text
+          nativeID={errorId}
+          accessibilityLiveRegion="polite"
           style={{
             fontSize: fontSizes.sm,
             fontFamily: fonts.regular,

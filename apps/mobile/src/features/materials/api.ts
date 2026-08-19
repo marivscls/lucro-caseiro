@@ -4,7 +4,7 @@ import { apiClient } from "../../shared/utils/api-client";
 
 const BASE = "/api/v1/materials";
 
-interface PaginatedMaterials {
+export interface PaginatedMaterials {
   items: Material[];
   total: number;
   page: number;
@@ -12,12 +12,30 @@ interface PaginatedMaterials {
   totalPages: number;
 }
 
+export async function fetchAllMaterials(token: string): Promise<PaginatedMaterials> {
+  const firstPage = await fetchMaterials(token, { page: 1, limit: 100 });
+  if (firstPage.totalPages <= 1) return firstPage;
+
+  const remainingPages = await Promise.all(
+    Array.from({ length: firstPage.totalPages - 1 }, (_, index) =>
+      fetchMaterials(token, { page: index + 2, limit: 100 }),
+    ),
+  );
+  return {
+    ...firstPage,
+    items: [firstPage, ...remainingPages].flatMap((page) => page.items),
+    limit: firstPage.total,
+    totalPages: 1,
+  };
+}
+
 export async function fetchMaterials(
   token: string,
-  opts?: { page?: number; search?: string },
+  opts?: { page?: number; limit?: number; search?: string },
 ): Promise<PaginatedMaterials> {
   const params = new URLSearchParams();
   if (opts?.page) params.set("page", String(opts.page));
+  if (opts?.limit) params.set("limit", String(opts.limit));
   if (opts?.search) params.set("search", opts.search);
   const query = params.toString();
   const suffix = query ? `?${query}` : "";

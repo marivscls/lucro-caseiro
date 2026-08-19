@@ -1,130 +1,87 @@
-# ai.context.mobile.md — Suppliers (Mobile Feature)
-
----
+# ai.context.mobile.md — Suppliers
 
 ## Purpose
 
-Cadastro de fornecedores do usuario: listar, buscar, criar, editar e excluir fornecedores (de quem a pessoa compra insumos e embalagens). Guarda nome, telefone/WhatsApp, email, endereco e observacoes.
+A rota `/suppliers` oferece visão mensal, busca, filtros, ordenação, cards contextuais, cadastro,
+edição, arquivo, WhatsApp e recompra revisável.
 
 ## Non-goals
 
-- Nao registra compras nem contas a pagar (feature `purchases`, fase futura).
-- Nao cria lancamento financeiro (feature `finance`).
-- Nao gerencia assinaturas (feature `subscription`).
+- Não inventa planejamento ou estados por heurística.
+- Não registra recompra sem revisão e confirmação.
+- Não mantém fixtures ou imagens externas na implementação de produção.
 
 ## Boundaries & Ownership
 
-- **Depende de:** `@lucro-caseiro/contracts` (tipos `Supplier`, `CreateSupplier`, `UpdateSupplier`), `@lucro-caseiro/ui`, `shared/hooks/use-auth`, `shared/hooks/use-limit-check`, `shared/hooks/use-paywall`, `shared/utils/api-client`, `shared/utils/phone`, `shared/utils/whatsapp`, `shared/utils/alerts`.
-- **Dependentes:** `tabs/more` (item de menu "Fornecedores" → `/suppliers`). Materials/Packaging poderao usar um seletor de fornecedor (fase futura).
+Depende de contracts, React Query, componentes compartilhados, Supabase Storage e purchases. A rota
+coordena os modais; a lógica pura permanece em `domain.ts`.
 
 ## Code pointers
 
-| Arquivo                                                                  | Descricao                                          |
-| ------------------------------------------------------------------------ | -------------------------------------------------- |
-| `apps/mobile/src/features/suppliers/api.ts`                              | Funcoes HTTP (fetch, create, update, delete)       |
-| `apps/mobile/src/features/suppliers/hooks.ts`                            | React Query hooks                                  |
-| `apps/mobile/src/features/suppliers/components/supplier-list.tsx`        | Lista (FlatList) com estados de loading/erro/vazio |
-| `apps/mobile/src/features/suppliers/components/supplier-card.tsx`        | Card individual (nome + contato)                   |
-| `apps/mobile/src/features/suppliers/components/create-supplier-form.tsx` | Formulario de criacao (com gate freemium)          |
-| `apps/mobile/src/features/suppliers/components/edit-supplier-form.tsx`   | Formulario de edicao                               |
-| `apps/mobile/src/features/suppliers/components/supplier-detail.tsx`      | Detalhe (contato, acoes WhatsApp/editar)           |
-| `apps/mobile/src/app/suppliers.tsx`                                      | Screen (rota `/suppliers`)                         |
+- `app/suppliers.tsx`: rota e ações.
+- `components/supplier-list.tsx`: painel, filtros e estados.
+- `components/supplier-card.tsx`: cards e ações contextuais.
+- `components/supplier-form.tsx`: formulário compartilhado.
+- `components/supplier-avatar.tsx`: upload, preset ou iniciais.
+- `components/supplier-illustration.tsx`: família local de 24 desenhos SVG com `viewBox` comum.
+- `illustration-presets.ts`: 24 presets locais.
+- `domain.ts`: busca, filtros, validação, prefill e geometria.
+- `assets/fornecedores-caixas.png`: arte oficial transparente.
 
 ## Components
 
-### `SupplierList`
-
-- **Props:** `{ search?: string; onSupplierPress?: (id: string) => void; onAddPress?: () => void }`
-- FlatList de fornecedores com `RefreshControl`. Estados de loading, erro e `EmptyState` quando vazio.
-
-### `SupplierCard`
-
-- **Props:** `{ supplier: Supplier; onPress?: () => void }`
-- Card com avatar (icone), nome e contato (telefone ou email).
-
-### `CreateSupplierForm`
-
-- **Props:** `{ onSuccess?: () => void }`
-- Campos: nome (obrigatorio), telefone/WhatsApp, email, endereco, observacoes. Gate freemium via `useLimitCheck("suppliers")`.
-
-### `EditSupplierForm`
-
-- **Props:** `{ supplier: Supplier; onSuccess?: () => void }`
-- Mesmos campos do create, pre-preenchidos.
-
-### `SupplierDetail`
-
-- **Props:** `{ supplierId: string; onEditPress?: () => void }`
-- Mostra contato e acoes (Editar, WhatsApp quando ha telefone).
-
-### `SupplierSelector`
-
-- **Props:** `{ value: string | null; onChange: (supplierId: string | null) => void }`
-- Campo reutilizavel (bottom-sheet com busca + "Nenhum" + "Cadastrar novo") usado nos forms de
-  insumo (`materials`) e embalagem (`packaging`) para vincular um fornecedor cadastrado. Auto-seleciona
-  o fornecedor criado na hora. Helper `useSupplierName(id)` resolve o nome a partir do cache.
+`SupplierList` renderiza uma FlatList de coluna única; `SupplierCard` mostra dados derivados;
+`SupplierForm` é reutilizado por criação e edição; `StandardModal` fornece bottom sheet/dialog com
+footer fixo; `SupplierAvatar` aplica a prioridade upload → preset → iniciais. O registro separa
+metadados dos presets dos paths SVG, persistindo somente ids estáveis.
 
 ## Hooks
 
-| Hook                  | Tipo          | Descricao                                                     |
-| --------------------- | ------------- | ------------------------------------------------------------- |
-| `useSuppliers(opts?)` | `useQuery`    | Lista paginada/busca. Query key: `["suppliers", opts]`        |
-| `useSupplier(id)`     | `useQuery`    | Detalhe. Query key: `["suppliers", id]`                       |
-| `useCreateSupplier()` | `useMutation` | Cria. Invalida `["suppliers"]` e `["subscription"]` (limite). |
-| `useUpdateSupplier()` | `useMutation` | Atualiza. Invalida `["suppliers"]`.                           |
-| `useDeleteSupplier()` | `useMutation` | Remove. Invalida `["suppliers"]` e `["subscription"]`.        |
+`useSuppliersOverview` lê o agregado. Mutations de supplier e purchase invalidam as query keys
+afetadas. A lista paginada anterior continua disponível ao `SupplierSelector`.
 
 ## API Integration
 
-| Endpoint                | Verbo  | Funcao           | Parametros             |
-| ----------------------- | ------ | ---------------- | ---------------------- |
-| `/api/v1/suppliers`     | GET    | `fetchSuppliers` | `?page=N&search=texto` |
-| `/api/v1/suppliers/:id` | GET    | `fetchSupplier`  | -                      |
-| `/api/v1/suppliers`     | POST   | `createSupplier` | body: `CreateSupplier` |
-| `/api/v1/suppliers/:id` | PATCH  | `updateSupplier` | body: `UpdateSupplier` |
-| `/api/v1/suppliers/:id` | DELETE | `deleteSupplier` | -                      |
+`GET /api/v1/suppliers/overview` alimenta o painel e a lista. POST/PATCH/DELETE implementam cadastro,
+edição, flags, arquivo e exclusão. Filtros visuais rodam sobre o cache, sem novas requisições.
+Durante o rollout, respostas 400/404/500 do overview acionam compatibilidade com a API anterior:
+o cliente pagina `/suppliers` e `/purchases`, normaliza os campos legados e deriva o mesmo agregado.
 
 ## Contracts
 
-- `Supplier` — fornecedor (id, userId, name, phone, email, address, notes, createdAt).
-- `CreateSupplier` — payload de criacao (name, phone?, email?, address?, notes?).
-- `UpdateSupplier` — payload de edicao (`Partial<CreateSupplier>`).
-
-## Freemium
-
-- Recurso `suppliers`: **3 no plano gratuito**, ilimitado no Premium.
-- Gate no form de criacao via `useLimitCheck("suppliers")` (bloqueia antes de enviar) + tratamento de `ApiError` com `code === "LIMIT_EXCEEDED"` → `showPaywall("suppliers")`.
-- `LimitBanner resource="suppliers"` na screen mostra quantos restam.
-- Enforcement real no backend (`freemiumGuard(subscriptionRepo, "suppliers")`).
+Usa `Supplier`, `SupplierOverviewItem`, `SuppliersOverview`, `CreateSupplier` e `UpdateSupplier`. A
+categoria aceita insumos, embalagens, alimentos e outros.
 
 ## Error Handling
 
-- **Erro de listagem:** `EmptyState` generico.
-- **Erro de criacao/edicao:** `alertError` com mensagem.
-- **Validacao local:** nome obrigatorio; telefone valido (BR) quando presente; email valido quando presente.
+Há skeleton, retry, lista vazia, busca sem resultado e mês zerado. Erros do formulário preservam os
+campos e o arquivo selecionado; submit duplicado é bloqueado.
 
 ## Performance
 
-- Lista carrega via `useSuppliers` (React Query) com cache por query key.
-- Busca altera o param `search` e o React Query refaz o fetch (ILIKE no backend).
-- Mutations invalidam `["suppliers"]` e `["subscription"]` para manter contagem de limite e lista em dia.
+A busca local normaliza caixa, espaços e acentos. Contagens e listas usam memoização. O PNG usa
+`contain`, ignora eventos e tem largura fluida limitada: 38%, mínimo 108 e máximo 190 px.
 
 ## Test matrix
 
-- [ ] `useSuppliers` lista e busca
-- [ ] `CreateSupplierForm` valida nome obrigatorio
-- [ ] `CreateSupplierForm` bloqueia no limite freemium (paywall)
-- [ ] `SupplierDetail` mostra contato e acao WhatsApp quando ha telefone
+- `domain.test.ts`: totais, busca, filtros, ordenação, validações, iniciais, recompra e PNG.
+- `supplier-form.test.tsx`: categoria/presets, upload, remoção, preferência e validação.
+- `create-supplier-form.test.tsx`: abertura, fechamento e CTA.
+- Auditoria CDP: 320, 360, 375, 390, 412, 768 e desktop; modal, Escape e console.
 
 ## Examples
 
-- Acessado via aba "Mais" → "Fornecedores".
-- Rota: `/suppliers`.
+“Comprar novamente” converte os itens da última compra em `prefill` e abre
+`CreatePurchaseForm`. WhatsApp só aparece com telefone válido e flag ativa.
 
 ## Change log / Decisions
 
-- Criacao inicial: CRUD de fornecedores como entidade propria (antes era so um campo de texto livre em insumos/embalagens).
-- Limite freemium: 3 fornecedores no plano gratuito.
-- Fase 2: `SupplierSelector` + `useSupplierName` permitem vincular um fornecedor a um insumo
-  (`materials`) ou embalagem (`packaging`) via `supplierId`. O form de embalagem trocou o campo de
-  texto livre pelo seletor; o de insumo ganhou o campo (antes nao tinha).
+- 2026-08-18: tela completa baseada na referência e no PNG oficial.
+- Presets ficam em registro vetorial local com seis opções por categoria.
+- Upload só é definitivo no submit, reutiliza o pipeline existente e confere os bytes reais de
+  PNG/JPEG/WebP antes de enviar.
+- Sem orçamento no backend, o chip correto é “Sem planejamento”.
+- 2026-08-18: filtros de categoria da lista usam o `Chip` compartilhado
+  (`@lucro-caseiro/ui`) com badge de contagem. Só os rótulos e totais vêm da tela.
+  A fileira usa `FilterChipRow`: o rótulo do chip não encolhe com reticências,
+  então "Alimentos" e "Outros" quebram para a linha de baixo em vez de cortar.

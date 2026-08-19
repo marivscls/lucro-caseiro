@@ -1,160 +1,132 @@
 import type { Sale } from "@lucro-caseiro/contracts";
 import {
-  Button,
-  EmptyState,
-  fontSizes,
-  iconSizes,
-  Typography,
+  Chip,
+  FilterChipRow,
   fonts,
+  iconSizes,
   radii,
   spacing,
+  Typography,
   useTheme,
   type Theme,
 } from "@lucro-caseiro/ui";
-import { AppIcon } from "../shared/components/app-icon";
-import type { AppIconName } from "../shared/components/app-icon";
 import { Stack, useRouter } from "expo-router";
 import React from "react";
-import { Image, Linking, Pressable, ScrollView, TextInput, View } from "react-native";
+import {
+  Image,
+  Linking,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
+import fiadoEmpty from "../assets/fiado-hero.png";
+import fiadoNotebook from "../assets/fiado-notebook-calendar.png";
 import { useClients } from "../features/clients/hooks";
+import {
+  buildChargeMessage,
+  fiadoTiming,
+  groupFiados,
+  totalOwed,
+  type FiadoGroup,
+  type FiadoTiming,
+} from "../features/sales/fiado";
 import { useSales, useUpdateSaleStatus } from "../features/sales/hooks";
-import { buildChargeMessage, groupFiados, totalOwed } from "../features/sales/fiado";
-import type { FiadoGroup } from "../features/sales/fiado";
+import { brandScreenPalette } from "../shared/brand-palette";
+import type { AppIconName } from "../shared/components/app-icon";
+import { AppIcon } from "../shared/components/app-icon";
 import { showAlert } from "../shared/components/alert-store";
+import { ResponsiveOverlayModal } from "../shared/components/responsive-modal-surface";
+import { ScreenHeader } from "../shared/components/screen-header";
 import { SkeletonList } from "../shared/components/skeleton";
 import { showToast } from "../shared/components/toast";
+import {
+  desktopModalSurface,
+  desktopStretch,
+  desktopWidths,
+  pageGutter,
+} from "../shared/layout/desktop-density";
+import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { alertError } from "../shared/utils/alerts";
 import { formatCurrency } from "../shared/utils/format";
 import { isValidBrazilPhone } from "../shared/utils/phone";
 import { openWhatsApp, openWhatsAppShare } from "../shared/utils/whatsapp";
-import fiadoHero from "../assets/fiado-hero.png";
-import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
-import { desktopModalSurface, desktopStretch, desktopWidths, pageGutter } from "../shared/layout/desktop-density";
-import { ResponsiveOverlayModal } from "../shared/components/responsive-modal-surface";
-import { ScreenHeader } from "../shared/components/screen-header";
 
-type FiadoFilter = "all" | "withPhone" | "withoutPhone" | "overdue";
+type StatusFilter = "all" | "overdue" | "upcoming";
+type ContactFilter = "all" | "withPhone" | "withoutPhone";
+type SortOrder = "oldest" | "newest";
 
-const FILTER_OPTIONS: Array<{ key: FiadoFilter; label: string }> = [
-  { key: "all", label: "Todos" },
+const LOCALE = "pt-BR";
+const FAB_SIZE = 56;
+const FAB_BOTTOM_GAP = spacing.xl;
+
+function useFiadoScreen() {
+  const { theme } = useTheme();
+  const colors = brandScreenPalette(theme);
+  const styles = React.useMemo(() => createStyles(theme), [theme]);
+  return { theme, colors, styles };
+}
+
+const COPY = {
+  all: "Todos",
+  overdue: "Vencidos",
+  upcoming: "Próximos",
+  oldest: "Mais antigos",
+  newest: "Mais recentes",
+  open: "Em aberto",
+  charge: "Cobrar",
+  markReceived: "Marcar como recebido",
+} as const;
+
+const CONTACT_FILTERS: ReadonlyArray<{ key: ContactFilter; label: string }> = [
+  { key: "all", label: "Todos os contatos" },
   { key: "withPhone", label: "Com WhatsApp" },
   { key: "withoutPhone", label: "Sem WhatsApp" },
-  { key: "overdue", label: "+7 dias" },
 ];
-
-/** Paleta do Fiado derivada do tema (antes eram cores fixas de dark). */
-function fiadoPalette(theme: Theme) {
-  const c = theme.colors;
-  return {
-    screenBg: c.background,
-    cardBg: c.surfaceElevated,
-    cardBorder: theme.colors.border,
-    innerBorder: theme.colors.border,
-    divider: theme.colors.border,
-    text: c.text,
-    textSecondary: c.textSecondary,
-    subtleFill: c.surface,
-    dateChipBg: c.surface,
-    handle: c.border,
-    received: c.success,
-    receivedBg: c.successBg,
-    amountChipBg: c.yellowBg,
-    amountChipFg: c.yellow,
-    sheetBg: c.surfaceElevated,
-    totalCardBg: c.surfaceElevated,
-  };
-}
-
-function isOldSale(iso: string): boolean {
-  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-  return new Date(iso).getTime() <= sevenDaysAgo;
-}
 
 function saleDateParts(iso: string): { day: string; month: string } {
   const date = new Date(iso);
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = date
-    .toLocaleDateString("pt-BR", { month: "short" })
-    .replace(".", "")
-    .toUpperCase();
-  return { day, month };
+  return {
+    day: String(date.getDate()).padStart(2, "0"),
+    month: new Intl.DateTimeFormat(LOCALE, { month: "short" })
+      .format(date)
+      .replace(".", "")
+      .toLocaleUpperCase(LOCALE),
+  };
 }
 
 function initials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 1).toUpperCase();
-  return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  if (parts.length === 1) return parts[0].slice(0, 1).toLocaleUpperCase(LOCALE);
+  return `${parts[0][0]}${parts[1][0]}`.toLocaleUpperCase(LOCALE);
 }
 
-function OpenSaleRow({
-  sale,
-  isLast,
-  onMarkPaid,
-}: Readonly<{ sale: Sale; isLast: boolean; onMarkPaid: (saleId: string) => void }>) {
-  const { theme } = useTheme();
-  const pal = fiadoPalette(theme);
-  const { day, month } = saleDateParts(sale.soldAt);
+function launchCountLabel(count: number): string {
+  return count === 1 ? "1 lançamento" : `${count} lançamentos`;
+}
 
-  return (
-    <View
-      style={{
-        minHeight: 56,
-        flexDirection: "row",
-        alignItems: "center",
-        borderBottomWidth: isLast ? 0 : 1,
-        borderBottomColor: pal.divider,
-      }}
-    >
-      <View
-        style={{
-          width: 44,
-          height: 44,
-          borderRadius: radii.md,
-          backgroundColor: pal.dateChipBg,
-          alignItems: "center",
-          justifyContent: "center",
-          marginRight: spacing.md,
-        }}
-      >
-        <Typography variant="h3" color={pal.text} style={{ lineHeight: 20 }}>
-          {day}
-        </Typography>
-        <Typography variant="label" color={pal.textSecondary}>
-          {month}
-        </Typography>
-      </View>
+function timingLabel(timing: FiadoTiming): string {
+  if (timing.kind === "open") return COPY.open;
+  if (timing.kind === "upcoming") {
+    return timing.days === 1 ? "Vence amanhã" : `Vence em ${timing.days} dias`;
+  }
+  if (timing.days === 0) return "Venceu hoje";
+  return timing.days === 1 ? "Vencido há 1 dia" : `Vencido há ${timing.days} dias`;
+}
 
-      <Typography variant="h3" color={pal.text} style={{ flex: 1 }}>
-        {formatCurrency(sale.total)}
-      </Typography>
+function groupDate(group: FiadoGroup, order: SortOrder): number {
+  const timestamps = group.sales.map((sale) => new Date(sale.soldAt).getTime());
+  return order === "oldest" ? Math.min(...timestamps) : Math.max(...timestamps);
+}
 
-      <Pressable
-        onPress={() => onMarkPaid(sale.id)}
-        accessibilityRole="button"
-        accessibilityLabel="Marcar como recebido"
-        style={({ pressed }) => ({
-          minHeight: 40,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.sm,
-          paddingHorizontal: spacing.md,
-          borderRadius: radii.full,
-          borderWidth: 1.5,
-          borderColor: pal.received,
-          backgroundColor: pal.receivedBg,
-          opacity: pressed ? 0.7 : 1,
-        })}
-      >
-        <AppIcon name="checkmark-circle" size={20} color={pal.received} />
-        <Typography variant="bodyBold" color={pal.received}>
-          Recebi
-        </Typography>
-      </Pressable>
-    </View>
-  );
+function groupMatchesStatus(group: FiadoGroup, filter: StatusFilter): boolean {
+  if (filter === "all") return true;
+  return group.sales.some((sale) => fiadoTiming(sale.soldAt).kind === filter);
 }
 
 function ActionSheetRow({
@@ -168,55 +140,183 @@ function ActionSheetRow({
   color?: string;
   onPress: () => void;
 }>) {
-  const { theme } = useTheme();
-  const pal = fiadoPalette(theme);
-  const resolvedColor = color ?? pal.text;
+  const { colors, styles } = useFiadoScreen();
+  const actionColor = color ?? colors.ink;
+
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
-      style={({ pressed }) => ({
-        minHeight: 56,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: spacing.md,
-        paddingHorizontal: spacing.md,
-        borderRadius: radii.md,
-        backgroundColor: pressed ? pal.subtleFill : "transparent",
-      })}
+      style={({ pressed }) => [styles.sheetAction, pressed && styles.pressed]}
     >
-      <AppIcon name={icon} size={24} color={resolvedColor} />
-      <Typography variant="bodyBold" color={resolvedColor}>
+      <AppIcon name={icon} size={iconSizes.md} color={actionColor} />
+      <Typography variant="bodyBold" color={actionColor}>
         {label}
       </Typography>
     </Pressable>
   );
 }
 
+function StatusBadge({ timing }: Readonly<{ timing: FiadoTiming }>) {
+  const { colors, styles } = useFiadoScreen();
+  const isOverdue = timing.kind === "overdue";
+  const isUpcoming = timing.kind === "upcoming";
+  let backgroundColor: string = colors.neutral;
+  if (isOverdue) backgroundColor = colors.softRose;
+  if (isUpcoming) backgroundColor = `${colors.lime}57`;
+  const color = isOverdue ? colors.rose : colors.muted;
+  const dotColor = isUpcoming ? colors.lime : color;
+
+  return (
+    <View
+      accessibilityLabel={`Situação: ${timingLabel(timing)}`}
+      style={[styles.statusBadge, { backgroundColor }]}
+    >
+      <View style={[styles.statusDot, { backgroundColor: dotColor }]} />
+      <Typography
+        variant="caption"
+        color={isUpcoming ? colors.ink : color}
+        numberOfLines={1}
+        style={styles.statusText}
+      >
+        {timingLabel(timing)}
+      </Typography>
+    </View>
+  );
+}
+
+function CardAction({
+  icon,
+  label,
+  filled = false,
+  flex = 1,
+  onPress,
+}: Readonly<{
+  icon: AppIconName;
+  label: string;
+  filled?: boolean;
+  flex?: number;
+  onPress: () => void;
+}>) {
+  const { colors, styles } = useFiadoScreen();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={({ pressed }) => [
+        styles.cardAction,
+        { flex },
+        filled ? styles.cardActionFilled : styles.cardActionOutlined,
+        pressed && styles.pressed,
+      ]}
+    >
+      <AppIcon
+        name={icon}
+        size={iconSizes.sm}
+        color={filled ? colors.onWine : colors.wine}
+      />
+      <Typography
+        variant="caption"
+        color={filled ? colors.onWine : colors.wine}
+        style={styles.cardActionText}
+      >
+        {label}
+      </Typography>
+    </Pressable>
+  );
+}
+
+function OpenSaleRow({
+  sale,
+  isLast,
+  isNarrow,
+  onCharge,
+  onMarkPaid,
+}: Readonly<{
+  sale: Sale;
+  isLast: boolean;
+  isNarrow: boolean;
+  onCharge: () => void;
+  onMarkPaid: (saleId: string) => void;
+}>) {
+  const { colors, styles } = useFiadoScreen();
+  const { day, month } = saleDateParts(sale.soldAt);
+  const timing = fiadoTiming(sale.soldAt);
+  const amount = Math.max(0, sale.total - sale.paidAmount);
+
+  return (
+    <View style={[styles.saleBlock, !isLast && styles.saleDivider]}>
+      <View style={styles.saleSummary}>
+        <View style={styles.dateBadge}>
+          <Typography variant="h3" color={colors.wine} style={styles.dateDay}>
+            {day}
+          </Typography>
+          <Typography variant="label" color={colors.ink} style={styles.dateMonth}>
+            {month}
+          </Typography>
+        </View>
+        <Typography
+          variant="h3"
+          color={colors.ink}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.85}
+          style={styles.saleAmount}
+        >
+          {formatCurrency(amount)}
+        </Typography>
+        <StatusBadge timing={timing} />
+      </View>
+
+      <View style={[styles.actionRow, isNarrow && styles.actionRowNarrow]}>
+        <CardAction
+          icon="checkmark-circle-outline"
+          label={COPY.markReceived}
+          flex={1.55}
+          onPress={() => onMarkPaid(sale.id)}
+        />
+        <CardAction
+          icon="logo-whatsapp"
+          label={COPY.charge}
+          filled={timing.kind === "overdue"}
+          onPress={onCharge}
+        />
+      </View>
+    </View>
+  );
+}
+
 function FiadoGroupCard({
   group,
   phone,
+  isNarrow,
+  sortOrder,
   onCharge,
   onMarkPaid,
   onMarkAllPaid,
 }: Readonly<{
   group: FiadoGroup;
   phone?: string;
+  isNarrow: boolean;
+  sortOrder: SortOrder;
   onCharge: (group: FiadoGroup) => void;
   onMarkPaid: (saleId: string) => void;
   onMarkAllPaid: (group: FiadoGroup) => void;
 }>) {
-  const { theme } = useTheme();
+  const { colors, styles } = useFiadoScreen();
   const isDesktop = useDesktopLayout();
-  const pal = fiadoPalette(theme);
   const insets = useSafeAreaInsets();
   const [menuOpen, setMenuOpen] = React.useState(false);
   const hasPhone = Boolean(phone && isValidBrazilPhone(phone));
-  const launchCount =
-    group.sales.length === 1 ? "1 lançamento" : `${group.sales.length} lançamentos`;
   const markAllLabel =
-    group.sales.length === 1 ? "Marcar como recebido" : "Marcar tudo como recebido";
+    group.sales.length === 1 ? COPY.markReceived : "Marcar tudo como recebido";
+  const orderedSales = [...group.sales].sort((a, b) => {
+    const delta = new Date(a.soldAt).getTime() - new Date(b.soldAt).getTime();
+    return sortOrder === "oldest" ? delta : -delta;
+  });
 
   function closeMenuThen(action: () => void) {
     setMenuOpen(false);
@@ -229,122 +329,58 @@ function FiadoGroupCard({
   }
 
   return (
-    <View
-      style={{
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: pal.cardBorder,
-        backgroundColor: pal.cardBg,
-        padding: spacing.md,
-        gap: spacing.md,
-      }}
-    >
-      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-        <View
-          style={{
-            width: 50,
-            height: 50,
-            borderRadius: radii.full,
-            backgroundColor: theme.colors.primaryBg,
-            borderWidth: 1,
-            borderColor: pal.cardBorder,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Typography
-            variant="bodyBold"
-            color={theme.colors.primaryStrong}
-            style={{ fontSize: 18 }}
-          >
+    <View style={styles.chargeCard}>
+      <View style={styles.cardHeader}>
+        <View style={styles.avatar}>
+          <Typography variant="bodyBold" color={colors.wine} style={styles.avatarText}>
             {initials(group.clientName)}
           </Typography>
         </View>
 
-        <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
-          <Typography variant="h3" color={pal.text} numberOfLines={1}>
+        <View style={styles.clientInfo}>
+          <Typography variant="h3" color={colors.ink} style={styles.clientName}>
             {group.clientName}
           </Typography>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-            <AppIcon name="calendar-outline" size={14} color={pal.textSecondary} />
-            <Typography variant="caption" color={pal.textSecondary}>
-              {launchCount}
-            </Typography>
-          </View>
-        </View>
-
-        <View
-          style={{
-            minWidth: 88,
-            minHeight: 36,
-            borderRadius: radii.lg,
-            backgroundColor: pal.amountChipBg,
-            alignItems: "center",
-            justifyContent: "center",
-            paddingHorizontal: spacing.md,
-          }}
-        >
-          <Typography variant="bodyBold" color={pal.amountChipFg}>
-            {formatCurrency(group.total)}
+          <Typography variant="caption" color={colors.muted}>
+            {launchCountLabel(group.sales.length)}
           </Typography>
         </View>
+
+        {!isNarrow ? (
+          <Typography variant="h3" color={colors.ink} style={styles.groupTotal}>
+            {formatCurrency(group.total)}
+          </Typography>
+        ) : null}
 
         <Pressable
           onPress={() => setMenuOpen(true)}
           accessibilityRole="button"
           accessibilityLabel={`Mais ações de ${group.clientName}`}
-          hitSlop={10}
-          style={({ pressed }) => ({
-            width: 40,
-            height: 40,
-            borderRadius: radii.full,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: pressed ? pal.subtleFill : "transparent",
-          })}
+          hitSlop={8}
+          style={({ pressed }) => [styles.menuButton, pressed && styles.pressed]}
         >
-          <AppIcon name="ellipsis-vertical" size={22} color={pal.textSecondary} />
+          <AppIcon name="ellipsis-vertical" size={iconSizes.list} color={colors.ink} />
         </Pressable>
       </View>
 
-      <View
-        style={{
-          borderRadius: radii.md,
-          borderWidth: 1,
-          borderColor: pal.innerBorder,
-          overflow: "hidden",
-          paddingHorizontal: spacing.sm,
-        }}
-      >
-        {group.sales.map((sale, index) => (
-          <OpenSaleRow
-            key={sale.id}
-            sale={sale}
-            isLast={index === group.sales.length - 1}
-            onMarkPaid={onMarkPaid}
-          />
-        ))}
-      </View>
-
-      <Pressable
-        onPress={() => onCharge(group)}
-        accessibilityRole="button"
-        style={({ pressed }) => ({
-          minHeight: 50,
-          borderRadius: radii.md,
-          backgroundColor: "#3F8A53",
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "row",
-          gap: spacing.md,
-          opacity: pressed ? 0.86 : 1,
-        })}
-      >
-        <AppIcon name="logo-whatsapp" size={22} color="#FFFFFF" />
-        <Typography variant="bodyBold" color="#FFFFFF">
-          Cobrar no WhatsApp
+      {isNarrow ? (
+        <Typography variant="h3" color={colors.ink} style={styles.groupTotalNarrow}>
+          {formatCurrency(group.total)}
         </Typography>
-      </Pressable>
+      ) : null}
+
+      <View style={styles.cardDivider} />
+
+      {orderedSales.map((sale, index) => (
+        <OpenSaleRow
+          key={sale.id}
+          sale={sale}
+          isLast={index === orderedSales.length - 1}
+          isNarrow={isNarrow}
+          onCharge={() => onCharge(group)}
+          onMarkPaid={onMarkPaid}
+        />
+      ))}
 
       <ResponsiveOverlayModal
         visible={menuOpen}
@@ -354,53 +390,25 @@ function FiadoGroupCard({
       >
         <Pressable
           onPress={() => setMenuOpen(false)}
-          style={{
-            flex: 1,
-            backgroundColor: theme.colors.overlay,
-            justifyContent: isDesktop ? "center" : "flex-end",
-            padding: isDesktop ? spacing.xl : 0,
-          }}
+          style={[styles.modalBackdrop, isDesktop && styles.modalBackdropDesktop]}
         >
           <Pressable
             style={[
-              {
-                backgroundColor: pal.sheetBg,
-                borderTopLeftRadius: 24,
-                borderTopRightRadius: 24,
-                paddingHorizontal: spacing.md,
-                paddingTop: spacing.sm,
-                paddingBottom: isDesktop ? spacing.lg : spacing.lg + insets.bottom,
-                gap: spacing.xs,
-              },
+              styles.sheet,
+              { paddingBottom: isDesktop ? spacing.lg : spacing.lg + insets.bottom },
               desktopModalSurface(isDesktop, 560),
             ]}
           >
-            <View style={{ alignItems: "center", paddingVertical: spacing.sm }}>
-              <View
-                style={{
-                  width: 44,
-                  height: 5,
-                  borderRadius: 3,
-                  backgroundColor: pal.handle,
-                }}
-              />
+            <View style={styles.sheetHandleWrap}>
+              <View style={styles.sheetHandle} />
             </View>
-            <Typography
-              variant="h3"
-              color={pal.text}
-              numberOfLines={1}
-              style={{
-                paddingHorizontal: spacing.md,
-                marginBottom: spacing.xs,
-              }}
-            >
+            <Typography variant="h3" color={colors.ink} style={styles.sheetTitle}>
               {group.clientName}
             </Typography>
-
             <ActionSheetRow
               icon="checkmark-done-circle"
               label={markAllLabel}
-              color={pal.received}
+              color={colors.wine}
               onPress={() => closeMenuThen(() => onMarkAllPaid(group))}
             />
             <ActionSheetRow
@@ -418,7 +426,7 @@ function FiadoGroupCard({
             <ActionSheetRow
               icon="close"
               label="Fechar"
-              color={pal.textSecondary}
+              color={colors.muted}
               onPress={() => setMenuOpen(false)}
             />
           </Pressable>
@@ -428,97 +436,145 @@ function FiadoGroupCard({
   );
 }
 
-function TotalCard({ total }: Readonly<{ total: number }>) {
-  const { theme } = useTheme();
-  const pal = fiadoPalette(theme);
+function SummaryCard({
+  total,
+  clients,
+  launches,
+  isCompact,
+  isNarrow,
+}: Readonly<{
+  total: number;
+  clients: number;
+  launches: number;
+  isCompact: boolean;
+  isNarrow: boolean;
+}>) {
+  const { colors, styles } = useFiadoScreen();
 
   return (
     <View
-      style={{
-        minHeight: 118,
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: pal.cardBorder,
-        backgroundColor: pal.totalCardBg,
-        overflow: "hidden",
-        padding: spacing.lg,
-        justifyContent: "center",
-      }}
+      style={[
+        styles.summaryCard,
+        isCompact && styles.summaryCardCompact,
+        isNarrow && styles.summaryCardNarrow,
+      ]}
     >
-      <Image
-        source={fiadoHero}
-        resizeMode="cover"
-        blurRadius={1}
-        style={{
-          position: "absolute",
-          right: -28,
-          top: -28,
-          width: 190,
-          height: 172,
-          opacity: theme.mode === "dark" ? 0.26 : 0.16,
-        }}
-      />
-      <Typography variant="h3" color={pal.text} style={{ fontSize: 20 }}>
-        Total a receber
-      </Typography>
-      <Typography
-        variant="moneyHero"
-        color={pal.text}
-        style={{ fontSize: 38, lineHeight: 48 }}
+      <View
+        style={[
+          styles.summaryCopy,
+          isCompact && styles.summaryCopyCompact,
+          isNarrow && styles.summaryCopyNarrow,
+        ]}
       >
-        {formatCurrency(total)}
+        <Typography variant="h3" color={colors.onWine} style={styles.summaryLabel}>
+          A receber
+        </Typography>
+        <Typography
+          variant="moneyHero"
+          color={colors.onWine}
+          style={[
+            styles.summaryValue,
+            isCompact && styles.summaryValueCompact,
+            isNarrow && styles.summaryValueNarrow,
+          ]}
+        >
+          {formatCurrency(total)}
+        </Typography>
+        <Typography variant="body" color={colors.onWine} style={styles.summaryMeta}>
+          {clients} {clients === 1 ? "cliente" : "clientes"} · {launches}{" "}
+          {launches === 1 ? "lançamento" : "lançamentos"}
+        </Typography>
+      </View>
+      <Image
+        source={fiadoNotebook}
+        resizeMode="contain"
+        accessible={false}
+        style={[
+          styles.summaryArt,
+          isCompact && styles.summaryArtCompact,
+          isNarrow && styles.summaryArtNarrow,
+        ]}
+      />
+    </View>
+  );
+}
+
+function EmptyMessage({
+  title,
+  description,
+  action,
+}: Readonly<{ title: string; description: string; action?: React.ReactNode }>) {
+  const { colors, styles } = useFiadoScreen();
+
+  return (
+    <View style={styles.emptyState}>
+      <Image source={fiadoEmpty} resizeMode="contain" style={styles.emptyImage} />
+      <Typography variant="h2" color={colors.wine} style={styles.centerText}>
+        {title}
       </Typography>
+      <Typography variant="body" color={colors.muted} style={styles.centerText}>
+        {description}
+      </Typography>
+      {action}
     </View>
   );
 }
 
 export default function FiadoScreen() {
-  const { theme } = useTheme();
+  const { colors, styles } = useFiadoScreen();
   const isDesktop = useDesktopLayout();
-  const pal = fiadoPalette(theme);
-  const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const isNarrow = width < 370;
+  const router = useRouter();
   const [searchOpen, setSearchOpen] = React.useState(false);
   const [filterOpen, setFilterOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
-  const [activeFilter, setActiveFilter] = React.useState<FiadoFilter>("all");
+  const [statusFilter, setStatusFilter] = React.useState<StatusFilter>("all");
+  const [contactFilter, setContactFilter] = React.useState<ContactFilter>("all");
+  const [sortOrder, setSortOrder] = React.useState<SortOrder>("oldest");
   const { data, isLoading, error, refetch } = useSales({ status: "pending" });
   const { data: clientsData } = useClients();
   const updateStatus = useUpdateSaleStatus();
 
   const sales = data?.items ?? [];
-  // Fiado só mostra vendas em aberto. Filtrar pelo status aqui faz a linha sair
-  // na hora quando a atualização otimista marca a venda como paga.
   const pendingSales = React.useMemo(
-    () => sales.filter((s) => s.status === "pending"),
+    () => sales.filter((sale) => sale.status === "pending"),
     [sales],
   );
   const groups = React.useMemo(() => groupFiados(pendingSales), [pendingSales]);
   const grandTotal = totalOwed(pendingSales);
+  const phoneById = React.useMemo(() => {
+    const phones = new Map<string, string>();
+    for (const client of clientsData?.items ?? []) {
+      if (client.phone) phones.set(client.id, client.phone);
+    }
+    return phones;
+  }, [clientsData?.items]);
 
-  const phoneById = new Map<string, string>();
-  for (const client of clientsData?.items ?? []) {
-    if (client.phone) phoneById.set(client.id, client.phone);
-  }
-
-  const visibleGroups = React.useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    return groups.filter((group) => {
+  const overdueCount = groups.filter((group) =>
+    groupMatchesStatus(group, "overdue"),
+  ).length;
+  const upcomingCount = groups.filter((group) =>
+    groupMatchesStatus(group, "upcoming"),
+  ).length;
+  const query = searchQuery.trim().toLocaleLowerCase(LOCALE);
+  const visibleGroups = groups
+    .filter((group) => groupMatchesStatus(group, statusFilter))
+    .filter((group) => {
       const phone = group.clientId ? phoneById.get(group.clientId) : undefined;
       const hasPhone = Boolean(phone && isValidBrazilPhone(phone));
-      const matchesFilter =
-        activeFilter === "all" ||
-        (activeFilter === "withPhone" && hasPhone) ||
-        (activeFilter === "withoutPhone" && !hasPhone) ||
-        (activeFilter === "overdue" &&
-          group.sales.some((sale) => isOldSale(sale.soldAt)));
-
-      if (!matchesFilter) return false;
-      if (!query) return true;
-
       return (
-        group.clientName.toLowerCase().includes(query) ||
-        formatCurrency(group.total).toLowerCase().includes(query) ||
+        contactFilter === "all" ||
+        (contactFilter === "withPhone" && hasPhone) ||
+        (contactFilter === "withoutPhone" && !hasPhone)
+      );
+    })
+    .filter((group) => {
+      if (!query) return true;
+      return (
+        group.clientName.toLocaleLowerCase(LOCALE).includes(query) ||
+        formatCurrency(group.total).toLocaleLowerCase(LOCALE).includes(query) ||
         group.sales.some((sale) =>
           [
             sale.clientName,
@@ -530,12 +586,15 @@ export default function FiadoScreen() {
           ]
             .filter(Boolean)
             .join(" ")
-            .toLowerCase()
+            .toLocaleLowerCase(LOCALE)
             .includes(query),
         )
       );
+    })
+    .sort((a, b) => {
+      const delta = groupDate(a, sortOrder) - groupDate(b, sortOrder);
+      return sortOrder === "oldest" ? delta : -delta;
     });
-  }, [activeFilter, groups, phoneById, searchQuery]);
 
   function handleCharge(group: FiadoGroup) {
     const message = buildChargeMessage(group);
@@ -585,14 +644,13 @@ export default function FiadoScreen() {
   }
 
   function handleMarkAllPaid(group: FiadoGroup) {
-    const count = group.sales.length;
-    if (count === 1) {
+    if (group.sales.length === 1) {
       handleMarkPaid(group.sales[0].id);
       return;
     }
     showAlert({
       title: "Marcar tudo como recebido?",
-      message: `Marcar as ${count} vendas de ${group.clientName} como pagas?`,
+      message: `Marcar as ${group.sales.length} vendas de ${group.clientName} como pagas?`,
       buttons: [
         { text: "Cancelar", style: "cancel" },
         { text: "Recebi tudo", onPress: () => runMarkAllPaid(group) },
@@ -600,53 +658,16 @@ export default function FiadoScreen() {
     });
   }
 
-  function renderContent() {
-    if (isLoading) {
-      return (
-        <View style={{ flex: 1, paddingVertical: spacing.xl, ...pageGutter(isDesktop), ...desktopStretch(isDesktop, desktopWidths.data) }}>
-          <SkeletonList rows={6} variant="fiado" />
-        </View>
-      );
-    }
+  function resetFilters() {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setContactFilter("all");
+  }
 
-    if (error) {
-      return (
-        <View
-          style={{
-            flex: 1,
-            paddingVertical: spacing.xl,
-            ...pageGutter(isDesktop),
-            ...desktopStretch(isDesktop, desktopWidths.data),
-            justifyContent: isDesktop ? "flex-start" : "center",
-          }}
-        >
-          <Typography variant="h2" color={pal.text} style={{ textAlign: "center" }}>
-            Algo deu errado
-          </Typography>
-          <Typography
-            variant="body"
-            color={pal.textSecondary}
-            style={{ textAlign: "center" }}
-          >
-            Não foi possível carregar os fiados. Tente novamente.
-          </Typography>
-        </View>
-      );
-    }
-
+  function renderCharges() {
     if (groups.length === 0) {
       return (
-        <EmptyState
-          icon={
-            <Image
-              source={fiadoHero}
-              resizeMode="contain"
-              style={{
-                width: isDesktop ? 240 : 220,
-                height: isDesktop ? 240 : 220,
-              }}
-            />
-          }
+        <EmptyMessage
           title="Ninguém te deve"
           description="Vendas no fiado em aberto aparecem aqui para você cobrar."
         />
@@ -655,135 +676,173 @@ export default function FiadoScreen() {
 
     if (visibleGroups.length === 0) {
       return (
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{
-            flexGrow: 1,
-            ...pageGutter(isDesktop, spacing.lg),
-            ...desktopStretch(isDesktop, desktopWidths.data),
-            paddingTop: spacing.xl,
-            paddingBottom: 104 + insets.bottom,
-            justifyContent: isDesktop ? "flex-start" : "center",
-            ...(isDesktop ? undefined : { alignItems: "center" }),
-            gap: spacing.md,
-          }}
-        >
-          <Image
-            source={fiadoHero}
-            resizeMode="contain"
-            style={{
-              width: isDesktop ? 200 : 180,
-              height: isDesktop ? 200 : 180,
-            }}
-          />
-          <Typography variant="h2" color={pal.text} style={{ textAlign: "center" }}>
-            Nada encontrado
-          </Typography>
-          <Typography
-            variant="body"
-            color={pal.textSecondary}
-            style={{ textAlign: "center" }}
-          >
-            Ajuste a busca ou limpe os filtros para ver seus fiados em aberto.
-          </Typography>
-          <Button
-            title="Limpar filtros"
-            variant="secondary"
-            onPress={() => {
-              setSearchQuery("");
-              setActiveFilter("all");
-            }}
-          />
-        </ScrollView>
+        <EmptyMessage
+          title="Nada encontrado"
+          description="Ajuste a busca ou limpe os filtros para ver seus fiados em aberto."
+          action={
+            <Pressable
+              onPress={resetFilters}
+              accessibilityRole="button"
+              style={({ pressed }) => [styles.clearButton, pressed && styles.pressed]}
+            >
+              <Typography variant="bodyBold" color={colors.wine}>
+                Limpar filtros
+              </Typography>
+            </Pressable>
+          }
+        />
       );
     }
 
     return (
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          ...pageGutter(isDesktop, spacing.lg),
-          ...desktopStretch(isDesktop, desktopWidths.data),
-          paddingTop: spacing.xl,
-          paddingBottom: 104 + insets.bottom,
-          gap: spacing.md,
-        }}
-      >
-        <TotalCard total={grandTotal} />
-
-        <View
-          style={
-            isDesktop
-              ? { flexDirection: "row", flexWrap: "wrap", gap: spacing.md, width: "100%" }
-              : { gap: spacing.md }
-          }
-        >
-          {visibleGroups.map((group) => (
-            <View
-              key={group.clientId ?? "avulso"}
-              style={isDesktop ? { width: "48%", flexGrow: 1, minWidth: 320 } : { width: "100%" }}
-            >
-              <FiadoGroupCard
-                group={group}
-                phone={group.clientId ? phoneById.get(group.clientId) : undefined}
-                onCharge={handleCharge}
-                onMarkPaid={handleMarkPaid}
-                onMarkAllPaid={handleMarkAllPaid}
-              />
-            </View>
-          ))}
-        </View>
-
-        <View
-          style={{
-            borderRadius: radii.xl,
-            padding: spacing.md,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: spacing.md,
-            backgroundColor: pal.cardBg,
-            borderWidth: 1,
-            borderColor: pal.cardBorder,
-          }}
-        >
+      <View style={[styles.cardsGrid, isDesktop && styles.cardsGridDesktop]}>
+        {visibleGroups.map((group) => (
           <View
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: radii.full,
-              backgroundColor: pal.subtleFill,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+            key={group.clientId ?? "avulso"}
+            style={isDesktop ? styles.cardColumnDesktop : styles.cardColumn}
           >
-            <AppIcon
-              name="information-circle-outline"
-              size={22}
-              color={pal.textSecondary}
+            <FiadoGroupCard
+              group={group}
+              phone={group.clientId ? phoneById.get(group.clientId) : undefined}
+              isNarrow={isNarrow}
+              sortOrder={sortOrder}
+              onCharge={handleCharge}
+              onMarkPaid={handleMarkPaid}
+              onMarkAllPaid={handleMarkAllPaid}
             />
           </View>
-          <View style={{ flex: 1 }}>
-            <Typography variant="bodyBold" color={pal.text}>
-              Dica rápida
+        ))}
+      </View>
+    );
+  }
+
+  function renderLoadedContent() {
+    return (
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={styles.contentScroll}
+        contentContainerStyle={[
+          styles.content,
+          pageGutter(isDesktop, spacing.lg),
+          desktopStretch(isDesktop, desktopWidths.data),
+          { paddingBottom: insets.bottom + FAB_BOTTOM_GAP + FAB_SIZE + spacing.lg },
+        ]}
+      >
+        <SummaryCard
+          total={grandTotal}
+          clients={groups.length}
+          launches={pendingSales.length}
+          isCompact={width < 460}
+          isNarrow={isNarrow}
+        />
+
+        <FilterChipRow>
+          <Chip
+            label={COPY.all}
+            count={groups.length}
+            selected={statusFilter === "all"}
+            onPress={() => setStatusFilter("all")}
+          />
+          <Chip
+            label={COPY.overdue}
+            count={overdueCount}
+            selected={statusFilter === "overdue"}
+            onPress={() => setStatusFilter("overdue")}
+          />
+          <Chip
+            label={COPY.upcoming}
+            count={upcomingCount}
+            selected={statusFilter === "upcoming"}
+            onPress={() => setStatusFilter("upcoming")}
+          />
+          <Pressable
+            onPress={() =>
+              setSortOrder((current) => (current === "oldest" ? "newest" : "oldest"))
+            }
+            accessibilityRole="button"
+            accessibilityLabel={`Ordenação: ${sortOrder === "oldest" ? COPY.oldest : COPY.newest}`}
+            style={({ pressed }) => [styles.sortButton, pressed && styles.pressed]}
+          >
+            <Typography
+              variant="body"
+              color={colors.wine}
+              numberOfLines={1}
+              style={styles.sortText}
+            >
+              {sortOrder === "oldest" ? COPY.oldest : COPY.newest}
             </Typography>
-            <Typography variant="caption" color={pal.textSecondary}>
-              Mantenha seus recebimentos em dia e fortaleça a confiança dos seus clientes.
-            </Typography>
-          </View>
+            <AppIcon
+              name={sortOrder === "oldest" ? "arrow-down" : "arrow-up"}
+              size={iconSizes.sm}
+              color={colors.wine}
+            />
+          </Pressable>
+        </FilterChipRow>
+
+        <View style={styles.listHeading}>
+          <Typography variant="h2" color={colors.wine} style={styles.listTitle}>
+            Cobranças
+          </Typography>
+          <Typography variant="body" color={colors.muted} style={styles.openLabel}>
+            Total em aberto
+          </Typography>
         </View>
+
+        {renderCharges()}
       </ScrollView>
     );
   }
 
+  function renderBody() {
+    if (isLoading) {
+      return (
+        <View
+          style={[
+            styles.stateContainer,
+            pageGutter(isDesktop, spacing.lg),
+            desktopStretch(isDesktop, desktopWidths.data),
+          ]}
+        >
+          <SkeletonList rows={6} variant="fiado" />
+        </View>
+      );
+    }
+
+    if (error) {
+      return (
+        <View style={styles.errorState}>
+          <Typography variant="h2" color={colors.wine} style={styles.centerText}>
+            Algo deu errado
+          </Typography>
+          <Typography variant="body" color={colors.muted} style={styles.centerText}>
+            Não foi possível carregar os fiados. Tente novamente.
+          </Typography>
+          <Pressable
+            onPress={() => void refetch()}
+            accessibilityRole="button"
+            style={({ pressed }) => [styles.clearButton, pressed && styles.pressed]}
+          >
+            <Typography variant="bodyBold" color={colors.wine}>
+              Tentar novamente
+            </Typography>
+          </Pressable>
+        </View>
+      );
+    }
+
+    return renderLoadedContent();
+  }
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: pal.screenBg }}>
+    <SafeAreaView edges={["top", "left", "right"]} style={styles.safeArea}>
       <Stack.Screen options={{ headerShown: false }} />
 
       <ScreenHeader
         title="Fiado"
-        hideBack={isDesktop}
+        titleStyle={styles.navTitle}
+        style={styles.navbar}
         right={
-          <>
+          <View style={styles.navActions}>
             <Pressable
               onPress={() => {
                 setSearchOpen((current) => !current);
@@ -791,16 +850,9 @@ export default function FiadoScreen() {
               }}
               accessibilityRole="button"
               accessibilityLabel="Buscar"
-              style={{
-                width: 46,
-                height: 46,
-                borderRadius: radii.full,
-                backgroundColor: pal.subtleFill,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+              style={({ pressed }) => [styles.navButton, pressed && styles.pressed]}
             >
-              <AppIcon name="search-outline" size={iconSizes.md} color={pal.text} />
+              <AppIcon name="search-outline" size={iconSizes.md} color={colors.ink} />
             </Pressable>
             <Pressable
               onPress={() => {
@@ -809,75 +861,45 @@ export default function FiadoScreen() {
               }}
               accessibilityRole="button"
               accessibilityLabel="Filtros"
-              hitSlop={10}
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: radii.full,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor:
-                  activeFilter !== "all" ? theme.colors.primaryBg : "transparent",
-              }}
+              accessibilityState={{ expanded: filterOpen }}
+              style={({ pressed }) => [
+                styles.navButton,
+                contactFilter !== "all" && styles.navButtonActive,
+                pressed && styles.pressed,
+              ]}
             >
-              <AppIcon
-                name="options-outline"
-                size={iconSizes.md}
-                color={
-                  activeFilter !== "all" ? theme.colors.primaryStrong : pal.textSecondary
-                }
-              />
+              <AppIcon name="options-outline" size={iconSizes.md} color={colors.ink} />
             </Pressable>
-          </>
+          </View>
         }
       />
 
       {searchOpen ? (
         <View
-          style={{
-            ...pageGutter(isDesktop, spacing.lg),
-            paddingBottom: spacing.sm,
-            ...(isDesktop
-              ? { alignSelf: "flex-start", maxWidth: 480, width: "100%" }
-              : undefined),
-          }}
+          style={[
+            styles.toolbar,
+            pageGutter(isDesktop, spacing.lg),
+            desktopStretch(isDesktop, 480),
+          ]}
         >
-          <View
-            style={{
-              minHeight: 48,
-              borderRadius: radii.md,
-              borderWidth: 1,
-              borderColor: pal.innerBorder,
-              backgroundColor: pal.subtleFill,
-              flexDirection: "row",
-              alignItems: "center",
-              paddingHorizontal: spacing.md,
-              gap: spacing.sm,
-            }}
-          >
-            <AppIcon name="search-outline" size={20} color={pal.textSecondary} />
+          <View style={styles.searchField}>
+            <AppIcon name="search-outline" size={iconSizes.sm} color={colors.muted} />
             <TextInput
               value={searchQuery}
               onChangeText={setSearchQuery}
               placeholder="Buscar cliente ou valor"
-              placeholderTextColor={theme.colors.textSecondary}
+              placeholderTextColor={colors.muted}
               autoFocus
-              style={{
-                flex: 1,
-                minHeight: 46,
-                color: pal.text,
-                fontSize: 16,
-                paddingVertical: 0,
-              }}
+              style={styles.searchInput}
             />
             {searchQuery ? (
               <Pressable
                 onPress={() => setSearchQuery("")}
                 accessibilityRole="button"
                 accessibilityLabel="Limpar busca"
-                hitSlop={8}
+                style={styles.clearSearch}
               >
-                <AppIcon name="close-circle" size={20} color={pal.textSecondary} />
+                <AppIcon name="close-circle" size={iconSizes.sm} color={colors.muted} />
               </Pressable>
             ) : null}
           </View>
@@ -886,39 +908,30 @@ export default function FiadoScreen() {
 
       {filterOpen ? (
         <View
-          style={{
-            ...pageGutter(isDesktop, spacing.lg),
-            paddingBottom: spacing.sm,
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: spacing.sm,
-          }}
+          style={[
+            styles.contactFilters,
+            pageGutter(isDesktop, spacing.lg),
+            desktopStretch(isDesktop, desktopWidths.data),
+          ]}
         >
-          {FILTER_OPTIONS.map((option) => {
-            const selected = activeFilter === option.key;
-            const idleBg = theme.colors.surface;
-            const idleBorder = theme.colors.border;
+          {CONTACT_FILTERS.map((option) => {
+            const selected = contactFilter === option.key;
             return (
               <Pressable
                 key={option.key}
-                onPress={() => setActiveFilter(option.key)}
+                onPress={() => setContactFilter(option.key)}
                 accessibilityRole="button"
-                style={({ pressed }) => ({
-                  minHeight: 38,
-                  borderRadius: radii.full,
-                  paddingHorizontal: spacing.md,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: selected ? theme.colors.primaryBg : idleBg,
-                  borderWidth: 1,
-                  borderColor: selected ? theme.colors.primary : idleBorder,
-                  opacity: pressed ? 0.82 : 1,
-                })}
+                accessibilityState={{ selected }}
+                style={({ pressed }) => [
+                  styles.contactChip,
+                  selected && styles.contactChipSelected,
+                  pressed && styles.pressed,
+                ]}
               >
                 <Typography
                   variant="caption"
-                  color={selected ? theme.colors.primaryStrong : pal.text}
-                  style={{ fontFamily: fonts.bold }}
+                  color={selected ? colors.onWine : colors.wine}
+                  style={styles.contactText}
                 >
                   {option.label}
                 </Typography>
@@ -928,88 +941,324 @@ export default function FiadoScreen() {
         </View>
       ) : null}
 
-      <View style={{ flex: 1 }}>{renderContent()}</View>
+      <View style={styles.body}>{renderBody()}</View>
 
-      {groups.length > 0 && !isLoading && !error ? (
-        <View
-          pointerEvents="box-none"
-          style={{
-            position: "absolute",
-            right: spacing.lg,
-            bottom: spacing.md + insets.bottom,
-          }}
-        >
-          <View
-            style={{
-              display: "none",
-              flex: 1,
-              minHeight: 68,
-              borderRadius: radii.lg,
-              borderWidth: 1,
-              borderColor: theme.colors.border,
-              backgroundColor: theme.colors.surfaceElevated,
-              padding: spacing.sm,
-              flexDirection: "row",
-              alignItems: "center",
-              gap: spacing.md,
-            }}
+      {!isLoading && !error ? (
+        <View style={[styles.fabDock, { bottom: insets.bottom + FAB_BOTTOM_GAP }]}>
+          <Pressable
+            onPress={() => router.push("/tabs/new-sale")}
+            accessibilityRole="button"
+            accessibilityLabel="Novo lançamento"
+            style={({ pressed }) => [styles.fab, pressed && styles.pressed]}
           >
-            <View
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: radii.full,
-                backgroundColor: theme.colors.successBg,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <AppIcon name="bulb-outline" size={23} color={theme.colors.success} />
-            </View>
-            <View style={{ flex: 1, gap: 2 }}>
-              <Typography variant="bodyBold" color={theme.colors.success}>
-                Dica
-              </Typography>
-              <Typography
-                variant="caption"
-                color={theme.colors.textSecondary}
-                numberOfLines={2}
-                style={{ lineHeight: 17, fontSize: fontSizes.xs }}
-              >
-                Mantenha seus recebimentos em dia e fortaleça a confiança dos seus
-                clientes.
-              </Typography>
-            </View>
-          </View>
-
-          <View style={{ alignItems: "center", gap: spacing.sm }}>
-            <Pressable
-              onPress={() => router.push("/tabs/new-sale")}
-              accessibilityRole="button"
-              accessibilityLabel="Novo lançamento"
-              style={({ pressed }) => ({
-                width: 52,
-                height: 52,
-                borderRadius: radii.full,
-                backgroundColor: theme.colors.primaryInteractive,
-                alignItems: "center",
-                justifyContent: "center",
-                opacity: pressed ? 0.86 : 1,
-                ...theme.shadows.md,
-              })}
-            >
-              <AppIcon
-                name="add"
-                size={iconSizes.md}
-                color={theme.colors.textOnPrimary}
-              />
-            </Pressable>
-            <Typography variant="caption" color={pal.text}>
-              Novo lançamento
-            </Typography>
-          </View>
+            <AppIcon name="add" size={iconSizes.lg} color={colors.onWine} />
+          </Pressable>
         </View>
       ) : null}
     </SafeAreaView>
   );
+}
+
+function createStyles(theme: Theme) {
+  const colors = brandScreenPalette(theme);
+
+  return StyleSheet.create({
+    safeArea: { flex: 1, backgroundColor: colors.background },
+    navbar: { paddingBottom: spacing.md, backgroundColor: colors.background },
+    navTitle: { color: colors.ink, fontFamily: fonts.bold, fontSize: 28, lineHeight: 36 },
+    navActions: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+    navButton: {
+      width: 44,
+      height: 44,
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: radii.full,
+    },
+    navButtonActive: { backgroundColor: colors.softRose },
+    body: { flex: 1, minHeight: 0 },
+    contentScroll: { flex: 1, minHeight: 0 },
+    content: { paddingTop: spacing.sm, gap: spacing.xl },
+    summaryCard: {
+      minHeight: 188,
+      borderRadius: radii.sm,
+      backgroundColor: colors.wineFill,
+      overflow: "hidden",
+      padding: spacing["2xl"],
+      justifyContent: "center",
+    },
+    summaryCardCompact: { minHeight: 188, padding: spacing.xl },
+    summaryCardNarrow: { minHeight: 176, padding: spacing.xl },
+    summaryCopy: { width: "61%", gap: spacing.sm, zIndex: 1 },
+    summaryCopyCompact: { width: "68%", gap: spacing.xs },
+    summaryCopyNarrow: { width: "75%" },
+    summaryLabel: { fontFamily: fonts.semiBold, fontSize: 20, lineHeight: 28 },
+    summaryValue: { fontFamily: fonts.extraBold, fontSize: 40, lineHeight: 50 },
+    summaryValueCompact: { fontSize: 32, lineHeight: 42 },
+    summaryValueNarrow: { fontSize: 27, lineHeight: 36 },
+    summaryMeta: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 20 },
+    summaryArt: {
+      position: "absolute",
+      right: spacing.xl,
+      width: "38%",
+      height: "82%",
+    },
+    summaryArtCompact: { right: spacing.md, width: "31%", height: "72%" },
+    summaryArtNarrow: { right: spacing.sm, width: "25%", height: "64%" },
+    sortButton: {
+      minHeight: 44,
+      flexShrink: 0,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      paddingHorizontal: spacing.md,
+    },
+    sortText: { fontFamily: fonts.semiBold },
+    listHeading: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      justifyContent: "space-between",
+      gap: spacing.md,
+    },
+    listTitle: { fontFamily: fonts.bold, fontSize: 28, lineHeight: 36 },
+    openLabel: { flexShrink: 1, textAlign: "right" },
+    cardsGrid: { gap: spacing.lg },
+    cardsGridDesktop: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "flex-start",
+    },
+    cardColumn: { width: "100%" },
+    cardColumnDesktop: { width: "48%", flexGrow: 1, minWidth: 340 },
+    chargeCard: {
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.softRose,
+      backgroundColor: colors.white,
+      padding: spacing.lg,
+      shadowColor: colors.wineFill,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.07,
+      shadowRadius: 8,
+      elevation: 2,
+    },
+    cardHeader: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+    avatar: {
+      width: 48,
+      height: 48,
+      flexShrink: 0,
+      borderRadius: radii.full,
+      backgroundColor: colors.softRose,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    avatarText: { fontSize: 18, lineHeight: 24 },
+    clientInfo: { flex: 1, minWidth: 0, gap: 2 },
+    clientName: { fontFamily: fonts.bold, fontSize: 17, lineHeight: 23 },
+    groupTotal: {
+      flexShrink: 1,
+      textAlign: "right",
+      fontFamily: fonts.bold,
+      fontSize: 17,
+    },
+    groupTotalNarrow: {
+      alignSelf: "flex-end",
+      marginTop: spacing.sm,
+      fontFamily: fonts.bold,
+      fontSize: 20,
+    },
+    menuButton: {
+      width: 44,
+      height: 44,
+      flexShrink: 0,
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: radii.full,
+    },
+    cardDivider: {
+      height: 1,
+      backgroundColor: colors.neutral,
+      marginTop: spacing.lg,
+    },
+    saleBlock: { paddingTop: spacing.md, gap: spacing.md },
+    saleDivider: {
+      borderBottomWidth: 1,
+      borderBottomColor: colors.neutral,
+      paddingBottom: spacing.lg,
+    },
+    saleSummary: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+    },
+    dateBadge: {
+      width: 54,
+      minHeight: 54,
+      borderRadius: radii.sm,
+      backgroundColor: colors.softRose,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: spacing.xs,
+    },
+    dateDay: { fontFamily: fonts.bold, fontSize: 20, lineHeight: 23 },
+    dateMonth: { fontFamily: fonts.medium, fontSize: 13, lineHeight: 17 },
+    saleAmount: {
+      flex: 1,
+      minWidth: 0,
+      fontFamily: fonts.semiBold,
+      fontSize: 20,
+    },
+    statusBadge: {
+      minHeight: 38,
+      maxWidth: "100%",
+      borderRadius: radii.full,
+      paddingHorizontal: spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      flexShrink: 0,
+      gap: spacing.xs,
+    },
+    statusDot: { width: 8, height: 8, borderRadius: radii.full, flexShrink: 0 },
+    statusText: { flexShrink: 0, fontFamily: fonts.medium },
+    actionRow: { flexDirection: "row", gap: spacing.sm },
+    actionRowNarrow: { flexDirection: "column" },
+    cardAction: {
+      minHeight: 48,
+      borderRadius: radii.sm,
+      borderWidth: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: spacing.sm,
+      paddingHorizontal: spacing.sm,
+    },
+    cardActionOutlined: { backgroundColor: colors.white, borderColor: colors.rose },
+    cardActionFilled: { backgroundColor: colors.rose, borderColor: colors.rose },
+    cardActionText: { fontFamily: fonts.semiBold, fontSize: 13, textAlign: "center" },
+    modalBackdrop: {
+      flex: 1,
+      justifyContent: "flex-end",
+      backgroundColor: `${colors.wineFill}75`,
+    },
+    modalBackdropDesktop: { justifyContent: "center", padding: spacing.xl },
+    sheet: {
+      borderTopLeftRadius: radii["2xl"],
+      borderTopRightRadius: radii["2xl"],
+      backgroundColor: colors.white,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.sm,
+      gap: spacing.xs,
+    },
+    sheetHandleWrap: { alignItems: "center", paddingVertical: spacing.sm },
+    sheetHandle: {
+      width: 44,
+      height: 5,
+      borderRadius: radii.full,
+      backgroundColor: colors.softRose,
+    },
+    sheetTitle: { paddingHorizontal: spacing.md, marginBottom: spacing.xs },
+    sheetAction: {
+      minHeight: 56,
+      borderRadius: radii.md,
+      paddingHorizontal: spacing.md,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.md,
+    },
+    toolbar: { paddingBottom: spacing.sm },
+    searchField: {
+      minHeight: 48,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.softRose,
+      backgroundColor: colors.white,
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: spacing.md,
+      gap: spacing.sm,
+    },
+    searchInput: {
+      flex: 1,
+      minHeight: 46,
+      paddingVertical: 0,
+      color: colors.ink,
+      fontFamily: fonts.regular,
+      fontSize: 16,
+    },
+    clearSearch: {
+      width: 44,
+      height: 44,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    contactFilters: {
+      paddingBottom: spacing.sm,
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.sm,
+    },
+    contactChip: {
+      minHeight: 44,
+      borderRadius: radii.full,
+      borderWidth: 1,
+      borderColor: colors.rose,
+      backgroundColor: colors.white,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: spacing.md,
+    },
+    contactChipSelected: {
+      backgroundColor: colors.wineFill,
+      borderColor: colors.wineFill,
+    },
+    contactText: { fontFamily: fonts.semiBold },
+    emptyState: {
+      minHeight: 320,
+      alignItems: "center",
+      justifyContent: "center",
+      gap: spacing.md,
+      paddingVertical: spacing.xl,
+    },
+    emptyImage: { width: 180, height: 150 },
+    centerText: { textAlign: "center" },
+    clearButton: {
+      minHeight: 48,
+      borderRadius: radii.sm,
+      borderWidth: 1,
+      borderColor: colors.rose,
+      backgroundColor: colors.white,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: spacing.lg,
+    },
+    stateContainer: { flex: 1, paddingVertical: spacing.xl },
+    errorState: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      gap: spacing.md,
+      paddingHorizontal: spacing.xl,
+    },
+    fabDock: {
+      position: "absolute",
+      right: 0,
+      zIndex: 10,
+      alignItems: "flex-end",
+      paddingHorizontal: spacing.lg,
+      backgroundColor: "transparent",
+    },
+    fab: {
+      width: FAB_SIZE,
+      height: FAB_SIZE,
+      borderRadius: radii.full,
+      backgroundColor: colors.wineFill,
+      alignItems: "center",
+      justifyContent: "center",
+      shadowColor: colors.wineFill,
+      shadowOffset: { width: 0, height: 5 },
+      shadowOpacity: 0.24,
+      shadowRadius: 10,
+      elevation: 5,
+    },
+    pressed: { opacity: 0.72 },
+  });
 }

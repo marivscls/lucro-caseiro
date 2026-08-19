@@ -160,3 +160,5 @@ Gerenciar receitas do negocio: criar, listar, visualizar detalhes, editar, exclu
   por unidade de rendimento. Lucro e margem usam o preço do produto ativo vinculado à receita;
   sem esse vínculo, a tela explica por que essas métricas estão indisponíveis. O H1 duplicado da
   lista foi removido e o título canônico permanece apenas no `ScreenHeader`.
+- 2026-08-18: filtros de categoria da lista usam o `Chip` compartilhado. Sem
+  badge de contagem: a query já vem filtrada por categoria.

@@ -140,7 +140,7 @@ export function RecipeMaterialsEditor({
       <View style={{ gap: spacing.md }}>
         <Typography variant="h3">{materialsTitle}</Typography>
         <Pressable
-          onPress={() => router.push("/materials")}
+          onPress={() => router.push("/tabs/materials")}
           style={{
             padding: spacing.lg,
             borderRadius: radii.lg,

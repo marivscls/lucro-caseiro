@@ -95,6 +95,32 @@ function clearBrowserAuthParams(rawUrl: string): void {
   }
 }
 
+const NATIVE_AUTH_CALLBACK_TIMEOUT_MS = 8_000;
+
+function waitForNativeAuthCallback(returnUrl: string): {
+  promise: Promise<string | null>;
+  cancel: () => void;
+} {
+  let settle: (url: string | null) => void = () => {};
+  const promise = new Promise<string | null>((resolve) => {
+    let settled = false;
+    const subscription = Linking.addEventListener("url", ({ url }) => {
+      if (url.startsWith(returnUrl)) settle(url);
+    });
+
+    settle = (url) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      subscription.remove();
+      resolve(url);
+    };
+    const timer = setTimeout(() => settle(null), NATIVE_AUTH_CALLBACK_TIMEOUT_MS);
+  });
+
+  return { promise, cancel: () => settle(null) };
+}
+
 interface AuthState {
   token: string | null;
   userId: string | null;
@@ -381,6 +407,7 @@ export const useAuth = create<AuthState>((set) => ({
   },
 
   signInWithGoogle: async () => {
+    let callbackWaiter: ReturnType<typeof waitForNativeAuthCallback> | null = null;
     try {
       const authRedirectUrl = getAuthRedirectUrl();
       const isWeb = Platform.OS === "web";
@@ -401,31 +428,36 @@ export const useAuth = create<AuthState>((set) => ({
       // exige um handshake adicional e pode deixar o PWA esperando para sempre.
       if (isWeb) return {};
 
+      // No Android, o WebBrowser pode observar o app ativo antes de o evento de
+      // deep link chegar e retornar `dismiss`. Mantemos um listener próprio para
+      // que esse fechamento técnico não seja confundido com cancelamento humano.
+      callbackWaiter = waitForNativeAuthCallback(authRedirectUrl);
       const result = await WebBrowser.openAuthSessionAsync(data.url, authRedirectUrl);
 
       if (result.type === "success" && result.url) {
+        callbackWaiter.cancel();
         const ok = await applySessionFromUrl(result.url);
         return ok ? {} : { error: "Erro ao finalizar login com Google." };
       }
 
-      // No Android o redirect pode reabrir o app pelo deep link em vez de voltar
-      // aqui (result vem "dismiss"). O listener global aplica a sessao quando o
-      // deep link chega; aguardamos (poll) ela aparecer antes de tratar como
-      // cancelamento.
+      // O redirect pode reabrir o app antes de o WebBrowser receber a URL.
+      // Aguarda o callback explícito e o aplica; a consulta da sessão cobre o
+      // listener global caso ele tenha vencido a corrida.
       if (String(result.type) === "cancel" || String(result.type) === "dismiss") {
-        for (let i = 0; i < 10; i++) {
-          await new Promise((resolve) => setTimeout(resolve, 400));
-          const { data: after } = await supabase.auth.getSession();
-          if (after.session) {
-            return {};
-          }
+        const callbackUrl = await callbackWaiter.promise;
+        if (callbackUrl && (await applySessionFromUrl(callbackUrl))) {
+          return {};
         }
-        return { error: "Login cancelado." };
+        const { data: after } = await supabase.auth.getSession();
+        if (after.session) return {};
+        return { error: "Não foi possível concluir o login com Google. Tente novamente." };
       }
 
       return { error: "Não foi possível completar o login com Google." };
     } catch {
       return { error: "Erro ao entrar com Google. Tente novamente." };
+    } finally {
+      callbackWaiter?.cancel();
     }
   },
 

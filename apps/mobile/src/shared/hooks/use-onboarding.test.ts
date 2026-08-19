@@ -10,6 +10,37 @@ afterEach(() => {
     completed: false,
     completedUserIds: [],
     pendingUserIds: [],
+    gettingStartedStartedUserIds: [],
+    gettingStartedCompletedUserIds: [],
+  });
+});
+
+describe("getting started", () => {
+  it("guarda inicio e conclusao por conta sem duplicar", () => {
+    const state = useOnboarding.getState();
+
+    state.startGettingStarted("user-1");
+    useOnboarding.getState().startGettingStarted("user-1");
+    useOnboarding.getState().completeGettingStarted("user-1");
+
+    expect(useOnboarding.getState()).toMatchObject({
+      gettingStartedStartedUserIds: ["user-1"],
+      gettingStartedCompletedUserIds: ["user-1"],
+    });
+  });
+
+  it("preserva o progresso ao encerrar a sessao", () => {
+    useOnboarding.setState({
+      gettingStartedStartedUserIds: ["user-1"],
+      gettingStartedCompletedUserIds: ["user-2"],
+    });
+
+    useOnboarding.getState().reset();
+
+    expect(useOnboarding.getState()).toMatchObject({
+      gettingStartedStartedUserIds: ["user-1"],
+      gettingStartedCompletedUserIds: ["user-2"],
+    });
   });
 });
 

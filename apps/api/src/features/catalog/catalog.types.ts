@@ -7,6 +7,7 @@ import type {
   PublicCatalogProduct,
   PublicServiceBookingRequestInput,
   ServiceBookingRequest,
+  StorefrontCustomization,
 } from "@lucro-caseiro/contracts";
 
 export interface CatalogOwner {
@@ -37,11 +38,22 @@ export interface CatalogSettingsData {
   serviceTagline: string | null;
   servicePromoBanner: string | null;
   servicePromoBannerEnabled: boolean;
+  customization: StorefrontCustomization | null;
+  publishedCustomization: StorefrontCustomization | null;
+  publishedProducts?: PublicCatalogProduct[];
+  publishedServices?: PublicCatalogService[];
+}
+
+export interface CatalogPublishedSnapshot {
+  publishedProducts?: PublicCatalogProduct[] | null;
+  publishedServices?: PublicCatalogService[] | null;
 }
 
 export interface ICatalogRepo {
   findByUser(userId: string): Promise<CatalogSettings | null>;
-  findOwnerBySlug(slug: string): Promise<(CatalogSettings & CatalogOwner) | null>;
+  findOwnerBySlug(
+    slug: string,
+  ): Promise<(CatalogSettings & CatalogOwner & CatalogPublishedSnapshot) | null>;
   slugTaken(slug: string, excludeUserId: string): Promise<boolean>;
   upsert(userId: string, data: CatalogSettingsData): Promise<CatalogSettings>;
   listPublicProducts(userId: string): Promise<PublicCatalogProduct[]>;

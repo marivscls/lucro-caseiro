@@ -19,8 +19,36 @@ export const contentFormatOptions = [
   "Hashtags",
 ] as const;
 
+export const contentIntentOptions = [
+  {
+    value: "Promoção",
+    description:
+      "Apresenta produto, prova, oferta ou resultado sem transformar toda pauta em venda.",
+  },
+  {
+    value: "Entretenimento",
+    description:
+      "Cria participação, surpresa ou leveza com uma função clara para a audiência.",
+  },
+  {
+    value: "Debate",
+    description:
+      "Abre contraste, pergunta ou ponto de vista que ajuda a audiência a se posicionar.",
+  },
+  {
+    value: "Aprendizado",
+    description: "Ensina um conceito, processo ou decisão que a pessoa consegue aplicar.",
+  },
+  {
+    value: "Ligação",
+    description:
+      "Aproxima a marca por valores, bastidores, histórias e experiências reais.",
+  },
+] as const;
+
 export type ContentBrief = {
   theme: string;
+  contentIntent: string;
   category: string;
   persona: string;
   contentObjective: string;
@@ -95,6 +123,7 @@ export type ContentBriefScore = {
 
 const contentBriefKeys = [
   "theme",
+  "contentIntent",
   "category",
   "persona",
   "contentObjective",
@@ -133,6 +162,7 @@ const legacyContentBriefKeys = [
 export function emptyContentBrief(): ContentBrief {
   return {
     theme: "",
+    contentIntent: "",
     category: "",
     persona: "",
     contentObjective: "",
@@ -158,6 +188,7 @@ export function emptyContentBrief(): ContentBrief {
 export function contentBriefFromData(data: Record<string, unknown>): ContentBrief {
   return {
     theme: stringValue(data.theme ?? data.topic),
+    contentIntent: stringValue(data.contentIntent),
     category: stringValue(data.category),
     persona: stringValue(data.persona ?? data.audience),
     contentObjective: stringValue(data.contentObjective ?? data.goal),
@@ -204,6 +235,16 @@ export function mergeContentBriefData(
 
 export function scoreContentBrief(brief: ContentBrief): ContentBriefScore {
   const criteria = [
+    criterion(
+      "Clareza editorial",
+      brief,
+      [
+        ["contentIntent", 40],
+        ["contentObjective", 35],
+        ["category", 25],
+      ],
+      "Escolha a intenção editorial, o objetivo e a categoria tática da pauta.",
+    ),
     criterion(
       "Clareza da persona",
       brief,

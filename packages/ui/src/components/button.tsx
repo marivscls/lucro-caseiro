@@ -101,6 +101,7 @@ export function Button({
 
   return (
     <AnimatedPressable
+      accessibilityRole="button"
       disabled={isDisabled}
       hitSlop={hitSlop ?? (size === "sm" ? 2 : undefined)}
       onPressIn={(e) => {

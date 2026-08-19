@@ -7,7 +7,7 @@ import papelariaLogo from "../../../../packages/brands/lucro-papelaria/assets/ic
 import agendaEmpty from "../assets/agenda-empty-v3.png";
 import brandLogo from "../assets/auth-house.png";
 import brandLogoLight from "../assets/auth-house-light.png";
-import catalogHero from "../assets/catalog-hero.png";
+import catalogHero from "../assets/catalog-hero-art-trimmed.png";
 import checkoutHero from "../assets/checkout-professional-hero.png";
 import clientsEmpty from "../assets/clients-empty.png";
 import fiadoHero from "../assets/fiado-hero.png";
@@ -39,6 +39,7 @@ import successChecklist from "../assets/success-checklist.png";
 import successGrowth from "../assets/success-growth.png";
 import successModalFrame from "../assets/success-modal-frame.png";
 import suppliersEmpty from "../assets/suppliers-empty.png";
+import suppliersHero from "../assets/fornecedores-caixas.png";
 
 const staticImageAssets: readonly ImageSourcePropType[] = [
   brandLogo,
@@ -79,6 +80,7 @@ const staticImageAssets: readonly ImageSourcePropType[] = [
   successGrowth,
   successModalFrame,
   suppliersEmpty,
+  suppliersHero,
 ];
 
 type ExpoAssetModule = Parameters<typeof Asset.fromModule>[0];

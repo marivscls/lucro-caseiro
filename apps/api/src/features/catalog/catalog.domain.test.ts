@@ -332,6 +332,8 @@ describe("renderCatalogHtml", () => {
     expect(html).toContain("Bolo de Pote");
     expect(html).toContain("R$ 12,50");
     expect(html).toContain("https://wa.me/5511999998888");
+    expect(html).toContain("M17.472 14.382");
+    expect(html).not.toContain("M8.1 8.1c.2-.4.5-.5.8-.5");
     expect(html).toContain(`id="produto-${product.id}"`);
   });
 

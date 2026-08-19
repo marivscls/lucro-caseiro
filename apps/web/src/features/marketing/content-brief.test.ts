@@ -18,6 +18,7 @@ describe("content brief", () => {
     const brief = contentBriefFromData(data);
 
     expect(brief.persona).toBe("Confeiteiras iniciantes");
+    expect(brief.contentIntent).toBe("");
     expect(brief.contentObjective).toBe("Gerar salvamentos");
     expect(brief.desiredFormats).toEqual(["Carrossel"]);
     expect(mergeContentBriefData(data, brief)).toEqual({
@@ -28,10 +29,23 @@ describe("content brief", () => {
     });
   });
 
+  it("persists the editorial intent without changing the tactical category", () => {
+    const brief = contentBriefFromData({
+      contentIntent: "Aprendizado",
+      category: "Dicas rápidas",
+    });
+
+    expect(mergeContentBriefData({}, brief)).toMatchObject({
+      contentIntent: "Aprendizado",
+      category: "Dicas rápidas",
+    });
+  });
+
   it("derives the strategic score from the current briefing", () => {
     const emptyScore = scoreContentBrief(emptyContentBrief());
     const complete = {
       theme: "Definido",
+      contentIntent: "Aprendizado",
       category: "Definido",
       persona: "Definido",
       contentObjective: "Definido",
@@ -54,7 +68,7 @@ describe("content brief", () => {
     const completeScore = scoreContentBrief(complete);
 
     expect(emptyScore.overall).toBe(0);
-    expect(emptyScore.criteria).toHaveLength(7);
+    expect(emptyScore.criteria).toHaveLength(8);
     expect(
       emptyScore.criteria.every((criterion) => criterion.suggestion.length > 0),
     ).toBe(true);

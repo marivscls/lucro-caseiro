@@ -16,12 +16,12 @@ import React, { useState } from "react";
 import { FlatList, Image, Pressable, Switch, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-import labelsEmpty from "../assets/labels-empty.png";
 import { publicCatalogProductUrl } from "../features/catalog/api";
 import { useCatalogSettings } from "../features/catalog/hooks";
 import { CreateLabelForm } from "../features/labels/components/create-label-form";
 import { LabelLayoutEditor } from "../features/labels/components/label-layout-editor";
 import { LabelPreview } from "../features/labels/components/label-preview";
+import { useBrandIllustration } from "../shared/brand-illustrations";
 import { LabelProductPicker } from "../features/labels/components/label-product-picker";
 import { LabelStyleEditor } from "../features/labels/components/label-style-editor";
 import { TemplatePicker } from "../features/labels/components/template-picker";
@@ -509,6 +509,7 @@ function LabelDetailModal({
 }
 
 export default function LabelsScreen() {
+  const labelsEmpty = useBrandIllustration("labelsEmpty");
   const { theme } = useTheme();
   const labelsLabel = useBrand().copy.labelsLabel;
   const isDesktop = useDesktopLayout();

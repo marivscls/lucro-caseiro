@@ -6,7 +6,7 @@ import type {
   PaymentMethod,
   SaleUnit,
 } from "@lucro-caseiro/contracts";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   Button,
   Card,
@@ -52,6 +52,8 @@ import { PAYMENT_LABELS } from "../../features/sales/payment";
 import { useInterstitial } from "../../shared/hooks/use-interstitial";
 import { useLimitCheck } from "../../shared/hooks/use-limit-check";
 import { useOfflineQueue } from "../../shared/hooks/use-offline-queue";
+import { useAuth } from "../../shared/hooks/use-auth";
+import { useOnboarding } from "../../shared/hooks/use-onboarding";
 import { usePaywall } from "../../shared/hooks/use-paywall";
 import { ApiError } from "../../shared/utils/api-client";
 import { maybeAskForReview } from "../../shared/utils/store-review";
@@ -359,6 +361,10 @@ export default function NewSaleScreen() {
   const { copy } = useBrand();
   const isDesktop = useDesktopLayout();
   const router = useRouter();
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const guidedFirstSale = from === "getting-started";
+  const userId = useAuth((s) => s.userId);
+  const completeGettingStarted = useOnboarding((s) => s.completeGettingStarted);
   const insets = useSafeAreaInsets();
   const fixedActionBottomOffset = floatingTabBarContentPadding(insets.bottom);
   const fixedActionScrollPadding =
@@ -610,22 +616,32 @@ export default function NewSaleScreen() {
 
     try {
       const result = await createSale.mutateAsync(payload);
+      const receiptButton = {
+        text: "Ver e compartilhar recibo",
+        onPress: () => {
+          resetForm();
+          router.push({
+            pathname: "/tabs/sales" as const,
+            params: { saleId: result.id },
+          });
+        },
+      };
       showAlert({
         title: "Venda registrada!",
         message: `Total: ${formatCurrency(result.total)}`,
-        buttons: [
-          { text: "Nova venda", onPress: resetForm },
-          {
-            text: "Ver e compartilhar recibo",
-            onPress: () => {
-              resetForm();
-              router.push({
-                pathname: "/tabs/sales",
-                params: { saleId: result.id },
-              });
-            },
-          },
-        ],
+        buttons: guidedFirstSale
+          ? [
+              {
+                text: "Ver meu resultado",
+                onPress: () => {
+                  resetForm();
+                  if (userId) completeGettingStarted(userId);
+                  router.replace("/finance");
+                },
+              },
+              receiptButton,
+            ]
+          : [{ text: "Nova venda", onPress: resetForm }, receiptButton],
       });
       showInterstitial();
       // Dispara em segundo plano (nao bloqueia o feedback de sucesso). O

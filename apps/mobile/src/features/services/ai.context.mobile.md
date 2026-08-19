@@ -138,3 +138,5 @@ const pricing = calculateServicePricing({
   histórico e triagem de solicitações.
 - 2026-07-31: “Compartilhar no WhatsApp” no painel do serviço abre diretamente o
   seletor de conversas, sem depender do menu de compartilhamento do Windows.
+- 2026-08-18: filtros da lista usam o `Chip` compartilhado com badge de
+  contagem local (`filterServices` sem busca).

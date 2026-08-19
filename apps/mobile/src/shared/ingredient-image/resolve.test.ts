@@ -1,9 +1,22 @@
 import { describe, expect, it } from "vitest";
 
 import { INGREDIENT_CATALOG } from "./catalog";
-import { ingredientSlug, normalizeName, resolveIngredient, slugify } from "./resolve";
+import {
+  displayIngredientName,
+  ingredientSlug,
+  normalizeName,
+  resolveIngredient,
+  slugify,
+} from "./resolve";
 
 const slugOf = (name: string) => resolveIngredient(name)?.slug ?? null;
+
+describe("displayIngredientName", () => {
+  it("hides technical prefixes without changing regular names", () => {
+    expect(displayIngredientName("[massa] Acucar refinado")).toBe("Acucar refinado");
+    expect(displayIngredientName("Chocolate 50%")).toBe("Chocolate 50%");
+  });
+});
 
 describe("normalizeName", () => {
   it("remove acento, número, unidade, parênteses e stopword", () => {

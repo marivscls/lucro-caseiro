@@ -99,3 +99,6 @@ aprovado em encomenda na agenda (com sinal opcional).
   nome e preço de venda no item editável. O seletor de produto foi generalizado a partir do
   componente já usado em Etiquetas; o fluxo aprovado continua criando encomenda, pois itens
   de orçamento não persistem `productId`.
+- 2026-08-18: filtros da lista usam o `Chip` compartilhado com badge de
+  contagem (totais locais por status). A fileira quebra linha (`flexWrap`)
+  para o rótulo "Recusados" não ser cortado na borda.

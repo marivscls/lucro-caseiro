@@ -25,3 +25,4 @@ export * from "./analytics";
 export * from "./marketing";
 export * from "./retail";
 export * from "./operations";
+export * from "./verticals";

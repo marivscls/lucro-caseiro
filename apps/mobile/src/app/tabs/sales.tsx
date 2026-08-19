@@ -4,6 +4,7 @@ import {
   Button,
   Chip,
   EmptyState,
+  FilterChipRow,
   fonts,
   iconSizes,
   Input,
@@ -28,7 +29,6 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useClient } from "../../features/clients/hooks";
-import { avatarPastel } from "../../features/clients/components/avatar-colors";
 import { fetchProduct } from "../../features/products/api";
 import { useProducts } from "../../features/products/hooks";
 import { SaleCard } from "../../features/sales/components/sale-card";
@@ -58,7 +58,9 @@ import {
 } from "../../shared/layout/desktop-density";
 import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
 import { alertError } from "../../shared/utils/alerts";
-import salesEmpty from "../../assets/sales-empty-v2.png";
+import { brandScreenPalette } from "../../shared/brand-palette";
+import { useBrandIllustration } from "../../shared/brand-illustrations";
+import salesHeaderIcon from "../../assets/sales-header-icon.png";
 
 type FilterTab = "all" | "paid" | "pending" | "cancelled";
 type OperationView = "sales" | "orders";
@@ -142,20 +144,12 @@ function groupSalesByDate(items: Sale[]): SaleGroup[] {
 
 // Cards flat com borda sutil, no padrao canonico da home (sem sombra hardcoded).
 function getSurfaceStyle(theme: ReturnType<typeof useTheme>["theme"]): ViewStyle {
+  const palette = brandScreenPalette(theme);
   return {
-    backgroundColor: theme.colors.surfaceElevated,
+    backgroundColor: palette.white,
     borderWidth: 1,
-    borderColor: theme.colors.border,
+    borderColor: palette.border,
   };
-}
-
-function getFilterBg(
-  selected: boolean,
-  theme: ReturnType<typeof useTheme>["theme"],
-): string {
-  // Selecao = fundo rosado suave (primaryBg), nunca pilula cheia de rosa.
-  if (selected) return theme.colors.primaryBg;
-  return theme.colors.surface;
 }
 
 function getStatusSummaryCopy(activeFilter: FilterTab) {
@@ -189,42 +183,6 @@ function getStatusSummaryAccent(
   return theme.colors.success;
 }
 
-function FilterPill({
-  label,
-  selected,
-  onPress,
-}: Readonly<{ label: string; selected: boolean; onPress: () => void }>) {
-  const { theme } = useTheme();
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
-      style={({ pressed }) => [
-        {
-          height: 44,
-          flex: 1,
-          minWidth: 0,
-          paddingHorizontal: spacing.xs,
-          borderRadius: radii.full,
-          backgroundColor: getFilterBg(selected, theme),
-          alignItems: "center",
-          justifyContent: "center",
-          opacity: pressed ? 0.84 : 1,
-        },
-      ]}
-    >
-      <Typography
-        variant="caption"
-        color={selected ? theme.colors.primaryStrong : theme.colors.textSecondary}
-        numberOfLines={1}
-      >
-        {label}
-      </Typography>
-    </Pressable>
-  );
-}
-
 function SearchBar({
   value,
   onChangeText,
@@ -235,40 +193,55 @@ function SearchBar({
   onFilterPress: () => void;
 }>) {
   const { theme } = useTheme();
+  const palette = brandScreenPalette(theme);
   return (
-    <View
-      style={{
-        height: 56,
-        borderRadius: radii.xl,
-        paddingHorizontal: spacing.lg,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: spacing.md,
-        ...getSurfaceStyle(theme),
-      }}
-    >
-      <AppIcon name="search-outline" size={23} color={theme.colors.textSecondary} />
-      <TextInput
-        placeholder="Buscar por produto ou cliente..."
-        placeholderTextColor={theme.colors.textSecondary + "90"}
-        value={value}
-        onChangeText={onChangeText}
+    <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+      <View
         style={{
           flex: 1,
-          height: 46,
-          color: theme.colors.text,
-          fontSize: 16,
-          fontFamily: fonts.semiBold,
-          padding: 0,
+          minHeight: 56,
+          borderRadius: radii.lg,
+          paddingHorizontal: spacing.lg,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.md,
+          ...getSurfaceStyle(theme),
         }}
-      />
+      >
+        <AppIcon name="search-outline" size={24} color={theme.colors.textSecondary} />
+        <TextInput
+          placeholder="Buscar por produto ou cliente"
+          placeholderTextColor={theme.colors.textSecondary}
+          value={value}
+          onChangeText={onChangeText}
+          accessibilityLabel="Buscar por produto ou cliente"
+          returnKeyType="search"
+          style={{
+            flex: 1,
+            minWidth: 0,
+            height: 48,
+            color: theme.colors.text,
+            fontSize: 16,
+            fontFamily: fonts.regular,
+            padding: 0,
+          }}
+        />
+      </View>
       <Pressable
         onPress={onFilterPress}
-        hitSlop={12}
         accessibilityRole="button"
         accessibilityLabel="Abrir filtros"
+        style={({ pressed }) => ({
+          width: 56,
+          height: 56,
+          borderRadius: radii.lg,
+          backgroundColor: palette.wineFill,
+          alignItems: "center",
+          justifyContent: "center",
+          opacity: pressed ? 0.84 : 1,
+        })}
       >
-        <AppIcon name="options-outline" size={25} color={theme.colors.textSecondary} />
+        <AppIcon name="options-outline" size={26} color={palette.onWine} />
       </Pressable>
     </View>
   );
@@ -276,6 +249,7 @@ function SearchBar({
 
 function GroupHeader({ title, count }: Readonly<{ title: string; count: number }>) {
   const { theme } = useTheme();
+  const palette = brandScreenPalette(theme);
   const label = count === 1 ? "1 venda" : `${count} vendas`;
   return (
     <View
@@ -286,12 +260,9 @@ function GroupHeader({ title, count }: Readonly<{ title: string; count: number }
         marginBottom: spacing.md,
       }}
     >
-      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-        <AppIcon name="calendar-outline" size={24} color={theme.colors.textSecondary} />
-        <Typography variant="h2" color={theme.colors.text}>
-          {title}
-        </Typography>
-      </View>
+      <Typography variant="h2" color={palette.wine}>
+        {title}
+      </Typography>
       <View
         style={{
           minHeight: 34,
@@ -311,30 +282,141 @@ function GroupHeader({ title, count }: Readonly<{ title: string; count: number }
 }
 
 function EmptySalesIllustration() {
+  const salesEmpty = useBrandIllustration("salesEmpty");
   return (
-    <Image source={salesEmpty} resizeMode="contain" style={{ width: 220, height: 220 }} />
+    <Image source={salesEmpty} resizeMode="contain" style={{ width: 180, height: 180 }} />
   );
 }
 
 function AvatarCircle({ name }: Readonly<{ name: string }>) {
   const { theme } = useTheme();
-  const pastel = avatarPastel(name || "?", theme.mode);
+  const palette = brandScreenPalette(theme);
   return (
     <View
       style={{
-        width: 52,
-        height: 52,
+        width: 50,
+        height: 50,
         borderRadius: radii.full,
-        backgroundColor: pastel.bg,
-        borderWidth: 1,
-        borderColor: pastel.bg,
+        backgroundColor: palette.rose,
+        borderWidth: 2,
+        borderColor: palette.onWine,
         alignItems: "center",
         justifyContent: "center",
       }}
     >
-      <Typography variant="h3" color={pastel.fg}>
+      <Typography variant="h3" color={palette.onWine}>
         {(name || "M").charAt(0).toUpperCase()}
       </Typography>
+    </View>
+  );
+}
+
+function SalesHeader({
+  count,
+  isDesktop,
+  name,
+  receivedTotal,
+}: Readonly<{
+  count: number;
+  isDesktop: boolean;
+  name: string;
+  receivedTotal: number;
+}>) {
+  const { theme } = useTheme();
+  const palette = brandScreenPalette(theme);
+  const formattedTotal = new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(receivedTotal);
+  const countLabel = count === 1 ? "1 venda" : `${count} vendas`;
+
+  return (
+    <View style={{ backgroundColor: palette.wineFill }}>
+      <View
+        style={{
+          width: "100%",
+          paddingTop: isDesktop ? spacing.xl : spacing.lg,
+          paddingBottom: spacing.xl,
+          gap: spacing.lg,
+          ...pageGutter(isDesktop),
+          ...desktopStretch(isDesktop, desktopWidths.data),
+          ...(isDesktop ? { paddingHorizontal: spacing["3xl"] } : undefined),
+        }}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: spacing.lg,
+          }}
+        >
+          <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+            <Typography variant="screenTitle" color={palette.onWine}>
+              Vendas
+            </Typography>
+            <Typography variant="body" color={palette.onWine}>
+              Acompanhe seus pedidos e recebimentos
+            </Typography>
+          </View>
+          <AvatarCircle name={name} />
+        </View>
+
+        <View
+          accessibilityLabel={`${formattedTotal} recebidos em ${countLabel}`}
+          style={{
+            alignSelf: "flex-start",
+            width: isDesktop ? 320 : "72%",
+            minWidth: isDesktop ? 320 : 236,
+            maxWidth: 340,
+            minHeight: 82,
+            borderRadius: radii.xl,
+            borderWidth: 1,
+            borderColor: "rgba(255,255,255,0.12)",
+            backgroundColor: "rgba(255,255,255,0.06)",
+            flexDirection: "row",
+            alignItems: "center",
+            paddingHorizontal: spacing.lg,
+            paddingVertical: spacing.md,
+            shadowColor: "#160A0F",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.14,
+            shadowRadius: 10,
+            elevation: 2,
+          }}
+        >
+          <View
+            style={{
+              width: 56,
+              height: 56,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Image
+              source={salesHeaderIcon}
+              resizeMode="contain"
+              style={{ width: 104, height: 104 }}
+            />
+          </View>
+          <View
+            style={{
+              width: 1,
+              height: 52,
+              marginHorizontal: spacing.lg,
+              backgroundColor: "rgba(255,255,255,0.58)",
+            }}
+          />
+          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+            <Typography variant="h2" color={palette.onWine} numberOfLines={1}>
+              {formattedTotal}
+            </Typography>
+            <Typography variant="body" color={palette.onWine}>
+              {countLabel}
+            </Typography>
+          </View>
+        </View>
+      </View>
     </View>
   );
 }
@@ -463,6 +545,7 @@ type SalesContentProps = {
   readonly groups: SaleGroup[];
   readonly items: Sale[];
   readonly isDesktop: boolean;
+  readonly bottomInset: number;
   readonly page: number;
   readonly total: number;
   readonly totalPages: number;
@@ -513,10 +596,10 @@ function DesktopSalesTable({
     <ScrollView
       style={{ flex: 1 }}
       contentContainerStyle={{
+        width: "100%",
         paddingTop: spacing.md,
         paddingBottom: spacing.xl,
         ...pageGutter(true),
-        ...desktopStretch(true, desktopWidths.data),
       }}
     >
       <View
@@ -528,8 +611,12 @@ function DesktopSalesTable({
           overflow: "hidden",
         }}
       >
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={{ minWidth: 920, flex: 1 }}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+        >
+          <View style={{ minWidth: 920, width: "100%" }}>
             <View
               style={{
                 minHeight: 46,
@@ -774,20 +861,20 @@ function DesktopOrdersTable({
             style={{ flex: 1, color: theme.colors.text, fontFamily: fonts.regular }}
           />
         </View>
-        <View style={{ width: 330, flexDirection: "row", gap: spacing.sm }}>
+        <FilterChipRow style={{ width: 330 }}>
           {[
             ["all", "Todas"],
             ["open", "Em aberto"],
             ["done", "Entregues"],
           ].map(([value, label]) => (
-            <FilterPill
+            <Chip
               key={value}
               label={label}
               selected={filter === value}
               onPress={() => setFilter(value as "all" | "open" | "done")}
             />
           ))}
-        </View>
+        </FilterChipRow>
       </View>
       <View
         style={{
@@ -975,6 +1062,7 @@ function SalesContent({
   groups,
   items,
   isDesktop,
+  bottomInset,
   page,
   total,
   totalPages,
@@ -988,17 +1076,20 @@ function SalesContent({
   compactEmpty = false,
 }: SalesContentProps) {
   const { theme } = useTheme();
+  const palette = brandScreenPalette(theme);
   const { copy } = useBrand();
-  const listBottomPadding = isDesktop ? spacing["5xl"] : floatingTabBarContentPadding(0);
+  const listBottomPadding = isDesktop
+    ? spacing["5xl"]
+    : floatingTabBarContentPadding(bottomInset);
 
   if (isLoading) {
     return (
       <View
         style={{
           flex: 1,
+          minHeight: 0,
           paddingVertical: spacing.xl,
           ...pageGutter(isDesktop),
-          ...desktopStretch(isDesktop, desktopWidths.data),
         }}
       >
         <SkeletonList rows={6} variant="sale" />
@@ -1010,11 +1101,11 @@ function SalesContent({
       <View
         style={{
           flex: 1,
+          minHeight: 0,
           alignItems: isDesktop ? "flex-start" : "center",
           justifyContent: isDesktop ? "flex-start" : "center",
           paddingVertical: spacing.xl,
           ...pageGutter(isDesktop),
-          ...desktopStretch(isDesktop, desktopWidths.data),
         }}
       >
         <Typography variant="h3">Algo deu errado</Typography>
@@ -1034,32 +1125,38 @@ function SalesContent({
     const isFiltered = activeFilter !== "all" || hasActiveFilters;
     const emptyCopy = getEmptyStateCopy(isFiltered);
     return (
-      <EmptyState
-        icon={<EmptySalesIllustration />}
-        title={emptyCopy.title}
-        description={emptyCopy.description}
-        style={{
-          justifyContent: compactEmpty ? "flex-start" : "center",
-          // Os status possuem o resumo acima: o estado vazio começa com o mesmo
-          // respiro em todas as abas para a ilustração não parecer colada ao card.
-          paddingTop: spacing.xl,
-          paddingBottom: listBottomPadding,
-        }}
-        action={
-          <Button
-            title={isFiltered ? emptyCopy.button : copy.saleLabel}
-            size="lg"
-            icon={
-              <AppIcon
-                name={emptyCopy.icon}
-                size={iconSizes.sm}
-                color={theme.colors.textOnPrimary}
-              />
-            }
-            onPress={isFiltered ? onClearFilters : onNewSalePress}
-          />
-        }
-      />
+      <ScrollView
+        style={{ flex: 1, minHeight: 0 }}
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <EmptyState
+          icon={<EmptySalesIllustration />}
+          title={emptyCopy.title}
+          description={emptyCopy.description}
+          style={{
+            justifyContent: compactEmpty ? "flex-start" : "center",
+            // Os status possuem o resumo acima: o estado vazio começa com o mesmo
+            // respiro em todas as abas para a ilustração não parecer colada ao card.
+            paddingTop: spacing.md,
+            paddingBottom: listBottomPadding,
+          }}
+          action={
+            <Button
+              title={isFiltered ? emptyCopy.button : copy.saleLabel}
+              size="lg"
+              icon={
+                <AppIcon
+                  name={emptyCopy.icon}
+                  size={iconSizes.sm}
+                  color={theme.colors.textOnPrimary}
+                />
+              }
+              onPress={isFiltered ? onClearFilters : onNewSalePress}
+            />
+          }
+        />
+      </ScrollView>
     );
   }
   if (isDesktop) {
@@ -1077,14 +1174,46 @@ function SalesContent({
   }
   return (
     <FlatList
+      style={{ flex: 1, minHeight: 0 }}
       data={groups}
       keyExtractor={(item) => item.title}
       contentContainerStyle={{
-        paddingHorizontal: spacing.xl,
+        paddingHorizontal: spacing.lg,
         paddingBottom: listBottomPadding,
       }}
-      renderItem={({ item: group }) => (
-        <View style={{ marginTop: spacing.xl }}>
+      showsVerticalScrollIndicator={false}
+      renderItem={({ item: group, index }) => (
+        <View
+          style={{
+            position: "relative",
+            marginTop: spacing.xl,
+            paddingLeft: spacing.xl,
+          }}
+        >
+          <View
+            style={{
+              position: "absolute",
+              left: 7,
+              top: 14,
+              bottom: index === groups.length - 1 ? spacing.xl : -spacing.xl,
+              width: 2,
+              borderRadius: radii.full,
+              backgroundColor: theme.colors.border,
+            }}
+          />
+          <View
+            style={{
+              position: "absolute",
+              left: 0,
+              top: 7,
+              width: 16,
+              height: 16,
+              borderRadius: radii.full,
+              borderWidth: 5,
+              borderColor: palette.lime,
+              backgroundColor: palette.white,
+            }}
+          />
           <GroupHeader title={group.title} count={group.data.length} />
           <View style={{ gap: spacing.md }}>
             {group.data.map((sale, i) => (
@@ -1101,6 +1230,7 @@ function SalesContent({
 
 export default function SalesScreen() {
   const { theme } = useTheme();
+  const palette = brandScreenPalette(theme);
   const isDesktop = useDesktopLayout();
   const router = useRouter();
   const { saleId } = useLocalSearchParams<{ saleId?: string }>();
@@ -1228,134 +1358,154 @@ export default function SalesScreen() {
 
   const groups = filteredItems ? groupSalesByDate(filteredItems) : [];
   const filteredTotal = filteredItems?.reduce((sum, sale) => sum + sale.total, 0) ?? 0;
+  const receivedTotal =
+    filteredItems
+      ?.filter((sale) => sale.status === "paid")
+      .reduce((sum, sale) => sum + sale.total, 0) ?? 0;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <View style={{ flex: 1, ...desktopStretch(isDesktop, desktopWidths.data) }}>
+    <SafeAreaView
+      edges={["top"]}
+      style={{
+        flex: 1,
+        height: "100%",
+        width: "100%",
+        overflow: "hidden",
+        backgroundColor: palette.wineFill,
+      }}
+    >
+      <SalesHeader
+        count={filteredItems?.length ?? 0}
+        isDesktop={isDesktop}
+        name={profile?.name ?? "Maria"}
+        receivedTotal={receivedTotal}
+      />
+      <View
+        style={{
+          flex: 1,
+          minHeight: 0,
+          backgroundColor: palette.background,
+        }}
+      >
         <View
           style={{
-            paddingTop: spacing.xl,
-            paddingBottom: spacing.sm,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            ...pageGutter(isDesktop),
+            flex: 1,
+            minHeight: 0,
+            width: "100%",
           }}
         >
-          <Typography variant="screenTitle">Vendas</Typography>
-          {!isDesktop ? <AvatarCircle name={profile?.name ?? "Maria"} /> : null}
-        </View>
-
-        {isDesktop ? (
-          <View
-            style={{
-              flexDirection: "row",
-              gap: spacing.sm,
-              paddingTop: spacing.xl,
-              width: 330,
-              ...pageGutter(isDesktop),
-            }}
-          >
-            <FilterPill
-              label="Vendas"
-              selected={operationView === "sales"}
-              onPress={() => setOperationView("sales")}
-            />
-            <FilterPill
-              label="Encomendas"
-              selected={operationView === "orders"}
-              onPress={() => setOperationView("orders")}
-            />
-          </View>
-        ) : null}
-
-        {isDesktop ? (
-          <DesktopOperationKpis sales={filteredItems ?? []} orders={orders} />
-        ) : null}
-
-        {operationView === "sales" ? (
-          <>
+          {isDesktop ? (
             <View
               style={{
                 flexDirection: "row",
+                gap: spacing.sm,
                 paddingTop: spacing.xl,
-                paddingBottom: spacing.xl,
-                gap: spacing.xs,
+                width: 330,
                 ...pageGutter(isDesktop),
               }}
             >
-              {FILTER_TABS.map((tab) => (
-                <FilterPill
-                  key={tab.key}
-                  label={tab.label}
-                  selected={activeFilter === tab.key}
-                  onPress={() => {
-                    setActiveFilter(tab.key);
-                    setPage(1);
-                  }}
-                />
-              ))}
-            </View>
-
-            <View
-              style={{
-                paddingTop: spacing.sm,
-                paddingBottom: spacing.md,
-                ...pageGutter(isDesktop),
-                ...(isDesktop
-                  ? { alignSelf: "flex-start", maxWidth: 480, width: "100%" }
-                  : undefined),
-              }}
-            >
-              <SearchBar
-                value={searchQuery}
-                onChangeText={(value) => {
-                  setSearchQuery(value);
-                  setPage(1);
-                }}
-                onFilterPress={() => setShowFilters(true)}
+              <Chip
+                label="Vendas"
+                selected={operationView === "sales"}
+                onPress={() => setOperationView("sales")}
+              />
+              <Chip
+                label="Encomendas"
+                selected={operationView === "orders"}
+                onPress={() => setOperationView("orders")}
               />
             </View>
+          ) : null}
 
-            <StatusSummary
-              activeFilter={activeFilter}
-              count={filteredItems?.length ?? 0}
-              total={filteredTotal}
-              isDesktop={isDesktop}
-            />
+          {isDesktop ? (
+            <DesktopOperationKpis sales={filteredItems ?? []} orders={orders} />
+          ) : null}
 
-            <SalesContent
-              isLoading={isLoading}
-              error={error}
-              hasItems={!!filteredItems?.length}
-              activeFilter={activeFilter}
-              hasActiveFilters={!!searchQuery.trim()}
-              groups={groups}
-              items={filteredItems ?? []}
-              isDesktop={isDesktop}
-              page={data?.page ?? page}
-              total={data?.total ?? 0}
-              totalPages={data?.totalPages ?? 1}
-              primaryColor={theme.colors.primary}
-              onSalePress={setSelectedSaleId}
-              onMarkPaid={(id) => {
-                void updateSaleStatus.mutateAsync({ id, status: "paid" }).catch(() => {
-                  alertError("Não foi possível marcar a venda como paga.");
-                });
-              }}
-              onClearFilters={handleClearFilters}
-              onNewSalePress={() => router.push("/tabs/new-sale")}
-              onRetry={() => void refetch()}
-              onPageChange={setPage}
-              compactEmpty={activeFilter !== "all"}
+          {operationView === "sales" ? (
+            <>
+              <FilterChipRow
+                style={{
+                  paddingTop: spacing.xl,
+                  paddingBottom: spacing.lg,
+                  ...pageGutter(isDesktop),
+                }}
+              >
+                {FILTER_TABS.map((tab) => (
+                  <Chip
+                    key={tab.key}
+                    label={tab.label}
+                    selected={activeFilter === tab.key}
+                    onPress={() => {
+                      setActiveFilter(tab.key);
+                      setPage(1);
+                    }}
+                  />
+                ))}
+              </FilterChipRow>
+
+              <View
+                style={{
+                  paddingTop: 0,
+                  paddingBottom: spacing.md,
+                  ...pageGutter(isDesktop),
+                  ...(isDesktop
+                    ? { alignSelf: "flex-start", maxWidth: 480, width: "100%" }
+                    : undefined),
+                }}
+              >
+                <SearchBar
+                  value={searchQuery}
+                  onChangeText={(value) => {
+                    setSearchQuery(value);
+                    setPage(1);
+                  }}
+                  onFilterPress={() => setShowFilters(true)}
+                />
+              </View>
+
+              {isDesktop ? (
+                <StatusSummary
+                  activeFilter={activeFilter}
+                  count={filteredItems?.length ?? 0}
+                  total={filteredTotal}
+                  isDesktop
+                />
+              ) : null}
+
+              <SalesContent
+                isLoading={isLoading}
+                error={error}
+                hasItems={!!filteredItems?.length}
+                activeFilter={activeFilter}
+                hasActiveFilters={!!searchQuery.trim()}
+                groups={groups}
+                items={filteredItems ?? []}
+                isDesktop={isDesktop}
+                bottomInset={insets.bottom}
+                page={data?.page ?? page}
+                total={data?.total ?? 0}
+                totalPages={data?.totalPages ?? 1}
+                primaryColor={theme.colors.primary}
+                onSalePress={setSelectedSaleId}
+                onMarkPaid={(id) => {
+                  void updateSaleStatus.mutateAsync({ id, status: "paid" }).catch(() => {
+                    alertError("Não foi possível marcar a venda como paga.");
+                  });
+                }}
+                onClearFilters={handleClearFilters}
+                onNewSalePress={() => router.push("/tabs/new-sale")}
+                onRetry={() => void refetch()}
+                onPageChange={setPage}
+                compactEmpty={activeFilter !== "all"}
+              />
+            </>
+          ) : (
+            <DesktopOrdersTable
+              orders={orders}
+              onOpenAgenda={() => router.push("/tabs/agenda")}
             />
-          </>
-        ) : (
-          <DesktopOrdersTable
-            orders={orders}
-            onOpenAgenda={() => router.push("/tabs/agenda")}
-          />
-        )}
+          )}
+        </View>
       </View>
 
       <ResponsiveOverlayModal

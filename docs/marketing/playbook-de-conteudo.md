@@ -1,12 +1,26 @@
 # Playbook de conteúdo por canal
 
 **Status:** Diretriz operacional
-**Versão:** 1.1
-**Data:** 10 de agosto de 2026
+**Versão:** 1.2
+**Data:** 15 de agosto de 2026
 
 ## Objetivo editorial
 
 Ensinar algo útil sobre preço, lucro ou organização e conduzir a pessoa ao próximo passo da jornada. O conteúdo deve continuar valioso mesmo que a pessoa não instale o aplicativo.
+
+## Intenção editorial
+
+Toda pauta deve escolher uma função principal. Esta camada foi adaptada do repertório PEDAL recebido para planejamento; ela orienta a decisão sem copiar as cartas, o visual ou uma distribuição fixa do material original.
+
+- **Promoção:** apresenta produto, demonstração, prova, oferta ou resultado confirmado.
+- **Entretenimento:** cria participação, surpresa ou leveza com propósito para a audiência.
+- **Debate:** abre uma pergunta, contraste ou ponto de vista útil para a pessoa se posicionar.
+- **Aprendizado:** ensina conceito, processo, diagnóstico ou decisão aplicável.
+- **Ligação:** aproxima a marca por valores, bastidores, histórias e experiências reais.
+
+Intenção, categoria, pilar, etapa da jornada e formato são decisões diferentes. Uma pauta de Aprendizado pode virar Reel ou carrossel; uma pauta de Promoção ainda precisa de uma categoria e de um objetivo específicos. Ao gerar um banco amplo de ideias, representar mais de uma intenção e evitar concentração promocional. Quando o pedido já define a intenção, respeitá-la. Não impor cotas, cadências, formatos ou quantidades: a mistura deve responder ao objetivo, ao histórico publicado e às lacunas editoriais atuais.
+
+Ângulos como demonstração, prova, bastidor, pergunta, comparação, mito e verdade, problema e solução, tutorial, estudo de caso, conceito, ferramenta, métrica, crença, origem, desafio, transformação e aprendizado funcionam como repertório. Escolher apenas o que sustenta a pauta; nunca completar uma lista por obrigação.
 
 ## Distribuição dos pilares
 
@@ -20,6 +34,7 @@ Ensinar algo útil sobre preço, lucro ou organização e conduzir a pessoa ao p
 Cada pauta deve declarar:
 
 - público e nicho;
+- intenção editorial;
 - dor ou pergunta;
 - promessa de aprendizado;
 - exemplo real ou claramente ilustrativo;

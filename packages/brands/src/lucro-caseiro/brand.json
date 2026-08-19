@@ -39,7 +39,15 @@
     "vendaPorPeso": true,
     "custoDireto": false,
     "comprasComEstoque": false,
-    "varejoPapelaria": false
+    "varejoPapelaria": false,
+    "operacaoVertical": false,
+    "familiaLucro": true
+  },
+  "vertical": {
+    "domain": "caseiro",
+    "operationLabel": "Meu negócio",
+    "operationDescription": "Produção, serviços, vendas e lucro",
+    "primaryActionLabel": "Registrar venda"
   },
   "admob": {
     "androidAppId": "ca-app-pub-8304398247631710~5581735015",

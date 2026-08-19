@@ -1,4 +1,8 @@
-import type { CatalogSettings, PublicCatalogProduct } from "@lucro-caseiro/contracts";
+import type {
+  CatalogSettings,
+  PublicCatalogProduct,
+  StorefrontCustomization,
+} from "@lucro-caseiro/contracts";
 import { describe, expect, it, vi } from "vitest";
 
 import { LimitExceededError, NotFoundError, ValidationError } from "../../shared/errors";
@@ -28,6 +32,7 @@ function makeSettings(overrides: Partial<CatalogSettings> = {}): CatalogSettings
     serviceTagline: null,
     servicePromoBanner: null,
     servicePromoBannerEnabled: true,
+    customization: null,
     updatedAt: new Date().toISOString(),
     ...overrides,
   };
@@ -133,6 +138,12 @@ describe("CatalogUseCases.getSlugAvailability", () => {
 });
 
 describe("CatalogUseCases.updateSettings", () => {
+  const draft = {
+    version: 1,
+    identity: { displayName: "Rascunho" },
+    publication: { slug: "doces-da-maria", status: "draft", publishedAt: null },
+  } as StorefrontCustomization;
+
   it("atualiza slug e enabled", async () => {
     const sut = new CatalogUseCases(makeRepo());
 
@@ -143,6 +154,60 @@ describe("CatalogUseCases.updateSettings", () => {
 
     expect(settings.slug).toBe("novo-endereco");
     expect(settings.enabled).toBe(true);
+  });
+
+  it("salva rascunho sem substituir o snapshot publicado", async () => {
+    const published = {
+      ...draft,
+      identity: { ...draft.identity, displayName: "Publicado" },
+    } as StorefrontCustomization;
+    const upsert = vi.fn((_userId: string, data: CatalogSettingsData) =>
+      Promise.resolve(makeSettings(data)),
+    );
+    const sut = new CatalogUseCases(
+      makeRepo({
+        findByUser: () =>
+          Promise.resolve(
+            makeSettings({ customization: published, publishedCustomization: published }),
+          ),
+        getOwnerDefaults: () => Promise.resolve(makeOwner({ plan: "essential" })),
+        upsert,
+      }),
+    );
+
+    await sut.updateSettings(USER_ID, { customization: draft, publishStorefront: false });
+
+    expect(upsert).toHaveBeenCalledWith(
+      USER_ID,
+      expect.objectContaining({
+        customization: draft,
+        publishedCustomization: published,
+      }),
+    );
+  });
+
+  it("publicar copia o rascunho para o snapshot publico", async () => {
+    const upsert = vi.fn((_userId: string, data: CatalogSettingsData) =>
+      Promise.resolve(makeSettings(data)),
+    );
+    const sut = new CatalogUseCases(
+      makeRepo({
+        upsert,
+        getOwnerDefaults: () => Promise.resolve(makeOwner({ plan: "essential" })),
+      }),
+    );
+
+    await sut.updateSettings(USER_ID, { customization: draft, publishStorefront: true });
+
+    expect(upsert).toHaveBeenCalledWith(
+      USER_ID,
+      expect.objectContaining({
+        customization: draft,
+        publishedCustomization: draft,
+        publishedProducts: [makeProduct()],
+        publishedServices: [],
+      }),
+    );
   });
 
   it("rejeita slug invalido", async () => {
@@ -402,6 +467,36 @@ describe("CatalogUseCases.getPublicCatalog", () => {
     expect(catalog.serviceCoverUrl).toBe("https://cdn.x/servicos.jpg");
     expect(catalog.serviceTagline).toBe("Agenda personalizada");
     expect(catalog.servicePromoBanner).toBe("Vagas abertas");
+  });
+
+  it("expõe somente o snapshot publicado, nunca o rascunho", async () => {
+    const draft = { version: 1, identity: { displayName: "Rascunho" } } as StorefrontCustomization;
+    const published = {
+      version: 1,
+      identity: { displayName: "Publicado" },
+    } as StorefrontCustomization;
+    const sut = new CatalogUseCases(
+      makeRepo({
+        listPublicProducts: () =>
+          Promise.resolve([{ ...makeProduct(), name: "Produto atual não publicado" }]),
+        findOwnerBySlug: () =>
+          Promise.resolve({
+            ...makeSettings({
+              customization: draft,
+              publishedCustomization: published,
+            }),
+            ...makeOwner({ plan: "essential" }),
+            publishedProducts: [{ ...makeProduct(), name: "Produto publicado" }],
+            publishedServices: [],
+          }),
+      }),
+    );
+
+    const catalog = await sut.getPublicCatalog("doces-da-maria");
+
+    expect(catalog.customization).toBe(published);
+    expect(catalog.customization).not.toBe(draft);
+    expect(catalog.products[0]?.name).toBe("Produto publicado");
   });
 
   it("preserva a faixa salva, mas não a expõe quando sua exibição está desligada", async () => {

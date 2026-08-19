@@ -1,6 +1,8 @@
 import {
   Button,
+  Chip,
   EmptyState,
+  FilterChipRow,
   Typography,
   spacing,
   radii,
@@ -14,7 +16,6 @@ import {
   Image,
   Pressable,
   ScrollView,
-  TouchableOpacity,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -290,7 +291,6 @@ interface RecipeListProps {
 }
 
 export function RecipeList({ onRecipePress, onAddPress }: RecipeListProps) {
-  const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
   const experienceCopy = useBusinessCopy();
   const showAds = useShowAds();
@@ -371,35 +371,16 @@ export function RecipeList({ onRecipePress, onAddPress }: RecipeListProps) {
             </Typography>
           </View>
 
-          {/* Filter chips */}
-          <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
+          <FilterChipRow>
             {categoryFilters.map((cat) => (
-              <TouchableOpacity
+              <Chip
                 key={cat}
+                label={cat}
+                selected={selectedCategory === cat}
                 onPress={() => setSelectedCategory(cat)}
-                style={{
-                  paddingHorizontal: spacing.lg,
-                  paddingVertical: spacing.sm,
-                  borderRadius: radii.full,
-                  backgroundColor:
-                    selectedCategory === cat
-                      ? theme.colors.primaryBg
-                      : theme.colors.surface,
-                }}
-              >
-                <Typography
-                  variant="caption"
-                  color={
-                    selectedCategory === cat
-                      ? theme.colors.primaryStrong
-                      : theme.colors.textSecondary
-                  }
-                >
-                  {cat}
-                </Typography>
-              </TouchableOpacity>
+              />
             ))}
-          </View>
+          </FilterChipRow>
         </View>
       }
       ListFooterComponent={

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { lucroCaseiroBrand } from "../../../../packages/brands/src/lucro-caseiro";
-import { buildThemes, fonts } from "../../../../packages/ui/src/theme";
+import { buildThemes, fonts, homeTypography } from "../../../../packages/ui/src/theme";
 
 describe("paleta do Lucro Caseiro", () => {
   it("mantem vinho e rosa de marca sem substituir o verde semantico", () => {
@@ -26,9 +26,50 @@ describe("tipografia do app", () => {
   it("usa apenas pesos da Manrope no design system", () => {
     expect(Object.values(fonts)).toEqual([
       "Manrope_400Regular",
+      "Manrope_500Medium",
       "Manrope_600SemiBold",
       "Manrope_700Bold",
       "Manrope_800ExtraBold",
     ]);
+  });
+
+  it("mantem a escala semantica compacta da Home", () => {
+    expect(homeTypography).toMatchObject({
+      title: { fontSize: 22, fontFamily: fonts.bold, lineHeight: 28 },
+      body: { fontSize: 14, fontFamily: fonts.regular, lineHeight: 20 },
+      avatar: { fontSize: 17, fontFamily: fonts.semiBold },
+      eyebrow: { fontSize: 11, fontFamily: fonts.bold, lineHeight: 15 },
+      cardLead: { fontSize: 17, fontFamily: fonts.bold, lineHeight: 22 },
+      description: {
+        fontSize: 14,
+        fontFamily: fonts.regular,
+        lineHeight: 19,
+      },
+      action: { fontSize: 14, fontFamily: fonts.bold },
+      link: { fontSize: 14, fontFamily: fonts.semiBold, lineHeight: 20 },
+      financialLabel: {
+        fontSize: 14,
+        fontFamily: fonts.medium,
+        lineHeight: 20,
+      },
+      financialValue: {
+        fontSize: 32,
+        fontFamily: fonts.bold,
+        lineHeight: 40,
+      },
+      metricLabel: { fontSize: 12, fontFamily: fonts.medium, lineHeight: 16 },
+      metricValue: { fontSize: 21, fontFamily: fonts.bold, lineHeight: 26 },
+      goalTitle: { fontSize: 16, fontFamily: fonts.bold, lineHeight: 22 },
+      goalValue: { fontSize: 23, fontFamily: fonts.bold, lineHeight: 29 },
+      progress: { fontSize: 12, fontFamily: fonts.semiBold, lineHeight: 16 },
+      progressStrong: { fontSize: 12, fontFamily: fonts.bold, lineHeight: 16 },
+      shortcut: { fontSize: 13, fontFamily: fonts.semiBold, lineHeight: 18 },
+      navigation: { fontSize: 12, fontFamily: fonts.medium, lineHeight: 16 },
+      navigationActive: {
+        fontSize: 12,
+        fontFamily: fonts.bold,
+        lineHeight: 16,
+      },
+    });
   });
 });

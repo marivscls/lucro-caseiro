@@ -42,6 +42,18 @@ const NOISE_TOKENS = new Set([
 
 const ACCENTS = new RegExp("[\\u0300-\\u036f]", "g");
 
+/** Removes internal classification prefixes from names shown to the user. */
+export function displayIngredientName(rawName: string): string {
+  const trimmedName = rawName.trim();
+  let visibleName = trimmedName;
+  while (visibleName.startsWith("[")) {
+    const prefixEnd = visibleName.indexOf("]");
+    if (prefixEnd < 0) break;
+    visibleName = visibleName.slice(prefixEnd + 1).trimStart();
+  }
+  return visibleName || trimmedName;
+}
+
 /** Normaliza um nome para forma canônica comparável (sem acento/número/unidade). */
 export function normalizeName(raw: string | null | undefined): string {
   return String(raw ?? "")

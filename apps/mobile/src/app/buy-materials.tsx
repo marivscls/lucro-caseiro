@@ -253,7 +253,7 @@ function BuyMaterialsContent() {
             <Button
               title="Revisar estoque"
               variant="secondary"
-              onPress={() => router.replace("/materials")}
+              onPress={() => router.replace("/tabs/materials")}
             />
           }
         />
@@ -368,7 +368,7 @@ function BuyMaterialsContent() {
       <ScreenHeader
         title="Comprar insumos"
         subtitle="Lista gerada com os insumos abaixo do estoque mínimo"
-        fallbackRoute="/materials"
+        fallbackRoute="/tabs/materials"
       />
       <View style={{ flex: 1 }}>{renderContent()}</View>
     </SafeAreaView>

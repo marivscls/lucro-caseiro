@@ -2,7 +2,7 @@ import React from "react";
 import { Text, type TextProps, type TextStyle } from "react-native";
 
 import { useTheme } from "../theme-context";
-import { fonts, fontSizes } from "../theme";
+import { fonts, fontSizes, homeTypography } from "../theme";
 
 type TypographyVariant =
   | "display"
@@ -17,7 +17,26 @@ type TypographyVariant =
   | "label"
   | "money"
   | "moneyLg"
-  | "moneyHero";
+  | "moneyHero"
+  | "homeTitle"
+  | "homeBody"
+  | "homeAvatar"
+  | "homeEyebrow"
+  | "homeCardLead"
+  | "homeDescription"
+  | "homeAction"
+  | "homeLink"
+  | "homeFinancialLabel"
+  | "homeFinancialValue"
+  | "homeMetricLabel"
+  | "homeMetricValue"
+  | "homeGoalTitle"
+  | "homeGoalValue"
+  | "homeProgress"
+  | "homeProgressStrong"
+  | "homeShortcut"
+  | "homeNavigation"
+  | "homeNavigationActive";
 
 interface TypographyProps extends TextProps {
   variant?: TypographyVariant;
@@ -122,6 +141,85 @@ export function Typography({
       lineHeight: 56,
       color: theme.colors.success,
       fontVariant: ["tabular-nums"],
+    },
+    homeTitle: {
+      ...homeTypography.title,
+      color: theme.colors.text,
+    },
+    homeBody: {
+      ...homeTypography.body,
+      color: theme.colors.textSecondary,
+    },
+    homeAvatar: {
+      ...homeTypography.avatar,
+      color: theme.colors.text,
+    },
+    homeEyebrow: {
+      ...homeTypography.eyebrow,
+      color: theme.colors.text,
+    },
+    homeCardLead: {
+      ...homeTypography.cardLead,
+      color: theme.colors.text,
+    },
+    homeDescription: {
+      ...homeTypography.description,
+      color: theme.colors.textSecondary,
+    },
+    homeAction: {
+      ...homeTypography.action,
+      color: theme.colors.text,
+    },
+    homeLink: {
+      ...homeTypography.link,
+      color: theme.colors.text,
+    },
+    homeFinancialLabel: {
+      ...homeTypography.financialLabel,
+      color: theme.colors.text,
+    },
+    homeFinancialValue: {
+      ...homeTypography.financialValue,
+      color: theme.colors.success,
+      fontVariant: ["tabular-nums"],
+    },
+    homeMetricLabel: {
+      ...homeTypography.metricLabel,
+      color: theme.colors.textSecondary,
+    },
+    homeMetricValue: {
+      ...homeTypography.metricValue,
+      color: theme.colors.success,
+      fontVariant: ["tabular-nums"],
+    },
+    homeGoalTitle: {
+      ...homeTypography.goalTitle,
+      color: theme.colors.text,
+    },
+    homeGoalValue: {
+      ...homeTypography.goalValue,
+      color: theme.colors.text,
+      fontVariant: ["tabular-nums"],
+    },
+    homeProgress: {
+      ...homeTypography.progress,
+      color: theme.colors.text,
+    },
+    homeProgressStrong: {
+      ...homeTypography.progressStrong,
+      color: theme.colors.text,
+    },
+    homeShortcut: {
+      ...homeTypography.shortcut,
+      color: theme.colors.text,
+    },
+    homeNavigation: {
+      ...homeTypography.navigation,
+      color: theme.colors.text,
+    },
+    homeNavigationActive: {
+      ...homeTypography.navigationActive,
+      color: theme.colors.text,
     },
   };
 

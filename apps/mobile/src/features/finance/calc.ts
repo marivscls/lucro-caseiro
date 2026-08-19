@@ -73,6 +73,22 @@ export function totalsByType(entries: ReadonlyArray<{ type: string; amount: numb
   return { income, expenses };
 }
 
+/** Percentual já recebido do valor total das encomendas, entre 0 e 100. */
+export function orderReceiptProgress(received: number, toReceive: number): number {
+  const safeReceived = Math.max(received, 0);
+  const total = safeReceived + Math.max(toReceive, 0);
+  if (total === 0) return 0;
+  return Math.round((safeReceived / total) * 100);
+}
+
+/** Saldo líquido de um conjunto de lançamentos: entradas − saídas. */
+export function entryBalance(
+  entries: ReadonlyArray<{ type: string; amount: number }>,
+): number {
+  const totals = totalsByType(entries);
+  return totals.income - totals.expenses;
+}
+
 /** Despesas muito acima do padrÃ£o observÃ¡vel do perÃ­odo (2x a mediana, com base >= 4). */
 export function unusualExpenses<T extends { type: string; amount: number }>(
   entries: ReadonlyArray<T>,

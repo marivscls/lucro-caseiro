@@ -21,7 +21,7 @@ import React, { useMemo, useState } from "react";
 import { Image, Platform, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-import agendaEmpty from "../../assets/agenda-empty-v3.png";
+import { useBrandIllustration } from "../../shared/brand-illustrations";
 import { SkeletonList } from "../../shared/components/skeleton";
 import { useClient } from "../../features/clients/hooks";
 import { OrderCard } from "../../features/orders/components/order-card";
@@ -1453,6 +1453,7 @@ function DayFilterModal({
 }
 
 function AgendaContent() {
+  const agendaEmpty = useBrandIllustration("agendaEmpty");
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
   const nativeMobile = !isDesktop && Platform.OS !== "web";

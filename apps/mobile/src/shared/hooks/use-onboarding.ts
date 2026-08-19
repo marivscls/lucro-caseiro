@@ -17,14 +17,17 @@ interface OnboardingState {
   currentStep: number;
   businessType: string | null;
   businessName: string | null;
-  // Card "Comece por aqui" da home: some quando a pessoa pula ou conclui os passos.
-  dismissedGettingStarted: boolean;
+  // Guia de ativacao da home. O progresso real vem dos dados de produto e venda;
+  // estas listas guardam apenas quem iniciou e quem confirmou o resultado.
+  gettingStartedStartedUserIds: string[];
+  gettingStartedCompletedUserIds: string[];
   setStep: (step: number) => void;
   setBusinessType: (type: string) => void;
   setBusinessName: (name: string) => void;
   startOnboarding: (userId: string) => void;
   completeOnboarding: (userId?: string | null) => Promise<void>;
-  dismissGettingStarted: () => void;
+  startGettingStarted: (userId: string) => void;
+  completeGettingStarted: (userId: string) => void;
   reset: () => void;
 }
 
@@ -37,7 +40,8 @@ export const useOnboarding = create<OnboardingState>()(
       currentStep: 0,
       businessType: null,
       businessName: null,
-      dismissedGettingStarted: false,
+      gettingStartedStartedUserIds: [],
+      gettingStartedCompletedUserIds: [],
       setStep: (step) => set({ currentStep: step }),
       setBusinessType: (type) => set({ businessType: type }),
       setBusinessName: (name) => set({ businessName: name }),
@@ -64,7 +68,22 @@ export const useOnboarding = create<OnboardingState>()(
             : state.pendingUserIds,
         }));
       },
-      dismissGettingStarted: () => set({ dismissedGettingStarted: true }),
+      startGettingStarted: (userId) =>
+        set((state) => ({
+          gettingStartedStartedUserIds: state.gettingStartedStartedUserIds.includes(
+            userId,
+          )
+            ? state.gettingStartedStartedUserIds
+            : [...state.gettingStartedStartedUserIds, userId],
+        })),
+      completeGettingStarted: (userId) =>
+        set((state) => ({
+          gettingStartedCompletedUserIds: state.gettingStartedCompletedUserIds.includes(
+            userId,
+          )
+            ? state.gettingStartedCompletedUserIds
+            : [...state.gettingStartedCompletedUserIds, userId],
+        })),
       // Zera só o estado de sessão; `completedUserIds` é preservado de
       // propósito (memória por conta neste aparelho).
       reset: () =>
@@ -73,7 +92,6 @@ export const useOnboarding = create<OnboardingState>()(
           currentStep: 0,
           businessType: null,
           businessName: null,
-          dismissedGettingStarted: false,
         }),
     }),
     {

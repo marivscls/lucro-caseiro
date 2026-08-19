@@ -7,6 +7,7 @@ import {
   adjustMaterial,
   createMaterial,
   deleteMaterial,
+  fetchAllMaterials,
   fetchLowStockMaterials,
   fetchMaterials,
   updateMaterial,
@@ -36,11 +37,20 @@ function patchMaterialsCache(old: unknown, id: string, delta: number): unknown {
   return old;
 }
 
-export function useMaterials(opts?: { page?: number; search?: string }) {
+export function useMaterials(opts?: { page?: number; limit?: number; search?: string }) {
   const { token } = useAuth();
   return useQuery({
     queryKey: [...MATERIALS_KEY, opts],
     queryFn: () => fetchMaterials(token!, opts),
+    enabled: !!token,
+  });
+}
+
+export function useAllMaterials() {
+  const { token } = useAuth();
+  return useQuery({
+    queryKey: [...MATERIALS_KEY, "all"],
+    queryFn: () => fetchAllMaterials(token!),
     enabled: !!token,
   });
 }

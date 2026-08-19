@@ -479,7 +479,7 @@ export class MarketingUseCases {
               `[${item.kind}] ${item.title}: ${item.summary ?? ""} ${JSON.stringify(item.data)}`,
           )
           .join("\n")}`,
-        'FORMATO EXATO: {"ideas":[{"title":"...","example":"...","category":"...","objective":"...","persona":"...","primaryEmotion":"...","mainPain":"...","mainDesire":"...","bestFormat":"Carrossel|Reels|Stories|Post|Email|Thread|Vídeo|Blog","hook":"...","cta":"...","strategicPotential":5,"justification":"...","scores":{"conversion":0,"sharing":0,"saving":0,"identification":0,"viral":0},"brief":{"theme":"...","category":"...","persona":"...","contentObjective":"...","personaStage":"...","mainPain":"...","mainDesire":"...","transformation":"...","primaryEmotion":"...","hook":"...","mainMessage":"...","cta":"..."}}]}',
+        'FORMATO EXATO: {"ideas":[{"title":"...","example":"...","contentIntent":"Promoção|Entretenimento|Debate|Aprendizado|Ligação","category":"...","objective":"...","persona":"...","primaryEmotion":"...","mainPain":"...","mainDesire":"...","bestFormat":"Carrossel|Reels|Stories|Post|Email|Thread|Vídeo|Blog","hook":"...","cta":"...","strategicPotential":5,"justification":"...","scores":{"conversion":0,"sharing":0,"saving":0,"identification":0,"viral":0},"brief":{"theme":"...","contentIntent":"Promoção|Entretenimento|Debate|Aprendizado|Ligação","category":"...","persona":"...","contentObjective":"...","personaStage":"...","mainPain":"...","mainDesire":"...","transformation":"...","primaryEmotion":"...","hook":"...","mainMessage":"...","cta":"..."}}]}',
         "Todos os scores devem ser inteiros de 0 a 100. strategicPotential deve ser inteiro de 1 a 5. Não repita título, gancho, CTA ou primaryEmotion.",
       ].join("\n\n"),
     });
@@ -894,7 +894,12 @@ export function parseMarketingContentIdeas(text: string): MarketingContentIdeas 
       return true;
     });
     if (ideas.length === 0) throw new Error("No unique ideas");
-    return { ideas };
+    return {
+      ideas: ideas.map((idea) => ({
+        ...idea,
+        brief: { ...idea.brief, contentIntent: idea.contentIntent },
+      })),
+    };
   } catch {
     throw new ServiceUnavailableError(
       "A IA não conseguiu montar as ideias. Tente novamente.",
@@ -942,8 +947,8 @@ function resourceDraftDataInstructions(kind: MarketingResourceKind) {
   if (kind !== "content") return "";
   return [
     "Para conteúdo, preencha data usando somente estas chaves quando houver informação:",
-    "theme, category, persona, contentObjective, personaStage, mainPain, mainDesire, transformation, hook, primaryEmotion, mentalTriggers, objections, mainMessage, cta, keywords, toneOfVoice, restrictions, proofs, desiredFormats e analysis.",
-    "mentalTriggers, objections, keywords, restrictions, proofs e desiredFormats devem ser arrays de strings; os demais campos do briefing devem ser strings.",
+    "theme, contentIntent, category, persona, contentObjective, personaStage, mainPain, mainDesire, transformation, hook, primaryEmotion, mentalTriggers, objections, mainMessage, cta, keywords, toneOfVoice, restrictions, proofs, desiredFormats e analysis.",
+    "mentalTriggers, objections, keywords, restrictions, proofs e desiredFormats devem ser arrays de strings; os demais campos do briefing devem ser strings. contentIntent deve ser Promoção, Entretenimento, Debate, Aprendizado ou Ligação.",
     'analysis deve seguir exatamente: {"bestFormat":"...","bestFormatReason":"...","actualObjective":"...","viralPotential":0,"viralClassification":"Baixo|Médio|Alto|Muito Alto","viralReason":"...","conversionPotential":0,"sharingPotential":0,"savingPotential":0,"hookStrength":0,"personaClarity":0,"objectiveClarity":0,"emotionalAppeal":0,"messageClarity":0,"engagementPotential":0,"overallScore":0,"diagnosis":{"strengths":["..."],"weaknesses":["..."],"missing":["..."],"excellent":["..."]},"improvements":{"hook":"...","message":"...","cta":"...","persona":"...","pain":"...","transformation":"..."},"naturalTriggers":["..."],"suggestedTriggers":["..."],"unansweredObjection":"...","storytellingOpportunity":"...","socialProofOpportunity":"...","numbersOpportunity":"...","executiveSummary":"..."}.',
     "Todos os scores devem ser inteiros de 0 a 100, coerentes com o briefing. bestFormat deve recomendar o formato mais adequado ao objetivo e à persona.",
     "Formatos aceitos: Post para Instagram, Carrossel, Reels, Stories, Threads, Facebook, LinkedIn, E-mail, Artigo, Blog, Push notification, Roteiro de vídeo, Legenda, Título, CTA, Prompt para imagem, Prompt para vídeo e Hashtags.",

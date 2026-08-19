@@ -3,7 +3,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "../../shared/hooks/use-auth";
 import { trackAnalyticsAction } from "../analytics/tracker";
-import { fetchCatalogSettings, updateCatalogSettings } from "./api";
+import {
+  fetchCatalogSettings,
+  fetchCatalogSlugAvailability,
+  updateCatalogSettings,
+} from "./api";
 
 const CATALOG_KEY = ["catalog"];
 
@@ -13,6 +17,16 @@ export function useCatalogSettings() {
     queryKey: [...CATALOG_KEY, "settings"],
     queryFn: () => fetchCatalogSettings(token!),
     enabled: !!token,
+  });
+}
+
+export function useCatalogSlugAvailability(slug: string, enabled: boolean) {
+  const { token } = useAuth();
+  return useQuery({
+    queryKey: [...CATALOG_KEY, "slug-availability", slug],
+    queryFn: () => fetchCatalogSlugAvailability(token!, slug),
+    enabled: !!token && enabled,
+    staleTime: 30_000,
   });
 }
 

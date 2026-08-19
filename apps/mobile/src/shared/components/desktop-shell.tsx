@@ -35,6 +35,12 @@ const PRIMARY_NAV: ReadonlyArray<NavigationItem> = [
 const MANAGEMENT_NAV: ReadonlyArray<NavigationItem> = [
   {
     label: "Operação",
+    href: "/operations",
+    icon: "clipboard-outline",
+    feature: "operacaoVertical",
+  },
+  {
+    label: "Operação",
     href: "/retail",
     icon: "storefront-outline",
     feature: "varejoPapelaria",
@@ -43,12 +49,18 @@ const MANAGEMENT_NAV: ReadonlyArray<NavigationItem> = [
   { label: "Serviços", href: "/services", icon: "briefcase-outline" },
   {
     label: "Insumos",
-    href: "/materials",
+    href: "/tabs/materials",
     icon: "leaf-outline",
     feature: "materiais",
   },
   { label: "Precificação", href: "/pricing", icon: "calculator-outline" },
   { label: "Financeiro", href: "/tabs/finance", icon: "wallet-outline" },
+  {
+    label: "Conheça também",
+    href: "/lucro-apps",
+    icon: "apps-outline",
+    feature: "familiaLucro",
+  },
   { label: "Mais opções", href: "/tabs/more", icon: "grid-outline" },
 ];
 
@@ -139,7 +151,10 @@ export function DesktopShell({
   const userName = profile?.name ?? "Minha conta";
   const businessName = profile?.businessName ?? brandName;
   const managementNav = MANAGEMENT_NAV.map((item) => {
-    if (item.href === "/materials") {
+    if (item.href === "/operations") {
+      return { ...item, label: brand.vertical.operationLabel };
+    }
+    if (item.href === "/tabs/materials") {
       return {
         ...item,
         label: experienceCopy.materialNounPlural.replace(/^./, (letter) =>
@@ -176,10 +191,7 @@ export function DesktopShell({
           }}
         >
           <Image
-            source={
-              brandLogoByMode[theme.mode][brand.id] ??
-              brandLogoByMode[theme.mode]["lucro-caseiro"]
-            }
+            source={brandLogoByMode[theme.mode][brand.id]}
             style={{ width: 40, height: 40 }}
             resizeMode="contain"
             accessibilityLabel={brandName}
@@ -266,7 +278,6 @@ export function DesktopShell({
             width: "100%",
             maxWidth: 1440,
             paddingHorizontal: spacing["3xl"],
-            paddingTop: spacing["3xl"],
             minWidth: 0,
           }}
         >

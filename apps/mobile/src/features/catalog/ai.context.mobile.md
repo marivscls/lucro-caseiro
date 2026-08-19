@@ -27,6 +27,9 @@ API (`/c/:slug`).
 | ------------------------------------------- | ----------------------------------------------------------- |
 | `apps/mobile/src/features/catalog/api.ts`   | fetch/update settings + `publicCatalogUrl(slug)`            |
 | `apps/mobile/src/features/catalog/hooks.ts` | `useCatalogSettings`, `useUpdateCatalogSettings`            |
+| `apps/mobile/src/features/catalog/catalog-customizer.ts` | Estado, validação e `displayCatalogItemName` do editor |
+| `apps/mobile/src/features/catalog/components/catalog-customizer.tsx` | Fluxo Identidade / Topo / Organização |
+| `apps/mobile/src/features/catalog/components/storefront-preview.tsx` | Prévias administrativas alinhadas ao renderer público |
 | `apps/mobile/src/app/catalog.tsx`           | Tela de configuração (switch, slug, whatsapp, compartilhar) |
 | `apps/mobile/src/app/c/[slug].tsx`          | Redireciona `/c/:slug` do PWA para a vitrine pública        |
 
@@ -84,6 +87,28 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
 - Acesso: aba "Mais" → "Catálogo online". Rota: `/catalog`.
 
 ## Change log / Decisions
+
+- 2026-08-19: no computador (shell ≥1024), Personalizar vitrine fica no painel
+  do app — sem modal em tela cheia nem navbar. Em 1200px+ o editor usa
+  formulário + prévia sticky (padrão Precificação) em Identidade, Topo,
+  Conteúdo, Cards e Publicação; CTAs ficam no aside. Abaixo disso o computador
+  mantém uma coluna, sem esticar controles. A prévia HTML abre em painel
+  centralizado.
+
+- 2026-08-19: Personalizar vitrine mantém Identidade → Topo → Organização
+  (Conteúdo / Cards e ações / Publicação). A prévia administrativa consome o
+  rascunho e a `coverUrl` real; logo, capa e destaques são campos separados.
+  Prefixos técnicos como `[massa]` são removidos no formatter
+  (`displayCatalogItemName`) antes de cards, listas e seletores. O header
+  (título + steppers) e a barra de ações ficam fora do scroll; o conteúdo
+  reserva o espaço da navbar. Sem capa, o estado vazio é compacto e o frontend
+  não recria arte vinho. Ações individuais zeradas no modo por item não entram
+  como sucesso na revisão final.
+
+- 2026-08-19: o editor da vitrine (Identidade, Publicação e demais passos) usa a
+  paleta do tema no chrome. A prévia interna da loja continua com as cores
+  escolhidas pelo usuário. Se o HTML da prévia falhar na web, o app mostra a
+  prévia local em vez do alerta "Não foi possível abrir a prévia".
 
 - 2026-08-01: a área Aparência alterna entre Produtos e Serviços. Capa, frase e faixa promocional são próprias de cada vitrine; foto de perfil, WhatsApp e cor permanecem compartilhados.
 

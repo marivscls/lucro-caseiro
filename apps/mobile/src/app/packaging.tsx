@@ -1,10 +1,11 @@
 import { formatCurrency } from "../shared/utils/format";
 import {
   Button,
+  Chip,
   EmptyState,
+  FilterChipRow,
   fontSizes,
   Typography,
-  fonts,
   useTheme,
   spacing,
   radii,
@@ -20,7 +21,7 @@ import packagingEmpty from "../assets/packaging-empty.png";
 import { PackagingCard } from "../features/packaging/components/packaging-card";
 import { PackagingDetail } from "../features/packaging/components/packaging-detail";
 import { PackagingForm } from "../features/packaging/components/packaging-form";
-import { PACKAGING_TYPES, totalStockCost, typeColor } from "../features/packaging/domain";
+import { PACKAGING_TYPES, totalStockCost } from "../features/packaging/domain";
 import { useDeletePackaging, usePackagingList } from "../features/packaging/hooks";
 import { LimitBanner } from "../features/subscription/components/limit-banner";
 import { showAlert } from "../shared/components/alert-store";
@@ -123,6 +124,13 @@ function PackagingScreenContent() {
       return !query || p.name.toLowerCase().includes(query);
     });
   }, [items, search, typeFilter]);
+  const typeCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: items.length };
+    for (const item of items) {
+      counts[item.type] = (counts[item.type] ?? 0) + 1;
+    }
+    return counts;
+  }, [items]);
 
   const border = theme.colors.border;
 
@@ -408,42 +416,17 @@ function PackagingScreenContent() {
 
       {filtersOpen ? (
         <View style={{ ...pageGutter(isDesktop, spacing.lg), paddingBottom: spacing.sm }}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: spacing.sm }}
-          >
-            {[{ value: null, label: "Todas" }, ...PACKAGING_TYPES].map((t) => {
-              const active = typeFilter === t.value;
-              const chipColor = t.value
-                ? typeColor(theme, t.value)
-                : theme.colors.primaryStrong;
-              return (
-                <Pressable
-                  key={t.label}
-                  onPress={() => setTypeFilter(t.value)}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: active }}
-                  style={{
-                    paddingHorizontal: spacing.md,
-                    paddingVertical: spacing.sm,
-                    borderRadius: radii.full,
-                    borderWidth: 1,
-                    borderColor: active ? chipColor : border,
-                    backgroundColor: active ? `${chipColor}26` : "transparent",
-                  }}
-                >
-                  <Typography
-                    variant="caption"
-                    color={active ? chipColor : theme.colors.textSecondary}
-                    style={{ fontFamily: fonts.bold }}
-                  >
-                    {t.label}
-                  </Typography>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
+          <FilterChipRow>
+            {[{ value: null, label: "Todas" }, ...PACKAGING_TYPES].map((t) => (
+              <Chip
+                key={t.label}
+                label={t.label}
+                count={t.value ? (typeCounts[t.value] ?? 0) : typeCounts.all}
+                selected={typeFilter === t.value}
+                onPress={() => setTypeFilter(t.value)}
+              />
+            ))}
+          </FilterChipRow>
         </View>
       ) : null}
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { productInitial } from "./display";
+import { displayProductName, productInitial } from "./display";
 
 describe("productInitial", () => {
   it("uses the visible product name after a technical prefix", () => {
@@ -9,5 +9,9 @@ describe("productInitial", () => {
 
   it("uses the regular first letter", () => {
     expect(productInitial("Coxinha")).toBe("C");
+  });
+
+  it("exposes the visible product name without technical prefixes", () => {
+    expect(displayProductName("[massa] Kit festa")).toBe("Kit festa");
   });
 });

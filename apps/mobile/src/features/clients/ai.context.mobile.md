@@ -137,3 +137,6 @@ Importados de `@lucro-caseiro/contracts`.
 - 2026-06-15: `useBirthdayNotifier(isPremium)` — notificacao local quando um cliente faz aniversario hoje (1x/dia via AsyncStorage). Recurso **Premium**, respeita a preferencia (`notification-prefs`, tipo `CLIENT_BIRTHDAY`). Helper puro `isBirthdayToday` coberto por teste. Montado no `app/_layout.tsx`.
 - 2026-06-17: card "Aniversariantes do mes" na home (`app/tabs/index`) agora e **Premium**. Premium ve os nomes (respeitando `CLIENT_BIRTHDAY` pref); free ve um teaser com cadeado + selo Premium (so a contagem, sem nomes) que abre o paywall (`showPaywall("birthdays")`, copy em `subscription/limit-copy.ts`). Antes o card aparecia com os nomes para qualquer usuario (free e premium) — inconsistente com a notificacao, que ja era Premium.
 - 2026-07-11: Clientes saiu do bottom tab bar, substituido por Agenda (ADR-0006). `tabs/_layout.tsx` mantem o `Tabs.Screen name="clients"` com `href: null` para preservar a rota `/tabs/clients` (usada por `new-sale.tsx`, `notification-types.ts` e o novo destaque "Do dia a dia" em `tabs/more.tsx`) sem exibir o item na tab bar.
+- 2026-08-18: filtros da lista (geral/Recentes/Frequentes/Com fiado) usam o `Chip`
+  compartilhado com badge. Contagens vêm de `countClientListFilters` sobre os
+  insights já carregados — sem request extra.

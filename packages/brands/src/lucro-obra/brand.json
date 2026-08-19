@@ -1,0 +1,56 @@
+{
+  "id": "lucro-obra",
+  "appName": "Lucro na Obra",
+  "slug": "lucro-obra",
+  "scheme": "lucroobra",
+  "iosBundleId": "com.lucronaobra.app",
+  "androidPackage": "br.com.orionseven.lucroobra",
+  "theme": {
+    "primary": "#4B5563",
+    "primaryLight": "#6B7280",
+    "primaryDark": "#374151",
+    "primaryStrong": "#374151",
+    "primaryStrongDark": "#D1D5DB",
+    "primaryInteractive": "#374151",
+    "primaryInteractiveDark": "#9CA3AF",
+    "primarySoft": "#E5E7EB",
+    "primarySoftDark": "#2F343C",
+    "background": "#F5F8FA",
+    "surface": "#FFFFFF",
+    "backgroundDark": "#222A30",
+    "surfaceDark": "#2D3840"
+  },
+  "copy": {
+    "productNoun": "obra",
+    "productNounPlural": "obras",
+    "saleLabel": "Registrar medição",
+    "stockLabel": "Materiais",
+    "revenueLabel": "Valores medidos",
+    "labelsLabel": "Documentos da obra"
+  },
+  "features": {
+    "estoque": false,
+    "agendamento": true,
+    "catalogoCores": false,
+    "fichaTecnica": false,
+    "materiais": true,
+    "embalagens": false,
+    "vendaPorPeso": false,
+    "custoDireto": true,
+    "comprasComEstoque": false,
+    "varejoPapelaria": false,
+    "operacaoVertical": true,
+    "familiaLucro": true
+  },
+  "vertical": {
+    "domain": "obra",
+    "operationLabel": "Gestão das Obras",
+    "operationDescription": "Orçamentos, etapas, diário, medições e aditivos",
+    "primaryActionLabel": "Criar orçamento"
+  },
+  "onboarding": {
+    "businessType": "services",
+    "nicheId": "obra",
+    "skipNicheSelection": true
+  }
+}

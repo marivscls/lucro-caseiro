@@ -25,13 +25,14 @@ interface RequestOptions {
   method?: string;
   body?: unknown;
   token?: string;
+  responseType?: "json" | "text";
 }
 
 export async function apiClient<T>(
   path: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  const { method = "GET", body, token } = options;
+  const { method = "GET", body, token, responseType = "json" } = options;
 
   async function request(
     currentToken: string | undefined,
@@ -81,7 +82,7 @@ export async function apiClient<T>(
       return undefined as T;
     }
 
-    return JSON.parse(text) as T;
+    return (responseType === "text" ? text : JSON.parse(text)) as T;
   }
 
   return request(token, true);

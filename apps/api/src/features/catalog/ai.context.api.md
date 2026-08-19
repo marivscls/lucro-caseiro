@@ -125,6 +125,15 @@ invariants:
 
 ## Change log / Decisions
 
+- 2026-08-19: nomes públicos passam por `displayCatalogName` no renderer (e no
+  HTML legado) para remover prefixos técnicos como `[massa]`. A capa continua
+  vindo só de `coverUrl`/`serviceCoverUrl`; `hero.coverFocal` opcional ajusta
+  `object-position` e zoom sem recriar a arte.
+
+- 2026-08-19: ícones de WhatsApp da vitrine (CTA do hero, atalho "Contato pelo WhatsApp", FAB e botões de pedido) usam o glifo oficial (balão + telefone, `fill="currentColor"`), no `storefront-renderer` e no HTML legado de `catalog.domain`.
+
+- 2026-08-18: a vitrine publicada (`storefront-renderer` + `storefront-styles`) usa a mesma tipografia do app (Manrope 400–800, ADR-0008). Capa só via `coverUrl`/`serviceCoverUrl` com `object-fit: cover` e gradiente creme localizado à esquerda. A faixa promocional e o atalho com ícone `sparkles` mostram só o texto, sem o brilho. Busca+filtro no mesmo campo, categorias com sublinhado, abas Produtos/Serviços e cards com rodapé separado. Sem blob, SVG ou fotografia fixa no hero.
+
 - 2026-08-01: links `?tipo=produtos` e `?tipo=servicos` renderizam somente a seção escolhida. A vitrine de serviços ganhou capa, frase e faixa promocional próprias (`service_*`, migration 047); logo, WhatsApp, cor e pattern continuam compartilhados.
 
 - 2026-07-28: o catálogo público passa a incluir serviços marcados como públicos,

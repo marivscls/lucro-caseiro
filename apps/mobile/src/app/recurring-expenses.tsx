@@ -1,56 +1,60 @@
 import type { ExpenseCategory, RecurringExpense } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import {
+  Button,
   EmptyState,
+  fonts,
   fontSizes,
   iconSizes,
+  Input,
   radii,
   spacing,
   Typography,
   useTheme,
   type Theme,
 } from "@lucro-caseiro/ui";
-import { AppIcon } from "../shared/components/app-icon";
-import type { AppIconName } from "../shared/components/app-icon";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useMemo, useState } from "react";
 import {
   Image,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
-  TextInput,
+  useWindowDimensions,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-import recurringHero from "../assets/recurring-expenses-hero.png";
-import { showAlert } from "../shared/components/alert-store";
-import { SkeletonList } from "../shared/components/skeleton";
-import { showToast } from "../shared/components/toast";
+import fixedExpensesCalendar from "../assets/fixed-expenses-calendar.png";
+import { useBusinessCopy } from "../features/subscription/business-copy";
 import {
   useCreateRecurring,
   useDeleteRecurring,
   useRecurringExpenses,
   useUpdateRecurring,
 } from "../features/finance/hooks";
+import {
+  nextRecurringExpense,
+  sortRecurringExpenses,
+  upcomingRecurringDays,
+  type RecurringSortDirection,
+} from "../features/finance/recurring-expenses-view";
 import { useProfile } from "../features/subscription/hooks";
+import type { AppIconName } from "../shared/components/app-icon";
+import { AppIcon } from "../shared/components/app-icon";
+import { showAlert } from "../shared/components/alert-store";
+import { SkeletonList } from "../shared/components/skeleton";
+import { StandardModal } from "../shared/components/standard-modal";
+import { showToast } from "../shared/components/toast";
 import { usePaywall } from "../shared/hooks/use-paywall";
+import { desktopStretch, pageGutter } from "../shared/layout/desktop-density";
+import { brandScreenPalette } from "../shared/brand-palette";
+import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { ApiError } from "../shared/utils/api-client";
 import { alertError, alertValidation } from "../shared/utils/alerts";
 import { maskCurrencyInput, parseCurrencyInput } from "../shared/utils/currency-input";
-import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
-import {
-  desktopAction,
-  desktopCompactField,
-  desktopStretch,
-  pageGutter,
-} from "../shared/layout/desktop-density";
-import { ScreenHeader } from "../shared/components/screen-header";
-import { useBusinessCopy } from "../features/subscription/business-copy";
+import { formatCurrency } from "../shared/utils/format";
 
 const CATEGORIES: {
   key: ExpenseCategory;
@@ -58,35 +62,45 @@ const CATEGORIES: {
   icon: AppIconName;
 }[] = [
   { key: "utility", label: "Utilidade", icon: "flash-outline" },
-  { key: "material", label: "Material", icon: "cube-outline" },
+  { key: "material", label: "Insumo", icon: "cube-outline" },
   { key: "packaging", label: "Embalagem", icon: "file-tray-outline" },
   { key: "transport", label: "Transporte", icon: "car-outline" },
   { key: "fee", label: "Taxa", icon: "pricetag-outline" },
   { key: "other", label: "Outro", icon: "ellipsis-horizontal-circle-outline" },
 ];
 
+const CATEGORY_SURFACES: Record<ExpenseCategory, string> = {
+  sale: "#F5EEE8",
+  utility: "#FBE6EA",
+  material: "#F4ECE8",
+  packaging: "#F5EEE8",
+  transport: "#EDF0F2",
+  fee: "#F7EEE8",
+  other: "#F1ECF4",
+};
+
 function useRecurringTheme() {
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  return { theme, styles };
+  return { theme, styles, palette: brandScreenPalette(theme) };
 }
 
 function categoryLabel(
   key: string,
-  materialNoun = "material",
+  materialNoun = "insumo",
   packagingNoun = "embalagem",
 ): string {
   if (key === "material") return capitalize(materialNoun);
   if (key === "packaging") return capitalize(packagingNoun);
-  return CATEGORIES.find((c) => c.key === key)?.label ?? "Outro";
+  return CATEGORIES.find((category) => category.key === key)?.label ?? "Outro";
+}
+
+function categoryIcon(key: ExpenseCategory): AppIconName {
+  return CATEGORIES.find((category) => category.key === key)?.icon ?? "receipt-outline";
 }
 
 function capitalize(value: string): string {
   return value.replace(/^./, (letter) => letter.toUpperCase());
-}
-
-function formatMoney(value: number): string {
-  return `R$ ${value.toFixed(2).replace(".", ",")}`;
 }
 
 function moneyInputValue(value: number): string {
@@ -94,19 +108,43 @@ function moneyInputValue(value: number): string {
 }
 
 export default function RecurringExpensesScreen() {
-  const { theme, styles } = useRecurringTheme();
+  const { theme, styles, palette } = useRecurringTheme();
   const experienceCopy = useBusinessCopy();
   const isDesktop = useDesktopLayout();
+  const { width: viewportWidth } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { data: items, isLoading } = useRecurringExpenses();
   const remove = useDeleteRecurring();
   const { data: profile } = useProfile();
   const canUseRecurringExpenses =
     !!profile &&
     hasActiveFeature(profile.plan, profile.planExpiresAt, "recurringExpenses");
-  const showPaywall = usePaywall((s) => s.show);
+  const showPaywall = usePaywall((state) => state.show);
   const [showForm, setShowForm] = useState(false);
+  const [sortDirection, setSortDirection] = useState<RecurringSortDirection>("asc");
   const [selectedExpense, setSelectedExpense] = useState<RecurringExpense | null>(null);
   const [editingExpense, setEditingExpense] = useState<RecurringExpense | null>(null);
+
+  const recurringItems = items ?? [];
+  const orderedItems = useMemo(
+    () => sortRecurringExpenses(items ?? [], sortDirection),
+    [items, sortDirection],
+  );
+  const nextExpense = useMemo(() => nextRecurringExpense(items ?? []), [items]);
+  const timelineDays = useMemo(() => upcomingRecurringDays(items ?? []), [items]);
+  const total = useMemo(
+    () => (items ?? []).reduce((sum, item) => sum + item.amount, 0),
+    [items],
+  );
+
+  function handleBack() {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+    router.replace("/tabs/more");
+  }
 
   function handleAddPress() {
     if (!canUseRecurringExpenses) {
@@ -116,6 +154,11 @@ export default function RecurringExpensesScreen() {
     setSelectedExpense(null);
     setEditingExpense(null);
     setShowForm(true);
+  }
+
+  function closeForm() {
+    setShowForm(false);
+    setEditingExpense(null);
   }
 
   function confirmDelete(id: string, description: string) {
@@ -138,158 +181,366 @@ export default function RecurringExpensesScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView edges={["top", "left", "right"]} style={styles.safeArea}>
       <Stack.Screen options={{ headerShown: false }} />
       <StatusBar style={theme.mode === "dark" ? "light" : "dark"} />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardAvoider}
-      >
+      <View style={styles.screen}>
+        <RecurringHeader
+          title="Gastos fixos"
+          subtitle="Organize o que se repete todo mês."
+          onBack={handleBack}
+          onAdd={handleAddPress}
+          isDesktop={isDesktop}
+        />
+
         <ScrollView
           contentContainerStyle={[
             styles.content,
             pageGutter(isDesktop, spacing.lg),
             desktopStretch(isDesktop),
+            { paddingBottom: Math.max(112, insets.bottom + 96) },
           ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.hero}>
-            <ScreenHeader
-              title="Gastos fixos"
-              hideBack={isDesktop}
-              style={{ paddingHorizontal: 0 }}
-            />
-
-            <Typography
-              variant="caption"
-              style={{ marginTop: spacing.sm, maxWidth: 245 }}
-            >
-              Despesas que se repetem todo mês (aluguel, internet, gás...) caem sozinhas
-              no seu caixa na data certa.
-            </Typography>
-
-            <Image
-              source={recurringHero}
-              resizeMode="contain"
-              style={styles.heroImage}
-              accessibilityIgnoresInvertColors
-            />
-          </View>
+          <MonthlyCommitmentsCard
+            compact={viewportWidth <= 360}
+            count={recurringItems.length}
+            imageSize={Math.min(
+              160,
+              Math.max(
+                96,
+                (viewportWidth - (viewportWidth <= 360 ? 56 : 64)) *
+                  (viewportWidth <= 360 ? 0.4 : 0.44) *
+                  0.92,
+              ),
+            )}
+            nextDay={nextExpense?.dayOfMonth ?? null}
+            timelineDays={timelineDays}
+            total={total}
+          />
 
           {!canUseRecurringExpenses ? (
             <RecurringPremiumGate onUnlock={() => showPaywall("recurring")} />
           ) : (
             <>
-              <Pressable
-                accessibilityRole="button"
-                onPress={handleAddPress}
-                style={({ pressed }) => [styles.addButton, pressed && styles.pressed]}
-              >
-                <AppIcon
-                  name="add-circle-outline"
-                  size={iconSizes.sm}
-                  color={theme.colors.textOnPrimary}
-                />
-                <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
-                  Adicionar gasto fixo
-                </Typography>
-              </Pressable>
+              <View style={styles.listHeadingRow}>
+                <View style={styles.listHeadingCopy}>
+                  <Typography variant="h3" color={palette.wine}>
+                    Seus gastos fixos
+                  </Typography>
+                  <Typography variant="caption">Ordenados por vencimento</Typography>
+                </View>
+                <Pressable
+                  accessibilityHint="Alterna a ordem dos gastos pelo dia do mês"
+                  accessibilityLabel={`Ordenar por data em ordem ${
+                    sortDirection === "asc" ? "decrescente" : "crescente"
+                  }`}
+                  accessibilityRole="button"
+                  onPress={() =>
+                    setSortDirection((current) => (current === "asc" ? "desc" : "asc"))
+                  }
+                  style={({ pressed }) => [styles.sortButton, pressed && styles.pressed]}
+                >
+                  <AppIcon
+                    name="filter-outline"
+                    size={iconSizes.xs}
+                    color={palette.wine}
+                  />
+                  <Typography variant="captionBold" color={palette.wine}>
+                    Data {sortDirection === "asc" ? "↑" : "↓"}
+                  </Typography>
+                </Pressable>
+              </View>
 
-              {showForm && (
-                <RecurringForm
-                  key={editingExpense?.id ?? "new"}
-                  item={editingExpense}
-                  onClose={() => {
-                    setShowForm(false);
-                    setEditingExpense(null);
-                  }}
-                  onPaywall={() => {
-                    setShowForm(false);
-                    setEditingExpense(null);
-                    showPaywall("recurring");
-                  }}
-                  onSaved={(saved) => {
-                    setSelectedExpense(saved);
-                    setEditingExpense(null);
-                  }}
-                />
-              )}
+              {isLoading ? <SkeletonList rows={5} variant="amount" /> : null}
 
-              {isLoading && <SkeletonList rows={3} variant="amount" />}
+              {!isLoading && recurringItems.length === 0 ? (
+                <EmptyRecurringState isDesktop={isDesktop} />
+              ) : null}
 
-              {!isLoading && (items?.length ?? 0) === 0 && <EmptyRecurringState />}
-
-              {!isLoading &&
-                (items ?? []).map((item) => (
-                  <React.Fragment key={item.id}>
-                    <Pressable
-                      accessibilityLabel={`Ver detalhes de ${item.description}`}
-                      accessibilityRole="button"
+              {!isLoading && orderedItems.length > 0 ? (
+                <View style={styles.expenseList}>
+                  {orderedItems.map((item, index) => (
+                    <ExpenseRow
+                      key={item.id}
+                      item={item}
+                      isLast={index === orderedItems.length - 1}
+                      isNext={item.id === nextExpense?.id}
+                      isSelected={selectedExpense?.id === item.id}
+                      materialNoun={experienceCopy.materialNoun}
+                      packagingNoun={experienceCopy.packagingNoun}
                       onPress={() => {
                         setSelectedExpense(item);
-                        setShowForm(false);
                         setEditingExpense(null);
                       }}
-                      style={({ pressed }) => [
-                        styles.expenseCard,
-                        selectedExpense?.id === item.id && styles.expenseCardSelected,
-                        pressed && styles.pressed,
-                      ]}
-                    >
-                      <View style={styles.expenseIcon}>
-                        <AppIcon
-                          name="calendar-outline"
-                          size={iconSizes.sm}
-                          color={theme.colors.textSecondary}
-                        />
-                      </View>
-                      <View style={styles.expenseInfo}>
-                        <Typography variant="bodyBold">{item.description}</Typography>
-                        <Typography variant="caption">
-                          {categoryLabel(
-                            item.category,
-                            experienceCopy.materialNoun,
-                            experienceCopy.packagingNoun,
-                          )}{" "}
-                          · todo dia {item.dayOfMonth}
-                        </Typography>
-                      </View>
-                      <Typography variant="captionBold">
-                        {formatMoney(item.amount)}
-                      </Typography>
-                      <AppIcon
-                        name="chevron-forward"
-                        size={iconSizes.sm}
-                        color={theme.colors.textSecondary}
-                      />
-                    </Pressable>
+                    />
+                  ))}
+                </View>
+              ) : null}
 
-                    {selectedExpense?.id === item.id && !showForm && (
-                      <RecurringDetails
-                        item={selectedExpense}
-                        onClose={() => setSelectedExpense(null)}
-                        onDelete={() =>
-                          confirmDelete(selectedExpense.id, selectedExpense.description)
-                        }
-                        onEdit={() => {
-                          setEditingExpense(selectedExpense);
-                          setShowForm(true);
-                        }}
-                      />
-                    )}
-                  </React.Fragment>
-                ))}
+              {selectedExpense && !isLoading ? (
+                <RecurringDetails
+                  item={selectedExpense}
+                  onClose={() => setSelectedExpense(null)}
+                  onDelete={() =>
+                    confirmDelete(selectedExpense.id, selectedExpense.description)
+                  }
+                  onEdit={() => {
+                    setEditingExpense(selectedExpense);
+                    setShowForm(true);
+                  }}
+                />
+              ) : null}
             </>
           )}
         </ScrollView>
-      </KeyboardAvoidingView>
+
+        {canUseRecurringExpenses ? (
+          <Pressable
+            accessibilityLabel="Adicionar gasto fixo"
+            accessibilityRole="button"
+            hitSlop={6}
+            onPress={handleAddPress}
+            style={({ pressed }) => [
+              styles.fab,
+              { bottom: insets.bottom + spacing.xl },
+              pressed && styles.pressed,
+            ]}
+          >
+            <AppIcon name="add" size={iconSizes.lg} color={palette.onWine} />
+          </Pressable>
+        ) : null}
+      </View>
+
+      {showForm && canUseRecurringExpenses ? (
+        <RecurringFormModal
+          key={editingExpense?.id ?? "new"}
+          item={editingExpense}
+          onClose={closeForm}
+          onPaywall={() => {
+            closeForm();
+            showPaywall("recurring");
+          }}
+          onSaved={(saved) => setSelectedExpense(saved)}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }
 
-function RecurringForm({
+function RecurringHeader({
+  title,
+  subtitle,
+  onBack,
+  onAdd,
+  isDesktop,
+}: Readonly<{
+  title: string;
+  subtitle: string;
+  onBack: () => void;
+  onAdd?: () => void;
+  isDesktop: boolean;
+}>) {
+  const { styles, palette } = useRecurringTheme();
+
+  return (
+    <View
+      style={[
+        styles.header,
+        pageGutter(isDesktop, spacing.lg),
+        desktopStretch(isDesktop),
+      ]}
+    >
+      <Pressable
+        accessibilityLabel="Voltar"
+        accessibilityRole="button"
+        hitSlop={6}
+        onPress={onBack}
+        style={({ pressed }) => [styles.headerBack, pressed && styles.pressed]}
+      >
+        <AppIcon name="chevron-back" size={iconSizes.md} color={palette.ink} />
+      </Pressable>
+      <View style={styles.headerCopy}>
+        <Typography variant="screenTitle" color={palette.wine} numberOfLines={1}>
+          {title}
+        </Typography>
+        <Typography variant="caption" color={palette.warmGray}>
+          {subtitle}
+        </Typography>
+      </View>
+      {onAdd ? (
+        <Pressable
+          accessibilityLabel="Adicionar gasto fixo"
+          accessibilityRole="button"
+          hitSlop={4}
+          onPress={onAdd}
+          style={({ pressed }) => [styles.headerAdd, pressed && styles.pressed]}
+        >
+          <AppIcon name="add" size={iconSizes.md} color={palette.onWine} />
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
+
+function MonthlyCommitmentsCard({
+  compact,
+  count,
+  imageSize,
+  nextDay,
+  timelineDays,
+  total,
+}: Readonly<{
+  compact: boolean;
+  count: number;
+  imageSize: number;
+  nextDay: number | null;
+  timelineDays: readonly number[];
+  total: number;
+}>) {
+  const { styles, palette } = useRecurringTheme();
+
+  return (
+    <View style={[styles.commitmentCard, compact && styles.commitmentCardCompact]}>
+      <View style={styles.commitmentUpper}>
+        <View style={[styles.commitmentCopy, compact && styles.commitmentCopyCompact]}>
+          <Typography variant="body" color={palette.onWine}>
+            Compromissos do mês
+          </Typography>
+          <Typography
+            adjustsFontSizeToFit
+            minimumFontScale={0.62}
+            numberOfLines={1}
+            style={styles.commitmentValue}
+          >
+            {formatCurrency(total)}
+          </Typography>
+          <Typography variant="caption" color="rgba(255,255,255,0.9)">
+            {count} {count === 1 ? "gasto cadastrado" : "gastos cadastrados"}
+          </Typography>
+        </View>
+
+        <View
+          accessible={false}
+          importantForAccessibility="no-hide-descendants"
+          pointerEvents="none"
+          style={[styles.commitmentVisual, compact && styles.commitmentVisualCompact]}
+        >
+          <View style={styles.commitmentBlob} />
+          <Image
+            accessibilityIgnoresInvertColors
+            accessible={false}
+            resizeMode="contain"
+            source={fixedExpensesCalendar}
+            style={[styles.commitmentImage, { height: imageSize, width: imageSize }]}
+          />
+        </View>
+      </View>
+
+      <View style={styles.timeline}>
+        {timelineDays.length > 1 ? <View style={styles.timelineLine} /> : null}
+        {timelineDays.length > 0 ? (
+          timelineDays.map((day) => {
+            const highlighted = day === nextDay;
+            return (
+              <View key={day} style={styles.timelineItem}>
+                <View
+                  style={[
+                    styles.timelineDot,
+                    highlighted && styles.timelineDotHighlighted,
+                  ]}
+                />
+                <Typography
+                  variant="caption"
+                  color={highlighted ? palette.lime : "rgba(255,255,255,0.9)"}
+                >
+                  {day}
+                </Typography>
+              </View>
+            );
+          })
+        ) : (
+          <Typography variant="caption" color="rgba(255,255,255,0.72)">
+            Seus próximos vencimentos aparecerão aqui
+          </Typography>
+        )}
+      </View>
+    </View>
+  );
+}
+
+function ExpenseRow({
+  item,
+  isLast,
+  isNext,
+  isSelected,
+  materialNoun,
+  packagingNoun,
+  onPress,
+}: Readonly<{
+  item: RecurringExpense;
+  isLast: boolean;
+  isNext: boolean;
+  isSelected: boolean;
+  materialNoun: string;
+  packagingNoun: string;
+  onPress: () => void;
+}>) {
+  const { theme, styles, palette } = useRecurringTheme();
+  const iconSurface =
+    theme.mode === "light" ? CATEGORY_SURFACES[item.category] : theme.colors.surface;
+
+  return (
+    <Pressable
+      accessibilityHint="Abre os detalhes e a edição deste gasto"
+      accessibilityLabel={`${item.description}, ${categoryLabel(
+        item.category,
+        materialNoun,
+        packagingNoun,
+      )}, dia ${item.dayOfMonth}, ${formatCurrency(item.amount)}`}
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.expenseRow,
+        !isLast && styles.expenseRowDivider,
+        isNext && styles.expenseRowNext,
+        isSelected && styles.expenseRowSelected,
+        pressed && styles.pressed,
+      ]}
+    >
+      {isNext ? <View style={styles.nextExpenseBar} /> : null}
+      <View style={[styles.expenseIcon, { backgroundColor: iconSurface }]}>
+        <AppIcon
+          name={categoryIcon(item.category)}
+          size={iconSizes.list}
+          color={palette.wine}
+        />
+      </View>
+      <View style={styles.expenseInfo}>
+        <Typography variant="bodyBold" numberOfLines={2}>
+          {item.description}
+        </Typography>
+        <Typography numberOfLines={2}>
+          {categoryLabel(item.category, materialNoun, packagingNoun)} · dia{" "}
+          {item.dayOfMonth}
+        </Typography>
+      </View>
+      <View style={styles.expenseAmountBlock}>
+        <Typography variant="captionBold" numberOfLines={1} style={styles.expenseAmount}>
+          {formatCurrency(item.amount)}
+        </Typography>
+        {isNext ? (
+          <View accessibilityLabel="Próximo vencimento" style={styles.nextDot} />
+        ) : null}
+      </View>
+      <AppIcon name="chevron-forward" size={iconSizes.sm} color={palette.warmGray} />
+    </Pressable>
+  );
+}
+
+function RecurringFormModal({
   item,
   onClose,
   onPaywall,
@@ -302,34 +553,30 @@ function RecurringForm({
 }>) {
   const create = useCreateRecurring();
   const update = useUpdateRecurring();
-  const { theme, styles } = useRecurringTheme();
+  const { styles, palette } = useRecurringTheme();
   const experienceCopy = useBusinessCopy();
-  const categories = CATEGORIES.map((categoryOption) => {
-    if (categoryOption.key === "material") {
-      return {
-        ...categoryOption,
-        label: capitalize(experienceCopy.materialNoun),
-      };
-    }
-    if (categoryOption.key === "packaging") {
-      return {
-        ...categoryOption,
-        label: capitalize(experienceCopy.packagingNoun),
-      };
-    }
-    return categoryOption;
-  });
-  const isDesktop = useDesktopLayout();
   const isEditing = !!item;
   const isSaving = create.isPending || update.isPending;
   const [description, setDescription] = useState(item?.description ?? "");
   const [amount, setAmount] = useState(item ? moneyInputValue(item.amount) : "");
   const [category, setCategory] = useState<ExpenseCategory>(item?.category ?? "utility");
-  const [day, setDay] = useState(String(item?.dayOfMonth ?? 1));
+  const [day, setDay] = useState(item ? String(item.dayOfMonth) : "");
+  const parsedDay = Number.parseInt(day, 10);
+  const validDay = !Number.isNaN(parsedDay) && parsedDay >= 1 && parsedDay <= 28;
+  const categories = CATEGORIES.map((categoryOption) => {
+    if (categoryOption.key === "material") {
+      return { ...categoryOption, label: capitalize(experienceCopy.materialNoun) };
+    }
+    if (categoryOption.key === "packaging") {
+      return { ...categoryOption, label: capitalize(experienceCopy.packagingNoun) };
+    }
+    return categoryOption;
+  });
 
   async function handleSave() {
+    if (isSaving) return;
+
     const parsedAmount = parseCurrencyInput(amount);
-    const parsedDay = parseInt(day, 10);
 
     if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
       alertValidation("Informe um valor maior que zero.");
@@ -339,7 +586,7 @@ function RecurringForm({
       alertValidation("Adicione uma descrição (ex.: Aluguel).");
       return;
     }
-    if (Number.isNaN(parsedDay) || parsedDay < 1 || parsedDay > 28) {
+    if (!validDay) {
       alertValidation("O dia deve estar entre 1 e 28.");
       return;
     }
@@ -365,103 +612,111 @@ function RecurringForm({
       showToast(item ? "Gasto fixo atualizado!" : "Gasto fixo cadastrado!");
       onSaved?.(saved);
       onClose();
-    } catch (e) {
-      if (e instanceof ApiError && e.code === "LIMIT_EXCEEDED") {
+    } catch (error) {
+      if (error instanceof ApiError && error.code === "LIMIT_EXCEEDED") {
         onPaywall();
         return;
       }
       alertError(
-        e instanceof ApiError && e.status === 400
-          ? e.message
+        error instanceof ApiError && error.status === 400
+          ? error.message
           : "Não foi possível salvar. Tente novamente.",
       );
     }
   }
 
   return (
-    <View
-      style={[
-        styles.formCard,
-        desktopStretch(isDesktop, 720),
-        isDesktop ? { alignSelf: "flex-start" } : undefined,
-      ]}
-    >
-      <View style={styles.formHeader}>
-        <View style={styles.formHeaderLeft}>
-          <AppIcon
-            name="calendar-outline"
-            size={iconSizes.md}
-            color={theme.colors.textSecondary}
+    <StandardModal
+      visible
+      onClose={onClose}
+      title={isEditing ? "Editar gasto fixo" : "Novo gasto fixo"}
+      subtitle={
+        isEditing
+          ? "Atualize os dados deste compromisso mensal."
+          : "Cadastre uma vez e deixe o caixa lembrar todo mês."
+      }
+      footer={
+        <>
+          <Button
+            disabled={isSaving}
+            onPress={onClose}
+            size="lg"
+            style={styles.cancelAction}
+            title="Cancelar"
+            variant="outline"
           />
-          <Typography variant="h3">
-            {isEditing ? "Editar gasto fixo" : "Novo gasto fixo"}
-          </Typography>
-        </View>
-        <Pressable
-          accessibilityLabel="Fechar formulário"
-          accessibilityRole="button"
-          hitSlop={12}
-          onPress={onClose}
-          style={({ pressed }) => pressed && styles.pressed}
-        >
-          <AppIcon name="chevron-up" size={iconSizes.sm} color={theme.colors.text} />
-        </Pressable>
-      </View>
-
-      <FormField
-        icon="receipt-outline"
+          <Button
+            disabled={isSaving}
+            loading={isSaving}
+            onPress={() => void handleSave()}
+            size="lg"
+            style={styles.saveAction}
+            title={isEditing ? "Salvar alterações" : "Salvar gasto"}
+          />
+        </>
+      }
+    >
+      <Input
+        accessibilityLabel="Descrição"
+        autoCapitalize="sentences"
+        icon={
+          <AppIcon
+            name="document-text-outline"
+            size={iconSizes.sm}
+            color={palette.wine}
+          />
+        }
         label="Descrição"
-        value={description}
-        onChangeText={setDescription}
-        placeholder="Ex: Aluguel da cozinha"
         maxLength={120}
+        onChangeText={setDescription}
+        placeholder="Ex.: Aluguel da cozinha"
+        returnKeyType="next"
+        style={styles.formInput}
+        value={description}
       />
-      <FormField
-        icon="cash-outline"
-        label="Valor (R$)"
-        value={amount}
-        onChangeText={(v) => setAmount(maskCurrencyInput(v))}
-        placeholder="Ex: 800,00"
+
+      <Input
+        accessibilityLabel="Valor em reais"
+        icon={<AppIcon name="wallet-outline" size={iconSizes.sm} color={palette.wine} />}
         keyboardType="decimal-pad"
-        compact
+        label="Valor (R$)"
+        onChangeText={(value) => setAmount(maskCurrencyInput(value))}
+        placeholder="Ex.: 800,00"
+        style={styles.formInput}
+        value={amount}
       />
 
       <View style={styles.fieldBlock}>
-        <View style={styles.labelRow}>
-          <AppIcon
-            name="grid-outline"
-            size={iconSizes.sm}
-            color={theme.colors.textSecondary}
-          />
-          <Typography variant="caption">Categoria</Typography>
-        </View>
-        <View style={styles.categoryWrap}>
-          {categories.map((c) => {
-            const selected = c.key === category;
+        <Typography variant="captionBold" color={palette.ink}>
+          Categoria
+        </Typography>
+        <View style={styles.categoryGrid}>
+          {categories.map((categoryOption) => {
+            const selected = categoryOption.key === category;
             return (
               <Pressable
-                key={c.key}
-                accessibilityRole="button"
-                onPress={() => setCategory(c.key)}
+                key={categoryOption.key}
+                accessibilityLabel={categoryOption.label}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: selected }}
+                onPress={() => setCategory(categoryOption.key)}
                 style={({ pressed }) => [
-                  styles.categoryPill,
-                  selected && styles.categoryPillSelected,
+                  styles.categoryOption,
+                  selected && styles.categoryOptionSelected,
                   pressed && styles.pressed,
                 ]}
               >
                 <AppIcon
-                  name={c.icon}
-                  size={iconSizes.xs}
-                  color={
-                    selected ? theme.colors.primaryStrong : theme.colors.textSecondary
-                  }
+                  name={categoryOption.icon}
+                  size={iconSizes.md}
+                  color={selected ? palette.wine : palette.warmGray}
                 />
                 <Typography
                   variant={selected ? "captionBold" : "caption"}
+                  color={selected ? palette.wine : palette.ink}
                   numberOfLines={1}
-                  color={selected ? theme.colors.primaryStrong : theme.colors.text}
                 >
-                  {c.label}
+                  {categoryOption.label}
                 </Typography>
               </Pressable>
             );
@@ -469,76 +724,38 @@ function RecurringForm({
         </View>
       </View>
 
-      <FormField
-        icon="calendar-outline"
-        label="Dia do mês (1 a 28)"
-        value={day}
-        onChangeText={(v) => setDay(v.replace(/\D/g, "").slice(0, 2))}
-        placeholder="1"
-        keyboardType="number-pad"
-        maxLength={2}
-        compact
-      />
-
-      <View style={[styles.actionRow, isDesktop && { justifyContent: "flex-end" }]}>
-        <Pressable
-          accessibilityRole="button"
-          onPress={onClose}
-          style={({ pressed }) => [
-            styles.cancelButton,
-            isDesktop && { flex: undefined, ...desktopAction(isDesktop, 220) },
-            pressed && styles.pressed,
-          ]}
-        >
-          <Typography variant="captionBold">Cancelar</Typography>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          disabled={isSaving}
-          onPress={() => void handleSave()}
-          style={({ pressed }) => [
-            styles.saveButton,
-            isDesktop && { flex: undefined, ...desktopAction(isDesktop, 240) },
-            isSaving && styles.disabled,
-            pressed && !isSaving && styles.pressed,
-          ]}
-        >
-          <Typography variant="captionBold" color={theme.colors.textOnPrimary}>
-            {isSaving ? "Salvando..." : "Salvar"}
+      <View style={styles.fieldBlock}>
+        <View style={styles.dayLabelRow}>
+          <Typography variant="captionBold" color={palette.ink}>
+            Dia do mês
           </Typography>
-        </Pressable>
+          <Typography variant="caption">De 1 a 28</Typography>
+        </View>
+        <Input
+          accessibilityLabel="Dia do mês, de 1 a 28"
+          icon={
+            <AppIcon name="calendar-outline" size={iconSizes.sm} color={palette.wine} />
+          }
+          keyboardType="number-pad"
+          maxLength={2}
+          onChangeText={(value) => setDay(value.replace(/\D/g, "").slice(0, 2))}
+          placeholder="Ex.: 8"
+          style={styles.formInput}
+          value={day}
+        />
       </View>
-    </View>
-  );
-}
 
-function FormField({
-  icon,
-  label,
-  compact = false,
-  ...inputProps
-}: Readonly<
-  React.ComponentProps<typeof TextInput> & {
-    icon: AppIconName;
-    label: string;
-    compact?: boolean;
-  }
->) {
-  const { theme, styles } = useRecurringTheme();
-  const isDesktop = useDesktopLayout();
-
-  return (
-    <View style={[styles.fieldBlock, compact && desktopCompactField(isDesktop)]}>
-      <View style={styles.labelRow}>
-        <AppIcon name={icon} size={iconSizes.sm} color={theme.colors.textSecondary} />
-        <Typography variant="caption">{label}</Typography>
+      <View style={styles.recurrenceNotice}>
+        <View style={styles.recurrenceNoticeIcon}>
+          <AppIcon name="calendar-outline" size={iconSizes.md} color={palette.wine} />
+        </View>
+        <Typography variant="caption" color={palette.ink}>
+          {validDay
+            ? `Será lançado todo dia ${parsedDay}`
+            : "Informe um dia entre 1 e 28"}
+        </Typography>
       </View>
-      <TextInput
-        {...inputProps}
-        placeholderTextColor={`${theme.colors.textSecondary}88`}
-        style={styles.textInput}
-      />
-    </View>
+    </StandardModal>
   );
 }
 
@@ -553,21 +770,14 @@ function RecurringDetails({
   onDelete: () => void;
   onEdit: () => void;
 }>) {
-  const { theme, styles } = useRecurringTheme();
+  const { theme, styles, palette } = useRecurringTheme();
   const experienceCopy = useBusinessCopy();
   const isDesktop = useDesktopLayout();
 
   return (
     <View style={styles.detailCard}>
-      <View style={styles.formHeader}>
-        <View style={styles.formHeaderLeft}>
-          <AppIcon
-            name="receipt-outline"
-            size={iconSizes.md}
-            color={theme.colors.textSecondary}
-          />
-          <Typography variant="h3">Detalhes do gasto</Typography>
-        </View>
+      <View style={styles.detailHeader}>
+        <Typography variant="h3">Detalhes do gasto</Typography>
         <Pressable
           accessibilityLabel="Fechar detalhes"
           accessibilityRole="button"
@@ -582,7 +792,11 @@ function RecurringDetails({
       <Typography variant="h2">{item.description}</Typography>
 
       <View style={styles.detailGrid}>
-        <DetailItem icon="cash-outline" label="Valor" value={formatMoney(item.amount)} />
+        <DetailItem
+          icon="cash-outline"
+          label="Valor"
+          value={formatCurrency(item.amount)}
+        />
         <DetailItem
           icon="grid-outline"
           label="Categoria"
@@ -604,43 +818,23 @@ function RecurringDetails({
         />
       </View>
 
-      <View style={[styles.actionRow, isDesktop && { justifyContent: "flex-end" }]}>
-        <Pressable
-          accessibilityRole="button"
+      <View style={[styles.detailActions, isDesktop && { justifyContent: "flex-end" }]}>
+        <Button
+          icon={
+            <AppIcon name="trash-outline" size={iconSizes.xs} color={palette.onWine} />
+          }
           onPress={onDelete}
-          style={({ pressed }) => [
-            styles.deleteButton,
-            isDesktop && { flex: undefined, ...desktopAction(isDesktop, 220) },
-            pressed && styles.pressed,
-          ]}
-        >
-          <AppIcon
-            name="trash-outline"
-            size={iconSizes.xs}
-            color={theme.colors.textOnPrimary}
-          />
-          <Typography variant="captionBold" color={theme.colors.textOnPrimary}>
-            Remover
-          </Typography>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
+          style={styles.deleteAction}
+          title="Remover"
+        />
+        <Button
+          icon={
+            <AppIcon name="create-outline" size={iconSizes.xs} color={palette.onWine} />
+          }
           onPress={onEdit}
-          style={({ pressed }) => [
-            styles.saveButton,
-            isDesktop && { flex: undefined, ...desktopAction(isDesktop, 240) },
-            pressed && styles.pressed,
-          ]}
-        >
-          <AppIcon
-            name="create-outline"
-            size={iconSizes.xs}
-            color={theme.colors.textOnPrimary}
-          />
-          <Typography variant="captionBold" color={theme.colors.textOnPrimary}>
-            Editar
-          </Typography>
-        </Pressable>
+          style={styles.saveAction}
+          title="Editar"
+        />
       </View>
     </View>
   );
@@ -668,10 +862,6 @@ function DetailItem({
   );
 }
 
-/**
- * Tela de apresentação do recurso pra quem está no plano gratuito: explica o que
- * Gastos fixos faz + CTA de upgrade, sem exibir o formulário (que não salvaria).
- */
 function RecurringPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) {
   const { theme, styles } = useRecurringTheme();
   const benefits = [
@@ -704,37 +894,36 @@ function RecurringPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) 
             size={iconSizes.sm}
             color={theme.colors.premium}
           />
-          <Typography variant="caption" color={theme.colors.text} style={{ flex: 1 }}>
+          <Typography variant="caption" color={theme.colors.text} style={styles.gateText}>
             {benefit}
           </Typography>
         </View>
       ))}
-      <Pressable
-        accessibilityRole="button"
+      <Button
+        icon={
+          <AppIcon
+            name="lock-open-outline"
+            size={iconSizes.sm}
+            color={theme.colors.textOnPrimary}
+          />
+        }
         onPress={onUnlock}
-        style={({ pressed }) => [styles.gateCta, pressed && styles.pressed]}
-      >
-        <AppIcon
-          name="lock-open-outline"
-          size={iconSizes.sm}
-          color={theme.colors.textOnPrimary}
-        />
-        <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
-          Desbloquear no Profissional
-        </Typography>
-      </Pressable>
+        size="lg"
+        title="Desbloquear no Profissional"
+      />
     </View>
   );
 }
 
-function EmptyRecurringState() {
+function EmptyRecurringState({ isDesktop }: Readonly<{ isDesktop: boolean }>) {
   return (
     <EmptyState
       style={{
-        flex: 0,
+        flex: undefined,
         width: "100%",
         alignSelf: "center",
-        paddingTop: 0,
+        marginTop: isDesktop ? spacing["3xl"] : 0,
+        paddingTop: spacing.lg,
         paddingHorizontal: spacing.sm,
       }}
       title="Nenhum gasto fixo ainda"
@@ -743,116 +932,140 @@ function EmptyRecurringState() {
   );
 }
 
-function recurringPalette(theme: Theme) {
-  return {
-    background: theme.colors.background,
-    backButton: theme.colors.surfaceElevated,
-    border: theme.colors.border,
-    card: theme.colors.surfaceElevated,
-    cardStrong: theme.colors.surfaceElevated,
-    input: theme.colors.surface,
-    chip: theme.colors.surface,
-    muted: theme.colors.textSecondary,
-    text: theme.colors.text,
-    title: theme.colors.text,
-  };
-}
-
 function createStyles(theme: Theme) {
-  const pal = recurringPalette(theme);
-  // Rosa de marca derivado do tema: fill = fundo AA de botoes cheios.
-  const brandFill = theme.colors.primaryInteractive;
-  const brandBorder = theme.colors.primaryStrong;
+  const palette = brandScreenPalette(theme);
 
   return StyleSheet.create({
-    actionRow: {
-      flexDirection: "row",
-      gap: spacing.lg,
-      marginTop: 1,
-    },
-    addButton: {
-      alignItems: "center",
-      backgroundColor: brandFill,
-      borderColor: brandBorder,
-      borderRadius: radii.md,
-      borderWidth: 1,
-      flexDirection: "row",
-      gap: spacing.md,
-      height: 48,
-      justifyContent: "center",
-    },
-    cancelButton: {
-      alignItems: "center",
-      backgroundColor: pal.chip,
-      borderColor: pal.border,
-      borderRadius: radii.md,
-      borderWidth: 1,
+    cancelAction: {
+      borderColor: palette.wine,
       flex: 1,
-      height: 44,
-      justifyContent: "center",
     },
-    categoryPill: {
-      alignItems: "center",
-      backgroundColor: pal.chip,
-      borderColor: pal.border,
-      borderRadius: radii.full,
-      borderWidth: 1,
-      flexDirection: "row",
-      gap: spacing.sm,
-      height: 44,
-      justifyContent: "center",
-      minWidth: "30%",
-      paddingHorizontal: spacing.md,
-    },
-    categoryPillSelected: {
-      backgroundColor: theme.colors.primaryBg,
-      borderColor: brandBorder,
-    },
-    categoryWrap: {
+    categoryGrid: {
       flexDirection: "row",
       flexWrap: "wrap",
-      gap: spacing.sm,
-      paddingLeft: 1,
+      gap: spacing.md,
+    },
+    categoryOption: {
+      alignItems: "center",
+      backgroundColor: palette.white,
+      borderColor: palette.border,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      flexBasis: "30%",
+      flexGrow: 1,
+      gap: spacing.xs,
+      justifyContent: "center",
+      minHeight: 76,
+      minWidth: 84,
+      paddingHorizontal: spacing.xs,
+      paddingVertical: spacing.sm,
+    },
+    categoryOptionSelected: {
+      backgroundColor: palette.softRose,
+      borderColor: palette.wine,
+      borderWidth: 1.5,
+    },
+    commitmentBlob: {
+      backgroundColor: "#F1C7CF",
+      borderRadius: radii.full,
+      height: "82%",
+      position: "absolute",
+      right: -spacing.sm,
+      top: spacing.md,
+      transform: [{ rotate: "-9deg" }],
+      width: "112%",
+    },
+    commitmentCard: {
+      backgroundColor: palette.wineFill,
+      borderRadius: radii.lg,
+      height: 216,
+      overflow: "hidden",
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.lg,
+    },
+    commitmentCardCompact: {
+      height: 204,
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.md,
+    },
+    commitmentCopy: {
+      gap: spacing.xs,
+      justifyContent: "center",
+      maxWidth: "55%",
+      minWidth: 0,
+      paddingBottom: spacing.sm,
+      width: "55%",
+      zIndex: 2,
+    },
+    commitmentCopyCompact: {
+      maxWidth: "60%",
+      width: "60%",
+    },
+    commitmentImage: {
+      zIndex: 2,
+    },
+    commitmentUpper: {
+      flex: 1,
+      flexDirection: "row",
+      minHeight: 0,
+    },
+    commitmentValue: {
+      color: palette.onWine,
+      fontFamily: fonts.extraBold,
+      fontSize: fontSizes["2xl"],
+      fontVariant: ["tabular-nums"],
+      letterSpacing: -0.4,
+      lineHeight: 36,
+    },
+    commitmentVisual: {
+      alignItems: "center",
+      bottom: spacing.xs,
+      justifyContent: "center",
+      position: "absolute",
+      right: 0,
+      top: -spacing.sm,
+      width: "44%",
+    },
+    commitmentVisualCompact: {
+      width: "40%",
     },
     content: {
       gap: spacing.xl,
-      paddingBottom: spacing["3xl"],
-      paddingTop: spacing.xl,
+      paddingTop: spacing.sm,
     },
-    disabled: {
-      opacity: 0.58,
-    },
-    deleteButton: {
+    dayLabelRow: {
       alignItems: "center",
-      backgroundColor: theme.colors.alert,
-      borderColor: pal.border,
-      borderRadius: radii.md,
-      borderWidth: 1,
-      flex: 1,
       flexDirection: "row",
-      gap: spacing.sm,
-      height: 44,
-      justifyContent: "center",
+      justifyContent: "space-between",
+    },
+    deleteAction: {
+      backgroundColor: theme.colors.alert,
+      flex: 1,
+    },
+    detailActions: {
+      flexDirection: "row",
+      gap: spacing.md,
     },
     detailCard: {
-      backgroundColor: pal.card,
-      borderColor: pal.border,
+      backgroundColor: palette.white,
+      borderColor: palette.border,
       borderRadius: radii.lg,
       borderWidth: 1,
       gap: spacing.lg,
-      paddingBottom: spacing.lg,
-      paddingHorizontal: spacing.xl,
-      paddingTop: spacing.xl,
+      padding: spacing.lg,
     },
     detailGrid: {
       gap: spacing.sm,
     },
+    detailHeader: {
+      alignItems: "center",
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
     detailItem: {
       alignItems: "center",
-      backgroundColor: pal.input,
-      borderColor: pal.border,
+      backgroundColor: palette.neutral,
       borderRadius: radii.md,
-      borderWidth: 1,
       flexDirection: "row",
       gap: spacing.md,
       minHeight: 48,
@@ -863,53 +1076,74 @@ function createStyles(theme: Theme) {
       flex: 1,
       gap: 2,
     },
-    expenseCard: {
-      alignItems: "center",
-      backgroundColor: pal.cardStrong,
-      borderColor: pal.border,
-      borderRadius: radii.md,
-      borderWidth: 1,
-      flexDirection: "row",
-      gap: spacing.sm,
-      padding: spacing.md,
+    expenseAmount: {
+      fontVariant: ["tabular-nums"],
+      textAlign: "right",
     },
-    expenseCardSelected: {
-      borderColor: brandBorder,
+    expenseAmountBlock: {
+      alignItems: "center",
+      flexDirection: "row",
+      flexShrink: 0,
+      gap: spacing.xs,
+      justifyContent: "flex-end",
+      minWidth: 76,
     },
     expenseIcon: {
       alignItems: "center",
-      backgroundColor: theme.colors.surface,
       borderRadius: radii.md,
-      height: 36,
+      flexShrink: 0,
+      height: 44,
       justifyContent: "center",
-      width: 36,
+      width: 44,
     },
     expenseInfo: {
       flex: 1,
+      gap: 1,
+      minWidth: 0,
+    },
+    expenseList: {
+      backgroundColor: palette.white,
+      borderColor: palette.border,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      overflow: "hidden",
+    },
+    expenseRow: {
+      alignItems: "center",
+      backgroundColor: palette.white,
+      flexDirection: "row",
       gap: spacing.xs,
+      minHeight: 68,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      position: "relative",
+    },
+    expenseRowDivider: {
+      borderBottomColor: palette.border,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+    expenseRowNext: {
+      backgroundColor: palette.softRose,
+    },
+    expenseRowSelected: {
+      backgroundColor: palette.softRose,
+    },
+    fab: {
+      alignItems: "center",
+      backgroundColor: palette.rose,
+      borderRadius: radii.full,
+      height: 56,
+      justifyContent: "center",
+      position: "absolute",
+      right: spacing.lg,
+      width: 56,
+      ...theme.shadows.md,
     },
     fieldBlock: {
       gap: spacing.sm,
     },
-    formCard: {
-      backgroundColor: pal.card,
-      borderColor: pal.border,
-      borderRadius: radii.lg,
-      borderWidth: 1,
-      gap: spacing.lg,
-      paddingBottom: spacing.lg,
-      paddingHorizontal: spacing.xl,
-      paddingTop: spacing.xl,
-    },
-    formHeader: {
-      alignItems: "center",
-      flexDirection: "row",
-      justifyContent: "space-between",
-    },
-    formHeaderLeft: {
-      alignItems: "center",
-      flexDirection: "row",
-      gap: spacing.md,
+    formInput: {
+      height: 54,
     },
     gateBadge: {
       alignItems: "center",
@@ -927,70 +1161,150 @@ function createStyles(theme: Theme) {
       gap: spacing.md,
     },
     gateCard: {
-      backgroundColor: pal.card,
+      backgroundColor: palette.white,
       borderColor: theme.colors.premium,
       borderRadius: radii.lg,
       borderWidth: 1,
       gap: spacing.lg,
       padding: spacing.xl,
     },
-    gateCta: {
-      alignItems: "center",
-      backgroundColor: theme.colors.premium,
-      borderRadius: radii.md,
-      flexDirection: "row",
-      gap: spacing.sm,
-      height: 48,
-      justifyContent: "center",
-      marginTop: spacing.xs,
-    },
-    hero: {
-      minHeight: 150,
-      position: "relative",
-    },
-    heroImage: {
-      height: 111,
-      position: "absolute",
-      right: -10,
-      top: 37,
-      width: 130,
-    },
-    keyboardAvoider: {
+    gateText: {
       flex: 1,
     },
-    labelRow: {
+    header: {
+      alignItems: "center",
+      flexDirection: "row",
+      gap: spacing.sm,
+      minHeight: 72,
+      paddingBottom: spacing.sm,
+      paddingTop: spacing.sm,
+      width: "100%",
+      zIndex: 10,
+    },
+    headerAdd: {
+      alignItems: "center",
+      backgroundColor: palette.rose,
+      borderRadius: radii.full,
+      flexShrink: 0,
+      height: 48,
+      justifyContent: "center",
+      width: 48,
+    },
+    headerBack: {
+      alignItems: "center",
+      flexShrink: 0,
+      height: 44,
+      justifyContent: "center",
+      width: 44,
+    },
+    headerCopy: {
+      flex: 1,
+      gap: 1,
+      minWidth: 0,
+    },
+    listHeadingCopy: {
+      flex: 1,
+      minWidth: 0,
+    },
+    listHeadingRow: {
       alignItems: "center",
       flexDirection: "row",
       gap: spacing.md,
+      justifyContent: "space-between",
+    },
+    nextDot: {
+      backgroundColor: palette.lime,
+      borderRadius: radii.full,
+      height: 8,
+      width: 8,
+    },
+    nextExpenseBar: {
+      backgroundColor: palette.rose,
+      bottom: spacing.sm,
+      left: 3,
+      position: "absolute",
+      top: spacing.sm,
+      width: 4,
     },
     pressed: {
-      opacity: 0.82,
+      opacity: 0.78,
     },
-    safeArea: {
-      backgroundColor: pal.background,
-      flex: 1,
-    },
-    saveButton: {
+    recurrenceNotice: {
       alignItems: "center",
-      backgroundColor: brandFill,
-      borderColor: brandBorder,
+      backgroundColor: palette.softRose,
       borderRadius: radii.md,
-      borderWidth: 1,
-      flex: 1,
       flexDirection: "row",
-      gap: spacing.sm,
+      gap: spacing.md,
+      minHeight: 60,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+    },
+    recurrenceNoticeIcon: {
+      alignItems: "center",
+      backgroundColor: palette.white,
+      borderRadius: radii.md,
       height: 44,
       justifyContent: "center",
+      width: 44,
     },
-    textInput: {
-      backgroundColor: pal.input,
-      borderColor: pal.border,
-      borderRadius: radii.sm,
+    safeArea: {
+      backgroundColor: palette.background,
+      flex: 1,
+    },
+    saveAction: {
+      backgroundColor: palette.rose,
+      flex: 1,
+    },
+    screen: {
+      flex: 1,
+      minHeight: 0,
+    },
+    sortButton: {
+      alignItems: "center",
+      backgroundColor: palette.white,
+      borderColor: palette.border,
+      borderRadius: radii.md,
       borderWidth: 1,
-      color: pal.text,
-      fontSize: fontSizes.sm,
-      height: 44,
-      paddingHorizontal: spacing["3xl"],
+      flexDirection: "row",
+      flexShrink: 0,
+      gap: spacing.sm,
+      minHeight: 44,
+      paddingHorizontal: spacing.md,
+    },
+    timeline: {
+      alignItems: "flex-start",
+      flexDirection: "row",
+      height: 48,
+      justifyContent: "space-between",
+      paddingHorizontal: spacing.xs,
+      position: "relative",
+    },
+    timelineDot: {
+      backgroundColor: palette.wineFill,
+      borderColor: "rgba(255,255,255,0.8)",
+      borderRadius: radii.full,
+      borderWidth: 1.5,
+      height: 11,
+      width: 11,
+      zIndex: 2,
+    },
+    timelineDotHighlighted: {
+      backgroundColor: palette.lime,
+      borderColor: palette.onWine,
+    },
+    timelineItem: {
+      alignItems: "center",
+      flex: 1,
+      gap: spacing.xs,
+      zIndex: 2,
+    },
+    timelineLine: {
+      backgroundColor: "rgba(255,255,255,0.5)",
+      height: StyleSheet.hairlineWidth,
+      left: "10%",
+      position: "absolute",
+      right: "10%",
+      top: 5,
     },
   });
 }

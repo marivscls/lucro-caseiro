@@ -248,8 +248,17 @@ export const MarketingCampaignCopiesGenerationSchema = z.object({
   telemetry: MarketingPromptTelemetrySchema,
 });
 
+export const MarketingContentIntentSchema = z.enum([
+  "Promoção",
+  "Entretenimento",
+  "Debate",
+  "Aprendizado",
+  "Ligação",
+]);
+
 export const MarketingContentIdeaBriefSchema = z.object({
   theme: z.string().trim().min(2).max(180),
+  contentIntent: MarketingContentIntentSchema,
   category: z.string().trim().min(2).max(80),
   persona: z.string().trim().min(2).max(240),
   contentObjective: z.string().trim().min(2).max(180),
@@ -266,6 +275,7 @@ export const MarketingContentIdeaBriefSchema = z.object({
 export const MarketingContentIdeaSchema = z.object({
   title: z.string().trim().min(2).max(180),
   example: z.string().trim().min(2).max(600),
+  contentIntent: MarketingContentIntentSchema,
   category: z.string().trim().min(2).max(80),
   objective: z.string().trim().min(2).max(180),
   persona: z.string().trim().min(2).max(240),
@@ -357,5 +367,6 @@ export type MarketingCampaignVariantPublishInput = z.infer<
 >;
 export type MarketingContentIdea = z.infer<typeof MarketingContentIdeaSchema>;
 export type MarketingContentIdeas = z.infer<typeof MarketingContentIdeasSchema>;
+export type MarketingContentIntent = z.infer<typeof MarketingContentIntentSchema>;
 export type MarketingDocumentInput = z.infer<typeof MarketingDocumentInputSchema>;
 export type MarketingLearningPolicy = z.infer<typeof MarketingLearningPolicySchema>;

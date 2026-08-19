@@ -33,7 +33,15 @@
     "vendaPorPeso": false,
     "custoDireto": true,
     "comprasComEstoque": true,
-    "varejoPapelaria": true
+    "varejoPapelaria": true,
+    "operacaoVertical": false,
+    "familiaLucro": true
+  },
+  "vertical": {
+    "domain": "papelaria",
+    "operationLabel": "Operação da Papelaria",
+    "operationDescription": "PDV, listas, inventário e serviços gráficos",
+    "primaryActionLabel": "Abrir operação"
   },
   "onboarding": {
     "businessType": "crafts",

@@ -126,6 +126,9 @@ import {
 } from "./features/retail/retail.routes";
 import { RetailRepoPg } from "./features/retail/retail.repo.pg";
 import { RetailUseCases } from "./features/retail/retail.usecases";
+import { createVerticalsRouter } from "./features/verticals/verticals.routes";
+import { VerticalsRepoPg } from "./features/verticals/verticals.repo.pg";
+import { VerticalsUseCases } from "./features/verticals/verticals.usecases";
 import { createResendEmailSender } from "./features/email/resend-email";
 import { buildProfessionalTrialEmail } from "./features/email/professional-trial-email";
 import { createSubscriptionEmailNotifier } from "./features/email/subscription-lifecycle-email";
@@ -152,6 +155,7 @@ const ordersRepo = new OrdersRepoPg(db);
 const materialsRepo = new MaterialsRepoPg(db);
 const insightsRepo = new InsightsRepoPg(db);
 const productionUseCases = new ProductionUseCases(new ProductionRepoPg(db));
+const verticalsUseCases = new VerticalsUseCases(new VerticalsRepoPg(db));
 const googlePlayClient = new GooglePlayClient(
   config.googlePlayPackageName,
   config.googlePlayServiceAccountJson,
@@ -522,6 +526,7 @@ app.use(
 );
 app.use("/api/v1/catalog", createCatalogRouter(catalogUseCases));
 app.use("/api/v1/retail", createRetailRouter(retailUseCases));
+app.use("/api/v1/verticals", createVerticalsRouter(verticalsUseCases));
 app.use("/api/v1/promotions", createPromotionsRouter(retailUseCases));
 app.use(
   "/api/v1/public/retail",

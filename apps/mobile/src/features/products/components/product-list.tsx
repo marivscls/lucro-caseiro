@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { FlatList, Image, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import productsEmpty from "../../../assets/products-empty.png";
+import { useBrandIllustration } from "../../../shared/brand-illustrations";
 import { SkeletonList } from "../../../shared/components/skeleton";
 import {
   AD_ITEM_MARKER,
@@ -13,6 +13,7 @@ import {
 } from "../../../shared/components/ad-banner";
 import { useShowAds } from "../../../shared/hooks/use-show-ads";
 import { DesktopPagination } from "../../../shared/components/desktop-pagination";
+import { floatingTabBarContentPadding } from "../../../shared/layout/floating-tab-bar";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { useLowStockProducts, useProducts } from "../hooks";
 import { ProductCard } from "./product-card";
@@ -27,6 +28,11 @@ interface ProductListProps {
   readonly onProductPress?: (id: string) => void;
   readonly onAddPress?: () => void;
   readonly addButtonTitle?: string;
+  readonly listHeader?: React.ReactNode;
+  readonly listTitle?: string;
+  readonly listEmptyState?: React.ReactElement;
+  readonly contentMaxWidth?: number;
+  readonly horizontalPadding?: number;
 }
 
 export function ProductList({
@@ -38,8 +44,14 @@ export function ProductList({
   onProductPress,
   onAddPress,
   addButtonTitle = "Cadastrar produto",
+  listHeader,
+  listTitle,
+  listEmptyState,
+  contentMaxWidth,
+  horizontalPadding,
 }: ProductListProps) {
   const { theme } = useTheme();
+  const productsEmpty = useBrandIllustration("productsEmpty");
   const insets = useSafeAreaInsets();
   const isDesktop = useDesktopLayout();
   const showAds = useShowAds();
@@ -108,7 +120,7 @@ export function ProductList({
     );
   }
 
-  if (!data?.items.length) {
+  if (!data?.items.length && !listHeader) {
     let emptyTitle = "Nenhum produto ainda";
     let emptyDescription = "Cadastre seu primeiro produto para começar a vender";
     if (stockOnly) {
@@ -140,11 +152,12 @@ export function ProductList({
     );
   }
 
-  const listData = showAds ? interleaveAds(data.items) : data.items;
-  let itemCountLabel = `${data.total} produto${data.total !== 1 ? "s" : ""}`;
+  const resolvedData = data ?? { items: [], total: 0, page: 1, limit: 0, totalPages: 1 };
+  const listData = showAds ? interleaveAds(resolvedData.items) : resolvedData.items;
+  let itemCountLabel = `${resolvedData.total} produto${resolvedData.total !== 1 ? "s" : ""}`;
   if (stockOnly) {
-    itemCountLabel = `${data.total} ${
-      data.total === 1 ? "item para repor" : "itens para repor"
+    itemCountLabel = `${resolvedData.total} ${
+      resolvedData.total === 1 ? "item para repor" : "itens para repor"
     }`;
   }
 
@@ -170,26 +183,74 @@ export function ProductList({
       }}
       columnWrapperStyle={isDesktop ? { gap: 12 } : undefined}
       contentContainerStyle={{
+        width: "100%",
+        maxWidth: contentMaxWidth,
+        alignSelf: "center",
         gap: 12,
-        paddingHorizontal: isDesktop ? 0 : 20,
-        paddingTop: 20,
-        paddingBottom: 32,
+        paddingHorizontal: horizontalPadding ?? (isDesktop ? 0 : 20),
+        paddingTop: spacing.xs,
+        paddingBottom: floatingTabBarContentPadding(insets.bottom),
       }}
-      ListHeaderComponent={<Typography variant="caption">{itemCountLabel}</Typography>}
+      ListHeaderComponent={
+        listHeader ? (
+          <View style={{ gap: spacing["2xl"], paddingBottom: spacing.xs }}>
+            {listHeader}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: spacing.md,
+              }}
+            >
+              <Typography variant="h3" style={{ flex: 1 }}>
+                {listTitle}
+              </Typography>
+              <Typography variant="caption" numberOfLines={1}>
+                {resolvedData.total} {resolvedData.total === 1 ? "item" : "itens"}
+              </Typography>
+            </View>
+          </View>
+        ) : (
+          <Typography variant="caption">{itemCountLabel}</Typography>
+        )
+      }
+      ListEmptyComponent={
+        listHeader ? (
+          (listEmptyState ?? (
+            <EmptyState
+              icon={
+                <Image
+                  source={productsEmpty}
+                  resizeMode="contain"
+                  style={{ width: 180, height: 180 }}
+                />
+              }
+              title="Nenhum produto ainda"
+              description={"Cadastre seu primeiro produto para come\u00e7ar a vender"}
+              action={
+                onAddPress ? (
+                  <Button title={addButtonTitle} onPress={onAddPress} />
+                ) : undefined
+              }
+            />
+          ))
+        ) : null
+      }
       ListFooterComponent={
         <View style={{ gap: spacing.md, paddingTop: spacing.sm }}>
           {isDesktop && !stockOnly && !items ? (
             <DesktopPagination
-              page={data.page}
-              total={data.total}
-              totalPages={data.totalPages}
+              page={resolvedData.page}
+              total={resolvedData.total}
+              totalPages={resolvedData.totalPages}
               onPageChange={setPage}
             />
           ) : null}
           {!stockOnly && onAddPress ? (
             <View
               style={{
-                paddingBottom: spacing.lg + insets.bottom,
+                paddingBottom: spacing.lg,
                 alignItems: isDesktop ? "flex-end" : "stretch",
               }}
             >

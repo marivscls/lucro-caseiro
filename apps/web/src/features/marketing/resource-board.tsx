@@ -557,6 +557,7 @@ export function ResourceBoard({
     setContentBrief({
       ...emptyContentBrief(),
       ...idea.brief,
+      contentIntent: idea.contentIntent,
       desiredFormats: [idea.bestFormat],
     });
     setDraftIntent("idea");

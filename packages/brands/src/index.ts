@@ -1,6 +1,9 @@
 import { lucroCaseiroBrand } from "./lucro-caseiro";
 import { lucroManicureBrand } from "./lucro-manicure";
+import { lucroObraBrand } from "./lucro-obra";
+import { lucroOficinaBrand } from "./lucro-oficina";
 import { lucroPapelariaBrand } from "./lucro-papelaria";
+import { lucroRevendaBrand } from "./lucro-revenda";
 
 declare const process: {
   readonly env: {
@@ -17,6 +20,8 @@ export type {
   BrandFeatures,
   BrandOnboardingConfig,
   BrandThemeOverrides,
+  BrandVerticalConfig,
+  VerticalDomain,
 } from "./types";
 
 export const DEFAULT_BRAND_ID = "lucro-caseiro";
@@ -24,7 +29,10 @@ export const DEFAULT_BRAND_ID = "lucro-caseiro";
 export const brands = {
   [lucroCaseiroBrand.id]: lucroCaseiroBrand,
   [lucroManicureBrand.id]: lucroManicureBrand,
+  [lucroObraBrand.id]: lucroObraBrand,
+  [lucroOficinaBrand.id]: lucroOficinaBrand,
   [lucroPapelariaBrand.id]: lucroPapelariaBrand,
+  [lucroRevendaBrand.id]: lucroRevendaBrand,
 } as const;
 
 export type BrandId = keyof typeof brands;

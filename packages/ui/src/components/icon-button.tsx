@@ -27,6 +27,7 @@ export function IconButton({
 
   return (
     <Pressable
+      accessibilityRole="button"
       style={({ pressed }) => [
         {
           width: size,

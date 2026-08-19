@@ -26,9 +26,6 @@ import nicheBeleza from "../assets/onboarding-niche-beleza.png";
 import nicheFotografia from "../assets/onboarding-niche-fotografia.png";
 import nichePapelaria from "../assets/onboarding-niche-papelaria.png";
 import nicheSalgados from "../assets/onboarding-niche-salgados.png";
-import pricingEmpty from "../assets/pricing-empty.png";
-import salesEmpty from "../assets/sales-empty.png";
-import salesEmptyV2 from "../assets/sales-empty-v2.png";
 import {
   BUSINESS_PROFILE_OPTIONS,
   businessCopyFor,
@@ -41,6 +38,7 @@ import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { desktopContained } from "../shared/layout/desktop-density";
 import { useOnboarding } from "../shared/hooks/use-onboarding";
 import { brandLogoByMode } from "../shared/brand-logo";
+import { useBrandIllustration } from "../shared/brand-illustrations";
 import { getBrandDisplayName } from "../shared/brand-name";
 import { alertError } from "../shared/utils/alerts";
 
@@ -73,37 +71,45 @@ function normalizeBusinessProfile(value: string | null): BusinessProfile | null 
   return direct ?? LEGACY_NICHE_PROFILE[value] ?? null;
 }
 
-const WELCOME_SLIDES = [
+type WelcomeSlideImage = "sales" | "pricing" | null;
+
+interface WelcomeSlide {
+  readonly image: WelcomeSlideImage;
+  readonly title: string;
+  readonly description: string;
+}
+
+const WELCOME_SLIDES: ReadonlyArray<WelcomeSlide> = [
   {
     image: null,
     title: "Preço certo,\nvendas organizadas.",
     description: "Cadastre o que você vende e acompanhe quanto realmente sobra.",
   },
   {
-    image: salesEmpty,
+    image: "sales",
     title: "Sua rotina,\nnum só lugar.",
     description: "Organize vendas, clientes, pedidos e recebimentos sem retrabalho.",
   },
   {
-    image: pricingEmpty,
+    image: "pricing",
     title: "Custo claro,\nlucro sob controle.",
     description: "Calcule custos, margem e preço antes de vender.",
   },
 ];
 
-const RETAIL_WELCOME_SLIDES = [
+const RETAIL_WELCOME_SLIDES: ReadonlyArray<WelcomeSlide> = [
   {
     image: null,
     title: "Sua papelaria,\ntoda organizada.",
     description: "Produtos, estoque, compras e vendas no mesmo lugar.",
   },
   {
-    image: salesEmpty,
+    image: "sales",
     title: "Venda rápido,\nsem perder estoque.",
     description: "Use código de barras, escolha a variação e dê baixa automaticamente.",
   },
   {
-    image: pricingEmpty,
+    image: "pricing",
     title: "Custo e margem\nsempre claros.",
     description: "Saiba quanto cada item custa e quanto sobra em cada venda.",
   },
@@ -171,6 +177,14 @@ function WelcomeStep({
   const { theme } = useTheme();
   const brand = useBrand();
   const brandLogo = brandLogoByMode[theme.mode][brand.id];
+  const salesIllustration = useBrandIllustration("salesEmpty");
+  const pricingIllustration = useBrandIllustration("pricingEmpty");
+  const slideImages: Readonly<
+    Record<Exclude<WelcomeSlideImage, null>, ImageSourcePropType>
+  > = {
+    sales: salesIllustration,
+    pricing: pricingIllustration,
+  };
   const slides = brand.features.comprasComEstoque
     ? RETAIL_WELCOME_SLIDES
     : WELCOME_SLIDES;
@@ -215,7 +229,7 @@ function WelcomeStep({
               }}
             >
               <Image
-                source={item.image ?? brandLogo}
+                source={item.image ? slideImages[item.image] : brandLogo}
                 resizeMode="contain"
                 style={{ width: 168, height: 168 }}
               />
@@ -544,6 +558,7 @@ function DoneStep({
   finishing: boolean;
 }>) {
   const { theme } = useTheme();
+  const salesEmpty = useBrandIllustration("onboardingSales");
 
   return (
     <View
@@ -556,7 +571,7 @@ function DoneStep({
       }}
     >
       <Image
-        source={salesEmptyV2}
+        source={salesEmpty}
         resizeMode="contain"
         style={{ width: 158, height: 158 }}
       />
@@ -615,6 +630,7 @@ export default function OnboardingScreen() {
     setBusinessType,
     setBusinessName,
     completeOnboarding,
+    startGettingStarted,
   } = useOnboarding();
   const selectedProfile = normalizeBusinessProfile(businessType);
   const experienceCopy = businessCopyFor(selectedProfile, brand.copy);
@@ -630,7 +646,9 @@ export default function OnboardingScreen() {
       .catch(() => {});
   }
 
-  async function completeAndNavigate(destination: "/tabs" | "/products?from=onboarding") {
+  async function completeAndNavigate(
+    destination: "/tabs" | "/products?from=onboarding&create=getting-started",
+  ) {
     if (finishing) return;
     setFinishing(true);
     try {
@@ -649,7 +667,8 @@ export default function OnboardingScreen() {
 
   // Primeira vitoria: leva direto ao cadastro do 1o produto.
   function handleFirstProduct() {
-    void completeAndNavigate("/products?from=onboarding");
+    if (userId) startGettingStarted(userId);
+    void completeAndNavigate("/products?from=onboarding&create=getting-started");
   }
 
   async function handleSwitchAccount() {

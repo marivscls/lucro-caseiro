@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   countByType,
+  entryBalance,
   financePeriodRange,
+  orderReceiptProgress,
   profit,
   profitDeltaPct,
   totalsByType,
@@ -83,6 +85,25 @@ describe("totalsByType", () => {
         { type: "other", amount: 999 },
       ]),
     ).toEqual({ income: 140, expenses: 35 });
+  });
+});
+
+describe("orderReceiptProgress", () => {
+  it("calcula o percentual recebido e protege total vazio", () => {
+    expect(orderReceiptProgress(5_097.5, 2_907.5)).toBe(64);
+    expect(orderReceiptProgress(0, 0)).toBe(0);
+  });
+});
+
+describe("entryBalance", () => {
+  it("calcula o saldo diário com o sinal financeiro correto", () => {
+    expect(
+      entryBalance([
+        { type: "expense", amount: 120 },
+        { type: "income", amount: 8.5 },
+        { type: "expense", amount: 120 },
+      ]),
+    ).toBe(-231.5);
   });
 });
 

@@ -17,7 +17,7 @@ import {
 import { AppIcon } from "../shared/components/app-icon";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
-import { Image, Pressable, TextInput, View } from "react-native";
+import { Image, Pressable, TextInput, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
@@ -32,6 +32,7 @@ import { productInitial } from "../features/products/display";
 import { SaleUnitToggle } from "../features/products/components/sale-unit-toggle";
 import { VariationEditor } from "../features/products/components/variation-editor";
 import {
+  availableProductStock,
   summarizeLowStockProducts,
   totalVariationStock,
   validateVariations,
@@ -59,11 +60,9 @@ import {
 import { useImagePicker } from "../shared/hooks/use-image-picker";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { useNotificationEnabled } from "../shared/hooks/notification-prefs";
-import {
-  desktopStretch,
-  desktopWidths,
-  pageGutter,
-} from "../shared/layout/desktop-density";
+import catalogProductsIllustration from "../assets/catalog-products.png";
+import { brandScreenPalette } from "../shared/brand-palette";
+import { desktopStretch, desktopWidths } from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { NOTIFICATION_TYPES } from "../shared/hooks/notification-types";
 import { uploadProductImage } from "../shared/utils/upload-image";
@@ -922,9 +921,285 @@ function ProductDetailModal({
   );
 }
 
+function CatalogIndicator({
+  icon,
+  value,
+  label,
+  compact,
+}: Readonly<{
+  icon: "cube-outline" | "gift-outline";
+  value: number;
+  label: string;
+  compact: boolean;
+}>) {
+  const { theme } = useTheme();
+  const palette = brandScreenPalette(theme);
+
+  if (compact) {
+    return (
+      <View style={{ flex: 1, minWidth: 0, alignItems: "center", gap: 2 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>
+          <View
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: radii.full,
+              backgroundColor: palette.lime,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <AppIcon name={icon} size={16} color={palette.onLime} />
+          </View>
+          <Typography variant="captionBold" color={palette.onWine}>
+            {value}
+          </Typography>
+        </View>
+        <Typography
+          variant="homeMetricLabel"
+          color={palette.onWine}
+          numberOfLines={1}
+          style={{ textAlign: "center" }}
+        >
+          {label}
+        </Typography>
+      </View>
+    );
+  }
+
+  return (
+    <View
+      style={{
+        flex: 1,
+        minWidth: 0,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: spacing.xs,
+      }}
+    >
+      <View
+        style={{
+          width: 28,
+          height: 28,
+          borderRadius: radii.full,
+          backgroundColor: palette.lime,
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+      >
+        <AppIcon name={icon} size={18} color={palette.onLime} />
+      </View>
+      <Typography
+        variant="captionBold"
+        color={palette.onWine}
+        numberOfLines={2}
+        style={{ flexShrink: 1 }}
+      >
+        {value} {label}
+      </Typography>
+    </View>
+  );
+}
+
+function CatalogMetric({
+  value,
+  label,
+  showDivider,
+  compact,
+}: Readonly<{
+  value: number;
+  label: string;
+  showDivider?: boolean;
+  compact: boolean;
+}>) {
+  const { theme } = useTheme();
+  const palette = brandScreenPalette(theme);
+
+  return (
+    <View
+      style={{
+        flex: 1,
+        minWidth: 0,
+        minHeight: compact ? 82 : 88,
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: spacing.xs,
+        borderLeftWidth: showDivider ? 1 : 0,
+        borderLeftColor: palette.softRose,
+      }}
+    >
+      <View
+        style={{
+          width: 8,
+          height: 8,
+          borderRadius: radii.full,
+          backgroundColor: palette.lime,
+          marginBottom: spacing.xs,
+        }}
+      />
+      <Typography variant={compact ? "h3" : "h2"} color={palette.ink} numberOfLines={1}>
+        {value}
+      </Typography>
+      <Typography
+        variant="caption"
+        color={palette.warmGray}
+        numberOfLines={2}
+        style={{ textAlign: "center" }}
+      >
+        {label}
+      </Typography>
+    </View>
+  );
+}
+
+function CatalogOverview({
+  totalItems,
+  productCount,
+  kitCount,
+  stockUnits,
+  productLabel,
+  kitLabel,
+  isDesktop,
+}: Readonly<{
+  totalItems: number;
+  productCount: number;
+  kitCount: number;
+  stockUnits: number;
+  productLabel: string;
+  kitLabel: string;
+  isDesktop: boolean;
+}>) {
+  const { theme } = useTheme();
+  const palette = brandScreenPalette(theme);
+  const { width: viewportWidth } = useWindowDimensions();
+  const compact = viewportWidth < 375;
+  const compactIndicators = viewportWidth <= 430;
+  const horizontalGutter = compact ? spacing.lg : spacing.xl;
+  const availableWidth = viewportWidth - (isDesktop ? 0 : horizontalGutter * 2);
+  const cardWidth = Math.min(720, Math.max(280, availableWidth));
+  const heroHeight = Math.max(184, Math.min(240, cardWidth * 0.52));
+  let illustrationRatio = 0.43;
+  if (viewportWidth <= 430) illustrationRatio = 0.42;
+  const illustrationSize = Math.min(
+    300,
+    cardWidth * illustrationRatio,
+    heroHeight * 0.88,
+  );
+  let copyWidth: "48%" | "50%" | "52%" = "50%";
+  if (compact) copyWidth = "52%";
+  else if (viewportWidth <= 430) copyWidth = "48%";
+  let titleVariant: "h1" | "h2" | "h3" = "h1";
+  if (viewportWidth < 350) titleVariant = "h3";
+  else if (viewportWidth <= 430) titleVariant = "h2";
+
+  return (
+    <View style={{ width: "100%", maxWidth: 720, alignSelf: "center" }}>
+      <View
+        style={{
+          height: heroHeight,
+          borderRadius: radii["2xl"],
+          backgroundColor: palette.wineFill,
+          overflow: "hidden",
+          padding: compact ? spacing.lg : spacing.xl,
+        }}
+      >
+        <View
+          style={{
+            width: copyWidth,
+            height: "100%",
+            justifyContent: "space-between",
+            zIndex: 1,
+          }}
+        >
+          <View style={{ gap: spacing.xs }}>
+            <Typography variant={titleVariant} color={palette.onWine} numberOfLines={2}>
+              {"Seu cat\u00e1logo"}
+            </Typography>
+            <Typography variant="body" color={palette.onWine} numberOfLines={2}>
+              {totalItems} {totalItems === 1 ? "item organizado" : "itens organizados"}
+            </Typography>
+          </View>
+
+          <View
+            style={{
+              minHeight: 52,
+              flexDirection: "row",
+              alignItems: "center",
+              borderWidth: 1,
+              borderColor: "rgba(255,255,255,0.24)",
+              borderRadius: radii.lg,
+              paddingHorizontal: spacing.sm,
+              paddingVertical: spacing.xs,
+            }}
+          >
+            <CatalogIndicator
+              icon="cube-outline"
+              value={productCount}
+              label={productLabel.toLocaleLowerCase("pt-BR")}
+              compact={compactIndicators}
+            />
+            <View
+              style={{
+                width: 1,
+                height: 28,
+                marginHorizontal: spacing.xs,
+                backgroundColor: "rgba(255,255,255,0.28)",
+              }}
+            />
+            <CatalogIndicator
+              icon="gift-outline"
+              value={kitCount}
+              label={kitLabel.toLocaleLowerCase("pt-BR")}
+              compact={compactIndicators}
+            />
+          </View>
+        </View>
+
+        <Image
+          source={catalogProductsIllustration}
+          resizeMode="contain"
+          accessible={false}
+          style={{
+            position: "absolute",
+            right: compact ? spacing.sm : spacing.md,
+            bottom: compact ? spacing.sm : spacing.md,
+            width: illustrationSize,
+            height: illustrationSize,
+            objectFit: "contain",
+          }}
+        />
+      </View>
+
+      <View
+        accessibilityLabel={`${productCount} produtos, ${kitCount} kits, ${stockUnits} unidades em estoque`}
+        style={{
+          width: "100%",
+          marginTop: compact ? spacing.md : spacing.lg,
+          flexDirection: "row",
+          borderRadius: radii.xl,
+          borderWidth: 1,
+          borderColor: palette.softRose,
+          backgroundColor: palette.white,
+          overflow: "hidden",
+        }}
+      >
+        <CatalogMetric value={productCount} label="produtos" compact={compact} />
+        <CatalogMetric value={kitCount} label="kits" compact={compact} showDivider />
+        <CatalogMetric
+          value={stockUnits}
+          label="un. em estoque"
+          compact={compact}
+          showDivider
+        />
+      </View>
+    </View>
+  );
+}
+
 function LowStockBanner({ onPress }: Readonly<{ onPress: () => void }>) {
   const { theme } = useTheme();
-  const isDesktop = useDesktopLayout();
   const stockEnabled = useFeature("estoque");
   const { data } = useLowStockProducts();
   const enabled = useNotificationEnabled(NOTIFICATION_TYPES.LOW_STOCK);
@@ -946,7 +1221,6 @@ function LowStockBanner({ onPress }: Readonly<{ onPress: () => void }>) {
       variant="elevated"
       padding="lg"
       style={{
-        marginHorizontal: isDesktop ? 0 : spacing.lg,
         marginTop: spacing.sm,
         gap: spacing.md,
       }}
@@ -1074,6 +1348,7 @@ function LowStockBanner({ onPress }: Readonly<{ onPress: () => void }>) {
 
 export default function ProductsScreen() {
   const { theme } = useTheme();
+  const palette = brandScreenPalette(theme);
   const brand = useBrand();
   const { data: profile } = useProfile();
   const experienceCopy = businessCopyFor(profile?.businessType, brand.copy);
@@ -1095,6 +1370,10 @@ export default function ProductsScreen() {
     },
   ];
   const isDesktop = useDesktopLayout();
+  const { width: viewportWidth } = useWindowDimensions();
+  const compactLayout = viewportWidth < 375;
+  const contentGutter = compactLayout ? spacing.lg : spacing.xl;
+  const listContentMaxWidth = isDesktop ? desktopWidths.wide : desktopWidths.standard;
   const router = useRouter();
   const { from, create, salePrice, stock } = useLocalSearchParams<{
     from?: string;
@@ -1102,7 +1381,8 @@ export default function ProductsScreen() {
     salePrice?: string;
     stock?: string;
   }>();
-  const [showCreate, setShowCreate] = useState(create === "from-pricing");
+  const guidedCreate = create === "getting-started";
+  const [showCreate, setShowCreate] = useState(create === "from-pricing" || guidedCreate);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const stockEnabled = useFeature("estoque");
@@ -1116,8 +1396,25 @@ export default function ProductsScreen() {
   const showPaywall = usePaywall((s) => s.show);
   const productsQuery = useAllProducts();
   const products = productsQuery.data ?? [];
+  const catalogMetrics = useMemo(
+    () =>
+      products.reduce(
+        (summary, product) => {
+          if (product.isComposite) summary.kits += 1;
+          else summary.products += 1;
+
+          if (product.saleUnit === "kg") return summary;
+          const availableStock = availableProductStock(product);
+          if (availableStock !== null) summary.stockUnits += Math.max(0, availableStock);
+          return summary;
+        },
+        { products: 0, kits: 0, stockUnits: 0 },
+      ),
+    [products],
+  );
   const { data: velocity } = useSalesVelocity();
-  const backToHome = from === "onboarding" || !router.canGoBack();
+  const backToHome =
+    from === "onboarding" || from === "getting-started" || !router.canGoBack();
   const categories = useMemo(
     () =>
       [...new Set(products.map((product) => product.category).filter(Boolean))].sort(
@@ -1163,8 +1460,8 @@ export default function ProductsScreen() {
     "Qualquer situação";
 
   useEffect(() => {
-    if (create === "from-pricing") setShowCreate(true);
-  }, [create]);
+    if (create === "from-pricing" || guidedCreate) setShowCreate(true);
+  }, [create, guidedCreate]);
 
   useEffect(() => {
     if (stock === "low" && stockEnabled) setStatusFilter("stock");
@@ -1178,9 +1475,133 @@ export default function ProductsScreen() {
     router.back();
   }
 
+  const catalogListHeader = (
+    <View style={{ width: "100%", gap: compactLayout ? spacing.md : spacing.lg }}>
+      <View
+        style={{
+          width: "100%",
+          minHeight: compactLayout ? 52 : 56,
+          borderRadius: radii.xl,
+          borderWidth: 1,
+          borderColor: palette.softRose,
+          backgroundColor: palette.white,
+          flexDirection: "row",
+          alignItems: "center",
+          paddingHorizontal: spacing.lg,
+          gap: spacing.md,
+          ...theme.shadows.sm,
+        }}
+      >
+        <AppIcon name="search-outline" size={24} color={palette.ink} />
+        <TextInput
+          value={search}
+          onChangeText={setSearch}
+          placeholder={`Buscar ${brand.copy.productNoun}`}
+          placeholderTextColor={palette.warmGray}
+          style={{
+            flex: 1,
+            minWidth: 0,
+            color: theme.colors.text,
+            fontSize: compactLayout ? 15 : 16,
+            paddingVertical: 0,
+          }}
+        />
+      </View>
+
+      <View
+        accessibilityRole="tablist"
+        style={{
+          width: "100%",
+          minHeight: 48,
+          flexDirection: "row",
+          alignItems: "stretch",
+          borderRadius: radii.full,
+          borderWidth: 1,
+          borderColor: palette.softRose,
+          backgroundColor: palette.white,
+          overflow: "hidden",
+        }}
+      >
+        {productTypeFilters.map((filter) => {
+          const selected = typeFilter === filter.value;
+          return (
+            <Pressable
+              key={filter.value}
+              onPress={() => setTypeFilter(filter.value)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected }}
+              style={({ pressed }) => ({
+                flex: 1,
+                minWidth: 0,
+                minHeight: 46,
+                borderRadius: radii.full,
+                alignItems: "center",
+                justifyContent: "center",
+                paddingHorizontal: spacing.xs,
+                backgroundColor: selected ? palette.rose : "transparent",
+                opacity: pressed ? 0.82 : 1,
+              })}
+            >
+              <Typography
+                variant="bodyBold"
+                color={selected ? palette.onWine : palette.rose}
+                numberOfLines={1}
+              >
+                {filter.label}
+              </Typography>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <Pressable
+        onPress={() => setFiltersOpen(true)}
+        accessibilityRole="button"
+        accessibilityLabel={
+          activeFilterCount > 0 ? `Filtros, ${activeFilterCount} ativos` : "Abrir filtros"
+        }
+        style={({ pressed }) => ({
+          minHeight: compactLayout ? 44 : 48,
+          alignSelf: "flex-start",
+          borderRadius: radii.full,
+          borderWidth: 1,
+          borderColor: palette.rose,
+          backgroundColor: activeFilterCount > 0 ? palette.softRose : "transparent",
+          paddingHorizontal: spacing.lg,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: spacing.sm,
+          opacity: pressed ? 0.82 : 1,
+        })}
+      >
+        <AppIcon name="options-outline" size={20} color={palette.rose} />
+        <Typography variant="bodyBold" color={palette.rose}>
+          {activeFilterCount > 0 ? `Filtros (${activeFilterCount})` : "Filtros"}
+        </Typography>
+      </Pressable>
+
+      <CatalogOverview
+        totalItems={products.length}
+        productCount={catalogMetrics.products}
+        kitCount={catalogMetrics.kits}
+        stockUnits={catalogMetrics.stockUnits}
+        productLabel={productTypeFilters[1]?.label ?? "Produtos"}
+        kitLabel={productTypeFilters[2]?.label ?? "Kits"}
+        isDesktop={isDesktop}
+      />
+
+      <LimitBanner resource="products" onUpgrade={() => showPaywall("products")} />
+      <LowStockBanner onPress={() => setStatusFilter("stock")} />
+    </View>
+  );
+
   return (
     <SafeAreaView
-      style={{ flex: 1, backgroundColor: theme.colors.background }}
+      style={{
+        flex: 1,
+        backgroundColor: palette.background,
+      }}
       edges={["top", "bottom"]}
     >
       <Stack.Screen options={{ headerShown: false }} />
@@ -1190,9 +1611,18 @@ export default function ProductsScreen() {
           title={brand.copy.productNounPlural.replace(/^./, (letter) =>
             letter.toUpperCase(),
           )}
+          subtitle={"Seu cat\u00e1logo, do seu jeito."}
           onBack={handleBack}
           backLabel={backToHome ? "Ir para o início" : "Voltar"}
           hideBack={isDesktop}
+          style={{
+            width: "100%",
+            maxWidth: listContentMaxWidth,
+            alignSelf: "center",
+            paddingHorizontal: isDesktop ? 0 : contentGutter,
+            paddingTop: spacing.xs,
+            paddingBottom: spacing.md,
+          }}
           right={
             <FAB
               icon="add"
@@ -1202,116 +1632,6 @@ export default function ProductsScreen() {
             />
           }
         />
-
-        <View
-          style={{
-            ...pageGutter(isDesktop),
-            paddingBottom: spacing.sm,
-            ...(isDesktop
-              ? { alignSelf: "flex-start", maxWidth: 480, width: "100%" }
-              : undefined),
-          }}
-        >
-          <View
-            style={{
-              width: "100%",
-              minHeight: 48,
-              borderRadius: radii.md,
-              borderWidth: 1,
-              borderColor: `${theme.colors.text}1f`,
-              flexDirection: "row",
-              alignItems: "center",
-              paddingHorizontal: spacing.md,
-              gap: spacing.sm,
-            }}
-          >
-            <AppIcon name="search-outline" size={20} color={theme.colors.textSecondary} />
-            <TextInput
-              value={search}
-              onChangeText={setSearch}
-              placeholder={`Buscar ${brand.copy.productNoun}`}
-              placeholderTextColor={theme.colors.textSecondary}
-              style={{
-                flex: 1,
-                color: theme.colors.text,
-                fontSize: 16,
-                paddingVertical: 0,
-              }}
-            />
-          </View>
-        </View>
-
-        <View
-          style={{
-            ...pageGutter(isDesktop),
-            paddingBottom: spacing.sm,
-          }}
-        >
-          <View
-            style={{
-              width: "100%",
-              flexDirection: "row",
-              flexWrap: "wrap",
-              gap: spacing.sm,
-            }}
-          >
-            {productTypeFilters.map((filter) => (
-              <Chip
-                key={filter.value}
-                label={filter.label}
-                selected={typeFilter === filter.value}
-                onPress={() => setTypeFilter(filter.value)}
-              />
-            ))}
-
-            <Pressable
-              onPress={() => setFiltersOpen(true)}
-              accessibilityRole="button"
-              accessibilityLabel={
-                activeFilterCount > 0
-                  ? `Filtros, ${activeFilterCount} ativos`
-                  : "Abrir filtros"
-              }
-              style={({ pressed }) => ({
-                minHeight: 44,
-                borderRadius: radii.full,
-                borderWidth: 1,
-                borderColor:
-                  activeFilterCount > 0
-                    ? theme.colors.primaryInteractive
-                    : theme.colors.border,
-                backgroundColor:
-                  activeFilterCount > 0 ? theme.colors.primaryBg : theme.colors.surface,
-                paddingHorizontal: spacing.md,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: spacing.sm,
-                opacity: pressed ? 0.82 : 1,
-              })}
-            >
-              <AppIcon
-                name="options-outline"
-                size={20}
-                color={
-                  activeFilterCount > 0
-                    ? theme.colors.primaryStrong
-                    : theme.colors.textSecondary
-                }
-              />
-              <Typography
-                variant="bodyBold"
-                color={
-                  activeFilterCount > 0
-                    ? theme.colors.primaryStrong
-                    : theme.colors.textSecondary
-                }
-              >
-                {activeFilterCount > 0 ? `Filtros (${activeFilterCount})` : "Filtros"}
-              </Typography>
-            </Pressable>
-          </View>
-        </View>
 
         <StandardModal
           visible={filtersOpen}
@@ -1400,46 +1720,35 @@ export default function ProductsScreen() {
         </StandardModal>
 
         <View style={{ flex: 1 }}>
-          <LimitBanner
-            resource="products"
-            onUpgrade={() => showPaywall("products")}
-            containerStyle={{
-              marginHorizontal: isDesktop ? 0 : spacing.lg,
-              marginTop: spacing.sm,
-            }}
+          <ProductList
+            items={productsQuery.error ? [] : visibleProducts}
+            onProductPress={(id) => setSelectedProductId(id)}
+            onAddPress={() => setShowCreate(true)}
+            addButtonTitle={`Novo ${brand.copy.productNoun}`}
+            listHeader={catalogListHeader}
+            listTitle="Todos os produtos"
+            listEmptyState={
+              productsQuery.error ? (
+                <Card variant="elevated" style={{ marginVertical: spacing.lg }}>
+                  <View style={{ gap: spacing.md }}>
+                    <Typography variant="h3">
+                      {"N\u00e3o foi poss\u00edvel carregar os produtos"}
+                    </Typography>
+                    <Typography variant="body" color={theme.colors.textSecondary}>
+                      {"Verifique sua conex\u00e3o e tente novamente."}
+                    </Typography>
+                    <Button
+                      title="Tentar novamente"
+                      variant="secondary"
+                      onPress={() => void productsQuery.refetch()}
+                    />
+                  </View>
+                </Card>
+              ) : undefined
+            }
+            contentMaxWidth={listContentMaxWidth}
+            horizontalPadding={isDesktop ? 0 : contentGutter}
           />
-          {productsQuery.error ? (
-            <Card
-              style={{
-                marginHorizontal: isDesktop ? 0 : spacing.lg,
-                marginVertical: spacing.lg,
-              }}
-            >
-              <View style={{ gap: spacing.md }}>
-                <Typography variant="h3">
-                  Não foi possível carregar os produtos
-                </Typography>
-                <Typography variant="body" color={theme.colors.textSecondary}>
-                  Verifique sua conexão e tente novamente.
-                </Typography>
-                <Button
-                  title="Tentar novamente"
-                  variant="secondary"
-                  onPress={() => void productsQuery.refetch()}
-                />
-              </View>
-            </Card>
-          ) : (
-            <>
-              <LowStockBanner onPress={() => setStatusFilter("stock")} />
-              <ProductList
-                items={visibleProducts}
-                onProductPress={(id) => setSelectedProductId(id)}
-                onAddPress={() => setShowCreate(true)}
-                addButtonTitle={`Novo ${brand.copy.productNoun}`}
-              />
-            </>
-          )}
         </View>
       </View>
 
@@ -1455,7 +1764,10 @@ export default function ProductsScreen() {
           create === "from-pricing" && salePrice ? Number(salePrice) : undefined
         }
         analyticsSource={create === "from-pricing" ? "pricing" : undefined}
-        onSuccess={() => setShowCreate(false)}
+        onSuccess={() => {
+          setShowCreate(false);
+          if (guidedCreate) router.replace("/tabs/new-sale?from=getting-started");
+        }}
       />
 
       {/* Modal - Detalhe do produto */}

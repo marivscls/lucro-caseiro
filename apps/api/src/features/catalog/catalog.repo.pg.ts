@@ -5,7 +5,12 @@ import type {
   PublicServiceBookingRequestInput,
   ServiceBookingRequest,
 } from "@lucro-caseiro/contracts";
-import { normalizePlan } from "@lucro-caseiro/contracts";
+import {
+  normalizePlan,
+  PublicCatalogProductDto,
+  PublicCatalogServiceDto,
+  StorefrontCustomizationDto,
+} from "@lucro-caseiro/contracts";
 import {
   catalogSettings,
   products,
@@ -19,7 +24,12 @@ import {
 import { and, asc, eq, ne } from "drizzle-orm";
 
 import type { AppDatabase } from "../../shared/db";
-import type { CatalogOwner, CatalogSettingsData, ICatalogRepo } from "./catalog.types";
+import type {
+  CatalogOwner,
+  CatalogPublishedSnapshot,
+  CatalogSettingsData,
+  ICatalogRepo,
+} from "./catalog.types";
 
 const ACCENT_KEYS = ["brown", "rose", "green", "lavender", "blue", "amber"];
 const HEX_COLOR_REGEX = /^#[0-9a-fA-F]{6}$/;
@@ -35,7 +45,9 @@ export class CatalogRepoPg implements ICatalogRepo {
     return row ? this.toSettings(row) : null;
   }
 
-  async findOwnerBySlug(slug: string): Promise<(CatalogSettings & CatalogOwner) | null> {
+  async findOwnerBySlug(
+    slug: string,
+  ): Promise<(CatalogSettings & CatalogOwner & CatalogPublishedSnapshot) | null> {
     const [row] = await this.db
       .select({
         settings: catalogSettings,
@@ -50,6 +62,12 @@ export class CatalogRepoPg implements ICatalogRepo {
       .where(eq(catalogSettings.slug, slug));
 
     if (!row) return null;
+    const publishedProducts = PublicCatalogProductDto.array().safeParse(
+      row.settings.publishedProducts,
+    );
+    const publishedServices = PublicCatalogServiceDto.array().safeParse(
+      row.settings.publishedServices,
+    );
     return {
       ...this.toSettings(row.settings),
       userId: row.settings.userId,
@@ -57,6 +75,8 @@ export class CatalogRepoPg implements ICatalogRepo {
       phone: row.phone,
       plan: normalizePlan(row.plan),
       planExpiresAt: row.planExpiresAt?.toISOString() ?? null,
+      publishedProducts: publishedProducts.success ? publishedProducts.data : null,
+      publishedServices: publishedServices.success ? publishedServices.data : null,
     };
   }
 
@@ -71,7 +91,13 @@ export class CatalogRepoPg implements ICatalogRepo {
   }
 
   async upsert(userId: string, data: CatalogSettingsData): Promise<CatalogSettings> {
-    const values = { userId, ...data, updatedAt: new Date() };
+    const values = {
+      userId,
+      ...data,
+      publishedProducts: data.publishedProducts ?? null,
+      publishedServices: data.publishedServices ?? null,
+      updatedAt: new Date(),
+    };
     const [row] = await this.db
       .insert(catalogSettings)
       .values(values)
@@ -97,6 +123,14 @@ export class CatalogRepoPg implements ICatalogRepo {
           serviceTagline: values.serviceTagline,
           servicePromoBanner: values.servicePromoBanner,
           servicePromoBannerEnabled: values.servicePromoBannerEnabled,
+          customization: values.customization,
+          publishedCustomization: values.publishedCustomization,
+          ...(data.publishedProducts === undefined
+            ? {}
+            : { publishedProducts: values.publishedProducts }),
+          ...(data.publishedServices === undefined
+            ? {}
+            : { publishedServices: values.publishedServices }),
           updatedAt: values.updatedAt,
         },
       })
@@ -297,6 +331,10 @@ export class CatalogRepoPg implements ICatalogRepo {
   }
 
   private toSettings(row: typeof catalogSettings.$inferSelect): CatalogSettings {
+    const customization = StorefrontCustomizationDto.safeParse(row.customization);
+    const publishedCustomization = StorefrontCustomizationDto.safeParse(
+      row.publishedCustomization,
+    );
     return {
       brandId: row.brandId,
       slug: row.slug,
@@ -333,6 +371,10 @@ export class CatalogRepoPg implements ICatalogRepo {
       serviceTagline: row.serviceTagline,
       servicePromoBanner: row.servicePromoBanner,
       servicePromoBannerEnabled: row.servicePromoBannerEnabled,
+      customization: customization.success ? customization.data : null,
+      publishedCustomization: publishedCustomization.success
+        ? publishedCustomization.data
+        : null,
       updatedAt: row.updatedAt.toISOString(),
     };
   }

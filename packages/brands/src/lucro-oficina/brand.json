@@ -1,0 +1,54 @@
+{
+  "id": "lucro-oficina",
+  "appName": "Lucro na Oficina",
+  "slug": "lucro-oficina",
+  "scheme": "lucrooficina",
+  "iosBundleId": "com.lucronaoficina.app",
+  "androidPackage": "br.com.orionseven.lucrooficina",
+  "theme": {
+    "primary": "#F06A23",
+    "primaryLight": "#F58C53",
+    "primaryDark": "#B94912",
+    "primaryStrong": "#315A6B",
+    "primaryInteractive": "#D85717",
+    "primarySoft": "#FCE7DA",
+    "primarySoftDark": "#3D2E27",
+    "background": "#F9FAF8",
+    "surface": "#FFFFFF",
+    "backgroundDark": "#182229",
+    "surfaceDark": "#23313A"
+  },
+  "copy": {
+    "productNoun": "serviço",
+    "productNounPlural": "serviços",
+    "saleLabel": "Abrir ordem de serviço",
+    "stockLabel": "Peças",
+    "revenueLabel": "Serviços faturados",
+    "labelsLabel": "Identificação de ativos"
+  },
+  "features": {
+    "estoque": true,
+    "agendamento": true,
+    "catalogoCores": false,
+    "fichaTecnica": false,
+    "materiais": true,
+    "embalagens": false,
+    "vendaPorPeso": false,
+    "custoDireto": true,
+    "comprasComEstoque": true,
+    "varejoPapelaria": false,
+    "operacaoVertical": true,
+    "familiaLucro": true
+  },
+  "vertical": {
+    "domain": "oficina",
+    "operationLabel": "Quadro da Oficina",
+    "operationDescription": "Check-in, diagnóstico, execução, entrega e garantia",
+    "primaryActionLabel": "Abrir ordem de serviço"
+  },
+  "onboarding": {
+    "businessType": "services",
+    "nicheId": "oficina",
+    "skipNicheSelection": true
+  }
+}

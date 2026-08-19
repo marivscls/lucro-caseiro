@@ -131,3 +131,6 @@ Gerenciar embalagens utilizadas nos produtos: cadastrar, listar, editar e exclui
   Cada tipo tem cor propria (Caixa=blue, Sacola/Rotulo=premium, Pote=lavender, Filme=success, Outro=neutro).
   **Pendencia de backend:** "usado em X produtos" e "historico de uso" (vistos nos mockups) nao existem
   no contrato atual — omitidos para nao inventar dados. Reintroduzir quando houver endpoint de uso.
+- 2026-08-18: filtros por tipo da lista usam o `Chip` compartilhado com badge
+  de contagem local. O estado selecionado segue o rosa de marca, não a cor
+  semântica de cada tipo.

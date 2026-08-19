@@ -1,6 +1,8 @@
 import type {
   CreateFinanceEntry,
   CreateRecurringExpense,
+  FinanceEntry,
+  FinanceSummary,
   RecurringExpense,
   UpdateFinanceEntry,
   UpdateRecurringExpense,
@@ -47,6 +49,70 @@ export function useFinanceSummary(opts?: { month?: number; year?: number }) {
     queryKey: [...FINANCE_KEY, "summary", opts],
     queryFn: () => fetchSummary(token!, opts),
     enabled: !!token,
+  });
+}
+
+export function summarizeFinanceEntries(
+  entries: ReadonlyArray<Pick<FinanceEntry, "amount" | "isFixed" | "type">>,
+  period: string,
+): FinanceSummary {
+  let totalIncome = 0;
+  let fixedExpenses = 0;
+  let variableExpenses = 0;
+
+  for (const entry of entries) {
+    if (entry.type === "income") {
+      totalIncome += entry.amount;
+    } else if (entry.isFixed) {
+      fixedExpenses += entry.amount;
+    } else {
+      variableExpenses += entry.amount;
+    }
+  }
+
+  const totalExpenses = fixedExpenses + variableExpenses;
+  return {
+    totalIncome,
+    totalExpenses,
+    fixedExpenses,
+    variableExpenses,
+    profit: totalIncome - totalExpenses,
+    period,
+  };
+}
+
+/** Resumo exato de um intervalo curto, percorrendo todas as paginas existentes. */
+export function useFinanceRangeSummary(
+  startDate: string,
+  endDate: string,
+  enabled = true,
+) {
+  const { token } = useAuth();
+  return useQuery({
+    queryKey: [...FINANCE_KEY, "range-summary", startDate, endDate],
+    queryFn: async () => {
+      const entries: FinanceEntry[] = [];
+      let page = 1;
+      let totalPages = 1;
+
+      while (page <= totalPages) {
+        const result = await fetchEntries(token!, {
+          page,
+          limit: 100,
+          startDate,
+          endDate,
+        });
+        entries.push(...result.items);
+        totalPages = result.totalPages;
+        page += 1;
+      }
+
+      return summarizeFinanceEntries(
+        entries,
+        startDate === endDate ? startDate : `${startDate}/${endDate}`,
+      );
+    },
+    enabled: !!token && enabled,
   });
 }
 

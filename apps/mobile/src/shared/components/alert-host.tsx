@@ -22,7 +22,7 @@ import { useAppAlert, type AppAlertButton } from "./alert-store";
 import successChecklist from "../../assets/success-checklist.png";
 import successGrowth from "../../assets/success-growth.png";
 import successModalFrame from "../../assets/success-modal-frame.png";
-import salesEmpty from "../../assets/sales-empty.png";
+import { useBrandIllustration } from "../brand-illustrations";
 import { ResponsiveOverlayModal } from "./responsive-modal-surface";
 
 export { showAlert } from "./alert-store";
@@ -36,15 +36,6 @@ export function shouldStackAlertButtons(buttons: readonly AppAlertButton[]): boo
   );
 }
 
-const SUCCESS_FEATURES: Array<{
-  label: string;
-  image: ImageSourcePropType;
-}> = [
-  { label: "Organize suas\nvendas", image: successChecklist },
-  { label: "Acompanhe seus\npedidos", image: salesEmpty },
-  { label: "Veja seu\nlucro crescer", image: successGrowth },
-];
-
 /**
  * Diálogo global na identidade do app — substitui o `Alert` nativo do sistema.
  * Montado uma vez no `_layout`, segue o tema (claro/escuro) automaticamente e
@@ -56,6 +47,15 @@ export function AlertHost() {
   const hide = useAppAlert((s) => s.hide);
   const reduced = useReducedMotion();
   const scale = useRef(new Animated.Value(1)).current;
+  const salesEmpty = useBrandIllustration("onboardingSales");
+  const successFeatures: Array<{
+    label: string;
+    image: ImageSourcePropType;
+  }> = [
+    { label: "Organize suas\nvendas", image: successChecklist },
+    { label: "Acompanhe seus\npedidos", image: salesEmpty },
+    { label: "Veja seu\nlucro crescer", image: successGrowth },
+  ];
 
   useEffect(() => {
     if (!options || reduced) return;
@@ -188,7 +188,7 @@ export function AlertHost() {
                     overflow: "hidden",
                   }}
                 >
-                  {SUCCESS_FEATURES.map((feature, index) => (
+                    {successFeatures.map((feature, index) => (
                     <View
                       key={feature.label}
                       style={{
