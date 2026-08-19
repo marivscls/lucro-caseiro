@@ -3,14 +3,14 @@ id: a1334f5d-24d2-4120-b3fd-ea7288e15b68
 slug: scripts
 type: scar
 title: Limpeza por CommandLine deve filtrar também o executável alvo
-tags: powershell, processos, stop-process, commandline, chrome, node, preview, limpeza, recorrencia
+tags: windows, powershell, processos, preview, commandline, stop-process
 provenance: observado
-evidence: Sessões de 2026-07-18 e 2026-08-11: comandos de limpeza terminaram com exit -1 ao casar o PowerShell atual; repetição segura deve restringir Name/executável ou PIDs exatos.
+evidence: Recorrência em 2026-08-16 ao reiniciar previews 8083/8093; o filtro de Win32_Process por CommandLine encerrou o próprio PowerShell (exit -1). Recuperação: confirmar portas sem listener e iniciar node serve-pwa.mjs com PIDs 30368/17476.
 decay: stable
 created: 2026-07-17T01:38:06.251647200+00:00
-updated: 2026-08-11T17:44:32.804813100+00:00
-validated: 2026-08-11T17:44:32.804813100+00:00
-links: 
+updated: 2026-08-16T18:00:26.135566300+00:00
+validated: 2026-08-16T18:00:26.135566300+00:00
+links:
 ---
 
-SINTOMA (2026-07-16; recorreu em 2026-07-18 e 2026-08-11): ao encerrar processos temporários, o filtro buscou apenas uma substring em `Win32_Process.CommandLine`; o próprio PowerShell continha essa substring no comando em execução e foi encerrado junto, retornando exit -1. Em 2026-08-11 isso ocorreu ao reiniciar `preview:pwa:caseiro`: a regex `@lucro-caseiro/mobile preview:pwa:caseiro|serve-pwa...` também casou o shell que carregava o texto do comando. CAUSA: correspondência textual ampla sem restringir o nome do processo. REGRA: antes de `Stop-Process` por CommandLine, filtrar também `Name`/executável esperado (por exemplo, `Name -eq 'node.exe'`) ou usar PIDs exatos previamente observados; nunca matar toda ocorrência de uma substring que aparece no script atual. A proteção precisa estar no filtro do executável, não só no nome da variável.
+SINTOMA (2026-07-16; recorreu em 2026-07-18, 2026-08-11 e 2026-08-16): ao encerrar processos temporários, o filtro buscou apenas uma substring em `Win32_Process.CommandLine`; o próprio PowerShell continha essa substring no comando em execução e foi encerrado junto, retornando exit -1. Na recorrência de 2026-08-16, o filtro por `scripts/serve-pwa.mjs lucro-caseiro` encerrou o shell de inspeção e derrubou os previews 8083/8093; ambos foram recuperados em seguida com novos processos Node. CAUSA: correspondência textual ampla sem restringir o nome do processo. REGRA: antes de `Stop-Process` por CommandLine, filtrar também `Name -eq "node.exe"`/executável esperado ou, preferencialmente, resolver os PIDs exatos pelos listeners das portas e conferir suas linhas de comando em uma etapa somente leitura; nunca matar toda ocorrência de uma substring que aparece no script atual. A proteção precisa estar no filtro do executável e no PID confirmado, não só no texto da variável.

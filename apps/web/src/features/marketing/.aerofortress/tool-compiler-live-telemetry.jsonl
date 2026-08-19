@@ -103,3 +103,21 @@
 {"deferred":2,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-13T13:59:28.301709600+00:00"}
 {"deferred":2,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-13T17:26:21.286259100+00:00"}
 {"deferred":2,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-14T00:27:33.338302200+00:00"}
+{"deferred":2,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-14T00:33:54.549034800+00:00"}
+{"deferred":2,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-14T11:53:49.951424300+00:00"}
+{"deferred":2,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-14T11:58:02.408947800+00:00"}
+{"deferred":2,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-14T12:12:37.704249600+00:00"}
+{"deferred":2,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-15T16:28:59.374330800+00:00"}
+{"deferred":2,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-15T16:30:55.218141700+00:00"}
+{"deferred":2,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-15T16:31:59.444425+00:00"}
+{"deferred":2,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-15T16:46:19.541584700+00:00"}
+{"deferred":2,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-15T16:48:23.757611600+00:00"}
+{"deferred":3,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-15T22:55:54.825481200+00:00"}
+{"deferred":3,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-15T23:22:20.962861900+00:00"}
+{"deferred":3,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-15T23:25:06.607383100+00:00"}
+{"deferred":2,"linked":1,"materialized":1,"min_occurrences":3,"observed":0,"promoted":[{"name":"Live scars fan-out (3->1)","occurrences":2,"recipe_id":"live-scars-15148209c2","structural_key":"run:harness:scars"}],"skipped":0,"ts":"2026-08-16T00:44:31.936375300+00:00"}
+{"deferred":2,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-16T16:38:59.563376800+00:00"}
+{"deferred":2,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-18T13:31:33.228828600+00:00"}
+{"deferred":2,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-18T13:47:38.121038600+00:00"}
+{"deferred":2,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-18T13:55:23.515275800+00:00"}
+{"deferred":2,"linked":0,"materialized":0,"min_occurrences":3,"observed":0,"promoted":[],"skipped":0,"ts":"2026-08-18T13:56:23.217411700+00:00"}

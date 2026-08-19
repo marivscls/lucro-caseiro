@@ -1,5 +1,50 @@
 {
   "patterns": {
+    "run:harness:explore": {
+      "first_seen_ts": "2026-08-15T17:08:24.485784800+00:00",
+      "last_call_count": 3,
+      "last_candidate_key": "5f441c07c9bfd37c",
+      "last_seen_ts": "2026-08-15T17:08:24.485784800+00:00",
+      "materializable_occurrences": 1,
+      "occurrences": 1,
+      "shape": {
+        "calls": [
+          {
+            "adapter": "harness",
+            "input": {
+              "budget_tokens": "int",
+              "q": "string",
+              "workspace": "string"
+            },
+            "tool": "explore"
+          },
+          {
+            "adapter": "harness",
+            "input": {
+              "budget_tokens": "int",
+              "q": "string",
+              "workspace": "string"
+            },
+            "tool": "explore"
+          },
+          {
+            "adapter": "harness",
+            "input": {
+              "budget_tokens": "int",
+              "q": "string",
+              "workspace": "string"
+            },
+            "tool": "explore"
+          }
+        ],
+        "count": 3,
+        "kind": "calls"
+      },
+      "structural_key": "run:harness:explore",
+      "unique_tools": [
+        "explore"
+      ]
+    },
     "run:harness:query": {
       "first_seen_ts": "2026-08-10T17:58:18.803609500+00:00",
       "last_call_count": 3,
@@ -35,35 +80,40 @@
         "kind": "calls"
       },
       "structural_key": "run:harness:query",
-      "unique_tools": ["query"]
+      "unique_tools": [
+        "query"
+      ]
     },
     "run:harness:scars": {
       "first_seen_ts": "2026-08-12T03:32:52.386048200+00:00",
       "last_call_count": 3,
-      "last_candidate_key": "0abca3a3f72b7fbe",
-      "last_seen_ts": "2026-08-12T03:32:52.386048200+00:00",
-      "materializable_occurrences": 1,
-      "occurrences": 1,
+      "last_candidate_key": "152d7d18d9f46c9b",
+      "last_seen_ts": "2026-08-15T23:27:28.963190100+00:00",
+      "materializable_occurrences": 2,
+      "occurrences": 2,
       "shape": {
         "calls": [
           {
             "adapter": "harness",
             "input": {
-              "domain": "string"
+              "domain": "string",
+              "workspace": "string"
             },
             "tool": "scars"
           },
           {
             "adapter": "harness",
             "input": {
-              "domain": "string"
+              "domain": "string",
+              "workspace": "string"
             },
             "tool": "scars"
           },
           {
             "adapter": "harness",
             "input": {
-              "domain": "string"
+              "domain": "string",
+              "workspace": "string"
             },
             "tool": "scars"
           }
@@ -72,9 +122,11 @@
         "kind": "calls"
       },
       "structural_key": "run:harness:scars",
-      "unique_tools": ["scars"]
+      "unique_tools": [
+        "scars"
+      ]
     }
   },
-  "updated_ts": "2026-08-12T03:32:52.386048200+00:00",
+  "updated_ts": "2026-08-15T23:27:28.963190100+00:00",
   "version": 1
 }

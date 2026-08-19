@@ -1,1 +1,13 @@
 index.db*
+/chrome-*/
+/*.log
+/*.png
+/*.xml
+/catalog-*.json
+/home-layout-validation.json
+/public-catalog-*.json
+/storefront-*.json
+/storefront-local-preview.mts
+/pipeline.attest.toml
+/tmp-*
+/make-catalog-*.ps1
