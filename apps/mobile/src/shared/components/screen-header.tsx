@@ -1,7 +1,7 @@
 import { AppIcon } from "./app-icon";
 import { type Href, useRouter } from "expo-router";
 import React from "react";
-import { Pressable, View, type ViewStyle } from "react-native";
+import { Pressable, View, type TextStyle, type ViewStyle } from "react-native";
 
 import { iconSizes, spacing, Typography, useTheme } from "@lucro-caseiro/ui";
 
@@ -22,6 +22,9 @@ export type ScreenHeaderProps = Readonly<{
   hideBack?: boolean;
   backButtonStyle?: ViewStyle;
   style?: ViewStyle;
+  titleStyle?: TextStyle;
+  subtitleStyle?: TextStyle;
+  subtitleNumberOfLines?: number;
 }>;
 
 /**
@@ -40,6 +43,9 @@ export function ScreenHeader({
   hideBack = false,
   backButtonStyle,
   style,
+  titleStyle,
+  subtitleStyle,
+  subtitleNumberOfLines = 1,
 }: ScreenHeaderProps) {
   const { theme } = useTheme();
   const router = useRouter();
@@ -100,11 +106,17 @@ export function ScreenHeader({
           color={theme.colors.text}
           numberOfLines={1}
           ellipsizeMode="tail"
+          style={titleStyle}
         >
           {title}
         </Typography>
         {subtitle ? (
-          <Typography variant="caption" numberOfLines={1} ellipsizeMode="tail">
+          <Typography
+            variant="caption"
+            numberOfLines={subtitleNumberOfLines}
+            ellipsizeMode="tail"
+            style={subtitleStyle}
+          >
             {subtitle}
           </Typography>
         ) : null}

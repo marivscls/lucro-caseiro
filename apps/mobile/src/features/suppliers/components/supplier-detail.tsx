@@ -7,6 +7,8 @@ import { View } from "react-native";
 import { SkeletonCard } from "../../../shared/components/skeleton";
 import { openWhatsApp } from "../../../shared/utils/whatsapp";
 import { useSupplier } from "../hooks";
+import { SUPPLIER_CATEGORY_LABELS } from "../domain";
+import { SupplierAvatar } from "./supplier-avatar";
 
 interface SupplierDetailProps {
   supplierId: string;
@@ -79,26 +81,23 @@ export function SupplierDetail({
     );
   }
 
-  const hasInfo = supplier.phone || supplier.email || supplier.address || supplier.notes;
+  const hasInfo =
+    supplier.phone ||
+    supplier.email ||
+    supplier.address ||
+    supplier.purchaseDescription ||
+    supplier.notes;
 
   return (
     <View style={{ flexShrink: 1, gap: spacing.xl }}>
       {/* Header */}
       <View style={{ alignItems: "center", gap: spacing.md, paddingTop: spacing.lg }}>
-        <View
-          style={{
-            width: 80,
-            height: 80,
-            borderRadius: radii.full,
-            backgroundColor: theme.colors.primaryLight,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <AppIcon name="business" size={36} color={theme.colors.textOnPrimary} />
-        </View>
+        <SupplierAvatar supplier={supplier} size={80} />
         <Typography variant="h1" style={{ textAlign: "center" }}>
           {supplier.name}
+        </Typography>
+        <Typography variant="caption">
+          {SUPPLIER_CATEGORY_LABELS[supplier.category]}
         </Typography>
       </View>
 
@@ -113,7 +112,7 @@ export function SupplierDetail({
             style={{ borderRadius: radii.md }}
           />
         </View>
-        {supplier.phone && (
+        {supplier.phone && supplier.hasWhatsApp && (
           <View style={{ flex: 1 }}>
             <Button
               title="WhatsApp"
@@ -152,6 +151,14 @@ export function SupplierDetail({
               icon="location-outline"
               label="Endereço"
               value={supplier.address}
+              theme={theme}
+            />
+          )}
+          {supplier.purchaseDescription && (
+            <InfoRow
+              icon="basket-outline"
+              label="O que você compra aqui"
+              value={supplier.purchaseDescription}
               theme={theme}
             />
           )}

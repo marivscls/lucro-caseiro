@@ -5,6 +5,7 @@ import {
   Pressable,
   type PressableProps,
   type StyleProp,
+  type View,
   type ViewStyle,
 } from "react-native";
 
@@ -27,20 +28,17 @@ export type FABProps = Readonly<
  * `theme.shadows.md`, ícone `iconSizes.md`, 56px de altura. Use no lugar dos
  * botões flutuantes montados à mão em cada tela.
  */
-export function FAB({
-  icon,
-  label,
-  header = false,
-  accessibilityLabel,
-  style,
-  ...props
-}: FABProps) {
+export const FAB = React.forwardRef<View, FABProps>(function FAB(
+  { icon, label, header = false, accessibilityLabel, style, ...props },
+  ref,
+) {
   const { theme } = useTheme();
   let horizontalPadding = 0;
   if (label) horizontalPadding = header ? spacing.md : spacing.xl;
 
   return (
     <Pressable
+      ref={ref}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       style={({ pressed }) => [
@@ -69,4 +67,4 @@ export function FAB({
       ) : null}
     </Pressable>
   );
-}
+});

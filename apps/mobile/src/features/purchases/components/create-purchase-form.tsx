@@ -13,7 +13,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
 import { StandardModal } from "../../../shared/components/standard-modal";
-import { desktopAction, desktopCompactField } from "../../../shared/layout/desktop-density";
+import {
+  desktopAction,
+  desktopCompactField,
+} from "../../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { SupplierSelector } from "../../suppliers/components/supplier-selector";
 import { alertError, alertValidation } from "../../../shared/utils/alerts";
@@ -40,6 +43,10 @@ interface CreatePurchaseFormProps {
   visible: boolean;
   onClose: () => void;
   purchase?: Purchase;
+  prefill?: Pick<
+    Purchase,
+    "supplierId" | "description" | "amount" | "items" | "category"
+  >;
   onSuccess?: () => void;
 }
 
@@ -48,7 +55,7 @@ function todayBR(): string {
   return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
 }
 
-function purchaseItemDrafts(purchase?: Purchase): PurchaseItemDraft[] {
+function purchaseItemDrafts(purchase?: Pick<Purchase, "items">): PurchaseItemDraft[] {
   return (
     purchase?.items.map((item) => ({
       product: {
@@ -84,6 +91,7 @@ export function CreatePurchaseForm({
   visible,
   onClose,
   purchase,
+  prefill,
   onSuccess,
 }: Readonly<CreatePurchaseFormProps>) {
   const { theme } = useTheme();
@@ -100,23 +108,22 @@ export function CreatePurchaseForm({
     }
     return item;
   });
-  const [supplierId, setSupplierId] = useState<string | null>(
-    purchase?.supplierId ?? null,
-  );
-  const [description, setDescription] = useState(purchase?.description ?? "");
+  const source = purchase ?? prefill;
+  const [supplierId, setSupplierId] = useState<string | null>(source?.supplierId ?? null);
+  const [description, setDescription] = useState(source?.description ?? "");
   const [amount, setAmount] = useState(
-    purchase && purchase.items.length === 0 ? currencyInput(purchase.amount) : "",
+    source && source.items.length === 0 ? currencyInput(source.amount) : "",
   );
   const [category, setCategory] = useState<PurchaseCategoryValue>(
-    (purchase?.category as PurchaseCategoryValue | undefined) ?? "material",
+    (source?.category as PurchaseCategoryValue | undefined) ?? "material",
   );
   const [date, setDate] = useState(purchase ? isoToBR(purchase.purchasedAt) : todayBR());
   const [alreadyPaid, setAlreadyPaid] = useState(false);
   const [receiveStock, setReceiveStock] = useState(
-    purchase ? purchase.items.length > 0 : stockPurchaseEnabled,
+    source ? source.items.length > 0 : stockPurchaseEnabled,
   );
   const [items, setItems] = useState<PurchaseItemDraft[]>(() =>
-    purchaseItemDrafts(purchase),
+    purchaseItemDrafts(source),
   );
   const { data: productsData } = useProducts({ limit: 100 });
   const products = useMemo(() => productsData?.items ?? [], [productsData?.items]);

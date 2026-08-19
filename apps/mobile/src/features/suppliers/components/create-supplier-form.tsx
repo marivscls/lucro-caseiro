@@ -1,32 +1,27 @@
-import type { Supplier } from "@lucro-caseiro/contracts";
-import { Button, Input, Typography, spacing } from "@lucro-caseiro/ui";
-import React, { useState } from "react";
-import { View } from "react-native";
+import type { CreateSupplier, Supplier } from "@lucro-caseiro/contracts";
+import { Button, spacing } from "@lucro-caseiro/ui";
+import React from "react";
 
+import { showAlert } from "../../../shared/components/alert-store";
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { StandardModal } from "../../../shared/components/standard-modal";
+import { showToast } from "../../../shared/components/toast";
+import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
+import { usePaywall } from "../../../shared/hooks/use-paywall";
 import {
-  desktopAction,
   desktopStretch,
   desktopWidths,
   pageGutter,
 } from "../../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
-import { useLimitCheck } from "../../../shared/hooks/use-limit-check";
-import { usePaywall } from "../../../shared/hooks/use-paywall";
-import { showAlert } from "../../../shared/components/alert-store";
 import { ApiError } from "../../../shared/utils/api-client";
-import { alertError, alertValidation } from "../../../shared/utils/alerts";
+import { alertError } from "../../../shared/utils/alerts";
 import { digitsOnly, duplicateKey } from "../../../shared/utils/duplicates";
-import { isValidEmail } from "../../../shared/utils/email";
-import { isValidBrazilPhone, maskPhoneBR } from "../../../shared/utils/phone";
 import { useCreateSupplier, useSuppliers } from "../hooks";
-import { useBusinessCopy } from "../../subscription/business-copy";
+import { SupplierForm, type SupplierFormHandle } from "./supplier-form";
 
 interface CreateSupplierFormProps {
-  // Recebe o fornecedor criado para quem quiser auto-selecioná-lo (ex.: SupplierSelector).
   onSuccess?: (supplier?: Supplier) => void;
-  /** Quando presente, o form se apresenta como StandardModal (hug) com a ação no footer. */
   modal?: { visible: boolean; onClose: () => void };
 }
 
@@ -35,167 +30,66 @@ export function CreateSupplierForm({
   modal,
 }: Readonly<CreateSupplierFormProps>) {
   const isDesktop = useDesktopLayout();
-  const experienceCopy = useBusinessCopy();
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [address, setAddress] = useState("");
-  const [notes, setNotes] = useState("");
-
+  const formRef = React.useRef<SupplierFormHandle>(null);
+  const [formSubmitting, setFormSubmitting] = React.useState(false);
   const createSupplier = useCreateSupplier();
   const { checkAndBlock: checkSupplierLimit } = useLimitCheck("suppliers");
-  const showPaywall = usePaywall((s) => s.show);
-  const { data: matchingSuppliers } = useSuppliers({
-    search: name.trim() || phone.trim() || "__sem_nome__",
-  });
+  const showPaywall = usePaywall((state) => state.show);
+  const { data: existing } = useSuppliers();
 
-  async function handleSubmit() {
+  async function submit(data: CreateSupplier) {
     if (checkSupplierLimit()) return;
-
-    if (!name.trim()) {
-      alertValidation("Coloque o nome do fornecedor");
-      return;
-    }
-
-    const trimmedPhone = phone.trim();
-    if (trimmedPhone && !isValidBrazilPhone(trimmedPhone)) {
-      alertValidation("Telefone inválido. Use DDD + número, ex: (11) 99999-9999.");
-      return;
-    }
-
-    const trimmedEmail = email.trim();
-    if (trimmedEmail && !isValidEmail(trimmedEmail)) {
-      alertValidation("Email inválido. Confira o endereço digitado.");
-      return;
-    }
-
-    const normalizedName = duplicateKey(name);
-    const phoneDigits = digitsOnly(trimmedPhone);
-    const normalizedEmail = duplicateKey(trimmedEmail);
-    const duplicate = matchingSuppliers?.items.find((supplier) => {
-      const sameName = duplicateKey(supplier.name) === normalizedName;
-      const samePhone = !!phoneDigits && digitsOnly(supplier.phone) === phoneDigits;
-      const sameEmail =
-        !!normalizedEmail && duplicateKey(supplier.email) === normalizedEmail;
-      return sameName || samePhone || sameEmail;
-    });
+    const duplicate = existing?.items.find(
+      (supplier) =>
+        duplicateKey(supplier.name) === duplicateKey(data.name) ||
+        (!!data.phone && digitsOnly(supplier.phone) === data.phone) ||
+        (!!data.email && duplicateKey(supplier.email) === duplicateKey(data.email)),
+    );
     if (duplicate) {
       showAlert({
         title: "Fornecedor já cadastrado",
-        message:
-          "Esse fornecedor já existe ou usa um contato já cadastrado. Abra o cadastro existente para editar.",
+        message: "Esse nome ou contato já pertence a um fornecedor cadastrado.",
       });
       return;
     }
 
     try {
-      const created = await createSupplier.mutateAsync({
-        name: name.trim(),
-        phone: trimmedPhone || undefined,
-        email: trimmedEmail || undefined,
-        address: address.trim() || undefined,
-        notes: notes.trim() || undefined,
-      });
-      showAlert({
-        title: "Fornecedor cadastrado!",
-        message: `${name} foi adicionado à sua lista de fornecedores`,
-      });
+      const created = await createSupplier.mutateAsync(data);
       onSuccess?.(created);
-    } catch (e: unknown) {
-      if (e instanceof ApiError && e.code === "LIMIT_EXCEEDED") {
+      showToast(`${created.name} foi adicionado à sua lista.`);
+    } catch (error) {
+      if (error instanceof ApiError && error.code === "LIMIT_EXCEEDED") {
         showPaywall("suppliers");
         return;
       }
-      const message =
-        e instanceof Error
-          ? e.message
-          : "Não foi possível cadastrar o fornecedor. Tente novamente.";
-      alertError(message);
+      alertError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível cadastrar o fornecedor.",
+      );
     }
   }
 
-  const submitButton = (
+  const isSubmitting = createSupplier.isPending || formSubmitting;
+  const form = (
+    <SupplierForm
+      ref={formRef}
+      onSubmit={submit}
+      disabled={isSubmitting}
+      onSubmittingChange={setFormSubmitting}
+    />
+  );
+  const button = (
     <Button
       title="Cadastrar fornecedor"
       size="lg"
+      loading={isSubmitting}
+      disabled={isSubmitting}
       onPress={() => {
-        void handleSubmit();
+        void formRef.current?.submit();
       }}
-      loading={createSupplier.isPending}
-      style={modal ? { flex: 1 } : desktopAction(isDesktop)}
+      style={modal ? { flex: 1 } : { width: "100%" }}
     />
-  );
-
-  // No modal (hug estreito) o form usa coluna única; na página cheia, campos
-  // curtos (telefone/email) ficam lado a lado para aproveitar a largura.
-  const wideLayout = isDesktop && !modal;
-
-  const fields = (
-    <>
-      <View
-        style={{
-          flexDirection: wideLayout ? "row" : "column",
-          gap: wideLayout ? spacing.lg : 16,
-        }}
-      >
-        <View style={wideLayout ? { flex: 1 } : undefined}>
-          <Input
-            label="Nome do fornecedor"
-            placeholder={`Ex: ${experienceCopy.supplierExample}`}
-            value={name}
-            onChangeText={setName}
-            autoFocus
-          />
-        </View>
-
-        <View style={wideLayout ? { flex: 1, maxWidth: desktopWidths.compact } : undefined}>
-          <Input
-            label="Telefone / WhatsApp (opcional)"
-            placeholder="Ex: (11) 99999-9999"
-            value={phone}
-            onChangeText={(v) => setPhone(maskPhoneBR(v))}
-            keyboardType="phone-pad"
-          />
-        </View>
-      </View>
-
-      <View
-        style={{
-          flexDirection: wideLayout ? "row" : "column",
-          gap: wideLayout ? spacing.lg : 16,
-        }}
-      >
-        <View style={wideLayout ? { flex: 1 } : undefined}>
-          <Input
-            label="Email (opcional)"
-            placeholder="Ex: contato@fornecedor.com"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-        </View>
-
-        <View style={wideLayout ? { flex: 1 } : undefined}>
-          <Input
-            label="Endereço (opcional)"
-            placeholder="Ex: Rua das Flores, 123"
-            value={address}
-            onChangeText={setAddress}
-          />
-        </View>
-      </View>
-
-      <Input
-        label="Observações (opcional)"
-        placeholder="O que você compra deste fornecedor..."
-        value={notes}
-        onChangeText={setNotes}
-        multiline
-        numberOfLines={3}
-        style={{ height: 100, textAlignVertical: "top", paddingTop: 12 }}
-      />
-    </>
   );
 
   if (modal) {
@@ -204,9 +98,11 @@ export function CreateSupplierForm({
         visible={modal.visible}
         onClose={modal.onClose}
         title="Novo fornecedor"
-        footer={submitButton}
+        closeAccessibilityLabel="Fechar formulário"
+        dismissDisabled={isSubmitting}
+        footer={button}
       >
-        <View style={{ flexShrink: 1, gap: 16 }}>{fields}</View>
+        {form}
       </StandardModal>
     );
   }
@@ -214,15 +110,17 @@ export function CreateSupplierForm({
   return (
     <KeyboardAwareScrollView
       contentContainerStyle={[
-        { paddingVertical: 20, paddingBottom: 80, gap: 20, ...pageGutter(isDesktop, 20) },
+        {
+          paddingVertical: spacing.xl,
+          paddingBottom: 80,
+          gap: spacing.lg,
+          ...pageGutter(isDesktop, spacing.xl),
+        },
         desktopStretch(isDesktop, desktopWidths.form),
       ]}
     >
-      <Typography variant="h2">Novo fornecedor</Typography>
-
-      {fields}
-
-      {submitButton}
+      {form}
+      {button}
     </KeyboardAwareScrollView>
   );
 }

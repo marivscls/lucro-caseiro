@@ -185,6 +185,7 @@ vi.mock("@react-native-community/netinfo", () => ({
 // Mock @lucro-caseiro/ui
 vi.mock("@lucro-caseiro/ui", () => ({
   Button: ({ children }: { children?: React.ReactNode }) => children,
+  IconButton: ({ children }: { children?: React.ReactNode }) => children,
   Card: ({ children }: { children?: React.ReactNode }) => children,
   Input: () => null,
   Typography: ({ children }: { children?: React.ReactNode }) => children,
@@ -228,6 +229,13 @@ vi.mock("@lucro-caseiro/ui", () => ({
     "5xl": 48,
   },
   radii: { sm: 8, md: 12, lg: 16, xl: 20, full: 9999 },
+  fonts: {
+    regular: "System",
+    medium: "System",
+    semiBold: "System",
+    bold: "System",
+    extraBold: "System",
+  },
 }));
 
 // Mock @supabase/supabase-js
@@ -246,6 +254,9 @@ vi.mock("@supabase/supabase-js", () => ({
       setSession: vi.fn(),
       updateUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
       refreshSession: vi.fn(),
+    },
+    storage: {
+      from: vi.fn(),
     },
   }),
 }));

@@ -7,6 +7,7 @@ import {
   deleteSupplier,
   fetchSupplier,
   fetchSuppliers,
+  fetchSuppliersOverview,
   updateSupplier,
 } from "./api";
 
@@ -30,6 +31,15 @@ export function useSupplier(id: string) {
   });
 }
 
+export function useSuppliersOverview() {
+  const { token } = useAuth();
+  return useQuery({
+    queryKey: [...SUPPLIERS_KEY, "overview"],
+    queryFn: () => fetchSuppliersOverview(token!),
+    enabled: !!token,
+  });
+}
+
 /** Resolve o nome de um fornecedor pelo id, a partir da lista já em cache. */
 export function useSupplierName(id: string | null | undefined): string | null {
   const { data } = useSuppliers();
@@ -44,6 +54,7 @@ export function useCreateSupplier() {
     mutationFn: (data: CreateSupplier) => createSupplier(token!, data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: SUPPLIERS_KEY });
+      void queryClient.invalidateQueries({ queryKey: ["purchases"] });
       // Atualiza a contagem de limites do plano (fornecedores) pra o gate bloquear na hora certa.
       void queryClient.invalidateQueries({ queryKey: ["subscription"] });
     },

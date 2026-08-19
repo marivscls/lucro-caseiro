@@ -19,10 +19,11 @@ type PaginatedPurchasesPayload = Omit<PaginatedPurchases, "items"> & {
 
 export async function fetchPurchases(
   token: string,
-  opts?: { page?: number; status?: "pending" | "paid" },
+  opts?: { page?: number; limit?: number; status?: "pending" | "paid" },
 ): Promise<PaginatedPurchases> {
   const params = new URLSearchParams();
   if (opts?.page) params.set("page", String(opts.page));
+  if (opts?.limit) params.set("limit", String(opts.limit));
   if (opts?.status) params.set("status", opts.status);
 
   const query = params.toString();

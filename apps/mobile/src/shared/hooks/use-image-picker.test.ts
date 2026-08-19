@@ -57,6 +57,7 @@ describe("useImagePicker", () => {
 
     expect(typeof result.current.showPicker).toBe("function");
     expect(typeof result.current.pickFromGallery).toBe("function");
+    expect(typeof result.current.pickFromGalleryAsset).toBe("function");
     expect(typeof result.current.takePhoto).toBe("function");
     expect(typeof result.current.clear).toBe("function");
     expect(typeof result.current.setImageUri).toBe("function");

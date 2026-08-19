@@ -1,4 +1,4 @@
-import { Typography, useTheme, spacing } from "@lucro-caseiro/ui";
+import { Typography, useReducedMotion, useTheme, spacing } from "@lucro-caseiro/ui";
 import { AppIcon } from "./app-icon";
 import React from "react";
 import { Platform, Pressable, ScrollView, View } from "react-native";
@@ -11,6 +11,8 @@ interface StandardModalProps {
   readonly onClose: () => void;
   readonly title: string;
   readonly subtitle?: string;
+  readonly closeAccessibilityLabel?: string;
+  readonly dismissDisabled?: boolean;
   readonly right?: React.ReactNode;
   readonly footer?: React.ReactNode;
   readonly wide?: boolean;
@@ -28,6 +30,8 @@ export function StandardModal({
   onClose,
   title,
   subtitle,
+  closeAccessibilityLabel = "Fechar",
+  dismissDisabled = false,
   right,
   footer,
   wide = false,
@@ -35,12 +39,51 @@ export function StandardModal({
   children,
 }: Readonly<StandardModalProps>) {
   const { theme } = useTheme();
+  const reducedMotion = useReducedMotion();
+  const modalContentRef = React.useRef<View>(null);
   const internalScrollRef = React.useRef<ScrollView>(null);
   const { scrollFocusedInput, trackScroll } = useScrollFocusedInputIntoView(
     internalScrollRef,
     spacing.xl,
     visible,
   );
+
+  const requestClose = React.useCallback(() => {
+    if (!dismissDisabled) onClose();
+  }, [dismissDisabled, onClose]);
+
+  React.useEffect(() => {
+    if (Platform.OS !== "web" || !visible) return;
+    const root = modalContentRef.current as unknown as HTMLElement | null;
+    if (!root) return;
+
+    function keepFocusInside(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        requestClose();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = Array.from(
+        root!.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((element) => element.offsetParent !== null);
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", keepFocusInside);
+    return () => document.removeEventListener("keydown", keepFocusInside);
+  }, [requestClose, visible]);
 
   if (!visible) return null;
 
@@ -49,11 +92,15 @@ export function StandardModal({
       size="hug"
       desktopMaxWidth={wide ? 1040 : 560}
       visible={visible}
-      animationType="slide"
+      animationType={reducedMotion ? "none" : "slide"}
       presentationStyle="pageSheet"
-      onRequestClose={onClose}
+      onRequestClose={requestClose}
     >
-      <View style={{ flexGrow: 0, flexShrink: 1, minHeight: 0 }}>
+      <View
+        ref={modalContentRef}
+        accessibilityViewIsModal
+        style={{ flexGrow: 0, flexShrink: 1, minHeight: 0 }}
+      >
         {/* Header */}
         <View
           style={{
@@ -78,17 +125,24 @@ export function StandardModal({
           </View>
           {right}
           <Pressable
-            onPress={onClose}
+            onPress={requestClose}
+            disabled={dismissDisabled}
             accessibilityRole="button"
-            accessibilityLabel="Fechar"
+            accessibilityLabel={closeAccessibilityLabel}
+            accessibilityState={{ disabled: dismissDisabled }}
             hitSlop={8}
-            style={({ pressed }) => ({
-              width: 44,
-              height: 44,
-              alignItems: "center",
-              justifyContent: "center",
-              opacity: pressed ? 0.6 : 1,
-            })}
+            style={({ pressed }) => {
+              let opacity = 1;
+              if (dismissDisabled) opacity = 0.45;
+              else if (pressed) opacity = 0.6;
+              return {
+                width: 44,
+                height: 44,
+                alignItems: "center",
+                justifyContent: "center",
+                opacity,
+              };
+            }}
           >
             <AppIcon name="close" size={24} color={theme.colors.textSecondary} />
           </Pressable>

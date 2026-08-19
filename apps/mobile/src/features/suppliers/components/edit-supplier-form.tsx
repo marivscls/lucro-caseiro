@@ -1,14 +1,12 @@
-import type { Supplier } from "@lucro-caseiro/contracts";
-import { Button, Input, spacing } from "@lucro-caseiro/ui";
-import React, { useState } from "react";
-import { View } from "react-native";
+import type { CreateSupplier, Supplier } from "@lucro-caseiro/contracts";
+import { Button } from "@lucro-caseiro/ui";
+import React from "react";
 
 import { StandardModal } from "../../../shared/components/standard-modal";
 import { showToast } from "../../../shared/components/toast";
-import { alertError, alertValidation } from "../../../shared/utils/alerts";
-import { isValidEmail } from "../../../shared/utils/email";
-import { isValidBrazilPhone, maskPhoneBR } from "../../../shared/utils/phone";
+import { alertError } from "../../../shared/utils/alerts";
 import { useUpdateSupplier } from "../hooks";
+import { SupplierForm, type SupplierFormHandle } from "./supplier-form";
 
 interface EditSupplierFormProps {
   supplier: Supplier;
@@ -23,51 +21,22 @@ export function EditSupplierForm({
   onClose,
   onSuccess,
 }: Readonly<EditSupplierFormProps>) {
-  const [name, setName] = useState(supplier.name);
-  const [phone, setPhone] = useState(supplier.phone ?? "");
-  const [email, setEmail] = useState(supplier.email ?? "");
-  const [address, setAddress] = useState(supplier.address ?? "");
-  const [notes, setNotes] = useState(supplier.notes ?? "");
-
+  const formRef = React.useRef<SupplierFormHandle>(null);
+  const [formSubmitting, setFormSubmitting] = React.useState(false);
   const updateSupplier = useUpdateSupplier();
+  const isSubmitting = updateSupplier.isPending || formSubmitting;
 
-  async function handleSubmit() {
-    if (!name.trim()) {
-      alertValidation("Coloque o nome do fornecedor.");
-      return;
-    }
-
-    const trimmedPhone = phone.trim();
-    if (trimmedPhone && !isValidBrazilPhone(trimmedPhone)) {
-      alertValidation("Telefone inválido. Use DDD + número, ex: (11) 99999-9999.");
-      return;
-    }
-
-    const trimmedEmail = email.trim();
-    if (trimmedEmail && !isValidEmail(trimmedEmail)) {
-      alertValidation("Email inválido. Confira o endereço digitado.");
-      return;
-    }
-
+  async function submit(data: CreateSupplier) {
     try {
-      await updateSupplier.mutateAsync({
-        id: supplier.id,
-        data: {
-          name: name.trim(),
-          phone: trimmedPhone || undefined,
-          email: trimmedEmail || undefined,
-          address: address.trim() || undefined,
-          notes: notes.trim() || undefined,
-        },
-      });
-      showToast(`${name} atualizado!`);
+      await updateSupplier.mutateAsync({ id: supplier.id, data });
       onSuccess?.();
-    } catch (e: unknown) {
-      const message =
-        e instanceof Error
-          ? e.message
-          : "Não foi possível atualizar o fornecedor. Tente novamente.";
-      alertError(message);
+      showToast(`${data.name} atualizado!`);
+    } catch (error) {
+      alertError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível atualizar o fornecedor.",
+      );
     }
   }
 
@@ -76,61 +45,28 @@ export function EditSupplierForm({
       title="Editar fornecedor"
       visible={visible}
       onClose={onClose}
+      closeAccessibilityLabel="Fechar formulário"
+      dismissDisabled={isSubmitting}
       footer={
         <Button
           title="Salvar alterações"
           size="lg"
+          loading={isSubmitting}
+          disabled={isSubmitting}
           onPress={() => {
-            void handleSubmit();
+            void formRef.current?.submit();
           }}
-          loading={updateSupplier.isPending}
           style={{ flex: 1 }}
         />
       }
     >
-      <View style={{ flexShrink: 1, gap: spacing.md }}>
-        <Input
-          label="Nome do fornecedor"
-          placeholder="Ex: Atacadão da Festa..."
-          value={name}
-          onChangeText={setName}
-          autoFocus
-        />
-
-        <Input
-          label="Telefone / WhatsApp (opcional)"
-          placeholder="Ex: (11) 99999-9999"
-          value={phone}
-          onChangeText={(v) => setPhone(maskPhoneBR(v))}
-          keyboardType="phone-pad"
-        />
-
-        <Input
-          label="Email (opcional)"
-          placeholder="Ex: contato@fornecedor.com"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-
-        <Input
-          label="Endereço (opcional)"
-          placeholder="Ex: Rua das Flores, 123"
-          value={address}
-          onChangeText={setAddress}
-        />
-
-        <Input
-          label="Observações (opcional)"
-          placeholder="O que você compra deste fornecedor..."
-          value={notes}
-          onChangeText={(value) => setNotes(value.slice(0, 500))}
-          multiline
-          numberOfLines={2}
-          style={{ height: 78, textAlignVertical: "top", paddingTop: 12 }}
-        />
-      </View>
+      <SupplierForm
+        ref={formRef}
+        supplier={supplier}
+        onSubmit={submit}
+        disabled={isSubmitting}
+        onSubmittingChange={setFormSubmitting}
+      />
     </StandardModal>
   );
 }
