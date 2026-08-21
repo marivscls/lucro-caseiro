@@ -313,16 +313,17 @@ function MaterialRow() {
 
 function RecipeRow() {
   return (
-    <EntityShell>
+    <EntityShell style={{ minHeight: 96, borderRadius: radii.lg }}>
       <View style={styles.entityRow}>
-        <Skeleton width={52} height={52} borderRadius={radii.md} />
+        <Skeleton width={64} height={64} borderRadius={radii.full} />
         <View style={styles.entityBody}>
-          <View style={styles.inlineRow}>
-            <Skeleton width="60%" height={15} />
-            <Skeleton width={72} height={22} borderRadius={radii.full} />
-          </View>
-          <Skeleton width="50%" height={12} />
-          <Skeleton width="40%" height={12} />
+          <Skeleton width={56} height={18} borderRadius={radii.full} />
+          <Skeleton width="70%" height={16} />
+          <Skeleton width="85%" height={12} />
+        </View>
+        <View style={styles.trailingCol}>
+          <Skeleton width={48} height={12} />
+          <Skeleton width={20} height={20} />
         </View>
       </View>
     </EntityShell>
@@ -345,19 +346,27 @@ function SupplierRow() {
 }
 
 function PurchaseRow() {
+  const { theme } = useTheme();
   return (
-    <EntityShell>
+    <EntityShell
+      style={{ backgroundColor: theme.colors.surfaceElevated, borderWidth: 0 }}
+    >
       <View style={styles.entityBody}>
         <View style={styles.inlineRow}>
-          <Skeleton width="58%" height={15} />
-          <Skeleton width={64} height={22} borderRadius={radii.full} />
+          <Skeleton width="58%" height={16} />
+          <Skeleton width={72} height={16} />
+        </View>
+        <View style={styles.inlineRow}>
+          <Skeleton width="62%" height={12} />
+          <Skeleton width={64} height={22} borderRadius={radii.sm} />
         </View>
         <Skeleton width="70%" height={12} />
-        <Skeleton width={96} height={18} />
-        <Skeleton width="85%" height={12} />
         <View style={styles.inlineRow}>
-          <Skeleton width={100} height={36} borderRadius={radii.md} />
-          <Skeleton width={100} height={36} borderRadius={radii.md} />
+          <Skeleton width={148} height={44} borderRadius={radii.md} />
+          <View style={{ flexDirection: "row", gap: spacing.sm }}>
+            <Skeleton width={44} height={44} borderRadius={radii.full} />
+            <Skeleton width={44} height={44} borderRadius={radii.full} />
+          </View>
         </View>
       </View>
     </EntityShell>

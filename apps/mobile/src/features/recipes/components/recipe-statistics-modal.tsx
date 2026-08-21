@@ -5,6 +5,7 @@ import { View } from "react-native";
 import { AppIcon } from "../../../shared/components/app-icon";
 import { StandardModal } from "../../../shared/components/standard-modal";
 import { SkeletonCard } from "../../../shared/components/skeleton";
+import { displayIngredientName } from "../../../shared/ingredient-image/resolve";
 import { formatCurrency } from "../../../shared/utils/format";
 import { RankBars, type RankRow } from "../../insights/components/rank-bars";
 import { useAllProducts } from "../../products/hooks";
@@ -72,7 +73,7 @@ export function RecipeStatisticsModal({
   const statistics = calculateRecipeStatistics(recipes ?? [], products ?? []);
   const ranking: RankRow[] = statistics.profitability.slice(0, 5).map((item) => ({
     key: item.recipeId,
-    label: item.recipeName,
+    label: displayIngredientName(item.recipeName),
     caption: `${formatCurrency(item.profitPerUnit)} · ${item.marginPercent.toFixed(1)}%`,
     value: item.profitPerUnit,
   }));
@@ -133,8 +134,8 @@ export function RecipeStatisticsModal({
           <Card variant="surface" padding="xl" style={{ gap: spacing.sm }}>
             <Typography variant="h3">Margem ainda indisponível</Typography>
             <Typography variant="body" color={theme.colors.textSecondary}>
-              Vincule uma {experienceCopy.formulaNoun} a um produto com preço de venda para
-              calcular lucro e margem.
+              Vincule uma {experienceCopy.formulaNoun} a um produto com preço de venda
+              para calcular lucro e margem.
             </Typography>
           </Card>
         )}

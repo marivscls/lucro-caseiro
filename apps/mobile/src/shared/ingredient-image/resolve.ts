@@ -118,11 +118,22 @@ export function slugify(name: string): string {
   return normalizeName(name).replace(/\s+/g, "-");
 }
 
-/**
- * Slug usado para resolver a imagem de QUALQUER nome (dinâmico): usa o slug do
+/** Slug usado para resolver a imagem de QUALQUER nome (dinâmico): usa o slug do
  * catálogo quando há correspondência, senão deriva do próprio nome. Assim
  * "lasanha", "coxinha", etc. também têm um slug estável p/ buscar/gerar o PNG.
  */
 export function ingredientSlug(name: string): string {
   return resolveIngredient(name)?.slug ?? slugify(name);
+}
+
+/**
+ * Slug da ilustração de catálogo. `null` quando `matchCatalog` é false — nomes
+ * de receita/prato/embalagem não devem puxar PNG de insumo pelo slug.
+ */
+export function catalogIllustrationSlug(
+  name: string,
+  matchCatalog: boolean,
+): string | null {
+  if (!matchCatalog) return null;
+  return ingredientSlug(name);
 }

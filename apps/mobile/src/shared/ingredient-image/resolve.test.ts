@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { INGREDIENT_CATALOG } from "./catalog";
 import {
+  catalogIllustrationSlug,
   displayIngredientName,
   ingredientSlug,
   normalizeName,
@@ -71,5 +72,11 @@ describe("slugify / ingredientSlug (dinâmico)", () => {
   it("ingredientSlug deriva do nome quando não casa no catálogo", () => {
     expect(ingredientSlug("Lasanha")).toBe("lasanha");
     expect(ingredientSlug("Coxinha")).toBe("coxinha");
+  });
+
+  it("does not map recipe or packaging names to ingredient illustration slugs", () => {
+    expect(catalogIllustrationSlug("[massa] Brigadeiro gourmet", false)).toBeNull();
+    expect(catalogIllustrationSlug("Torta de morango", false)).toBeNull();
+    expect(catalogIllustrationSlug("Açúcar refinado", true)).toBe("acucar");
   });
 });

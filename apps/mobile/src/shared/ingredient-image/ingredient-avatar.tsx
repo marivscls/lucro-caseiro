@@ -3,7 +3,7 @@ import { Image, Text, View } from "react-native";
 
 import { requestImageGeneration } from "./generation";
 import { ingredientImageUrl } from "./image-manifest";
-import { resolveIngredient, slugify } from "./resolve";
+import { catalogIllustrationSlug, resolveIngredient } from "./resolve";
 
 interface IngredientAvatarProps {
   /** Nome livre do insumo/produto/receita (ex.: "Leite condensado", "Lasanha"). */
@@ -24,15 +24,17 @@ interface IngredientAvatarProps {
    * **prato/receita** (ex.: "Torta de limão" não deve virar o insumo limão).
    */
   readonly matchCatalog?: boolean;
+  /** Encaixe da imagem no círculo. Default `cover` para não alterar telas existentes. */
+  readonly imageResizeMode?: "cover" | "contain";
+  readonly accessibilityLabel?: string;
 }
 
 const FALLBACK_COLOR = "#9A8F87";
 const FALLBACK_EMOJI = "🍽️";
 
 /**
- * Avatar circular dinâmico: resolve a ilustração pelo **slug do nome** (qualquer
- * nome, não só o catálogo). Mostra o PNG publicado quando existe; senão, o
- * fallback (emoji + cor). Em miss de imagem, pede a geração (no-op até configurar).
+ * Avatar circular: com `matchCatalog`, resolve ilustração de insumo pelo nome.
+ * Sem catálogo (receita/embalagem), usa só `photoUrl` explícita ou o fallback.
  */
 export function IngredientAvatar({
   name,
@@ -42,15 +44,17 @@ export function IngredientAvatar({
   fallbackEmoji,
   fallbackColor,
   matchCatalog = true,
+  imageResizeMode = "cover",
+  accessibilityLabel,
 }: IngredientAvatarProps) {
   const [imageFailed, setImageFailed] = useState(false);
   const chosen = emoji?.trim() ? emoji.trim() : null;
   const entry = matchCatalog ? resolveIngredient(name) : null;
-  const slug = entry?.slug ?? slugify(name);
+  const slug = catalogIllustrationSlug(name, matchCatalog);
   const color = entry?.color ?? fallbackColor ?? FALLBACK_COLOR;
   const displayEmoji = chosen ?? entry?.emoji ?? fallbackEmoji ?? FALLBACK_EMOJI;
-  // Prioridade: foto explícita > emoji escolhido > PNG publicado por slug > fallback.
-  const url = photoUrl ?? (chosen ? "" : ingredientImageUrl(slug));
+  // Prioridade: foto explícita > emoji escolhido > PNG de catálogo (só se matchCatalog) > fallback.
+  const url = photoUrl ?? (chosen || !slug ? "" : ingredientImageUrl(slug));
   const showImage = Boolean(url) && !imageFailed;
 
   return (
@@ -71,14 +75,17 @@ export function IngredientAvatar({
         <Image
           source={{ uri: url }}
           style={{ width: size, height: size }}
-          resizeMode="cover"
+          resizeMode={imageResizeMode}
+          accessibilityLabel={accessibilityLabel}
           onError={() => {
             setImageFailed(true);
-            requestImageGeneration(slug, entry?.label ?? name);
+            if (slug) requestImageGeneration(slug, entry?.label ?? name);
           }}
         />
       ) : (
-        <Text style={{ fontSize: size * 0.46 }}>{displayEmoji}</Text>
+        <Text accessibilityLabel={accessibilityLabel} style={{ fontSize: size * 0.46 }}>
+          {displayEmoji}
+        </Text>
       )}
     </View>
   );

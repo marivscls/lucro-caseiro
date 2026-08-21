@@ -2,6 +2,7 @@ import type { Recipe } from "@lucro-caseiro/contracts";
 import { getActiveBrand } from "@lucro-caseiro/brands";
 
 import { getBrandDisplayName } from "../../shared/brand-name";
+import { displayIngredientName } from "../../shared/ingredient-image/resolve";
 import { exportHtmlPdf } from "../../shared/utils/export-html";
 import { formatCurrency } from "../../shared/utils/format";
 import {
@@ -51,7 +52,7 @@ export function buildRecipeHtml(
     .map(
       (ing) =>
         `<tr>
-          <td>${escapeHtml(ing.materialName)}</td>
+          <td>${escapeHtml(displayIngredientName(ing.materialName))}</td>
           <td class="num">${formatQuantity(ing.quantity)} ${escapeHtml(ing.unit)}</td>
           <td class="num">${formatCurrency(ing.cost)}</td>
         </tr>`,
@@ -103,7 +104,7 @@ ${MANROPE_HTML_HEAD}
 </head>
 <body>
   <div class="header">
-    <h1 class="title">${escapeHtml(recipe.name)}</h1>
+    <h1 class="title">${escapeHtml(displayIngredientName(recipe.name))}</h1>
     <div class="category">${escapeHtml(recipe.category)}</div>
     <div class="yield">${escapeHtml(copy.quantityLabel)}: ${formatQuantity(recipe.yieldQuantity)} ${escapeHtml(
       recipe.yieldUnit,

@@ -25,27 +25,31 @@ Gerenciar receitas do negocio: criar, listar, visualizar detalhes, editar, exclu
 | `apps/mobile/src/features/recipes/hooks.ts`                               | React Query hooks                                                                                                                   |
 | `apps/mobile/src/features/recipes/recipe-pdf.ts`                          | `buildRecipeHtml(recipe)` + `exportRecipePdf(recipe)` — gera PDF da receita e abre share/print (expo-print + expo-sharing)          |
 | `apps/mobile/src/features/recipes/yield-units.ts`                         | `YIELD_UNIT_PRESETS` — atalhos de unidade de rendimento (unidades, fatias, porções, kg, g)                                          |
+| `apps/mobile/src/features/recipes/domain.ts`                              | Nome visível, tipo/base da pill, busca/filtros, resumo (contagem e custo médio)                                                     |
 | `apps/mobile/src/features/recipes/components/create-recipe-form.tsx`      | Formulario de criacao com ingredientes dinamicos                                                                                    |
 | `apps/mobile/src/features/recipes/components/recipe-materials-editor.tsx` | Editor de linhas de insumo: seleciona insumo, unidade (#14) e quantidade; preview de custo                                          |
 | `apps/mobile/src/features/recipes/components/edit-recipe-form.tsx`        | Formulario de edicao                                                                                                                |
-| `apps/mobile/src/features/recipes/components/recipe-card.tsx`             | Card de receita na listagem                                                                                                         |
+| `apps/mobile/src/features/recipes/components/recipe-card.tsx`             | Card da listagem (avatar, pill de tipo, custo/rendimento, menu)                                                                     |
 | `apps/mobile/src/features/recipes/components/recipe-detail.tsx`           | Detalhe com tabela de ingredientes e escala                                                                                         |
-| `apps/mobile/src/features/recipes/components/recipe-list.tsx`             | Lista com filtro por categoria                                                                                                      |
+| `apps/mobile/src/features/recipes/components/recipe-list.tsx`             | Lista editorial: intro, resumo, busca, filtros e cards                                                                              |
 | `apps/mobile/src/app/recipes.tsx`                                         | Screen (rota `/recipes`) com modais de CRUD                                                                                         |
 
 ## Components
 
 ### `RecipeCard`
 
-- **Props:** `{ recipe: Recipe; onPress?: () => void }`
-- Exibe nome, categoria (Badge), custo por unidade e rendimento.
+- **Props:** `{ recipe: Recipe; onPress?: () => void; onEdit?: () => void; onDelete?: () => void }`
+- Exibe nome visível (sem prefixos como `[massa]`), pill de tipo extraída do prefixo, categoria no canto, custo por unidade e rendimento.
+- O avatar usa só a foto da receita (`photoUrl`) ou o emoji da categoria, com `object-fit: contain`. Não busca ilustração de insumo pelo nome.
+- Menu de três pontos abre editar/excluir; o card continua abrindo o detalhe.
 
 ### `RecipeList`
 
-- **Props:** `{ onRecipePress?: (id: string) => void; onAddPress?: () => void }`
-- FlatList com filtro por categoria via chips (Todas, Doces, Salgados, Bolos, Bebidas, Outros).
-- Header com titulo e descricao.
-- EmptyState quando sem dados.
+- **Props:** `{ onRecipePress?: (id: string) => void; onAddPress?: () => void; onEditPress?: (id: string) => void }`
+- Carrega todas as receitas (`useAllRecipes`) e filtra localmente por categoria e nome.
+- Introdução editorial, card de resumo (quantidade real e custo médio = média de `totalCost`), busca e chips em linha única com scroll horizontal.
+- Chips: `Todas` + presets do perfil + categorias reais extras.
+- EmptyState distinto para lista vazia, busca/filtro sem resultado e erro (com retry).
 
 ### `RecipeDetail`
 
@@ -115,13 +119,15 @@ Gerenciar receitas do negocio: criar, listar, visualizar detalhes, editar, exclu
 
 ## Performance
 
+- `useAllRecipes` pagina o backend e filtra busca/categoria no cliente (evita refetch a cada chip).
 - FlatList para listagem.
 - Escala de receita via query separada (evita recalcular no front).
-- Filtro por categoria via query param no backend.
 
 ## Test matrix
 
-- [ ] `useRecipes` filtra por categoria
+- [ ] `filterRecipes` busca pelo nome visível e pelo prefixo técnico
+- [ ] `recipeCategoryFilters` começa com "Todas" e inclui categorias reais extras
+- [ ] `recipeListSummary` usa a quantidade real e a média de `totalCost`
 - [ ] `useScaleRecipe` so habilita se multiplier !== 1
 - [ ] `CreateRecipeForm` valida ingrediente minimo
 - [ ] `CreateRecipeForm` checa limite freemium
@@ -162,3 +168,14 @@ Gerenciar receitas do negocio: criar, listar, visualizar detalhes, editar, exclu
   lista foi removido e o título canônico permanece apenas no `ScreenHeader`.
 - 2026-08-18: filtros de categoria da lista usam o `Chip` compartilhado. Sem
   badge de contagem: a query já vem filtrada por categoria.
+- 2026-08-20: cards de receita não puxam mais PNG de insumo pelo slug do nome
+  (`matchCatalog={false}` agora ignora o catálogo de ilustrações). Nomes visíveis
+  omitem prefixos técnicos como `[massa]`.
+- 2026-08-20: **redesign editorial da lista de Receitas**. Cabeçalho compacto
+  (voltar + gráfico + FAB rosa), intro “Suas receitas, seus lucros.”, card de
+  resumo (contagem real + custo médio = média de `totalCost`, a mesma fórmula
+  das estatísticas), busca por nome e chips em linha única (presets + categorias
+  reais). O card ganhou pill de tipo (`[massa]` → Massa), custo em rosa, menu
+  editar/excluir e avatar `contain`. Filtro/busca passaram a ser locais sobre
+  `useAllRecipes`. Lista vazia, sem resultado e erro são estados distintos.
+- 2026-08-20: a ilustração decorativa do caderno foi removida da lista.

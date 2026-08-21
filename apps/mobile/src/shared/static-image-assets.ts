@@ -10,6 +10,7 @@ import brandLogoLight from "../assets/auth-house-light.png";
 import catalogHero from "../assets/catalog-hero-art-trimmed.png";
 import checkoutHero from "../assets/checkout-professional-hero.png";
 import clientsEmpty from "../assets/clients-empty.png";
+import comprasHero3d from "../assets/compras-hero-3d.png";
 import fiadoHero from "../assets/fiado-hero.png";
 import financeEmpty from "../assets/finance-reference-empty.png";
 import financeHero from "../assets/finance-reference-hero.png";
@@ -51,6 +52,7 @@ const staticImageAssets: readonly ImageSourcePropType[] = [
   catalogHero,
   checkoutHero,
   clientsEmpty,
+  comprasHero3d,
   fiadoHero,
   financeEmpty,
   financeHero,

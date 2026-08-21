@@ -1,5 +1,7 @@
 import type { Product, Recipe } from "@lucro-caseiro/contracts";
 
+import { averageRecipeCost } from "./domain";
+
 export interface RecipeProfitability {
   recipeId: string;
   recipeName: string;
@@ -18,9 +20,6 @@ export function calculateRecipeStatistics(
   recipes: readonly Recipe[],
   products: readonly Product[],
 ): RecipeStatistics {
-  const averageRecipeCost = recipes.length
-    ? recipes.reduce((total, recipe) => total + recipe.totalCost, 0) / recipes.length
-    : 0;
   const recipesById = new Map(recipes.map((recipe) => [recipe.id, recipe]));
   const bestByRecipe = new Map<string, RecipeProfitability>();
 
@@ -51,5 +50,9 @@ export function calculateRecipeStatistics(
       profitability.length
     : null;
 
-  return { averageRecipeCost, averageMarginPercent, profitability };
+  return {
+    averageRecipeCost: averageRecipeCost(recipes),
+    averageMarginPercent,
+    profitability,
+  };
 }

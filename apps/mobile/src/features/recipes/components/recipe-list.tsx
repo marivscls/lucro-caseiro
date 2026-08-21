@@ -1,399 +1,514 @@
 import {
   Button,
-  Chip,
   EmptyState,
-  FilterChipRow,
+  Input,
   Typography,
-  spacing,
+  iconSizes,
   radii,
+  spacing,
   useTheme,
 } from "@lucro-caseiro/ui";
-import { AppIcon } from "../../../shared/components/app-icon";
-import type { AppIconName } from "../../../shared/components/app-icon";
-import React, { useState } from "react";
-import {
-  FlatList,
-  Image,
-  Pressable,
-  ScrollView,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import React, { useMemo, useState } from "react";
+import { FlatList, Platform, Pressable, ScrollView, View } from "react-native";
 
-import { SkeletonList } from "../../../shared/components/skeleton";
-import {
-  desktopStretch,
-  desktopWidths,
-  pageGutter,
-} from "../../../shared/layout/desktop-density";
-import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
+import { useBrandScreenPalette } from "../../../shared/brand-palette";
 import {
   AD_ITEM_MARKER,
   AdBanner,
   interleaveAds,
 } from "../../../shared/components/ad-banner";
-import { useShowAds } from "../../../shared/hooks/use-show-ads";
-import { useRecipes } from "../hooks";
-import { RecipeCard } from "./recipe-card";
-import recipesEmpty from "../../../assets/recipes-empty.png";
-import recipesHowItWorks from "../../../assets/recipes-how-it-works.png";
-import { useBusinessCopy } from "../../subscription/business-copy";
 import { showAlert } from "../../../shared/components/alert-store";
-
-function BenefitColumn({
-  icon,
-  title,
-  description,
-}: Readonly<{
-  icon: AppIconName;
-  title: string;
-  description: string;
-}>) {
-  const { theme } = useTheme();
-
-  return (
-    <View
-      style={{
-        flex: 1,
-        alignItems: "center",
-        gap: spacing.xs,
-        paddingHorizontal: spacing.xs,
-      }}
-    >
-      <View
-        style={{
-          width: 44,
-          height: 44,
-          borderRadius: radii.full,
-          backgroundColor: theme.colors.surface,
-          alignItems: "center",
-          justifyContent: "center",
-          ...theme.shadows.sm,
-        }}
-      >
-        <AppIcon name={icon} size={20} color={theme.colors.primary} />
-      </View>
-      <Typography
-        variant="captionBold"
-        color={theme.colors.text}
-        style={{ textAlign: "center" }}
-      >
-        {title}
-      </Typography>
-      <Typography
-        variant="caption"
-        color={theme.colors.textSecondary}
-        style={{ textAlign: "center", lineHeight: 16 }}
-      >
-        {description}
-      </Typography>
-    </View>
-  );
-}
-
-function RecipesEmptyState({ onAddPress }: Readonly<{ onAddPress?: () => void }>) {
-  const { theme } = useTheme();
-  const isDesktop = useDesktopLayout();
-  const { width } = useWindowDimensions();
-  const imageWidth = Math.min(340, width - spacing.lg * 2);
-  const benefitsWidth = Math.min(520, width - spacing.md * 2);
-
-  function showHowItWorks() {
-    showAlert({
-      title: "Saiba como funciona",
-      message:
-        "Cadastre os ingredientes, informe o rendimento e deixe o Lucro Caseiro calcular o custo de cada receita para você.",
-    });
-  }
-
-  return (
-    <ScrollView
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{
-        flexGrow: 1,
-        ...pageGutter(isDesktop),
-        ...desktopStretch(isDesktop, desktopWidths.data),
-        paddingTop: spacing["2xl"],
-        paddingBottom: spacing.lg,
-        ...(isDesktop ? undefined : { alignItems: "center" }),
-        justifyContent: "flex-start",
-      }}
-    >
-      <Image
-        source={recipesEmpty}
-        style={{ width: imageWidth, height: 220 }}
-        resizeMode="contain"
-      />
-      <Typography
-        variant="h2"
-        color={theme.colors.text}
-        style={{ marginTop: spacing.md, textAlign: "center" }}
-      >
-        Nenhuma receita ainda
-      </Typography>
-      <Typography
-        variant="caption"
-        color={theme.colors.textSecondary}
-        style={{
-          maxWidth: 300,
-          marginTop: spacing.sm,
-          textAlign: "center",
-          lineHeight: 18,
-        }}
-      >
-        Cadastre sua primeira ficha técnica para começar a calcular custos e lucros com
-        mais precisão.
-      </Typography>
-
-      <Button
-        title="Cadastrar receita"
-        onPress={onAddPress}
-        style={{
-          minWidth: 188,
-          marginTop: spacing.lg,
-          shadowColor: theme.colors.primaryInteractive,
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.22,
-          shadowRadius: 8,
-          elevation: 3,
-        }}
-        icon={
-          <AppIcon
-            name="document-attach-outline"
-            size={20}
-            color={theme.colors.textOnPrimary}
-          />
-        }
-      />
-
-      <View
-        style={{
-          width: benefitsWidth,
-          marginTop: spacing.xl,
-          paddingHorizontal: spacing.sm,
-          paddingVertical: spacing.lg,
-          flexDirection: "row",
-          borderWidth: 1,
-          borderColor: theme.colors.border,
-          borderRadius: radii.xl,
-          backgroundColor: theme.colors.surface,
-          ...theme.shadows.sm,
-        }}
-      >
-        <BenefitColumn
-          icon="calculator-outline"
-          title="Calcule custos"
-          description={"Saiba exatamente\nquanto cada ficha\ntécnica custa."}
-        />
-        <View
-          style={{
-            width: 1,
-            marginVertical: spacing.xs,
-            backgroundColor: theme.colors.border,
-          }}
-        />
-        <BenefitColumn
-          icon="trending-up-outline"
-          title="Acompanhe lucros"
-          description={"Veja suas margens e\naumente seus\nresultados."}
-        />
-        <View
-          style={{
-            width: 1,
-            marginVertical: spacing.xs,
-            backgroundColor: theme.colors.border,
-          }}
-        />
-        <BenefitColumn
-          icon="time-outline"
-          title="Economize tempo"
-          description={"Receitas organizadas\ne fáceis de consultar\nquando precisar."}
-        />
-      </View>
-
-      <Pressable
-        onPress={showHowItWorks}
-        accessibilityRole="button"
-        accessibilityLabel="Saiba como criar receitas"
-        style={({ pressed }) => ({
-          width: benefitsWidth,
-          minHeight: 84,
-          marginTop: spacing.lg,
-          paddingHorizontal: spacing.lg,
-          paddingVertical: spacing.sm,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.md,
-          borderWidth: 1,
-          borderColor: theme.colors.border,
-          borderRadius: radii.xl,
-          backgroundColor: theme.colors.surface,
-          ...theme.shadows.sm,
-          opacity: pressed ? 0.78 : 1,
-        })}
-      >
-        <Image
-          source={recipesHowItWorks}
-          resizeMode="cover"
-          style={{
-            width: 92,
-            height: 64,
-            borderRadius: radii.lg,
-            opacity: theme.mode === "dark" ? 0.72 : 1,
-          }}
-        />
-        <View style={{ flex: 1, gap: spacing.xs }}>
-          <Typography variant="bodyBold" color={theme.colors.text}>
-            Saiba como funciona
-          </Typography>
-          <Typography
-            variant="caption"
-            color={theme.colors.textSecondary}
-            style={{ lineHeight: 16 }}
-          >
-            Aprenda a criar suas receitas e aproveitar todos os recursos.
-          </Typography>
-        </View>
-        <View
-          style={{
-            width: 44,
-            height: 44,
-            borderWidth: 1,
-            borderColor: theme.colors.primary,
-            borderRadius: radii.full,
-            backgroundColor: theme.colors.surface,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <View
-            style={{
-              width: 0,
-              height: 0,
-              marginLeft: 3,
-              borderTopWidth: 7,
-              borderBottomWidth: 7,
-              borderLeftWidth: 10,
-              borderTopColor: "transparent",
-              borderBottomColor: "transparent",
-              borderLeftColor: theme.colors.primary,
-            }}
-          />
-        </View>
-      </Pressable>
-    </ScrollView>
-  );
-}
+import { AppIcon } from "../../../shared/components/app-icon";
+import { Skeleton, SkeletonList } from "../../../shared/components/skeleton";
+import { useShowAds } from "../../../shared/hooks/use-show-ads";
+import { alertError } from "../../../shared/utils/alerts";
+import { formatCurrency } from "../../../shared/utils/format";
+import { useBusinessCopy } from "../../subscription/business-copy";
+import {
+  ALL_RECIPES_CATEGORY,
+  displayRecipeName,
+  filterRecipes,
+  recipeCategoryFilters,
+  recipeCountLabel,
+  recipeListSummary,
+} from "../domain";
+import { useAllRecipes, useDeleteRecipe } from "../hooks";
+import { RecipeCard } from "./recipe-card";
 
 interface RecipeListProps {
   readonly onRecipePress?: (id: string) => void;
   readonly onAddPress?: () => void;
+  readonly onEditPress?: (id: string) => void;
 }
 
-export function RecipeList({ onRecipePress, onAddPress }: RecipeListProps) {
-  const isDesktop = useDesktopLayout();
+export function RecipeList({ onRecipePress, onAddPress, onEditPress }: RecipeListProps) {
+  const pal = useBrandScreenPalette();
   const experienceCopy = useBusinessCopy();
   const showAds = useShowAds();
-  const [selectedCategory, setSelectedCategory] = useState("Todas");
-  const categoryFilters = ["Todas", ...experienceCopy.categoryPresets];
+  const [selectedCategory, setSelectedCategory] = useState(ALL_RECIPES_CATEGORY);
+  const [search, setSearch] = useState("");
+  const { data, isLoading, error, refetch } = useAllRecipes();
+  const deleteRecipe = useDeleteRecipe();
+  const recipes = data ?? [];
+  const categoryFilters = useMemo(
+    () => recipeCategoryFilters(recipes, experienceCopy.categoryPresets),
+    [recipes, experienceCopy.categoryPresets],
+  );
+  const summary = recipeListSummary(recipes);
+  const category =
+    selectedCategory === ALL_RECIPES_CATEGORY ? undefined : selectedCategory;
+  const visibleRecipes = filterRecipes(recipes, { category, query: search });
+  const listData = showAds ? interleaveAds(visibleRecipes) : visibleRecipes;
+  const hasQuery = search.trim().length > 0;
+  const hasCategoryFilter = selectedCategory !== ALL_RECIPES_CATEGORY;
 
-  const category = selectedCategory === "Todas" ? undefined : selectedCategory;
-  const { data, isLoading, error } = useRecipes({ category });
+  function clearSearchAndFilters() {
+    setSearch("");
+    setSelectedCategory(ALL_RECIPES_CATEGORY);
+  }
+
+  function confirmDelete(id: string, name: string) {
+    showAlert({
+      title: "Excluir receita",
+      message: `Tem certeza que deseja excluir "${name}"?`,
+      buttons: [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: () => {
+            void deleteRecipe
+              .mutateAsync(id)
+              .catch(() =>
+                alertError(`Não foi possível excluir a ${experienceCopy.formulaNoun}.`),
+              );
+          },
+        },
+      ],
+    });
+  }
+
+  const header = (
+    <View style={{ gap: spacing.lg, paddingBottom: spacing.sm }}>
+      <RecipesHero
+        isLoading={isLoading}
+        count={summary.count}
+        averageCost={summary.averageCost}
+        singular={experienceCopy.formulaNoun}
+        plural={experienceCopy.formulaNounPlural}
+      />
+      {isLoading || recipes.length > 0 ? (
+        <>
+          {isLoading ? (
+            <RecipesSearchSkeleton />
+          ) : (
+            <RecipesSearch value={search} onChange={setSearch} />
+          )}
+          {isLoading ? (
+            <RecipesFiltersSkeleton />
+          ) : (
+            <RecipesFilterRow
+              categories={categoryFilters}
+              selected={selectedCategory}
+              onSelect={setSelectedCategory}
+            />
+          )}
+        </>
+      ) : null}
+    </View>
+  );
 
   if (isLoading) {
     return (
-      <View
-        style={{
-          flex: 1,
-          paddingVertical: spacing.lg,
-          ...pageGutter(isDesktop, spacing.lg),
-          ...desktopStretch(isDesktop, desktopWidths.data),
+      <ScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingTop: spacing.sm,
+          paddingBottom: spacing["3xl"],
+          gap: spacing.md,
         }}
       >
+        {header}
         <SkeletonList rows={6} variant="recipe" />
-      </View>
+      </ScrollView>
     );
   }
 
   if (error) {
     return (
-      <EmptyState
-        title="Algo deu errado"
-        description={`Não foi possível carregar suas ${experienceCopy.formulaNounPlural}. Tente novamente.`}
-      />
+      <ScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ flexGrow: 1, paddingTop: spacing.sm }}
+      >
+        {header}
+        <EmptyState
+          title="Algo deu errado"
+          description={`Não foi possível carregar suas ${experienceCopy.formulaNounPlural}. Tente novamente.`}
+          action={
+            <Button
+              title="Tentar novamente"
+              onPress={() => void refetch()}
+              style={{ backgroundColor: pal.rose }}
+            />
+          }
+        />
+      </ScrollView>
     );
   }
 
-  if (!data?.items.length) {
-    return <RecipesEmptyState onAddPress={onAddPress} />;
+  if (recipes.length === 0) {
+    return (
+      <ScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ flexGrow: 1, paddingTop: spacing.sm }}
+      >
+        {header}
+        <EmptyState
+          title={`Nenhuma ${experienceCopy.formulaNoun} ainda`}
+          description="Cadastre a primeira para acompanhar custos e rendimentos em um só lugar."
+          action={
+            onAddPress ? (
+              <Button
+                title={`Cadastrar ${experienceCopy.formulaNoun}`}
+                onPress={onAddPress}
+                style={{ backgroundColor: pal.rose }}
+              />
+            ) : null
+          }
+          style={{ paddingVertical: spacing["2xl"] }}
+        />
+      </ScrollView>
+    );
   }
-
-  const listData = showAds ? interleaveAds(data.items) : data.items;
 
   return (
     <FlatList
-      key={isDesktop ? "desktop-recipes" : "mobile-recipes"}
       data={listData}
-      numColumns={isDesktop ? 2 : 1}
-      columnWrapperStyle={isDesktop ? { gap: spacing.md } : undefined}
       keyExtractor={(item, index) => (item === AD_ITEM_MARKER ? `ad-${index}` : item.id)}
-      renderItem={({ item }) => {
-        if (item === AD_ITEM_MARKER) {
-          return (
-            <View style={isDesktop ? { flex: 1, minWidth: 0 } : undefined}>
-              <AdBanner size="banner" />
-            </View>
-          );
-        }
-        return (
-          <View style={isDesktop ? { flex: 1, minWidth: 0 } : undefined}>
-            <RecipeCard recipe={item} onPress={() => onRecipePress?.(item.id)} />
-          </View>
-        );
-      }}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
       contentContainerStyle={{
         gap: spacing.md,
-        paddingVertical: spacing.xl,
-        ...pageGutter(isDesktop),
-        ...desktopStretch(isDesktop, desktopWidths.data),
+        paddingTop: spacing.sm,
+        paddingBottom: spacing["3xl"],
+        flexGrow: 1,
       }}
-      ListHeaderComponent={
-        <View style={{ gap: spacing.lg }}>
+      ListHeaderComponent={header}
+      ListEmptyComponent={
+        <EmptyState
+          title={`Nenhuma ${experienceCopy.formulaNoun} encontrada`}
+          description="Tente outro nome ou limpe a busca e os filtros."
+          action={
+            hasQuery || hasCategoryFilter ? (
+              <Button
+                title="Limpar busca e filtros"
+                variant="outline"
+                onPress={clearSearchAndFilters}
+              />
+            ) : null
+          }
+          style={{ paddingVertical: spacing["2xl"] }}
+        />
+      }
+      renderItem={({ item }) => {
+        if (item === AD_ITEM_MARKER) {
+          return <AdBanner size="banner" />;
+        }
+        return (
+          <RecipeCard
+            recipe={item}
+            onPress={() => onRecipePress?.(item.id)}
+            onEdit={onEditPress ? () => onEditPress(item.id) : undefined}
+            onDelete={() => confirmDelete(item.id, displayRecipeName(item.name))}
+          />
+        );
+      }}
+    />
+  );
+}
+
+const SUMMARY_CARD_HEIGHT = 92;
+
+function RecipesHero({
+  isLoading,
+  count,
+  averageCost,
+  singular,
+  plural,
+}: Readonly<{
+  isLoading: boolean;
+  count: number;
+  averageCost: number;
+  singular: string;
+  plural: string;
+}>) {
+  return (
+    <View style={{ gap: spacing.md }}>
+      <RecipesIntro />
+      {isLoading ? (
+        <RecipesSummarySkeleton />
+      ) : (
+        <RecipesSummary
+          count={count}
+          averageCost={averageCost}
+          singular={singular}
+          plural={plural}
+        />
+      )}
+    </View>
+  );
+}
+
+function RecipesIntro() {
+  const pal = useBrandScreenPalette();
+
+  return (
+    <View style={{ gap: spacing.xs }}>
+      <Typography variant="h2" color={pal.wine}>
+        Suas receitas, seus lucros.
+      </Typography>
+      <Typography variant="body" color={pal.muted}>
+        Acompanhe custos e rendimentos em um só lugar.
+      </Typography>
+    </View>
+  );
+}
+
+function RecipesSummary({
+  count,
+  averageCost,
+  singular,
+  plural,
+}: Readonly<{
+  count: number;
+  averageCost: number;
+  singular: string;
+  plural: string;
+}>) {
+  const pal = useBrandScreenPalette();
+  const { theme } = useTheme();
+
+  return (
+    <View
+      style={{
+        minHeight: SUMMARY_CARD_HEIGHT,
+        borderRadius: radii.xl,
+        backgroundColor: pal.white,
+        borderWidth: 1,
+        borderColor: pal.border,
+        paddingVertical: spacing.lg,
+        paddingHorizontal: spacing.lg,
+        flexDirection: "row",
+        alignItems: "center",
+        ...theme.shadows.sm,
+      }}
+    >
+      <View
+        style={{
+          flex: 1,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.md,
+          minWidth: 0,
+        }}
+      >
+        <View
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: radii.full,
+            backgroundColor: "rgba(220, 232, 106, 0.38)",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <AppIcon name="trending-up-outline" size={iconSizes.sm} color={pal.wine} />
+        </View>
+        <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+          <Typography variant="h3" color={pal.wine} numberOfLines={1}>
+            {recipeCountLabel(count, singular, plural)}
+          </Typography>
+          <Typography variant="caption" color={pal.muted}>
+            Ativas
+          </Typography>
+        </View>
+      </View>
+
+      <View
+        style={{
+          width: 1,
+          alignSelf: "stretch",
+          marginVertical: spacing.xs,
+          backgroundColor: pal.border,
+        }}
+      />
+
+      <View style={{ flex: 1, paddingLeft: spacing.lg, gap: 2, minWidth: 0 }}>
+        <Typography variant="caption" color={pal.muted}>
+          Custo médio
+        </Typography>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+          <Typography
+            variant="h3"
+            color={pal.wine}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.75}
+            style={{ fontVariant: ["tabular-nums"] }}
+          >
+            {formatCurrency(averageCost)}
+          </Typography>
           <View
             style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: spacing.md,
+              width: 8,
+              height: 8,
+              borderRadius: radii.full,
+              backgroundColor: pal.lime,
             }}
-          >
-            <Typography variant="body" style={{ flex: 1 }}>
-              Gerencie seus custos e margens de lucro
-            </Typography>
-          </View>
-
-          <FilterChipRow>
-            {categoryFilters.map((cat) => (
-              <Chip
-                key={cat}
-                label={cat}
-                selected={selectedCategory === cat}
-                onPress={() => setSelectedCategory(cat)}
-              />
-            ))}
-          </FilterChipRow>
+          />
         </View>
-      }
-      ListFooterComponent={
-        onAddPress ? (
-          <View style={{ paddingTop: spacing.sm }}>
-            <Button
-              title="Adicionar receita"
-              onPress={onAddPress}
-              style={{ width: "100%" }}
-            />
-          </View>
-        ) : null
-      }
+      </View>
+    </View>
+  );
+}
+
+function RecipesSearch({
+  value,
+  onChange,
+}: Readonly<{ value: string; onChange: (next: string) => void }>) {
+  const pal = useBrandScreenPalette();
+
+  return (
+    <Input
+      value={value}
+      onChangeText={onChange}
+      placeholder="Buscar receita"
+      accessibilityLabel="Buscar receita"
+      returnKeyType="search"
+      autoCorrect={false}
+      autoCapitalize="none"
+      icon={<AppIcon name="search-outline" size={iconSizes.list} color={pal.muted} />}
+      containerStyle={{ gap: 0 }}
     />
+  );
+}
+
+function RecipesFilterRow({
+  categories,
+  selected,
+  onSelect,
+}: Readonly<{
+  categories: readonly string[];
+  selected: string;
+  onSelect: (category: string) => void;
+}>) {
+  return (
+    <ScrollView
+      horizontal
+      nestedScrollEnabled
+      keyboardShouldPersistTaps="handled"
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={{ gap: spacing.sm, flexGrow: 0, paddingRight: spacing.sm }}
+    >
+      {categories.map((category) => (
+        <RecipeFilterChip
+          key={category}
+          label={category}
+          selected={selected === category}
+          onPress={() => onSelect(category)}
+        />
+      ))}
+    </ScrollView>
+  );
+}
+
+function RecipeFilterChip({
+  label,
+  selected,
+  onPress,
+}: Readonly<{
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+}>) {
+  const pal = useBrandScreenPalette();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected }}
+      style={({ pressed }) => ({
+        minHeight: 44,
+        paddingHorizontal: spacing.lg,
+        borderRadius: radii.full,
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        backgroundColor: selected ? pal.rose : pal.white,
+        borderWidth: selected ? 0 : 1,
+        borderColor: pal.border,
+        opacity: pressed ? 0.85 : 1,
+        ...(Platform.OS === "web" ? ({ whiteSpace: "nowrap" } as object) : null),
+      })}
+    >
+      <Typography
+        variant="bodyBold"
+        color={selected ? pal.onWine : pal.wine}
+        numberOfLines={1}
+        style={{ flexShrink: 0 }}
+      >
+        {label}
+      </Typography>
+    </Pressable>
+  );
+}
+
+function RecipesSummarySkeleton() {
+  const pal = useBrandScreenPalette();
+  return (
+    <View
+      style={{
+        minHeight: SUMMARY_CARD_HEIGHT,
+        borderRadius: radii.xl,
+        backgroundColor: pal.white,
+        borderWidth: 1,
+        borderColor: pal.border,
+        padding: spacing.lg,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: spacing.lg,
+      }}
+    >
+      <Skeleton width={42} height={42} borderRadius={radii.full} />
+      <View style={{ flex: 1, gap: spacing.sm }}>
+        <Skeleton width="55%" height={16} />
+        <Skeleton width="30%" height={12} />
+      </View>
+      <Skeleton width={1} height={40} />
+      <View style={{ flex: 1, gap: spacing.sm }}>
+        <Skeleton width="50%" height={12} />
+        <Skeleton width="70%" height={16} />
+      </View>
+    </View>
+  );
+}
+
+function RecipesSearchSkeleton() {
+  return <Skeleton width="100%" height={48} borderRadius={radii.lg} />;
+}
+
+function RecipesFiltersSkeleton() {
+  return (
+    <View style={{ flexDirection: "row", gap: spacing.sm }}>
+      <Skeleton width={76} height={44} borderRadius={radii.full} />
+      <Skeleton width={88} height={44} borderRadius={radii.full} />
+      <Skeleton width={96} height={44} borderRadius={radii.full} />
+      <Skeleton width={72} height={44} borderRadius={radii.full} />
+    </View>
   );
 }

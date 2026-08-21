@@ -11,6 +11,7 @@ import {
 } from "../../../shared/components/skeleton";
 import { showAlert } from "../../../shared/components/alert-store";
 import { IngredientAvatar } from "../../../shared/ingredient-image/ingredient-avatar";
+import { displayIngredientName } from "../../../shared/ingredient-image/resolve";
 import { useDeleteRecipe, useDuplicateRecipe, useRecipe, useScaleRecipe } from "../hooks";
 import { exportRecipePdf } from "../recipe-pdf";
 import { alertError } from "../../../shared/utils/alerts";
@@ -213,9 +214,12 @@ export function RecipeDetail({
                 <View
                   style={{ flex: 2, flexDirection: "row", alignItems: "center", gap: 8 }}
                 >
-                  <IngredientAvatar name={ing.materialName} size={28} />
+                  <IngredientAvatar
+                    name={displayIngredientName(ing.materialName)}
+                    size={28}
+                  />
                   <Typography variant="body" style={{ flex: 1 }} numberOfLines={1}>
-                    {ing.materialName}
+                    {displayIngredientName(ing.materialName)}
                   </Typography>
                 </View>
                 <Typography
@@ -262,13 +266,7 @@ export function RecipeDetail({
         </Card>
       </View>
 
-      {onEdit && (
-        <Button
-          title="Editar receita"
-          size="lg"
-          onPress={onEdit}
-        />
-      )}
+      {onEdit && <Button title="Editar receita" size="lg" onPress={onEdit} />}
 
       <Button
         title="Imprimir / Compartilhar"
@@ -311,7 +309,7 @@ export function RecipeDetail({
               await duplicateRecipe.mutateAsync(recipeId);
               showAlert({
                 title: `${formulaLabel} duplicada`,
-                message: `Criamos uma cópia de "${recipe.name}".`,
+                message: `Criamos uma cópia de "${displayIngredientName(recipe.name)}".`,
               });
               onDuplicate?.();
             } catch {
@@ -344,7 +342,9 @@ export function RecipeDetail({
                       await deleteRecipe.mutateAsync(recipeId);
                       onDeleted?.();
                     } catch {
-                      alertError(`Não foi possível excluir a ${experienceCopy.formulaNoun}.`);
+                      alertError(
+                        `Não foi possível excluir a ${experienceCopy.formulaNoun}.`,
+                      );
                     }
                   })();
                 },
