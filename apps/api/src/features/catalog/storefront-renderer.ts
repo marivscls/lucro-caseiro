@@ -208,19 +208,47 @@ function transformStyle(customization: StorefrontCustomization, id: string): str
     .join(";");
 }
 
+export function resolveFeaturedVisual(
+  item: StorefrontCustomization["hero"]["featuredItems"][number],
+  removeBackground: boolean,
+): Readonly<{ source: string | null; cutout: boolean }> {
+  if (removeBackground && item.processedUrl) {
+    return { source: item.processedUrl, cutout: true };
+  }
+  if (!item.assetUrl) return { source: null, cutout: false };
+  return { source: item.assetUrl, cutout: removeBackground };
+}
+
+export function splitFloatingContactLines(label: string): readonly string[] {
+  const words = label.trim().split(/\s+/).filter(Boolean);
+  if (words.length <= 1) return [label.trim()];
+  let splitAt = 1;
+  let bestScore = Number.POSITIVE_INFINITY;
+  for (let index = 1; index < words.length; index += 1) {
+    const left = words.slice(0, index).join(" ").length;
+    const right = words.slice(index).join(" ").length;
+    const score = Math.abs(left - right) + Math.max(left, right) * 0.15;
+    if (score < bestScore) {
+      bestScore = score;
+      splitAt = index;
+    }
+  }
+  return [words.slice(0, splitAt).join(" "), words.slice(splitAt).join(" ")];
+}
+
 function heroVisuals(customization: StorefrontCustomization): string {
   const alternative = customization.hero.smallScreenAlternativeUrl;
   const alternativeHtml = alternative
     ? `<img class="hero-small-alternative" src="${escapeHtml(alternative)}" alt="" width="720" height="520" fetchpriority="high">`
     : "";
   const featuredItems = customization.hero.featuredItems.filter(
-    (item) => item.processedUrl ?? item.assetUrl,
+    (item) => resolveFeaturedVisual(item, customization.hero.removeBackground).source,
   );
   const items = featuredItems
     .map((item, index) => {
-      const source = item.processedUrl ?? item.assetUrl!;
-      const treatment = item.processedUrl ? "featured-cutout" : "featured-photo";
-      return `<img class="featured featured-${index + 1} ${treatment}" src="${escapeHtml(source)}" alt="${escapeHtml(displayCatalogName(item.altText))}" width="640" height="640" ${index === 0 ? 'fetchpriority="high"' : 'loading="eager"'} style="${transformStyle(customization, item.id)}">`;
+      const visual = resolveFeaturedVisual(item, customization.hero.removeBackground);
+      const treatment = visual.cutout ? "featured-cutout" : "featured-photo";
+      return `<img class="featured featured-${index + 1} ${treatment}" src="${escapeHtml(visual.source!)}" alt="${escapeHtml(displayCatalogName(item.altText))}" width="640" height="640" ${index === 0 ? 'fetchpriority="high"' : 'loading="eager"'} style="${transformStyle(customization, item.id)}">`;
     })
     .join("");
   if (!items && !alternativeHtml) return "";
@@ -578,13 +606,12 @@ export function renderPublishedStorefrontHtml(
     customization.hero.introduction ||
     `Conheça os produtos e serviços de ${customization.identity.displayName}.`;
   const firstFeatured = customization.hero.featuredItems.find(
-    (item) => item.processedUrl ?? item.assetUrl,
+    (item) => resolveFeaturedVisual(item, customization.hero.removeBackground).source,
   );
-  const image =
-    catalog.coverUrl ??
-    firstFeatured?.processedUrl ??
-    firstFeatured?.assetUrl ??
-    customization.identity.logoUrl;
+  const firstVisual = firstFeatured
+    ? resolveFeaturedVisual(firstFeatured, customization.hero.removeBackground)
+    : null;
+  const image = catalog.coverUrl ?? firstVisual?.source ?? customization.identity.logoUrl;
   const imageMeta = image
     ? `<meta property="og:image" content="${escapeHtml(image)}"><meta name="twitter:card" content="summary_large_image">`
     : '<meta name="twitter:card" content="summary">';
@@ -627,8 +654,12 @@ export function renderPublishedStorefrontHtml(
           : contact.channel === "email"
             ? `mailto:${contact.destination}`
             : safeExternalUrl(contact.destination);
-    if (href)
-      floating = `<a class="floating-contact" href="${escapeHtml(href)}"${contact.channel === "external" || contact.channel === "whatsapp" ? ' target="_blank" rel="noopener noreferrer"' : ""} aria-label="${escapeHtml(contact.defaultActionLabel)}">${icon(contact.channel === "whatsapp" ? "whatsapp" : "store")}<span>${escapeHtml(contact.defaultActionLabel)}</span></a>`;
+    if (href) {
+      const labelLines = splitFloatingContactLines(contact.defaultActionLabel)
+        .map((line) => `<span>${escapeHtml(line)}</span>`)
+        .join("");
+      floating = `<a class="floating-contact" href="${escapeHtml(href)}"${contact.channel === "external" || contact.channel === "whatsapp" ? ' target="_blank" rel="noopener noreferrer"' : ""} aria-label="${escapeHtml(contact.defaultActionLabel)}">${icon(contact.channel === "whatsapp" ? "whatsapp" : "store")}<span class="floating-label">${labelLines}</span></a>`;
+    }
   }
   const style = customization.organization.cards.style;
   const hero = customization.hero.style;

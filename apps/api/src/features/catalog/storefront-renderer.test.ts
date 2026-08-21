@@ -6,8 +6,10 @@ import {
   featuredTransformFor,
   formatCatalogPrice,
   renderPublishedStorefrontHtml,
+  resolveFeaturedVisual,
   resolveStorefrontAction,
   safeExternalUrl,
+  splitFloatingContactLines,
   storefrontTheme,
 } from "./storefront-renderer";
 
@@ -290,7 +292,18 @@ describe("renderPublishedStorefrontHtml", () => {
 
     const originalHtml = renderPublishedStorefrontHtml(catalog(base));
     expect(originalHtml).toContain(
-      'class="featured featured-1 featured-photo" src="https://cdn.example/caderno.webp"',
+      'class="featured featured-1 featured-cutout" src="https://cdn.example/caderno.webp"',
+    );
+
+    const withOriginalPhoto = {
+      ...withCutout,
+      hero: { ...withCutout.hero, removeBackground: false },
+    };
+    expect(renderPublishedStorefrontHtml(catalog(withOriginalPhoto))).toContain(
+      'class="featured featured-1 featured-photo" src="https://cdn.example/original.jpg"',
+    );
+    expect(resolveFeaturedVisual(withCutout.hero.featuredItems[0]!, true).source).toBe(
+      "https://cdn.example/recorte.png",
     );
   });
 
@@ -352,9 +365,29 @@ describe("renderPublishedStorefrontHtml", () => {
     expect(html).toContain("M17.472 14.382");
     expect(html).not.toContain("M8.2 8.2c1 3.3 3.3 5.6 6.7 6.7");
     expect(html).toContain("object-fit:cover");
-    expect(html).toContain(
-      "linear-gradient(90deg,#FAF8F6 0%,rgba(250,248,246,.94) 22%",
+    expect(html).toContain("linear-gradient(90deg,#FAF8F6 0%,rgba(250,248,246,.94) 22%");
+  });
+
+  it("quebra o rótulo do contato flutuante em duas linhas centradas", () => {
+    expect(splitFloatingContactLines("Entrar em contato")).toEqual([
+      "Entrar em",
+      "contato",
+    ]);
+    const base = customization();
+    const html = renderPublishedStorefrontHtml(
+      catalog({
+        ...base,
+        organization: {
+          ...base.organization,
+          contact: {
+            ...base.organization.contact,
+            defaultActionLabel: "Entrar em contato",
+          },
+        },
+      }),
     );
+    expect(html).toContain('class="floating-label"');
+    expect(html).toContain("<span>Entrar em</span><span>contato</span>");
   });
 
   it("omite a faixa e o contato quando desativados", () => {

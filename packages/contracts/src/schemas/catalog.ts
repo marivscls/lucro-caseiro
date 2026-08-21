@@ -85,8 +85,8 @@ const StorefrontFeaturedItemDto = z.object({
   // Serviços legados ainda não possuem mídia própria; null preserva a seleção
   // sem inventar imagem e o renderer usa um estado neutro acessível.
   assetUrl: z.string().url().nullable(),
-  // Versão processada com transparência. Quando presente, é a fonte preferencial
-  // do hero público; assetUrl continua sendo o original e o fallback editorial.
+  // Versão processada com transparência. Só entra no hero público quando
+  // hero.removeBackground é true; assetUrl continua sendo o original.
   processedUrl: z.string().url().nullable().optional(),
   altText: z.string().trim().min(1).max(160),
   transforms: z.array(FeaturedItemTransformDto).max(4),

@@ -72,6 +72,7 @@ import {
   isStorefrontDraftDirty,
   normalizeFeaturedItemTransform,
   normalizeStorefrontCustomization,
+  resolveFeaturedVisual,
   validateStorefrontCustomization,
   type EditorStatus,
   type StorefrontEditorStep,
@@ -234,10 +235,7 @@ function ChoiceGroup<T extends string>({
   );
 }
 
-function FieldHint({
-  value,
-  limit,
-}: Readonly<{ value: string; limit: number }>) {
+function FieldHint({ value, limit }: Readonly<{ value: string; limit: number }>) {
   const colors = useBrandScreenPalette();
   return (
     <Typography style={{ color: colors.warmGray, fontSize: 11, textAlign: "right" }}>
@@ -297,9 +295,7 @@ function StyleOption<T extends string>({
           </View>
         ) : null}
       </View>
-      <Typography
-        style={{ color: colors.ink, fontFamily: fonts.bold, fontSize: 13 }}
-      >
+      <Typography style={{ color: colors.ink, fontFamily: fonts.bold, fontSize: 13 }}>
         {title}
       </Typography>
       <Typography style={{ color: colors.warmGray, fontSize: 11, lineHeight: 15 }}>
@@ -334,8 +330,15 @@ function CompactReorderRow({
         borderBottomColor: colors.border,
       }}
     >
-      <AppIcon name="list" size={16} color={colors.warmGray} importantForAccessibility="no" />
-      <Typography style={{ flex: 1, color: colors.ink, fontSize: 13 }}>{label}</Typography>
+      <AppIcon
+        name="list"
+        size={16}
+        color={colors.warmGray}
+        importantForAccessibility="no"
+      />
+      <Typography style={{ flex: 1, color: colors.ink, fontSize: 13 }}>
+        {label}
+      </Typography>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Subir ${label}`}
@@ -387,7 +390,16 @@ function SwitchRow({
 }>) {
   const colors = useBrandScreenPalette();
   return (
-    <View style={{ minHeight: 50, flexDirection: "row", alignItems: "center", gap: 12 }}>
+    <Pressable
+      accessibilityRole="switch"
+      accessibilityState={{ checked: value, disabled }}
+      accessibilityLabel={label}
+      disabled={disabled}
+      onPress={() => {
+        if (!disabled) onValueChange(!value);
+      }}
+      style={{ minHeight: 50, flexDirection: "row", alignItems: "center", gap: 12 }}
+    >
       <View style={{ flex: 1, gap: 2 }}>
         <Typography
           style={{ color: colors.ink, fontFamily: fonts.semiBold, fontSize: 13 }}
@@ -400,16 +412,19 @@ function SwitchRow({
           </Typography>
         ) : null}
       </View>
-      <CatalogSwitch
-        accessibilityLabel={label}
-        value={value}
-        disabled={disabled}
-        onValueChange={onValueChange}
-        trackColor={{ false: colors.border, true: colors.rose }}
-        thumbColor={colors.onWine}
-        activeThumbColor={colors.onWine}
-      />
-    </View>
+      <View pointerEvents="none">
+        <CatalogSwitch
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          value={value}
+          disabled={disabled}
+          onValueChange={onValueChange}
+          trackColor={{ false: colors.border, true: colors.rose }}
+          thumbColor={colors.onWine}
+          activeThumbColor={colors.onWine}
+        />
+      </View>
+    </Pressable>
   );
 }
 
@@ -755,17 +770,13 @@ function FeaturedPicker({
     (item) =>
       item.isActive &&
       item.publicEnabled &&
-      displayCatalogItemName(item.name)
-        .toLocaleLowerCase("pt-BR")
-        .includes(normalized),
+      displayCatalogItemName(item.name).toLocaleLowerCase("pt-BR").includes(normalized),
   );
   const serviceItems = services.filter(
     (item) =>
       item.active &&
       item.publicEnabled &&
-      displayCatalogItemName(item.name)
-        .toLocaleLowerCase("pt-BR")
-        .includes(normalized),
+      displayCatalogItemName(item.name).toLocaleLowerCase("pt-BR").includes(normalized),
   );
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -910,11 +921,13 @@ function FeaturedPicker({
 function TransformEditor({
   visible,
   featured,
+  removeBackground,
   onChange,
   onClose,
 }: Readonly<{
   visible: boolean;
   featured: StorefrontCustomization["hero"]["featuredItems"];
+  removeBackground: boolean;
   onChange: (items: StorefrontCustomization["hero"]["featuredItems"]) => void;
   onClose: () => void;
 }>) {
@@ -1013,24 +1026,30 @@ function TransformEditor({
                   justifyContent: "center",
                 }}
               >
-                {(selected.processedUrl ?? selected.assetUrl) ? (
-                  <Image
-                    source={{ uri: selected.processedUrl ?? selected.assetUrl! }}
-                    style={{
-                      width: 130,
-                      height: 130,
-                      borderRadius: 14,
-                      transform: [
-                        { translateX: (transform.x - 0.5) * 160 },
-                        { translateY: (transform.y - 0.5) * 110 },
-                        { scale: transform.scale },
-                      ],
-                    }}
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <AppIcon name="person-outline" size={48} color={colors.rose} />
-                )}
+                {(() => {
+                  const visual = resolveFeaturedVisual(selected, removeBackground);
+                  if (!visual.source) {
+                    return (
+                      <AppIcon name="person-outline" size={48} color={colors.rose} />
+                    );
+                  }
+                  return (
+                    <Image
+                      source={{ uri: visual.source }}
+                      style={{
+                        width: 130,
+                        height: 130,
+                        borderRadius: visual.cutout ? 0 : 14,
+                        transform: [
+                          { translateX: (transform.x - 0.5) * 160 },
+                          { translateY: (transform.y - 0.5) * 110 },
+                          { scale: transform.scale },
+                        ],
+                      }}
+                      resizeMode={visual.cutout ? "contain" : "cover"}
+                    />
+                  );
+                })()}
               </View>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                 <Button
@@ -1317,6 +1336,9 @@ export function CatalogCustomizer({
   const [featuredPickerVisible, setFeaturedPickerVisible] = useState(false);
   const [transformVisible, setTransformVisible] = useState(false);
   const [qrVisible, setQrVisible] = useState(false);
+  const [publishedVisible, setPublishedVisible] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const linkCopiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
   const [slugToCheck, setSlugToCheck] = useState("");
   const [coverUrl, setCoverUrl] = useState(settings.coverUrl);
@@ -1330,8 +1352,7 @@ export function CatalogCustomizer({
     params.section === "cards-actions" || params.section === "publication"
       ? params.section
       : "content";
-  const dirty =
-    isStorefrontDraftDirty(draft, savedDraft) || coverUrl !== savedCoverUrl;
+  const dirty = isStorefrontDraftDirty(draft, savedDraft) || coverUrl !== savedCoverUrl;
   const status: EditorStatus =
     requestStatus === "saved" && dirty ? "dirty" : requestStatus;
   const errors = useMemo(() => validateStorefrontCustomization(draft), [draft]);
@@ -1366,6 +1387,25 @@ export function CatalogCustomizer({
     window.addEventListener("beforeunload", listener);
     return () => window.removeEventListener("beforeunload", listener);
   }, [dirty]);
+
+  useEffect(
+    () => () => {
+      if (linkCopiedTimer.current) clearTimeout(linkCopiedTimer.current);
+    },
+    [],
+  );
+
+  function signalLinkCopied() {
+    setLinkCopied(true);
+    if (linkCopiedTimer.current) clearTimeout(linkCopiedTimer.current);
+    linkCopiedTimer.current = setTimeout(() => setLinkCopied(false), 2200);
+  }
+
+  function copyCatalogLink() {
+    void Clipboard.setStringAsync(publicCatalogUrl(normalizedSlug)).then(
+      signalLinkCopied,
+    );
+  }
 
   function navigate(
     nextStep: StorefrontEditorStep,
@@ -1579,7 +1619,11 @@ export function CatalogCustomizer({
       setCoverUrl(result.coverUrl);
       setSavedCoverUrl(result.coverUrl);
       setRequestStatus("saved");
-      showToast(publishing ? "Vitrine publicada!" : "Alterações salvas!");
+      if (publishing) {
+        setPublishedVisible(true);
+      } else {
+        showToast("Alterações salvas!");
+      }
     } catch (error) {
       setRequestStatus("error");
       if (error instanceof ApiError && error.code === "LIMIT_EXCEEDED") {
@@ -1611,11 +1655,7 @@ export function CatalogCustomizer({
   );
   if (step === "hero")
     contextualPreview = (
-      <StorefrontHeroPreview
-        customization={draft}
-        status={status}
-        coverUrl={coverUrl}
-      />
+      <StorefrontHeroPreview customization={draft} status={status} coverUrl={coverUrl} />
     );
   if (step === "organization" && section === "content")
     contextualPreview = <StorefrontContentPreview {...previewProps} />;
@@ -1709,1658 +1749,1862 @@ export function CatalogCustomizer({
             : undefined,
         ]}
       >
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        style={{ flex: 1, minWidth: 0 }}
-        contentContainerStyle={{
-          width: "100%",
-          maxWidth: splitDesktop ? undefined : MAX_WIDTH,
-          alignSelf: splitDesktop ? "stretch" : "center",
-          paddingHorizontal: isDesktop ? 0 : wide ? 28 : 14,
-          paddingTop: splitDesktop ? 0 : 16,
-          paddingBottom: 24,
-          gap: isDesktop ? 22 : 18,
-        }}
-      >
-        {splitDesktop ? null : contextualPreview}
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          style={{ flex: 1, minWidth: 0 }}
+          contentContainerStyle={{
+            width: "100%",
+            maxWidth: splitDesktop ? undefined : MAX_WIDTH,
+            alignSelf: splitDesktop ? "stretch" : "center",
+            paddingHorizontal: isDesktop ? 0 : wide ? 28 : 14,
+            paddingTop: splitDesktop ? 0 : 16,
+            paddingBottom: 24,
+            gap: isDesktop ? 22 : 18,
+          }}
+        >
+          {splitDesktop ? null : contextualPreview}
 
-        {step === "identity" ? (
-          <>
-            <SectionHeading
-              title="Identidade da marca"
-              description="O que seus clientes reconhecem primeiro."
-            />
-            <EditorCard>
-              <View style={{ flexDirection: wide ? "row" : "column", gap: 18 }}>
-                <View style={{ flex: 1 }}>
-                  <UploadButton
-                    title="Logo ou foto de perfil"
-                    image={draft.identity.logoUrl}
-                    onPress={() => void pickImage("logo")}
-                    onRemove={() =>
+          {step === "identity" ? (
+            <>
+              <SectionHeading
+                title="Identidade da marca"
+                description="O que seus clientes reconhecem primeiro."
+              />
+              <EditorCard>
+                <View style={{ flexDirection: wide ? "row" : "column", gap: 18 }}>
+                  <View style={{ flex: 1 }}>
+                    <UploadButton
+                      title="Logo ou foto de perfil"
+                      image={draft.identity.logoUrl}
+                      onPress={() => void pickImage("logo")}
+                      onRemove={() =>
+                        setDraft((current) => ({
+                          ...current,
+                          identity: { ...current.identity, logoUrl: null },
+                        }))
+                      }
+                    />
+                  </View>
+                  <Input
+                    label="Nome exibido"
+                    value={draft.identity.displayName}
+                    maxLength={STOREFRONT_DISPLAY_NAME_LIMIT}
+                    error={errors.displayName}
+                    onChangeText={(displayName) =>
                       setDraft((current) => ({
                         ...current,
-                        identity: { ...current.identity, logoUrl: null },
+                        identity: { ...current.identity, displayName },
+                      }))
+                    }
+                    containerStyle={{ flex: 1, minWidth: 240 }}
+                  />
+                </View>
+                {imageError ? (
+                  <Typography
+                    accessibilityLiveRegion="polite"
+                    style={{ color: theme.colors.alert, fontSize: 12 }}
+                  >
+                    {imageError}
+                  </Typography>
+                ) : null}
+                <ChoiceGroup
+                  label="O que você oferece?"
+                  value={draft.identity.offeringMode}
+                  onChange={(offeringMode) =>
+                    setDraft((current) => ({
+                      ...current,
+                      identity: { ...current.identity, offeringMode },
+                      organization: {
+                        ...current.organization,
+                        content: {
+                          ...current.organization.content,
+                          showProducts: offeringMode !== "services",
+                          showServices: offeringMode !== "products",
+                        },
+                      },
+                    }))
+                  }
+                  options={[
+                    { value: "products", label: "Produtos", icon: "bag-handle-outline" },
+                    { value: "services", label: "Serviços", icon: "person-outline" },
+                    { value: "both", label: "Ambos", icon: "apps-outline" },
+                  ]}
+                />
+              </EditorCard>
+              <EditorCard>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    gap: 10,
+                  }}
+                >
+                  <View style={{ flex: 1 }}>
+                    <SectionHeading title="Cores da vitrine" />
+                  </View>
+                  <Button
+                    title="Usar cores da marca"
+                    variant="text"
+                    compact
+                    icon={
+                      <AppIcon
+                        name="color-palette-outline"
+                        size={16}
+                        color={colors.rose}
+                      />
+                    }
+                    onPress={() =>
+                      setDraft((current) => ({
+                        ...current,
+                        identity: {
+                          ...current.identity,
+                          primaryColor: STOREFRONT_BRAND_COLORS.primary,
+                          actionColor: STOREFRONT_BRAND_COLORS.action,
+                          backgroundColor: STOREFRONT_BRAND_COLORS.background,
+                        },
                       }))
                     }
                   />
                 </View>
-                <Input
-                  label="Nome exibido"
-                  value={draft.identity.displayName}
-                  maxLength={STOREFRONT_DISPLAY_NAME_LIMIT}
-                  error={errors.displayName}
-                  onChangeText={(displayName) =>
-                    setDraft((current) => ({
-                      ...current,
-                      identity: { ...current.identity, displayName },
-                    }))
-                  }
-                  containerStyle={{ flex: 1, minWidth: 240 }}
-                />
-              </View>
-              {imageError ? (
-                <Typography
-                  accessibilityLiveRegion="polite"
-                  style={{ color: theme.colors.alert, fontSize: 12 }}
-                >
-                  {imageError}
-                </Typography>
-              ) : null}
-              <ChoiceGroup
-                label="O que você oferece?"
-                value={draft.identity.offeringMode}
-                onChange={(offeringMode) =>
-                  setDraft((current) => ({
-                    ...current,
-                    identity: { ...current.identity, offeringMode },
-                    organization: {
-                      ...current.organization,
-                      content: {
-                        ...current.organization.content,
-                        showProducts: offeringMode !== "services",
-                        showServices: offeringMode !== "products",
-                      },
-                    },
-                  }))
-                }
-                options={[
-                  { value: "products", label: "Produtos", icon: "bag-handle-outline" },
-                  { value: "services", label: "Serviços", icon: "person-outline" },
-                  { value: "both", label: "Ambos", icon: "apps-outline" },
-                ]}
-              />
-            </EditorCard>
-            <EditorCard>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  flexWrap: "wrap",
-                  gap: 10,
-                }}
-              >
-                <View style={{ flex: 1 }}>
-                  <SectionHeading title="Cores da vitrine" />
-                </View>
-                <Button
-                  title="Usar cores da marca"
-                  variant="text"
-                  compact
-                  icon={
-                    <AppIcon name="color-palette-outline" size={16} color={colors.rose} />
-                  }
-                  onPress={() =>
-                    setDraft((current) => ({
-                      ...current,
-                      identity: {
-                        ...current.identity,
-                        primaryColor: STOREFRONT_BRAND_COLORS.primary,
-                        actionColor: STOREFRONT_BRAND_COLORS.action,
-                        backgroundColor: STOREFRONT_BRAND_COLORS.background,
-                      },
-                    }))
-                  }
-                />
-              </View>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 14 }}>
-                {(["primaryColor", "actionColor", "backgroundColor"] as const).map(
-                  (key) => (
-                    <ColorField
-                      key={key}
-                      label={
-                        key === "primaryColor"
-                          ? "Cor principal"
-                          : key === "actionColor"
-                            ? "Ação"
-                            : "Fundo"
-                      }
-                      value={draft.identity[key]}
-                      error={errors[key]}
-                      stacked={stackColorFields}
-                      onOpen={() => setColorTarget(key)}
-                      onTextChange={(value) =>
-                        setDraft((current) => ({
-                          ...current,
-                          identity: { ...current.identity, [key]: value },
-                        }))
-                      }
-                    />
-                  ),
-                )}
-              </View>
-            </EditorCard>
-          </>
-        ) : null}
-
-        {step === "hero" ? (
-          <>
-            <SectionHeading
-              title="Estilo do topo"
-              description="Escolha como sua história aparece primeiro."
-            />
-            <View
-              accessibilityRole="radiogroup"
-              style={{ flexDirection: wide ? "row" : "column", gap: 10 }}
-            >
-              <StyleOption
-                value="classic"
-                selected={draft.hero.style === "classic"}
-                title="Clássico"
-                description="Texto e ação em coluna, capa em destaque."
-                onSelect={(style) =>
-                  setDraft((current) => ({ ...current, hero: { ...current.hero, style } }))
-                }
-              >
-                <View style={{ flex: 1, padding: 6, gap: 4 }}>
-                  <View style={{ height: 6, width: "55%", borderRadius: 4, backgroundColor: colors.wine }} />
-                  <View style={{ height: 4, width: "80%", borderRadius: 4, backgroundColor: colors.border }} />
-                  <View style={{ height: 10, width: 36, borderRadius: 6, backgroundColor: colors.rose }} />
-                </View>
-              </StyleOption>
-              <StyleOption
-                value="editorial"
-                selected={draft.hero.style === "editorial"}
-                title="Editorial"
-                description="Destaques visuais, texto à esquerda e ação visível."
-                onSelect={(style) =>
-                  setDraft((current) => ({ ...current, hero: { ...current.hero, style } }))
-                }
-              >
-                <View style={{ flex: 1, flexDirection: "row", padding: 6, gap: 6 }}>
-                  <View style={{ flex: 1, gap: 4, justifyContent: "center" }}>
-                    <View style={{ height: 6, width: "90%", borderRadius: 4, backgroundColor: colors.wine }} />
-                    <View style={{ height: 10, width: 28, borderRadius: 6, backgroundColor: colors.rose }} />
-                  </View>
-                  <View style={{ width: 28, borderRadius: 6, backgroundColor: colors.softRose }} />
-                </View>
-              </StyleOption>
-              <StyleOption
-                value="compact"
-                selected={draft.hero.style === "compact"}
-                title="Compacto"
-                description="Leitura rápida, menos altura e ação objetiva."
-                onSelect={(style) =>
-                  setDraft((current) => ({ ...current, hero: { ...current.hero, style } }))
-                }
-              >
-                <View style={{ flex: 1, padding: 8, justifyContent: "center", gap: 3 }}>
-                  <View style={{ height: 5, width: "70%", borderRadius: 4, backgroundColor: colors.wine }} />
-                  <View style={{ height: 8, width: 32, borderRadius: 5, backgroundColor: colors.rose }} />
-                </View>
-              </StyleOption>
-            </View>
-            <SectionHeading
-              title="Composição do topo"
-              description="Monte a primeira impressão da sua vitrine."
-            />
-            <EditorCard>
-              <Typography
-                style={{ color: colors.ink, fontFamily: fonts.bold, fontSize: 14 }}
-              >
-                Capa da vitrine
-              </Typography>
-              <Typography style={{ color: colors.warmGray, fontSize: 12 }}>
-                A arte principal é o arquivo enviado. Logo e destaques ficam separados.
-              </Typography>
-              <UploadButton
-                title="Capa ou banner"
-                image={coverUrl}
-                onPress={() => void pickImage("cover")}
-                onRemove={() => setCoverUrl(null)}
-              />
-              {coverUrl ? (
-                <>
-                  <Button
-                    title="Ajustar posição e tamanho"
-                    variant="outline"
-                    compact
-                    onPress={() => setCoverAdjustVisible((current) => !current)}
-                    icon={<AppIcon name="options-outline" size={18} color={colors.rose} />}
-                  />
-                  {coverAdjustVisible ? (
-                    <CoverAdjuster
-                      coverUrl={coverUrl}
-                      focal={draft.hero.coverFocal ?? { x: 0.5, y: 0.5, scale: 1 }}
-                      onChange={(coverFocal) =>
-                        setDraft((current) => ({
-                          ...current,
-                          hero: { ...current.hero, coverFocal },
-                        }))
-                      }
-                    />
-                  ) : null}
-                </>
-              ) : (
-                <Typography style={{ color: colors.warmGray, fontSize: 12 }}>
-                  Sem capa, o topo fica neutro. Destaques só aparecem quando não houver capa.
-                </Typography>
-              )}
-              <Typography
-                style={{ color: colors.ink, fontFamily: fonts.bold, fontSize: 14 }}
-              >
-                Destaques do topo
-              </Typography>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-                {draft.hero.featuredItems.map((item) => (
-                  <View
-                    key={item.id}
-                    style={{ width: wide ? 180 : "47%", minWidth: 140, gap: 7 }}
-                  >
-                    <View
-                      style={{
-                        height: 110,
-                        borderRadius: 14,
-                        overflow: "hidden",
-                        backgroundColor: colors.neutral,
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      {(item.processedUrl ?? item.assetUrl) ? (
-                        <Image
-                          source={{ uri: item.processedUrl ?? item.assetUrl! }}
-                          style={{ width: "100%", height: "100%" }}
-                          resizeMode="cover"
-                        />
-                      ) : (
-                        <AppIcon name="person-outline" size={30} color={colors.rose} />
-                      )}
-                    </View>
-                    <Typography
-                      numberOfLines={1}
-                      style={{
-                        color: colors.ink,
-                        fontFamily: fonts.semiBold,
-                        fontSize: 12,
-                      }}
-                    >
-                      {displayCatalogItemName(item.altText)}
-                    </Typography>
-                    <Typography style={{ color: colors.warmGray, fontSize: 11 }}>
-                      {item.kind === "product"
-                        ? "Produto"
-                        : item.kind === "service"
-                          ? "Serviço"
-                          : "Mídia"}
-                    </Typography>
-                    <Button
-                      title="Remover"
-                      variant="text"
-                      compact
-                      onPress={() =>
-                        setDraft((current) => ({
-                          ...current,
-                          hero: {
-                            ...current.hero,
-                            featuredItems: current.hero.featuredItems.filter(
-                              (entry) => entry.id !== item.id,
-                            ),
-                          },
-                        }))
-                      }
-                    />
-                  </View>
-                ))}
-                {draft.hero.featuredItems.length < 3 ? (
-                  <Pressable
-                    accessibilityRole="button"
-                    onPress={() => setFeaturedPickerVisible(true)}
-                    style={{
-                      width: wide ? 180 : "47%",
-                      minWidth: 140,
-                      minHeight: 110,
-                      borderRadius: 14,
-                      borderWidth: 1,
-                      borderStyle: "dashed",
-                      borderColor: colors.rose,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 7,
-                    }}
-                  >
-                    <AppIcon name="add-circle-outline" size={26} color={colors.rose} />
-                    <Typography
-                      style={{
-                        color: colors.rose,
-                        fontFamily: fonts.semiBold,
-                        fontSize: 12,
-                        textAlign: "center",
-                      }}
-                    >
-                      Selecionar itens ou mídia
-                    </Typography>
-                    <Typography style={{ color: colors.warmGray, fontSize: 11 }}>
-                      Até 3 destaques
-                    </Typography>
-                  </Pressable>
-                ) : null}
-              </View>
-              <SwitchRow
-                label="Remover fundo automaticamente"
-                description="A vitrine usa a versão processada quando ela existe; o processamento ainda não é feito neste app."
-                value={draft.hero.removeBackground}
-                disabled
-                onValueChange={() => undefined}
-              />
-              <Button
-                title="Ajustar posição e tamanho"
-                variant="outline"
-                disabled={draft.hero.featuredItems.length === 0}
-                onPress={() => setTransformVisible(true)}
-                icon={<AppIcon name="options-outline" size={19} color={colors.rose} />}
-              />
-              <UploadButton
-                title="Imagem alternativa para telas pequenas"
-                image={draft.hero.smallScreenAlternativeUrl}
-                onPress={() => void pickImage("small")}
-                onRemove={() =>
-                  setDraft((current) => ({
-                    ...current,
-                    hero: { ...current.hero, smallScreenAlternativeUrl: null },
-                  }))
-                }
-              />
-            </EditorCard>
-            <SectionHeading title="Texto e ação" />
-            <EditorCard>
-              <View style={{ gap: 6 }}>
-                <Input
-                  label="Frase de apresentação"
-                  value={draft.hero.introduction}
-                  maxLength={STOREFRONT_INTRODUCTION_LIMIT}
-                  error={errors.introduction}
-                  onChangeText={(introduction) =>
-                    setDraft((current) => ({
-                      ...current,
-                      hero: { ...current.hero, introduction },
-                    }))
-                  }
-                />
-                <FieldHint
-                  value={draft.hero.introduction}
-                  limit={STOREFRONT_INTRODUCTION_LIMIT}
-                />
-              </View>
-              <View style={{ gap: 6 }}>
-                <Input
-                  label="Assinatura curta"
-                  value={draft.hero.shortSignature}
-                  maxLength={STOREFRONT_SIGNATURE_LIMIT}
-                  error={errors.shortSignature}
-                  onChangeText={(shortSignature) =>
-                    setDraft((current) => ({
-                      ...current,
-                      hero: { ...current.hero, shortSignature },
-                    }))
-                  }
-                />
-                <FieldHint
-                  value={draft.hero.shortSignature}
-                  limit={STOREFRONT_SIGNATURE_LIMIT}
-                />
-              </View>
-              <View style={{ gap: 6 }}>
-                <Input
-                  label="Texto do botão"
-                  value={draft.hero.action.label}
-                  maxLength={STOREFRONT_ACTION_LABEL_LIMIT}
-                  error={errors.heroActionLabel}
-                  onChangeText={(label) =>
-                    setDraft((current) => ({
-                      ...current,
-                      hero: { ...current.hero, action: { ...current.hero.action, label } },
-                    }))
-                  }
-                />
-                <FieldHint
-                  value={draft.hero.action.label}
-                  limit={STOREFRONT_ACTION_LABEL_LIMIT}
-                />
-              </View>
-              <ChoiceGroup
-                label="Tipo de ação"
-                columns={2}
-                value={draft.hero.action.type}
-                onChange={(type) =>
-                  setDraft((current) => ({
-                    ...current,
-                    hero: { ...current.hero, action: { ...current.hero.action, type } },
-                  }))
-                }
-                options={[
-                  { value: "whatsapp", label: "WhatsApp", icon: "logo-whatsapp" },
-                  { value: "quote", label: "Orçamento", icon: "document-text-outline" },
-                  { value: "schedule", label: "Agendamento", icon: "calendar-outline" },
-                  { value: "externalLink", label: "Link externo", icon: "link-outline" },
-                  { value: "none", label: "Sem ação" },
-                ]}
-              />
-              {draft.hero.action.type === "externalLink" ? (
-                <Input
-                  label="Destino da ação"
-                  value={draft.hero.action.destination ?? ""}
-                  error={errors.heroActionDestination}
-                  autoCapitalize="none"
-                  onChangeText={(destination) =>
-                    setDraft((current) => ({
-                      ...current,
-                      hero: {
-                        ...current.hero,
-                        action: { ...current.hero.action, destination },
-                      },
-                    }))
-                  }
-                />
-              ) : null}
-              <Input
-                label="Faixa promocional"
-                value={draft.hero.promotionalText}
-                maxLength={STOREFRONT_PROMO_LIMIT}
-                error={errors.promotionalText}
-                onChangeText={(promotionalText) =>
-                  setDraft((current) => ({
-                    ...current,
-                    hero: { ...current.hero, promotionalText },
-                  }))
-                }
-              />
-              <SwitchRow
-                label="Mostrar faixa promocional"
-                value={draft.hero.showPromotionalBar}
-                onValueChange={(showPromotionalBar) =>
-                  setDraft((current) => ({
-                    ...current,
-                    hero: { ...current.hero, showPromotionalBar },
-                  }))
-                }
-              />
-            </EditorCard>
-            <SectionHeading
-              title="Informações rápidas"
-              description="Mostre até 3 detalhes importantes abaixo do topo."
-            />
-            <EditorCard>
-              {[...draft.hero.quickInfo]
-                .sort((a, b) => a.order - b.order)
-                .map((item, index) => (
-                  <View
-                    key={item.id}
-                    style={{
-                      flexDirection: wide ? "row" : "column",
-                      gap: 8,
-                      alignItems: wide ? "center" : "stretch",
-                    }}
-                  >
-                    <Input
-                      value={item.label}
-                      maxLength={48}
-                      onChangeText={(label) =>
-                        setDraft((current) => ({
-                          ...current,
-                          hero: {
-                            ...current.hero,
-                            quickInfo: current.hero.quickInfo.map((entry) =>
-                              entry.id === item.id ? { ...entry, label } : entry,
-                            ),
-                          },
-                        }))
-                      }
-                      containerStyle={{ flex: 1 }}
-                    />
-                    <Button
-                      title={item.enabled ? "Visível" : "Oculta"}
-                      variant={item.enabled ? "secondary" : "outline"}
-                      compact
-                      onPress={() =>
-                        setDraft((current) => ({
-                          ...current,
-                          hero: {
-                            ...current.hero,
-                            quickInfo: current.hero.quickInfo.map((entry) =>
-                              entry.id === item.id
-                                ? { ...entry, enabled: !entry.enabled }
-                                : entry,
-                            ),
-                          },
-                        }))
-                      }
-                    />
-                    <Button
-                      title="↑"
-                      variant="outline"
-                      compact
-                      disabled={index === 0}
-                      onPress={() =>
-                        setDraft((current) => ({
-                          ...current,
-                          hero: {
-                            ...current.hero,
-                            quickInfo: [...current.hero.quickInfo]
-                              .sort((a, b) => a.order - b.order)
-                              .map((entry, position, all) =>
-                                position === index
-                                  ? { ...all[index - 1], order: index }
-                                  : position === index - 1
-                                    ? { ...all[index], order: index - 1 }
-                                    : { ...entry, order: position },
-                              ),
-                          },
-                        }))
-                      }
-                    />
-                    <Button
-                      title="Remover"
-                      variant="text"
-                      compact
-                      onPress={() =>
-                        setDraft((current) => ({
-                          ...current,
-                          hero: {
-                            ...current.hero,
-                            quickInfo: current.hero.quickInfo
-                              .filter((entry) => entry.id !== item.id)
-                              .map((entry, order) => ({ ...entry, order })),
-                          },
-                        }))
-                      }
-                    />
-                  </View>
-                ))}
-              <Button
-                title="Adicionar informação"
-                variant="text"
-                disabled={draft.hero.quickInfo.length >= 3}
-                onPress={() =>
-                  setDraft((current) => ({
-                    ...current,
-                    hero: {
-                      ...current.hero,
-                      quickInfo: [
-                        ...current.hero.quickInfo,
-                        {
-                          id: `quick:${Date.now()}`,
-                          icon: "sparkles",
-                          label: "Nova informação",
-                          order: current.hero.quickInfo.length,
-                          enabled: true,
-                        },
-                      ],
-                    },
-                  }))
-                }
-                icon={<AppIcon name="add" size={18} color={colors.rose} />}
-              />
-            </EditorCard>
-            <EditorCard>
-              <Typography style={{ color: colors.ink, fontFamily: fonts.bold }}>
-                Configurações avançadas
-              </Typography>
-              <Typography style={{ color: colors.warmGray, fontSize: 12 }}>
-                As cores antigas de título e descrição continuam preservadas no backend
-                para compatibilidade, mas o contraste agora é calculado pela prévia
-                compartilhada.
-              </Typography>
-            </EditorCard>
-          </>
-        ) : null}
-
-        {step === "organization" && section === "content" ? (
-          <>
-            <SectionHeading
-              title="Conteúdo da vitrine"
-              description="Escolha o que seus clientes podem encontrar."
-            />
-            <EditorCard>
-              <SwitchRow
-                label="Produtos"
-                description={`${counts.products} publicados`}
-                value={draft.organization.content.showProducts}
-                onValueChange={(showProducts) =>
-                  setDraft((current) => ({
-                    ...current,
-                    organization: {
-                      ...current.organization,
-                      content: { ...current.organization.content, showProducts },
-                    },
-                  }))
-                }
-              />
-              <SwitchRow
-                label="Serviços"
-                description={`${counts.services} publicados`}
-                value={draft.organization.content.showServices}
-                onValueChange={(showServices) =>
-                  setDraft((current) => ({
-                    ...current,
-                    organization: {
-                      ...current.organization,
-                      content: { ...current.organization.content, showServices },
-                    },
-                  }))
-                }
-              />
-              <SwitchRow
-                label="Categorias"
-                description={`${categories.length} encontradas`}
-                value={draft.organization.content.showCategories}
-                onValueChange={(showCategories) =>
-                  setDraft((current) => ({
-                    ...current,
-                    organization: {
-                      ...current.organization,
-                      content: { ...current.organization.content, showCategories },
-                    },
-                  }))
-                }
-              />
-              {errors.visibleContent ? (
-                <Typography style={{ color: theme.colors.alert, fontSize: 12 }}>
-                  {errors.visibleContent}
-                </Typography>
-              ) : null}
-              <ChoiceGroup
-                label="Seção inicial"
-                value={draft.organization.content.initialSection}
-                onChange={(initialSection) =>
-                  setDraft((current) => ({
-                    ...current,
-                    organization: {
-                      ...current.organization,
-                      content: { ...current.organization.content, initialSection },
-                    },
-                  }))
-                }
-                options={[
-                  { value: "all", label: "Todos" },
-                  { value: "products", label: "Produtos" },
-                  { value: "services", label: "Serviços" },
-                ]}
-              />
-              <Typography
-                style={{ color: colors.ink, fontFamily: fonts.semiBold, fontSize: 13 }}
-              >
-                Ordem das seções
-              </Typography>
-              {draft.organization.content.sectionOrder.map((item, index) => (
-                <CompactReorderRow
-                  key={item}
-                  label={
-                    item === "products"
-                      ? "Produtos"
-                      : item === "services"
-                        ? "Serviços"
-                        : "Categorias"
-                  }
-                  index={index}
-                  last={index === draft.organization.content.sectionOrder.length - 1}
-                  onMoveUp={() =>
-                    setDraft((current) => {
-                      const order = [...current.organization.content.sectionOrder];
-                      [order[index - 1], order[index]] = [order[index], order[index - 1]];
-                      return {
-                        ...current,
-                        organization: {
-                          ...current.organization,
-                          content: {
-                            ...current.organization.content,
-                            sectionOrder: order,
-                          },
-                        },
-                      };
-                    })
-                  }
-                  onMoveDown={() =>
-                    setDraft((current) => {
-                      const order = [...current.organization.content.sectionOrder];
-                      [order[index + 1], order[index]] = [order[index], order[index + 1]];
-                      return {
-                        ...current,
-                        organization: {
-                          ...current.organization,
-                          content: {
-                            ...current.organization.content,
-                            sectionOrder: order,
-                          },
-                        },
-                      };
-                    })
-                  }
-                />
-              ))}
-            </EditorCard>
-            <SectionHeading
-              title="Navegação e descoberta"
-              description="Facilite a busca pelo que você oferece."
-            />
-            <EditorCard>
-              <SwitchRow
-                label="Mostrar campo de busca"
-                value={draft.organization.discovery.showSearch}
-                onValueChange={(showSearch) =>
-                  setDraft((current) => ({
-                    ...current,
-                    organization: {
-                      ...current.organization,
-                      discovery: { ...current.organization.discovery, showSearch },
-                    },
-                  }))
-                }
-              />
-              <SwitchRow
-                label="Mostrar categorias"
-                value={draft.organization.discovery.showCategories}
-                onValueChange={(showCategories) =>
-                  setDraft((current) => ({
-                    ...current,
-                    organization: {
-                      ...current.organization,
-                      discovery: { ...current.organization.discovery, showCategories },
-                    },
-                  }))
-                }
-              />
-              <SwitchRow
-                label="Permitir filtros"
-                value={draft.organization.discovery.allowFilters}
-                onValueChange={(allowFilters) =>
-                  setDraft((current) => ({
-                    ...current,
-                    organization: {
-                      ...current.organization,
-                      discovery: { ...current.organization.discovery, allowFilters },
-                    },
-                  }))
-                }
-              />
-              <SwitchRow
-                label="Permitir ordenação"
-                value={draft.organization.discovery.allowSorting}
-                onValueChange={(allowSorting) =>
-                  setDraft((current) => ({
-                    ...current,
-                    organization: {
-                      ...current.organization,
-                      discovery: { ...current.organization.discovery, allowSorting },
-                    },
-                  }))
-                }
-              />
-              <ChoiceGroup
-                label="Ordenação padrão"
-                columns={2}
-                value={draft.organization.discovery.defaultSort}
-                onChange={(defaultSort) =>
-                  setDraft((current) => ({
-                    ...current,
-                    organization: {
-                      ...current.organization,
-                      discovery: { ...current.organization.discovery, defaultSort },
-                    },
-                  }))
-                }
-                options={[
-                  { value: "featured", label: "Destaques primeiro" },
-                  { value: "name", label: "Nome" },
-                  { value: "priceLow", label: "Menor preço" },
-                  { value: "priceHigh", label: "Maior preço" },
-                ]}
-              />
-              <Typography
-                style={{ color: colors.ink, fontFamily: fonts.semiBold, fontSize: 13 }}
-              >
-                Categorias visíveis
-              </Typography>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                {categories.map((category) => {
-                  const selected =
-                    draft.organization.discovery.visibleCategoryIds.length === 0 ||
-                    draft.organization.discovery.visibleCategoryIds.includes(category);
-                  return (
-                    <Button
-                      key={category}
-                      title={category}
-                      variant={selected ? "secondary" : "outline"}
-                      compact
-                      onPress={() =>
-                        setDraft((current) => {
-                          const currentIds =
-                            current.organization.discovery.visibleCategoryIds.length === 0
-                              ? categories
-                              : current.organization.discovery.visibleCategoryIds;
-                          const visibleCategoryIds = currentIds.includes(category)
-                            ? currentIds.filter((id) => id !== category)
-                            : [...currentIds, category];
-                          return {
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 14 }}>
+                  {(["primaryColor", "actionColor", "backgroundColor"] as const).map(
+                    (key) => (
+                      <ColorField
+                        key={key}
+                        label={
+                          key === "primaryColor"
+                            ? "Cor principal"
+                            : key === "actionColor"
+                              ? "Ação"
+                              : "Fundo"
+                        }
+                        value={draft.identity[key]}
+                        error={errors[key]}
+                        stacked={stackColorFields}
+                        onOpen={() => setColorTarget(key)}
+                        onTextChange={(value) =>
+                          setDraft((current) => ({
                             ...current,
-                            organization: {
-                              ...current.organization,
-                              discovery: {
-                                ...current.organization.discovery,
-                                visibleCategoryIds,
-                              },
-                            },
-                          };
-                        })
-                      }
-                    />
-                  );
-                })}
-                {categories.length === 0 ? (
-                  <Typography style={{ color: colors.warmGray, fontSize: 12 }}>
-                    Nenhuma categoria cadastrada.
-                  </Typography>
-                ) : null}
-              </View>
-              <Typography
-                style={{ color: colors.ink, fontFamily: fonts.semiBold, fontSize: 13 }}
-              >
-                Reordenar categorias
-              </Typography>
-              {(draft.organization.discovery.categoryOrder.length
-                ? draft.organization.discovery.categoryOrder
-                : categories
-              ).map((category, index, order) => (
-                <CompactReorderRow
-                  key={category}
-                  label={category}
-                  index={index}
-                  last={index === order.length - 1}
-                  onMoveUp={() =>
-                    setDraft((current) => {
-                      const next = [
-                        ...(current.organization.discovery.categoryOrder.length
-                          ? current.organization.discovery.categoryOrder
-                          : categories),
-                      ];
-                      [next[index - 1], next[index]] = [next[index], next[index - 1]];
-                      return {
-                        ...current,
-                        organization: {
-                          ...current.organization,
-                          discovery: {
-                            ...current.organization.discovery,
-                            categoryOrder: next,
-                          },
-                        },
-                      };
-                    })
-                  }
-                  onMoveDown={() =>
-                    setDraft((current) => {
-                      const next = [
-                        ...(current.organization.discovery.categoryOrder.length
-                          ? current.organization.discovery.categoryOrder
-                          : categories),
-                      ];
-                      [next[index + 1], next[index]] = [next[index], next[index + 1]];
-                      return {
-                        ...current,
-                        organization: {
-                          ...current.organization,
-                          discovery: {
-                            ...current.organization.discovery,
-                            categoryOrder: next,
-                          },
-                        },
-                      };
-                    })
-                  }
-                />
-              ))}
-            </EditorCard>
-            <EditorCard>
-              <SectionHeading title="Resumo" />
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-                {[
-                  {
-                    icon: "bag-handle-outline" as const,
-                    value: counts.products,
-                    label: "produtos",
-                  },
-                  {
-                    icon: "person-outline" as const,
-                    value: counts.services,
-                    label: "serviços",
-                  },
-                  {
-                    icon: "apps-outline" as const,
-                    value: categories.length,
-                    label: "categorias",
-                  },
-                ].map((item) => (
-                  <View
-                    key={item.label}
-                    style={{
-                      flex: 1,
-                      minWidth: 150,
-                      minHeight: 60,
-                      borderRadius: 13,
-                      borderWidth: 1,
-                      borderColor: colors.border,
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 9,
-                    }}
-                  >
-                    <AppIcon name={item.icon} size={20} color={colors.wine} />
-                    <Typography style={{ color: colors.ink, fontFamily: fonts.bold }}>
-                      {item.value} {item.label}
-                    </Typography>
-                  </View>
-                ))}
-              </View>
-              <Button
-                title="Continuar para cards e ações"
-                variant="outline"
-                onPress={() => navigate("organization", "cards-actions")}
-                icon={<AppIcon name="arrow-forward" size={18} color={colors.rose} />}
-              />
-            </EditorCard>
-          </>
-        ) : null}
+                            identity: { ...current.identity, [key]: value },
+                          }))
+                        }
+                      />
+                    ),
+                  )}
+                </View>
+              </EditorCard>
+            </>
+          ) : null}
 
-        {step === "organization" && section === "cards-actions" ? (
-          <>
-            <SectionHeading
-              title="Estilo dos cards"
-              description="Escolha como seus itens serão exibidos."
-            />
-            <EditorCard>
+          {step === "hero" ? (
+            <>
+              <SectionHeading
+                title="Estilo do topo"
+                description="Escolha como sua história aparece primeiro."
+              />
               <View
                 accessibilityRole="radiogroup"
                 style={{ flexDirection: wide ? "row" : "column", gap: 10 }}
               >
                 <StyleOption
-                  value="editorial"
-                  selected={draft.organization.cards.style === "editorial"}
-                  title="Editorial"
-                  description="Imagem ampla, texto e ação bem visíveis."
+                  value="classic"
+                  selected={draft.hero.style === "classic"}
+                  title="Clássico"
+                  description="Texto e ação em coluna, capa em destaque."
                   onSelect={(style) =>
                     setDraft((current) => ({
                       ...current,
-                      organization: {
-                        ...current.organization,
-                        cards: { ...current.organization.cards, style },
-                      },
+                      hero: { ...current.hero, style },
                     }))
                   }
                 >
                   <View style={{ flex: 1, padding: 6, gap: 4 }}>
-                    <View style={{ height: 18, borderRadius: 6, backgroundColor: colors.softRose }} />
-                    <View style={{ height: 5, width: "70%", borderRadius: 4, backgroundColor: colors.wine }} />
-                    <View style={{ height: 8, width: 40, borderRadius: 5, backgroundColor: colors.rose }} />
+                    <View
+                      style={{
+                        height: 6,
+                        width: "55%",
+                        borderRadius: 4,
+                        backgroundColor: colors.wine,
+                      }}
+                    />
+                    <View
+                      style={{
+                        height: 4,
+                        width: "80%",
+                        borderRadius: 4,
+                        backgroundColor: colors.border,
+                      }}
+                    />
+                    <View
+                      style={{
+                        height: 10,
+                        width: 36,
+                        borderRadius: 6,
+                        backgroundColor: colors.rose,
+                      }}
+                    />
+                  </View>
+                </StyleOption>
+                <StyleOption
+                  value="editorial"
+                  selected={draft.hero.style === "editorial"}
+                  title="Editorial"
+                  description="Destaques visuais, texto à esquerda e ação visível."
+                  onSelect={(style) =>
+                    setDraft((current) => ({
+                      ...current,
+                      hero: { ...current.hero, style },
+                    }))
+                  }
+                >
+                  <View style={{ flex: 1, flexDirection: "row", padding: 6, gap: 6 }}>
+                    <View style={{ flex: 1, gap: 4, justifyContent: "center" }}>
+                      <View
+                        style={{
+                          height: 6,
+                          width: "90%",
+                          borderRadius: 4,
+                          backgroundColor: colors.wine,
+                        }}
+                      />
+                      <View
+                        style={{
+                          height: 10,
+                          width: 28,
+                          borderRadius: 6,
+                          backgroundColor: colors.rose,
+                        }}
+                      />
+                    </View>
+                    <View
+                      style={{
+                        width: 28,
+                        borderRadius: 6,
+                        backgroundColor: colors.softRose,
+                      }}
+                    />
                   </View>
                 </StyleOption>
                 <StyleOption
                   value="compact"
-                  selected={draft.organization.cards.style === "compact"}
+                  selected={draft.hero.style === "compact"}
                   title="Compacto"
-                  description="Lista objetiva, com menos altura por item."
+                  description="Leitura rápida, menos altura e ação objetiva."
                   onSelect={(style) =>
                     setDraft((current) => ({
                       ...current,
-                      organization: {
-                        ...current.organization,
-                        cards: { ...current.organization.cards, style },
-                      },
+                      hero: { ...current.hero, style },
                     }))
                   }
                 >
-                  <View style={{ flex: 1, padding: 8, justifyContent: "center", gap: 5 }}>
-                    <View style={{ height: 8, width: "80%", borderRadius: 4, backgroundColor: colors.wine }} />
-                    <View style={{ height: 8, width: "60%", borderRadius: 4, backgroundColor: colors.border }} />
+                  <View style={{ flex: 1, padding: 8, justifyContent: "center", gap: 3 }}>
+                    <View
+                      style={{
+                        height: 5,
+                        width: "70%",
+                        borderRadius: 4,
+                        backgroundColor: colors.wine,
+                      }}
+                    />
+                    <View
+                      style={{
+                        height: 8,
+                        width: 32,
+                        borderRadius: 5,
+                        backgroundColor: colors.rose,
+                      }}
+                    />
                   </View>
                 </StyleOption>
               </View>
-              <View style={{ gap: 2 }}>
-                <SwitchRow
-                  label="Mostrar preço"
-                  value={draft.organization.cards.showPrice}
-                  onValueChange={(showPrice) =>
-                    setDraft((current) => ({
-                      ...current,
-                      organization: {
-                        ...current.organization,
-                        cards: { ...current.organization.cards, showPrice },
-                      },
-                    }))
-                  }
-                />
-                <SwitchRow
-                  label="Mostrar detalhes do item"
-                  value={draft.organization.cards.showDetails}
-                  onValueChange={(showDetails) =>
-                    setDraft((current) => ({
-                      ...current,
-                      organization: {
-                        ...current.organization,
-                        cards: { ...current.organization.cards, showDetails },
-                      },
-                    }))
-                  }
-                />
-                <SwitchRow
-                  label="Mostrar disponibilidade"
-                  value={draft.organization.cards.showAvailability}
-                  onValueChange={(showAvailability) =>
-                    setDraft((current) => ({
-                      ...current,
-                      organization: {
-                        ...current.organization,
-                        cards: { ...current.organization.cards, showAvailability },
-                      },
-                    }))
-                  }
-                />
-              </View>
-              <View style={{ gap: 10, paddingTop: 4 }}>
-              <ChoiceGroup
-                label="Quando não houver preço"
-                columns={2}
-                value={draft.organization.cards.missingPriceBehavior}
-                onChange={(missingPriceBehavior) =>
-                  setDraft((current) => ({
-                    ...current,
-                    organization: {
-                      ...current.organization,
-                      cards: { ...current.organization.cards, missingPriceBehavior },
-                    },
-                  }))
-                }
-                options={[
-                  { value: "consult", label: "Mostrar “Consultar”" },
-                  { value: "hidden", label: "Ocultar preço" },
-                  { value: "custom", label: "Texto personalizado" },
-                ]}
+              <SectionHeading
+                title="Composição do topo"
+                description="Monte a primeira impressão da sua vitrine."
               />
-              {draft.organization.cards.missingPriceBehavior === "custom" ? (
-                <Input
-                  label="Texto personalizado"
-                  value={draft.organization.cards.missingPriceText}
-                  maxLength={30}
-                  onChangeText={(missingPriceText) =>
-                    setDraft((current) => ({
-                      ...current,
-                      organization: {
-                        ...current.organization,
-                        cards: { ...current.organization.cards, missingPriceText },
-                      },
-                    }))
-                  }
-                />
-              ) : null}
-              </View>
-            </EditorCard>
-            <SectionHeading
-              title="Ações nos cards"
-              description="Defina como cada produto ou serviço conduz o cliente."
-            />
-            <EditorCard>
-              <ChoiceGroup
-                label="Modo de ação"
-                columns={2}
-                value={draft.organization.actions.mode}
-                onChange={(mode) =>
-                  setDraft((current) => ({
-                    ...current,
-                    organization: {
-                      ...current.organization,
-                      actions: { ...current.organization.actions, mode },
-                    },
-                  }))
-                }
-                options={[
-                  { value: "perItem", label: "Usar a ação de cada item" },
-                  { value: "default", label: "Usar uma ação padrão" },
-                  { value: "hidden", label: "Não mostrar ações" },
-                ]}
-              />
-              {draft.organization.actions.mode !== "hidden" ? (
-                <View style={{ flexDirection: wide ? "row" : "column", gap: 22 }}>
-                  <ActionEditor
-                    title="Ação padrão para produtos"
-                    value={draft.organization.actions.productDefault}
-                    allowed={[
-                      "order",
-                      "preorder",
-                      "quote",
-                      "details",
-                      "contact",
-                      "externalLink",
-                      "none",
-                    ]}
-                    onChange={(productDefault) =>
-                      setDraft((current) => ({
-                        ...current,
-                        organization: {
-                          ...current.organization,
-                          actions: { ...current.organization.actions, productDefault },
-                        },
-                      }))
-                    }
-                  />
-                  <ActionEditor
-                    title="Ação padrão para serviços"
-                    value={draft.organization.actions.serviceDefault}
-                    allowed={[
-                      "schedule",
-                      "quote",
-                      "contact",
-                      "details",
-                      "externalLink",
-                      "none",
-                    ]}
-                    onChange={(serviceDefault) =>
-                      setDraft((current) => ({
-                        ...current,
-                        organization: {
-                          ...current.organization,
-                          actions: { ...current.organization.actions, serviceDefault },
-                        },
-                      }))
-                    }
-                  />
-                </View>
-              ) : null}
-            </EditorCard>
-            <SectionHeading title="Ações configuradas" />
-            <EditorCard>
-              {draft.organization.actions.mode === "perItem" &&
-              Object.keys(draft.organization.actions.itemOverrides).length === 0 ? (
-                <View
-                  accessibilityLiveRegion="polite"
-                  style={{
-                    borderRadius: 12,
-                    backgroundColor: colors.softRose,
-                    padding: 12,
-                    flexDirection: "row",
-                    gap: 8,
-                    alignItems: "center",
-                  }}
+              <EditorCard>
+                <Typography
+                  style={{ color: colors.ink, fontFamily: fonts.bold, fontSize: 14 }}
                 >
-                  <AppIcon name="alert-circle-outline" size={16} color={colors.rose} />
-                  <Typography style={{ color: colors.ink, fontSize: 12, flex: 1 }}>
-                    Nenhuma ação individual foi definida. Toque em um item para
-                    personalizar, ou use uma ação padrão.
+                  Capa da vitrine
+                </Typography>
+                <Typography style={{ color: colors.warmGray, fontSize: 12 }}>
+                  A arte principal é o arquivo enviado. Logo e destaques ficam separados.
+                </Typography>
+                <UploadButton
+                  title="Capa ou banner"
+                  image={coverUrl}
+                  onPress={() => void pickImage("cover")}
+                  onRemove={() => setCoverUrl(null)}
+                />
+                {coverUrl ? (
+                  <>
+                    <Button
+                      title="Ajustar posição e tamanho"
+                      variant="outline"
+                      compact
+                      onPress={() => setCoverAdjustVisible((current) => !current)}
+                      icon={
+                        <AppIcon name="options-outline" size={18} color={colors.rose} />
+                      }
+                    />
+                    {coverAdjustVisible ? (
+                      <CoverAdjuster
+                        coverUrl={coverUrl}
+                        focal={draft.hero.coverFocal ?? { x: 0.5, y: 0.5, scale: 1 }}
+                        onChange={(coverFocal) =>
+                          setDraft((current) => ({
+                            ...current,
+                            hero: { ...current.hero, coverFocal },
+                          }))
+                        }
+                      />
+                    ) : null}
+                  </>
+                ) : (
+                  <Typography style={{ color: colors.warmGray, fontSize: 12 }}>
+                    Sem capa, o topo fica neutro. Destaques só aparecem quando não houver
+                    capa.
                   </Typography>
-                </View>
-              ) : null}
-              {[
-                ...products
-                  .filter((item) => item.isActive && item.publicEnabled)
-                  .map((item) => ({ kind: "product" as const, item })),
-                ...services
-                  .filter((item) => item.active && item.publicEnabled)
-                  .map((item) => ({ kind: "service" as const, item })),
-              ]
-                .slice(0, 8)
-                .map(({ kind, item }) => {
-                  const key = `${kind}:${item.id}`;
-                  const override = draft.organization.actions.itemOverrides[key];
-                  const fallback =
-                    kind === "product"
-                      ? draft.organization.actions.productDefault
-                      : draft.organization.actions.serviceDefault;
-                  const assigned = override ?? fallback;
-                  return (
-                    <View
-                      key={key}
-                      style={{
-                        minHeight: 58,
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 10,
-                      }}
-                    >
+                )}
+                <Typography
+                  style={{ color: colors.ink, fontFamily: fonts.bold, fontSize: 14 }}
+                >
+                  Destaques do topo
+                </Typography>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+                  {draft.hero.featuredItems.map((item) => {
+                    const visual = resolveFeaturedVisual(
+                      item,
+                      draft.hero.removeBackground,
+                    );
+                    return (
                       <View
-                        style={{
-                          width: 42,
-                          height: 42,
-                          borderRadius: 10,
-                          backgroundColor: colors.softRose,
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
+                        key={item.id}
+                        style={{ width: wide ? 180 : "47%", minWidth: 140, gap: 7 }}
                       >
-                        {kind === "product" && item.photoUrl ? (
-                          <Image
-                            source={{ uri: item.photoUrl }}
-                            style={{ width: "100%", height: "100%", borderRadius: 10 }}
-                          />
-                        ) : (
-                          <AppIcon
-                            name={
-                              kind === "product" ? "bag-handle-outline" : "person-outline"
-                            }
-                            size={20}
-                            color={colors.wine}
-                          />
-                        )}
-                      </View>
-                      <View style={{ flex: 1 }}>
+                        <View
+                          style={{
+                            height: 110,
+                            borderRadius: 14,
+                            overflow: "hidden",
+                            backgroundColor: colors.neutral,
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          {visual.source ? (
+                            <Image
+                              source={{ uri: visual.source }}
+                              style={{ width: "100%", height: "100%" }}
+                              resizeMode={visual.cutout ? "contain" : "cover"}
+                            />
+                          ) : (
+                            <AppIcon
+                              name="person-outline"
+                              size={30}
+                              color={colors.rose}
+                            />
+                          )}
+                        </View>
                         <Typography
                           numberOfLines={1}
                           style={{
                             color: colors.ink,
                             fontFamily: fonts.semiBold,
-                            fontSize: 13,
+                            fontSize: 12,
                           }}
                         >
-                          {displayCatalogItemName(item.name)}
+                          {displayCatalogItemName(item.altText)}
                         </Typography>
                         <Typography style={{ color: colors.warmGray, fontSize: 11 }}>
-                          {kind === "product" ? "Produto" : "Serviço"} •{" "}
-                          {override ? "ação individual" : "ação padrão"}
-                          {assigned.channel ? ` • ${assigned.channel}` : ""}
+                          {item.kind === "product"
+                            ? "Produto"
+                            : item.kind === "service"
+                              ? "Serviço"
+                              : "Mídia"}
                         </Typography>
+                        <Button
+                          title="Remover"
+                          variant="text"
+                          compact
+                          onPress={() =>
+                            setDraft((current) => ({
+                              ...current,
+                              hero: {
+                                ...current.hero,
+                                featuredItems: current.hero.featuredItems.filter(
+                                  (entry) => entry.id !== item.id,
+                                ),
+                              },
+                            }))
+                          }
+                        />
                       </View>
-                      <Button
-                        title={
-                          assigned.label ||
-                          ACTION_OPTIONS.find((option) => option.value === assigned.type)
-                            ?.label ||
-                          "Sem ação"
-                        }
-                        variant={override ? "secondary" : "outline"}
-                        compact
-                        onPress={() => {
-                          const allowed =
-                            kind === "product"
-                              ? [
-                                  "order",
-                                  "preorder",
-                                  "quote",
-                                  "details",
-                                  "contact",
-                                  "none",
-                                ]
-                              : ["schedule", "quote", "contact", "details", "none"];
-                          const currentIndex = allowed.indexOf(assigned.type);
-                          const nextType = allowed[
-                            (currentIndex + 1) % allowed.length
-                          ] as CatalogItemAction["type"];
-                          const label = ACTION_OPTIONS.find(
-                            (option) => option.value === nextType,
-                          )?.label;
+                    );
+                  })}
+                  {draft.hero.featuredItems.length < 3 ? (
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() => setFeaturedPickerVisible(true)}
+                      style={{
+                        width: wide ? 180 : "47%",
+                        minWidth: 140,
+                        minHeight: 110,
+                        borderRadius: 14,
+                        borderWidth: 1,
+                        borderStyle: "dashed",
+                        borderColor: colors.rose,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 7,
+                      }}
+                    >
+                      <AppIcon name="add-circle-outline" size={26} color={colors.rose} />
+                      <Typography
+                        style={{
+                          color: colors.rose,
+                          fontFamily: fonts.semiBold,
+                          fontSize: 12,
+                          textAlign: "center",
+                        }}
+                      >
+                        Selecionar itens ou mídia
+                      </Typography>
+                      <Typography style={{ color: colors.warmGray, fontSize: 11 }}>
+                        Até 3 destaques
+                      </Typography>
+                    </Pressable>
+                  ) : null}
+                </View>
+                <SwitchRow
+                  label="Remover fundo automaticamente"
+                  description={
+                    draft.hero.removeBackground
+                      ? coverUrl
+                        ? "Os destaques ficam recortados. Com capa no topo, eles só aparecem se você remover a capa."
+                        : "Os destaques aparecem recortados. Se já existir uma versão processada, ela é usada."
+                      : "Os destaques mantêm o fundo original da foto."
+                  }
+                  value={draft.hero.removeBackground}
+                  onValueChange={(removeBackground) =>
+                    setDraft((current) => ({
+                      ...current,
+                      hero: { ...current.hero, removeBackground },
+                    }))
+                  }
+                />
+                <Button
+                  title="Ajustar posição e tamanho"
+                  variant="outline"
+                  disabled={draft.hero.featuredItems.length === 0}
+                  onPress={() => setTransformVisible(true)}
+                  icon={<AppIcon name="options-outline" size={19} color={colors.rose} />}
+                />
+                <UploadButton
+                  title="Imagem alternativa para telas pequenas"
+                  image={draft.hero.smallScreenAlternativeUrl}
+                  onPress={() => void pickImage("small")}
+                  onRemove={() =>
+                    setDraft((current) => ({
+                      ...current,
+                      hero: { ...current.hero, smallScreenAlternativeUrl: null },
+                    }))
+                  }
+                />
+              </EditorCard>
+              <SectionHeading title="Texto e ação" />
+              <EditorCard>
+                <View style={{ gap: 6 }}>
+                  <Input
+                    label="Frase de apresentação"
+                    value={draft.hero.introduction}
+                    maxLength={STOREFRONT_INTRODUCTION_LIMIT}
+                    error={errors.introduction}
+                    onChangeText={(introduction) =>
+                      setDraft((current) => ({
+                        ...current,
+                        hero: { ...current.hero, introduction },
+                      }))
+                    }
+                  />
+                  <FieldHint
+                    value={draft.hero.introduction}
+                    limit={STOREFRONT_INTRODUCTION_LIMIT}
+                  />
+                </View>
+                <View style={{ gap: 6 }}>
+                  <Input
+                    label="Assinatura curta"
+                    value={draft.hero.shortSignature}
+                    maxLength={STOREFRONT_SIGNATURE_LIMIT}
+                    error={errors.shortSignature}
+                    onChangeText={(shortSignature) =>
+                      setDraft((current) => ({
+                        ...current,
+                        hero: { ...current.hero, shortSignature },
+                      }))
+                    }
+                  />
+                  <FieldHint
+                    value={draft.hero.shortSignature}
+                    limit={STOREFRONT_SIGNATURE_LIMIT}
+                  />
+                </View>
+                <View style={{ gap: 6 }}>
+                  <Input
+                    label="Texto do botão"
+                    value={draft.hero.action.label}
+                    maxLength={STOREFRONT_ACTION_LABEL_LIMIT}
+                    error={errors.heroActionLabel}
+                    onChangeText={(label) =>
+                      setDraft((current) => ({
+                        ...current,
+                        hero: {
+                          ...current.hero,
+                          action: { ...current.hero.action, label },
+                        },
+                      }))
+                    }
+                  />
+                  <FieldHint
+                    value={draft.hero.action.label}
+                    limit={STOREFRONT_ACTION_LABEL_LIMIT}
+                  />
+                </View>
+                <ChoiceGroup
+                  label="Tipo de ação"
+                  columns={2}
+                  value={draft.hero.action.type}
+                  onChange={(type) =>
+                    setDraft((current) => ({
+                      ...current,
+                      hero: { ...current.hero, action: { ...current.hero.action, type } },
+                    }))
+                  }
+                  options={[
+                    { value: "whatsapp", label: "WhatsApp", icon: "logo-whatsapp" },
+                    { value: "quote", label: "Orçamento", icon: "document-text-outline" },
+                    { value: "schedule", label: "Agendamento", icon: "calendar-outline" },
+                    {
+                      value: "externalLink",
+                      label: "Link externo",
+                      icon: "link-outline",
+                    },
+                    { value: "none", label: "Sem ação" },
+                  ]}
+                />
+                {draft.hero.action.type === "externalLink" ? (
+                  <Input
+                    label="Destino da ação"
+                    value={draft.hero.action.destination ?? ""}
+                    error={errors.heroActionDestination}
+                    autoCapitalize="none"
+                    onChangeText={(destination) =>
+                      setDraft((current) => ({
+                        ...current,
+                        hero: {
+                          ...current.hero,
+                          action: { ...current.hero.action, destination },
+                        },
+                      }))
+                    }
+                  />
+                ) : null}
+                <Input
+                  label="Faixa promocional"
+                  value={draft.hero.promotionalText}
+                  maxLength={STOREFRONT_PROMO_LIMIT}
+                  error={errors.promotionalText}
+                  onChangeText={(promotionalText) =>
+                    setDraft((current) => ({
+                      ...current,
+                      hero: { ...current.hero, promotionalText },
+                    }))
+                  }
+                />
+                <SwitchRow
+                  label="Mostrar faixa promocional"
+                  value={draft.hero.showPromotionalBar}
+                  onValueChange={(showPromotionalBar) =>
+                    setDraft((current) => ({
+                      ...current,
+                      hero: { ...current.hero, showPromotionalBar },
+                    }))
+                  }
+                />
+              </EditorCard>
+              <SectionHeading
+                title="Informações rápidas"
+                description="Mostre até 3 detalhes importantes abaixo do topo."
+              />
+              <EditorCard>
+                {[...draft.hero.quickInfo]
+                  .sort((a, b) => a.order - b.order)
+                  .map((item, index) => (
+                    <View
+                      key={item.id}
+                      style={{
+                        flexDirection: wide ? "row" : "column",
+                        gap: 8,
+                        alignItems: wide ? "center" : "stretch",
+                      }}
+                    >
+                      <Input
+                        value={item.label}
+                        maxLength={48}
+                        onChangeText={(label) =>
                           setDraft((current) => ({
                             ...current,
-                            organization: {
-                              ...current.organization,
-                              actions: {
-                                ...current.organization.actions,
-                                itemOverrides: {
-                                  ...current.organization.actions.itemOverrides,
-                                  [key]: { ...assigned, type: nextType, label },
-                                },
-                              },
+                            hero: {
+                              ...current.hero,
+                              quickInfo: current.hero.quickInfo.map((entry) =>
+                                entry.id === item.id ? { ...entry, label } : entry,
+                              ),
                             },
-                          }));
-                        }}
+                          }))
+                        }
+                        containerStyle={{ flex: 1 }}
+                      />
+                      <Button
+                        title={item.enabled ? "Visível" : "Oculta"}
+                        variant={item.enabled ? "secondary" : "outline"}
+                        compact
+                        onPress={() =>
+                          setDraft((current) => ({
+                            ...current,
+                            hero: {
+                              ...current.hero,
+                              quickInfo: current.hero.quickInfo.map((entry) =>
+                                entry.id === item.id
+                                  ? { ...entry, enabled: !entry.enabled }
+                                  : entry,
+                              ),
+                            },
+                          }))
+                        }
+                      />
+                      <Button
+                        title="↑"
+                        variant="outline"
+                        compact
+                        disabled={index === 0}
+                        onPress={() =>
+                          setDraft((current) => ({
+                            ...current,
+                            hero: {
+                              ...current.hero,
+                              quickInfo: [...current.hero.quickInfo]
+                                .sort((a, b) => a.order - b.order)
+                                .map((entry, position, all) =>
+                                  position === index
+                                    ? { ...all[index - 1], order: index }
+                                    : position === index - 1
+                                      ? { ...all[index], order: index - 1 }
+                                      : { ...entry, order: position },
+                                ),
+                            },
+                          }))
+                        }
+                      />
+                      <Button
+                        title="Remover"
+                        variant="text"
+                        compact
+                        onPress={() =>
+                          setDraft((current) => ({
+                            ...current,
+                            hero: {
+                              ...current.hero,
+                              quickInfo: current.hero.quickInfo
+                                .filter((entry) => entry.id !== item.id)
+                                .map((entry, order) => ({ ...entry, order })),
+                            },
+                          }))
+                        }
                       />
                     </View>
-                  );
-                })}
-              {counts.products + counts.services === 0 ? (
-                <Typography
-                  style={{
-                    color: colors.warmGray,
-                    textAlign: "center",
-                    paddingVertical: 20,
-                  }}
-                >
-                  Cadastre produtos ou serviços para configurar ações individuais.
-                </Typography>
-              ) : null}
-              <Typography style={{ color: colors.warmGray, fontSize: 11 }}>
-                Toque na ação para alternar. A configuração específica sempre tem
-                precedência sobre o padrão.
-              </Typography>
-              <Button
-                title="Continuar para publicação"
-                onPress={() => navigate("organization", "publication")}
-              />
-            </EditorCard>
-          </>
-        ) : null}
-
-        {step === "organization" && section === "publication" ? (
-          <>
-            <SectionHeading
-              title="Contato e conversão"
-              description="Defina como seus clientes entram em contato."
-            />
-            <EditorCard>
-              <SwitchRow
-                label="Contato flutuante"
-                value={draft.organization.contact.floatingEnabled}
-                onValueChange={(floatingEnabled) =>
-                  setDraft((current) => ({
-                    ...current,
-                    organization: {
-                      ...current.organization,
-                      contact: { ...current.organization.contact, floatingEnabled },
-                    },
-                  }))
-                }
-              />
-              <ChoiceGroup
-                label="Canal principal"
-                columns={2}
-                value={draft.organization.contact.channel}
-                onChange={(channel) =>
-                  setDraft((current) => ({
-                    ...current,
-                    organization: {
-                      ...current.organization,
-                      contact: { ...current.organization.contact, channel },
-                    },
-                  }))
-                }
-                options={[
-                  { value: "whatsapp", label: "WhatsApp", icon: "logo-whatsapp" },
-                  { value: "phone", label: "Telefone", icon: "call-outline" },
-                  { value: "email", label: "E-mail", icon: "mail-outline" },
-                  { value: "external", label: "Link externo", icon: "link-outline" },
-                ]}
-              />
-              <Input
-                label={
-                  draft.organization.contact.channel === "whatsapp"
-                    ? "Número conectado"
-                    : "Destino"
-                }
-                value={draft.organization.contact.destination}
-                keyboardType={
-                  draft.organization.contact.channel === "whatsapp"
-                    ? "phone-pad"
-                    : "default"
-                }
-                error={errors.whatsapp}
-                onChangeText={(destination) =>
-                  setDraft((current) => ({
-                    ...current,
-                    organization: {
-                      ...current.organization,
-                      contact: {
-                        ...current.organization.contact,
-                        destination:
-                          current.organization.contact.channel === "whatsapp"
-                            ? formatCatalogWhatsapp(destination)
-                            : destination,
+                  ))}
+                <Button
+                  title="Adicionar informação"
+                  variant="text"
+                  disabled={draft.hero.quickInfo.length >= 3}
+                  onPress={() =>
+                    setDraft((current) => ({
+                      ...current,
+                      hero: {
+                        ...current.hero,
+                        quickInfo: [
+                          ...current.hero.quickInfo,
+                          {
+                            id: `quick:${Date.now()}`,
+                            icon: "sparkles",
+                            label: "Nova informação",
+                            order: current.hero.quickInfo.length,
+                            enabled: true,
+                          },
+                        ],
                       },
-                    },
-                  }))
-                }
+                    }))
+                  }
+                  icon={<AppIcon name="add" size={18} color={colors.rose} />}
+                />
+              </EditorCard>
+              <EditorCard>
+                <Typography style={{ color: colors.ink, fontFamily: fonts.bold }}>
+                  Configurações avançadas
+                </Typography>
+                <Typography style={{ color: colors.warmGray, fontSize: 12 }}>
+                  As cores antigas de título e descrição continuam preservadas no backend
+                  para compatibilidade, mas o contraste agora é calculado pela prévia
+                  compartilhada.
+                </Typography>
+              </EditorCard>
+            </>
+          ) : null}
+
+          {step === "organization" && section === "content" ? (
+            <>
+              <SectionHeading
+                title="Conteúdo da vitrine"
+                description="Escolha o que seus clientes podem encontrar."
               />
-              <Input
-                label="Ação padrão da vitrine"
-                value={draft.organization.contact.defaultActionLabel}
-                maxLength={24}
-                onChangeText={(defaultActionLabel) =>
-                  setDraft((current) => ({
-                    ...current,
-                    organization: {
-                      ...current.organization,
-                      contact: { ...current.organization.contact, defaultActionLabel },
-                    },
-                  }))
-                }
-              />
-              <SwitchRow
-                label="Manter ação visível ao rolar"
-                value={draft.organization.contact.keepVisibleOnScroll}
-                onValueChange={(keepVisibleOnScroll) =>
-                  setDraft((current) => ({
-                    ...current,
-                    organization: {
-                      ...current.organization,
-                      contact: { ...current.organization.contact, keepVisibleOnScroll },
-                    },
-                  }))
-                }
-              />
-              <View style={{ gap: 6 }}>
-                <Input
-                  label="Mensagem inicial"
-                  value={draft.organization.contact.initialMessage}
-                  maxLength={300}
-                  multiline
-                  onChangeText={(initialMessage) =>
+              <EditorCard>
+                <SwitchRow
+                  label="Produtos"
+                  description={`${counts.products} publicados`}
+                  value={draft.organization.content.showProducts}
+                  onValueChange={(showProducts) =>
                     setDraft((current) => ({
                       ...current,
                       organization: {
                         ...current.organization,
-                        contact: { ...current.organization.contact, initialMessage },
+                        content: { ...current.organization.content, showProducts },
                       },
                     }))
                   }
                 />
-                <FieldHint
-                  value={draft.organization.contact.initialMessage}
-                  limit={300}
+                <SwitchRow
+                  label="Serviços"
+                  description={`${counts.services} publicados`}
+                  value={draft.organization.content.showServices}
+                  onValueChange={(showServices) =>
+                    setDraft((current) => ({
+                      ...current,
+                      organization: {
+                        ...current.organization,
+                        content: { ...current.organization.content, showServices },
+                      },
+                    }))
+                  }
                 />
-              </View>
-            </EditorCard>
-            <SectionHeading
-              title="Link do catálogo"
-              description="Compartilhe sua vitrine com seus clientes."
-            />
-            <EditorCard>
-              <Input
-                label="Endereço"
-                value={draft.publication.slug}
-                autoCapitalize="none"
-                error={errors.slug ?? slugAvailability.data?.reason ?? undefined}
-                onChangeText={(slug) =>
-                  setDraft((current) => ({
-                    ...current,
-                    publication: {
-                      ...current.publication,
-                      slug: slug.toLowerCase().replace(/\s+/g, "-"),
-                    },
-                  }))
-                }
-              />
-              <View
-                style={{
-                  minHeight: 48,
-                  borderRadius: 14,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  paddingHorizontal: 12,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 8,
-                }}
-              >
-                <AppIcon
-                  name={slugAvailable ? "checkmark-circle" : "time-outline"}
-                  size={16}
-                  color={slugAvailable ? colors.wine : colors.warmGray}
+                <SwitchRow
+                  label="Categorias"
+                  description={`${categories.length} encontradas`}
+                  value={draft.organization.content.showCategories}
+                  onValueChange={(showCategories) =>
+                    setDraft((current) => ({
+                      ...current,
+                      organization: {
+                        ...current.organization,
+                        content: { ...current.organization.content, showCategories },
+                      },
+                    }))
+                  }
+                />
+                {errors.visibleContent ? (
+                  <Typography style={{ color: theme.colors.alert, fontSize: 12 }}>
+                    {errors.visibleContent}
+                  </Typography>
+                ) : null}
+                <ChoiceGroup
+                  label="Seção inicial"
+                  value={draft.organization.content.initialSection}
+                  onChange={(initialSection) =>
+                    setDraft((current) => ({
+                      ...current,
+                      organization: {
+                        ...current.organization,
+                        content: { ...current.organization.content, initialSection },
+                      },
+                    }))
+                  }
+                  options={[
+                    { value: "all", label: "Todos" },
+                    { value: "products", label: "Produtos" },
+                    { value: "services", label: "Serviços" },
+                  ]}
                 />
                 <Typography
-                  numberOfLines={1}
-                  style={{
-                    flex: 1,
-                    color: slugAvailable ? colors.wine : colors.warmGray,
-                    fontSize: 12,
-                  }}
+                  style={{ color: colors.ink, fontFamily: fonts.semiBold, fontSize: 13 }}
                 >
-                  {slugAvailability.isFetching
-                    ? "Verificando disponibilidade..."
-                    : slugAvailable
-                      ? catalogUrl
-                      : "Escolha outro endereço."}
+                  Ordem das seções
                 </Typography>
-              </View>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                <Button
-                  title="Copiar link"
-                  variant="outline"
-                  disabled={!slugAvailable}
-                  onPress={() =>
-                    void Clipboard.setStringAsync(catalogUrl).then(() =>
-                      showToast("Link copiado!"),
-                    )
+                {draft.organization.content.sectionOrder.map((item, index) => (
+                  <CompactReorderRow
+                    key={item}
+                    label={
+                      item === "products"
+                        ? "Produtos"
+                        : item === "services"
+                          ? "Serviços"
+                          : "Categorias"
+                    }
+                    index={index}
+                    last={index === draft.organization.content.sectionOrder.length - 1}
+                    onMoveUp={() =>
+                      setDraft((current) => {
+                        const order = [...current.organization.content.sectionOrder];
+                        [order[index - 1], order[index]] = [
+                          order[index],
+                          order[index - 1],
+                        ];
+                        return {
+                          ...current,
+                          organization: {
+                            ...current.organization,
+                            content: {
+                              ...current.organization.content,
+                              sectionOrder: order,
+                            },
+                          },
+                        };
+                      })
+                    }
+                    onMoveDown={() =>
+                      setDraft((current) => {
+                        const order = [...current.organization.content.sectionOrder];
+                        [order[index + 1], order[index]] = [
+                          order[index],
+                          order[index + 1],
+                        ];
+                        return {
+                          ...current,
+                          organization: {
+                            ...current.organization,
+                            content: {
+                              ...current.organization.content,
+                              sectionOrder: order,
+                            },
+                          },
+                        };
+                      })
+                    }
+                  />
+                ))}
+              </EditorCard>
+              <SectionHeading
+                title="Navegação e descoberta"
+                description="Facilite a busca pelo que você oferece."
+              />
+              <EditorCard>
+                <SwitchRow
+                  label="Mostrar campo de busca"
+                  value={draft.organization.discovery.showSearch}
+                  onValueChange={(showSearch) =>
+                    setDraft((current) => ({
+                      ...current,
+                      organization: {
+                        ...current.organization,
+                        discovery: { ...current.organization.discovery, showSearch },
+                      },
+                    }))
                   }
-                  icon={<AppIcon name="clipboard-outline" size={16} color={colors.rose} />}
-                  style={{ flexGrow: 1, flexBasis: "47%" }}
                 />
-                <Button
-                  title="Compartilhar"
-                  variant="outline"
-                  disabled={!slugAvailable}
-                  onPress={() => void Share.share({ message: catalogUrl })}
-                  icon={<AppIcon name="share-outline" size={16} color={colors.rose} />}
-                  style={{ flexGrow: 1, flexBasis: "47%" }}
+                <SwitchRow
+                  label="Mostrar categorias"
+                  value={draft.organization.discovery.showCategories}
+                  onValueChange={(showCategories) =>
+                    setDraft((current) => ({
+                      ...current,
+                      organization: {
+                        ...current.organization,
+                        discovery: { ...current.organization.discovery, showCategories },
+                      },
+                    }))
+                  }
                 />
-                <Button
-                  title="Criar QR Code"
-                  variant="outline"
-                  disabled={!slugAvailable}
-                  onPress={() => setQrVisible(true)}
-                  icon={<AppIcon name="qr-code-outline" size={16} color={colors.rose} />}
-                  style={{ flexGrow: 1, flexBasis: "47%" }}
+                <SwitchRow
+                  label="Permitir filtros"
+                  value={draft.organization.discovery.allowFilters}
+                  onValueChange={(allowFilters) =>
+                    setDraft((current) => ({
+                      ...current,
+                      organization: {
+                        ...current.organization,
+                        discovery: { ...current.organization.discovery, allowFilters },
+                      },
+                    }))
+                  }
                 />
-              </View>
-            </EditorCard>
-            <SectionHeading
-              title="Revisão final"
-              description="Confira antes de publicar."
-            />
-            <EditorCard>
-              {checklist.map((item) => {
-                const attention =
-                  item.id === "actions" &&
-                  draft.organization.actions.mode === "perItem" &&
-                  Object.keys(draft.organization.actions.itemOverrides).length === 0;
-                return (
-                <Pressable
-                  key={item.id}
-                  accessibilityRole="button"
-                  onPress={() => navigate(item.step, item.section)}
-                  style={{
-                    minHeight: 46,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 10,
-                    borderBottomWidth: 1,
-                    borderBottomColor: colors.border,
-                  }}
+                <SwitchRow
+                  label="Permitir ordenação"
+                  value={draft.organization.discovery.allowSorting}
+                  onValueChange={(allowSorting) =>
+                    setDraft((current) => ({
+                      ...current,
+                      organization: {
+                        ...current.organization,
+                        discovery: { ...current.organization.discovery, allowSorting },
+                      },
+                    }))
+                  }
+                />
+                <ChoiceGroup
+                  label="Ordenação padrão"
+                  columns={2}
+                  value={draft.organization.discovery.defaultSort}
+                  onChange={(defaultSort) =>
+                    setDraft((current) => ({
+                      ...current,
+                      organization: {
+                        ...current.organization,
+                        discovery: { ...current.organization.discovery, defaultSort },
+                      },
+                    }))
+                  }
+                  options={[
+                    { value: "featured", label: "Destaques primeiro" },
+                    { value: "name", label: "Nome" },
+                    { value: "priceLow", label: "Menor preço" },
+                    { value: "priceHigh", label: "Maior preço" },
+                  ]}
+                />
+                <Typography
+                  style={{ color: colors.ink, fontFamily: fonts.semiBold, fontSize: 13 }}
                 >
-                  <View
-                    style={{
-                      width: 22,
-                      height: 22,
-                      borderRadius: 999,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      backgroundColor: item.valid
-                        ? colors.lime
-                        : attention
-                          ? colors.softRose
-                          : colors.surface,
-                    }}
+                  Categorias visíveis
+                </Typography>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                  {categories.map((category) => {
+                    const selected =
+                      draft.organization.discovery.visibleCategoryIds.length === 0 ||
+                      draft.organization.discovery.visibleCategoryIds.includes(category);
+                    return (
+                      <Button
+                        key={category}
+                        title={category}
+                        variant={selected ? "secondary" : "outline"}
+                        compact
+                        onPress={() =>
+                          setDraft((current) => {
+                            const currentIds =
+                              current.organization.discovery.visibleCategoryIds.length ===
+                              0
+                                ? categories
+                                : current.organization.discovery.visibleCategoryIds;
+                            const visibleCategoryIds = currentIds.includes(category)
+                              ? currentIds.filter((id) => id !== category)
+                              : [...currentIds, category];
+                            return {
+                              ...current,
+                              organization: {
+                                ...current.organization,
+                                discovery: {
+                                  ...current.organization.discovery,
+                                  visibleCategoryIds,
+                                },
+                              },
+                            };
+                          })
+                        }
+                      />
+                    );
+                  })}
+                  {categories.length === 0 ? (
+                    <Typography style={{ color: colors.warmGray, fontSize: 12 }}>
+                      Nenhuma categoria cadastrada.
+                    </Typography>
+                  ) : null}
+                </View>
+                <Typography
+                  style={{ color: colors.ink, fontFamily: fonts.semiBold, fontSize: 13 }}
+                >
+                  Reordenar categorias
+                </Typography>
+                {(draft.organization.discovery.categoryOrder.length
+                  ? draft.organization.discovery.categoryOrder
+                  : categories
+                ).map((category, index, order) => (
+                  <CompactReorderRow
+                    key={category}
+                    label={category}
+                    index={index}
+                    last={index === order.length - 1}
+                    onMoveUp={() =>
+                      setDraft((current) => {
+                        const next = [
+                          ...(current.organization.discovery.categoryOrder.length
+                            ? current.organization.discovery.categoryOrder
+                            : categories),
+                        ];
+                        [next[index - 1], next[index]] = [next[index], next[index - 1]];
+                        return {
+                          ...current,
+                          organization: {
+                            ...current.organization,
+                            discovery: {
+                              ...current.organization.discovery,
+                              categoryOrder: next,
+                            },
+                          },
+                        };
+                      })
+                    }
+                    onMoveDown={() =>
+                      setDraft((current) => {
+                        const next = [
+                          ...(current.organization.discovery.categoryOrder.length
+                            ? current.organization.discovery.categoryOrder
+                            : categories),
+                        ];
+                        [next[index + 1], next[index]] = [next[index], next[index + 1]];
+                        return {
+                          ...current,
+                          organization: {
+                            ...current.organization,
+                            discovery: {
+                              ...current.organization.discovery,
+                              categoryOrder: next,
+                            },
+                          },
+                        };
+                      })
+                    }
+                  />
+                ))}
+              </EditorCard>
+              <EditorCard>
+                <SectionHeading title="Resumo" />
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+                  {[
+                    {
+                      icon: "bag-handle-outline" as const,
+                      value: counts.products,
+                      label: "produtos",
+                    },
+                    {
+                      icon: "person-outline" as const,
+                      value: counts.services,
+                      label: "serviços",
+                    },
+                    {
+                      icon: "apps-outline" as const,
+                      value: categories.length,
+                      label: "categorias",
+                    },
+                  ].map((item) => (
+                    <View
+                      key={item.label}
+                      style={{
+                        flex: 1,
+                        minWidth: 150,
+                        minHeight: 60,
+                        borderRadius: 13,
+                        borderWidth: 1,
+                        borderColor: colors.border,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 9,
+                      }}
+                    >
+                      <AppIcon name={item.icon} size={20} color={colors.wine} />
+                      <Typography style={{ color: colors.ink, fontFamily: fonts.bold }}>
+                        {item.value} {item.label}
+                      </Typography>
+                    </View>
+                  ))}
+                </View>
+                <Button
+                  title="Continuar para cards e ações"
+                  variant="outline"
+                  onPress={() => navigate("organization", "cards-actions")}
+                  icon={<AppIcon name="arrow-forward" size={18} color={colors.rose} />}
+                />
+              </EditorCard>
+            </>
+          ) : null}
+
+          {step === "organization" && section === "cards-actions" ? (
+            <>
+              <SectionHeading
+                title="Estilo dos cards"
+                description="Escolha como seus itens serão exibidos."
+              />
+              <EditorCard>
+                <View
+                  accessibilityRole="radiogroup"
+                  style={{ flexDirection: wide ? "row" : "column", gap: 10 }}
+                >
+                  <StyleOption
+                    value="editorial"
+                    selected={draft.organization.cards.style === "editorial"}
+                    title="Editorial"
+                    description="Imagem ampla, texto e ação bem visíveis."
+                    onSelect={(style) =>
+                      setDraft((current) => ({
+                        ...current,
+                        organization: {
+                          ...current.organization,
+                          cards: { ...current.organization.cards, style },
+                        },
+                      }))
+                    }
                   >
-                    <AppIcon
-                      name={item.valid ? "checkmark" : "alert-circle-outline"}
-                      size={14}
-                      color={
-                        item.valid ? colors.onLime : attention ? colors.rose : colors.warmGray
+                    <View style={{ flex: 1, padding: 6, gap: 4 }}>
+                      <View
+                        style={{
+                          height: 18,
+                          borderRadius: 6,
+                          backgroundColor: colors.softRose,
+                        }}
+                      />
+                      <View
+                        style={{
+                          height: 5,
+                          width: "70%",
+                          borderRadius: 4,
+                          backgroundColor: colors.wine,
+                        }}
+                      />
+                      <View
+                        style={{
+                          height: 8,
+                          width: 40,
+                          borderRadius: 5,
+                          backgroundColor: colors.rose,
+                        }}
+                      />
+                    </View>
+                  </StyleOption>
+                  <StyleOption
+                    value="compact"
+                    selected={draft.organization.cards.style === "compact"}
+                    title="Compacto"
+                    description="Lista objetiva, com menos altura por item."
+                    onSelect={(style) =>
+                      setDraft((current) => ({
+                        ...current,
+                        organization: {
+                          ...current.organization,
+                          cards: { ...current.organization.cards, style },
+                        },
+                      }))
+                    }
+                  >
+                    <View
+                      style={{ flex: 1, padding: 8, justifyContent: "center", gap: 5 }}
+                    >
+                      <View
+                        style={{
+                          height: 8,
+                          width: "80%",
+                          borderRadius: 4,
+                          backgroundColor: colors.wine,
+                        }}
+                      />
+                      <View
+                        style={{
+                          height: 8,
+                          width: "60%",
+                          borderRadius: 4,
+                          backgroundColor: colors.border,
+                        }}
+                      />
+                    </View>
+                  </StyleOption>
+                </View>
+                <View style={{ gap: 2 }}>
+                  <SwitchRow
+                    label="Mostrar preço"
+                    value={draft.organization.cards.showPrice}
+                    onValueChange={(showPrice) =>
+                      setDraft((current) => ({
+                        ...current,
+                        organization: {
+                          ...current.organization,
+                          cards: { ...current.organization.cards, showPrice },
+                        },
+                      }))
+                    }
+                  />
+                  <SwitchRow
+                    label="Mostrar detalhes do item"
+                    value={draft.organization.cards.showDetails}
+                    onValueChange={(showDetails) =>
+                      setDraft((current) => ({
+                        ...current,
+                        organization: {
+                          ...current.organization,
+                          cards: { ...current.organization.cards, showDetails },
+                        },
+                      }))
+                    }
+                  />
+                  <SwitchRow
+                    label="Mostrar disponibilidade"
+                    value={draft.organization.cards.showAvailability}
+                    onValueChange={(showAvailability) =>
+                      setDraft((current) => ({
+                        ...current,
+                        organization: {
+                          ...current.organization,
+                          cards: { ...current.organization.cards, showAvailability },
+                        },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={{ gap: 10, paddingTop: 4 }}>
+                  <ChoiceGroup
+                    label="Quando não houver preço"
+                    columns={2}
+                    value={draft.organization.cards.missingPriceBehavior}
+                    onChange={(missingPriceBehavior) =>
+                      setDraft((current) => ({
+                        ...current,
+                        organization: {
+                          ...current.organization,
+                          cards: { ...current.organization.cards, missingPriceBehavior },
+                        },
+                      }))
+                    }
+                    options={[
+                      { value: "consult", label: "Mostrar “Consultar”" },
+                      { value: "hidden", label: "Ocultar preço" },
+                      { value: "custom", label: "Texto personalizado" },
+                    ]}
+                  />
+                  {draft.organization.cards.missingPriceBehavior === "custom" ? (
+                    <Input
+                      label="Texto personalizado"
+                      value={draft.organization.cards.missingPriceText}
+                      maxLength={30}
+                      onChangeText={(missingPriceText) =>
+                        setDraft((current) => ({
+                          ...current,
+                          organization: {
+                            ...current.organization,
+                            cards: { ...current.organization.cards, missingPriceText },
+                          },
+                        }))
+                      }
+                    />
+                  ) : null}
+                </View>
+              </EditorCard>
+              <SectionHeading
+                title="Ações nos cards"
+                description="Defina como cada produto ou serviço conduz o cliente."
+              />
+              <EditorCard>
+                <ChoiceGroup
+                  label="Modo de ação"
+                  columns={2}
+                  value={draft.organization.actions.mode}
+                  onChange={(mode) =>
+                    setDraft((current) => ({
+                      ...current,
+                      organization: {
+                        ...current.organization,
+                        actions: { ...current.organization.actions, mode },
+                      },
+                    }))
+                  }
+                  options={[
+                    { value: "perItem", label: "Usar a ação de cada item" },
+                    { value: "default", label: "Usar uma ação padrão" },
+                    { value: "hidden", label: "Não mostrar ações" },
+                  ]}
+                />
+                {draft.organization.actions.mode !== "hidden" ? (
+                  <View style={{ flexDirection: wide ? "row" : "column", gap: 22 }}>
+                    <ActionEditor
+                      title="Ação padrão para produtos"
+                      value={draft.organization.actions.productDefault}
+                      allowed={[
+                        "order",
+                        "preorder",
+                        "quote",
+                        "details",
+                        "contact",
+                        "externalLink",
+                        "none",
+                      ]}
+                      onChange={(productDefault) =>
+                        setDraft((current) => ({
+                          ...current,
+                          organization: {
+                            ...current.organization,
+                            actions: { ...current.organization.actions, productDefault },
+                          },
+                        }))
+                      }
+                    />
+                    <ActionEditor
+                      title="Ação padrão para serviços"
+                      value={draft.organization.actions.serviceDefault}
+                      allowed={[
+                        "schedule",
+                        "quote",
+                        "contact",
+                        "details",
+                        "externalLink",
+                        "none",
+                      ]}
+                      onChange={(serviceDefault) =>
+                        setDraft((current) => ({
+                          ...current,
+                          organization: {
+                            ...current.organization,
+                            actions: { ...current.organization.actions, serviceDefault },
+                          },
+                        }))
                       }
                     />
                   </View>
-                  <Typography style={{ flex: 1, color: colors.ink, fontSize: 13 }}>
-                    {item.label}
+                ) : null}
+              </EditorCard>
+              <SectionHeading title="Ações configuradas" />
+              <EditorCard>
+                {draft.organization.actions.mode === "perItem" &&
+                Object.keys(draft.organization.actions.itemOverrides).length === 0 ? (
+                  <View
+                    accessibilityLiveRegion="polite"
+                    style={{
+                      borderRadius: 12,
+                      backgroundColor: colors.softRose,
+                      padding: 12,
+                      flexDirection: "row",
+                      gap: 8,
+                      alignItems: "center",
+                    }}
+                  >
+                    <AppIcon name="alert-circle-outline" size={16} color={colors.rose} />
+                    <Typography style={{ color: colors.ink, fontSize: 12, flex: 1 }}>
+                      Nenhuma ação individual foi definida. Toque em um item para
+                      personalizar, ou use uma ação padrão.
+                    </Typography>
+                  </View>
+                ) : null}
+                {[
+                  ...products
+                    .filter((item) => item.isActive && item.publicEnabled)
+                    .map((item) => ({ kind: "product" as const, item })),
+                  ...services
+                    .filter((item) => item.active && item.publicEnabled)
+                    .map((item) => ({ kind: "service" as const, item })),
+                ]
+                  .slice(0, 8)
+                  .map(({ kind, item }) => {
+                    const key = `${kind}:${item.id}`;
+                    const override = draft.organization.actions.itemOverrides[key];
+                    const fallback =
+                      kind === "product"
+                        ? draft.organization.actions.productDefault
+                        : draft.organization.actions.serviceDefault;
+                    const assigned = override ?? fallback;
+                    return (
+                      <View
+                        key={key}
+                        style={{
+                          minHeight: 58,
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 10,
+                        }}
+                      >
+                        <View
+                          style={{
+                            width: 42,
+                            height: 42,
+                            borderRadius: 10,
+                            backgroundColor: colors.softRose,
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          {kind === "product" && item.photoUrl ? (
+                            <Image
+                              source={{ uri: item.photoUrl }}
+                              style={{ width: "100%", height: "100%", borderRadius: 10 }}
+                            />
+                          ) : (
+                            <AppIcon
+                              name={
+                                kind === "product"
+                                  ? "bag-handle-outline"
+                                  : "person-outline"
+                              }
+                              size={20}
+                              color={colors.wine}
+                            />
+                          )}
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Typography
+                            numberOfLines={1}
+                            style={{
+                              color: colors.ink,
+                              fontFamily: fonts.semiBold,
+                              fontSize: 13,
+                            }}
+                          >
+                            {displayCatalogItemName(item.name)}
+                          </Typography>
+                          <Typography style={{ color: colors.warmGray, fontSize: 11 }}>
+                            {kind === "product" ? "Produto" : "Serviço"} •{" "}
+                            {override ? "ação individual" : "ação padrão"}
+                            {assigned.channel ? ` • ${assigned.channel}` : ""}
+                          </Typography>
+                        </View>
+                        <Button
+                          title={
+                            assigned.label ||
+                            ACTION_OPTIONS.find(
+                              (option) => option.value === assigned.type,
+                            )?.label ||
+                            "Sem ação"
+                          }
+                          variant={override ? "secondary" : "outline"}
+                          compact
+                          onPress={() => {
+                            const allowed =
+                              kind === "product"
+                                ? [
+                                    "order",
+                                    "preorder",
+                                    "quote",
+                                    "details",
+                                    "contact",
+                                    "none",
+                                  ]
+                                : ["schedule", "quote", "contact", "details", "none"];
+                            const currentIndex = allowed.indexOf(assigned.type);
+                            const nextType = allowed[
+                              (currentIndex + 1) % allowed.length
+                            ] as CatalogItemAction["type"];
+                            const label = ACTION_OPTIONS.find(
+                              (option) => option.value === nextType,
+                            )?.label;
+                            setDraft((current) => ({
+                              ...current,
+                              organization: {
+                                ...current.organization,
+                                actions: {
+                                  ...current.organization.actions,
+                                  itemOverrides: {
+                                    ...current.organization.actions.itemOverrides,
+                                    [key]: { ...assigned, type: nextType, label },
+                                  },
+                                },
+                              },
+                            }));
+                          }}
+                        />
+                      </View>
+                    );
+                  })}
+                {counts.products + counts.services === 0 ? (
+                  <Typography
+                    style={{
+                      color: colors.warmGray,
+                      textAlign: "center",
+                      paddingVertical: 20,
+                    }}
+                  >
+                    Cadastre produtos ou serviços para configurar ações individuais.
                   </Typography>
-                  <AppIcon name="chevron-forward" size={18} color={colors.warmGray} />
-                </Pressable>
-                );
-              })}
-              <View
-                style={{
-                  borderRadius: 13,
-                  padding: 12,
-                  backgroundColor: publishingReady
-                    ? theme.colors.successBg
-                    : colors.softRose,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
-                }}
-              >
-                <AppIcon
-                  name={publishingReady ? "checkmark-circle" : "alert-circle-outline"}
-                  size={18}
-                  color={publishingReady ? theme.colors.success : colors.rose}
+                ) : null}
+                <Typography style={{ color: colors.warmGray, fontSize: 11 }}>
+                  Toque na ação para alternar. A configuração específica sempre tem
+                  precedência sobre o padrão.
+                </Typography>
+                <Button
+                  title="Continuar para publicação"
+                  onPress={() => navigate("organization", "publication")}
                 />
-                <Typography
+              </EditorCard>
+            </>
+          ) : null}
+
+          {step === "organization" && section === "publication" ? (
+            <>
+              <SectionHeading
+                title="Contato e conversão"
+                description="Defina como seus clientes entram em contato."
+              />
+              <EditorCard>
+                <SwitchRow
+                  label="Contato flutuante"
+                  value={draft.organization.contact.floatingEnabled}
+                  onValueChange={(floatingEnabled) =>
+                    setDraft((current) => ({
+                      ...current,
+                      organization: {
+                        ...current.organization,
+                        contact: { ...current.organization.contact, floatingEnabled },
+                      },
+                    }))
+                  }
+                />
+                <ChoiceGroup
+                  label="Canal principal"
+                  columns={2}
+                  value={draft.organization.contact.channel}
+                  onChange={(channel) =>
+                    setDraft((current) => ({
+                      ...current,
+                      organization: {
+                        ...current.organization,
+                        contact: { ...current.organization.contact, channel },
+                      },
+                    }))
+                  }
+                  options={[
+                    { value: "whatsapp", label: "WhatsApp", icon: "logo-whatsapp" },
+                    { value: "phone", label: "Telefone", icon: "call-outline" },
+                    { value: "email", label: "E-mail", icon: "mail-outline" },
+                    { value: "external", label: "Link externo", icon: "link-outline" },
+                  ]}
+                />
+                <Input
+                  label={
+                    draft.organization.contact.channel === "whatsapp"
+                      ? "Número conectado"
+                      : "Destino"
+                  }
+                  value={draft.organization.contact.destination}
+                  keyboardType={
+                    draft.organization.contact.channel === "whatsapp"
+                      ? "phone-pad"
+                      : "default"
+                  }
+                  error={errors.whatsapp}
+                  onChangeText={(destination) =>
+                    setDraft((current) => ({
+                      ...current,
+                      organization: {
+                        ...current.organization,
+                        contact: {
+                          ...current.organization.contact,
+                          destination:
+                            current.organization.contact.channel === "whatsapp"
+                              ? formatCatalogWhatsapp(destination)
+                              : destination,
+                        },
+                      },
+                    }))
+                  }
+                />
+                <Input
+                  label="Ação padrão da vitrine"
+                  value={draft.organization.contact.defaultActionLabel}
+                  maxLength={24}
+                  onChangeText={(defaultActionLabel) =>
+                    setDraft((current) => ({
+                      ...current,
+                      organization: {
+                        ...current.organization,
+                        contact: { ...current.organization.contact, defaultActionLabel },
+                      },
+                    }))
+                  }
+                />
+                <SwitchRow
+                  label="Manter ação visível ao rolar"
+                  value={draft.organization.contact.keepVisibleOnScroll}
+                  onValueChange={(keepVisibleOnScroll) =>
+                    setDraft((current) => ({
+                      ...current,
+                      organization: {
+                        ...current.organization,
+                        contact: { ...current.organization.contact, keepVisibleOnScroll },
+                      },
+                    }))
+                  }
+                />
+                <View style={{ gap: 6 }}>
+                  <Input
+                    label="Mensagem inicial"
+                    value={draft.organization.contact.initialMessage}
+                    maxLength={300}
+                    multiline
+                    onChangeText={(initialMessage) =>
+                      setDraft((current) => ({
+                        ...current,
+                        organization: {
+                          ...current.organization,
+                          contact: { ...current.organization.contact, initialMessage },
+                        },
+                      }))
+                    }
+                  />
+                  <FieldHint
+                    value={draft.organization.contact.initialMessage}
+                    limit={300}
+                  />
+                </View>
+              </EditorCard>
+              <SectionHeading
+                title="Link do catálogo"
+                description="Compartilhe sua vitrine com seus clientes."
+              />
+              <EditorCard>
+                <Input
+                  label="Endereço"
+                  value={draft.publication.slug}
+                  autoCapitalize="none"
+                  error={errors.slug ?? slugAvailability.data?.reason ?? undefined}
+                  onChangeText={(slug) =>
+                    setDraft((current) => ({
+                      ...current,
+                      publication: {
+                        ...current.publication,
+                        slug: slug.toLowerCase().replace(/\s+/g, "-"),
+                      },
+                    }))
+                  }
+                />
+                <View
                   style={{
-                    color: publishingReady ? theme.colors.success : colors.ink,
-                    fontFamily: fonts.semiBold,
-                    fontSize: 12,
+                    minHeight: 48,
+                    borderRadius: 14,
+                    borderWidth: 1,
+                    borderColor: colors.border,
+                    paddingHorizontal: 12,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 8,
                   }}
                 >
-                  {publishingReady
-                    ? "Tudo pronto para sua vitrine ficar no ar."
-                    : "Complete os itens pendentes para publicar."}
-                </Typography>
-              </View>
-              <Button
-                title="Publicar depois"
-                variant="text"
-                onPress={() => void persist(false)}
-                disabled={!dirty}
+                  <AppIcon
+                    name={slugAvailable ? "checkmark-circle" : "time-outline"}
+                    size={16}
+                    color={slugAvailable ? colors.wine : colors.warmGray}
+                  />
+                  <Typography
+                    numberOfLines={1}
+                    style={{
+                      flex: 1,
+                      color: slugAvailable ? colors.wine : colors.warmGray,
+                      fontSize: 12,
+                    }}
+                  >
+                    {slugAvailability.isFetching
+                      ? "Verificando disponibilidade..."
+                      : slugAvailable
+                        ? catalogUrl
+                        : "Escolha outro endereço."}
+                  </Typography>
+                </View>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                  <Button
+                    title={linkCopied ? "Copiado!" : "Copiar link"}
+                    variant={linkCopied ? "successOutline" : "outline"}
+                    disabled={!slugAvailable}
+                    onPress={copyCatalogLink}
+                    icon={
+                      <AppIcon
+                        name={linkCopied ? "checkmark-circle" : "clipboard-outline"}
+                        size={16}
+                        color={linkCopied ? colors.limeText : colors.rose}
+                      />
+                    }
+                    style={{ flexGrow: 1, flexBasis: "47%" }}
+                  />
+                  <Button
+                    title="Compartilhar"
+                    variant="outline"
+                    disabled={!slugAvailable}
+                    onPress={() => void Share.share({ message: catalogUrl })}
+                    icon={<AppIcon name="share-outline" size={16} color={colors.rose} />}
+                    style={{ flexGrow: 1, flexBasis: "47%" }}
+                  />
+                  <Button
+                    title="Criar QR Code"
+                    variant="outline"
+                    disabled={!slugAvailable}
+                    onPress={() => setQrVisible(true)}
+                    icon={
+                      <AppIcon name="qr-code-outline" size={16} color={colors.rose} />
+                    }
+                    style={{ flexGrow: 1, flexBasis: "47%" }}
+                  />
+                </View>
+              </EditorCard>
+              <SectionHeading
+                title="Revisão final"
+                description="Confira antes de publicar."
               />
-            </EditorCard>
-          </>
-        ) : null}
-      </ScrollView>
+              <EditorCard>
+                {checklist.map((item) => {
+                  const attention =
+                    item.id === "actions" &&
+                    draft.organization.actions.mode === "perItem" &&
+                    Object.keys(draft.organization.actions.itemOverrides).length === 0;
+                  return (
+                    <Pressable
+                      key={item.id}
+                      accessibilityRole="button"
+                      onPress={() => navigate(item.step, item.section)}
+                      style={{
+                        minHeight: 46,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 10,
+                        borderBottomWidth: 1,
+                        borderBottomColor: colors.border,
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: 22,
+                          height: 22,
+                          borderRadius: 999,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          backgroundColor: item.valid
+                            ? colors.lime
+                            : attention
+                              ? colors.softRose
+                              : colors.surface,
+                        }}
+                      >
+                        <AppIcon
+                          name={item.valid ? "checkmark" : "alert-circle-outline"}
+                          size={14}
+                          color={
+                            item.valid
+                              ? colors.onLime
+                              : attention
+                                ? colors.rose
+                                : colors.warmGray
+                          }
+                        />
+                      </View>
+                      <Typography style={{ flex: 1, color: colors.ink, fontSize: 13 }}>
+                        {item.label}
+                      </Typography>
+                      <AppIcon name="chevron-forward" size={18} color={colors.warmGray} />
+                    </Pressable>
+                  );
+                })}
+                <View
+                  style={{
+                    borderRadius: 13,
+                    padding: 12,
+                    backgroundColor: publishingReady
+                      ? theme.colors.successBg
+                      : colors.softRose,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                  }}
+                >
+                  <AppIcon
+                    name={publishingReady ? "checkmark-circle" : "alert-circle-outline"}
+                    size={18}
+                    color={publishingReady ? theme.colors.success : colors.rose}
+                  />
+                  <Typography
+                    style={{
+                      color: publishingReady ? theme.colors.success : colors.ink,
+                      fontFamily: fonts.semiBold,
+                      fontSize: 12,
+                    }}
+                  >
+                    {publishingReady
+                      ? "Tudo pronto para sua vitrine ficar no ar."
+                      : "Complete os itens pendentes para publicar."}
+                  </Typography>
+                </View>
+                <Button
+                  title="Publicar depois"
+                  variant="text"
+                  onPress={() => void persist(false)}
+                  disabled={!dirty}
+                />
+              </EditorCard>
+            </>
+          ) : null}
+        </ScrollView>
 
-      {splitDesktop ? (
+        {splitDesktop ? (
+          <View
+            style={{
+              ...split.aside,
+              width: asideWidth,
+              maxHeight: "100%",
+              minHeight: 0,
+            }}
+          >
+            <ScrollView
+              style={{ flex: 1, minHeight: 0 }}
+              contentContainerStyle={{ gap: 16, paddingBottom: 8 }}
+            >
+              {contextualPreview}
+            </ScrollView>
+            <View style={{ gap: 10 }}>
+              <Button
+                title="Ver prévia"
+                variant="outline"
+                onPress={() => void openPreview()}
+                icon={<AppIcon name="eye-outline" size={19} color={colors.rose} />}
+              />
+              <Button
+                title={
+                  section === "publication" && step === "organization"
+                    ? requestStatus === "publishing"
+                      ? "Publicando..."
+                      : "Salvar e publicar"
+                    : requestStatus === "saving"
+                      ? "Salvando..."
+                      : "Salvar alterações"
+                }
+                loading={requestStatus === "saving" || requestStatus === "publishing"}
+                disabled={
+                  section === "publication" && step === "organization"
+                    ? !publishingReady || update.isPending
+                    : !canSave
+                }
+                onPress={() =>
+                  void persist(step === "organization" && section === "publication")
+                }
+              />
+            </View>
+          </View>
+        ) : null}
+      </View>
+
+      {splitDesktop ? null : (
         <View
           style={{
-            ...split.aside,
-            width: asideWidth,
-            maxHeight: "100%",
-            minHeight: 0,
+            backgroundColor: colors.white,
+            borderTopWidth: 1,
+            borderTopColor: colors.border,
+            paddingHorizontal: isDesktop ? 0 : wide ? 28 : 14,
+            paddingVertical: 10,
           }}
         >
-          <ScrollView
-            style={{ flex: 1, minHeight: 0 }}
-            contentContainerStyle={{ gap: 16, paddingBottom: 8 }}
+          <View
+            style={{
+              width: "100%",
+              maxWidth: isDesktop ? undefined : MAX_WIDTH,
+              alignSelf: isDesktop ? "stretch" : "center",
+              flexDirection: width < 360 ? "column" : "row",
+              justifyContent: isDesktop ? "flex-end" : "flex-start",
+              gap: 10,
+            }}
           >
-            {contextualPreview}
-          </ScrollView>
-          <View style={{ gap: 10 }}>
             <Button
               title="Ver prévia"
               variant="outline"
               onPress={() => void openPreview()}
               icon={<AppIcon name="eye-outline" size={19} color={colors.rose} />}
+              style={isDesktop ? desktopAction(true, 200) : { flex: 1 }}
             />
             <Button
               title={
@@ -3381,62 +3625,10 @@ export function CatalogCustomizer({
               onPress={() =>
                 void persist(step === "organization" && section === "publication")
               }
+              style={isDesktop ? desktopAction(true, 240) : { flex: 1.08 }}
             />
           </View>
         </View>
-      ) : null}
-      </View>
-
-      {splitDesktop ? null : (
-      <View
-        style={{
-          backgroundColor: colors.white,
-          borderTopWidth: 1,
-          borderTopColor: colors.border,
-          paddingHorizontal: isDesktop ? 0 : wide ? 28 : 14,
-          paddingVertical: 10,
-        }}
-      >
-        <View
-          style={{
-            width: "100%",
-            maxWidth: isDesktop ? undefined : MAX_WIDTH,
-            alignSelf: isDesktop ? "stretch" : "center",
-            flexDirection: width < 360 ? "column" : "row",
-            justifyContent: isDesktop ? "flex-end" : "flex-start",
-            gap: 10,
-          }}
-        >
-          <Button
-            title="Ver prévia"
-            variant="outline"
-            onPress={() => void openPreview()}
-            icon={<AppIcon name="eye-outline" size={19} color={colors.rose} />}
-            style={isDesktop ? desktopAction(true, 200) : { flex: 1 }}
-          />
-          <Button
-            title={
-              section === "publication" && step === "organization"
-                ? requestStatus === "publishing"
-                  ? "Publicando..."
-                  : "Salvar e publicar"
-                : requestStatus === "saving"
-                  ? "Salvando..."
-                  : "Salvar alterações"
-            }
-            loading={requestStatus === "saving" || requestStatus === "publishing"}
-            disabled={
-              section === "publication" && step === "organization"
-                ? !publishingReady || update.isPending
-                : !canSave
-            }
-            onPress={() =>
-              void persist(step === "organization" && section === "publication")
-            }
-            style={isDesktop ? desktopAction(true, 240) : { flex: 1.08 }}
-          />
-        </View>
-      </View>
       )}
 
       <ColorPickerModal
@@ -3465,6 +3657,7 @@ export function CatalogCustomizer({
       <TransformEditor
         visible={transformVisible}
         featured={draft.hero.featuredItems}
+        removeBackground={draft.hero.removeBackground}
         onChange={(featuredItems) =>
           setDraft((current) => ({
             ...current,
@@ -3485,10 +3678,93 @@ export function CatalogCustomizer({
         <StorefrontFinalPreview {...previewProps} />
       </PreviewModal>
       <Modal
+        visible={publishedVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPublishedVisible(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: colors.overlay,
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 18,
+          }}
+        >
+          <View
+            style={{
+              width: "100%",
+              maxWidth: 420,
+              borderRadius: 22,
+              backgroundColor: colors.white,
+              padding: 22,
+              alignItems: "center",
+              gap: 14,
+            }}
+          >
+            <View
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 28,
+                backgroundColor: `${colors.lime}66`,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <AppIcon
+                name="checkmark-circle"
+                size={32}
+                color={colors.limeText}
+                importantForAccessibility="no"
+              />
+            </View>
+            <View style={{ gap: 4, alignItems: "center" }}>
+              <Typography
+                style={{
+                  color: colors.ink,
+                  fontFamily: fonts.extraBold,
+                  fontSize: 20,
+                  lineHeight: 26,
+                  textAlign: "center",
+                }}
+              >
+                Salvo e publicado
+              </Typography>
+              <Typography
+                style={{
+                  color: colors.warmGray,
+                  fontSize: 13,
+                  lineHeight: 19,
+                  textAlign: "center",
+                }}
+              >
+                Sua vitrine já está no ar com as alterações.
+              </Typography>
+            </View>
+            <Typography
+              selectable
+              style={{ color: colors.warmGray, fontSize: 12, textAlign: "center" }}
+            >
+              {publicCatalogUrl(normalizedSlug)}
+            </Typography>
+            <Button
+              title="OK"
+              style={{ width: "100%" }}
+              onPress={() => setPublishedVisible(false)}
+            />
+          </View>
+        </View>
+      </Modal>
+      <Modal
         visible={qrVisible}
         transparent
         animationType="fade"
-        onRequestClose={() => setQrVisible(false)}
+        onRequestClose={() => {
+          setQrVisible(false);
+          setLinkCopied(false);
+        }}
       >
         <View
           style={{
@@ -3527,13 +3803,16 @@ export function CatalogCustomizer({
             </Typography>
             <View style={{ width: "100%", flexDirection: "row", gap: 9 }}>
               <Button
-                title="Copiar link"
-                variant="outline"
+                title={linkCopied ? "Copiado!" : "Copiar link"}
+                variant={linkCopied ? "successOutline" : "outline"}
                 style={{ flex: 1 }}
-                onPress={() =>
-                  void Clipboard.setStringAsync(catalogUrl).then(() =>
-                    showToast("Link copiado!"),
-                  )
+                onPress={copyCatalogLink}
+                icon={
+                  <AppIcon
+                    name={linkCopied ? "checkmark-circle" : "clipboard-outline"}
+                    size={16}
+                    color={linkCopied ? colors.limeText : colors.rose}
+                  />
                 }
               />
               <Button
@@ -3542,7 +3821,14 @@ export function CatalogCustomizer({
                 onPress={() => void Share.share({ message: catalogUrl })}
               />
             </View>
-            <Button title="Fechar" variant="text" onPress={() => setQrVisible(false)} />
+            <Button
+              title="Fechar"
+              variant="text"
+              onPress={() => {
+                setQrVisible(false);
+                setLinkCopied(false);
+              }}
+            />
           </View>
         </View>
       </Modal>

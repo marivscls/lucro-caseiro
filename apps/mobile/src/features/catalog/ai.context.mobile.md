@@ -13,6 +13,7 @@ API (`/c/:slug`).
 - Não renderiza o catálogo (a página é HTML servida pela API).
 - Não gerencia produtos (feature `products`); o catálogo mostra os produtos ativos.
 - Não processa pedidos (acontecem no WhatsApp do usuário).
+- Não remove fundo de imagens; `hero.removeBackground` só escolhe recorte vs foto original.
 
 ## Boundaries & Ownership
 
@@ -23,15 +24,15 @@ API (`/c/:slug`).
 
 ## Code pointers
 
-| Arquivo                                     | Descricao                                                   |
-| ------------------------------------------- | ----------------------------------------------------------- |
-| `apps/mobile/src/features/catalog/api.ts`   | fetch/update settings + `publicCatalogUrl(slug)`            |
-| `apps/mobile/src/features/catalog/hooks.ts` | `useCatalogSettings`, `useUpdateCatalogSettings`            |
-| `apps/mobile/src/features/catalog/catalog-customizer.ts` | Estado, validação e `displayCatalogItemName` do editor |
-| `apps/mobile/src/features/catalog/components/catalog-customizer.tsx` | Fluxo Identidade / Topo / Organização |
-| `apps/mobile/src/features/catalog/components/storefront-preview.tsx` | Prévias administrativas alinhadas ao renderer público |
-| `apps/mobile/src/app/catalog.tsx`           | Tela de configuração (switch, slug, whatsapp, compartilhar) |
-| `apps/mobile/src/app/c/[slug].tsx`          | Redireciona `/c/:slug` do PWA para a vitrine pública        |
+| Arquivo                                                              | Descricao                                                   |
+| -------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `apps/mobile/src/features/catalog/api.ts`                            | fetch/update settings + `publicCatalogUrl(slug)`            |
+| `apps/mobile/src/features/catalog/hooks.ts`                          | `useCatalogSettings`, `useUpdateCatalogSettings`            |
+| `apps/mobile/src/features/catalog/catalog-customizer.ts`             | Estado, validação e `displayCatalogItemName` do editor      |
+| `apps/mobile/src/features/catalog/components/catalog-customizer.tsx` | Fluxo Identidade / Topo / Organização                       |
+| `apps/mobile/src/features/catalog/components/storefront-preview.tsx` | Prévias administrativas alinhadas ao renderer público       |
+| `apps/mobile/src/app/catalog.tsx`                                    | Tela de configuração (switch, slug, whatsapp, compartilhar) |
+| `apps/mobile/src/app/c/[slug].tsx`                                   | Redireciona `/c/:slug` do PWA para a vitrine pública        |
 
 ## Components
 
@@ -87,6 +88,17 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
 - Acesso: aba "Mais" → "Catálogo online". Rota: `/catalog`.
 
 ## Change log / Decisions
+
+- 2026-08-19: “Salvar e publicar” abre um popup no editor (“Salvo e
+  publicado”) porque o toast/alerta globais ficam atrás do modal do
+  personalizador.
+
+- 2026-08-19: “Copiar link” (Publicação e modal do QR) confirma no próprio
+  botão (“Copiado!”) porque o toast global fica atrás do modal.
+
+- 2026-08-19: o toggle “Remover fundo automaticamente” grava `hero.removeBackground`.
+  Ligado, a prévia e o catálogo público usam `processedUrl` quando existe e
+  tratam o destaque como recorte; desligado, voltam à foto original.
 
 - 2026-08-19: no computador (shell ≥1024), Personalizar vitrine fica no painel
   do app — sem modal em tela cheia nem navbar. Em 1200px+ o editor usa

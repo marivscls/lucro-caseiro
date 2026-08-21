@@ -14,6 +14,7 @@ import {
   normalizeFeaturedItemTransform,
   normalizeStorefrontCustomization,
   resolveCatalogItemAction,
+  resolveFeaturedVisual,
   validateStorefrontCustomization,
 } from "./catalog-customizer";
 
@@ -144,6 +145,34 @@ describe("storefront customization", () => {
     expect(resolveCatalogItemAction("product:2", "product", customized).type).toBe(
       "order",
     );
+  });
+
+  it("usa recorte só quando o toggle de remover fundo está ligado", () => {
+    const item = {
+      id: "product:1",
+      kind: "product" as const,
+      sourceId: "1",
+      assetUrl: "https://cdn.example/original.jpg",
+      processedUrl: "https://cdn.example/recorte.png",
+      altText: "Caderno",
+      transforms: createFeaturedItemTransforms("product:1"),
+    };
+
+    expect(resolveFeaturedVisual(item, true)).toEqual({
+      source: "https://cdn.example/recorte.png",
+      cutout: true,
+    });
+    expect(resolveFeaturedVisual(item, false)).toEqual({
+      source: "https://cdn.example/original.jpg",
+      cutout: false,
+    });
+    const saved = createStorefrontCustomization(settings(), "Maria");
+    expect(
+      isStorefrontDraftDirty(
+        { ...saved, hero: { ...saved.hero, removeBackground: true } },
+        saved,
+      ),
+    ).toBe(true);
   });
 
   it("detecta dirty state e preserva o rascunho original", () => {

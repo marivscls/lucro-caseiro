@@ -98,6 +98,17 @@ export function createFeaturedItemTransforms(
   );
 }
 
+export function resolveFeaturedVisual(
+  item: StorefrontCustomization["hero"]["featuredItems"][number],
+  removeBackground: boolean,
+): Readonly<{ source: string | null; cutout: boolean }> {
+  if (removeBackground && item.processedUrl) {
+    return { source: item.processedUrl, cutout: true };
+  }
+  if (!item.assetUrl) return { source: null, cutout: false };
+  return { source: item.assetUrl, cutout: removeBackground };
+}
+
 export function normalizeFeaturedItemTransform(
   transform: FeaturedItemTransform,
 ): FeaturedItemTransform {

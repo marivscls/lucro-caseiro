@@ -15,6 +15,7 @@ ativa/desativa, escolhe o endereço (`slug`) e o WhatsApp de pedidos no app.
 - Não gerencia produtos (feature `products`); apenas lê produtos ativos.
 - Não revela quantidade exata de estoque; informa apenas se uma variação está disponível.
 - Não tem SEO avançado/domínio próprio (futuro premium).
+- Não processa remoção de fundo; `hero.removeBackground` só escolhe `processedUrl`/recorte vs foto original.
 
 ## Boundaries & Ownership
 
@@ -124,6 +125,13 @@ invariants:
 - `PUT /api/v1/catalog/settings` `{ "enabled": true, "slug": "doces-da-maria" }`.
 
 ## Change log / Decisions
+
+- 2026-08-19: o FAB de contato (`.floating-contact`) parte o rótulo em duas
+  linhas (`splitFloatingContactLines`) e usa 76px com padding interno para
+  “Entrar em contato” não encostar na borda.
+
+- 2026-08-19: `hero.removeBackground` decide se o destaque usa recorte
+  (`processedUrl` + classe `featured-cutout`) ou a foto original (`featured-photo`).
 
 - 2026-08-19: nomes públicos passam por `displayCatalogName` no renderer (e no
   HTML legado) para remover prefixos técnicos como `[massa]`. A capa continua

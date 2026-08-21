@@ -9,6 +9,7 @@ import { AppIcon, type AppIconName } from "../../../shared/components/app-icon";
 import {
   displayCatalogItemName,
   resolveCatalogItemAction,
+  resolveFeaturedVisual,
   type EditorStatus,
 } from "../catalog-customizer";
 
@@ -34,7 +35,9 @@ function readableText(background: string): string {
   return luminance > 0.58 ? INK : WHITE;
 }
 
-function offeringEyebrow(mode: StorefrontCustomization["identity"]["offeringMode"]): string {
+function offeringEyebrow(
+  mode: StorefrontCustomization["identity"]["offeringMode"],
+): string {
   if (mode === "products") return "CATÁLOGO DE PRODUTOS";
   if (mode === "services") return "CATÁLOGO DE SERVIÇOS";
   return "PRODUTOS E SERVIÇOS";
@@ -196,7 +199,9 @@ function FeaturedVisuals({
     >
       {items.map((item, index) => {
         const transform = item.transforms.find((entry) => entry.breakpoint === "mobile");
-        const source = item.processedUrl ?? item.assetUrl;
+        const visual = resolveFeaturedVisual(item, customization.hero.removeBackground);
+        const source = visual.source;
+        const cutout = visual.cutout;
         if (!source) {
           return (
             <View
@@ -224,11 +229,12 @@ function FeaturedVisuals({
             key={item.id}
             source={{ uri: source }}
             accessibilityLabel={item.altText}
-            resizeMode="cover"
+            resizeMode={cutout ? "contain" : "cover"}
             style={{
               width: `${Math.max(28, 74 / items.length)}%`,
               height: 96 - index * 6,
-              borderRadius: 14,
+              borderRadius: cutout ? 0 : 14,
+              backgroundColor: cutout ? "transparent" : undefined,
               transform: [{ scale: transform?.scale ?? 1 }],
             }}
           />
@@ -563,7 +569,10 @@ export function StorefrontItemCard({
           {name}
         </Typography>
         {customization.organization.cards.showDetails && item.description ? (
-          <Typography style={{ color: WARM_GRAY, fontSize: 11, lineHeight: 15 }} numberOfLines={2}>
+          <Typography
+            style={{ color: WARM_GRAY, fontSize: 11, lineHeight: 15 }}
+            numberOfLines={2}
+          >
             {item.description}
           </Typography>
         ) : null}
@@ -600,7 +609,8 @@ export function StorefrontItemCard({
               : "Disponível"}
           </Typography>
         ) : null}
-        {customization.organization.actions.mode !== "hidden" && action.type !== "none" ? (
+        {customization.organization.actions.mode !== "hidden" &&
+        action.type !== "none" ? (
           <View
             style={{
               borderRadius: 10,
@@ -807,7 +817,12 @@ export function StorefrontContentPreview({
               backgroundColor: WHITE,
             }}
           >
-            <AppIcon name="search-outline" size={16} color={WARM_GRAY} importantForAccessibility="no" />
+            <AppIcon
+              name="search-outline"
+              size={16}
+              color={WARM_GRAY}
+              importantForAccessibility="no"
+            />
             <Typography style={{ color: WARM_GRAY, fontSize: 12 }}>
               O que você procura?
             </Typography>
@@ -826,7 +841,12 @@ export function StorefrontContentPreview({
               }}
               accessibilityLabel="Filtros"
             >
-              <AppIcon name="options-outline" size={16} color={INK} importantForAccessibility="no" />
+              <AppIcon
+                name="options-outline"
+                size={16}
+                color={INK}
+                importantForAccessibility="no"
+              />
             </View>
           ) : null}
         </View>
@@ -840,8 +860,16 @@ export function StorefrontContentPreview({
       customization.organization.content.showServices ? (
         <View style={{ flexDirection: "row", gap: 8 }}>
           {[
-            { label: `Produtos (${visibleProducts.length})`, active: true, icon: "bag-handle-outline" as const },
-            { label: `Serviços (${visibleServices.length})`, active: false, icon: "calendar-outline" as const },
+            {
+              label: `Produtos (${visibleProducts.length})`,
+              active: true,
+              icon: "bag-handle-outline" as const,
+            },
+            {
+              label: `Serviços (${visibleServices.length})`,
+              active: false,
+              icon: "calendar-outline" as const,
+            },
           ].map((tab) => (
             <View
               key={tab.label}
@@ -913,7 +941,12 @@ export function StorefrontContentPreview({
               padding: 12,
             }}
           >
-            <AppIcon name="storefront-outline" size={20} color={WARM_GRAY} importantForAccessibility="no" />
+            <AppIcon
+              name="storefront-outline"
+              size={20}
+              color={WARM_GRAY}
+              importantForAccessibility="no"
+            />
             <Typography style={{ color: WARM_GRAY, fontSize: 12 }}>
               Seu conteúdo aparecerá aqui.
             </Typography>
@@ -1033,12 +1066,36 @@ export function CoverAdjuster({
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
         {(
           [
-            ["←", "Mover capa para a esquerda", { x: focal.x - 0.05, y: focal.y, scale: focal.scale }],
-            ["→", "Mover capa para a direita", { x: focal.x + 0.05, y: focal.y, scale: focal.scale }],
-            ["↑", "Mover capa para cima", { x: focal.x, y: focal.y - 0.05, scale: focal.scale }],
-            ["↓", "Mover capa para baixo", { x: focal.x, y: focal.y + 0.05, scale: focal.scale }],
-            ["−", "Diminuir zoom da capa", { x: focal.x, y: focal.y, scale: focal.scale - 0.1 }],
-            ["+", "Aumentar zoom da capa", { x: focal.x, y: focal.y, scale: focal.scale + 0.1 }],
+            [
+              "←",
+              "Mover capa para a esquerda",
+              { x: focal.x - 0.05, y: focal.y, scale: focal.scale },
+            ],
+            [
+              "→",
+              "Mover capa para a direita",
+              { x: focal.x + 0.05, y: focal.y, scale: focal.scale },
+            ],
+            [
+              "↑",
+              "Mover capa para cima",
+              { x: focal.x, y: focal.y - 0.05, scale: focal.scale },
+            ],
+            [
+              "↓",
+              "Mover capa para baixo",
+              { x: focal.x, y: focal.y + 0.05, scale: focal.scale },
+            ],
+            [
+              "−",
+              "Diminuir zoom da capa",
+              { x: focal.x, y: focal.y, scale: focal.scale - 0.1 },
+            ],
+            [
+              "+",
+              "Aumentar zoom da capa",
+              { x: focal.x, y: focal.y, scale: focal.scale + 0.1 },
+            ],
           ] as const
         ).map(([label, accessibilityLabel, next]) => (
           <Pressable
@@ -1063,7 +1120,9 @@ export function CoverAdjuster({
               backgroundColor: colors.white,
             }}
           >
-            <Typography style={{ color: colors.ink, fontFamily: fonts.bold }}>{label}</Typography>
+            <Typography style={{ color: colors.ink, fontFamily: fonts.bold }}>
+              {label}
+            </Typography>
           </Pressable>
         ))}
       </View>
