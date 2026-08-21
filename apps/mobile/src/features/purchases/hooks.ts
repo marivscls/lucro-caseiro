@@ -12,7 +12,11 @@ import {
 
 const PURCHASES_KEY = ["purchases"];
 
-export function usePurchases(opts?: { status?: "pending" | "paid" }) {
+export function usePurchases(opts?: {
+  status?: "pending" | "paid";
+  page?: number;
+  limit?: number;
+}) {
   const { token } = useAuth();
   return useQuery({
     queryKey: [...PURCHASES_KEY, opts],

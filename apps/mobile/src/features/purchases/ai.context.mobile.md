@@ -14,19 +14,20 @@ Registrar compras de fornecedores como **contas a pagar** e **saídas do caixa**
 
 ## Boundaries & Ownership
 
-- **Depende de:** `@lucro-caseiro/contracts` (tipos `Purchase`, `CreatePurchase`, `PurchasePaymentStatus`), `@lucro-caseiro/ui`, `shared/hooks/use-auth`, `shared/utils/api-client`, `shared/utils/currency-input`, `shared/utils/date`, `features/suppliers` (`SupplierSelector`, `useSupplierName`).
+- **Depende de:** `@lucro-caseiro/contracts` (tipos `Purchase`, `CreatePurchase`, `PurchasePaymentStatus`), `@lucro-caseiro/ui`, `shared/hooks/use-auth`, `shared/utils/api-client`, `shared/utils/currency-input`, `shared/utils/date`, `features/suppliers` (`SupplierSelector`, `useSupplierName`), `features/products/display` (nome visível sem prefixo técnico).
 - **Dependentes:** `tabs/more` (item "Compras" → `/purchases`).
 
 ## Code pointers
 
-| Arquivo                                                                  | Descrição                                                    |
-| ------------------------------------------------------------------------ | ------------------------------------------------------------ |
-| `apps/mobile/src/features/purchases/api.ts`                              | HTTP (fetch, create, update, pay, delete)                    |
-| `apps/mobile/src/features/purchases/hooks.ts`                            | React Query hooks                                            |
-| `apps/mobile/src/features/purchases/domain.ts`                           | categorias, total pendente e ordenação por status (+ testes) |
-| `apps/mobile/src/features/purchases/components/create-purchase-form.tsx` | Formulário de criação                                        |
-| `apps/mobile/src/features/purchases/components/purchase-card.tsx`        | Card (info + "marcar paga" + excluir)                        |
-| `apps/mobile/src/app/purchases.tsx`                                      | Screen (rota `/purchases`)                                   |
+| Arquivo                                                                  | Descrição                                                           |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| `apps/mobile/src/features/purchases/api.ts`                              | HTTP (fetch, create, update, pay, delete)                           |
+| `apps/mobile/src/features/purchases/hooks.ts`                            | React Query hooks                                                   |
+| `apps/mobile/src/features/purchases/domain.ts`                           | categorias, total pendente, contadores, ordenação e resumo de itens |
+| `apps/mobile/src/features/purchases/components/create-purchase-form.tsx` | Formulário de criação                                               |
+| `apps/mobile/src/features/purchases/components/purchase-card.tsx`        | Card (info + "marcar paga" + editar + excluir)                      |
+| `apps/mobile/src/app/purchases.tsx`                                      | Screen (rota `/purchases`)                                          |
+| `apps/mobile/src/assets/compras-hero-3d.png`                             | PNG 3D do card "Total a pagar"                                      |
 
 ## Components
 
@@ -39,14 +40,14 @@ Registrar compras de fornecedores como **contas a pagar** e **saídas do caixa**
 
 ### `PurchaseCard`
 
-- **Props:** `{ purchase: Purchase; onPay: () => void; onDelete: () => void; isPaying?: boolean }`
-- Mostra descrição, fornecedor (via `useSupplierName`), categoria, data, valor e badge (A pagar / Pago). Botão "Marcar como paga" quando pendente; ações de editar e excluir.
+- **Props:** `{ purchase: Purchase; onPay: () => void; onEdit: () => void; onDelete: () => void; isPaying?: boolean; payDisabled?: boolean; isDeleting?: boolean; deleteDisabled?: boolean; editDisabled?: boolean }`
+- Mostra descrição, fornecedor (via `useSupplierName`), categoria, data, valor e chip (A pagar / Pago). Nomes de itens usam `displayProductName` (sem prefixos como `[massa]`). Botão "Marcar como paga" quando pendente; ícones de editar e excluir.
 
 ## Hooks
 
 | Hook                  | Tipo          | Descrição                                                             |
 | --------------------- | ------------- | --------------------------------------------------------------------- |
-| `usePurchases(opts?)` | `useQuery`    | Lista (filtro `status`). Query key: `["purchases", opts]`             |
+| `usePurchases(opts?)` | `useQuery`    | Lista (`status`, `page`, `limit`). Query key: `["purchases", opts]`   |
 | `useCreatePurchase()` | `useMutation` | Cria. Invalida `["purchases"]` e `["finance"]` (compra paga = caixa). |
 | `useUpdatePurchase()` | `useMutation` | Edita e invalida compras, financeiro e produtos/estoque.              |
 | `usePayPurchase()`    | `useMutation` | Marca paga. Invalida `["purchases"]` e `["finance"]`.                 |
@@ -70,19 +71,22 @@ Registrar compras de fornecedores como **contas a pagar** e **saídas do caixa**
 
 ## Error Handling
 
-- **Listagem:** `EmptyState` genérico.
-- **Criar/pagar/excluir:** `alertError` com mensagem.
+- **Listagem:** `EmptyState` com retry; vazio e filtro sem resultados são estados distintos.
+- **Criar/pagar/excluir:** `alertError` com mensagem. Exclusão pede confirmação. Pagamento e exclusão travam o card em andamento.
 - **Validação local:** descrição obrigatória, valor > 0, data válida (DD/MM/AAAA).
 
 ## Performance
 
-- Lista via React Query (cache por query key). O total a pagar usa uma query separada `status: "pending"` (1ª página) para ficar visível em qualquer filtro.
+- A tela busca até 100 compras (`limit: 100`) e filtra/ordena localmente. A ordem é mais recente primeiro; em "Todas", pendentes continuam no topo. Total e contadores usam a mesma lista, sem recarregar ao trocar o filtro.
 - Pagar/criar-paga invalidam `["finance"]` para o dashboard financeiro refletir a saída.
 
 ## Test matrix
 
 - [x] `categoryLabel` mapeia categorias / fallback Outro (domain.test)
 - [x] `pendingTotal` soma só as pendentes (domain.test)
+- [x] `pendingCountLabel` singular/plural (domain.test)
+- [x] `purchaseFilterCounts` e `sortPurchasesMostRecentFirst` (domain.test)
+- [x] `formatPurchaseItemsLine` omite prefixos técnicos via mapper (domain.test)
 - [ ] `CreatePurchaseForm` valida descrição/valor/data
 - [ ] marcar como paga move o card de "A pagar" para "Pago"
 
@@ -102,3 +106,6 @@ Registrar compras de fornecedores como **contas a pagar** e **saídas do caixa**
 - 2026-07-19: cards ganharam ação **Editar** e o formulário passou a reutilizar os dados da
   compra. Compras pagas sincronizam valor/descrição/categoria com o caixa; alterações de itens
   ajustam somente a diferença de estoque e são recusadas se tentarem remover estoque já vendido.
+- 2026-08-20: tela editorial (card vinho + PNG 3D `compras-hero-3d.png`, filtros com
+  contagem, CTA inferior fixo). Lista carrega até 100 itens e filtra localmente; nomes de
+  produto omitem prefixos técnicos só na UI.

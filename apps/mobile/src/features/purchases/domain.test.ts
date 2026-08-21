@@ -3,8 +3,12 @@ import { describe, expect, it } from "vitest";
 
 import {
   categoryLabel,
+  formatPurchaseItemsLine,
   normalizePurchase,
+  pendingCountLabel,
   pendingTotal,
+  purchaseFilterCounts,
+  sortPurchasesMostRecentFirst,
   sortPurchasesPendingFirst,
   type PurchasePayload,
 } from "./domain";
@@ -77,6 +81,84 @@ describe("pendingTotal", () => {
 
   it("returns 0 with no pending purchases", () => {
     expect(pendingTotal([makePurchase({ paymentStatus: "paid" })])).toBe(0);
+  });
+});
+
+describe("pendingCountLabel", () => {
+  it("uses singular and plural in Portuguese", () => {
+    expect(pendingCountLabel(0)).toBe("0 compras pendentes");
+    expect(pendingCountLabel(1)).toBe("1 compra pendente");
+    expect(pendingCountLabel(4)).toBe("4 compras pendentes");
+  });
+});
+
+describe("purchaseFilterCounts", () => {
+  it("counts all, pending and paid purchases", () => {
+    const items = [
+      makePurchase({ id: "1", paymentStatus: "pending" }),
+      makePurchase({ id: "2", paymentStatus: "pending" }),
+      makePurchase({ id: "3", paymentStatus: "paid" }),
+    ];
+    expect(purchaseFilterCounts(items)).toEqual({ all: 3, pending: 2, paid: 1 });
+  });
+});
+
+describe("sortPurchasesMostRecentFirst", () => {
+  it("orders by purchasedAt and then createdAt, newest first", () => {
+    const items = [
+      makePurchase({
+        id: "old",
+        purchasedAt: "2026-08-10",
+        createdAt: "2026-08-10T10:00:00.000Z",
+      }),
+      makePurchase({
+        id: "newer-same-day",
+        purchasedAt: "2026-08-14",
+        createdAt: "2026-08-14T18:00:00.000Z",
+      }),
+      makePurchase({
+        id: "newer-earlier",
+        purchasedAt: "2026-08-14",
+        createdAt: "2026-08-14T08:00:00.000Z",
+      }),
+    ];
+
+    expect(sortPurchasesMostRecentFirst(items).map((purchase) => purchase.id)).toEqual([
+      "newer-same-day",
+      "newer-earlier",
+      "old",
+    ]);
+  });
+});
+
+describe("formatPurchaseItemsLine", () => {
+  it("joins visible product names without technical prefixes", () => {
+    const items: Purchase["items"] = [
+      {
+        id: "item-1",
+        productId: "product",
+        productName: "[massa] Bolo de pote morango",
+        variationId: null,
+        variationName: null,
+        quantity: 2,
+        unitCost: 10,
+        subtotal: 20,
+      },
+      {
+        id: "item-2",
+        productId: "product-2",
+        productName: "Brigadeiro",
+        variationId: null,
+        variationName: "70%",
+        quantity: 1,
+        unitCost: 8,
+        subtotal: 8,
+      },
+    ];
+
+    expect(formatPurchaseItemsLine(items, (name) => name.replace(/^\[.*?]\s*/, ""))).toBe(
+      "2x Bolo de pote morango · 1x Brigadeiro — 70%",
+    );
   });
 });
 

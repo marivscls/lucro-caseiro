@@ -1,21 +1,24 @@
 import type { Purchase } from "@lucro-caseiro/contracts";
 import {
-  Badge,
   Button,
   Card,
+  IconButton,
   Typography,
-  fonts,
-  useTheme,
+  iconSizes,
+  radii,
   spacing,
+  useTheme,
 } from "@lucro-caseiro/ui";
-import { AppIcon } from "../../../shared/components/app-icon";
 import React from "react";
-import { ActivityIndicator, Pressable, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 
+import { useBrandScreenPalette } from "../../../shared/brand-palette";
+import { AppIcon } from "../../../shared/components/app-icon";
 import { formatCurrency } from "../../../shared/utils/format";
+import { displayProductName } from "../../products/display";
 import { useSupplierName } from "../../suppliers/hooks";
-import { categoryLabel } from "../domain";
 import { useBusinessCopy } from "../../subscription/business-copy";
+import { categoryLabel, formatPurchaseItemsLine } from "../domain";
 
 interface PurchaseCardProps {
   readonly purchase: Purchase;
@@ -45,133 +48,185 @@ export function PurchaseCard({
   deleteDisabled,
   editDisabled,
 }: PurchaseCardProps) {
-  const { theme } = useTheme();
+  const pal = useBrandScreenPalette();
   const experienceCopy = useBusinessCopy();
   const supplierName = useSupplierName(purchase.supplierId);
   const isPaid = purchase.paymentStatus === "paid";
+  const itemsLine = formatPurchaseItemsLine(purchase.items, displayProductName);
+  const category = purchaseCategoryLabel(
+    purchase.category,
+    experienceCopy.materialNoun,
+    experienceCopy.packagingNoun,
+  );
+  const metaParts = [supplierName, category, formatDate(purchase.purchasedAt)].filter(
+    (part): part is string => Boolean(part),
+  );
 
   return (
-    <Card>
+    <Card
+      variant="elevated"
+      shadow="sm"
+      padding="lg"
+      style={{
+        backgroundColor: pal.white,
+        borderWidth: 0,
+        borderRadius: radii.xl,
+      }}
+    >
       <View style={{ gap: spacing.sm }}>
         <View
           style={{
             flexDirection: "row",
+            alignItems: "flex-start",
             justifyContent: "space-between",
-            gap: spacing.sm,
+            gap: spacing.md,
           }}
         >
-          <View style={{ flex: 1, gap: 2 }}>
-            <Typography variant="bodyBold" numberOfLines={1}>
-              {purchase.description}
-            </Typography>
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              {supplierName ? `${supplierName} • ` : ""}
-              {purchaseCategoryLabel(
-                purchase.category,
-                experienceCopy.materialNoun,
-                experienceCopy.packagingNoun,
-              )}{" "}
-              • {formatDate(purchase.purchasedAt)}
-            </Typography>
-          </View>
-          <View style={{ alignItems: "flex-end", gap: 4 }}>
-            <Typography variant="bodyBold" color={theme.colors.text}>
-              {formatCurrency(purchase.amount)}
-            </Typography>
-            <Badge
-              label={isPaid ? "Pago" : "A pagar"}
-              variant={isPaid ? "success" : "warning"}
+          <Typography
+            variant="bodyBold"
+            color={pal.ink}
+            numberOfLines={2}
+            style={{ flex: 1, minWidth: 0 }}
+          >
+            {purchase.description}
+          </Typography>
+          <Typography
+            variant="bodyBold"
+            color={pal.ink}
+            numberOfLines={1}
+            style={{
+              flexShrink: 0,
+              maxWidth: "42%",
+              textAlign: "right",
+              fontVariant: ["tabular-nums"],
+            }}
+          >
+            {formatCurrency(purchase.amount)}
+          </Typography>
+        </View>
+
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: spacing.md,
+          }}
+        >
+          <Typography
+            variant="caption"
+            color={pal.muted}
+            numberOfLines={2}
+            style={{ flex: 1, minWidth: 0 }}
+          >
+            {metaParts.join(" · ")}
+          </Typography>
+          <PurchaseStatusChip paid={isPaid} />
+        </View>
+
+        {itemsLine ? (
+          <Typography variant="caption" color={pal.ink} numberOfLines={2}>
+            {itemsLine}
+          </Typography>
+        ) : null}
+
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: spacing.sm,
+            marginTop: spacing.xs,
+          }}
+        >
+          {!isPaid ? (
+            <Button
+              title="Marcar como paga"
+              size="md"
+              onPress={onPay}
+              loading={isPaying}
+              disabled={payDisabled}
+              style={{
+                alignSelf: "flex-start",
+                backgroundColor: pal.rose,
+                minHeight: 44,
+                paddingHorizontal: spacing.lg,
+              }}
+            />
+          ) : null}
+
+          <View
+            style={{
+              marginLeft: "auto",
+              flexDirection: "row",
+              alignItems: "center",
+              gap: spacing.sm,
+            }}
+          >
+            <IconButton
+              size={44}
+              icon={
+                <AppIcon name="pencil-outline" size={iconSizes.sm} color={pal.wine} />
+              }
+              onPress={onEdit}
+              disabled={editDisabled}
+              accessibilityLabel="Editar compra"
+              style={{
+                backgroundColor: pal.surface,
+                borderWidth: 0,
+                opacity: editDisabled ? 0.55 : 1,
+              }}
+            />
+            <IconButton
+              size={44}
+              icon={
+                isDeleting ? (
+                  <ActivityIndicator size="small" color={pal.wine} />
+                ) : (
+                  <AppIcon name="trash-outline" size={iconSizes.sm} color={pal.wine} />
+                )
+              }
+              onPress={onDelete}
+              disabled={deleteDisabled}
+              accessibilityLabel={isDeleting ? "Excluindo compra" : "Excluir compra"}
+              style={{
+                backgroundColor: pal.surface,
+                borderWidth: 0,
+                opacity: deleteDisabled && !isDeleting ? 0.55 : 1,
+              }}
             />
           </View>
         </View>
-
-        {purchase.items.length ? (
-          <View style={{ gap: spacing.xs }}>
-            {purchase.items.slice(0, 3).map((item) => (
-              <Typography key={item.id} variant="caption">
-                {item.quantity}x {item.productName}
-                {item.variationName ? ` — ${item.variationName}` : ""}
-              </Typography>
-            ))}
-            {purchase.items.length > 3 ? (
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                +{purchase.items.length - 3} itens
-              </Typography>
-            ) : null}
-          </View>
-        ) : null}
-
-        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-          {!isPaid ? (
-            <View style={{ flex: 1 }}>
-              <Button
-                title="Marcar como paga"
-                variant="success"
-                size="sm"
-                onPress={onPay}
-                loading={isPaying}
-                disabled={payDisabled}
-              />
-            </View>
-          ) : null}
-          <Pressable
-            onPress={onEdit}
-            disabled={editDisabled}
-            accessibilityRole="button"
-            accessibilityLabel="Editar compra"
-            hitSlop={8}
-            style={({ pressed }) => ({
-              marginLeft: isPaid ? "auto" : undefined,
-              flexDirection: "row",
-              alignItems: "center",
-              gap: spacing.xs,
-              minHeight: 36,
-              paddingVertical: spacing.xs,
-              paddingHorizontal: spacing.sm,
-              opacity: pressed || editDisabled ? 0.55 : 1,
-            })}
-          >
-            <AppIcon name="pencil-outline" size={18} color={theme.colors.primaryStrong} />
-            <Typography
-              variant="caption"
-              color={theme.colors.primaryStrong}
-              style={{ fontFamily: fonts.bold }}
-            >
-              Editar
-            </Typography>
-          </Pressable>
-          <Pressable
-            onPress={onDelete}
-            disabled={deleteDisabled}
-            accessibilityRole="button"
-            accessibilityLabel={isDeleting ? "Excluindo compra" : "Excluir compra"}
-            hitSlop={8}
-            style={({ pressed }) => ({
-              flexDirection: "row",
-              alignItems: "center",
-              gap: spacing.xs,
-              minHeight: 36,
-              paddingVertical: spacing.xs,
-              paddingHorizontal: spacing.sm,
-              opacity: pressed || (deleteDisabled && !isDeleting) ? 0.55 : 1,
-            })}
-          >
-            {isDeleting ? (
-              <ActivityIndicator size="small" color={theme.colors.alert} />
-            ) : (
-              <AppIcon name="trash-outline" size={18} color={theme.colors.alert} />
-            )}
-            <Typography
-              variant="caption"
-              color={theme.colors.alert}
-              style={{ fontFamily: fonts.bold }}
-            >
-              {isDeleting ? "Excluindo..." : "Excluir"}
-            </Typography>
-          </Pressable>
-        </View>
       </View>
     </Card>
+  );
+}
+
+function PurchaseStatusChip({ paid }: Readonly<{ paid: boolean }>) {
+  const pal = useBrandScreenPalette();
+  const { theme } = useTheme();
+  let backgroundColor = pal.surface;
+  if (!paid && theme.mode === "light") {
+    backgroundColor = "rgba(220, 232, 106, 0.38)";
+  }
+  const textColor = paid ? pal.wine : pal.ink;
+
+  return (
+    <View
+      style={{
+        flexShrink: 0,
+        minHeight: 24,
+        paddingHorizontal: spacing.sm,
+        paddingVertical: 2,
+        borderRadius: radii.sm,
+        backgroundColor,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Typography variant="captionBold" color={textColor}>
+        {paid ? "Pago" : "A pagar"}
+      </Typography>
+    </View>
   );
 }
 
