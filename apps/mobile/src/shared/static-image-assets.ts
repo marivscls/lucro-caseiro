@@ -12,6 +12,8 @@ import checkoutHero from "../assets/checkout-professional-hero.png";
 import clientsEmpty from "../assets/clients-empty.png";
 import comprasHero3d from "../assets/compras-hero-3d.png";
 import fiadoHero from "../assets/fiado-hero.png";
+import gettingStartedProduct from "../assets/getting-started-product.png";
+import gettingStartedProductTip from "../assets/getting-started-product-tip.png";
 import financeEmpty from "../assets/finance-reference-empty.png";
 import financeHero from "../assets/finance-reference-hero.png";
 import insightsEmpty from "../assets/insights-empty.png";
@@ -56,6 +58,8 @@ const staticImageAssets: readonly ImageSourcePropType[] = [
   clientsEmpty,
   comprasHero3d,
   fiadoHero,
+  gettingStartedProduct,
+  gettingStartedProductTip,
   financeEmpty,
   financeHero,
   insightsEmpty,

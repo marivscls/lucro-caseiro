@@ -9,7 +9,14 @@ import {
 } from "@lucro-caseiro/ui";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Image, Pressable, ScrollView, useWindowDimensions, View } from "react-native";
+import {
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { avatarPastel } from "../../features/clients/components/avatar-colors";
@@ -24,6 +31,7 @@ import { useLimits, useProfile } from "../../features/subscription/hooks";
 import { getLimitBannerState } from "../../features/subscription/limits";
 import { AdBanner } from "../../shared/components/ad-banner";
 import { AppIcon, type AppIconName } from "../../shared/components/app-icon";
+import { GettingStartedOverlay } from "../../shared/components/getting-started-overlay";
 import { SkeletonHome } from "../../shared/components/skeleton";
 import { useAuth } from "../../shared/hooks/use-auth";
 import { useOnboarding } from "../../shared/hooks/use-onboarding";
@@ -38,13 +46,13 @@ import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { useBrandScreenPalette } from "../../shared/brand-palette";
 import { formatCurrency } from "../../shared/utils/format";
 import {
-  getGettingStartedStage,
-  shouldShowGettingStarted,
+  advanceGettingStartedStage,
+  resolveGettingStartedPresentation,
   type GettingStartedStage,
 } from "../../shared/utils/getting-started";
+import { PREVIEW_HOME_GETTING_STARTED } from "../../shared/utils/onboarding-preview";
 
 type OverviewPeriod = "today" | "month";
-
 
 function localDateKey(date = new Date()): string {
   return [
@@ -694,9 +702,7 @@ function QuickAccess({ compact }: Readonly<{ compact: boolean }>) {
             borderRadius: radii.lg,
             borderWidth: 1,
             borderColor: colors.border,
-            backgroundColor: action.active
-              ? theme.colors.primaryBg
-              : colors.white,
+            backgroundColor: action.active ? theme.colors.primaryBg : colors.white,
             alignItems: "center",
             justifyContent: "center",
             gap: spacing.sm,
@@ -785,11 +791,7 @@ function ContextualProductCard({ onPress }: Readonly<{ onPress: () => void }>) {
               <Typography variant="homeLink" color={colors.rose}>
                 Cadastrar produto
               </Typography>
-              <AppIcon
-                name="chevron-forward"
-                size={iconSizes.sm}
-                color={colors.rose}
-              />
+              <AppIcon name="chevron-forward" size={iconSizes.sm} color={colors.rose} />
             </View>
           </View>
         </View>
@@ -844,6 +846,8 @@ export default function HomeScreen() {
 
   const [period, setPeriod] = useState<OverviewPeriod>("today");
   const [showGoalForm, setShowGoalForm] = useState(false);
+  const [previewStage, setPreviewStage] = useState<GettingStartedStage>("product");
+  const [previewDismissed, setPreviewDismissed] = useState(false);
 
   const userId = useAuth((state) => state.userId);
   const { data: profile } = useProfile();
@@ -868,14 +872,20 @@ export default function HomeScreen() {
   const onboardingSettled = !productsQuery.isLoading && !salesQuery.isLoading;
   const onboardingStarted = !!userId && startedUserIds.includes(userId);
   const onboardingCompleted = !!userId && completedUserIds.includes(userId);
-  const showGettingStarted = shouldShowGettingStarted({
+  const {
+    show: showGettingStarted,
+    showReopen: showGettingStartedReopen,
+    stage: gettingStartedStage,
+  } = resolveGettingStartedPresentation({
+    preview: PREVIEW_HOME_GETTING_STARTED,
+    previewDismissed,
+    previewStage,
     settled: onboardingSettled,
     completed: onboardingCompleted,
     started: onboardingStarted,
     hasProduct,
     hasSale,
   });
-  const gettingStartedStage = getGettingStartedStage(hasProduct, hasSale);
 
   const selectedSales = period === "today" ? todaySalesQuery.data : monthSalesQuery.data;
   const selectedFinance =
@@ -907,6 +917,16 @@ export default function HomeScreen() {
   }
 
   function handleGettingStartedAction() {
+    if (PREVIEW_HOME_GETTING_STARTED) {
+      const nextStage = advanceGettingStartedStage(previewStage);
+      if (nextStage) {
+        setPreviewStage(nextStage);
+        return;
+      }
+      setPreviewDismissed(true);
+      return;
+    }
+
     if (gettingStartedStage === "product") return handleProductRegistration();
 
     if (userId && gettingStartedStage !== "result") startGettingStarted(userId);
@@ -974,12 +994,50 @@ export default function HomeScreen() {
 
         <LimitBanner resource="sales" onUpgrade={() => showPaywall("sales")} />
 
-        {showGettingStarted ? (
+        {PREVIEW_HOME_GETTING_STARTED ? (
+          <Modal
+            animationType="fade"
+            visible={showGettingStarted}
+            onRequestClose={() => setPreviewDismissed(true)}
+          >
+            <GettingStartedOverlay
+              stage={previewStage}
+              preview={PREVIEW_HOME_GETTING_STARTED}
+              onSkip={() => setPreviewDismissed(true)}
+              onContinue={handleGettingStartedAction}
+            />
+          </Modal>
+        ) : null}
+        {!PREVIEW_HOME_GETTING_STARTED && showGettingStarted ? (
           <NextStepCard
             compact={compact}
             stage={gettingStartedStage}
             onAction={handleGettingStartedAction}
           />
+        ) : null}
+
+        {showGettingStartedReopen ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Reabrir prévia do guia"
+            onPress={() => {
+              setPreviewStage("product");
+              setPreviewDismissed(false);
+            }}
+            style={({ pressed }) => ({ opacity: pressed ? 0.84 : 1 })}
+          >
+            <Card variant="elevated" padding="lg">
+              <Typography variant="homeEyebrow" color={theme.colors.primaryStrong}>
+                PRÉVIA
+              </Typography>
+              <Typography variant="homeCardLead" style={{ marginTop: 2 }}>
+                Reabrir guia da Home
+              </Typography>
+              <Typography variant="homeDescription" color={theme.colors.textSecondary}>
+                Mostra as três etapas sem alterar seus dados
+              </Typography>
+            </Card>
+          </Pressable>
         ) : null}
 
         <View style={{ gap: spacing.lg }}>
