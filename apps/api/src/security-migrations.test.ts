@@ -9,6 +9,8 @@ describe("security migrations", () => {
       "../../../packages/database/src/migrations/049_subscription_purchase_claims.sql",
       "../../../packages/database/src/migrations/050_api_rate_limit_buckets.sql",
       "../../../packages/database/src/migrations/052_professional_trial_campaign.sql",
+      "../../../packages/database/src/migrations/057_end_professional_trial_campaign.sql",
+      "../../../packages/database/src/migrations/062_disable_professional_trial_signup.sql",
       "../../../packages/database/src/migrations/058_catalog_promo_visibility.sql",
       "../../../packages/database/src/migrations/059_catalog_text_colors.sql",
       "../../../packages/database/src/migrations/060_storefront_customization.sql",
@@ -51,6 +53,33 @@ describe("security migrations", () => {
     expect(migration).toContain("description_color text");
     expect(migration).toContain("service_title_color text");
     expect(migration).toContain("service_description_color text");
+  });
+
+  it("disables professional trial grants for new signups after campaign migrations", () => {
+    const campaignPath = getSecurityMigrationPaths().find((path) =>
+      path.endsWith("052_professional_trial_campaign.sql"),
+    );
+    const disablePath = getSecurityMigrationPaths().find((path) =>
+      path.endsWith("062_disable_professional_trial_signup.sql"),
+    );
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    const campaign = readFileSync(campaignPath!, "utf8");
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    const disable = readFileSync(disablePath!, "utf8");
+
+    expect(campaign).toContain("active = false");
+    expect(campaign).not.toContain("grants_count = grants_count + 1");
+    expect(disable).toContain("SET active = false");
+    expect(disable).not.toContain("grants_count + 1");
+    expect(
+      securityMigrationFiles.indexOf(
+        "../../../packages/database/src/migrations/052_professional_trial_campaign.sql",
+      ),
+    ).toBeLessThan(
+      securityMigrationFiles.indexOf(
+        "../../../packages/database/src/migrations/062_disable_professional_trial_signup.sql",
+      ),
+    );
   });
 });
 it("installs the versioned storefront customization document before startup", () => {

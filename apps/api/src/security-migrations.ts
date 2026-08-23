@@ -6,6 +6,8 @@ export const securityMigrationFiles = [
   "../../../packages/database/src/migrations/049_subscription_purchase_claims.sql",
   "../../../packages/database/src/migrations/050_api_rate_limit_buckets.sql",
   "../../../packages/database/src/migrations/052_professional_trial_campaign.sql",
+  "../../../packages/database/src/migrations/057_end_professional_trial_campaign.sql",
+  "../../../packages/database/src/migrations/062_disable_professional_trial_signup.sql",
   "../../../packages/database/src/migrations/058_catalog_promo_visibility.sql",
   "../../../packages/database/src/migrations/059_catalog_text_colors.sql",
   "../../../packages/database/src/migrations/060_storefront_customization.sql",

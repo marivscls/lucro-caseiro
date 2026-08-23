@@ -89,3 +89,4 @@ The current flow performs one synchronous HTTPS request. Queueing and batching a
 ## Change log / Decisions
 
 - 2026-08-06: chose the existing Resend account, native `fetch` over a new dependency, the already verified `lucrocaseiro.com.br` domain in São Paulo, and a dedicated sending key for the API.
+- 2026-08-23: stopped granting 1 month of Professional on signup. Campaign email remains only for existing unsent grants.

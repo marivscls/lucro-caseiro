@@ -182,3 +182,5 @@ Esta regra substitui as menções anteriores que colocavam `catalogPremium` e
 `catalogCustomization` no Profissional: catálogo completo e personalização estão
 disponíveis a partir do **Essencial**. Somente o Gratuito limita a vitrine e oculta a
 personalização.
+
+- 2026-08-23: **cadastro novo volta ao Free**. A campanha `professional-first-100-2026` (1 mês de Profissional para os primeiros 100) não vale mais para quem chega agora. Quem já recebeu o presente mantém plano e data de expiração. A 052 rodava no boot da API e religava `active` enquanto houvesse vaga; a 062 (depois da 052/057) desliga a campanha e tira a concessão do `handle_new_user`. O e-mail da campanha continua só para concessão já gravada e ainda não enviada.

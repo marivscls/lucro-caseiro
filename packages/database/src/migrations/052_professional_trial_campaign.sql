@@ -1,7 +1,8 @@
--- Campanha de 1 mes de Profissional para os primeiros 100 beneficiarios.
--- As 8 concessoes manuais de 2026-08-06 contam no limite. Novos cadastros
--- elegiveis recebem o plano no mesmo commit do signup; o e-mail e entregue
--- pela API no primeiro carregamento do perfil e auditado nesta tabela.
+-- Historico da campanha de 1 mes de Profissional para os primeiros 100.
+-- As 8 concessoes manuais de 2026-08-06 e as automaticas ja gravadas
+-- permanecem. A oferta para cadastros novos esta encerrada: o signup
+-- so cria a conta Free e o e-mail da campanha segue so para quem ja
+-- tinha concessao pendente.
 
 CREATE TABLE IF NOT EXISTS public.professional_trial_campaigns (
   campaign_key text PRIMARY KEY,
@@ -39,9 +40,11 @@ INSERT INTO public.professional_trial_campaigns (
   grants_count,
   active
 )
-VALUES ('professional-first-100-2026', 100, 0, true)
+VALUES ('professional-first-100-2026', 100, 0, false)
 ON CONFLICT (campaign_key) DO UPDATE
-SET max_grants = EXCLUDED.max_grants;
+SET
+  max_grants = EXCLUDED.max_grants,
+  active = false;
 
 SELECT pg_advisory_xact_lock(hashtext('professional-first-100-2026'));
 
@@ -84,54 +87,8 @@ SET grants_count = (
 )
 WHERE campaign_key = 'professional-first-100-2026';
 
-WITH available_slots AS (
-  SELECT GREATEST(max_grants - grants_count, 0) AS value
-  FROM public.professional_trial_campaigns
-  WHERE campaign_key = 'professional-first-100-2026'
-    AND active = true
-), candidates AS (
-  SELECT u.id, u.email, now() AS granted_at, now() + interval '1 month' AS expires_at
-  FROM public.users u
-  WHERE u.created_at > '2026-08-06T16:13:15.823Z'::timestamptz
-    AND u.is_active = true
-    AND u.plan = 'free'
-    AND u.plan_expires_at IS NULL
-    AND lower(u.email) <> 'marivscls@gmail.com'
-    AND lower(u.email) NOT LIKE '%@example.com'
-    AND lower(u.email) NOT LIKE '%@lucrocaseiro.com'
-    AND lower(u.email) NOT LIKE '%@lucrocaseiro.com.br'
-    AND NOT EXISTS (
-      SELECT 1
-      FROM public.professional_trial_campaign_grants g
-      WHERE g.user_id = u.id
-    )
-  ORDER BY u.created_at, u.id
-  LIMIT COALESCE((SELECT value FROM available_slots), 0)
-), inserted AS (
-  INSERT INTO public.professional_trial_campaign_grants (
-    user_id,
-    campaign_key,
-    email,
-    source,
-    granted_at,
-    expires_at
-  )
-  SELECT
-    id,
-    'professional-first-100-2026',
-    email,
-    'automatic',
-    granted_at,
-    expires_at
-  FROM candidates
-  ON CONFLICT (user_id) DO NOTHING
-  RETURNING user_id, expires_at
-)
-UPDATE public.users u
-SET plan = 'professional', plan_expires_at = inserted.expires_at
-FROM inserted
-WHERE u.id = inserted.user_id;
-
+-- Campanha encerrada: nao conceder mais vagas em boot da API nem no signup.
+-- Concessoes ja gravadas e suas datas de expiracao permanecem intactas.
 UPDATE public.professional_trial_campaigns
 SET
   grants_count = (
@@ -139,11 +96,7 @@ SET
     FROM public.professional_trial_campaign_grants
     WHERE campaign_key = 'professional-first-100-2026'
   ),
-  active = (
-    SELECT count(*)
-    FROM public.professional_trial_campaign_grants
-    WHERE campaign_key = 'professional-first-100-2026'
-  ) < max_grants
+  active = false
 WHERE campaign_key = 'professional-first-100-2026';
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -152,9 +105,6 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
-DECLARE
-  v_expires_at timestamptz;
-  v_updated_rows integer;
 BEGIN
   DELETE FROM public.users u
   WHERE u.email = COALESCE(NEW.email, '')
@@ -173,56 +123,6 @@ BEGIN
     email = EXCLUDED.email,
     name = COALESCE(public.users.name, EXCLUDED.name),
     business_name = COALESCE(public.users.business_name, EXCLUDED.business_name);
-
-  IF lower(COALESCE(NEW.email, '')) <> 'marivscls@gmail.com'
-    AND lower(COALESCE(NEW.email, '')) NOT LIKE '%@example.com'
-    AND lower(COALESCE(NEW.email, '')) NOT LIKE '%@lucrocaseiro.com'
-    AND lower(COALESCE(NEW.email, '')) NOT LIKE '%@lucrocaseiro.com.br'
-  THEN
-    BEGIN
-      v_expires_at := now() + interval '1 month';
-
-      UPDATE public.professional_trial_campaigns
-      SET
-        grants_count = grants_count + 1,
-        active = (grants_count + 1) < max_grants
-      WHERE campaign_key = 'professional-first-100-2026'
-        AND active = true
-        AND grants_count < max_grants;
-
-      GET DIAGNOSTICS v_updated_rows = ROW_COUNT;
-
-      IF v_updated_rows = 1 THEN
-        INSERT INTO public.professional_trial_campaign_grants (
-          user_id,
-          campaign_key,
-          email,
-          source,
-          expires_at
-        )
-        VALUES (
-          NEW.id,
-          'professional-first-100-2026',
-          COALESCE(NEW.email, ''),
-          'automatic',
-          v_expires_at
-        );
-
-        UPDATE public.users
-        SET plan = 'professional', plan_expires_at = v_expires_at
-        WHERE id = NEW.id
-          AND plan = 'free'
-          AND plan_expires_at IS NULL;
-
-        GET DIAGNOSTICS v_updated_rows = ROW_COUNT;
-        IF v_updated_rows <> 1 THEN
-          RAISE EXCEPTION 'professional trial grant did not update the new user';
-        END IF;
-      END IF;
-    EXCEPTION WHEN OTHERS THEN
-      RAISE WARNING 'professional trial campaign skipped for user %: %', NEW.id, SQLERRM;
-    END;
-  END IF;
 
   RETURN NEW;
 END;
