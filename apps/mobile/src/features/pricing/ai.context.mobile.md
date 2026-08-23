@@ -162,3 +162,8 @@ acrescimo`; `precoBase = (custoDireto + lucroAlvo) / (1 - taxa)`.
   permaneceu inalterado.
 - 2026-08-18: o filtro por produto no histórico de precificação usa o `Chip`
   compartilhado. Sem badge: a lista já vem do `usePricingList()`.
+- 2026-08-22: a estimativa do modo Simples passou a um card vinho (`wineFill`)
+  com valor branco, selo `Atualiza automaticamente`, PNG 3D de etiqueta +
+  calculadora + moedas (`pricing-result-hero.png`) e faixa verde de
+  `Você ganha por unidade`. O aviso de exclusão de mão de obra/gastos ficou
+  fora do card escuro. A fórmula do cálculo não mudou.

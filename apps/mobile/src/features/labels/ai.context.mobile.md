@@ -38,6 +38,9 @@ O QR e opcional. A feature funciona mesmo sem catalogo publicado.
 | Arquivo                                                               | Responsabilidade                                        |
 | --------------------------------------------------------------------- | ------------------------------------------------------- |
 | `apps/mobile/src/app/labels.tsx`                                      | Lista, detalhe, edicao e exclusao                       |
+| `apps/mobile/src/features/labels/domain.ts`                           | Busca, filtros, selo de uso e medidas do painel vinho   |
+| `apps/mobile/src/features/labels/components/label-card.tsx`           | Card da lista (miniatura, categoria, menu, selo)        |
+| `apps/mobile/src/features/labels/components/label-thumbnail.tsx`      | Miniatura real no formato do modelo                     |
 | `apps/mobile/src/features/labels/components/create-label-form.tsx`    | Criacao e preview ao vivo                               |
 | `apps/mobile/src/features/labels/components/label-preview.tsx`        | Preview simples da etiqueta                             |
 | `apps/mobile/src/features/labels/components/label-product-picker.tsx` | Busca e selecao do produto                              |
@@ -49,19 +52,27 @@ O QR e opcional. A feature funciona mesmo sem catalogo publicado.
 | `apps/mobile/src/features/labels/dates.ts`                            | Conversao ISO ↔ DD/MM/AAAA                              |
 | `apps/mobile/src/features/labels/api.ts`                              | Cliente HTTP                                            |
 | `apps/mobile/src/features/labels/hooks.ts`                            | Queries e mutations                                     |
+| `apps/mobile/src/assets/etiquetas/rolo-etiquetas.png`                 | PNG transparente do painel (rolo + fita rosa)           |
 
 ## Components
 
 - `CreateLabelForm`: modal de criação; recebe `visible`, `onClose`, `productId?` e
   `onSuccess?`, valida os campos, envia a etiqueta e pode exportá-la imediatamente.
 - `LabelPreview`: renderização compartilhada pelo formulário, detalhe e exportação.
+- `LabelCard`: card branco da lista com miniatura real, nome, chip de categoria, data,
+  selo lima `★ mais usada` (só na de maior volume) e menu de três pontos
+  (Editar / Baixar-Compartilhar / Excluir).
+- `LabelThumbnail`: recorte compacto da etiqueta usando cores, nome impresso e logo
+  já salvos; o formato muda com o modelo (círculo, retângulo, oval, scalloped).
 - `LabelProductPicker`, `TemplatePicker`, `LabelStyleEditor` e `LabelLayoutEditor`: seleção do
   produto, modelo, visual e formato de impressão, respectivamente.
 - A edição e as ações de detalhe ficam na tela `app/labels.tsx` e reutilizam o preview.
 
 ## Hooks
 
-- `useLabels` e `useLabel`: listagem paginada/filtro por produto e detalhe.
+- `useLabels` e `useLabel`: listagem paginada/filtro por produto e detalhe. A tela
+  de lista pede `limit: 100` para busca e chips em memória.
+- `useTemplates`: modelos com cache permanente durante a sessão.
 - `useTemplates`: modelos com cache permanente durante a sessão.
 - `useCreateLabel`, `useUpdateLabel` e `useDeleteLabel`: mutations que invalidam a chave
   `['labels']`.
@@ -96,12 +107,16 @@ O QR e opcional. A feature funciona mesmo sem catalogo publicado.
 - React Query mantém lista, detalhe e modelos em cache; mutations invalidam somente etiquetas.
 - O preview é derivado do estado local, sem round-trip de rede.
 - A imagem do logo é enviada apenas no submit e os modelos usam `staleTime: Infinity`.
+- Busca e chips (lista completa / Recentes / Mais usadas) filtram e ordenam em memória
+  (`visibleLabels`). A listagem pede `limit: 100` no GET já existente; sem endpoint novo.
+- A categoria do chip vem dos produtos já carregados (`useAllProducts`); não há join na API.
 
 ## Test matrix
 
 - [x] Conversão e validação das datas opcionais.
 - [x] HTML/PDF omite campos regulatórios e mantém identificação, contato, logo e QR.
 - [x] Exportação cobre etiqueta única, medidas em milímetros e quantidade limitada pela folha A4.
+- [x] Busca por nome/categoria, ordenação Recentes/Mais usadas e selo da etiqueta de maior volume.
 - [ ] Fluxo visual completo de criar, editar e excluir no dispositivo.
 
 ## Examples
@@ -109,6 +124,11 @@ O QR e opcional. A feature funciona mesmo sem catalogo publicado.
 - Etiqueta simples: nome do produto e observação livre.
 - Etiqueta com rastreio: datas, contato do produtor e QR para o produto no catálogo da conta.
 - Impressão em lote: folha A4 com largura, altura e quantidade definidas pela usuária.
+- Fluxo da lista: voltar + título + subtítulo -> painel vinho (contagem real + PNG
+  `rolo-etiquetas.png`) -> busca -> chips Recentes / Mais usadas -> "Suas etiquetas"
+  com a quantidade filtrada -> cards -> CTA único `+ Nova etiqueta`.
+- Fluxo de detalhe: toque no card ou Editar no menu -> modal (preview / edição /
+  Baixar-Compartilhar / Excluir). O menu da lista reusa as mesmas confirmações.
 
 ## LabelData usado no fluxo novo
 
@@ -162,3 +182,8 @@ registros existentes nao quebrem, mas nao aparecem no formulario, preview ou PDF
 - 2026-07-20: `data.layout` passou a salvar largura, altura e quantidade por folha A4. O preview
   respeita a proporcao, o PDF usa medidas reais em milimetros e a quantidade nao pode exceder a
   capacidade fisica calculada da folha. A personalizacao pertence ao plano Profissional.
+- 2026-08-22: a lista passou a um painel vinho (`wineFill`) com o PNG oficial
+  `rolo-etiquetas.png`, busca, chips Recentes/Mais usadas e cards brancos com miniatura
+  real. A contagem vem de `total`. Sem campo de uso na API, o selo lima usa
+  `copiesPerSheet` (volume por folha); empate fica com a etiqueta mais antiga.
+  Um único CTA `+ Nova etiqueta` no rodapé; o `+` do cabeçalho saiu.

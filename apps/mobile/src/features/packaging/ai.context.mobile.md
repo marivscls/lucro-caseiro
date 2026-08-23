@@ -19,16 +19,17 @@ Gerenciar embalagens utilizadas nos produtos: cadastrar, listar, editar e exclui
 
 ## Code pointers
 
-| Arquivo                                                              | Descricao                                                                                                                    |
-| -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `apps/mobile/src/features/packaging/api.ts`                          | Funcoes HTTP (fetchPackagingList, fetchPackaging, createPackaging, updatePackaging, deletePackaging, linkPackagingToProduct) |
-| `apps/mobile/src/features/packaging/hooks.ts`                        | React Query hooks                                                                                                            |
-| `apps/mobile/src/features/packaging/domain.ts`                       | Funcoes puras (typeLabel, typeEmoji, typeColor, totalStockCost, buildPackagingShareText, PACKAGING_TYPES)                    |
-| `apps/mobile/src/features/packaging/components/packaging-form.tsx`   | Formulario unificado (criar + editar)                                                                                        |
-| `apps/mobile/src/features/packaging/components/packaging-card.tsx`   | Card da lista (avatar + nome + badge de tipo + custo + menu)                                                                 |
-| `apps/mobile/src/features/packaging/components/packaging-detail.tsx` | Tela de detalhe (resumo + informacoes + compartilhar)                                                                        |
-| `apps/mobile/src/features/packaging/components/packaging-avatar.tsx` | Avatar (foto da embalagem ou emoji+cor por tipo)                                                                             |
-| `apps/mobile/src/app/packaging.tsx`                                  | Screen (rota `/packaging`)                                                                                                   |
+| Arquivo                                                              | Descricao                                                                                                                                                          |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `apps/mobile/src/features/packaging/api.ts`                          | Funcoes HTTP (fetchPackagingList, fetchPackaging, createPackaging, updatePackaging, deletePackaging, linkPackagingToProduct)                                       |
+| `apps/mobile/src/features/packaging/hooks.ts`                        | React Query hooks                                                                                                                                                  |
+| `apps/mobile/src/features/packaging/domain.ts`                       | Funcoes puras (typeLabel, typeEmoji, typeColor, typeStripeColor, totalStockCost, restockCount, packagingIllustrationSlug, PACKAGING_TYPES, PACKAGING_LIST_FILTERS) |
+| `apps/mobile/src/features/packaging/components/packaging-form.tsx`   | Formulario unificado (criar + editar)                                                                                                                              |
+| `apps/mobile/src/features/packaging/components/packaging-card.tsx`   | Card compacto (faixa, miniatura, chip, estoque, preco, menu)                                                                                                       |
+| `apps/mobile/src/features/packaging/components/packaging-detail.tsx` | Tela de detalhe (resumo + informacoes + compartilhar)                                                                                                              |
+| `apps/mobile/src/features/packaging/components/packaging-avatar.tsx` | Avatar (foto, ilustracao unica por nome, ou emoji da categoria)                                                                                                    |
+| `apps/mobile/src/assets/embalagens-hero.png`                         | PNG oficial do painel (caixa kraft, sacola e rolo de etiquetas)                                                                                                    |
+| `apps/mobile/src/app/packaging.tsx`                                  | Screen (rota `/packaging`)                                                                                                                                         |
 
 ## Components
 
@@ -45,8 +46,9 @@ Gerenciar embalagens utilizadas nos produtos: cadastrar, listar, editar e exclui
 ### `PackagingCard`
 
 - **Props:** `{ packaging; onPress; onEdit; onDelete }`
-- Avatar + nome + badge de tipo (cor por tipo) + subtitulo (fornecedor, se houver; senao o tipo) + custo +
-  chevron. O menu de 3 pontinhos (`ellipsis-vertical`) abre acoes (Editar / Excluir).
+- Card compacto (~80px) com faixa lateral da categoria, miniatura circular,
+  nome, chip de tipo, estoque/fornecedor, preço, menu e chevron. O menu de 3
+  pontinhos (`ellipsis-vertical`) abre acoes (Editar / Excluir).
 
 ### `PackagingDetail`
 
@@ -107,6 +109,8 @@ Gerenciar embalagens utilizadas nos produtos: cadastrar, listar, editar e exclui
 - [x] `domain.typeLabel` mapeia cada tipo conhecido e faz fallback para o proprio valor
 - [x] `domain.typeEmoji` retorna emoji por tipo (caixa como fallback)
 - [x] `domain.totalStockCost` soma o custo unitario das embalagens
+- [x] `domain.restockCount` e zero enquanto o contrato nao persiste estoque
+- [x] `domain.packagingIllustrationSlug` gera slugs distintos por nome
 - [x] `domain.buildPackagingShareText` inclui/omite fornecedor conforme presenca
 - [ ] `useCreatePackaging` invalida cache apos criacao
 - [ ] `PackagingForm` valida nome obrigatorio e custo > 0
@@ -114,8 +118,10 @@ Gerenciar embalagens utilizadas nos produtos: cadastrar, listar, editar e exclui
 ## Examples
 
 - Acessado via Home (quick access "Embalagens") ou rota `/packaging`.
-- Fluxo lista: top bar (voltar + "Nova embalagem") -> busca/Filtros -> 2 cards de resumo
-  (total + custo investido) -> cards de embalagem -> CTA tracejado "Adicionar nova embalagem".
+- Fluxo lista: top bar (voltar + "Embalagens" + `+`) -> painel vinho (total
+  cadastrado, custo investido, itens para repor + PNG `embalagens-hero.png`) ->
+  busca/Filtros -> chips Todas/Caixas/Potes/Sacolas/Filmes -> "Suas embalagens"
+  com contagem filtrada -> cards -> CTA tracejado "Adicionar nova embalagem".
 - Fluxo detalhe: card -> modal detalhe (Fechar/Editar) -> "Editar" abre o form de edicao
   (voltar + "Editar embalagem" + Excluir no topo).
 
@@ -134,3 +140,10 @@ Gerenciar embalagens utilizadas nos produtos: cadastrar, listar, editar e exclui
 - 2026-08-18: filtros por tipo da lista usam o `Chip` compartilhado com badge
   de contagem local. O estado selecionado segue o rosa de marca, não a cor
   semântica de cada tipo.
+- 2026-08-22: a lista passou a um painel vinho (`wineFill`) com o PNG oficial
+  `embalagens-hero.png`, busca + Filtros, chips horizontais (Todas / Caixas /
+  Potes / Sacolas / Filmes) e cards compactos com faixa por categoria. Totais
+  vêm dos dados reais: cadastradas = `total`, investidos = `totalStockCost`,
+  para repor = `restockCount` (zero enquanto o contrato não persiste estoque).
+  Miniaturas usam `photoUrl` ou slug único do nome; o botão `+` e as rotas
+  permaneceram iguais.

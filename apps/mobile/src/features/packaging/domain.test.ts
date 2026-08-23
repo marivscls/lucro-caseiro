@@ -2,11 +2,19 @@ import { describe, expect, it } from "vitest";
 import type { Packaging } from "@lucro-caseiro/contracts";
 
 import {
+  PACKAGING_EXTRA_FILTERS,
+  PACKAGING_LIST_FILTERS,
   PACKAGING_TYPES,
   buildPackagingShareText,
+  isLowStock,
+  packagingHeroIllustrationWidth,
+  packagingHeroPanelHeight,
+  packagingIllustrationSlug,
+  restockCount,
   totalStockCost,
   typeEmoji,
   typeLabel,
+  typeStripeColor,
 } from "./domain";
 
 function makePackaging(overrides: Partial<Packaging> = {}): Packaging {
@@ -69,6 +77,76 @@ describe("totalStockCost", () => {
 
   it("é zero quando não há embalagens", () => {
     expect(totalStockCost([])).toBe(0);
+  });
+});
+
+describe("list filters", () => {
+  it("expõe as cinco categorias da referência sem esconder Filmes", () => {
+    expect(PACKAGING_LIST_FILTERS.map((filter) => filter.label)).toEqual([
+      "Todas",
+      "Caixas",
+      "Potes",
+      "Sacolas",
+      "Filmes",
+    ]);
+  });
+
+  it("abre Rótulo e Outro só no botão Filtros", () => {
+    expect(PACKAGING_EXTRA_FILTERS.map((filter) => filter.value)).toEqual([
+      "label",
+      "other",
+    ]);
+  });
+});
+
+describe("restockCount", () => {
+  it("não inventa estoque baixo enquanto o contrato não persiste quantidade", () => {
+    const items = [
+      makePackaging(),
+      makePackaging({ id: "33333333-3333-3333-3333-333333333333" }),
+    ];
+    expect(items.every((item) => isLowStock(item) === false)).toBe(true);
+    expect(restockCount(items)).toBe(0);
+  });
+});
+
+describe("typeStripeColor", () => {
+  it("usa faixas dessaturadas por categoria", () => {
+    expect(typeStripeColor("box")).toBe("#8FA0AE");
+    expect(typeStripeColor("pot")).toBe("#C4B4D4");
+    expect(typeStripeColor("bag")).toBe("#D2B48C");
+    expect(typeStripeColor("film")).toBe("#9BB89A");
+  });
+});
+
+describe("packagingIllustrationSlug", () => {
+  it("gera slugs distintos para embalagens diferentes", () => {
+    expect(packagingIllustrationSlug("[massa] Caixa kraft P")).toBe("caixa-kraft-p");
+    expect(packagingIllustrationSlug("[massa] Caixa bolo 25 cm")).toBe(
+      "caixa-bolo-25-cm",
+    );
+    expect(packagingIllustrationSlug("[massa] Pote 250 ml")).toBe("pote-250-ml");
+    expect(packagingIllustrationSlug("[massa] Forma marmita 500 ml")).toBe(
+      "forma-marmita-500-ml",
+    );
+    expect(packagingIllustrationSlug("[massa] Sacola personalizada")).toBe(
+      "sacola-personalizada",
+    );
+    expect(packagingIllustrationSlug("[massa] Filme PVC")).toBe("filme-pvc");
+  });
+});
+
+describe("packaging hero metrics", () => {
+  it("mantém o PNG entre 48% e 52% da largura do painel", () => {
+    expect(packagingHeroIllustrationWidth(328)).toBe(Math.round(328 * 0.48));
+    expect(packagingHeroIllustrationWidth(358)).toBe(Math.round(358 * 0.5));
+    expect(packagingHeroIllustrationWidth(398)).toBe(Math.round(398 * 0.52));
+  });
+
+  it("encolhe o painel abaixo de 360px", () => {
+    expect(packagingHeroPanelHeight(320)).toBe(196);
+    expect(packagingHeroPanelHeight(360)).toBe(210);
+    expect(packagingHeroPanelHeight(430)).toBe(210);
   });
 });
 

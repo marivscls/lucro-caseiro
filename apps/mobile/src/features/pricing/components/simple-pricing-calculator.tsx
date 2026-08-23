@@ -5,6 +5,7 @@ import {
   Input,
   Typography,
   fonts,
+  fontSizes,
   radii,
   spacing,
   useTheme,
@@ -17,6 +18,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  Text,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -24,6 +26,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import pricingCostsIcon from "../../../assets/pricing-costs-icon.png";
 import { AppIcon, type AppIconName } from "../../../shared/components/app-icon";
 import { useBrandIllustration } from "../../../shared/brand-illustrations";
+import { useBrandScreenPalette } from "../../../shared/brand-palette";
 import { FieldLabel, TextFieldCard } from "../../../shared/components/form-field";
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
@@ -307,11 +310,19 @@ function CostRow({
   );
 }
 
+const ESTIMATE_LIME = "#DCE86A";
+const ESTIMATE_LIME_SOFT = "#F1F4C3";
+const ESTIMATE_INK = "#24181E";
+const ESTIMATE_BURNT_PINK = "#B65F72";
+const ESTIMATE_SOFT_PINK = "#F5E5E8";
+const ESTIMATE_POSITIVE = "#2F855A";
+
 function PricingResultRow({
   highlight = false,
   icon,
   info = false,
   label,
+  onDark = false,
   value,
   valueColor,
 }: Readonly<{
@@ -319,24 +330,34 @@ function PricingResultRow({
   icon: AppIconName;
   info?: boolean;
   label: string;
+  onDark?: boolean;
   value: number;
   valueColor?: string;
 }>) {
   const { theme } = useTheme();
+  const pal = useBrandScreenPalette();
+  const mutedOnDark = "rgba(255,255,255,0.78)";
+  const rowBorder = onDark ? "rgba(255,255,255,0.14)" : theme.colors.border;
+  let iconColor = theme.colors.primaryStrong;
+  if (onDark) iconColor = pal.rose;
+  let labelColor = theme.colors.textSecondary;
+  if (highlight) labelColor = ESTIMATE_INK;
+  else if (onDark) labelColor = mutedOnDark;
 
   return (
     <View
       style={{
         alignItems: "center",
-        backgroundColor: highlight ? theme.colors.surfaceElevated : "transparent",
-        borderColor: highlight ? theme.colors.border : "transparent",
-        borderBottomColor: theme.colors.border,
-        borderBottomWidth: highlight ? 0 : 1,
+        backgroundColor: highlight ? ESTIMATE_LIME_SOFT : "transparent",
+        borderColor: highlight ? ESTIMATE_LIME : rowBorder,
+        borderBottomColor: highlight ? ESTIMATE_LIME : rowBorder,
+        borderBottomWidth: 1,
         borderRadius: highlight ? radii.md : 0,
         borderWidth: highlight ? 1 : 0,
         flexDirection: "row",
         gap: spacing.md,
         justifyContent: "space-between",
+        marginBottom: highlight ? spacing.md : 0,
         marginHorizontal: highlight ? spacing.md : 0,
         marginTop: highlight ? spacing.sm : 0,
         minHeight: 44,
@@ -352,10 +373,25 @@ function PricingResultRow({
           minWidth: 0,
         }}
       >
-        <AppIcon name={icon} size={16} color={theme.colors.primaryStrong} />
+        {highlight ? (
+          <View
+            style={{
+              alignItems: "center",
+              backgroundColor: ESTIMATE_SOFT_PINK,
+              borderRadius: radii.full,
+              height: 24,
+              justifyContent: "center",
+              width: 24,
+            }}
+          >
+            <AppIcon name={icon} size={16} color={ESTIMATE_BURNT_PINK} />
+          </View>
+        ) : (
+          <AppIcon name={icon} size={16} color={iconColor} />
+        )}
         <Typography
           variant={highlight ? "captionBold" : "caption"}
-          color={highlight ? theme.colors.text : theme.colors.textSecondary}
+          color={labelColor}
           numberOfLines={1}
           style={{ flexShrink: 1 }}
         >
@@ -365,13 +401,29 @@ function PricingResultRow({
           <AppIcon
             name="information-circle-outline"
             size={14}
-            color={theme.colors.textSecondary}
+            color={onDark ? mutedOnDark : theme.colors.textSecondary}
           />
         ) : null}
       </View>
-      <Typography variant="captionBold" color={valueColor}>
-        {formatCurrency(value)}
-      </Typography>
+      {highlight ? (
+        <Text
+          style={{
+            color: ESTIMATE_POSITIVE,
+            fontFamily: fonts.extraBold,
+            fontSize: fontSizes.xs,
+            lineHeight: 18,
+          }}
+        >
+          {formatCurrency(value)}
+        </Text>
+      ) : (
+        <Typography
+          variant="captionBold"
+          color={valueColor ?? (onDark ? pal.onWine : undefined)}
+        >
+          {formatCurrency(value)}
+        </Typography>
+      )}
     </View>
   );
 }
@@ -432,6 +484,7 @@ export function SimplePricingCalculator({
   onCreateProduct,
 }: SimplePricingCalculatorProps) {
   const { theme } = useTheme();
+  const pal = useBrandScreenPalette();
   const pricingCostsHero = useBrandIllustration("pricingCostsHero");
   const pricingResultHero = useBrandIllustration("pricingResultHero");
   const experienceCopy = useBusinessCopy();
@@ -568,85 +621,111 @@ export function SimplePricingCalculator({
   const estimatePriceVariant = formattedFinalPrice.length > 9 ? "moneyLg" : "moneyHero";
 
   const estimatePanel = (
-    <View
-      style={{
-        backgroundColor: theme.colors.surface,
-        borderColor: theme.colors.border,
-        borderRadius: radii.xl,
-        borderWidth: 1,
-        overflow: "hidden",
-      }}
-    >
+    <View style={{ gap: spacing.md, width: "100%" }}>
       <View
         style={{
-          backgroundColor: theme.colors.surface,
-          justifyContent: "center",
-          minHeight: 124,
+          backgroundColor: pal.wineFill,
+          borderRadius: radii["2xl"],
           overflow: "hidden",
-          paddingHorizontal: spacing.xl,
-          paddingVertical: spacing.xl,
         }}
       >
-        <View style={{ gap: 2, maxWidth: "72%", zIndex: 1 }}>
-          <Typography variant="label">ESTIMATIVA DE PREÇO</Typography>
-          <Typography
-            variant={estimatePriceVariant}
-            color={canCalculate ? theme.colors.primaryStrong : theme.colors.textSecondary}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.55}
-          >
-            {formattedFinalPrice}
-          </Typography>
-        </View>
-        <Image
-          source={pricingResultHero}
-          resizeMode="contain"
+        <View
           style={{
-            bottom: -spacing.sm,
-            height: 112,
-            position: "absolute",
-            right: -spacing.sm,
-            width: 142,
+            justifyContent: "center",
+            minHeight: 132,
+            overflow: "hidden",
+            paddingHorizontal: spacing.xl,
+            paddingVertical: spacing.xl,
           }}
-          accessible={false}
-        />
-      </View>
-
-      <View style={{ paddingVertical: spacing.sm }}>
-        <PricingResultRow icon="briefcase-outline" label="Materiais" value={totalCost} />
-        {feesPercent > 0 && feesPercent <= 95 ? (
-          <PricingResultRow
-            icon="percent-outline"
-            info
-            label={`Taxas de venda (${String(feesPercent).replace(".", ",")}%)`}
-            value={feesAmount}
+        >
+          <View style={{ gap: spacing.sm, maxWidth: "72%", zIndex: 1 }}>
+            <Typography variant="label" color={pal.onWine}>
+              ESTIMATIVA DE PREÇO
+            </Typography>
+            <Typography
+              variant={estimatePriceVariant}
+              color={pal.onWine}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.55}
+            >
+              {formattedFinalPrice}
+            </Typography>
+            <View
+              style={{
+                alignSelf: "flex-start",
+                backgroundColor: ESTIMATE_LIME,
+                borderRadius: radii.full,
+                paddingHorizontal: spacing.md,
+                paddingVertical: spacing.xs,
+              }}
+            >
+              <Text
+                style={{
+                  color: ESTIMATE_INK,
+                  fontFamily: fonts.bold,
+                  fontSize: fontSizes.xs,
+                }}
+              >
+                Atualiza automaticamente
+              </Text>
+            </View>
+          </View>
+          <Image
+            source={pricingResultHero}
+            resizeMode="contain"
+            style={{
+              bottom: -spacing.xs,
+              height: 118,
+              position: "absolute",
+              right: -spacing.sm,
+              width: 176,
+            }}
+            accessible={false}
           />
-        ) : null}
-        <PricingResultRow
-          icon="trending-up"
-          label="Lucro desejado"
-          value={desiredProfit}
-        />
-        <PricingResultRow
-          highlight
-          icon="star"
-          label="Você ganha por unidade"
-          value={desiredProfit}
-          valueColor={theme.colors.success}
-        />
+        </View>
+
+        <View style={{ paddingTop: spacing.xs }}>
+          <PricingResultRow
+            icon="cube-outline"
+            label="Materiais"
+            onDark
+            value={totalCost}
+          />
+          {feesPercent > 0 && feesPercent <= 95 ? (
+            <PricingResultRow
+              icon="percent-outline"
+              info
+              label={`Taxas de venda (${String(feesPercent).replace(".", ",")}%)`}
+              onDark
+              value={feesAmount}
+            />
+          ) : null}
+          <PricingResultRow
+            icon="trending-up"
+            label="Lucro desejado"
+            onDark
+            value={desiredProfit}
+          />
+          <PricingResultRow
+            highlight
+            icon="star"
+            label="Você ganha por unidade"
+            onDark
+            value={desiredProfit}
+          />
+        </View>
       </View>
 
       <View
         style={{
           alignItems: "center",
-          backgroundColor: theme.colors.surfaceElevated,
-          borderColor: theme.colors.border,
+          backgroundColor: pal.white,
+          borderColor: pal.border,
           borderRadius: radii.md,
           borderWidth: 1,
           flexDirection: "row",
           gap: spacing.md,
-          margin: spacing.md,
           paddingHorizontal: spacing.md,
           paddingVertical: spacing.md,
         }}

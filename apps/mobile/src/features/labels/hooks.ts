@@ -13,7 +13,7 @@ import {
 
 const LABELS_KEY = ["labels"];
 
-export function useLabels(opts?: { page?: number; productId?: string }) {
+export function useLabels(opts?: { page?: number; productId?: string; limit?: number }) {
   const { token } = useAuth();
   return useQuery({
     queryKey: [...LABELS_KEY, opts],

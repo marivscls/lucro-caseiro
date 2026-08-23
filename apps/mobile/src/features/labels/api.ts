@@ -19,11 +19,12 @@ interface LabelTemplate {
 
 export async function fetchLabels(
   token: string,
-  opts?: { page?: number; productId?: string },
+  opts?: { page?: number; productId?: string; limit?: number },
 ): Promise<PaginatedLabels> {
   const params = new URLSearchParams();
   if (opts?.page) params.set("page", String(opts.page));
   if (opts?.productId) params.set("productId", opts.productId);
+  if (opts?.limit) params.set("limit", String(opts.limit));
   const query = params.toString();
   const queryString = query ? `?${query}` : "";
   return apiClient<PaginatedLabels>(`${BASE}${queryString}`, { token });

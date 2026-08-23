@@ -22,6 +22,8 @@ import nicheBeleza from "../assets/onboarding-niche-beleza.png";
 import nicheFotografia from "../assets/onboarding-niche-fotografia.png";
 import nichePapelaria from "../assets/onboarding-niche-papelaria.png";
 import nicheSalgados from "../assets/onboarding-niche-salgados.png";
+import embalagensHero from "../assets/embalagens-hero.png";
+import etiquetasHero from "../assets/etiquetas/rolo-etiquetas.png";
 import packagingEmpty from "../assets/packaging-empty.png";
 import pricingCostsHero from "../assets/pricing-costs-hero.png";
 import pricingCostsIcon from "../assets/pricing-costs-icon.png";
@@ -64,6 +66,8 @@ const staticImageAssets: readonly ImageSourcePropType[] = [
   nicheFotografia,
   nichePapelaria,
   nicheSalgados,
+  embalagensHero,
+  etiquetasHero,
   packagingEmpty,
   pricingCostsHero,
   pricingCostsIcon,

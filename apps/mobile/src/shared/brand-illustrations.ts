@@ -9,6 +9,8 @@ import labelsEmpty from "../assets/labels-empty.png";
 import onboardingSalesEmpty from "../assets/sales-empty.png";
 import pricingCostsHero from "../assets/pricing-costs-hero.png";
 import pricingEmpty from "../assets/pricing-empty.png";
+import embalagensHero from "../assets/embalagens-hero.png";
+import etiquetasHero from "../assets/etiquetas/rolo-etiquetas.png";
 import pricingResultHero from "../assets/pricing-result-hero.png";
 import productsEmpty from "../assets/products-empty.png";
 import purchasesEmpty from "../assets/purchases-empty.png";
@@ -34,6 +36,8 @@ import revendaSuppliersEmpty from "../../../../packages/brands/lucro-revenda/ass
 export type BrandIllustrationName =
   | "agendaEmpty"
   | "catalogHero"
+  | "embalagensHero"
+  | "etiquetasHero"
   | "clientsEmpty"
   | "financeEmpty"
   | "labelsEmpty"
@@ -53,6 +57,8 @@ const defaultIllustrations: Readonly<Record<BrandIllustrationName, ImageRequireS
   {
     agendaEmpty: agendaEmpty as ImageRequireSource,
     catalogHero: catalogHero as ImageRequireSource,
+    embalagensHero: embalagensHero as ImageRequireSource,
+    etiquetasHero: etiquetasHero as ImageRequireSource,
     clientsEmpty: clientsEmpty as ImageRequireSource,
     financeEmpty: financeEmpty as ImageRequireSource,
     labelsEmpty: labelsEmpty as ImageRequireSource,
@@ -72,6 +78,8 @@ const defaultIllustrations: Readonly<Record<BrandIllustrationName, ImageRequireS
 const revendaIllustrations: typeof defaultIllustrations = {
   agendaEmpty: revendaAgendaEmpty as ImageRequireSource,
   catalogHero: revendaCatalogHero as ImageRequireSource,
+  embalagensHero: embalagensHero as ImageRequireSource,
+  etiquetasHero: etiquetasHero as ImageRequireSource,
   clientsEmpty: revendaClientsEmpty as ImageRequireSource,
   financeEmpty: revendaFinanceEmpty as ImageRequireSource,
   labelsEmpty: revendaLabelsEmpty as ImageRequireSource,

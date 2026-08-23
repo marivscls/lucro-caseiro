@@ -26,6 +26,11 @@ interface IngredientAvatarProps {
   readonly matchCatalog?: boolean;
   /** Encaixe da imagem no círculo. Default `cover` para não alterar telas existentes. */
   readonly imageResizeMode?: "cover" | "contain";
+  /**
+   * Slug de ilustração explícito (ex.: embalagem pelo nome visível). Tem prioridade
+   * sobre o slug do catálogo e evita miniaturas repetidas entre itens diferentes.
+   */
+  readonly illustrationSlug?: string | null;
   readonly accessibilityLabel?: string;
 }
 
@@ -45,12 +50,13 @@ export function IngredientAvatar({
   fallbackColor,
   matchCatalog = true,
   imageResizeMode = "cover",
+  illustrationSlug,
   accessibilityLabel,
 }: IngredientAvatarProps) {
   const [imageFailed, setImageFailed] = useState(false);
   const chosen = emoji?.trim() ? emoji.trim() : null;
   const entry = matchCatalog ? resolveIngredient(name) : null;
-  const slug = catalogIllustrationSlug(name, matchCatalog);
+  const slug = illustrationSlug?.trim() || catalogIllustrationSlug(name, matchCatalog);
   const color = entry?.color ?? fallbackColor ?? FALLBACK_COLOR;
   const displayEmoji = chosen ?? entry?.emoji ?? fallbackEmoji ?? FALLBACK_EMOJI;
   // Prioridade: foto explícita > emoji escolhido > PNG de catálogo (só se matchCatalog) > fallback.

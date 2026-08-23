@@ -1,13 +1,22 @@
 import { formatCurrency } from "../../../shared/utils/format";
 import type { Packaging } from "@lucro-caseiro/contracts";
-import { Typography, useTheme, spacing, radii, fonts } from "@lucro-caseiro/ui";
-import { AppIcon } from "../../../shared/components/app-icon";
+import {
+  Typography,
+  fonts,
+  fontSizes,
+  radii,
+  spacing,
+  useTheme,
+} from "@lucro-caseiro/ui";
 import React from "react";
 import { Pressable, View } from "react-native";
 
-import { typeColor, typeLabel } from "../domain";
-import { PackagingAvatar } from "./packaging-avatar";
+import { brandScreenPalette } from "../../../shared/brand-palette";
+import { AppIcon } from "../../../shared/components/app-icon";
 import { showAlert } from "../../../shared/components/alert-store";
+import { displayIngredientName } from "../../../shared/ingredient-image/resolve";
+import { isLowStock, typeLabel, typeStripeColor } from "../domain";
+import { PackagingAvatar } from "./packaging-avatar";
 
 interface PackagingCardProps {
   readonly packaging: Packaging;
@@ -23,16 +32,15 @@ export function PackagingCard({
   onDelete,
 }: PackagingCardProps) {
   const { theme } = useTheme();
-  const cardBg = theme.colors.surfaceElevated;
-  const border = theme.colors.border;
-  const tColor = typeColor(theme, packaging.type);
-
-  const subtitle = packaging.supplier ?? typeLabel(packaging.type);
-  const subtitleIcon = packaging.supplier ? "storefront-outline" : "cube-outline";
+  const palette = brandScreenPalette(theme);
+  const displayName = displayIngredientName(packaging.name);
+  const stripe = typeStripeColor(packaging.type);
+  const lowStock = isLowStock(packaging);
+  const stockHint = packaging.supplier?.trim() || null;
 
   function openMenu() {
     showAlert({
-      title: packaging.name,
+      title: displayName,
       message: "O que você quer fazer?",
       buttons: [
         { text: "Editar", onPress: onEdit },
@@ -45,89 +53,141 @@ export function PackagingCard({
   return (
     <View
       style={{
-        borderRadius: radii.xl,
+        minHeight: 80,
+        borderRadius: radii.lg,
         borderWidth: 1,
-        borderColor: border,
-        backgroundColor: cardBg,
-        padding: spacing.md,
+        borderColor: palette.border,
+        backgroundColor: palette.white,
+        overflow: "hidden",
         flexDirection: "row",
-        alignItems: "center",
-        gap: spacing.md,
       }}
     >
-      <PackagingAvatar
-        name={packaging.name}
-        type={packaging.type}
-        photoUrl={packaging.photoUrl}
+      <View
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        style={{ width: 4, alignSelf: "stretch", backgroundColor: stripe }}
       />
 
-      <Pressable style={{ flex: 1, gap: 6 }} onPress={onPress}>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: spacing.sm,
-            flexWrap: "wrap",
-          }}
+      <View
+        style={{
+          flex: 1,
+          minWidth: 0,
+          flexDirection: "row",
+          alignItems: "center",
+          gap: spacing.md,
+          paddingVertical: spacing.sm,
+          paddingLeft: spacing.md,
+          paddingRight: spacing.sm,
+        }}
+      >
+        <PackagingAvatar
+          name={packaging.name}
+          type={packaging.type}
+          photoUrl={packaging.photoUrl}
+          size={52}
+        />
+
+        <Pressable
+          onPress={onPress}
+          accessibilityRole="button"
+          accessibilityLabel={`Ver detalhes de ${displayName}`}
+          style={({ pressed }) => ({
+            flex: 1,
+            minWidth: 0,
+            gap: 4,
+            opacity: pressed ? 0.7 : 1,
+          })}
         >
           <Typography
             variant="bodyBold"
-            color={theme.colors.text}
+            color={palette.ink}
             numberOfLines={1}
-            style={{ flexShrink: 1 }}
+            style={{ fontFamily: fonts.bold, fontSize: fontSizes.md }}
           >
-            {packaging.name}
+            {displayName}
           </Typography>
           <View
             style={{
-              backgroundColor: `${tColor}26`,
-              paddingHorizontal: 10,
-              paddingVertical: 3,
+              alignSelf: "flex-start",
+              backgroundColor: palette.surface,
+              paddingHorizontal: spacing.sm,
+              paddingVertical: 2,
               borderRadius: radii.full,
             }}
           >
             <Typography
               variant="caption"
-              color={tColor}
-              style={{ fontFamily: fonts.bold }}
+              color={palette.ink}
+              style={{ fontFamily: fonts.medium, fontSize: 12, lineHeight: 16 }}
             >
               {typeLabel(packaging.type)}
             </Typography>
           </View>
-        </View>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-          <AppIcon name={subtitleIcon} size={14} color={theme.colors.textSecondary} />
-          <Typography
-            variant="caption"
-            color={theme.colors.textSecondary}
-            numberOfLines={1}
-          >
-            {subtitle}
-          </Typography>
-        </View>
-      </Pressable>
-
-      <View style={{ alignItems: "flex-end", gap: spacing.sm }}>
-        <Pressable
-          onPress={openMenu}
-          accessibilityRole="button"
-          accessibilityLabel={`Ações de ${packaging.name}`}
-          hitSlop={8}
-          style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, padding: 2 })}
-        >
-          <AppIcon
-            name="ellipsis-vertical"
-            size={20}
-            color={theme.colors.textSecondary}
-          />
+          {lowStock ? (
+            <View
+              style={{
+                alignSelf: "flex-start",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 4,
+                backgroundColor: palette.lime,
+                borderRadius: radii.full,
+                paddingHorizontal: spacing.sm,
+                paddingVertical: 2,
+              }}
+            >
+              <AppIcon name="alert-circle-outline" size={12} color={palette.ink} />
+              <Typography
+                variant="caption"
+                color={palette.ink}
+                style={{ fontFamily: fonts.bold, fontSize: 11, lineHeight: 14 }}
+              >
+                estoque baixo
+              </Typography>
+            </View>
+          ) : (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <AppIcon name="cube-outline" size={14} color={palette.muted} />
+              <Typography
+                variant="caption"
+                color={palette.muted}
+                numberOfLines={1}
+                style={{ fontFamily: fonts.medium, flexShrink: 1 }}
+              >
+                {stockHint ?? typeLabel(packaging.type)}
+              </Typography>
+            </View>
+          )}
         </Pressable>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>
-          <Typography variant="bodyBold" color={theme.colors.text}>
-            {formatCurrency(packaging.unitCost)}
-          </Typography>
-          <Pressable onPress={onPress} hitSlop={8} accessibilityLabel="Ver detalhes">
-            <AppIcon name="chevron-forward" size={20} color={theme.colors.primary} />
+
+        <View style={{ alignItems: "flex-end", gap: spacing.xs }}>
+          <Pressable
+            onPress={openMenu}
+            accessibilityRole="button"
+            accessibilityLabel={`Ações de ${displayName}`}
+            hitSlop={10}
+            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, padding: 2 })}
+          >
+            <AppIcon name="ellipsis-vertical" size={20} color={palette.muted} />
           </Pressable>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Typography
+              variant="bodyBold"
+              color={palette.ink}
+              style={{ fontFamily: fonts.bold, fontSize: fontSizes.md }}
+            >
+              {formatCurrency(packaging.unitCost)}
+            </Typography>
+            <Pressable
+              onPress={onPress}
+              hitSlop={10}
+              accessibilityRole="button"
+              accessibilityLabel={`Abrir ${displayName}`}
+              style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, padding: 2 })}
+            >
+              <AppIcon name="chevron-forward" size={20} color={palette.rose} />
+            </Pressable>
+          </View>
         </View>
       </View>
     </View>

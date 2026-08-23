@@ -1,8 +1,8 @@
-import { useTheme } from "@lucro-caseiro/ui";
 import React from "react";
 
+import { displayIngredientName } from "../../../shared/ingredient-image/resolve";
 import { IngredientAvatar } from "../../../shared/ingredient-image/ingredient-avatar";
-import { typeColor, typeEmoji } from "../domain";
+import { packagingIllustrationSlug, typeEmoji, typeSurfaceColor } from "../domain";
 
 interface PackagingAvatarProps {
   readonly name: string;
@@ -12,8 +12,9 @@ interface PackagingAvatarProps {
 }
 
 /**
- * Avatar da embalagem: usa a foto enviada quando existe; senão, cai no emoji +
- * cor do tipo (caixa/sacola/pote/...). Não casa com o catálogo de insumos.
+ * Avatar da embalagem: usa a foto enviada quando existe; senão, busca a
+ * ilustração pelo slug único do nome (não repete a mesma miniatura entre
+ * produtos). Sem imagem, cai no emoji + fundo da categoria.
  */
 export function PackagingAvatar({
   name,
@@ -21,15 +22,18 @@ export function PackagingAvatar({
   photoUrl,
   size = 52,
 }: PackagingAvatarProps) {
-  const { theme } = useTheme();
+  const displayName = displayIngredientName(name);
   return (
     <IngredientAvatar
-      name={name}
+      name={displayName}
       size={size}
       photoUrl={photoUrl}
       matchCatalog={false}
+      illustrationSlug={packagingIllustrationSlug(name)}
       fallbackEmoji={typeEmoji(type)}
-      fallbackColor={typeColor(theme, type)}
+      fallbackColor={typeSurfaceColor(type)}
+      imageResizeMode="contain"
+      accessibilityLabel={displayName}
     />
   );
 }

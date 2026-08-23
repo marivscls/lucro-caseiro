@@ -2,30 +2,48 @@ import { hasActiveFeature, type Label, type LabelData } from "@lucro-caseiro/con
 import {
   Badge,
   Button,
-  Card,
   EmptyState,
+  fonts,
+  fontSizes,
   Input,
-  Typography,
   radii,
   spacing,
+  Typography,
   useBrand,
   useTheme,
 } from "@lucro-caseiro/ui";
 import { Stack, useRouter } from "expo-router";
-import React, { useState } from "react";
-import { FlatList, Image, Pressable, Switch, View } from "react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  Switch,
+  TextInput,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { publicCatalogProductUrl } from "../features/catalog/api";
 import { useCatalogSettings } from "../features/catalog/hooks";
 import { CreateLabelForm } from "../features/labels/components/create-label-form";
+import { LabelCard } from "../features/labels/components/label-card";
 import { LabelLayoutEditor } from "../features/labels/components/label-layout-editor";
 import { LabelPreview } from "../features/labels/components/label-preview";
-import { useBrandIllustration } from "../shared/brand-illustrations";
 import { LabelProductPicker } from "../features/labels/components/label-product-picker";
 import { LabelStyleEditor } from "../features/labels/components/label-style-editor";
 import { TemplatePicker } from "../features/labels/components/template-picker";
 import { brToIso, isoToBR } from "../features/labels/dates";
+import {
+  LABEL_LIST_FILTERS,
+  labelCategory,
+  labelsHeroIllustrationWidth,
+  labelsHeroPanelHeight,
+  mostUsedLabelId,
+  visibleLabels,
+  type LabelListFilter,
+} from "../features/labels/domain";
 import { exportLabelPdfWithChoice } from "../features/labels/label-export";
 import {
   useDeleteLabel,
@@ -33,15 +51,17 @@ import {
   useLabels,
   useUpdateLabel,
 } from "../features/labels/hooks";
+import { useAllProducts } from "../features/products/hooks";
 import { useProfile } from "../features/subscription/hooks";
 import { AppIcon } from "../shared/components/app-icon";
 import { showAlert } from "../shared/components/alert-store";
 import { DateField } from "../shared/components/date-field";
 import { FormSection } from "../shared/components/form-section";
-import { FAB } from "../shared/components/fab";
 import { ScreenHeader } from "../shared/components/screen-header";
-import { SkeletonList } from "../shared/components/skeleton";
+import { Skeleton, SkeletonList } from "../shared/components/skeleton";
 import { StandardModal } from "../shared/components/standard-modal";
+import { useBrandIllustration } from "../shared/brand-illustrations";
+import { brandScreenPalette } from "../shared/brand-palette";
 import { useImagePicker } from "../shared/hooks/use-image-picker";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import {
@@ -58,10 +78,12 @@ function LabelDetailModal({
   labelId,
   visible,
   onClose,
+  startInEdit = false,
 }: Readonly<{
   labelId: string;
   visible: boolean;
   onClose: () => void;
+  startInEdit?: boolean;
 }>) {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
@@ -111,6 +133,16 @@ function LabelDetailModal({
     clearPickedLogo();
     setEditing(true);
   }
+
+  const startedEdit = useRef(false);
+  useEffect(() => {
+    startedEdit.current = false;
+  }, [labelId]);
+  useEffect(() => {
+    if (!startInEdit || !label || startedEdit.current) return;
+    startedEdit.current = true;
+    startEditing(label);
+  }, [startInEdit, label]);
 
   function validateDates(): {
     manufacturingDate?: string;
@@ -508,17 +540,213 @@ function LabelDetailModal({
   );
 }
 
-export default function LabelsScreen() {
-  const labelsEmpty = useBrandIllustration("labelsEmpty");
+function LabelsSummary({ totalCount }: Readonly<{ totalCount: number }>) {
   const { theme } = useTheme();
+  const palette = brandScreenPalette(theme);
+  const { width: viewportWidth } = useWindowDimensions();
+  const isDesktop = useDesktopLayout();
+  const hero = useBrandIllustration("etiquetasHero");
+  const compact = viewportWidth < 360;
+  const gutter = isDesktop ? 0 : spacing.lg;
+  const panelWidth = Math.min(720, Math.max(280, viewportWidth - gutter * 2));
+  const panelHeight = labelsHeroPanelHeight(viewportWidth);
+  const illustrationWidth = labelsHeroIllustrationWidth(panelWidth);
+  const illustrationHeight = Math.min(panelHeight - 8, illustrationWidth);
+  const countLabel = totalCount === 1 ? "etiqueta" : "etiquetas";
+
+  return (
+    <View
+      style={{
+        height: panelHeight,
+        borderRadius: radii["2xl"],
+        backgroundColor: palette.wineFill,
+        overflow: "hidden",
+        paddingVertical: compact ? spacing.md : spacing.lg,
+        paddingLeft: compact ? spacing.md : spacing.lg,
+        paddingRight: spacing.sm,
+        ...theme.shadows.sm,
+      }}
+    >
+      <View
+        style={{
+          width: "50%",
+          maxWidth: "52%",
+          height: "100%",
+          zIndex: 1,
+          justifyContent: "center",
+          gap: spacing.sm,
+        }}
+      >
+        <Typography
+          variant="label"
+          color={palette.rose}
+          numberOfLines={1}
+          style={{ fontFamily: fonts.bold, letterSpacing: 1.4 }}
+        >
+          SUA COLEÇÃO
+        </Typography>
+        <Typography
+          color={palette.onWine}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+          style={{
+            fontFamily: fonts.extraBold,
+            fontSize: compact ? 26 : 32,
+            lineHeight: compact ? 30 : 36,
+          }}
+        >
+          {totalCount} {countLabel}
+        </Typography>
+        <Typography
+          color={palette.onWine}
+          style={{ fontFamily: fonts.medium, fontSize: compact ? 13 : fontSizes.sm }}
+        >
+          prontas para imprimir
+        </Typography>
+      </View>
+
+      <View
+        pointerEvents="none"
+        style={{
+          position: "absolute",
+          right: compact ? 0 : 4,
+          bottom: 0,
+          width: illustrationWidth,
+          height: illustrationHeight,
+        }}
+      >
+        <Image
+          source={hero}
+          resizeMode="contain"
+          accessible={false}
+          accessibilityElementsHidden
+          style={{ width: "100%", height: "100%", backgroundColor: "transparent" }}
+        />
+      </View>
+    </View>
+  );
+}
+
+function FilterChip({
+  label,
+  selected,
+  onPress,
+}: Readonly<{ label: string; selected: boolean; onPress: () => void }>) {
+  const { theme } = useTheme();
+  const palette = brandScreenPalette(theme);
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected }}
+      style={({ pressed }) => ({
+        minHeight: 44,
+        height: 44,
+        paddingHorizontal: spacing.lg,
+        borderRadius: radii.full,
+        borderWidth: 1,
+        borderColor: selected ? palette.wineFill : palette.rose,
+        backgroundColor: selected ? palette.wineFill : palette.white,
+        alignItems: "center",
+        justifyContent: "center",
+        opacity: pressed ? 0.82 : 1,
+      })}
+    >
+      <Typography
+        variant="bodyBold"
+        color={selected ? palette.onWine : palette.ink}
+        style={{ fontFamily: selected ? fonts.bold : fonts.semiBold, fontSize: 14 }}
+      >
+        {label}
+      </Typography>
+    </Pressable>
+  );
+}
+
+function LabelsSkeleton() {
+  const { theme } = useTheme();
+  const palette = brandScreenPalette(theme);
+  const { width } = useWindowDimensions();
+  return (
+    <View style={{ gap: spacing.lg }}>
+      <Skeleton height={labelsHeroPanelHeight(width)} borderRadius={radii["2xl"]} />
+      <Skeleton height={56} borderRadius={18} />
+      <View style={{ flexDirection: "row", gap: spacing.sm }}>
+        <Skeleton width={88} height={44} borderRadius={radii.full} />
+        <Skeleton width={108} height={44} borderRadius={radii.full} />
+        <Skeleton width={128} height={44} borderRadius={radii.full} />
+      </View>
+      <View style={{ gap: spacing.md }}>
+        {Array.from({ length: 4 }, (_, index) => (
+          <View
+            key={`label-skeleton-${index}`}
+            style={{
+              minHeight: 88,
+              borderRadius: 18,
+              backgroundColor: palette.white,
+              flexDirection: "row",
+              alignItems: "center",
+              padding: spacing.md,
+              gap: spacing.md,
+            }}
+          >
+            <Skeleton width={64} height={64} borderRadius={radii.md} />
+            <View style={{ flex: 1, gap: spacing.sm }}>
+              <Skeleton width="58%" height={16} />
+              <Skeleton width={72} height={18} borderRadius={radii.full} />
+              <Skeleton width="42%" height={12} />
+            </View>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+const CREATE_CTA_HEIGHT = 56;
+
+export default function LabelsScreen() {
+  const { theme } = useTheme();
+  const palette = brandScreenPalette(theme);
   const labelsLabel = useBrand().copy.labelsLabel;
   const isDesktop = useDesktopLayout();
+  const { width } = useWindowDimensions();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { data, isLoading, error } = useLabels();
+  const { data, isLoading, error } = useLabels({ limit: 100 });
+  const { data: products } = useAllProducts();
+  const deleteLabel = useDeleteLabel();
   const [showCreate, setShowCreate] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [editOnOpen, setEditOnOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [listFilter, setListFilter] = useState<LabelListFilter>("all");
   const backToHome = !router.canGoBack();
+  const compactHeader = !isDesktop && width < 360;
+  const items = data?.items ?? [];
+  const totalCount = data?.total ?? items.length;
+
+  const categoryByProductId = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const product of products ?? []) {
+      if (product.category.trim()) map.set(product.id, product.category);
+    }
+    return map;
+  }, [products]);
+
+  const visible = useMemo(
+    () => visibleLabels(items, search, listFilter, categoryByProductId),
+    [items, search, listFilter, categoryByProductId],
+  );
+  const mostUsedId = useMemo(() => mostUsedLabelId(items), [items]);
+  const contentStyle = {
+    ...pageGutter(isDesktop, spacing.lg),
+    ...desktopStretch(isDesktop, desktopWidths.data),
+  };
+  const bottomBarPad = spacing.md + insets.bottom;
+  const listBottomPad = spacing.lg;
 
   function handleBack() {
     if (backToHome) {
@@ -528,18 +756,51 @@ export default function LabelsScreen() {
     router.back();
   }
 
-  function renderContent() {
+  function openDetail(id: string, edit = false) {
+    setEditOnOpen(edit);
+    setSelectedId(id);
+  }
+
+  function confirmDelete(labelId: string) {
+    showAlert({
+      title: "Excluir etiqueta",
+      message: "Tem certeza que deseja excluir esta etiqueta?",
+      buttons: [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: () => {
+            deleteLabel
+              .mutateAsync(labelId)
+              .then(() => {
+                if (selectedId === labelId) setSelectedId(null);
+              })
+              .catch(() => alertError("Não foi possível excluir."));
+          },
+        },
+      ],
+    });
+  }
+
+  async function printLabel(label: Label) {
+    try {
+      await exportLabelPdfWithChoice(
+        label.data,
+        label.templateId,
+        label.logoUrl,
+        label.qrCodeUrl,
+      );
+    } catch {
+      alertError("Não foi possível gerar a etiqueta. Tente novamente.");
+    }
+  }
+
+  function renderList() {
     if (isLoading) {
       return (
-        <View
-          style={{
-            flex: 1,
-            paddingVertical: spacing.xl,
-            ...pageGutter(isDesktop),
-            ...desktopStretch(isDesktop, desktopWidths.data),
-          }}
-        >
-          <SkeletonList rows={5} variant="label" />
+        <View style={{ flex: 1, paddingVertical: spacing.sm, ...contentStyle }}>
+          <LabelsSkeleton />
         </View>
       );
     }
@@ -551,105 +812,219 @@ export default function LabelsScreen() {
         />
       );
     }
-    if (!data?.items.length) {
-      return (
-        <EmptyState
-          icon={
-            <Image
-              source={labelsEmpty}
-              resizeMode="contain"
-              style={{
-                width: isDesktop ? 240 : 220,
-                height: isDesktop ? 240 : 220,
-              }}
-            />
-          }
-          title="Nenhuma etiqueta ainda"
-          description="Escolha um produto e crie uma etiqueta pronta para imprimir."
-          action={<Button title="Criar etiqueta" onPress={() => setShowCreate(true)} />}
-        />
-      );
-    }
+
     return (
-      <FlatList
-        key={isDesktop ? "desktop-labels" : "mobile-labels"}
-        data={data.items}
-        numColumns={isDesktop ? 2 : 1}
-        columnWrapperStyle={isDesktop ? { gap: spacing.md } : undefined}
-        keyExtractor={(item) => item.id}
-        ListFooterComponent={
-          <View
-            style={{
-              paddingTop: spacing.sm,
-              paddingBottom: spacing.lg + insets.bottom,
-              alignItems: isDesktop ? "flex-end" : "stretch",
-            }}
-          >
-            <Button
-              title="Nova etiqueta"
-              onPress={() => setShowCreate(true)}
-              icon={<AppIcon name="add" size={20} color={theme.colors.textOnPrimary} />}
-              style={
-                isDesktop ? { alignSelf: "flex-end" } : { width: "100%", minHeight: 52 }
-              }
-            />
-          </View>
-        }
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
-          paddingTop: spacing.xl,
-          ...pageGutter(isDesktop),
-          ...desktopStretch(isDesktop, desktopWidths.data),
+          ...contentStyle,
+          paddingTop: spacing.sm,
+          paddingBottom: listBottomPad,
           gap: spacing.md,
         }}
-        renderItem={({ item }) => (
-          <View style={isDesktop ? { flex: 1, minWidth: 0 } : undefined}>
-            <Card onPress={() => setSelectedId(item.id)}>
-              <View
+      >
+        <LabelsSummary totalCount={totalCount} />
+
+        {items.length > 0 ? (
+          <>
+            <View
+              style={{
+                minHeight: 56,
+                height: 56,
+                borderRadius: 18,
+                borderWidth: 1,
+                borderColor: palette.border,
+                backgroundColor: palette.white,
+                flexDirection: "row",
+                alignItems: "center",
+                paddingHorizontal: spacing.md,
+                gap: spacing.sm,
+              }}
+            >
+              <AppIcon name="search-outline" size={20} color={palette.muted} />
+              <TextInput
+                value={search}
+                onChangeText={setSearch}
+                placeholder="Buscar etiqueta"
+                placeholderTextColor={palette.muted}
+                accessibilityLabel="Buscar etiqueta"
+                returnKeyType="search"
                 style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: spacing.md,
+                  flex: 1,
+                  minWidth: 0,
+                  color: palette.ink,
+                  fontSize: fontSizes.md,
+                  fontFamily: fonts.regular,
+                  paddingVertical: 0,
                 }}
+              />
+              {search.length > 0 ? (
+                <Pressable
+                  onPress={() => setSearch("")}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="Limpar busca"
+                  style={{
+                    width: 44,
+                    height: 44,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <AppIcon name="close-circle" size={20} color={palette.muted} />
+                </Pressable>
+              ) : null}
+            </View>
+
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+              {LABEL_LIST_FILTERS.map((filter) => (
+                <FilterChip
+                  key={filter.value}
+                  label={filter.label}
+                  selected={listFilter === filter.value}
+                  onPress={() => setListFilter(filter.value)}
+                />
+              ))}
+            </View>
+
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: spacing.md,
+              }}
+            >
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
               >
-                <View style={{ flex: 1, gap: 2 }}>
-                  <Typography variant="bodyBold">{item.name}</Typography>
-                  <Typography variant="caption" numberOfLines={1}>
-                    {item.data.productName}
-                  </Typography>
-                </View>
-                <Typography variant="caption" color={theme.colors.textSecondary}>
-                  {new Date(item.createdAt).toLocaleDateString("pt-BR")}
+                <AppIcon name="pricetag-outline" size={18} color={palette.ink} />
+                <Typography
+                  variant="bodyBold"
+                  color={palette.ink}
+                  style={{ fontFamily: fonts.bold, fontSize: fontSizes.md }}
+                >
+                  Suas etiquetas
                 </Typography>
               </View>
-            </Card>
+              <Typography
+                variant="caption"
+                color={palette.muted}
+                style={{ fontFamily: fonts.medium }}
+              >
+                {visible.length} {visible.length === 1 ? "modelo" : "modelos"}
+              </Typography>
+            </View>
+          </>
+        ) : null}
+
+        {items.length === 0 ? (
+          <View style={{ paddingVertical: spacing["3xl"], alignItems: "center" }}>
+            <Typography
+              variant="body"
+              color={palette.muted}
+              style={{ textAlign: "center" }}
+            >
+              Escolha um produto e crie uma etiqueta pronta para imprimir.
+            </Typography>
           </View>
-        )}
-      />
+        ) : null}
+
+        {items.length > 0 && visible.length === 0 ? (
+          <View style={{ paddingVertical: spacing["3xl"], alignItems: "center" }}>
+            <Typography
+              variant="body"
+              color={palette.muted}
+              style={{ textAlign: "center" }}
+            >
+              Nenhuma etiqueta encontrada. Ajuste a busca ou o filtro.
+            </Typography>
+          </View>
+        ) : null}
+
+        {visible.length > 0 ? (
+          <View style={{ gap: spacing.md, width: "100%" }}>
+            {visible.map((label) => (
+              <LabelCard
+                key={label.id}
+                label={label}
+                category={labelCategory(label, categoryByProductId)}
+                mostUsed={label.id === mostUsedId}
+                onPress={() => openDetail(label.id)}
+                onEdit={() => openDetail(label.id, true)}
+                onPrint={() => void printLabel(label)}
+                onDelete={() => confirmDelete(label.id)}
+              />
+            ))}
+          </View>
+        ) : null}
+      </ScrollView>
     );
   }
 
   return (
     <SafeAreaView
-      style={{ flex: 1, backgroundColor: theme.colors.background }}
-      edges={["top", "bottom"]}
+      style={{ flex: 1, backgroundColor: palette.background, overflow: "hidden" }}
+      edges={["top"]}
     >
       <Stack.Screen options={{ headerShown: false }} />
       <ScreenHeader
         title={labelsLabel}
+        subtitle="Organize seus rótulos para imprimir quando precisar."
+        subtitleNumberOfLines={2}
         onBack={handleBack}
         backLabel={backToHome ? "Ir para o início" : "Voltar"}
         hideBack={isDesktop}
-        right={
-          <FAB
-            icon="add"
-            header
-            accessibilityLabel="Nova etiqueta"
-            onPress={() => setShowCreate(true)}
-          />
-        }
+        style={{ gap: spacing.sm, ...pageGutter(isDesktop, spacing.lg) }}
+        titleStyle={{
+          color: palette.ink,
+          fontFamily: fonts.extraBold,
+          fontSize: compactHeader ? 20 : 24,
+        }}
+        subtitleStyle={{
+          color: palette.muted,
+          fontFamily: fonts.regular,
+          fontSize: 14,
+          lineHeight: 20,
+        }}
       />
-      <View style={{ flex: 1 }}>{renderContent()}</View>
+
+      <View style={{ flex: 1 }}>{renderList()}</View>
+
+      {!isLoading && !error ? (
+        <View
+          style={{
+            ...contentStyle,
+            width: "100%",
+            paddingTop: spacing.sm,
+            paddingBottom: bottomBarPad,
+            backgroundColor: palette.background,
+          }}
+        >
+          <Pressable
+            onPress={() => setShowCreate(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Nova etiqueta"
+            style={({ pressed }) => ({
+              minHeight: CREATE_CTA_HEIGHT,
+              height: CREATE_CTA_HEIGHT,
+              borderRadius: 16,
+              backgroundColor: palette.rose,
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: pressed ? 0.88 : 1,
+            })}
+          >
+            <Typography
+              color={palette.onWine}
+              style={{ fontFamily: fonts.bold, fontSize: fontSizes.md }}
+            >
+              + Nova etiqueta
+            </Typography>
+          </Pressable>
+        </View>
+      ) : null}
 
       <CreateLabelForm
         visible={showCreate}
@@ -661,7 +1036,11 @@ export default function LabelsScreen() {
         <LabelDetailModal
           labelId={selectedId}
           visible
-          onClose={() => setSelectedId(null)}
+          startInEdit={editOnOpen}
+          onClose={() => {
+            setSelectedId(null);
+            setEditOnOpen(false);
+          }}
         />
       ) : null}
     </SafeAreaView>
