@@ -100,6 +100,10 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
   Ligado, a prévia e o catálogo público usam `processedUrl` quando existe e
   tratam o destaque como recorte; desligado, voltam à foto original.
 
+- 2026-08-25: no celular, a navbar flutuante do app (`MobileFloatingTabBar` no
+  root) cobre Catálogo e o editor em modal; o chrome do editor reserva
+  `floatingTabBarReserve`.
+
 - 2026-08-19: no computador (shell ≥1024), Personalizar vitrine fica no painel
   do app — sem modal em tela cheia nem navbar. Em 1200px+ o editor usa
   formulário + prévia sticky (padrão Precificação) em Identidade, Topo,

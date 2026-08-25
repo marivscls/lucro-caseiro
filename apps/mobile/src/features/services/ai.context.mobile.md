@@ -140,4 +140,6 @@ const pricing = calculateServicePricing({
   seletor de conversas, sem depender do menu de compartilhamento do Windows.
 - 2026-08-18: filtros da lista usam o `Chip` compartilhado com badge de
   contagem local (`filterServices` sem busca).
+- 2026-08-25: a navbar do app no celular vem do root (`MobileFloatingTabBar`);
+  a tela de serviços não duplica mais uma barra própria.
 - 2026-08-24: estado vazio da lista deixou de usar ilustração PNG.

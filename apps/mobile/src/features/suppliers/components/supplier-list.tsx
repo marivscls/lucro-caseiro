@@ -426,7 +426,7 @@ export function SupplierList(props: Readonly<SupplierListProps>) {
           alignSelf: "center",
           paddingHorizontal: spacing.lg,
           paddingTop: spacing.md,
-          paddingBottom: 132,
+          paddingBottom: spacing["3xl"],
           gap: spacing.md,
         }}
         ListHeaderComponent={header}

@@ -16,7 +16,7 @@ import {
 import { Stack, useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import { FlatList, Image, Pressable, View, useWindowDimensions } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import servicesHeroToolkit from "../assets/services-hero-toolkit.png";
 import { OrderForm } from "../features/orders/components/order-form";
@@ -446,125 +446,6 @@ function ServiceCard({
   );
 }
 
-function BottomNavItem({
-  icon,
-  label,
-  active,
-  onPress,
-}: Readonly<{
-  icon: AppIconName;
-  label: string;
-  active?: boolean;
-  onPress: () => void;
-}>) {
-  const { theme } = useTheme();
-  const palette = brandScreenPalette(theme);
-  const color = active ? palette.rose : palette.warmGray;
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ selected: active }}
-      onPress={onPress}
-      style={({ pressed }) => ({
-        flex: 1,
-        minWidth: 0,
-        minHeight: 52,
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 2,
-        opacity: pressed ? 0.72 : 1,
-      })}
-    >
-      <AppIcon name={icon} size={22} color={color} />
-      <Typography
-        variant={active ? "homeNavigationActive" : "homeNavigation"}
-        color={color}
-        numberOfLines={1}
-      >
-        {label}
-      </Typography>
-    </Pressable>
-  );
-}
-
-function ServicesBottomNavigation({ bottomInset }: Readonly<{ bottomInset: number }>) {
-  const { theme } = useTheme();
-  const palette = brandScreenPalette(theme);
-  const router = useRouter();
-  return (
-    <View
-      style={{
-        position: "absolute",
-        left: 0,
-        right: 0,
-        bottom: 0,
-        minHeight: 70 + bottomInset,
-        paddingBottom: bottomInset,
-        paddingHorizontal: spacing.sm,
-        borderTopWidth: 1,
-        borderTopColor: palette.border,
-        borderTopLeftRadius: radii["2xl"],
-        borderTopRightRadius: radii["2xl"],
-        backgroundColor: palette.white,
-        flexDirection: "row",
-        alignItems: "center",
-        zIndex: 20,
-      }}
-    >
-      <BottomNavItem
-        icon="home-outline"
-        label="Início"
-        onPress={() => router.replace("/tabs")}
-      />
-      <BottomNavItem
-        icon="bag-handle-outline"
-        label="Vendas"
-        onPress={() => router.replace("/tabs/sales")}
-      />
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Nova venda"
-        onPress={() => router.push("/tabs/new-sale")}
-        style={({ pressed }) => ({
-          flex: 1.1,
-          minHeight: 60,
-          alignItems: "center",
-          justifyContent: "center",
-          opacity: pressed ? 0.82 : 1,
-        })}
-      >
-        <View
-          style={{
-            width: 56,
-            height: 56,
-            marginTop: -26,
-            borderRadius: radii.full,
-            borderWidth: 3,
-            borderColor: palette.white,
-            backgroundColor: palette.rose,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <AppIcon name="add" size={28} color={palette.onWine} />
-        </View>
-      </Pressable>
-      <BottomNavItem
-        icon="people-outline"
-        label="Clientes"
-        onPress={() => router.replace("/tabs/clients")}
-      />
-      <BottomNavItem
-        icon="grid-outline"
-        label="Mais"
-        active
-        onPress={() => router.replace("/tabs/more")}
-      />
-    </View>
-  );
-}
-
 export default function ServicesScreen() {
   const { theme } = useTheme();
   const palette = brandScreenPalette(theme);
@@ -573,7 +454,6 @@ export default function ServicesScreen() {
   const { width: viewportWidth } = useWindowDimensions();
   const compact = viewportWidth < 390;
   const metricsCompact = viewportWidth < 480;
-  const insets = useSafeAreaInsets();
   const servicesQuery = useServices();
   const services = servicesQuery.data ?? [];
   const [search, setSearch] = useState("");
@@ -603,7 +483,7 @@ export default function ServicesScreen() {
     overview.averageDurationMinutes == null
       ? "—"
       : durationLabel(overview.averageDurationMinutes);
-  const listBottomClearance = isDesktop ? spacing["3xl"] : 104 + insets.bottom;
+  const listBottomClearance = spacing["3xl"];
 
   function goBack() {
     if (router.canGoBack()) router.back();
@@ -836,8 +716,6 @@ export default function ServicesScreen() {
           showsVerticalScrollIndicator={false}
         />
       </View>
-
-      {isDesktop ? null : <ServicesBottomNavigation bottomInset={insets.bottom} />}
 
       {showCreate ? (
         <ServiceForm key="new-service" visible onClose={() => setShowCreate(false)} />

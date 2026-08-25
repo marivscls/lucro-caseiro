@@ -11,8 +11,8 @@ import {
   spacing,
   radii,
 } from "@lucro-caseiro/ui";
-import { AppIcon } from "../shared/components/app-icon";
-import type { AppIconName } from "../shared/components/app-icon";
+import { AppIcon, type AppIconName } from "../shared/components/app-icon";
+import { MobileFloatingTabBar } from "../shared/components/mobile-floating-tab-bar";
 import * as Clipboard from "expo-clipboard";
 import { Asset } from "expo-asset";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
@@ -29,7 +29,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import type { TextStyle, ViewStyle } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 
 import { trackAnalyticsAction } from "../features/analytics/tracker";
@@ -1195,127 +1195,6 @@ function CatalogContentManager({
   );
 }
 
-function CatalogNavItem({
-  label,
-  icon,
-  active = false,
-  onPress,
-}: Readonly<{
-  label: string;
-  icon: AppIconName;
-  active?: boolean;
-  onPress?: () => void;
-}>) {
-  const { theme } = useTheme();
-  const color = active ? theme.colors.primaryStrong : theme.colors.textSecondary;
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={active}
-      accessibilityRole="button"
-      accessibilityState={{ selected: active }}
-      accessibilityLabel={label}
-      style={({ pressed }) => ({
-        flex: 1,
-        minHeight: 52,
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 2,
-        opacity: pressed ? 0.72 : 1,
-      })}
-    >
-      <AppIcon name={icon} size={22} color={color} />
-      <Typography
-        style={{
-          color,
-          fontFamily: active ? fonts.bold : fonts.medium,
-          fontSize: 11,
-          lineHeight: 15,
-        }}
-      >
-        {label}
-      </Typography>
-    </Pressable>
-  );
-}
-
-function CatalogBottomNav() {
-  const { theme } = useTheme();
-  const colors = useBrandScreenPalette();
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const isDesktop = useDesktopLayout();
-
-  if (isDesktop) return null;
-
-  return (
-    <View
-      style={{
-        position: "absolute",
-        right: 0,
-        bottom: 0,
-        left: 0,
-        minHeight: 70 + insets.bottom,
-        flexDirection: "row",
-        alignItems: "flex-start",
-        borderTopWidth: 1,
-        borderTopColor: theme.colors.border,
-        backgroundColor: theme.colors.surfaceElevated,
-        paddingTop: spacing.xs,
-        paddingBottom: Math.max(insets.bottom, spacing.sm),
-        paddingHorizontal: spacing.xs,
-        zIndex: 20,
-      }}
-    >
-      <CatalogNavItem
-        label="Início"
-        icon="home-outline"
-        onPress={() => router.replace("/tabs")}
-      />
-      <CatalogNavItem
-        label="Pedidos"
-        icon="bag-handle-outline"
-        onPress={() => router.replace("/tabs/sales")}
-      />
-      <Pressable
-        onPress={() => router.push("/tabs/new-sale")}
-        accessibilityRole="button"
-        accessibilityLabel="Nova venda"
-        style={({ pressed }) => ({
-          flex: 1,
-          minHeight: 56,
-          alignItems: "center",
-          justifyContent: "flex-start",
-          opacity: pressed ? 0.8 : 1,
-        })}
-      >
-        <View
-          style={{
-            width: 54,
-            height: 54,
-            marginTop: -14,
-            borderRadius: radii.full,
-            borderWidth: 3,
-            borderColor: theme.colors.surfaceElevated,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: colors.rose,
-            ...theme.shadows.md,
-          }}
-        >
-          <AppIcon name="add" size={30} color={colors.onWine} />
-        </View>
-      </Pressable>
-      <CatalogNavItem label="Catálogo" icon="storefront-outline" active />
-      <CatalogNavItem
-        label="Mais"
-        icon="grid-outline"
-        onPress={() => router.replace("/tabs/more")}
-      />
-    </View>
-  );
-}
-
 function CatalogForm({
   settings,
   moreMenuVisible,
@@ -1330,7 +1209,6 @@ function CatalogForm({
   const { theme } = useTheme();
   const colors = useBrandScreenPalette();
   const { width: viewportWidth } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
   const catalogStorefront = useBrandIllustration("catalogHero");
   const isDesktop = useDesktopLayout();
   const referencePwaLayout = viewportWidth >= 768 && !isDesktop;
@@ -1427,8 +1305,7 @@ function CatalogForm({
   if (customizerVisible && isDesktop) {
     return <View style={{ flex: 1, minHeight: 0 }}>{customizer}</View>;
   }
-  const mobileBottomPadding =
-    70 + 54 + Math.max(insets.bottom, spacing.sm) + spacing["2xl"];
+  const mobileBottomPadding = spacing["2xl"];
   let contentPaddingTop = 58;
   if (referencePwaLayout) contentPaddingTop = 0;
   if (isDesktop) contentPaddingTop = 64;
@@ -1500,8 +1377,6 @@ function CatalogForm({
         </View>
       </KeyboardAwareScrollView>
 
-      <CatalogBottomNav />
-
       {customizerVisible ? (
         <Modal
           visible
@@ -1522,7 +1397,7 @@ function CatalogForm({
             ]}
           >
             {customizer}
-            <CatalogBottomNav />
+            <MobileFloatingTabBar />
           </View>
         </Modal>
       ) : null}

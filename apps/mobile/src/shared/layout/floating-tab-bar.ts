@@ -11,6 +11,15 @@ export function floatingTabBarBottomOffset(bottomInset: number): number {
   return Platform.OS === "android" ? bottomInset + spacing.sm : spacing.xs;
 }
 
+export function floatingTabBarReserve(bottomInset: number): number {
+  return FLOATING_TAB_BAR_HEIGHT + floatingTabBarBottomOffset(bottomInset);
+}
+
 export function floatingTabBarContentPadding(bottomInset: number): number {
-  return FLOATING_TAB_BAR_HEIGHT + floatingTabBarBottomOffset(bottomInset) + spacing.xl;
+  return floatingTabBarReserve(bottomInset) + spacing.xl;
+}
+
+/** Android needs the system inset in the bar offset; iOS/web bake it into height. */
+export function mobileTabBarSafeInset(bottomSafeArea: number): number {
+  return Platform.OS === "android" ? bottomSafeArea : 0;
 }

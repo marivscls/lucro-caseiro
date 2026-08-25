@@ -37,6 +37,10 @@ import {
   desktopAction,
   desktopSplitLayout,
 } from "../../../shared/layout/desktop-density";
+import {
+  floatingTabBarReserve,
+  mobileTabBarSafeInset,
+} from "../../../shared/layout/floating-tab-bar";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { SvgXml } from "react-native-svg";
 
@@ -88,7 +92,6 @@ import {
   StorefrontIdentityPreview,
 } from "./storefront-preview";
 
-const NAV_HEIGHT = 76;
 const MAX_WIDTH = 980;
 const CatalogSwitch = Switch as React.ComponentType<
   React.ComponentProps<typeof Switch> & Readonly<{ activeThumbColor?: string }>
@@ -1681,7 +1684,9 @@ export function CatalogCustomizer({
         flex: 1,
         backgroundColor: colors.background,
         overflow: "hidden",
-        paddingBottom: isDesktop ? 0 : NAV_HEIGHT + insets.bottom,
+        paddingBottom: isDesktop
+          ? 0
+          : floatingTabBarReserve(mobileTabBarSafeInset(insets.bottom)),
       }}
     >
       <View

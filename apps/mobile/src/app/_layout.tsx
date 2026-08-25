@@ -18,7 +18,7 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useRef, useState } from "react";
 import { AppState, useColorScheme } from "react-native";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useBirthdayNotifier } from "../features/clients/use-birthday-notifier";
 import { useAppMetrics } from "../features/analytics/use-app-metrics";
@@ -33,6 +33,7 @@ import { useWeeklySummaryNotifier } from "../shared/hooks/use-weekly-summary-not
 import { AlertHost } from "../shared/components/alert-host";
 import { BrandIntro } from "../shared/components/brand-intro";
 import { DesktopShell } from "../shared/components/desktop-shell";
+import { MobileFloatingTabBar } from "../shared/components/mobile-floating-tab-bar";
 import { ResponsiveModal } from "../shared/components/responsive-modal-surface";
 import { OfflineBanner } from "../shared/components/offline-banner";
 import { ToastHost } from "../shared/components/toast";
@@ -41,6 +42,11 @@ import { useNotifications } from "../shared/hooks/use-notifications";
 import { setupAutoSync } from "../shared/hooks/use-offline-queue";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { usePremiumSuccess } from "../shared/hooks/use-premium-success";
+import {
+  floatingTabBarReserve,
+  mobileTabBarSafeInset,
+} from "../shared/layout/floating-tab-bar";
+import { shouldShowMobileTabBar } from "../shared/layout/mobile-tab-bar";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { preloadStaticImageAssets } from "../shared/static-image-assets";
 import { SubscriptionCheckout } from "../features/subscription/components/subscription-checkout";
@@ -64,7 +70,18 @@ function AppContent() {
     rootSegment !== "onboarding" &&
     rootSegment !== "reset-password" &&
     rootSegment !== "c";
-  const { initialize, isLoading, token, userId, passwordRecovery } = useAuth();
+  const { initialize, isLoading, token, userId, passwordRecovery, isAuthenticated } =
+    useAuth();
+  const insets = useSafeAreaInsets();
+  const showMobileNav = shouldShowMobileTabBar({
+    isDesktop,
+    isAuthenticated,
+    rootSegment,
+  });
+  const stackTabBarReserve =
+    showMobileNav && rootSegment !== "tabs"
+      ? floatingTabBarReserve(mobileTabBarSafeInset(insets.bottom))
+      : 0;
   const router = useRouter();
   const {
     visible: paywallVisible,
@@ -239,13 +256,24 @@ function AppContent() {
         <Stack
           screenOptions={{
             headerShown: false,
-            contentStyle: { backgroundColor: theme.colors.background },
+            contentStyle: {
+              backgroundColor: theme.colors.background,
+              paddingBottom: stackTabBarReserve,
+            },
           }}
         >
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="reset-password" />
           <Stack.Screen name="onboarding" />
-          <Stack.Screen name="tabs" />
+          <Stack.Screen
+            name="tabs"
+            options={{
+              contentStyle: {
+                backgroundColor: theme.colors.background,
+                paddingBottom: 0,
+              },
+            }}
+          />
           <Stack.Screen
             name="operations"
             options={{
@@ -419,6 +447,7 @@ function AppContent() {
           />
         </Stack>
       </DesktopShell>
+      <MobileFloatingTabBar />
     </>
   );
 }

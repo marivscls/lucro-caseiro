@@ -176,6 +176,21 @@ const MORE_MANAGEMENT_ITEMS = [
   },
 ] as const satisfies ReadonlyArray<ToolItem>;
 
+const ACCOUNT_HELP_ITEMS = [
+  {
+    title: "Central de ajuda",
+    description: "Dúvidas e suporte",
+    icon: "help-circle-outline",
+    route: "/support",
+  },
+  {
+    title: "Configurações",
+    description: "Conta e preferências",
+    icon: "settings-outline",
+    route: "/settings",
+  },
+] as const satisfies ReadonlyArray<ToolItem>;
+
 function InteractiveSurface({
   accessibilityLabel,
   children,
@@ -300,10 +315,10 @@ function ProfileCard({
           )}
         </View>
         <View style={styles.profileCopy}>
-          <Typography variant="h3" color={palette.ink}>
+          <Typography variant="h3" color={palette.ink} style={styles.profileName}>
             {name}
           </Typography>
-          <Typography variant="body" color={palette.muted}>
+          <Typography variant="body" color={palette.wine}>
             {businessName}
           </Typography>
           <View
@@ -336,10 +351,10 @@ function ProfileCard({
         style={[
           styles.editProfileButton,
           { borderColor: palette.wine },
-          inlineAction ? undefined : styles.editProfileButtonBelow,
+          inlineAction ? styles.editProfileButtonInline : styles.editProfileButtonBelow,
         ]}
       >
-        <Typography variant="bodyBold" color={palette.wine}>
+        <Typography variant="captionBold" color={palette.wine}>
           Editar perfil
         </Typography>
       </View>
@@ -372,6 +387,7 @@ function TodayOverviewCard({
   loading,
   onRetry,
   salesCount,
+  wide,
 }: Readonly<{
   amount: number;
   compact: boolean;
@@ -379,87 +395,106 @@ function TodayOverviewCard({
   loading: boolean;
   onRetry: () => void;
   salesCount: number;
+  wide: boolean;
 }>) {
   const palette = useBrandScreenPalette();
   const salesLabel = salesCount === 1 ? "venda" : "vendas";
 
   return (
-    <View style={[styles.todayCard, { backgroundColor: palette.wineFill }]}>
-      <Image
-        accessibilityIgnoresInvertColors
-        accessible={false}
-        resizeMode="contain"
-        source={todayOverviewIllustration}
-        style={[
-          styles.todayIllustration,
-          compact ? styles.todayIllustrationCompact : undefined,
-        ]}
-      />
-      <Typography variant="h3" color={palette.onWine} style={styles.todayTitle}>
-        Visão de hoje
-      </Typography>
+    <View
+      style={[
+        styles.todayCard,
+        compact ? styles.todayCardCompact : undefined,
+        { backgroundColor: palette.wineFill },
+      ]}
+    >
+      <View style={[styles.todayCopy, wide ? styles.todayCopyWide : undefined]}>
+        <Typography variant="h3" color={palette.onWine} style={styles.todayTitle}>
+          Visão de hoje
+        </Typography>
 
-      {error ? (
-        <View style={styles.todayError}>
-          <Typography variant="bodyBold" color={palette.onWine}>
-            Resumo indisponível
-          </Typography>
-          <InteractiveSurface
-            accessibilityLabel="Tentar carregar a visão de hoje novamente"
-            onPress={onRetry}
-            style={styles.retryButton}
-          >
-            <AppIcon name="refresh" size={iconSizes.inline} color={palette.onWine} />
-            <Typography variant="captionBold" color={palette.onWine}>
-              Tentar novamente
+        {error ? (
+          <View style={styles.todayError}>
+            <Typography variant="bodyBold" color={palette.onWine}>
+              Resumo indisponível
             </Typography>
-          </InteractiveSurface>
-        </View>
-      ) : (
-        <View style={[styles.metricsRow, compact ? styles.metricsRowCompact : undefined]}>
-          <View style={[styles.metric, compact ? styles.metricCompact : undefined]}>
-            <MetricIcon compact={compact} icon="bag-handle-outline" />
-            <View style={styles.metricCopy}>
-              {loading ? (
-                <ActivityIndicator color={palette.onWine} size="small" />
-              ) : (
-                <Typography variant="h2" color={palette.onWine}>
-                  {salesCount}
-                </Typography>
-              )}
-              <Typography variant="body" color="#F3DDE4">
-                {salesLabel}
+            <InteractiveSurface
+              accessibilityLabel="Tentar carregar a visão de hoje novamente"
+              onPress={onRetry}
+              style={styles.retryButton}
+            >
+              <AppIcon name="refresh" size={iconSizes.inline} color={palette.onWine} />
+              <Typography variant="captionBold" color={palette.onWine}>
+                Tentar novamente
               </Typography>
-            </View>
+            </InteractiveSurface>
           </View>
-          <View style={styles.metricDivider} />
+        ) : (
           <View
             style={[
-              styles.metric,
-              styles.revenueMetric,
-              compact ? styles.metricCompact : undefined,
+              styles.metricsRow,
+              compact ? styles.metricsRowCompact : undefined,
+              wide ? styles.metricsRowWide : undefined,
             ]}
           >
-            <MetricIcon compact={compact} icon="cash-outline" />
-            <View style={styles.metricCopy}>
-              {loading ? (
-                <ActivityIndicator color={palette.onWine} size="small" />
-              ) : (
-                <Typography
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.66}
-                  numberOfLines={1}
-                  variant="h2"
-                  color={palette.onWine}
-                >
-                  {formatCurrency(amount)}
+            <View style={[styles.metric, compact ? styles.metricCompact : undefined]}>
+              <MetricIcon compact={compact} icon="bag-handle-outline" />
+              <View style={styles.metricCopy}>
+                {loading ? (
+                  <ActivityIndicator color={palette.onWine} size="small" />
+                ) : (
+                  <Typography variant="h2" color={palette.onWine}>
+                    {salesCount}
+                  </Typography>
+                )}
+                <Typography variant="body" color="#F3DDE4">
+                  {salesLabel}
                 </Typography>
-              )}
-              <Typography variant="body" color="#F3DDE4">
-                faturamento
-              </Typography>
+              </View>
+            </View>
+            {wide ? <View style={styles.metricDivider} /> : null}
+            <View style={[styles.metric, compact ? styles.metricCompact : undefined]}>
+              <MetricIcon compact={compact} icon="cash-outline" />
+              <View style={styles.metricCopy}>
+                {loading ? (
+                  <ActivityIndicator color={palette.onWine} size="small" />
+                ) : (
+                  <Typography
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.66}
+                    numberOfLines={1}
+                    variant="h2"
+                    color={palette.onWine}
+                  >
+                    {formatCurrency(amount)}
+                  </Typography>
+                )}
+                <Typography variant="body" color="#F3DDE4">
+                  faturamento
+                </Typography>
+              </View>
             </View>
           </View>
+        )}
+      </View>
+      {compact ? null : (
+        <View
+          pointerEvents="none"
+          style={[
+            styles.todayIllustrationSlot,
+            wide ? styles.todayIllustrationSlotWide : undefined,
+          ]}
+        >
+          <Image
+            accessibilityIgnoresInvertColors
+            accessible={false}
+            resizeMode="contain"
+            source={todayOverviewIllustration}
+            style={[
+              styles.todayIllustration,
+              wide ? styles.todayIllustrationWide : undefined,
+            ]}
+          />
         </View>
       )}
     </View>
@@ -537,11 +572,9 @@ function ToolCard({
       <ToolIcon dense={dense} icon={item.icon} index={index} primary={primary} />
       <View style={[styles.toolCopy, dense ? styles.denseToolCopy : undefined]}>
         <Typography
-          adjustsFontSizeToFit={!primary}
-          minimumFontScale={0.82}
-          numberOfLines={1}
           variant={primary ? "h3" : "bodyBold"}
           color={palette.ink}
+          style={styles.toolTitle}
         >
           {item.title}
         </Typography>
@@ -570,12 +603,9 @@ function ToolCard({
           <AppIcon name="trending-up" size={iconSizes.xs} color={palette.wine} />
         </View>
       ) : null}
-      <AppIcon
-        name="chevron-forward"
-        size={dense ? iconSizes.xs : iconSizes.sm}
-        color={palette.muted}
-        style={dense ? styles.denseToolChevron : undefined}
-      />
+      {dense ? null : (
+        <AppIcon name="chevron-forward" size={iconSizes.sm} color={palette.muted} />
+      )}
     </InteractiveSurface>
   );
 }
@@ -585,7 +615,7 @@ function ExtensionsBanner({ onPress }: Readonly<{ onPress: () => void }>) {
 
   return (
     <InteractiveSurface
-      accessibilityLabel="Conheça também. Abra suas extensões com a mesma conta."
+      accessibilityLabel="Conheça também. Outros aplicativos da família Lucro, em breve."
       onPress={onPress}
       style={[
         styles.extensionsBanner,
@@ -594,7 +624,7 @@ function ExtensionsBanner({ onPress }: Readonly<{ onPress: () => void }>) {
     >
       <View style={[styles.editorialCurve, { backgroundColor: palette.white }]} />
       <View style={[styles.extensionsIcon, { backgroundColor: palette.rose }]}>
-        <AppIcon name="apps-outline" size={iconSizes.lg} color={palette.onWine} />
+        <AppIcon name="apps-outline" size={iconSizes.md} color={palette.onWine} />
       </View>
       <View style={styles.bannerCopy}>
         <Typography variant="h3" color={palette.wine}>
@@ -615,52 +645,35 @@ function AccountHelpCard({
   onNavigate,
 }: Readonly<{ onNavigate: (route: Href) => void }>) {
   const palette = useBrandScreenPalette();
-  const rows = [
-    {
-      title: "Central de ajuda",
-      description: "Dúvidas e suporte",
-      icon: "help-buoy-outline" as const,
-      route: "/support" as const,
-    },
-    {
-      title: "Configurações",
-      description: "Conta e preferências",
-      icon: "settings-outline" as const,
-      route: "/settings" as const,
-    },
-  ];
+  const iconBackgrounds = [palette.softRose, `${palette.lime}38`] as const;
 
   return (
-    <View
-      style={[
-        styles.accountCard,
-        { backgroundColor: palette.white, borderColor: palette.border },
-      ]}
-    >
-      {rows.map((row, index) => (
-        <React.Fragment key={row.route}>
-          {index > 0 ? (
-            <View style={[styles.accountDivider, { backgroundColor: palette.border }]} />
-          ) : null}
-          <InteractiveSurface
-            accessibilityLabel={`${row.title}. ${row.description}`}
-            onPress={() => onNavigate(row.route)}
-            style={styles.accountRow}
-          >
-            <View style={[styles.accountIcon, { backgroundColor: palette.softRose }]}>
-              <AppIcon name={row.icon} size={iconSizes.md} color={palette.wine} />
-            </View>
-            <View style={styles.toolCopy}>
-              <Typography variant="h3" color={palette.ink}>
-                {row.title}
-              </Typography>
-              <Typography variant="body" color={palette.muted}>
-                {row.description}
-              </Typography>
-            </View>
-            <AppIcon name="chevron-forward" size={iconSizes.sm} color={palette.muted} />
-          </InteractiveSurface>
-        </React.Fragment>
+    <View style={styles.accountList}>
+      {ACCOUNT_HELP_ITEMS.map((row, index) => (
+        <InteractiveSurface
+          key={row.route}
+          accessibilityLabel={`${row.title}. ${row.description}`}
+          onPress={() => onNavigate(row.route)}
+          style={[
+            styles.accountRow,
+            { backgroundColor: palette.white, borderColor: palette.border },
+          ]}
+        >
+          <View style={[styles.accountIcon, { backgroundColor: iconBackgrounds[index] }]}>
+            <AppIcon name={row.icon} size={iconSizes.md} color={palette.wine} />
+          </View>
+          <View style={styles.toolCopy}>
+            <Typography variant="bodyBold" color={palette.ink} style={styles.toolTitle}>
+              {row.title}
+            </Typography>
+            <Typography variant="body" color={palette.muted}>
+              {row.description}
+            </Typography>
+          </View>
+          <View style={[styles.accountChevron, { backgroundColor: palette.softRose }]}>
+            <AppIcon name="chevron-forward" size={iconSizes.sm} color={palette.wine} />
+          </View>
+        </InteractiveSurface>
       ))}
     </View>
   );
@@ -693,8 +706,7 @@ export default function MoreScreen() {
   const businessName = profile?.businessName?.trim() || "Meu negócio";
   const compactGrid = width < 360;
   const denseMobileGrid = width < 600 && !compactGrid;
-  const inlineProfileAction =
-    width >= 380 && userName.length <= 24 && businessName.length <= 28;
+  const inlineProfileAction = width >= 600;
 
   const isFeatureAvailable = (item: ToolItem) =>
     !item.feature || brand.features[item.feature];
@@ -764,16 +776,16 @@ export default function MoreScreen() {
               ? spacing["3xl"]
               : floatingTabBarContentPadding(insets.bottom),
           },
-          pageGutter(isDesktop, spacing["2xl"]),
+          pageGutter(isDesktop, spacing.xl),
           desktopStretch(isDesktop, desktopWidths.wide),
         ]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.heading}>
-          <Typography variant="display" color={palette.wine}>
+          <Typography variant="screenTitle" color={palette.wine}>
             Mais opções
           </Typography>
-          <Typography variant="body" color={palette.muted} style={styles.subtitle}>
+          <Typography variant="body" color={palette.muted}>
             Tudo para cuidar do seu negócio.
           </Typography>
         </View>
@@ -796,6 +808,7 @@ export default function MoreScreen() {
           loading={todaySummary.isLoading}
           onRetry={() => void todaySummary.refetch()}
           salesCount={todaySummary.data?.totalSales ?? 0}
+          wide={width >= 600}
         />
 
         <View style={styles.section}>
@@ -885,33 +898,38 @@ export default function MoreScreen() {
 }
 
 const styles = StyleSheet.create({
-  accountCard: {
-    borderRadius: radii.xl,
-    borderWidth: 1,
-    overflow: "hidden",
-  },
-  accountDivider: {
-    height: StyleSheet.hairlineWidth,
-    marginLeft: 84,
+  accountChevron: {
+    width: 32,
+    height: 32,
+    flexShrink: 0,
+    borderRadius: radii.full,
+    alignItems: "center",
+    justifyContent: "center",
   },
   accountIcon: {
-    width: 52,
-    height: 52,
+    width: 44,
+    height: 44,
+    flexShrink: 0,
     borderRadius: radii.lg,
     alignItems: "center",
     justifyContent: "center",
   },
+  accountList: {
+    gap: spacing.sm,
+  },
   accountRow: {
-    minHeight: 82,
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
+    minHeight: 72,
+    borderWidth: 1,
+    borderRadius: radii.xl,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.lg,
+    gap: spacing.md,
   },
   avatar: {
-    width: 64,
-    height: 64,
+    width: 56,
+    height: 56,
     flexShrink: 0,
     borderRadius: radii.full,
     alignItems: "center",
@@ -919,12 +937,12 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   avatarImage: {
-    width: 64,
-    height: 64,
+    width: 56,
+    height: 56,
   },
   bannerAction: {
-    width: 48,
-    height: 48,
+    width: 40,
+    height: 40,
     flexShrink: 0,
     borderRadius: radii.full,
     alignItems: "center",
@@ -939,22 +957,26 @@ const styles = StyleSheet.create({
   },
   content: {
     width: "100%",
-    paddingTop: spacing.xl,
-    gap: spacing["2xl"],
+    paddingTop: spacing.lg,
+    gap: spacing.xl,
   },
   editProfileButton: {
-    minHeight: 44,
+    minHeight: 32,
     flexShrink: 0,
     borderWidth: 1,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.lg,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
     alignItems: "center",
     justifyContent: "center",
   },
   editProfileButtonBelow: {
     alignSelf: "flex-end",
     marginLeft: "auto",
-    marginTop: spacing.md,
+    marginTop: spacing.sm,
+  },
+  editProfileButtonInline: {
+    marginTop: 2,
   },
   editorialCurve: {
     position: "absolute",
@@ -966,18 +988,18 @@ const styles = StyleSheet.create({
     opacity: 0.32,
   },
   extensionsBanner: {
-    minHeight: 116,
+    minHeight: 88,
     borderRadius: radii.xl,
     borderWidth: 1,
-    padding: spacing.xl,
+    padding: spacing.lg,
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.lg,
+    gap: spacing.md,
     overflow: "hidden",
   },
   extensionsIcon: {
-    width: 60,
-    height: 60,
+    width: 48,
+    height: 48,
     flexShrink: 0,
     borderRadius: radii.lg,
     alignItems: "center",
@@ -1005,6 +1027,7 @@ const styles = StyleSheet.create({
   },
   metricCopy: {
     minWidth: 0,
+    flexShrink: 1,
   },
   metricDivider: {
     width: 1,
@@ -1025,14 +1048,19 @@ const styles = StyleSheet.create({
     height: 36,
   },
   metricsRow: {
-    maxWidth: "72%",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.lg,
+    flexDirection: "column",
+    alignItems: "flex-start",
+    gap: spacing.md,
   },
   metricsRowCompact: {
-    maxWidth: "100%",
     gap: spacing.sm,
+  },
+  metricsRowWide: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+    gap: spacing.xl,
   },
   microHighlight: {
     width: 30,
@@ -1060,40 +1088,41 @@ const styles = StyleSheet.create({
     opacity: 0.76,
   },
   primaryToolCard: {
-    minHeight: 88,
+    minHeight: 76,
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.sm,
   },
   primaryToolIcon: {
-    width: 56,
-    height: 56,
+    width: 48,
+    height: 48,
     borderRadius: radii.lg,
   },
   profileCard: {
-    minHeight: 136,
+    minHeight: 108,
     borderWidth: 1,
     borderRadius: radii.xl,
-    padding: spacing.xl,
+    padding: spacing.lg,
     flexDirection: "row",
     flexWrap: "wrap",
-    alignItems: "center",
+    alignItems: "flex-start",
     justifyContent: "space-between",
     gap: spacing.md,
   },
   profileCopy: {
     flex: 1,
     minWidth: 0,
-    gap: 2,
+    gap: spacing.xs,
+    justifyContent: "center",
   },
   profileIdentity: {
     flex: 1,
-    minWidth: 190,
+    minWidth: 0,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
   },
-  revenueMetric: {
-    flex: 1,
+  profileName: {
+    lineHeight: 24,
   },
   retryButton: {
     minHeight: 44,
@@ -1130,27 +1159,24 @@ const styles = StyleSheet.create({
     flexDirection: "column",
   },
   denseToolCard: {
-    minHeight: 80,
-    padding: spacing.sm,
-    gap: spacing.sm,
-  },
-  denseToolChevron: {
-    position: "absolute",
-    right: spacing.xs,
-    top: "50%",
-    transform: [{ translateY: -8 }],
+    minHeight: 72,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    gap: spacing.xs,
   },
   denseToolCopy: {
-    paddingRight: spacing.md,
+    flex: 1,
+    minWidth: 0,
   },
   denseToolDescription: {
+    width: "100%",
     fontSize: 12,
     lineHeight: 16,
   },
   denseToolIcon: {
-    width: 46,
-    height: 46,
-    borderRadius: radii.lg,
+    width: 36,
+    height: 36,
+    borderRadius: radii.md,
   },
   statusChip: {
     minHeight: 30,
@@ -1168,38 +1194,58 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: radii.full,
   },
-  subtitle: {
-    fontSize: 17,
-    lineHeight: 24,
-  },
   todayCard: {
-    minHeight: 184,
+    minHeight: 148,
     borderRadius: radii.xl,
-    padding: spacing.xl,
+    paddingVertical: spacing.lg,
+    paddingLeft: spacing.lg,
+    overflow: "hidden",
+    flexDirection: "row",
+    alignItems: "stretch",
+    gap: spacing.md,
+  },
+  todayCardCompact: {
+    paddingRight: spacing.xl,
+  },
+  todayCopy: {
+    flex: 1,
+    minWidth: 0,
+    justifyContent: "center",
+    paddingRight: spacing.sm,
     overflow: "hidden",
   },
+  todayCopyWide: {
+    paddingRight: spacing.xl,
+  },
   todayError: {
-    maxWidth: "58%",
     gap: spacing.sm,
   },
   todayIllustration: {
-    position: "absolute",
-    width: 190,
-    height: 154,
-    right: -16,
-    bottom: -8,
+    width: 88,
+    height: 108,
+    marginBottom: -12,
   },
-  todayIllustrationCompact: {
-    width: 96,
-    height: 86,
-    right: -8,
-    bottom: 0,
+  todayIllustrationSlot: {
+    width: 88,
+    flexShrink: 0,
+    justifyContent: "flex-end",
+    overflow: "hidden",
+  },
+  todayIllustrationSlotWide: {
+    width: 220,
+    flexShrink: 0,
+    alignSelf: "stretch",
+  },
+  todayIllustrationWide: {
+    width: 220,
+    height: 200,
+    marginBottom: -28,
   },
   todayTitle: {
-    marginBottom: spacing.xl,
+    marginBottom: spacing.md,
   },
   toolCard: {
-    minHeight: 80,
+    minHeight: 72,
     borderWidth: 1,
     borderRadius: radii.lg,
     padding: spacing.md,
@@ -1210,6 +1256,9 @@ const styles = StyleSheet.create({
   toolCopy: {
     flex: 1,
     minWidth: 0,
+  },
+  toolTitle: {
+    flexShrink: 1,
   },
   toolIcon: {
     width: 48,

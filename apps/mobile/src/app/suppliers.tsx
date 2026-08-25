@@ -1,15 +1,9 @@
 import { hasActiveFeature, type SupplierOverviewItem } from "@lucro-caseiro/contracts";
-import { Typography, fonts, radii, spacing, useTheme } from "@lucro-caseiro/ui";
-import { Stack, useRouter } from "expo-router";
+import { Typography, spacing, useTheme } from "@lucro-caseiro/ui";
+import { Stack } from "expo-router";
 import React, { useState } from "react";
-import {
-  AccessibilityInfo,
-  findNodeHandle,
-  Platform,
-  Pressable,
-  View,
-} from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { AccessibilityInfo, findNodeHandle, Platform, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { CreatePurchaseForm } from "../features/purchases/components/create-purchase-form";
 import { useProfile } from "../features/subscription/hooks";
@@ -23,119 +17,14 @@ import {
   useUpdateSupplier,
 } from "../features/suppliers/hooks";
 import { supplierPurchasePrefill } from "../features/suppliers/domain";
-import { AppIcon, type AppIconName } from "../shared/components/app-icon";
 import { showAlert } from "../shared/components/alert-store";
 import { FAB } from "../shared/components/fab";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { StandardModal } from "../shared/components/standard-modal";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
-import { useBrandScreenPalette } from "../shared/brand-palette";
 import { alertError } from "../shared/utils/alerts";
 import { openWhatsApp } from "../shared/utils/whatsapp";
-
-type NavItem = {
-  label: string;
-  icon: AppIconName;
-  route: "/tabs" | "/tabs/sales" | "/suppliers" | "/products" | "/tabs/more";
-};
-const NAV_ITEMS: readonly NavItem[] = [
-  { label: "Início", icon: "home-outline", route: "/tabs" },
-  { label: "Vendas", icon: "bag-handle-outline", route: "/tabs/sales" },
-  { label: "Gestão", icon: "bar-chart-outline", route: "/suppliers" },
-  { label: "Produtos", icon: "cube-outline", route: "/products" },
-  { label: "Mais", icon: "ellipsis-horizontal", route: "/tabs/more" },
-];
-
-function SupplierBottomNavigation() {
-  const { theme } = useTheme();
-  const colors = useBrandScreenPalette();
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
-  return (
-    <View
-      style={[
-        {
-          position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          minHeight: 74 + insets.bottom,
-          paddingBottom: Math.max(insets.bottom, spacing.sm),
-          paddingTop: spacing.sm,
-          paddingHorizontal: spacing.sm,
-          borderTopWidth: 1,
-          borderTopColor: theme.colors.border,
-          backgroundColor: theme.colors.surfaceElevated,
-          flexDirection: "row",
-          zIndex: 20,
-        },
-        theme.shadows.md,
-      ]}
-    >
-      {NAV_ITEMS.map((item) => {
-        const selected = item.route === "/suppliers";
-        return (
-          <Pressable
-            key={item.label}
-            onPress={() => {
-              if (!selected) router.replace(item.route);
-            }}
-            accessibilityRole="tab"
-            accessibilityState={{ selected }}
-            accessibilityLabel={item.label}
-            style={({ pressed }) => ({
-              flex: 1,
-              minWidth: 0,
-              minHeight: 58,
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 2,
-              opacity: pressed ? 0.62 : 1,
-            })}
-          >
-            <View
-              style={{
-                width: 42,
-                height: 30,
-                borderRadius: radii.md,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: selected ? colors.wineFill : "transparent",
-              }}
-            >
-              <AppIcon
-                name={item.icon}
-                size={22}
-                color={selected ? colors.onWine : theme.colors.textSecondary}
-              />
-            </View>
-            <Typography
-              variant="caption"
-              numberOfLines={1}
-              color={selected ? colors.wine : theme.colors.textSecondary}
-              style={{ fontFamily: selected ? fonts.bold : fonts.medium }}
-            >
-              {item.label}
-            </Typography>
-            {selected ? (
-              <View
-                style={{
-                  width: 7,
-                  height: 7,
-                  borderRadius: 4,
-                  backgroundColor: colors.rose,
-                  position: "absolute",
-                  bottom: -2,
-                }}
-              />
-            ) : null}
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
 
 export default function SuppliersScreen() {
   const { theme } = useTheme();
@@ -291,8 +180,6 @@ export default function SuppliersScreen() {
           onAddPress={() => setShowCreate(true)}
         />
       </View>
-
-      {!isDesktop ? <SupplierBottomNavigation /> : null}
 
       {showCreate ? (
         <CreateSupplierForm

@@ -4,14 +4,10 @@ import {
   Card,
   Typography,
   fontSizes,
-  iconSizes,
   radii,
   spacing,
-  useBrand,
   useTheme,
-  type BadgeVariant,
 } from "@lucro-caseiro/ui";
-import * as Linking from "expo-linking";
 import React from "react";
 import {
   Image,
@@ -22,19 +18,17 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useFamilyMemberships } from "../features/verticals/hooks";
 import { brandLogoByMode } from "../shared/brand-logo";
-import { AppIcon } from "../shared/components/app-icon";
 import { ScreenHeader } from "../shared/components/screen-header";
+import { showToast } from "../shared/components/toast";
 import {
   desktopStretch,
   desktopWidths,
   pageGutter,
 } from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
-import { alertError } from "../shared/utils/alerts";
 
-const PUBLISHED_EXTENSIONS = [
+const FAMILY_APPS = [
   brands["lucro-revenda"],
   brands["lucro-oficina"],
   brands["lucro-obra"],
@@ -42,40 +36,18 @@ const PUBLISHED_EXTENSIONS = [
 
 function ExtensionCard({
   app,
-  active,
-  current,
   style,
 }: Readonly<{
   app: BrandConfig;
-  active: boolean;
-  current: boolean;
   style: ViewStyle;
 }>) {
   const { theme } = useTheme();
-  let badgeLabel = "Disponível";
-  let badgeVariant: BadgeVariant = "neutral";
-  if (active) {
-    badgeLabel = "Conta conectada";
-    badgeVariant = "success";
-  }
-  if (current) {
-    badgeLabel = "Este app";
-    badgeVariant = "primary";
-  }
-
-  function openApp() {
-    void Linking.openURL(`${app.scheme}://`).catch(() =>
-      alertError(
-        `${app.appName} ainda não está instalado neste aparelho. Instale-o pela loja para abrir com sua Conta Lucro.`,
-      ),
-    );
-  }
 
   return (
     <Card
       variant="elevated"
       padding="lg"
-      onPress={current ? undefined : openApp}
+      onPress={() => showToast("Este aplicativo chega em breve.")}
       style={style}
     >
       <View
@@ -104,19 +76,8 @@ function ExtensionCard({
           >
             {app.vertical.operationDescription}
           </Typography>
-          <Badge
-            label={badgeLabel}
-            variant={badgeVariant}
-            style={{ marginTop: spacing.xs }}
-          />
+          <Badge label="Em breve" variant="warning" style={{ marginTop: spacing.xs }} />
         </View>
-        {!current ? (
-          <AppIcon
-            name="open-outline"
-            size={iconSizes.sm}
-            color={theme.colors.textSecondary}
-          />
-        ) : null}
       </View>
     </Card>
   );
@@ -124,22 +85,15 @@ function ExtensionCard({
 
 export default function LucroAppsScreen() {
   const { theme } = useTheme();
-  const currentBrand = useBrand();
-  const memberships = useFamilyMemberships();
   const isDesktop = useDesktopLayout();
   const { width } = useWindowDimensions();
-  const activeBrands = new Set(
-    memberships.data
-      ?.filter((item) => item.status === "active")
-      .map((item) => item.brandId),
-  );
   const usesGrid = width >= 700;
   const contentWidth = Math.min(width - spacing.xl * 2, desktopWidths.data);
   const columns = usesGrid
     ? Math.max(
         1,
         Math.min(
-          PUBLISHED_EXTENSIONS.length,
+          FAMILY_APPS.length,
           Math.floor((contentWidth + spacing.md) / (320 + spacing.md)),
         ),
       )
@@ -182,17 +136,11 @@ export default function LucroAppsScreen() {
             color={theme.colors.textSecondary}
             style={{ textTransform: "uppercase", letterSpacing: 0.4 }}
           >
-            Aplicativos disponíveis
+            Aplicativos em breve
           </Typography>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
-            {PUBLISHED_EXTENSIONS.map((app) => (
-              <ExtensionCard
-                key={app.id}
-                app={app}
-                active={activeBrands.has(app.id)}
-                current={currentBrand.id === app.id}
-                style={cardStyle}
-              />
+            {FAMILY_APPS.map((app) => (
+              <ExtensionCard key={app.id} app={app} style={cardStyle} />
             ))}
           </View>
         </View>
