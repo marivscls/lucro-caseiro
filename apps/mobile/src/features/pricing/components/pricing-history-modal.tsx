@@ -11,10 +11,9 @@ import {
   useTheme,
 } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
-import { FlatList, Image, Pressable, View } from "react-native";
+import { FlatList, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useBrandIllustration } from "../../../shared/brand-illustrations";
 import { AppIcon } from "../../../shared/components/app-icon";
 import { ResponsiveModal } from "../../../shared/components/responsive-modal-surface";
 import { SkeletonList } from "../../../shared/components/skeleton";
@@ -119,7 +118,6 @@ export function PricingHistoryModal({
   onClose,
 }: Readonly<{ visible: boolean; onClose: () => void }>) {
   const { theme } = useTheme();
-  const pricingEmpty = useBrandIllustration("pricingEmpty");
   const { data: products = [] } = useAllProducts();
   const { data, isLoading, error } = usePricingList();
   const [filter, setFilter] = useState<string>("all");
@@ -158,13 +156,6 @@ export function PricingHistoryModal({
   } else if (all.length === 0) {
     content = (
       <EmptyState
-        icon={
-          <Image
-            source={pricingEmpty}
-            resizeMode="contain"
-            style={{ width: 146, height: 146 }}
-          />
-        }
         title="Nenhum cálculo ainda"
         description="Faça uma precificação e toque em 'Salvar cálculo' para ver o histórico aqui."
       />

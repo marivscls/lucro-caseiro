@@ -92,7 +92,7 @@ aprovado em encomenda na agenda (com sinal opcional).
 ## Change log / Decisions
 
 - 2026-06-10: criação. Cliente é texto livre (orçamento chega antes do cadastro);
-  PDF é Premium (exportação); ilustração `clipboard` no estado vazio.
+  PDF é Premium (exportação); estado vazio sem ilustração PNG.
 - 2026-07-11: `quote-pdf.ts` ganhou rodapé discreto "Feito com Lucro Caseiro" linkando
   pra ficha da Play Store (UTM `pdf`), mesmo padrão do catálogo público.
 - 2026-07-24: o formulário passou a permitir adicionar um produto do catálogo, preenchendo
@@ -102,3 +102,4 @@ aprovado em encomenda na agenda (com sinal opcional).
 - 2026-08-18: filtros da lista usam o `Chip` compartilhado com badge de
   contagem (totais locais por status). A fileira quebra linha (`flexWrap`)
   para o rótulo "Recusados" não ser cortado na borda.
+- 2026-08-24: estado vazio da lista deixou de usar ilustração PNG.

@@ -1,15 +1,10 @@
-import {
-  fonts,
-  iconSizes,
-  PressableScale,
-  radii,
-  spacing,
-  useReducedMotion,
-} from "@lucro-caseiro/ui";
+import { fonts, iconSizes, radii, spacing, useReducedMotion } from "@lucro-caseiro/ui";
 import React, { useEffect, useRef } from "react";
 import {
   Animated,
+  ActivityIndicator,
   Image,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -21,14 +16,18 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import productHero from "../../assets/getting-started-product.png";
 import productTipIcon from "../../assets/getting-started-product-tip.png";
+import resultHero from "../../assets/getting-started-result.png";
+import resultTipIcon from "../../assets/getting-started-result-tip.png";
+import saleHero from "../../assets/getting-started-sale.png";
+import saleTipIcon from "../../assets/getting-started-sale-tip.png";
 import { useBrandScreenPalette } from "../brand-palette";
 import {
-  GETTING_STARTED_GUIDE_COPY,
-  GETTING_STARTED_GUIDE_HEADER,
-  GETTING_STARTED_GUIDE_PREVIEW_HINT,
-  GETTING_STARTED_GUIDE_SKIP,
   GETTING_STARTED_STAGE_TOTAL,
+  getGettingStartedGuideCopy,
+  gettingStartedProgressLabel,
   gettingStartedStageChip,
+  translateGettingStarted,
+  type GettingStartedTranslate,
   type GettingStartedStage,
 } from "../utils/getting-started";
 import { AppIcon, type AppIconName } from "./app-icon";
@@ -42,36 +41,58 @@ const STAGE_ICONS: Record<GettingStartedStage, AppIconName> = {
 };
 const STAGE_HERO: Partial<Record<GettingStartedStage, ImageSourcePropType>> = {
   product: productHero,
+  sale: saleHero,
+  result: resultHero,
 };
-const HERO_ASPECT = 1024 / 723;
-const CTA_HEIGHT = 60;
+const STAGE_HERO_ASPECT: Partial<Record<GettingStartedStage, number>> = {
+  product: 1492 / 1054,
+  sale: 1435 / 1096,
+  result: 1277 / 1232,
+};
+const STAGE_TIP_ICON: Record<GettingStartedStage, ImageSourcePropType> = {
+  product: productTipIcon,
+  sale: saleTipIcon,
+  result: resultTipIcon,
+};
+const STAGE_TIP_ICON_SIZE: Record<GettingStartedStage, number> = {
+  product: 32,
+  sale: 32,
+  result: 40,
+};
+const CTA_HEIGHT = 52;
 
 export function GettingStartedOverlay({
   disabled = false,
+  loading = false,
   onContinue,
   onSkip,
-  preview = false,
   stage,
+  translate = translateGettingStarted,
 }: Readonly<{
   disabled?: boolean;
+  loading?: boolean;
   onContinue: () => void;
   onSkip: () => void;
-  preview?: boolean;
   stage: GettingStartedStage;
+  translate?: GettingStartedTranslate;
 }>) {
   const colors = useBrandScreenPalette();
   const reducedMotion = useReducedMotion();
   const { width, height } = useWindowDimensions();
-  const copy = GETTING_STARTED_GUIDE_COPY[stage];
+  const copy = getGettingStartedGuideCopy(stage, translate);
   const step = STAGE_ORDER.indexOf(stage) + 1;
   const heroSource = STAGE_HERO[stage];
+  const heroAspect = STAGE_HERO_ASPECT[stage];
   const frameWidth = Math.min(width, 480);
   const shortScreen = height < 700;
   const heroWidth = Math.min(
-    Math.round(frameWidth * (shortScreen ? 0.54 : 0.62)),
-    shortScreen ? 232 : 280,
+    Math.round(frameWidth * (shortScreen ? 0.44 : 0.5)),
+    shortScreen ? 188 : 216,
   );
-  const titleSize = width < 360 ? 32 : 36;
+  const titleSize = width < 360 ? 26 : 28;
+  const heroMinHeight = heroWidth / (heroAspect ?? 1);
+  const ctaGap = width < 360 ? spacing.sm : spacing.md;
+  const ctaPaddingHorizontal = width < 360 ? 0 : spacing.md;
   const appear = useRef(new Animated.Value(reducedMotion || !heroSource ? 1 : 0)).current;
 
   useEffect(() => {
@@ -94,6 +115,11 @@ export function GettingStartedOverlay({
       edges={["top", "left", "right", "bottom"]}
       style={{ flex: 1, backgroundColor: colors.offWhite }}
     >
+      {Platform.OS === "web"
+        ? React.createElement("style", {
+            children: `#getting-started-cta:focus-visible{outline:3px solid ${colors.rose};outline-offset:3px}#getting-started-tip-icon img{filter:drop-shadow(100px 0 0 ${colors.wineFill});transform:translateX(-100px)}`,
+          })
+        : null}
       <ScrollView
         alwaysBounceVertical={false}
         contentContainerStyle={{
@@ -101,9 +127,9 @@ export function GettingStartedOverlay({
           width: "100%",
           maxWidth: 480,
           alignSelf: "center",
-          paddingHorizontal: spacing["2xl"],
+          paddingHorizontal: spacing.xl,
           paddingTop: spacing.sm,
-          paddingBottom: spacing.lg,
+          paddingBottom: spacing.md,
         }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -128,11 +154,11 @@ export function GettingStartedOverlay({
               color: colors.wine,
             }}
           >
-            {GETTING_STARTED_GUIDE_HEADER}
+            {translate("onboarding.header")}
           </Text>
           <Pressable
-            accessibilityHint="Pula o guia e volta para a Home"
-            accessibilityLabel={GETTING_STARTED_GUIDE_SKIP}
+            accessibilityHint={translate("onboarding.skipHint")}
+            accessibilityLabel={translate("onboarding.skip")}
             accessibilityRole="button"
             hitSlop={8}
             onPress={onSkip}
@@ -151,10 +177,10 @@ export function GettingStartedOverlay({
                 fontFamily: fonts.semiBold,
                 fontSize: 17,
                 lineHeight: 22,
-                color: colors.muted,
+                color: colors.wine,
               }}
             >
-              {GETTING_STARTED_GUIDE_SKIP}
+              {translate("onboarding.skip")}
             </Text>
           </Pressable>
         </View>
@@ -162,19 +188,24 @@ export function GettingStartedOverlay({
         <View style={{ marginTop: spacing.md }}>
           <StepProgressBar
             activeColor={colors.wineFill}
+            accessibilityLabel={gettingStartedProgressLabel(
+              step,
+              GETTING_STARTED_STAGE_TOTAL,
+              translate,
+            )}
             current={step}
             inactiveColor={colors.softRose}
             total={GETTING_STARTED_STAGE_TOTAL}
           />
         </View>
 
-        <View style={{ alignItems: "center", marginTop: spacing.xl }}>
+        <View style={{ alignItems: "center", marginTop: spacing.md }}>
           <View
-            accessibilityLabel={gettingStartedStageChip(step)}
+            accessibilityLabel={gettingStartedStageChip(step, translate)}
             style={{
-              minHeight: 44,
-              paddingHorizontal: spacing.xl,
-              paddingVertical: spacing.sm,
+              minHeight: 32,
+              paddingHorizontal: spacing.lg,
+              paddingVertical: spacing.xs,
               borderRadius: radii.full,
               backgroundColor: colors.lime,
               alignItems: "center",
@@ -191,7 +222,7 @@ export function GettingStartedOverlay({
                 color: colors.onLime,
               }}
             >
-              {gettingStartedStageChip(step)}
+              {gettingStartedStageChip(step, translate)}
             </Text>
           </View>
         </View>
@@ -199,21 +230,21 @@ export function GettingStartedOverlay({
         <View
           style={{
             flexGrow: 1,
-            minHeight: shortScreen ? 148 : 188,
+            minHeight: heroMinHeight,
             alignItems: "center",
             justifyContent: "center",
-            paddingVertical: spacing.md,
+            paddingVertical: spacing.sm,
           }}
         >
-          {heroSource ? (
+          {heroSource && heroAspect ? (
             <Animated.Image
               accessibilityIgnoresInvertColors
-              accessibilityLabel="Caixa de produto com etiqueta de preço"
+              accessibilityLabel={copy.heroAlt}
               resizeMode="contain"
               source={heroSource}
               style={{
                 width: heroWidth,
-                height: heroWidth / HERO_ASPECT,
+                height: heroWidth / heroAspect,
                 opacity: appear,
                 transform: [
                   {
@@ -255,18 +286,18 @@ export function GettingStartedOverlay({
             textAlign: "center",
           }}
         >
-          {stage === "product" ? "Cadastre o que\nvocê vende" : copy.title}
+          {copy.title}
         </Text>
         <Text
           maxFontSizeMultiplier={1.3}
           style={{
-            marginTop: spacing.md,
+            marginTop: spacing.sm,
             alignSelf: "center",
-            maxWidth: 340,
+            maxWidth: 320,
             fontFamily: fonts.regular,
-            fontSize: 18,
-            lineHeight: 27,
-            color: colors.ink,
+            fontSize: 16,
+            lineHeight: 22,
+            color: colors.muted,
             textAlign: "center",
           }}
         >
@@ -275,112 +306,116 @@ export function GettingStartedOverlay({
 
         <View
           style={{
-            marginTop: spacing.xl,
+            marginTop: spacing.lg,
             flexDirection: "row",
             alignItems: "center",
-            gap: spacing.md,
+            gap: spacing.sm,
             backgroundColor: "rgba(245, 229, 232, 0.78)",
             borderColor: "rgba(182, 95, 114, 0.3)",
             borderWidth: 1,
-            borderRadius: radii.xl,
-            paddingVertical: spacing.lg,
-            paddingHorizontal: spacing.lg,
+            borderRadius: radii.lg,
+            paddingVertical: spacing.md,
+            paddingHorizontal: spacing.md,
           }}
         >
-          {stage === "product" ? (
-            <Image
-              accessibilityIgnoresInvertColors
-              resizeMode="contain"
-              source={productTipIcon}
-              style={{ width: 40, height: 40 }}
-            />
-          ) : (
-            <AppIcon color={colors.wine} name={STAGE_ICONS[stage]} size={iconSizes.xl} />
-          )}
+          <Image
+            accessibilityIgnoresInvertColors
+            nativeID="getting-started-tip-icon"
+            resizeMode="contain"
+            source={STAGE_TIP_ICON[stage]}
+            style={{
+              width: STAGE_TIP_ICON_SIZE[stage],
+              height: STAGE_TIP_ICON_SIZE[stage],
+              tintColor: colors.wineFill,
+            }}
+          />
           <Text
             maxFontSizeMultiplier={1.3}
             style={{
               flex: 1,
               fontFamily: fonts.regular,
               fontSize: 16,
-              lineHeight: 24,
+              lineHeight: 22,
               color: colors.ink,
             }}
           >
-            {copy.tip}
+            {copy.info}
           </Text>
         </View>
 
         <View
           style={{
             marginTop: "auto",
-            paddingTop: spacing.xl,
-            shadowColor: colors.wineFill,
-            shadowOffset: { width: 0, height: 8 },
-            shadowOpacity: 0.22,
-            shadowRadius: 16,
-            elevation: 6,
+            paddingTop: spacing.lg,
           }}
         >
-          <PressableScale
-            accessibilityRole="button"
-            accessibilityLabel={copy.action}
-            disabled={disabled}
-            onPress={onContinue}
-            scaleTo={0.98}
+          <View
             style={{
-              height: CTA_HEIGHT,
-              borderRadius: 18,
-              overflow: "hidden",
+              borderRadius: radii.xl,
               backgroundColor: colors.wineFill,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: spacing.sm,
-              opacity: disabled ? 0.5 : 1,
+              shadowColor: colors.wineFill,
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.18,
+              shadowRadius: 16,
+              elevation: 5,
+              opacity: disabled || loading ? 0.5 : 1,
             }}
           >
-            <View
-              pointerEvents="none"
-              style={{
-                position: "absolute",
-                top: 0,
-                right: 0,
-                bottom: 0,
-                width: "42%",
-                backgroundColor: "rgba(182, 95, 114, 0.16)",
-              }}
-            />
-            <AppIcon color={colors.onWine} name="arrow-forward" size={iconSizes.sm} />
-            <Text
-              maxFontSizeMultiplier={1.2}
-              style={{
-                fontFamily: fonts.extraBold,
-                fontSize: 18,
-                lineHeight: 24,
-                color: colors.onWine,
-              }}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={copy.action}
+              accessibilityState={{ busy: loading, disabled: disabled || loading }}
+              disabled={disabled || loading}
+              nativeID="getting-started-cta"
+              onPress={onContinue}
+              style={(state) => ({
+                minHeight: CTA_HEIGHT,
+                borderRadius: radii.xl,
+                borderWidth: 2,
+                borderColor: colors.wineFill,
+                overflow: "hidden",
+                backgroundColor: colors.wineFill,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: ctaGap,
+                paddingHorizontal: ctaPaddingHorizontal,
+                paddingVertical: spacing.md,
+                transform: [
+                  {
+                    scale: state.pressed && !reducedMotion ? 0.98 : 1,
+                  },
+                ],
+              })}
             >
-              {copy.action}
-            </Text>
-          </PressableScale>
+              {loading ? (
+                <ActivityIndicator
+                  accessibilityLabel={translate("onboarding.cta.loading")}
+                  color={colors.onWine}
+                />
+              ) : (
+                <>
+                  <AppIcon
+                    color={colors.onWine}
+                    name="arrow-forward"
+                    size={iconSizes.sm}
+                  />
+                  <Text
+                    maxFontSizeMultiplier={1.4}
+                    style={{
+                      fontFamily: fonts.extraBold,
+                      fontSize: 16,
+                      lineHeight: 22,
+                      color: colors.onWine,
+                    }}
+                  >
+                    {copy.action}
+                  </Text>
+                </>
+              )}
+            </Pressable>
+          </View>
         </View>
-
-        {preview ? (
-          <Text
-            maxFontSizeMultiplier={1.3}
-            style={{
-              marginTop: spacing.md,
-              fontFamily: fonts.regular,
-              fontSize: 14,
-              lineHeight: 20,
-              color: colors.muted,
-              textAlign: "center",
-            }}
-          >
-            {GETTING_STARTED_GUIDE_PREVIEW_HINT}
-          </Text>
-        ) : null}
       </ScrollView>
     </SafeAreaView>
   );

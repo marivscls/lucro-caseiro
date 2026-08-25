@@ -85,3 +85,4 @@ A busca local normaliza caixa, espaços e acentos. Contagens e listas usam memoi
   (`@lucro-caseiro/ui`) com badge de contagem. Só os rótulos e totais vêm da tela.
   A fileira usa `FilterChipRow`: o rótulo do chip não encolhe com reticências,
   então "Alimentos" e "Outros" quebram para a linha de baixo em vez de cortar.
+- 2026-08-24: estado vazio da lista deixou de usar ilustração PNG.

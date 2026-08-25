@@ -1766,7 +1766,7 @@ export default function ProductsScreen() {
         analyticsSource={create === "from-pricing" ? "pricing" : undefined}
         onSuccess={() => {
           setShowCreate(false);
-          if (guidedCreate) router.replace("/tabs/new-sale?from=getting-started");
+          if (guidedCreate) router.replace("/tabs");
         }}
       />
 

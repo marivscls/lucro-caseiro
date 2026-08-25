@@ -109,3 +109,6 @@ Registrar compras de fornecedores como **contas a pagar** e **saídas do caixa**
 - 2026-08-20: tela editorial (card vinho + PNG 3D `compras-hero-3d.png`, filtros com
   contagem, CTA inferior fixo). Lista carrega até 100 itens e filtra localmente; nomes de
   produto omitem prefixos técnicos só na UI.
+- 2026-08-24: refinamento responsivo da tela editorial: filtros limitados a chips de 44 px,
+  ordenação identificada por chevron para baixo, estado vazio com altura natural e CTA próprio.
+  O CTA inferior fica visível somente quando existem compras; cards preservam todas as ações.

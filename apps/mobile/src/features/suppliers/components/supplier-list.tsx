@@ -23,7 +23,6 @@ import {
 } from "react-native";
 
 import suppliersHero from "../../../assets/fornecedores-caixas.png";
-import { useBrandIllustration } from "../../../shared/brand-illustrations";
 import { useBrandScreenPalette } from "../../../shared/brand-palette";
 import { AppIcon } from "../../../shared/components/app-icon";
 import { showAlert } from "../../../shared/components/alert-store";
@@ -197,7 +196,6 @@ function MonthlyPanel({
 
 export function SupplierList(props: Readonly<SupplierListProps>) {
   const { theme } = useTheme();
-  const suppliersEmpty = useBrandIllustration("suppliersEmpty");
   const { width } = useWindowDimensions();
   const pageWidth = Math.min(760, width);
   const query = useSuppliersOverview();
@@ -459,16 +457,6 @@ export function SupplierList(props: Readonly<SupplierListProps>) {
         ListEmptyComponent={
           <View style={{ paddingVertical: spacing["3xl"] }}>
             <EmptyState
-              icon={
-                hasQuery ? undefined : (
-                  <Image
-                    source={suppliersEmpty}
-                    resizeMode="contain"
-                    accessible={false}
-                    style={{ width: 220, height: 220 }}
-                  />
-                )
-              }
               title={
                 hasQuery ? "Nenhum fornecedor encontrado" : "Nenhum fornecedor cadastrado"
               }

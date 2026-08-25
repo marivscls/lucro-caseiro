@@ -64,7 +64,6 @@ import {
 } from "../../shared/layout/desktop-density";
 import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { StandardModal } from "../../shared/components/standard-modal";
-import { useBrandIllustration } from "../../shared/brand-illustrations";
 import {
   useBrandScreenPalette,
   type BrandScreenPalette,
@@ -661,16 +660,8 @@ function DesktopClientsTable({
 }
 
 function EmptyClients({ onCreatePress }: Readonly<{ onCreatePress: () => void }>) {
-  const clientsEmpty = useBrandIllustration("clientsEmpty");
   return (
     <EmptyState
-      icon={
-        <Image
-          source={clientsEmpty}
-          resizeMode="contain"
-          style={{ width: 220, height: 220 }}
-        />
-      }
       title="Nenhum cliente ainda"
       description="Cadastre seu primeiro cliente pra acompanhar pedidos e aniversários"
       action={<Button title="Novo cliente" onPress={onCreatePress} />}

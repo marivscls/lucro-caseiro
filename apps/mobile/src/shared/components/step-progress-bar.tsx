@@ -4,11 +4,13 @@ import { Animated, View } from "react-native";
 
 export function StepProgressBar({
   activeColor,
+  accessibilityLabel,
   current,
   inactiveColor,
   total,
 }: Readonly<{
   activeColor: string;
+  accessibilityLabel: string;
   current: number;
   inactiveColor: string;
   total: number;
@@ -30,6 +32,7 @@ export function StepProgressBar({
 
   return (
     <View
+      accessibilityLabel={accessibilityLabel}
       accessibilityRole="progressbar"
       accessibilityValue={{ min: 1, max: total, now: current }}
       style={{ flexDirection: "row", gap: spacing.sm }}

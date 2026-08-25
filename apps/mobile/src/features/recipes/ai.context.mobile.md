@@ -179,3 +179,4 @@ Gerenciar receitas do negocio: criar, listar, visualizar detalhes, editar, exclu
   editar/excluir e avatar `contain`. Filtro/busca passaram a ser locais sobre
   `useAllRecipes`. Lista vazia, sem resultado e erro são estados distintos.
 - 2026-08-20: a ilustração decorativa do caderno foi removida da lista.
+- 2026-08-24: estados vazios da lista não usam ilustração PNG.

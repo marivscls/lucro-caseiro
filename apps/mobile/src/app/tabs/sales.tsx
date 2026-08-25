@@ -59,7 +59,6 @@ import {
 import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
 import { alertError } from "../../shared/utils/alerts";
 import { brandScreenPalette } from "../../shared/brand-palette";
-import { useBrandIllustration } from "../../shared/brand-illustrations";
 import salesHeaderIcon from "../../assets/sales-header-icon.png";
 
 type FilterTab = "all" | "paid" | "pending" | "cancelled";
@@ -278,13 +277,6 @@ function GroupHeader({ title, count }: Readonly<{ title: string; count: number }
         </Typography>
       </View>
     </View>
-  );
-}
-
-function EmptySalesIllustration() {
-  const salesEmpty = useBrandIllustration("salesEmpty");
-  return (
-    <Image source={salesEmpty} resizeMode="contain" style={{ width: 180, height: 180 }} />
   );
 }
 
@@ -1131,13 +1123,10 @@ function SalesContent({
         showsVerticalScrollIndicator={false}
       >
         <EmptyState
-          icon={<EmptySalesIllustration />}
           title={emptyCopy.title}
           description={emptyCopy.description}
           style={{
             justifyContent: compactEmpty ? "flex-start" : "center",
-            // Os status possuem o resumo acima: o estado vazio começa com o mesmo
-            // respiro em todas as abas para a ilustração não parecer colada ao card.
             paddingTop: spacing.md,
             paddingBottom: listBottomPadding,
           }}

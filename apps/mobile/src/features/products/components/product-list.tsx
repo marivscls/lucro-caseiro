@@ -1,10 +1,9 @@
 import { Button, EmptyState, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import type { Product } from "@lucro-caseiro/contracts";
 import React, { useEffect, useState } from "react";
-import { FlatList, Image, View } from "react-native";
+import { FlatList, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useBrandIllustration } from "../../../shared/brand-illustrations";
 import { SkeletonList } from "../../../shared/components/skeleton";
 import {
   AD_ITEM_MARKER,
@@ -51,7 +50,6 @@ export function ProductList({
   horizontalPadding,
 }: ProductListProps) {
   const { theme } = useTheme();
-  const productsEmpty = useBrandIllustration("productsEmpty");
   const insets = useSafeAreaInsets();
   const isDesktop = useDesktopLayout();
   const showAds = useShowAds();
@@ -132,15 +130,6 @@ export function ProductList({
 
     return (
       <EmptyState
-        icon={
-          stockOnly ? undefined : (
-            <Image
-              source={productsEmpty}
-              resizeMode="contain"
-              style={{ width: 220, height: 220 }}
-            />
-          )
-        }
         title={emptyTitle}
         description={emptyDescription}
         action={
@@ -216,26 +205,19 @@ export function ProductList({
         )
       }
       ListEmptyComponent={
-        listHeader ? (
-          (listEmptyState ?? (
-            <EmptyState
-              icon={
-                <Image
-                  source={productsEmpty}
-                  resizeMode="contain"
-                  style={{ width: 180, height: 180 }}
-                />
-              }
-              title="Nenhum produto ainda"
-              description={"Cadastre seu primeiro produto para come\u00e7ar a vender"}
-              action={
-                onAddPress ? (
-                  <Button title={addButtonTitle} onPress={onAddPress} />
-                ) : undefined
-              }
-            />
-          ))
-        ) : null
+        listHeader
+          ? (listEmptyState ?? (
+              <EmptyState
+                title="Nenhum produto ainda"
+                description={"Cadastre seu primeiro produto para come\u00e7ar a vender"}
+                action={
+                  onAddPress ? (
+                    <Button title={addButtonTitle} onPress={onAddPress} />
+                  ) : undefined
+                }
+              />
+            ))
+          : null
       }
       ListFooterComponent={
         <View style={{ gap: spacing.md, paddingTop: spacing.sm }}>

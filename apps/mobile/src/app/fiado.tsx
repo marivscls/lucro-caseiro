@@ -24,7 +24,6 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-import fiadoEmpty from "../assets/fiado-hero.png";
 import fiadoNotebook from "../assets/fiado-notebook-calendar.png";
 import { useClients } from "../features/clients/hooks";
 import {
@@ -508,7 +507,6 @@ function EmptyMessage({
 
   return (
     <View style={styles.emptyState}>
-      <Image source={fiadoEmpty} resizeMode="contain" style={styles.emptyImage} />
       <Typography variant="h2" color={colors.wine} style={styles.centerText}>
         {title}
       </Typography>
@@ -1218,7 +1216,6 @@ function createStyles(theme: Theme) {
       gap: spacing.md,
       paddingVertical: spacing.xl,
     },
-    emptyImage: { width: 180, height: 150 },
     centerText: { textAlign: "center" },
     clearButton: {
       minHeight: 48,

@@ -35,7 +35,6 @@ import {
 } from "react-native";
 
 import financeSummaryIllustration from "../../../assets/finance-summary-illustration.png";
-import { useBrandIllustration } from "../../../shared/brand-illustrations";
 import {
   brandScreenPalette,
   type BrandScreenPalette,
@@ -115,7 +114,6 @@ export function FinanceDashboard({
 }: Readonly<FinanceDashboardProps>) {
   const { theme } = useTheme();
   const colors = brandScreenPalette(theme);
-  const financeEmpty = useBrandIllustration("financeEmpty");
   const experienceCopy = useBusinessCopy();
   const router = useRouter();
   const { width: viewportWidth } = useWindowDimensions();
@@ -1118,11 +1116,6 @@ export function FinanceDashboard({
           ) : (
             <View style={styles.entryListCard}>
               <View style={styles.emptyState}>
-                <Image
-                  source={financeEmpty}
-                  style={styles.emptyImage}
-                  resizeMode="contain"
-                />
                 <Typography variant="h3" style={styles.emptyTitle}>
                   Nenhum lançamento por aqui
                 </Typography>
@@ -1920,10 +1913,6 @@ function createStyles(theme: Theme) {
     emptyButton: {
       marginTop: spacing.sm,
       minWidth: 200,
-    },
-    emptyImage: {
-      height: 120,
-      width: 150,
     },
     emptyTitle: {
       fontSize: 22,

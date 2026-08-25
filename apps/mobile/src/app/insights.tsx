@@ -13,10 +13,9 @@ import {
 } from "@lucro-caseiro/ui";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Image, Pressable, ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-import insightsEmpty from "../assets/insights-empty.png";
 import { MonthlyBars } from "../features/insights/components/monthly-bars";
 import { RankBars, type RankRow } from "../features/insights/components/rank-bars";
 import {
@@ -32,8 +31,16 @@ import { useAllProducts } from "../features/products/hooks";
 import { useProfile } from "../features/subscription/hooks";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { ScreenHeader } from "../shared/components/screen-header";
-import { Skeleton, SkeletonCard, SkeletonSummaryStrip } from "../shared/components/skeleton";
-import { desktopStretch, desktopWidths, pageGutter } from "../shared/layout/desktop-density";
+import {
+  Skeleton,
+  SkeletonCard,
+  SkeletonSummaryStrip,
+} from "../shared/components/skeleton";
+import {
+  desktopStretch,
+  desktopWidths,
+  pageGutter,
+} from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 
 function StatCard({
@@ -433,7 +440,13 @@ export default function InsightsScreen() {
 
       {loadingProfile || isLoading ? (
         <View
-          style={{ flex: 1, ...pageGutter(isDesktop), ...desktopStretch(isDesktop, desktopWidths.data), paddingVertical: spacing.xl, gap: spacing.lg }}
+          style={{
+            flex: 1,
+            ...pageGutter(isDesktop),
+            ...desktopStretch(isDesktop, desktopWidths.data),
+            paddingVertical: spacing.xl,
+            gap: spacing.lg,
+          }}
         >
           <Skeleton width="55%" height={22} />
           <SkeletonSummaryStrip tiles={2} />
@@ -476,13 +489,6 @@ export default function InsightsScreen() {
             />
           ) : (
             <EmptyState
-              icon={
-                <Image
-                  source={insightsEmpty}
-                  resizeMode="contain"
-                  style={{ width: 146, height: 146 }}
-                />
-              }
               title="Ainda sem dados pra mostrar"
               description="Registre algumas vendas e volte aqui para ver seus gráficos e os campeões de venda."
               action={

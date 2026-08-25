@@ -21,7 +21,6 @@ import React, { useMemo, useState } from "react";
 import { Image, Platform, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useBrandIllustration } from "../../shared/brand-illustrations";
 import { SkeletonList } from "../../shared/components/skeleton";
 import { useClient } from "../../features/clients/hooks";
 import { OrderCard } from "../../features/orders/components/order-card";
@@ -1453,7 +1452,6 @@ function DayFilterModal({
 }
 
 function AgendaContent() {
-  const agendaEmpty = useBrandIllustration("agendaEmpty");
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
   const nativeMobile = !isDesktop && Platform.OS !== "web";
@@ -1504,13 +1502,6 @@ function AgendaContent() {
     if ((orders?.length ?? 0) === 0) {
       return (
         <EmptyState
-          icon={
-            <Image
-              source={agendaEmpty}
-              resizeMode="contain"
-              style={{ width: 220, height: 220 }}
-            />
-          }
           title="Sua agenda está vazia"
           description="Cadastre uma encomenda com data de entrega para começar a se organizar."
           action={<Button title="Nova encomenda" onPress={() => setShowCreate(true)} />}

@@ -65,11 +65,11 @@ export function PurchaseCard({
   return (
     <Card
       variant="elevated"
-      shadow="sm"
       padding="lg"
       style={{
         backgroundColor: pal.white,
-        borderWidth: 0,
+        borderWidth: 1,
+        borderColor: pal.border,
         borderRadius: radii.xl,
       }}
     >
@@ -204,8 +204,8 @@ export function PurchaseCard({
 function PurchaseStatusChip({ paid }: Readonly<{ paid: boolean }>) {
   const pal = useBrandScreenPalette();
   const { theme } = useTheme();
-  let backgroundColor = pal.surface;
-  if (!paid && theme.mode === "light") {
+  let backgroundColor = paid ? pal.surface : pal.softRose;
+  if (paid && theme.mode === "light") {
     backgroundColor = "rgba(220, 232, 106, 0.38)";
   }
   const textColor = paid ? pal.wine : pal.ink;

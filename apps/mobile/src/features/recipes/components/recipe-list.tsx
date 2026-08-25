@@ -9,7 +9,14 @@ import {
   useTheme,
 } from "@lucro-caseiro/ui";
 import React, { useMemo, useState } from "react";
-import { FlatList, Platform, Pressable, ScrollView, View } from "react-native";
+import {
+  FlatList,
+  Platform,
+  Pressable,
+  ScrollView,
+  View,
+  useWindowDimensions,
+} from "react-native";
 
 import { useBrandScreenPalette } from "../../../shared/brand-palette";
 import {
@@ -290,6 +297,9 @@ function RecipesSummary({
 }>) {
   const pal = useBrandScreenPalette();
   const { theme } = useTheme();
+  const { width: viewportWidth } = useWindowDimensions();
+  const compact = viewportWidth < 360;
+  const summaryIconSize = compact ? 36 : 42;
 
   return (
     <View
@@ -300,7 +310,7 @@ function RecipesSummary({
         borderWidth: 1,
         borderColor: pal.border,
         paddingVertical: spacing.lg,
-        paddingHorizontal: spacing.lg,
+        paddingHorizontal: compact ? spacing.md : spacing.lg,
         flexDirection: "row",
         alignItems: "center",
         ...theme.shadows.sm,
@@ -308,17 +318,18 @@ function RecipesSummary({
     >
       <View
         style={{
-          flex: 1,
+          flex: compact ? 1.5 : 1.35,
           flexDirection: "row",
           alignItems: "center",
-          gap: spacing.md,
+          gap: compact ? spacing.sm : spacing.md,
           minWidth: 0,
         }}
       >
         <View
           style={{
-            width: 42,
-            height: 42,
+            width: summaryIconSize,
+            height: summaryIconSize,
+            flexShrink: 0,
             borderRadius: radii.full,
             backgroundColor: "rgba(220, 232, 106, 0.38)",
             alignItems: "center",
@@ -328,7 +339,13 @@ function RecipesSummary({
           <AppIcon name="trending-up-outline" size={iconSizes.sm} color={pal.wine} />
         </View>
         <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-          <Typography variant="h3" color={pal.wine} numberOfLines={1}>
+          <Typography
+            variant={compact ? "bodyBold" : "h3"}
+            color={pal.wine}
+            numberOfLines={2}
+            adjustsFontSizeToFit
+            minimumFontScale={0.9}
+          >
             {recipeCountLabel(count, singular, plural)}
           </Typography>
           <Typography variant="caption" color={pal.muted}>
@@ -346,7 +363,14 @@ function RecipesSummary({
         }}
       />
 
-      <View style={{ flex: 1, paddingLeft: spacing.lg, gap: 2, minWidth: 0 }}>
+      <View
+        style={{
+          flex: compact ? 0.85 : 1,
+          paddingLeft: compact ? spacing.md : spacing.lg,
+          gap: 2,
+          minWidth: 0,
+        }}
+      >
         <Typography variant="caption" color={pal.muted}>
           Custo médio
         </Typography>

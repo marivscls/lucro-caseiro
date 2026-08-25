@@ -27,7 +27,6 @@ import { useClient } from "../features/clients/hooks";
 import { QuoteForm } from "../features/quotes/components/quote-form";
 import { showAlert } from "../shared/components/alert-store";
 import { ScreenHeader } from "../shared/components/screen-header";
-import { useBrandIllustration } from "../shared/brand-illustrations";
 import { useBrandScreenPalette } from "../shared/brand-palette";
 import { FAB } from "../shared/components/fab";
 import { SkeletonList } from "../shared/components/skeleton";
@@ -785,7 +784,6 @@ function QuoteDetail({
 }
 
 export default function QuotesScreen() {
-  const quotesEmpty = useBrandIllustration("quotesEmpty");
   const { theme } = useTheme();
   const pal = useBrandScreenPalette();
   const router = useRouter();
@@ -935,16 +933,6 @@ export default function QuotesScreen() {
 
               {quotes.length === 0 ? (
                 <EmptyState
-                  icon={
-                    <Image
-                      source={quotesEmpty}
-                      resizeMode="contain"
-                      style={{
-                        width: isDesktop ? 220 : 180,
-                        height: isDesktop ? 220 : 180,
-                      }}
-                    />
-                  }
                   title="Nenhum orçamento ainda"
                   description="Monte o orçamento, envie no WhatsApp e, quando aprovar, vire encomenda com um toque."
                   action={

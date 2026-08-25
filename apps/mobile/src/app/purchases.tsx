@@ -4,6 +4,7 @@ import {
   Button,
   EmptyState,
   Typography,
+  fonts,
   iconSizes,
   radii,
   spacing,
@@ -61,15 +62,15 @@ const FILTERS: { value: Filter; label: string }[] = [
   { value: "paid", label: "Pagas" },
 ];
 
-const HERO_IMAGE_RIGHT = 12;
-const HERO_IMAGE_BOTTOM = 6;
-const ADD_BUTTON_HEIGHT = 48;
+const HERO_IMAGE_RIGHT = 8;
+const ADD_BUTTON_HEIGHT = 52;
 
 export default function PurchasesScreen() {
   const pal = useBrandScreenPalette();
   const isDesktop = useDesktopLayout();
   const insets = useSafeAreaInsets();
   const { width: viewportWidth } = useWindowDimensions();
+  const isNarrowMobile = viewportWidth < 360;
   const { data: profile } = useProfile();
   const isPremium =
     !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "purchases");
@@ -99,6 +100,7 @@ export default function PurchasesScreen() {
 
   const payPurchase = usePayPurchase();
   const deletePurchase = useDeletePurchase();
+  const showBottomAction = !isLoading && !error && allItems.length > 0;
   const bottomBarPadding =
     ADD_BUTTON_HEIGHT + spacing.md * 2 + Math.max(insets.bottom, spacing.sm);
 
@@ -172,15 +174,21 @@ export default function PurchasesScreen() {
           title="Compras"
           subtitle="Pedidos e reposições do negócio"
           hideBack={isDesktop}
+          style={{ paddingHorizontal: isDesktop ? 0 : spacing.xl }}
           titleStyle={{ color: pal.wine }}
           subtitleStyle={{ color: pal.muted }}
+          subtitleNumberOfLines={2}
           right={
             <FAB
               icon="add"
               header
               onPress={openCreate}
               accessibilityLabel="Nova compra"
-              style={{ backgroundColor: pal.rose }}
+              style={{
+                height: 52,
+                minWidth: 52,
+                backgroundColor: pal.rose,
+              }}
             />
           }
         />
@@ -199,15 +207,21 @@ export default function PurchasesScreen() {
         title="Compras"
         subtitle="Pedidos e reposições do negócio"
         hideBack={isDesktop}
+        style={{ paddingHorizontal: isDesktop ? 0 : spacing.xl }}
         titleStyle={{ color: pal.wine }}
         subtitleStyle={{ color: pal.muted }}
+        subtitleNumberOfLines={2}
         right={
           <FAB
             icon="add"
             header
             onPress={openCreate}
             accessibilityLabel="Nova compra"
-            style={{ backgroundColor: pal.rose }}
+            style={{
+              height: 52,
+              minWidth: 52,
+              backgroundColor: pal.rose,
+            }}
           />
         }
       />
@@ -218,12 +232,14 @@ export default function PurchasesScreen() {
         contentContainerStyle={{
           ...pageFrame,
           paddingTop: spacing.sm,
-          paddingBottom: bottomBarPadding + spacing.xl,
+          paddingBottom: showBottomAction
+            ? bottomBarPadding + spacing["2xl"]
+            : Math.max(insets.bottom, spacing.sm) + spacing["3xl"],
         }}
       >
         <View
           onLayout={(event) => setContentWidth(event.nativeEvent.layout.width)}
-          style={{ width: "100%", gap: spacing.lg }}
+          style={{ width: "100%" }}
         >
           {isLoading ? <SkeletonList rows={6} variant="purchase" /> : null}
 
@@ -254,7 +270,13 @@ export default function PurchasesScreen() {
                 horizontal
                 nestedScrollEnabled
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ gap: spacing.sm, flexGrow: 0 }}
+                style={{ flexGrow: 0, marginTop: spacing.lg }}
+                contentContainerStyle={{
+                  height: 44,
+                  gap: spacing.sm,
+                  flexGrow: 0,
+                  alignItems: "center",
+                }}
               >
                 {FILTERS.map((option) => (
                   <PurchaseFilterChip
@@ -268,52 +290,59 @@ export default function PurchasesScreen() {
 
               <View
                 style={{
-                  flexDirection: "row",
-                  alignItems: "center",
+                  flexDirection: isNarrowMobile ? "column" : "row",
+                  alignItems: isNarrowMobile ? "stretch" : "center",
                   justifyContent: "space-between",
-                  gap: spacing.md,
+                  gap: isNarrowMobile ? 0 : spacing.md,
+                  marginTop: spacing["2xl"],
                 }}
               >
                 <Typography
-                  variant="h2"
+                  variant="screenTitle"
                   color={pal.wine}
-                  style={{ flex: 1, minWidth: 0 }}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.9}
+                  style={{ flex: 1, minWidth: 0, fontFamily: fonts.extraBold }}
                 >
                   Compras recentes
                 </Typography>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
-                  <Typography variant="caption" color={pal.muted}>
+                <View
+                  accessibilityRole="text"
+                  accessibilityLabel="Ordenação: mais recentes"
+                  style={{
+                    minHeight: 44,
+                    flexShrink: 0,
+                    alignSelf: isNarrowMobile ? "flex-end" : undefined,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: spacing.xs,
+                    paddingLeft: spacing.sm,
+                  }}
+                >
+                  <Typography variant="captionBold" color={pal.muted} numberOfLines={1}>
                     Mais recentes
                   </Typography>
-                  <AppIcon name="chevron-forward" size={iconSizes.xs} color={pal.muted} />
+                  <AppIcon name="chevron-down" size={iconSizes.xs} color={pal.muted} />
                 </View>
               </View>
 
-              {allItems.length === 0 ? (
-                <EmptyState
-                  title="Nenhuma compra por aqui"
-                  description="Registre a primeira compra de fornecedor."
-                  action={
-                    <Button
-                      title="Adicionar compra"
-                      onPress={openCreate}
-                      style={{ backgroundColor: pal.rose }}
-                    />
-                  }
-                  style={{ paddingVertical: spacing["2xl"] }}
-                />
-              ) : null}
+              {allItems.length === 0 ? <PurchasesEmptyState onAdd={openCreate} /> : null}
 
               {allItems.length > 0 && items.length === 0 ? (
                 <EmptyState
                   title="Nenhuma compra neste filtro"
                   description="Escolha outro status para ver suas compras."
-                  style={{ paddingVertical: spacing["2xl"] }}
+                  style={{
+                    flex: undefined,
+                    paddingHorizontal: spacing.xl,
+                    paddingVertical: spacing["3xl"],
+                  }}
                 />
               ) : null}
 
               {items.length > 0 ? (
-                <View style={{ gap: spacing.md }}>
+                <View style={{ gap: spacing.md, marginTop: spacing.lg }}>
                   {items.map((purchase) => (
                     <PurchaseCard
                       key={purchase.id}
@@ -335,35 +364,37 @@ export default function PurchasesScreen() {
         </View>
       </ScrollView>
 
-      <View
-        style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          alignItems: "center",
-          backgroundColor: pal.offWhite,
-          paddingTop: spacing.md,
-          paddingBottom: Math.max(insets.bottom, spacing.sm),
-          borderTopWidth: 1,
-          borderTopColor: pal.border,
-        }}
-      >
-        <View style={{ width: "100%", ...pageFrame }}>
-          <Button
-            title="Adicionar compra"
-            size="lg"
-            onPress={openCreate}
-            disabled={payingId !== null || deletingId !== null}
-            style={{
-              width: "100%",
-              minHeight: ADD_BUTTON_HEIGHT,
-              backgroundColor: pal.rose,
-              borderRadius: radii.md,
-            }}
-          />
+      {showBottomAction ? (
+        <View
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            alignItems: "center",
+            backgroundColor: pal.offWhite,
+            paddingTop: spacing.md,
+            paddingBottom: Math.max(insets.bottom, spacing.sm),
+            borderTopWidth: 1,
+            borderTopColor: pal.border,
+          }}
+        >
+          <View style={{ width: "100%", ...pageFrame }}>
+            <Button
+              title="Adicionar compra"
+              size="lg"
+              onPress={openCreate}
+              disabled={payingId !== null || deletingId !== null}
+              style={{
+                width: "100%",
+                minHeight: ADD_BUTTON_HEIGHT,
+                backgroundColor: pal.rose,
+                borderRadius: radii.lg,
+              }}
+            />
+          </View>
         </View>
-      </View>
+      ) : null}
 
       {showCreate ? (
         <CreatePurchaseForm
@@ -417,10 +448,7 @@ function PurchasesSummaryHero({
   );
   const textWidth = Math.max(minTextWidth, available - imageSize);
   const amountVariant = textWidth < 176 || compact ? "money" : "moneyLg";
-  const cardMinHeight = Math.max(
-    compact ? 140 : 156,
-    imageSize + HERO_IMAGE_BOTTOM + spacing.md,
-  );
+  const cardMinHeight = Math.max(compact ? 148 : 164, imageSize + spacing["3xl"]);
 
   return (
     <View
@@ -430,7 +458,7 @@ function PurchasesSummaryHero({
         borderRadius: radii["2xl"],
         backgroundColor: pal.wineFill,
         overflow: "hidden",
-        paddingVertical: spacing.xl,
+        paddingVertical: spacing["2xl"],
         paddingLeft: sidePad,
         justifyContent: "center",
       }}
@@ -472,7 +500,7 @@ function PurchasesSummaryHero({
         style={{
           position: "absolute",
           right: HERO_IMAGE_RIGHT,
-          bottom: HERO_IMAGE_BOTTOM,
+          top: (cardMinHeight - imageSize) / 2,
           width: imageSize,
           height: imageSize,
         }}
@@ -508,21 +536,74 @@ function PurchaseFilterChip({
       accessibilityRole="button"
       accessibilityState={{ selected }}
       style={({ pressed }) => ({
-        minHeight: 44,
+        height: 44,
+        flexShrink: 0,
         paddingHorizontal: spacing.lg,
-        borderRadius: radii.full,
+        borderRadius: radii.xl,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: selected ? pal.softRose : pal.surface,
-        borderWidth: selected ? 0 : 1,
-        borderColor: pal.border,
+        backgroundColor: selected ? pal.softRose : pal.offWhite,
+        borderWidth: 1,
+        borderColor: selected ? pal.rose : pal.border,
         opacity: pressed ? 0.85 : 1,
       })}
     >
-      <Typography variant="bodyBold" color={selected ? pal.wine : pal.ink}>
+      <Typography
+        variant="bodyBold"
+        color={selected ? pal.wine : pal.ink}
+        numberOfLines={1}
+      >
         {label}
       </Typography>
     </Pressable>
+  );
+}
+
+function PurchasesEmptyState({ onAdd }: Readonly<{ onAdd: () => void }>) {
+  const pal = useBrandScreenPalette();
+
+  return (
+    <View
+      style={{
+        alignItems: "center",
+        paddingTop: spacing["2xl"],
+        paddingBottom: spacing["3xl"],
+        paddingHorizontal: spacing.xl,
+      }}
+    >
+      <Typography
+        variant="screenTitle"
+        color={pal.ink}
+        style={{ fontFamily: fonts.extraBold, textAlign: "center" }}
+      >
+        Nenhuma compra por aqui
+      </Typography>
+      <Typography
+        variant="body"
+        color={pal.muted}
+        style={{
+          maxWidth: 320,
+          marginTop: spacing.md,
+          textAlign: "center",
+          fontSize: 16,
+          lineHeight: 24,
+        }}
+      >
+        Registre a primeira compra de fornecedor.
+      </Typography>
+      <Button
+        title="Adicionar compra"
+        size="lg"
+        onPress={onAdd}
+        style={{
+          minHeight: 52,
+          marginTop: spacing["2xl"],
+          paddingHorizontal: spacing["2xl"],
+          backgroundColor: pal.rose,
+          borderRadius: radii.lg,
+        }}
+      />
+    </View>
   );
 }
 

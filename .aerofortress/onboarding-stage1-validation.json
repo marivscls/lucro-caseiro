@@ -1,0 +1,137 @@
+{
+  "results": [
+    {
+      "name": "320x700",
+      "viewport": {
+        "width": 320,
+        "height": 700
+      },
+      "bodyScrollWidth": 320,
+      "bodyScrollHeight": 700,
+      "documentScrollWidth": 320,
+      "descriptionCount": 1,
+      "informationCount": 1,
+      "title": null,
+      "description": {
+        "left": 24,
+        "right": 296,
+        "top": 470,
+        "bottom": 551,
+        "width": 272,
+        "height": 81
+      },
+      "information": {
+        "left": 97,
+        "right": 275,
+        "top": 592,
+        "bottom": 664,
+        "width": 178,
+        "height": 72
+      },
+      "cta": {
+        "left": 24,
+        "right": 296,
+        "top": 705,
+        "bottom": 765,
+        "width": 272,
+        "height": 60
+      },
+      "skip": {
+        "left": 202.2,
+        "right": 296,
+        "top": 8,
+        "bottom": 52,
+        "width": 93.8,
+        "height": 44
+      },
+      "hero": {
+        "left": 38.5,
+        "right": 281.5,
+        "top": 174.2,
+        "bottom": 345.8,
+        "width": 243,
+        "height": 171.7
+      },
+      "heroNaturalSize": null,
+      "heroObjectFit": "fill",
+      "heroBackgroundImage": "none",
+      "heroAssetRequest": "http://127.0.0.1:8094/assets/src/assets/getting-started-product.78fefa0c94e62501780ed585bf30db2a.png",
+      "progressLabel": "Etapa 1 de 3",
+      "ctaBackground": "rgb(74, 35, 50)",
+      "ctaRadius": "20px",
+      "scroll": {
+        "tag": "DIV",
+        "overflowY": "auto",
+        "clientHeight": 700,
+        "scrollHeight": 1010,
+        "canScroll": true
+      },
+      "scrollCandidates": [
+        {
+          "tag": "DIV",
+          "role": null,
+          "overflowY": "auto",
+          "clientHeight": 700,
+          "scrollHeight": 1010
+        },
+        {
+          "tag": "DIV",
+          "role": null,
+          "overflowY": "auto",
+          "clientHeight": 700,
+          "scrollHeight": 833
+        },
+        {
+          "tag": "DIV",
+          "role": null,
+          "overflowY": "visible",
+          "clientHeight": 28,
+          "scrollHeight": 34
+        },
+        {
+          "tag": "DIV",
+          "role": null,
+          "overflowY": "visible",
+          "clientHeight": 28,
+          "scrollHeight": 34
+        },
+        {
+          "tag": "DIV",
+          "role": null,
+          "overflowY": "visible",
+          "clientHeight": 28,
+          "scrollHeight": 34
+        },
+        {
+          "tag": "DIV",
+          "role": null,
+          "overflowY": "hidden",
+          "clientHeight": 12,
+          "scrollHeight": 16
+        }
+      ],
+      "checks": {
+        "allExactCopyPresent": true,
+        "noDuplicateCopy": true,
+        "noHorizontalOverflow": true,
+        "heroAssetCorrect": true,
+        "heroFullyInside": true,
+        "ctaFullyInside": true,
+        "touchTargets": true,
+        "firstStepAccessible": true
+      }
+    }
+  ],
+  "actions": {
+    "skip": {
+      "overlayDismissed": true,
+      "reopenVisible": true,
+      "storageUnchanged": true
+    },
+    "continue": {
+      "advancedToStep2": true,
+      "saleHeroLoaded": true,
+      "storageUnchanged": true
+    }
+  }
+}

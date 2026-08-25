@@ -52,8 +52,6 @@ import { PAYMENT_LABELS } from "../../features/sales/payment";
 import { useInterstitial } from "../../shared/hooks/use-interstitial";
 import { useLimitCheck } from "../../shared/hooks/use-limit-check";
 import { useOfflineQueue } from "../../shared/hooks/use-offline-queue";
-import { useAuth } from "../../shared/hooks/use-auth";
-import { useOnboarding } from "../../shared/hooks/use-onboarding";
 import { usePaywall } from "../../shared/hooks/use-paywall";
 import { ApiError } from "../../shared/utils/api-client";
 import { maybeAskForReview } from "../../shared/utils/store-review";
@@ -363,8 +361,6 @@ export default function NewSaleScreen() {
   const router = useRouter();
   const { from } = useLocalSearchParams<{ from?: string }>();
   const guidedFirstSale = from === "getting-started";
-  const userId = useAuth((s) => s.userId);
-  const completeGettingStarted = useOnboarding((s) => s.completeGettingStarted);
   const insets = useSafeAreaInsets();
   const fixedActionBottomOffset = floatingTabBarContentPadding(insets.bottom);
   const fixedActionScrollPadding =
@@ -632,11 +628,10 @@ export default function NewSaleScreen() {
         buttons: guidedFirstSale
           ? [
               {
-                text: "Ver meu resultado",
+                text: "Continuar",
                 onPress: () => {
                   resetForm();
-                  if (userId) completeGettingStarted(userId);
-                  router.replace("/finance");
+                  router.replace("/tabs");
                 },
               },
               receiptButton,

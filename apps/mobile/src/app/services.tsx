@@ -34,7 +34,6 @@ import {
 } from "../features/services/domain";
 import { useServices } from "../features/services/hooks";
 import { brandScreenPalette } from "../shared/brand-palette";
-import { useBrandIllustration } from "../shared/brand-illustrations";
 import { showAlert } from "../shared/components/alert-store";
 import { AppIcon, type AppIconName } from "../shared/components/app-icon";
 import { FAB } from "../shared/components/fab";
@@ -575,7 +574,6 @@ export default function ServicesScreen() {
   const compact = viewportWidth < 390;
   const metricsCompact = viewportWidth < 480;
   const insets = useSafeAreaInsets();
-  const servicesEmpty = useBrandIllustration("servicesEmpty");
   const servicesQuery = useServices();
   const services = servicesQuery.data ?? [];
   const [search, setSearch] = useState("");
@@ -752,14 +750,6 @@ export default function ServicesScreen() {
 
       return (
         <EmptyState
-          icon={
-            <Image
-              source={servicesEmpty}
-              resizeMode="contain"
-              accessible={false}
-              style={{ width: isDesktop ? 240 : 200, height: isDesktop ? 240 : 200 }}
-            />
-          }
           title={emptyTitle}
           description={emptyDescription}
           action={

@@ -27,8 +27,8 @@ Dashboard financeiro do usuario: visualizar resumo mensal (entradas, saidas, luc
 | `apps/mobile/src/features/finance/components/finance-dashboard.tsx`    | Dashboard principal com resumo, seletor de mes e exportacao                                    |
 | `apps/mobile/src/features/finance/components/finance-entry-list.tsx`   | Lista de lancamentos com filtro                                                                |
 | `apps/mobile/src/features/finance/components/create-finance-entry.tsx` | Formulario de criacao de lancamento                                                            |
-| `apps/mobile/src/app/tabs/finance.tsx`                                 | Screen canônica na aba Financeiro (`/tabs/finance`)                                             |
-| `apps/mobile/src/app/finance.tsx`                                      | Redirecionamento compatível da rota antiga `/finance`                                           |
+| `apps/mobile/src/app/tabs/finance.tsx`                                 | Screen canônica na aba Financeiro (`/tabs/finance`)                                            |
+| `apps/mobile/src/app/finance.tsx`                                      | Redirecionamento compatível da rota antiga `/finance`                                          |
 
 ## Components
 
@@ -43,7 +43,7 @@ Dashboard financeiro do usuario: visualizar resumo mensal (entradas, saidas, luc
 - **Props:** `{ entries?: FinanceEntry[]; onEntryPress?: (id: string) => void; onAddPress?: () => void; showFilter?: boolean }`
 - FlatList de lancamentos com filtro por tipo (Tudo/Entradas/Saidas).
 - Cada item mostra icone +/-, descricao, categoria (Badge), tag "Fixo"/"Variavel" (apenas para despesas), data e valor colorido.
-- EmptyState quando vazio.
+- EmptyState quando vazio, só com título, descrição e CTA (sem ilustração PNG).
 
 ### `CreateFinanceEntry`
 
@@ -123,3 +123,4 @@ Dashboard financeiro do usuario: visualizar resumo mensal (entradas, saidas, luc
 - 2026-08-18: filtros Tudo/Entradas/Saídas da lista usam o `Chip` compartilhado
   com badge (`countByType` + total do período). O seletor Hoje/7 dias/Mês
   continua como pílula de período, não como filtro de categoria.
+- 2026-08-24: estado vazio de lançamentos deixou de usar ilustração PNG; permanece título, descrição e CTA.

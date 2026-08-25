@@ -22,7 +22,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import packagingEmpty from "../assets/packaging-empty.png";
 import { PackagingCard } from "../features/packaging/components/packaging-card";
 import { PackagingDetail } from "../features/packaging/components/packaging-detail";
 import { PackagingForm } from "../features/packaging/components/packaging-form";
@@ -527,16 +526,6 @@ function PackagingScreenContent() {
     if (items.length === 0) {
       return (
         <EmptyState
-          icon={
-            <Image
-              source={packagingEmpty}
-              resizeMode="contain"
-              style={{
-                width: isDesktop ? 240 : 220,
-                height: isDesktop ? 240 : 220,
-              }}
-            />
-          }
           title="Nenhuma embalagem ainda"
           description="Cadastre sua primeira embalagem pra calcular o custo certinho dos seus produtos"
           action={

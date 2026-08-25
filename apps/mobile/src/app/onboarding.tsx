@@ -652,6 +652,7 @@ export default function OnboardingScreen() {
     if (finishing) return;
     setFinishing(true);
     try {
+      if (userId) startGettingStarted(userId);
       await completeOnboarding(userId);
       router.replace(destination);
     } catch (error) {
@@ -667,7 +668,6 @@ export default function OnboardingScreen() {
 
   // Primeira vitoria: leva direto ao cadastro do 1o produto.
   function handleFirstProduct() {
-    if (userId) startGettingStarted(userId);
     void completeAndNavigate("/products?from=onboarding&create=getting-started");
   }
 

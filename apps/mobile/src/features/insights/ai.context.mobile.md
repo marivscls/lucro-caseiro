@@ -61,7 +61,7 @@ melhores clientes — numa janela de 3, 6 ou 12 meses. Tudo com gráficos simple
 ## Error Handling
 
 - Loading: `ActivityIndicator` centralizado.
-- Sem dados (`totalSales === 0`): `EmptyState` convidando a registrar vendas.
+- Sem dados (`totalSales === 0`): `EmptyState` convidando a registrar vendas, sem ilustração PNG.
 - Erros de rede: tratados pelo `apiClient`/React Query (retry padrão); a tela só projeta o
   estado atual (sem dados → EmptyState).
 
@@ -98,3 +98,4 @@ const { data } = useInsights(6);
   disponíveis: queda mensal, estoque no limite explícito, ganho abaixo de 20% do preço,
   campeão de vendas e melhor cliente. Cada alerta explica a regra e abre a tela onde a
   pessoa pode agir; o limite de 20% é apresentado como alerta, não como previsão.
+- 2026-08-24: estado vazio (sem vendas) deixou de usar ilustração PNG.

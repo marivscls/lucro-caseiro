@@ -147,3 +147,4 @@ Gerenciar embalagens utilizadas nos produtos: cadastrar, listar, editar e exclui
   para repor = `restockCount` (zero enquanto o contrato não persiste estoque).
   Miniaturas usam `photoUrl` ou slug único do nome; o botão `+` e as rotas
   permaneceram iguais.
+- 2026-08-24: estado vazio da lista deixou de usar ilustração PNG.

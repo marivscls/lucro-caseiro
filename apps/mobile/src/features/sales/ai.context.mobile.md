@@ -165,3 +165,4 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 - 2026-08-18: filtros de lista em Vendas e Fiado usam o `Chip` compartilhado.
   Fiado mantém o badge com totais já calculados na tela; Vendas não inventa
   contagem porque a lista é paginada por status.
+- 2026-08-24: estados vazios de Vendas e Fiado deixaram de usar ilustração PNG; permanecem título, descrição e CTA.

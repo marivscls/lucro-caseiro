@@ -50,7 +50,7 @@ Gerenciar a carteira de clientes do usuario: listar, buscar, criar, editar, excl
 - **Props:** `{ search?: string; onClientPress?: (id: string) => void; onAddPress?: () => void }`
 - FlatList com agrupamento alfabetico por inicial do nome.
 - Pull-to-refresh via RefreshControl.
-- EmptyState quando sem dados.
+- EmptyState quando sem dados, só com título, descrição e CTA (sem ilustração PNG).
 
 ### `CreateClientForm`
 
@@ -140,3 +140,4 @@ Importados de `@lucro-caseiro/contracts`.
 - 2026-08-18: filtros da lista (geral/Recentes/Frequentes/Com fiado) usam o `Chip`
   compartilhado com badge. Contagens vêm de `countClientListFilters` sobre os
   insights já carregados — sem request extra.
+- 2026-08-24: estado vazio da lista deixou de usar ilustração PNG; permanece título, descrição e CTA.

@@ -11,9 +11,8 @@ import {
 } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useEffect, useMemo, useState } from "react";
-import { Image, Pressable, ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 
-import { useBrandIllustration } from "../../../shared/brand-illustrations";
 import { SkeletonTable } from "../../../shared/components/skeleton";
 import {
   desktopStretch,
@@ -42,7 +41,6 @@ export function SupplierTable({
   onAddPress,
 }: Readonly<SupplierTableProps>) {
   const { theme } = useTheme();
-  const suppliersEmpty = useBrandIllustration("suppliersEmpty");
   const isDesktop = useDesktopLayout();
   const experienceCopy = useBusinessCopy();
   const { data, isLoading, error } = useSuppliers({ search });
@@ -92,13 +90,6 @@ export function SupplierTable({
   if (!items.length) {
     return (
       <EmptyState
-        icon={
-          <Image
-            source={suppliersEmpty}
-            resizeMode="contain"
-            style={{ width: 220, height: 220 }}
-          />
-        }
         title="Nenhum fornecedor ainda"
         description={`Cadastre de quem você compra ${experienceCopy.materialNounPlural} e outros itens para organizar seus gastos.`}
         action={

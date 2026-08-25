@@ -151,3 +151,4 @@ receita ao entregar.
   enquanto o filtro completo por data continua acessível no resumo.
 - 2026-07-28: Agenda passa a operar atendimentos completos, com local, variação,
   adicionais, sessão de pacote, estados próprios e conclusão financeira idempotente.
+- 2026-08-24: estado vazio da Agenda deixou de usar ilustração PNG.

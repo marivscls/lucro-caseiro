@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  GETTING_STARTED_GUIDE_COPY,
-  GETTING_STARTED_GUIDE_PREVIEW_HINT,
   advanceGettingStartedStage,
+  createGettingStartedTranslator,
+  getGettingStartedGuideCopy,
   getGettingStartedStage,
+  gettingStartedProgressLabel,
   gettingStartedStageChip,
   resolveGettingStartedPresentation,
   shouldShowGettingStarted,
@@ -45,6 +46,18 @@ describe("shouldShowGettingStarted", () => {
     ).toBe(true);
   });
 
+  it("sempre mostra o guia para conta nova sem produto nem venda", () => {
+    expect(
+      shouldShowGettingStarted({
+        settled: true,
+        completed: false,
+        started: false,
+        hasProduct: false,
+        hasSale: false,
+      }),
+    ).toBe(true);
+  });
+
   it("nao reapresenta o guia concluido nem o estreia para uma conta ja ativa", () => {
     const base = {
       settled: true,
@@ -62,17 +75,15 @@ describe("shouldShowGettingStarted", () => {
 });
 
 describe("resolveGettingStartedPresentation", () => {
-  const activeAccount = {
-    settled: true,
-    completed: true,
-    started: true,
-    hasProduct: true,
-    hasSale: true,
-  };
-
-  it("na previa mostra a primeira etapa mesmo para conta ja ativa", () => {
+  it("abre o overlay na primeira etapa para conta nova", () => {
     expect(
-      resolveGettingStartedPresentation({ preview: true, ...activeAccount }),
+      resolveGettingStartedPresentation({
+        settled: true,
+        completed: false,
+        started: false,
+        hasProduct: false,
+        hasSale: false,
+      }),
     ).toEqual({
       show: true,
       showReopen: false,
@@ -80,32 +91,17 @@ describe("resolveGettingStartedPresentation", () => {
     });
   });
 
-  it("na previa ignora dados reais e respeita etapa e dismiss", () => {
+  it("fecha o guia real sem perder a etapa derivada dos dados", () => {
     expect(
       resolveGettingStartedPresentation({
-        preview: true,
-        previewDismissed: false,
-        previewStage: "sale",
-        ...activeAccount,
+        dismissed: true,
+        settled: true,
+        completed: false,
+        started: true,
+        hasProduct: true,
+        hasSale: true,
       }),
-    ).toEqual({
-      show: true,
-      showReopen: false,
-      stage: "sale",
-    });
-
-    expect(
-      resolveGettingStartedPresentation({
-        preview: true,
-        previewDismissed: true,
-        previewStage: "result",
-        ...activeAccount,
-      }),
-    ).toEqual({
-      show: false,
-      showReopen: true,
-      stage: "result",
-    });
+    ).toEqual({ show: false, showReopen: true, stage: "result" });
   });
 });
 
@@ -117,24 +113,43 @@ describe("advanceGettingStartedStage", () => {
   });
 });
 
-describe("GETTING_STARTED_GUIDE_COPY", () => {
+describe("catálogo localizado de Primeiros Passos", () => {
   it("mantem os titulos do guia em tela cheia", () => {
-    expect(GETTING_STARTED_GUIDE_COPY.product.title).toBe("Cadastre o que você vende");
-    expect(GETTING_STARTED_GUIDE_COPY.sale.title).toBe("Registre sua primeira venda");
-    expect(GETTING_STARTED_GUIDE_COPY.result.title).toBe("Veja o que sua venda rendeu");
+    expect(getGettingStartedGuideCopy("product").title).toBe("Cadastre o que você vende");
+    expect(getGettingStartedGuideCopy("sale").title).toBe("Registre sua primeira venda");
+    expect(getGettingStartedGuideCopy("result").title).toBe(
+      "Veja o que sua venda rendeu",
+    );
   });
 
-  it("usa o texto da etapa 1 da referencia visual", () => {
-    expect(GETTING_STARTED_GUIDE_COPY.product.description).toBe(
+  it("usa os textos oficiais das etapas 1 e 3", () => {
+    expect(getGettingStartedGuideCopy("product").description).toBe(
       "Comece pelo essencial: dê um nome e defina o preço do seu primeiro produto.",
     );
-    expect(GETTING_STARTED_GUIDE_COPY.product.tip).toBe(
+    expect(getGettingStartedGuideCopy("product").info).toBe(
       "Você poderá adicionar fotos, custos e outros detalhes depois.",
     );
-    expect(GETTING_STARTED_GUIDE_COPY.product.action).toBe("Cadastrar primeiro produto");
-    expect(GETTING_STARTED_GUIDE_PREVIEW_HINT).toBe(
-      "Modo de prévia: avance sem alterar seus dados.",
-    );
+    expect(getGettingStartedGuideCopy("result")).toEqual({
+      title: "Veja o que sua venda rendeu",
+      description:
+        "Pronto: sua primeira venda já está organizada. Confira o resultado para fechar o passo a passo.",
+      info: "No Financeiro, você acompanha vendas, custos e o que realmente sobrou.",
+      action: "Ver meu resultado",
+      heroAlt: "Painel financeiro com gráfico de crescimento",
+    });
     expect(gettingStartedStageChip(1)).toBe("ETAPA 1 DE 3");
+    expect(gettingStartedStageChip(3)).toBe("ETAPA 3 DE 3");
+    expect(gettingStartedProgressLabel(3)).toBe("Etapa 3 de 3");
+  });
+
+  it("aceita traduções expandidas sem alterar o contrato do componente", () => {
+    const translate = createGettingStartedTranslator({
+      "onboarding.result.title":
+        "Veja com todos os detalhes quanto a sua primeira venda realmente rendeu",
+    });
+
+    expect(getGettingStartedGuideCopy("result", translate).title).toContain(
+      "primeira venda",
+    );
   });
 });

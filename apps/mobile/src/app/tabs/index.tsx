@@ -46,11 +46,9 @@ import { useDesktopLayout } from "../../shared/layout/use-desktop-layout";
 import { useBrandScreenPalette } from "../../shared/brand-palette";
 import { formatCurrency } from "../../shared/utils/format";
 import {
-  advanceGettingStartedStage,
   resolveGettingStartedPresentation,
   type GettingStartedStage,
 } from "../../shared/utils/getting-started";
-import { PREVIEW_HOME_GETTING_STARTED } from "../../shared/utils/onboarding-preview";
 
 type OverviewPeriod = "today" | "month";
 
@@ -846,8 +844,7 @@ export default function HomeScreen() {
 
   const [period, setPeriod] = useState<OverviewPeriod>("today");
   const [showGoalForm, setShowGoalForm] = useState(false);
-  const [previewStage, setPreviewStage] = useState<GettingStartedStage>("product");
-  const [previewDismissed, setPreviewDismissed] = useState(false);
+  const [gettingStartedDismissed, setGettingStartedDismissed] = useState(false);
 
   const userId = useAuth((state) => state.userId);
   const { data: profile } = useProfile();
@@ -877,9 +874,7 @@ export default function HomeScreen() {
     showReopen: showGettingStartedReopen,
     stage: gettingStartedStage,
   } = resolveGettingStartedPresentation({
-    preview: PREVIEW_HOME_GETTING_STARTED,
-    previewDismissed,
-    previewStage,
+    dismissed: gettingStartedDismissed,
     settled: onboardingSettled,
     completed: onboardingCompleted,
     started: onboardingStarted,
@@ -917,16 +912,6 @@ export default function HomeScreen() {
   }
 
   function handleGettingStartedAction() {
-    if (PREVIEW_HOME_GETTING_STARTED) {
-      const nextStage = advanceGettingStartedStage(previewStage);
-      if (nextStage) {
-        setPreviewStage(nextStage);
-        return;
-      }
-      setPreviewDismissed(true);
-      return;
-    }
-
     if (gettingStartedStage === "product") return handleProductRegistration();
 
     if (userId && gettingStartedStage !== "result") startGettingStarted(userId);
@@ -994,50 +979,12 @@ export default function HomeScreen() {
 
         <LimitBanner resource="sales" onUpgrade={() => showPaywall("sales")} />
 
-        {PREVIEW_HOME_GETTING_STARTED ? (
-          <Modal
-            animationType="fade"
-            visible={showGettingStarted}
-            onRequestClose={() => setPreviewDismissed(true)}
-          >
-            <GettingStartedOverlay
-              stage={previewStage}
-              preview={PREVIEW_HOME_GETTING_STARTED}
-              onSkip={() => setPreviewDismissed(true)}
-              onContinue={handleGettingStartedAction}
-            />
-          </Modal>
-        ) : null}
-        {!PREVIEW_HOME_GETTING_STARTED && showGettingStarted ? (
+        {showGettingStartedReopen ? (
           <NextStepCard
             compact={compact}
             stage={gettingStartedStage}
-            onAction={handleGettingStartedAction}
+            onAction={() => setGettingStartedDismissed(false)}
           />
-        ) : null}
-
-        {showGettingStartedReopen ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Reabrir prévia do guia"
-            onPress={() => {
-              setPreviewStage("product");
-              setPreviewDismissed(false);
-            }}
-            style={({ pressed }) => ({ opacity: pressed ? 0.84 : 1 })}
-          >
-            <Card variant="elevated" padding="lg">
-              <Typography variant="homeEyebrow" color={theme.colors.primaryStrong}>
-                PRÉVIA
-              </Typography>
-              <Typography variant="homeCardLead" style={{ marginTop: 2 }}>
-                Reabrir guia da Home
-              </Typography>
-              <Typography variant="homeDescription" color={theme.colors.textSecondary}>
-                Mostra as três etapas sem alterar seus dados
-              </Typography>
-            </Card>
-          </Pressable>
         ) : null}
 
         <View style={{ gap: spacing.lg }}>
@@ -1133,6 +1080,17 @@ export default function HomeScreen() {
           onSuccess={() => setShowGoalForm(false)}
         />
       </ScrollView>
+      <Modal
+        animationType="fade"
+        visible={showGettingStarted}
+        onRequestClose={() => setGettingStartedDismissed(true)}
+      >
+        <GettingStartedOverlay
+          stage={gettingStartedStage}
+          onSkip={() => setGettingStartedDismissed(true)}
+          onContinue={handleGettingStartedAction}
+        />
+      </Modal>
     </SafeAreaView>
   );
 }

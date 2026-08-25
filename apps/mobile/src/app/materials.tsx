@@ -24,7 +24,6 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import pantryIllustration from "../assets/insumos-despensa.png";
-import materialsEmpty from "../assets/materials-empty.png";
 import { MaterialCard } from "../features/materials/components/material-card";
 import { MaterialForm } from "../features/materials/components/material-form";
 import {
@@ -534,14 +533,6 @@ function MaterialsScreenContent() {
     if (items.length === 0) {
       return (
         <EmptyState
-          icon={
-            <Image
-              source={materialsEmpty}
-              resizeMode="contain"
-              accessibilityLabel="Despensa vazia"
-              style={{ width: 190, height: 190 }}
-            />
-          }
           title="Sua despensa está vazia"
           description="Cadastre o primeiro insumo para acompanhar quantidade, custo e reposição."
           action={
