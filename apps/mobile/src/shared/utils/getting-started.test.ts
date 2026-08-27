@@ -91,6 +91,19 @@ describe("resolveGettingStartedPresentation", () => {
     });
   });
 
+  it("fecha o overlay no Agora não sem perder a etapa da conta nova", () => {
+    expect(
+      resolveGettingStartedPresentation({
+        dismissed: true,
+        settled: true,
+        completed: false,
+        started: false,
+        hasProduct: false,
+        hasSale: false,
+      }),
+    ).toEqual({ show: false, showReopen: true, stage: "product" });
+  });
+
   it("fecha o guia real sem perder a etapa derivada dos dados", () => {
     expect(
       resolveGettingStartedPresentation({

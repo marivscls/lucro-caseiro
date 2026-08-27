@@ -18,8 +18,10 @@ interface OnboardingState {
   businessType: string | null;
   businessName: string | null;
   // Guia de ativacao da home. O progresso real vem dos dados de produto e venda;
-  // estas listas guardam apenas quem iniciou e quem confirmou o resultado.
+  // estas listas guardam apenas quem iniciou, quem fechou com "Agora não" e quem
+  // confirmou o resultado. Persistidas por conta neste aparelho.
   gettingStartedStartedUserIds: string[];
+  gettingStartedDismissedUserIds: string[];
   gettingStartedCompletedUserIds: string[];
   setStep: (step: number) => void;
   setBusinessType: (type: string) => void;
@@ -27,6 +29,8 @@ interface OnboardingState {
   startOnboarding: (userId: string) => void;
   completeOnboarding: (userId?: string | null) => Promise<void>;
   startGettingStarted: (userId: string) => void;
+  dismissGettingStarted: (userId: string) => void;
+  reopenGettingStarted: (userId: string) => void;
   completeGettingStarted: (userId: string) => void;
   reset: () => void;
 }
@@ -41,6 +45,7 @@ export const useOnboarding = create<OnboardingState>()(
       businessType: null,
       businessName: null,
       gettingStartedStartedUserIds: [],
+      gettingStartedDismissedUserIds: [],
       gettingStartedCompletedUserIds: [],
       setStep: (step) => set({ currentStep: step }),
       setBusinessType: (type) => set({ businessType: type }),
@@ -76,6 +81,20 @@ export const useOnboarding = create<OnboardingState>()(
             ? state.gettingStartedStartedUserIds
             : [...state.gettingStartedStartedUserIds, userId],
         })),
+      dismissGettingStarted: (userId) =>
+        set((state) => ({
+          gettingStartedDismissedUserIds: state.gettingStartedDismissedUserIds.includes(
+            userId,
+          )
+            ? state.gettingStartedDismissedUserIds
+            : [...state.gettingStartedDismissedUserIds, userId],
+        })),
+      reopenGettingStarted: (userId) =>
+        set((state) => ({
+          gettingStartedDismissedUserIds: state.gettingStartedDismissedUserIds.filter(
+            (id) => id !== userId,
+          ),
+        })),
       completeGettingStarted: (userId) =>
         set((state) => ({
           gettingStartedCompletedUserIds: state.gettingStartedCompletedUserIds.includes(
@@ -84,8 +103,8 @@ export const useOnboarding = create<OnboardingState>()(
             ? state.gettingStartedCompletedUserIds
             : [...state.gettingStartedCompletedUserIds, userId],
         })),
-      // Zera só o estado de sessão; `completedUserIds` é preservado de
-      // propósito (memória por conta neste aparelho).
+      // Zera só o estado de sessão; listas por userId (onboarding e guia) são
+      // preservadas de propósito (memória por conta neste aparelho).
       reset: () =>
         set({
           completed: false,

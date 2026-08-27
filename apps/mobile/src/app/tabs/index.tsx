@@ -844,7 +844,6 @@ export default function HomeScreen() {
 
   const [period, setPeriod] = useState<OverviewPeriod>("today");
   const [showGoalForm, setShowGoalForm] = useState(false);
-  const [gettingStartedDismissed, setGettingStartedDismissed] = useState(false);
 
   const userId = useAuth((state) => state.userId);
   const { data: profile } = useProfile();
@@ -860,27 +859,37 @@ export default function HomeScreen() {
   const salesQuery = useSales();
 
   const startedUserIds = useOnboarding((state) => state.gettingStartedStartedUserIds);
+  const dismissedUserIds = useOnboarding((state) => state.gettingStartedDismissedUserIds);
   const completedUserIds = useOnboarding((state) => state.gettingStartedCompletedUserIds);
   const startGettingStarted = useOnboarding((state) => state.startGettingStarted);
+  const dismissGettingStarted = useOnboarding((state) => state.dismissGettingStarted);
+  const reopenGettingStarted = useOnboarding((state) => state.reopenGettingStarted);
   const completeGettingStarted = useOnboarding((state) => state.completeGettingStarted);
+  const onboardingHydrated = useOnboarding.persist.hasHydrated();
 
   const hasProduct = (productsQuery.data?.items.length ?? 0) > 0;
   const hasSale = (salesQuery.data?.items.length ?? 0) > 0;
-  const onboardingSettled = !productsQuery.isLoading && !salesQuery.isLoading;
+  const onboardingSettled =
+    onboardingHydrated && !productsQuery.isLoading && !salesQuery.isLoading;
   const onboardingStarted = !!userId && startedUserIds.includes(userId);
+  const onboardingDismissed = !!userId && dismissedUserIds.includes(userId);
   const onboardingCompleted = !!userId && completedUserIds.includes(userId);
   const {
     show: showGettingStarted,
     showReopen: showGettingStartedReopen,
     stage: gettingStartedStage,
   } = resolveGettingStartedPresentation({
-    dismissed: gettingStartedDismissed,
+    dismissed: onboardingDismissed,
     settled: onboardingSettled,
     completed: onboardingCompleted,
     started: onboardingStarted,
     hasProduct,
     hasSale,
   });
+
+  function skipGettingStarted() {
+    if (userId) dismissGettingStarted(userId);
+  }
 
   const selectedSales = period === "today" ? todaySalesQuery.data : monthSalesQuery.data;
   const selectedFinance =
@@ -983,7 +992,9 @@ export default function HomeScreen() {
           <NextStepCard
             compact={compact}
             stage={gettingStartedStage}
-            onAction={() => setGettingStartedDismissed(false)}
+            onAction={() => {
+              if (userId) reopenGettingStarted(userId);
+            }}
           />
         ) : null}
 
@@ -1083,11 +1094,11 @@ export default function HomeScreen() {
       <Modal
         animationType="fade"
         visible={showGettingStarted}
-        onRequestClose={() => setGettingStartedDismissed(true)}
+        onRequestClose={skipGettingStarted}
       >
         <GettingStartedOverlay
           stage={gettingStartedStage}
-          onSkip={() => setGettingStartedDismissed(true)}
+          onSkip={skipGettingStarted}
           onContinue={handleGettingStartedAction}
         />
       </Modal>

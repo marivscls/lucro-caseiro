@@ -11,6 +11,7 @@ afterEach(() => {
     completedUserIds: [],
     pendingUserIds: [],
     gettingStartedStartedUserIds: [],
+    gettingStartedDismissedUserIds: [],
     gettingStartedCompletedUserIds: [],
   });
 });
@@ -32,6 +33,7 @@ describe("getting started", () => {
   it("preserva o progresso ao encerrar a sessao", () => {
     useOnboarding.setState({
       gettingStartedStartedUserIds: ["user-1"],
+      gettingStartedDismissedUserIds: ["user-1"],
       gettingStartedCompletedUserIds: ["user-2"],
     });
 
@@ -39,8 +41,20 @@ describe("getting started", () => {
 
     expect(useOnboarding.getState()).toMatchObject({
       gettingStartedStartedUserIds: ["user-1"],
+      gettingStartedDismissedUserIds: ["user-1"],
       gettingStartedCompletedUserIds: ["user-2"],
     });
+  });
+
+  it("guarda o Agora não por conta e só reabre se a pessoa pedir", () => {
+    const state = useOnboarding.getState();
+
+    state.dismissGettingStarted("user-1");
+    useOnboarding.getState().dismissGettingStarted("user-1");
+    expect(useOnboarding.getState().gettingStartedDismissedUserIds).toEqual(["user-1"]);
+
+    useOnboarding.getState().reopenGettingStarted("user-1");
+    expect(useOnboarding.getState().gettingStartedDismissedUserIds).toEqual([]);
   });
 });
 
