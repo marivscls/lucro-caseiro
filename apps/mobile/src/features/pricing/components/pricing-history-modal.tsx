@@ -3,7 +3,6 @@ import {
   Card,
   Chip,
   EmptyState,
-  FilterChipRow,
   Typography,
   fontSizes,
   iconSizes,
@@ -11,7 +10,7 @@ import {
   useTheme,
 } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
-import { FlatList, Pressable, View } from "react-native";
+import { FlatList, Pressable, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppIcon } from "../../../shared/components/app-icon";
@@ -57,53 +56,66 @@ function PricingHistoryCard({
     maximumFractionDigits: 1,
   });
 
+  const extra = [
+    item.allocationMode === "revenue" ? "Custeio por faturamento" : null,
+    item.channelName ? `Canal: ${item.channelName}` : null,
+  ].filter(Boolean);
+
   return (
-    <Card>
-      <View style={{ gap: spacing.sm }}>
+    <Card variant="elevated" padding="xl">
+      <View style={{ gap: spacing.lg }}>
         <View
           style={{
             flexDirection: "row",
             justifyContent: "space-between",
-            alignItems: "center",
-            gap: spacing.sm,
+            alignItems: "flex-start",
+            gap: spacing.lg,
           }}
         >
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="bodyBold" color={theme.colors.text} numberOfLines={1}>
+          <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+            <Typography variant="bodyBold" color={theme.colors.text} numberOfLines={2}>
               {productLabel}
             </Typography>
             <Typography variant="caption" color={theme.colors.textSecondary}>
               {new Date(item.createdAt).toLocaleDateString("pt-BR")}
             </Typography>
-            {item.channelName || item.allocationMode === "revenue" ? (
+            {extra.length > 0 ? (
               <Typography variant="caption" color={theme.colors.textSecondary}>
-                {[
-                  item.allocationMode === "revenue" ? "Custeio por faturamento" : null,
-                  item.channelName ? `Canal: ${item.channelName}` : null,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
+                {extra.join(" · ")}
               </Typography>
             ) : null}
           </View>
-          <Typography variant="h3" color={theme.colors.success}>
+          <Typography
+            variant="h3"
+            color={theme.colors.success}
+            style={{ flexShrink: 0, paddingTop: 2 }}
+          >
             {formatCurrency(price)}
           </Typography>
         </View>
-        <View style={{ flexDirection: "row", gap: spacing.xl }}>
-          <View>
+
+        <View
+          style={{
+            flexDirection: "row",
+            gap: spacing.lg,
+            paddingTop: spacing.lg,
+            borderTopWidth: 1,
+            borderTopColor: theme.colors.border,
+          }}
+        >
+          <View style={{ flex: 1, gap: spacing.xs }}>
             <Typography variant="caption" color={theme.colors.textSecondary}>
               Custo total
             </Typography>
-            <Typography variant="body" color={theme.colors.text}>
+            <Typography variant="bodyBold" color={theme.colors.text}>
               {formatCurrency(item.totalCost)}
             </Typography>
           </View>
-          <View>
+          <View style={{ flex: 1, gap: spacing.xs }}>
             <Typography variant="caption" color={theme.colors.textSecondary}>
-              Acréscimo sobre o custo
+              Acréscimo
             </Typography>
-            <Typography variant="body" color={theme.colors.text}>
+            <Typography variant="bodyBold" color={theme.colors.text}>
               {markup}%
             </Typography>
           </View>
@@ -165,7 +177,12 @@ export function PricingHistoryModal({
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: spacing.xl, gap: spacing.md }}
+        contentContainerStyle={{
+          paddingHorizontal: spacing.xl,
+          paddingTop: spacing.sm,
+          paddingBottom: spacing["4xl"],
+        }}
+        ItemSeparatorComponent={() => <View style={{ height: spacing.lg }} />}
         renderItem={({ item }) => (
           <PricingHistoryCard item={item} productLabel={productName(item.productId)} />
         )}
@@ -187,15 +204,21 @@ export function PricingHistoryModal({
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
-            padding: spacing.lg,
+            paddingHorizontal: spacing.xl,
+            paddingTop: spacing.lg,
+            paddingBottom: spacing.xl,
+            gap: spacing.md,
           }}
         >
-          <Typography variant="h2">Histórico</Typography>
+          <Typography variant="h2" style={{ flex: 1 }} numberOfLines={1}>
+            Histórico
+          </Typography>
           <Pressable
             onPress={onClose}
             accessibilityRole="button"
             accessibilityLabel="Fechar histórico"
-            hitSlop={10}
+            hitSlop={12}
+            style={{ minHeight: 48, justifyContent: "center" }}
           >
             <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
               Fechar
@@ -204,18 +227,27 @@ export function PricingHistoryModal({
         </View>
 
         {chips.length > 1 ? (
-          <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.sm }}>
-            <FilterChipRow>
-              {chips.map((chip) => (
-                <Chip
-                  key={chip.key}
-                  label={chip.label}
-                  selected={filter === chip.key}
-                  onPress={() => setFilter(chip.key)}
-                />
-              ))}
-            </FilterChipRow>
-          </View>
+          <ScrollView
+            horizontal
+            nestedScrollEnabled
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{
+              paddingHorizontal: spacing.xl,
+              paddingTop: spacing.sm,
+              paddingBottom: spacing.lg,
+              gap: spacing.sm,
+              alignItems: "center",
+            }}
+          >
+            {chips.map((chip) => (
+              <Chip
+                key={chip.key}
+                label={chip.label}
+                selected={filter === chip.key}
+                onPress={() => setFilter(chip.key)}
+              />
+            ))}
+          </ScrollView>
         ) : null}
 
         {content}

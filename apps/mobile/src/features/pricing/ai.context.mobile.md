@@ -167,4 +167,6 @@ acrescimo`; `precoBase = (custoDireto + lucroAlvo) / (1 - taxa)`.
   calculadora + moedas (`pricing-result-hero.png`) e faixa verde de
   `Você ganha por unidade`. O aviso de exclusão de mão de obra/gastos ficou
   fora do card escuro. A fórmula do cálculo não mudou.
-- 2026-08-24: estado vazio do histórico de precificação deixou de usar ilustração PNG.
+- 2026-08-27: o histórico de precificação deixou de empilhar os chips de produto
+  e passou a uma faixa horizontal; os cards ganharam mais respiro, divisor e
+  colunas iguais para custo e acréscimo.
