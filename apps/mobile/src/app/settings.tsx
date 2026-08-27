@@ -368,7 +368,7 @@ export default function SettingsScreen() {
           text: "Sair",
           style: "destructive",
           onPress: () => {
-            void signOut().then(() => router.replace("/(auth)/login"));
+            void signOut().finally(() => router.replace("/(auth)/login"));
           },
         },
       ],

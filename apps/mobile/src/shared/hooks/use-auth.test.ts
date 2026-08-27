@@ -1,7 +1,7 @@
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import { Platform } from "react-native";
-import type { AuthError, User } from "@supabase/supabase-js";
+import type { AuthError, Session, User } from "@supabase/supabase-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { supabase } from "../utils/supabase";
@@ -240,5 +240,43 @@ describe("getAuthRedirectUrl", () => {
       refresh_token: "renovacao",
     });
     expect(replaceState).toHaveBeenCalledWith(window.history.state, "", "/");
+  });
+
+  it("encerra a sessão local sem esperar o logout global da API", async () => {
+    const signOut = vi.spyOn(supabase.auth, "signOut").mockResolvedValue({ error: null });
+    useAuth.setState({
+      token: "access",
+      userId: "user-1",
+      user: { id: "user-1" } as User,
+      session: { access_token: "access" } as Session,
+      isAuthenticated: true,
+    });
+    useOnboarding.setState({ completed: true, businessName: "Doce da Maria" });
+
+    await useAuth.getState().signOut();
+
+    expect(signOut).toHaveBeenCalledWith({ scope: "local" });
+    expect(useAuth.getState()).toMatchObject({
+      token: null,
+      userId: null,
+      isAuthenticated: false,
+    });
+    expect(useOnboarding.getState().completed).toBe(false);
+    expect(useOnboarding.getState().businessName).toBeNull();
+  });
+
+  it("limpa a sessão na UI mesmo se o Supabase falhar ao sair", async () => {
+    vi.spyOn(supabase.auth, "signOut").mockRejectedValue(new Error("network"));
+    useAuth.setState({
+      token: "access",
+      userId: "user-1",
+      user: { id: "user-1" } as User,
+      session: { access_token: "access" } as Session,
+      isAuthenticated: true,
+    });
+
+    await expect(useAuth.getState().signOut()).resolves.toBeUndefined();
+    expect(useAuth.getState().isAuthenticated).toBe(false);
+    expect(useAuth.getState().userId).toBeNull();
   });
 });

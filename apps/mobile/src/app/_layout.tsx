@@ -39,7 +39,7 @@ import { OfflineBanner } from "../shared/components/offline-banner";
 import { ToastHost } from "../shared/components/toast";
 import { useAuth } from "../shared/hooks/use-auth";
 import { useNotifications } from "../shared/hooks/use-notifications";
-import { setupAutoSync } from "../shared/hooks/use-offline-queue";
+import { setupAutoSync, useOfflineQueue } from "../shared/hooks/use-offline-queue";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import { usePremiumSuccess } from "../shared/hooks/use-premium-success";
 import {
@@ -47,6 +47,7 @@ import {
   mobileTabBarSafeInset,
 } from "../shared/layout/floating-tab-bar";
 import { shouldShowMobileTabBar } from "../shared/layout/mobile-tab-bar";
+import { shouldRedirectToLogin } from "../shared/layout/session-gate";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { preloadStaticImageAssets } from "../shared/static-image-assets";
 import { SubscriptionCheckout } from "../features/subscription/components/subscription-checkout";
@@ -63,15 +64,16 @@ function AppContent() {
   const isDesktop = useDesktopLayout();
   const segments = useSegments();
   const rootSegment = String(segments[0] ?? "");
+  const { initialize, isLoading, token, userId, passwordRecovery, isAuthenticated } =
+    useAuth();
   const showDesktopShell =
     isDesktop &&
+    isAuthenticated &&
     rootSegment !== "" &&
     rootSegment !== "(auth)" &&
     rootSegment !== "onboarding" &&
     rootSegment !== "reset-password" &&
     rootSegment !== "c";
-  const { initialize, isLoading, token, userId, passwordRecovery, isAuthenticated } =
-    useAuth();
   const insets = useSafeAreaInsets();
   const showMobileNav = shouldShowMobileTabBar({
     isDesktop,
@@ -183,6 +185,23 @@ function AppContent() {
     }
   }, [passwordRecovery, introDone, router]);
 
+  // Sem guarda global, "Sair da conta" limpa a sessão/cache mas a tela privada
+  // (ex.: Configurações) continua montada — parece uma conta vazia. O login
+  // precisa acontecer assim que isAuthenticated virar false, sem esperar o
+  // `signOut()` da tela de origem terminar.
+  useEffect(() => {
+    if (!introDone) return;
+    if (
+      shouldRedirectToLogin({
+        isLoading,
+        isAuthenticated,
+        rootSegment,
+      })
+    ) {
+      router.replace("/(auth)/login");
+    }
+  }, [introDone, isLoading, isAuthenticated, rootSegment, router]);
+
   // Auto-sync offline queue when connection is restored. Apos sincronizar,
   // invalida o cache para listas/resumos refletirem as vendas enviadas.
   const appQueryClient = useQueryClient();
@@ -215,6 +234,7 @@ function AppContent() {
   useEffect(() => {
     if (prevUserId.current !== null && prevUserId.current !== userId) {
       appQueryClient.clear();
+      useOfflineQueue.getState().clear();
       prevPlan.current = undefined;
     }
     prevUserId.current = userId;

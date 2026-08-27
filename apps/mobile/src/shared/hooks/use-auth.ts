@@ -450,7 +450,9 @@ export const useAuth = create<AuthState>((set) => ({
         }
         const { data: after } = await supabase.auth.getSession();
         if (after.session) return {};
-        return { error: "Não foi possível concluir o login com Google. Tente novamente." };
+        return {
+          error: "Não foi possível concluir o login com Google. Tente novamente.",
+        };
       }
 
       return { error: "Não foi possível completar o login com Google." };
@@ -462,7 +464,14 @@ export const useAuth = create<AuthState>((set) => ({
   },
 
   signOut: async () => {
-    await supabase.auth.signOut();
+    // `scope: "local"` encerra a sessão neste aparelho sem esperar a API.
+    // O logout global pode travar ou falhar na rede; se a UI esperar, a tela
+    // privada fica montada com o cache já zerado e parece uma conta vazia.
+    try {
+      await supabase.auth.signOut({ scope: "local" });
+    } catch {
+      // O estado local abaixo é a fonte da verdade para a UI.
+    }
     // O estado de onboarding e por aparelho; ao trocar de conta, a proxima
     // que entrar decide de novo (quem ja tem businessName pula sozinha).
     useOnboarding.getState().reset();

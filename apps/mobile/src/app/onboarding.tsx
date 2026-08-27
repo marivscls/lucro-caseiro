@@ -676,8 +676,8 @@ export default function OnboardingScreen() {
     setSwitchingAccount(true);
     try {
       await signOut();
-      router.replace("/(auth)/login");
     } finally {
+      router.replace("/(auth)/login");
       setSwitchingAccount(false);
     }
   }
