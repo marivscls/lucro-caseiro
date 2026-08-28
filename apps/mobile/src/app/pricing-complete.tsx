@@ -75,7 +75,7 @@ export default function CompletePricingScreen() {
             <Typography variant="caption" color={theme.colors.primaryStrong}>
               RECURSO PROFISSIONAL
             </Typography>
-            <Typography variant="h2" style={{ textAlign: "center" }}>
+            <Typography variant="h3" style={{ textAlign: "center" }}>
               Mais controle sobre cada premissa do preço
             </Typography>
             <Typography

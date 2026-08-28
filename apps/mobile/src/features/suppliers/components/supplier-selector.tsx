@@ -175,64 +175,66 @@ export function SupplierSelector({ value, onChange }: SupplierSelectorProps) {
                 style={{ flexShrink: 1 }}
                 contentContainerStyle={{ gap: spacing.sm, paddingVertical: spacing.sm }}
               >
-              {/* Nenhum */}
-              <Pressable
-                onPress={() => pick(null)}
-                accessibilityRole="button"
-                style={{
-                  minHeight: 48,
-                  justifyContent: "center",
-                  paddingHorizontal: spacing.md,
-                  borderRadius: radii.md,
-                  borderWidth: 1,
-                  borderColor: value === null ? theme.colors.primary : pal.border,
-                  backgroundColor: pal.fieldBg,
-                }}
-              >
-                <Typography variant="body" color={theme.colors.textSecondary}>
-                  Nenhum fornecedor
-                </Typography>
-              </Pressable>
-
-              {visible.map((s) => {
-                const active = s.id === value;
-                return (
-                  <Pressable
-                    key={s.id}
-                    onPress={() => pick(s.id)}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: active }}
-                    style={{
-                      minHeight: 48,
-                      justifyContent: "center",
-                      paddingHorizontal: spacing.md,
-                      borderRadius: radii.md,
-                      borderWidth: 1,
-                      borderColor: active ? theme.colors.primary : pal.border,
-                      backgroundColor: active ? `${theme.colors.primary}1f` : pal.fieldBg,
-                    }}
-                  >
-                    <Typography variant="bodyBold" color={theme.colors.text}>
-                      {s.name}
-                    </Typography>
-                    {s.phone ? (
-                      <Typography variant="caption" color={theme.colors.textSecondary}>
-                        {s.phone}
-                      </Typography>
-                    ) : null}
-                  </Pressable>
-                );
-              })}
-
-              {visible.length === 0 && search.trim() ? (
-                <Typography
-                  variant="caption"
-                  color={theme.colors.textSecondary}
-                  style={{ textAlign: "center", paddingVertical: spacing.md }}
+                {/* Nenhum */}
+                <Pressable
+                  onPress={() => pick(null)}
+                  accessibilityRole="button"
+                  style={{
+                    minHeight: 48,
+                    justifyContent: "center",
+                    paddingHorizontal: spacing.md,
+                    borderRadius: radii.md,
+                    borderWidth: 1,
+                    borderColor: value === null ? theme.colors.primary : pal.border,
+                    backgroundColor: pal.fieldBg,
+                  }}
                 >
-                  Nenhum fornecedor encontrado.
-                </Typography>
-              ) : null}
+                  <Typography variant="body" color={theme.colors.textSecondary}>
+                    Nenhum fornecedor
+                  </Typography>
+                </Pressable>
+
+                {visible.map((s) => {
+                  const active = s.id === value;
+                  return (
+                    <Pressable
+                      key={s.id}
+                      onPress={() => pick(s.id)}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: active }}
+                      style={{
+                        minHeight: 48,
+                        justifyContent: "center",
+                        paddingHorizontal: spacing.md,
+                        borderRadius: radii.md,
+                        borderWidth: 1,
+                        borderColor: active ? theme.colors.primary : pal.border,
+                        backgroundColor: active
+                          ? `${theme.colors.primary}1f`
+                          : pal.fieldBg,
+                      }}
+                    >
+                      <Typography variant="bodyBold" color={theme.colors.text}>
+                        {s.name}
+                      </Typography>
+                      {s.phone ? (
+                        <Typography variant="caption" color={theme.colors.textSecondary}>
+                          {s.phone}
+                        </Typography>
+                      ) : null}
+                    </Pressable>
+                  );
+                })}
+
+                {visible.length === 0 && search.trim() ? (
+                  <Typography
+                    variant="caption"
+                    color={theme.colors.textSecondary}
+                    style={{ textAlign: "center", paddingVertical: spacing.md }}
+                  >
+                    Nenhum fornecedor encontrado.
+                  </Typography>
+                ) : null}
               </ScrollView>
 
               {/* Cadastrar novo */}
@@ -294,7 +296,7 @@ export function SupplierSelector({ value, onChange }: SupplierSelectorProps) {
             >
               <AppIcon name="close" size={28} color={theme.colors.text} />
             </Pressable>
-            <Typography variant="h1" color={theme.colors.text} style={{ flex: 1 }}>
+            <Typography variant="h3" color={theme.colors.text} style={{ flex: 1 }}>
               Novo fornecedor
             </Typography>
           </View>

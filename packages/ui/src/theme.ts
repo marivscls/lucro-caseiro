@@ -151,7 +151,7 @@ export const fonts = {
 
 /** Escala semantica da Home. Mantem os ajustes locais sem reduzir o app inteiro. */
 export const homeTypography = {
-  title: { fontSize: 22, fontFamily: fonts.bold, lineHeight: 28 },
+  title: { fontSize: 20, fontFamily: fonts.bold, lineHeight: 26 },
   body: { fontSize: 14, fontFamily: fonts.regular, lineHeight: 20 },
   avatar: { fontSize: 17, fontFamily: fonts.semiBold, lineHeight: 22 },
   eyebrow: { fontSize: 11, fontFamily: fonts.bold, lineHeight: 15 },

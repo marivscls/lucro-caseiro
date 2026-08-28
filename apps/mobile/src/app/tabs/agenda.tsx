@@ -138,7 +138,7 @@ function _OrderDetail({
 
   return (
     <ScrollView contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg }}>
-      <Typography variant="h2">{order.title}</Typography>
+      <Typography variant="h3">{order.title}</Typography>
       {order.clientName ? (
         <Typography variant="body">{order.clientName}</Typography>
       ) : null}
@@ -483,14 +483,7 @@ function ModernOrderDetail({
           )}
         </View>
         <View style={{ flex: 1, gap: spacing.sm }}>
-          <Typography
-            variant="display"
-            color={theme.colors.text}
-            numberOfLines={2}
-            adjustsFontSizeToFit
-            minimumFontScale={0.72}
-            style={{ fontSize: fontSizes["2xl"], lineHeight: 36 }}
-          >
+          <Typography variant="h3" color={theme.colors.text} numberOfLines={2}>
             {order.title}
           </Typography>
           {order.clientName ? (
@@ -1054,7 +1047,7 @@ function OrdersList({
                 style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
               >
                 <AppIcon name={meta.icon} size={22} color={c} />
-                <Typography variant="h3" color={c} style={{ fontSize: fontSizes.xl }}>
+                <Typography variant="h3" color={c}>
                   {group.title}
                 </Typography>
               </View>

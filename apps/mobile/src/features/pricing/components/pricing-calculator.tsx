@@ -119,7 +119,7 @@ function StepTitle({ title, subtitle }: Readonly<{ title: string; subtitle: stri
   const { theme } = useTheme();
   return (
     <View style={{ gap: spacing.sm }}>
-      <Typography variant="h1" color={theme.colors.text}>
+      <Typography variant="h3" color={theme.colors.text}>
         {title}
       </Typography>
       <Typography
@@ -890,7 +890,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
                     <Typography variant="caption" color={theme.colors.textSecondary}>
                       {capitalize(experienceCopy.productNoun)} selecionado
                     </Typography>
-                    <Typography variant="h2" color={theme.colors.text}>
+                    <Typography variant="h3" color={theme.colors.text}>
                       {selectedProduct.name}
                     </Typography>
                   </View>
@@ -969,7 +969,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
                     <Typography variant="caption" color={theme.colors.textSecondary}>
                       {capitalize(experienceCopy.productNoun)} selecionado
                     </Typography>
-                    <Typography variant="h2" color={theme.colors.text}>
+                    <Typography variant="h3" color={theme.colors.text}>
                       {selectedProduct.name}
                     </Typography>
                   </View>

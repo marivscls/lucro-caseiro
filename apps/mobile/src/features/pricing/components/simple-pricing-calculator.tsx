@@ -156,7 +156,7 @@ function CostSourcePicker({
               }}
             >
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Typography variant="h2" numberOfLines={1}>
+                <Typography variant="h3" numberOfLines={1}>
                   {title}
                 </Typography>
                 <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -778,7 +778,7 @@ export function SimplePricingCalculator({
                 }}
               >
                 <View style={{ flex: 1, gap: spacing.xs, minWidth: 0 }}>
-                  <Typography variant="h2">Custos da unidade</Typography>
+                  <Typography variant="h3">Custos da unidade</Typography>
                   <Typography variant="caption" color={theme.colors.textSecondary}>
                     Informe os dados abaixo; as somas e divisões ficam por nossa conta.
                   </Typography>

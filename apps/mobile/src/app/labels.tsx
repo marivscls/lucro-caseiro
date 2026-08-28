@@ -712,7 +712,6 @@ export default function LabelsScreen() {
   const palette = brandScreenPalette(theme);
   const labelsLabel = useBrand().copy.labelsLabel;
   const isDesktop = useDesktopLayout();
-  const { width } = useWindowDimensions();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { data, isLoading, error } = useLabels({ limit: 100 });
@@ -724,7 +723,6 @@ export default function LabelsScreen() {
   const [search, setSearch] = useState("");
   const [listFilter, setListFilter] = useState<LabelListFilter>("all");
   const backToHome = !router.canGoBack();
-  const compactHeader = !isDesktop && width < 360;
   const items = data?.items ?? [];
   const totalCount = data?.total ?? items.length;
 
@@ -977,17 +975,8 @@ export default function LabelsScreen() {
         backLabel={backToHome ? "Ir para o início" : "Voltar"}
         hideBack={isDesktop}
         style={{ gap: spacing.sm, ...pageGutter(isDesktop, spacing.lg) }}
-        titleStyle={{
-          color: palette.ink,
-          fontFamily: fonts.extraBold,
-          fontSize: compactHeader ? 20 : 24,
-        }}
-        subtitleStyle={{
-          color: palette.muted,
-          fontFamily: fonts.regular,
-          fontSize: 14,
-          lineHeight: 20,
-        }}
+        titleStyle={{ color: palette.ink }}
+        subtitleStyle={{ color: palette.muted }}
       />
 
       <View style={{ flex: 1 }}>{renderList()}</View>

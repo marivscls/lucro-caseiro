@@ -923,7 +923,7 @@ export default function QuotesScreen() {
               </FilterChipRow>
 
               <View style={{ gap: 2 }}>
-                <Typography variant="h2" color={pal.ink}>
+                <Typography variant="h3" color={pal.ink}>
                   Orçamentos recentes
                 </Typography>
                 <Typography variant="body" color={pal.muted}>

@@ -337,7 +337,12 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
                       keyboardType="decimal-pad"
                     />
                   </View>
-                  <View style={[compactField, isDesktop ? { flex: 1, maxWidth: undefined } : { flex: 1.4 }]}>
+                  <View
+                    style={[
+                      compactField,
+                      isDesktop ? { flex: 1, maxWidth: undefined } : { flex: 1.4 },
+                    ]}
+                  >
                     <Input
                       placeholder="Preço un."
                       value={item.unitPrice}
@@ -409,7 +414,9 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
               {discountType ? (
                 <View style={compactField}>
                   <Input
-                    label={discountType === "percentage" ? "Desconto (%)" : "Desconto (R$)"}
+                    label={
+                      discountType === "percentage" ? "Desconto (%)" : "Desconto (R$)"
+                    }
                     value={discountValue}
                     onChangeText={setDiscountValue}
                     keyboardType="decimal-pad"
@@ -516,73 +523,75 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
                   gap: spacing.lg,
                 }}
               >
-              <View style={{ gap: spacing.xs }}>
-                <Typography variant="caption" color={theme.colors.textSecondary}>
-                  PRÉVIA DO CLIENTE
-                </Typography>
-                <Typography variant="h2">
-                  {title.trim() || "Título do orçamento"}
-                </Typography>
-                <Typography variant="body" color={theme.colors.textSecondary}>
-                  {clientName.trim() || "Cliente não informado"}
-                </Typography>
-              </View>
-              <View style={{ gap: spacing.md }}>
-                {items
-                  .filter((item) => item.description.trim())
-                  .map((item, index) => (
-                    <View
-                      key={`${item.description}-${index}`}
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        gap: spacing.md,
-                      }}
-                    >
-                      <Typography variant="body" style={{ flex: 1 }}>
-                        {parseNumber(item.quantity) || 0}x {item.description}
-                      </Typography>
-                      <Typography variant="bodyBold">
-                        {formatCurrency(
-                          (parseNumber(item.quantity) || 0) *
-                            parseCurrencyInput(item.unitPrice),
-                        )}
-                      </Typography>
-                    </View>
-                  ))}
-              </View>
-              <View
-                style={{
-                  borderTopWidth: 1,
-                  borderTopColor: theme.colors.border,
-                  paddingTop: spacing.md,
-                  gap: spacing.sm,
-                }}
-              >
-                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                  <Typography variant="body">Subtotal</Typography>
-                  <Typography variant="bodyBold">
-                    {formatCurrency(pricing.subtotal)}
+                <View style={{ gap: spacing.xs }}>
+                  <Typography variant="caption" color={theme.colors.textSecondary}>
+                    PRÉVIA DO CLIENTE
+                  </Typography>
+                  <Typography variant="h3">
+                    {title.trim() || "Título do orçamento"}
+                  </Typography>
+                  <Typography variant="body" color={theme.colors.textSecondary}>
+                    {clientName.trim() || "Cliente não informado"}
                   </Typography>
                 </View>
-                {pricing.discount > 0 ? (
+                <View style={{ gap: spacing.md }}>
+                  {items
+                    .filter((item) => item.description.trim())
+                    .map((item, index) => (
+                      <View
+                        key={`${item.description}-${index}`}
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          gap: spacing.md,
+                        }}
+                      >
+                        <Typography variant="body" style={{ flex: 1 }}>
+                          {parseNumber(item.quantity) || 0}x {item.description}
+                        </Typography>
+                        <Typography variant="bodyBold">
+                          {formatCurrency(
+                            (parseNumber(item.quantity) || 0) *
+                              parseCurrencyInput(item.unitPrice),
+                          )}
+                        </Typography>
+                      </View>
+                    ))}
+                </View>
+                <View
+                  style={{
+                    borderTopWidth: 1,
+                    borderTopColor: theme.colors.border,
+                    paddingTop: spacing.md,
+                    gap: spacing.sm,
+                  }}
+                >
                   <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                    <Typography variant="body">Desconto</Typography>
-                    <Typography variant="bodyBold" color={theme.colors.success}>
-                      − {formatCurrency(pricing.discount)}
+                    <Typography variant="body">Subtotal</Typography>
+                    <Typography variant="bodyBold">
+                      {formatCurrency(pricing.subtotal)}
                     </Typography>
                   </View>
-                ) : null}
-                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                  <Typography variant="h3">Total</Typography>
-                  <Typography variant="h2" color={theme.colors.success}>
-                    {formatCurrency(pricing.total)}
-                  </Typography>
+                  {pricing.discount > 0 ? (
+                    <View
+                      style={{ flexDirection: "row", justifyContent: "space-between" }}
+                    >
+                      <Typography variant="body">Desconto</Typography>
+                      <Typography variant="bodyBold" color={theme.colors.success}>
+                        − {formatCurrency(pricing.discount)}
+                      </Typography>
+                    </View>
+                  ) : null}
+                  <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                    <Typography variant="h3">Total</Typography>
+                    <Typography variant="h2" color={theme.colors.success}>
+                      {formatCurrency(pricing.total)}
+                    </Typography>
+                  </View>
                 </View>
-              </View>
-              <Typography variant="caption" color={theme.colors.textSecondary}>
-                Custos, ganho e margem ficam somente na coluna interna do formulário.
-              </Typography>
+                <Typography variant="caption" color={theme.colors.textSecondary}>
+                  Custos, ganho e margem ficam somente na coluna interna do formulário.
+                </Typography>
               </View>
             </View>
           ) : null}
@@ -597,7 +606,12 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
           <View
             style={
               isDesktop
-                ? { flexDirection: "row", gap: spacing.md, justifyContent: "flex-end", width: "100%" }
+                ? {
+                    flexDirection: "row",
+                    gap: spacing.md,
+                    justifyContent: "flex-end",
+                    width: "100%",
+                  }
                 : { flexDirection: "row", gap: spacing.md, width: "100%" }
             }
           >
@@ -605,7 +619,10 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
               title="Voltar e editar"
               variant="ghost"
               onPress={() => setReviewData(null)}
-              style={{ flex: isDesktop ? undefined : 1, ...desktopAction(isDesktop, 220) }}
+              style={{
+                flex: isDesktop ? undefined : 1,
+                ...desktopAction(isDesktop, 220),
+              }}
             />
             <Button
               title={quote ? "Salvar alterações" : "Salvar orçamento"}
@@ -613,7 +630,10 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
                 if (reviewData) void handleSave(reviewData);
               }}
               loading={isSaving}
-              style={{ flex: isDesktop ? undefined : 1, ...desktopAction(isDesktop, 240) }}
+              style={{
+                flex: isDesktop ? undefined : 1,
+                ...desktopAction(isDesktop, 240),
+              }}
             />
           </View>
         }
@@ -624,7 +644,7 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
               <Typography variant="caption" color={theme.colors.textSecondary}>
                 Orçamento
               </Typography>
-              <Typography variant="h2">{reviewData.title}</Typography>
+              <Typography variant="h3">{reviewData.title}</Typography>
               <Typography variant="body" color={theme.colors.textSecondary}>
                 {reviewData.clientName || "Sem cliente informado"}
               </Typography>

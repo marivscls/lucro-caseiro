@@ -1,8 +1,9 @@
 import React from "react";
-import { Text, View, type ViewStyle } from "react-native";
+import { View, type ViewStyle } from "react-native";
 
 import { useTheme } from "../theme-context";
-import { fonts, fontSizes, spacing } from "../theme";
+import { spacing } from "../theme";
+import { Typography } from "./typography";
 
 interface EmptyStateProps {
   icon?: React.ReactNode;
@@ -29,30 +30,17 @@ export function EmptyState({ icon, title, description, action, style }: EmptySta
       ]}
     >
       {icon}
-      <Text
-        style={{
-          fontSize: fontSizes.xl,
-          fontFamily: fonts.bold,
-          lineHeight: 28,
-          color: theme.colors.text,
-          textAlign: "center",
-        }}
-      >
+      <Typography variant="h3" style={{ textAlign: "center" }}>
         {title}
-      </Text>
+      </Typography>
       {description && (
-        <Text
-          style={{
-            fontSize: fontSizes.md,
-            fontFamily: fonts.regular,
-            lineHeight: 24,
-            color: theme.colors.textSecondary,
-            textAlign: "center",
-            maxWidth: 280,
-          }}
+        <Typography
+          variant="body"
+          color={theme.colors.textSecondary}
+          style={{ textAlign: "center", maxWidth: 280 }}
         >
           {description}
-        </Text>
+        </Typography>
       )}
       {action && <View style={{ marginTop: spacing.sm }}>{action}</View>}
     </View>

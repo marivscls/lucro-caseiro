@@ -679,7 +679,7 @@ export default function OperationsScreen() {
               >
                 {definition.eyebrow}
               </Typography>
-              <Typography variant="h1" color={theme.colors.textOnPrimary}>
+              <Typography variant="h3" color={theme.colors.textOnPrimary}>
                 {definition.headline}
               </Typography>
               <Typography variant="body" color={theme.colors.textOnPrimary}>
@@ -816,7 +816,7 @@ export default function OperationsScreen() {
             </ScrollView>
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
               <View style={{ flex: 1 }}>
-                <Typography variant="h2">{kindDefinition.label}</Typography>
+                <Typography variant="h3">{kindDefinition.label}</Typography>
                 <Typography variant="caption">
                   {documents.data?.length ?? 0} registro(s)
                 </Typography>

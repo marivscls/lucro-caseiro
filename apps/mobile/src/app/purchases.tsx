@@ -4,7 +4,6 @@ import {
   Button,
   EmptyState,
   Typography,
-  fonts,
   iconSizes,
   radii,
   spacing,
@@ -298,12 +297,10 @@ export default function PurchasesScreen() {
                 }}
               >
                 <Typography
-                  variant="screenTitle"
+                  variant="h3"
                   color={pal.wine}
                   numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.9}
-                  style={{ flex: 1, minWidth: 0, fontFamily: fonts.extraBold }}
+                  style={{ flex: 1, minWidth: 0 }}
                 >
                   Compras recentes
                 </Typography>
@@ -571,11 +568,7 @@ function PurchasesEmptyState({ onAdd }: Readonly<{ onAdd: () => void }>) {
         paddingHorizontal: spacing.xl,
       }}
     >
-      <Typography
-        variant="screenTitle"
-        color={pal.ink}
-        style={{ fontFamily: fonts.extraBold, textAlign: "center" }}
-      >
+      <Typography variant="h3" color={pal.ink} style={{ textAlign: "center" }}>
         Nenhuma compra por aqui
       </Typography>
       <Typography
@@ -632,7 +625,7 @@ function PurchasesPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) 
       }}
     >
       <Badge label="Recurso Profissional" variant="premium" />
-      <Typography variant="h2" color={pal.ink}>
+      <Typography variant="h3" color={pal.ink}>
         Compras de fornecedor organizadas
       </Typography>
       <Typography variant="body" color={pal.muted}>

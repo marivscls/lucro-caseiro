@@ -108,7 +108,7 @@ export function PackagingDetail({
 
   return (
     <View style={{ flexShrink: 1, gap: spacing.xl }}>
-      <Typography variant="h1" color={theme.colors.text}>
+      <Typography variant="h3" color={theme.colors.text}>
         {typeLabel(packaging.type)}
       </Typography>
 

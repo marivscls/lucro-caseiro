@@ -514,7 +514,7 @@ export function FinanceDashboard({
                 size={iconSizes.md}
                 color={theme.colors.textSecondary}
               />
-              <Typography variant="h2" color={theme.colors.text}>
+              <Typography variant="h3" color={theme.colors.text}>
                 {MONTH_NAMES[month - 1]} {year}
               </Typography>
             </View>
@@ -737,7 +737,7 @@ export function FinanceDashboard({
         unusual.length > 0 ? (
           <View style={styles.attentionSection}>
             <View style={{ gap: spacing.xs }}>
-              <Typography variant="h2" color={colors.ink} style={styles.attentionTitle}>
+              <Typography variant="h3" color={colors.ink}>
                 Precisa de atenção
               </Typography>
               <Typography variant="caption" color={colors.warmGray}>
@@ -996,11 +996,7 @@ export function FinanceDashboard({
           style={styles.entriesSection}
         >
           <View style={styles.entriesHeader}>
-            <Typography
-              variant="h2"
-              color={colors.ink}
-              style={[styles.entriesTitle, compactLayout && styles.entriesTitleCompact]}
-            >
+            <Typography variant="h3" color={colors.ink} style={styles.entriesTitle}>
               Lançamentos
             </Typography>
             <Pressable
@@ -1268,7 +1264,7 @@ export function FinanceDashboard({
                 color={theme.colors.text}
               />
             </Pressable>
-            <Typography variant="h2" color={theme.colors.text}>
+            <Typography variant="h3" color={theme.colors.text}>
               {pickerYear}
             </Typography>
             <Pressable
@@ -1765,11 +1761,6 @@ function createStyles(theme: Theme) {
       gap: spacing.sm,
       marginTop: spacing.xs,
     },
-    attentionTitle: {
-      fontFamily: fonts.extraBold,
-      fontSize: 24,
-      lineHeight: 30,
-    },
     balanceAlert: {
       alignItems: "center",
       backgroundColor: colors.softRose,
@@ -1835,9 +1826,6 @@ function createStyles(theme: Theme) {
     },
     financeHeaderTitle: {
       color: colors.ink,
-      fontFamily: fonts.extraBold,
-      fontSize: 27,
-      lineHeight: 33,
     },
     customPeriodPill: {
       alignItems: "center",
@@ -1934,13 +1922,6 @@ function createStyles(theme: Theme) {
     },
     entriesTitle: {
       flexShrink: 1,
-      fontFamily: fonts.extraBold,
-      fontSize: 24,
-      lineHeight: 30,
-    },
-    entriesTitleCompact: {
-      fontSize: 21,
-      lineHeight: 27,
     },
     entryBadge: {
       backgroundColor: badgeBg,

@@ -356,14 +356,10 @@ function ClienteleSummary({
       }}
     >
       <Typography
-        variant="h2"
+        variant="h3"
         color={pal.wine}
         numberOfLines={1}
-        style={{
-          fontSize: isNarrow ? 19 : 21,
-          lineHeight: isNarrow ? 24 : 27,
-          marginBottom: 18,
-        }}
+        style={{ marginBottom: 18 }}
       >
         Sua clientela
       </Typography>
@@ -406,14 +402,10 @@ function ClienteleSummary({
                 }}
               >
                 <Typography
-                  variant="h1"
+                  variant="h2"
                   color={pal.wine}
                   numberOfLines={1}
-                  style={{
-                    fontSize: isNarrow ? 27 : 31,
-                    lineHeight: isNarrow ? 34 : 38,
-                    textAlign: "center",
-                  }}
+                  style={{ textAlign: "center" }}
                 >
                   {metric.value}
                 </Typography>
@@ -858,23 +850,10 @@ function ClientsListScreen({
             </Pressable>
           ) : null}
           <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-            <Typography
-              variant="screenTitle"
-              color={pal.wine}
-              numberOfLines={1}
-              style={{
-                fontSize: width < 360 ? 29 : 32,
-                lineHeight: width < 360 ? 36 : 40,
-              }}
-            >
+            <Typography variant="screenTitle" color={pal.wine} numberOfLines={1}>
               Clientes
             </Typography>
-            <Typography
-              variant="body"
-              color={pal.muted}
-              numberOfLines={1}
-              style={{ fontSize: width < 360 ? 13 : fontSizes.md }}
-            >
+            <Typography variant="body" color={pal.muted} numberOfLines={1}>
               {totalClients} pessoas no seu negócio
             </Typography>
           </View>
@@ -946,12 +925,7 @@ function ClientsListScreen({
             gap: spacing.md,
           }}
         >
-          <Typography
-            variant="h2"
-            color={pal.ink}
-            numberOfLines={1}
-            style={{ fontSize: width < 360 ? 21 : 23 }}
-          >
+          <Typography variant="h3" color={pal.ink} numberOfLines={1}>
             Seus clientes
           </Typography>
           <Pressable

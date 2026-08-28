@@ -151,7 +151,7 @@ export function PricingResult({
       ]}
     >
       <View style={{ gap: spacing.xs }}>
-        <Typography variant="h1">Estimativa de preço</Typography>
+        <Typography variant="h3">Estimativa de preço</Typography>
         <Typography variant="body" color={theme.colors.textSecondary}>
           Calculada somente com os valores que você informou. Confira as premissas antes
           de usar este preço.

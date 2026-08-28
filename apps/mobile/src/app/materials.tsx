@@ -190,12 +190,7 @@ function PantrySummary({ items }: Readonly<{ items: Material[] }>) {
             gap: spacing.md,
           }}
         >
-          <Typography
-            variant="h2"
-            color={palette.onWine}
-            numberOfLines={1}
-            style={{ fontSize: narrow ? 16 : 20 }}
-          >
+          <Typography variant="h3" color={palette.onWine} numberOfLines={1}>
             Sua despensa hoje
           </Typography>
           <View
@@ -606,7 +601,7 @@ function MaterialsScreenContent() {
             gap: spacing.md,
           }}
         >
-          <Typography variant="h2" color={palette.ink} style={{ fontSize: 19 }}>
+          <Typography variant="h3" color={palette.ink}>
             Na despensa
           </Typography>
           <Pressable
@@ -697,7 +692,7 @@ function MaterialsScreenContent() {
         backLabel="Ir para Mais opções"
         hideBack={isDesktop}
         style={{ ...headerStyle, paddingBottom: isDesktop ? spacing.md : 0 }}
-        titleStyle={{ color: palette.ink, fontSize: compactHeader ? 20 : undefined }}
+        titleStyle={{ color: palette.ink }}
         subtitleStyle={{ color: palette.muted }}
         right={
           <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>

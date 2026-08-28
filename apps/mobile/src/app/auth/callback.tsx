@@ -23,7 +23,7 @@ export default function AuthCallbackScreen() {
             gap: spacing.lg,
           }}
         >
-          <Typography variant="h1" style={{ textAlign: "center" }}>
+          <Typography variant="screenTitle" style={{ textAlign: "center" }}>
             Link inválido
           </Typography>
           <Typography

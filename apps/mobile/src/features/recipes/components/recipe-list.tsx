@@ -274,7 +274,7 @@ function RecipesIntro() {
 
   return (
     <View style={{ gap: spacing.xs }}>
-      <Typography variant="h2" color={pal.wine}>
+      <Typography variant="h3" color={pal.wine}>
         Suas receitas, seus lucros.
       </Typography>
       <Typography variant="body" color={pal.muted}>

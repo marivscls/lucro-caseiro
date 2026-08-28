@@ -146,7 +146,7 @@ export default function PlansScreen() {
           }}
         >
           <View>
-            <Typography variant="h2" color={theme.colors.text}>
+            <Typography variant="h3" color={theme.colors.text}>
               {current === "free" ? "Escolha seu plano" : "Sua assinatura"}
             </Typography>
           </View>
@@ -268,7 +268,7 @@ export default function PlansScreen() {
                     }}
                   >
                     <Typography
-                      variant="h2"
+                      variant="h3"
                       color={highlight ? theme.colors.premium : theme.colors.text}
                     >
                       {PLAN_LABELS[plan]}

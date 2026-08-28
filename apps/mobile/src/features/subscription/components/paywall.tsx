@@ -332,11 +332,7 @@ export function Paywall({
                   color={theme.colors.premium}
                 />
               </View>
-              <Typography
-                variant="h2"
-                color={theme.colors.text}
-                style={{ fontSize: compact ? fontSizes.xl : fontSizes["2xl"] }}
-              >
+              <Typography variant="h3" color={theme.colors.text}>
                 {brandName}
               </Typography>
             </View>
@@ -390,18 +386,10 @@ export function Paywall({
             style={[styles.intro, { marginTop: compact ? spacing.lg : spacing["2xl"] }]}
           >
             <Typography
-              variant="h1"
+              variant="screenTitle"
               color={theme.colors.text}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.78}
-              style={[
-                styles.title,
-                {
-                  fontSize: compact ? fontSizes["2xl"] : fontSizes["4xl"],
-                  lineHeight: compact ? 34 : 54,
-                },
-              ]}
+              numberOfLines={2}
+              style={styles.title}
             >
               Mais controle para o seu negócio
             </Typography>
@@ -742,7 +730,6 @@ const styles = StyleSheet.create({
   },
   title: {
     textAlign: "center",
-    fontFamily: fonts.extraBold,
   },
   subtitle: {
     textAlign: "center",

@@ -246,7 +246,7 @@ export default function RegisterScreen() {
           >
             {brandName}
           </Typography>
-          <Typography variant="display" style={{ textAlign: "center" }}>
+          <Typography variant="screenTitle" style={{ textAlign: "center" }}>
             Crie sua conta
           </Typography>
           <Typography

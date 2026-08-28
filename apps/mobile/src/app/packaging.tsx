@@ -310,7 +310,6 @@ function PackagingScreenContent() {
   const { theme } = useTheme();
   const palette = brandScreenPalette(theme);
   const isDesktop = useDesktopLayout();
-  const { width } = useWindowDimensions();
   const { data, isLoading, error } = usePackagingList();
   const deletePackaging = useDeletePackaging();
   const showPaywall = usePaywall((s) => s.show);
@@ -324,8 +323,6 @@ function PackagingScreenContent() {
 
   const items = data?.items ?? [];
   const selected = items.find((p) => p.id === selectedId) ?? null;
-  const compactHeader = !isDesktop && width < 360;
-
   const visible = useMemo(() => {
     const query = search.trim().toLowerCase();
     return items.filter((p) => {
@@ -623,11 +620,7 @@ function PackagingScreenContent() {
         title="Embalagens"
         hideBack={isDesktop}
         style={{ gap: spacing.sm, ...pageGutter(isDesktop, spacing.lg) }}
-        titleStyle={{
-          color: palette.ink,
-          fontFamily: fonts.extraBold,
-          fontSize: compactHeader ? 20 : 24,
-        }}
+        titleStyle={{ color: palette.ink }}
         right={
           <FAB
             icon="add"

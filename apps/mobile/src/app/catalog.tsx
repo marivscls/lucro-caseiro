@@ -118,9 +118,6 @@ function CatalogHero({
   const illustrationUri = Asset.fromModule(illustration).uri;
   let heroHeight = 350;
   if (isWideHero) heroHeight = 367;
-  let titleSize = viewportWidth < 430 ? 20 : 23;
-  if (isVeryCompact) titleSize = 18;
-  if (isWideHero) titleSize = 38;
   // The wrapper includes its left padding in its measured width on web.
   let textWidth: number | "50%" | "52%" = "50%";
   if (viewportWidth >= 430) textWidth = "52%";
@@ -129,16 +126,6 @@ function CatalogHero({
   let copyGap: number = spacing.md;
   if (isVeryCompact) copyGap = 7;
   if (isWideHero) copyGap = 22;
-  let descriptionFontSize = 15;
-  let descriptionLineHeight = 21;
-  if (isVeryCompact) {
-    descriptionFontSize = 13;
-    descriptionLineHeight = 18;
-  }
-  if (isWideHero) {
-    descriptionFontSize = 21;
-    descriptionLineHeight = 34;
-  }
   const copyLeft = isWideHero ? 43 : 24;
   const copyTop = isWideHero ? 50 : 48;
   const statusHeight = isWideHero ? 42 : 32;
@@ -189,25 +176,10 @@ function CatalogHero({
           paddingTop: copyTop,
         }}
       >
-        <Typography
-          numberOfLines={2}
-          color={colors.onWine}
-          style={{
-            fontFamily: fonts.extraBold,
-            fontSize: titleSize,
-            lineHeight: titleSize * 1.07,
-          }}
-        >
+        <Typography variant="h3" numberOfLines={2} color={colors.onWine}>
           {"Seu negócio,\nem uma vitrine só."}
         </Typography>
-        <Typography
-          color="#F7EEF0"
-          style={{
-            fontSize: descriptionFontSize,
-            lineHeight: descriptionLineHeight,
-            width: descriptionWidth,
-          }}
-        >
+        <Typography variant="body" color="#F7EEF0" style={{ width: descriptionWidth }}>
           Produtos e serviços organizados para seus clientes escolherem.
         </Typography>
         <View
@@ -747,11 +719,6 @@ function CatalogContentManager({
   let identitySlotCount = 3;
   if (viewportWidth < 430) identitySlotCount = 2;
   if (viewportWidth < 360) identitySlotCount = 1;
-  let sectionTitleStyle: TextStyle | undefined;
-  if (compactSummary) sectionTitleStyle = { fontSize: 20, lineHeight: 25 };
-  if (spaciousLayout) {
-    sectionTitleStyle = { fontFamily: fonts.extraBold, fontSize: 28, lineHeight: 34 };
-  }
   let organizeButtonStyle: ViewStyle | undefined;
   if (compactSummary) organizeButtonStyle = { alignSelf: "flex-end" };
   if (spaciousLayout) organizeButtonStyle = { minHeight: 52 };
@@ -928,9 +895,7 @@ function CatalogContentManager({
               gap: compactSummary ? spacing.sm : spacing.md,
             }}
           >
-            <Typography variant="h2" style={sectionTitleStyle}>
-              O que aparece na vitrine
-            </Typography>
+            <Typography variant="h3">O que aparece na vitrine</Typography>
             {!compactSummary ? <View style={{ flex: 1 }} /> : null}
             <Button
               title={organizing ? "Concluir" : "Organizar"}
@@ -947,11 +912,7 @@ function CatalogContentManager({
               style={organizeButtonStyle}
             />
           </View>
-          <Typography
-            variant="caption"
-            color={theme.colors.textSecondary}
-            style={spaciousLayout ? { fontSize: 17, lineHeight: 24 } : undefined}
-          >
+          <Typography variant="caption" color={theme.colors.textSecondary}>
             Escolha e organize o que seus clientes podem encontrar.
           </Typography>
         </View>
@@ -1047,21 +1008,8 @@ function CatalogContentManager({
 
       <View style={{ gap: spacing.sm, paddingHorizontal: contentSectionInset }}>
         <View style={{ gap: spacing.xs }}>
-          <Typography
-            variant="h2"
-            style={
-              spaciousLayout
-                ? { fontFamily: fonts.extraBold, fontSize: 28, lineHeight: 34 }
-                : undefined
-            }
-          >
-            Sua identidade
-          </Typography>
-          <Typography
-            variant="caption"
-            color={theme.colors.textSecondary}
-            style={spaciousLayout ? { fontSize: 17, lineHeight: 24 } : undefined}
-          >
+          <Typography variant="h3">Sua identidade</Typography>
+          <Typography variant="caption" color={theme.colors.textSecondary}>
             Deixe a vitrine com a cara do seu negócio.
           </Typography>
         </View>
@@ -1433,7 +1381,7 @@ function CatalogForm({
           >
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
               <View style={{ flex: 1 }}>
-                <Typography variant="h2">Mais opções</Typography>
+                <Typography variant="h3">Mais opções</Typography>
                 <Typography variant="caption" color={theme.colors.textSecondary}>
                   Compartilhe ou altere a disponibilidade da vitrine.
                 </Typography>
@@ -1519,14 +1467,9 @@ export default function CatalogScreen() {
   };
   const headerTitleStyle: TextStyle = {
     color: colors.wine,
-    fontFamily: fonts.extraBold,
-    fontSize: 28,
-    lineHeight: 34,
   };
   const headerSubtitleStyle: TextStyle = {
     color: colors.warmGray,
-    fontSize: 14,
-    lineHeight: 20,
   };
   let headerMenuSize = 44;
   if (referencePwaLayout) {
@@ -1534,10 +1477,6 @@ export default function CatalogScreen() {
     headerStyle.paddingHorizontal = 30;
     headerStyle.paddingTop = 20;
     headerStyle.paddingBottom = 20;
-    headerTitleStyle.fontSize = 40;
-    headerTitleStyle.lineHeight = 48;
-    headerSubtitleStyle.fontSize = 20;
-    headerSubtitleStyle.lineHeight = 28;
     headerMenuSize = 56;
   }
 

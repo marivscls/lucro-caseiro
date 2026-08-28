@@ -16,6 +16,7 @@ eliminação das demais fontes, inclusive das exceções serifadas em etiquetas 
 2. **Escala tipográfica única** no `Typography` do `@lucro-caseiro/ui`, com família + tamanho +
    entrelinha por variante:
    - `display` 36/42 Bold · `h1` 28/34 Bold · `h2` 22/28 Bold · `h3` 18/24 Bold
+   - `screenTitle` 20/26 Bold — único tamanho de título de tela (`ScreenHeader` e abas)
    - `body` e `bodyBold` 15/22 · `caption` e `captionBold` 13/18
    - `label` 13/18 Bold uppercase
    - `money/moneyLg/moneyHero` ExtraBold com `tabular-nums`
@@ -27,9 +28,9 @@ eliminação das demais fontes, inclusive das exceções serifadas em etiquetas 
 
 - Texto novo = `Typography` com a variante certa. Não definir `fontSize`, `fontWeight` ou
   `fontFamily` inline quando uma variante resolve.
+- Título de tela = `screenTitle`. Título de seção/lista/modal = `h3`. Nome em card = `bodyBold`.
 - O peso vem da família (`fonts.bold`), nunca de `fontWeight` sobre a fonte customizada.
-- Títulos preservam a escala grande em Bold 700. ExtraBold 800 fica reservado a números de
-  destaque.
+- ExtraBold 800 fica reservado a números de destaque (`money`, `moneyLg`, `moneyHero`).
 - Não oferecer nem renderizar exceções serifadas, inclusive em conteúdo configurável.
 - O cache offline do PWA deve incluir os quatro arquivos Manrope realmente usados.
 

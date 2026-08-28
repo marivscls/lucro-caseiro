@@ -89,7 +89,7 @@ export function GettingStartedOverlay({
     Math.round(frameWidth * (shortScreen ? 0.44 : 0.5)),
     shortScreen ? 188 : 216,
   );
-  const titleSize = width < 360 ? 26 : 28;
+  const titleSize = 20;
   const heroMinHeight = heroWidth / (heroAspect ?? 1);
   const ctaGap = width < 360 ? spacing.sm : spacing.md;
   const ctaPaddingHorizontal = width < 360 ? 0 : spacing.md;
@@ -279,7 +279,7 @@ export function GettingStartedOverlay({
         <Text
           maxFontSizeMultiplier={1.25}
           style={{
-            fontFamily: fonts.extraBold,
+            fontFamily: fonts.bold,
             fontSize: titleSize,
             lineHeight: Math.round(titleSize * 1.1),
             color: colors.ink,

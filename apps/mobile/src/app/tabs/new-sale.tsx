@@ -919,7 +919,7 @@ export default function NewSaleScreen() {
         <StepIndicator step={step} align={isDesktop ? "flex-start" : "center"} />
 
         <View style={{ paddingBottom: spacing.xl }}>
-          <Typography variant="h1">{STEP_TITLES[step]}</Typography>
+          <Typography variant="h3">{STEP_TITLES[step]}</Typography>
           <Typography variant="body" style={{ marginTop: spacing.sm }}>
             {STEP_SUBTITLES[step]}
           </Typography>
@@ -2171,7 +2171,7 @@ export default function NewSaleScreen() {
                   justifyContent: "space-between",
                 }}
               >
-                <Typography variant="h2">Buscar por código</Typography>
+                <Typography variant="h3">Buscar por código</Typography>
                 <Pressable
                   onPress={() => setShowBarcodeSearch(false)}
                   accessibilityLabel="Fechar"
@@ -2273,7 +2273,7 @@ export default function NewSaleScreen() {
                 justifyContent: "space-between",
               }}
             >
-              <Typography variant="h2">Filtrar clientes</Typography>
+              <Typography variant="h3">Filtrar clientes</Typography>
               <Pressable
                 onPress={() => setShowClientFilter(false)}
                 accessibilityLabel="Fechar"

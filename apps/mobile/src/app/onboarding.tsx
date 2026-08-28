@@ -233,7 +233,7 @@ function WelcomeStep({
                 resizeMode="contain"
                 style={{ width: 168, height: 168 }}
               />
-              <Typography variant="display" style={{ textAlign: "center" }}>
+              <Typography variant="screenTitle" style={{ textAlign: "center" }}>
                 {item.title}
               </Typography>
               <Typography
@@ -315,12 +315,10 @@ function NicheStep({
             style={{ width: 168, height: 96 }}
           />
           <Typography
-            variant="display"
+            variant="screenTitle"
             style={{
               textAlign: "center",
               color: theme.colors.text,
-              fontSize: 34,
-              letterSpacing: 0,
             }}
           >
             Como seu negócio funciona?
@@ -499,7 +497,7 @@ function BusinessNameStep({
             style={{ width: 150, height: 150 }}
           />
         </View>
-        <Typography variant="display" style={{ textAlign: "center" }}>
+        <Typography variant="screenTitle" style={{ textAlign: "center" }}>
           Qual o nome do seu negócio?
         </Typography>
         <Typography
@@ -576,7 +574,7 @@ function DoneStep({
         style={{ width: 158, height: 158 }}
       />
 
-      <Typography variant="display" style={{ textAlign: "center" }}>
+      <Typography variant="screenTitle" style={{ textAlign: "center" }}>
         Tudo pronto!
       </Typography>
       <Typography

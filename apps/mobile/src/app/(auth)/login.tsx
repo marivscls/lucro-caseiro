@@ -174,7 +174,7 @@ export default function LoginScreen() {
           </View>
 
           <View style={{ alignItems: "center", gap: spacing.xs }}>
-            <Typography variant="h1" style={{ textAlign: "center" }}>
+            <Typography variant="screenTitle" style={{ textAlign: "center" }}>
               Que bom te ver!
             </Typography>
           </View>

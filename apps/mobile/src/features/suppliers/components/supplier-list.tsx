@@ -389,7 +389,7 @@ export function SupplierList(props: Readonly<SupplierListProps>) {
           gap: width <= 350 ? 0 : spacing.md,
         }}
       >
-        <Typography variant="h2" style={{ flex: 1 }}>
+        <Typography variant="h3" style={{ flex: 1 }}>
           Seus fornecedores
         </Typography>
         <Pressable

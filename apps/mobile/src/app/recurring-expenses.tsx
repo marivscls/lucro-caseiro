@@ -789,7 +789,7 @@ function RecurringDetails({
         </Pressable>
       </View>
 
-      <Typography variant="h2">{item.description}</Typography>
+      <Typography variant="h3">{item.description}</Typography>
 
       <View style={styles.detailGrid}>
         <DetailItem
@@ -882,7 +882,7 @@ function RecurringPremiumGate({ onUnlock }: Readonly<{ onUnlock: () => void }>) 
           Recurso Profissional
         </Typography>
       </View>
-      <Typography variant="h2">Gastos fixos no automático</Typography>
+      <Typography variant="h3">Gastos fixos no automático</Typography>
       <Typography variant="caption">
         Cadastre uma vez e deixe o app lançar seus custos mensais sozinho, sempre na data
         certa.

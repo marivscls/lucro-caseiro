@@ -93,7 +93,7 @@ export function SupplierDetail({
       {/* Header */}
       <View style={{ alignItems: "center", gap: spacing.md, paddingTop: spacing.lg }}>
         <SupplierAvatar supplier={supplier} size={80} />
-        <Typography variant="h1" style={{ textAlign: "center" }}>
+        <Typography variant="h3" style={{ textAlign: "center" }}>
           {supplier.name}
         </Typography>
         <Typography variant="caption">

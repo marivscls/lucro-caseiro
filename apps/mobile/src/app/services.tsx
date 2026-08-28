@@ -290,7 +290,7 @@ function ServiceCard({
           <Typography variant="label" color={palette.rose} numberOfLines={1}>
             {serviceCategoryLabel(service).toLocaleUpperCase("pt-BR")}
           </Typography>
-          <Typography variant="h2" color={palette.ink} numberOfLines={2}>
+          <Typography variant="h3" color={palette.ink} numberOfLines={2}>
             {service.name}
           </Typography>
         </View>
@@ -560,7 +560,7 @@ export default function ServicesScreen() {
             gap: compact ? spacing.xs : spacing.md,
           }}
         >
-          <Typography variant="h2" color={palette.ink}>
+          <Typography variant="h3" color={palette.ink}>
             Seus serviços
           </Typography>
           <Typography variant="body" color={palette.warmGray}>

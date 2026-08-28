@@ -113,7 +113,7 @@ export function PremiumSuccess({ visible, onClose }: PremiumSuccessProps) {
             >
               <AppIcon name="checkmark-circle" size={52} color={theme.colors.success} />
             </View>
-            <Typography variant="h2" style={{ textAlign: "center" }}>
+            <Typography variant="h3" style={{ textAlign: "center" }}>
               Assinatura confirmada!
             </Typography>
             {tier && (

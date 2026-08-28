@@ -507,7 +507,7 @@ function EmptyMessage({
 
   return (
     <View style={styles.emptyState}>
-      <Typography variant="h2" color={colors.wine} style={styles.centerText}>
+      <Typography variant="h3" color={colors.wine} style={styles.centerText}>
         {title}
       </Typography>
       <Typography variant="body" color={colors.muted} style={styles.centerText}>
@@ -778,7 +778,7 @@ export default function FiadoScreen() {
         </FilterChipRow>
 
         <View style={styles.listHeading}>
-          <Typography variant="h2" color={colors.wine} style={styles.listTitle}>
+          <Typography variant="h3" color={colors.wine}>
             Cobranças
           </Typography>
           <Typography variant="body" color={colors.muted} style={styles.openLabel}>
@@ -809,7 +809,7 @@ export default function FiadoScreen() {
     if (error) {
       return (
         <View style={styles.errorState}>
-          <Typography variant="h2" color={colors.wine} style={styles.centerText}>
+          <Typography variant="h3" color={colors.wine} style={styles.centerText}>
             Algo deu errado
           </Typography>
           <Typography variant="body" color={colors.muted} style={styles.centerText}>
@@ -837,7 +837,7 @@ export default function FiadoScreen() {
 
       <ScreenHeader
         title="Fiado"
-        titleStyle={styles.navTitle}
+        titleStyle={{ color: colors.ink }}
         style={styles.navbar}
         right={
           <View style={styles.navActions}>
@@ -963,7 +963,6 @@ function createStyles(theme: Theme) {
   return StyleSheet.create({
     safeArea: { flex: 1, backgroundColor: colors.background },
     navbar: { paddingBottom: spacing.md, backgroundColor: colors.background },
-    navTitle: { color: colors.ink, fontFamily: fonts.bold, fontSize: 28, lineHeight: 36 },
     navActions: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
     navButton: {
       width: 44,
@@ -1017,7 +1016,6 @@ function createStyles(theme: Theme) {
       justifyContent: "space-between",
       gap: spacing.md,
     },
-    listTitle: { fontFamily: fonts.bold, fontSize: 28, lineHeight: 36 },
     openLabel: { flexShrink: 1, textAlign: "right" },
     cardsGrid: { gap: spacing.lg },
     cardsGridDesktop: {

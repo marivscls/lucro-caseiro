@@ -448,7 +448,7 @@ function ProductDetailModal({
                 </View>
               )}
               <Typography
-                variant="h1"
+                variant="h3"
                 style={{ alignSelf: "stretch", textAlign: "center" }}
               >
                 {product.name}

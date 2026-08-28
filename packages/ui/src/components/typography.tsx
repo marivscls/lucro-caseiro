@@ -64,9 +64,9 @@ export function Typography({
       letterSpacing: -0.5,
     },
     screenTitle: {
-      fontSize: 24,
+      fontSize: 20,
       fontFamily: fonts.bold,
-      lineHeight: 30,
+      lineHeight: 26,
       color: theme.colors.text,
       letterSpacing: -0.2,
     },

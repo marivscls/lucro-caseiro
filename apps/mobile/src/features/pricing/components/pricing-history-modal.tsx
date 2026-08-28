@@ -210,7 +210,7 @@ export function PricingHistoryModal({
             gap: spacing.md,
           }}
         >
-          <Typography variant="h2" style={{ flex: 1 }} numberOfLines={1}>
+          <Typography variant="h3" style={{ flex: 1 }} numberOfLines={1}>
             Histórico
           </Typography>
           <Pressable

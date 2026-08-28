@@ -147,7 +147,7 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
         <View
           style={{ alignItems: isDesktop ? "flex-start" : "center", gap: spacing.xs }}
         >
-          <Typography variant="h1">{client.name}</Typography>
+          <Typography variant="h3">{client.name}</Typography>
           <Typography variant="caption">
             cliente desde{" "}
             {client.createdAt ? new Date(client.createdAt).getFullYear() : "hoje"}

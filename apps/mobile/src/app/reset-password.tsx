@@ -99,7 +99,7 @@ export default function ResetPasswordScreen() {
             <AppIcon name="lock-closed" size={30} color={theme.colors.premium} />
           </View>
           <Typography
-            variant="h1"
+            variant="screenTitle"
             color={theme.colors.text}
             style={{ textAlign: "center" }}
           >

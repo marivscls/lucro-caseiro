@@ -259,7 +259,7 @@ function GroupHeader({ title, count }: Readonly<{ title: string; count: number }
         marginBottom: spacing.md,
       }}
     >
-      <Typography variant="h2" color={palette.wine}>
+      <Typography variant="h3" color={palette.wine}>
         {title}
       </Typography>
       <View
@@ -1539,7 +1539,7 @@ export default function SalesScreen() {
                 justifyContent: "space-between",
               }}
             >
-              <Typography variant="h2">Filtrar vendas</Typography>
+              <Typography variant="h3">Filtrar vendas</Typography>
               <Pressable
                 onPress={() => setShowFilters(false)}
                 accessibilityLabel="Fechar filtros"
