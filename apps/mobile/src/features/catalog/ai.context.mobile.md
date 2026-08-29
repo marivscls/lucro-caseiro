@@ -88,6 +88,9 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
 
 ## Change log / Decisions
 
+- 2026-08-29: a grade pública “Escolha o que deseja” passou a cards
+  verticais (foto em cima, nome e preço embaixo), iguais à prévia local.
+
 - 2026-08-29: “Página no ar” busca o HTML de `/c/:slug` e mostra em
   `srcDoc` (a página pública manda `X-Frame-Options: DENY`, então o
   iframe com `src` fica em branco). O rascunho continua na prévia local.

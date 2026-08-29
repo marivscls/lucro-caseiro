@@ -581,7 +581,12 @@ function priceMarkup(
 ): string {
   const text = listedPriceText(price, customization, prefix);
   if (!text) return "";
-  return `<p class="item-price${price === null ? " consultation" : ""}">${escapeHtml(text)}</p>`;
+  const kind = price === null ? " consultation" : "";
+  if (prefix && text.startsWith(prefix)) {
+    const amount = text.slice(prefix.length);
+    return `<p class="item-price${kind}"><span class="price-from">${escapeHtml(prefix.trim())}</span><span class="price-amount">${escapeHtml(amount)}</span></p>`;
+  }
+  return `<p class="item-price${kind}"><span class="price-amount">${escapeHtml(text)}</span></p>`;
 }
 
 function itemDetailAttrs(params: {

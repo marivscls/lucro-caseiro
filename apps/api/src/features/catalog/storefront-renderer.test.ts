@@ -244,6 +244,7 @@ describe("storefront helpers", () => {
       ...data,
       services: [rangedService],
     });
+    expect(html).toContain('class="price-from"');
     expect(html).toContain("a partir de R$");
     expect(html).toContain("R$ 280,00");
   });
@@ -381,6 +382,20 @@ describe("renderPublishedStorefrontHtml", () => {
     expect(html).toContain("item-location");
     expect(html).toContain("m8.5 12 2.4 2.4L16 9");
     expect(html).toContain('class="item-placeholder-mark"');
+  });
+
+  it("separa data e horário do agendamento sem estourar o grid no iOS", () => {
+    const html = renderPublishedStorefrontHtml(catalog());
+    expect(html).toContain('class="form-row"');
+    expect(html).toContain("Data desejada");
+    expect(html).toContain('id="booking-time"');
+    expect(html).toContain(
+      ".form-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}",
+    );
+    expect(html).toContain(".form-row>*{min-width:0}");
+    expect(html).toContain(
+      "dialog input,dialog select,dialog textarea{width:100%;min-width:0;",
+    );
   });
 
   it("esconde cards [hidden] no Safari e isola o clique das abas", () => {
@@ -525,6 +540,11 @@ describe("renderPublishedStorefrontHtml", () => {
     expect(html).toContain("item-placeholder-mark");
     expect(html).not.toContain("right:16%;bottom:12%");
     expect(html).toContain("Escolha o que deseja");
+    expect(html).toContain(
+      ".storefront-card .card-hit{display:flex;flex-direction:column",
+    );
+    expect(html).toContain('class="price-amount"');
+    expect(html).toContain("white-space:nowrap");
     expect(html).toContain("M17.472 14.382");
     expect(html).not.toContain("M8.2 8.2c1 3.3 3.3 5.6 6.7 6.7");
     expect(html).toContain("object-fit:cover");

@@ -128,6 +128,15 @@ invariants:
 
 ## Change log / Decisions
 
+- 2026-08-29: data e horário do diálogo de agendamento usam
+  `minmax(0,1fr)` e `min-width:0` para o campo nativo de data do iOS
+  não invadir o horário. O espaço entre os dois é 16px.
+
+- 2026-08-29: a grade “Escolha o que deseja” da vitrine pública empilha
+  foto quadrada, nome em 2 linhas e preço. “a partir de” fica numa linha
+  e o valor em `nowrap`, para não cortar “Bolo personalizado” nem
+  “R$ 240,00”.
+
 - 2026-08-29: `/c/:slug` usa só o layout atual (`storefront-renderer`). Sem
   JSON publicado, o HTML monta um tema padrão (capa, logo, nome, WhatsApp)
   e não volta ao template legado. O rascunho do editor não aparece na
