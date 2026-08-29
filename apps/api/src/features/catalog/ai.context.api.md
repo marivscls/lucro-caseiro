@@ -126,6 +126,27 @@ invariants:
 
 ## Change log / Decisions
 
+- 2026-08-29: o editor mobile deixa de gravar busca, filtros, estilo de
+  topo e ações por item. O renderer público ainda aceita esses campos
+  em catálogos antigos; o próximo save aplica clássico, cards editoriais,
+  WhatsApp e Pedir/Agendar.
+
+- 2026-08-29: “Ver detalhes” abre um diálogo com nome, foto, preço e
+  descrição (ou aviso se o item ainda não tem texto). O clique não depende
+  mais de `showDetails` nem de descrição no card. Sem busca na vitrine, o
+  script deixa de quebrar no botão de limpar.
+
+- 2026-08-29: Clássico, Editorial e Compacto passam a ter CSS próprio na
+  vitrine pública (altura, grade texto+destaques no editorial ≥480px, topo
+  curto no compacto). A classe `hero-*` deixou de ser só marcação.
+
+- 2026-08-29: cards da vitrine empilham status e CTA em coluna (botão 48px
+  em largura total) para não cortar “Disponível”/“Presencial”. “a partir de”
+  só entra com variação de produto ou preços distintos de serviço. Disponibilidade
+  usa ícone de check; duração usa relógio e local usa pin. Sem foto, o
+  serviço mostra um selo circular, sem oval decorativo. FAB de contato virou pílula com fonte
+  16px e some quando cobre um CTA do card.
+
 - 2026-08-19: o FAB de contato (`.floating-contact`) parte o rótulo em duas
   linhas (`splitFloatingContactLines`) e usa 76px com padding interno para
   “Entrar em contato” não encostar na borda.

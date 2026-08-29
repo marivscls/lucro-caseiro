@@ -5,11 +5,12 @@ import {
   displayCatalogName,
   featuredTransformFor,
   formatCatalogPrice,
+  productHasPriceRange,
   renderPublishedStorefrontHtml,
   resolveFeaturedVisual,
   resolveStorefrontAction,
   safeExternalUrl,
-  splitFloatingContactLines,
+  serviceListedPrice,
   storefrontTheme,
 } from "./storefront-renderer";
 
@@ -184,6 +185,67 @@ describe("storefront helpers", () => {
     expect(formatCatalogPrice(59.9)).toBe("R$ 59,90");
   });
 
+  it("marca faixa de preço só com variação ou valores distintos", () => {
+    const data = catalog();
+    expect(productHasPriceRange(data.products[0]!)).toBe(false);
+    expect(serviceListedPrice(data.services[0]!)).toEqual({
+      amount: null,
+      hasRange: false,
+    });
+
+    const rangedProduct = {
+      ...data.products[0]!,
+      variations: [
+        {
+          id: "33333333-3333-4333-8333-333333333333",
+          name: "P",
+          inStock: true,
+        },
+        {
+          id: "44444444-4444-4444-8444-444444444444",
+          name: "M",
+          inStock: true,
+        },
+      ],
+    };
+    expect(productHasPriceRange(rangedProduct)).toBe(true);
+    expect(
+      renderPublishedStorefrontHtml({
+        ...data,
+        products: [rangedProduct],
+      }),
+    ).toContain("a partir de R$");
+
+    const rangedService = {
+      ...data.services[0]!,
+      defaultPrice: 280,
+      variations: [
+        {
+          id: "55555555-5555-4555-8555-555555555555",
+          name: "1h",
+          durationMinutes: 60,
+          price: 280,
+        },
+        {
+          id: "66666666-6666-4666-8666-666666666666",
+          name: "90 min",
+          durationMinutes: 90,
+          price: 350,
+        },
+      ],
+    };
+    expect(serviceListedPrice(rangedService)).toEqual({
+      amount: 280,
+      hasRange: true,
+    });
+    const html = renderPublishedStorefrontHtml({
+      ...data,
+      services: [rangedService],
+    });
+    expect(html).toContain("a partir de R$");
+    expect(html).toContain("R$ 280,00");
+  });
+
   it("bloqueia esquemas inseguros e aceita http/https", () => {
     expect(safeExternalUrl(["java", "script:alert(1)"].join(""))).toBeNull();
     expect(safeExternalUrl("https://example.com/agendar")).toBe(
@@ -244,17 +306,29 @@ describe("storefront helpers", () => {
 
 describe("renderPublishedStorefrontHtml", () => {
   it.each(["classic", "editorial", "compact"] as const)(
-    "renderiza o hero %s com a mesma base",
+    "marca o hero %s e aplica CSS próprio de cada estilo",
     (style) => {
       const base = customization();
       const html = renderPublishedStorefrontHtml(
         catalog({ ...base, hero: { ...base.hero, style } }),
       );
       expect(html).toContain(`hero-${style}`);
+      expect(html).toContain(`hero-mode-${style}`);
+      expect(html).toContain(".hero-classic{");
+      expect(html).toContain(".hero-editorial{");
+      expect(html).toContain(".hero-compact{");
       expect(html).toContain("Estúdio Horizonte");
-      expect(html).not.toContain("Nome interno não publicado");
     },
   );
+
+  it("no editorial coloca texto e destaques lado a lado; no compacto encurta o topo", () => {
+    const html = renderPublishedStorefrontHtml(catalog());
+    expect(html).toContain(
+      ".hero-editorial:not(.has-cover):not(.no-visual){display:grid;grid-template-columns:minmax(0,1.1fr)",
+    );
+    expect(html).toContain(".hero-compact{min-height:220px");
+    expect(html).toContain(".hero-compact .counts{display:none}");
+  });
 
   it("renderiza descoberta, tipos, cards e fluxos reais", () => {
     const html = renderPublishedStorefrontHtml(catalog(), "all", "nonce-test");
@@ -267,6 +341,35 @@ describe("renderPublishedStorefrontHtml", () => {
     expect(html).toContain('id="booking-form"');
     expect(html).toContain('nonce="nonce-test"');
     expect(html).toContain("https://wa.me/5511999998888?text=");
+    expect(html).toContain("item-availability");
+    expect(html).toContain("item-duration");
+    expect(html).toContain("item-location");
+    expect(html).toContain("m8.5 12 2.4 2.4L16 9");
+    expect(html).toContain('class="item-placeholder-mark"');
+  });
+
+  it("abre o diálogo de detalhes mesmo sem descrição no card", () => {
+    const base = customization();
+    const storefront = {
+      ...base,
+      organization: {
+        ...base.organization,
+        cards: { ...base.organization.cards, showDetails: false },
+        actions: {
+          ...base.organization.actions,
+          productDefault: { type: "details" as const, label: "Ver detalhes" },
+        },
+      },
+    };
+    const data = catalog(storefront);
+    data.products = [{ ...data.products[0]!, description: "" }];
+    const html = renderPublishedStorefrontHtml(data);
+    expect(html).toContain('id="item-details-dialog"');
+    expect(html).toContain("data-details");
+    expect(html).toContain('data-detail-name="Caderno personalizado"');
+    expect(html).toContain("details.showModal");
+    expect(html).toContain("Este item ainda não tem uma descrição.");
+    expect(html).toContain("clear?.addEventListener");
   });
 
   it("prioriza o recorte processado no hero e preserva a foto original como fallback", () => {
@@ -360,7 +463,13 @@ describe("renderPublishedStorefrontHtml", () => {
     expect(html).toContain('class="quick-item"><span>Sob medida</span>');
     expect(html).not.toContain("M12 2l1.7 5.1L19 9");
     expect(html).toContain("PAPELARIA");
-    expect(html).toContain("a partir de R$");
+    expect(html).toContain("R$ 59,90");
+    expect(html).not.toContain("a partir de R$");
+    expect(html).toContain("item-availability");
+    expect(html).toContain("item-placeholder-mark");
+    expect(html).toContain("flex-direction:column;align-items:stretch");
+    expect(html).toContain("grid-auto-rows:1fr;align-items:stretch");
+    expect(html).not.toContain("right:16%;bottom:12%");
     expect(html).toContain("Produzido com carinho, escolhido por você.");
     expect(html).toContain("M17.472 14.382");
     expect(html).not.toContain("M8.2 8.2c1 3.3 3.3 5.6 6.7 6.7");
@@ -368,11 +477,7 @@ describe("renderPublishedStorefrontHtml", () => {
     expect(html).toContain("linear-gradient(90deg,#FAF8F6 0%,rgba(250,248,246,.94) 22%");
   });
 
-  it("quebra o rótulo do contato flutuante em duas linhas centradas", () => {
-    expect(splitFloatingContactLines("Entrar em contato")).toEqual([
-      "Entrar em",
-      "contato",
-    ]);
+  it("usa pílula de contato com rótulo legível e reserva espaço no grid", () => {
     const base = customization();
     const html = renderPublishedStorefrontHtml(
       catalog({
@@ -386,8 +491,11 @@ describe("renderPublishedStorefrontHtml", () => {
         },
       }),
     );
-    expect(html).toContain('class="floating-label"');
-    expect(html).toContain("<span>Entrar em</span><span>contato</span>");
+    expect(html).toContain('class="floating-label">Entrar em contato</span>');
+    expect(html).not.toContain("<span>Entrar em</span>");
+    expect(html).toContain("font-size:1rem");
+    expect(html).toContain("border-radius:999px");
+    expect(html).toContain("floating.classList.toggle('obscured'");
   });
 
   it("omite a faixa e o contato quando desativados", () => {

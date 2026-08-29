@@ -186,6 +186,9 @@ function icon(name: string): string {
     chevron: '<path d="m9 18 6-6-6-6"/>',
     close: '<path d="m6 6 12 12M18 6 6 18"/>',
     clock: '<circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/>',
+    check: '<circle cx="12" cy="12" r="8"/><path d="m8.5 12 2.4 2.4L16 9"/>',
+    unavailable: '<circle cx="12" cy="12" r="8"/><path d="m9 9 6 6M15 9l-6 6"/>',
+    pin: '<path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/>',
     heart:
       '<path d="M12 20s-7-4.35-7-9.15C5 8.1 7 6.2 9.15 6.2c1.25 0 2.35.7 2.85 1.75.5-1.05 1.6-1.75 2.85-1.75C17 6.2 19 8.1 19 10.85 19 15.65 12 20 12 20Z"/>',
   };
@@ -219,21 +222,22 @@ export function resolveFeaturedVisual(
   return { source: item.assetUrl, cutout: removeBackground };
 }
 
-export function splitFloatingContactLines(label: string): readonly string[] {
-  const words = label.trim().split(/\s+/).filter(Boolean);
-  if (words.length <= 1) return [label.trim()];
-  let splitAt = 1;
-  let bestScore = Number.POSITIVE_INFINITY;
-  for (let index = 1; index < words.length; index += 1) {
-    const left = words.slice(0, index).join(" ").length;
-    const right = words.slice(index).join(" ").length;
-    const score = Math.abs(left - right) + Math.max(left, right) * 0.15;
-    if (score < bestScore) {
-      bestScore = score;
-      splitAt = index;
-    }
-  }
-  return [words.slice(0, splitAt).join(" "), words.slice(splitAt).join(" ")];
+export function productHasPriceRange(product: PublicCatalogProduct): boolean {
+  return product.variations.length > 1;
+}
+
+export function serviceListedPrice(
+  service: PublicCatalogService,
+): Readonly<{ amount: number | null; hasRange: boolean }> {
+  const prices = [
+    service.defaultPrice,
+    ...service.variations.map((item) => item.price),
+    ...service.packages.map((item) => item.price),
+  ].filter((value): value is number => value != null);
+  if (prices.length === 0) return { amount: null, hasRange: false };
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  return { amount: min, hasRange: min !== max };
 }
 
 function heroVisuals(customization: StorefrontCustomization): string {
@@ -395,7 +399,7 @@ function itemAction(
   if (action.type === "none" || !label) return "";
   const glyph = actionGlyph(action);
   if (action.type === "details") {
-    return `<button class="card-action details-action" type="button" data-details aria-expanded="false">${glyph} ${escapeHtml(label)}</button>`;
+    return `<button class="card-action details-action" type="button" data-details aria-haspopup="dialog">${glyph} ${escapeHtml(label)}</button>`;
   }
   if (action.type === "schedule" && kind === "service") {
     const external = safeExternalUrl(action.destination);
@@ -423,21 +427,46 @@ function itemAction(
     : "";
 }
 
-function priceMarkup(
+function placeholderVisual(kind: ItemKind): string {
+  return `<div class="item-image item-placeholder" aria-hidden="true"><span class="item-placeholder-mark">${icon(kind === "service" ? "calendar" : "store")}</span></div>`;
+}
+
+function metaBit(iconName: string, label: string, extraClass: string): string {
+  return `<span class="item-meta-bit ${extraClass}">${icon(iconName)}<span>${escapeHtml(label)}</span></span>`;
+}
+
+function listedPriceText(
   price: number | null,
   customization: StorefrontCustomization,
   prefix = "",
 ): string {
   if (!customization.organization.cards.showPrice) return "";
-  if (price !== null)
-    return `<p class="item-price">${prefix}${escapeHtml(formatCatalogPrice(price))}</p>`;
+  if (price !== null) return `${prefix}${formatCatalogPrice(price)}`;
   const cards = customization.organization.cards;
   if (cards.missingPriceBehavior === "hidden") return "";
-  const label =
-    cards.missingPriceBehavior === "custom" && cards.missingPriceText
-      ? cards.missingPriceText
-      : "Valor sob consulta";
-  return `<p class="item-price consultation">${escapeHtml(label)}</p>`;
+  return cards.missingPriceBehavior === "custom" && cards.missingPriceText
+    ? cards.missingPriceText
+    : "Valor sob consulta";
+}
+
+function priceMarkup(
+  price: number | null,
+  customization: StorefrontCustomization,
+  prefix = "",
+): string {
+  const text = listedPriceText(price, customization, prefix);
+  if (!text) return "";
+  return `<p class="item-price${price === null ? " consultation" : ""}">${escapeHtml(text)}</p>`;
+}
+
+function itemDetailAttrs(params: {
+  name: string;
+  description: string | null;
+  priceLabel: string;
+  photoUrl: string | null;
+  meta: string;
+}): string {
+  return `data-detail-name="${escapeHtml(params.name)}" data-detail-description="${escapeHtml(params.description?.trim() ?? "")}" data-detail-price="${escapeHtml(params.priceLabel)}" data-detail-photo="${escapeHtml(params.photoUrl ?? "")}" data-detail-meta="${escapeHtml(params.meta)}"`;
 }
 
 function productCard(
@@ -448,8 +477,8 @@ function productCard(
 ): string {
   const visibleName = displayCatalogName(product.name);
   const image = product.photoUrl
-    ? `<img src="${escapeHtml(product.photoUrl)}" alt="${escapeHtml(visibleName)}" width="720" height="540" ${index < 2 ? 'loading="eager"' : 'loading="lazy"'}>`
-    : `<div class="item-placeholder" aria-hidden="true">${icon("store")}</div>`;
+    ? `<div class="item-image"><img src="${escapeHtml(product.photoUrl)}" alt="${escapeHtml(visibleName)}" width="720" height="540" ${index < 2 ? 'loading="eager"' : 'loading="lazy"'}></div>`
+    : placeholderVisual("product");
   const description =
     customization.organization.cards.showDetails && product.description
       ? `<p class="item-description" data-detail-copy>${escapeHtml(product.description)}</p>`
@@ -457,7 +486,7 @@ function productCard(
   const available =
     product.variations.length === 0 || product.variations.some((item) => item.inStock);
   const availability = customization.organization.cards.showAvailability
-    ? `<p class="item-meta">${icon("clock")}<span>${available ? "Disponível" : "Indisponível"}</span></p>`
+    ? `<p class="item-meta">${metaBit(available ? "check" : "unavailable", available ? "Disponível" : "Indisponível", "item-availability")}</p>`
     : "";
   const category = product.category
     ? `<p class="item-category">${escapeHtml(product.category.toLocaleUpperCase("pt-BR"))}</p>`
@@ -465,7 +494,19 @@ function productCard(
   const search = normalizeText(
     `${visibleName} ${product.description ?? ""} ${product.category}`,
   );
-  return `<article class="storefront-card product-card" data-kind="products" data-category="${escapeHtml(product.category)}" data-search="${escapeHtml(search)}" data-name="${escapeHtml(normalizeText(visibleName))}" data-price="${product.salePrice}" data-order="${index}"><div class="item-image">${image}</div><div class="item-body">${category}<h3>${escapeHtml(visibleName)}</h3>${description}${priceMarkup(product.salePrice, customization, "a partir de ")}<div class="item-footer">${availability}${itemAction(catalog, customization, "product", product)}</div></div></article>`;
+  const prefix = productHasPriceRange(product) ? "a partir de " : "";
+  const details = itemDetailAttrs({
+    name: visibleName,
+    description: product.description,
+    priceLabel: listedPriceText(product.salePrice, customization, prefix),
+    photoUrl: product.photoUrl,
+    meta: customization.organization.cards.showAvailability
+      ? available
+        ? "Disponível"
+        : "Indisponível"
+      : "",
+  });
+  return `<article class="storefront-card product-card" data-kind="products" data-category="${escapeHtml(product.category)}" data-search="${escapeHtml(search)}" data-name="${escapeHtml(normalizeText(visibleName))}" data-price="${product.salePrice}" data-order="${index}" ${details}>${image}<div class="item-body">${category}<h3>${escapeHtml(visibleName)}</h3>${description}${priceMarkup(product.salePrice, customization, prefix)}<div class="item-footer">${availability}${itemAction(catalog, customization, "product", product)}</div></div></article>`;
 }
 
 function serviceCard(
@@ -479,10 +520,21 @@ function serviceCard(
     customization.organization.cards.showDetails && service.description
       ? `<p class="item-description" data-detail-copy>${escapeHtml(service.description)}</p>`
       : "";
+  const listed = serviceListedPrice(service);
   const search = normalizeText(
     `${visibleName} ${service.description ?? ""} ${locationLabel(service.locationMode)} serviço`,
   );
-  return `<article class="storefront-card service-card" data-kind="services" data-category="" data-search="${escapeHtml(search)}" data-name="${escapeHtml(normalizeText(visibleName))}" data-price="${service.defaultPrice ?? ""}" data-order="${index}"><div class="item-image item-placeholder" aria-hidden="true">${icon("calendar")}</div><div class="item-body"><p class="item-category">SERVIÇO</p><h3>${escapeHtml(visibleName)}</h3>${description}${priceMarkup(service.defaultPrice, customization, service.defaultPrice === null ? "" : "a partir de ")}<div class="item-footer"><p class="item-meta">${icon("clock")}<span>${service.durationMinutes} min • ${escapeHtml(locationLabel(service.locationMode))}</span></p>${itemAction(catalog, customization, "service", service)}</div></div></article>`;
+  const place = locationLabel(service.locationMode);
+  const meta = `<p class="item-meta">${metaBit("clock", `${service.durationMinutes} min`, "item-duration")}${metaBit("pin", place, "item-location")}</p>`;
+  const prefix = listed.hasRange ? "a partir de " : "";
+  const details = itemDetailAttrs({
+    name: visibleName,
+    description: service.description,
+    priceLabel: listedPriceText(listed.amount, customization, prefix),
+    photoUrl: null,
+    meta: `${service.durationMinutes} min · ${place}`,
+  });
+  return `<article class="storefront-card service-card" data-kind="services" data-category="" data-search="${escapeHtml(search)}" data-name="${escapeHtml(normalizeText(visibleName))}" data-price="${listed.amount ?? ""}" data-order="${index}" ${details}>${placeholderVisual("service")}<div class="item-body"><p class="item-category">SERVIÇO</p><h3>${escapeHtml(visibleName)}</h3>${description}${priceMarkup(listed.amount, customization, prefix)}<div class="item-footer">${meta}${itemAction(catalog, customization, "service", service)}</div></div></article>`;
 }
 
 function structuredData(catalog: PublicCatalog, customization: StorefrontCustomization) {
@@ -550,13 +602,17 @@ function bookingDialog(): string {
   return `<dialog id="booking-dialog" aria-labelledby="booking-title"><form id="booking-form"><header><div><p>Solicitar horário</p><h2 id="booking-title" tabindex="-1"></h2></div><button type="button" class="dialog-close" aria-label="Fechar">${icon("close")}</button></header><input id="booking-service-id" type="hidden"><label>Seu nome<input id="booking-name" required maxlength="120" autocomplete="name"></label><label>WhatsApp<input id="booking-phone" required minlength="8" maxlength="20" inputmode="tel" autocomplete="tel"></label><div class="form-row"><label>Data desejada<input id="booking-date" required type="date"></label><label>Horário<input id="booking-time" type="time"></label></div><label>Onde prefere ser atendida(o)?<select id="booking-location"><option value="business">No espaço profissional</option><option value="client">No meu endereço</option><option value="online">Online</option></select></label><label>Observações<textarea id="booking-notes" maxlength="500"></textarea></label><p id="booking-message" role="status" aria-live="polite"></p><button class="dialog-submit" type="submit">Enviar solicitação</button></form></dialog>`;
 }
 
+function detailsDialog(): string {
+  return `<dialog id="item-details-dialog" aria-labelledby="item-details-title"><div class="dialog-panel"><header><div><p>Detalhes</p><h2 id="item-details-title" tabindex="-1"></h2></div><button type="button" class="dialog-close" aria-label="Fechar">${icon("close")}</button></header><img id="item-details-photo" alt="" width="720" height="720" hidden><p id="item-details-price" class="item-price"></p><p id="item-details-meta" class="item-meta"></p><p id="item-details-copy"></p></div></dialog>`;
+}
+
 function storefrontScript(
   nonce: string,
   initialType: string,
   defaultSort: string,
 ): string {
   const nonceAttr = nonce ? ` nonce="${nonce}"` : "";
-  return `<script${nonceAttr}>(()=>{const root=document.querySelector('[data-storefront]');const cards=[...document.querySelectorAll('.storefront-card')];const search=document.getElementById('storefront-search');const clear=document.getElementById('search-clear');const sort=document.getElementById('storefront-sort');const status=document.getElementById('results-status');const empty=document.getElementById('no-results');const params=new URLSearchParams(location.search);let type=params.get('tipo')==='servicos'?'services':params.get('tipo')==='produtos'?'products':'${initialType}';let category=params.get('categoria')||'';let timer;const norm=v=>v.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');const syncUrl=()=>{const next=new URL(location.href);next.searchParams.set('tipo',type==='services'?'servicos':'produtos');search.value?next.searchParams.set('q',search.value):next.searchParams.delete('q');category?next.searchParams.set('categoria',category):next.searchParams.delete('categoria');sort.value!=='${defaultSort}'?next.searchParams.set('ordem',sort.value):next.searchParams.delete('ordem');history.replaceState(null,'',next)};const update=()=>{const query=norm(search.value.trim());let visible=0;cards.forEach(card=>{const showType=card.dataset.kind===type;const showCategory=!category||card.dataset.category===category;const showSearch=!query||card.dataset.search.includes(query);card.hidden=!(showType&&showCategory&&showSearch);if(!card.hidden)visible++});const ordered=[...cards].sort((a,b)=>{if(sort.value==='priceLow')return (Number(a.dataset.price)||Number.MAX_SAFE_INTEGER)-(Number(b.dataset.price)||Number.MAX_SAFE_INTEGER);if(sort.value==='priceHigh')return (Number(b.dataset.price)||-1)-(Number(a.dataset.price)||-1);if(sort.value==='name')return a.dataset.name.localeCompare(b.dataset.name,'pt-BR');return Number(a.dataset.order)-Number(b.dataset.order)});const grid=document.querySelector('.storefront-grid');ordered.forEach(card=>grid.append(card));document.querySelectorAll('[data-type]').forEach(button=>{const active=button.dataset.type===type;button.setAttribute('aria-selected',String(active));button.tabIndex=active?0:-1});document.querySelectorAll('[data-category]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.category===category)));clear.hidden=!search.value;empty.hidden=visible>0;status.textContent=visible===1?'1 resultado':visible+' resultados';syncUrl()};document.querySelectorAll('[data-type]').forEach(button=>button.addEventListener('click',()=>{type=button.dataset.type;category='';update()}));document.querySelectorAll('[data-category]').forEach(button=>button.addEventListener('click',()=>{category=button.dataset.category;update()}));search.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(update,300)});clear.addEventListener('click',()=>{search.value='';search.focus();update()});sort.addEventListener('change',update);search.value=params.get('q')||'';sort.value=params.get('ordem')||'${defaultSort}';document.querySelectorAll('[data-details]').forEach(button=>button.addEventListener('click',()=>{const copy=button.closest('.storefront-card').querySelector('[data-detail-copy]');if(!copy)return;const expanded=button.getAttribute('aria-expanded')==='true';button.setAttribute('aria-expanded',String(!expanded));copy.classList.toggle('expanded',!expanded)}));const filter=document.getElementById('filter-dialog');const filterOpen=document.getElementById('filter-open');let filterReturn;filterOpen?.addEventListener('click',()=>{filterReturn=document.activeElement;filter.showModal()});filter?.querySelector('.dialog-close').addEventListener('click',()=>filter.close());filter?.addEventListener('close',()=>filterReturn?.focus());document.getElementById('filter-clear')?.addEventListener('click',()=>{category='';filter.close();update()});const booking=document.getElementById('booking-dialog');const bookingForm=document.getElementById('booking-form');document.querySelectorAll('.schedule-action').forEach(button=>button.addEventListener('click',()=>{document.getElementById('booking-service-id').value=button.dataset.serviceId;document.getElementById('booking-title').textContent=button.dataset.serviceName;document.getElementById('booking-message').textContent='';booking.showModal();requestAnimationFrame(()=>document.getElementById('booking-title').focus())}));booking?.querySelector('.dialog-close').addEventListener('click',()=>booking.close());bookingForm?.addEventListener('submit',async event=>{event.preventDefault();const message=document.getElementById('booking-message');message.textContent='Enviando solicitação…';try{const response=await fetch(location.pathname+'/service-bookings',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({serviceId:document.getElementById('booking-service-id').value,clientName:document.getElementById('booking-name').value,phone:document.getElementById('booking-phone').value,desiredDate:document.getElementById('booking-date').value,desiredTime:document.getElementById('booking-time').value||null,locationMode:document.getElementById('booking-location').value,notes:document.getElementById('booking-notes').value||null})});const result=await response.json();if(!response.ok)throw new Error(result.message||result.details?.join(' • ')||'Não foi possível enviar.');bookingForm.reset();message.textContent='Solicitação enviada. O negócio entrará em contato para confirmar.'}catch(error){message.textContent=error.message}});update()})()</script>`;
+  return `<script${nonceAttr}>(()=>{const root=document.querySelector('[data-storefront]');const cards=[...document.querySelectorAll('.storefront-card')];const search=document.getElementById('storefront-search');const clear=document.getElementById('search-clear');const sort=document.getElementById('storefront-sort');const status=document.getElementById('results-status');const empty=document.getElementById('no-results');const params=new URLSearchParams(location.search);let type=params.get('tipo')==='servicos'?'services':params.get('tipo')==='produtos'?'products':'${initialType}';let category=params.get('categoria')||'';let timer;const norm=v=>v.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');const syncUrl=()=>{const next=new URL(location.href);next.searchParams.set('tipo',type==='services'?'servicos':'produtos');search.value?next.searchParams.set('q',search.value):next.searchParams.delete('q');category?next.searchParams.set('categoria',category):next.searchParams.delete('categoria');sort.value!=='${defaultSort}'?next.searchParams.set('ordem',sort.value):next.searchParams.delete('ordem');history.replaceState(null,'',next)};const update=()=>{const query=norm(search.value.trim());let visible=0;cards.forEach(card=>{const showType=card.dataset.kind===type;const showCategory=!category||card.dataset.category===category;const showSearch=!query||card.dataset.search.includes(query);card.hidden=!(showType&&showCategory&&showSearch);if(!card.hidden)visible++});const ordered=[...cards].sort((a,b)=>{if(sort.value==='priceLow')return (Number(a.dataset.price)||Number.MAX_SAFE_INTEGER)-(Number(b.dataset.price)||Number.MAX_SAFE_INTEGER);if(sort.value==='priceHigh')return (Number(b.dataset.price)||-1)-(Number(a.dataset.price)||-1);if(sort.value==='name')return a.dataset.name.localeCompare(b.dataset.name,'pt-BR');return Number(a.dataset.order)-Number(b.dataset.order)});const grid=document.querySelector('.storefront-grid');ordered.forEach(card=>grid.append(card));document.querySelectorAll('[data-type]').forEach(button=>{const active=button.dataset.type===type;button.setAttribute('aria-selected',String(active));button.tabIndex=active?0:-1});document.querySelectorAll('[data-category]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.category===category)));clear.hidden=!search.value;empty.hidden=visible>0;status.textContent=visible===1?'1 resultado':visible+' resultados';syncUrl()};document.querySelectorAll('[data-type]').forEach(button=>button.addEventListener('click',()=>{type=button.dataset.type;category='';update()}));document.querySelectorAll('[data-category]').forEach(button=>button.addEventListener('click',()=>{category=button.dataset.category;update()}));search.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(update,300)});clear?.addEventListener('click',()=>{search.value='';search.focus();update()});sort.addEventListener('change',update);search.value=params.get('q')||'';sort.value=params.get('ordem')||'${defaultSort}';const details=document.getElementById('item-details-dialog');document.querySelectorAll('[data-details]').forEach(button=>button.addEventListener('click',()=>{const card=button.closest('.storefront-card');if(!card)return;if(details){const title=document.getElementById('item-details-title');const copy=document.getElementById('item-details-copy');const price=document.getElementById('item-details-price');const meta=document.getElementById('item-details-meta');const photo=document.getElementById('item-details-photo');title.textContent=card.getAttribute('data-detail-name')||'';const text=card.getAttribute('data-detail-description')||'';copy.textContent=text||'Este item ainda não tem uma descrição.';price.textContent=card.getAttribute('data-detail-price')||'';price.hidden=!price.textContent;meta.textContent=card.getAttribute('data-detail-meta')||'';meta.hidden=!meta.textContent;const src=card.getAttribute('data-detail-photo')||'';if(src){photo.hidden=false;photo.src=src;photo.alt=title.textContent}else{photo.hidden=true;photo.removeAttribute('src')}try{details.showModal()}catch{card.querySelector('[data-detail-copy]')?.classList.add('expanded')}requestAnimationFrame(()=>title.focus());return}const hidden=card.querySelector('[data-detail-copy]');if(!hidden)return;hidden.classList.toggle('expanded')}));details?.querySelector('.dialog-close')?.addEventListener('click',()=>details.close());const filter=document.getElementById('filter-dialog');const filterOpen=document.getElementById('filter-open');let filterReturn;filterOpen?.addEventListener('click',()=>{filterReturn=document.activeElement;filter.showModal()});filter?.querySelector('.dialog-close').addEventListener('click',()=>filter.close());filter?.addEventListener('close',()=>filterReturn?.focus());document.getElementById('filter-clear')?.addEventListener('click',()=>{category='';filter.close();update()});const booking=document.getElementById('booking-dialog');const bookingForm=document.getElementById('booking-form');document.querySelectorAll('.schedule-action').forEach(button=>button.addEventListener('click',()=>{document.getElementById('booking-service-id').value=button.dataset.serviceId;document.getElementById('booking-title').textContent=button.dataset.serviceName;document.getElementById('booking-message').textContent='';booking.showModal();requestAnimationFrame(()=>document.getElementById('booking-title').focus())}));booking?.querySelector('.dialog-close').addEventListener('click',()=>booking.close());bookingForm?.addEventListener('submit',async event=>{event.preventDefault();const message=document.getElementById('booking-message');message.textContent='Enviando solicitação…';try{const response=await fetch(location.pathname+'/service-bookings',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({serviceId:document.getElementById('booking-service-id').value,clientName:document.getElementById('booking-name').value,phone:document.getElementById('booking-phone').value,desiredDate:document.getElementById('booking-date').value,desiredTime:document.getElementById('booking-time').value||null,locationMode:document.getElementById('booking-location').value,notes:document.getElementById('booking-notes').value||null})});const result=await response.json();if(!response.ok)throw new Error(result.message||result.details?.join(' • ')||'Não foi possível enviar.');bookingForm.reset();message.textContent='Solicitação enviada. O negócio entrará em contato para confirmar.'}catch(error){message.textContent=error.message}});const floating=document.querySelector('.floating-contact');if(floating){let frame=0;const sync=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{const box=floating.getBoundingClientRect();const hits=[...document.querySelectorAll('.card-action')].some(el=>{const card=el.closest('.storefront-card');if(card?.hidden)return false;const r=el.getBoundingClientRect();return r.bottom>box.top&&r.top<box.bottom&&r.right>box.left&&r.left<box.right});floating.classList.toggle('obscured',hits)})};addEventListener('scroll',sync,{passive:true});addEventListener('resize',sync);sync()}update()})()</script>`;
 }
 
 function heroCoverScript(nonce: string): string {
@@ -655,14 +711,11 @@ export function renderPublishedStorefrontHtml(
             ? `mailto:${contact.destination}`
             : safeExternalUrl(contact.destination);
     if (href) {
-      const labelLines = splitFloatingContactLines(contact.defaultActionLabel)
-        .map((line) => `<span>${escapeHtml(line)}</span>`)
-        .join("");
-      floating = `<a class="floating-contact" href="${escapeHtml(href)}"${contact.channel === "external" || contact.channel === "whatsapp" ? ' target="_blank" rel="noopener noreferrer"' : ""} aria-label="${escapeHtml(contact.defaultActionLabel)}">${icon(contact.channel === "whatsapp" ? "whatsapp" : "store")}<span class="floating-label">${labelLines}</span></a>`;
+      floating = `<a class="floating-contact" href="${escapeHtml(href)}"${contact.channel === "external" || contact.channel === "whatsapp" ? ' target="_blank" rel="noopener noreferrer"' : ""} aria-label="${escapeHtml(contact.defaultActionLabel)}">${icon(contact.channel === "whatsapp" ? "whatsapp" : "store")}<span class="floating-label">${escapeHtml(contact.defaultActionLabel)}</span></a>`;
     }
   }
   const style = customization.organization.cards.style;
   const hero = customization.hero.style;
   const nonceAttribute = nonce ? ` nonce="${nonce}"` : "";
-  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>${escapeHtml(title)}</title><meta name="description" content="${escapeHtml(description)}"><link rel="canonical" href="${canonical}"><meta property="og:type" content="website"><meta property="og:title" content="${escapeHtml(title)}"><meta property="og:description" content="${escapeHtml(description)}"><meta property="og:url" content="${canonical}">${imageMeta}<meta name="robots" content="${preview ? "noindex,nofollow" : "index,follow"}"><meta name="theme-color" content="${theme.primary}"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"><script type="application/ld+json"${nonceAttribute}>${structuredData(catalog, customization)}</script><style>${storefrontStyles(theme)}</style></head><body class="cards-${style} hero-mode-${hero}"><header>${renderHero(catalog, customization)}</header><main id="storefront-list" class="storefront-shell" data-storefront>${quick}<section class="discovery" aria-label="Buscar e filtrar"><div class="search-row">${search}${filters}</div>${categoryNav}</section>${tabs}${emptyCatalog}${cards ? `<section aria-labelledby="listing-title"><header class="listing-header"><div><h2 id="listing-title">Escolha o que deseja</h2><p>Produzido com carinho, escolhido por você.</p></div>${sort}</header><p id="results-status" class="results-status" role="status" aria-live="polite"></p><div id="no-results" class="no-results" hidden><h3>Nenhum resultado encontrado</h3><p>Tente limpar a busca ou remover os filtros.</p></div><div class="storefront-grid">${cards}</div></section>` : ""}</main>${services.length ? bookingDialog() : ""}${floating}<footer>Catálogo de ${escapeHtml(customization.identity.displayName)}</footer>${heroCoverScript(nonce)}${cards ? storefrontScript(nonce, initialType, defaultSort) : ""}</body></html>`;
+  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>${escapeHtml(title)}</title><meta name="description" content="${escapeHtml(description)}"><link rel="canonical" href="${canonical}"><meta property="og:type" content="website"><meta property="og:title" content="${escapeHtml(title)}"><meta property="og:description" content="${escapeHtml(description)}"><meta property="og:url" content="${canonical}">${imageMeta}<meta name="robots" content="${preview ? "noindex,nofollow" : "index,follow"}"><meta name="theme-color" content="${theme.primary}"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"><script type="application/ld+json"${nonceAttribute}>${structuredData(catalog, customization)}</script><style>${storefrontStyles(theme)}</style></head><body class="cards-${style} hero-mode-${hero}"><header>${renderHero(catalog, customization)}</header><main id="storefront-list" class="storefront-shell" data-storefront>${quick}<section class="discovery" aria-label="Buscar e filtrar"><div class="search-row">${search}${filters}</div>${categoryNav}</section>${tabs}${emptyCatalog}${cards ? `<section aria-labelledby="listing-title"><header class="listing-header"><div><h2 id="listing-title">Escolha o que deseja</h2><p>Produzido com carinho, escolhido por você.</p></div>${sort}</header><p id="results-status" class="results-status" role="status" aria-live="polite"></p><div id="no-results" class="no-results" hidden><h3>Nenhum resultado encontrado</h3><p>Tente limpar a busca ou remover os filtros.</p></div><div class="storefront-grid">${cards}</div></section>` : ""}</main>${services.length ? bookingDialog() : ""}${cards ? detailsDialog() : ""}${floating}<footer>Catálogo de ${escapeHtml(customization.identity.displayName)}</footer>${heroCoverScript(nonce)}${cards ? storefrontScript(nonce, initialType, defaultSort) : ""}</body></html>`;
 }

@@ -1,12 +1,14 @@
 /* eslint-disable sonarjs/no-nested-conditional */
 import type { Product, Service, StorefrontCustomization } from "@lucro-caseiro/contracts";
 import { Card, Typography, fonts, radii } from "@lucro-caseiro/ui";
-import React from "react";
-import { Image, Pressable, ScrollView, View } from "react-native";
+import React, { useState } from "react";
+import { Image, Modal, Platform, Pressable, ScrollView, View } from "react-native";
 
 import { useBrandScreenPalette } from "../../../shared/brand-palette";
 import { AppIcon, type AppIconName } from "../../../shared/components/app-icon";
 import {
+  coverFocalNativeTranslate,
+  coverFocalObjectPosition,
   displayCatalogItemName,
   resolveCatalogItemAction,
   resolveFeaturedVisual,
@@ -244,6 +246,62 @@ function FeaturedVisuals({
   );
 }
 
+type CoverFocal = NonNullable<StorefrontCustomization["hero"]["coverFocal"]>;
+
+function CoverFocalImage({
+  uri,
+  accessibilityLabel,
+  focal,
+  frame,
+  fill = false,
+}: Readonly<{
+  uri: string;
+  accessibilityLabel: string;
+  focal: CoverFocal;
+  frame: Readonly<{ width: number; height: number }>;
+  fill?: boolean;
+}>) {
+  const position = coverFocalObjectPosition(focal);
+  const pan = coverFocalNativeTranslate(focal, frame);
+  const box = fill
+    ? { position: "absolute" as const, top: 0, right: 0, bottom: 0, left: 0 }
+    : { width: "100%" as const, height: "100%" as const };
+  if (Platform.OS === "web") {
+    return React.createElement("img", {
+      src: uri,
+      alt: accessibilityLabel,
+      style: {
+        position: fill ? "absolute" : "relative",
+        top: fill ? 0 : undefined,
+        right: fill ? 0 : undefined,
+        bottom: fill ? 0 : undefined,
+        left: fill ? 0 : undefined,
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+        objectPosition: position,
+        transform: `scale(${focal.scale})`,
+        display: "block",
+      },
+    });
+  }
+  return (
+    <Image
+      source={{ uri }}
+      accessibilityLabel={accessibilityLabel}
+      resizeMode="cover"
+      style={{
+        ...box,
+        transform: [
+          { translateX: pan.translateX },
+          { translateY: pan.translateY },
+          { scale: focal.scale },
+        ],
+      }}
+    />
+  );
+}
+
 export function StorefrontHero({
   customization,
   coverUrl = null,
@@ -255,9 +313,16 @@ export function StorefrontHero({
   const coverSource = coverUrl;
   const hasCover = Boolean(coverSource);
   const focal = hero.coverFocal ?? { x: 0.5, y: 0.5, scale: 1 };
+  const [wideHero, setWideHero] = useState(false);
+  const [coverFrame, setCoverFrame] = useState({ width: 0, height: 0 });
+  const sideBySide = editorial && wideHero;
 
   return (
     <View
+      onLayout={(event) => {
+        const next = event.nativeEvent.layout.width >= 480;
+        setWideHero((current) => (current === next ? current : next));
+      }}
       style={{
         backgroundColor: hasCover ? WHITE : identity.backgroundColor,
         borderRadius: 20,
@@ -266,20 +331,24 @@ export function StorefrontHero({
         overflow: "hidden",
       }}
     >
-      <View style={{ minHeight: compact ? 168 : editorial ? 220 : 200 }}>
+      <View
+        onLayout={(event) => {
+          const { width, height } = event.nativeEvent.layout;
+          setCoverFrame((current) =>
+            current.width === width && current.height === height
+              ? current
+              : { width, height },
+          );
+        }}
+        style={{ minHeight: compact ? 168 : editorial ? 220 : 200 }}
+      >
         {hasCover ? (
-          <Image
-            source={{ uri: coverSource! }}
+          <CoverFocalImage
+            uri={coverSource!}
             accessibilityLabel="Capa da vitrine"
-            resizeMode="cover"
-            style={{
-              position: "absolute",
-              top: 0,
-              right: 0,
-              bottom: 0,
-              left: 0,
-              transform: [{ scale: focal.scale }],
-            }}
+            focal={focal}
+            frame={coverFrame}
+            fill
           />
         ) : null}
         {hasCover ? (
@@ -297,13 +366,13 @@ export function StorefrontHero({
         ) : null}
         <View
           style={{
-            flexDirection: editorial ? "row" : "column",
+            flexDirection: sideBySide ? "row" : "column",
             gap: compact ? 10 : 14,
             padding: compact ? 14 : 16,
             zIndex: 1,
           }}
         >
-          <View style={{ flex: editorial ? 1.15 : undefined, gap: 7 }}>
+          <View style={{ flex: sideBySide ? 1.15 : undefined, gap: 7, minWidth: 0 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
               {identity.logoUrl ? (
                 <Image
@@ -381,17 +450,26 @@ export function StorefrontHero({
               <View
                 style={{
                   alignSelf: "flex-start",
+                  maxWidth: "100%",
+                  minHeight: 48,
                   borderRadius: 12,
                   backgroundColor: identity.actionColor,
-                  paddingHorizontal: 14,
-                  paddingVertical: 9,
+                  paddingHorizontal: 16,
+                  paddingVertical: 12,
                   flexDirection: "row",
                   alignItems: "center",
                   gap: 6,
+                  flexShrink: 0,
                 }}
               >
                 <Typography
-                  style={{ color: actionText, fontFamily: fonts.bold, fontSize: 12 }}
+                  numberOfLines={1}
+                  style={{
+                    color: actionText,
+                    fontFamily: fonts.bold,
+                    fontSize: 14,
+                    flexShrink: 1,
+                  }}
                 >
                   {hero.action.label}
                 </Typography>
@@ -405,7 +483,14 @@ export function StorefrontHero({
             ) : null}
           </View>
           {!hasCover && (!compact || hero.featuredItems.length > 0) ? (
-            <FeaturedVisuals customization={customization} />
+            <View
+              style={{
+                flex: sideBySide ? 1 : undefined,
+                maxWidth: sideBySide ? "42%" : "100%",
+              }}
+            >
+              <FeaturedVisuals customization={customization} />
+            </View>
           ) : null}
         </View>
       </View>
@@ -499,26 +584,135 @@ function actionLabel(action: ReturnType<typeof resolveCatalogItemAction>): strin
   return labels[action.type] ?? "";
 }
 
+function serviceLocationLabel(mode: Service["locationMode"]): string {
+  if (mode === "online") return "Online";
+  if (mode === "client") return "No endereço do cliente";
+  if (mode === "flexible") return "Local a combinar";
+  return "Presencial";
+}
+
+function formatStorefrontPrice(value: number): string {
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
+    value,
+  );
+}
+
+function productPriceCaption(product: Product): string {
+  const prefix = (product.variations?.length ?? 0) > 1 ? "a partir de " : "";
+  return `${prefix}${formatStorefrontPrice(product.salePrice)}`;
+}
+
+function servicePriceCaption(
+  service: Service,
+  customization: StorefrontCustomization,
+): string {
+  const prices = [
+    service.defaultPrice,
+    ...service.variations.map((item) => item.price),
+    ...service.packages.map((item) => item.price),
+  ].filter((value): value is number => value != null);
+  if (prices.length === 0) {
+    if (customization.organization.cards.missingPriceBehavior === "hidden") return " ";
+    if (customization.organization.cards.missingPriceBehavior === "custom") {
+      return customization.organization.cards.missingPriceText;
+    }
+    return "Consultar";
+  }
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  const prefix = min !== max ? "a partir de " : "";
+  return `${prefix}${formatStorefrontPrice(min)}`;
+}
+
+function PlaceholderMark({
+  kind,
+  color,
+}: Readonly<{ kind: "product" | "service"; color: string }>) {
+  return (
+    <View
+      style={{
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: WHITE,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <AppIcon
+        name={kind === "product" ? "bag-handle-outline" : "calendar-outline"}
+        size={22}
+        color={color}
+        importantForAccessibility="no"
+      />
+    </View>
+  );
+}
+
+function MetaBit({
+  iconName,
+  label,
+  color,
+}: Readonly<{ iconName: AppIconName; label: string; color: string }>) {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 4, minWidth: 0 }}>
+      <AppIcon name={iconName} size={13} color={color} importantForAccessibility="no" />
+      <Typography style={{ color: WARM_GRAY, fontSize: 11, flexShrink: 1 }}>
+        {label}
+      </Typography>
+    </View>
+  );
+}
+
 export function StorefrontItemCard({
   item,
   kind,
   customization,
+  fill = false,
 }: Readonly<{
   item: Product | Service;
   kind: "product" | "service";
   customization: StorefrontCustomization;
+  fill?: boolean;
 }>) {
   const product = kind === "product" ? (item as Product) : null;
   const service = kind === "service" ? (item as Service) : null;
   const action = resolveCatalogItemAction(`${kind}:${item.id}`, kind, customization);
   const compact = customization.organization.cards.style === "compact";
-  const price = product?.salePrice ?? service?.defaultPrice ?? null;
   const name = displayCatalogItemName(item.name);
   const photoUrl = product?.photoUrl ?? null;
+  const available =
+    product == null || product.stockQuantity == null || product.stockQuantity > 0;
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const isDetailsAction = action.type === "details";
+  const detailsCopy =
+    item.description?.trim() || "Este item ainda não tem uma descrição.";
+  const priceCaption = product
+    ? productPriceCaption(product)
+    : service
+      ? servicePriceCaption(service, customization)
+      : "";
+  const detailsMeta = service
+    ? `${service.durationMinutes} min · ${serviceLocationLabel(service.locationMode)}`
+    : customization.organization.cards.showAvailability
+      ? available
+        ? "Disponível"
+        : "Indisponível"
+      : "";
+  const ctaLabel = actionLabel(action);
+  const ctaStyle = {
+    minHeight: 48,
+    borderRadius: 10,
+    backgroundColor: customization.identity.actionColor,
+    paddingHorizontal: 12,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+  };
   return (
     <View
       style={{
-        width: compact ? 168 : 188,
+        width: fill ? "100%" : compact ? 168 : 188,
+        flex: fill ? 1 : undefined,
         overflow: "hidden",
         borderRadius: 16,
         borderWidth: 1,
@@ -530,28 +724,28 @@ export function StorefrontItemCard({
         <Image
           source={{ uri: photoUrl }}
           accessibilityLabel={name}
-          style={{ width: "100%", height: compact ? 86 : 108 }}
+          style={{
+            width: "100%",
+            height: fill ? undefined : compact ? 86 : 108,
+            aspectRatio: fill ? 1 : undefined,
+          }}
           resizeMode="cover"
         />
       ) : (
         <View
           style={{
             width: "100%",
-            height: compact ? 72 : 88,
+            height: fill ? undefined : compact ? 86 : 108,
+            aspectRatio: fill ? 1 : undefined,
             backgroundColor: SOFT_ROSE,
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <AppIcon
-            name={kind === "product" ? "bag-handle-outline" : "calendar-outline"}
-            size={26}
-            color={customization.identity.actionColor}
-            importantForAccessibility="no"
-          />
+          <PlaceholderMark kind={kind} color={customization.identity.actionColor} />
         </View>
       )}
-      <View style={{ padding: 10, gap: 5 }}>
+      <View style={{ flex: 1, padding: 10, gap: 5 }}>
         <Typography
           style={{
             color: customization.identity.actionColor,
@@ -560,26 +754,28 @@ export function StorefrontItemCard({
             letterSpacing: 0.4,
           }}
         >
-          {kind === "product" ? "Produto" : "Serviço"}
+          {kind === "product" ? product?.category || "Produto" : "Serviço"}
         </Typography>
         <Typography
-          style={{ color: INK, fontFamily: fonts.bold, fontSize: 13, lineHeight: 17 }}
+          style={{
+            color: INK,
+            fontFamily: fonts.bold,
+            fontSize: 13,
+            lineHeight: 17,
+            minHeight: 34,
+          }}
           numberOfLines={2}
         >
           {name}
         </Typography>
-        {customization.organization.cards.showDetails && item.description ? (
+        {!isDetailsAction &&
+        customization.organization.cards.showDetails &&
+        item.description ? (
           <Typography
             style={{ color: WARM_GRAY, fontSize: 11, lineHeight: 15 }}
             numberOfLines={2}
           >
             {item.description}
-          </Typography>
-        ) : null}
-        {kind === "service" && service ? (
-          <Typography style={{ color: WARM_GRAY, fontSize: 11 }}>
-            {service.durationMinutes} min
-            {service.locationMode === "online" ? " • Online" : " • Presencial"}
           </Typography>
         ) : null}
         {customization.organization.cards.showPrice ? (
@@ -590,48 +786,183 @@ export function StorefrontItemCard({
               fontSize: 13,
             }}
           >
-            {price == null
-              ? customization.organization.cards.missingPriceBehavior === "hidden"
-                ? " "
-                : customization.organization.cards.missingPriceBehavior === "custom"
-                  ? customization.organization.cards.missingPriceText
-                  : "Consultar"
-              : new Intl.NumberFormat("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                }).format(price)}
+            {priceCaption}
           </Typography>
         ) : null}
-        {customization.organization.cards.showAvailability && product ? (
-          <Typography style={{ color: WARM_GRAY, fontSize: 10 }}>
-            {product.stockQuantity != null && product.stockQuantity <= 0
-              ? "Indisponível"
-              : "Disponível"}
-          </Typography>
-        ) : null}
-        {customization.organization.actions.mode !== "hidden" &&
-        action.type !== "none" ? (
+        <View
+          style={{
+            marginTop: "auto",
+            paddingTop: 8,
+            borderTopWidth: 1,
+            borderTopColor: "rgba(74,35,50,0.10)",
+            gap: 8,
+          }}
+        >
+          {kind === "service" && service ? (
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+              <MetaBit
+                iconName="time-outline"
+                label={`${service.durationMinutes} min`}
+                color={WARM_GRAY}
+              />
+              <MetaBit
+                iconName="location-outline"
+                label={serviceLocationLabel(service.locationMode)}
+                color={WARM_GRAY}
+              />
+            </View>
+          ) : null}
+          {customization.organization.cards.showAvailability && product ? (
+            <MetaBit
+              iconName={available ? "checkmark-circle-outline" : "close-circle-outline"}
+              label={available ? "Disponível" : "Indisponível"}
+              color={WARM_GRAY}
+            />
+          ) : null}
+          {customization.organization.actions.mode !== "hidden" &&
+          action.type !== "none" ? (
+            isDetailsAction ? (
+              <Pressable
+                onPress={() => setDetailsOpen(true)}
+                accessibilityRole="button"
+                accessibilityLabel={ctaLabel}
+                style={ctaStyle}
+              >
+                <Typography
+                  style={{
+                    color: WHITE,
+                    fontFamily: fonts.semiBold,
+                    fontSize: 12,
+                    textAlign: "center",
+                  }}
+                >
+                  {ctaLabel}
+                </Typography>
+              </Pressable>
+            ) : (
+              <View style={ctaStyle}>
+                <Typography
+                  style={{
+                    color: WHITE,
+                    fontFamily: fonts.semiBold,
+                    fontSize: 12,
+                    textAlign: "center",
+                  }}
+                >
+                  {ctaLabel}
+                </Typography>
+              </View>
+            )
+          ) : null}
+        </View>
+      </View>
+      {isDetailsAction && detailsOpen ? (
+        <Modal
+          visible
+          transparent
+          animationType="fade"
+          onRequestClose={() => setDetailsOpen(false)}
+        >
           <View
             style={{
-              borderRadius: 10,
-              borderWidth: 1,
-              borderColor: customization.identity.actionColor,
-              paddingVertical: 6,
-              alignItems: "center",
+              flex: 1,
+              justifyContent: "center",
+              padding: 16,
+              backgroundColor: "rgba(36,24,30,0.45)",
             }}
           >
-            <Typography
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Fechar"
+              onPress={() => setDetailsOpen(false)}
+              style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0 }}
+            />
+            <View
               style={{
-                color: customization.identity.actionColor,
-                fontFamily: fonts.semiBold,
-                fontSize: 11,
+                maxHeight: "90%",
+                borderRadius: 16,
+                backgroundColor: WHITE,
+                padding: 22,
+                gap: 12,
               }}
             >
-              {actionLabel(action)}
-            </Typography>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 12,
+                }}
+              >
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Typography
+                    style={{
+                      color: WARM_GRAY,
+                      fontSize: 12,
+                      fontFamily: fonts.semiBold,
+                    }}
+                  >
+                    Detalhes
+                  </Typography>
+                  <Typography
+                    style={{
+                      color: INK,
+                      fontFamily: fonts.bold,
+                      fontSize: 18,
+                      lineHeight: 24,
+                    }}
+                  >
+                    {name}
+                  </Typography>
+                </View>
+                <Pressable
+                  onPress={() => setDetailsOpen(false)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Fechar"
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 22,
+                    borderWidth: 1,
+                    borderColor: "rgba(74,35,50,0.16)",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <AppIcon name="close-outline" size={18} color={INK} />
+                </Pressable>
+              </View>
+              {photoUrl ? (
+                <Image
+                  source={{ uri: photoUrl }}
+                  accessibilityLabel={name}
+                  style={{ width: "100%", aspectRatio: 1, borderRadius: 12 }}
+                  resizeMode="cover"
+                />
+              ) : null}
+              {customization.organization.cards.showPrice && priceCaption.trim() ? (
+                <Typography
+                  style={{
+                    color: customization.identity.primaryColor,
+                    fontFamily: fonts.bold,
+                    fontSize: 16,
+                  }}
+                >
+                  {priceCaption}
+                </Typography>
+              ) : null}
+              {detailsMeta ? (
+                <Typography style={{ color: WARM_GRAY, fontSize: 13 }}>
+                  {detailsMeta}
+                </Typography>
+              ) : null}
+              <Typography style={{ color: WARM_GRAY, fontSize: 14, lineHeight: 20 }}>
+                {detailsCopy}
+              </Typography>
+            </View>
           </View>
-        ) : null}
-      </View>
+        </Modal>
+      ) : null}
     </View>
   );
 }
@@ -643,10 +974,11 @@ export function StorefrontContactAction({
   return (
     <View
       style={{
-        borderRadius: 14,
+        minHeight: 48,
+        borderRadius: 999,
         backgroundColor: customization.identity.actionColor,
-        paddingVertical: 11,
-        paddingHorizontal: 14,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",
@@ -660,7 +992,7 @@ export function StorefrontContactAction({
             ? "logo-whatsapp"
             : "chatbubble-ellipses-outline"
         }
-        size={16}
+        size={20}
         color={WHITE}
         importantForAccessibility="no"
       />
@@ -668,7 +1000,7 @@ export function StorefrontContactAction({
         style={{
           color: WHITE,
           fontFamily: fonts.bold,
-          fontSize: 12,
+          fontSize: 16,
         }}
       >
         {customization.organization.contact.defaultActionLabel}
@@ -772,7 +1104,9 @@ export function StorefrontContentPreview({
   services,
   status,
   embedded = false,
-}: PreviewData & Readonly<{ status: EditorStatus; embedded?: boolean }>) {
+  listing = false,
+}: PreviewData &
+  Readonly<{ status: EditorStatus; embedded?: boolean; listing?: boolean }>) {
   const { products: visibleProducts, services: visibleServices } = visibleItems(
     products,
     services,
@@ -794,11 +1128,19 @@ export function StorefrontContentPreview({
       customization.organization.discovery.visibleCategoryIds.includes(category),
   );
   const previewProducts = customization.organization.content.showProducts
-    ? visibleProducts.slice(0, 2)
+    ? listing
+      ? visibleProducts
+      : visibleProducts.slice(0, 2)
     : [];
   const previewServices = customization.organization.content.showServices
-    ? visibleServices.slice(0, 1)
+    ? listing
+      ? visibleServices
+      : visibleServices.slice(0, 1)
     : [];
+  const listingItems: Array<{ item: Product | Service; kind: "product" | "service" }> = [
+    ...previewProducts.map((item) => ({ item, kind: "product" as const })),
+    ...previewServices.map((item) => ({ item, kind: "service" as const })),
+  ];
   const body = (
     <>
       {customization.organization.discovery.showSearch ? (
@@ -907,52 +1249,91 @@ export function StorefrontContentPreview({
           ))}
         </View>
       ) : null}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 8 }}
-      >
-        {previewProducts.map((item) => (
-          <StorefrontItemCard
-            key={`product:${item.id}`}
-            item={item}
-            kind="product"
-            customization={customization}
-          />
-        ))}
-        {previewServices.map((item) => (
-          <StorefrontItemCard
-            key={`service:${item.id}`}
-            item={item}
-            kind="service"
-            customization={customization}
-          />
-        ))}
-        {previewProducts.length + previewServices.length === 0 ? (
-          <View
-            style={{
-              width: 220,
-              minHeight: 72,
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 6,
-              backgroundColor: "#F5F3F1",
-              borderRadius: 14,
-              padding: 12,
-            }}
-          >
-            <AppIcon
-              name="storefront-outline"
-              size={20}
-              color={WARM_GRAY}
-              importantForAccessibility="no"
+      {listing ? (
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
+          {listingItems.map(({ item, kind }) => (
+            <View key={`${kind}:${item.id}`} style={{ width: "47.5%", flexGrow: 0 }}>
+              <StorefrontItemCard
+                item={item}
+                kind={kind}
+                customization={customization}
+                fill
+              />
+            </View>
+          ))}
+          {listingItems.length === 0 ? (
+            <View
+              style={{
+                width: "100%",
+                minHeight: 72,
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                backgroundColor: "#F5F3F1",
+                borderRadius: 14,
+                padding: 12,
+              }}
+            >
+              <AppIcon
+                name="storefront-outline"
+                size={20}
+                color={WARM_GRAY}
+                importantForAccessibility="no"
+              />
+              <Typography style={{ color: WARM_GRAY, fontSize: 12 }}>
+                Seu conteúdo aparecerá aqui.
+              </Typography>
+            </View>
+          ) : null}
+        </View>
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 8 }}
+        >
+          {previewProducts.map((item) => (
+            <StorefrontItemCard
+              key={`product:${item.id}`}
+              item={item}
+              kind="product"
+              customization={customization}
             />
-            <Typography style={{ color: WARM_GRAY, fontSize: 12 }}>
-              Seu conteúdo aparecerá aqui.
-            </Typography>
-          </View>
-        ) : null}
-      </ScrollView>
+          ))}
+          {previewServices.map((item) => (
+            <StorefrontItemCard
+              key={`service:${item.id}`}
+              item={item}
+              kind="service"
+              customization={customization}
+            />
+          ))}
+          {previewProducts.length + previewServices.length === 0 ? (
+            <View
+              style={{
+                width: 220,
+                minHeight: 72,
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                backgroundColor: "#F5F3F1",
+                borderRadius: 14,
+                padding: 12,
+              }}
+            >
+              <AppIcon
+                name="storefront-outline"
+                size={20}
+                color={WARM_GRAY}
+                importantForAccessibility="no"
+              />
+              <Typography style={{ color: WARM_GRAY, fontSize: 12 }}>
+                Seu conteúdo aparecerá aqui.
+              </Typography>
+            </View>
+          ) : null}
+        </ScrollView>
+      )}
     </>
   );
   if (embedded) return <View style={{ gap: 10 }}>{body}</View>;
@@ -1009,15 +1390,16 @@ export function StorefrontFinalPreview({
   services,
   status,
   coverUrl,
-}: PreviewData & Readonly<{ status: EditorStatus }>) {
+  chrome = true,
+}: PreviewData & Readonly<{ status: EditorStatus; chrome?: boolean }>) {
   const { products: visibleProducts, services: visibleServices } = visibleItems(
     products,
     services,
   );
-  return (
-    <PreviewShell title="PRÉVIA FINAL" status={status} final>
+  const body = (
+    <>
       <StorefrontHero customization={customization} coverUrl={coverUrl} />
-      <Typography style={{ color: WARM_GRAY, fontSize: 12, marginTop: -4 }}>
+      <Typography style={{ color: WARM_GRAY, fontSize: 12, marginTop: chrome ? -4 : 0 }}>
         {visibleProducts.length} produtos • {visibleServices.length} serviços
       </Typography>
       <StorefrontContentPreview
@@ -1026,106 +1408,15 @@ export function StorefrontFinalPreview({
         services={services}
         status="saved"
         embedded
+        listing
       />
       <StorefrontContactAction customization={customization} />
-    </PreviewShell>
+    </>
   );
-}
-
-export function CoverAdjuster({
-  coverUrl,
-  focal,
-  onChange,
-}: Readonly<{
-  coverUrl: string;
-  focal: NonNullable<StorefrontCustomization["hero"]["coverFocal"]>;
-  onChange: (focal: NonNullable<StorefrontCustomization["hero"]["coverFocal"]>) => void;
-}>) {
-  const colors = useBrandScreenPalette();
+  if (!chrome) return <View style={{ gap: 12 }}>{body}</View>;
   return (
-    <View style={{ gap: 10 }}>
-      <View
-        style={{
-          height: 140,
-          borderRadius: 16,
-          overflow: "hidden",
-          backgroundColor: colors.surface,
-        }}
-      >
-        <Image
-          source={{ uri: coverUrl }}
-          accessibilityLabel="Ajuste da capa"
-          resizeMode="cover"
-          style={{
-            width: "100%",
-            height: "100%",
-            transform: [{ scale: focal.scale }],
-          }}
-        />
-      </View>
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-        {(
-          [
-            [
-              "←",
-              "Mover capa para a esquerda",
-              { x: focal.x - 0.05, y: focal.y, scale: focal.scale },
-            ],
-            [
-              "→",
-              "Mover capa para a direita",
-              { x: focal.x + 0.05, y: focal.y, scale: focal.scale },
-            ],
-            [
-              "↑",
-              "Mover capa para cima",
-              { x: focal.x, y: focal.y - 0.05, scale: focal.scale },
-            ],
-            [
-              "↓",
-              "Mover capa para baixo",
-              { x: focal.x, y: focal.y + 0.05, scale: focal.scale },
-            ],
-            [
-              "−",
-              "Diminuir zoom da capa",
-              { x: focal.x, y: focal.y, scale: focal.scale - 0.1 },
-            ],
-            [
-              "+",
-              "Aumentar zoom da capa",
-              { x: focal.x, y: focal.y, scale: focal.scale + 0.1 },
-            ],
-          ] as const
-        ).map(([label, accessibilityLabel, next]) => (
-          <Pressable
-            key={label}
-            accessibilityRole="button"
-            accessibilityLabel={accessibilityLabel}
-            onPress={() =>
-              onChange({
-                x: Math.min(1, Math.max(0, next.x)),
-                y: Math.min(1, Math.max(0, next.y)),
-                scale: Math.min(2.5, Math.max(1, next.scale)),
-              })
-            }
-            style={{
-              minWidth: 44,
-              minHeight: 44,
-              borderRadius: 12,
-              borderWidth: 1,
-              borderColor: colors.border,
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: colors.white,
-            }}
-          >
-            <Typography style={{ color: colors.ink, fontFamily: fonts.bold }}>
-              {label}
-            </Typography>
-          </Pressable>
-        ))}
-      </View>
-    </View>
+    <PreviewShell title="PRÉVIA FINAL" status={status} final>
+      {body}
+    </PreviewShell>
   );
 }

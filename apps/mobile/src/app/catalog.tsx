@@ -94,9 +94,9 @@ function catalogHeroNativeArtFrame(viewportWidth: number): Readonly<{
   top: number;
   right: number;
 }> {
-  let frame = { width: 300, top: -16, right: -12 };
-  if (viewportWidth >= 390) frame = { width: 330, top: -20, right: -10 };
-  if (viewportWidth >= 480) frame = { width: 355, top: -26, right: -5 };
+  let frame = { width: 268, top: -8, right: -36 };
+  if (viewportWidth >= 390) frame = { width: 300, top: -12, right: -28 };
+  if (viewportWidth >= 480) frame = { width: 340, top: -20, right: -8 };
   if (viewportWidth >= 601) frame = { width: 420, top: -40, right: 12 };
   if (viewportWidth >= 1024) frame = { width: 470, top: -42, right: 14 };
   return frame;
@@ -122,7 +122,6 @@ function CatalogHero({
   let textWidth: number | "50%" | "52%" = "50%";
   if (viewportWidth >= 430) textWidth = "52%";
   if (isWideHero) textWidth = 403;
-  const descriptionWidth = isWideHero ? "100%" : "75%";
   let copyGap: number = spacing.md;
   if (isVeryCompact) copyGap = 7;
   if (isWideHero) copyGap = 22;
@@ -173,14 +172,15 @@ function CatalogHero({
           width: textWidth,
           gap: copyGap,
           paddingLeft: copyLeft,
+          paddingRight: isWideHero ? 0 : spacing.xs,
           paddingTop: copyTop,
         }}
       >
-        <Typography variant="h3" numberOfLines={2} color={colors.onWine}>
-          {"Seu negócio,\nem uma vitrine só."}
+        <Typography variant="h3" color={colors.onWine}>
+          Seu negócio, em uma vitrine só.
         </Typography>
-        <Typography variant="body" color="#F7EEF0" style={{ width: descriptionWidth }}>
-          Produtos e serviços organizados para seus clientes escolherem.
+        <Typography variant="body" color="#F7EEF0">
+          Para o cliente escolher.
         </Typography>
         <View
           accessibilityRole="text"
@@ -273,25 +273,25 @@ function SummaryMetric({
   compact?: boolean;
   spacious?: boolean;
 }>) {
-  let metricGap = 7;
+  let metricGap: number = spacing.sm;
   let metricIconSize = 36;
-  let valueFontSize = 18;
-  let valueLineHeight = 24;
+  let valueFontSize = 16;
+  let valueLineHeight = 22;
   let labelFontSize = 11;
   let labelLineHeight = 15;
-  let metricGlyphSize: number = iconSizes.inline;
+  let metricGlyphSize: number = iconSizes.xs;
   if (compact) {
-    metricGap = 3;
+    metricGap = spacing.xs;
     metricIconSize = 32;
   }
   if (spacious) {
-    metricGap = 10;
+    metricGap = spacing.md;
     metricIconSize = 46;
-    valueFontSize = 22;
-    valueLineHeight = 28;
+    valueFontSize = 18;
+    valueLineHeight = 24;
     labelFontSize = 14;
     labelLineHeight = 19;
-    metricGlyphSize = 24;
+    metricGlyphSize = iconSizes.sm;
   }
   const colors = useBrandScreenPalette();
   return (
@@ -299,16 +299,19 @@ function SummaryMetric({
       style={{
         flex: 1,
         minWidth: 0,
+        overflow: "hidden",
         flexDirection: compact ? "column" : "row",
         alignItems: "center",
         justifyContent: "center",
         gap: metricGap,
+        paddingHorizontal: spacing.md,
       }}
     >
       <View
         style={{
           width: metricIconSize,
           height: metricIconSize,
+          flexShrink: 0,
           borderRadius: radii.lg,
           alignItems: "center",
           justifyContent: "center",
@@ -318,7 +321,12 @@ function SummaryMetric({
         <AppIcon name={icon} size={metricGlyphSize} color={colors.rose} />
       </View>
       <View
-        style={{ minWidth: 0, alignItems: compact ? "center" : "flex-start", gap: 1 }}
+        style={{
+          flexShrink: 1,
+          minWidth: 0,
+          alignItems: compact ? "center" : "flex-start",
+          gap: 1,
+        }}
       >
         <Typography
           style={{
@@ -752,7 +760,13 @@ function CatalogContentManager({
               compact={compactSummary}
               spacious={spaciousLayout}
             />
-            <View style={{ width: 1, backgroundColor: theme.colors.border }} />
+            <View
+              style={{
+                width: 1,
+                marginVertical: spacing.xs,
+                backgroundColor: theme.colors.border,
+              }}
+            />
             <SummaryMetric
               icon="notifications-outline"
               value={loadingCounts ? null : services.length}
@@ -760,7 +774,13 @@ function CatalogContentManager({
               compact={compactSummary}
               spacious={spaciousLayout}
             />
-            <View style={{ width: 1, backgroundColor: theme.colors.border }} />
+            <View
+              style={{
+                width: 1,
+                marginVertical: spacing.xs,
+                backgroundColor: theme.colors.border,
+              }}
+            />
             <SummaryMetric
               icon="star"
               value={loadingCounts ? null : publishedCount}

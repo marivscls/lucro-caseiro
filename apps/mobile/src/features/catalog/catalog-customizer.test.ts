@@ -5,6 +5,8 @@ import {
   STOREFRONT_BRAND_COLORS,
   buildStorefrontChecklist,
   catalogImageValidationError,
+  coverFocalNativeTranslate,
+  coverFocalObjectPosition,
   createFeaturedItemTransforms,
   displayCatalogItemName,
   createStorefrontCustomization,
@@ -12,6 +14,7 @@ import {
   isStorefrontDraftDirty,
   isValidCatalogColor,
   normalizeFeaturedItemTransform,
+  normalizeHeroContactAction,
   normalizeStorefrontCustomization,
   resolveCatalogItemAction,
   resolveFeaturedVisual,
@@ -72,7 +75,7 @@ describe("storefront customization", () => {
     const draft = createStorefrontCustomization(settings(), "Maria");
     const errors = validateStorefrontCustomization({
       ...draft,
-      identity: { ...draft.identity, displayName: "", primaryColor: "vinho" },
+      identity: { ...draft.identity, displayName: "", actionColor: "vinho" },
       hero: { ...draft.hero, introduction: "a".repeat(121) },
       organization: {
         ...draft.organization,
@@ -84,10 +87,47 @@ describe("storefront customization", () => {
     expect(isValidCatalogColor("#4A2332")).toBe(true);
     expect(isValidCatalogColor("#123")).toBe(false);
     expect(errors.displayName).toBeTruthy();
-    expect(errors.primaryColor).toBeTruthy();
+    expect(errors.actionColor).toBeTruthy();
     expect(errors.introduction).toBeTruthy();
     expect(errors.whatsapp).toBeTruthy();
     expect(errors.slug).toBeTruthy();
+  });
+
+  it("simplifica apresentação ao normalizar", () => {
+    const draft = createStorefrontCustomization(settings(), "Maria");
+    const normalized = normalizeStorefrontCustomization({
+      ...draft,
+      hero: {
+        ...draft.hero,
+        style: "editorial",
+        shortSignature: "feito com cuidado",
+        quickInfo: [
+          {
+            id: "quick-1",
+            icon: "sparkles",
+            label: "Sob medida",
+            order: 0,
+            enabled: true,
+          },
+        ],
+      },
+      organization: {
+        ...draft.organization,
+        discovery: {
+          ...draft.organization.discovery,
+          showSearch: true,
+          allowSorting: true,
+        },
+        actions: { ...draft.organization.actions, mode: "perItem" },
+      },
+    });
+
+    expect(normalized.hero.style).toBe("classic");
+    expect(normalized.hero.shortSignature).toBe("");
+    expect(normalized.hero.quickInfo).toEqual([]);
+    expect(normalized.organization.discovery.showSearch).toBe(false);
+    expect(normalized.organization.actions.mode).toBe("default");
+    expect(normalized.organization.contact.channel).toBe("whatsapp");
   });
 
   it("mantém no máximo três destaques ao normalizar", () => {
@@ -121,6 +161,30 @@ describe("storefront customization", () => {
         layer: 3.8,
       }),
     ).toMatchObject({ x: 1, y: 0, scale: 2.5, layer: 4 });
+  });
+
+  it("unifica a ação do topo em contato por WhatsApp", () => {
+    expect(
+      normalizeHeroContactAction(
+        { type: "schedule", label: "Agendar", destination: "https://cal.com/x" },
+        "11987654321",
+      ),
+    ).toEqual({
+      type: "whatsapp",
+      label: "Agendar",
+      destination: "11987654321",
+    });
+    expect(normalizeHeroContactAction({ type: "quote", label: "   " }, "")).toEqual({
+      type: "none",
+      label: "",
+    });
+  });
+
+  it("converte o ponto focal da capa em posição e deslocamento", () => {
+    expect(coverFocalObjectPosition({ x: 0.2, y: 0.8 })).toBe("20% 80%");
+    expect(
+      coverFocalNativeTranslate({ x: 0, y: 1 }, { width: 200, height: 100 }),
+    ).toEqual({ translateX: 50, translateY: -25 });
   });
 
   it("respeita prioridade da sobrescrita individual sobre o padrão", () => {
@@ -193,21 +257,27 @@ describe("storefront customization", () => {
     });
     const checklist = buildStorefrontChecklist(draft, { products: 2, services: 1 }, true);
 
-    expect(checklist.find((item) => item.id === "content")?.label).toBe(
-      "3 itens visíveis",
+    expect(checklist.find((item) => item.id === "contact")?.label).toBe(
+      "WhatsApp conectado",
     );
     expect(checklist.find((item) => item.id === "slug")?.valid).toBe(true);
+    expect(checklist.find((item) => item.id === "content")).toBeUndefined();
   });
 
-  it("não trata zero ações individuais como sucesso no modo por item", () => {
+  it("não inclui checklist de conteúdo nem de ações por item", () => {
     const draft = createStorefrontCustomization(settings(), "Maria", {
       products: 2,
       services: 1,
     });
     const checklist = buildStorefrontChecklist(draft, { products: 2, services: 1 }, true);
 
-    expect(draft.organization.actions.mode).toBe("perItem");
-    expect(checklist.find((item) => item.id === "actions")?.valid).toBe(false);
+    expect(draft.organization.actions.mode).toBe("default");
+    expect(checklist.map((item) => item.id)).toEqual([
+      "identity",
+      "hero",
+      "contact",
+      "slug",
+    ]);
   });
 
   it("remove prefixos técnicos do nome exibido", () => {

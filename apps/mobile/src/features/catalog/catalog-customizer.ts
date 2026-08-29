@@ -36,7 +36,7 @@ type CatalogImageMetadata = Readonly<{
 export type StorefrontValidationErrors = Record<string, string>;
 
 export type StorefrontChecklistItem = Readonly<{
-  id: "identity" | "hero" | "content" | "actions" | "contact" | "slug";
+  id: "identity" | "hero" | "contact" | "slug";
   label: string;
   valid: boolean;
   step: StorefrontEditorStep;
@@ -121,6 +121,36 @@ export function normalizeFeaturedItemTransform(
   };
 }
 
+export function coverFocalObjectPosition(
+  focal: Readonly<{ x: number; y: number }>,
+): string {
+  return `${focal.x * 100}% ${focal.y * 100}%`;
+}
+
+export function normalizeHeroContactAction(
+  action: StorefrontCustomization["hero"]["action"],
+  whatsapp: string,
+): StorefrontCustomization["hero"]["action"] {
+  const label = action.label.trim();
+  if (!label) return { type: "none", label: "" };
+  const destination = whatsapp || action.destination;
+  return {
+    type: "whatsapp",
+    label,
+    ...(destination ? { destination } : {}),
+  };
+}
+
+export function coverFocalNativeTranslate(
+  focal: Readonly<{ x: number; y: number }>,
+  frame: Readonly<{ width: number; height: number }>,
+): Readonly<{ translateX: number; translateY: number }> {
+  return {
+    translateX: (0.5 - focal.x) * frame.width * 0.5,
+    translateY: (0.5 - focal.y) * frame.height * 0.5,
+  };
+}
+
 export function resolveCatalogItemAction(
   itemKey: string,
   kind: "product" | "service",
@@ -150,7 +180,7 @@ export function createStorefrontCustomization(
   },
 ): StorefrontCustomization {
   if (settings.customization) {
-    return {
+    const customization = {
       ...settings.customization,
       publication: {
         ...settings.customization.publication,
@@ -160,6 +190,19 @@ export function createStorefrontCustomization(
           : settings.customization.publication.status,
       },
     };
+    return applySimpleStorefrontPresentation(
+      {
+        ...customization,
+        hero: {
+          ...customization.hero,
+          action: normalizeHeroContactAction(
+            customization.hero.action,
+            customization.organization.contact.destination,
+          ),
+        },
+      },
+      counts,
+    );
   }
 
   let offeringMode: StorefrontCustomization["identity"]["offeringMode"] = "both";
@@ -201,17 +244,17 @@ export function createStorefrontCustomization(
     },
     organization: {
       content: {
-        showProducts: offeringMode !== "services",
-        showServices: offeringMode !== "products",
-        showCategories: counts.products > 0,
+        showProducts: true,
+        showServices: true,
+        showCategories: true,
         sectionOrder: ["products", "services", "categories"],
         initialSection: "all",
       },
       discovery: {
-        showSearch: true,
-        showCategories: counts.products > 0,
-        allowFilters: true,
-        allowSorting: true,
+        showSearch: false,
+        showCategories: true,
+        allowFilters: false,
+        allowSorting: false,
         defaultSort: "featured",
         visibleCategoryIds: [],
         categoryOrder: [],
@@ -225,7 +268,7 @@ export function createStorefrontCustomization(
         missingPriceText: "Consultar",
       },
       actions: {
-        mode: "perItem",
+        mode: "default",
         productDefault: {
           type: "order",
           label: "Pedir",
@@ -257,43 +300,134 @@ export function createStorefrontCustomization(
   };
 }
 
-export function normalizeStorefrontCustomization(
+function offeringModeFromCounts(
+  products: number,
+  services: number,
+): StorefrontCustomization["identity"]["offeringMode"] {
+  if (products > 0 && services === 0) return "products";
+  if (services > 0 && products === 0) return "services";
+  return "both";
+}
+
+export function applySimpleStorefrontPresentation(
   draft: StorefrontCustomization,
-  publishing = false,
+  counts?: Readonly<{ products: number; services: number }>,
 ): StorefrontCustomization {
-  const now = new Date().toISOString();
+  const promotionalText = draft.hero.promotionalText.trim();
+  const whatsapp = draft.organization.contact.destination;
+  const offeringMode = counts
+    ? offeringModeFromCounts(counts.products, counts.services)
+    : draft.identity.offeringMode;
   return {
     ...draft,
     identity: {
       ...draft.identity,
-      displayName: draft.identity.displayName.trim(),
-      primaryColor: draft.identity.primaryColor.toUpperCase(),
-      actionColor: draft.identity.actionColor.toUpperCase(),
-      backgroundColor: draft.identity.backgroundColor.toUpperCase(),
+      offeringMode,
+      primaryColor: STOREFRONT_BRAND_COLORS.primary,
+      backgroundColor: STOREFRONT_BRAND_COLORS.background,
     },
     hero: {
       ...draft.hero,
-      introduction: draft.hero.introduction.trim(),
-      shortSignature: draft.hero.shortSignature.trim(),
-      promotionalText: draft.hero.promotionalText.trim(),
-      coverFocal: {
-        x: Math.min(1, Math.max(0, draft.hero.coverFocal?.x ?? 0.5)),
-        y: Math.min(1, Math.max(0, draft.hero.coverFocal?.y ?? 0.5)),
-        scale: Math.min(2.5, Math.max(1, draft.hero.coverFocal?.scale ?? 1)),
+      style: "classic",
+      shortSignature: "",
+      smallScreenAlternativeUrl: null,
+      promotionalText,
+      showPromotionalBar: Boolean(promotionalText),
+      quickInfo: [],
+    },
+    organization: {
+      content: {
+        showProducts: true,
+        showServices: true,
+        showCategories: true,
+        sectionOrder: ["products", "services", "categories"],
+        initialSection: "all",
       },
-      featuredItems: draft.hero.featuredItems.slice(0, 3).map((item) => ({
+      discovery: {
+        showSearch: false,
+        showCategories: true,
+        allowFilters: false,
+        allowSorting: false,
+        defaultSort: "featured",
+        visibleCategoryIds: [],
+        categoryOrder: [],
+      },
+      cards: {
+        style: "editorial",
+        showPrice: true,
+        showDetails: true,
+        showAvailability: true,
+        missingPriceBehavior: "consult",
+        missingPriceText: "Consultar",
+      },
+      actions: {
+        mode: "default",
+        productDefault: {
+          type: "order",
+          label: "Pedir",
+          channel: "whatsapp",
+          ...(whatsapp ? { destination: whatsapp } : {}),
+        },
+        serviceDefault: {
+          type: "schedule",
+          label: "Agendar",
+          channel: "whatsapp",
+          ...(whatsapp ? { destination: whatsapp } : {}),
+        },
+        itemOverrides: {},
+      },
+      contact: {
+        ...draft.organization.contact,
+        floatingEnabled: true,
+        channel: "whatsapp",
+        keepVisibleOnScroll: true,
+        defaultActionLabel:
+          draft.organization.contact.defaultActionLabel.trim() || "Entrar em contato",
+      },
+    },
+  };
+}
+
+export function normalizeStorefrontCustomization(
+  draft: StorefrontCustomization,
+  publishing = false,
+  counts?: Readonly<{ products: number; services: number }>,
+): StorefrontCustomization {
+  const simplified = applySimpleStorefrontPresentation(draft, counts);
+  const now = new Date().toISOString();
+  return {
+    ...simplified,
+    identity: {
+      ...simplified.identity,
+      displayName: simplified.identity.displayName.trim(),
+      primaryColor: simplified.identity.primaryColor.toUpperCase(),
+      actionColor: simplified.identity.actionColor.toUpperCase(),
+      backgroundColor: simplified.identity.backgroundColor.toUpperCase(),
+    },
+    hero: {
+      ...simplified.hero,
+      introduction: simplified.hero.introduction.trim(),
+      promotionalText: simplified.hero.promotionalText.trim(),
+      action: normalizeHeroContactAction(
+        simplified.hero.action,
+        simplified.organization.contact.destination,
+      ),
+      coverFocal: {
+        x: Math.min(1, Math.max(0, simplified.hero.coverFocal?.x ?? 0.5)),
+        y: Math.min(1, Math.max(0, simplified.hero.coverFocal?.y ?? 0.5)),
+        scale: Math.min(2.5, Math.max(1, simplified.hero.coverFocal?.scale ?? 1)),
+      },
+      featuredItems: simplified.hero.featuredItems.slice(0, 3).map((item) => ({
         ...item,
         altText: item.altText.trim(),
         transforms: item.transforms.map(normalizeFeaturedItemTransform),
       })),
-      quickInfo: draft.hero.quickInfo
-        .slice(0, 3)
-        .map((item, order) => ({ ...item, label: item.label.trim(), order })),
+      quickInfo: [],
     },
     publication: {
-      slug: draft.publication.slug.trim().toLowerCase(),
-      status: publishing ? "published" : draft.publication.status,
-      publishedAt: publishing ? now : draft.publication.publishedAt,
+      slug: simplified.publication.slug.trim().toLowerCase(),
+      status: publishing ? "published" : simplified.publication.status,
+      publishedAt: publishing ? now : simplified.publication.publishedAt,
     },
   };
 }
@@ -305,10 +439,8 @@ export function validateStorefrontCustomization(
   if (!draft.identity.displayName.trim()) errors.displayName = "Informe o nome exibido.";
   if (draft.identity.displayName.length > STOREFRONT_DISPLAY_NAME_LIMIT)
     errors.displayName = `Use até ${STOREFRONT_DISPLAY_NAME_LIMIT} caracteres.`;
-  (["primaryColor", "actionColor", "backgroundColor"] as const).forEach((key) => {
-    if (!isValidCatalogColor(draft.identity[key]))
-      errors[key] = "Use uma cor hexadecimal válida.";
-  });
+  if (!isValidCatalogColor(draft.identity.actionColor))
+    errors.actionColor = "Use uma cor hexadecimal válida.";
   if (draft.hero.featuredItems.length > 3)
     errors.featuredItems = "Selecione no máximo três destaques.";
   if (draft.hero.introduction.length > STOREFRONT_INTRODUCTION_LIMIT)
@@ -319,14 +451,6 @@ export function validateStorefrontCustomization(
     errors.heroActionLabel = `Use até ${STOREFRONT_ACTION_LABEL_LIMIT} caracteres.`;
   if (draft.hero.promotionalText.length > STOREFRONT_PROMO_LIMIT)
     errors.promotionalText = `Use até ${STOREFRONT_PROMO_LIMIT} caracteres.`;
-  if (draft.hero.action.type !== "none" && !draft.hero.action.label.trim())
-    errors.heroActionLabel = "Informe o texto do botão.";
-  if (
-    draft.hero.action.type === "externalLink" &&
-    !/^https?:\/\//i.test(draft.hero.action.destination ?? "")
-  ) {
-    errors.heroActionDestination = "Informe um link começando com http:// ou https://.";
-  }
   const whatsappRequired =
     draft.organization.contact.channel === "whatsapp" ||
     draft.hero.action.type === "whatsapp" ||
@@ -341,11 +465,6 @@ export function validateStorefrontCustomization(
   if (!CATALOG_SLUG_REGEX.test(draft.publication.slug.trim().toLowerCase())) {
     errors.slug = "Use letras minúsculas, números e hífens, sem hífen nas pontas.";
   }
-  if (
-    !draft.organization.content.showProducts &&
-    !draft.organization.content.showServices
-  )
-    errors.visibleContent = "Mantenha produtos ou serviços visíveis.";
   return errors;
 }
 
@@ -360,63 +479,28 @@ export function isStorefrontDraftDirty(
   return JSON.stringify(draft) !== JSON.stringify(saved);
 }
 
-function isStorefrontActionsReady(
-  draft: StorefrontCustomization,
-  whatsappError?: string,
-): boolean {
-  if (draft.organization.actions.mode === "hidden") return true;
-  if (whatsappError) return false;
-  if (draft.organization.actions.mode !== "perItem") return true;
-  return Object.keys(draft.organization.actions.itemOverrides).length > 0;
-}
-
 export function buildStorefrontChecklist(
   draft: StorefrontCustomization,
-  counts: Readonly<{ products: number; services: number }>,
+  _counts: Readonly<{ products: number; services: number }>,
   slugAvailable: boolean,
 ): StorefrontChecklistItem[] {
   const errors = validateStorefrontCustomization(draft);
-  const visibleItems =
-    (draft.organization.content.showProducts ? counts.products : 0) +
-    (draft.organization.content.showServices ? counts.services : 0);
   return [
     {
       id: "identity",
       label: "Identidade configurada",
-      valid:
-        !errors.displayName &&
-        !errors.primaryColor &&
-        !errors.actionColor &&
-        !errors.backgroundColor,
+      valid: !errors.displayName && !errors.actionColor,
       step: "identity",
     },
     {
       id: "hero",
       label: "Topo da vitrine completo",
-      valid:
-        !errors.introduction && !errors.heroActionLabel && !errors.heroActionDestination,
+      valid: !errors.introduction && !errors.heroActionLabel,
       step: "hero",
     },
     {
-      id: "content",
-      label: `${visibleItems} ${visibleItems === 1 ? "item visível" : "itens visíveis"}`,
-      valid: visibleItems > 0 && !errors.visibleContent,
-      step: "organization",
-      section: "content",
-    },
-    {
-      id: "actions",
-      label: `${Object.keys(draft.organization.actions.itemOverrides).length} ações personalizadas`,
-      valid: isStorefrontActionsReady(draft, errors.whatsapp),
-      step: "organization",
-      section: "cards-actions",
-    },
-    {
       id: "contact",
-      label:
-        draft.organization.contact.channel === "whatsapp"
-          ? "WhatsApp conectado"
-          : "Canal conectado",
+      label: "WhatsApp conectado",
       valid: !errors.whatsapp,
       step: "organization",
       section: "publication",

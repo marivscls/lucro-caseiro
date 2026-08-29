@@ -10,7 +10,6 @@ API (`/c/:slug`).
 
 ## Non-goals
 
-- Não renderiza o catálogo (a página é HTML servida pela API).
 - Não gerencia produtos (feature `products`); o catálogo mostra os produtos ativos.
 - Não processa pedidos (acontecem no WhatsApp do usuário).
 - Não remove fundo de imagens; `hero.removeBackground` só escolhe recorte vs foto original.
@@ -20,7 +19,7 @@ API (`/c/:slug`).
 - **Depende de:** `@lucro-caseiro/contracts` (`CatalogSettings`, `UpdateCatalogSettings`),
   `@lucro-caseiro/ui`, `shared/hooks/use-auth`, `shared/utils/api-client`.
 - **Counterpart de API:** feature `catalog` (`/api/v1/catalog/settings` + `/c/:slug`).
-- **Dependentes:** tela `app/catalog.tsx`; item "Catálogo online" em `tabs/more.tsx`.
+- **Dependentes:** tela `app/catalog.tsx`; item "Catálogo online" em destaque em `tabs/more.tsx` (Gestão do negócio).
 
 ## Code pointers
 
@@ -29,7 +28,7 @@ API (`/c/:slug`).
 | `apps/mobile/src/features/catalog/api.ts`                            | fetch/update settings + `publicCatalogUrl(slug)`            |
 | `apps/mobile/src/features/catalog/hooks.ts`                          | `useCatalogSettings`, `useUpdateCatalogSettings`            |
 | `apps/mobile/src/features/catalog/catalog-customizer.ts`             | Estado, validação e `displayCatalogItemName` do editor      |
-| `apps/mobile/src/features/catalog/components/catalog-customizer.tsx` | Fluxo Identidade / Topo / Organização                       |
+| `apps/mobile/src/features/catalog/components/catalog-customizer.tsx` | Fluxo Identidade / Topo / Publicação                        |
 | `apps/mobile/src/features/catalog/components/storefront-preview.tsx` | Prévias administrativas alinhadas ao renderer público       |
 | `apps/mobile/src/app/catalog.tsx`                                    | Tela de configuração (switch, slug, whatsapp, compartilhar) |
 | `apps/mobile/src/app/c/[slug].tsx`                                   | Redireciona `/c/:slug` do PWA para a vitrine pública        |
@@ -85,9 +84,44 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
 
 ## Examples
 
-- Acesso: aba "Mais" → "Catálogo online". Rota: `/catalog`.
+- Acesso: aba "Mais" → Gestão do negócio → "Catálogo online" (visível sem "Ver tudo"). Rota: `/catalog`.
 
 ## Change log / Decisions
+
+- 2026-08-29: o editor da vitrine ficou em três passos — Identidade
+  (logo, nome, cor dos botões), Topo (capa, até 3 destaques, recorte,
+  apresentação, botão de contato e faixa) e Publicação (WhatsApp,
+  rótulo do botão flutuante, mensagem inicial, endereço e QR). Estilo
+  do topo, busca, filtros, cards por item e canais além do WhatsApp
+  saíram da tela; ao carregar e ao salvar, `applySimpleStorefrontPresentation`
+  força clássico, cards editoriais, produtos+serviços visíveis, ações
+  Pedir/Agendar e cores de marca no fundo/vinho.
+
+- 2026-08-29: o topo da vitrine não pede mais tipo de ação (WhatsApp,
+  orçamento, agendamento, link). Só o texto do botão de contato, que abre
+  o WhatsApp. Sem texto, o botão some.
+
+- 2026-08-29: o editor do topo não oferece mais “Ajustar posição e tamanho”
+  (capa e destaques). A arte entra como enviada; `coverFocal` e transforms
+  já salvos continuam valendo na vitrine publicada.
+
+- 2026-08-29: as setas de posição da capa (`coverFocal`) passam a recortar
+  a prévia (object-position na web, translate no nativo). Antes só o zoom
+  alterava a imagem.
+
+- 2026-08-29: “Ver detalhes” na prévia local abre um diálogo com nome,
+  preço e descrição. A prévia publicada (iframe) permite `allow-modals`.
+
+- 2026-08-29: o modal “Ver prévia” (Rascunho) renderiza a vitrine sem o
+  chrome “PRÉVIA FINAL”. O topo empilha texto e destaques abaixo de 480 px
+  para o CTA “Entrar em contato” não quebrar.
+
+- 2026-08-29: “Ver prévia” abre o rascunho local (cards do app, grade 2
+  colunas). Na web, o seletor “Página no ar” busca o HTML da API.
+
+- 2026-08-29: a prévia local dos cards (fallback quando o HTML não abre)
+  empilha status e CTA, mostra “a partir de” só com faixa de preço, usa check
+  para disponibilidade e um selo circular quando o item não tem foto.
 
 - 2026-08-19: “Salvar e publicar” abre um popup no editor (“Salvo e
   publicado”) porque o toast/alerta globais ficam atrás do modal do
@@ -106,20 +140,18 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
 
 - 2026-08-19: no computador (shell ≥1024), Personalizar vitrine fica no painel
   do app — sem modal em tela cheia nem navbar. Em 1200px+ o editor usa
-  formulário + prévia sticky (padrão Precificação) em Identidade, Topo,
-  Conteúdo, Cards e Publicação; CTAs ficam no aside. Abaixo disso o computador
+  formulário + prévia sticky (padrão Precificação) em Identidade, Topo
+  e Publicação; CTAs ficam no aside. Abaixo disso o computador
   mantém uma coluna, sem esticar controles. A prévia HTML abre em painel
   centralizado.
 
-- 2026-08-19: Personalizar vitrine mantém Identidade → Topo → Organização
-  (Conteúdo / Cards e ações / Publicação). A prévia administrativa consome o
-  rascunho e a `coverUrl` real; logo, capa e destaques são campos separados.
-  Prefixos técnicos como `[massa]` são removidos no formatter
-  (`displayCatalogItemName`) antes de cards, listas e seletores. O header
-  (título + steppers) e a barra de ações ficam fora do scroll; o conteúdo
-  reserva o espaço da navbar. Sem capa, o estado vazio é compacto e o frontend
-  não recria arte vinho. Ações individuais zeradas no modo por item não entram
-  como sucesso na revisão final.
+- 2026-08-19: a prévia administrativa consome o rascunho e a `coverUrl`
+  real; logo, capa e destaques são campos separados. Prefixos técnicos
+  como `[massa]` são removidos no formatter (`displayCatalogItemName`)
+  antes de cards, listas e seletores. O header (título + steppers) e a
+  barra de ações ficam fora do scroll; o conteúdo reserva o espaço da
+  navbar. Sem capa, o estado vazio é compacto e o frontend não recria
+  arte vinho.
 
 - 2026-08-19: o editor da vitrine (Identidade, Publicação e demais passos) usa a
   paleta do tema no chrome. A prévia interna da loja continua com as cores
@@ -163,3 +195,4 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
 - 2026-07-18: a primeira transição de catálogo desativado para ativo registra
   `catalog_published`. O rodapé público mantém o selo/CTA “Feito com Lucro Caseiro” e o link da
   Play Store usa referrer com origem, meio e campanha do catálogo compartilhado.
+- 2026-08-29: Catálogo online saiu de "Ver tudo" e passou ao grid visível de Gestão no Mais.
