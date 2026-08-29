@@ -344,7 +344,7 @@ function ServiceCard({
           </Typography>
         </View>
         <Typography
-          variant={compact ? "h3" : "h2"}
+          variant="money"
           color={service.defaultPrice == null ? palette.warmGray : palette.wine}
           numberOfLines={1}
           adjustsFontSizeToFit

@@ -122,7 +122,7 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
             >
               {sale.clientName ?? itemsSummary ?? "Cliente avulso"}
             </Typography>
-            <Typography variant="bodyBold" color={palette.wine} numberOfLines={1}>
+            <Typography variant="money" color={palette.wine} numberOfLines={1}>
               {formatCurrency(sale.total)}
             </Typography>
           </View>

@@ -3,8 +3,6 @@ import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import {
   Button,
   EmptyState,
-  fonts,
-  fontSizes,
   iconSizes,
   Input,
   radii,
@@ -410,10 +408,11 @@ function MonthlyCommitmentsCard({
             Compromissos do mês
           </Typography>
           <Typography
+            variant="moneyHero"
+            color={palette.onWine}
             adjustsFontSizeToFit
             minimumFontScale={0.62}
             numberOfLines={1}
-            style={styles.commitmentValue}
           >
             {formatCurrency(total)}
           </Typography>
@@ -528,7 +527,7 @@ function ExpenseRow({
         </Typography>
       </View>
       <View style={styles.expenseAmountBlock}>
-        <Typography variant="captionBold" numberOfLines={1} style={styles.expenseAmount}>
+        <Typography variant="money" numberOfLines={1} style={styles.expenseAmount}>
           {formatCurrency(item.amount)}
         </Typography>
         {isNext ? (
@@ -1008,14 +1007,6 @@ function createStyles(theme: Theme) {
       flex: 1,
       flexDirection: "row",
       minHeight: 0,
-    },
-    commitmentValue: {
-      color: palette.onWine,
-      fontFamily: fonts.extraBold,
-      fontSize: fontSizes["2xl"],
-      fontVariant: ["tabular-nums"],
-      letterSpacing: -0.4,
-      lineHeight: 36,
     },
     commitmentVisual: {
       alignItems: "center",

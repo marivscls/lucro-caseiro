@@ -273,10 +273,10 @@ function QuoteCard({
               }}
             >
               <Typography
-                variant="h3"
+                variant="money"
                 color={pal.wine}
                 numberOfLines={1}
-                style={{ flex: 1, textAlign: "right", fontSize: 16, lineHeight: 22 }}
+                style={{ flex: 1, textAlign: "right" }}
               >
                 {formatCurrency(quote.total)}
               </Typography>

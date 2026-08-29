@@ -45,7 +45,8 @@ function StatusChip({
   if (tone === "lime") colors = { background: "#F2F5CD", foreground: "#5A620B" };
   if (tone === "rose") colors = { background: "#F5E5E8", foreground: "#9B4055" };
   if (theme.mode === "dark") {
-    if (tone === "lime") colors = { background: palette.lime, foreground: palette.onLime };
+    if (tone === "lime")
+      colors = { background: palette.lime, foreground: palette.onLime };
     else if (tone === "rose") {
       colors = { background: palette.softRose, foreground: palette.rose };
     } else {
@@ -273,7 +274,7 @@ export function SupplierCard(props: Readonly<SupplierCardProps>) {
           }}
         >
           {supplier.lastPurchase ? (
-            <Typography variant="bodyBold">
+            <Typography variant="money" color={theme.colors.text}>
               {formatCurrency(supplier.lastPurchase.amount)}
             </Typography>
           ) : null}

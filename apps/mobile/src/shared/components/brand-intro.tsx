@@ -1,4 +1,4 @@
-import { fonts, useBrand, useTheme } from "@lucro-caseiro/ui";
+import { fonts, fontSizes, useBrand, useTheme } from "@lucro-caseiro/ui";
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, StyleSheet, View } from "react-native";
 
@@ -14,9 +14,8 @@ interface BrandIntroProps {
 }
 
 /**
- * Abertura da marca com logo e wordmark revelados em cascata. Fundo escuro =
- * transicao continua pro app. Pure Animated (sem libs nativas), reaproveita o
- * tempo do initialize() da auth.
+ * Abertura da marca com logo e wordmark revelados em cascata. Pure Animated
+ * (sem libs nativas), reaproveita o tempo do initialize() da auth.
  */
 export function BrandIntro({ authReady, onFinish }: BrandIntroProps) {
   const { theme } = useTheme();
@@ -174,15 +173,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   logo: {
-    width: 132,
-    height: 128,
-    marginBottom: 4,
+    width: 88,
+    height: 85,
+    marginBottom: 8,
   },
   word: {
     fontFamily: fonts.bold,
-    fontSize: 50,
-    lineHeight: 54,
-    letterSpacing: 0.5,
+    fontSize: fontSizes["2xl"],
+    lineHeight: 34,
+    letterSpacing: -0.3,
     textAlign: "center",
   },
 });

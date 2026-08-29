@@ -91,14 +91,13 @@ export function PurchaseCard({
             {purchase.description}
           </Typography>
           <Typography
-            variant="bodyBold"
+            variant="money"
             color={pal.ink}
             numberOfLines={1}
             style={{
               flexShrink: 0,
               maxWidth: "42%",
               textAlign: "right",
-              fontVariant: ["tabular-nums"],
             }}
           >
             {formatCurrency(purchase.amount)}

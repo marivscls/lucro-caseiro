@@ -6,6 +6,7 @@ export {
   fonts,
   fontSizes,
   homeTypography,
+  moneyTypography,
   lineHeights,
   spacing,
   radii,

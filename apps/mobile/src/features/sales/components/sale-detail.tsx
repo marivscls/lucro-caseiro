@@ -1,13 +1,6 @@
 import type { Sale } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
-import {
-  Badge,
-  Button,
-  Card,
-  spacing,
-  Typography,
-  useTheme,
-} from "@lucro-caseiro/ui";
+import { Badge, Button, Card, spacing, Typography, useTheme } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
 import { Image, View } from "react-native";
@@ -234,9 +227,7 @@ export function SaleDetail({
               }}
             >
               <Typography variant="body">Subtotal</Typography>
-              <Typography variant="bodyBold">
-                {formatCurrency(sale.subtotal)}
-              </Typography>
+              <Typography variant="bodyBold">{formatCurrency(sale.subtotal)}</Typography>
             </View>
             <View
               style={{
@@ -260,7 +251,7 @@ export function SaleDetail({
           }}
         >
           <Typography variant="h3">Total</Typography>
-          <Typography variant="h2" color={theme.colors.success}>
+          <Typography variant="moneyLg" color={theme.colors.success}>
             {formatCurrency(sale.total)}
           </Typography>
         </View>

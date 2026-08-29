@@ -171,11 +171,7 @@ export function PackagingCard({
             <AppIcon name="ellipsis-vertical" size={20} color={palette.muted} />
           </Pressable>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Typography
-              variant="bodyBold"
-              color={palette.ink}
-              style={{ fontFamily: fonts.bold, fontSize: fontSizes.md }}
-            >
+            <Typography variant="money" color={palette.ink}>
               {formatCurrency(packaging.unitCost)}
             </Typography>
             <Pressable

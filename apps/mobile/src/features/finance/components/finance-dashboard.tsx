@@ -567,9 +567,7 @@ export function FinanceDashboard({
               color={colors.onWine}
               style={[
                 styles.heroValue,
-                compactLayout && styles.heroValueCompact,
                 narrowLayout && styles.heroValueNarrow,
-                stackSummaryCards && styles.heroValueTight,
                 WEB_NOWRAP,
               ]}
             >
@@ -1411,9 +1409,9 @@ function SummaryCard({
           {label}
         </Typography>
         <Typography
-          variant="money"
+          variant={compact ? "money" : "moneyLg"}
           color={tc.fg}
-          style={[styles.summaryValue, compact && styles.summaryValueCompact, WEB_NOWRAP]}
+          style={WEB_NOWRAP}
         >
           {value}
         </Typography>
@@ -2219,24 +2217,12 @@ function createStyles(theme: Theme) {
     },
     heroValue: {
       flexShrink: 0,
-      fontSize: 52,
       fontVariant: ["tabular-nums"],
-      lineHeight: 60,
       marginVertical: spacing.md,
     },
-    heroValueCompact: {
-      fontSize: 44,
-      lineHeight: 52,
-    },
     heroValueNarrow: {
-      fontSize: 34,
-      lineHeight: 42,
       marginBottom: 6,
       marginTop: 8,
-    },
-    heroValueTight: {
-      fontSize: 28,
-      lineHeight: 34,
     },
     newEntryButton: {
       alignItems: "center",
@@ -2513,15 +2499,6 @@ function createStyles(theme: Theme) {
     summaryRow: {
       flexDirection: "row",
       gap: spacing.md,
-    },
-    summaryValue: {
-      fontSize: 24,
-      fontVariant: ["tabular-nums"],
-      lineHeight: 30,
-    },
-    summaryValueCompact: {
-      fontSize: 17,
-      lineHeight: 23,
     },
   });
 }

@@ -160,16 +160,26 @@ export const homeTypography = {
   action: { fontSize: 14, fontFamily: fonts.bold, lineHeight: 20 },
   link: { fontSize: 14, fontFamily: fonts.semiBold, lineHeight: 20 },
   financialLabel: { fontSize: 14, fontFamily: fonts.medium, lineHeight: 20 },
-  financialValue: { fontSize: 32, fontFamily: fonts.bold, lineHeight: 40 },
+  financialValue: { fontSize: fontSizes.xl, fontFamily: fonts.bold, lineHeight: 28 },
   metricLabel: { fontSize: 12, fontFamily: fonts.medium, lineHeight: 16 },
-  metricValue: { fontSize: 21, fontFamily: fonts.bold, lineHeight: 26 },
+  metricValue: { fontSize: 16, fontFamily: fonts.bold, lineHeight: 22 },
   goalTitle: { fontSize: 16, fontFamily: fonts.bold, lineHeight: 22 },
-  goalValue: { fontSize: 23, fontFamily: fonts.bold, lineHeight: 29 },
+  goalValue: { fontSize: 18, fontFamily: fonts.bold, lineHeight: 24 },
   progress: { fontSize: 12, fontFamily: fonts.semiBold, lineHeight: 16 },
   progressStrong: { fontSize: 12, fontFamily: fonts.bold, lineHeight: 16 },
   shortcut: { fontSize: 13, fontFamily: fonts.semiBold, lineHeight: 18 },
   navigation: { fontSize: 12, fontFamily: fonts.medium, lineHeight: 16 },
   navigationActive: { fontSize: 12, fontFamily: fonts.bold, lineHeight: 16 },
+} as const;
+
+/**
+ * Escala de valores monetarios. ExtraBold + tabular-nums.
+ * money = preco em card/lista; moneyLg = resumo da tela; moneyHero = um destaque.
+ */
+export const moneyTypography = {
+  money: { fontSize: fontSizes.md, fontFamily: fonts.extraBold, lineHeight: 22 },
+  moneyLg: { fontSize: fontSizes.xl, fontFamily: fonts.extraBold, lineHeight: 28 },
+  moneyHero: { fontSize: fontSizes["2xl"], fontFamily: fonts.extraBold, lineHeight: 34 },
 } as const;
 
 /**

@@ -19,7 +19,9 @@ eliminação das demais fontes, inclusive das exceções serifadas em etiquetas 
    - `screenTitle` 20/26 Bold — único tamanho de título de tela (`ScreenHeader` e abas)
    - `body` e `bodyBold` 15/22 · `caption` e `captionBold` 13/18
    - `label` 13/18 Bold uppercase
-   - `money/moneyLg/moneyHero` ExtraBold com `tabular-nums`
+   - `money` 16/22 ExtraBold — preço em card/lista
+   - `moneyLg` 22/28 ExtraBold — resumo da tela
+   - `moneyHero` 28/34 ExtraBold — um destaque por tela (Home, Financeiro, precificação)
 3. **Token `fonts`** no theme; componentes base usam as famílias registradas para cada peso.
 4. HTML gerado para recibos, orçamentos, receitas e etiquetas carrega Manrope e não define
    famílias serifadas locais.
@@ -29,6 +31,8 @@ eliminação das demais fontes, inclusive das exceções serifadas em etiquetas 
 - Texto novo = `Typography` com a variante certa. Não definir `fontSize`, `fontWeight` ou
   `fontFamily` inline quando uma variante resolve.
 - Título de tela = `screenTitle`. Título de seção/lista/modal = `h3`. Nome em card = `bodyBold`.
+- Número de dinheiro = `money` / `moneyLg` / `moneyHero`. Não sobrescrever `fontSize` nessas
+  variantes. Contagem em métrica (não dinheiro) = `h3`, nunca `h1`/`h2`.
 - O peso vem da família (`fonts.bold`), nunca de `fontWeight` sobre a fonte customizada.
 - ExtraBold 800 fica reservado a números de destaque (`money`, `moneyLg`, `moneyHero`).
 - Não oferecer nem renderizar exceções serifadas, inclusive em conteúdo configurável.

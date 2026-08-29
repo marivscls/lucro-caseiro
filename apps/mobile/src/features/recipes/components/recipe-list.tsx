@@ -376,12 +376,11 @@ function RecipesSummary({
         </Typography>
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
           <Typography
-            variant="h3"
+            variant="money"
             color={pal.wine}
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.75}
-            style={{ fontVariant: ["tabular-nums"] }}
           >
             {formatCurrency(averageCost)}
           </Typography>

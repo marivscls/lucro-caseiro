@@ -468,15 +468,7 @@ function SummaryCard({
         <Typography variant="h3" color={colors.onWine} style={styles.summaryLabel}>
           A receber
         </Typography>
-        <Typography
-          variant="moneyHero"
-          color={colors.onWine}
-          style={[
-            styles.summaryValue,
-            isCompact && styles.summaryValueCompact,
-            isNarrow && styles.summaryValueNarrow,
-          ]}
-        >
+        <Typography variant="moneyHero" color={colors.onWine}>
           {formatCurrency(total)}
         </Typography>
         <Typography variant="body" color={colors.onWine} style={styles.summaryMeta}>
@@ -989,9 +981,6 @@ function createStyles(theme: Theme) {
     summaryCopyCompact: { width: "68%", gap: spacing.xs },
     summaryCopyNarrow: { width: "75%" },
     summaryLabel: { fontFamily: fonts.semiBold, fontSize: 20, lineHeight: 28 },
-    summaryValue: { fontFamily: fonts.extraBold, fontSize: 40, lineHeight: 50 },
-    summaryValueCompact: { fontSize: 32, lineHeight: 42 },
-    summaryValueNarrow: { fontSize: 27, lineHeight: 36 },
     summaryMeta: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 20 },
     summaryArt: {
       position: "absolute",

@@ -24,6 +24,7 @@ import { useFinanceRangeSummary, useFinanceSummary } from "../../features/financ
 import { ProlaboreGoalForm } from "../../features/goals/components/prolabore-goal-form";
 import { useProlaboreStatus } from "../../features/goals/hooks";
 import { useInsights } from "../../features/insights/hooks";
+import { usePricingList } from "../../features/pricing/hooks";
 import { useProducts } from "../../features/products/hooks";
 import { useSales, useTodaySummary } from "../../features/sales/hooks";
 import { LimitBanner } from "../../features/subscription/components/limit-banner";
@@ -49,6 +50,7 @@ import {
   resolveGettingStartedPresentation,
   type GettingStartedStage,
 } from "../../shared/utils/getting-started";
+import { resolveHomeNextStep } from "../../shared/utils/home-next-step";
 
 type OverviewPeriod = "today" | "month";
 
@@ -335,43 +337,42 @@ function FinancialMetric({
 }>) {
   const colors = useBrandScreenPalette();
   return (
-    <View
-      style={{
-        flex: 1,
-        minWidth: 0,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: compact ? spacing.sm : spacing.md,
-      }}
-    >
+    <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
       <View
         style={{
-          width: compact ? 36 : 44,
-          height: compact ? 36 : 44,
-          borderRadius: radii.full,
-          backgroundColor: "rgba(255,255,255,0.10)",
+          flexDirection: "row",
           alignItems: "center",
-          justifyContent: "center",
+          gap: compact ? spacing.sm : spacing.md,
         }}
       >
-        <AppIcon name={icon} size={compact ? iconSizes.sm : iconSizes.md} color={tone} />
-      </View>
-      <View style={{ flex: 1, minWidth: 0 }}>
+        <View
+          style={{
+            width: compact ? 36 : 44,
+            height: compact ? 36 : 44,
+            borderRadius: radii.full,
+            backgroundColor: "rgba(255,255,255,0.10)",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <AppIcon
+            name={icon}
+            size={compact ? iconSizes.sm : iconSizes.md}
+            color={tone}
+          />
+        </View>
         <Typography variant="homeMetricLabel" color="#F3DDE4">
           {label}
         </Typography>
-        <Typography
-          variant="homeMetricValue"
-          color={colors.onWine}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.72}
-          maxFontSizeMultiplier={1.1}
-          style={compact ? { fontSize: 20, lineHeight: 25 } : undefined}
-        >
-          {value}
-        </Typography>
       </View>
+      <Typography
+        variant="homeMetricValue"
+        color={colors.onWine}
+        numberOfLines={1}
+        maxFontSizeMultiplier={1.1}
+      >
+        {value}
+      </Typography>
     </View>
   );
 }
@@ -419,33 +420,14 @@ function FinancialHero({
           gap: compact ? spacing.md : spacing.lg,
         }}
       >
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Typography variant="homeFinancialLabel" color="#F3DDE4">
-            Vendas {periodText}
-          </Typography>
-          <Typography
-            variant="homeFinancialValue"
-            color={colors.onWine}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.6}
-            maxFontSizeMultiplier={1.1}
-            style={{
-              marginTop: spacing.xs,
-              ...(compact ? { fontSize: 30, lineHeight: 36 } : undefined),
-            }}
-          >
-            {formatCurrency(salesAmount)}
-          </Typography>
-          <Typography
-            variant="homeBody"
-            color="#E9C7D1"
-            style={{ marginTop: spacing.xs }}
-          >
-            {registeredSalesLabel(salesCount)}
-          </Typography>
-        </View>
-
+        <Typography
+          variant="homeFinancialLabel"
+          color="#F3DDE4"
+          numberOfLines={1}
+          style={{ flex: 1, minWidth: 0 }}
+        >
+          Vendas {periodText}
+        </Typography>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Registrar venda"
@@ -480,6 +462,18 @@ function FinancialHero({
           </Typography>
         </Pressable>
       </View>
+      <Typography
+        variant="homeFinancialValue"
+        color={colors.onWine}
+        numberOfLines={1}
+        maxFontSizeMultiplier={1.1}
+        style={{ width: "100%", marginTop: spacing.sm }}
+      >
+        {formatCurrency(salesAmount)}
+      </Typography>
+      <Typography variant="homeBody" color="#E9C7D1" style={{ marginTop: spacing.xs }}>
+        {registeredSalesLabel(salesCount)}
+      </Typography>
 
       <View
         style={{
@@ -532,10 +526,10 @@ function GoalCard({
   const valueText = hasGoal
     ? `${formatCurrency(current)} de ${formatCurrency(goal)}`
     : "Meta ainda não definida";
-  const baseValueFontSize = Math.min(23, Math.max(20, viewportWidth * 0.054));
+  const baseValueFontSize = Math.min(18, Math.max(16, viewportWidth * 0.048));
   const valueFontSize = Math.max(
     16,
-    baseValueFontSize * Math.min(1, 29 / valueText.length),
+    baseValueFontSize * Math.min(1, 32 / valueText.length),
   );
   const keepValueOnOneLine = !hasGoal || valueText.length <= 36;
 
@@ -730,15 +724,35 @@ function QuickAccess({ compact }: Readonly<{ compact: boolean }>) {
   );
 }
 
-function ContextualProductCard({ onPress }: Readonly<{ onPress: () => void }>) {
+function ContextualNextCard({
+  accessibilityHint,
+  accessibilityLabel,
+  action,
+  description,
+  icon,
+  iconBackground,
+  iconColor,
+  onPress,
+  title,
+}: Readonly<{
+  accessibilityHint: string;
+  accessibilityLabel: string;
+  action: string;
+  description: string;
+  icon: AppIconName;
+  iconBackground: string;
+  iconColor: string;
+  onPress: () => void;
+  title: string;
+}>) {
   const { theme } = useTheme();
   const colors = useBrandScreenPalette();
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel="Comece pelo essencial. Cadastrar produto"
-      accessibilityHint="Abre o cadastro de produto"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
       onPress={onPress}
       style={({ pressed }) => ({ opacity: pressed ? 0.82 : 1 })}
     >
@@ -757,25 +771,21 @@ function ContextualProductCard({ onPress }: Readonly<{ onPress: () => void }>) {
               width: 56,
               height: 56,
               borderRadius: radii.full,
-              backgroundColor: colors.lime,
+              backgroundColor: iconBackground,
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <AppIcon
-              name="trending-up-outline"
-              size={iconSizes.lg}
-              color={colors.onLime}
-            />
+            <AppIcon name={icon} size={iconSizes.lg} color={iconColor} />
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="homeGoalTitle">Comece pelo essencial</Typography>
+            <Typography variant="homeGoalTitle">{title}</Typography>
             <Typography
               variant="homeBody"
               color={theme.colors.textSecondary}
               style={{ marginTop: 4 }}
             >
-              Cadastre um produto para liberar estoque e lucro.
+              {description}
             </Typography>
             <View
               style={{
@@ -787,7 +797,7 @@ function ContextualProductCard({ onPress }: Readonly<{ onPress: () => void }>) {
               }}
             >
               <Typography variant="homeLink" color={colors.rose}>
-                Cadastrar produto
+                {action}
               </Typography>
               <AppIcon name="chevron-forward" size={iconSizes.sm} color={colors.rose} />
             </View>
@@ -857,6 +867,7 @@ export default function HomeScreen() {
   const goalQuery = useProlaboreStatus();
   const productsQuery = useProducts();
   const salesQuery = useSales();
+  const pricingQuery = usePricingList();
 
   const startedUserIds = useOnboarding((state) => state.gettingStartedStartedUserIds);
   const dismissedUserIds = useOnboarding((state) => state.gettingStartedDismissedUserIds);
@@ -869,6 +880,7 @@ export default function HomeScreen() {
 
   const hasProduct = (productsQuery.data?.items.length ?? 0) > 0;
   const hasSale = (salesQuery.data?.items.length ?? 0) > 0;
+  const hasPriced = (pricingQuery.data?.total ?? 0) > 0;
   const onboardingSettled =
     onboardingHydrated && !productsQuery.isLoading && !salesQuery.isLoading;
   const onboardingStarted = !!userId && startedUserIds.includes(userId);
@@ -885,6 +897,13 @@ export default function HomeScreen() {
     started: onboardingStarted,
     hasProduct,
     hasSale,
+  });
+  const homeNextStep = resolveHomeNextStep({
+    settled: onboardingSettled,
+    hasProduct,
+    hasPriced,
+    pricingKnown: pricingQuery.isSuccess,
+    gettingStartedVisible: showGettingStarted || showGettingStartedReopen,
   });
 
   function skipGettingStarted() {
@@ -1078,8 +1097,32 @@ export default function HomeScreen() {
           <QuickAccess compact={compact} />
         </View>
 
-        {!hasProduct && onboardingSettled ? (
-          <ContextualProductCard onPress={handleProductRegistration} />
+        {homeNextStep === "register-product" ? (
+          <ContextualNextCard
+            accessibilityHint="Abre o cadastro de produto"
+            accessibilityLabel="Comece pelo essencial. Cadastrar produto"
+            action="Cadastrar produto"
+            description="Cadastre um produto para liberar estoque e lucro."
+            icon="trending-up-outline"
+            iconBackground={colors.lime}
+            iconColor={colors.onLime}
+            title="Comece pelo essencial"
+            onPress={handleProductRegistration}
+          />
+        ) : null}
+
+        {homeNextStep === "price-product" ? (
+          <ContextualNextCard
+            accessibilityHint="Abre a calculadora de preço"
+            accessibilityLabel="Será que o preço cobre os custos? Calcular o lucro"
+            action="Calcular o lucro"
+            description="Você já tem produto. Veja se o preço de venda cobre os custos."
+            icon="calculator-outline"
+            iconBackground={theme.colors.primaryBg}
+            iconColor={theme.colors.primaryStrong}
+            title="Será que o preço cobre os custos?"
+            onPress={() => router.push("/pricing")}
+          />
         ) : null}
 
         {!showSalesLimitBanner ? <AdBanner size="banner" /> : null}

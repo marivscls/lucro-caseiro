@@ -400,7 +400,7 @@ function SalesHeader({
             }}
           />
           <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-            <Typography variant="h2" color={palette.onWine} numberOfLines={1}>
+            <Typography variant="moneyLg" color={palette.onWine} numberOfLines={1}>
               {formattedTotal}
             </Typography>
             <Typography variant="body" color={palette.onWine}>
@@ -825,7 +825,7 @@ function DesktopOrdersTable({
             <Typography variant="caption" color={theme.colors.textSecondary}>
               {label}
             </Typography>
-            <Typography variant="h2">{String(value)}</Typography>
+            <Typography variant="moneyLg">{String(value)}</Typography>
           </View>
         ))}
       </View>

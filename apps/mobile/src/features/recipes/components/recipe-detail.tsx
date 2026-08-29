@@ -105,7 +105,7 @@ export function RecipeDetail({
           <Typography variant="caption" color={theme.colors.textSecondary}>
             Custo total
           </Typography>
-          <Typography variant="h2" color={theme.colors.alert}>
+          <Typography variant="moneyLg" color={theme.colors.alert}>
             {formatCurrency(totalCost)}
           </Typography>
         </View>
@@ -114,7 +114,7 @@ export function RecipeDetail({
           <Typography variant="caption" color={theme.colors.textSecondary}>
             Custo por unidade
           </Typography>
-          <Typography variant="h2" color={theme.colors.success}>
+          <Typography variant="moneyLg" color={theme.colors.success}>
             {formatCurrency(costPerUnit)}
           </Typography>
         </View>

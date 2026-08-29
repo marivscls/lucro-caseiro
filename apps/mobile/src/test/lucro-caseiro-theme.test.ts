@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import { lucroCaseiroBrand } from "../../../../packages/brands/src/lucro-caseiro";
-import { buildThemes, fonts, homeTypography } from "../../../../packages/ui/src/theme";
+import {
+  buildThemes,
+  fonts,
+  homeTypography,
+  moneyTypography,
+} from "../../../../packages/ui/src/theme";
 
 describe("paleta do Lucro Caseiro", () => {
   it("mantem vinho e rosa de marca sem substituir o verde semantico", () => {
@@ -53,14 +58,14 @@ describe("tipografia do app", () => {
         lineHeight: 20,
       },
       financialValue: {
-        fontSize: 32,
+        fontSize: 22,
         fontFamily: fonts.bold,
-        lineHeight: 40,
+        lineHeight: 28,
       },
       metricLabel: { fontSize: 12, fontFamily: fonts.medium, lineHeight: 16 },
-      metricValue: { fontSize: 21, fontFamily: fonts.bold, lineHeight: 26 },
+      metricValue: { fontSize: 16, fontFamily: fonts.bold, lineHeight: 22 },
       goalTitle: { fontSize: 16, fontFamily: fonts.bold, lineHeight: 22 },
-      goalValue: { fontSize: 23, fontFamily: fonts.bold, lineHeight: 29 },
+      goalValue: { fontSize: 18, fontFamily: fonts.bold, lineHeight: 24 },
       progress: { fontSize: 12, fontFamily: fonts.semiBold, lineHeight: 16 },
       progressStrong: { fontSize: 12, fontFamily: fonts.bold, lineHeight: 16 },
       shortcut: { fontSize: 13, fontFamily: fonts.semiBold, lineHeight: 18 },
@@ -70,6 +75,14 @@ describe("tipografia do app", () => {
         fontFamily: fonts.bold,
         lineHeight: 16,
       },
+    });
+  });
+
+  it("mantem a escala compacta de valores monetarios", () => {
+    expect(moneyTypography).toMatchObject({
+      money: { fontSize: 16, fontFamily: fonts.extraBold, lineHeight: 22 },
+      moneyLg: { fontSize: 22, fontFamily: fonts.extraBold, lineHeight: 28 },
+      moneyHero: { fontSize: 28, fontFamily: fonts.extraBold, lineHeight: 34 },
     });
   });
 });

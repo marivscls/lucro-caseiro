@@ -436,7 +436,7 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
               }}
             >
               <Typography variant="bodyBold">Total do orçamento</Typography>
-              <Typography variant="h2" color={theme.colors.success}>
+              <Typography variant="moneyLg" color={theme.colors.success}>
                 {formatCurrency(pricing.total)}
               </Typography>
             </View>
@@ -584,7 +584,7 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
                   ) : null}
                   <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                     <Typography variant="h3">Total</Typography>
-                    <Typography variant="h2" color={theme.colors.success}>
+                    <Typography variant="moneyLg" color={theme.colors.success}>
                       {formatCurrency(pricing.total)}
                     </Typography>
                   </View>
@@ -687,7 +687,7 @@ export function QuoteForm({ quote, visible, onClose, onSuccess }: QuoteFormProps
                 }}
               >
                 <Typography variant="bodyBold">Total</Typography>
-                <Typography variant="h2" color={theme.colors.success}>
+                <Typography variant="moneyLg" color={theme.colors.success}>
                   {formatCurrency(reviewPricing?.total ?? 0)}
                 </Typography>
               </View>

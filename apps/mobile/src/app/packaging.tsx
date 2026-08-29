@@ -158,15 +158,11 @@ function PackagingSummary({
           }}
         >
           <Typography
+            variant="moneyLg"
             color={palette.rose}
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.7}
-            style={{
-              fontFamily: fonts.extraBold,
-              fontSize: compact ? 18 : 22,
-              lineHeight: compact ? 22 : 26,
-            }}
           >
             {formatCurrency(invested)}
           </Typography>

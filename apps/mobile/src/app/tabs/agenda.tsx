@@ -860,11 +860,7 @@ function OrdersSummaryHeader({
           >
             Total dos pedidos
           </Typography>
-          <Typography
-            variant="moneyLg"
-            color={theme.colors.success}
-            style={{ fontSize: fontSizes["2xl"] }}
-          >
+          <Typography variant="moneyLg" color={theme.colors.success}>
             {formatMoney(summary.totalAmount)}
           </Typography>
         </View>

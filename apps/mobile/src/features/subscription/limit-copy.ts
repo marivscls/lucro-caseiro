@@ -126,7 +126,7 @@ const ESSENTIAL_FEATURE_COPY: Record<string, { title: string; message: string }>
 // Paywalls de feature (não-contagem): recursos do plano Profissional.
 const FEATURE_COPY: Record<string, { title: string; message: string }> = {
   reports: {
-    title: "📊 Relatórios completos",
+    title: "📊 Insights completos",
     message:
       "Veja seu faturamento mês a mês, os produtos mais vendidos e seus melhores clientes. Desbloqueie no Profissional.",
   },
@@ -137,7 +137,7 @@ const FEATURE_COPY: Record<string, { title: string; message: string }> = {
   },
   export: {
     title: "📄 Exportar PDF e Excel",
-    message: "Baixe seus relatórios pra contabilidade e MEI. Recurso do Profissional.",
+    message: "Baixe seus insights pra contabilidade e MEI. Recurso do Profissional.",
   },
   labels: {
     title: "🏷️ Etiquetas personalizadas",

@@ -68,6 +68,7 @@ import { createInternalProductCode } from "../barcode";
 
 interface CreateProductFormProps {
   readonly onSuccess?: (product: Product) => void;
+  readonly onPriceInvite?: () => void;
   readonly initialSalePrice?: number;
   readonly initialValues?: {
     name?: string;
@@ -581,6 +582,7 @@ function ExtraPhotosField({
 
 export function CreateProductForm({
   onSuccess,
+  onPriceInvite,
   initialSalePrice,
   initialValues,
   analyticsSource,
@@ -792,7 +794,16 @@ export function CreateProductForm({
       });
       showAlert({
         title: "Produto cadastrado!",
-        message: `${name} foi adicionado ao seu catálogo`,
+        message: `${name} foi adicionado à sua lista`,
+        buttons: onPriceInvite
+          ? [
+              { text: "Agora não", style: "cancel" },
+              {
+                text: "Calcular se dá lucro",
+                onPress: onPriceInvite,
+              },
+            ]
+          : undefined,
       });
       if (analyticsSource === "pricing") {
         void trackAnalyticsAction(

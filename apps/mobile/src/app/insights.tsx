@@ -13,15 +13,20 @@ import {
 } from "@lucro-caseiro/ui";
 import { Stack, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View, useWindowDimensions } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { MonthlyBars } from "../features/insights/components/monthly-bars";
+import {
+  MonthlyBars,
+  StatPanel,
+  monthWithYear,
+} from "../features/insights/components/monthly-bars";
 import { RankBars, type RankRow } from "../features/insights/components/rank-bars";
 import {
   answerInsightQuestion,
   buildActionableInsights,
   formatMoney,
+  formatMoneyShort,
   monthOverMonthDelta,
   type InsightActionTarget,
   type InsightQuestionId,
@@ -43,14 +48,13 @@ import {
 } from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 
-function StatCard({
+function MiniStatCard({
   label,
   value,
   icon,
   tint,
   iconColor,
   valueColor,
-  horizontal,
 }: Readonly<{
   label: string;
   value: string;
@@ -58,56 +62,44 @@ function StatCard({
   tint: string;
   iconColor: string;
   valueColor?: string;
-  /** Layout compacto (ícone à esquerda) — evita card alto/vazio em largura cheia. */
-  horizontal?: boolean;
 }>) {
-  const { theme } = useTheme();
-  const iconCircle = (
-    <View
-      style={{
-        width: 40,
-        height: 40,
-        borderRadius: radii.full,
-        backgroundColor: tint,
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <AppIcon name={icon} size={22} color={iconColor} />
-    </View>
-  );
-  const texts = (
-    <>
-      <Typography variant="label">{label}</Typography>
-      <Typography
-        variant="moneyLg"
-        color={valueColor ?? theme.colors.text}
-        numberOfLines={1}
-        adjustsFontSizeToFit
-        minimumFontScale={0.6}
-      >
-        {value}
-      </Typography>
-    </>
-  );
-
-  if (horizontal) {
-    return (
-      <Card
-        variant="surface"
-        padding="lg"
-        style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}
-      >
-        {iconCircle}
-        <View style={{ flex: 1, gap: 2 }}>{texts}</View>
-      </Card>
-    );
-  }
-
   return (
-    <Card variant="surface" padding="lg" style={{ flex: 1, gap: spacing.sm }}>
-      {iconCircle}
-      {texts}
+    <Card
+      variant="surface"
+      padding="sm"
+      style={{ flex: 1, alignItems: "center", gap: spacing.xs, minHeight: 96 }}
+    >
+      <View
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: radii.full,
+          backgroundColor: tint,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <AppIcon name={icon} size={18} color={iconColor} />
+      </View>
+      <View style={{ alignItems: "center", gap: 1 }}>
+        <Typography
+          variant="label"
+          numberOfLines={2}
+          style={{ fontSize: 11, textAlign: "center", lineHeight: 13 }}
+        >
+          {label}
+        </Typography>
+        <Typography
+          variant="money"
+          color={valueColor ?? "text"}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.55}
+          style={{ textAlign: "center" }}
+        >
+          {value}
+        </Typography>
+      </View>
     </Card>
   );
 }
@@ -129,22 +121,24 @@ function SectionTitle({
         flexDirection: "row",
         alignItems: "center",
         gap: spacing.sm,
-        marginBottom: spacing.lg,
+        marginBottom: spacing.md,
       }}
     >
       <View
         style={{
-          width: 32,
-          height: 32,
+          width: 28,
+          height: 28,
           borderRadius: radii.full,
           backgroundColor: tint,
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <AppIcon name={icon} size={18} color={iconColor} />
+        <AppIcon name={icon} size={16} color={iconColor} />
       </View>
-      <Typography variant="h3">{title}</Typography>
+      <Typography variant="h3" style={{ fontSize: 17 }}>
+        {title}
+      </Typography>
     </View>
   );
 }
@@ -156,7 +150,7 @@ function ReportsPremiumTeaser({ onUpgrade }: Readonly<{ onUpgrade: () => void }>
       <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
         <AppIcon name="bar-chart" size={22} color={theme.colors.premium} />
         <Typography variant="h3" color={theme.colors.premium}>
-          Relatórios completos
+          Insights completos
         </Typography>
       </View>
       <Typography variant="body" color={theme.colors.textSecondary}>
@@ -190,10 +184,22 @@ function InsightsContent({
 }>) {
   const { theme } = useTheme();
   const router = useRouter();
+  const { width } = useWindowDimensions();
   const averageTicket = data.totalSales > 0 ? data.totalRevenue / data.totalSales : 0;
-  // Com o gráfico visível o total do período já aparece nele; o card vira
-  // comparação mês a mês (só quando dá pra comparar — mês anterior > 0).
   const momDelta = isPremium ? monthOverMonthDelta(data.monthlyRevenue) : null;
+  const variationUp = momDelta !== null && momDelta >= 0;
+  let variationValue = formatMoney(data.totalRevenue);
+  if (momDelta !== null) {
+    const sign = variationUp ? "+" : "-";
+    variationValue = `${sign}${Math.abs(momDelta).toFixed(0)}%`;
+  }
+  let variationIcon: AppIconName = "cash-outline";
+  if (momDelta !== null) {
+    variationIcon = variationUp ? "trending-up-outline" : "trending-down-outline";
+  }
+  const variationColor =
+    momDelta === null || variationUp ? theme.colors.success : theme.colors.alert;
+  const variationTint = `${variationColor}24`;
 
   const productRows: RankRow[] = data.topProducts.map((p) => ({
     key: p.productId,
@@ -213,6 +219,15 @@ function InsightsContent({
     null,
   );
 
+  // Stats do gráfico
+  const nonEmpty = data.monthlyRevenue.filter((m) => m.revenue > 0);
+  const total = data.monthlyRevenue.reduce((acc, m) => acc + m.revenue, 0);
+  const average = nonEmpty.length > 0 ? total / nonEmpty.length : 0;
+  const best = data.monthlyRevenue.reduce(
+    (acc, m) => (m.revenue > acc.revenue ? m : acc),
+    data.monthlyRevenue[0] ?? { month: "", revenue: 0 },
+  );
+
   function openAction(target: InsightActionTarget) {
     if (target === "finance") router.push("/finance");
     else if (target === "products") router.push("/products");
@@ -220,8 +235,12 @@ function InsightsContent({
     else router.push("/tabs/new-sale");
   }
 
+  // Rankings: empilhados no mobile (< 700px), lado a lado no desktop
+  const rankingsRow = width >= 700;
+
   return (
     <>
+      {/* 1. Gráfico principal */}
       {isPremium && (
         <MonthlyBars
           series={data.monthlyRevenue}
@@ -230,61 +249,88 @@ function InsightsContent({
         />
       )}
 
+      {/* 2. Stats do gráfico — separados, fora do card */}
+      {isPremium && (
+        <View
+          style={{
+            flexDirection: "row",
+            borderWidth: 1,
+            borderColor: theme.colors.border,
+            borderRadius: radii.xl,
+            backgroundColor: theme.colors.surface,
+            overflow: "hidden",
+          }}
+        >
+          <StatPanel
+            icon="trophy-outline"
+            label="Maior faturamento"
+            value={formatMoneyShort(best.revenue)}
+            caption={best.month ? monthWithYear(best.month) : "Sem vendas"}
+            tint={theme.colors.primary}
+            theme={theme}
+          />
+          <View
+            style={{
+              width: 1,
+              marginVertical: spacing.md,
+              backgroundColor: theme.colors.border,
+            }}
+          />
+          <StatPanel
+            icon="trending-up-outline"
+            label="Média mensal"
+            value={formatMoneyShort(average)}
+            caption={`Últimos ${months} meses`}
+            tint={theme.colors.success}
+            theme={theme}
+          />
+        </View>
+      )}
+
+      {/* 3. Mini stats — grid compacto */}
       <View style={{ flexDirection: "row", gap: spacing.md }}>
-        {momDelta !== null ? (
-          <StatCard
-            label="VS. MÊS ANTERIOR"
-            value={`${momDelta >= 0 ? "+" : "-"}${Math.abs(momDelta).toFixed(0)}%`}
-            icon={momDelta >= 0 ? "trending-up-outline" : "trending-down-outline"}
-            tint={momDelta >= 0 ? theme.colors.successBg : `${theme.colors.alert}26`}
-            iconColor={momDelta >= 0 ? theme.colors.success : theme.colors.alert}
-            valueColor={momDelta >= 0 ? theme.colors.success : theme.colors.alert}
-          />
-        ) : (
-          <StatCard
-            label="FATURAMENTO"
-            value={formatMoney(data.totalRevenue)}
-            icon="cash-outline"
-            tint={theme.colors.successBg}
-            iconColor={theme.colors.success}
-            valueColor={theme.colors.success}
-          />
-        )}
-        <StatCard
-          label="VENDAS"
+        <MiniStatCard
+          label={momDelta !== null ? "Variação" : "Faturamento"}
+          value={variationValue}
+          icon={variationIcon}
+          tint={variationTint}
+          iconColor={variationColor}
+          valueColor={variationColor}
+        />
+        <MiniStatCard
+          label="Vendas"
           value={String(data.totalSales)}
           icon="receipt-outline"
-          tint={theme.colors.surface}
+          tint={`${theme.colors.textSecondary}14`}
           iconColor={theme.colors.textSecondary}
         />
+        <MiniStatCard
+          label="Ticket médio"
+          value={formatMoney(averageTicket)}
+          icon="pricetag-outline"
+          tint={`${theme.colors.blue}20`}
+          iconColor={theme.colors.blue}
+        />
       </View>
-      <StatCard
-        label="TICKET MÉDIO"
-        value={formatMoney(averageTicket)}
-        icon="pricetag-outline"
-        tint={theme.colors.blueBg}
-        iconColor={theme.colors.blue}
-        horizontal
-      />
 
+      {/* 4. Ações prioritárias — o que fazer agora */}
       {isPremium ? (
         <>
-          {actionable.length > 0 ? (
-            <Card variant="surface" padding="xl">
+          {actionable.length > 0 && (
+            <Card variant="surface" padding="lg">
               <SectionTitle
                 icon="sparkles-outline"
                 title="O que fazer agora"
                 tint={theme.colors.primaryBg}
                 iconColor={theme.colors.primaryStrong}
               />
-              <View style={{ gap: spacing.sm }}>
+              <View style={{ gap: spacing.md }}>
                 {actionable.map((action) => (
                   <Pressable
                     key={action.id}
                     onPress={() => openAction(action.target)}
                     accessibilityRole="button"
                     style={({ pressed }) => ({
-                      minHeight: 64,
                       borderRadius: radii.lg,
                       borderWidth: 1,
                       borderColor: theme.colors.border,
@@ -296,7 +342,32 @@ function InsightsContent({
                       opacity: pressed ? 0.78 : 1,
                     })}
                   >
-                    <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+                    <View
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: radii.full,
+                        backgroundColor:
+                          action.tone === "attention"
+                            ? `${theme.colors.alert}18`
+                            : `${theme.colors.primary}18`,
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <AppIcon
+                        name={
+                          action.tone === "attention" ? "warning-outline" : "bulb-outline"
+                        }
+                        size={18}
+                        color={
+                          action.tone === "attention"
+                            ? theme.colors.alert
+                            : theme.colors.primary
+                        }
+                      />
+                    </View>
+                    <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
                       <Typography
                         variant="label"
                         color={
@@ -314,19 +385,57 @@ function InsightsContent({
                     </View>
                     <AppIcon
                       name="chevron-forward"
-                      size={20}
+                      size={18}
                       color={theme.colors.textSecondary}
                     />
                   </Pressable>
                 ))}
               </View>
             </Card>
-          ) : null}
-          <Card variant="surface" padding="xl">
+          )}
+
+          {/* 5. Rankings — empilhados no mobile, lado a lado no desktop */}
+          <View
+            style={{
+              flexDirection: rankingsRow ? "row" : "column",
+              gap: rankingsRow ? spacing.lg : spacing.md,
+            }}
+          >
+            {productRows.length > 0 && (
+              <View style={{ flex: rankingsRow ? 1 : undefined, minWidth: 0 }}>
+                <Card variant="surface" padding="lg">
+                  <SectionTitle
+                    icon="flame-outline"
+                    title="Mais vendidos"
+                    tint={`${theme.colors.textSecondary}14`}
+                    iconColor={theme.colors.textSecondary}
+                  />
+                  <RankBars rows={productRows} color={theme.colors.primary} />
+                </Card>
+              </View>
+            )}
+
+            {clientRows.length > 0 && (
+              <View style={{ flex: rankingsRow ? 1 : undefined, minWidth: 0 }}>
+                <Card variant="surface" padding="lg">
+                  <SectionTitle
+                    icon="trophy-outline"
+                    title="Melhores clientes"
+                    tint={`${theme.colors.textSecondary}14`}
+                    iconColor={theme.colors.textSecondary}
+                  />
+                  <RankBars rows={clientRows} color={theme.colors.success} />
+                </Card>
+              </View>
+            )}
+          </View>
+
+          {/* 6. Perguntas rápidas — bônus no final */}
+          <Card variant="surface" padding="lg">
             <SectionTitle
               icon="help-circle-outline"
               title="Perguntas rápidas"
-              tint={theme.colors.surface}
+              tint={`${theme.colors.textSecondary}14`}
               iconColor={theme.colors.textSecondary}
             />
             <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -346,10 +455,14 @@ function InsightsContent({
               ].map((question) => (
                 <Pressable
                   key={question.id}
-                  onPress={() => setSelectedQuestion(question.id)}
+                  onPress={() =>
+                    setSelectedQuestion(
+                      selectedQuestion === question.id ? null : question.id,
+                    )
+                  }
                   accessibilityRole="button"
                   style={{
-                    minHeight: 44,
+                    minHeight: 40,
                     justifyContent: "center",
                     paddingHorizontal: spacing.md,
                     borderRadius: radii.full,
@@ -383,29 +496,6 @@ function InsightsContent({
               </View>
             ) : null}
           </Card>
-          {productRows.length > 0 && (
-            <Card variant="surface" padding="xl">
-              <SectionTitle
-                icon="flame-outline"
-                title="Mais vendidos"
-                tint={theme.colors.surface}
-                iconColor={theme.colors.textSecondary}
-              />
-              <RankBars rows={productRows} color={theme.colors.primary} />
-            </Card>
-          )}
-
-          {clientRows.length > 0 && (
-            <Card variant="surface" padding="xl">
-              <SectionTitle
-                icon="trophy-outline"
-                title="Melhores clientes"
-                tint={theme.colors.surface}
-                iconColor={theme.colors.textSecondary}
-              />
-              <RankBars rows={clientRows} color={theme.colors.success} />
-            </Card>
-          )}
         </>
       ) : (
         <ReportsPremiumTeaser onUpgrade={onUpgrade} />
@@ -424,7 +514,6 @@ export default function InsightsScreen() {
   const isPremium =
     !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "advancedReports");
   const showPaywall = usePaywall((s) => s.show);
-  // Free vê só o mês atual ("básico mensal"); Premium escolhe a janela.
   const insightsQuery = useInsights(isPremium ? months : 1, !!profile);
   const { data, isLoading, error } = insightsQuery;
   const { data: products = [] } = useAllProducts();
@@ -474,7 +563,7 @@ export default function InsightsScreen() {
             ...desktopStretch(isDesktop, desktopWidths.data),
             paddingTop: spacing.xl,
             paddingBottom: spacing["2xl"] + insets.bottom,
-            gap: spacing.xl,
+            gap: spacing.lg,
           }}
           showsVerticalScrollIndicator={false}
         >

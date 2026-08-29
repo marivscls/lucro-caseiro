@@ -18,6 +18,8 @@ Os campos monetarios das duas telas exibem o prefixo `R$` antes do valor; campos
 
 - **Depende de:** `@lucro-caseiro/contracts` (tipos `CreatePricing`, `Pricing` e cálculos puros compartilhados), `@lucro-caseiro/ui`, `shared/hooks/use-auth`, `shared/utils/api-client`.
 - **Dependentes:** nenhum direto (resultados salvos podem ser consultados por historico).
+  Home (`tabs/index.tsx`) convida a precificar quando já há produto e nenhum cálculo.
+  Mais (`tabs/more.tsx`) mostra Precificação no grid visível de Gestão.
 
 ## Code pointers
 
@@ -125,7 +127,10 @@ acrescimo`; `precoBase = (custoDireto + lucroAlvo) / (1 - taxa)`.
 
 ## Examples
 
-- Acessado via Home (quick access "Precificacao") ou rota `/pricing`.
+- Acessado via Mais (Gestão do negócio, visível sem "Ver tudo") ou rota `/pricing`.
+  No Início, um card no mesmo slot de "Comece pelo essencial" aparece quando a conta
+  já tem produto e ainda não salvou um cálculo — e o guia de Primeiros Passos não está
+  na tela.
 - Fluxo: step 1 -> 2 -> 3 -> 4 -> 5 -> resultado -> salvar ou recalcular.
 
 ## Change log / Decisions
@@ -170,3 +175,6 @@ acrescimo`; `precoBase = (custoDireto + lucroAlvo) / (1 - taxa)`.
 - 2026-08-27: o histórico de precificação deixou de empilhar os chips de produto
   e passou a uma faixa horizontal; os cards ganharam mais respiro, divisor e
   colunas iguais para custo e acréscimo.
+- 2026-08-29: Precificação saiu de "Ver tudo" e passou ao grid visível de Gestão
+  no Mais. O Início convida a calcular o lucro quando já há produto e nenhum
+  cálculo salvo.

@@ -370,7 +370,7 @@ function ComputedCard({
         <Typography variant="caption" color={theme.colors.success}>
           {label}
         </Typography>
-        <Typography variant="h2" color={theme.colors.success}>
+        <Typography variant="moneyLg" color={theme.colors.success}>
           {value}
         </Typography>
         {sublabel ? (

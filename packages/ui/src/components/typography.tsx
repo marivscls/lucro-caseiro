@@ -2,7 +2,7 @@ import React from "react";
 import { Text, type TextProps, type TextStyle } from "react-native";
 
 import { useTheme } from "../theme-context";
-import { fonts, fontSizes, homeTypography } from "../theme";
+import { fonts, fontSizes, homeTypography, moneyTypography } from "../theme";
 
 type TypographyVariant =
   | "display"
@@ -122,23 +122,17 @@ export function Typography({
       letterSpacing: 1,
     },
     money: {
-      fontSize: fontSizes.xl,
-      fontFamily: fonts.extraBold,
-      lineHeight: 28,
+      ...moneyTypography.money,
       color: theme.colors.success,
       fontVariant: ["tabular-nums"],
     },
     moneyLg: {
-      fontSize: fontSizes["2xl"],
-      fontFamily: fonts.extraBold,
-      lineHeight: 34,
+      ...moneyTypography.moneyLg,
       color: theme.colors.success,
       fontVariant: ["tabular-nums"],
     },
     moneyHero: {
-      fontSize: fontSizes["4xl"],
-      fontFamily: fonts.extraBold,
-      lineHeight: 56,
+      ...moneyTypography.moneyHero,
       color: theme.colors.success,
       fontVariant: ["tabular-nums"],
     },

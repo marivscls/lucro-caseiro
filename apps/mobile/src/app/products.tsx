@@ -1312,7 +1312,7 @@ function LowStockBanner({ onPress }: Readonly<{ onPress: () => void }>) {
               gap: spacing.xs,
             }}
           >
-            <Typography variant="h2" color={theme.colors.alert}>
+            <Typography variant="h3" color={theme.colors.alert}>
               {summary.outOfStock}
             </Typography>
             <Typography variant="caption" color={theme.colors.text}>
@@ -1333,7 +1333,7 @@ function LowStockBanner({ onPress }: Readonly<{ onPress: () => void }>) {
               gap: spacing.xs,
             }}
           >
-            <Typography variant="h2" color={theme.colors.yellow}>
+            <Typography variant="h3" color={theme.colors.yellow}>
               {summary.lowStock}
             </Typography>
             <Typography variant="caption" color={theme.colors.text}>
@@ -1764,6 +1764,11 @@ export default function ProductsScreen() {
           create === "from-pricing" && salePrice ? Number(salePrice) : undefined
         }
         analyticsSource={create === "from-pricing" ? "pricing" : undefined}
+        onPriceInvite={
+          guidedCreate || create === "from-pricing"
+            ? undefined
+            : () => router.push("/pricing")
+        }
         onSuccess={() => {
           setShowCreate(false);
           if (guidedCreate) router.replace("/tabs");

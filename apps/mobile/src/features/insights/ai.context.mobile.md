@@ -20,7 +20,7 @@ melhores clientes — numa janela de 3, 6 ou 12 meses. Tudo com gráficos simple
 - **Depende de**: `@lucro-caseiro/contracts` (Insights, TopProduct, TopClient, MonthlyRevenue),
   `shared/utils/api-client`, `shared/hooks/use-auth`, `@lucro-caseiro/ui`.
 - **Counterpart de API**: feature `insights` (`GET /api/v1/insights?months=`).
-- **Dependentes**: tela `app/insights.tsx`; atalho na Home (`app/tabs/index.tsx`).
+- **Dependentes**: tela `app/insights.tsx`; item "Insights" em `tabs/more.tsx` (Ver tudo).
 
 ## Code pointers
 
@@ -99,3 +99,5 @@ const { data } = useInsights(6);
   campeão de vendas e melhor cliente. Cada alerta explica a regra e abre a tela onde a
   pessoa pode agir; o limite de 20% é apresentado como alerta, não como previsão.
 - 2026-08-24: estado vazio (sem vendas) deixou de usar ilustração PNG.
+- 2026-08-29: Insights saiu do grid visível de Gestão e foi para "Ver tudo" no Mais.
+  A tela continua; Precificação e Catálogo ocuparam o destaque.

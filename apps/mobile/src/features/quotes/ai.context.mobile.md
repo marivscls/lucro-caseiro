@@ -85,7 +85,7 @@ aprovado em encomenda na agenda (com sinal opcional).
 
 ## Examples
 
-- Acesso: aba "Mais" → "Orçamentos". Rota: `/quotes`.
+- Acesso: aba "Mais" → "Ver tudo" → "Orçamentos". Rota: `/quotes`.
 - Fluxo papeleira: criar → WhatsApp → cliente aprova → "Criar encomenda" (data + sinal)
   → produção na agenda.
 
@@ -103,3 +103,5 @@ aprovado em encomenda na agenda (com sinal opcional).
   contagem (totais locais por status). A fileira quebra linha (`flexWrap`)
   para o rótulo "Recusados" não ser cortado na borda.
 - 2026-08-24: estado vazio da lista deixou de usar ilustração PNG.
+- 2026-08-29: Orçamentos saiu do grid visível de Gestão e foi para "Ver tudo" no Mais.
+  A tela continua disponível.

@@ -16,7 +16,7 @@ export const TIER_BENEFITS: Record<PaidPlan, readonly string[]> = {
   ],
   professional: [
     "Tudo do Essencial",
-    "Relatórios completos + exportar PDF/Excel",
+    "Insights completos + exportar PDF/Excel",
     "Fornecedores, compras e gastos fixos ilimitados",
     "Etiquetas personalizadas e orçamentos em PDF",
     "Aniversários, lembretes avançados e suporte prioritário",

@@ -93,7 +93,7 @@ export function ProductCard({ product, onPress }: ProductCardProps) {
             paddingTop: 2,
           }}
         >
-          <Typography variant="h3" color={palette.wine}>
+          <Typography variant="money" color={palette.wine}>
             {product.saleUnit === "kg"
               ? `${formatCurrency(product.salePrice)}/kg`
               : formatCurrency(product.salePrice)}

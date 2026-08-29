@@ -217,7 +217,7 @@ function Metric({
         <Typography variant="caption" color={theme.colors.textSecondary}>
           {label}
         </Typography>
-        <Typography variant="h2" style={{ marginTop: spacing.xs }}>
+        <Typography variant="money" style={{ marginTop: spacing.xs }}>
           {value}
         </Typography>
       </Card>
@@ -243,7 +243,7 @@ function Metric({
           <Typography variant="caption" color={theme.colors.textSecondary}>
             {label}
           </Typography>
-          <Typography variant="h2" numberOfLines={1}>
+          <Typography variant="money" numberOfLines={1}>
             {value}
           </Typography>
         </View>

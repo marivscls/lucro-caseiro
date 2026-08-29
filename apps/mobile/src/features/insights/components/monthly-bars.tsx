@@ -8,14 +8,14 @@ import {
   radii,
   type Theme,
 } from "@lucro-caseiro/ui";
-import React from "react";
-import { Pressable, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Animated, Pressable, View } from "react-native";
 
 import { formatMoney, formatMoneyShort, maxRevenue, monthLabel } from "../domain";
 import type { MonthlyRevenue } from "../types";
 
 const WINDOWS = [3, 6, 12] as const;
-const CHART_HEIGHT = 288;
+const CHART_HEIGHT = 220;
 const BAR_HEADROOM = 16;
 const STEPS = 4;
 const MONTH_FULL = [
@@ -48,7 +48,7 @@ function monthName(key: string): string {
   return MONTH_FULL[month - 1] ?? key;
 }
 
-function monthWithYear(key: string): string {
+export function monthWithYear(key: string): string {
   const [year] = key.split("-");
   return `${monthName(key)} de ${year}`;
 }
@@ -83,37 +83,41 @@ function CompactWindowSelector({
       accessibilityLabel={`Últimos ${months} meses`}
       accessibilityHint="Toque para alternar o período do gráfico"
       style={({ pressed }) => ({
-        minHeight: 54,
-        width: 166,
+        minHeight: 40,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
         gap: spacing.xs,
         borderWidth: 1,
-        borderColor: theme.colors.primary,
+        borderColor: theme.colors.border,
         borderRadius: radii.lg,
         paddingHorizontal: spacing.md,
+        paddingVertical: spacing.xs,
         backgroundColor: theme.colors.surface,
         opacity: pressed ? 0.72 : 1,
       })}
     >
-      <AppIcon name="calendar-clear-outline" size={18} color={theme.colors.text} />
+      <AppIcon
+        name="calendar-clear-outline"
+        size={14}
+        color={theme.colors.textSecondary}
+      />
       <Typography
         variant="bodyBold"
         color={theme.colors.text}
         numberOfLines={1}
         adjustsFontSizeToFit
         minimumFontScale={0.72}
-        style={{ flex: 1, fontSize: 13, textAlign: "center" }}
+        style={{ fontSize: 12, textAlign: "center" }}
       >
         Últimos {months} meses
       </Typography>
-      <AppIcon name="chevron-down" size={18} color={theme.colors.text} />
+      <AppIcon name="chevron-down" size={14} color={theme.colors.textSecondary} />
     </Pressable>
   );
 }
 
-function StatPanel({
+export function StatPanel({
   icon,
   label,
   value,
@@ -140,24 +144,24 @@ function StatPanel({
     >
       <View
         style={{
-          width: 40,
-          height: 40,
+          width: 32,
+          height: 32,
           borderRadius: radii.full,
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: `${tint}24`,
+          backgroundColor: `${tint}18`,
           borderWidth: 1,
-          borderColor: `${tint}3f`,
+          borderColor: `${tint}30`,
         }}
       >
-        <AppIcon name={icon} size={23} color={tint} />
+        <AppIcon name={icon} size={18} color={tint} />
       </View>
-      <View style={{ width: "100%", gap: 4 }}>
+      <View style={{ width: "100%", gap: 2 }}>
         <Typography
           variant="body"
           color={theme.colors.textSecondary}
           numberOfLines={2}
-          style={{ fontSize: 14, lineHeight: 17 }}
+          style={{ fontSize: 12, lineHeight: 15 }}
         >
           {label}
         </Typography>
@@ -167,14 +171,13 @@ function StatPanel({
           numberOfLines={1}
           adjustsFontSizeToFit
           minimumFontScale={0.62}
-          style={{ fontSize: 28 }}
         >
           {value}
         </Typography>
         <Typography
           variant="caption"
           color={theme.colors.textSecondary}
-          style={{ fontSize: 14 }}
+          style={{ fontSize: 12 }}
         >
           {caption}
         </Typography>
@@ -193,17 +196,16 @@ export function MonthlyBars({
   onWindowChange?: (months: number) => void;
 }>) {
   const { theme } = useTheme();
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const axisMax = niceCeil(maxRevenue(series));
   const gridColor = theme.colors.border;
   const labelColor = theme.colors.textSecondary;
-  const nonEmpty = series.filter((m) => m.revenue > 0);
   const total = series.reduce((acc, m) => acc + m.revenue, 0);
-  const average = nonEmpty.length > 0 ? total / nonEmpty.length : 0;
-  const best = series.reduce(
-    (acc, m) => (m.revenue > acc.revenue ? m : acc),
-    series[0] ?? { month: "", revenue: 0 },
-  );
-  const active = [...series].reverse().find((m) => m.revenue > 0) ?? best;
+  const lastActive =
+    [...series].reverse().find((m) => m.revenue > 0) ?? series[series.length - 1];
+  const focused = selectedMonth
+    ? (series.find((m) => m.month === selectedMonth) ?? lastActive)
+    : lastActive;
   const delta = periodDelta(series);
   const deltaColor =
     delta == null || delta >= 0 ? theme.colors.success : theme.colors.alert;
@@ -214,17 +216,53 @@ export function MonthlyBars({
     Math.round((axisMax * (STEPS - i)) / STEPS),
   );
 
+  // Animação de entrada das barras
+  const barAnimations = useRef(series.map(() => new Animated.Value(0))).current;
+  const fadeAnimations = useRef(series.map(() => new Animated.Value(0))).current;
+
+  useEffect(() => {
+    barAnimations.forEach((anim) => anim.setValue(0));
+    fadeAnimations.forEach((anim) => anim.setValue(0));
+
+    const barAnims = series.map((m, i) => {
+      const ratio = axisMax > 0 ? m.revenue / axisMax : 0;
+      const targetHeight =
+        m.revenue > 0 ? Math.max(7, ratio * (CHART_HEIGHT - BAR_HEADROOM)) : 0;
+      return Animated.timing(barAnimations[i], {
+        toValue: targetHeight,
+        duration: 500,
+        delay: i * 40,
+        useNativeDriver: false,
+      });
+    });
+
+    const fadeAnims = series.map((_, i) =>
+      Animated.timing(fadeAnimations[i], {
+        toValue: 1,
+        duration: 400,
+        delay: i * 40 + 100,
+        useNativeDriver: true,
+      }),
+    );
+
+    Animated.parallel([
+      Animated.stagger(30, barAnims),
+      Animated.stagger(30, fadeAnims),
+    ]).start();
+  }, [series, axisMax]);
+
   return (
     <View
       style={{
-        gap: spacing.xl,
-        padding: spacing.lg,
+        gap: spacing.md,
+        padding: spacing.md,
         borderWidth: 1,
         borderColor,
         borderRadius: radii["2xl"],
         backgroundColor: panelBg,
       }}
     >
+      {/* Header compacto */}
       <View
         style={{
           flexDirection: "row",
@@ -233,117 +271,64 @@ export function MonthlyBars({
           gap: spacing.md,
         }}
       >
-        <View
-          style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm, flex: 1 }}
-        >
-          <View
-            style={{
-              width: 50,
-              height: 50,
-              borderRadius: radii.full,
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: `${theme.colors.primary}24`,
-              borderWidth: 1,
-              borderColor: `${theme.colors.primary}28`,
-            }}
-          >
-            <AppIcon name="bar-chart-outline" size={30} color={theme.colors.primary} />
-          </View>
+        <View style={{ flex: 1, gap: spacing.xs }}>
           <Typography
-            variant="bodyBold"
-            color={theme.colors.text}
-            style={{ width: 92, fontSize: 13, lineHeight: 16 }}
+            variant="label"
+            color={theme.colors.primaryLight}
+            style={{ fontSize: fontSizes.xs, letterSpacing: 0.5 }}
           >
-            Faturamento{"\n"}mensal
+            EVOLUÇÃO DO FATURAMENTO
           </Typography>
-        </View>
-        <CompactWindowSelector months={windowMonths} onChange={onWindowChange} />
-      </View>
-
-      <View
-        style={{
-          overflow: "hidden",
-          borderRadius: radii.xl,
-          borderWidth: 1,
-          borderColor,
-          backgroundColor: insetBg,
-          padding: spacing.lg,
-          gap: spacing.xl,
-        }}
-      >
-        <View style={{ gap: spacing.sm }}>
-          <View style={{ gap: spacing.xs }}>
-            <View
-              style={{
-                width: 34,
-                height: 34,
-                borderRadius: radii.full,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: `${theme.colors.primary}24`,
-                borderWidth: 1,
-                borderColor: `${theme.colors.primary}42`,
-              }}
-            >
-              <AppIcon
-                name="trending-up-outline"
-                size={22}
-                color={theme.colors.primary}
-              />
-            </View>
-            <Typography
-              variant="label"
-              color={theme.colors.primaryLight}
-              style={{ fontSize: fontSizes.xs, letterSpacing: 0 }}
-            >
-              EVOLUÇÃO DO FATURAMENTO
-            </Typography>
-          </View>
           <Typography
             variant="moneyHero"
             color={theme.colors.text}
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.58}
-            style={{ fontSize: 42 }}
           >
             {formatMoney(total)}
           </Typography>
-          <View style={{ gap: spacing.xs }}>
-            <Typography variant="body" color={theme.colors.text} style={{ fontSize: 15 }}>
-              Total no período
-            </Typography>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>
             {delta !== null && (
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}
-              >
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
-                  <AppIcon
-                    name={delta >= 0 ? "arrow-up" : "arrow-down"}
-                    size={15}
-                    color={deltaColor}
-                  />
-                  <Typography variant="body" color={deltaColor} style={{ fontSize: 15 }}>
-                    {Math.abs(delta).toFixed(1).replace(".", ",")}%
-                  </Typography>
-                </View>
-                <Typography
-                  variant="body"
-                  color={theme.colors.textSecondary}
-                  numberOfLines={1}
-                  style={{ flexShrink: 1, fontSize: 13 }}
-                >
-                  vs. período anterior
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+                <AppIcon
+                  name={delta >= 0 ? "arrow-up" : "arrow-down"}
+                  size={13}
+                  color={deltaColor}
+                />
+                <Typography variant="body" color={deltaColor} style={{ fontSize: 13 }}>
+                  {Math.abs(delta).toFixed(1).replace(".", ",")}%
                 </Typography>
               </View>
             )}
+            <Typography
+              variant="caption"
+              color={theme.colors.textSecondary}
+              style={{ fontSize: 13 }}
+            >
+              vs. período anterior
+            </Typography>
           </View>
         </View>
+        <CompactWindowSelector months={windowMonths} onChange={onWindowChange} />
+      </View>
 
+      {/* Chart area */}
+      <View
+        style={{
+          overflow: "hidden",
+          borderRadius: radii.lg,
+          borderWidth: 1,
+          borderColor,
+          backgroundColor: insetBg,
+          padding: spacing.md,
+          gap: spacing.md,
+        }}
+      >
         <View style={{ flexDirection: "row", gap: spacing.sm }}>
+          {/* Y-axis */}
           <View
-            style={{ width: 72, height: CHART_HEIGHT, justifyContent: "space-between" }}
+            style={{ width: 56, height: CHART_HEIGHT, justifyContent: "space-between" }}
           >
             {gridValues.map((v) => (
               <Typography
@@ -351,15 +336,17 @@ export function MonthlyBars({
                 variant="caption"
                 color={labelColor}
                 numberOfLines={1}
-                style={{ fontSize: 14 }}
+                style={{ fontSize: 11 }}
               >
                 {formatMoneyShort(v)}
               </Typography>
             ))}
           </View>
 
+          {/* Chart body */}
           <View style={{ flex: 1 }}>
             <View style={{ height: CHART_HEIGHT }}>
+              {/* Grid lines */}
               {gridValues.map((v, i) => (
                 <View
                   key={v}
@@ -369,12 +356,13 @@ export function MonthlyBars({
                     right: 0,
                     top: (CHART_HEIGHT / STEPS) * i,
                     borderTopWidth: 1,
-                    borderStyle: "dashed",
+                    borderStyle: i === STEPS ? "solid" : "dashed",
                     borderColor: gridColor,
                   }}
                 />
               ))}
 
+              {/* Bars */}
               <View
                 style={{
                   position: "absolute",
@@ -384,19 +372,20 @@ export function MonthlyBars({
                   bottom: 0,
                   flexDirection: "row",
                   alignItems: "flex-end",
-                  gap: spacing.xs,
+                  gap: 3,
                 }}
               >
-                {series.map((m) => {
-                  const ratio = axisMax > 0 ? m.revenue / axisMax : 0;
-                  const barHeight =
-                    m.revenue > 0
-                      ? Math.max(7, ratio * (CHART_HEIGHT - BAR_HEADROOM))
-                      : 0;
-                  const isActive = m.month === active.month && m.revenue > 0;
+                {series.map((m, index) => {
+                  const isFocused = m.month === focused.month;
+                  const isEmpty = m.revenue <= 0;
+                  const barHeight = barAnimations[index];
+
                   return (
-                    <View
+                    <Pressable
                       key={m.month}
+                      onPress={() => setSelectedMonth(isFocused ? null : m.month)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${monthName(m.month)}: ${formatMoneyShort(m.revenue)}`}
                       style={{
                         flex: 1,
                         height: "100%",
@@ -404,190 +393,152 @@ export function MonthlyBars({
                         justifyContent: "flex-end",
                       }}
                     >
-                      {isActive && (
-                        <View
+                      {/* Tooltip acima da barra focada */}
+                      {isFocused && !isEmpty && (
+                        <Animated.View
+                          pointerEvents="none"
                           style={{
                             position: "absolute",
-                            top: 0,
-                            bottom: 0,
-                            width: 1,
-                            borderLeftWidth: 1,
-                            borderStyle: "dashed",
+                            bottom: CHART_HEIGHT * 0.55,
+                            zIndex: 10,
+                            paddingVertical: spacing.sm,
+                            paddingHorizontal: spacing.md,
+                            borderRadius: radii.lg,
+                            borderWidth: 1,
                             borderColor: theme.colors.border,
+                            backgroundColor: panelBg,
+                            gap: 2,
+                            opacity: fadeAnimations[index],
+                            shadowColor: theme.colors.text,
+                            shadowOffset: { width: 0, height: 2 },
+                            shadowOpacity: 0.08,
+                            shadowRadius: 8,
+                            elevation: 3,
                           }}
-                        />
+                        >
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: spacing.xs,
+                            }}
+                          >
+                            <View
+                              style={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: radii.full,
+                                backgroundColor: theme.colors.primaryLight,
+                              }}
+                            />
+                            <Typography
+                              variant="body"
+                              color={theme.colors.text}
+                              style={{ fontSize: 13 }}
+                            >
+                              {monthName(m.month)}
+                            </Typography>
+                          </View>
+                          <Typography
+                            variant="bodyBold"
+                            color={theme.colors.primary}
+                            style={{ fontSize: 15 }}
+                          >
+                            {formatMoneyShort(m.revenue)}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            color={theme.colors.textSecondary}
+                            style={{ fontSize: 11 }}
+                          >
+                            {m.salesCount} venda{m.salesCount !== 1 ? "s" : ""}
+                          </Typography>
+                        </Animated.View>
                       )}
-                      <View
-                        accessibilityLabel={`${monthName(m.month)}: ${formatMoneyShort(m.revenue)}`}
+
+                      {/* Bar */}
+                      <Animated.View
                         style={{
-                          width: "82%",
+                          width: "85%",
                           height: barHeight,
-                          borderTopLeftRadius: radii.sm,
-                          borderTopRightRadius: radii.sm,
-                          backgroundColor: theme.colors.primary,
-                          borderWidth: m.revenue > 0 ? 1 : 0,
-                          borderColor: `${theme.colors.primaryLight}b8`,
-                          opacity: m.revenue > 0 ? 0.78 : 0,
-                          shadowColor: theme.colors.primary,
-                          shadowOpacity: 0.35,
-                          shadowRadius: 12,
-                          shadowOffset: { width: 0, height: 0 },
-                          elevation: m.revenue > 0 ? 2 : 0,
+                          borderTopLeftRadius: radii.md,
+                          borderTopRightRadius: radii.md,
+                          backgroundColor: isFocused
+                            ? theme.colors.primary
+                            : `${theme.colors.primary}99`,
+                          borderWidth: isEmpty ? 0 : 1,
+                          borderColor: isFocused
+                            ? theme.colors.primaryLight
+                            : `${theme.colors.primaryLight}60`,
+                          opacity: isEmpty ? 0.12 : fadeAnimations[index],
+                          overflow: "hidden",
                         }}
                       >
-                        <View
-                          style={{
-                            height: Math.min(12, barHeight),
-                            borderTopLeftRadius: radii.sm,
-                            borderTopRightRadius: radii.sm,
-                            backgroundColor: `${theme.colors.primaryLight}d9`,
-                          }}
-                        />
-                      </View>
-                      {isActive && (
+                        {/* Gradient overlay (simulado) */}
+                        {!isEmpty && (
+                          <View
+                            style={{
+                              position: "absolute",
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              height: "35%",
+                              backgroundColor: `${theme.colors.primaryLight}55`,
+                              borderTopLeftRadius: radii.md,
+                              borderTopRightRadius: radii.md,
+                            }}
+                          />
+                        )}
+                      </Animated.View>
+
+                      {/* Dot on top of focused bar */}
+                      {isFocused && !isEmpty && (
                         <View
                           style={{
                             position: "absolute",
-                            bottom: barHeight - 8,
-                            width: 18,
-                            height: 18,
+                            bottom: CHART_HEIGHT * 0.45,
+                            width: 10,
+                            height: 10,
                             borderRadius: radii.full,
                             backgroundColor: theme.colors.primary,
-                            borderWidth: 4,
-                            borderColor: theme.colors.textOnPrimary,
+                            borderWidth: 2.5,
+                            borderColor: theme.colors.surfaceElevated,
                           }}
                         />
                       )}
-                    </View>
+                    </Pressable>
                   );
                 })}
               </View>
-
-              {active.revenue > 0 && (
-                <View
-                  pointerEvents="none"
-                  style={{
-                    position: "absolute",
-                    right: spacing.sm,
-                    top: spacing.md,
-                    paddingVertical: spacing.sm,
-                    paddingHorizontal: spacing.md,
-                    borderRadius: radii.md,
-                    borderWidth: 1,
-                    borderColor,
-                    backgroundColor: panelBg,
-                    gap: 4,
-                  }}
-                >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: spacing.xs,
-                    }}
-                  >
-                    <View
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: radii.full,
-                        backgroundColor: theme.colors.primaryLight,
-                      }}
-                    />
-                    <Typography
-                      variant="body"
-                      color={theme.colors.text}
-                      style={{ fontSize: 15 }}
-                    >
-                      {monthName(active.month)}
-                    </Typography>
-                  </View>
-                  <Typography
-                    variant="bodyBold"
-                    color={theme.colors.primary}
-                    style={{ fontSize: 18 }}
-                  >
-                    {formatMoneyShort(active.revenue)}
-                  </Typography>
-                </View>
-              )}
             </View>
 
+            {/* X-axis labels */}
             <View style={{ flexDirection: "row", gap: 0, marginTop: spacing.sm }}>
-              {series.map((m, index) => (
-                <Typography
-                  key={m.month}
-                  variant="caption"
-                  color={theme.colors.text}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.7}
-                  style={{
-                    flex: 1,
-                    textAlign: "center",
-                    fontSize: 13,
-                    lineHeight: 14,
-                  }}
-                >
-                  {chartMonthLabel(m.month, windowMonths, index)}
-                </Typography>
-              ))}
+              {series.map((m, index) => {
+                const isFocused = m.month === focused.month;
+                return (
+                  <Typography
+                    key={m.month}
+                    variant="caption"
+                    color={isFocused ? theme.colors.primary : theme.colors.textSecondary}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.7}
+                    style={{
+                      flex: 1,
+                      textAlign: "center",
+                      fontSize: 11,
+                      lineHeight: 13,
+                      fontFamily: isFocused ? "Manrope_600SemiBold" : undefined,
+                    }}
+                  >
+                    {chartMonthLabel(m.month, windowMonths, index)}
+                  </Typography>
+                );
+              })}
             </View>
           </View>
         </View>
-      </View>
-
-      <View
-        style={{
-          flexDirection: "row",
-          borderWidth: 1,
-          borderColor,
-          borderRadius: radii.xl,
-          backgroundColor: insetBg,
-          overflow: "hidden",
-        }}
-      >
-        <StatPanel
-          icon="trophy-outline"
-          label="Maior faturamento"
-          value={formatMoneyShort(best.revenue)}
-          caption={best.month ? monthWithYear(best.month) : "Sem vendas"}
-          tint={theme.colors.primary}
-          theme={theme}
-        />
-        <View
-          style={{ width: 1, marginVertical: spacing.md, backgroundColor: borderColor }}
-        />
-        <StatPanel
-          icon="trending-up-outline"
-          label="Média mensal"
-          value={formatMoneyShort(average)}
-          caption={`Últimos ${windowMonths} meses`}
-          tint={theme.colors.success}
-          theme={theme}
-        />
-      </View>
-
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: spacing.sm,
-        }}
-      >
-        <AppIcon
-          name="shield-checkmark-outline"
-          size={18}
-          color={theme.colors.textSecondary}
-        />
-        <Typography
-          variant="caption"
-          color={theme.colors.textSecondary}
-          style={{ fontSize: 14 }}
-        >
-          Dados atualizados em tempo real
-        </Typography>
       </View>
     </View>
   );

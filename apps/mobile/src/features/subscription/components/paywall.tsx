@@ -2,7 +2,6 @@ import {
   PressableScale,
   Typography,
   fontSizes,
-  fonts,
   radii,
   spacing,
   useBrand,
@@ -40,8 +39,8 @@ interface Benefit {
 const PROFESSIONAL_BENEFITS: readonly Benefit[] = [
   {
     icon: "bar-chart-outline",
-    title: "Decida com relatórios completos",
-    description: "Acompanhe resultados e exporte relatórios em PDF e Excel.",
+    title: "Decida com insights completos",
+    description: "Acompanhe resultados e exporte insights em PDF e Excel.",
   },
   {
     icon: "bag-handle-outline",
@@ -512,34 +511,10 @@ export function Paywall({
             ]}
           >
             <View style={styles.priceLine}>
-              <Typography
-                variant="h2"
-                color={theme.colors.text}
-                style={{
-                  fontSize: compact ? fontSizes.xl : fontSizes["3xl"],
-                  lineHeight: compact ? 34 : 44,
-                }}
-              >
-                R$
+              <Typography variant="moneyHero" color={theme.colors.text}>
+                R$ {formatBRL(displayedMonthlyPrice)}
               </Typography>
-              <Typography
-                variant="moneyLg"
-                color={theme.colors.text}
-                adjustsFontSizeToFit
-                numberOfLines={1}
-                style={{
-                  fontSize: compact ? 58 : 82,
-                  lineHeight: compact ? 66 : 90,
-                  fontFamily: fonts.extraBold,
-                }}
-              >
-                {formatBRL(displayedMonthlyPrice)}
-              </Typography>
-              <Typography
-                variant="body"
-                color={theme.colors.text}
-                style={{ fontSize: compact ? fontSizes.md : fontSizes.xl }}
-              >
+              <Typography variant="body" color={theme.colors.text}>
                 /mês
               </Typography>
             </View>

@@ -402,7 +402,7 @@ function ClienteleSummary({
                 }}
               >
                 <Typography
-                  variant="h2"
+                  variant="h3"
                   color={pal.wine}
                   numberOfLines={1}
                   style={{ textAlign: "center" }}

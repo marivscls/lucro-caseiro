@@ -233,12 +233,11 @@ export function CalculatorModal({ visible, onClose, onResult }: CalculatorModalP
               {topLine}
             </Typography>
             <Typography
-              variant="moneyLg"
+              variant="moneyHero"
               color={theme.colors.text}
               numberOfLines={1}
               adjustsFontSizeToFit
               minimumFontScale={0.5}
-              style={{ fontSize: 32 }}
             >
               {display}
             </Typography>

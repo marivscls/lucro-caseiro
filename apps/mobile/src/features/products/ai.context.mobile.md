@@ -71,7 +71,7 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 
 ### `CreateProductForm`
 
-- **Props:** `{ onSuccess?: (product) => void; initialValues?: { name?, category?, code?, photoUrl? } }`
+- **Props:** `{ onSuccess?: (product) => void; onPriceInvite?: () => void; initialValues?: { name?, category?, code?, photoUrl? } }`
 - Campos: nome (obrigatorio), categoria (obrigatorio), **tipo (toggle simples/kit)**, **unidade de venda (toggle por unidade/kg)**, preco de venda (obrigatorio, > 0; label vira "Preço por kg (R$)" quando kg), foto, descricao, **código de barras (opcional, com botões de escanear e gerar código interno)**, quantidade em estoque, alerta de estoque baixo.
 - Campos de estoque ficam ocultos quando "Por quilo (kg)" (estoque por unidade nao se aplica).
 - Quando **kit** (`isComposite`): mostra o `ComponentPicker`; oculta o toggle de unidade de venda e os campos de estoque. O preco de venda continua sendo pedido (preco do kit). Validacao local: pelo menos um componente.
@@ -150,7 +150,9 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 ## Examples
 
 - Acessado via Home (quick access "Produtos") ou rota `/products`.
-- Fluxo: lista -> FAB "Novo produto" -> modal criacao -> salvar.
+- Fluxo: lista -> FAB "Novo produto" -> modal criacao -> salvar. Fora do
+  Primeiros Passos e da precificação, o alerta de sucesso oferece "Calcular se
+  dá lucro" (vai para `/pricing`); "Agora não" só fecha.
 - Tap em produto -> modal detalhe -> editar -> salvar.
 
 ## Product and service separation
@@ -186,3 +188,6 @@ it must not turn the Products registry into Services; services use `/services`.
 - 2026-06-16: **código de barras + scanner de câmera** — produtos ganharam o campo opcional `code` (SKU/código de barras). `CreateProductForm` e o modal de edição têm o campo "Código de barras" com botão de **escanear** (`BarcodeScanner` em `shared/components/barcode-scanner.tsx`, via `expo-camera`). Na **Nova Venda**, "Usar código"/o ícone de scan abrem a câmera; o código lido vai pra busca (o back casa por **nome OU código**), com fallback "Digitar à mão". **Requer dev/prod build novo** (módulo nativo da câmera); permissão no `app.json` (plugin `expo-camera`).
 - 2026-06-15: **redesign do "Novo produto"** — `CreateProductForm` reescrito com campos estilizados (label acima + box com icone rosa: nome=pricetag, preco=cash, descricao=document com contador 0/300, estoque=cube/notifications), `CategoryField` (campo dropdown com icone grid + chevron que abre um bottom-sheet com as categorias ja usadas + digitar nova), foto em area full-width com borda tracejada ("Adicionar foto / PNG, JPG até 5MB"), e botao rosa "Cadastrar produto" com icone de check. Header do modal (em `products.tsx`) ganhou seta de voltar alem do "Fechar". `CompositeToggle`/`SaleUnitToggle` viraram dois botoes com icone (cube/gift e cube/scale), selecionado em rosa. `ComponentPicker` agora mostra os itens como **chips removiveis** (com "+N" quando ha mais de 2) + link "Adicionar produto" que abre um bottom-sheet de selecao (checkbox + stepper de quantidade); card "Custo total do kit" ganhou icone de calculadora e subtitulo "Soma dos produtos selecionados". Categorias derivadas de `useProducts`. As mudancas nos toggles e no picker tambem refletem no modal de edicao.
 - 2026-08-24: estado vazio da lista deixou de usar ilustração PNG; permanece título, descrição e CTA.
+- 2026-08-29: fora do Primeiros Passos e do fluxo "salvar da precificação", o alerta
+  de produto cadastrado oferece "Calcular se dá lucro" (abre `/pricing`). A mensagem
+  de sucesso fala em lista, não em catálogo, para não confundir com a vitrine.
