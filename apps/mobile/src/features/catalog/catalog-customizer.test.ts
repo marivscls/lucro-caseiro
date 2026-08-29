@@ -261,7 +261,6 @@ describe("storefront customization", () => {
       "WhatsApp conectado",
     );
     expect(checklist.find((item) => item.id === "slug")?.valid).toBe(true);
-    expect(checklist.find((item) => item.id === "content")).toBeUndefined();
   });
 
   it("não inclui checklist de conteúdo nem de ações por item", () => {
