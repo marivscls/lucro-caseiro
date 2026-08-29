@@ -25,6 +25,7 @@ export function Input({
   icon,
   containerStyle,
   style,
+  multiline,
   ...props
 }: InputProps) {
   const { theme } = useTheme();
@@ -33,6 +34,10 @@ export function Input({
   const webAutofillSurface: TextStyle | undefined =
     Platform.OS === "web"
       ? { boxShadow: `inset 0 0 0 1000px ${theme.colors.surfaceElevated}` }
+      : undefined;
+  const multilineWebCenter: TextStyle | undefined =
+    multiline && Platform.OS === "web"
+      ? { paddingTop: 13, paddingBottom: 13, lineHeight: 22 }
       : undefined;
 
   return (
@@ -67,6 +72,8 @@ export function Input({
         {icon}
         <TextInput
           placeholderTextColor={theme.colors.textSecondary + "80"}
+          multiline={multiline}
+          textAlignVertical={multiline ? "center" : "auto"}
           style={[
             {
               flex: 1,
@@ -77,6 +84,7 @@ export function Input({
               color: theme.colors.text,
             },
             webAutofillSurface,
+            multilineWebCenter,
             style,
           ]}
           {...props}

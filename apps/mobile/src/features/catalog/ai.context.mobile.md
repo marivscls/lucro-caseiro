@@ -88,14 +88,44 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
 
 ## Change log / Decisions
 
+- 2026-08-29: “Página no ar” busca o HTML de `/c/:slug` e mostra em
+  `srcDoc` (a página pública manda `X-Frame-Options: DENY`, então o
+  iframe com `src` fica em branco). O rascunho continua na prévia local.
+
+- 2026-08-29: na prévia do editor, Pedir/Agendar e as abas Produtos/
+  Serviços viram pílulas compactas. A faixa de destaques cabe até 3
+  cards inteiros; se houver mais, desliza. A grade “Escolha o que deseja”
+  usa cards verticais para o nome e o valor não quebrarem.
+
+- 2026-08-29: a prévia local acompanha a vitrine pública densa — capa
+  curta, card sobreposto com logo circular, busca “Buscar no catálogo”,
+  chips, destaques horizontais e grade “Escolha o que deseja”. Contagens
+  reais de produtos/serviços ficam no card da loja.
+
+- 2026-08-29: em Texto e ação dá para escolher a cor do título (nome e
+  headings) e a cor da frase (apresentação e assinatura). O fundo
+  continua no creme da marca; a cor dos botões segue em Identidade.
+  `applySimpleStorefrontPresentation` deixa de forçar o vinho do texto.
+
+- 2026-08-29: o Topo voltou a ter estilo do banner (Clássico, Editorial,
+  Compacto), assinatura curta e até 3 informações rápidas. Busca, filtros
+  e canais além do WhatsApp continuam fora.
+
+- 2026-08-29: o Topo voltou a ter ajuste da capa (`coverFocal`: setas,
+  zoom e Centralizar) e texto do botão de cada item (padrão Pedir/Agendar
+  - sobrescrita por produto/serviço). Tipo de ação e canais continuam
+    só WhatsApp.
+
 - 2026-08-29: o editor da vitrine ficou em três passos — Identidade
-  (logo, nome, cor dos botões), Topo (capa, até 3 destaques, recorte,
-  apresentação, botão de contato e faixa) e Publicação (WhatsApp,
-  rótulo do botão flutuante, mensagem inicial, endereço e QR). Estilo
-  do topo, busca, filtros, cards por item e canais além do WhatsApp
-  saíram da tela; ao carregar e ao salvar, `applySimpleStorefrontPresentation`
-  força clássico, cards editoriais, produtos+serviços visíveis, ações
-  Pedir/Agendar e cores de marca no fundo/vinho.
+  (logo, nome, cor dos botões), Topo (estilo do banner, capa, até 3
+  destaques, recorte, textos, botão de contato, faixa e texto dos botões
+  dos itens) e Publicação (WhatsApp, rótulo do botão flutuante, mensagem
+  inicial, endereço e QR). Busca, filtros, cards por item e canais
+  além do WhatsApp saíram da tela; ao carregar e ao salvar,
+  `applySimpleStorefrontPresentation` força cards editoriais,
+  produtos+serviços visíveis, ações no WhatsApp (Pedir/Agendar, com o texto
+  que a pessoa escolheu) e o fundo creme da marca. Estilo do banner,
+  assinatura, informações rápidas e cores de título/frase são preservados.
 
 - 2026-08-29: o topo da vitrine não pede mais tipo de ação (WhatsApp,
   orçamento, agendamento, link). Só o texto do botão de contato, que abre

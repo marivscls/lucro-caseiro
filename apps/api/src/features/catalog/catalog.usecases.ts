@@ -271,7 +271,7 @@ export class CatalogUseCases {
         hasFullCatalog && owner.servicePromoBannerEnabled
           ? owner.servicePromoBanner
           : null,
-      customization: hasFullCatalog ? owner.publishedCustomization : null,
+      customization: hasFullCatalog ? (owner.publishedCustomization ?? null) : null,
       products,
       services,
       totalProducts: allProducts.length,
@@ -286,7 +286,7 @@ export class CatalogUseCases {
   ): Promise<PublicCatalog> {
     const settings = await this.getSettings(userId, brandId);
     const owner = await this.repo.getOwnerDefaults(userId);
-    if (!owner) throw new NotFoundError("UsuÃ¡rio nÃ£o encontrado");
+    if (!owner) throw new NotFoundError("Usuário não encontrado");
     const [products, services] = await Promise.all([
       this.repo.listPublicProducts(userId),
       this.repo.listPublicServices?.(userId) ?? Promise.resolve([]),
@@ -304,9 +304,7 @@ export class CatalogUseCases {
       pattern: settings.pattern,
       tagline: settings.tagline,
       promoBanner:
-        settings.promoBannerEnabled && settings.promoBanner
-          ? settings.promoBanner
-          : null,
+        settings.promoBannerEnabled && settings.promoBanner ? settings.promoBanner : null,
       serviceCoverUrl: settings.serviceCoverUrl,
       serviceTitleColor: settings.serviceTitleColor,
       serviceDescriptionColor: settings.serviceDescriptionColor,

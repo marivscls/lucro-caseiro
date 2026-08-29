@@ -1,10 +1,6 @@
-import type {
-  CatalogSettings,
-  StorefrontCustomization,
-  UpdateCatalogSettings,
-} from "@lucro-caseiro/contracts";
+import type { CatalogSettings, UpdateCatalogSettings } from "@lucro-caseiro/contracts";
 
-import { apiClient } from "../../shared/utils/api-client";
+import { ApiError, apiClient } from "../../shared/utils/api-client";
 
 const BASE = "/api/v1/catalog";
 
@@ -38,18 +34,6 @@ export async function fetchCatalogSlugAvailability(
   );
 }
 
-export async function fetchStorefrontPreviewHtml(
-  token: string,
-  customization: StorefrontCustomization,
-): Promise<string> {
-  return apiClient<string>(`${BASE}/preview`, {
-    method: "POST",
-    body: { customization },
-    token,
-    responseType: "text",
-  });
-}
-
 /**
  * URL publica do catalogo (servida pela API em /c/:slug).
  * EXPO_PUBLIC_CATALOG_URL permite usar um dominio bonito (ex.:
@@ -61,6 +45,19 @@ export function publicCatalogUrl(slug: string): string {
     process.env.EXPO_PUBLIC_API_URL ??
     "http://localhost:3001";
   return `${base}/c/${slug}`;
+}
+
+/** HTML da página pública. Usado na prévia “Página no ar” (srcDoc). */
+export async function fetchPublishedCatalogHtml(url: string): Promise<string> {
+  const response = await fetch(url, {
+    cache: "no-store",
+    headers: { Accept: "text/html" },
+  });
+  const html = await response.text();
+  if (!html.trim()) {
+    throw new ApiError("Não foi possível abrir a página no ar", response.status);
+  }
+  return html;
 }
 
 export type PublicCatalogSection = "produtos" | "servicos";

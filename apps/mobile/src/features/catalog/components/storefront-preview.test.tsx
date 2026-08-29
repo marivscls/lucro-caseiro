@@ -1,4 +1,4 @@
-import type { CatalogSettings, Product } from "@lucro-caseiro/contracts";
+import type { CatalogSettings, Product, Service } from "@lucro-caseiro/contracts";
 import { render } from "@testing-library/react";
 import React from "react";
 import { describe, expect, it } from "vitest";
@@ -161,5 +161,107 @@ describe("storefront previews", () => {
 
     expect(rendered.container.textContent).not.toContain("PRÉVIA FINAL");
     expect(rendered.container.textContent).toContain("0 produtos • 0 serviços");
+  });
+
+  it("mostra só produtos ou só serviços conforme a aba", () => {
+    const customization = createStorefrontCustomization(settings, "Ateliê Lua", {
+      products: 1,
+      services: 1,
+    });
+    const product: Product = {
+      id: "11111111-1111-4111-8111-111111111111",
+      userId: "22222222-2222-4222-8222-222222222222",
+      name: "Bolo de chocolate",
+      description: null,
+      category: "Bolos",
+      photoUrl: null,
+      extraPhotos: [],
+      code: null,
+      salePrice: 74.9,
+      saleUnit: "unit",
+      costPrice: 20,
+      recipeId: null,
+      stockQuantity: 4,
+      stockAlertThreshold: null,
+      isComposite: false,
+      isActive: true,
+      publicEnabled: true,
+      createdAt: "2026-08-18T12:00:00.000Z",
+    };
+    const service: Service = {
+      id: "33333333-3333-4333-8333-333333333333",
+      userId: "22222222-2222-4222-8222-222222222222",
+      name: "Bolo personalizado",
+      description: null,
+      durationMinutes: 180,
+      defaultPrice: 240,
+      materialCost: 0,
+      hourlyRate: 50,
+      otherCost: 0,
+      fixedCostShare: 0,
+      markupPercent: 0,
+      feesPercent: 0,
+      locationMode: "business",
+      bufferMinutes: 0,
+      publicEnabled: true,
+      bookingInstructions: null,
+      variations: [],
+      addOns: [],
+      packages: [],
+      active: true,
+      createdAt: "2026-08-18T12:00:00.000Z",
+    };
+    const rendered = render(
+      <StorefrontContentPreview
+        customization={customization}
+        products={[product]}
+        services={[service]}
+        status="saved"
+        listing
+      />,
+    );
+
+    expect(rendered.container.textContent).toContain("Produtos (1)");
+    expect(rendered.container.textContent).toContain("Serviços (1)");
+    expect(rendered.container.textContent).toContain("Bolo de chocolate");
+    expect(rendered.container.textContent).not.toContain("Bolo personalizado");
+  });
+
+  it("na grade da listagem mostra nome e preço inteiros", () => {
+    const customization = createStorefrontCustomization(settings, "Ateliê Lua");
+    const product: Product = {
+      id: "11111111-1111-4111-8111-111111111111",
+      userId: "22222222-2222-4222-8222-222222222222",
+      name: "Bolo de pote morango",
+      description: "Pote de 250 ml",
+      category: "Doces",
+      photoUrl: null,
+      extraPhotos: [],
+      code: null,
+      salePrice: 16,
+      saleUnit: "unit",
+      costPrice: 8,
+      recipeId: null,
+      stockQuantity: 4,
+      stockAlertThreshold: null,
+      isComposite: false,
+      isActive: true,
+      publicEnabled: true,
+      createdAt: "2026-08-18T12:00:00.000Z",
+    };
+    const rendered = render(
+      <StorefrontContentPreview
+        customization={customization}
+        products={[product]}
+        services={[]}
+        status="saved"
+        listing
+      />,
+    );
+
+    expect(rendered.container.textContent).toContain("Escolha o que deseja");
+    expect(rendered.container.textContent).toContain("Bolo de pote morango");
+    expect(rendered.container.textContent).toMatch(/R\$\s*16,00/);
+    expect(rendered.container.textContent).toContain("Pedir");
   });
 });

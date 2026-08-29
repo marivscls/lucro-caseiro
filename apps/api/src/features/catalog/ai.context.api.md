@@ -28,7 +28,9 @@ ativa/desativa, escolhe o endereço (`slug`) e o WhatsApp de pedidos no app.
 
 - `catalog.routes.ts` — `createCatalogRouter` (autenticado) e `createPublicCatalogRouter` (público)
 - `catalog.usecases.ts` — settings (defaults lazy, validação de slug), catálogo público
-- `catalog.domain.ts` — `slugify`, `isValidSlug`, `renderCatalogHtml` (puros)
+- `catalog.domain.ts` — `slugify`, `isValidSlug`, `renderCatalogHtml` (delega ao renderer)
+- `storefront-renderer.ts` — HTML da vitrine pública (layout atual)
+- `storefront-styles.ts` — CSS da vitrine pública
 - `catalog.repo.pg.ts` — persistência de settings + leitura de produtos ativos
 - `catalog.types.ts` — `ICatalogRepo`, `CatalogOwner`
 
@@ -126,10 +128,47 @@ invariants:
 
 ## Change log / Decisions
 
-- 2026-08-29: o editor mobile deixa de gravar busca, filtros, estilo de
-  topo e ações por item. O renderer público ainda aceita esses campos
-  em catálogos antigos; o próximo save aplica clássico, cards editoriais,
-  WhatsApp e Pedir/Agendar.
+- 2026-08-29: `/c/:slug` usa só o layout atual (`storefront-renderer`). Sem
+  JSON publicado, o HTML monta um tema padrão (capa, logo, nome, WhatsApp)
+  e não volta ao template legado. O rascunho do editor não aparece na
+  página pública até “Salvar e publicar”.
+
+- 2026-08-29: as abas Produtos/Serviços da vitrine pública ficam no
+  mesmo tamanho compacto das pílulas de categoria (32px, canto redondo).
+
+- 2026-08-29: a vitrine pública passou a um layout denso de catálogo:
+  faixa de aviso, capa curta (180–210px) com card da loja sobreposto,
+  busca real, chips de categoria, abas Produtos/Serviços com contagem,
+  trilho de Destaques (itens configurados ou os primeiros da lista) e
+  grade compacta. Cabeçalho sticky (logo, nome, busca e WhatsApp) aparece
+  quando o card da loja sai da tela (`IntersectionObserver`). O campo
+  vazio vinha do `input type=hidden` com `showSearch: false`; a busca
+  agora é sempre visível na página pública. O nome não usa mais
+  `max-width: 11ch` (quebrava palavras longas). FAB compacto “Contato”
+  some no topo e volta na rolagem.
+
+- 2026-08-29: título e frase da vitrine usam `identity.primaryColor` e
+  `identity.textColor`. O CSS do hero (h1, `.introduction`, `.signature`)
+  lê esses tokens; o fundo continua no creme da marca.
+
+- 2026-08-29: as abas Produtos/Serviços filtram de verdade: o HTML já
+  nasce com o outro tipo `hidden`/`is-hidden`, o grid e o shell usam
+  `data-kind-filter`, e o CSS `display:none !important` vem depois do
+  `display:flex` dos cards. Clicar Serviços some os produtos (e o
+  contrário). A prévia local do rascunho também troca a lista ao clicar.
+
+- 2026-08-29: a aba Serviços some os produtos de verdade. `[hidden]`
+  ganha `display:none !important` porque no Safari o `display:flex` dos
+  cards (e o `display:grid` do X da busca) ignorava o atributo. O clique
+  das abas/categorias ficou só nos controles, não nos cards.
+
+- 2026-08-29: o zoom da capa (`hero.coverFocal.scale`) usa o mesmo ponto
+  de `object-position` como `transform-origin`, para o recorte acompanhar
+  as setas do editor.
+
+- 2026-08-29: o editor mobile deixa de gravar busca e filtros. Estilo do
+  banner (clássico/editorial/compacto), assinatura e informações rápidas
+  continuam sendo salvos; o próximo save aplica cards editoriais e WhatsApp.
 
 - 2026-08-29: “Ver detalhes” abre um diálogo com nome, foto, preço e
   descrição (ou aviso se o item ainda não tem texto). O clique não depende
@@ -154,12 +193,12 @@ invariants:
 - 2026-08-19: `hero.removeBackground` decide se o destaque usa recorte
   (`processedUrl` + classe `featured-cutout`) ou a foto original (`featured-photo`).
 
-- 2026-08-19: nomes públicos passam por `displayCatalogName` no renderer (e no
-  HTML legado) para remover prefixos técnicos como `[massa]`. A capa continua
+- 2026-08-19: nomes públicos passam por `displayCatalogName` no renderer
+  para remover prefixos técnicos como `[massa]`. A capa continua
   vindo só de `coverUrl`/`serviceCoverUrl`; `hero.coverFocal` opcional ajusta
   `object-position` e zoom sem recriar a arte.
 
-- 2026-08-19: ícones de WhatsApp da vitrine (CTA do hero, atalho "Contato pelo WhatsApp", FAB e botões de pedido) usam o glifo oficial (balão + telefone, `fill="currentColor"`), no `storefront-renderer` e no HTML legado de `catalog.domain`.
+- 2026-08-19: ícones de WhatsApp da vitrine (CTA do hero, atalho "Contato pelo WhatsApp", FAB e botões de pedido) usam o glifo oficial (balão + telefone, `fill="currentColor"`) no `storefront-renderer`.
 
 - 2026-08-18: a vitrine publicada (`storefront-renderer` + `storefront-styles`) usa a mesma tipografia do app (Manrope 400–800, ADR-0008). Capa só via `coverUrl`/`serviceCoverUrl` com `object-fit: cover` e gradiente creme localizado à esquerda. A faixa promocional e o atalho com ícone `sparkles` mostram só o texto, sem o brilho. Busca+filtro no mesmo campo, categorias com sublinhado, abas Produtos/Serviços e cards com rodapé separado. Sem blob, SVG ou fotografia fixa no hero.
 

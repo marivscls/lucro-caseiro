@@ -6,6 +6,7 @@ import type {
   PublicCatalogService,
   StorefrontCustomization,
 } from "@lucro-caseiro/contracts";
+import { CATALOG_SLUG_REGEX } from "@lucro-caseiro/contracts";
 
 import { storefrontStyles } from "./storefront-styles";
 
@@ -70,11 +71,127 @@ function mix(hex: string, target: number, amount: number): string {
     .join("")}`;
 }
 
+function fallbackActionColor(accent: PublicCatalog["accentColor"]): string {
+  if (typeof accent === "string" && HEX.test(accent)) return accent;
+  if (accent === "green") return "#447a55";
+  if (accent === "lavender") return "#7a64b0";
+  if (accent === "blue") return "#3f74a0";
+  if (accent === "amber") return "#b3852f";
+  return "#B65F72";
+}
+
+export function defaultStorefrontCustomization(
+  catalog: PublicCatalog,
+): StorefrontCustomization {
+  const productCount = catalog.products.length;
+  const serviceCount = catalog.services?.length ?? 0;
+  let offeringMode: StorefrontCustomization["identity"]["offeringMode"] = "both";
+  if (productCount > 0 && serviceCount === 0) offeringMode = "products";
+  if (serviceCount > 0 && productCount === 0) offeringMode = "services";
+  const slug =
+    catalog.slug && CATALOG_SLUG_REGEX.test(catalog.slug) ? catalog.slug : "meu-catalogo";
+  const promotionalText = (catalog.promoBanner ?? "").trim().slice(0, 60);
+  const introduction = (catalog.tagline ?? "").trim().slice(0, 120);
+  const whatsapp = catalog.whatsapp?.replace(/\D/g, "") ?? "";
+  const displayName = catalog.businessName.trim().slice(0, 60) || "Meu negócio";
+  return {
+    version: 1,
+    identity: {
+      displayName,
+      logoUrl: catalog.logoUrl,
+      offeringMode,
+      primaryColor:
+        catalog.titleColor && HEX.test(catalog.titleColor)
+          ? catalog.titleColor
+          : "#4A2332",
+      actionColor: fallbackActionColor(catalog.accentColor),
+      backgroundColor: "#FAF8F6",
+      textColor:
+        catalog.descriptionColor && HEX.test(catalog.descriptionColor)
+          ? catalog.descriptionColor
+          : "#6D6266",
+    },
+    hero: {
+      style: "classic",
+      featuredItems: [],
+      removeBackground: false,
+      coverFocal: { x: 0.5, y: 0.5, scale: 1 },
+      smallScreenAlternativeUrl: null,
+      introduction,
+      shortSignature: "",
+      action: {
+        type: whatsapp ? "whatsapp" : "none",
+        label: whatsapp ? "Entrar em contato" : "",
+        ...(whatsapp ? { destination: whatsapp } : {}),
+      },
+      promotionalText,
+      showPromotionalBar: Boolean(promotionalText),
+      quickInfo: [],
+    },
+    organization: {
+      content: {
+        showProducts: true,
+        showServices: true,
+        showCategories: true,
+        sectionOrder: ["products", "services", "categories"],
+        initialSection: "all",
+      },
+      discovery: {
+        showSearch: true,
+        showCategories: true,
+        allowFilters: false,
+        allowSorting: false,
+        defaultSort: "featured",
+        visibleCategoryIds: [],
+        categoryOrder: [],
+      },
+      cards: {
+        style: "editorial",
+        showPrice: true,
+        showDetails: true,
+        showAvailability: true,
+        missingPriceBehavior: "consult",
+        missingPriceText: "Consultar",
+      },
+      actions: {
+        mode: "default",
+        productDefault: {
+          type: "order",
+          label: "Pedir",
+          channel: "whatsapp",
+          ...(whatsapp ? { destination: whatsapp } : {}),
+        },
+        serviceDefault: {
+          type: "schedule",
+          label: "Agendar",
+          channel: "whatsapp",
+          ...(whatsapp ? { destination: whatsapp } : {}),
+        },
+        itemOverrides: {},
+      },
+      contact: {
+        floatingEnabled: Boolean(whatsapp),
+        channel: "whatsapp",
+        destination: whatsapp,
+        defaultActionLabel: "Entrar em contato",
+        keepVisibleOnScroll: true,
+        initialMessage: "Olá! Vim pelo seu catálogo.",
+      },
+    },
+    publication: {
+      slug,
+      status: "published",
+      publishedAt: null,
+    },
+  };
+}
+
 export function storefrontTheme(customization: StorefrontCustomization) {
   const safe = (value: string, fallback: string) => (HEX.test(value) ? value : fallback);
   const primary = safe(customization.identity.primaryColor, "#4A2332");
   const action = safe(customization.identity.actionColor, "#B65F72");
   const background = safe(customization.identity.backgroundColor, "#FAF8F6");
+  const copy = safe(customization.identity.textColor, "#6D6266");
   const text = contrast(background, "#24181E") >= 4.5 ? "#24181E" : "#FFFFFF";
   const onPrimary = contrast(primary, "#FFFFFF") >= 4.5 ? "#FFFFFF" : "#24181E";
   const onAction = contrast(action, "#FFFFFF") >= 3 ? "#FFFFFF" : "#24181E";
@@ -84,7 +201,7 @@ export function storefrontTheme(customization: StorefrontCustomization) {
     background,
     surface: mix(background, text === "#24181E" ? 255 : 0, 0.08),
     text,
-    muted: text === "#24181E" ? "#6D6266" : "#E9E2E5",
+    muted: copy,
     soft: mix(action, 255, 0.86),
     highlight: "#DCE86A",
     border: mix(primary, 255, 0.78),
@@ -174,41 +291,39 @@ const WHATSAPP_GLYPH = `<svg class="whatsapp-icon" viewBox="0 0 24 24" width="24
 function icon(name: string): string {
   if (name === "sparkles") return "";
   if (name === "whatsapp") return WHATSAPP_GLYPH;
-  const paths: Record<string, string> = {
-    delivery:
+  const paths = new Map<string, string>([
+    [
+      "delivery",
       '<path d="M3 6h11v11H3z"/><path d="M14 10h4l3 3v4h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/>',
-    calendar:
+    ],
+    [
+      "calendar",
       '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4m8-4v4M3 10h18"/>',
-    store: '<path d="M4 10v10h16V10M3 4h18l-2 6H5L3 4Z"/><path d="M9 20v-6h6v6"/>',
-    search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
-    filter: '<path d="M4 7h16M7 12h10M10 17h4"/>',
-    sort: '<path d="M8 6v12m0 0-3-3m3 3 3-3M16 18V6m0 0-3 3m3-3 3 3"/>',
-    chevron: '<path d="m9 18 6-6-6-6"/>',
-    close: '<path d="m6 6 12 12M18 6 6 18"/>',
-    clock: '<circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/>',
-    check: '<circle cx="12" cy="12" r="8"/><path d="m8.5 12 2.4 2.4L16 9"/>',
-    unavailable: '<circle cx="12" cy="12" r="8"/><path d="m9 9 6 6M15 9l-6 6"/>',
-    pin: '<path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/>',
-    heart:
+    ],
+    ["store", '<path d="M4 10v10h16V10M3 4h18l-2 6H5L3 4Z"/><path d="M9 20v-6h6v6"/>'],
+    ["search", '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>'],
+    [
+      "box",
+      '<path d="M3 8.2 12 3.5l9 4.7v9.3L12 22.2 3 17.5z"/><path d="m3 8.2 9 4.8 9-4.8M12 13v9.2"/>',
+    ],
+    ["filter", '<path d="M4 7h16M7 12h10M10 17h4"/>'],
+    ["sort", '<path d="M8 6v12m0 0-3-3m3 3 3-3M16 18V6m0 0-3 3m3-3 3 3"/>'],
+    ["chevron", '<path d="m9 18 6-6-6-6"/>'],
+    ["close", '<path d="m6 6 12 12M18 6 6 18"/>'],
+    ["clock", '<circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/>'],
+    ["check", '<circle cx="12" cy="12" r="8"/><path d="m8.5 12 2.4 2.4L16 9"/>'],
+    ["unavailable", '<circle cx="12" cy="12" r="8"/><path d="m9 9 6 6M15 9l-6 6"/>'],
+    [
+      "pin",
+      '<path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/>',
+    ],
+    [
+      "heart",
       '<path d="M12 20s-7-4.35-7-9.15C5 8.1 7 6.2 9.15 6.2c1.25 0 2.35.7 2.85 1.75.5-1.05 1.6-1.75 2.85-1.75C17 6.2 19 8.1 19 10.85 19 15.65 12 20 12 20Z"/>',
-  };
-  return `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${paths[name] ?? paths.store}</svg>`;
-}
-
-function transformStyle(customization: StorefrontCustomization, id: string): string {
-  const names = ["smallMobile", "mobile", "tablet", "desktop"] as const;
-  const aliases = ["sm", "mo", "ta", "de"];
-  return names
-    .map((breakpoint, index) => {
-      const value = featuredTransformFor(customization, id, breakpoint) ?? {
-        x: 0.5,
-        y: 0.5,
-        scale: 1,
-        layer: index,
-      };
-      return `--x-${aliases[index]}:${value.x * 100}%;--y-${aliases[index]}:${value.y * 100}%;--s-${aliases[index]}:${value.scale};--z-${aliases[index]}:${value.layer}`;
-    })
-    .join(";");
+    ],
+  ]);
+  const glyph = paths.get(name) ?? paths.get("store");
+  return `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${glyph}</svg>`;
 }
 
 export function resolveFeaturedVisual(
@@ -240,25 +355,6 @@ export function serviceListedPrice(
   return { amount: min, hasRange: min !== max };
 }
 
-function heroVisuals(customization: StorefrontCustomization): string {
-  const alternative = customization.hero.smallScreenAlternativeUrl;
-  const alternativeHtml = alternative
-    ? `<img class="hero-small-alternative" src="${escapeHtml(alternative)}" alt="" width="720" height="520" fetchpriority="high">`
-    : "";
-  const featuredItems = customization.hero.featuredItems.filter(
-    (item) => resolveFeaturedVisual(item, customization.hero.removeBackground).source,
-  );
-  const items = featuredItems
-    .map((item, index) => {
-      const visual = resolveFeaturedVisual(item, customization.hero.removeBackground);
-      const treatment = visual.cutout ? "featured-cutout" : "featured-photo";
-      return `<img class="featured featured-${index + 1} ${treatment}" src="${escapeHtml(visual.source!)}" alt="${escapeHtml(displayCatalogName(item.altText))}" width="640" height="640" ${index === 0 ? 'fetchpriority="high"' : 'loading="eager"'} style="${transformStyle(customization, item.id)}">`;
-    })
-    .join("");
-  if (!items && !alternativeHtml) return "";
-  return `<div class="hero-visual visual-${featuredItems.length}" aria-label="Destaques da vitrine">${alternativeHtml}${items}</div>`;
-}
-
 function heroCover(
   catalog: PublicCatalog,
   customization: StorefrontCustomization,
@@ -282,10 +378,33 @@ function offeringEyebrow(
   return "Produtos e serviços";
 }
 
-function actionGlyph(action: CatalogItemAction): string {
-  if (action.type === "schedule") return icon("calendar");
-  if (action.type === "details" || action.type === "externalLink") return icon("chevron");
-  return icon("whatsapp");
+function storeLogo(
+  catalog: PublicCatalog,
+  customization: StorefrontCustomization,
+  size: number,
+): string {
+  const logoUrl = customization.identity.logoUrl ?? catalog.logoUrl;
+  return logoUrl
+    ? `<img src="${escapeHtml(logoUrl)}" alt="Logo de ${escapeHtml(customization.identity.displayName)}" width="${size}" height="${size}">`
+    : `<span class="logo-placeholder" aria-hidden="true">${icon("store")}</span>`;
+}
+
+function contactWhatsappHref(
+  catalog: PublicCatalog,
+  customization: StorefrontCustomization,
+): string | null {
+  const contact = customization.organization.contact;
+  const action = customization.hero.action;
+  const destination =
+    (action.type === "whatsapp" || action.type === "quote"
+      ? action.destination
+      : undefined) ??
+    contact.destination ??
+    catalog.whatsapp ??
+    "";
+  const message =
+    contact.initialMessage || "Olá! Vim pelo seu catálogo e gostaria de saber mais.";
+  return whatsappUrl(destination, message);
 }
 
 function heroAction(
@@ -294,7 +413,6 @@ function heroAction(
 ): string {
   const action = customization.hero.action;
   if (action.type === "none" || !action.label.trim()) return "";
-  const contact = customization.organization.contact;
   const glyph =
     action.type === "whatsapp" || action.type === "quote"
       ? icon("whatsapp")
@@ -306,11 +424,7 @@ function heroAction(
       : "";
   }
   if (action.type === "whatsapp" || action.type === "quote") {
-    const destination =
-      action.destination ?? contact.destination ?? catalog.whatsapp ?? "";
-    const message =
-      contact.initialMessage || "Olá! Vim pelo seu catálogo e gostaria de saber mais.";
-    const href = whatsappUrl(destination, message);
+    const href = contactWhatsappHref(catalog, customization);
     return href
       ? `<a class="primary-action" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${glyph} ${escapeHtml(action.label)}</a>`
       : "";
@@ -318,6 +432,18 @@ function heroAction(
   const externalSchedule = safeExternalUrl(action.destination);
   const href = externalSchedule ?? "#storefront-list";
   return `<a class="primary-action" href="${escapeHtml(href)}"${externalSchedule ? ' target="_blank" rel="noopener noreferrer"' : ""}>${glyph} ${escapeHtml(action.label)}</a>`;
+}
+
+function compactHeader(
+  catalog: PublicCatalog,
+  customization: StorefrontCustomization,
+): string {
+  const name = customization.identity.displayName;
+  const href = contactWhatsappHref(catalog, customization);
+  const whatsapp = href
+    ? `<a class="icon-button" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" aria-label="Conversar no WhatsApp">${icon("whatsapp")}</a>`
+    : "";
+  return `<header class="compact-header" data-compact-header aria-hidden="true"><div class="compact-header-inner"><a class="compact-brand" href="#topo">${storeLogo(catalog, customization, 72)}<span>${escapeHtml(name)}</span></a><div class="compact-actions"><a class="icon-button" href="#storefront-search" data-compact-search aria-label="Buscar no catálogo">${icon("search")}</a>${whatsapp}</div></div></header>`;
 }
 
 function renderHero(
@@ -330,10 +456,6 @@ function renderHero(
     ? (catalog.services?.length ?? 0)
     : 0;
   const counts = countLabel(products, services);
-  const logoUrl = identity.logoUrl ?? catalog.logoUrl;
-  const logo = logoUrl
-    ? `<img src="${escapeHtml(logoUrl)}" alt="Logo de ${escapeHtml(identity.displayName)}" width="120" height="120">`
-    : `<span class="logo-placeholder" aria-hidden="true">${icon("store")}</span>`;
   const promo =
     hero.showPromotionalBar && hero.promotionalText.trim()
       ? `<aside class="announcement" aria-label="Aviso"><span>${escapeHtml(hero.promotionalText)}</span></aside>`
@@ -345,9 +467,10 @@ function renderHero(
     ? `<p class="introduction">${escapeHtml(hero.introduction)}</p>`
     : "";
   const cover = heroCover(catalog, customization);
-  const visuals = cover ? "" : heroVisuals(customization);
-  const visualClass = cover ? " has-cover" : visuals ? " has-visual" : " no-visual";
-  return `${promo}<section class="storefront-hero hero-${hero.style}${visualClass}" aria-labelledby="storefront-title">${cover}<div class="hero-copy"><div class="identity-mark">${logo}</div><p class="eyebrow">${escapeHtml(offeringEyebrow(identity.offeringMode))}</p><h1 id="storefront-title">${escapeHtml(identity.displayName)}</h1>${intro}${signature}${counts ? `<p class="counts">${escapeHtml(counts)}</p>` : ""}${heroAction(catalog, customization)}</div>${visuals}</section>`;
+  const visualClass = cover ? " has-cover" : " no-visual";
+  const status = `<span class="status-chip"><span class="status-dot" aria-hidden="true"></span>Aceitando encomendas</span>`;
+  const countsRow = `<div class="store-meta">${counts ? `<p class="counts">${icon("box")} ${escapeHtml(counts)}</p>` : ""}${status}</div>`;
+  return `${promo}<section id="topo" class="storefront-hero hero-${hero.style}${visualClass}" data-hero-sentinel aria-labelledby="storefront-title"><div class="hero-cover-wrap">${cover}</div><div class="store-card"><div class="identity-mark">${storeLogo(catalog, customization, 144)}</div><p class="eyebrow">${escapeHtml(offeringEyebrow(identity.offeringMode))}</p><h1 id="storefront-title">${escapeHtml(identity.displayName)}</h1>${intro}${signature}${countsRow}${heroAction(catalog, customization)}${quickInfo(customization)}</div></section>`;
 }
 
 function quickInfo(customization: StorefrontCustomization): string {
@@ -365,12 +488,10 @@ function quickInfo(customization: StorefrontCustomization): string {
 }
 
 function locationLabel(mode: PublicCatalogService["locationMode"]): string {
-  return {
-    business: "Presencial",
-    client: "No endereço do cliente",
-    online: "Online",
-    flexible: "Local a combinar",
-  }[mode];
+  if (mode === "client") return "No endereço do cliente";
+  if (mode === "online") return "Online";
+  if (mode === "flexible") return "Local a combinar";
+  return "Presencial";
 }
 
 function actionLabel(action: CatalogItemAction): string {
@@ -388,43 +509,47 @@ function actionLabel(action: CatalogItemAction): string {
   }[action.type];
 }
 
-function itemAction(
+function itemHit(
   catalog: PublicCatalog,
   customization: StorefrontCustomization,
   kind: ItemKind,
   item: PublicCatalogProduct | PublicCatalogService,
+  inner: string,
 ): string {
   const action = resolveStorefrontAction(customization, kind, item.id);
   const label = actionLabel(action);
-  if (action.type === "none" || !label) return "";
-  const glyph = actionGlyph(action);
+  const visibleName = displayCatalogName(item.name);
+  const aria = label ? `${label}: ${visibleName}` : visibleName;
   if (action.type === "details") {
-    return `<button class="card-action details-action" type="button" data-details aria-haspopup="dialog">${glyph} ${escapeHtml(label)}</button>`;
+    return `<button class="card-hit details-action" type="button" data-details aria-haspopup="dialog" aria-label="${escapeHtml(aria)}">${inner}</button>`;
   }
   if (action.type === "schedule" && kind === "service") {
     const external = safeExternalUrl(action.destination);
     return external
-      ? `<a class="card-action" href="${escapeHtml(external)}" target="_blank" rel="noopener noreferrer">${glyph} ${escapeHtml(label)}</a>`
-      : `<button class="card-action schedule-action" type="button" data-service-id="${escapeHtml(item.id)}" data-service-name="${escapeHtml(displayCatalogName(item.name))}">${glyph} ${escapeHtml(label)}</button>`;
+      ? `<a class="card-hit" href="${escapeHtml(external)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(aria)}">${inner}</a>`
+      : `<button class="card-hit schedule-action" type="button" data-service-id="${escapeHtml(item.id)}" data-service-name="${escapeHtml(visibleName)}" aria-label="${escapeHtml(aria)}">${inner}</button>`;
   }
   if (action.type === "externalLink") {
     const external = safeExternalUrl(action.destination);
     return external
-      ? `<a class="card-action" href="${escapeHtml(external)}" target="_blank" rel="noopener noreferrer">${glyph} ${escapeHtml(label)}</a>`
-      : "";
+      ? `<a class="card-hit" href="${escapeHtml(external)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(aria)}">${inner}</a>`
+      : `<button class="card-hit details-action" type="button" data-details aria-haspopup="dialog" aria-label="${escapeHtml(aria)}">${inner}</button>`;
+  }
+  if (action.type === "none" || !label) {
+    return `<button class="card-hit details-action" type="button" data-details aria-haspopup="dialog" aria-label="${escapeHtml(aria)}">${inner}</button>`;
   }
   const contact = customization.organization.contact;
   const destination = action.destination ?? contact.destination ?? catalog.whatsapp ?? "";
   const fallback =
     action.type === "quote"
-      ? `Olá! Gostaria de solicitar um orçamento para “${displayCatalogName(item.name)}”.`
+      ? `Olá! Gostaria de solicitar um orçamento para “${visibleName}”.`
       : action.type === "order" || action.type === "preorder"
-        ? `Olá! Gostaria de pedir “${displayCatalogName(item.name)}”.`
-        : `Olá! Vi o item “${displayCatalogName(item.name)}” no seu catálogo e gostaria de saber mais.`;
+        ? `Olá! Gostaria de pedir “${visibleName}”.`
+        : `Olá! Vi o item “${visibleName}” no seu catálogo e gostaria de saber mais.`;
   const href = whatsappUrl(destination, action.initialMessage || fallback);
   return href
-    ? `<a class="card-action" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${glyph} ${escapeHtml(label)}</a>`
-    : "";
+    ? `<a class="card-hit" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(aria)}">${inner}</a>`
+    : `<button class="card-hit details-action" type="button" data-details aria-haspopup="dialog" aria-label="${escapeHtml(aria)}">${inner}</button>`;
 }
 
 function placeholderVisual(kind: ItemKind): string {
@@ -474,10 +599,11 @@ function productCard(
   customization: StorefrontCustomization,
   product: PublicCatalogProduct,
   index: number,
+  hidden = false,
 ): string {
   const visibleName = displayCatalogName(product.name);
   const image = product.photoUrl
-    ? `<div class="item-image"><img src="${escapeHtml(product.photoUrl)}" alt="${escapeHtml(visibleName)}" width="720" height="540" ${index < 2 ? 'loading="eager"' : 'loading="lazy"'}></div>`
+    ? `<div class="item-image"><img src="${escapeHtml(product.photoUrl)}" alt="" width="720" height="540" ${index < 4 ? 'loading="eager"' : 'loading="lazy"'}></div>`
     : placeholderVisual("product");
   const description =
     customization.organization.cards.showDetails && product.description
@@ -506,7 +632,8 @@ function productCard(
         : "Indisponível"
       : "",
   });
-  return `<article class="storefront-card product-card" data-kind="products" data-category="${escapeHtml(product.category)}" data-search="${escapeHtml(search)}" data-name="${escapeHtml(normalizeText(visibleName))}" data-price="${product.salePrice}" data-order="${index}" ${details}>${image}<div class="item-body">${category}<h3>${escapeHtml(visibleName)}</h3>${description}${priceMarkup(product.salePrice, customization, prefix)}<div class="item-footer">${availability}${itemAction(catalog, customization, "product", product)}</div></div></article>`;
+  const inner = `${image}<div class="item-body">${category}<h3>${escapeHtml(visibleName)}</h3>${description}${priceMarkup(product.salePrice, customization, prefix)}${availability}</div>`;
+  return `<article class="storefront-card product-card${hidden ? " is-hidden" : ""}" data-kind="products" data-category="${escapeHtml(product.category)}" data-search="${escapeHtml(search)}" data-name="${escapeHtml(normalizeText(visibleName))}" data-price="${product.salePrice}" data-order="${index}" ${hidden ? "hidden " : ""}${details}>${itemHit(catalog, customization, "product", product, inner)}</article>`;
 }
 
 function serviceCard(
@@ -514,6 +641,7 @@ function serviceCard(
   customization: StorefrontCustomization,
   service: PublicCatalogService,
   index: number,
+  hidden = false,
 ): string {
   const visibleName = displayCatalogName(service.name);
   const description =
@@ -534,7 +662,69 @@ function serviceCard(
     photoUrl: null,
     meta: `${service.durationMinutes} min · ${place}`,
   });
-  return `<article class="storefront-card service-card" data-kind="services" data-category="" data-search="${escapeHtml(search)}" data-name="${escapeHtml(normalizeText(visibleName))}" data-price="${listed.amount ?? ""}" data-order="${index}" ${details}>${placeholderVisual("service")}<div class="item-body"><p class="item-category">SERVIÇO</p><h3>${escapeHtml(visibleName)}</h3>${description}${priceMarkup(listed.amount, customization, prefix)}<div class="item-footer">${meta}${itemAction(catalog, customization, "service", service)}</div></div></article>`;
+  const inner = `${placeholderVisual("service")}<div class="item-body"><p class="item-category">SERVIÇO</p><h3>${escapeHtml(visibleName)}</h3>${description}${priceMarkup(listed.amount, customization, prefix)}${meta}</div>`;
+  return `<article class="storefront-card service-card${hidden ? " is-hidden" : ""}" data-kind="services" data-category="" data-search="${escapeHtml(search)}" data-name="${escapeHtml(normalizeText(visibleName))}" data-price="${listed.amount ?? ""}" data-order="${index}" ${hidden ? "hidden " : ""}${details}>${itemHit(catalog, customization, "service", service, inner)}</article>`;
+}
+
+function highlightImage(
+  customization: StorefrontCustomization,
+  product: PublicCatalogProduct,
+): string {
+  const featured = customization.hero.featuredItems.find(
+    (item) => item.sourceId === product.id,
+  );
+  const visual = featured
+    ? resolveFeaturedVisual(featured, customization.hero.removeBackground)
+    : { source: product.photoUrl, cutout: false };
+  const source = visual.source ?? product.photoUrl;
+  if (!source) return placeholderVisual("product");
+  const treatment = visual.cutout ? "featured-cutout" : "featured-photo";
+  return `<div class="item-image"><img class="featured featured-1 ${treatment}" src="${escapeHtml(source)}" alt="" width="640" height="640" loading="lazy"></div>`;
+}
+
+function highlightCards(
+  catalog: PublicCatalog,
+  customization: StorefrontCustomization,
+  products: PublicCatalogProduct[],
+  services: PublicCatalogService[],
+  initialType: string,
+): string {
+  const featuredIds = customization.hero.featuredItems.map((item) => item.sourceId);
+  const featuredProducts = featuredIds
+    .map((id) => products.find((item) => item.id === id))
+    .filter((item): item is PublicCatalogProduct => Boolean(item));
+  const highlightProducts = (featuredProducts.length ? featuredProducts : products).slice(
+    0,
+    6,
+  );
+  const highlightServices = services.slice(0, 4);
+  if (!highlightProducts.length && !highlightServices.length) return "";
+  const productCards = highlightProducts
+    .map((product, index) => {
+      const visibleName = displayCatalogName(product.name);
+      const prefix = productHasPriceRange(product) ? "a partir de " : "";
+      const inner = `${highlightImage(customization, product)}<div class="item-body"><h3>${escapeHtml(visibleName)}</h3>${priceMarkup(product.salePrice, customization, prefix)}</div>`;
+      const hidden = initialType !== "products";
+      const search = normalizeText(
+        `${visibleName} ${product.description ?? ""} ${product.category}`,
+      );
+      return `<article class="highlight-card${hidden ? " is-hidden" : ""}" data-kind="products" data-category="${escapeHtml(product.category)}" data-search="${escapeHtml(search)}" ${hidden ? "hidden " : ""}data-order="${index}">${itemHit(catalog, customization, "product", product, inner)}</article>`;
+    })
+    .join("");
+  const serviceCards = highlightServices
+    .map((service, index) => {
+      const visibleName = displayCatalogName(service.name);
+      const listed = serviceListedPrice(service);
+      const prefix = listed.hasRange ? "a partir de " : "";
+      const inner = `${placeholderVisual("service")}<div class="item-body"><h3>${escapeHtml(visibleName)}</h3>${priceMarkup(listed.amount, customization, prefix)}</div>`;
+      const hidden = initialType !== "services";
+      const search = normalizeText(`${visibleName} ${service.description ?? ""} serviço`);
+      return `<article class="highlight-card${hidden ? " is-hidden" : ""}" data-kind="services" data-category="" data-search="${escapeHtml(search)}" ${hidden ? "hidden " : ""}data-order="${index}">${itemHit(catalog, customization, "service", service, inner)}</article>`;
+    })
+    .join("");
+  const cards = `${productCards}${serviceCards}`;
+  if (!cards) return "";
+  return `<section class="highlights" aria-labelledby="highlights-title"><header class="highlights-header"><h2 id="highlights-title">Destaques</h2><button class="highlights-next" type="button" aria-label="Ver mais destaques">${icon("chevron")}</button></header><div class="highlights-rail" data-kind-filter="${initialType}">${cards}</div></section>`;
 }
 
 function structuredData(catalog: PublicCatalog, customization: StorefrontCustomization) {
@@ -612,7 +802,7 @@ function storefrontScript(
   defaultSort: string,
 ): string {
   const nonceAttr = nonce ? ` nonce="${nonce}"` : "";
-  return `<script${nonceAttr}>(()=>{const root=document.querySelector('[data-storefront]');const cards=[...document.querySelectorAll('.storefront-card')];const search=document.getElementById('storefront-search');const clear=document.getElementById('search-clear');const sort=document.getElementById('storefront-sort');const status=document.getElementById('results-status');const empty=document.getElementById('no-results');const params=new URLSearchParams(location.search);let type=params.get('tipo')==='servicos'?'services':params.get('tipo')==='produtos'?'products':'${initialType}';let category=params.get('categoria')||'';let timer;const norm=v=>v.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');const syncUrl=()=>{const next=new URL(location.href);next.searchParams.set('tipo',type==='services'?'servicos':'produtos');search.value?next.searchParams.set('q',search.value):next.searchParams.delete('q');category?next.searchParams.set('categoria',category):next.searchParams.delete('categoria');sort.value!=='${defaultSort}'?next.searchParams.set('ordem',sort.value):next.searchParams.delete('ordem');history.replaceState(null,'',next)};const update=()=>{const query=norm(search.value.trim());let visible=0;cards.forEach(card=>{const showType=card.dataset.kind===type;const showCategory=!category||card.dataset.category===category;const showSearch=!query||card.dataset.search.includes(query);card.hidden=!(showType&&showCategory&&showSearch);if(!card.hidden)visible++});const ordered=[...cards].sort((a,b)=>{if(sort.value==='priceLow')return (Number(a.dataset.price)||Number.MAX_SAFE_INTEGER)-(Number(b.dataset.price)||Number.MAX_SAFE_INTEGER);if(sort.value==='priceHigh')return (Number(b.dataset.price)||-1)-(Number(a.dataset.price)||-1);if(sort.value==='name')return a.dataset.name.localeCompare(b.dataset.name,'pt-BR');return Number(a.dataset.order)-Number(b.dataset.order)});const grid=document.querySelector('.storefront-grid');ordered.forEach(card=>grid.append(card));document.querySelectorAll('[data-type]').forEach(button=>{const active=button.dataset.type===type;button.setAttribute('aria-selected',String(active));button.tabIndex=active?0:-1});document.querySelectorAll('[data-category]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.category===category)));clear.hidden=!search.value;empty.hidden=visible>0;status.textContent=visible===1?'1 resultado':visible+' resultados';syncUrl()};document.querySelectorAll('[data-type]').forEach(button=>button.addEventListener('click',()=>{type=button.dataset.type;category='';update()}));document.querySelectorAll('[data-category]').forEach(button=>button.addEventListener('click',()=>{category=button.dataset.category;update()}));search.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(update,300)});clear?.addEventListener('click',()=>{search.value='';search.focus();update()});sort.addEventListener('change',update);search.value=params.get('q')||'';sort.value=params.get('ordem')||'${defaultSort}';const details=document.getElementById('item-details-dialog');document.querySelectorAll('[data-details]').forEach(button=>button.addEventListener('click',()=>{const card=button.closest('.storefront-card');if(!card)return;if(details){const title=document.getElementById('item-details-title');const copy=document.getElementById('item-details-copy');const price=document.getElementById('item-details-price');const meta=document.getElementById('item-details-meta');const photo=document.getElementById('item-details-photo');title.textContent=card.getAttribute('data-detail-name')||'';const text=card.getAttribute('data-detail-description')||'';copy.textContent=text||'Este item ainda não tem uma descrição.';price.textContent=card.getAttribute('data-detail-price')||'';price.hidden=!price.textContent;meta.textContent=card.getAttribute('data-detail-meta')||'';meta.hidden=!meta.textContent;const src=card.getAttribute('data-detail-photo')||'';if(src){photo.hidden=false;photo.src=src;photo.alt=title.textContent}else{photo.hidden=true;photo.removeAttribute('src')}try{details.showModal()}catch{card.querySelector('[data-detail-copy]')?.classList.add('expanded')}requestAnimationFrame(()=>title.focus());return}const hidden=card.querySelector('[data-detail-copy]');if(!hidden)return;hidden.classList.toggle('expanded')}));details?.querySelector('.dialog-close')?.addEventListener('click',()=>details.close());const filter=document.getElementById('filter-dialog');const filterOpen=document.getElementById('filter-open');let filterReturn;filterOpen?.addEventListener('click',()=>{filterReturn=document.activeElement;filter.showModal()});filter?.querySelector('.dialog-close').addEventListener('click',()=>filter.close());filter?.addEventListener('close',()=>filterReturn?.focus());document.getElementById('filter-clear')?.addEventListener('click',()=>{category='';filter.close();update()});const booking=document.getElementById('booking-dialog');const bookingForm=document.getElementById('booking-form');document.querySelectorAll('.schedule-action').forEach(button=>button.addEventListener('click',()=>{document.getElementById('booking-service-id').value=button.dataset.serviceId;document.getElementById('booking-title').textContent=button.dataset.serviceName;document.getElementById('booking-message').textContent='';booking.showModal();requestAnimationFrame(()=>document.getElementById('booking-title').focus())}));booking?.querySelector('.dialog-close').addEventListener('click',()=>booking.close());bookingForm?.addEventListener('submit',async event=>{event.preventDefault();const message=document.getElementById('booking-message');message.textContent='Enviando solicitação…';try{const response=await fetch(location.pathname+'/service-bookings',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({serviceId:document.getElementById('booking-service-id').value,clientName:document.getElementById('booking-name').value,phone:document.getElementById('booking-phone').value,desiredDate:document.getElementById('booking-date').value,desiredTime:document.getElementById('booking-time').value||null,locationMode:document.getElementById('booking-location').value,notes:document.getElementById('booking-notes').value||null})});const result=await response.json();if(!response.ok)throw new Error(result.message||result.details?.join(' • ')||'Não foi possível enviar.');bookingForm.reset();message.textContent='Solicitação enviada. O negócio entrará em contato para confirmar.'}catch(error){message.textContent=error.message}});const floating=document.querySelector('.floating-contact');if(floating){let frame=0;const sync=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{const box=floating.getBoundingClientRect();const hits=[...document.querySelectorAll('.card-action')].some(el=>{const card=el.closest('.storefront-card');if(card?.hidden)return false;const r=el.getBoundingClientRect();return r.bottom>box.top&&r.top<box.bottom&&r.right>box.left&&r.left<box.right});floating.classList.toggle('obscured',hits)})};addEventListener('scroll',sync,{passive:true});addEventListener('resize',sync);sync()}update()})()</script>`;
+  return `<script${nonceAttr}>(()=>{const root=document.querySelector('[data-storefront]');const cards=[...document.querySelectorAll('.storefront-card')];const highlights=[...document.querySelectorAll('.highlight-card')];const search=document.getElementById('storefront-search');const clear=document.getElementById('search-clear');const sort=document.getElementById('storefront-sort');const status=document.getElementById('results-status');const empty=document.getElementById('no-results');const params=new URLSearchParams(location.search);let type=params.get('tipo')==='servicos'?'services':params.get('tipo')==='produtos'?'products':'${initialType}';let category=params.get('categoria')||'';let timer;const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;const norm=v=>v.normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLocaleLowerCase('pt-BR');const syncUrl=()=>{try{const next=new URL(location.href);if(next.protocol==='http:'||next.protocol==='https:'){next.searchParams.set('tipo',type==='services'?'servicos':'produtos');search?.value?next.searchParams.set('q',search.value):next.searchParams.delete('q');category?next.searchParams.set('categoria',category):next.searchParams.delete('categoria');sort&&sort.value!=='${defaultSort}'?next.searchParams.set('ordem',sort.value):next.searchParams.delete('ordem');history.replaceState(null,'',next)}}catch{}};const applyVisibility=(card)=>{const showType=card.dataset.kind===type;const showCategory=type==='services'||!category||card.dataset.category===category;const showSearch=!norm((search?.value||'').trim())||card.dataset.search.includes(norm((search?.value||'').trim()));const show=showType&&showCategory&&showSearch;card.hidden=!show;card.classList.toggle('is-hidden',!show);return show};const update=()=>{const grid=document.querySelector('.storefront-grid');const rail=document.querySelector('.highlights-rail');if(root)root.dataset.kindFilter=type;if(grid)grid.dataset.kindFilter=type;if(rail)rail.dataset.kindFilter=type;const query=norm((search?.value||'').trim());let visible=0;cards.forEach(card=>{const showType=card.dataset.kind===type;const showCategory=type==='services'||!category||card.dataset.category===category;const showSearch=!query||card.dataset.search.includes(query);const show=showType&&showCategory&&showSearch;card.hidden=!show;card.classList.toggle('is-hidden',!show);if(show)visible++});let highlightVisible=0;highlights.forEach(card=>{if(applyVisibility(card))highlightVisible++});const highlightsSection=document.querySelector('.highlights');if(highlightsSection)highlightsSection.hidden=highlightVisible===0;const ordered=[...cards].sort((a,b)=>{if(sort?.value==='priceLow')return (Number(a.dataset.price)||Number.MAX_SAFE_INTEGER)-(Number(b.dataset.price)||Number.MAX_SAFE_INTEGER);if(sort?.value==='priceHigh')return (Number(b.dataset.price)||-1)-(Number(a.dataset.price)||-1);if(sort?.value==='name')return a.dataset.name.localeCompare(b.dataset.name,'pt-BR');return Number(a.dataset.order)-Number(b.dataset.order)});ordered.forEach(card=>grid?.append(card));document.querySelectorAll('.type-tabs [data-type]').forEach(button=>{const active=button.dataset.type===type;button.setAttribute('aria-selected',String(active));button.tabIndex=active?0:-1});document.querySelectorAll('.category-scroll [data-category]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.category===category)));if(clear)clear.hidden=!search.value;if(empty)empty.hidden=visible>0;if(status)status.textContent=visible===1?'1 resultado':visible+' resultados';syncUrl()};document.querySelectorAll('.type-tabs [data-type]').forEach(button=>button.addEventListener('click',()=>{type=button.dataset.type;category='';update()}));document.querySelectorAll('.category-scroll [data-category]').forEach(button=>button.addEventListener('click',()=>{category=button.dataset.category;update()}));search?.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(update,300)});clear?.addEventListener('click',()=>{if(search)search.value='';search?.focus();update()});sort?.addEventListener('change',update);if(search)search.value=params.get('q')||'';if(sort)sort.value=params.get('ordem')||'${defaultSort}';const details=document.getElementById('item-details-dialog');document.querySelectorAll('[data-details]').forEach(button=>button.addEventListener('click',()=>{const card=button.closest('article');if(!card)return;if(details){const title=document.getElementById('item-details-title');const copy=document.getElementById('item-details-copy');const price=document.getElementById('item-details-price');const meta=document.getElementById('item-details-meta');const photo=document.getElementById('item-details-photo');title.textContent=card.getAttribute('data-detail-name')||'';const text=card.getAttribute('data-detail-description')||'';copy.textContent=text||'Este item ainda não tem uma descrição.';price.textContent=card.getAttribute('data-detail-price')||'';price.hidden=!price.textContent;meta.textContent=card.getAttribute('data-detail-meta')||'';meta.hidden=!meta.textContent;const src=card.getAttribute('data-detail-photo')||'';if(src){photo.hidden=false;photo.src=src;photo.alt=title.textContent}else{photo.hidden=true;photo.removeAttribute('src')}try{details.showModal()}catch{card.querySelector('[data-detail-copy]')?.classList.add('expanded')}requestAnimationFrame(()=>title.focus());return}const hidden=card.querySelector('[data-detail-copy]');if(!hidden)return;hidden.classList.toggle('expanded')}));details?.querySelector('.dialog-close')?.addEventListener('click',()=>details.close());const booking=document.getElementById('booking-dialog');const bookingForm=document.getElementById('booking-form');document.querySelectorAll('.schedule-action').forEach(button=>button.addEventListener('click',()=>{document.getElementById('booking-service-id').value=button.dataset.serviceId;document.getElementById('booking-title').textContent=button.dataset.serviceName;document.getElementById('booking-message').textContent='';booking.showModal();requestAnimationFrame(()=>document.getElementById('booking-title').focus())}));booking?.querySelector('.dialog-close').addEventListener('click',()=>booking.close());bookingForm?.addEventListener('submit',async event=>{event.preventDefault();const message=document.getElementById('booking-message');message.textContent='Enviando solicitação…';try{const response=await fetch(location.pathname+'/service-bookings',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({serviceId:document.getElementById('booking-service-id').value,clientName:document.getElementById('booking-name').value,phone:document.getElementById('booking-phone').value,desiredDate:document.getElementById('booking-date').value,desiredTime:document.getElementById('booking-time').value||null,locationMode:document.getElementById('booking-location').value,notes:document.getElementById('booking-notes').value||null})});const result=await response.json();if(!response.ok)throw new Error(result.message||result.details?.join(' • ')||'Não foi possível enviar.');bookingForm.reset();message.textContent='Solicitação enviada. O negócio entrará em contato para confirmar.'}catch(error){message.textContent=error.message}});const rail=document.querySelector('.highlights-rail');const next=document.querySelector('.highlights-next');const syncRail=()=>{if(!rail||!next)return;next.hidden=rail.scrollWidth<=rail.clientWidth+12};next?.addEventListener('click',()=>rail?.scrollBy({left:Math.round(rail.clientWidth*.72),behavior:reduce?'auto':'smooth'}));addEventListener('resize',syncRail);const compact=document.querySelector('[data-compact-header]');const sentinel=document.querySelector('[data-hero-sentinel]');document.body.classList.add('js-ready');if(sentinel&&compact&&'IntersectionObserver'in window){const io=new IntersectionObserver(([entry])=>{const scrolled=!entry.isIntersecting;document.body.classList.toggle('is-scrolled',scrolled);compact.setAttribute('aria-hidden',String(!scrolled))},{threshold:0,rootMargin:'-8px 0px 0px 0px'});io.observe(sentinel)}document.querySelector('[data-compact-search]')?.addEventListener('click',event=>{event.preventDefault();search?.focus();search?.scrollIntoView({block:'center',behavior:reduce?'auto':'smooth'})});document.querySelectorAll('.item-image img').forEach(img=>{const fail=()=>img.closest('.item-image')?.classList.add('is-failed');img.addEventListener('error',fail,{once:true});if(img.complete&&img.naturalWidth===0)fail()});const floating=document.querySelector('.floating-contact');if(floating){let frame=0;const sync=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{const box=floating.getBoundingClientRect();const hits=[...document.querySelectorAll('.card-hit')].some(el=>{const card=el.closest('article');if(card?.hidden)return false;const r=el.getBoundingClientRect();return r.bottom>box.top&&r.top<box.bottom&&r.right>box.left&&r.left<box.right});floating.classList.toggle('obscured',hits)})};addEventListener('scroll',sync,{passive:true});addEventListener('resize',sync);sync()}update();syncRail()})()</script>`;
 }
 
 function heroCoverScript(nonce: string): string {
@@ -626,7 +816,7 @@ export function renderPublishedStorefrontHtml(
   nonce = "",
   preview = false,
 ): string {
-  const customization = catalog.customization!;
+  const customization = catalog.customization ?? defaultStorefrontCustomization(catalog);
   const theme = storefrontTheme(customization);
   const showProducts = customization.organization.content.showProducts;
   const showServices = customization.organization.content.showServices;
@@ -672,27 +862,31 @@ export function renderPublishedStorefrontHtml(
     ? `<meta property="og:image" content="${escapeHtml(image)}"><meta name="twitter:card" content="summary_large_image">`
     : '<meta name="twitter:card" content="summary">';
   const cards = [
-    ...products.map((item, index) => productCard(catalog, customization, item, index)),
-    ...services.map((item, index) => serviceCard(catalog, customization, item, index)),
+    ...products.map((item, index) =>
+      productCard(catalog, customization, item, index, initialType !== "products"),
+    ),
+    ...services.map((item, index) =>
+      serviceCard(catalog, customization, item, index, initialType !== "services"),
+    ),
   ].join("");
   const tabs = mixed
-    ? `<div class="type-tabs" role="tablist" aria-label="Tipo de item"><button role="tab" data-type="products">${icon("store")} Produtos <span>${products.length}</span></button><button role="tab" data-type="services">${icon("calendar")} Serviços <span>${services.length}</span></button></div>`
+    ? `<div class="type-tabs" role="tablist" aria-label="Tipo de item"><button type="button" role="tab" data-type="products" aria-selected="${initialType === "products" ? "true" : "false"}">${icon("store")} Produtos <span>${products.length}</span></button><button type="button" role="tab" data-type="services" aria-selected="${initialType === "services" ? "true" : "false"}">${icon("calendar")} Serviços <span>${services.length}</span></button></div>`
     : "";
   const categoryNav =
     customization.organization.discovery.showCategories && categories.length
-      ? `<nav class="category-scroll" aria-label="Categorias"><button data-category="" aria-pressed="true">Todos</button>${categories.map((category) => `<button data-category="${escapeHtml(category)}" aria-pressed="false">${escapeHtml(category)}</button>`).join("")}</nav>`
+      ? `<div class="category-rail"><nav class="category-scroll" aria-label="Categorias"><button type="button" data-category="" aria-pressed="true">Todos</button>${categories.map((category) => `<button type="button" data-category="${escapeHtml(category)}" aria-pressed="false">${escapeHtml(category)}</button>`).join("")}</nav></div>`
       : "";
-  const search = customization.organization.discovery.showSearch
-    ? `<label class="search-field">${icon("search")}<span class="visually-hidden">Buscar na vitrine</span><input id="storefront-search" type="search" placeholder="O que você procura?" autocomplete="off"><button id="search-clear" type="button" aria-label="Limpar busca" hidden>${icon("close")}</button></label>`
-    : `<input id="storefront-search" type="hidden">`;
-  const filters =
-    customization.organization.discovery.allowFilters && categories.length
-      ? `<button id="filter-open" class="filter-button" type="button" aria-label="Filtros">${icon("filter")}<span>Filtros</span></button><dialog id="filter-dialog" aria-labelledby="filter-title"><div class="dialog-panel"><header><h2 id="filter-title">Filtros</h2><button class="dialog-close" type="button" aria-label="Fechar">${icon("close")}</button></header><p>Escolha uma categoria na vitrine ou limpe a seleção atual.</p><button id="filter-clear" class="dialog-submit" type="button">Limpar filtros</button></div></dialog>`
-      : "";
+  const search = `<label class="search-field">${icon("search")}<span class="visually-hidden">Buscar no catálogo</span><input id="storefront-search" type="search" placeholder="Buscar no catálogo" autocomplete="off"><button id="search-clear" type="button" aria-label="Limpar busca" hidden>${icon("close")}</button></label>`;
   const sort = customization.organization.discovery.allowSorting
     ? `<label class="sort-field"><span>${icon("sort")} Ordenar</span><select id="storefront-sort" aria-label="Ordenar itens"><option value="featured">Destaques primeiro</option><option value="name">Nome</option><option value="priceLow">Menor preço</option><option value="priceHigh">Maior preço</option></select></label>`
     : `<select id="storefront-sort" hidden><option value="${defaultSort}">${defaultSort}</option></select>`;
-  const quick = quickInfo(customization);
+  const highlights = highlightCards(
+    catalog,
+    customization,
+    products,
+    services,
+    initialType,
+  );
   const emptyCatalog = cards
     ? ""
     : `<section class="catalog-empty"><span aria-hidden="true">${icon("store")}</span><h2>Esta vitrine está sendo preparada.</h2><p>Volte em breve para conhecer as novidades.</p></section>`;
@@ -711,11 +905,11 @@ export function renderPublishedStorefrontHtml(
             ? `mailto:${contact.destination}`
             : safeExternalUrl(contact.destination);
     if (href) {
-      floating = `<a class="floating-contact" href="${escapeHtml(href)}"${contact.channel === "external" || contact.channel === "whatsapp" ? ' target="_blank" rel="noopener noreferrer"' : ""} aria-label="${escapeHtml(contact.defaultActionLabel)}">${icon(contact.channel === "whatsapp" ? "whatsapp" : "store")}<span class="floating-label">${escapeHtml(contact.defaultActionLabel)}</span></a>`;
+      floating = `<a class="floating-contact" href="${escapeHtml(href)}"${contact.channel === "external" || contact.channel === "whatsapp" ? ' target="_blank" rel="noopener noreferrer"' : ""} aria-label="${escapeHtml(contact.defaultActionLabel)}">${icon(contact.channel === "whatsapp" ? "whatsapp" : "store")}<span class="floating-label">Contato</span></a>`;
     }
   }
   const style = customization.organization.cards.style;
   const hero = customization.hero.style;
   const nonceAttribute = nonce ? ` nonce="${nonce}"` : "";
-  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>${escapeHtml(title)}</title><meta name="description" content="${escapeHtml(description)}"><link rel="canonical" href="${canonical}"><meta property="og:type" content="website"><meta property="og:title" content="${escapeHtml(title)}"><meta property="og:description" content="${escapeHtml(description)}"><meta property="og:url" content="${canonical}">${imageMeta}<meta name="robots" content="${preview ? "noindex,nofollow" : "index,follow"}"><meta name="theme-color" content="${theme.primary}"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"><script type="application/ld+json"${nonceAttribute}>${structuredData(catalog, customization)}</script><style>${storefrontStyles(theme)}</style></head><body class="cards-${style} hero-mode-${hero}"><header>${renderHero(catalog, customization)}</header><main id="storefront-list" class="storefront-shell" data-storefront>${quick}<section class="discovery" aria-label="Buscar e filtrar"><div class="search-row">${search}${filters}</div>${categoryNav}</section>${tabs}${emptyCatalog}${cards ? `<section aria-labelledby="listing-title"><header class="listing-header"><div><h2 id="listing-title">Escolha o que deseja</h2><p>Produzido com carinho, escolhido por você.</p></div>${sort}</header><p id="results-status" class="results-status" role="status" aria-live="polite"></p><div id="no-results" class="no-results" hidden><h3>Nenhum resultado encontrado</h3><p>Tente limpar a busca ou remover os filtros.</p></div><div class="storefront-grid">${cards}</div></section>` : ""}</main>${services.length ? bookingDialog() : ""}${cards ? detailsDialog() : ""}${floating}<footer>Catálogo de ${escapeHtml(customization.identity.displayName)}</footer>${heroCoverScript(nonce)}${cards ? storefrontScript(nonce, initialType, defaultSort) : ""}</body></html>`;
+  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>${escapeHtml(title)}</title><meta name="description" content="${escapeHtml(description)}"><link rel="canonical" href="${canonical}"><meta property="og:type" content="website"><meta property="og:title" content="${escapeHtml(title)}"><meta property="og:description" content="${escapeHtml(description)}"><meta property="og:url" content="${canonical}">${imageMeta}<meta name="robots" content="${preview ? "noindex,nofollow" : "index,follow"}"><meta name="theme-color" content="${theme.primary}"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"><script type="application/ld+json"${nonceAttribute}>${structuredData(catalog, customization)}</script><style>${storefrontStyles(theme)}</style></head><body class="cards-${style} hero-mode-${hero}" data-storefront data-kind-filter="${initialType}"><a class="skip-link" href="#storefront-list">Ir para o catálogo</a>${compactHeader(catalog, customization)}<div class="storefront-canvas">${renderHero(catalog, customization)}<main id="storefront-list" class="storefront-shell"><section class="discovery" aria-label="Buscar e filtrar"><div class="search-row">${search}</div>${categoryNav}</section>${tabs}${emptyCatalog}${highlights}${cards ? `<section aria-labelledby="listing-title"><header class="listing-header"><div><h2 id="listing-title">Escolha o que deseja</h2><p>Produzido com carinho, escolhido por você.</p></div>${sort}</header><p id="results-status" class="results-status" role="status" aria-live="polite"></p><div id="no-results" class="no-results" hidden><h3>Nenhum resultado encontrado</h3><p>Tente limpar a busca ou remover os filtros.</p></div><div class="storefront-grid" data-kind-filter="${initialType}">${cards}</div></section>` : ""}</main></div>${services.length ? bookingDialog() : ""}${cards ? detailsDialog() : ""}${floating}<footer>Catálogo de ${escapeHtml(customization.identity.displayName)}</footer>${heroCoverScript(nonce)}${cards ? storefrontScript(nonce, initialType, defaultSort) : ""}</body></html>`;
 }

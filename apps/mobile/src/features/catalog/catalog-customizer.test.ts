@@ -58,16 +58,19 @@ describe("storefront customization", () => {
     expect(draft.identity.displayName).toBe("Doces da Maria");
     expect(draft.identity.offeringMode).toBe("products");
     expect(draft.identity.actionColor).toBe("#B65F72");
+    expect(draft.identity.primaryColor).toBe("#4A2332");
+    expect(draft.identity.textColor).toBe("#6D6266");
     expect(draft.hero.style).toBe("classic");
     expect(draft.hero.introduction).toBe("Feito com cuidado");
     expect(draft.publication.status).toBe("draft");
   });
 
-  it("restaura as três cores oficiais da marca", () => {
+  it("restaura as cores oficiais da marca", () => {
     expect(STOREFRONT_BRAND_COLORS).toEqual({
       primary: "#4A2332",
       action: "#B65F72",
       background: "#FAF8F6",
+      text: "#6D6266",
     });
   });
 
@@ -75,7 +78,13 @@ describe("storefront customization", () => {
     const draft = createStorefrontCustomization(settings(), "Maria");
     const errors = validateStorefrontCustomization({
       ...draft,
-      identity: { ...draft.identity, displayName: "", actionColor: "vinho" },
+      identity: {
+        ...draft.identity,
+        displayName: "",
+        actionColor: "vinho",
+        primaryColor: "azul",
+        textColor: "cinza",
+      },
       hero: { ...draft.hero, introduction: "a".repeat(121) },
       organization: {
         ...draft.organization,
@@ -88,6 +97,8 @@ describe("storefront customization", () => {
     expect(isValidCatalogColor("#123")).toBe(false);
     expect(errors.displayName).toBeTruthy();
     expect(errors.actionColor).toBeTruthy();
+    expect(errors.primaryColor).toBeTruthy();
+    expect(errors.textColor).toBeTruthy();
     expect(errors.introduction).toBeTruthy();
     expect(errors.whatsapp).toBeTruthy();
     expect(errors.slug).toBeTruthy();
@@ -122,12 +133,91 @@ describe("storefront customization", () => {
       },
     });
 
-    expect(normalized.hero.style).toBe("classic");
-    expect(normalized.hero.shortSignature).toBe("");
-    expect(normalized.hero.quickInfo).toEqual([]);
+    expect(normalized.hero.style).toBe("editorial");
+    expect(normalized.hero.shortSignature).toBe("feito com cuidado");
+    expect(normalized.hero.quickInfo).toEqual([
+      {
+        id: "quick-1",
+        icon: "sparkles",
+        label: "Sob medida",
+        order: 0,
+        enabled: true,
+      },
+    ]);
     expect(normalized.organization.discovery.showSearch).toBe(false);
     expect(normalized.organization.actions.mode).toBe("default");
     expect(normalized.organization.contact.channel).toBe("whatsapp");
+  });
+
+  it("preserva cores de título e frase ao simplificar", () => {
+    const draft = createStorefrontCustomization(settings(), "Maria");
+    const normalized = normalizeStorefrontCustomization({
+      ...draft,
+      identity: {
+        ...draft.identity,
+        primaryColor: "#1f4e79",
+        textColor: "#3d2b1f",
+      },
+    });
+
+    expect(normalized.identity.primaryColor).toBe("#1F4E79");
+    expect(normalized.identity.textColor).toBe("#3D2B1F");
+    expect(normalized.identity.backgroundColor).toBe("#FAF8F6");
+  });
+
+  it("herda cores de texto do catálogo legado", () => {
+    const draft = createStorefrontCustomization(
+      settings({ titleColor: "#112233", descriptionColor: "#445566" }),
+      "Maria",
+    );
+
+    expect(draft.identity.primaryColor).toBe("#112233");
+    expect(draft.identity.textColor).toBe("#445566");
+  });
+
+  it("preserva o texto dos botões dos itens ao simplificar", () => {
+    const draft = createStorefrontCustomization(settings(), "Maria");
+    const normalized = normalizeStorefrontCustomization({
+      ...draft,
+      organization: {
+        ...draft.organization,
+        actions: {
+          ...draft.organization.actions,
+          productDefault: {
+            type: "quote",
+            label: "Encomendar",
+            channel: "internal",
+          },
+          serviceDefault: {
+            type: "contact",
+            label: "Chamar",
+            channel: "external",
+          },
+          itemOverrides: {
+            "product:1": { type: "quote", label: "Pedir", channel: "internal" },
+            "service:2": { type: "none" },
+          },
+        },
+      },
+    });
+
+    expect(normalized.organization.actions.mode).toBe("default");
+    expect(normalized.organization.actions.productDefault).toMatchObject({
+      type: "order",
+      label: "Encomendar",
+      channel: "whatsapp",
+    });
+    expect(normalized.organization.actions.serviceDefault).toMatchObject({
+      type: "schedule",
+      label: "Chamar",
+      channel: "whatsapp",
+    });
+    expect(normalized.organization.actions.itemOverrides["product:1"]).toMatchObject({
+      type: "order",
+      label: "Pedir",
+      channel: "whatsapp",
+    });
+    expect(normalized.organization.actions.itemOverrides["service:2"]).toBeUndefined();
   });
 
   it("mantém no máximo três destaques ao normalizar", () => {

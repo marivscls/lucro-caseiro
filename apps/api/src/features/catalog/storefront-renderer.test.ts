@@ -26,6 +26,7 @@ function customization(
       primaryColor: "#4A2332",
       actionColor: "#B65F72",
       backgroundColor: "#FAF8F6",
+      textColor: "#6D6266",
     },
     hero: {
       style: "editorial",
@@ -303,11 +304,42 @@ describe("storefront helpers", () => {
     expect(theme.primary).toBe("#4A2332");
     expect(theme.onAction).toBe("#FFFFFF");
   });
+
+  it("usa as cores de título e frase escolhidas", () => {
+    const theme = storefrontTheme({
+      ...customization(),
+      identity: {
+        ...customization().identity,
+        primaryColor: "#1F4E79",
+        textColor: "#3D2B1F",
+      },
+    });
+    expect(theme.primary).toBe("#1F4E79");
+    expect(theme.muted).toBe("#3D2B1F");
+    const html = renderPublishedStorefrontHtml(
+      catalog({
+        ...customization(),
+        identity: {
+          ...customization().identity,
+          primaryColor: "#1F4E79",
+          textColor: "#3D2B1F",
+        },
+      }),
+    );
+    expect(html).toContain("--storefront-primary:#1F4E79");
+    expect(html).toContain("--storefront-muted:#3D2B1F");
+    expect(html).toContain(
+      ".introduction{margin:8px auto 0;max-width:36ch;color:var(--storefront-muted)",
+    );
+    expect(html).toContain(
+      ".signature{display:flex;align-items:center;justify-content:center;gap:6px;margin:8px 0 0;color:var(--storefront-muted)",
+    );
+  });
 });
 
 describe("renderPublishedStorefrontHtml", () => {
   it.each(["classic", "editorial", "compact"] as const)(
-    "marca o hero %s e aplica CSS próprio de cada estilo",
+    "marca o hero %s e aplica altura compacta de capa",
     (style) => {
       const base = customization();
       const html = renderPublishedStorefrontHtml(
@@ -315,20 +347,22 @@ describe("renderPublishedStorefrontHtml", () => {
       );
       expect(html).toContain(`hero-${style}`);
       expect(html).toContain(`hero-mode-${style}`);
-      expect(html).toContain(".hero-classic{");
-      expect(html).toContain(".hero-editorial{");
-      expect(html).toContain(".hero-compact{");
+      expect(html).toContain(".hero-classic .hero-cover-wrap");
+      expect(html).toContain(".hero-editorial .hero-cover-wrap");
+      expect(html).toContain(".hero-compact .hero-cover-wrap");
       expect(html).toContain("Estúdio Horizonte");
     },
   );
 
-  it("no editorial coloca texto e destaques lado a lado; no compacto encurta o topo", () => {
+  it("usa capa curta, card sobreposto e destaques fora do hero", () => {
     const html = renderPublishedStorefrontHtml(catalog());
-    expect(html).toContain(
-      ".hero-editorial:not(.has-cover):not(.no-visual){display:grid;grid-template-columns:minmax(0,1.1fr)",
-    );
-    expect(html).toContain(".hero-compact{min-height:220px");
-    expect(html).toContain(".hero-compact .counts{display:none}");
+    expect(html).toContain('class="store-card"');
+    expect(html).toContain("--cover-height:196px");
+    expect(html).toContain("Destaques");
+    expect(html).toContain("data-compact-header");
+    expect(html).toContain("Aceitando encomendas");
+    expect(html).toContain('placeholder="Buscar no catálogo"');
+    expect(html).not.toContain('class="hero-copy"');
   });
 
   it("renderiza descoberta, tipos, cards e fluxos reais", () => {
@@ -338,7 +372,7 @@ describe("renderPublishedStorefrontHtml", () => {
     expect(html).toContain("Papelaria");
     expect(html).toContain("R$ 59,90");
     expect(html).not.toContain('class="type-badge"');
-    expect(html).toContain('class="card-action schedule-action"');
+    expect(html).toContain('class="card-hit schedule-action"');
     expect(html).toContain('id="booking-form"');
     expect(html).toContain('nonce="nonce-test"');
     expect(html).toContain("https://wa.me/5511999998888?text=");
@@ -347,6 +381,26 @@ describe("renderPublishedStorefrontHtml", () => {
     expect(html).toContain("item-location");
     expect(html).toContain("m8.5 12 2.4 2.4L16 9");
     expect(html).toContain('class="item-placeholder-mark"');
+  });
+
+  it("esconde cards [hidden] no Safari e isola o clique das abas", () => {
+    const html = renderPublishedStorefrontHtml(catalog());
+    expect(html).toContain("[hidden]{display:none!important}");
+    expect(html).toContain(".storefront-card[hidden]");
+    expect(html).toContain("data-kind-filter=");
+    expect(html).toContain(
+      ".storefront-grid[data-kind-filter=products]>.storefront-card[data-kind=services]",
+    );
+    expect(html).toContain('data-kind="services"');
+    expect(html).toMatch(/service-card is-hidden"[^>]* hidden /);
+    expect(html).not.toMatch(/product-card is-hidden"/);
+    expect(html).toContain(".type-tabs [data-type]");
+    expect(html).toContain(".category-scroll [data-category]");
+    expect(html).toContain("type==='services'||!category");
+    expect(html).toContain("grid.dataset.kindFilter=type");
+    expect(html).toContain("root.dataset.kindFilter=type");
+    expect(html).toContain("IntersectionObserver");
+    expect(html).toContain("[data-storefront][data-kind-filter=services] .category-rail");
   });
 
   it("abre o diálogo de detalhes mesmo sem descrição no card", () => {
@@ -411,7 +465,7 @@ describe("renderPublishedStorefrontHtml", () => {
     );
   });
 
-  it("dá prioridade absoluta à capa e não monta destaques ou fundo vinho em paralelo", () => {
+  it("usa a capa como identificação e mantém destaques reais na listagem", () => {
     const base = customization();
     const html = renderPublishedStorefrontHtml({
       ...catalog(base),
@@ -430,7 +484,8 @@ describe("renderPublishedStorefrontHtml", () => {
     expect(html).toContain('media="(max-width: 767px)"');
     expect(html).toContain('srcset="https://cdn.example/capa-mobile.jpg"');
     expect(html).toContain("has-cover");
-    expect(html).not.toContain('class="featured featured-1');
+    expect(html).toContain("Destaques");
+    expect(html).toContain('class="featured featured-1');
     expect(html).not.toContain('class="organic"');
   });
 
@@ -451,7 +506,7 @@ describe("renderPublishedStorefrontHtml", () => {
     );
   });
 
-  it("reproduz o catalogo editorial: grade, Manrope e capa do usuario", () => {
+  it("reproduz o catálogo denso: grade, Manrope e capa do usuario", () => {
     const html = renderPublishedStorefrontHtml(catalog());
     expect(html).toContain("grid-template-columns:repeat(2,minmax(0,1fr))");
     expect(html).toContain("family=Manrope");
@@ -468,14 +523,12 @@ describe("renderPublishedStorefrontHtml", () => {
     expect(html).not.toContain("a partir de R$");
     expect(html).toContain("item-availability");
     expect(html).toContain("item-placeholder-mark");
-    expect(html).toContain("flex-direction:column;align-items:stretch");
-    expect(html).toContain("grid-auto-rows:1fr;align-items:stretch");
     expect(html).not.toContain("right:16%;bottom:12%");
-    expect(html).toContain("Produzido com carinho, escolhido por você.");
+    expect(html).toContain("Escolha o que deseja");
     expect(html).toContain("M17.472 14.382");
     expect(html).not.toContain("M8.2 8.2c1 3.3 3.3 5.6 6.7 6.7");
     expect(html).toContain("object-fit:cover");
-    expect(html).toContain("linear-gradient(90deg,#FAF8F6 0%,rgba(250,248,246,.94) 22%");
+    expect(html).toContain("linear-gradient(180deg,rgba(36,24,30,.04)");
   });
 
   it("usa pílula de contato com rótulo legível e reserva espaço no grid", () => {
@@ -492,10 +545,10 @@ describe("renderPublishedStorefrontHtml", () => {
         },
       }),
     );
-    expect(html).toContain('class="floating-label">Entrar em contato</span>');
+    expect(html).toContain('class="floating-label">Contato</span>');
     expect(html).not.toContain("<span>Entrar em</span>");
-    expect(html).toContain("font-size:1rem");
-    expect(html).toContain("border-radius:999px");
+    expect(html).toContain("font-size:.92rem");
+    expect(html).toContain("border-radius:var(--radius-chip)");
     expect(html).toContain("floating.classList.toggle('obscured'");
   });
 
@@ -521,5 +574,12 @@ describe("renderPublishedStorefrontHtml", () => {
     expect(published).toContain('rel="canonical"');
     expect(published).toContain('type="application/ld+json"');
     expect(published).toContain('content="index,follow"');
+  });
+
+  it("usa o layout atual quando o catálogo não tem personalização", () => {
+    const html = renderPublishedStorefrontHtml({ ...catalog(), customization: null });
+    expect(html).toContain('class="store-card"');
+    expect(html).toContain("Buscar no catálogo");
+    expect(html).not.toContain('class="hero-bg"');
   });
 });

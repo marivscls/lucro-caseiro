@@ -1,6 +1,6 @@
 /* eslint-disable sonarjs/no-nested-conditional */
 import type { Product, Service, StorefrontCustomization } from "@lucro-caseiro/contracts";
-import { Card, Typography, fonts, radii } from "@lucro-caseiro/ui";
+import { Card, Typography, fonts } from "@lucro-caseiro/ui";
 import React, { useState } from "react";
 import { Image, Modal, Platform, Pressable, ScrollView, View } from "react-native";
 
@@ -11,7 +11,6 @@ import {
   coverFocalObjectPosition,
   displayCatalogItemName,
   resolveCatalogItemAction,
-  resolveFeaturedVisual,
   type EditorStatus,
 } from "../catalog-customizer";
 
@@ -26,24 +25,6 @@ type PreviewData = Readonly<{
   services: Service[];
   coverUrl?: string | null;
 }>;
-
-function readableText(background: string): string {
-  const hex = background.replace("#", "");
-  if (hex.length !== 6) return INK;
-  const [r, g, b] = [0, 2, 4].map((offset) =>
-    Number.parseInt(hex.slice(offset, offset + 2), 16),
-  );
-  const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-  return luminance > 0.58 ? INK : WHITE;
-}
-
-function offeringEyebrow(
-  mode: StorefrontCustomization["identity"]["offeringMode"],
-): string {
-  if (mode === "products") return "CATÁLOGO DE PRODUTOS";
-  if (mode === "services") return "CATÁLOGO DE SERVIÇOS";
-  return "PRODUTOS E SERVIÇOS";
-}
 
 function visibleItems(products: Product[], services: Service[]) {
   return {
@@ -158,94 +139,6 @@ export function StorefrontQuickInfo({
   );
 }
 
-function FeaturedVisuals({
-  customization,
-}: Readonly<{ customization: StorefrontCustomization }>) {
-  const items = customization.hero.featuredItems;
-  if (items.length === 0) {
-    return (
-      <View
-        style={{
-          minHeight: 64,
-          flex: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          borderRadius: radii.lg,
-          backgroundColor: "rgba(182,95,114,0.08)",
-          paddingVertical: 12,
-          paddingHorizontal: 10,
-        }}
-      >
-        <AppIcon
-          name="image-outline"
-          size={22}
-          color={customization.identity.actionColor}
-          importantForAccessibility="no"
-        />
-        <Typography style={{ color: WARM_GRAY, fontSize: 11, marginTop: 4 }}>
-          Até 3 destaques
-        </Typography>
-      </View>
-    );
-  }
-  return (
-    <View
-      style={{
-        minHeight: 88,
-        flex: 1,
-        flexDirection: "row",
-        alignItems: "flex-end",
-        justifyContent: "center",
-        gap: 6,
-      }}
-    >
-      {items.map((item, index) => {
-        const transform = item.transforms.find((entry) => entry.breakpoint === "mobile");
-        const visual = resolveFeaturedVisual(item, customization.hero.removeBackground);
-        const source = visual.source;
-        const cutout = visual.cutout;
-        if (!source) {
-          return (
-            <View
-              key={item.id}
-              style={{
-                width: `${Math.max(28, 74 / items.length)}%`,
-                height: 88,
-                borderRadius: 14,
-                backgroundColor: SOFT_ROSE,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <AppIcon
-                name={item.kind === "service" ? "calendar-outline" : "bag-handle-outline"}
-                size={22}
-                color={customization.identity.actionColor}
-                importantForAccessibility="no"
-              />
-            </View>
-          );
-        }
-        return (
-          <Image
-            key={item.id}
-            source={{ uri: source }}
-            accessibilityLabel={item.altText}
-            resizeMode={cutout ? "contain" : "cover"}
-            style={{
-              width: `${Math.max(28, 74 / items.length)}%`,
-              height: 96 - index * 6,
-              borderRadius: cutout ? 0 : 14,
-              backgroundColor: cutout ? "transparent" : undefined,
-              transform: [{ scale: transform?.scale ?? 1 }],
-            }}
-          />
-        );
-      })}
-    </View>
-  );
-}
-
 type CoverFocal = NonNullable<StorefrontCustomization["hero"]["coverFocal"]>;
 
 function CoverFocalImage({
@@ -281,6 +174,7 @@ function CoverFocalImage({
         objectFit: "cover",
         objectPosition: position,
         transform: `scale(${focal.scale})`,
+        transformOrigin: position,
         display: "block",
       },
     });
@@ -302,35 +196,194 @@ function CoverFocalImage({
   );
 }
 
+export function CoverAdjuster({
+  coverUrl,
+  focal,
+  onChange,
+}: Readonly<{
+  coverUrl: string;
+  focal: CoverFocal;
+  onChange: (focal: CoverFocal) => void;
+}>) {
+  const colors = useBrandScreenPalette();
+  const [frame, setFrame] = useState({ width: 0, height: 0 });
+  const centered = { x: 0.5, y: 0.5, scale: 1 };
+  const apply = (next: CoverFocal) =>
+    onChange({
+      x: Math.min(1, Math.max(0, next.x)),
+      y: Math.min(1, Math.max(0, next.y)),
+      scale: Math.min(2.5, Math.max(1, next.scale)),
+    });
+  const controls = [
+    {
+      key: "left",
+      icon: "chevron-back" as const,
+      label: "Mover capa para a esquerda",
+      next: { x: focal.x - 0.08, y: focal.y, scale: focal.scale },
+    },
+    {
+      key: "right",
+      icon: "chevron-forward" as const,
+      label: "Mover capa para a direita",
+      next: { x: focal.x + 0.08, y: focal.y, scale: focal.scale },
+    },
+    {
+      key: "up",
+      icon: "arrow-up" as const,
+      label: "Mover capa para cima",
+      next: { x: focal.x, y: focal.y - 0.08, scale: focal.scale },
+    },
+    {
+      key: "down",
+      icon: "arrow-down" as const,
+      label: "Mover capa para baixo",
+      next: { x: focal.x, y: focal.y + 0.08, scale: focal.scale },
+    },
+    {
+      key: "zoom-out",
+      icon: "remove" as const,
+      label: "Diminuir zoom da capa",
+      next: { x: focal.x, y: focal.y, scale: focal.scale - 0.1 },
+    },
+    {
+      key: "zoom-in",
+      icon: "add-outline" as const,
+      label: "Aumentar zoom da capa",
+      next: { x: focal.x, y: focal.y, scale: focal.scale + 0.1 },
+    },
+  ];
+  return (
+    <View style={{ gap: 10 }}>
+      <View
+        onLayout={(event) => {
+          const { width, height } = event.nativeEvent.layout;
+          setFrame((current) =>
+            current.width === width && current.height === height
+              ? current
+              : { width, height },
+          );
+        }}
+        style={{
+          height: 140,
+          borderRadius: 16,
+          overflow: "hidden",
+          backgroundColor: colors.surface,
+        }}
+      >
+        <CoverFocalImage
+          uri={coverUrl}
+          accessibilityLabel="Ajuste da capa"
+          focal={focal}
+          frame={frame}
+          fill
+        />
+      </View>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        {controls.map((control) => (
+          <Pressable
+            key={control.key}
+            accessibilityRole="button"
+            accessibilityLabel={control.label}
+            onPress={() => apply(control.next)}
+            style={{
+              minWidth: 44,
+              minHeight: 44,
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: colors.border,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: colors.white,
+            }}
+          >
+            <AppIcon name={control.icon} size={18} color={colors.ink} />
+          </Pressable>
+        ))}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Centralizar a capa"
+          onPress={() => apply(centered)}
+          style={{
+            minHeight: 44,
+            paddingHorizontal: 14,
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: colors.border,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: colors.white,
+          }}
+        >
+          <Typography
+            style={{ color: colors.ink, fontFamily: fonts.semiBold, fontSize: 13 }}
+          >
+            Centralizar
+          </Typography>
+        </Pressable>
+      </View>
+      <Typography style={{ color: colors.warmGray, fontSize: 12 }}>
+        Use as setas para descer, subir ou centralizar o recorte. Se a foto não se mexer,
+        aumente um pouco o zoom.
+      </Typography>
+    </View>
+  );
+}
+
 export function StorefrontHero({
   customization,
   coverUrl = null,
-}: Readonly<{ customization: StorefrontCustomization; coverUrl?: string | null }>) {
+  productCount,
+  serviceCount,
+}: Readonly<{
+  customization: StorefrontCustomization;
+  coverUrl?: string | null;
+  productCount?: number;
+  serviceCount?: number;
+}>) {
   const { identity, hero } = customization;
   const compact = hero.style === "compact";
-  const editorial = hero.style === "editorial";
-  const actionText = readableText(identity.actionColor);
   const coverSource = coverUrl;
   const hasCover = Boolean(coverSource);
   const focal = hero.coverFocal ?? { x: 0.5, y: 0.5, scale: 1 };
-  const [wideHero, setWideHero] = useState(false);
   const [coverFrame, setCoverFrame] = useState({ width: 0, height: 0 });
-  const sideBySide = editorial && wideHero;
+  const coverHeight = compact ? 168 : 196;
+  const productsLabel =
+    productCount == null
+      ? null
+      : `${productCount} ${productCount === 1 ? "produto" : "produtos"}`;
+  const servicesLabel =
+    serviceCount == null
+      ? null
+      : `${serviceCount} ${serviceCount === 1 ? "serviço" : "serviços"}`;
+  const counts = [productsLabel, servicesLabel].filter(Boolean).join(" • ");
 
   return (
-    <View
-      onLayout={(event) => {
-        const next = event.nativeEvent.layout.width >= 480;
-        setWideHero((current) => (current === next ? current : next));
-      }}
-      style={{
-        backgroundColor: hasCover ? WHITE : identity.backgroundColor,
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: "rgba(74,35,50,0.10)",
-        overflow: "hidden",
-      }}
-    >
+    <View>
+      {hero.showPromotionalBar && hero.promotionalText ? (
+        <View
+          style={{
+            minHeight: 34,
+            backgroundColor: identity.primaryColor,
+            paddingHorizontal: 16,
+            paddingVertical: 7,
+            alignItems: "center",
+            justifyContent: "center",
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+          }}
+        >
+          <Typography
+            style={{
+              color: WHITE,
+              textAlign: "center",
+              fontFamily: fonts.bold,
+              fontSize: 12,
+            }}
+          >
+            {hero.promotionalText}
+          </Typography>
+        </View>
+      ) : null}
       <View
         onLayout={(event) => {
           const { width, height } = event.nativeEvent.layout;
@@ -340,7 +393,13 @@ export function StorefrontHero({
               : { width, height },
           );
         }}
-        style={{ minHeight: compact ? 168 : editorial ? 220 : 200 }}
+        style={{
+          height: coverHeight,
+          overflow: "hidden",
+          backgroundColor: identity.primaryColor,
+          borderTopLeftRadius: hero.showPromotionalBar && hero.promotionalText ? 0 : 20,
+          borderTopRightRadius: hero.showPromotionalBar && hero.promotionalText ? 0 : 20,
+        }}
       >
         {hasCover ? (
           <CoverFocalImage
@@ -351,171 +410,166 @@ export function StorefrontHero({
             fill
           />
         ) : null}
-        {hasCover ? (
-          <View
-            pointerEvents="none"
+      </View>
+      <View
+        style={{
+          marginTop: -48,
+          marginHorizontal: 16,
+          paddingHorizontal: 18,
+          paddingBottom: 18,
+          borderRadius: 22,
+          borderWidth: 1,
+          borderColor: "rgba(74,35,50,0.08)",
+          backgroundColor: WHITE,
+          alignItems: "center",
+          zIndex: 2,
+        }}
+      >
+        {identity.logoUrl ? (
+          <Image
+            source={{ uri: identity.logoUrl }}
+            accessibilityLabel={`Logo de ${identity.displayName}`}
             style={{
-              position: "absolute",
-              top: 0,
-              right: 0,
-              bottom: 0,
-              left: 0,
-              backgroundColor: "rgba(250,248,246,0.42)",
+              width: 72,
+              height: 72,
+              marginTop: -36,
+              borderRadius: 36,
+              borderWidth: 3,
+              borderColor: WHITE,
+              backgroundColor: WHITE,
             }}
           />
+        ) : (
+          <View
+            style={{
+              width: 72,
+              height: 72,
+              marginTop: -36,
+              borderRadius: 36,
+              borderWidth: 3,
+              borderColor: WHITE,
+              backgroundColor: WHITE,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <AppIcon
+              name="storefront-outline"
+              size={26}
+              color={identity.actionColor}
+              importantForAccessibility="no"
+            />
+          </View>
+        )}
+        <Typography
+          style={{
+            color: identity.primaryColor,
+            fontFamily: fonts.extraBold,
+            fontSize: compact ? 20 : 22,
+            lineHeight: compact ? 24 : 28,
+            letterSpacing: -0.4,
+            textAlign: "center",
+            marginTop: 8,
+          }}
+          numberOfLines={2}
+        >
+          {identity.displayName}
+        </Typography>
+        {hero.introduction ? (
+          <Typography
+            style={{
+              color: identity.textColor,
+              fontSize: 13,
+              lineHeight: 18,
+              textAlign: "center",
+              marginTop: 6,
+            }}
+            numberOfLines={3}
+          >
+            {hero.introduction}
+          </Typography>
+        ) : null}
+        {hero.shortSignature ? (
+          <Typography
+            style={{
+              color: identity.textColor,
+              fontFamily: fonts.semiBold,
+              fontSize: 12,
+              marginTop: 6,
+            }}
+          >
+            {hero.shortSignature}
+          </Typography>
         ) : null}
         <View
           style={{
-            flexDirection: sideBySide ? "row" : "column",
-            gap: compact ? 10 : 14,
-            padding: compact ? 14 : 16,
-            zIndex: 1,
+            flexDirection: "row",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            marginTop: 12,
           }}
         >
-          <View style={{ flex: sideBySide ? 1.15 : undefined, gap: 7, minWidth: 0 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-              {identity.logoUrl ? (
-                <Image
-                  source={{ uri: identity.logoUrl }}
-                  accessibilityLabel={`Logo de ${identity.displayName}`}
-                  style={{
-                    width: compact ? 40 : 48,
-                    height: compact ? 40 : 48,
-                    borderRadius: 14,
-                    backgroundColor: WHITE,
-                  }}
-                />
-              ) : (
-                <View
-                  style={{
-                    width: compact ? 40 : 48,
-                    height: compact ? 40 : 48,
-                    borderRadius: 14,
-                    backgroundColor: WHITE,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <AppIcon
-                    name="storefront-outline"
-                    size={22}
-                    color={identity.primaryColor}
-                    importantForAccessibility="no"
-                  />
-                </View>
-              )}
-              <Typography
-                style={{
-                  color: identity.actionColor,
-                  fontFamily: fonts.extraBold,
-                  fontSize: 10,
-                  letterSpacing: 1.2,
-                }}
-              >
-                {offeringEyebrow(identity.offeringMode)}
-              </Typography>
-            </View>
+          {counts ? (
             <Typography
-              style={{
-                color: identity.primaryColor,
-                fontFamily: fonts.extraBold,
-                fontSize: compact ? 20 : editorial ? 26 : 24,
-                lineHeight: compact ? 24 : 30,
-                letterSpacing: -0.4,
-              }}
-              numberOfLines={2}
+              style={{ color: WARM_GRAY, fontSize: 12, fontFamily: fonts.bold }}
             >
-              {identity.displayName}
+              {counts}
             </Typography>
-            {hero.introduction ? (
-              <Typography
-                style={{ color: WARM_GRAY, fontSize: 12, lineHeight: 17 }}
-                numberOfLines={3}
-              >
-                {hero.introduction}
-              </Typography>
-            ) : null}
-            {hero.shortSignature ? (
-              <Typography
-                style={{
-                  color: identity.actionColor,
-                  fontFamily: fonts.semiBold,
-                  fontSize: 12,
-                }}
-              >
-                {hero.shortSignature}
-              </Typography>
-            ) : null}
-            {hero.action.type !== "none" && hero.action.label ? (
-              <View
-                style={{
-                  alignSelf: "flex-start",
-                  maxWidth: "100%",
-                  minHeight: 48,
-                  borderRadius: 12,
-                  backgroundColor: identity.actionColor,
-                  paddingHorizontal: 16,
-                  paddingVertical: 12,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 6,
-                  flexShrink: 0,
-                }}
-              >
-                <Typography
-                  numberOfLines={1}
-                  style={{
-                    color: actionText,
-                    fontFamily: fonts.bold,
-                    fontSize: 14,
-                    flexShrink: 1,
-                  }}
-                >
-                  {hero.action.label}
-                </Typography>
-                <AppIcon
-                  name="chevron-forward"
-                  size={14}
-                  color={actionText}
-                  importantForAccessibility="no"
-                />
-              </View>
-            ) : null}
-          </View>
-          {!hasCover && (!compact || hero.featuredItems.length > 0) ? (
-            <View
-              style={{
-                flex: sideBySide ? 1 : undefined,
-                maxWidth: sideBySide ? "42%" : "100%",
-              }}
-            >
-              <FeaturedVisuals customization={customization} />
-            </View>
           ) : null}
-        </View>
-      </View>
-      {hero.showPromotionalBar && hero.promotionalText ? (
-        <View
-          style={{
-            backgroundColor: `${identity.actionColor}18`,
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-          }}
-        >
-          <Typography
+          <View
             style={{
-              color: identity.primaryColor,
-              textAlign: "center",
-              fontFamily: fonts.semiBold,
-              fontSize: 12,
+              backgroundColor: "#DCE86A",
+              borderRadius: 999,
+              paddingHorizontal: 10,
+              paddingVertical: 4,
             }}
           >
-            {hero.promotionalText}
-          </Typography>
+            <Typography style={{ color: INK, fontFamily: fonts.bold, fontSize: 11 }}>
+              Aceitando encomendas
+            </Typography>
+          </View>
         </View>
-      ) : null}
-      <View style={{ paddingHorizontal: 16, paddingBottom: 12, paddingTop: 4 }}>
-        <StorefrontQuickInfo customization={customization} />
+        {hero.action.type !== "none" && hero.action.label ? (
+          <View
+            style={{
+              width: "100%",
+              minHeight: 48,
+              marginTop: 14,
+              borderRadius: 999,
+              borderWidth: 1.5,
+              borderColor: identity.actionColor,
+              backgroundColor: WHITE,
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+            }}
+          >
+            <AppIcon
+              name="logo-whatsapp"
+              size={18}
+              color={identity.actionColor}
+              importantForAccessibility="no"
+            />
+            <Typography
+              numberOfLines={1}
+              style={{
+                color: identity.actionColor,
+                fontFamily: fonts.bold,
+                fontSize: 15,
+              }}
+            >
+              {hero.action.label}
+            </Typography>
+          </View>
+        ) : null}
+        <View style={{ width: "100%", marginTop: 8 }}>
+          <StorefrontQuickInfo customization={customization} />
+        </View>
       </View>
     </View>
   );
@@ -536,14 +590,14 @@ export function StorefrontCategoryNavigation({
       <View
         style={{
           borderRadius: 999,
-          backgroundColor: customization.identity.actionColor,
+          backgroundColor: customization.identity.primaryColor,
           paddingHorizontal: 13,
           paddingVertical: 7,
         }}
       >
         <Typography
           style={{
-            color: readableText(customization.identity.actionColor),
+            color: WHITE,
             fontFamily: fonts.semiBold,
             fontSize: 12,
           }}
@@ -557,13 +611,21 @@ export function StorefrontCategoryNavigation({
           style={{
             borderRadius: 999,
             borderWidth: 1,
-            borderColor: "rgba(74,35,50,0.12)",
+            borderColor: "#F5E5E8",
             backgroundColor: WHITE,
             paddingHorizontal: 13,
             paddingVertical: 7,
           }}
         >
-          <Typography style={{ color: INK, fontSize: 12 }}>{category}</Typography>
+          <Typography
+            style={{
+              color: customization.identity.primaryColor,
+              fontSize: 12,
+              fontFamily: fonts.bold,
+            }}
+          >
+            {category}
+          </Typography>
         </View>
       ))}
     </ScrollView>
@@ -657,11 +719,78 @@ function MetaBit({
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 4, minWidth: 0 }}>
       <AppIcon name={iconName} size={13} color={color} importantForAccessibility="no" />
-      <Typography style={{ color: WARM_GRAY, fontSize: 11, flexShrink: 1 }}>
+      <Typography
+        numberOfLines={1}
+        style={{ color: WARM_GRAY, fontSize: 11, flexShrink: 1 }}
+      >
         {label}
       </Typography>
     </View>
   );
+}
+
+function PriceCaption({
+  caption,
+  color,
+  size,
+}: Readonly<{ caption: string; color: string; size: number }>) {
+  const prefix = "a partir de ";
+  const from = caption.toLocaleLowerCase("pt-BR").startsWith(prefix);
+  const amount = from ? caption.slice(prefix.length) : caption;
+  return (
+    <View style={{ gap: 1 }}>
+      {from ? (
+        <Typography
+          style={{
+            color,
+            fontFamily: fonts.semiBold,
+            fontSize: Math.max(10, size - 2),
+          }}
+        >
+          a partir de
+        </Typography>
+      ) : null}
+      <Typography
+        numberOfLines={1}
+        style={{ color, fontFamily: fonts.bold, fontSize: size }}
+      >
+        {amount}
+      </Typography>
+    </View>
+  );
+}
+
+function EmptyCatalogSlot() {
+  return (
+    <View
+      style={{
+        width: "100%",
+        minHeight: 72,
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
+        backgroundColor: "#F5F3F1",
+        borderRadius: 14,
+        padding: 12,
+      }}
+    >
+      <AppIcon
+        name="storefront-outline"
+        size={20}
+        color={WARM_GRAY}
+        importantForAccessibility="no"
+      />
+      <Typography style={{ color: WARM_GRAY, fontSize: 12 }}>
+        Seu conteúdo aparecerá aqui.
+      </Typography>
+    </View>
+  );
+}
+
+function itemCardDensity(fill: boolean, compact: boolean) {
+  if (fill) return "tile" as const;
+  if (compact) return "highlight" as const;
+  return "full" as const;
 }
 
 export function StorefrontItemCard({
@@ -669,16 +798,19 @@ export function StorefrontItemCard({
   kind,
   customization,
   fill = false,
+  compact = false,
+  cardWidth,
 }: Readonly<{
   item: Product | Service;
   kind: "product" | "service";
   customization: StorefrontCustomization;
   fill?: boolean;
+  compact?: boolean;
+  cardWidth?: number;
 }>) {
   const product = kind === "product" ? (item as Product) : null;
   const service = kind === "service" ? (item as Service) : null;
   const action = resolveCatalogItemAction(`${kind}:${item.id}`, kind, customization);
-  const compact = customization.organization.cards.style === "compact";
   const name = displayCatalogItemName(item.name);
   const photoUrl = product?.photoUrl ?? null;
   const available =
@@ -699,20 +831,45 @@ export function StorefrontItemCard({
         ? "Disponível"
         : "Indisponível"
       : "";
+  const density = itemCardDensity(fill, compact);
   const ctaLabel = actionLabel(action);
+  const showDescription =
+    density === "full" &&
+    !isDetailsAction &&
+    customization.organization.cards.showDetails &&
+    Boolean(item.description);
+  const showCta =
+    density !== "highlight" &&
+    customization.organization.actions.mode !== "hidden" &&
+    action.type !== "none";
+  const showAvailability =
+    customization.organization.cards.showAvailability && Boolean(product);
+  const showServiceMeta = density !== "highlight" && Boolean(service);
+  const showFooter =
+    density !== "highlight" && (showServiceMeta || showAvailability || showCta);
   const ctaStyle = {
-    minHeight: 48,
-    borderRadius: 10,
+    alignSelf: "flex-start" as const,
+    minHeight: 32,
+    borderRadius: 999,
     backgroundColor: customization.identity.actionColor,
     paddingHorizontal: 12,
+    paddingVertical: 6,
     alignItems: "center" as const,
     justifyContent: "center" as const,
   };
+  const ctaLabelStyle = {
+    color: WHITE,
+    fontFamily: fonts.semiBold,
+    fontSize: 11,
+    textAlign: "center" as const,
+  };
+  const imageStyle = { width: "100%" as const, aspectRatio: 1 };
   return (
     <View
       style={{
-        width: fill ? "100%" : compact ? 168 : 188,
-        flex: fill ? 1 : undefined,
+        width: fill ? "100%" : (cardWidth ?? 136),
+        flexGrow: 0,
+        flexShrink: 0,
         overflow: "hidden",
         borderRadius: 16,
         borderWidth: 1,
@@ -724,19 +881,13 @@ export function StorefrontItemCard({
         <Image
           source={{ uri: photoUrl }}
           accessibilityLabel={name}
-          style={{
-            width: "100%",
-            height: fill ? undefined : compact ? 86 : 108,
-            aspectRatio: fill ? 1 : undefined,
-          }}
+          style={imageStyle}
           resizeMode="cover"
         />
       ) : (
         <View
           style={{
-            width: "100%",
-            height: fill ? undefined : compact ? 86 : 108,
-            aspectRatio: fill ? 1 : undefined,
+            ...imageStyle,
             backgroundColor: SOFT_ROSE,
             alignItems: "center",
             justifyContent: "center",
@@ -745,8 +896,17 @@ export function StorefrontItemCard({
           <PlaceholderMark kind={kind} color={customization.identity.actionColor} />
         </View>
       )}
-      <View style={{ flex: 1, padding: 10, gap: 5 }}>
+      <View
+        style={{
+          paddingHorizontal: 10,
+          paddingTop: 8,
+          paddingBottom: 10,
+          gap: density === "highlight" ? 3 : 4,
+          minWidth: 0,
+        }}
+      >
         <Typography
+          numberOfLines={1}
           style={{
             color: customization.identity.actionColor,
             fontFamily: fonts.bold,
@@ -760,17 +920,14 @@ export function StorefrontItemCard({
           style={{
             color: INK,
             fontFamily: fonts.bold,
-            fontSize: 13,
-            lineHeight: 17,
-            minHeight: 34,
+            fontSize: density === "highlight" ? 12 : 13,
+            lineHeight: density === "highlight" ? 16 : 17,
           }}
           numberOfLines={2}
         >
           {name}
         </Typography>
-        {!isDetailsAction &&
-        customization.organization.cards.showDetails &&
-        item.description ? (
+        {showDescription ? (
           <Typography
             style={{ color: WARM_GRAY, fontSize: 11, lineHeight: 15 }}
             numberOfLines={2}
@@ -779,82 +936,68 @@ export function StorefrontItemCard({
           </Typography>
         ) : null}
         {customization.organization.cards.showPrice ? (
-          <Typography
+          <PriceCaption
+            caption={priceCaption}
+            color={customization.identity.primaryColor}
+            size={density === "highlight" ? 12 : 13}
+          />
+        ) : null}
+        {density === "highlight" && showAvailability ? (
+          <MetaBit
+            iconName={available ? "checkmark-circle-outline" : "close-circle-outline"}
+            label={available ? "Disponível" : "Indisponível"}
+            color={WARM_GRAY}
+          />
+        ) : null}
+        {showFooter ? (
+          <View
             style={{
-              color: customization.identity.primaryColor,
-              fontFamily: fonts.bold,
-              fontSize: 13,
+              marginTop: 4,
+              paddingTop: 8,
+              borderTopWidth: 1,
+              borderTopColor: "rgba(74,35,50,0.10)",
+              gap: 8,
             }}
           >
-            {priceCaption}
-          </Typography>
-        ) : null}
-        <View
-          style={{
-            marginTop: "auto",
-            paddingTop: 8,
-            borderTopWidth: 1,
-            borderTopColor: "rgba(74,35,50,0.10)",
-            gap: 8,
-          }}
-        >
-          {kind === "service" && service ? (
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-              <MetaBit
-                iconName="time-outline"
-                label={`${service.durationMinutes} min`}
-                color={WARM_GRAY}
-              />
-              <MetaBit
-                iconName="location-outline"
-                label={serviceLocationLabel(service.locationMode)}
-                color={WARM_GRAY}
-              />
-            </View>
-          ) : null}
-          {customization.organization.cards.showAvailability && product ? (
-            <MetaBit
-              iconName={available ? "checkmark-circle-outline" : "close-circle-outline"}
-              label={available ? "Disponível" : "Indisponível"}
-              color={WARM_GRAY}
-            />
-          ) : null}
-          {customization.organization.actions.mode !== "hidden" &&
-          action.type !== "none" ? (
-            isDetailsAction ? (
-              <Pressable
-                onPress={() => setDetailsOpen(true)}
-                accessibilityRole="button"
-                accessibilityLabel={ctaLabel}
-                style={ctaStyle}
-              >
-                <Typography
-                  style={{
-                    color: WHITE,
-                    fontFamily: fonts.semiBold,
-                    fontSize: 12,
-                    textAlign: "center",
-                  }}
-                >
-                  {ctaLabel}
-                </Typography>
-              </Pressable>
-            ) : (
-              <View style={ctaStyle}>
-                <Typography
-                  style={{
-                    color: WHITE,
-                    fontFamily: fonts.semiBold,
-                    fontSize: 12,
-                    textAlign: "center",
-                  }}
-                >
-                  {ctaLabel}
-                </Typography>
+            {showServiceMeta && service ? (
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                <MetaBit
+                  iconName="time-outline"
+                  label={`${service.durationMinutes} min`}
+                  color={WARM_GRAY}
+                />
+                <MetaBit
+                  iconName="location-outline"
+                  label={serviceLocationLabel(service.locationMode)}
+                  color={WARM_GRAY}
+                />
               </View>
-            )
-          ) : null}
-        </View>
+            ) : null}
+            {showAvailability ? (
+              <MetaBit
+                iconName={available ? "checkmark-circle-outline" : "close-circle-outline"}
+                label={available ? "Disponível" : "Indisponível"}
+                color={WARM_GRAY}
+              />
+            ) : null}
+            {showCta ? (
+              isDetailsAction ? (
+                <Pressable
+                  onPress={() => setDetailsOpen(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel={ctaLabel}
+                  style={ctaStyle}
+                >
+                  <Typography style={ctaLabelStyle}>{ctaLabel}</Typography>
+                </Pressable>
+              ) : (
+                <View style={ctaStyle}>
+                  <Typography style={ctaLabelStyle}>{ctaLabel}</Typography>
+                </View>
+              )
+            ) : null}
+          </View>
+        ) : null}
       </View>
       {isDetailsAction && detailsOpen ? (
         <Modal
@@ -1003,7 +1146,9 @@ export function StorefrontContactAction({
           fontSize: 16,
         }}
       >
-        {customization.organization.contact.defaultActionLabel}
+        {customization.organization.contact.channel === "whatsapp"
+          ? "Contato"
+          : customization.organization.contact.defaultActionLabel}
       </Typography>
     </View>
   );
@@ -1065,19 +1210,16 @@ export function StorefrontIdentityPreview({
     products,
     services,
   );
-  const colors = useBrandScreenPalette();
   const productCount = visibleProducts.length;
   const serviceCount = visibleServices.length;
   return (
     <PreviewShell title="PRÉVIA DA VITRINE" status={status}>
-      <StorefrontHero customization={customization} coverUrl={coverUrl} />
-      <Typography style={{ color: colors.warmGray, fontSize: 12 }}>
-        {customization.identity.offeringMode === "products"
-          ? `${productCount} ${productCount === 1 ? "produto" : "produtos"}`
-          : customization.identity.offeringMode === "services"
-            ? `${serviceCount} ${serviceCount === 1 ? "serviço" : "serviços"}`
-            : `${productCount} produtos • ${serviceCount} serviços`}
-      </Typography>
+      <StorefrontHero
+        customization={customization}
+        coverUrl={coverUrl}
+        productCount={productCount}
+        serviceCount={serviceCount}
+      />
     </PreviewShell>
   );
 }
@@ -1095,6 +1237,54 @@ export function StorefrontHeroPreview({
     <PreviewShell title="PRÉVIA DO TOPO" status={status}>
       <StorefrontHero customization={customization} coverUrl={coverUrl} />
     </PreviewShell>
+  );
+}
+
+function HighlightsRail({
+  items,
+  customization,
+}: Readonly<{
+  items: Array<{ item: Product | Service; kind: "product" | "service" }>;
+  customization: StorefrontCustomization;
+}>) {
+  const [railWidth, setRailWidth] = useState(0);
+  const gap = 8;
+  const visibleSlots = Math.min(3, Math.max(1, items.length));
+  const cardWidth =
+    railWidth > 0
+      ? Math.floor((railWidth - gap * (visibleSlots - 1)) / visibleSlots)
+      : 104;
+  return (
+    <View
+      style={{ width: "100%" }}
+      onLayout={(event) => {
+        const next = Math.round(event.nativeEvent.layout.width);
+        if (next > 0 && next !== railWidth) setRailWidth(next);
+      }}
+    >
+      <ScrollView
+        horizontal
+        nestedScrollEnabled
+        directionalLockEnabled
+        showsHorizontalScrollIndicator={false}
+        decelerationRate="fast"
+        snapToInterval={cardWidth + gap}
+        snapToAlignment="start"
+        disableIntervalMomentum
+        contentContainerStyle={{ gap }}
+      >
+        {items.slice(0, 6).map(({ item, kind }) => (
+          <StorefrontItemCard
+            key={`highlight-${kind}:${item.id}`}
+            item={item}
+            kind={kind}
+            customization={customization}
+            compact
+            cardWidth={cardWidth}
+          />
+        ))}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -1137,203 +1327,160 @@ export function StorefrontContentPreview({
       ? visibleServices
       : visibleServices.slice(0, 1)
     : [];
-  const listingItems: Array<{ item: Product | Service; kind: "product" | "service" }> = [
-    ...previewProducts.map((item) => ({ item, kind: "product" as const })),
-    ...previewServices.map((item) => ({ item, kind: "service" as const })),
-  ];
+  const [listingKind, setListingKind] = useState<"products" | "services">(() =>
+    previewProducts.length > 0 ? "products" : "services",
+  );
+  const kindItems =
+    listingKind === "services"
+      ? previewServices.map((item) => ({ item, kind: "service" as const }))
+      : previewProducts.map((item) => ({ item, kind: "product" as const }));
+  const showTypeTabs =
+    customization.identity.offeringMode === "both" &&
+    customization.organization.content.showProducts &&
+    customization.organization.content.showServices &&
+    visibleProducts.length > 0 &&
+    visibleServices.length > 0;
   const body = (
     <>
-      {customization.organization.discovery.showSearch ? (
-        <View style={{ flexDirection: "row", gap: 8 }}>
-          <View
-            style={{
-              flex: 1,
-              minHeight: 42,
-              borderRadius: 13,
-              borderWidth: 1,
-              borderColor: "rgba(74,35,50,0.12)",
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 8,
-              paddingHorizontal: 12,
-              backgroundColor: WHITE,
-            }}
-          >
-            <AppIcon
-              name="search-outline"
-              size={16}
-              color={WARM_GRAY}
-              importantForAccessibility="no"
-            />
-            <Typography style={{ color: WARM_GRAY, fontSize: 12 }}>
-              O que você procura?
-            </Typography>
-          </View>
-          {customization.organization.discovery.allowFilters ? (
-            <View
-              style={{
-                minWidth: 42,
-                minHeight: 42,
-                borderRadius: 13,
-                borderWidth: 1,
-                borderColor: "rgba(74,35,50,0.12)",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: WHITE,
-              }}
-              accessibilityLabel="Filtros"
-            >
-              <AppIcon
-                name="options-outline"
-                size={16}
-                color={INK}
-                importantForAccessibility="no"
-              />
-            </View>
-          ) : null}
-        </View>
+      <View
+        style={{
+          minHeight: 48,
+          borderRadius: 999,
+          borderWidth: 1,
+          borderColor: "#F5E5E8",
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 8,
+          paddingHorizontal: 16,
+          backgroundColor: WHITE,
+        }}
+      >
+        <AppIcon
+          name="search-outline"
+          size={16}
+          color={WARM_GRAY}
+          importantForAccessibility="no"
+        />
+        <Typography style={{ color: WARM_GRAY, fontSize: 14 }}>
+          Buscar no catálogo
+        </Typography>
+      </View>
+      {listingKind === "products" ? (
+        <StorefrontCategoryNavigation
+          categories={categories}
+          customization={customization}
+        />
       ) : null}
-      <StorefrontCategoryNavigation
-        categories={categories}
-        customization={customization}
-      />
-      {customization.identity.offeringMode === "both" &&
-      customization.organization.content.showProducts &&
-      customization.organization.content.showServices ? (
-        <View style={{ flexDirection: "row", gap: 8 }}>
-          {[
-            {
-              label: `Produtos (${visibleProducts.length})`,
-              active: true,
-              icon: "bag-handle-outline" as const,
-            },
-            {
-              label: `Serviços (${visibleServices.length})`,
-              active: false,
-              icon: "calendar-outline" as const,
-            },
-          ].map((tab) => (
-            <View
-              key={tab.label}
-              style={{
-                flex: 1,
-                minHeight: 40,
-                borderRadius: 12,
-                borderWidth: tab.active ? 1.5 : 1,
-                borderColor: tab.active
-                  ? customization.identity.actionColor
-                  : "rgba(74,35,50,0.12)",
-                backgroundColor: tab.active ? SOFT_ROSE : WHITE,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
-              }}
-            >
-              <AppIcon
-                name={tab.icon}
-                size={14}
-                color={customization.identity.primaryColor}
-                importantForAccessibility="no"
-              />
-              <Typography
+      {showTypeTabs ? (
+        <View accessibilityRole="tablist" style={{ flexDirection: "row", gap: 8 }}>
+          {(
+            [
+              {
+                kind: "products" as const,
+                label: `Produtos (${visibleProducts.length})`,
+                icon: "bag-handle-outline" as const,
+              },
+              {
+                kind: "services" as const,
+                label: `Serviços (${visibleServices.length})`,
+                icon: "calendar-outline" as const,
+              },
+            ] as const
+          ).map((tab) => {
+            const active = listingKind === tab.kind;
+            const color = active ? WHITE : customization.identity.primaryColor;
+            return (
+              <Pressable
+                key={tab.kind}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: active }}
+                accessibilityLabel={tab.label}
+                onPress={() => setListingKind(tab.kind)}
                 style={{
-                  color: customization.identity.primaryColor,
-                  fontFamily: fonts.semiBold,
-                  fontSize: 11,
+                  flex: 1,
+                  minHeight: 32,
+                  borderRadius: 999,
+                  borderWidth: 1,
+                  borderColor: active
+                    ? customization.identity.primaryColor
+                    : "rgba(74,35,50,0.18)",
+                  backgroundColor: active ? customization.identity.primaryColor : WHITE,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 5,
+                  paddingHorizontal: 10,
                 }}
               >
-                {tab.label}
-              </Typography>
-            </View>
-          ))}
+                <AppIcon
+                  name={tab.icon}
+                  size={13}
+                  color={color}
+                  importantForAccessibility="no"
+                />
+                <Typography
+                  style={{
+                    color,
+                    fontFamily: fonts.semiBold,
+                    fontSize: 11,
+                  }}
+                >
+                  {tab.label}
+                </Typography>
+              </Pressable>
+            );
+          })}
+        </View>
+      ) : null}
+      {kindItems.length > 0 ? (
+        <View style={{ gap: 10 }}>
+          <Typography
+            style={{
+              color: customization.identity.primaryColor,
+              fontFamily: fonts.extraBold,
+              fontSize: 16,
+            }}
+          >
+            Destaques
+          </Typography>
+          <HighlightsRail items={kindItems} customization={customization} />
         </View>
       ) : null}
       {listing ? (
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
-          {listingItems.map(({ item, kind }) => (
-            <View key={`${kind}:${item.id}`} style={{ width: "47.5%", flexGrow: 0 }}>
-              <StorefrontItemCard
-                item={item}
-                kind={kind}
-                customization={customization}
-                fill
-              />
-            </View>
-          ))}
-          {listingItems.length === 0 ? (
-            <View
-              style={{
-                width: "100%",
-                minHeight: 72,
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
-                backgroundColor: "#F5F3F1",
-                borderRadius: 14,
-                padding: 12,
-              }}
-            >
-              <AppIcon
-                name="storefront-outline"
-                size={20}
-                color={WARM_GRAY}
-                importantForAccessibility="no"
-              />
-              <Typography style={{ color: WARM_GRAY, fontSize: 12 }}>
-                Seu conteúdo aparecerá aqui.
-              </Typography>
-            </View>
-          ) : null}
+        <View style={{ gap: 10 }}>
+          <Typography
+            style={{
+              color: customization.identity.primaryColor,
+              fontFamily: fonts.extraBold,
+              fontSize: 16,
+            }}
+          >
+            Escolha o que deseja
+          </Typography>
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              justifyContent: "space-between",
+              rowGap: 12,
+            }}
+          >
+            {kindItems.map(({ item, kind }) => (
+              <View key={`${kind}:${item.id}`} style={{ width: "48%" }}>
+                <StorefrontItemCard
+                  item={item}
+                  kind={kind}
+                  customization={customization}
+                  fill
+                />
+              </View>
+            ))}
+            {kindItems.length === 0 ? <EmptyCatalogSlot /> : null}
+          </View>
         </View>
-      ) : (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 8 }}
-        >
-          {previewProducts.map((item) => (
-            <StorefrontItemCard
-              key={`product:${item.id}`}
-              item={item}
-              kind="product"
-              customization={customization}
-            />
-          ))}
-          {previewServices.map((item) => (
-            <StorefrontItemCard
-              key={`service:${item.id}`}
-              item={item}
-              kind="service"
-              customization={customization}
-            />
-          ))}
-          {previewProducts.length + previewServices.length === 0 ? (
-            <View
-              style={{
-                width: 220,
-                minHeight: 72,
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
-                backgroundColor: "#F5F3F1",
-                borderRadius: 14,
-                padding: 12,
-              }}
-            >
-              <AppIcon
-                name="storefront-outline"
-                size={20}
-                color={WARM_GRAY}
-                importantForAccessibility="no"
-              />
-              <Typography style={{ color: WARM_GRAY, fontSize: 12 }}>
-                Seu conteúdo aparecerá aqui.
-              </Typography>
-            </View>
-          ) : null}
-        </ScrollView>
-      )}
+      ) : kindItems.length === 0 ? (
+        <EmptyCatalogSlot />
+      ) : null}
     </>
   );
   if (embedded) return <View style={{ gap: 10 }}>{body}</View>;
@@ -1398,10 +1545,12 @@ export function StorefrontFinalPreview({
   );
   const body = (
     <>
-      <StorefrontHero customization={customization} coverUrl={coverUrl} />
-      <Typography style={{ color: WARM_GRAY, fontSize: 12, marginTop: chrome ? -4 : 0 }}>
-        {visibleProducts.length} produtos • {visibleServices.length} serviços
-      </Typography>
+      <StorefrontHero
+        customization={customization}
+        coverUrl={coverUrl}
+        productCount={visibleProducts.length}
+        serviceCount={visibleServices.length}
+      />
       <StorefrontContentPreview
         customization={customization}
         products={products}

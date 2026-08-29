@@ -101,6 +101,7 @@ export const StorefrontCustomizationDto = z.object({
     primaryColor: CatalogHexColor,
     actionColor: CatalogHexColor,
     backgroundColor: CatalogHexColor,
+    textColor: CatalogHexColor.default("#6D6266"),
   }),
   hero: z.object({
     style: StorefrontHeroStyle,

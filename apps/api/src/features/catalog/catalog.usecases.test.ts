@@ -470,7 +470,10 @@ describe("CatalogUseCases.getPublicCatalog", () => {
   });
 
   it("expõe somente o snapshot publicado, nunca o rascunho", async () => {
-    const draft = { version: 1, identity: { displayName: "Rascunho" } } as StorefrontCustomization;
+    const draft = {
+      version: 1,
+      identity: { displayName: "Rascunho" },
+    } as StorefrontCustomization;
     const published = {
       version: 1,
       identity: { displayName: "Publicado" },
@@ -497,6 +500,29 @@ describe("CatalogUseCases.getPublicCatalog", () => {
     expect(catalog.customization).toBe(published);
     expect(catalog.customization).not.toBe(draft);
     expect(catalog.products[0]?.name).toBe("Produto publicado");
+  });
+
+  it("não vaza o rascunho quando ainda não há personalização publicada", async () => {
+    const draft = {
+      version: 1,
+      identity: { displayName: "Rascunho" },
+    } as StorefrontCustomization;
+    const sut = new CatalogUseCases(
+      makeRepo({
+        findOwnerBySlug: () =>
+          Promise.resolve({
+            ...makeSettings({
+              customization: draft,
+              publishedCustomization: null,
+            }),
+            ...makeOwner({ plan: "essential" }),
+          }),
+      }),
+    );
+
+    const catalog = await sut.getPublicCatalog("doces-da-maria");
+
+    expect(catalog.customization).toBeNull();
   });
 
   it("preserva a faixa salva, mas não a expõe quando sua exibição está desligada", async () => {

@@ -46,20 +46,22 @@ import { showAlert } from "../../../shared/components/alert-store";
 import { ColorPickerModal } from "../../../shared/components/color-picker-modal";
 import { showToast } from "../../../shared/components/toast";
 import { useImagePicker } from "../../../shared/hooks/use-image-picker";
-import { useAuth } from "../../../shared/hooks/use-auth";
 import { buildQrSvg } from "../../labels/qr";
 import { ApiError } from "../../../shared/utils/api-client";
 import {
   uploadCatalogCover,
   uploadCatalogLogo,
 } from "../../../shared/utils/upload-image";
-import { fetchStorefrontPreviewHtml, publicCatalogUrl } from "../api";
+import { fetchPublishedCatalogHtml, publicCatalogUrl } from "../api";
 import {
   STOREFRONT_ACTION_LABEL_LIMIT,
   STOREFRONT_BRAND_COLORS,
+  STOREFRONT_CARD_ACTION_LABEL_LIMIT,
   STOREFRONT_DISPLAY_NAME_LIMIT,
   STOREFRONT_INTRODUCTION_LIMIT,
   STOREFRONT_PROMO_LIMIT,
+  STOREFRONT_QUICK_INFO_LIMIT,
+  STOREFRONT_SIGNATURE_LIMIT,
   buildStorefrontChecklist,
   catalogImageValidationError,
   createFeaturedItemTransforms,
@@ -77,6 +79,7 @@ import {
 } from "../catalog-customizer";
 import { useCatalogSlugAvailability, useUpdateCatalogSettings } from "../hooks";
 import {
+  CoverAdjuster,
   StorefrontFinalPreview,
   StorefrontHeroPreview,
   StorefrontIdentityPreview,
@@ -97,7 +100,7 @@ type CatalogCustomizerProps = Readonly<{
   onClose: () => void;
 }>;
 
-type ColorTarget = "actionColor" | null;
+type ColorTarget = "actionColor" | "primaryColor" | "textColor" | null;
 
 function SectionHeading({
   title,
@@ -145,6 +148,67 @@ function EditorCard({
   );
 }
 
+function StyleOption<T extends string>({
+  value,
+  selected,
+  title,
+  description,
+  onSelect,
+  children,
+}: React.PropsWithChildren<
+  Readonly<{
+    value: T;
+    selected: boolean;
+    title: string;
+    description: string;
+    onSelect: (value: T) => void;
+  }>
+>) {
+  const colors = useBrandScreenPalette();
+  return (
+    <Pressable
+      accessibilityRole="radio"
+      accessibilityState={{ checked: selected }}
+      accessibilityLabel={`${title}. ${description}`}
+      onPress={() => onSelect(value)}
+      style={({ pressed }) => ({
+        flex: 1,
+        minWidth: 132,
+        minHeight: 118,
+        borderRadius: 16,
+        borderWidth: selected ? 1.5 : 1,
+        borderColor: selected ? colors.rose : colors.border,
+        backgroundColor: selected ? colors.softRose : colors.white,
+        padding: 10,
+        gap: 8,
+        opacity: pressed ? 0.88 : 1,
+      })}
+    >
+      <View
+        style={{
+          height: 46,
+          borderRadius: 10,
+          overflow: "hidden",
+          backgroundColor: colors.surface,
+        }}
+      >
+        {children}
+        {selected ? (
+          <View style={{ position: "absolute", top: 4, right: 4 }}>
+            <AppIcon name="checkmark-circle" size={16} color={colors.rose} />
+          </View>
+        ) : null}
+      </View>
+      <Typography style={{ color: colors.ink, fontFamily: fonts.bold, fontSize: 13 }}>
+        {title}
+      </Typography>
+      <Typography style={{ color: colors.warmGray, fontSize: 11, lineHeight: 15 }}>
+        {description}
+      </Typography>
+    </Pressable>
+  );
+}
+
 function FieldHint({ value, limit }: Readonly<{ value: string; limit: number }>) {
   const colors = useBrandScreenPalette();
   return (
@@ -152,6 +216,17 @@ function FieldHint({ value, limit }: Readonly<{ value: string; limit: number }>)
       {value.length} de {limit} caracteres
     </Typography>
   );
+}
+
+function publicStorefrontItems(products: Product[], services: Service[]) {
+  return [
+    ...products
+      .filter((item) => item.isActive && item.publicEnabled)
+      .map((item) => ({ kind: "product" as const, item })),
+    ...services
+      .filter((item) => item.active && item.publicEnabled)
+      .map((item) => ({ kind: "service" as const, item })),
+  ];
 }
 
 function SwitchRow({
@@ -609,8 +684,7 @@ function FeaturedPicker({
 function PreviewModal({
   visible,
   onClose,
-  html,
-  loading = false,
+  publishedUrl,
   source,
   onSourceChange,
   children,
@@ -618,8 +692,7 @@ function PreviewModal({
   Readonly<{
     visible: boolean;
     onClose: () => void;
-    html?: string | null;
-    loading?: boolean;
+    publishedUrl: string;
     source: "local" | "published";
     onSourceChange: (source: "local" | "published") => void;
   }>
@@ -627,22 +700,57 @@ function PreviewModal({
   const colors = useBrandScreenPalette();
   const isDesktop = useDesktopLayout();
   const allowPublished = Platform.OS === "web";
-  const showIframe = allowPublished && source === "published" && Boolean(html);
-  const showSpinner = allowPublished && source === "published" && loading && !html;
-  const previewBody = showIframe ? (
-    React.createElement("iframe", {
-      srcDoc: html,
-      title: "Prévia da vitrine publicada",
-      sandbox: "allow-scripts allow-forms allow-popups allow-modals",
-      style: { flex: 1, width: "100%", border: 0, background: colors.background },
-    })
-  ) : showSpinner ? (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      <ActivityIndicator color={colors.rose} />
-      <Typography style={{ marginTop: 12, color: colors.warmGray }}>
-        Abrindo a página publicada…
-      </Typography>
-    </View>
+  const showPublished = allowPublished && source === "published";
+  const [publishedHtml, setPublishedHtml] = useState<string | null>(null);
+  const [publishedStatus, setPublishedStatus] = useState<"idle" | "loading" | "error">(
+    "idle",
+  );
+  useEffect(() => {
+    if (!visible || !showPublished) return;
+    let cancelled = false;
+    setPublishedStatus("loading");
+    const cacheBust = `${publishedUrl}${publishedUrl.includes("?") ? "&" : "?"}_=${Date.now()}`;
+    void fetchPublishedCatalogHtml(cacheBust)
+      .then((html) => {
+        if (cancelled) return;
+        setPublishedHtml(html);
+        setPublishedStatus("idle");
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setPublishedHtml(null);
+        setPublishedStatus("error");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [visible, showPublished, publishedUrl]);
+  const previewBody = showPublished ? (
+    publishedStatus === "loading" ? (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <ActivityIndicator color={colors.wine} />
+      </View>
+    ) : publishedStatus === "error" || !publishedHtml ? (
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 24,
+        }}
+      >
+        <Typography style={{ color: colors.warmGray, textAlign: "center" }}>
+          Não foi possível abrir a página no ar.
+        </Typography>
+      </View>
+    ) : (
+      React.createElement("iframe", {
+        srcDoc: publishedHtml,
+        title: "Página no ar",
+        sandbox: "allow-scripts allow-popups allow-forms allow-modals",
+        style: { flex: 1, width: "100%", border: 0, background: colors.background },
+      })
+    )
   ) : (
     <ScrollView
       contentContainerStyle={{
@@ -769,7 +877,6 @@ export function CatalogCustomizer({
 }: CatalogCustomizerProps) {
   const { theme } = useTheme();
   const colors = useBrandScreenPalette();
-  const { token } = useAuth();
   const router = useRouter();
   const params = useLocalSearchParams<{ step?: string; section?: string }>();
   const { width } = useWindowDimensions();
@@ -784,6 +891,10 @@ export function CatalogCustomizer({
     }),
     [products, services],
   );
+  const catalogItems = useMemo(
+    () => publicStorefrontItems(products, services),
+    [products, services],
+  );
   const initial = useMemo(
     () => createStorefrontCustomization(settings, businessName, counts),
     [settings, businessName, counts],
@@ -793,8 +904,6 @@ export function CatalogCustomizer({
   const [requestStatus, setRequestStatus] = useState<EditorStatus>("saved");
   const [colorTarget, setColorTarget] = useState<ColorTarget>(null);
   const [previewVisible, setPreviewVisible] = useState(false);
-  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
-  const [previewLoading, setPreviewLoading] = useState(false);
   const [previewSource, setPreviewSource] = useState<"local" | "published">("local");
   const [featuredPickerVisible, setFeaturedPickerVisible] = useState(false);
   const [qrVisible, setQrVisible] = useState(false);
@@ -897,18 +1006,6 @@ export function CatalogCustomizer({
   function openPreview() {
     setPreviewSource("local");
     setPreviewVisible(true);
-  }
-
-  async function loadPublishedPreview() {
-    if (!token || previewLoading) return;
-    setPreviewLoading(true);
-    try {
-      setPreviewHtml(await fetchStorefrontPreviewHtml(token, draft));
-    } catch {
-      setPreviewHtml(null);
-    } finally {
-      setPreviewLoading(false);
-    }
   }
 
   async function imageSize(uri: string, fallback?: number | null): Promise<number> {
@@ -1047,6 +1144,10 @@ export function CatalogCustomizer({
             ? settings.serviceCoverUrl
             : uploadedCoverUrl,
         accentColor: normalized.identity.actionColor,
+        titleColor: normalized.identity.primaryColor,
+        descriptionColor: normalized.identity.textColor,
+        serviceTitleColor: normalized.identity.primaryColor,
+        serviceDescriptionColor: normalized.identity.textColor,
         tagline: normalized.hero.introduction || null,
         promoBanner: normalized.hero.promotionalText || null,
         promoBannerEnabled: normalized.hero.showPromotionalBar,
@@ -1266,7 +1367,7 @@ export function CatalogCustomizer({
                   <View style={{ flex: 1 }}>
                     <SectionHeading
                       title="Cor dos botões"
-                      description="A marca Lucro Caseiro define o fundo e o vinho do texto."
+                      description="O fundo da vitrine continua no creme da marca. Títulos e frases você escolhe em Topo."
                     />
                   </View>
                   <Button
@@ -1311,6 +1412,125 @@ export function CatalogCustomizer({
           {step === "hero" ? (
             <>
               <SectionHeading
+                title="Estilo do banner"
+                description="Escolha como o topo da vitrine aparece."
+              />
+              <View
+                accessibilityRole="radiogroup"
+                style={{ flexDirection: wide ? "row" : "column", gap: 10 }}
+              >
+                <StyleOption
+                  value="classic"
+                  selected={draft.hero.style === "classic"}
+                  title="Clássico"
+                  description="Texto e ação em coluna, capa em destaque."
+                  onSelect={(style) =>
+                    setDraft((current) => ({
+                      ...current,
+                      hero: { ...current.hero, style },
+                    }))
+                  }
+                >
+                  <View style={{ flex: 1, padding: 6, gap: 4 }}>
+                    <View
+                      style={{
+                        height: 6,
+                        width: "55%",
+                        borderRadius: 4,
+                        backgroundColor: colors.wine,
+                      }}
+                    />
+                    <View
+                      style={{
+                        height: 4,
+                        width: "80%",
+                        borderRadius: 4,
+                        backgroundColor: colors.border,
+                      }}
+                    />
+                    <View
+                      style={{
+                        height: 10,
+                        width: 36,
+                        borderRadius: 6,
+                        backgroundColor: colors.rose,
+                      }}
+                    />
+                  </View>
+                </StyleOption>
+                <StyleOption
+                  value="editorial"
+                  selected={draft.hero.style === "editorial"}
+                  title="Editorial"
+                  description="Destaques visuais, texto à esquerda e ação visível."
+                  onSelect={(style) =>
+                    setDraft((current) => ({
+                      ...current,
+                      hero: { ...current.hero, style },
+                    }))
+                  }
+                >
+                  <View style={{ flex: 1, flexDirection: "row", padding: 6, gap: 6 }}>
+                    <View style={{ flex: 1, gap: 4, justifyContent: "center" }}>
+                      <View
+                        style={{
+                          height: 6,
+                          width: "90%",
+                          borderRadius: 4,
+                          backgroundColor: colors.wine,
+                        }}
+                      />
+                      <View
+                        style={{
+                          height: 10,
+                          width: 28,
+                          borderRadius: 6,
+                          backgroundColor: colors.rose,
+                        }}
+                      />
+                    </View>
+                    <View
+                      style={{
+                        width: 28,
+                        borderRadius: 6,
+                        backgroundColor: colors.softRose,
+                      }}
+                    />
+                  </View>
+                </StyleOption>
+                <StyleOption
+                  value="compact"
+                  selected={draft.hero.style === "compact"}
+                  title="Compacto"
+                  description="Leitura rápida, menos altura e ação objetiva."
+                  onSelect={(style) =>
+                    setDraft((current) => ({
+                      ...current,
+                      hero: { ...current.hero, style },
+                    }))
+                  }
+                >
+                  <View style={{ flex: 1, padding: 8, justifyContent: "center", gap: 3 }}>
+                    <View
+                      style={{
+                        height: 5,
+                        width: "70%",
+                        borderRadius: 4,
+                        backgroundColor: colors.wine,
+                      }}
+                    />
+                    <View
+                      style={{
+                        height: 8,
+                        width: 32,
+                        borderRadius: 5,
+                        backgroundColor: colors.rose,
+                      }}
+                    />
+                  </View>
+                </StyleOption>
+              </View>
+              <SectionHeading
                 title="Composição do topo"
                 description="Monte a primeira impressão da sua vitrine."
               />
@@ -1327,9 +1547,29 @@ export function CatalogCustomizer({
                   title="Capa ou banner"
                   image={coverUrl}
                   onPress={() => void pickImage("cover")}
-                  onRemove={() => setCoverUrl(null)}
+                  onRemove={() => {
+                    setCoverUrl(null);
+                    setDraft((current) => ({
+                      ...current,
+                      hero: {
+                        ...current.hero,
+                        coverFocal: { x: 0.5, y: 0.5, scale: 1 },
+                      },
+                    }));
+                  }}
                 />
-                {coverUrl ? null : (
+                {coverUrl ? (
+                  <CoverAdjuster
+                    coverUrl={coverUrl}
+                    focal={draft.hero.coverFocal ?? { x: 0.5, y: 0.5, scale: 1 }}
+                    onChange={(coverFocal) =>
+                      setDraft((current) => ({
+                        ...current,
+                        hero: { ...current.hero, coverFocal },
+                      }))
+                    }
+                  />
+                ) : (
                   <Typography style={{ color: colors.warmGray, fontSize: 12 }}>
                     Sem capa, o topo fica neutro. Destaques só aparecem quando não houver
                     capa.
@@ -1463,8 +1703,62 @@ export function CatalogCustomizer({
                   }
                 />
               </EditorCard>
-              <SectionHeading title="Texto e ação" />
+              <SectionHeading
+                title="Texto e ação"
+                description="Escolha as cores do nome, da frase e da assinatura."
+              />
               <EditorCard>
+                <View
+                  style={{
+                    flexDirection: stackColorFields ? "column" : "row",
+                    gap: 12,
+                  }}
+                >
+                  <ColorField
+                    label="Cor do título"
+                    value={draft.identity.primaryColor}
+                    error={errors.primaryColor}
+                    stacked={stackColorFields}
+                    onOpen={() => setColorTarget("primaryColor")}
+                    onTextChange={(value) =>
+                      setDraft((current) => ({
+                        ...current,
+                        identity: { ...current.identity, primaryColor: value },
+                      }))
+                    }
+                  />
+                  <ColorField
+                    label="Cor da frase"
+                    value={draft.identity.textColor}
+                    error={errors.textColor}
+                    stacked={stackColorFields}
+                    onOpen={() => setColorTarget("textColor")}
+                    onTextChange={(value) =>
+                      setDraft((current) => ({
+                        ...current,
+                        identity: { ...current.identity, textColor: value },
+                      }))
+                    }
+                  />
+                </View>
+                <Button
+                  title="Usar cores da marca"
+                  variant="text"
+                  compact
+                  icon={
+                    <AppIcon name="color-palette-outline" size={16} color={colors.rose} />
+                  }
+                  onPress={() =>
+                    setDraft((current) => ({
+                      ...current,
+                      identity: {
+                        ...current.identity,
+                        primaryColor: STOREFRONT_BRAND_COLORS.primary,
+                        textColor: STOREFRONT_BRAND_COLORS.text,
+                      },
+                    }))
+                  }
+                />
                 <View style={{ gap: 6 }}>
                   <Input
                     label="Frase de apresentação"
@@ -1481,6 +1775,24 @@ export function CatalogCustomizer({
                   <FieldHint
                     value={draft.hero.introduction}
                     limit={STOREFRONT_INTRODUCTION_LIMIT}
+                  />
+                </View>
+                <View style={{ gap: 6 }}>
+                  <Input
+                    label="Assinatura curta"
+                    value={draft.hero.shortSignature}
+                    maxLength={STOREFRONT_SIGNATURE_LIMIT}
+                    error={errors.shortSignature}
+                    onChangeText={(shortSignature) =>
+                      setDraft((current) => ({
+                        ...current,
+                        hero: { ...current.hero, shortSignature },
+                      }))
+                    }
+                  />
+                  <FieldHint
+                    value={draft.hero.shortSignature}
+                    limit={STOREFRONT_SIGNATURE_LIMIT}
                   />
                 </View>
                 <View style={{ gap: 6 }}>
@@ -1525,6 +1837,257 @@ export function CatalogCustomizer({
                 />
                 <Typography style={{ color: colors.warmGray, fontSize: 12 }}>
                   Se preencher, a faixa aparece no topo da vitrine.
+                </Typography>
+              </EditorCard>
+              <SectionHeading
+                title="Informações rápidas"
+                description="Até 3 textos curtos abaixo do banner, como entrega ou encomenda."
+              />
+              <EditorCard>
+                {draft.hero.quickInfo.length === 0 ? (
+                  <Typography style={{ color: colors.warmGray, fontSize: 12 }}>
+                    Nenhum texto extra no banner. Adicione se quiser destacar um recado.
+                  </Typography>
+                ) : (
+                  draft.hero.quickInfo.map((item) => (
+                    <View key={item.id} style={{ gap: 6 }}>
+                      <Input
+                        label="Texto"
+                        value={item.label}
+                        maxLength={STOREFRONT_QUICK_INFO_LIMIT}
+                        onChangeText={(label) =>
+                          setDraft((current) => ({
+                            ...current,
+                            hero: {
+                              ...current.hero,
+                              quickInfo: current.hero.quickInfo.map((entry) =>
+                                entry.id === item.id ? { ...entry, label } : entry,
+                              ),
+                            },
+                          }))
+                        }
+                      />
+                      <Button
+                        title="Remover"
+                        variant="text"
+                        compact
+                        onPress={() =>
+                          setDraft((current) => ({
+                            ...current,
+                            hero: {
+                              ...current.hero,
+                              quickInfo: current.hero.quickInfo.filter(
+                                (entry) => entry.id !== item.id,
+                              ),
+                            },
+                          }))
+                        }
+                      />
+                    </View>
+                  ))
+                )}
+                {draft.hero.quickInfo.length < 3 ? (
+                  <Button
+                    title="Adicionar texto"
+                    variant="outline"
+                    compact
+                    onPress={() =>
+                      setDraft((current) => ({
+                        ...current,
+                        hero: {
+                          ...current.hero,
+                          quickInfo: [
+                            ...current.hero.quickInfo,
+                            {
+                              id: `quick-${Date.now()}`,
+                              icon: "sparkles" as const,
+                              label: "",
+                              order: current.hero.quickInfo.length,
+                              enabled: true,
+                            },
+                          ],
+                        },
+                      }))
+                    }
+                  />
+                ) : null}
+              </EditorCard>
+              <SectionHeading
+                title="Botões dos itens"
+                description="Escolha o texto de Pedir ou Agendar, e mude só o que quiser em cada item."
+              />
+              <EditorCard>
+                <View style={{ gap: 6 }}>
+                  <Input
+                    label="Botão dos produtos"
+                    value={draft.organization.actions.productDefault.label ?? ""}
+                    maxLength={STOREFRONT_CARD_ACTION_LABEL_LIMIT}
+                    onChangeText={(label) =>
+                      setDraft((current) => ({
+                        ...current,
+                        organization: {
+                          ...current.organization,
+                          actions: {
+                            ...current.organization.actions,
+                            productDefault: {
+                              ...current.organization.actions.productDefault,
+                              type: "order",
+                              label,
+                              channel: "whatsapp",
+                            },
+                          },
+                        },
+                      }))
+                    }
+                  />
+                  <FieldHint
+                    value={draft.organization.actions.productDefault.label ?? ""}
+                    limit={STOREFRONT_CARD_ACTION_LABEL_LIMIT}
+                  />
+                </View>
+                {counts.services > 0 ? (
+                  <View style={{ gap: 6 }}>
+                    <Input
+                      label="Botão dos serviços"
+                      value={draft.organization.actions.serviceDefault.label ?? ""}
+                      maxLength={STOREFRONT_CARD_ACTION_LABEL_LIMIT}
+                      onChangeText={(label) =>
+                        setDraft((current) => ({
+                          ...current,
+                          organization: {
+                            ...current.organization,
+                            actions: {
+                              ...current.organization.actions,
+                              serviceDefault: {
+                                ...current.organization.actions.serviceDefault,
+                                type: "schedule",
+                                label,
+                                channel: "whatsapp",
+                              },
+                            },
+                          },
+                        }))
+                      }
+                    />
+                    <FieldHint
+                      value={draft.organization.actions.serviceDefault.label ?? ""}
+                      limit={STOREFRONT_CARD_ACTION_LABEL_LIMIT}
+                    />
+                  </View>
+                ) : null}
+                {catalogItems.length === 0 ? (
+                  <Typography style={{ color: colors.warmGray, fontSize: 12 }}>
+                    Cadastre produtos ou serviços para personalizar o botão de cada item.
+                  </Typography>
+                ) : (
+                  catalogItems.map((entry) => {
+                    const key = `${entry.kind}:${entry.item.id}`;
+                    const fallback =
+                      entry.kind === "product"
+                        ? (draft.organization.actions.productDefault.label ?? "Pedir")
+                        : (draft.organization.actions.serviceDefault.label ?? "Agendar");
+                    const override = draft.organization.actions.itemOverrides[key];
+                    const photoUrl =
+                      entry.kind === "product" ? entry.item.photoUrl : null;
+                    return (
+                      <View key={key} style={{ gap: 6 }}>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 10,
+                          }}
+                        >
+                          <View
+                            style={{
+                              width: 42,
+                              height: 42,
+                              borderRadius: 10,
+                              backgroundColor: colors.softRose,
+                              alignItems: "center",
+                              justifyContent: "center",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {photoUrl ? (
+                              <Image
+                                source={{ uri: photoUrl }}
+                                style={{ width: "100%", height: "100%" }}
+                              />
+                            ) : (
+                              <AppIcon
+                                name={
+                                  entry.kind === "product"
+                                    ? "bag-handle-outline"
+                                    : "person-outline"
+                                }
+                                size={20}
+                                color={colors.wine}
+                              />
+                            )}
+                          </View>
+                          <View style={{ flex: 1 }}>
+                            <Typography
+                              numberOfLines={1}
+                              style={{
+                                color: colors.ink,
+                                fontFamily: fonts.semiBold,
+                                fontSize: 13,
+                              }}
+                            >
+                              {displayCatalogItemName(entry.item.name)}
+                            </Typography>
+                            <Typography style={{ color: colors.warmGray, fontSize: 11 }}>
+                              {entry.kind === "product" ? "Produto" : "Serviço"}
+                            </Typography>
+                          </View>
+                        </View>
+                        <Input
+                          label="Texto do botão"
+                          placeholder={
+                            fallback || (entry.kind === "product" ? "Pedir" : "Agendar")
+                          }
+                          value={override?.label ?? ""}
+                          maxLength={STOREFRONT_CARD_ACTION_LABEL_LIMIT}
+                          onChangeText={(label) =>
+                            setDraft((current) => {
+                              const trimmed = label.trim();
+                              const itemOverrides = Object.fromEntries(
+                                Object.entries(
+                                  current.organization.actions.itemOverrides,
+                                ).filter(([id]) => id !== key),
+                              );
+                              return {
+                                ...current,
+                                organization: {
+                                  ...current.organization,
+                                  actions: {
+                                    ...current.organization.actions,
+                                    itemOverrides: trimmed
+                                      ? {
+                                          ...itemOverrides,
+                                          [key]: {
+                                            type:
+                                              entry.kind === "service"
+                                                ? "schedule"
+                                                : "order",
+                                            label,
+                                            channel: "whatsapp",
+                                          },
+                                        }
+                                      : itemOverrides,
+                                  },
+                                },
+                              };
+                            })
+                          }
+                        />
+                      </View>
+                    );
+                  })
+                )}
+                <Typography style={{ color: colors.warmGray, fontSize: 12 }}>
+                  Deixe em branco no item para usar o texto padrão. Exemplo: Pedir.
                 </Typography>
               </EditorCard>
             </>
@@ -1881,17 +2444,11 @@ export function CatalogCustomizer({
       />
       <PreviewModal
         visible={previewVisible}
-        html={previewHtml}
-        loading={previewLoading}
+        publishedUrl={catalogUrl}
         source={previewSource}
-        onSourceChange={(next) => {
-          setPreviewSource(next);
-          if (next === "published") void loadPublishedPreview();
-        }}
+        onSourceChange={setPreviewSource}
         onClose={() => {
           setPreviewVisible(false);
-          setPreviewLoading(false);
-          setPreviewHtml(null);
           setPreviewSource("local");
         }}
       >

@@ -12,7 +12,9 @@ import { isValidBrazilPhone, maskPhoneBR } from "../../shared/utils/phone";
 export const STOREFRONT_DISPLAY_NAME_LIMIT = 60;
 export const STOREFRONT_INTRODUCTION_LIMIT = 120;
 export const STOREFRONT_SIGNATURE_LIMIT = 40;
+export const STOREFRONT_QUICK_INFO_LIMIT = 48;
 export const STOREFRONT_ACTION_LABEL_LIMIT = 20;
+export const STOREFRONT_CARD_ACTION_LABEL_LIMIT = 24;
 export const STOREFRONT_PROMO_LIMIT = 60;
 export const CATALOG_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
 
@@ -56,6 +58,7 @@ export const STOREFRONT_BRAND_COLORS = {
   primary: "#4A2332",
   action: "#B65F72",
   background: "#FAF8F6",
+  text: "#6D6266",
 } as const;
 
 /** Remove prefixos técnicos internos (`[massa]`, `[tag]`) do nome exibido. */
@@ -171,6 +174,10 @@ function legacyAccent(settings: CatalogSettings): string {
   return ACCENT_TO_HEX[settings.accentColor ?? ""] ?? STOREFRONT_BRAND_COLORS.action;
 }
 
+function legacyHex(value: string | null | undefined, fallback: string): string {
+  return value && isValidCatalogColor(value) ? value.toUpperCase() : fallback;
+}
+
 export function createStorefrontCustomization(
   settings: CatalogSettings,
   businessName: string,
@@ -218,9 +225,10 @@ export function createStorefrontCustomization(
         businessName.trim().slice(0, STOREFRONT_DISPLAY_NAME_LIMIT) || "Meu negócio",
       logoUrl: settings.logoUrl,
       offeringMode,
-      primaryColor: STOREFRONT_BRAND_COLORS.primary,
+      primaryColor: legacyHex(settings.titleColor, STOREFRONT_BRAND_COLORS.primary),
       actionColor: legacyAccent(settings),
       backgroundColor: STOREFRONT_BRAND_COLORS.background,
+      textColor: legacyHex(settings.descriptionColor, STOREFRONT_BRAND_COLORS.text),
     },
     hero: {
       style: "classic",
@@ -300,6 +308,27 @@ export function createStorefrontCustomization(
   };
 }
 
+function normalizeHeroStyle(
+  style: StorefrontCustomization["hero"]["style"],
+): StorefrontCustomization["hero"]["style"] {
+  if (style === "editorial" || style === "compact") return style;
+  return "classic";
+}
+
+function preservedQuickInfo(
+  draft: StorefrontCustomization,
+): StorefrontCustomization["hero"]["quickInfo"] {
+  return draft.hero.quickInfo
+    .map((item) => ({ ...item, label: item.label.trim() }))
+    .filter((item) => item.label)
+    .slice(0, 3)
+    .map((item, index) => ({
+      ...item,
+      order: index,
+      enabled: item.enabled !== false,
+    }));
+}
+
 function offeringModeFromCounts(
   products: number,
   services: number,
@@ -307,6 +336,49 @@ function offeringModeFromCounts(
   if (products > 0 && services === 0) return "products";
   if (services > 0 && products === 0) return "services";
   return "both";
+}
+
+function preservedCardActions(
+  draft: StorefrontCustomization,
+  whatsapp: string,
+): StorefrontCustomization["organization"]["actions"] {
+  const productLabel = draft.organization.actions.productDefault.label?.trim() || "Pedir";
+  const serviceLabel =
+    draft.organization.actions.serviceDefault.label?.trim() || "Agendar";
+  const itemOverrides = Object.fromEntries(
+    Object.entries(draft.organization.actions.itemOverrides).flatMap(([id, action]) => {
+      const label = action.label?.trim();
+      if (!label) return [];
+      const isService = id.startsWith("service:");
+      return [
+        [
+          id,
+          {
+            type: isService ? ("schedule" as const) : ("order" as const),
+            label,
+            channel: "whatsapp" as const,
+            ...(whatsapp ? { destination: whatsapp } : {}),
+          },
+        ],
+      ];
+    }),
+  );
+  return {
+    mode: "default",
+    productDefault: {
+      type: "order",
+      label: productLabel,
+      channel: "whatsapp",
+      ...(whatsapp ? { destination: whatsapp } : {}),
+    },
+    serviceDefault: {
+      type: "schedule",
+      label: serviceLabel,
+      channel: "whatsapp",
+      ...(whatsapp ? { destination: whatsapp } : {}),
+    },
+    itemOverrides,
+  };
 }
 
 export function applySimpleStorefrontPresentation(
@@ -323,17 +395,21 @@ export function applySimpleStorefrontPresentation(
     identity: {
       ...draft.identity,
       offeringMode,
-      primaryColor: STOREFRONT_BRAND_COLORS.primary,
+      primaryColor: legacyHex(
+        draft.identity.primaryColor,
+        STOREFRONT_BRAND_COLORS.primary,
+      ),
       backgroundColor: STOREFRONT_BRAND_COLORS.background,
+      textColor: legacyHex(draft.identity.textColor, STOREFRONT_BRAND_COLORS.text),
     },
     hero: {
       ...draft.hero,
-      style: "classic",
-      shortSignature: "",
+      style: normalizeHeroStyle(draft.hero.style),
+      shortSignature: draft.hero.shortSignature.trim(),
       smallScreenAlternativeUrl: null,
       promotionalText,
       showPromotionalBar: Boolean(promotionalText),
-      quickInfo: [],
+      quickInfo: preservedQuickInfo(draft),
     },
     organization: {
       content: {
@@ -360,22 +436,7 @@ export function applySimpleStorefrontPresentation(
         missingPriceBehavior: "consult",
         missingPriceText: "Consultar",
       },
-      actions: {
-        mode: "default",
-        productDefault: {
-          type: "order",
-          label: "Pedir",
-          channel: "whatsapp",
-          ...(whatsapp ? { destination: whatsapp } : {}),
-        },
-        serviceDefault: {
-          type: "schedule",
-          label: "Agendar",
-          channel: "whatsapp",
-          ...(whatsapp ? { destination: whatsapp } : {}),
-        },
-        itemOverrides: {},
-      },
+      actions: preservedCardActions(draft, whatsapp),
       contact: {
         ...draft.organization.contact,
         floatingEnabled: true,
@@ -403,10 +464,12 @@ export function normalizeStorefrontCustomization(
       primaryColor: simplified.identity.primaryColor.toUpperCase(),
       actionColor: simplified.identity.actionColor.toUpperCase(),
       backgroundColor: simplified.identity.backgroundColor.toUpperCase(),
+      textColor: simplified.identity.textColor.toUpperCase(),
     },
     hero: {
       ...simplified.hero,
       introduction: simplified.hero.introduction.trim(),
+      shortSignature: simplified.hero.shortSignature.trim(),
       promotionalText: simplified.hero.promotionalText.trim(),
       action: normalizeHeroContactAction(
         simplified.hero.action,
@@ -422,7 +485,7 @@ export function normalizeStorefrontCustomization(
         altText: item.altText.trim(),
         transforms: item.transforms.map(normalizeFeaturedItemTransform),
       })),
-      quickInfo: [],
+      quickInfo: preservedQuickInfo(simplified),
     },
     publication: {
       slug: simplified.publication.slug.trim().toLowerCase(),
@@ -439,6 +502,10 @@ export function validateStorefrontCustomization(
   if (!draft.identity.displayName.trim()) errors.displayName = "Informe o nome exibido.";
   if (draft.identity.displayName.length > STOREFRONT_DISPLAY_NAME_LIMIT)
     errors.displayName = `Use até ${STOREFRONT_DISPLAY_NAME_LIMIT} caracteres.`;
+  if (!isValidCatalogColor(draft.identity.primaryColor))
+    errors.primaryColor = "Use uma cor hexadecimal válida.";
+  if (!isValidCatalogColor(draft.identity.textColor))
+    errors.textColor = "Use uma cor hexadecimal válida.";
   if (!isValidCatalogColor(draft.identity.actionColor))
     errors.actionColor = "Use uma cor hexadecimal válida.";
   if (draft.hero.featuredItems.length > 3)
@@ -489,7 +556,11 @@ export function buildStorefrontChecklist(
     {
       id: "identity",
       label: "Identidade configurada",
-      valid: !errors.displayName && !errors.actionColor,
+      valid:
+        !errors.displayName &&
+        !errors.primaryColor &&
+        !errors.textColor &&
+        !errors.actionColor,
       step: "identity",
     },
     {
