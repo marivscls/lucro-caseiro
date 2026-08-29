@@ -187,8 +187,9 @@ describe("storefront helpers", () => {
 
   it("marca faixa de preço só com variação ou valores distintos", () => {
     const data = catalog();
+    const services = data.services ?? [];
     expect(productHasPriceRange(data.products[0]!)).toBe(false);
-    expect(serviceListedPrice(data.services[0]!)).toEqual({
+    expect(serviceListedPrice(services[0]!)).toEqual({
       amount: null,
       hasRange: false,
     });
@@ -217,7 +218,7 @@ describe("storefront helpers", () => {
     ).toContain("a partir de R$");
 
     const rangedService = {
-      ...data.services[0]!,
+      ...services[0]!,
       defaultPrice: 280,
       variations: [
         {
