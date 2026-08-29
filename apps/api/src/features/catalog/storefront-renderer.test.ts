@@ -384,16 +384,20 @@ describe("renderPublishedStorefrontHtml", () => {
     expect(html).toContain('class="item-placeholder-mark"');
   });
 
-  it("empilha data e horário do agendamento no celular", () => {
+  it("abre o calendário do Lucro Caseiro no agendamento e não corta o campo", () => {
     const html = renderPublishedStorefrontHtml(catalog());
-    expect(html).toContain('class="form-row"');
-    expect(html).toContain("Data desejada");
-    expect(html).toContain('id="booking-time"');
-    expect(html).toContain(".form-row{display:grid;grid-template-columns:1fr;gap:14px}");
-    expect(html).toContain(".form-row>*{min-width:0;overflow:hidden}");
+    expect(html).toContain('id="booking-calendar"');
+    expect(html).toContain('id="booking-date-trigger"');
+    expect(html).toContain("DD/MM/AAAA");
+    expect(html).toContain('placeholder="Ex: 14:30"');
+    expect(html).not.toContain('type="date"');
+    expect(html).not.toContain('type="time"');
+    expect(html).toContain(".lc-cal-day");
     expect(html).toContain(
-      "dialog input[type=date],dialog input[type=time]{display:block;max-width:100%}",
+      "dialog form,.dialog-panel{display:grid;gap:14px;padding:22px 24px;",
     );
+    expect(html).toContain("overflow-x:visible");
+    expect(html).toContain("Escolha a data desejada.");
   });
 
   it("esconde cards [hidden] no Safari e isola o clique das abas", () => {

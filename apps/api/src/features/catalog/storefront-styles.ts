@@ -200,23 +200,41 @@ body.js-ready:not(.is-scrolled) .floating-contact{opacity:0;pointer-events:none;
 .floating-contact .floating-label{display:block;max-width:18ch;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.92rem;line-height:1.2}
 .floating-contact.obscured{opacity:0;pointer-events:none;transform:translateY(8px)}
 
-dialog{width:min(520px,calc(100% - 28px));max-height:calc(100dvh - 28px);overflow:auto;border:0;border-radius:16px;padding:0;background:#fff;color:var(--ink);box-shadow:0 24px 60px rgba(36,24,30,.22)}
+dialog{width:min(520px,calc(100% - 28px));max-height:calc(100dvh - 28px);overflow:visible;border:0;border-radius:16px;padding:0;background:#fff;color:var(--ink);box-shadow:0 24px 60px rgba(36,24,30,.22)}
 #item-details-photo{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;background:var(--blush)}
 #item-details-photo[hidden],#item-details-price[hidden],#item-details-meta[hidden]{display:none}
 #item-details-copy{margin:0;color:var(--warm);font-size:.92rem;line-height:1.5;white-space:pre-wrap}
 #item-details-meta{margin:0;color:var(--warm);font-size:.78rem}
 dialog::backdrop{background:rgba(36,24,30,.45)}
-dialog form,.dialog-panel{display:grid;gap:14px;padding:22px}
+dialog form,.dialog-panel{display:grid;gap:14px;padding:22px 24px;max-height:calc(100dvh - 28px);overflow-x:visible;overflow-y:auto}
 dialog header{display:flex;align-items:center;justify-content:space-between;gap:15px}
 dialog header p,dialog header h2{margin:0}
 .dialog-close{width:44px;height:44px;border:1px solid var(--storefront-border);border-radius:50%;display:grid;place-items:center;background:transparent;color:var(--ink)}
 dialog label{display:grid;gap:6px;font-weight:700}
-dialog input,dialog select,dialog textarea{width:100%;min-width:0;min-height:46px;border:1px solid var(--storefront-border);border-radius:10px;padding:10px;background:var(--cream);color:var(--ink)}
-dialog input[type=date],dialog input[type=time]{display:block;max-width:100%}
-dialog input[type=date]::-webkit-datetime-edit,dialog input[type=time]::-webkit-datetime-edit{min-width:0;max-width:100%}
+dialog input:not([type=hidden]),dialog select,dialog textarea,.picker-field{width:100%;max-width:100%;min-width:0;min-height:48px;border:1px solid var(--storefront-border);border-radius:10px;padding:12px;background:var(--cream);color:var(--ink);box-sizing:border-box}
 dialog textarea{min-height:84px;resize:vertical}
 .form-row{display:grid;grid-template-columns:1fr;gap:14px}
-.form-row>*{min-width:0;overflow:hidden}
+.form-row>*{min-width:0}
+.picker-field{display:flex;align-items:center;justify-content:space-between;gap:10px;font:inherit;font-weight:700;text-align:left;cursor:pointer}
+.picker-field.is-empty{color:var(--warm);font-weight:600}
+.picker-field svg{width:22px;height:22px;color:var(--storefront-primary)}
+#booking-calendar{width:min(520px,calc(100% - 28px));border:0;border-radius:20px;padding:18px;background:#fff;color:var(--ink);box-shadow:0 24px 60px rgba(36,24,30,.22)}
+.lc-cal-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.lc-cal-head>button{min-width:44px;min-height:44px;border:0;border-radius:12px;background:transparent;color:var(--storefront-primary);display:grid;place-items:center;cursor:pointer}
+#cal-prev svg{transform:scaleX(-1)}
+#cal-title{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--ink);font-weight:800;font-size:1.05rem}
+#cal-title.is-years svg{transform:rotate(180deg)}
+.lc-cal-week,.lc-cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.lc-cal-week{margin-bottom:4px;color:var(--storefront-primary);font-size:.72rem;font-weight:800;text-align:center}
+.lc-cal-day{height:42px;border:0;background:transparent;color:var(--ink);font:inherit;font-weight:700;display:grid;place-items:center;cursor:pointer}
+.lc-cal-day span{width:38px;height:38px;border-radius:50%;display:grid;place-items:center}
+.lc-cal-day.is-muted{opacity:.45}
+.lc-cal-day.is-selected span{background:var(--storefront-primary);color:#fff}
+.lc-cal-day.is-today:not(.is-selected) span{border:1.5px solid var(--storefront-primary)}
+.lc-cal-years{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.lc-cal-year{min-height:48px;border:0;border-radius:12px;background:var(--cream);color:var(--ink);font:inherit;font-weight:800;cursor:pointer}
+.lc-cal-year.is-selected{background:var(--storefront-primary);color:#fff}
+#cal-close{width:100%;min-height:44px;margin-top:12px;border:0;border-radius:10px;background:var(--cream);color:var(--ink);font:inherit;font-weight:800;cursor:pointer}
 .dialog-submit{min-height:48px;border:0;border-radius:12px;background:var(--storefront-action);color:var(--storefront-on-action);font-weight:800}
 footer{padding:24px 16px calc(24px + env(safe-area-inset-bottom));text-align:center;color:var(--warm);font-size:.76rem;border-top:1px solid color-mix(in srgb,var(--storefront-action) 10%,white)}
 
