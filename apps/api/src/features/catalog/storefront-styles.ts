@@ -212,9 +212,11 @@ dialog header p,dialog header h2{margin:0}
 .dialog-close{width:44px;height:44px;border:1px solid var(--storefront-border);border-radius:50%;display:grid;place-items:center;background:transparent;color:var(--ink)}
 dialog label{display:grid;gap:6px;font-weight:700}
 dialog input,dialog select,dialog textarea{width:100%;min-width:0;min-height:46px;border:1px solid var(--storefront-border);border-radius:10px;padding:10px;background:var(--cream);color:var(--ink)}
+dialog input[type=date],dialog input[type=time]{display:block;max-width:100%}
+dialog input[type=date]::-webkit-datetime-edit,dialog input[type=time]::-webkit-datetime-edit{min-width:0;max-width:100%}
 dialog textarea{min-height:84px;resize:vertical}
-.form-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
-.form-row>*{min-width:0}
+.form-row{display:grid;grid-template-columns:1fr;gap:14px}
+.form-row>*{min-width:0;overflow:hidden}
 .dialog-submit{min-height:48px;border:0;border-radius:12px;background:var(--storefront-action);color:var(--storefront-on-action);font-weight:800}
 footer{padding:24px 16px calc(24px + env(safe-area-inset-bottom));text-align:center;color:var(--warm);font-size:.76rem;border-top:1px solid color-mix(in srgb,var(--storefront-action) 10%,white)}
 
@@ -244,6 +246,7 @@ footer{padding:24px 16px calc(24px + env(safe-area-inset-bottom));text-align:cen
   .search-field{min-height:52px}
   .storefront-grid,.cards-compact .storefront-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
   .storefront-card .item-body h3{font-size:.95rem}
+  .form-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
   .highlight-card{width:168px}
   .floating-contact{min-height:52px;padding:12px 18px 12px 16px}
 }
@@ -259,7 +262,6 @@ footer{padding:24px 16px calc(24px + env(safe-area-inset-bottom));text-align:cen
   .store-card h1{font-size:1.28rem}
   .introduction{font-size:.84rem}
   .highlight-card{width:124px}
-  .form-row{grid-template-columns:1fr}
 }
 @media(max-width:329px){
   .storefront-grid,.cards-compact .storefront-grid{grid-template-columns:1fr}

@@ -384,17 +384,15 @@ describe("renderPublishedStorefrontHtml", () => {
     expect(html).toContain('class="item-placeholder-mark"');
   });
 
-  it("separa data e horário do agendamento sem estourar o grid no iOS", () => {
+  it("empilha data e horário do agendamento no celular", () => {
     const html = renderPublishedStorefrontHtml(catalog());
     expect(html).toContain('class="form-row"');
     expect(html).toContain("Data desejada");
     expect(html).toContain('id="booking-time"');
+    expect(html).toContain(".form-row{display:grid;grid-template-columns:1fr;gap:14px}");
+    expect(html).toContain(".form-row>*{min-width:0;overflow:hidden}");
     expect(html).toContain(
-      ".form-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}",
-    );
-    expect(html).toContain(".form-row>*{min-width:0}");
-    expect(html).toContain(
-      "dialog input,dialog select,dialog textarea{width:100%;min-width:0;",
+      "dialog input[type=date],dialog input[type=time]{display:block;max-width:100%}",
     );
   });
 

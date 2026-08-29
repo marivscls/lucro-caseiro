@@ -128,9 +128,10 @@ invariants:
 
 ## Change log / Decisions
 
-- 2026-08-29: data e horário do diálogo de agendamento usam
-  `minmax(0,1fr)` e `min-width:0` para o campo nativo de data do iOS
-  não invadir o horário. O espaço entre os dois é 16px.
+- 2026-08-29: data e horário do diálogo de agendamento empilham no
+  celular. O `input type=date` do iOS ignora o `gap` da grade e cobre
+  o horário; no telefone cada campo fica numa linha, como nome e
+  WhatsApp. Lado a lado só a partir de 768px.
 
 - 2026-08-29: a grade “Escolha o que deseja” da vitrine pública empilha
   foto quadrada, nome em 2 linhas e preço. “a partir de” fica numa linha
