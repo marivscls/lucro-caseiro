@@ -21,7 +21,7 @@ async function pollForPremium(token: string, queryClient: QueryClient) {
     await new Promise((resolve) => setTimeout(resolve, 2500));
     try {
       const profile = await fetchProfile(token);
-      queryClient.setQueryData(PROFILE_KEY, profile);
+      queryClient.setQueryData([...PROFILE_KEY, profile.id], profile);
       if (profile.plan !== "free") {
         await queryClient.invalidateQueries({ queryKey: ["subscription", "limits"] });
         return;

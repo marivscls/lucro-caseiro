@@ -81,7 +81,7 @@ Mobile ownership for profile, freemium limits, paywall display, and platform-bas
 - Stripe checkout failures show a generic retry alert.
 - Google Play unavailable plans show a "Plano indisponivel" alert.
 - Restore with no purchase shows a "Nenhuma assinatura encontrada" alert.
-- Plan reconciliation after payment is resilient to the async Stripe webhook: returning from checkout invalidates the subscription query AND `use-stripe.ts` polls the profile (`fetchProfile`, up to 6× every 2.5s) until it flips to premium, writing it into the `["subscription","profile"]` cache. `app/_layout.tsx` also revalidates the subscription whenever the app returns to foreground (`AppState` `active`).
+- Plan reconciliation after payment is resilient to the async Stripe webhook: returning from checkout invalidates the subscription query AND `use-stripe.ts` polls the profile (`fetchProfile`, up to 6× every 2.5s) until it flips to premium, writing it into the `["subscription","profile",userId]` cache. `app/_layout.tsx` also revalidates the subscription whenever the app returns to foreground (`AppState` `active`).
 
 ## Performance
 
@@ -144,3 +144,5 @@ do Catálogo abrem checkout Essencial somente para contas Gratuitas.
   Google Play e valida o token; iOS/web, onde a assinatura é vinculada à conta via
   Stripe, reconsultam o perfil e invalidam os limites. Nenhuma plataforma cai mais no
   aviso temporário “Restauração iOS será disponibilizada depois”.
+
+- 2026-09-04: cache de perfil isolado por conta; atualizações de perfil, restauração Google Play e polling Stripe escrevem na mesma chave com ID do usuário.

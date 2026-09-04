@@ -38,6 +38,7 @@ describe("useSubscription restore outside Android", () => {
 
   it("restores an active subscription linked to the account", async () => {
     const profile = {
+      id: "user-id",
       plan: "essential",
       planExpiresAt: null,
     };
@@ -50,7 +51,7 @@ describe("useSubscription restore outside Android", () => {
 
     expect(mocks.fetchProfile).toHaveBeenCalledWith("token");
     expect(mocks.setQueryData).toHaveBeenCalledWith(
-      ["subscription", "profile"],
+      ["subscription", "profile", "user-id"],
       profile,
     );
     expect(useAppAlert.getState().options?.title).toBe("Restaurado!");

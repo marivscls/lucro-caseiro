@@ -130,7 +130,7 @@ export function useSubscription() {
         productId,
         purchaseToken,
       });
-      queryClient.setQueryData(SUBSCRIPTION_PROFILE_KEY, profile);
+      queryClient.setQueryData([...SUBSCRIPTION_PROFILE_KEY, profile.id], profile);
       await queryClient.invalidateQueries({ queryKey: ["subscription"] });
       await queryClient.invalidateQueries({ queryKey: SUBSCRIPTION_LIMITS_KEY });
       await finishTransactionRef.current?.({ purchase, isConsumable: false });
@@ -263,7 +263,7 @@ export function useSubscription() {
         // Stripe vincula a assinatura à conta do Lucro Caseiro. Reconsultar o
         // perfil restaura esse estado após reinstalação, troca de aparelho ou PWA.
         const profile = await fetchProfile(token);
-        queryClient.setQueryData(SUBSCRIPTION_PROFILE_KEY, profile);
+        queryClient.setQueryData([...SUBSCRIPTION_PROFILE_KEY, profile.id], profile);
         await queryClient.invalidateQueries({ queryKey: SUBSCRIPTION_LIMITS_KEY });
 
         if (isProfilePremiumActive(profile)) {
