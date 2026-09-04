@@ -31,6 +31,8 @@ interface ButtonProps extends Omit<PressableProps, "style"> {
   loading?: boolean;
   icon?: React.ReactNode;
   compact?: boolean;
+  /** When false, the label keeps the size of `size` instead of shrinking to fit. */
+  fitTitle?: boolean;
   style?: ViewStyle;
 }
 
@@ -54,6 +56,7 @@ export function Button({
   loading = false,
   icon,
   compact = false,
+  fitTitle = true,
   disabled,
   style,
   hitSlop,
@@ -138,8 +141,8 @@ export function Button({
         <>
           {icon}
           <Text
-            adjustsFontSizeToFit
-            minimumFontScale={0.8}
+            adjustsFontSizeToFit={fitTitle}
+            minimumFontScale={fitTitle ? 0.8 : 1}
             numberOfLines={titleLines}
             style={{
               color: v.text,
