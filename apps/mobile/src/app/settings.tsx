@@ -28,6 +28,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useDeleteAccount } from "../features/account/hooks";
+import { BusinessProfileCard } from "../features/onboarding/business-profile";
 import { paidAccountDeletionCopy } from "../features/account/delete-account-copy";
 import { ProlaboreGoalForm } from "../features/goals/components/prolabore-goal-form";
 import { formatCurrency } from "../features/goals/domain";
@@ -622,6 +623,8 @@ export default function SettingsScreen() {
           desktopStretch(isDesktop, desktopWidths.data),
         ]}
       >
+        {brand.id === "lucro-caseiro" ? <BusinessProfileCard settings /> : null}
+
         <Card variant="elevated" shadow="sm" padding="lg">
           <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.lg }}>
             <View

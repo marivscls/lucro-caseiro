@@ -30,7 +30,6 @@ interface OnboardingState {
   completeOnboarding: (userId?: string | null) => Promise<void>;
   startGettingStarted: (userId: string) => void;
   dismissGettingStarted: (userId: string) => void;
-  reopenGettingStarted: (userId: string) => void;
   completeGettingStarted: (userId: string) => void;
   reset: () => void;
 }
@@ -88,12 +87,6 @@ export const useOnboarding = create<OnboardingState>()(
           )
             ? state.gettingStartedDismissedUserIds
             : [...state.gettingStartedDismissedUserIds, userId],
-        })),
-      reopenGettingStarted: (userId) =>
-        set((state) => ({
-          gettingStartedDismissedUserIds: state.gettingStartedDismissedUserIds.filter(
-            (id) => id !== userId,
-          ),
         })),
       completeGettingStarted: (userId) =>
         set((state) => ({

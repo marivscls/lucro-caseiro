@@ -26,10 +26,10 @@ import { apiClient } from "@/shared/lib/api-client";
 import type { AiMessage, AiSession } from "@/shared/types";
 
 const starters = [
-  "Crie uma semana de posts para confeiteiras iniciantes",
-  "Transforme a funcionalidade de precificação em uma campanha",
-  "Revise esta ideia usando uma visão de CMO e Growth",
-  "Monte um roteiro de TikTok com gancho, prova e CTA",
+  "Monte 3 anúncios de TikTok para o Lucro Caseiro, cada um com um ângulo diferente",
+  "Crie uma campanha de tráfego para calcular o primeiro preço grátis",
+  "Escreva roteiros de 15 segundos: quanto sobra, vender não é lucro, tempo de graça",
+  "O que pausar e o que escalar numa campanha de ads com pouco dado",
 ];
 
 type SelenitaActionTarget =
@@ -38,6 +38,8 @@ type SelenitaActionTarget =
   | "calendar"
   | "result"
   | "video-edit";
+
+const primaryActionTargets = new Set<SelenitaActionTarget>(["campaign", "calendar"]);
 
 const actionOptions = [
   {
@@ -117,11 +119,11 @@ export default function AiPage() {
       <PageHeader
         eyebrow="Sua operadora de marketing"
         title="Selenita"
-        description="Converse, revise a proposta e transforme a resposta em uma ação confirmada na Central."
+        description="Peça anúncios, campanha ou o que pausar no tráfego. O resto só entra se você pedir."
         action={
           <Link className="button ghost" href="/ai/training">
             <Settings size={17} />
-            Configurações
+            Configurações avançadas
           </Link>
         }
       />
@@ -149,10 +151,10 @@ export default function AiPage() {
                 <div className="ai-orb">
                   <Bot />
                 </div>
-                <h2>O que vamos colocar em movimento hoje?</h2>
+                <h2>O que vamos anunciar hoje?</h2>
                 <p>
-                  Receba uma resposta prática, contextualizada e pronta para virar
-                  execução.
+                  Campanha, roteiro de ad ou diagnóstico de tráfego. Sem preencher a Central
+                  inteira.
                 </p>
                 <div className="starter-grid">
                   {starters.map((starter) => (
@@ -190,7 +192,7 @@ export default function AiPage() {
             <textarea
               value={text}
               onChange={(event) => setText(event.target.value)}
-              placeholder="Peça um plano, roteiro, campanha, análise ou revisão…"
+              placeholder="Peça anúncios, uma campanha ou o que otimizar no tráfego…"
               onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.shiftKey) {
                   event.preventDefault();
@@ -380,7 +382,9 @@ function Message({ message }: { message: AiMessage }) {
               role="radiogroup"
               aria-label="Destino"
             >
-              {actionOptions.map(({ target, label, description, icon: Icon }) => (
+              {actionOptions
+                .filter((option) => primaryActionTargets.has(option.target))
+                .map(({ target, label, description, icon: Icon }) => (
                 <button
                   type="button"
                   role="radio"
@@ -396,6 +400,27 @@ function Message({ message }: { message: AiMessage }) {
                   </span>
                 </button>
               ))}
+              <details className="selenita-more-actions">
+                <summary>Outras ações</summary>
+                {actionOptions
+                  .filter((option) => !primaryActionTargets.has(option.target))
+                  .map(({ target, label, description, icon: Icon }) => (
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={actionTarget === target}
+                    className={actionTarget === target ? "active" : ""}
+                    key={target}
+                    onClick={() => setActionTarget(target)}
+                  >
+                    <Icon size={18} />
+                    <span>
+                      <strong>{label}</strong>
+                      <small>{description}</small>
+                    </span>
+                  </button>
+                ))}
+              </details>
             </div>
             <label>
               Título

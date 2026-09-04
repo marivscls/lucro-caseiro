@@ -29,6 +29,7 @@ import {
 import { initialMarketingResources } from "./marketing.seed";
 import {
   CONTENT_MARKETING_SYSTEM_PROMPT,
+  DAILY_OPERATIONS_PROMPT,
   DEFAULT_MARKETING_SYSTEM_PROMPT,
   IDEA_BANK_SYSTEM_PROMPT,
   MARKET_POSITIONING_GUARDRAIL,
@@ -923,8 +924,11 @@ export function marketingSystemPrompt(activeInstruction?: string) {
   const withPositioning = withContent.includes(MARKET_POSITIONING_GUARDRAIL)
     ? withContent
     : `${withContent}\n\n${MARKET_POSITIONING_GUARDRAIL}`;
+  const withDailyOps = withPositioning.includes(DAILY_OPERATIONS_PROMPT)
+    ? withPositioning
+    : `${withPositioning}\n\n${DAILY_OPERATIONS_PROMPT}`;
   return replacePromptSection(
-    withPositioning,
+    withDailyOps,
     "## Direção de arte permanente — Visual DNA aprovado",
     VISUAL_ART_DIRECTION_GUARDRAIL,
   );

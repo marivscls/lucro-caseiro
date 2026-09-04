@@ -87,6 +87,33 @@ describe("shouldShowGettingStarted", () => {
 });
 
 describe("resolveGettingStartedPresentation", () => {
+  it("retoma manualmente sem permitir outra abertura automática após remontar a tela", () => {
+    const dismissedAccount = {
+      dismissed: true,
+      settled: true,
+      completed: false,
+      started: true,
+      hasProduct: false,
+      hasSale: false,
+    };
+
+    expect(
+      resolveGettingStartedPresentation({ ...dismissedAccount, manuallyOpened: true }),
+    ).toEqual({ show: true, showReopen: false, stage: "product" });
+    expect(resolveGettingStartedPresentation(dismissedAccount)).toEqual({
+      show: false,
+      showReopen: true,
+      stage: "product",
+    });
+    expect(
+      resolveGettingStartedPresentation({
+        ...dismissedAccount,
+        hasProduct: true,
+        hasSale: true,
+      }),
+    ).toEqual({ show: false, showReopen: true, stage: "result" });
+  });
+
   it("abre o overlay na primeira etapa depois do onboarding", () => {
     expect(
       resolveGettingStartedPresentation({

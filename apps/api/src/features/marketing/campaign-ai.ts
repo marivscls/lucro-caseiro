@@ -18,9 +18,9 @@ import {
 } from "./marketing.system-prompt";
 
 export const CAMPAIGN_STRATEGIST_PROMPT_ID = "campaign-strategist";
-export const CAMPAIGN_STRATEGIST_PROMPT_VERSION = "17";
+export const CAMPAIGN_STRATEGIST_PROMPT_VERSION = "18";
 export const AD_COPYWRITER_PROMPT_ID = "ad-copywriter";
-export const AD_COPYWRITER_PROMPT_VERSION = "17";
+export const AD_COPYWRITER_PROMPT_VERSION = "18";
 export const LIME_GESTURE_PREFIX = "GESTO LIMA:";
 
 const LIME_GESTURE_PRESETS = [
@@ -95,6 +95,7 @@ Princípios:
 - Se público ou oferta não vierem preenchidos, derive a opção mais bem sustentada pelo contexto confirmado da Central; não invente dados para esconder lacunas.
 - "Inimigo comum" e nome memorável são opcionais: só use quando houver fundamento real.
 - Priorize próximos passos acionáveis.
+- No fluxo diário, priorize anúncios pagos: TikTok e Reels de 15 a 25 segundos, três ângulos distintos, um CTA. Carrossel, influenciadora e editor de vídeo só entram se o briefing pedir.
 - Sempre devolva JSON válido, sem texto fora do JSON.
 
 Schema de saída (JSON):
@@ -208,12 +209,14 @@ Schema de saída:
   }
 }`;
 
-const PROMOTIONAL_GUIDANCE = `ESTILO: PROMOCIONAL
+const PROMOTIONAL_GUIDANCE = `ESTILO: PROMOCIONAL (tráfego pago)
 - Headline e gancho diretos, específicos e coerentes com o nível de consciência do público.
+- Entregue pelo menos 3 variantes com ganchos diferentes (pergunta, contraste, tempo/custo escondido).
+- Priorize TikTok/Reels de 15 a 25 segundos: gancho 0–3s, prova no meio, um CTA no fim.
+- CTA explícito e único: calcular o preço grátis ou baixar o app. Não misture os dois no mesmo anúncio.
 - Aterrissagem forte o bastante para continuar a atenção sem repetir o gancho.
 - Body com prova ou diferenciação permitida pela memória da marca e 2 a 4 movimentos de retenção.
-- CTA explícito, coerente com a próxima ação do plano.
-- Tom consultivo e direto.`;
+- Tom consultivo e direto. Carrossel só se o plano pedir esse formato.`;
 
 const ORGANIC_GUIDANCE = `ESTILO: ORGÂNICO (creator-style, nativo em feed de descoberta)
 - Headline em primeira pessoa, listicle, POV ou story-time.

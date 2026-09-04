@@ -3,6 +3,8 @@ export const SITE_URL =
 
 export const SUPPORT_EMAIL = "contato@orionseven.com.br";
 
+export const PWA_URL = "https://app.lucrocaseiro.com.br";
+
 export const PLAY_STORE_URL =
   "https://play.google.com/store/apps/details?id=br.com.orionseven.lucrocaseiro&referrer=utm_source%3Dsite_publico%26utm_medium%3Downed%26utm_campaign%3Dlanding";
 

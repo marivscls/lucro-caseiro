@@ -158,6 +158,7 @@ export function shouldShowGettingStarted({
 
 export function resolveGettingStartedPresentation({
   dismissed = false,
+  manuallyOpened = false,
   settled,
   completed,
   started,
@@ -165,6 +166,7 @@ export function resolveGettingStartedPresentation({
   hasSale,
 }: Readonly<{
   dismissed?: boolean;
+  manuallyOpened?: boolean;
   settled: boolean;
   completed: boolean;
   started: boolean;
@@ -184,8 +186,9 @@ export function resolveGettingStartedPresentation({
   });
 
   return {
-    show: eligible && !dismissed,
-    showReopen: eligible && dismissed,
+    // Retomar é uma escolha da tela atual, sem apagar o "Agora não" persistido.
+    show: eligible && (!dismissed || manuallyOpened),
+    showReopen: eligible && dismissed && !manuallyOpened,
     stage: getGettingStartedStage(hasProduct, hasSale),
   };
 }

@@ -24,7 +24,7 @@ export function PublicPage({
   return (
     <div className={landingStyles.page}>
       <SiteHeader />
-      <main className={`${styles.main} ${wide ? styles.mainWide : ""}`}>
+      <main id="conteudo" className={`${styles.main} ${wide ? styles.mainWide : ""}`}>
         <header className={styles.hero}>
           <p className={styles.eyebrow}>{eyebrow}</p>
           <h1>{title}</h1>

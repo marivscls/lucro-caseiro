@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "pt_BR",
     siteName: "Lucro Caseiro",
-    title: "Lucro Caseiro — Preço certo. Venda pronta.",
+    title: "Lucro Caseiro. Preço certo. Venda pronta.",
     description:
       "Do custo à venda, sem chute e sem retrabalho. Comece grátis no Android.",
   },

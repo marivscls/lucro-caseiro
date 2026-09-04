@@ -2,6 +2,7 @@ import type { BrandCopy } from "@lucro-caseiro/brands";
 import { useBrand } from "@lucro-caseiro/ui";
 
 import { useProfile } from "./hooks";
+import { useBusinessOnboarding } from "../onboarding/use-business-onboarding";
 
 export type BusinessProfile = "food" | "beauty" | "crafts" | "services" | "other";
 
@@ -220,5 +221,35 @@ export function businessCopyFor(
 export function useBusinessCopy(): BusinessExperienceCopy {
   const brand = useBrand();
   const { data: profile } = useProfile();
-  return businessCopyFor(profile?.businessType, brand.copy);
+  const { record } = useBusinessOnboarding();
+  const copy = businessCopyFor(
+    profile?.businessType,
+    brand.id === "lucro-caseiro" ? undefined : brand.copy,
+  );
+  if (brand.id !== "lucro-caseiro") return copy;
+  return personalizedBusinessCopy(copy, record?.answers?.segment);
+}
+
+export function personalizedBusinessCopy(
+  copy: BusinessExperienceCopy,
+  segment?: string,
+): BusinessExperienceCopy {
+  if (segment === "services")
+    return {
+      ...copy,
+      productNoun: "serviço",
+      productNounPlural: "serviços",
+      orderNoun: "atendimento",
+      orderNounPlural: "atendimentos",
+    };
+  if (segment === "craft")
+    return { ...copy, productNoun: "peça", productNounPlural: "peças" };
+  if (segment === "sweets")
+    return {
+      ...copy,
+      productExample: "Brigadeiro gourmet",
+      businessNameExample: "Doces da Ana",
+      categoryPresets: ["Bolos", "Doces", "Sobremesas", "Outros"],
+    };
+  return copy;
 }

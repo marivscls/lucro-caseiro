@@ -46,15 +46,16 @@ describe("getting started", () => {
     });
   });
 
-  it("guarda o Agora não por conta e só reabre se a pessoa pedir", () => {
+  it("preserva o Agora não ao reiniciar o guia ou entrar novamente", () => {
     const state = useOnboarding.getState();
 
     state.dismissGettingStarted("user-1");
     useOnboarding.getState().dismissGettingStarted("user-1");
     expect(useOnboarding.getState().gettingStartedDismissedUserIds).toEqual(["user-1"]);
 
-    useOnboarding.getState().reopenGettingStarted("user-1");
-    expect(useOnboarding.getState().gettingStartedDismissedUserIds).toEqual([]);
+    useOnboarding.getState().startGettingStarted("user-1");
+    useOnboarding.getState().reset();
+    expect(useOnboarding.getState().gettingStartedDismissedUserIds).toEqual(["user-1"]);
   });
 });
 

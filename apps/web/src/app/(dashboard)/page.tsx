@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, Bot, CheckCircle2, Library, PenTool, RefreshCw } from "lucide-react";
+import { ArrowRight, Bot, CheckCircle2, PenTool, RefreshCw } from "lucide-react";
 import Link from "next/link";
 
 import { PageHeader } from "@/features/marketing/page-header";
@@ -46,7 +46,7 @@ export default function TodayPage() {
       <PageHeader
         eyebrow="Seu centro de comando"
         title="O que merece atenção hoje?"
-        description="Uma fila curta para decidir, produzir, publicar e aprender sem procurar a próxima etapa."
+        description="Uma fila curta: campanha, anúncio, publicar, aprender. O resto fica fora do caminho."
         action={
           <button
             className="button secondary"
@@ -88,10 +88,10 @@ export default function TodayPage() {
             </div>
             <div className="ai-panel-copy">
               <p className="eyebrow">Selenita</p>
-              <h2>Transforme intenção em trabalho organizado.</h2>
+              <h2>Peça anúncios ou o que otimizar no tráfego.</h2>
               <p>
-                Converse, revise a proposta e confirme a criação de campanha, briefing,
-                calendário, resultado ou edição autônoma de vídeo.
+                A Selenita monta campanha e roteiro. Você confirma. Sem preencher a Central
+                inteira.
               </p>
               <Link className="button light" href="/ai">
                 Conversar com a Selenita <ArrowRight size={17} />
@@ -99,19 +99,19 @@ export default function TodayPage() {
             </div>
           </div>
           <nav className="panel today-shortcuts" aria-label="Atalhos da Central">
-            <Link href="/produce">
+            <Link href="/campaigns">
               <PenTool size={18} />
               <span>
-                <strong>Produzir</strong>
-                Posts, campanhas e calendário
+                <strong>Campanhas e ads</strong>
+                Oferta, ângulos e roteiros
               </span>
               <ArrowRight size={16} />
             </Link>
-            <Link href="/library">
-              <Library size={18} />
+            <Link href="/ai">
+              <Bot size={18} />
               <span>
-                <strong>Biblioteca</strong>
-                Contexto para toda a Central
+                <strong>Selenita</strong>
+                Pedir anúncios ou diagnóstico
               </span>
               <ArrowRight size={16} />
             </Link>

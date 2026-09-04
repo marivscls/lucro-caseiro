@@ -62,6 +62,20 @@ Treinamento e configurações da inteligência continuam acessíveis a partir da
 - [x] Classes B/C e ferramentas de prompt ficam fora da experiência comum.
 - [x] JSON aparece apenas como configuração avançada recolhida.
 - [x] Testes, typecheck e lint das áreas alteradas passam.
+- [x] A superfície diária prioriza campanha e ads: Produzir mostra 3 portas, Biblioteca mostra Documentos, o restante fica em “Mais ferramentas”.
+- [x] O Estúdio de Campanhas começa por oferta → anúncios; pesquisa, carrossel e cadastros internos ficam recolhidos.
+- [x] A Selenita sugere anúncios e diagnóstico de tráfego, não preencher a Central.
+
+## Superfície diária (2026-09)
+
+O ciclo que a fundadora usa de fato:
+
+1. Hoje ou Selenita → campanha de ads.
+2. Estúdio: público + oferta → plano resumido → anúncios → aprovar como peça.
+3. Calendário só quando a peça tem data.
+4. Resultado depois que o anúncio rodou.
+
+Temas, entrevistas, canais, influenciadora, editor autônomo e prompts de vídeo permanecem acessíveis, mas fora da fila principal. Não devem ser sugeridos pela Selenita a menos que a pessoa peça.
 
 ## Fora de escopo
 

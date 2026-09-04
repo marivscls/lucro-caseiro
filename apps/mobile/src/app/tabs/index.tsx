@@ -1,3 +1,5 @@
+import { useBusinessOnboarding } from "../../features/onboarding/use-business-onboarding";
+import { onboardingDestination } from "../../shared/utils/new-account";
 import {
   Card,
   iconSizes,
@@ -7,7 +9,7 @@ import {
   useBrand,
   useTheme,
 } from "@lucro-caseiro/ui";
-import { useRouter } from "expo-router";
+import { Redirect, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   Image,
@@ -24,6 +26,7 @@ import { useFinanceRangeSummary, useFinanceSummary } from "../../features/financ
 import { ProlaboreGoalForm } from "../../features/goals/components/prolabore-goal-form";
 import { useProlaboreStatus } from "../../features/goals/hooks";
 import { useInsights } from "../../features/insights/hooks";
+import { BusinessProfileCard } from "../../features/onboarding/business-profile";
 import { usePricingList } from "../../features/pricing/hooks";
 import { useProducts } from "../../features/products/hooks";
 import { useSales, useTodaySummary } from "../../features/sales/hooks";
@@ -867,8 +870,16 @@ export default function HomeScreen() {
 
   const [period, setPeriod] = useState<OverviewPeriod>("today");
   const [showGoalForm, setShowGoalForm] = useState(false);
+  const [manuallyOpenedGuideUserId, setManuallyOpenedGuideUserId] = useState<
+    string | null
+  >(null);
 
   const userId = useAuth((state) => state.userId);
+  const authUser = useAuth((state) => state.user);
+  const onboardingState = useOnboarding();
+  const businessOnboarding = useBusinessOnboarding();
+  const serviceBusiness =
+    brand.id === "lucro-caseiro" && businessOnboarding.answers.segment === "services";
   const { data: profile } = useProfile();
   const { data: limits } = useLimits();
   const showPaywall = usePaywall((state) => state.show);
@@ -887,7 +898,6 @@ export default function HomeScreen() {
   const completedUserIds = useOnboarding((state) => state.gettingStartedCompletedUserIds);
   const startGettingStarted = useOnboarding((state) => state.startGettingStarted);
   const dismissGettingStarted = useOnboarding((state) => state.dismissGettingStarted);
-  const reopenGettingStarted = useOnboarding((state) => state.reopenGettingStarted);
   const completeGettingStarted = useOnboarding((state) => state.completeGettingStarted);
   const onboardingHydrated = useOnboarding.persist.hasHydrated();
 
@@ -904,8 +914,11 @@ export default function HomeScreen() {
     showReopen: showGettingStartedReopen,
     stage: gettingStartedStage,
   } = resolveGettingStartedPresentation({
-    dismissed: onboardingDismissed,
-    settled: onboardingSettled,
+    dismissed:
+      onboardingDismissed ||
+      (brand.id === "lucro-caseiro" && !!businessOnboarding.record),
+    manuallyOpened: !!userId && manuallyOpenedGuideUserId === userId,
+    settled: onboardingSettled && !serviceBusiness,
     completed: onboardingCompleted,
     started: onboardingStarted,
     hasProduct,
@@ -916,10 +929,15 @@ export default function HomeScreen() {
     hasProduct,
     hasPriced,
     pricingKnown: pricingQuery.isSuccess,
-    gettingStartedVisible: showGettingStarted || showGettingStartedReopen,
+    gettingStartedVisible:
+      showGettingStarted ||
+      showGettingStartedReopen ||
+      serviceBusiness ||
+      (brand.id === "lucro-caseiro" && businessOnboarding.record?.status === "completed"),
   });
 
   function skipGettingStarted() {
+    setManuallyOpenedGuideUserId(null);
     if (userId) dismissGettingStarted(userId);
   }
 
@@ -975,6 +993,21 @@ export default function HomeScreen() {
     void monthFinanceQuery.refetch();
   }
 
+  if (
+    brand.id === "lucro-caseiro" &&
+    onboardingHydrated &&
+    onboardingDestination({
+      userId,
+      createdAt: authUser?.created_at,
+      pendingUserIds: onboardingState.pendingUserIds,
+      completed: onboardingState.completed,
+      completedUserIds: onboardingState.completedUserIds,
+      onboardingCompleted: authUser?.user_metadata?.onboarding_completed,
+      now: Date.now(),
+    }) === "/onboarding"
+  )
+    return <Redirect href="/onboarding" />;
+
   return (
     <SafeAreaView
       edges={["top", "left", "right"]}
@@ -1018,6 +1051,8 @@ export default function HomeScreen() {
           </Pressable>
         </View>
 
+        {brand.id === "lucro-caseiro" ? <BusinessProfileCard /> : null}
+
         <LimitBanner resource="sales" onUpgrade={() => showPaywall("sales")} />
 
         {showGettingStartedReopen ? (
@@ -1025,7 +1060,7 @@ export default function HomeScreen() {
             compact={compact}
             stage={gettingStartedStage}
             onAction={() => {
-              if (userId) reopenGettingStarted(userId);
+              if (userId) setManuallyOpenedGuideUserId(userId);
             }}
           />
         ) : null}

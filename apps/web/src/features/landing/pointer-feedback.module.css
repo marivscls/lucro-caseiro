@@ -1,0 +1,21 @@
+:global([data-pointer-ripple]) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.wave {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wave {
+    display: none;
+  }
+}

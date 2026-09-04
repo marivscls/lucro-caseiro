@@ -345,6 +345,35 @@ h2 {
   background: var(--rose-100);
   border-radius: var(--radius-md);
 }
+.area-hub-more {
+  margin-top: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  padding: 4px 16px 16px;
+}
+.area-hub-more > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 16px 4px;
+  font:
+    700 var(--font-size-sm) var(--font-sans),
+    sans-serif;
+  color: var(--text-secondary);
+}
+.area-hub-more > summary::-webkit-details-marker {
+  display: none;
+}
+.area-hub-more[open] > summary {
+  color: var(--text);
+}
+.area-hub-more .area-hub-grid {
+  margin-top: 4px;
+}
+.area-hub-more .area-hub-card {
+  min-height: 0;
+  padding: 16px;
+}
 
 /* ---------- Estrutura de pagina ---------- */
 .workspace {
@@ -2164,6 +2193,22 @@ textarea:focus {
   color: var(--text-secondary);
   line-height: 1.35;
 }
+.selenita-more-actions {
+  grid-column: 1 / -1;
+  margin-top: 8px;
+}
+.selenita-more-actions > summary {
+  cursor: pointer;
+  color: var(--text-secondary);
+  font:
+    700 var(--font-size-xs) var(--font-sans),
+    sans-serif;
+  padding: 8px 0;
+}
+.selenita-more-actions button {
+  width: 100%;
+  margin-top: 8px;
+}
 .selenita-action-preview {
   margin: 6px 0 18px;
   padding: 12px 14px;
@@ -2575,6 +2620,33 @@ textarea:focus {
 .campaign-studio-intro p:last-child {
   margin-bottom: 0;
   color: var(--text-secondary);
+}
+.campaign-advanced,
+.campaign-plan-summary {
+  margin-top: 8px;
+  padding: 12px 14px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.campaign-advanced > summary {
+  cursor: pointer;
+  font:
+    700 var(--font-size-sm) var(--font-sans),
+    sans-serif;
+  color: var(--text-secondary);
+}
+.campaign-advanced .campaign-form {
+  margin-top: 14px;
+}
+.campaign-plan-summary p {
+  margin: 0 0 8px;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.45;
+}
+.campaign-plan-summary p:last-child {
+  margin-bottom: 0;
 }
 .campaign-step {
   padding: 24px;

@@ -42,72 +42,73 @@ const hubs: Record<
       title: string;
       description: string;
       icon: LucideIcon;
+      primary?: boolean;
     }>;
   }
 > = {
   produce: {
-    eyebrow: "Da ideia à publicação",
+    eyebrow: "Campanha e anúncio",
     title: "Produzir",
     description:
-      "Escolha a próxima etapa sem perder o fio entre campanha, peça e calendário.",
+      "Comece pela campanha. O resto fica guardado para quando você realmente precisar.",
     items: [
       {
-        href: "/content",
-        title: "Posts",
-        description: "Crie briefings, roteiros e publicações ligados à estratégia.",
-        icon: Megaphone,
+        href: "/campaigns",
+        title: "Campanhas e ads",
+        description: "Oferta, ângulos, roteiros e peças de tráfego pago.",
+        icon: Layers3,
+        primary: true,
       },
       {
-        href: "/campaigns",
-        title: "Campanhas",
-        description: "Conecte pesquisa, estratégia, copy, revisão e publicação.",
-        icon: Layers3,
+        href: "/content",
+        title: "Peças",
+        description: "O que saiu da campanha: roteiro, post ou criativo para publicar.",
+        icon: Megaphone,
+        primary: true,
       },
       {
         href: "/calendar",
         title: "Calendário",
-        description: "Distribua as peças prontas e visualize a cadência semanal.",
+        description: "Quando cada peça entra no ar.",
         icon: CalendarDays,
+        primary: true,
       },
       {
         href: "/video-prompts",
         title: "Prompts de vídeo",
-        description:
-          "Crie prompts completos e consistentes para vídeos com personagem, produto, interface ou cenas sem personagem.",
+        description: "Quando for gerar vídeo com IA.",
         icon: Video,
       },
       {
         href: "/video-editor",
         title: "Editor autônomo",
-        description:
-          "Entregue a gravação bruta para a Selenita cortar, legendar, tratar, revisar e exportar.",
+        description: "Quando tiver gravação bruta para a Selenita cortar.",
         icon: Clapperboard,
       },
       {
         href: "/video-prompts?focus=influencer#influenciadora-ia",
         title: "Influenciadora com IA",
-        description:
-          "Defina uma identidade, gere pranchas de rosto e corpo e reutilize a personagem em fotos e vídeos.",
+        description: "Personagem visual, só se a campanha pedir.",
         icon: UserRound,
       },
     ],
   },
   library: {
-    eyebrow: "Contexto reutilizável",
+    eyebrow: "Contexto da marca",
     title: "Biblioteca",
-    description:
-      "Mantenha em um só lugar o conhecimento que orienta a produção e a Selenita.",
+    description: "O essencial para a Selenita escrever ads certos. Cadastros finos ficam em Mais.",
     items: [
       {
         href: "/documents",
         title: "Documentos",
-        description: "Estratégia, playbooks, pesquisas e briefings vivos.",
+        description: "Estratégia, provas e o que a Selenita deve lembrar.",
         icon: FileText,
+        primary: true,
       },
       {
         href: "/audiences",
         title: "Públicos",
-        description: "Dores, desejos, linguagem e contexto de cada segmento.",
+        description: "Dores, desejos e linguagem de cada segmento.",
         icon: Users,
       },
       {
@@ -119,19 +120,19 @@ const hubs: Record<
       {
         href: "/topics",
         title: "Temas",
-        description: "Territórios editoriais repetíveis para construir autoridade.",
+        description: "Territórios editoriais repetíveis.",
         icon: Shapes,
       },
       {
         href: "/interviews",
         title: "Entrevistas",
-        description: "Voz literal das clientes, objeções e evidências.",
+        description: "Voz literal das clientes.",
         icon: MessagesSquare,
       },
       {
         href: "/outreach",
         title: "Canais",
-        description: "Comunidades, parcerias e caminhos de distribuição.",
+        description: "Comunidades e parcerias.",
         icon: Route,
       },
     ],
@@ -160,25 +161,51 @@ export default async function SectionPage({
 }
 
 function AreaHub({ eyebrow, title, description, items }: (typeof hubs)[string]) {
+  const primary = items.filter((item) => item.primary);
+  const more = items.filter((item) => !item.primary);
   return (
     <>
       <PageHeader eyebrow={eyebrow} title={title} description={description} />
       <section className="area-hub-grid" aria-label={`Ferramentas de ${title}`}>
-        {items.map(
-          ({ href, title: itemTitle, description: itemDescription, icon: Icon }) => (
-            <Link href={href} className="area-hub-card" key={href}>
-              <span className="area-hub-icon">
-                <Icon size={22} />
-              </span>
-              <div>
-                <h2>{itemTitle}</h2>
-                <p>{itemDescription}</p>
-              </div>
-              <span aria-hidden="true">Abrir →</span>
-            </Link>
-          ),
-        )}
+        {primary.map((item) => (
+          <HubCard key={item.href} {...item} />
+        ))}
       </section>
+      {more.length > 0 && (
+        <details className="area-hub-more">
+          <summary>Mais ferramentas ({more.length})</summary>
+          <section className="area-hub-grid" aria-label={`Ferramentas avançadas de ${title}`}>
+            {more.map((item) => (
+              <HubCard key={item.href} {...item} />
+            ))}
+          </section>
+        </details>
+      )}
     </>
+  );
+}
+
+function HubCard({
+  href,
+  title,
+  description,
+  icon: Icon,
+}: {
+  href: string;
+  title: string;
+  description: string;
+  icon: LucideIcon;
+}) {
+  return (
+    <Link href={href} className="area-hub-card">
+      <span className="area-hub-icon">
+        <Icon size={22} />
+      </span>
+      <div>
+        <h2>{title}</h2>
+        <p>{description}</p>
+      </div>
+      <span aria-hidden="true">Abrir →</span>
+    </Link>
   );
 }

@@ -66,9 +66,9 @@ const labels: Record<
     singular: "canal de prospecção",
   },
   campaign: {
-    eyebrow: "Crescimento",
-    title: "Campanhas com hipótese e métrica",
-    description: "Sequências coordenadas para aquisição, ativação, retenção e indicação.",
+    eyebrow: "Tráfego pago",
+    title: "Campanhas e ads",
+    description: "Oferta, ângulos, roteiros e peças para TikTok e Meta. Sem preencher a Central inteira.",
     singular: "campanha",
   },
   performance: {

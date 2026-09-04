@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { businessCopyFor } from "./business-copy";
+import { businessCopyFor, personalizedBusinessCopy } from "./business-copy";
 
 describe("businessCopyFor", () => {
   it("usa linguagem neutra quando o perfil ainda não existe", () => {
@@ -39,5 +39,21 @@ describe("businessCopyFor", () => {
 
     expect(copy.productNoun).toBe("procedimento");
     expect(copy.productNounPlural).toBe("procedimentos");
+  });
+});
+
+describe("textos personalizados pelo onboarding", () => {
+  it("usa atendimentos e serviços para prestadores", () => {
+    const copy = personalizedBusinessCopy(businessCopyFor("services"), "services");
+    expect(copy.productNounPlural).toBe("serviços");
+    expect(copy.orderNounPlural).toBe("atendimentos");
+  });
+  it("usa peças para artesanato e exemplos de doces na confeitaria", () => {
+    expect(personalizedBusinessCopy(businessCopyFor("crafts"), "craft").productNoun).toBe(
+      "peça",
+    );
+    expect(
+      personalizedBusinessCopy(businessCopyFor("food"), "sweets").productExample,
+    ).toBe("Brigadeiro gourmet");
   });
 });

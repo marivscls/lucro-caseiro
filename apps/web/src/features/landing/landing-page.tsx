@@ -1,83 +1,138 @@
 import {
   ArrowRight,
-  BadgeCheck,
-  BarChart3,
+  ArrowDown,
   Calculator,
   CalendarDays,
   Check,
   ChevronDown,
-  CircleDollarSign,
-  PackageCheck,
   ReceiptText,
-  ShoppingBag,
   Smartphone,
   Store,
-  UsersRound,
+  Users,
+  Wallet,
+  type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
 
 import styles from "./landing-page.module.css";
+import { LandingMotion } from "./landing-motion";
 import { SiteFooter, SiteHeader } from "./site-chrome";
-import { PLAY_STORE_URL } from "./site-constants";
+import { PLAY_STORE_URL, PWA_URL } from "./site-constants";
 
-const flowSteps = [
+const exampleRows = [
+  { label: "Insumos", value: "R$ 10,00" },
+  { label: "Embalagem", value: "R$ 2,00" },
+  { label: "Seu tempo", value: "R$ 8,10" },
+  { label: "Custos fixos", value: "R$ 3,00" },
+] as const;
+
+const problems = [
   {
-    number: "01",
-    title: "Coloque o que você gasta",
-    text: "Ingredientes, materiais, embalagem, seu tempo, custos fixos e taxas entram na conta.",
-    icon: ReceiptText,
+    title: "Custos ficam esquecidos",
+    text: "Embalagem, gás, energia, taxa e transporte somem da conta sem você perceber.",
   },
   {
-    number: "02",
-    title: "Descubra o preço certo",
-    text: "Veja o custo real, o preço recomendado e quanto vai sobrar em cada venda.",
-    icon: Calculator,
+    title: "Seu tempo fica de graça",
+    text: "Horas de produção entram no produto, mas muitas vezes não entram no preço.",
   },
   {
-    number: "03",
-    title: "Crie o produto uma vez",
-    text: "Use a mesma precificação para deixar o produto pronto, sem digitar tudo novamente.",
-    icon: PackageCheck,
-  },
-  {
-    number: "04",
-    title: "Publique ou venda",
-    text: "Compartilhe seu catálogo no WhatsApp ou registre a venda e acompanhe seu resultado.",
-    icon: Store,
+    title: "O dinheiro se mistura",
+    text: "Você vende, recebe e compra de novo sem enxergar quanto realmente sobrou.",
   },
 ] as const;
 
-const features = [
+const flowSteps = [
   {
-    icon: Calculator,
+    title: "Coloque o que você gasta",
+    text: "Ingredientes, materiais, embalagem, seu tempo, custos fixos e taxas entram na conta.",
+  },
+  {
+    title: "Descubra o preço certo",
+    text: "Veja o custo real, o preço recomendado e quanto vai sobrar em cada venda.",
+  },
+  {
+    title: "Crie o produto uma vez",
+    text: "Use a mesma precificação para deixar o produto pronto, sem digitar tudo novamente.",
+  },
+  {
+    title: "Publique ou venda",
+    text: "Compartilhe seu catálogo no WhatsApp ou registre a venda e acompanhe seu resultado.",
+  },
+] as const;
+
+type FeatureTile = {
+  readonly title: string;
+  readonly text: string;
+  readonly span: "hero" | "shot" | "wide" | "text";
+  readonly icon: LucideIcon;
+  readonly plan?: string;
+  readonly image?: {
+    readonly src: string;
+    readonly alt: string;
+    readonly crop: "phone" | "screen";
+  };
+};
+
+const featureTiles: readonly FeatureTile[] = [
+  {
     title: "Precificação completa",
+    icon: Calculator,
+    plan: "Profissional",
     text: "Inclua cada custo e o valor do seu tempo para parar de cobrar no chute.",
+    image: {
+      src: "/landing/current-pricing.png",
+      alt: "Tela de precificação do Lucro Caseiro com preço sugerido e lucro por unidade",
+      crop: "phone",
+    },
+    span: "hero",
   },
   {
-    icon: Store,
     title: "Catálogo online",
+    icon: Store,
     text: "Tenha uma vitrine com seus produtos e receba pedidos direto no WhatsApp.",
+    image: {
+      src: "/landing/current-catalog.png",
+      alt: "Tela de catálogo online do Lucro Caseiro pronta para compartilhar",
+      crop: "screen",
+    },
+    span: "shot",
   },
   {
-    icon: ShoppingBag,
     title: "Vendas organizadas",
+    icon: ReceiptText,
     text: "Registre pedidos, pagamentos e acompanhe o que entrou sem depender do caderno.",
+    span: "text",
   },
   {
-    icon: CalendarDays,
     title: "Agenda de encomendas",
+    icon: CalendarDays,
     text: "Veja prazos e entregas em um só lugar para não perder nenhum pedido.",
+    span: "text",
   },
   {
-    icon: BarChart3,
-    title: "Dinheiro mais claro",
-    text: "Entenda quanto entrou, quanto saiu e quanto realmente sobrou no mês.",
-  },
-  {
-    icon: UsersRound,
     title: "Clientes e fiado",
+    icon: Users,
     text: "Guarde contatos, acompanhe valores pendentes e saiba quem ainda precisa pagar.",
+    span: "text",
   },
+  {
+    title: "Dinheiro mais claro",
+    icon: Wallet,
+    text: "Entenda quanto entrou, quanto saiu e quanto realmente sobrou no mês.",
+    image: {
+      src: "/landing/current-finance.png",
+      alt: "Tela financeira do Lucro Caseiro com lucro, entradas e saídas do mês",
+      crop: "phone",
+    },
+    span: "wide",
+  },
+];
+
+const audiences = [
+  { name: "Confeitaria e doces", text: "Bolos, brigadeiros e encomendas de festa." },
+  { name: "Marmitas e salgados", text: "Produção do dia com custo de gás e embalagem." },
+  { name: "Artesanato e costura", text: "Peças com material e horas de trabalho." },
+  { name: "Beleza e serviços", text: "Atendimentos com produto e tempo na conta." },
 ] as const;
 
 const plans = [
@@ -129,7 +184,7 @@ const faqs = [
   {
     question: "Serve só para confeitaria?",
     answer:
-      "Não. Ele atende quem produz ou vende em diferentes segmentos e estágios — de quem trabalha por conta própria a negócios estruturados e em crescimento. Marmitas, salgados, artesanato e costura são apenas alguns exemplos.",
+      "Não. Ele atende quem produz ou vende em diferentes segmentos e estágios, de quem trabalha por conta própria a negócios estruturados e em crescimento. Marmitas, salgados, artesanato e costura são apenas alguns exemplos.",
   },
   {
     question: "O catálogo recebe pedidos pelo WhatsApp?",
@@ -156,261 +211,348 @@ const guides = [
   },
 ] as const;
 
+const spanClass = {
+  hero: styles.spanHero,
+  shot: styles.spanShot,
+  wide: styles.spanWide,
+  text: styles.spanText,
+} as const;
+
+function CtaArrow() {
+  return (
+    <span className={styles.ctaGlyph} aria-hidden="true">
+      <ArrowRight size={16} strokeWidth={2} />
+    </span>
+  );
+}
+
 export function LandingPage() {
   return (
-    <div className={styles.page}>
-      <SiteHeader />
+    <LandingMotion className={`${styles.page} ${styles.pageWineTop}`}>
+      <SiteHeader tone="wine" />
 
-      <main>
+      <main id="conteudo">
         <section className={styles.hero} id="inicio">
-          <div className={styles.heroCopy}>
-            <p className={styles.eyebrow}>
-              <BadgeCheck aria-hidden="true" size={18} />
-              Feito para quem vive do próprio talento
-            </p>
-            <h1>
-              Você sabe quanto realmente <em>sobra</em> de cada venda?
-            </h1>
-            <p className={styles.heroText}>
-              Calcule o preço certo do seu produto e transforme o resultado em catálogo ou
-              venda — sem preencher tudo de novo.
-            </p>
-            <div className={styles.heroActions}>
+          <div className={styles.heroInner}>
+            <div className={styles.heroCopy}>
+              <h1>
+                <span className={styles.heroLine}>
+                  <span>Quanto sobra</span>
+                </span>{" "}
+                <span className={styles.heroLine}>
+                  <span>de cada venda?</span>
+                </span>{" "}
+                <em className={styles.markedHeadline}>
+                  Agora você sabe.
+                  <svg
+                    className={styles.headlineStroke}
+                    viewBox="0 0 500 24"
+                    fill="none"
+                    preserveAspectRatio="none"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M5 14C120 3 285 4 494 10M45 21C180 12 330 12 461 17"
+                      stroke="currentColor"
+                      strokeWidth="5"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </em>
+              </h1>
+              <p className={styles.heroText}>
+                Descubra quanto cobrar, valorize seu tempo e organize suas vendas. Tudo no
+                mesmo app, sem cadastrar de novo.
+              </p>
+              <div className={styles.heroActions}>
+                <a
+                  className={styles.primaryCta}
+                  data-pointer-ripple
+                  href={PLAY_STORE_URL}
+                  data-analytics="play_store_hero"
+                >
+                  <Smartphone aria-hidden="true" size={20} />
+                  Baixar no Google Play
+                </a>
+                <a
+                  className={styles.secondaryCta}
+                  href={PWA_URL}
+                  data-analytics="pwa_hero"
+                >
+                  Usar no navegador
+                  <ArrowRight aria-hidden="true" size={18} />
+                </a>
+              </div>
+              <p className={styles.heroNote}>
+                <Check aria-hidden="true" size={18} />
+                Plano gratuito no app e no navegador
+              </p>
               <a
-                className={styles.primaryCta}
+                className={styles.heroCalculatorLink}
                 href="/landing/calculadora"
                 data-analytics="calculator_from_hero"
               >
-                <Calculator aria-hidden="true" size={20} />
-                Calcular meu primeiro preço grátis
-              </a>
-              <a
-                className={styles.textLink}
-                href={PLAY_STORE_URL}
-                data-analytics="play_store_hero"
-              >
-                Baixar o aplicativo
+                Testar a calculadora sem criar conta
                 <ArrowRight aria-hidden="true" size={18} />
               </a>
             </div>
-            <p className={styles.storeNote}>
-              Disponível para Android · plano gratuito para começar
-            </p>
-          </div>
 
-          <div
-            className={styles.heroVisual}
-            aria-label="Demonstração da precificação no aplicativo"
-          >
-            <div className={styles.heroBackdrop} />
-            <div className={styles.phoneFrame}>
-              <div className={styles.phoneSpeaker} />
-              <Image
-                src="/landing/app-precificacao.png"
-                width={922}
-                height={2048}
-                alt="Tela de precificação do Lucro Caseiro"
-                priority
-              />
-            </div>
-            <Image
-              className={styles.calculatorArt}
-              src="/landing/calculadora.png"
-              width={420}
-              height={420}
-              alt=""
-              priority
-            />
-            <div className={styles.profitCard}>
-              <span>Quanto sobra</span>
-              <strong>R$ 38,40</strong>
-              <small>em cada venda</small>
-            </div>
+            <aside className={styles.card} aria-label="Exemplo de conta de um produto">
+              <div className={styles.cardHeading}>
+                <ReceiptText aria-hidden="true" size={24} />
+                <p className={styles.cardTitle}>Uma venda, toda a conta.</p>
+              </div>
+              <div className={styles.cardProduct}>
+                <strong>Caixa de brigadeiros</strong>
+                <span>Exemplo ilustrativo</span>
+              </div>
+              <dl className={styles.cardRows}>
+                {exampleRows.map((row) => (
+                  <div key={row.label}>
+                    <dt>{row.label}</dt>
+                    <dd>{row.value}</dd>
+                  </div>
+                ))}
+              </dl>
+              <div className={styles.cardSubtotal}>
+                <span>Custo total</span>
+                <strong>R$ 23,10</strong>
+              </div>
+              <div className={styles.cardResult}>
+                <div>
+                  <p className={styles.cardPriceLabel}>Preço sugerido</p>
+                  <p className={styles.cardPrice}>R$ 30,49</p>
+                </div>
+                <div className={styles.cardChip}>
+                  <span>Sobra por unidade</span>
+                  <strong>R$ 7,39</strong>
+                </div>
+              </div>
+              <p className={styles.cardFootnote}>
+                Seu tempo de trabalho já está nessa conta.
+              </p>
+            </aside>
           </div>
         </section>
 
-        <div
-          className={styles.proofStrip}
-          aria-label="Custos considerados na precificação"
-        >
-          <span>Ingredientes</span>
-          <span>Embalagem</span>
-          <span>Mão de obra</span>
-          <span>Custos fixos</span>
-          <span>Lucro</span>
+        <div className={styles.benefitStrip} aria-label="O que você pode fazer no app">
+          <span>
+            <Calculator aria-hidden="true" size={22} /> Calcular seu preço
+          </span>
+          <span>
+            <Store aria-hidden="true" size={22} /> Compartilhar seu catálogo
+          </span>
+          <span>
+            <Wallet aria-hidden="true" size={22} /> Acompanhar o que sobra
+          </span>
         </div>
 
         <section className={styles.problemSection}>
-          <div className={styles.problemIntro}>
-            <p className={styles.sectionTag}>Cobrar no chute custa caro</p>
-            <h2>Vender bastante não significa ter lucro.</h2>
-          </div>
-          <div className={styles.problemGrid}>
-            <article>
-              <span>01</span>
-              <h3>Custos ficam esquecidos</h3>
-              <p>
-                Embalagem, gás, energia, taxa e transporte somem da conta sem você
-                perceber.
-              </p>
-            </article>
-            <article>
-              <span>02</span>
-              <h3>Seu tempo fica de graça</h3>
-              <p>
-                Horas de produção entram no produto, mas muitas vezes não entram no preço.
-              </p>
-            </article>
-            <article>
-              <span>03</span>
-              <h3>O dinheiro se mistura</h3>
-              <p>
-                Você vende, recebe e compra de novo sem enxergar quanto realmente sobrou.
-              </p>
-            </article>
-          </div>
-        </section>
-
-        <section className={styles.flowSection} id="como-funciona">
-          <div className={styles.sectionHeading}>
-            <p className={styles.sectionTag}>Um cálculo. Vários caminhos.</p>
-            <h2>Do custo à venda, sem chute e sem retrabalho.</h2>
-            <p>
-              A informação anda com você: o que começa na precificação vira produto,
-              catálogo ou venda.
+          <div>
+            <h2>
+              Você vende.
+              <br />
+              Mas o dinheiro sobra?
+            </h2>
+            <p className={styles.problemIntro}>
+              Uma conta completa muda a forma de olhar para cada venda.
             </p>
           </div>
-          <div className={styles.flowGrid}>
-            {flowSteps.map(({ number, title, text, icon: Icon }) => (
-              <article key={number} className={styles.flowCard}>
-                <div className={styles.flowCardTop}>
-                  <span>{number}</span>
-                  <Icon aria-hidden="true" size={24} />
-                </div>
-                <h3>{title}</h3>
-                <p>{text}</p>
+          <div className={styles.problemList}>
+            {problems.map((problem) => (
+              <article key={problem.title}>
+                <h3>{problem.title}</h3>
+                <p>{problem.text}</p>
               </article>
             ))}
           </div>
         </section>
 
-        <section className={styles.productStory}>
-          <div className={styles.storyCopy}>
-            <p className={styles.sectionTag}>Preço certo. Venda pronta.</p>
-            <h2>Seu produto sai do cálculo pronto para trabalhar por você.</h2>
-            <p>
-              Sem planilha de um lado e cadastro do outro. Você aproveita os mesmos dados
-              para organizar o produto e mostrar uma vitrine bonita para seus clientes.
-            </p>
-            <ul>
-              <li>
-                <Check aria-hidden="true" size={18} /> Menos digitação e menos erro
+        <section className={styles.flowSection} id="como-funciona">
+          <h2>Da primeira conta à próxima venda.</h2>
+          <p className={styles.lede}>
+            A informação anda com você: o que começa na precificação vira produto,
+            catálogo ou venda.
+          </p>
+          <ol className={styles.flowTrack}>
+            {flowSteps.map((step, index) => (
+              <li
+                key={step.title}
+                data-landing-reveal={index * 80}
+                data-motion-kind="step"
+              >
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
               </li>
-              <li>
-                <Check aria-hidden="true" size={18} /> Link próprio para compartilhar
-              </li>
-              <li>
-                <Check aria-hidden="true" size={18} /> Pedido iniciado pelo WhatsApp
-              </li>
-            </ul>
-            <a
-              className={styles.textLink}
-              href={PLAY_STORE_URL}
-              data-analytics="play_store_catalog"
-            >
-              Criar meu catálogo
-              <ArrowRight aria-hidden="true" size={18} />
-            </a>
-          </div>
-          <div className={styles.storyVisual}>
-            <div className={`${styles.phoneFrame} ${styles.storyPhoneBack}`}>
-              <div className={styles.phoneSpeaker} />
-              <Image
-                src="/landing/app-inicio.png"
-                width={922}
-                height={2048}
-                alt="Tela inicial do Lucro Caseiro com atalhos do negócio"
-              />
+            ))}
+          </ol>
+        </section>
+
+        <section
+          className={styles.journey}
+          id="produto"
+          data-product-journey
+          aria-labelledby="journey-title"
+        >
+          <div className={styles.journeyStage}>
+            <div className={styles.journeyCopy}>
+              <p className={styles.journeyKicker}>Do preço ao pedido</p>
+              <h2 id="journey-title">
+                Uma conta.
+                <br />
+                Muitas possibilidades.
+              </h2>
+              <div className={styles.journeyChapters}>
+                {[
+                  {
+                    title: "Comece pelo que sobra.",
+                    text: "Inclua os materiais, seu tempo e os gastos do negócio. Veja o preço sugerido e o lucro por unidade.",
+                    label: "Calcular",
+                  },
+                  {
+                    title: "Transforme a conta em produto.",
+                    text: "Aproveite a precificação para cadastrar o produto com preço, custo e estoque. Sem digitar tudo de novo.",
+                    label: "Cadastrar",
+                  },
+                  {
+                    title: "Mostre. Compartilhe. Venda.",
+                    text: "Leve seus produtos para o catálogo e compartilhe o link. O cliente escolhe e inicia o pedido pelo WhatsApp.",
+                    label: "Compartilhar",
+                  },
+                ].map((chapter, index) => (
+                  <article
+                    className={styles.journeyChapter}
+                    data-journey-chapter
+                    key={chapter.label}
+                  >
+                    <p className={styles.journeyIndex}>
+                      0{index + 1} / {chapter.label}
+                    </p>
+                    <h3>{chapter.title}</h3>
+                    <p>{chapter.text}</p>
+                  </article>
+                ))}
+              </div>
+              <div className={styles.journeyProgress} aria-hidden="true">
+                <span data-journey-progress />
+              </div>
+              <p className={styles.journeyHint}>
+                <span>Role para acompanhar</span>
+                <ArrowDown aria-hidden="true" size={18} />
+              </p>
             </div>
-            <div className={`${styles.phoneFrame} ${styles.storyPhoneFront}`}>
-              <div className={styles.phoneSpeaker} />
-              <Image
-                src="/landing/app-catalogo.png"
-                width={922}
-                height={2048}
-                alt="Tela de catálogo online do Lucro Caseiro"
-              />
-            </div>
-            <div className={styles.catalogBadge}>
-              <Store aria-hidden="true" size={20} />
-              <span>
-                <strong>Catálogo no ar</strong>Pronto para compartilhar
-              </span>
+            <div className={styles.journeyDeck}>
+              {[
+                {
+                  src: "/landing/current-pricing.png",
+                  alt: "Precificação atual do app com preço e lucro",
+                  label: "Preço definido",
+                },
+                {
+                  src: "/landing/current-products.png",
+                  alt: "Produtos atuais do app com preço e estoque",
+                  label: "Produto organizado",
+                },
+                {
+                  src: "/landing/current-catalog.png",
+                  alt: "Catálogo atual do app pronto para compartilhar",
+                  label: "Vitrine pronta",
+                },
+              ].map((screen, index) => (
+                <figure
+                  className={styles.journeyScreen}
+                  data-journey-screen
+                  key={screen.src}
+                >
+                  <figcaption>
+                    <span>0{index + 1}</span>
+                    {screen.label}
+                  </figcaption>
+                  <Image
+                    src={screen.src}
+                    alt={screen.alt}
+                    width={1080}
+                    height={2400}
+                    sizes="(max-width: 900px) 230px, 300px"
+                  />
+                </figure>
+              ))}
             </div>
           </div>
         </section>
 
         <section className={styles.featuresSection} id="recursos">
-          <div className={styles.sectionHeading}>
-            <p className={styles.sectionTag}>Tudo conversa entre si</p>
-            <h2>O essencial do seu negócio, direto do celular.</h2>
-            <p>
-              Ferramentas práticas para organizar sem transformar seu dia em trabalho de
-              escritório.
-            </p>
-          </div>
-          <div className={styles.featuresGrid}>
-            {features.map(({ icon: Icon, title, text }) => (
-              <article key={title} className={styles.featureCard}>
-                <div className={styles.featureIcon}>
-                  <Icon aria-hidden="true" size={24} />
+          <h2>O essencial do seu negócio, direto do celular.</h2>
+          <p className={styles.lede}>
+            Ferramentas práticas para organizar sem transformar seu dia em trabalho de
+            escritório.
+          </p>
+          <p className={styles.captureNote}>
+            Telas atuais do aplicativo no Android, com dados de uma conta de testes.
+          </p>
+          <div className={styles.featureBento}>
+            {featureTiles.map((tile, index) => (
+              <article
+                key={tile.title}
+                data-landing-reveal={(index % 2) * 60}
+                className={`${styles.featureTile} ${spanClass[tile.span]}`}
+              >
+                {tile.image ? (
+                  <div
+                    className={`${styles.featureShot} ${tile.image.crop === "screen" ? styles.cropScreen : ""}`}
+                  >
+                    <Image
+                      src={tile.image.src}
+                      width={1080}
+                      height={2400}
+                      sizes="(max-width: 560px) calc(100vw - 64px), (max-width: 1050px) 45vw, 40vw"
+                      alt={tile.image.alt}
+                    />
+                  </div>
+                ) : null}
+                <div className={styles.featureCopy}>
+                  <tile.icon aria-hidden="true" size={24} strokeWidth={1.7} />
+                  <h3>{tile.title}</h3>
+                  {tile.plan ? (
+                    <p className={styles.featurePlan}>No plano {tile.plan}</p>
+                  ) : null}
+                  <p>{tile.text}</p>
                 </div>
-                <h3>{title}</h3>
-                <p>{text}</p>
               </article>
             ))}
           </div>
         </section>
 
         <section className={styles.audienceSection}>
-          <div>
-            <p className={styles.sectionTag}>Feito para negócio de verdade</p>
-            <h2>Para quem produz com as próprias mãos e vende pelo celular.</h2>
-          </div>
-          <div className={styles.audienceList}>
-            {[
-              "Confeitaria e doces",
-              "Marmitas e salgados",
-              "Artesanato e costura",
-              "Beleza e serviços",
-            ].map((item) => (
-              <span key={item}>
-                <CircleDollarSign aria-hidden="true" size={20} />
-                {item}
-              </span>
+          <h2>
+            Seu talento é produzir, vender ou cuidar. A organização fica mais fácil.
+          </h2>
+          <ul className={styles.audienceList}>
+            {audiences.map((item) => (
+              <li key={item.name}>
+                <strong>{item.name}</strong>
+                <span>{item.text}</span>
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
 
         <section className={styles.pricingSection} id="planos">
-          <div className={styles.sectionHeading}>
-            <p className={styles.sectionTag}>Comece grátis. Cresça no seu ritmo.</p>
-            <h2>Um plano para cada fase do seu negócio.</h2>
-            <p>
-              Teste o fluxo completo sem pagar. Assine quando precisar remover limites ou
-              profissionalizar mais.
-            </p>
-          </div>
+          <h2>Um plano para cada fase do seu negócio.</h2>
+          <p className={styles.lede}>
+            Comece no Gratuito. Escolha outro plano quando seu negócio precisar de mais.
+          </p>
           <div className={styles.pricingGrid}>
-            {plans.map((plan) => (
+            {plans.map((plan, index) => (
               <article
                 key={plan.name}
+                data-landing-reveal={index * 60}
                 className={`${styles.planCard} ${plan.featured ? styles.planFeatured : ""}`}
               >
-                {plan.featured ? (
-                  <span className={styles.planBadge}>Mais escolhido</span>
-                ) : null}
-                <h3>{plan.name}</h3>
+                <div className={styles.planHeading}>
+                  <h3>{plan.name}</h3>
+                  {plan.featured ? <p className={styles.planBadge}>Recomendado</p> : null}
+                </div>
                 <p className={styles.planDescription}>{plan.description}</p>
                 <p className={styles.planPrice}>
                   {plan.price}
@@ -419,7 +561,7 @@ export function LandingPage() {
                 <ul>
                   {plan.features.map((feature) => (
                     <li key={feature}>
-                      <Check aria-hidden="true" size={17} />
+                      <Check aria-hidden="true" size={17} strokeWidth={2.5} />
                       {feature}
                     </li>
                   ))}
@@ -427,32 +569,32 @@ export function LandingPage() {
                 <a
                   href={PLAY_STORE_URL}
                   data-analytics={`play_store_plan_${plan.name.toLowerCase()}`}
+                  data-pointer-ripple
                 >
-                  Começar com este plano
-                  <ArrowRight aria-hidden="true" size={17} />
+                  {plan.name === "Gratuito" ? "Começar grátis" : "Baixar o app"}
+                  <CtaArrow />
                 </a>
               </article>
             ))}
           </div>
           <p className={styles.pricingNote}>
-            Planos anuais disponíveis com dois meses de economia.
+            Escolha seu plano no aplicativo. Planos anuais com dois meses de economia.
           </p>
         </section>
 
         <section className={styles.learningSection}>
-          <div className={styles.sectionHeading}>
-            <p className={styles.sectionTag}>Aprenda sem complicação</p>
-            <h2>Preço e lucro explicados com exemplos reais.</h2>
-            <p>Guias curtos para consultar quando surgir uma dúvida no seu negócio.</p>
-          </div>
-          <div className={styles.guidesGrid}>
+          <h2>Uma ajuda para a sua próxima conta.</h2>
+          <p className={styles.lede}>
+            Guias curtos para consultar quando surgir uma dúvida no seu negócio.
+          </p>
+          <div className={styles.guidesList}>
             {guides.map((guide, index) => (
-              <a href={guide.href} key={guide.href}>
-                <span>0{index + 1}</span>
+              <a href={guide.href} key={guide.href} data-landing-reveal={index * 60}>
                 <h3>{guide.title}</h3>
                 <p>{guide.text}</p>
                 <strong>
-                  Continuar lendo <ArrowRight aria-hidden="true" size={17} />
+                  Continuar lendo
+                  <ArrowRight aria-hidden="true" size={17} strokeWidth={2} />
                 </strong>
               </a>
             ))}
@@ -461,8 +603,7 @@ export function LandingPage() {
 
         <section className={styles.faqSection} id="duvidas">
           <div className={styles.faqIntro}>
-            <p className={styles.sectionTag}>Perguntas frequentes</p>
-            <h2>Antes de começar, talvez você queira saber.</h2>
+            <h2>Dúvidas antes de começar?</h2>
             <p>Ficou com outra dúvida? Fale com a gente pelo e-mail.</p>
             <a href="mailto:contato@orionseven.com.br">contato@orionseven.com.br</a>
           </div>
@@ -471,7 +612,7 @@ export function LandingPage() {
               <details key={faq.question}>
                 <summary>
                   {faq.question}
-                  <ChevronDown aria-hidden="true" size={20} />
+                  <ChevronDown aria-hidden="true" size={20} strokeWidth={2} />
                 </summary>
                 <p>{faq.answer}</p>
               </details>
@@ -481,22 +622,32 @@ export function LandingPage() {
 
         <section className={styles.finalCta}>
           <div>
-            <p className={styles.sectionTag}>Seu talento merece dar lucro.</p>
-            <h2>Seu próximo preço pode ser calculado com segurança.</h2>
-            <p>Comece com um produto real do seu negócio. É grátis.</p>
+            <h2>
+              Seu trabalho tem valor.
+              <em>Coloque isso no preço.</em>
+            </h2>
+            <p>
+              Baixe o app ou use pelo navegador. Faça a primeira conta no plano gratuito.
+            </p>
           </div>
-          <a
-            className={styles.finalButton}
-            href={PLAY_STORE_URL}
-            data-analytics="play_store_final"
-          >
-            <Smartphone aria-hidden="true" size={20} />
-            Baixar no Google Play
-          </a>
+          <div className={styles.finalActions}>
+            <a
+              className={styles.finalButton}
+              data-pointer-ripple
+              href={PLAY_STORE_URL}
+              data-analytics="play_store_final"
+            >
+              Baixar no Google Play
+            </a>
+            <a className={styles.secondaryCta} href={PWA_URL} data-analytics="pwa_final">
+              Usar no navegador
+              <ArrowRight aria-hidden="true" size={18} />
+            </a>
+          </div>
         </section>
       </main>
 
       <SiteFooter />
-    </div>
+    </LandingMotion>
   );
 }

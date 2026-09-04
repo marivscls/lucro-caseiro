@@ -19,9 +19,9 @@ export function isProfilePremiumActive(profile?: UserProfile | null): boolean {
 }
 
 export function useProfile() {
-  const { token } = useAuth();
+  const { token, userId } = useAuth();
   return useQuery({
-    queryKey: [...SUBSCRIPTION_KEY, "profile"],
+    queryKey: [...SUBSCRIPTION_KEY, "profile", userId],
     queryFn: () => fetchProfile(token!),
     enabled: !!token,
   });
@@ -37,11 +37,12 @@ export function useLimits() {
 }
 
 export function useUpdateProfile() {
-  const { token } = useAuth();
+  const { token, userId } = useAuth();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: UpdateProfile) => updateProfile(token!, data),
-    onSuccess: () => {
+    onSuccess: (profile) => {
+      queryClient.setQueryData([...SUBSCRIPTION_KEY, "profile", userId], profile);
       void queryClient.invalidateQueries({ queryKey: SUBSCRIPTION_KEY });
     },
   });

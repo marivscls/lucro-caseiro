@@ -81,3 +81,6 @@ supabase/.temp/
 
 # accidental root expo init
 /app.json
+
+# Local visual design review outputs
+apps/web/.impeccable/

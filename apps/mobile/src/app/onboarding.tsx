@@ -1,3 +1,4 @@
+import { BusinessProfileFlow } from "../features/onboarding/business-profile";
 import {
   Button,
   Card,
@@ -608,7 +609,7 @@ function DoneStep({
   );
 }
 
-export default function OnboardingScreen() {
+function LegacyOnboardingScreen() {
   const router = useRouter();
   const { theme } = useTheme();
   const brand = useBrand();
@@ -738,5 +739,15 @@ export default function OnboardingScreen() {
         )}
       </View>
     </SafeAreaView>
+  );
+}
+
+export default function OnboardingScreen() {
+  const brand = useBrand();
+  const router = useRouter();
+  return brand.id === "lucro-caseiro" ? (
+    <BusinessProfileFlow firstAccess onClose={() => router.replace("/tabs")} />
+  ) : (
+    <LegacyOnboardingScreen />
   );
 }

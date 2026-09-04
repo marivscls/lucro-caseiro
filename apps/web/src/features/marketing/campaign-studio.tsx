@@ -48,7 +48,7 @@ type CampaignVariantPublicationResult = {
 
 const initialBriefing: Briefing = {
   segment: "pme",
-  goal: "leads",
+  goal: "sales",
   audience: "",
   offer: "",
   budget: "",
@@ -290,9 +290,9 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
 
   const reviewBlocksApproval = bundle?.qualityReview?.ready === false;
   let strategyButtonLabel = plan
-    ? "Refazer preenchimento com IA"
-    : "Preencher todos os campos com IA";
-  if (generateStrategy.isPending) strategyButtonLabel = "Preenchendo todos os campos…";
+    ? "Refazer plano de anúncios"
+    : "Gerar plano de anúncios";
+  if (generateStrategy.isPending) strategyButtonLabel = "Montando o plano…";
 
   const startNewCampaign = () => {
     setBriefing(initialBriefing);
@@ -317,40 +317,24 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
   return (
     <section className="campaign-studio" aria-label="Criação de campanha com IA">
       <div className="campaign-studio-intro">
-        <p className="eyebrow">Fluxo guiado com IA</p>
-        <h2>Pesquisa → Estratégia → Copy → Revisão</h2>
+        <p className="eyebrow">Tráfego pago</p>
+        <h2>Oferta → Anúncios → Aprovar</h2>
         <p>
-          Converta contexto real em uma Big Idea, uma produção executável e peças
-          revisadas antes da aprovação.
+          Diga para quem é e o que está oferecendo. A IA devolve ângulos e roteiros de ads.
+          Pesquisa longa e carrossel ficam em opções avançadas.
         </p>
       </div>
 
       <div className="campaign-step">
         <StepHeading
           number="1"
-          title="Pesquisa e estratégia do anúncio"
-          description="Público, mecanismos, saturação, Big Idea, produção e aprovação."
+          title="Quem vê e o que você oferece"
+          description="O suficiente para gerar ads. O resto a Selenita completa com o contexto da Central."
         />
         <fieldset
           className="campaign-form"
           disabled={generateStrategy.isPending || strategyApproved}
         >
-          <label>
-            Segmento
-            <select
-              value={briefing.segment}
-              onChange={(event) =>
-                setBriefing({
-                  ...briefing,
-                  segment: event.target.value as Briefing["segment"],
-                })
-              }
-            >
-              <option value="pme">PME</option>
-              <option value="ecommerce">E-commerce</option>
-              <option value="agency">Agência</option>
-            </select>
-          </label>
           <label>
             Objetivo
             <select
@@ -359,7 +343,7 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
                 setBriefing({ ...briefing, goal: event.target.value as Briefing["goal"] })
               }
             >
-              <option value="sales">Vendas</option>
+              <option value="sales">Vendas / instalação</option>
               <option value="leads">Leads</option>
               <option value="repurchase">Recompra</option>
               <option value="awareness">Reconhecimento</option>
@@ -374,11 +358,8 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
               onChange={(event) =>
                 setBriefing({ ...briefing, audience: event.target.value })
               }
-              placeholder="Qual recorte precisa ver este anúncio? Deixe vazio para a IA comparar os segmentos."
+              placeholder="Ex.: confeiteiras que vendem no WhatsApp e ainda cobram no chute."
             />
-            <small>
-              Este recorte orienta a campanha; não define todo o mercado do Lucro Caseiro.
-            </small>
           </label>
           <label className="span-2">
             Oferta
@@ -388,37 +369,61 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
               onChange={(event) =>
                 setBriefing({ ...briefing, offer: event.target.value })
               }
-              placeholder="O que está sendo oferecido e qual promessa é permitida?"
+              placeholder="Ex.: Lucro Caseiro grátis para calcular o primeiro preço. Essencial R$ 29,90."
             />
           </label>
-          <label>
-            Orçamento estimado (R$)
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={briefing.budget}
-              onChange={(event) =>
-                setBriefing({ ...briefing, budget: event.target.value })
-              }
-            />
-          </label>
-          <label>
-            Telas do carrossel
-            <select
-              value={briefing.carouselSlides}
-              onChange={(event) =>
-                setBriefing({ ...briefing, carouselSlides: Number(event.target.value) })
-              }
-            >
-              {Array.from({ length: 8 }, (_, index) => index + 3).map((count) => (
-                <option key={count} value={count}>
-                  {count} telas
-                </option>
-              ))}
-            </select>
-            <small>Usado somente quando a campanha incluir carrossel.</small>
-          </label>
+          <details className="span-2 campaign-advanced">
+            <summary>Opções avançadas</summary>
+            <div className="campaign-form">
+              <label>
+                Segmento interno
+                <select
+                  value={briefing.segment}
+                  onChange={(event) =>
+                    setBriefing({
+                      ...briefing,
+                      segment: event.target.value as Briefing["segment"],
+                    })
+                  }
+                >
+                  <option value="pme">PME</option>
+                  <option value="ecommerce">E-commerce</option>
+                  <option value="agency">Agência</option>
+                </select>
+              </label>
+              <label>
+                Orçamento estimado (R$)
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={briefing.budget}
+                  onChange={(event) =>
+                    setBriefing({ ...briefing, budget: event.target.value })
+                  }
+                />
+              </label>
+              <label>
+                Telas do carrossel
+                <select
+                  value={briefing.carouselSlides}
+                  onChange={(event) =>
+                    setBriefing({
+                      ...briefing,
+                      carouselSlides: Number(event.target.value),
+                    })
+                  }
+                >
+                  {Array.from({ length: 8 }, (_, index) => index + 3).map((count) => (
+                    <option key={count} value={count}>
+                      {count} telas
+                    </option>
+                  ))}
+                </select>
+                <small>Só entra se o formato for carrossel.</small>
+              </label>
+            </div>
+          </details>
         </fieldset>
         {!strategyApproved && (
           <button
@@ -469,7 +474,7 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
                 disabled={approveStrategy.isPending}
                 onClick={() => approveStrategy.mutate()}
               >
-                {approveStrategy.isPending ? "Aprovando…" : "Aprovar estratégia"}
+                {approveStrategy.isPending ? "Aprovando…" : "Aprovar e gerar ads"}
               </button>
             )}
             {strategyMessageId && (
@@ -494,11 +499,11 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
       <div className={`campaign-step ${strategyApproved ? "" : "locked"}`}>
         <StepHeading
           number="2"
-          title="Copies"
-          description="O plano aprovado trava psicologia, público, oferta, promessa e canais."
+          title="Anúncios"
+          description="Gera ganchos, roteiros e CTA. Promocional = tráfego pago. Orgânico = feed."
         />
         {!strategyApproved ? (
-          <p className="empty-inline">Aprove a estratégia para liberar as copies.</p>
+          <p className="empty-inline">Aprove o plano para gerar os anúncios.</p>
         ) : (
           <>
             <div
@@ -512,7 +517,7 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
                 aria-checked={style === "promotional"}
                 onClick={() => setStyle("promotional")}
               >
-                Promocional
+                Promocional (ads)
               </button>
               <button
                 className={`button ${style === "organic" ? "primary" : "secondary"}`}
@@ -520,14 +525,14 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
                 aria-checked={style === "organic"}
                 onClick={() => setStyle("organic")}
               >
-                Orgânico
+                Orgânico (feed)
               </button>
               <button
                 className="button primary"
                 disabled={generateCopies.isPending}
                 onClick={() => generateCopies.mutate()}
               >
-                {generateCopies.isPending ? "Gerando copies…" : "Gerar copies"}
+                {generateCopies.isPending ? "Gerando anúncios…" : "Gerar anúncios"}
               </button>
             </div>
             {generateCopies.error && (
@@ -564,11 +569,11 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
       <div className={`campaign-step ${bundle ? "" : "locked"}`}>
         <StepHeading
           number="3"
-          title="Aprovação e destino"
-          description="Envie cada variante aprovada para Conteúdo ou Documentos."
+          title="Aprovar peças"
+          description="Manda o anúncio aprovado para Peças. Documento fica para arquivo."
         />
         {!bundle ? (
-          <p className="empty-inline">Gere as copies para revisar cada variante.</p>
+          <p className="empty-inline">Gere os anúncios para revisar cada variante.</p>
         ) : (
           <>
             {bundle.qualityReview && <QualityReviewPanel review={bundle.qualityReview} />}
@@ -619,7 +624,7 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
                           saveVariant.mutate({ index, destination: "content" })
                         }
                       >
-                        Aprovar como conteúdo
+                        Aprovar como peça
                       </button>
                       <button
                         className="button secondary"
@@ -628,7 +633,7 @@ export function CampaignStudio({ campaigns }: { campaigns: MarketingResource[] }
                           saveVariant.mutate({ index, destination: "document" })
                         }
                       >
-                        Aprovar como documento
+                        Guardar como documento
                       </button>
                     </div>
                   )}
@@ -780,7 +785,7 @@ function PlanEditor({
     patch({ creativeStrategy: { ...creativeStrategy, ...value } });
   return (
     <fieldset className="plan-editor" disabled={disabled}>
-      <legend>Plano estruturado</legend>
+      <legend>Plano do anúncio</legend>
       <label className="span-2">
         Nome
         <input
@@ -804,7 +809,18 @@ function PlanEditor({
           onChange={(event) => patch({ offer: event.target.value })}
         />
       </label>
-      <details className="span-2 plan-section" open>
+      <div className="span-2 campaign-plan-summary">
+        <p>
+          <strong>Ângulo.</strong> {creativeStrategy.angle || "Ainda não definido."}
+        </p>
+        <p>
+          <strong>Promessa.</strong> {creativeStrategy.promise || "Ainda não definida."}
+        </p>
+        <p>
+          <strong>Formato.</strong> {creativeStrategy.format || "A IA escolhe no pacote."}
+        </p>
+      </div>
+      <details className="span-2 plan-section">
         <summary>Pesquisa estratégica</summary>
         <div className="plan-section-grid">
           <label>
@@ -873,7 +889,7 @@ function PlanEditor({
           </label>
         </div>
       </details>
-      <details className="span-2 plan-section" open>
+      <details className="span-2 plan-section">
         <summary>Big Idea e produção</summary>
         <div className="plan-section-grid">
           <label className="span-2">
@@ -984,6 +1000,9 @@ function PlanEditor({
           />
         </div>
       </details>
+      <details className="span-2 plan-section">
+        <summary>Canais, metas e próxima ação</summary>
+        <div className="plan-section-grid">
       <label className="span-2">
         Canais
         <input
@@ -1047,6 +1066,8 @@ function PlanEditor({
           onChange={(event) => patch({ nextBestAction: event.target.value })}
         />
       </label>
+        </div>
+      </details>
     </fieldset>
   );
 }

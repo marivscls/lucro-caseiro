@@ -13,8 +13,8 @@ import {
   spacing,
   useTheme,
 } from "@lucro-caseiro/ui";
-import { Stack, useRouter } from "expo-router";
-import React, { useMemo, useState } from "react";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useMemo, useState } from "react";
 import { FlatList, Image, Pressable, View, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -463,6 +463,13 @@ export default function ServicesScreen() {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [appointmentService, setAppointmentService] = useState<Service | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const { create } = useLocalSearchParams<{ create?: string }>();
+  useEffect(() => {
+    if (create === "onboarding") {
+      setShowCreate(true);
+      router.setParams({ create: undefined });
+    }
+  }, [create, router]);
 
   const overview = useMemo(() => buildServiceOverview(services), [services]);
   const filterCounts = useMemo(

@@ -97,7 +97,7 @@ describe("campaign AI", () => {
       },
     );
     expect(built.promptId).toBe("campaign-strategist");
-    expect(built.promptVersion).toBe("17");
+    expect(built.promptVersion).toBe("18");
     expect(built.prompt).toContain("Confeiteiras iniciantes");
     expect(built.prompt).toContain("R$ 300");
     expect(built.prompt).toContain("Não prometa renda.");
@@ -106,6 +106,7 @@ describe("campaign AI", () => {
     expect(built.prompt).toContain("Quantidade exata se houver carrossel: 4 slides");
     expect(built.prompt).toContain("não é exclusivo de confeiteiras");
     expect(built.prompt).toContain("público desta campanha");
+    expect(built.prompt).toContain("três ângulos distintos");
   });
 
   it("uses canonical context when audience and offer are blank", () => {
@@ -290,7 +291,7 @@ describe("campaign AI", () => {
       },
     );
     expect(built.promptId).toBe("ad-copywriter");
-    expect(built.promptVersion).toBe("17");
+    expect(built.promptVersion).toBe("18");
     expect(built.prompt).toContain("ESTRATÉGIA APROVADA E IMUTÁVEL");
     expect(built.prompt).toContain("nunca conteúdo a copiar");
     expect(built.prompt).toContain(plan.audienceSummary);

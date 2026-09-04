@@ -140,6 +140,7 @@ campanhas e resultados sem expor esses dados às usuárias do app comercial.
 - 2026-07-18: `interview` entrou como recurso operacional. O seed cria dez fichas de entrevista
   por segmento e uma campanha-piloto de mídia bloqueada por readiness, otimizada por negócio
   ativado em vez de clique ou instalação.
-- 2026-07-18: campanhas passaram a estruturar pesquisa, mecanismos, saturação, Big Idea, produção,
-  gancho, aterrissagem e retenção; a autorrevisão bloqueia aprovação quando ainda existe lacuna
-  impeditiva de prova ou congruência.
+- 2026-09-01: a superfície diária da Central prioriza campanha e ads. Selenita, Hoje e o
+  Estúdio começam por oferta, três ângulos e roteiros de 15–25s; cadastros, carrossel e
+  ferramentas de vídeo ficam em avançado. A instrução `DAILY_OPERATIONS_PROMPT` é injetada
+  mesmo quando a fundadora já tem um prompt publicado.

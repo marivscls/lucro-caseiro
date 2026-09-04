@@ -131,8 +131,13 @@ describe("marketing intelligence", () => {
     expect(DEFAULT_MARKETING_SYSTEM_PROMPT).toContain(
       "comércio de celulares e acessórios e revenda de importados",
     );
+    expect(DEFAULT_MARKETING_SYSTEM_PROMPT).toContain("Operação diária da Central");
+    expect(DEFAULT_MARKETING_SYSTEM_PROMPT).toContain("três ângulos");
     expect(marketingSystemPrompt("Instrução personalizada.")).toContain(
       "mercado amplo da marca",
+    );
+    expect(marketingSystemPrompt("Instrução personalizada.")).toContain(
+      "roteiros de 15–25s",
     );
     expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain("um único foco dominante");
     expect(VISUAL_ART_DIRECTION_GUARDRAIL).toContain(
