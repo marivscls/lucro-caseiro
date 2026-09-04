@@ -46,12 +46,24 @@ describe("shouldShowGettingStarted", () => {
     ).toBe(true);
   });
 
-  it("sempre mostra o guia para conta nova sem produto nem venda", () => {
+  it("nao abre o overlay so porque a conta ainda nao tem produto ou venda", () => {
     expect(
       shouldShowGettingStarted({
         settled: true,
         completed: false,
         started: false,
+        hasProduct: false,
+        hasSale: false,
+      }),
+    ).toBe(false);
+  });
+
+  it("abre o overlay quando o guia ja foi iniciado neste aparelho", () => {
+    expect(
+      shouldShowGettingStarted({
+        settled: true,
+        completed: false,
+        started: true,
         hasProduct: false,
         hasSale: false,
       }),
@@ -75,7 +87,23 @@ describe("shouldShowGettingStarted", () => {
 });
 
 describe("resolveGettingStartedPresentation", () => {
-  it("abre o overlay na primeira etapa para conta nova", () => {
+  it("abre o overlay na primeira etapa depois do onboarding", () => {
+    expect(
+      resolveGettingStartedPresentation({
+        settled: true,
+        completed: false,
+        started: true,
+        hasProduct: false,
+        hasSale: false,
+      }),
+    ).toEqual({
+      show: true,
+      showReopen: false,
+      stage: "product",
+    });
+  });
+
+  it("nao abre o overlay no login de conta vazia que ainda nao iniciou o guia", () => {
     expect(
       resolveGettingStartedPresentation({
         settled: true,
@@ -85,7 +113,7 @@ describe("resolveGettingStartedPresentation", () => {
         hasSale: false,
       }),
     ).toEqual({
-      show: true,
+      show: false,
       showReopen: false,
       stage: "product",
     });
@@ -97,7 +125,7 @@ describe("resolveGettingStartedPresentation", () => {
         dismissed: true,
         settled: true,
         completed: false,
-        started: false,
+        started: true,
         hasProduct: false,
         hasSale: false,
       }),

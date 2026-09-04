@@ -22,7 +22,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import fixedExpensesCalendar from "../assets/fixed-expenses-calendar.png";
 import { useBusinessCopy } from "../features/subscription/business-copy";
@@ -42,6 +42,8 @@ import { useProfile } from "../features/subscription/hooks";
 import type { AppIconName } from "../shared/components/app-icon";
 import { AppIcon } from "../shared/components/app-icon";
 import { showAlert } from "../shared/components/alert-store";
+import { FAB } from "../shared/components/fab";
+import { ScreenCreateBar } from "../shared/components/screen-create-bar";
 import { SkeletonList } from "../shared/components/skeleton";
 import { StandardModal } from "../shared/components/standard-modal";
 import { showToast } from "../shared/components/toast";
@@ -110,7 +112,6 @@ export default function RecurringExpensesScreen() {
   const experienceCopy = useBusinessCopy();
   const isDesktop = useDesktopLayout();
   const { width: viewportWidth } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { data: items, isLoading } = useRecurringExpenses();
   const remove = useDeleteRecurring();
@@ -197,7 +198,7 @@ export default function RecurringExpensesScreen() {
             styles.content,
             pageGutter(isDesktop, spacing.lg),
             desktopStretch(isDesktop),
-            { paddingBottom: Math.max(112, insets.bottom + 96) },
+            { paddingBottom: spacing.lg },
           ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
@@ -295,20 +296,8 @@ export default function RecurringExpensesScreen() {
           )}
         </ScrollView>
 
-        {canUseRecurringExpenses ? (
-          <Pressable
-            accessibilityLabel="Adicionar gasto fixo"
-            accessibilityRole="button"
-            hitSlop={6}
-            onPress={handleAddPress}
-            style={({ pressed }) => [
-              styles.fab,
-              { bottom: insets.bottom + spacing.xl },
-              pressed && styles.pressed,
-            ]}
-          >
-            <AppIcon name="add" size={iconSizes.lg} color={palette.onWine} />
-          </Pressable>
+        {canUseRecurringExpenses && recurringItems.length > 0 ? (
+          <ScreenCreateBar title="+ Novo gasto fixo" onPress={handleAddPress} />
         ) : null}
       </View>
 
@@ -369,15 +358,12 @@ function RecurringHeader({
         </Typography>
       </View>
       {onAdd ? (
-        <Pressable
+        <FAB
+          icon="add"
+          header
           accessibilityLabel="Adicionar gasto fixo"
-          accessibilityRole="button"
-          hitSlop={4}
           onPress={onAdd}
-          style={({ pressed }) => [styles.headerAdd, pressed && styles.pressed]}
-        >
-          <AppIcon name="add" size={iconSizes.md} color={palette.onWine} />
-        </Pressable>
+        />
       ) : null}
     </View>
   );
@@ -1119,17 +1105,6 @@ function createStyles(theme: Theme) {
     expenseRowSelected: {
       backgroundColor: palette.softRose,
     },
-    fab: {
-      alignItems: "center",
-      backgroundColor: palette.rose,
-      borderRadius: radii.full,
-      height: 56,
-      justifyContent: "center",
-      position: "absolute",
-      right: spacing.lg,
-      width: 56,
-      ...theme.shadows.md,
-    },
     fieldBlock: {
       gap: spacing.sm,
     },
@@ -1171,15 +1146,6 @@ function createStyles(theme: Theme) {
       paddingTop: spacing.sm,
       width: "100%",
       zIndex: 10,
-    },
-    headerAdd: {
-      alignItems: "center",
-      backgroundColor: palette.rose,
-      borderRadius: radii.full,
-      flexShrink: 0,
-      height: 48,
-      justifyContent: "center",
-      width: 48,
     },
     headerBack: {
       alignItems: "center",

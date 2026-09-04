@@ -88,6 +88,13 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
 
 ## Change log / Decisions
 
+- 2026-08-31: o sheet Mais opções reserva a área segura de baixo
+  (`insets.bottom`) para “Desativar catálogo” não colar na barra do sistema.
+
+- 2026-08-31: Ver como cliente (vitrine pública) alarga os cards de
+  Destaques no celular e encurta o placeholder sem foto; nomes quebram
+  em 2 linhas em vez de cortar no meio.
+
 - 2026-08-29: a grade pública “Escolha o que deseja” passou a cards
   verticais (foto em cima, nome e preço embaixo), iguais à prévia local.
 
@@ -229,3 +236,18 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
   `catalog_published`. O rodapé público mantém o selo/CTA “Feito com Lucro Caseiro” e o link da
   Play Store usa referrer com origem, meio e campanha do catálogo compartilhado.
 - 2026-08-29: Catálogo online saiu de "Ver tudo" e passou ao grid visível de Gestão no Mais.
+- 2026-08-29: thumbs de identidade na tela de Catálogo usam `key={`identity-${index}`}`
+  (não a URL da foto) — a massa de teste reutiliza a mesma imagem em vários produtos.
+  Categorias da prévia usam índice + nome. A lista de visibilidade também formata
+  nomes com `displayCatalogItemName`.
+- 2026-08-31: o hero do Catálogo no nativo volta ao layout da vitrine PWA:
+  ilustração 3D maior vazando o card vinho (topo e direita), título em duas
+  linhas e o texto “Produtos e serviços organizados para seus clientes
+  escolherem.”. Largura/altura explícitas no PNG para o Android não estourar
+  o tamanho intrínseco.
+- 2026-08-31: no card da vitrine, os rótulos produtos/serviços/publicados
+  ficam numa linha abaixo do ícone e do número, sem reticências.
+- 2026-08-31: “Ver como cliente” e “Mais opções” usam a mesma fonte/tamanho
+  (`fitTitle={false}`); o texto mais longo não encolhe.
+- 2026-08-31: no mobile a ilustração 3D fica menor e mais baixa (dentro do
+  card vinho), para o título respirar e a sacola não subir em cima do texto.

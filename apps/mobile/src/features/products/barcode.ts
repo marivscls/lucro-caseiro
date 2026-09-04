@@ -1,11 +1,12 @@
 import type { Product } from "@lucro-caseiro/contracts";
 
+import { productNameMatchesSearch } from "./display";
+
 export function productMatchesSearch(product: Product, search: string): boolean {
   const normalizedSearch = search.trim().toLocaleLowerCase("pt-BR");
   if (!normalizedSearch) return true;
-  return [product.name, product.code ?? ""].some((value) =>
-    value.toLocaleLowerCase("pt-BR").includes(normalizedSearch),
-  );
+  if (productNameMatchesSearch(product.name, normalizedSearch)) return true;
+  return (product.code ?? "").toLocaleLowerCase("pt-BR").includes(normalizedSearch);
 }
 
 let internalCodeSequence = 0;

@@ -9,6 +9,7 @@ import {
 } from "../../shared/utils/manrope-html";
 import { playStoreUrl } from "../../shared/utils/store-link";
 
+import { displayProductName } from "../products/display";
 import { paymentLabel } from "./payment";
 
 export interface ReceiptBusiness {
@@ -53,7 +54,7 @@ export function buildReceiptHtml(sale: Sale, business: ReceiptBusiness): string 
   const rows = sale.items
     .map(
       (item) => `<tr>
-        <td class="item">${escapeHtml(item.productName)}</td>
+        <td class="item">${escapeHtml(displayProductName(item.productName))}</td>
         <td class="qty">${quantity(item.quantity)}</td>
         <td class="price">${money(item.unitPrice)}</td>
         <td class="subtotal">${money(item.subtotal)}</td>

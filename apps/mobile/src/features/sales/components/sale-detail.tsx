@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import { Image, View } from "react-native";
 
 import { formatCurrency } from "../../../shared/utils/format";
+import { displayProductName, productInitial } from "../../products/display";
 import { isValidBrazilPhone } from "../../../shared/utils/phone";
 import { openWhatsApp, openWhatsAppShare } from "../../../shared/utils/whatsapp";
 import { useProfile } from "../../subscription/hooks";
@@ -199,12 +200,14 @@ export function SaleDetail({
                 />
               ) : (
                 <Typography variant="h3" color={theme.colors.textSecondary}>
-                  {item.productName.charAt(0).toUpperCase()}
+                  {productInitial(item.productName)}
                 </Typography>
               )}
             </View>
             <View style={{ flex: 1, gap: 2 }}>
-              <Typography variant="body">{item.productName}</Typography>
+              <Typography variant="body">
+                {displayProductName(item.productName)}
+              </Typography>
               <Typography variant="caption">
                 {item.quantity}x {formatCurrency(item.unitPrice)}
               </Typography>

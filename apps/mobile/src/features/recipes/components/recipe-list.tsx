@@ -27,6 +27,7 @@ import {
 import { showAlert } from "../../../shared/components/alert-store";
 import { AppIcon } from "../../../shared/components/app-icon";
 import { Skeleton, SkeletonList } from "../../../shared/components/skeleton";
+import { ScreenCreateBar } from "../../../shared/components/screen-create-bar";
 import { useShowAds } from "../../../shared/hooks/use-show-ads";
 import { alertError } from "../../../shared/utils/alerts";
 import { formatCurrency } from "../../../shared/utils/format";
@@ -192,48 +193,58 @@ export function RecipeList({ onRecipePress, onAddPress, onEditPress }: RecipeLis
   }
 
   return (
-    <FlatList
-      data={listData}
-      keyExtractor={(item, index) => (item === AD_ITEM_MARKER ? `ad-${index}` : item.id)}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{
-        gap: spacing.md,
-        paddingTop: spacing.sm,
-        paddingBottom: spacing["3xl"],
-        flexGrow: 1,
-      }}
-      ListHeaderComponent={header}
-      ListEmptyComponent={
-        <EmptyState
-          title={`Nenhuma ${experienceCopy.formulaNoun} encontrada`}
-          description="Tente outro nome ou limpe a busca e os filtros."
-          action={
-            hasQuery || hasCategoryFilter ? (
-              <Button
-                title="Limpar busca e filtros"
-                variant="outline"
-                onPress={clearSearchAndFilters}
-              />
-            ) : null
-          }
-          style={{ paddingVertical: spacing["2xl"] }}
-        />
-      }
-      renderItem={({ item }) => {
-        if (item === AD_ITEM_MARKER) {
-          return <AdBanner size="banner" />;
+    <View style={{ flex: 1 }}>
+      <FlatList
+        data={listData}
+        keyExtractor={(item, index) =>
+          item === AD_ITEM_MARKER ? `ad-${index}` : item.id
         }
-        return (
-          <RecipeCard
-            recipe={item}
-            onPress={() => onRecipePress?.(item.id)}
-            onEdit={onEditPress ? () => onEditPress(item.id) : undefined}
-            onDelete={() => confirmDelete(item.id, displayRecipeName(item.name))}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          gap: spacing.md,
+          paddingTop: spacing.sm,
+          paddingBottom: spacing.lg,
+          flexGrow: 1,
+        }}
+        ListHeaderComponent={header}
+        ListEmptyComponent={
+          <EmptyState
+            title={`Nenhuma ${experienceCopy.formulaNoun} encontrada`}
+            description="Tente outro nome ou limpe a busca e os filtros."
+            action={
+              hasQuery || hasCategoryFilter ? (
+                <Button
+                  title="Limpar busca e filtros"
+                  variant="outline"
+                  onPress={clearSearchAndFilters}
+                />
+              ) : null
+            }
+            style={{ paddingVertical: spacing["2xl"] }}
           />
-        );
-      }}
-    />
+        }
+        renderItem={({ item }) => {
+          if (item === AD_ITEM_MARKER) {
+            return <AdBanner size="banner" />;
+          }
+          return (
+            <RecipeCard
+              recipe={item}
+              onPress={() => onRecipePress?.(item.id)}
+              onEdit={onEditPress ? () => onEditPress(item.id) : undefined}
+              onDelete={() => confirmDelete(item.id, displayRecipeName(item.name))}
+            />
+          );
+        }}
+      />
+      {recipes.length > 0 && onAddPress ? (
+        <ScreenCreateBar
+          title={`+ Nova ${experienceCopy.formulaNoun}`}
+          onPress={onAddPress}
+        />
+      ) : null}
+    </View>
   );
 }
 

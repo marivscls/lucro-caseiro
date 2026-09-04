@@ -42,7 +42,7 @@ export const FEATURED_MANAGEMENT_ITEMS = [
   },
   {
     title: "Catálogo online",
-    description: "Link para compartilhar com clientes",
+    description: "Link para os clientes",
     icon: "storefront-outline",
     route: "/catalog",
   },
@@ -64,7 +64,6 @@ export const FEATURED_MANAGEMENT_ITEMS = [
     icon: "bag-handle-outline",
     route: "/packaging",
     feature: "embalagens",
-    badge: "Organize",
   },
 ] as const satisfies ReadonlyArray<ToolItem>;
 

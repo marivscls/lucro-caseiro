@@ -32,6 +32,7 @@ import {
   type InsightQuestionId,
 } from "../features/insights/domain";
 import { useInsights } from "../features/insights/hooks";
+import { displayProductName } from "../features/products/display";
 import { useAllProducts } from "../features/products/hooks";
 import { useProfile } from "../features/subscription/hooks";
 import { usePaywall } from "../shared/hooks/use-paywall";
@@ -203,7 +204,7 @@ function InsightsContent({
 
   const productRows: RankRow[] = data.topProducts.map((p) => ({
     key: p.productId,
-    label: p.name,
+    label: displayProductName(p.name),
     caption: `${p.quantity} un.`,
     value: p.quantity,
   }));

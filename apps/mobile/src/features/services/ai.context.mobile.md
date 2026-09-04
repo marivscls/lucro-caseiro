@@ -143,3 +143,5 @@ const pricing = calculateServicePricing({
 - 2026-08-25: a navbar do app no celular vem do root (`MobileFloatingTabBar`);
   a tela de serviços não duplica mais uma barra própria.
 - 2026-08-24: estado vazio da lista deixou de usar ilustração PNG.
+- 2026-08-31: lista com itens ganhou `ScreenCreateBar` (`+ Cadastrar serviço`) no rodapé,
+  além do FAB `+`. O CTA interno da lista saiu.

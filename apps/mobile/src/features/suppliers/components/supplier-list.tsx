@@ -38,6 +38,7 @@ import {
   type SupplierSort,
 } from "../domain";
 import { useSuppliersOverview } from "../hooks";
+import { ScreenCreateBar } from "../../../shared/components/screen-create-bar";
 import { SupplierCard } from "./supplier-card";
 
 interface SupplierListProps {
@@ -416,66 +417,73 @@ export function SupplierList(props: Readonly<SupplierListProps>) {
 
   return (
     <>
-      <FlatList
-        data={items}
-        keyExtractor={(item) => item.id}
-        style={{ width: "100%" }}
-        contentContainerStyle={{
-          width: "100%",
-          maxWidth: pageWidth,
-          alignSelf: "center",
-          paddingHorizontal: spacing.lg,
-          paddingTop: spacing.md,
-          paddingBottom: spacing["3xl"],
-          gap: spacing.md,
-        }}
-        ListHeaderComponent={header}
-        ListHeaderComponentStyle={{ marginBottom: spacing.md, overflow: "visible" }}
-        refreshControl={
-          <RefreshControl
-            refreshing={query.isRefetching}
-            onRefresh={() => {
-              void query.refetch();
-            }}
-            tintColor={theme.colors.primaryStrong}
-            colors={[theme.colors.primaryStrong]}
-          />
-        }
-        renderItem={({ item }) => (
-          <SupplierCard
-            supplier={item}
-            onPress={() => props.onSupplierPress(item)}
-            onEdit={() => props.onEditPress(item)}
-            onArchive={() => props.onArchivePress(item)}
-            onDelete={() => props.onDeletePress(item)}
-            onReorder={() => props.onReorderPress(item)}
-            onWhatsApp={() => props.onWhatsAppPress(item)}
-            onToggleFollowUp={() => props.onToggleFollowUp(item)}
-            onToggleRestock={() => props.onToggleRestock(item)}
-          />
-        )}
-        ListEmptyComponent={
-          <View style={{ paddingVertical: spacing["3xl"] }}>
-            <EmptyState
-              title={
-                hasQuery ? "Nenhum fornecedor encontrado" : "Nenhum fornecedor cadastrado"
-              }
-              description={
-                hasQuery
-                  ? "Ajuste a busca ou limpe os filtros para ver outros fornecedores."
-                  : "Cadastre quem abastece o seu negócio para organizar suas compras."
-              }
-              action={
-                hasQuery ? (
-                  <Button title="Limpar busca e filtros" onPress={clearFilters} />
-                ) : (
-                  <Button title="Adicionar fornecedor" onPress={props.onAddPress} />
-                )
-              }
+      <View style={{ flex: 1 }}>
+        <FlatList
+          data={items}
+          keyExtractor={(item) => item.id}
+          style={{ width: "100%" }}
+          contentContainerStyle={{
+            width: "100%",
+            maxWidth: pageWidth,
+            alignSelf: "center",
+            paddingHorizontal: spacing.lg,
+            paddingTop: spacing.md,
+            paddingBottom: spacing.lg,
+            gap: spacing.md,
+          }}
+          ListHeaderComponent={header}
+          ListHeaderComponentStyle={{ marginBottom: spacing.md, overflow: "visible" }}
+          refreshControl={
+            <RefreshControl
+              refreshing={query.isRefetching}
+              onRefresh={() => {
+                void query.refetch();
+              }}
+              tintColor={theme.colors.primaryStrong}
+              colors={[theme.colors.primaryStrong]}
             />
-          </View>
-        }
-      />
+          }
+          renderItem={({ item }) => (
+            <SupplierCard
+              supplier={item}
+              onPress={() => props.onSupplierPress(item)}
+              onEdit={() => props.onEditPress(item)}
+              onArchive={() => props.onArchivePress(item)}
+              onDelete={() => props.onDeletePress(item)}
+              onReorder={() => props.onReorderPress(item)}
+              onWhatsApp={() => props.onWhatsAppPress(item)}
+              onToggleFollowUp={() => props.onToggleFollowUp(item)}
+              onToggleRestock={() => props.onToggleRestock(item)}
+            />
+          )}
+          ListEmptyComponent={
+            <View style={{ paddingVertical: spacing["3xl"] }}>
+              <EmptyState
+                title={
+                  hasQuery
+                    ? "Nenhum fornecedor encontrado"
+                    : "Nenhum fornecedor cadastrado"
+                }
+                description={
+                  hasQuery
+                    ? "Ajuste a busca ou limpe os filtros para ver outros fornecedores."
+                    : "Cadastre quem abastece o seu negócio para organizar suas compras."
+                }
+                action={
+                  hasQuery ? (
+                    <Button title="Limpar busca e filtros" onPress={clearFilters} />
+                  ) : (
+                    <Button title="Adicionar fornecedor" onPress={props.onAddPress} />
+                  )
+                }
+              />
+            </View>
+          }
+        />
+        {allItems.length > 0 ? (
+          <ScreenCreateBar title="+ Novo fornecedor" onPress={props.onAddPress} />
+        ) : null}
+      </View>
 
       <StandardModal
         visible={filtersOpen}

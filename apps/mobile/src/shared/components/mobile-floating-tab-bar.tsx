@@ -1,4 +1,4 @@
-import { Typography, useFeature, useTheme } from "@lucro-caseiro/ui";
+import { radii, Typography, useFeature, useTheme } from "@lucro-caseiro/ui";
 import { type Href, usePathname, useRouter, useSegments } from "expo-router";
 import {
   CalendarDays,
@@ -352,10 +352,11 @@ const styles = StyleSheet.create({
   },
   tabIcon: {
     alignItems: "center",
-    borderRadius: 18,
-    height: 34,
+    borderRadius: radii.full,
+    height: 36,
     justifyContent: "center",
-    width: 44,
+    overflow: "hidden",
+    width: 36,
   },
   newSaleButton: {
     alignItems: "center",

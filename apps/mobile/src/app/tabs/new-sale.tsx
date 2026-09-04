@@ -41,6 +41,7 @@ import { avatarPastel } from "../../features/clients/components/avatar-colors";
 import { useClients } from "../../features/clients/hooks";
 import { CreateProductForm } from "../../features/products/components/create-product-form";
 import { productMatchesSearch } from "../../features/products/barcode";
+import { displayProductName, productInitial } from "../../features/products/display";
 import { useAllProducts, useProductCodeLookup } from "../../features/products/hooks";
 import {
   cartTotal as computeCartTotal,
@@ -1113,7 +1114,7 @@ export default function NewSaleScreen() {
                                     variant="h3"
                                     color={theme.colors.textOnPrimary}
                                   >
-                                    {item.name.charAt(0).toUpperCase()}
+                                    {productInitial(item.name)}
                                   </Typography>
                                 )}
                               </View>
@@ -1124,7 +1125,7 @@ export default function NewSaleScreen() {
                                 }}
                                 hitSlop={10}
                                 accessibilityRole="button"
-                                accessibilityLabel={`Adicionar ${item.name}`}
+                                accessibilityLabel={`Adicionar ${displayProductName(item.name)}`}
                                 style={{
                                   position: "absolute",
                                   top: spacing.sm,
@@ -1147,7 +1148,7 @@ export default function NewSaleScreen() {
                                 style={{ marginTop: spacing.md }}
                                 numberOfLines={2}
                               >
-                                {item.name}
+                                {displayProductName(item.name)}
                               </Typography>
                               <Typography variant="bodyBold" color={theme.colors.success}>
                                 {item.saleUnit === "kg"
@@ -1201,7 +1202,7 @@ export default function NewSaleScreen() {
                                   }}
                                   hitSlop={10}
                                   accessibilityRole="button"
-                                  accessibilityLabel={`Tirar uma unidade de ${item.name}`}
+                                  accessibilityLabel={`Tirar uma unidade de ${displayProductName(item.name)}`}
                                   style={{
                                     position: "absolute",
                                     top: spacing.sm,
@@ -1808,13 +1809,13 @@ export default function NewSaleScreen() {
                               />
                             ) : (
                               <Typography variant="h3" color={theme.colors.textSecondary}>
-                                {item.productName.charAt(0).toUpperCase()}
+                                {productInitial(item.productName)}
                               </Typography>
                             )}
                           </View>
                           <View style={{ flex: 1, minWidth: 0 }}>
                             <Typography variant="bodyBold" numberOfLines={2}>
-                              {item.productName}
+                              {displayProductName(item.productName)}
                             </Typography>
                             {item.variationName ? (
                               <Typography variant="caption">

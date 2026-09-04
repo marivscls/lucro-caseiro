@@ -19,7 +19,7 @@ import { AppIcon } from "../shared/components/app-icon";
 import { Stack, useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import { Image, Pressable, ScrollView, useWindowDimensions, View } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import quotesDocument3d from "../assets/orcamentos-documento-3d.png";
 import { trackAnalyticsAction } from "../features/analytics/tracker";
@@ -29,6 +29,7 @@ import { showAlert } from "../shared/components/alert-store";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { useBrandScreenPalette } from "../shared/brand-palette";
 import { FAB } from "../shared/components/fab";
+import { ScreenCreateBar } from "../shared/components/screen-create-bar";
 import { SkeletonList } from "../shared/components/skeleton";
 import {
   useConvertQuote,
@@ -788,7 +789,6 @@ export default function QuotesScreen() {
   const pal = useBrandScreenPalette();
   const router = useRouter();
   const isDesktop = useDesktopLayout();
-  const insets = useSafeAreaInsets();
   const { width: viewportWidth } = useWindowDimensions();
   const [filter, setFilter] = useState<QuoteStatusType | "all">("all");
   const [search, setSearch] = useState("");
@@ -839,10 +839,7 @@ export default function QuotesScreen() {
   }
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: pal.background }}
-      edges={["top", "bottom"]}
-    >
+    <SafeAreaView style={{ flex: 1, backgroundColor: pal.background }} edges={["top"]}>
       <Stack.Screen options={{ headerShown: false }} />
 
       <ScreenHeader
@@ -858,14 +855,9 @@ export default function QuotesScreen() {
         right={
           <FAB
             icon="add"
+            header
             accessibilityLabel="Novo orçamento"
             onPress={() => setShowCreate(true)}
-            style={{
-              width: 52,
-              height: 52,
-              minWidth: 52,
-              backgroundColor: pal.rose,
-            }}
           />
         }
       />
@@ -876,7 +868,7 @@ export default function QuotesScreen() {
         contentContainerStyle={{
           ...pageGutter(isDesktop),
           ...desktopStretch(isDesktop, desktopWidths.wide),
-          paddingBottom: spacing["3xl"] + insets.bottom,
+          paddingBottom: spacing.lg,
         }}
       >
         <View
@@ -975,6 +967,10 @@ export default function QuotesScreen() {
           ) : null}
         </View>
       </ScrollView>
+
+      {!isLoading && !error && quotes.length > 0 ? (
+        <ScreenCreateBar title="+ Novo orçamento" onPress={() => setShowCreate(true)} />
+      ) : null}
 
       {/* Criar */}
       <QuoteForm

@@ -635,22 +635,44 @@ export function SimplePricingCalculator({
             minHeight: 132,
             overflow: "hidden",
             paddingHorizontal: spacing.xl,
-            paddingVertical: spacing.xl,
+            paddingTop: spacing.xl,
+            paddingBottom: spacing.md,
           }}
         >
-          <View style={{ gap: spacing.sm, maxWidth: "72%", zIndex: 1 }}>
-            <Typography variant="label" color={pal.onWine}>
-              ESTIMATIVA DE PREÇO
-            </Typography>
-            <Typography
-              variant={estimatePriceVariant}
-              color={pal.onWine}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.55}
+          <View style={{ gap: spacing.sm, zIndex: 1 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: spacing.md,
+              }}
             >
-              {formattedFinalPrice}
-            </Typography>
+              <View style={{ flex: 1, minWidth: 0, gap: spacing.sm }}>
+                <Typography variant="label" color={pal.onWine}>
+                  ESTIMATIVA DE PREÇO
+                </Typography>
+                <Typography
+                  variant={estimatePriceVariant}
+                  color={pal.onWine}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.55}
+                >
+                  {formattedFinalPrice}
+                </Typography>
+              </View>
+              <Image
+                source={pricingResultHero}
+                resizeMode="contain"
+                style={{
+                  width: 120,
+                  height: 96,
+                  marginRight: -spacing.sm,
+                  marginBottom: -spacing.sm,
+                }}
+                accessible={false}
+              />
+            </View>
             <View
               style={{
                 alignSelf: "flex-start",
@@ -661,6 +683,7 @@ export function SimplePricingCalculator({
               }}
             >
               <Text
+                numberOfLines={1}
                 style={{
                   color: ESTIMATE_INK,
                   fontFamily: fonts.bold,
@@ -671,18 +694,6 @@ export function SimplePricingCalculator({
               </Text>
             </View>
           </View>
-          <Image
-            source={pricingResultHero}
-            resizeMode="contain"
-            style={{
-              bottom: -spacing.xs,
-              height: 118,
-              position: "absolute",
-              right: -spacing.sm,
-              width: 176,
-            }}
-            accessible={false}
-          />
         </View>
 
         <View style={{ paddingTop: spacing.xs }}>

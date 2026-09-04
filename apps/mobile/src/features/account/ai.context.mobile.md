@@ -85,3 +85,5 @@ conta" → conta apagada → tela de login.
 - Confirmação em dois toques (decisão de UX) por ser ação destrutiva, em vez de
   digitar texto — público inclui usuários leigos/idosos.
 - Exclusão é total e irreversível (espelha a decisão da API).
+- 2026-08-31: os cards Privacidade e Conta em Configurações passaram a ter o mesmo
+  `gap` do restante da tela (antes o wrapper mobile os empilhava sem respiro).

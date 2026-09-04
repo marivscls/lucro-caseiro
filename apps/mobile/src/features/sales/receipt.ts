@@ -1,5 +1,6 @@
 import type { Sale } from "@lucro-caseiro/contracts";
 
+import { displayProductName } from "../products/display";
 import { formatCurrency } from "../../shared/utils/format";
 import { paymentLabel } from "./payment";
 
@@ -22,7 +23,7 @@ export function buildReceiptMessage(sale: Sale): string {
 
   for (const item of sale.items) {
     lines.push(
-      `• ${item.quantity}x ${item.productName}: ${formatCurrency(item.subtotal)}`,
+      `• ${item.quantity}x ${displayProductName(item.productName)}: ${formatCurrency(item.subtotal)}`,
     );
   }
 

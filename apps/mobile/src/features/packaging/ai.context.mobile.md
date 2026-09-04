@@ -121,7 +121,7 @@ Gerenciar embalagens utilizadas nos produtos: cadastrar, listar, editar e exclui
 - Fluxo lista: top bar (voltar + "Embalagens" + `+`) -> painel vinho (total
   cadastrado, custo investido, itens para repor + PNG `embalagens-hero.png`) ->
   busca/Filtros -> chips Todas/Caixas/Potes/Sacolas/Filmes -> "Suas embalagens"
-  com contagem filtrada -> cards -> CTA tracejado "Adicionar nova embalagem".
+  com contagem filtrada -> cards -> `ScreenCreateBar` `+ Nova embalagem`.
 - Fluxo detalhe: card -> modal detalhe (Fechar/Editar) -> "Editar" abre o form de edicao
   (voltar + "Editar embalagem" + Excluir no topo).
 
@@ -148,3 +148,6 @@ Gerenciar embalagens utilizadas nos produtos: cadastrar, listar, editar e exclui
   Miniaturas usam `photoUrl` ou slug único do nome; o botão `+` e as rotas
   permaneceram iguais.
 - 2026-08-24: estado vazio da lista deixou de usar ilustração PNG.
+- 2026-08-31: o card Embalagens no Mais deixou de exibir o selo "Organize".
+- 2026-08-31: lista com itens ganhou `ScreenCreateBar` (`+ Nova embalagem`) no rodapé,
+  além do FAB `+`. O CTA tracejado interno saiu para não duplicar.

@@ -41,6 +41,7 @@ import { brandScreenPalette } from "../shared/brand-palette";
 import { showAlert } from "../shared/components/alert-store";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { FAB } from "../shared/components/fab";
+import { ScreenCreateBar } from "../shared/components/screen-create-bar";
 import { Skeleton } from "../shared/components/skeleton";
 import { FeatureRouteGuard } from "../shared/components/feature-route-guard";
 import { usePaywall } from "../shared/hooks/use-paywall";
@@ -572,35 +573,6 @@ function PackagingScreenContent() {
             ))}
           </View>
         )}
-
-        <Pressable
-          onPress={() => setShowCreate(true)}
-          accessibilityRole="button"
-          accessibilityLabel="Adicionar nova embalagem"
-          style={({ pressed }) => ({
-            marginTop: spacing.sm,
-            borderRadius: radii.xl,
-            borderWidth: 1.5,
-            borderStyle: "dashed",
-            borderColor: palette.border,
-            backgroundColor: palette.white,
-            padding: spacing.lg,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: spacing.md,
-            opacity: pressed ? 0.7 : 1,
-          })}
-        >
-          <AppIcon name="add-circle-outline" size={28} color={palette.rose} />
-          <View style={{ flex: 1 }}>
-            <Typography variant="bodyBold" color={palette.ink}>
-              Adicionar nova embalagem
-            </Typography>
-            <Typography variant="caption" color={palette.muted}>
-              Cadastre uma embalagem que será utilizada nos seus produtos
-            </Typography>
-          </View>
-        </Pressable>
       </ScrollView>
     );
   }
@@ -608,7 +580,7 @@ function PackagingScreenContent() {
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: palette.background, overflow: "hidden" }}
-      edges={["top", "bottom"]}
+      edges={["top"]}
     >
       <Stack.Screen options={{ headerShown: false }} />
 
@@ -644,6 +616,10 @@ function PackagingScreenContent() {
         />
         {renderList()}
       </View>
+
+      {!isLoading && !error && items.length > 0 ? (
+        <ScreenCreateBar title="+ Nova embalagem" onPress={() => setShowCreate(true)} />
+      ) : null}
 
       <PackagingForm
         visible={showCreate}

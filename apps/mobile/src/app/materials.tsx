@@ -21,7 +21,7 @@ import {
   type ViewStyle,
   useWindowDimensions,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import pantryIllustration from "../assets/insumos-despensa.png";
 import { MaterialCard } from "../features/materials/components/material-card";
@@ -36,6 +36,7 @@ import { useAllMaterials } from "../features/materials/hooks";
 import { brandScreenPalette } from "../shared/brand-palette";
 import { AppIcon } from "../shared/components/app-icon";
 import { FAB } from "../shared/components/fab";
+import { ScreenCreateBar } from "../shared/components/screen-create-bar";
 import { FeatureRouteGuard } from "../shared/components/feature-route-guard";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { Skeleton } from "../shared/components/skeleton";
@@ -46,7 +47,6 @@ import {
   desktopWidths,
   pageGutter,
 } from "../shared/layout/desktop-density";
-import { floatingTabBarContentPadding } from "../shared/layout/floating-tab-bar";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 
 type StockFilter = "all" | "low" | "attention";
@@ -451,7 +451,6 @@ function MaterialsScreenContent() {
   const palette = brandScreenPalette(theme);
   const router = useRouter();
   const isDesktop = useDesktopLayout();
-  const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const searchRef = useRef<TextInput>(null);
   const { data, isLoading, error, refetch } = useAllMaterials();
@@ -527,16 +526,18 @@ function MaterialsScreenContent() {
     }
     if (items.length === 0) {
       return (
-        <EmptyState
-          title="Sua despensa está vazia"
-          description="Cadastre o primeiro insumo para acompanhar quantidade, custo e reposição."
-          action={
-            <Button
-              title="Adicionar primeiro insumo"
-              onPress={() => setShowCreate(true)}
-            />
-          }
-        />
+        <View style={{ flex: 1, justifyContent: "center" }}>
+          <EmptyState
+            title="Sua despensa está vazia"
+            description="Cadastre o primeiro insumo para acompanhar quantidade, custo e reposição."
+            action={
+              <Button
+                title="Adicionar primeiro insumo"
+                onPress={() => setShowCreate(true)}
+              />
+            }
+          />
+        </View>
       );
     }
 
@@ -752,19 +753,23 @@ function MaterialsScreenContent() {
       ) : null}
 
       <ScrollView
+        style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
           ...contentStyle,
+          flexGrow: 1,
           paddingTop: spacing.sm,
-          paddingBottom: isDesktop
-            ? spacing["3xl"]
-            : floatingTabBarContentPadding(insets.bottom),
+          paddingBottom: spacing.lg,
           gap: spacing.lg,
         }}
       >
         {renderBody()}
       </ScrollView>
+
+      {!isLoading && !error && items.length > 0 ? (
+        <ScreenCreateBar title="+ Novo insumo" onPress={() => setShowCreate(true)} />
+      ) : null}
 
       <MaterialForm
         visible={showCreate}

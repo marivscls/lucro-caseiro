@@ -113,6 +113,20 @@ describe("onboardingDestination", () => {
     ).toBe("/tabs");
   });
 
+  it("nao reabre onboarding se esta conta ja concluiu neste aparelho", () => {
+    expect(
+      onboardingDestination({
+        userId: "returning-user",
+        createdAt: oldCreatedAt,
+        pendingUserIds: [],
+        completed: false,
+        completedUserIds: ["returning-user"],
+        onboardingCompleted: false,
+        now,
+      }),
+    ).toBe("/tabs");
+  });
+
   it("deixa conta legada sem sinais para a verificacao de perfil", () => {
     expect(
       onboardingDestination({

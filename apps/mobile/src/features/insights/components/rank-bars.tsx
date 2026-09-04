@@ -109,7 +109,7 @@ export function RankBars({
                 <View
                   style={{
                     width: `${ratio * 100}%`,
-                    height: "100%",
+                    height: 12,
                     borderRadius: radii.full,
                     backgroundColor: color,
                     overflow: "hidden",
@@ -122,7 +122,7 @@ export function RankBars({
                       top: 0,
                       left: 0,
                       right: 0,
-                      height: "45%",
+                      height: 5,
                       backgroundColor: "rgba(255,255,255,0.22)",
                       borderTopLeftRadius: radii.full,
                       borderTopRightRadius: radii.full,

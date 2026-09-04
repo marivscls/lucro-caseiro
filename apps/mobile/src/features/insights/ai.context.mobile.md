@@ -18,7 +18,8 @@ melhores clientes — numa janela de 3, 6 ou 12 meses. Tudo com gráficos simple
 ## Boundaries & Ownership
 
 - **Depende de**: `@lucro-caseiro/contracts` (Insights, TopProduct, TopClient, MonthlyRevenue),
-  `shared/utils/api-client`, `shared/hooks/use-auth`, `@lucro-caseiro/ui`.
+  `shared/utils/api-client`, `shared/hooks/use-auth`, `@lucro-caseiro/ui`,
+  `features/products/display` (`displayProductName` nos rankings e nas próximas ações).
 - **Counterpart de API**: feature `insights` (`GET /api/v1/insights?months=`).
 - **Dependentes**: tela `app/insights.tsx`; item "Insights" em `tabs/more.tsx` (Ver tudo).
 
@@ -35,10 +36,17 @@ melhores clientes — numa janela de 3, 6 ou 12 meses. Tudo com gráficos simple
 ## Components
 
 - **MonthlyBars** (`{ series: MonthlyRevenue[] }`): barras verticais do faturamento, altura
-  proporcional ao máximo da série; mês sem venda vira barra cinza vazia. Eixo X sempre com
-  abreviações de mês (janela de 12 mostra mês sim, mês não, terminando no mais recente).
+  proporcional ao máximo da série; mês sem venda **não desenha barra** (altura 0, sem
+  preenchimento — evita faixa branca vazia). Eixo X sempre com abreviações de mês
+  (janela de 12 mostra mês sim, mês não, terminando no mais recente). O tooltip do mês
+  focado fica **sobre o gráfico** (não dentro da coluna da barra), com o valor em uma
+  linha (`R$` + número sem quebra). Só aparece quando o mês tem faturamento > 0.
+  Altura das barras anima no driver JS (`useNativeDriver: false`); fade/opacity usa o
+  mesmo driver para não misturar native+JS no mesmo `Animated.View`. Alturas do gráfico
+  são numéricas (não `%`), porque `%` em `height` dispara aviso no nativo.
 - **RankBars** (`{ rows: RankRow[]; color }`): lista ranqueada com barra de preenchimento
   horizontal proporcional ao maior valor. `RankRow = { key, label, caption, value }`.
+  Altura da barra e do brilho são valores em px (não `%`).
 - **StatCard / WindowSelector** (locais na tela): cards de resumo e pills 3/6/12 meses.
 
 ## Hooks
@@ -101,3 +109,9 @@ const { data } = useInsights(6);
 - 2026-08-24: estado vazio (sem vendas) deixou de usar ilustração PNG.
 - 2026-08-29: Insights saiu do grid visível de Gestão e foi para "Ver tudo" no Mais.
   A tela continua; Precificação e Catálogo ocuparam o destaque.
+- 2026-08-29: gráfico mensal não mistura `useNativeDriver` no mesmo view; rankings e
+  barras usam altura em px. Nomes de produtos nos rankings e em "Próximas ações"
+  passam por `displayProductName` (sem prefixos como `[massa]`).
+- 2026-08-31: tooltip do gráfico saiu da coluna da barra (preço quebrava em "R$" / "2.039"
+  e, com 6–12 meses, virava faixa branca). Agora é overlay no corpo do gráfico; mês zerado
+  não renderiza barra.

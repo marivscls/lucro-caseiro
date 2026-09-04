@@ -1,10 +1,10 @@
-import { Button, EmptyState, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
+import { Button, EmptyState, Typography, spacing } from "@lucro-caseiro/ui";
 import type { Product } from "@lucro-caseiro/contracts";
 import React, { useEffect, useState } from "react";
 import { FlatList, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { SkeletonList } from "../../../shared/components/skeleton";
+import { ScreenCreateBar } from "../../../shared/components/screen-create-bar";
 import {
   AD_ITEM_MARKER,
   AdBanner,
@@ -12,11 +12,10 @@ import {
 } from "../../../shared/components/ad-banner";
 import { useShowAds } from "../../../shared/hooks/use-show-ads";
 import { DesktopPagination } from "../../../shared/components/desktop-pagination";
-import { floatingTabBarContentPadding } from "../../../shared/layout/floating-tab-bar";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import { useLowStockProducts, useProducts } from "../hooks";
 import { ProductCard } from "./product-card";
-import { AppIcon } from "../../../shared/components/app-icon";
+import { productNameMatchesSearch } from "../display";
 
 interface ProductListProps {
   readonly category?: string;
@@ -32,6 +31,7 @@ interface ProductListProps {
   readonly listEmptyState?: React.ReactElement;
   readonly contentMaxWidth?: number;
   readonly horizontalPadding?: number;
+  readonly listLoading?: boolean;
 }
 
 export function ProductList({
@@ -48,9 +48,8 @@ export function ProductList({
   listEmptyState,
   contentMaxWidth,
   horizontalPadding,
+  listLoading,
 }: ProductListProps) {
-  const { theme } = useTheme();
-  const insets = useSafeAreaInsets();
   const isDesktop = useDesktopLayout();
   const showAds = useShowAds();
   const [page, setPage] = useState(1);
@@ -63,7 +62,7 @@ export function ProductList({
   const lowStockQuery = useLowStockProducts();
   const lowStockItems = lowStockQuery.data?.filter((product) => {
     const query = search?.trim().toLocaleLowerCase("pt-BR");
-    return !query || product.name.toLocaleLowerCase("pt-BR").includes(query);
+    return !query || productNameMatchesSearch(product.name, query);
   });
   let data = productsQuery.data;
   let isLoading = productsQuery.isLoading;
@@ -87,7 +86,7 @@ export function ProductList({
       limit: items.length,
       totalPages: 1,
     };
-    isLoading = false;
+    isLoading = listLoading ?? false;
     error = null;
   }
 
@@ -100,10 +99,13 @@ export function ProductList({
       <View
         style={{
           flex: 1,
-          paddingHorizontal: isDesktop ? 0 : spacing.lg,
-          paddingVertical: spacing.lg,
+          paddingHorizontal: horizontalPadding ?? (isDesktop ? 0 : 20),
+          paddingTop: spacing.xs,
+          paddingBottom: spacing.lg,
+          gap: spacing["2xl"],
         }}
       >
+        {listHeader}
         <SkeletonList rows={6} variant="product" />
       </View>
     );
@@ -151,103 +153,91 @@ export function ProductList({
   }
 
   return (
-    <FlatList
-      key={isDesktop ? "desktop-products" : "mobile-products"}
-      data={listData}
-      numColumns={isDesktop ? 3 : 1}
-      keyExtractor={(item, index) => (item === AD_ITEM_MARKER ? `ad-${index}` : item.id)}
-      renderItem={({ item }) => {
-        if (item === AD_ITEM_MARKER) {
+    <View style={{ flex: 1 }}>
+      <FlatList
+        key={isDesktop ? "desktop-products" : "mobile-products"}
+        data={listData}
+        numColumns={isDesktop ? 3 : 1}
+        keyExtractor={(item, index) =>
+          item === AD_ITEM_MARKER ? `ad-${index}` : item.id
+        }
+        renderItem={({ item }) => {
+          if (item === AD_ITEM_MARKER) {
+            return (
+              <View style={isDesktop ? { flex: 1, minWidth: 0 } : undefined}>
+                <AdBanner size="banner" />
+              </View>
+            );
+          }
           return (
             <View style={isDesktop ? { flex: 1, minWidth: 0 } : undefined}>
-              <AdBanner size="banner" />
+              <ProductCard product={item} onPress={() => onProductPress?.(item.id)} />
             </View>
           );
-        }
-        return (
-          <View style={isDesktop ? { flex: 1, minWidth: 0 } : undefined}>
-            <ProductCard product={item} onPress={() => onProductPress?.(item.id)} />
-          </View>
-        );
-      }}
-      columnWrapperStyle={isDesktop ? { gap: 12 } : undefined}
-      contentContainerStyle={{
-        width: "100%",
-        maxWidth: contentMaxWidth,
-        alignSelf: "center",
-        gap: 12,
-        paddingHorizontal: horizontalPadding ?? (isDesktop ? 0 : 20),
-        paddingTop: spacing.xs,
-        paddingBottom: floatingTabBarContentPadding(insets.bottom),
-      }}
-      ListHeaderComponent={
-        listHeader ? (
-          <View style={{ gap: spacing["2xl"], paddingBottom: spacing.xs }}>
-            {listHeader}
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: spacing.md,
-              }}
-            >
-              <Typography variant="h3" style={{ flex: 1 }}>
-                {listTitle}
-              </Typography>
-              <Typography variant="caption" numberOfLines={1}>
-                {resolvedData.total} {resolvedData.total === 1 ? "item" : "itens"}
-              </Typography>
+        }}
+        columnWrapperStyle={isDesktop ? { gap: 12 } : undefined}
+        contentContainerStyle={{
+          width: "100%",
+          maxWidth: contentMaxWidth,
+          alignSelf: "center",
+          gap: 12,
+          paddingHorizontal: horizontalPadding ?? (isDesktop ? 0 : 20),
+          paddingTop: spacing.xs,
+          paddingBottom: spacing.lg,
+        }}
+        ListHeaderComponent={
+          listHeader ? (
+            <View style={{ gap: spacing["2xl"], paddingBottom: spacing.xs }}>
+              {listHeader}
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: spacing.md,
+                }}
+              >
+                <Typography variant="h3" style={{ flex: 1 }}>
+                  {listTitle}
+                </Typography>
+                <Typography variant="caption" numberOfLines={1}>
+                  {resolvedData.total} {resolvedData.total === 1 ? "item" : "itens"}
+                </Typography>
+              </View>
             </View>
-          </View>
-        ) : (
-          <Typography variant="caption">{itemCountLabel}</Typography>
-        )
-      }
-      ListEmptyComponent={
-        listHeader
-          ? (listEmptyState ?? (
-              <EmptyState
-                title="Nenhum produto ainda"
-                description={"Cadastre seu primeiro produto para come\u00e7ar a vender"}
-                action={
-                  onAddPress ? (
-                    <Button title={addButtonTitle} onPress={onAddPress} />
-                  ) : undefined
-                }
-              />
-            ))
-          : null
-      }
-      ListFooterComponent={
-        <View style={{ gap: spacing.md, paddingTop: spacing.sm }}>
-          {isDesktop && !stockOnly && !items ? (
+          ) : (
+            <Typography variant="caption">{itemCountLabel}</Typography>
+          )
+        }
+        ListEmptyComponent={
+          listHeader
+            ? (listEmptyState ?? (
+                <EmptyState
+                  title="Nenhum produto ainda"
+                  description={"Cadastre seu primeiro produto para come\u00e7ar a vender"}
+                  action={
+                    onAddPress ? (
+                      <Button title={addButtonTitle} onPress={onAddPress} />
+                    ) : undefined
+                  }
+                />
+              ))
+            : null
+        }
+        ListFooterComponent={
+          isDesktop && !stockOnly && !items ? (
             <DesktopPagination
               page={resolvedData.page}
               total={resolvedData.total}
               totalPages={resolvedData.totalPages}
               onPageChange={setPage}
             />
-          ) : null}
-          {!stockOnly && onAddPress ? (
-            <View
-              style={{
-                paddingBottom: spacing.lg,
-                alignItems: isDesktop ? "flex-end" : "stretch",
-              }}
-            >
-              <Button
-                title={addButtonTitle}
-                onPress={onAddPress}
-                icon={<AppIcon name="add" size={20} color={theme.colors.textOnPrimary} />}
-                style={
-                  isDesktop ? { alignSelf: "flex-end" } : { width: "100%", minHeight: 52 }
-                }
-              />
-            </View>
-          ) : null}
-        </View>
-      }
-    />
+          ) : null
+        }
+      />
+      {!stockOnly && resolvedData.total > 0 && onAddPress ? (
+        <ScreenCreateBar title={`+ ${addButtonTitle}`} onPress={onAddPress} />
+      ) : null}
+    </View>
   );
 }

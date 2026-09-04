@@ -16,7 +16,7 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 ## Boundaries & Ownership
 
 - **Depende de:** `@lucro-caseiro/contracts` (tipos `Sale`, `CreateSale`, `UpdateSaleStatus`, `SaleStatus`), `@lucro-caseiro/ui`, `shared/hooks/use-auth`, `shared/hooks/use-limit-check`, `shared/utils/api-client`.
-- **Depende de (cross-feature):** `features/products/hooks` (`useProducts` para selecao de produtos no wizard), `features/clients/hooks` (`useClients` para selecao de cliente).
+- **Depende de (cross-feature):** `features/products/hooks` (`useProducts` para selecao de produtos no wizard), `features/products/display` (`displayProductName` nos cards, recibos e busca), `features/clients/hooks` (`useClients` para selecao de cliente).
 - **Dependentes:** `features/clients` (`useSales` usado no ClientDetail para historico), `tabs/index` (Home usa `useTodaySummary`).
 
 ## Code pointers
@@ -37,7 +37,9 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 ### `SaleCard`
 
 - **Props:** `{ sale: Sale; onPress?: () => void }`
-- Exibe dot de status colorido, nome do primeiro produto (+N), itens resumidos, valor total, Badge de status (Pago/Pendente/Cancelado) e forma de pagamento.
+- Exibe dot de status colorido, nome visível do primeiro produto (`displayProductName`,
+  sem prefixos como `[massa]`) (+N), itens resumidos, valor total, Badge de status
+  (Pago/Pendente/Cancelado) e forma de pagamento.
 
 ### `SaleDetail`
 
@@ -166,3 +168,8 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
   Fiado mantém o badge com totais já calculados na tela; Vendas não inventa
   contagem porque a lista é paginada por status.
 - 2026-08-24: estados vazios de Vendas e Fiado deixaram de usar ilustração PNG; permanecem título, descrição e CTA.
+- 2026-08-29: nomes de produto na lista, detalhe, recibo (WhatsApp/PDF) e busca usam
+  `displayProductName` / `productNameMatchesSearch` — prefixos técnicos como `[massa]`
+  não aparecem na UI e a busca casa o nome visível.
+- 2026-08-31: Fiado ganhou FAB `+` no cabeçalho e `ScreenCreateBar` (`+ Nova venda`)
+  no rodapé; o FAB circular flutuante saiu.

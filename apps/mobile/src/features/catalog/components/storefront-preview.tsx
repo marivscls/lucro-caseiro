@@ -605,9 +605,9 @@ export function StorefrontCategoryNavigation({
           Todos
         </Typography>
       </View>
-      {categories.slice(0, 8).map((category) => (
+      {categories.slice(0, 8).map((category, index) => (
         <View
-          key={category}
+          key={`category-${index}-${category}`}
           style={{
             borderRadius: 999,
             borderWidth: 1,

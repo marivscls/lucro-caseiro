@@ -16,6 +16,7 @@ import { AppIcon } from "../../shared/components/app-icon";
 import type { AppIconName } from "../../shared/components/app-icon";
 import { ScreenHeader } from "../../shared/components/screen-header";
 import { FAB } from "../../shared/components/fab";
+import { ScreenCreateBar } from "../../shared/components/screen-create-bar";
 import { Redirect, Stack, useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import { Image, Platform, Pressable, ScrollView, View } from "react-native";
@@ -957,21 +958,17 @@ function OrdersList({
   orders,
   dayOptions,
   onSelect,
-  onCreate,
   selectedDate,
   onSelectDate,
   onOpenDayFilter,
-  bottomInset,
 }: Readonly<{
   groups: OrderGroup[];
   orders: Order[];
   dayOptions: Array<{ date: string; count: number }>;
   onSelect: (id: string) => void;
-  onCreate: () => void;
   selectedDate: string | null;
   onSelectDate: (date: string | null) => void;
   onOpenDayFilter: () => void;
-  bottomInset: number;
 }>) {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
@@ -987,7 +984,7 @@ function OrdersList({
     <ScrollView
       contentContainerStyle={{
         paddingVertical: spacing.xl,
-        paddingBottom: 96 + bottomInset,
+        paddingBottom: spacing.lg,
         gap: spacing.lg,
         ...pageGutter(isDesktop),
         ...desktopStretch(isDesktop, desktopWidths.data),
@@ -1060,30 +1057,6 @@ function OrdersList({
           </View>
         );
       })}
-      <Pressable
-        onPress={onCreate}
-        style={{
-          minHeight: 48,
-          borderRadius: radii.md,
-          borderWidth: 1,
-          borderStyle: "dashed",
-          borderColor: theme.colors.primaryLight,
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "row",
-          gap: spacing.sm,
-          backgroundColor: theme.colors.primaryBg,
-        }}
-      >
-        <AppIcon name="add-circle-outline" size={20} color={theme.colors.primaryStrong} />
-        <Typography
-          variant="bodyBold"
-          color={theme.colors.primaryStrong}
-          style={{ fontSize: fontSizes.md }}
-        >
-          Nova encomenda
-        </Typography>
-      </Pressable>
       {showTip ? (
         <View
           style={{
@@ -1507,8 +1480,6 @@ function AgendaContent() {
         groups={groups}
         orders={visibleOrders}
         dayOptions={dayFilterOptions}
-        bottomInset={insets.bottom}
-        onCreate={() => setShowCreate(true)}
         selectedDate={selectedDate}
         onSelectDate={setSelectedDate}
         onOpenDayFilter={() => setShowDayFilter(true)}
@@ -1541,7 +1512,11 @@ function AgendaContent() {
         }
       />
 
-      {renderContent()}
+      <View style={{ flex: 1 }}>{renderContent()}</View>
+
+      {!isLoading && !error && (orders?.length ?? 0) > 0 ? (
+        <ScreenCreateBar title="+ Nova encomenda" onPress={() => setShowCreate(true)} />
+      ) : null}
 
       {/* Criar */}
       <OrderForm

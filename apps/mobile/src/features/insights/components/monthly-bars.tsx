@@ -206,6 +206,9 @@ export function MonthlyBars({
   const focused = selectedMonth
     ? (series.find((m) => m.month === selectedMonth) ?? lastActive)
     : lastActive;
+  const focusedIndex = series.findIndex((m) => m.month === focused?.month);
+  const showTooltip = Boolean(focused && focused.revenue > 0);
+  const tooltipOnRight = focusedIndex >= Math.ceil((series.length * 2) / 3);
   const delta = periodDelta(series);
   const deltaColor =
     delta == null || delta >= 0 ? theme.colors.success : theme.colors.alert;
@@ -216,9 +219,16 @@ export function MonthlyBars({
     Math.round((axisMax * (STEPS - i)) / STEPS),
   );
 
-  // Animação de entrada das barras
-  const barAnimations = useRef(series.map(() => new Animated.Value(0))).current;
-  const fadeAnimations = useRef(series.map(() => new Animated.Value(0))).current;
+  const barAnimations = useRef<Animated.Value[]>([]).current;
+  const fadeAnimations = useRef<Animated.Value[]>([]).current;
+  while (barAnimations.length < series.length) {
+    barAnimations.push(new Animated.Value(0));
+    fadeAnimations.push(new Animated.Value(0));
+  }
+  if (barAnimations.length > series.length) {
+    barAnimations.splice(series.length);
+    fadeAnimations.splice(series.length);
+  }
 
   useEffect(() => {
     barAnimations.forEach((anim) => anim.setValue(0));
@@ -241,7 +251,7 @@ export function MonthlyBars({
         toValue: 1,
         duration: 400,
         delay: i * 40 + 100,
-        useNativeDriver: true,
+        useNativeDriver: false,
       }),
     );
 
@@ -362,6 +372,73 @@ export function MonthlyBars({
                 />
               ))}
 
+              {showTooltip && focused ? (
+                <View
+                  pointerEvents="none"
+                  style={{
+                    position: "absolute",
+                    top: 8,
+                    zIndex: 10,
+                    minWidth: 128,
+                    maxWidth: 168,
+                    paddingVertical: spacing.sm,
+                    paddingHorizontal: spacing.md,
+                    borderRadius: radii.lg,
+                    borderWidth: 1,
+                    borderColor: theme.colors.border,
+                    backgroundColor: panelBg,
+                    gap: 2,
+                    shadowColor: theme.colors.text,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.08,
+                    shadowRadius: 8,
+                    elevation: 3,
+                    ...(tooltipOnRight ? { right: 4 } : { left: 4 }),
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: spacing.xs,
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: radii.full,
+                        backgroundColor: theme.colors.primaryLight,
+                      }}
+                    />
+                    <Typography
+                      variant="body"
+                      color={theme.colors.text}
+                      numberOfLines={1}
+                      style={{ fontSize: 13 }}
+                    >
+                      {monthName(focused.month)}
+                    </Typography>
+                  </View>
+                  <Typography
+                    variant="bodyBold"
+                    color={theme.colors.primary}
+                    numberOfLines={1}
+                    style={{ fontSize: 15, flexShrink: 0 }}
+                  >
+                    {formatMoneyShort(focused.revenue).replace(/^R\$ /, "R$\u00A0")}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    color={theme.colors.textSecondary}
+                    numberOfLines={1}
+                    style={{ fontSize: 11 }}
+                  >
+                    {focused.salesCount} venda{focused.salesCount !== 1 ? "s" : ""}
+                  </Typography>
+                </View>
+              ) : null}
+
               {/* Bars */}
               <View
                 style={{
@@ -388,115 +465,56 @@ export function MonthlyBars({
                       accessibilityLabel={`${monthName(m.month)}: ${formatMoneyShort(m.revenue)}`}
                       style={{
                         flex: 1,
-                        height: "100%",
+                        height: CHART_HEIGHT,
                         alignItems: "center",
                         justifyContent: "flex-end",
                       }}
                     >
-                      {/* Tooltip acima da barra focada */}
-                      {isFocused && !isEmpty && (
+                      {/* Bar */}
+                      {isEmpty ? null : (
                         <Animated.View
-                          pointerEvents="none"
                           style={{
-                            position: "absolute",
-                            bottom: CHART_HEIGHT * 0.55,
-                            zIndex: 10,
-                            paddingVertical: spacing.sm,
-                            paddingHorizontal: spacing.md,
-                            borderRadius: radii.lg,
+                            width: "85%",
+                            height: barHeight,
+                            borderTopLeftRadius: radii.md,
+                            borderTopRightRadius: radii.md,
+                            backgroundColor: isFocused
+                              ? theme.colors.primary
+                              : `${theme.colors.primary}99`,
                             borderWidth: 1,
-                            borderColor: theme.colors.border,
-                            backgroundColor: panelBg,
-                            gap: 2,
+                            borderColor: isFocused
+                              ? theme.colors.primaryLight
+                              : `${theme.colors.primaryLight}60`,
                             opacity: fadeAnimations[index],
-                            shadowColor: theme.colors.text,
-                            shadowOffset: { width: 0, height: 2 },
-                            shadowOpacity: 0.08,
-                            shadowRadius: 8,
-                            elevation: 3,
+                            overflow: "hidden",
                           }}
                         >
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              alignItems: "center",
-                              gap: spacing.xs,
-                            }}
-                          >
-                            <View
-                              style={{
-                                width: 8,
-                                height: 8,
-                                borderRadius: radii.full,
-                                backgroundColor: theme.colors.primaryLight,
-                              }}
-                            />
-                            <Typography
-                              variant="body"
-                              color={theme.colors.text}
-                              style={{ fontSize: 13 }}
-                            >
-                              {monthName(m.month)}
-                            </Typography>
-                          </View>
-                          <Typography
-                            variant="bodyBold"
-                            color={theme.colors.primary}
-                            style={{ fontSize: 15 }}
-                          >
-                            {formatMoneyShort(m.revenue)}
-                          </Typography>
-                          <Typography
-                            variant="caption"
-                            color={theme.colors.textSecondary}
-                            style={{ fontSize: 11 }}
-                          >
-                            {m.salesCount} venda{m.salesCount !== 1 ? "s" : ""}
-                          </Typography>
-                        </Animated.View>
-                      )}
-
-                      {/* Bar */}
-                      <Animated.View
-                        style={{
-                          width: "85%",
-                          height: barHeight,
-                          borderTopLeftRadius: radii.md,
-                          borderTopRightRadius: radii.md,
-                          backgroundColor: isFocused
-                            ? theme.colors.primary
-                            : `${theme.colors.primary}99`,
-                          borderWidth: isEmpty ? 0 : 1,
-                          borderColor: isFocused
-                            ? theme.colors.primaryLight
-                            : `${theme.colors.primaryLight}60`,
-                          opacity: isEmpty ? 0.12 : fadeAnimations[index],
-                          overflow: "hidden",
-                        }}
-                      >
-                        {/* Gradient overlay (simulado) */}
-                        {!isEmpty && (
                           <View
                             style={{
                               position: "absolute",
                               top: 0,
                               left: 0,
                               right: 0,
-                              height: "35%",
+                              height: 12,
                               backgroundColor: `${theme.colors.primaryLight}55`,
                               borderTopLeftRadius: radii.md,
                               borderTopRightRadius: radii.md,
                             }}
                           />
-                        )}
-                      </Animated.View>
+                        </Animated.View>
+                      )}
 
-                      {/* Dot on top of focused bar */}
-                      {isFocused && !isEmpty && (
+                      {isFocused && !isEmpty ? (
                         <View
                           style={{
                             position: "absolute",
-                            bottom: CHART_HEIGHT * 0.45,
+                            bottom:
+                              (axisMax > 0
+                                ? Math.max(
+                                    7,
+                                    (m.revenue / axisMax) * (CHART_HEIGHT - BAR_HEADROOM),
+                                  )
+                                : 0) - 5,
                             width: 10,
                             height: 10,
                             borderRadius: radii.full,
@@ -505,7 +523,7 @@ export function MonthlyBars({
                             borderColor: theme.colors.surfaceElevated,
                           }}
                         />
-                      )}
+                      ) : null}
                     </Pressable>
                   );
                 })}

@@ -29,11 +29,12 @@ import {
   useWindowDimensions,
 } from "react-native";
 import type { TextStyle, ViewStyle } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 
 import { trackAnalyticsAction } from "../features/analytics/tracker";
 import { publicCatalogUrl } from "../features/catalog/api";
+import { displayCatalogItemName } from "../features/catalog/catalog-customizer";
 import { CatalogCustomizer } from "../features/catalog/components/catalog-customizer";
 import { KeyboardAwareScrollView } from "../shared/components/keyboard-aware-scroll-view";
 import { Skeleton, SkeletonCard } from "../shared/components/skeleton";
@@ -94,9 +95,9 @@ function catalogHeroNativeArtFrame(viewportWidth: number): Readonly<{
   top: number;
   right: number;
 }> {
-  let frame = { width: 268, top: -8, right: -36 };
-  if (viewportWidth >= 390) frame = { width: 300, top: -12, right: -28 };
-  if (viewportWidth >= 480) frame = { width: 340, top: -20, right: -8 };
+  let frame = { width: 240, top: 36, right: -4 };
+  if (viewportWidth >= 390) frame = { width: 256, top: 32, right: -2 };
+  if (viewportWidth >= 480) frame = { width: 280, top: 24, right: 4 };
   if (viewportWidth >= 601) frame = { width: 420, top: -40, right: 12 };
   if (viewportWidth >= 1024) frame = { width: 470, top: -42, right: 14 };
   return frame;
@@ -115,6 +116,7 @@ function CatalogHero({
   const isWideHero = viewportWidth >= 768;
   const isVeryCompact = viewportWidth < 360;
   const nativeArtFrame = catalogHeroNativeArtFrame(viewportWidth);
+  const artHeight = nativeArtFrame.width / CATALOG_HERO_ASPECT_RATIO;
   const illustrationUri = Asset.fromModule(illustration).uri;
   let heroHeight = 350;
   if (isWideHero) heroHeight = 367;
@@ -122,6 +124,7 @@ function CatalogHero({
   let textWidth: number | "50%" | "52%" = "50%";
   if (viewportWidth >= 430) textWidth = "52%";
   if (isWideHero) textWidth = 403;
+  const descriptionWidth = isWideHero ? "100%" : "75%";
   let copyGap: number = spacing.md;
   if (isVeryCompact) copyGap = 7;
   if (isWideHero) copyGap = 22;
@@ -172,15 +175,14 @@ function CatalogHero({
           width: textWidth,
           gap: copyGap,
           paddingLeft: copyLeft,
-          paddingRight: isWideHero ? 0 : spacing.xs,
           paddingTop: copyTop,
         }}
       >
-        <Typography variant="h3" color={colors.onWine}>
-          Seu negócio, em uma vitrine só.
+        <Typography variant="h3" numberOfLines={2} color={colors.onWine}>
+          {"Seu negócio,\nem uma vitrine só."}
         </Typography>
-        <Typography variant="body" color="#F7EEF0">
-          Para o cliente escolher.
+        <Typography variant="body" color="#F7EEF0" style={{ width: descriptionWidth }}>
+          Produtos e serviços organizados para seus clientes escolherem.
         </Typography>
         <View
           accessibilityRole="text"
@@ -221,12 +223,15 @@ function CatalogHero({
         pointerEvents="none"
         accessible={false}
         aria-hidden
+        collapsable={false}
         style={{
           position: "absolute",
           width: nativeArtFrame.width,
+          height: artHeight,
           top: nativeArtFrame.top,
           right: nativeArtFrame.right,
           zIndex: 2,
+          elevation: 2,
         }}
       >
         {Platform.OS === "web" ? (
@@ -236,8 +241,8 @@ function CatalogHero({
             alt=""
             style={{
               display: "block",
-              width: "100%",
-              height: "auto",
+              width: nativeArtFrame.width,
+              height: artHeight,
               maxWidth: "none",
               objectFit: "contain",
               transform: "none",
@@ -250,7 +255,7 @@ function CatalogHero({
             resizeMode="contain"
             accessible={false}
             accessibilityIgnoresInvertColors
-            style={{ width: "100%", aspectRatio: CATALOG_HERO_ASPECT_RATIO }}
+            style={{ width: nativeArtFrame.width, height: artHeight }}
           />
         )}
       </View>
@@ -273,22 +278,21 @@ function SummaryMetric({
   compact?: boolean;
   spacious?: boolean;
 }>) {
-  let metricGap: number = spacing.sm;
+  let metricGap = 7;
   let metricIconSize = 36;
-  let valueFontSize = 16;
-  let valueLineHeight = 22;
+  let valueFontSize = 18;
+  const valueLineHeight = 24;
   let labelFontSize = 11;
   let labelLineHeight = 15;
-  let metricGlyphSize: number = iconSizes.xs;
+  let metricGlyphSize: number = iconSizes.inline;
   if (compact) {
-    metricGap = spacing.xs;
+    metricGap = 3;
     metricIconSize = 32;
   }
   if (spacious) {
-    metricGap = spacing.md;
+    metricGap = 10;
     metricIconSize = 46;
-    valueFontSize = 18;
-    valueLineHeight = 24;
+    valueFontSize = 22;
     labelFontSize = 14;
     labelLineHeight = 19;
     metricGlyphSize = iconSizes.sm;
@@ -296,38 +300,38 @@ function SummaryMetric({
   const colors = useBrandScreenPalette();
   return (
     <View
+      accessibilityRole="text"
+      accessibilityLabel={`${value ?? "—"} ${label}`}
       style={{
         flex: 1,
         minWidth: 0,
-        overflow: "hidden",
-        flexDirection: compact ? "column" : "row",
         alignItems: "center",
         justifyContent: "center",
-        gap: metricGap,
-        paddingHorizontal: spacing.md,
+        gap: compact ? 2 : 3,
+        paddingHorizontal: spacious ? spacing.md : spacing.xs,
       }}
     >
       <View
         style={{
-          width: metricIconSize,
-          height: metricIconSize,
-          flexShrink: 0,
-          borderRadius: radii.lg,
+          flexDirection: compact ? "column" : "row",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: colors.softRose,
+          gap: metricGap,
         }}
       >
-        <AppIcon name={icon} size={metricGlyphSize} color={colors.rose} />
-      </View>
-      <View
-        style={{
-          flexShrink: 1,
-          minWidth: 0,
-          alignItems: compact ? "center" : "flex-start",
-          gap: 1,
-        }}
-      >
+        <View
+          style={{
+            width: metricIconSize,
+            height: metricIconSize,
+            flexShrink: 0,
+            borderRadius: radii.lg,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: colors.softRose,
+          }}
+        >
+          <AppIcon name={icon} size={metricGlyphSize} color={colors.rose} />
+        </View>
         <Typography
           style={{
             color: colors.ink,
@@ -338,28 +342,27 @@ function SummaryMetric({
         >
           {value ?? "—"}
         </Typography>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-          {highlighted ? (
-            <View
-              style={{
-                width: 7,
-                height: 7,
-                borderRadius: radii.full,
-                backgroundColor: colors.lime,
-              }}
-            />
-          ) : null}
-          <Typography
-            numberOfLines={1}
+      </View>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+        {highlighted ? (
+          <View
             style={{
-              color: colors.warmGray,
-              fontSize: labelFontSize,
-              lineHeight: labelLineHeight,
+              width: 7,
+              height: 7,
+              borderRadius: radii.full,
+              backgroundColor: colors.lime,
             }}
-          >
-            {label}
-          </Typography>
-        </View>
+          />
+        ) : null}
+        <Typography
+          style={{
+            color: colors.warmGray,
+            fontSize: labelFontSize,
+            lineHeight: labelLineHeight,
+          }}
+        >
+          {label}
+        </Typography>
       </View>
     </View>
   );
@@ -680,7 +683,7 @@ function CatalogContentManager({
         {displayedProducts.map((product) => (
           <CatalogItemVisibility
             key={product.id}
-            title={product.name}
+            title={displayCatalogItemName(product.name)}
             description={`${product.category} · ${formatCurrency(product.salePrice)}`}
             imageUrl={product.photoUrl}
             icon="cube-outline"
@@ -698,7 +701,7 @@ function CatalogContentManager({
         {displayedServices.map((service) => (
           <CatalogItemVisibility
             key={service.id}
-            title={service.name}
+            title={displayCatalogItemName(service.name)}
             description={serviceCatalogDescription(service)}
             icon="briefcase-outline"
             enabled={resolvedVisibility(
@@ -872,11 +875,13 @@ function CatalogContentManager({
             <Button
               title="Ver como cliente"
               variant="outline"
+              compact
               disabled={!settings.enabled}
+              fitTitle={false}
               icon={
                 <AppIcon
                   name="eye-outline"
-                  size={20}
+                  size={18}
                   color={theme.colors.primaryStrong}
                 />
               }
@@ -889,10 +894,12 @@ function CatalogContentManager({
             <Button
               title="Mais opções"
               variant="outline"
+              compact
+              fitTitle={false}
               icon={
                 <AppIcon
                   name="ellipsis-horizontal"
-                  size={20}
+                  size={18}
                   color={theme.colors.primaryStrong}
                 />
               }
@@ -1096,7 +1103,7 @@ function CatalogContentManager({
                 (index) =>
                   identityImages[index] ? (
                     <Image
-                      key={identityImages[index]}
+                      key={`identity-${index}`}
                       source={{ uri: identityImages[index] }}
                       resizeMode="cover"
                       accessible={false}
@@ -1176,6 +1183,7 @@ function CatalogForm({
 }>) {
   const { theme } = useTheme();
   const colors = useBrandScreenPalette();
+  const insets = useSafeAreaInsets();
   const { width: viewportWidth } = useWindowDimensions();
   const catalogStorefront = useBrandIllustration("catalogHero");
   const isDesktop = useDesktopLayout();
@@ -1298,6 +1306,7 @@ function CatalogForm({
             width: catalogContentWidth,
             maxWidth: isDesktop ? CATALOG_CONTENT_MAX_WIDTH : undefined,
             alignSelf: "center",
+            overflow: "visible",
           }}
         >
           <CatalogHero enabled={settings.enabled} illustration={catalogStorefront} />
@@ -1396,7 +1405,7 @@ function CatalogForm({
               borderTopRightRadius: 28,
               backgroundColor: theme.colors.surfaceElevated,
               padding: spacing["2xl"],
-              paddingBottom: spacing["3xl"],
+              paddingBottom: spacing["2xl"] + Math.max(insets.bottom, spacing.lg),
             }}
           >
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>

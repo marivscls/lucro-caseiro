@@ -41,6 +41,8 @@ import { AppIcon } from "../shared/components/app-icon";
 import { showAlert } from "../shared/components/alert-store";
 import { ResponsiveOverlayModal } from "../shared/components/responsive-modal-surface";
 import { ScreenHeader } from "../shared/components/screen-header";
+import { FAB } from "../shared/components/fab";
+import { ScreenCreateBar } from "../shared/components/screen-create-bar";
 import { SkeletonList } from "../shared/components/skeleton";
 import { showToast } from "../shared/components/toast";
 import {
@@ -60,8 +62,6 @@ type ContactFilter = "all" | "withPhone" | "withoutPhone";
 type SortOrder = "oldest" | "newest";
 
 const LOCALE = "pt-BR";
-const FAB_SIZE = 56;
-const FAB_BOTTOM_GAP = spacing.xl;
 
 function useFiadoScreen() {
   const { theme } = useTheme();
@@ -513,7 +513,6 @@ function EmptyMessage({
 export default function FiadoScreen() {
   const { colors, styles } = useFiadoScreen();
   const isDesktop = useDesktopLayout();
-  const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const isNarrow = width < 370;
   const router = useRouter();
@@ -715,7 +714,7 @@ export default function FiadoScreen() {
           styles.content,
           pageGutter(isDesktop, spacing.lg),
           desktopStretch(isDesktop, desktopWidths.data),
-          { paddingBottom: insets.bottom + FAB_BOTTOM_GAP + FAB_SIZE + spacing.lg },
+          { paddingBottom: spacing.lg },
         ]}
       >
         <SummaryCard
@@ -860,6 +859,12 @@ export default function FiadoScreen() {
             >
               <AppIcon name="options-outline" size={iconSizes.md} color={colors.ink} />
             </Pressable>
+            <FAB
+              icon="add"
+              header
+              accessibilityLabel="Nova venda"
+              onPress={() => router.push("/tabs/new-sale")}
+            />
           </View>
         }
       />
@@ -933,17 +938,11 @@ export default function FiadoScreen() {
 
       <View style={styles.body}>{renderBody()}</View>
 
-      {!isLoading && !error ? (
-        <View style={[styles.fabDock, { bottom: insets.bottom + FAB_BOTTOM_GAP }]}>
-          <Pressable
-            onPress={() => router.push("/tabs/new-sale")}
-            accessibilityRole="button"
-            accessibilityLabel="Novo lançamento"
-            style={({ pressed }) => [styles.fab, pressed && styles.pressed]}
-          >
-            <AppIcon name="add" size={iconSizes.lg} color={colors.onWine} />
-          </Pressable>
-        </View>
+      {!isLoading && !error && pendingSales.length > 0 ? (
+        <ScreenCreateBar
+          title="+ Nova venda"
+          onPress={() => router.push("/tabs/new-sale")}
+        />
       ) : null}
     </SafeAreaView>
   );
@@ -1221,27 +1220,6 @@ function createStyles(theme: Theme) {
       justifyContent: "center",
       gap: spacing.md,
       paddingHorizontal: spacing.xl,
-    },
-    fabDock: {
-      position: "absolute",
-      right: 0,
-      zIndex: 10,
-      alignItems: "flex-end",
-      paddingHorizontal: spacing.lg,
-      backgroundColor: "transparent",
-    },
-    fab: {
-      width: FAB_SIZE,
-      height: FAB_SIZE,
-      borderRadius: radii.full,
-      backgroundColor: colors.wineFill,
-      alignItems: "center",
-      justifyContent: "center",
-      shadowColor: colors.wineFill,
-      shadowOffset: { width: 0, height: 5 },
-      shadowOpacity: 0.24,
-      shadowRadius: 10,
-      elevation: 5,
     },
     pressed: { opacity: 0.72 },
   });

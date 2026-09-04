@@ -14,6 +14,12 @@ describe("productMatchesSearch", () => {
     expect(productMatchesSearch(product, "7891234567890")).toBe(true);
     expect(productMatchesSearch(product, "caneta")).toBe(false);
   });
+
+  it("encontra produto pelo nome visivel sem prefixo tecnico", () => {
+    const seeded = { name: "[massa] Kit festa", code: null } as Product;
+    expect(productMatchesSearch(seeded, "kit")).toBe(true);
+    expect(productMatchesSearch(seeded, "festa")).toBe(true);
+  });
 });
 
 describe("createInternalProductCode", () => {

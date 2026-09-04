@@ -986,11 +986,12 @@ export default function SettingsScreen() {
         ) : null}
 
         <View
-          style={
-            isDesktop
-              ? { flexDirection: "row", gap: spacing.md, alignItems: "stretch" }
-              : undefined
-          }
+          style={{
+            gap: spacing.md,
+            ...(isDesktop
+              ? { flexDirection: "row" as const, alignItems: "stretch" as const }
+              : undefined),
+          }}
         >
           <Card
             variant="elevated"

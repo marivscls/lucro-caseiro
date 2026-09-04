@@ -15,6 +15,11 @@ afterEach(() => {
   platform.OS = originalPlatform;
   vi.restoreAllMocks();
   vi.unstubAllEnvs();
+  useOnboarding.setState({
+    completed: false,
+    businessName: null,
+    gettingStartedDismissedUserIds: [],
+  });
 });
 
 describe("getAuthRedirectUrl", () => {
@@ -263,6 +268,7 @@ describe("getAuthRedirectUrl", () => {
     });
     expect(useOnboarding.getState().completed).toBe(false);
     expect(useOnboarding.getState().businessName).toBeNull();
+    expect(useOnboarding.getState().gettingStartedDismissedUserIds).toContain("user-1");
   });
 
   it("limpa a sessão na UI mesmo se o Supabase falhar ao sair", async () => {

@@ -30,6 +30,10 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { useClient } from "../../features/clients/hooks";
 import { fetchProduct } from "../../features/products/api";
+import {
+  displayProductName,
+  productNameMatchesSearch,
+} from "../../features/products/display";
 import { useProducts } from "../../features/products/hooks";
 import { SaleCard } from "../../features/sales/components/sale-card";
 import { SaleDetail } from "../../features/sales/components/sale-detail";
@@ -652,7 +656,7 @@ function DesktopSalesTable({
               const status = saleStatusPresentation(sale.status, theme);
               const saleTitle =
                 sale.items
-                  ?.map((item) => item.productName)
+                  ?.map((item) => displayProductName(item.productName))
                   .filter(Boolean)
                   .join(", ") || "Venda";
               return (
@@ -1339,7 +1343,7 @@ export default function SalesScreen() {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     const matchProduct = sale.items?.some((i) =>
-      i.productName?.toLowerCase().includes(q),
+      productNameMatchesSearch(i.productName ?? "", q),
     );
     const matchClient = sale.clientName?.toLowerCase().includes(q);
     return matchProduct || matchClient;

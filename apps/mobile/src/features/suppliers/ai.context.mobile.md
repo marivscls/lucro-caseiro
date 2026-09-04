@@ -88,3 +88,5 @@ A busca local normaliza caixa, espaços e acentos. Contagens e listas usam memoi
 - 2026-08-25: a navbar do app no celular vem do root (`MobileFloatingTabBar`);
   `/suppliers` não duplica mais uma barra própria.
 - 2026-08-24: estado vazio da lista deixou de usar ilustração PNG.
+- 2026-08-31: lista com itens ganhou `ScreenCreateBar` (`+ Novo fornecedor`) no rodapé,
+  além do FAB `+`.

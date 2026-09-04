@@ -37,6 +37,7 @@ import { brandScreenPalette } from "../shared/brand-palette";
 import { showAlert } from "../shared/components/alert-store";
 import { AppIcon, type AppIconName } from "../shared/components/app-icon";
 import { FAB } from "../shared/components/fab";
+import { ScreenCreateBar } from "../shared/components/screen-create-bar";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { SkeletonList } from "../shared/components/skeleton";
 import { desktopWidths } from "../shared/layout/desktop-density";
@@ -483,7 +484,7 @@ export default function ServicesScreen() {
     overview.averageDurationMinutes == null
       ? "—"
       : durationLabel(overview.averageDurationMinutes);
-  const listBottomClearance = spacing["3xl"];
+  const listBottomClearance = spacing.lg;
 
   function goBack() {
     if (router.canGoBack()) router.back();
@@ -680,25 +681,6 @@ export default function ServicesScreen() {
           keyExtractor={(service) => service.id}
           ListHeaderComponent={renderListHeader}
           ListEmptyComponent={renderListEmpty}
-          ListFooterComponent={
-            services.length > 0 ? (
-              <View
-                style={{
-                  paddingTop: spacing.sm,
-                  alignItems: isDesktop ? "flex-end" : "stretch",
-                }}
-              >
-                <Button
-                  title="Cadastrar serviço"
-                  onPress={() => setShowCreate(true)}
-                  icon={
-                    <AppIcon name="add" size={20} color={theme.colors.textOnPrimary} />
-                  }
-                  style={isDesktop ? { minHeight: 52 } : { width: "100%", minHeight: 52 }}
-                />
-              </View>
-            ) : null
-          }
           renderItem={({ item }) => (
             <ServiceCard
               service={item}
@@ -716,6 +698,13 @@ export default function ServicesScreen() {
           showsVerticalScrollIndicator={false}
         />
       </View>
+
+      {!servicesQuery.isLoading && !servicesQuery.error && services.length > 0 ? (
+        <ScreenCreateBar
+          title="+ Cadastrar serviço"
+          onPress={() => setShowCreate(true)}
+        />
+      ) : null}
 
       {showCreate ? (
         <ServiceForm key="new-service" visible onClose={() => setShowCreate(false)} />

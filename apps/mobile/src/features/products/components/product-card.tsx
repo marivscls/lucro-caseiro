@@ -9,7 +9,7 @@ import { useNotificationEnabled } from "../../../shared/hooks/notification-prefs
 import { NOTIFICATION_TYPES } from "../../../shared/hooks/notification-types";
 import { brandScreenPalette } from "../../../shared/brand-palette";
 import { getStockBadge } from "../stock-badge";
-import { productInitial } from "../display";
+import { displayProductName, productInitial } from "../display";
 
 interface ProductCardProps {
   readonly product: Product;
@@ -73,7 +73,7 @@ export function ProductCard({ product, onPress }: ProductCardProps) {
           numberOfLines={2}
           style={{ minWidth: 0, paddingRight: 30 }}
         >
-          {product.name}
+          {displayProductName(product.name)}
         </Typography>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
           <Typography variant="caption" numberOfLines={1} style={{ flexShrink: 1 }}>
@@ -105,7 +105,7 @@ export function ProductCard({ product, onPress }: ProductCardProps) {
       <Pressable
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={`Abrir op\u00e7\u00f5es de ${product.name}`}
+        accessibilityLabel={`Abrir op\u00e7\u00f5es de ${displayProductName(product.name)}`}
         hitSlop={8}
         style={({ pressed }) => ({
           position: "absolute",

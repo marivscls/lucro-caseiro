@@ -41,7 +41,8 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 ### `ProductCard`
 
 - **Props:** `{ product: Product; onPress?: () => void }`
-- Exibe foto ou avatar com inicial, nome, categoria, preco de venda e badge de estoque (sem estoque/estoque baixo/quantidade).
+- Exibe foto ou avatar com inicial, nome visível (`displayProductName`, sem prefixos
+  como `[massa]`), categoria, preco de venda e badge de estoque (sem estoque/estoque baixo/quantidade).
 - Produtos por peso (`saleUnit === "kg"`): preco exibido como "R$X/kg" e badge de estoque oculto.
 - Produtos compostos (`isComposite`): badge **"Kit"** (lavender) ao lado do nome; badge de estoque oculto.
 
@@ -65,9 +66,12 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 
 ### `ProductList`
 
-- **Props:** `{ category?: string; search?: string; onProductPress?: (id: string) => void; onAddPress?: () => void }`
-- FlatList com contador de total.
+- **Props:** `{ category?: string; search?: string; items?: Product[]; listLoading?: boolean; onProductPress?: (id: string) => void; onAddPress?: () => void }`
+- FlatList com contador de total. Quando `items` vem do screen, `listLoading` mostra
+  skeleton em vez de tratar array vazio como catálogo vazio.
 - EmptyState quando sem dados, só com título, descrição e CTA (sem ilustração PNG).
+- O cadastro novo sai do FAB do cabeçalho, do CTA do estado vazio e do botão
+  largo `ScreenCreateBar` no rodapé quando a lista tem itens.
 
 ### `CreateProductForm`
 
@@ -150,7 +154,7 @@ Catalogo de produtos do usuario: listar, buscar, criar, editar e excluir produto
 ## Examples
 
 - Acessado via Home (quick access "Produtos") ou rota `/products`.
-- Fluxo: lista -> FAB "Novo produto" -> modal criacao -> salvar. Fora do
+- Fluxo: lista -> FAB do cabeçalho "Novo produto" -> modal criacao -> salvar. Fora do
   Primeiros Passos e da precificação, o alerta de sucesso oferece "Calcular se
   dá lucro" (vai para `/pricing`); "Agora não" só fecha.
 - Tap em produto -> modal detalhe -> editar -> salvar.
@@ -191,3 +195,9 @@ it must not turn the Products registry into Services; services use `/services`.
 - 2026-08-29: fora do Primeiros Passos e do fluxo "salvar da precificação", o alerta
   de produto cadastrado oferece "Calcular se dá lucro" (abre `/pricing`). A mensagem
   de sucesso fala em lista, não em catálogo, para não confundir com a vitrine.
+- 2026-08-29: o hero do catálogo não mostra "0 itens" enquanto `useAllProducts` carrega;
+  `ProductList` aceita `listLoading` para skeleton mesmo com `items=[]`. Nomes visíveis
+  e busca usam `displayProductName` / `productNameMatchesSearch`.
+- 2026-08-31: o cadastro novo usa o FAB `+` do cabeçalho **e** o `ScreenCreateBar`
+  no rodapé (`+ Novo produto`) quando a lista tem itens. O rodapé não soma
+  `insets.bottom` — o Stack já reserva a tab bar.

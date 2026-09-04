@@ -23,7 +23,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { publicCatalogProductUrl } from "../features/catalog/api";
 import { useCatalogSettings } from "../features/catalog/hooks";
@@ -54,6 +54,8 @@ import {
 import { useAllProducts } from "../features/products/hooks";
 import { useProfile } from "../features/subscription/hooks";
 import { AppIcon } from "../shared/components/app-icon";
+import { FAB } from "../shared/components/fab";
+import { ScreenCreateBar } from "../shared/components/screen-create-bar";
 import { showAlert } from "../shared/components/alert-store";
 import { DateField } from "../shared/components/date-field";
 import { FormSection } from "../shared/components/form-section";
@@ -705,15 +707,12 @@ function LabelsSkeleton() {
   );
 }
 
-const CREATE_CTA_HEIGHT = 56;
-
 export default function LabelsScreen() {
   const { theme } = useTheme();
   const palette = brandScreenPalette(theme);
   const labelsLabel = useBrand().copy.labelsLabel;
   const isDesktop = useDesktopLayout();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { data, isLoading, error } = useLabels({ limit: 100 });
   const { data: products } = useAllProducts();
   const deleteLabel = useDeleteLabel();
@@ -743,7 +742,6 @@ export default function LabelsScreen() {
     ...pageGutter(isDesktop, spacing.lg),
     ...desktopStretch(isDesktop, desktopWidths.data),
   };
-  const bottomBarPad = spacing.md + insets.bottom;
   const listBottomPad = spacing.lg;
 
   function handleBack() {
@@ -813,10 +811,12 @@ export default function LabelsScreen() {
 
     return (
       <ScrollView
+        style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
           ...contentStyle,
+          flexGrow: 1,
           paddingTop: spacing.sm,
           paddingBottom: listBottomPad,
           gap: spacing.md,
@@ -918,14 +918,14 @@ export default function LabelsScreen() {
         ) : null}
 
         {items.length === 0 ? (
-          <View style={{ paddingVertical: spacing["3xl"], alignItems: "center" }}>
-            <Typography
-              variant="body"
-              color={palette.muted}
-              style={{ textAlign: "center" }}
-            >
-              Escolha um produto e crie uma etiqueta pronta para imprimir.
-            </Typography>
+          <View style={{ flex: 1, justifyContent: "center" }}>
+            <EmptyState
+              title="Nenhuma etiqueta ainda"
+              description="Escolha um produto e crie uma etiqueta pronta para imprimir."
+              action={
+                <Button title="Nova etiqueta" onPress={() => setShowCreate(true)} />
+              }
+            />
           </View>
         ) : null}
 
@@ -977,42 +977,20 @@ export default function LabelsScreen() {
         style={{ gap: spacing.sm, ...pageGutter(isDesktop, spacing.lg) }}
         titleStyle={{ color: palette.ink }}
         subtitleStyle={{ color: palette.muted }}
+        right={
+          <FAB
+            icon="add"
+            header
+            accessibilityLabel="Nova etiqueta"
+            onPress={() => setShowCreate(true)}
+          />
+        }
       />
 
       <View style={{ flex: 1 }}>{renderList()}</View>
 
-      {!isLoading && !error ? (
-        <View
-          style={{
-            ...contentStyle,
-            width: "100%",
-            paddingTop: spacing.sm,
-            paddingBottom: bottomBarPad,
-            backgroundColor: palette.background,
-          }}
-        >
-          <Pressable
-            onPress={() => setShowCreate(true)}
-            accessibilityRole="button"
-            accessibilityLabel="Nova etiqueta"
-            style={({ pressed }) => ({
-              minHeight: CREATE_CTA_HEIGHT,
-              height: CREATE_CTA_HEIGHT,
-              borderRadius: 16,
-              backgroundColor: palette.rose,
-              alignItems: "center",
-              justifyContent: "center",
-              opacity: pressed ? 0.88 : 1,
-            })}
-          >
-            <Typography
-              color={palette.onWine}
-              style={{ fontFamily: fonts.bold, fontSize: fontSizes.md }}
-            >
-              + Nova etiqueta
-            </Typography>
-          </Pressable>
-        </View>
+      {!isLoading && !error && items.length > 0 ? (
+        <ScreenCreateBar title="+ Nova etiqueta" onPress={() => setShowCreate(true)} />
       ) : null}
 
       <CreateLabelForm

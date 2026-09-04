@@ -299,11 +299,17 @@ function PeriodSelector({
             key={period}
             accessibilityRole="radio"
             accessibilityState={{ checked: selected }}
+            accessibilityLabel={period === "today" ? "Hoje" : "Mês"}
+            accessibilityHint={
+              period === "today"
+                ? "Mostrar vendas e caixa de hoje"
+                : "Mostrar vendas e caixa do mês"
+            }
             onPress={() => onChange(period)}
             style={({ pressed }) => ({
               flex: 1,
               minWidth: 0,
-              minHeight: 40,
+              minHeight: 44,
               paddingHorizontal: spacing.sm,
               borderRadius: radii.md,
               alignItems: "center",
@@ -668,7 +674,13 @@ function GoalCard({
 const QUICK_ACTIONS = [
   { icon: "trending-up-outline", label: "Venda", route: "/tabs/new-sale", active: true },
   { icon: "cube-outline", label: "Produto", route: "/products", active: false },
-  { icon: "person-add-outline", label: "Cliente", route: "/tabs/clients", active: false },
+  {
+    icon: "calculator-outline",
+    label: "Preço",
+    accessibilityLabel: "Precificação",
+    route: "/pricing",
+    active: false,
+  },
   { icon: "cash-outline", label: "Despesa", route: "/finance", active: false },
 ] as const;
 
@@ -683,7 +695,9 @@ function QuickAccess({ compact }: Readonly<{ compact: boolean }>) {
         <Pressable
           key={action.label}
           accessibilityRole="button"
-          accessibilityLabel={action.label}
+          accessibilityLabel={
+            "accessibilityLabel" in action ? action.accessibilityLabel : action.label
+          }
           onPress={() => router.push(action.route)}
           style={({ pressed }) => ({
             flex: 1,
@@ -712,9 +726,8 @@ function QuickAccess({ compact }: Readonly<{ compact: boolean }>) {
             variant="homeShortcut"
             color={action.active ? theme.colors.primaryStrong : theme.colors.text}
             numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.78}
             maxFontSizeMultiplier={1.1}
+            style={{ textAlign: "center" }}
           >
             {action.label}
           </Typography>
@@ -1033,7 +1046,7 @@ export default function HomeScreen() {
           </View>
 
           {periodError ? <ErrorCard onRetry={retrySelectedPeriod} /> : null}
-          {periodLoading && !selectedSales && !selectedFinance ? (
+          {periodLoading && !selectedSales ? (
             <SkeletonHome />
           ) : (
             <FinancialHero

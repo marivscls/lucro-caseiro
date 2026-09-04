@@ -110,6 +110,9 @@ Dashboard financeiro do usuario: visualizar resumo mensal (entradas, saidas, luc
 
 ## Change log / Decisions
 
+- 2026-08-31: os ícones +/− do lançamento ganham padding no card e a
+  linha divisória vai de ponta a ponta, para não colar no círculo.
+
 - 2026-07-24: o painel ganhou filtros Hoje / 7 dias / Mês, consultando lançamentos pelo
   intervalo real suportado pela API (`startDate`/`endDate`, até 100 itens). O mesmo período
   mostra recebido e a receber das encomendas, preservando a semântica financeira de sinal.
@@ -124,3 +127,8 @@ Dashboard financeiro do usuario: visualizar resumo mensal (entradas, saidas, luc
   com badge (`countByType` + total do período). O seletor Hoje/7 dias/Mês
   continua como pílula de período, não como filtro de categoria.
 - 2026-08-24: estado vazio de lançamentos deixou de usar ilustração PNG; permanece título, descrição e CTA.
+- 2026-08-29: na Home, o seletor Hoje/Mês tem `accessibilityLabel` e área de toque de
+  44dp; o hero não mostra R$ 0 do mês só porque o caixa mensal já estava em cache —
+  espera o `useInsights(1)` (skeleton enquanto `periodLoading && !selectedSales`).
+- 2026-08-31: Financeiro e Gastos fixos ganharam FAB `+` no cabeçalho e `ScreenCreateBar`
+  no rodapé (`+ Novo lançamento` / `+ Novo gasto fixo`). O FAB flutuante circular saiu.

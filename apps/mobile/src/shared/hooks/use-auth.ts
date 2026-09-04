@@ -257,7 +257,7 @@ function signUpErrorMessage(error: AuthFailure) {
   return "Não foi possível criar sua conta agora. Tente novamente em alguns instantes.";
 }
 
-export const useAuth = create<AuthState>((set) => ({
+export const useAuth = create<AuthState>((set, get) => ({
   token: null,
   userId: null,
   user: null,
@@ -472,8 +472,10 @@ export const useAuth = create<AuthState>((set) => ({
     } catch {
       // O estado local abaixo é a fonte da verdade para a UI.
     }
-    // O estado de onboarding e por aparelho; ao trocar de conta, a proxima
-    // que entrar decide de novo (quem ja tem businessName pula sozinha).
+    // O estado de onboarding e por aparelho. Ao sair, fecha o guia de Primeiros
+    // Passos desta conta para o próximo login não reabrir o overlay em tela cheia.
+    const userId = get().userId;
+    if (userId) useOnboarding.getState().dismissGettingStarted(userId);
     useOnboarding.getState().reset();
     set({
       token: null,

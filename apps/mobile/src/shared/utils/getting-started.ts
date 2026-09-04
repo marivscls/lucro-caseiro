@@ -141,8 +141,6 @@ export function shouldShowGettingStarted({
   settled,
   completed,
   started,
-  hasProduct,
-  hasSale,
 }: Readonly<{
   settled: boolean;
   completed: boolean;
@@ -152,8 +150,10 @@ export function shouldShowGettingStarted({
 }>): boolean {
   if (!settled || completed) return false;
 
-  // Não apresenta um guia novo a quem já chegou ao resultado por conta própria.
-  return started || !hasProduct || !hasSale;
+  // Só continua o guia que esta conta já começou neste aparelho (fim do
+  // onboarding de boas-vindas). Conta que volta a entrar — mesmo sem produto
+  // ou venda — vê o card da Home, não o overlay em tela cheia.
+  return started;
 }
 
 export function resolveGettingStartedPresentation({

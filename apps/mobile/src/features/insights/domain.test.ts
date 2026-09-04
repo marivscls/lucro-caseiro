@@ -118,4 +118,23 @@ describe("buildActionableInsights", () => {
 
     expect(actions.map((action) => action.target)).toEqual(["sales", "clients"]);
   });
+
+  it("omite prefixos tecnicos no destaque do produto mais vendido", () => {
+    const actions = buildActionableInsights(
+      {
+        months: 1,
+        totalRevenue: 200,
+        totalSales: 2,
+        monthlyRevenue: [rev(200, "2026-07")],
+        topProducts: [
+          { productId: "p1", name: "[massa] Bolo de pote", quantity: 2, revenue: 200 },
+        ],
+        topClients: [],
+      },
+      [],
+    );
+
+    expect(actions[0]?.title).toBe("Bolo de pote lidera suas vendas");
+    expect(actions[0]?.title).not.toContain("[massa]");
+  });
 });

@@ -59,6 +59,8 @@ import { CreateFinanceEntry } from "./create-finance-entry";
 import { alertError } from "../../../shared/utils/alerts";
 import { showAlert } from "../../../shared/components/alert-store";
 import { ScreenHeader } from "../../../shared/components/screen-header";
+import { FAB } from "../../../shared/components/fab";
+import { ScreenCreateBar } from "../../../shared/components/screen-create-bar";
 import { SkeletonFinanceDashboard } from "../../../shared/components/skeleton";
 import { useDesktopLayout } from "../../../shared/layout/use-desktop-layout";
 import {
@@ -427,25 +429,34 @@ export function FinanceDashboard({
         titleStyle={styles.financeHeaderTitle}
         subtitleStyle={styles.financeHeaderSubtitle}
         right={
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Escolher mês"
-            onPress={handleOpenMonthPicker}
-            hitSlop={10}
-            style={{
-              alignItems: "center",
-              height: 44,
-              justifyContent: "center",
-              width: 44,
-            }}
-          >
-            <AppIcon name="calendar-outline" size={iconSizes.lg} color={colors.wine} />
-          </Pressable>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Escolher mês"
+              onPress={handleOpenMonthPicker}
+              hitSlop={10}
+              style={{
+                alignItems: "center",
+                height: 44,
+                justifyContent: "center",
+                width: 44,
+              }}
+            >
+              <AppIcon name="calendar-outline" size={iconSizes.lg} color={colors.wine} />
+            </Pressable>
+            <FAB
+              icon="add"
+              header
+              accessibilityLabel="Novo lançamento"
+              onPress={openCreateEntry}
+            />
+          </View>
         }
       />
 
       <ScrollView
         ref={scrollViewRef}
+        style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.content,
@@ -1127,6 +1138,10 @@ export function FinanceDashboard({
         </View>
       </ScrollView>
 
+      {allEntries.length > 0 ? (
+        <ScreenCreateBar title="+ Novo lançamento" onPress={openCreateEntry} />
+      ) : null}
+
       <CreateFinanceEntry
         visible={showCreateEntry}
         onClose={() => setShowCreateEntry(false)}
@@ -1584,18 +1599,16 @@ function EntryRow({
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
-      style={[styles.entryRow, narrow && styles.entryRowNarrow]}
+      style={[
+        styles.entryRow,
+        narrow && styles.entryRowNarrow,
+        !isLast && styles.entryDivider,
+      ]}
     >
       <View style={[styles.entryIcon, { backgroundColor: tc.iconBg }]}>
         <AppIcon name={isIncome ? "add" : "remove"} size={iconSizes.sm} color={tc.fg} />
       </View>
-      <View
-        style={[
-          styles.entryRowBody,
-          narrow && styles.entryRowBodyNarrow,
-          !isLast && styles.entryDivider,
-        ]}
-      >
+      <View style={[styles.entryRowBody, narrow && styles.entryRowBodyNarrow]}>
         <View style={styles.entryMiddle}>
           <Typography variant="bodyBold" color={colors.ink} numberOfLines={2}>
             {entryDisplayDescription(entry, isIncome)}
@@ -1796,7 +1809,7 @@ function createStyles(theme: Theme) {
     },
     content: {
       gap: spacing.xl,
-      paddingBottom: 136,
+      paddingBottom: spacing.lg,
       paddingHorizontal: spacing["3xl"],
       paddingTop: spacing["3xl"],
       width: "100%",
@@ -2030,6 +2043,7 @@ function createStyles(theme: Theme) {
       flexDirection: "row",
       gap: 12,
       paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
     },
     entryRowNarrow: {
       alignItems: "flex-start",
@@ -2039,9 +2053,8 @@ function createStyles(theme: Theme) {
       flex: 1,
       flexDirection: "row",
       gap: spacing.sm,
-      minHeight: 84,
+      minHeight: 56,
       minWidth: 0,
-      paddingVertical: 14,
     },
     entryRowBodyNarrow: {
       alignItems: "stretch",

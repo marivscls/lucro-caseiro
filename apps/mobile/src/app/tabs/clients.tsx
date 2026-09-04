@@ -54,9 +54,9 @@ import { showAlert } from "../../shared/components/alert-store";
 import { SkeletonList } from "../../shared/components/skeleton";
 import { AnimatedListItem } from "../../shared/components/animated-list-item";
 import { FAB } from "../../shared/components/fab";
+import { ScreenCreateBar } from "../../shared/components/screen-create-bar";
 import { CalendarModal } from "../../shared/components/calendar-modal";
 import { DesktopPagination } from "../../shared/components/desktop-pagination";
-import { floatingTabBarContentPadding } from "../../shared/layout/floating-tab-bar";
 import {
   desktopStretch,
   desktopWidths,
@@ -331,7 +331,13 @@ function ClienteleSummary({
   total,
   boughtThisMonth,
   withCredit,
-}: Readonly<{ total: number; boughtThisMonth: number; withCredit: number }>) {
+  isLoading,
+}: Readonly<{
+  total: number;
+  boughtThisMonth: number;
+  withCredit: number;
+  isLoading?: boolean;
+}>) {
   const pal = useBrandScreenPalette();
   const { width } = useWindowDimensions();
   const isNarrow = width < 360;
@@ -340,9 +346,13 @@ function ClienteleSummary({
   if (isNarrow) illustrationSize = Math.max(68, width * 0.23);
   else if (width < 430) illustrationSize = 88;
   const metrics = [
-    { value: total, label: "clientes", flex: 1 },
-    { value: boughtThisMonth, label: "compraram\nno mês", flex: 1.25 },
-    { value: withCredit, label: "com fiado", flex: 1 },
+    { value: isLoading ? "—" : total, label: "clientes", flex: 1 },
+    {
+      value: isLoading ? "—" : boughtThisMonth,
+      label: "compraram\nno mês",
+      flex: 1.25,
+    },
+    { value: isLoading ? "—" : withCredit, label: "com fiado", flex: 1 },
   ];
 
   return (
@@ -714,6 +724,12 @@ function ClientsListScreen({
     [filter, listInsights, sort],
   );
   const totalClients = baseClientsQuery.data?.total ?? summaryInsights.length;
+  const clientsLoading = baseClientsQuery.isLoading || listClientsQuery.isLoading;
+  const peopleLabel =
+    totalClients === 1 ? "pessoa no seu negócio" : "pessoas no seu negócio";
+  const clientsSubtitle = clientsLoading
+    ? "Carregando sua clientela"
+    : `${totalClients} ${peopleLabel}`;
   const boughtThisMonth = summaryInsights.filter(
     (insight) => insight.monthOrders > 0,
   ).length;
@@ -722,7 +738,7 @@ function ClientsListScreen({
     () => countClientListFilters(summaryInsights),
     [summaryInsights],
   );
-  const tabBarClearance = floatingTabBarContentPadding(0);
+  const tabBarClearance = spacing.lg;
   const listBottomPadding = isDesktop ? spacing["3xl"] : tabBarClearance;
   const selectedSortLabel =
     SORT_OPTIONS.find((option) => option.key === sort)?.label ?? "Mais recentes";
@@ -798,166 +814,174 @@ function ClientsListScreen({
 
   return (
     <>
-      <ScrollView
-        refreshControl={
-          <RefreshControl
-            refreshing={listClientsQuery.isRefetching || salesQuery.isRefetching}
-            onRefresh={() => {
-              void Promise.all([
-                baseClientsQuery.refetch(),
-                listClientsQuery.refetch(),
-                salesQuery.refetch(),
-              ]);
-            }}
-            colors={[pal.rose]}
-            tintColor={pal.rose}
-          />
-        }
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{
-          flexGrow: 1,
-          paddingTop: spacing.md,
-          paddingBottom: listBottomPadding,
-          gap: spacing.xl,
-          ...pageGutter(isDesktop, width < 390 ? spacing.md : spacing.xl),
-          ...desktopStretch(isDesktop, desktopWidths.data),
-        }}
-      >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: isDesktop ? spacing.md : spacing.sm,
-          }}
-        >
-          {!isDesktop ? (
-            <Pressable
-              onPress={onBack}
-              accessibilityRole="button"
-              accessibilityLabel="Voltar"
-              hitSlop={10}
-              style={{
-                width: 44,
-                height: 44,
-                alignItems: "flex-start",
-                justifyContent: "center",
-                flexShrink: 0,
+      <View style={{ flex: 1 }}>
+        <ScrollView
+          style={{ flex: 1 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={listClientsQuery.isRefetching || salesQuery.isRefetching}
+              onRefresh={() => {
+                void Promise.all([
+                  baseClientsQuery.refetch(),
+                  listClientsQuery.refetch(),
+                  salesQuery.refetch(),
+                ]);
               }}
-            >
-              <AppIcon name="chevron-back" size={28} color={pal.wine} />
-            </Pressable>
-          ) : null}
-          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-            <Typography variant="screenTitle" color={pal.wine} numberOfLines={1}>
-              Clientes
-            </Typography>
-            <Typography variant="body" color={pal.muted} numberOfLines={1}>
-              {totalClients} pessoas no seu negócio
-            </Typography>
-          </View>
-
-          <FAB
-            icon="add"
-            accessibilityLabel="Novo cliente"
-            onPress={onCreatePress}
-            style={{
-              width: 52,
-              height: 52,
-              minWidth: 52,
-              backgroundColor: pal.rose,
-            }}
-          />
-        </View>
-
-        <View
-          style={{
-            alignSelf: "flex-start",
-            maxWidth: isDesktop ? 760 : undefined,
-            width: "100%",
-          }}
-        >
-          <ClienteleSummary
-            total={totalClients}
-            boughtThisMonth={boughtThisMonth}
-            withCredit={withCredit}
-          />
-        </View>
-
-        <View
-          style={{
-            alignSelf: "flex-start",
-            maxWidth: isDesktop ? 760 : undefined,
-            width: "100%",
-          }}
-        >
-          <SearchBox
-            value={search}
-            onChangeText={(value) => {
-              setSearch(value);
-              setPage(1);
-            }}
-            placeholder="Buscar cliente"
-            onFilterPress={() => setFilterModalOpen(true)}
-          />
-        </View>
-
-        <FilterChipRow style={isDesktop ? { maxWidth: 760 } : undefined}>
-          {FILTER_OPTIONS.map((option) => (
-            <Chip
-              key={option.key}
-              label={option.label}
-              count={filterCounts[option.key]}
-              selected={filter === option.key}
-              onPress={() => setFilter(option.key)}
+              colors={[pal.rose]}
+              tintColor={pal.rose}
             />
-          ))}
-        </FilterChipRow>
-
-        <LimitBanner resource="clients" onUpgrade={() => showPaywall("clients")} />
-
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: spacing.md,
+          }
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingTop: spacing.md,
+            paddingBottom: listBottomPadding,
+            gap: spacing.xl,
+            ...pageGutter(isDesktop, width < 390 ? spacing.md : spacing.xl),
+            ...desktopStretch(isDesktop, desktopWidths.data),
           }}
         >
-          <Typography variant="h3" color={pal.ink} numberOfLines={1}>
-            Seus clientes
-          </Typography>
-          <Pressable
-            onPress={() => setSortModalOpen(true)}
-            accessibilityRole="button"
-            accessibilityLabel={`Ordenar clientes: ${selectedSortLabel}`}
-            style={({ pressed }) => ({
-              minHeight: 44,
-              maxWidth: "52%",
+          <View
+            style={{
               flexDirection: "row",
               alignItems: "center",
-              justifyContent: "flex-end",
-              gap: spacing.xs,
-              opacity: pressed ? 0.6 : 1,
-            })}
+              justifyContent: "space-between",
+              gap: isDesktop ? spacing.md : spacing.sm,
+            }}
           >
-            <Typography
-              variant="body"
-              color={pal.wine}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.82}
-              style={{ fontSize: fontSizes.sm }}
-            >
-              {selectedSortLabel}
-            </Typography>
-            <AppIcon name="chevron-down" size={19} color={pal.wine} />
-          </Pressable>
-        </View>
+            {!isDesktop ? (
+              <Pressable
+                onPress={onBack}
+                accessibilityRole="button"
+                accessibilityLabel="Voltar"
+                hitSlop={10}
+                style={{
+                  width: 44,
+                  height: 44,
+                  alignItems: "flex-start",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                <AppIcon name="chevron-back" size={28} color={pal.wine} />
+              </Pressable>
+            ) : null}
+            <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+              <Typography variant="screenTitle" color={pal.wine} numberOfLines={1}>
+                Clientes
+              </Typography>
+              <Typography variant="body" color={pal.muted} numberOfLines={1}>
+                {clientsSubtitle}
+              </Typography>
+            </View>
 
-        {clientsContent}
-      </ScrollView>
+            <FAB
+              icon="add"
+              accessibilityLabel="Novo cliente"
+              onPress={onCreatePress}
+              style={{
+                width: 52,
+                height: 52,
+                minWidth: 52,
+                backgroundColor: pal.rose,
+              }}
+            />
+          </View>
+
+          <View
+            style={{
+              alignSelf: "flex-start",
+              maxWidth: isDesktop ? 760 : undefined,
+              width: "100%",
+            }}
+          >
+            <ClienteleSummary
+              total={totalClients}
+              boughtThisMonth={boughtThisMonth}
+              withCredit={withCredit}
+              isLoading={clientsLoading}
+            />
+          </View>
+
+          <View
+            style={{
+              alignSelf: "flex-start",
+              maxWidth: isDesktop ? 760 : undefined,
+              width: "100%",
+            }}
+          >
+            <SearchBox
+              value={search}
+              onChangeText={(value) => {
+                setSearch(value);
+                setPage(1);
+              }}
+              placeholder="Buscar cliente"
+              onFilterPress={() => setFilterModalOpen(true)}
+            />
+          </View>
+
+          <FilterChipRow style={isDesktop ? { maxWidth: 760 } : undefined}>
+            {FILTER_OPTIONS.map((option) => (
+              <Chip
+                key={option.key}
+                label={option.label}
+                count={clientsLoading ? undefined : filterCounts[option.key]}
+                selected={filter === option.key}
+                onPress={() => setFilter(option.key)}
+              />
+            ))}
+          </FilterChipRow>
+
+          <LimitBanner resource="clients" onUpgrade={() => showPaywall("clients")} />
+
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: spacing.md,
+            }}
+          >
+            <Typography variant="h3" color={pal.ink} numberOfLines={1}>
+              Seus clientes
+            </Typography>
+            <Pressable
+              onPress={() => setSortModalOpen(true)}
+              accessibilityRole="button"
+              accessibilityLabel={`Ordenar clientes: ${selectedSortLabel}`}
+              style={({ pressed }) => ({
+                minHeight: 44,
+                maxWidth: "52%",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "flex-end",
+                gap: spacing.xs,
+                opacity: pressed ? 0.6 : 1,
+              })}
+            >
+              <Typography
+                variant="body"
+                color={pal.wine}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.82}
+                style={{ fontSize: fontSizes.sm }}
+              >
+                {selectedSortLabel}
+              </Typography>
+              <AppIcon name="chevron-down" size={19} color={pal.wine} />
+            </Pressable>
+          </View>
+
+          {clientsContent}
+        </ScrollView>
+
+        {totalClients > 0 ? (
+          <ScreenCreateBar title="+ Novo cliente" onPress={onCreatePress} />
+        ) : null}
+      </View>
 
       <OptionsModal
         visible={filterModalOpen}
@@ -1373,6 +1397,7 @@ export default function ClientsScreen() {
 
   return (
     <SafeAreaView
+      edges={["top"]}
       style={{
         flex: 1,
         backgroundColor:

@@ -5,6 +5,7 @@ import React from "react";
 import { Pressable, View } from "react-native";
 
 import { formatCurrency } from "../../../shared/utils/format";
+import { displayProductName } from "../../products/display";
 import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
 import { receiptNumber } from "../receipt-pdf";
 
@@ -93,7 +94,7 @@ export function ReceiptPreviewModal({
                   style={{ flexDirection: "row", justifyContent: "space-between" }}
                 >
                   <Typography variant="caption" color="#3d2b22" numberOfLines={1}>
-                    {item.productName}
+                    {displayProductName(item.productName)}
                   </Typography>
                   <Typography variant="caption" color="#3d2b22">
                     {formatCurrency(item.subtotal)}

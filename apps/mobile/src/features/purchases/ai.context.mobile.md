@@ -112,3 +112,5 @@ Registrar compras de fornecedores como **contas a pagar** e **saídas do caixa**
 - 2026-08-24: refinamento responsivo da tela editorial: filtros limitados a chips de 44 px,
   ordenação identificada por chevron para baixo, estado vazio com altura natural e CTA próprio.
   O CTA inferior fica visível somente quando existem compras; cards preservam todas as ações.
+- 2026-08-31: o CTA `Adicionar compra` passou a `ScreenCreateBar` (`+ Adicionar compra`)
+  no fluxo, sem `insets.bottom` — o Stack já reserva a tab bar.

@@ -18,6 +18,7 @@ import {
 } from "../../../shared/components/skeleton";
 import { openWhatsApp, waMessages } from "../../../shared/utils/whatsapp";
 import { useSales } from "../../sales/hooks";
+import { displayProductName } from "../../products/display";
 import { useClient } from "../hooks";
 import { avatarPastel } from "./avatar-colors";
 import {
@@ -291,7 +292,9 @@ export function ClientDetail({ clientId, onEditPress }: Readonly<ClientDetailPro
               >
                 <View style={{ flex: 1, gap: 2 }}>
                   <Typography variant="bodyBold">
-                    {sale.items?.[0]?.productName ?? "Venda"}
+                    {sale.items?.[0]
+                      ? displayProductName(sale.items[0].productName)
+                      : "Venda"}
                     {(sale.items?.length ?? 0) > 1
                       ? ` +${(sale.items?.length ?? 1) - 1}`
                       : ""}

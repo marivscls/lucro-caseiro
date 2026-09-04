@@ -433,6 +433,7 @@ function ToolCard({
         <Typography
           variant={primary ? "h3" : "bodyBold"}
           color={palette.ink}
+          numberOfLines={2}
           style={styles.toolTitle}
         >
           {item.title}
@@ -440,6 +441,7 @@ function ToolCard({
         <Typography
           variant={dense ? "caption" : "body"}
           color={palette.muted}
+          numberOfLines={2}
           style={dense ? styles.denseToolDescription : undefined}
         >
           {item.description}
@@ -868,6 +870,7 @@ const styles = StyleSheet.create({
     width: "48%",
     flexGrow: 1,
     minWidth: 0,
+    alignSelf: "stretch",
   },
   gridItemSingle: {
     width: "100%",
@@ -1018,7 +1021,8 @@ const styles = StyleSheet.create({
     flexDirection: "column",
   },
   denseToolCard: {
-    minHeight: 72,
+    flex: 1,
+    minHeight: 96,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.sm,
     gap: spacing.xs,
@@ -1130,6 +1134,7 @@ const styles = StyleSheet.create({
   twoColumnGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
+    alignItems: "stretch",
     gap: spacing.md,
   },
 });

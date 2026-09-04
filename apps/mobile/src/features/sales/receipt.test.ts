@@ -45,6 +45,26 @@ describe("buildReceiptMessage", () => {
     expect(msg).toContain("Cliente: Maria");
   });
 
+  it("omits technical prefixes from item names", () => {
+    const msg = buildReceiptMessage(
+      makeSale({
+        items: [
+          {
+            id: "i1",
+            productId: "p1",
+            serviceId: null,
+            productName: "[massa] Brigadeiro",
+            quantity: 10,
+            unitPrice: 2.5,
+            subtotal: 25,
+          },
+        ],
+      }),
+    );
+    expect(msg).toContain("10x Brigadeiro");
+    expect(msg).not.toContain("[massa]");
+  });
+
   it("flags open (fiado) sales", () => {
     const msg = buildReceiptMessage(
       makeSale({ status: "pending", paymentMethod: "credit" }),

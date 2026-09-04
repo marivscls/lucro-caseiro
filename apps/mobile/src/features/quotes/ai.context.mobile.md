@@ -105,3 +105,5 @@ aprovado em encomenda na agenda (com sinal opcional).
 - 2026-08-24: estado vazio da lista deixou de usar ilustração PNG.
 - 2026-08-29: Orçamentos saiu do grid visível de Gestão e foi para "Ver tudo" no Mais.
   A tela continua disponível.
+- 2026-08-31: lista com itens ganhou `ScreenCreateBar` (`+ Novo orçamento`) no rodapé,
+  além do FAB `+`.

@@ -19,7 +19,7 @@ import {
   useWindowDimensions,
   type ImageStyle,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import comprasHero3d from "../assets/compras-hero-3d.png";
 import { CreatePurchaseForm } from "../features/purchases/components/create-purchase-form";
@@ -41,6 +41,7 @@ import { useBrandScreenPalette } from "../shared/brand-palette";
 import { showAlert } from "../shared/components/alert-store";
 import { AppIcon } from "../shared/components/app-icon";
 import { FAB } from "../shared/components/fab";
+import { ScreenCreateBar } from "../shared/components/screen-create-bar";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { SkeletonList } from "../shared/components/skeleton";
 import { usePaywall } from "../shared/hooks/use-paywall";
@@ -62,12 +63,10 @@ const FILTERS: { value: Filter; label: string }[] = [
 ];
 
 const HERO_IMAGE_RIGHT = 8;
-const ADD_BUTTON_HEIGHT = 52;
 
 export default function PurchasesScreen() {
   const pal = useBrandScreenPalette();
   const isDesktop = useDesktopLayout();
-  const insets = useSafeAreaInsets();
   const { width: viewportWidth } = useWindowDimensions();
   const isNarrowMobile = viewportWidth < 360;
   const { data: profile } = useProfile();
@@ -100,8 +99,6 @@ export default function PurchasesScreen() {
   const payPurchase = usePayPurchase();
   const deletePurchase = useDeletePurchase();
   const showBottomAction = !isLoading && !error && allItems.length > 0;
-  const bottomBarPadding =
-    ADD_BUTTON_HEIGHT + spacing.md * 2 + Math.max(insets.bottom, spacing.sm);
 
   function confirmDelete(id: string) {
     showAlert({
@@ -231,9 +228,7 @@ export default function PurchasesScreen() {
         contentContainerStyle={{
           ...pageFrame,
           paddingTop: spacing.sm,
-          paddingBottom: showBottomAction
-            ? bottomBarPadding + spacing["2xl"]
-            : Math.max(insets.bottom, spacing.sm) + spacing["3xl"],
+          paddingBottom: showBottomAction ? spacing.lg : spacing["3xl"],
         }}
       >
         <View
@@ -362,35 +357,11 @@ export default function PurchasesScreen() {
       </ScrollView>
 
       {showBottomAction ? (
-        <View
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            alignItems: "center",
-            backgroundColor: pal.offWhite,
-            paddingTop: spacing.md,
-            paddingBottom: Math.max(insets.bottom, spacing.sm),
-            borderTopWidth: 1,
-            borderTopColor: pal.border,
-          }}
-        >
-          <View style={{ width: "100%", ...pageFrame }}>
-            <Button
-              title="Adicionar compra"
-              size="lg"
-              onPress={openCreate}
-              disabled={payingId !== null || deletingId !== null}
-              style={{
-                width: "100%",
-                minHeight: ADD_BUTTON_HEIGHT,
-                backgroundColor: pal.rose,
-                borderRadius: radii.lg,
-              }}
-            />
-          </View>
-        </View>
+        <ScreenCreateBar
+          title="+ Adicionar compra"
+          onPress={openCreate}
+          disabled={payingId !== null || deletingId !== null}
+        />
       ) : null}
 
       {showCreate ? (

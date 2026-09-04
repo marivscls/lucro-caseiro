@@ -44,12 +44,14 @@ export function onboardingDestination({
   onboardingCompleted?: unknown;
   now: number;
 }>): "/onboarding" | "/tabs" | null {
-  // A conta é a fonte de verdade: uma pendência explícita nunca pode ser
-  // anulada pelo estado local deixado por outra sessão no aparelho.
-  if (onboardingCompleted === false) return "/onboarding";
   if (onboardingCompleted === true) return "/tabs";
-
-  if (completed || (!!userId && completedUserIds.includes(userId))) return "/tabs";
+  // Conclusão local DESTA conta vence metadata atrasada no JWT (updateUser
+  // grava no servidor, mas o token em cache ainda pode trazer false).
+  if (!!userId && completedUserIds.includes(userId)) return "/tabs";
+  // Pendência explícita da conta: não pode ser anulada pelo `completed` de
+  // outra sessão no mesmo aparelho.
+  if (onboardingCompleted === false) return "/onboarding";
+  if (completed) return "/tabs";
   if (needsOnboarding(userId, createdAt, pendingUserIds, now)) return "/onboarding";
 
   // Conta legada sem metadata: o chamador consulta o perfil antes de liberar.

@@ -178,3 +178,7 @@ acrescimo`; `precoBase = (custoDireto + lucroAlvo) / (1 - taxa)`.
 - 2026-08-29: Precificação saiu de "Ver tudo" e passou ao grid visível de Gestão
   no Mais. O Início convida a calcular o lucro quando já há produto e nenhum
   cálculo salvo.
+- 2026-08-31: o selo `Atualiza automaticamente` fica em uma linha, abaixo do
+  preço; a ilustração da calculadora divide a faixa com o valor e não sobrepõe
+  o selo. Precificação entrou no Acesso rápido da Home no lugar de Clientes,
+  com o rótulo curto `Preço` para manter a mesma fonte e tamanho dos outros atalhos.

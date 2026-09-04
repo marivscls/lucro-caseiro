@@ -65,6 +65,27 @@ describe("buildReceiptHtml", () => {
     expect(html).not.toContain("Georgia");
   });
 
+  it("omite prefixos tecnicos dos nomes dos itens", () => {
+    const html = buildReceiptHtml(
+      makeSale({
+        items: [
+          {
+            id: "item-1",
+            productId: "prod-1",
+            serviceId: null,
+            productName: "[massa] Bolo de Pote",
+            quantity: 2,
+            unitPrice: 12.5,
+            subtotal: 25,
+          },
+        ],
+      }),
+      business,
+    );
+    expect(html).toContain("Bolo de Pote");
+    expect(html).not.toContain("[massa]");
+  });
+
   it("formata quantidade por peso com kg", () => {
     const html = buildReceiptHtml(makeSale(), business);
     expect(html).toContain("0,5 kg");

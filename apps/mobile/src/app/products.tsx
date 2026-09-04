@@ -28,7 +28,11 @@ import {
 import { CompositeToggle } from "../features/products/components/composite-toggle";
 import { CreateProductForm } from "../features/products/components/create-product-form";
 import { ProductList } from "../features/products/components/product-list";
-import { productInitial } from "../features/products/display";
+import {
+  displayProductName,
+  productInitial,
+  productNameMatchesSearch,
+} from "../features/products/display";
 import { SaleUnitToggle } from "../features/products/components/sale-unit-toggle";
 import { VariationEditor } from "../features/products/components/variation-editor";
 import {
@@ -451,7 +455,7 @@ function ProductDetailModal({
                 variant="h3"
                 style={{ alignSelf: "stretch", textAlign: "center" }}
               >
-                {product.name}
+                {displayProductName(product.name)}
               </Typography>
               {product.isComposite && <Badge label="Kit" variant="lavender" />}
               <Typography variant="caption">{product.category}</Typography>
@@ -566,7 +570,7 @@ function ProductDetailModal({
                         style={{ flex: 1, minWidth: 0 }}
                         numberOfLines={2}
                       >
-                        {c.quantity}x {c.name}
+                        {c.quantity}x {displayProductName(c.name)}
                       </Typography>
                       <Typography
                         variant="caption"
@@ -928,7 +932,7 @@ function CatalogIndicator({
   compact,
 }: Readonly<{
   icon: "cube-outline" | "gift-outline";
-  value: number;
+  value: number | string;
   label: string;
   compact: boolean;
 }>) {
@@ -1009,7 +1013,7 @@ function CatalogMetric({
   showDivider,
   compact,
 }: Readonly<{
-  value: number;
+  value: number | string;
   label: string;
   showDivider?: boolean;
   compact: boolean;
@@ -1062,6 +1066,7 @@ function CatalogOverview({
   productLabel,
   kitLabel,
   isDesktop,
+  isLoading,
 }: Readonly<{
   totalItems: number;
   productCount: number;
@@ -1070,6 +1075,7 @@ function CatalogOverview({
   productLabel: string;
   kitLabel: string;
   isDesktop: boolean;
+  isLoading?: boolean;
 }>) {
   const { theme } = useTheme();
   const palette = brandScreenPalette(theme);
@@ -1093,6 +1099,16 @@ function CatalogOverview({
   let titleVariant: "h1" | "h2" | "h3" = "h1";
   if (viewportWidth < 350) titleVariant = "h3";
   else if (viewportWidth <= 430) titleVariant = "h2";
+  const displayedProducts = isLoading ? "—" : productCount;
+  const displayedKits = isLoading ? "—" : kitCount;
+  const displayedStock = isLoading ? "—" : stockUnits;
+  const itemsOrganizedLabel = totalItems === 1 ? "item organizado" : "itens organizados";
+  const catalogSummary = isLoading
+    ? "Carregando cat\u00e1logo"
+    : `${totalItems} ${itemsOrganizedLabel}`;
+  const metricsLabel = isLoading
+    ? "Carregando cat\u00e1logo"
+    : `${productCount} produtos, ${kitCount} kits, ${stockUnits} unidades em estoque`;
 
   return (
     <View style={{ width: "100%", maxWidth: 720, alignSelf: "center" }}>
@@ -1108,7 +1124,7 @@ function CatalogOverview({
         <View
           style={{
             width: copyWidth,
-            height: "100%",
+            flex: 1,
             justifyContent: "space-between",
             zIndex: 1,
           }}
@@ -1118,7 +1134,7 @@ function CatalogOverview({
               {"Seu cat\u00e1logo"}
             </Typography>
             <Typography variant="body" color={palette.onWine} numberOfLines={2}>
-              {totalItems} {totalItems === 1 ? "item organizado" : "itens organizados"}
+              {catalogSummary}
             </Typography>
           </View>
 
@@ -1136,7 +1152,7 @@ function CatalogOverview({
           >
             <CatalogIndicator
               icon="cube-outline"
-              value={productCount}
+              value={displayedProducts}
               label={productLabel.toLocaleLowerCase("pt-BR")}
               compact={compactIndicators}
             />
@@ -1150,7 +1166,7 @@ function CatalogOverview({
             />
             <CatalogIndicator
               icon="gift-outline"
-              value={kitCount}
+              value={displayedKits}
               label={kitLabel.toLocaleLowerCase("pt-BR")}
               compact={compactIndicators}
             />
@@ -1173,7 +1189,7 @@ function CatalogOverview({
       </View>
 
       <View
-        accessibilityLabel={`${productCount} produtos, ${kitCount} kits, ${stockUnits} unidades em estoque`}
+        accessibilityLabel={metricsLabel}
         style={{
           width: "100%",
           marginTop: compact ? spacing.md : spacing.lg,
@@ -1185,10 +1201,10 @@ function CatalogOverview({
           overflow: "hidden",
         }}
       >
-        <CatalogMetric value={productCount} label="produtos" compact={compact} />
-        <CatalogMetric value={kitCount} label="kits" compact={compact} showDivider />
+        <CatalogMetric value={displayedProducts} label="produtos" compact={compact} />
+        <CatalogMetric value={displayedKits} label="kits" compact={compact} showDivider />
         <CatalogMetric
-          value={stockUnits}
+          value={displayedStock}
           label="un. em estoque"
           compact={compact}
           showDivider
@@ -1425,10 +1441,7 @@ export default function ProductsScreen() {
   const visibleProducts = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase("pt-BR");
     const filtered = products.filter((product) => {
-      if (
-        normalizedSearch &&
-        !product.name.toLocaleLowerCase("pt-BR").includes(normalizedSearch)
-      ) {
+      if (normalizedSearch && !productNameMatchesSearch(product.name, normalizedSearch)) {
         return false;
       }
       if (categoryFilter && product.category !== categoryFilter) return false;
@@ -1589,6 +1602,7 @@ export default function ProductsScreen() {
         productLabel={productTypeFilters[1]?.label ?? "Produtos"}
         kitLabel={productTypeFilters[2]?.label ?? "Kits"}
         isDesktop={isDesktop}
+        isLoading={productsQuery.isLoading}
       />
 
       <LimitBanner resource="products" onUpgrade={() => showPaywall("products")} />
@@ -1602,7 +1616,7 @@ export default function ProductsScreen() {
         flex: 1,
         backgroundColor: palette.background,
       }}
-      edges={["top", "bottom"]}
+      edges={["top"]}
     >
       <Stack.Screen options={{ headerShown: false }} />
 
@@ -1722,6 +1736,7 @@ export default function ProductsScreen() {
         <View style={{ flex: 1 }}>
           <ProductList
             items={productsQuery.error ? [] : visibleProducts}
+            listLoading={productsQuery.isLoading}
             onProductPress={(id) => setSelectedProductId(id)}
             onAddPress={() => setShowCreate(true)}
             addButtonTitle={`Novo ${brand.copy.productNoun}`}

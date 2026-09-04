@@ -15,7 +15,7 @@ Gerenciar a carteira de clientes do usuario: listar, buscar, criar, editar, excl
 ## Boundaries & Ownership
 
 - **Depende de:** `@lucro-caseiro/contracts` (tipos `Client`, `CreateClient`, `UpdateClient`), `@lucro-caseiro/ui` (componentes genericos), `shared/hooks/use-auth`, `shared/hooks/use-limit-check`, `shared/utils/api-client`.
-- **Depende de (cross-feature):** `features/sales/hooks` (`useSales`) para exibir historico de compras no detalhe do cliente.
+- **Depende de (cross-feature):** `features/sales/hooks` (`useSales`) para exibir historico de compras no detalhe do cliente; `features/products/display` (`displayProductName` nos itens do historico).
 - **Dependentes:** `features/sales` (tela `new-sale` usa `useClients` para selecionar cliente na venda), `tabs/index` (Home usa `useBirthdays`).
 
 ## Code pointers
@@ -126,7 +126,7 @@ Importados de `@lucro-caseiro/contracts`.
 
 ## Examples
 
-- Tela acessada via "Mais" (secao "Do dia a dia") e atalhos da home; a rota `/tabs/clients` continua ativa, mas desde 2026-07-11 (ADR-0006) o `Tabs.Screen` usa `href: null` e nao aparece mais no bottom tab bar (o lugar foi para "Agenda").
+- Tela acessada via "Mais" (secao "Do dia a dia"); a rota `/tabs/clients` continua ativa, mas desde 2026-07-11 (ADR-0006) o `Tabs.Screen` usa `href: null` e nao aparece mais no bottom tab bar (o lugar foi para "Agenda"). Desde 2026-08-31 o Acesso rápido da Home aponta para Precificação, não para Clientes.
 - Navegacao interna: lista -> detalhe (inline) -> editar (modal).
 - Criacao via modal (FAB ou botao do EmptyState).
 
@@ -141,3 +141,10 @@ Importados de `@lucro-caseiro/contracts`.
   compartilhado com badge. Contagens vêm de `countClientListFilters` sobre os
   insights já carregados — sem request extra.
 - 2026-08-24: estado vazio da lista deixou de usar ilustração PNG; permanece título, descrição e CTA.
+- 2026-08-29: o header e o resumo "Sua clientela" não mostram "0 pessoas" enquanto a
+  lista carrega; chips de filtro omitem a contagem até os dados chegarem. Histórico
+  no detalhe usa `displayProductName` nos itens da venda.
+- 2026-08-31: Acesso rápido da Home trocou Clientes por Precificação; a entrada
+  principal de Clientes permanece em Mais → Do dia a dia.
+- 2026-08-31: lista com itens ganhou `ScreenCreateBar` (`+ Novo cliente`) no rodapé,
+  além do FAB `+`. O rodapé reserva a tab bar (rota de tab) sem inset extra.

@@ -42,6 +42,9 @@ receita ao entregar.
 
 - **Props:** `{ order: Order; onPress?: () => void }`
 - Mostra título, cliente (se houver), data/hora, valor e pill de status (cor por tom).
+- A coluna da direita (valor + "Falta" + pill) não encolhe; o texto da data cede primeiro.
+  Há um vão mínimo entre a data e o pill para rótulos longos como "Produzindo" não colarem
+  no conteúdo da esquerda.
 
 ### `OrderForm`
 
@@ -152,3 +155,7 @@ receita ao entregar.
 - 2026-07-28: Agenda passa a operar atendimentos completos, com local, variação,
   adicionais, sessão de pacote, estados próprios e conclusão financeira idempotente.
 - 2026-08-24: estado vazio da Agenda deixou de usar ilustração PNG.
+- 2026-08-31: pill de status do `OrderCard` (ex.: "Produzindo") ganhou vão à esquerda e a
+  data passou a encolher, para não colar no título/data.
+- 2026-08-31: lista com itens ganhou `ScreenCreateBar` (`+ Nova encomenda`) no rodapé,
+  além do FAB `+`. O CTA tracejado interno saiu.

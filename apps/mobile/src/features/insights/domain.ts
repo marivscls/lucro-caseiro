@@ -1,6 +1,7 @@
 import type { Insights, MonthlyRevenue } from "@lucro-caseiro/contracts";
 
 import { formatIntBR } from "../../shared/utils/format";
+import { displayProductName } from "../products/display";
 
 export { formatCurrency as formatMoney } from "../../shared/utils/format";
 
@@ -47,11 +48,7 @@ export function maxRevenue(series: MonthlyRevenue[]): number {
   return Math.max(1, ...series.map((m) => m.revenue));
 }
 
-export type InsightActionTarget =
-  | "finance"
-  | "products"
-  | "sales"
-  | "clients";
+export type InsightActionTarget = "finance" | "products" | "sales" | "clients";
 
 export interface ActionableInsight {
   id: string;
@@ -141,7 +138,7 @@ export function buildActionableInsights(
   if (actions.length === 0 && data.topProducts[0]) {
     actions.push({
       id: "top-product",
-      title: `${data.topProducts[0].name} lidera suas vendas`,
+      title: `${displayProductName(data.topProducts[0].name)} lidera suas vendas`,
       description: "Use esse destaque para registrar a próxima venda.",
       target: "sales",
       tone: "opportunity",

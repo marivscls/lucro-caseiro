@@ -139,7 +139,7 @@ Gerenciar receitas do negocio: criar, listar, visualizar detalhes, editar, exclu
 
 - Acessado via Home (quick access "Receitas") ou rota `/recipes`.
 - Fluxo: lista -> tap receita -> modal detalhe (com escala) -> editar (modal) -> salvar.
-- Criacao via FAB ou EmptyState.
+- Criacao via FAB, EmptyState ou `ScreenCreateBar` no rodapé.
 
 ## Change log / Decisions
 
@@ -180,3 +180,5 @@ Gerenciar receitas do negocio: criar, listar, visualizar detalhes, editar, exclu
   `useAllRecipes`. Lista vazia, sem resultado e erro são estados distintos.
 - 2026-08-20: a ilustração decorativa do caderno foi removida da lista.
 - 2026-08-24: estados vazios da lista não usam ilustração PNG.
+- 2026-08-31: lista com itens ganhou `ScreenCreateBar` (`+ Nova receita`) no rodapé,
+  além do FAB `+`.

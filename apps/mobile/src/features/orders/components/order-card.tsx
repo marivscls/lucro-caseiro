@@ -54,7 +54,7 @@ export function OrderCard({ order, onPress }: OrderCardProps) {
         borderColor: theme.colors.border,
         flexDirection: "row",
         alignItems: "center",
-        gap: spacing.md,
+        gap: spacing.lg,
         opacity: pressed ? 0.86 : 1,
       })}
     >
@@ -89,16 +89,30 @@ export function OrderCard({ order, onPress }: OrderCardProps) {
             {order.clientName}
           </Typography>
         ) : null}
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 6,
+            minWidth: 0,
+          }}
+        >
           <AppIcon name="calendar-outline" size={14} color={theme.colors.textSecondary} />
-          <Typography variant="caption" numberOfLines={1}>
+          <Typography variant="caption" numberOfLines={1} style={{ flexShrink: 1 }}>
             {formatDateBR(order.deliveryDate)}
             {order.deliveryTime ? ` · ${order.deliveryTime}` : ""}
           </Typography>
         </View>
       </View>
 
-      <View style={{ alignItems: "flex-end", gap: 7 }}>
+      <View
+        style={{
+          alignItems: "flex-end",
+          gap: 7,
+          flexShrink: 0,
+          paddingLeft: spacing.md,
+        }}
+      >
         {order.amount != null ? (
           <Typography variant="bodyBold" color={theme.colors.success}>
             {formatMoney(order.amount)}
@@ -115,9 +129,15 @@ export function OrderCard({ order, onPress }: OrderCardProps) {
             paddingHorizontal: 10,
             paddingVertical: 4,
             borderRadius: radii.full,
+            marginTop: 2,
           }}
         >
-          <Typography variant="caption" color={colors.fg} style={{ fontSize: 13 }}>
+          <Typography
+            variant="caption"
+            color={colors.fg}
+            numberOfLines={1}
+            style={{ fontSize: 13 }}
+          >
             {STATUS_LABEL[order.status]}
           </Typography>
         </View>

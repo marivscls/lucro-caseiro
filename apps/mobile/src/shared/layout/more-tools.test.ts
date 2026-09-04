@@ -17,6 +17,13 @@ describe("more-tools", () => {
     ]);
   });
 
+  it("nao destaca Embalagens com selo promocional", () => {
+    const packaging = FEATURED_MANAGEMENT_ITEMS.find(
+      (item) => item.route === "/packaging",
+    );
+    expect(packaging).not.toHaveProperty("badge");
+  });
+
   it("mantém Insights e Orçamentos no Ver tudo, sem apagar as telas", () => {
     const extra = routesOf(MORE_MANAGEMENT_ITEMS);
     expect(extra).toContain("/insights");

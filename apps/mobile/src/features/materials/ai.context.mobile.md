@@ -113,3 +113,7 @@ estoque rápido (+/−) e ver alerta de estoque baixo. Separado dos produtos aca
 - 2026-06-15: **ícone escolhível do insumo** — novo campo `Material.icon` (emoji; backend `017_material_icon.sql`). `MaterialIconField` (modal com grade `MATERIAL_ICONS` + "Automático") no form; `IngredientAvatar` ganhou a prop `emoji` (prioridade sobre nome/imagem, abaixo de `photoUrl`); card e summary usam `material.icon`. Lista de emojis coberta por `icons.test.ts`.
 - 2026-08-18: **card "Sua despensa hoje"** reserva a faixa da ilustração (`artReserve`) e empilha ícone + número + label dos status (`em dia` / `atenção` / `baixo`) para o texto não invadir o PNG da sacola.
 - 2026-08-24: estado vazio da despensa deixou de usar ilustração PNG.
+- 2026-08-31: o estado vazio da despensa centraliza título, texto e CTA na área útil
+  abaixo do cabeçalho (`flexGrow` no ScrollView).
+- 2026-08-31: lista com itens ganhou `ScreenCreateBar` (`+ Novo insumo`) no rodapé,
+  além do FAB `+`. O rodapé não soma inset extra.

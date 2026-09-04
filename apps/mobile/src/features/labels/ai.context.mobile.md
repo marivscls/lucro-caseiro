@@ -124,9 +124,10 @@ O QR e opcional. A feature funciona mesmo sem catalogo publicado.
 - Etiqueta simples: nome do produto e observação livre.
 - Etiqueta com rastreio: datas, contato do produtor e QR para o produto no catálogo da conta.
 - Impressão em lote: folha A4 com largura, altura e quantidade definidas pela usuária.
-- Fluxo da lista: voltar + título + subtítulo -> painel vinho (contagem real + PNG
-  `rolo-etiquetas.png`) -> busca -> chips Recentes / Mais usadas -> "Suas etiquetas"
-  com a quantidade filtrada -> cards -> CTA único `+ Nova etiqueta`.
+- Fluxo da lista: voltar + título + subtítulo + FAB `+` no cabeçalho -> painel vinho
+  (contagem real + PNG `rolo-etiquetas.png`) -> busca -> chips Recentes / Mais usadas
+  -> "Suas etiquetas" com a quantidade filtrada -> cards -> CTA `+ Nova etiqueta`
+  quando a lista tem itens. Lista vazia usa EmptyState com CTA, sem o botão do rodapé.
 - Fluxo de detalhe: toque no card ou Editar no menu -> modal (preview / edição /
   Baixar-Compartilhar / Excluir). O menu da lista reusa as mesmas confirmações.
 
@@ -187,3 +188,7 @@ registros existentes nao quebrem, mas nao aparecem no formulario, preview ou PDF
   real. A contagem vem de `total`. Sem campo de uso na API, o selo lima usa
   `copiesPerSheet` (volume por folha); empate fica com a etiqueta mais antiga.
   Um único CTA `+ Nova etiqueta` no rodapé; o `+` do cabeçalho saiu.
+- 2026-08-31: o FAB `+` do cabeçalho voltou (padrão das outras listas). Lista vazia
+  usa EmptyState com CTA; o botão `+ Nova etiqueta` do rodapé fica só quando já
+  há etiquetas. O rodapé não soma `insets.bottom`: o Stack já reserva a tab bar
+  (`stackTabBarReserve`), senão sobra uma faixa vazia entre o CTA e a navegação.

@@ -55,10 +55,7 @@ function RecipesContent() {
   };
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: pal.background }}
-      edges={["top", "bottom"]}
-    >
+    <SafeAreaView style={{ flex: 1, backgroundColor: pal.background }} edges={["top"]}>
       <Stack.Screen options={{ headerShown: false }} />
 
       <View style={{ flex: 1, width: "100%", ...pageFrame }}>

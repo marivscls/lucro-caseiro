@@ -6,6 +6,7 @@ import { Image, View } from "react-native";
 
 import { brandScreenPalette } from "../../../shared/brand-palette";
 import { formatCurrency } from "../../../shared/utils/format";
+import { displayProductName, productInitial } from "../../products/display";
 import { paymentLabel } from "../payment";
 
 interface SaleCardProps {
@@ -48,11 +49,11 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
   };
   const payment = paymentLabel(sale.paymentMethod);
   const firstItem = sale.items?.[0];
-  const title = firstItem?.productName ?? "Venda";
+  const title = firstItem ? displayProductName(firstItem.productName) : "Venda";
   const photoUrl = firstItem?.productPhotoUrl ?? null;
   const extraCount = Math.max((sale.items?.length ?? 1) - 1, 0);
   const itemsSummary = sale.items
-    ?.map((i) => i.productName)
+    ?.map((i) => displayProductName(i.productName))
     .filter(Boolean)
     .join(", ");
   const soldDate = new Date(sale.soldAt).toLocaleDateString("pt-BR", {
@@ -104,7 +105,7 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
             />
           ) : (
             <Typography variant="h3" color={theme.colors.text}>
-              {title.charAt(0).toUpperCase()}
+              {productInitial(title)}
             </Typography>
           )}
         </View>
