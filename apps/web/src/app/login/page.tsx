@@ -13,8 +13,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function login(event: React.SubmitEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function login() {
     setLoading(true);
     setError("");
     const result = await getSupabase().auth.signInWithPassword({ email, password });
@@ -38,7 +37,13 @@ export default function LoginPage() {
         </p>
       </section>
       <section className="login-panel">
-        <form className="auth-card" onSubmit={(event) => void login(event)}>
+        <form
+          className="auth-card"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void login();
+          }}
+        >
           <LockKeyhole size={28} />
           <div>
             <p className="eyebrow">Acesso privado</p>

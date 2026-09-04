@@ -43,34 +43,25 @@ if (activeBrand.id !== activeBrandId) {
 }
 
 if (buildBrandId) {
+  // `npm_execpath` is a JavaScript file with the regular pnpm install on
+  // Windows, but Railway provides an ELF executable. Only JavaScript runners
+  // may be passed to Node; native executables must be spawned directly.
   const pnpmExecutable = process.env.npm_execpath;
-  const command = pnpmExecutable
+  const pnpmRunsWithNode = !!pnpmExecutable && /\.(?:c|m)?js$/i.test(pnpmExecutable);
+  const command = pnpmRunsWithNode
     ? process.execPath
-    : process.platform === "win32"
-      ? "pnpm.cmd"
-      : "pnpm";
-  const args = pnpmExecutable
-    ? [
-        pnpmExecutable,
-        "exec",
-        "expo",
-        "export",
-        "--platform",
-        "web",
-        "--output-dir",
-        distRoot,
-        "--clear",
-      ]
-    : [
-        "exec",
-        "expo",
-        "export",
-        "--platform",
-        "web",
-        "--output-dir",
-        distRoot,
-        "--clear",
-      ];
+    : (pnpmExecutable ?? (process.platform === "win32" ? "pnpm.cmd" : "pnpm"));
+  const args = [
+    ...(pnpmRunsWithNode ? [pnpmExecutable] : []),
+    "exec",
+    "expo",
+    "export",
+    "--platform",
+    "web",
+    "--output-dir",
+    distRoot,
+    "--clear",
+  ];
   const result = spawnSync(command, args, {
     cwd: appRoot,
     env: {
