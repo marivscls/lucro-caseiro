@@ -92,7 +92,7 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
   (`insets.bottom`) para “Desativar catálogo” não colar na barra do sistema.
 
 - 2026-08-31: Ver como cliente (vitrine pública) alarga os cards de
-  Destaques no celular e encurta o placeholder sem foto; nomes quebram
+  Destaques no celular e encurta o cartão vazio sem foto; nomes quebram
   em 2 linhas em vez de cortar no meio.
 
 - 2026-08-29: a grade pública “Escolha o que deseja” passou a cards
