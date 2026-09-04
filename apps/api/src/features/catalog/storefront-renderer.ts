@@ -554,7 +554,7 @@ function itemHit(
 }
 
 function placeholderVisual(kind: ItemKind): string {
-  return `<div class="item-image item-placeholder" aria-hidden="true"><span class="item-placeholder-mark">${icon(kind === "service" ? "calendar" : "store")}</span></div>`;
+  return `<div class="item-image item-placeholder is-placeholder" aria-hidden="true"><span class="item-placeholder-mark">${icon(kind === "service" ? "calendar" : "store")}</span></div>`;
 }
 
 function metaBit(iconName: string, label: string, extraClass: string): string {

@@ -364,6 +364,15 @@ describe("renderPublishedStorefrontHtml", () => {
     expect(html).toContain("Aceitando encomendas");
     expect(html).toContain('placeholder="Buscar no catálogo"');
     expect(html).not.toContain('class="hero-copy"');
+    expect(html).toContain("is-placeholder");
+    expect(html).toContain(
+      ".highlight-card .item-image.is-placeholder{aspect-ratio:5/3}",
+    );
+    expect(html).toContain(
+      ".highlight-card{flex:none;width:min(168px,calc(50vw + 12px))",
+    );
+    expect(html).not.toContain(".highlight-card{width:124px}");
+    expect(html).not.toContain(".highlight-card{flex:none;width:136px");
   });
 
   it("renderiza descoberta, tipos, cards e fluxos reais", () => {
