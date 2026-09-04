@@ -160,7 +160,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
               process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
           }
         : {}),
-      versionCode: 26,
+      versionCode: 27,
       softwareKeyboardLayoutMode: "resize",
       permissions: [],
     },

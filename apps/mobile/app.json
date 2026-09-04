@@ -23,7 +23,7 @@
       },
       "package": "br.com.orionseven.lucrocaseiro",
       "googleServicesFile": "./google-services.json",
-      "versionCode": 26,
+      "versionCode": 27,
       "softwareKeyboardLayoutMode": "resize",
       "permissions": []
     },
