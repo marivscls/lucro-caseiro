@@ -130,7 +130,14 @@ invariants:
 
 - 2026-08-31: na vitrine pública (Ver como cliente) os destaques ficam
   mais largos no celular e o nome quebra em 2 linhas. Sem foto, o
-  placeholder deixa de ser um quadrado 1:1 enorme.
+  cartão vazio deixa de ser um quadrado 1:1 enorme.
+
+- 2026-08-29: o agendamento da vitrine usa o calendário do app
+  (mês/ano, D–S, dia selecionado na cor primária) em vez do
+  `input type=date` do iOS, que cortava o campo no canto e abria o
+  picker nativo. Horário é HH:MM, como no restante do produto. O
+  diálogo deixa o overflow horizontal visível para a borda do campo
+  não ser recortada.
 
 - 2026-08-29: data e horário do diálogo de agendamento empilham no
   celular. O `input type=date` do iOS ignora o `gap` da grade e cobre
