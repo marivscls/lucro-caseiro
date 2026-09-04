@@ -312,11 +312,12 @@ describe("SubscriptionUseCases", () => {
 
     it("notifies renewal only when the paid expiration advances", async () => {
       const notifyLifecycle = vi.fn(() => Promise.resolve());
+      const previousExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       const previous = makeProfile({
         plan: "professional",
-        planExpiresAt: "2026-09-01T00:00:00.000Z",
+        planExpiresAt: previousExpiresAt.toISOString(),
       });
-      const expiresAt = new Date("2026-10-01T00:00:00.000Z");
+      const expiresAt = new Date(previousExpiresAt.getTime() + 30 * 24 * 60 * 60 * 1000);
       const { sut } = makeSut(
         { getProfile: () => Promise.resolve(previous) },
         undefined,
