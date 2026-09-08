@@ -148,3 +148,9 @@ Importados de `@lucro-caseiro/contracts`.
   principal de Clientes permanece em Mais → Do dia a dia.
 - 2026-08-31: lista com itens ganhou `ScreenCreateBar` (`+ Novo cliente`) no rodapé,
   além do FAB `+`. O rodapé reserva a tab bar (rota de tab) sem inset extra.
+
+## Orientação contextual — 2026-09-07
+
+Orientação da lista inicia cadastro existente e distingue lista carregada de falha. client_created registra sucesso real do cadastro.
+
+Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.

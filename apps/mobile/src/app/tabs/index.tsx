@@ -1,3 +1,4 @@
+import { ScreenGuidance } from "../../shared/guidance/screen-guidance";
 import { useBusinessOnboarding } from "../../features/onboarding/use-business-onboarding";
 import { onboardingDestination } from "../../shared/utils/new-account";
 import {
@@ -1051,6 +1052,24 @@ export default function HomeScreen() {
           </Pressable>
         </View>
 
+        <ScreenGuidance
+          area="home"
+          onStart={() =>
+            router.push(
+              serviceBusiness ? "/services?create=1" : "/products?create=getting-started",
+            )
+          }
+          actionLabel={serviceBusiness ? "Cadastrar serviço" : "Cadastrar produto"}
+          hasRecords={
+            hasProduct || hasSale || businessOnboarding.record?.status === "completed"
+          }
+          loading={!onboardingSettled || productsQuery.isError || salesQuery.isError}
+          suspended={showGettingStarted}
+          secondary={{
+            label: "Começar pelo financeiro",
+            onPress: () => router.push("/finance"),
+          }}
+        />
         {brand.id === "lucro-caseiro" ? <BusinessProfileCard /> : null}
 
         <LimitBanner resource="sales" onUpgrade={() => showPaywall("sales")} />

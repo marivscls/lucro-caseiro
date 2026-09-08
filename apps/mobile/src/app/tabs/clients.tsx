@@ -1,3 +1,4 @@
+import { ScreenGuidance } from "../../shared/guidance/screen-guidance";
 import type { Client } from "@lucro-caseiro/contracts";
 import {
   Button,
@@ -888,6 +889,14 @@ function ClientsListScreen({
               }}
             />
           </View>
+
+          <ScreenGuidance
+            area="clients"
+            onStart={onCreatePress}
+            hasRecords={totalClients > 0}
+            loading={clientsLoading || baseClientsQuery.isError}
+            suspended={filterModalOpen || sortModalOpen}
+          />
 
           <View
             style={{

@@ -1,3 +1,4 @@
+vi.mock("../guidance/screen-guidance", () => ({ ScreenGuidance: () => null }));
 import React from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -104,9 +105,7 @@ describe("ScreenHeader", () => {
     );
 
     expect(screen.getByText("Financeiro")).toBeTruthy();
-    expect(
-      screen.getByText("Acompanhe seu lucro e fluxo financeiro"),
-    ).toBeTruthy();
+    expect(screen.getByText("Acompanhe seu lucro e fluxo financeiro")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Voltar" })).toBeNull();
   });
 

@@ -184,3 +184,5 @@ disponíveis a partir do **Essencial**. Somente o Gratuito limita a vitrine e oc
 personalização.
 
 - 2026-08-23: **cadastro novo volta ao Free**. A campanha `professional-first-100-2026` (1 mês de Profissional para os primeiros 100) não vale mais para quem chega agora. Quem já recebeu o presente mantém plano e data de expiração. A 052 rodava no boot da API e religava `active` enquanto houvesse vaga; a 062 (depois da 052/057) desliga a campanha e tira a concessão do `handle_new_user`. O e-mail da campanha continua só para concessão já gravada e ainda não enviada.
+
+- 2026-09-07: teste de notificação de ativação usa expiração futura relativa ao relógio, evitando que a fixture vencida em 06/09 transforme o cenário de ativação em plano expirado. Regras de assinatura inalteradas.

@@ -98,6 +98,8 @@ export function StandardModal({
     >
       <View
         ref={modalContentRef}
+        role={Platform.OS === "web" ? "dialog" : undefined}
+        accessibilityLabel={title}
         accessibilityViewIsModal
         style={{ flexGrow: 0, flexShrink: 1, minHeight: 0 }}
       >
@@ -162,7 +164,11 @@ export function StandardModal({
           }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+          keyboardDismissMode={Platform.select({
+            ios: "interactive",
+            android: "on-drag",
+            default: "none",
+          } as const)}
           scrollEventThrottle={16}
           onFocus={() => scrollFocusedInput()}
           onScroll={trackScroll}

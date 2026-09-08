@@ -585,6 +585,13 @@ function PackagingScreenContent() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <ScreenHeader
+        guidance={{
+          area: "packaging",
+          onStart: () => setShowCreate(true),
+          hasRecords: (data?.items.length ?? 0) > 0,
+          loading: isLoading || !!error,
+          suspended: showCreate,
+        }}
         title="Embalagens"
         hideBack={isDesktop}
         style={{ gap: spacing.sm, ...pageGutter(isDesktop, spacing.lg) }}

@@ -167,6 +167,13 @@ export default function PurchasesScreen() {
       >
         <Stack.Screen options={{ headerShown: false }} />
         <ScreenHeader
+          guidance={{
+            area: "purchases",
+            onStart: openCreate,
+            hasRecords: (data?.items.length ?? 0) > 0,
+            loading: isLoading || !!error,
+            suspended: showCreate,
+          }}
           title="Compras"
           subtitle="Pedidos e reposições do negócio"
           hideBack={isDesktop}
@@ -200,6 +207,13 @@ export default function PurchasesScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <ScreenHeader
+        guidance={{
+          area: "purchases",
+          onStart: openCreate,
+          hasRecords: (data?.items.length ?? 0) > 0,
+          loading: isLoading || !!error,
+          suspended: showCreate,
+        }}
         title="Compras"
         subtitle="Pedidos e reposições do negócio"
         hideBack={isDesktop}

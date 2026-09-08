@@ -589,9 +589,7 @@ function LabelsSummary({ totalCount }: Readonly<{ totalCount: number }>) {
         </Typography>
         <Typography
           color={palette.onWine}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.7}
+          numberOfLines={2}
           style={{
             fontFamily: fonts.extraBold,
             fontSize: compact ? 26 : 32,
@@ -822,7 +820,7 @@ export default function LabelsScreen() {
           gap: spacing.md,
         }}
       >
-        <LabelsSummary totalCount={totalCount} />
+        {totalCount > 0 ? <LabelsSummary totalCount={totalCount} /> : null}
 
         {items.length > 0 ? (
           <>
@@ -968,6 +966,13 @@ export default function LabelsScreen() {
     >
       <Stack.Screen options={{ headerShown: false }} />
       <ScreenHeader
+        guidance={{
+          area: "labels",
+          onStart: () => setShowCreate(true),
+          hasRecords: (data?.items.length ?? 0) > 0,
+          loading: isLoading || !!error,
+          suspended: showCreate,
+        }}
         title={labelsLabel}
         subtitle="Organize seus rótulos para imprimir quando precisar."
         subtitleNumberOfLines={2}

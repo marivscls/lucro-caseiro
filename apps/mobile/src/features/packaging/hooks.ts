@@ -1,3 +1,4 @@
+import { trackAnalyticsAction } from "../analytics/tracker";
 import type { CreatePackaging, UpdatePackaging } from "@lucro-caseiro/contracts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -37,6 +38,7 @@ export function useCreatePackaging() {
   return useMutation({
     mutationFn: (data: CreatePackaging) => createPackaging(token!, data),
     onSuccess: () => {
+      void trackAnalyticsAction("packaging_created", token);
       void queryClient.invalidateQueries({ queryKey: PACKAGING_KEY });
       // Atualiza a contagem de limites do plano (embalagens) pra o gate bloquear na hora certa.
       void queryClient.invalidateQueries({ queryKey: ["subscription"] });

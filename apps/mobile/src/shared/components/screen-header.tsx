@@ -1,3 +1,4 @@
+import { ScreenGuidance, type ScreenGuidanceProps } from "../guidance/screen-guidance";
 import { AppIcon } from "./app-icon";
 import { type Href, useRouter } from "expo-router";
 import React from "react";
@@ -9,6 +10,7 @@ import { useDesktopLayout } from "../layout/use-desktop-layout";
 
 export type ScreenHeaderProps = Readonly<{
   title: string;
+  guidance?: ScreenGuidanceProps;
   /** Texto auxiliar abaixo do título (caption). */
   subtitle?: string;
   /** Ação do botão voltar (padrão: `router.back()`). */
@@ -35,6 +37,7 @@ export type ScreenHeaderProps = Readonly<{
  */
 export function ScreenHeader({
   title,
+  guidance,
   subtitle,
   onBack,
   fallbackRoute = "/tabs/more",
@@ -45,7 +48,7 @@ export function ScreenHeader({
   style,
   titleStyle,
   subtitleStyle,
-  subtitleNumberOfLines = 1,
+  subtitleNumberOfLines = 2,
 }: ScreenHeaderProps) {
   const { theme } = useTheme();
   const router = useRouter();
@@ -64,64 +67,67 @@ export function ScreenHeader({
   }
 
   return (
-    <View
-      style={[
-        {
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.md,
-          paddingHorizontal: isDesktop ? 0 : spacing.lg,
-          paddingTop: hideBack ? spacing.xl : spacing.sm,
-          paddingBottom: spacing.sm,
-          position: "relative",
-          zIndex: 10,
-        },
-        style,
-      ]}
-    >
-      {!hideBack ? (
-        <Pressable
-          onPress={handleBack}
-          accessibilityRole="button"
-          accessibilityLabel={backLabel}
-          hitSlop={10}
-          style={[
-            {
-              width: 44,
-              height: 44,
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-              zIndex: 11,
-            },
-            backButtonStyle,
-          ]}
-        >
-          <AppIcon name="chevron-back" size={iconSizes.md} color={theme.colors.text} />
-        </Pressable>
-      ) : null}
-      <View style={{ flex: 1, minWidth: 0 }}>
-        <Typography
-          variant="screenTitle"
-          color={theme.colors.text}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-          style={titleStyle}
-        >
-          {title}
-        </Typography>
-        {subtitle ? (
-          <Typography
-            variant="caption"
-            numberOfLines={subtitleNumberOfLines}
-            ellipsizeMode="tail"
-            style={subtitleStyle}
+    <>
+      <View
+        style={[
+          {
+            flexDirection: "row",
+            alignItems: "center",
+            gap: spacing.md,
+            paddingHorizontal: isDesktop ? 0 : spacing.lg,
+            paddingTop: hideBack ? spacing.xl : spacing.sm,
+            paddingBottom: spacing.sm,
+            position: "relative",
+            zIndex: 10,
+          },
+          style,
+        ]}
+      >
+        {!hideBack ? (
+          <Pressable
+            onPress={handleBack}
+            accessibilityRole="button"
+            accessibilityLabel={backLabel}
+            hitSlop={10}
+            style={[
+              {
+                width: 44,
+                height: 44,
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                zIndex: 11,
+              },
+              backButtonStyle,
+            ]}
           >
-            {subtitle}
-          </Typography>
+            <AppIcon name="chevron-back" size={iconSizes.md} color={theme.colors.text} />
+          </Pressable>
         ) : null}
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Typography
+            variant="screenTitle"
+            color={theme.colors.text}
+            numberOfLines={2}
+            ellipsizeMode="tail"
+            style={titleStyle}
+          >
+            {title}
+          </Typography>
+          {subtitle ? (
+            <Typography
+              variant="caption"
+              numberOfLines={subtitleNumberOfLines}
+              ellipsizeMode="tail"
+              style={subtitleStyle}
+            >
+              {subtitle}
+            </Typography>
+          ) : null}
+        </View>
+        {right}
       </View>
-      {right}
-    </View>
+      {guidance ? <ScreenGuidance {...guidance} /> : null}
+    </>
   );
 }

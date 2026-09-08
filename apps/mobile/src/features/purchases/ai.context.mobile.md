@@ -114,3 +114,9 @@ Registrar compras de fornecedores como **contas a pagar** e **saídas do caixa**
   O CTA inferior fica visível somente quando existem compras; cards preservam todas as ações.
 - 2026-08-31: o CTA `Adicionar compra` passou a `ScreenCreateBar` (`+ Adicionar compra`)
   no fluxo, sem `insets.bottom` — o Stack já reserva a tab bar.
+
+## Orientação contextual — 2026-09-07
+
+Orientação chama openCreate existente, preservando bloqueios do plano; purchase_created vem do sucesso da mutation.
+
+Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.

@@ -1,3 +1,4 @@
+import { ScreenGuidance } from "../../../shared/guidance/screen-guidance";
 import type { PricingChannelFee } from "@lucro-caseiro/contracts";
 import { formatCurrency } from "../../../shared/utils/format";
 import {
@@ -11,7 +12,7 @@ import {
 } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import type { AppIconName } from "../../../shared/components/app-icon";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -181,12 +182,14 @@ function MoneyField({
   placeholder,
   onCalc,
   autoFocus,
+  inputRef,
 }: Readonly<{
   value: string;
   onChangeText: (v: string) => void;
   placeholder: string;
   onCalc: () => void;
   autoFocus?: boolean;
+  inputRef?: React.Ref<TextInput>;
 }>) {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
@@ -213,6 +216,8 @@ function MoneyField({
         R$
       </Typography>
       <TextInput
+        ref={inputRef}
+        accessibilityLabel={placeholder ?? "Valor em reais"}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
@@ -448,6 +453,10 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
   const isDesktop = useDesktopLayout();
   const pal = useFieldPalette();
   const insets = useSafeAreaInsets();
+  const stepScroll = useRef<ScrollView>(null);
+  const costInputRef = useRef<TextInput>(null);
+  const [guidanceStarted, setGuidanceStarted] = useState(false);
+  const resultTracked = useRef(false);
   const [step, setStep] = useState<Step>(1);
   const [startedTracked, setStartedTracked] = useState(false);
 
@@ -478,7 +487,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
   const [manualRevenue, setManualRevenue] = useState("");
   const [marginPercent, setMarginPercent] = useState(50);
   const [channelFees, setChannelFees] = useState<PricingChannelFee[]>([]);
-  const [selectedChannelId, setSelectedChannelId] = useState("direct");
+  const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
   const [calcApply, setCalcApply] = useState<((v: number) => void) | null>(null);
 
   const calculatePricing = useCalculatePricing();
@@ -763,6 +772,20 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
     onCreateProduct,
   ]);
 
+  useEffect(() => {
+    stepScroll.current?.scrollTo({ y: 0, animated: false });
+  }, [step]);
+  useEffect(() => {
+    if (
+      step === "result" &&
+      Number.isFinite(finalPrice) &&
+      finalPrice > 0 &&
+      !resultTracked.current
+    ) {
+      resultTracked.current = true;
+      void trackAnalyticsAction("pricing_result_viewed", useAuth.getState().token);
+    }
+  }, [step, finalPrice]);
   if (step === "result") {
     return (
       <PricingResult
@@ -782,7 +805,12 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
         overheadPercent={costingPercent}
         monthlyFixedCosts={allocationMode === "revenue" ? monthlyFixedNum : undefined}
         revenueBasis={allocationMode === "revenue" ? revenueBasis : undefined}
-        channelName={selectedChannel?.name}
+        channelName={
+          selectedChannel?.name ??
+          (selectedChannelId === "direct"
+            ? "Venda direta · taxa 0% confirmada"
+            : "Taxas não informadas · simulação com 0%")
+        }
         onRecalculate={handleRecalculate}
         onSave={() => {
           void handleSave();
@@ -803,7 +831,16 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
 
   return (
     <>
+      <ScreenGuidance
+        area="pricing"
+        onStart={() => {
+          setGuidanceStarted(true);
+          requestAnimationFrame(() => costInputRef.current?.focus());
+        }}
+        hasRecords={guidanceStarted || ingredientCost.length > 0 || step !== 1}
+      />
       <KeyboardAwareScrollView
+        scrollRef={stepScroll}
         extraScrollHeight={spacing["4xl"]}
         contentContainerStyle={[
           {
@@ -912,6 +949,7 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
                 {`Valor de ${experienceCopy.materialNounPlural} (R$)`}
               </FieldLabel>
               <MoneyField
+                inputRef={costInputRef}
                 value={ingredientCost}
                 onChangeText={(t) => {
                   setIngredientCost(maskCurrencyInput(t));
@@ -940,7 +978,11 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
         {step === 2 && (
           <>
             <StepTitle
-              title={`Custo de ${experienceCopy.packagingNoun}`}
+              title={
+                experienceCopy.packagingNoun === "custo adicional"
+                  ? "Custos adicionais por unidade"
+                  : `Custo de ${experienceCopy.packagingNoun}`
+              }
               subtitle={`Informe o valor de ${experienceCopy.packagingNoun} por unidade.`}
             />
             {selectedProduct ? (
@@ -1400,6 +1442,13 @@ export function PricingCalculator({ onSave, onCreateProduct }: PricingCalculator
 
             <View style={{ gap: spacing.sm }}>
               <FieldLabel>Canal de venda</FieldLabel>
+              {selectedChannelId === null ? (
+                <Typography variant="body">
+                  Taxa não informada. Escolha Venda direta para confirmar 0% ou selecione
+                  um canal com taxa. Sem essa escolha, o resultado é uma simulação sem
+                  taxas.
+                </Typography>
+              ) : null}
               <Typography variant="caption" color={theme.colors.textSecondary}>
                 Escolha um canal por cálculo. Para taxas combinadas, crie um perfil
                 próprio.

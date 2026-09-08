@@ -280,3 +280,7 @@ invariants:
 - 2026-07-11: rodapé virou CTA — "Feito com carinho no Lucro Caseiro" agora linka pra
   ficha da Play Store (UTM `catalogo`) e ganhou um botão extra "Crie sua vitrine grátis"
   com o mesmo link, pra converter visitantes do catálogo em instalações.
+
+## Estado público da vitrine — 2026-09-07
+
+O hero usa “Vitrine em preparação” quando as contagens expostas estão vazias e “Consulte disponibilidade” quando há conteúdo. Publicação do link não prova disponibilidade de atendimento/pedidos. Links, filtros de exposição e autorização permanecem sob os contratos existentes.

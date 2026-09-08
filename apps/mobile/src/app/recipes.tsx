@@ -1,3 +1,4 @@
+import { useBusinessCopy } from "../features/subscription/business-copy";
 import { iconSizes, spacing, useTheme } from "@lucro-caseiro/ui";
 import { Stack } from "expo-router";
 import React, { useState } from "react";
@@ -9,7 +10,7 @@ import { EditRecipeForm } from "../features/recipes/components/edit-recipe-form"
 import { RecipeDetail } from "../features/recipes/components/recipe-detail";
 import { RecipeList } from "../features/recipes/components/recipe-list";
 import { RecipeStatisticsModal } from "../features/recipes/components/recipe-statistics-modal";
-import { useRecipe } from "../features/recipes/hooks";
+import { useAllRecipes, useRecipe } from "../features/recipes/hooks";
 import { LimitBanner } from "../features/subscription/components/limit-banner";
 import { useBrandScreenPalette } from "../shared/brand-palette";
 import { AppIcon } from "../shared/components/app-icon";
@@ -34,6 +35,8 @@ type ModalState =
   | { type: "edit"; recipeId: string };
 
 function RecipesContent() {
+  const copy = useBusinessCopy();
+  const guidanceQuery = useAllRecipes();
   const pal = useBrandScreenPalette();
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
@@ -60,7 +63,14 @@ function RecipesContent() {
 
       <View style={{ flex: 1, width: "100%", ...pageFrame }}>
         <ScreenHeader
-          title="Receitas"
+          guidance={{
+            area: "recipes",
+            onStart: () => setModal({ type: "create" }),
+            hasRecords: (guidanceQuery.data?.length ?? 0) > 0,
+            loading: guidanceQuery.isLoading || guidanceQuery.isError,
+            suspended: modal.type !== "none",
+          }}
+          title={copy.formulaNounPlural.replace(/^./, (letter) => letter.toUpperCase())}
           hideBack={isDesktop}
           style={{ paddingHorizontal: 0 }}
           titleStyle={{ color: pal.wine }}
@@ -84,7 +94,7 @@ function RecipesContent() {
               <FAB
                 icon="add"
                 header
-                accessibilityLabel="Nova receita"
+                accessibilityLabel={`Criar ${copy.formulaNoun}`}
                 onPress={() => setModal({ type: "create" })}
                 style={{ backgroundColor: pal.rose, ...theme.shadows.sm }}
               />

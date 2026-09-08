@@ -1,0 +1,53 @@
+{
+  "errors": [],
+  "events": [
+    {
+      "type": "action",
+      "name": "guidance_products_presented"
+    },
+    {
+      "type": "action",
+      "name": "guidance_products_help_opened"
+    },
+    {
+      "type": "action",
+      "name": "guidance_products_task_started"
+    },
+    {
+      "type": "action",
+      "name": "plan_limit_reached"
+    },
+    {
+      "type": "action",
+      "name": "paid_feature_requested"
+    },
+    {
+      "type": "action",
+      "name": "guidance_catalog_presented"
+    },
+    {
+      "type": "action",
+      "name": "guidance_catalog_dismissed"
+    },
+    {
+      "type": "action",
+      "name": "guidance_catalog_help_opened"
+    },
+    {
+      "type": "action",
+      "name": "guidance_finance_presented"
+    },
+    {
+      "type": "action",
+      "name": "guidance_finance_help_opened"
+    },
+    {
+      "type": "action",
+      "name": "guidance_finance_task_started"
+    },
+    {
+      "type": "action",
+      "name": "finance_amount_invalid"
+    }
+  ]
+}

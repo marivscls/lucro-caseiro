@@ -107,3 +107,9 @@ aprovado em encomenda na agenda (com sinal opcional).
   A tela continua disponível.
 - 2026-08-31: lista com itens ganhou `ScreenCreateBar` (`+ Novo orçamento`) no rodapé,
   além do FAB `+`.
+
+## Orientação contextual — 2026-09-07
+
+Ajuda por tarefa inicia criação existente; produto e cliente não são inventados como dependências. quote_created permanece vinculado ao salvamento real.
+
+Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.

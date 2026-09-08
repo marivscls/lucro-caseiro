@@ -1,8 +1,10 @@
+import { MaterialForm } from "../../materials/components/material-form";
+import { guidanceEvent } from "../../../shared/guidance/guidance-events";
+import { useAuth } from "../../../shared/hooks/use-auth";
 import { formatCurrency as formatMoney } from "../../../shared/utils/format";
 import type { Material } from "@lucro-caseiro/contracts";
 import { Input, Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
-import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { Pressable, TouchableOpacity, View } from "react-native";
 
@@ -76,11 +78,18 @@ export function RecipeMaterialsEditor({
 }>) {
   const { theme } = useTheme();
   const experienceCopy = useBusinessCopy();
-  const materialTitle = "Insumo";
-  const materialsTitle = "Insumos";
-  const router = useRouter();
-  const { data } = useMaterials();
-  const materials = data?.items ?? [];
+  const materialTitle = experienceCopy.materialNoun;
+  const materialsTitle = experienceCopy.materialNounPlural;
+  const guidanceUserId = useAuth((state) => state.userId);
+  const [creatingMaterial, setCreatingMaterial] = useState(false);
+  const [createdMaterials, setCreatedMaterials] = useState<Material[]>([]);
+  const { data, isLoading, error, refetch } = useMaterials();
+  const materials = [
+    ...(data?.items ?? []),
+    ...createdMaterials.filter(
+      (item) => !data?.items.some((saved) => saved.id === item.id),
+    ),
+  ];
   const byId = new Map(materials.map((m) => [m.id, m]));
   const [pickerLineIndex, setPickerLineIndex] = useState<number | null>(null);
   const [materialSearch, setMaterialSearch] = useState("");
@@ -135,12 +144,49 @@ export function RecipeMaterialsEditor({
     onTotalCostRef.current?.(total);
   }, [total]);
 
+  const materialForm = creatingMaterial ? (
+    <MaterialForm
+      visible
+      onClose={() => setCreatingMaterial(false)}
+      onCreated={(material) => {
+        setCreatedMaterials((current) => [...current, material]);
+        const index =
+          pickerLineIndex ??
+          Math.max(
+            0,
+            lines.findIndex((line) => !line.materialId),
+          );
+        if (lines.length === 0)
+          onChange([{ materialId: material.id, unit: material.unit, quantity: "" }]);
+        else selectMaterial(index, material);
+        setCreatingMaterial(false);
+        closeMaterialPicker();
+        if (guidanceUserId)
+          guidanceEvent("recipes", "prerequisite_resumed", guidanceUserId);
+      }}
+    />
+  ) : null;
+  if (isLoading) return <Typography variant="body">Carregando materiais...</Typography>;
+  if (error)
+    return (
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => void refetch()}
+        style={{ minHeight: 48 }}
+      >
+        <Typography variant="body">
+          Não foi possível carregar os materiais. Toque para tentar novamente.
+        </Typography>
+      </Pressable>
+    );
   if (materials.length === 0) {
     return (
       <View style={{ gap: spacing.md }}>
+        {materialForm}
         <Typography variant="h3">{materialsTitle}</Typography>
         <Pressable
-          onPress={() => router.push("/tabs/materials")}
+          accessibilityRole="button"
+          onPress={() => setCreatingMaterial(true)}
           style={{
             padding: spacing.lg,
             borderRadius: radii.lg,
@@ -152,7 +198,7 @@ export function RecipeMaterialsEditor({
             Você ainda não cadastrou {experienceCopy.materialNounPlural}.
           </Typography>
           <Typography variant="caption" color={theme.colors.primary}>
-            Cadastrar insumos →
+            Cadastrar material e continuar →
           </Typography>
         </Pressable>
       </View>
@@ -161,6 +207,7 @@ export function RecipeMaterialsEditor({
 
   return (
     <>
+      {materialForm}
       <FormSection
         title={materialsTitle}
         subtitle={`${lines.length} ${
@@ -335,7 +382,7 @@ export function RecipeMaterialsEditor({
         >
           <AppIcon name="add" size={20} color={theme.colors.primary} />
           <Typography variant="bodyBold" color={theme.colors.primary}>
-            Adicionar insumo
+            Adicionar {experienceCopy.materialNoun}
           </Typography>
         </TouchableOpacity>
 
@@ -357,13 +404,20 @@ export function RecipeMaterialsEditor({
       </FormSection>
 
       <StandardModal
-        visible={pickerLineIndex !== null}
+        visible={pickerLineIndex !== null && !creatingMaterial}
         onClose={closeMaterialPicker}
-        title="Selecionar insumo"
+        title={`Selecionar ${materialTitle}`}
         subtitle={
           pickerLineIndex === null ? undefined : `${materialTitle} ${pickerLineIndex + 1}`
         }
       >
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => setCreatingMaterial(true)}
+          style={{ minHeight: 48 }}
+        >
+          <Typography variant="bodyBold">Cadastrar material e continuar</Typography>
+        </Pressable>
         <Input
           label={`Buscar ${experienceCopy.materialNoun}`}
           placeholder={`Digite o nome do ${experienceCopy.materialNoun}`}

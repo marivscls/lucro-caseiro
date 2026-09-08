@@ -182,3 +182,9 @@ Gerenciar receitas do negocio: criar, listar, visualizar detalhes, editar, exclu
 - 2026-08-24: estados vazios da lista não usam ilustração PNG.
 - 2026-08-31: lista com itens ganhou `ScreenCreateBar` (`+ Nova receita`) no rodapé,
   além do FAB `+`.
+
+## Orientação contextual — 2026-09-07
+
+RecipeMaterialsEditor cadastra material no contexto da ficha e retoma a linha com unidade correspondente, sem perder quantidades das demais linhas. Erro/carregamento de rede não são tratados como lista vazia. Títulos respeitam o vocabulário de negócio. Criar receita emite conclusão após sucesso.
+
+Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.

@@ -43,7 +43,9 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
   const experienceCopy = useBusinessCopy();
-  const formulaLabel = "Receita";
+  const formulaLabel = experienceCopy.formulaNoun.replace(/^./, (letter) =>
+    letter.toUpperCase(),
+  );
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [instructions, setInstructions] = useState("");
@@ -62,7 +64,7 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
   async function handleSubmit() {
     if (checkRecipeLimit()) return;
     if (!name.trim()) {
-      alertValidation("Informe o nome da receita");
+      alertValidation(`Informe o nome da ${experienceCopy.formulaNoun}`);
       return;
     }
     if (!category.trim()) {
@@ -95,7 +97,7 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
     if (duplicatedName) {
       const shouldContinue = await confirmPossibleDuplicate(
         `${formulaLabel} parecida`,
-        "Já existe uma receita com esse nome. Confira se não é melhor editar ou duplicar a existente.",
+        `Já existe uma ${experienceCopy.formulaNoun} com esse nome. Confira se não é melhor editar ou duplicar a existente.`,
       );
       if (!shouldContinue) return;
     }
@@ -110,7 +112,7 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
         showAlert({
           title: "Foto não enviada",
           message:
-            "Não consegui enviar a foto agora. Vou salvar a receita sem ela. Você pode adicionar depois.",
+            "Não consegui enviar a foto agora. Vou salvar o cadastro sem ela. Você pode adicionar depois.",
         });
       } finally {
         setUploading(false);
@@ -131,20 +133,25 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
           unit: l.unit.trim(),
         })),
       });
-      showAlert({ title: `${formulaLabel} cadastrada!`, message: `${name} foi adicionada` });
+      showAlert({
+        title: `${formulaLabel} cadastrada!`,
+        message: `${name} foi adicionada`,
+      });
       onSuccess?.();
     } catch (e) {
       if (e instanceof ApiError && e.code === "LIMIT_EXCEEDED") {
         showPaywall("recipes");
         return;
       }
-      alertError("Não foi possível cadastrar a receita. Tente novamente.");
+      alertError(
+        `Não foi possível cadastrar a ${experienceCopy.formulaNoun}. Tente novamente.`,
+      );
     }
   }
 
   return (
     <StandardModal
-      title="Nova receita"
+      title={`Nova ${experienceCopy.formulaNoun}`}
       visible={visible}
       onClose={onClose}
       footer={
@@ -181,7 +188,7 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
               <AppIcon name="save-outline" size={22} color={theme.colors.textOnPrimary} />
             )}
             <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
-              {uploading ? "Enviando foto..." : "Salvar receita"}
+              {uploading ? "Enviando foto..." : `Salvar ${experienceCopy.formulaNoun}`}
             </Typography>
           </Pressable>
         </View>
@@ -193,11 +200,15 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
           color={theme.colors.textSecondary}
           style={{ marginTop: -spacing.sm }}
         >
-          Preencha os detalhes da sua receita
+          {`Preencha os detalhes da sua ${experienceCopy.formulaNoun}`}
         </Typography>
 
-        <FieldRow icon="document-text-outline" label="Nome da receita">
+        <FieldRow
+          icon="document-text-outline"
+          label={`Nome da ${experienceCopy.formulaNoun}`}
+        >
           <TextBox
+            accessibilityLabel={`Nome da ${experienceCopy.formulaNoun}`}
             value={name}
             onChangeText={setName}
             placeholder={`Ex: ${experienceCopy.productExample}`}
@@ -211,7 +222,7 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
 
         <View style={{ gap: spacing.sm }}>
           <Typography variant="bodyBold" color={theme.colors.text}>
-            Foto da receita{" "}
+            {`Foto da ${experienceCopy.formulaNoun}`}{" "}
             <Typography variant="caption" color={theme.colors.textSecondary}>
               (opcional)
             </Typography>
@@ -235,6 +246,7 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
                 {experienceCopy.quantityLabel}
               </Typography>
               <TextBox
+                accessibilityLabel={experienceCopy.quantityLabel}
                 value={yieldQuantity}
                 onChangeText={setYieldQuantity}
                 placeholder="Ex: 30 ou 1,5"
@@ -246,6 +258,7 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
                 Unidade
               </Typography>
               <TextBox
+                accessibilityLabel="Unidade da quantidade final"
                 value={yieldUnit}
                 onChangeText={setYieldUnit}
                 placeholder="Ex: unidades"

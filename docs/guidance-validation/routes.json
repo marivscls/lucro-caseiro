@@ -1,0 +1,112 @@
+[
+  {
+    "route": "/tabs",
+    "errors": [],
+    "horizontalOverflow": false
+  },
+  {
+    "route": "/products",
+    "errors": [],
+    "horizontalOverflow": false
+  },
+  {
+    "route": "/services",
+    "errors": [],
+    "horizontalOverflow": false
+  },
+  {
+    "route": "/tabs/sales",
+    "errors": [],
+    "horizontalOverflow": false
+  },
+  {
+    "route": "/tabs/new-sale",
+    "errors": [],
+    "horizontalOverflow": false
+  },
+  {
+    "route": "/tabs/agenda",
+    "errors": [],
+    "horizontalOverflow": false
+  },
+  {
+    "route": "/tabs/clients",
+    "errors": [],
+    "horizontalOverflow": false
+  },
+  {
+    "route": "/pricing",
+    "errors": [],
+    "horizontalOverflow": false
+  },
+  {
+    "route": "/pricing-complete",
+    "errors": [],
+    "horizontalOverflow": false
+  },
+  {
+    "route": "/finance",
+    "errors": [],
+    "horizontalOverflow": false
+  },
+  {
+    "route": "/recurring-expenses",
+    "errors": [],
+    "horizontalOverflow": false
+  },
+  {
+    "route": "/materials",
+    "errors": [],
+    "horizontalOverflow": false
+  },
+  {
+    "route": "/recipes",
+    "errors": [],
+    "horizontalOverflow": false
+  },
+  {
+    "route": "/packaging",
+    "errors": [],
+    "horizontalOverflow": false
+  },
+  {
+    "route": "/suppliers",
+    "errors": [],
+    "horizontalOverflow": false
+  },
+  {
+    "route": "/purchases",
+    "errors": [],
+    "horizontalOverflow": false
+  },
+  {
+    "route": "/fiado",
+    "errors": [],
+    "horizontalOverflow": false
+  },
+  {
+    "route": "/quotes",
+    "errors": [],
+    "horizontalOverflow": false
+  },
+  {
+    "route": "/catalog",
+    "errors": [],
+    "horizontalOverflow": false
+  },
+  {
+    "route": "/labels",
+    "errors": [],
+    "horizontalOverflow": false
+  },
+  {
+    "route": "/insights",
+    "errors": [],
+    "horizontalOverflow": false
+  },
+  {
+    "route": "/support",
+    "errors": [],
+    "horizontalOverflow": false
+  }
+]

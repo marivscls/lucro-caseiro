@@ -101,7 +101,7 @@ export const MORE_MANAGEMENT_ITEMS = [
     route: "/services",
   },
   {
-    title: "Insumos",
+    title: "Materiais",
     description: "Custos, fornecedores e estoque",
     icon: "flask-outline",
     route: "/tabs/materials",
@@ -120,8 +120,8 @@ export const MORE_MANAGEMENT_ITEMS = [
     route: "/purchases",
   },
   {
-    title: "Receitas",
-    description: "Suas receitas e ingredientes",
+    title: "Fichas de custo",
+    description: "Composição e custo por unidade",
     icon: "document-text-outline",
     route: "/recipes",
     feature: "fichaTecnica",

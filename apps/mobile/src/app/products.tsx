@@ -1488,127 +1488,130 @@ export default function ProductsScreen() {
     router.back();
   }
 
-  const catalogListHeader = (
-    <View style={{ width: "100%", gap: compactLayout ? spacing.md : spacing.lg }}>
-      <View
-        style={{
-          width: "100%",
-          minHeight: compactLayout ? 52 : 56,
-          borderRadius: radii.xl,
-          borderWidth: 1,
-          borderColor: palette.softRose,
-          backgroundColor: palette.white,
-          flexDirection: "row",
-          alignItems: "center",
-          paddingHorizontal: spacing.lg,
-          gap: spacing.md,
-          ...theme.shadows.sm,
-        }}
-      >
-        <AppIcon name="search-outline" size={24} color={palette.ink} />
-        <TextInput
-          value={search}
-          onChangeText={setSearch}
-          placeholder={`Buscar ${brand.copy.productNoun}`}
-          placeholderTextColor={palette.warmGray}
+  const catalogListHeader =
+    products.length === 0 && !productsQuery.isLoading ? null : (
+      <View style={{ width: "100%", gap: compactLayout ? spacing.md : spacing.lg }}>
+        <View
           style={{
-            flex: 1,
-            minWidth: 0,
-            color: theme.colors.text,
-            fontSize: compactLayout ? 15 : 16,
-            paddingVertical: 0,
+            width: "100%",
+            minHeight: compactLayout ? 52 : 56,
+            borderRadius: radii.xl,
+            borderWidth: 1,
+            borderColor: palette.softRose,
+            backgroundColor: palette.white,
+            flexDirection: "row",
+            alignItems: "center",
+            paddingHorizontal: spacing.lg,
+            gap: spacing.md,
+            ...theme.shadows.sm,
           }}
-        />
-      </View>
+        >
+          <AppIcon name="search-outline" size={24} color={palette.ink} />
+          <TextInput
+            value={search}
+            onChangeText={setSearch}
+            placeholder={`Buscar ${brand.copy.productNoun}`}
+            placeholderTextColor={palette.warmGray}
+            style={{
+              flex: 1,
+              minWidth: 0,
+              color: theme.colors.text,
+              fontSize: compactLayout ? 15 : 16,
+              paddingVertical: 0,
+            }}
+          />
+        </View>
 
-      <View
-        accessibilityRole="tablist"
-        style={{
-          width: "100%",
-          minHeight: 48,
-          flexDirection: "row",
-          alignItems: "stretch",
-          borderRadius: radii.full,
-          borderWidth: 1,
-          borderColor: palette.softRose,
-          backgroundColor: palette.white,
-          overflow: "hidden",
-        }}
-      >
-        {productTypeFilters.map((filter) => {
-          const selected = typeFilter === filter.value;
-          return (
-            <Pressable
-              key={filter.value}
-              onPress={() => setTypeFilter(filter.value)}
-              accessibilityRole="tab"
-              accessibilityState={{ selected }}
-              style={({ pressed }) => ({
-                flex: 1,
-                minWidth: 0,
-                minHeight: 46,
-                borderRadius: radii.full,
-                alignItems: "center",
-                justifyContent: "center",
-                paddingHorizontal: spacing.xs,
-                backgroundColor: selected ? palette.rose : "transparent",
-                opacity: pressed ? 0.82 : 1,
-              })}
-            >
-              <Typography
-                variant="bodyBold"
-                color={selected ? palette.onWine : palette.rose}
-                numberOfLines={1}
+        <View
+          accessibilityRole="tablist"
+          style={{
+            width: "100%",
+            minHeight: 48,
+            flexDirection: "row",
+            alignItems: "stretch",
+            borderRadius: radii.full,
+            borderWidth: 1,
+            borderColor: palette.softRose,
+            backgroundColor: palette.white,
+            overflow: "hidden",
+          }}
+        >
+          {productTypeFilters.map((filter) => {
+            const selected = typeFilter === filter.value;
+            return (
+              <Pressable
+                key={filter.value}
+                onPress={() => setTypeFilter(filter.value)}
+                accessibilityRole="tab"
+                accessibilityState={{ selected }}
+                style={({ pressed }) => ({
+                  flex: 1,
+                  minWidth: 0,
+                  minHeight: 46,
+                  borderRadius: radii.full,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  paddingHorizontal: spacing.xs,
+                  backgroundColor: selected ? palette.rose : "transparent",
+                  opacity: pressed ? 0.82 : 1,
+                })}
               >
-                {filter.label}
-              </Typography>
-            </Pressable>
-          );
-        })}
+                <Typography
+                  variant="bodyBold"
+                  color={selected ? palette.onWine : palette.rose}
+                  numberOfLines={1}
+                >
+                  {filter.label}
+                </Typography>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <Pressable
+          onPress={() => setFiltersOpen(true)}
+          accessibilityRole="button"
+          accessibilityLabel={
+            activeFilterCount > 0
+              ? `Filtros, ${activeFilterCount} ativos`
+              : "Abrir filtros"
+          }
+          style={({ pressed }) => ({
+            minHeight: compactLayout ? 44 : 48,
+            alignSelf: "flex-start",
+            borderRadius: radii.full,
+            borderWidth: 1,
+            borderColor: palette.rose,
+            backgroundColor: activeFilterCount > 0 ? palette.softRose : "transparent",
+            paddingHorizontal: spacing.lg,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: spacing.sm,
+            opacity: pressed ? 0.82 : 1,
+          })}
+        >
+          <AppIcon name="options-outline" size={20} color={palette.rose} />
+          <Typography variant="bodyBold" color={palette.rose}>
+            {activeFilterCount > 0 ? `Filtros (${activeFilterCount})` : "Filtros"}
+          </Typography>
+        </Pressable>
+
+        <CatalogOverview
+          totalItems={products.length}
+          productCount={catalogMetrics.products}
+          kitCount={catalogMetrics.kits}
+          stockUnits={catalogMetrics.stockUnits}
+          productLabel={productTypeFilters[1]?.label ?? "Produtos"}
+          kitLabel={productTypeFilters[2]?.label ?? "Kits"}
+          isDesktop={isDesktop}
+          isLoading={productsQuery.isLoading}
+        />
+
+        <LimitBanner resource="products" onUpgrade={() => showPaywall("products")} />
+        <LowStockBanner onPress={() => setStatusFilter("stock")} />
       </View>
-
-      <Pressable
-        onPress={() => setFiltersOpen(true)}
-        accessibilityRole="button"
-        accessibilityLabel={
-          activeFilterCount > 0 ? `Filtros, ${activeFilterCount} ativos` : "Abrir filtros"
-        }
-        style={({ pressed }) => ({
-          minHeight: compactLayout ? 44 : 48,
-          alignSelf: "flex-start",
-          borderRadius: radii.full,
-          borderWidth: 1,
-          borderColor: palette.rose,
-          backgroundColor: activeFilterCount > 0 ? palette.softRose : "transparent",
-          paddingHorizontal: spacing.lg,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: spacing.sm,
-          opacity: pressed ? 0.82 : 1,
-        })}
-      >
-        <AppIcon name="options-outline" size={20} color={palette.rose} />
-        <Typography variant="bodyBold" color={palette.rose}>
-          {activeFilterCount > 0 ? `Filtros (${activeFilterCount})` : "Filtros"}
-        </Typography>
-      </Pressable>
-
-      <CatalogOverview
-        totalItems={products.length}
-        productCount={catalogMetrics.products}
-        kitCount={catalogMetrics.kits}
-        stockUnits={catalogMetrics.stockUnits}
-        productLabel={productTypeFilters[1]?.label ?? "Produtos"}
-        kitLabel={productTypeFilters[2]?.label ?? "Kits"}
-        isDesktop={isDesktop}
-        isLoading={productsQuery.isLoading}
-      />
-
-      <LimitBanner resource="products" onUpgrade={() => showPaywall("products")} />
-      <LowStockBanner onPress={() => setStatusFilter("stock")} />
-    </View>
-  );
+    );
 
   return (
     <SafeAreaView
@@ -1622,6 +1625,13 @@ export default function ProductsScreen() {
 
       <View style={{ flex: 1, ...desktopStretch(isDesktop, desktopWidths.data) }}>
         <ScreenHeader
+          guidance={{
+            area: "products",
+            onStart: () => setShowCreate(true),
+            hasRecords: products.length > 0,
+            loading: productsQuery.isLoading || productsQuery.isError,
+            suspended: showCreate,
+          }}
           title={brand.copy.productNounPlural.replace(/^./, (letter) =>
             letter.toUpperCase(),
           )}

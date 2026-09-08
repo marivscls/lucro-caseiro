@@ -173,3 +173,9 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
   não aparecem na UI e a busca casa o nome visível.
 - 2026-08-31: Fiado ganhou FAB `+` no cabeçalho e `ScreenCreateBar` (`+ Nova venda`)
   no rodapé; o FAB circular flutuante saiu.
+
+## Orientação contextual — 2026-09-07
+
+Nova venda mantém o cadastro inline com carrinho preservado; sucesso adiciona produto, retorna à seleção e emite retomada. Orientação integrada substitui alerta de ajuda redundante e é suspensa durante modais/guias existentes.
+
+Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.

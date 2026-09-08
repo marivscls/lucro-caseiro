@@ -361,7 +361,7 @@ describe("renderPublishedStorefrontHtml", () => {
     expect(html).toContain("--cover-height:196px");
     expect(html).toContain("Destaques");
     expect(html).toContain("data-compact-header");
-    expect(html).toContain("Aceitando encomendas");
+    expect(html).toContain("Consulte disponibilidade");
     expect(html).toContain('placeholder="Buscar no catálogo"');
     expect(html).not.toContain('class="hero-copy"');
     expect(html).toContain("is-placeholder");

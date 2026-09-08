@@ -1,3 +1,4 @@
+import { trackAnalyticsAction } from "../analytics/tracker";
 import type { CreateRecipe, UpdateRecipe } from "@lucro-caseiro/contracts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -60,6 +61,7 @@ export function useCreateRecipe() {
   return useMutation({
     mutationFn: (data: CreateRecipe) => createRecipe(token!, data),
     onSuccess: () => {
+      void trackAnalyticsAction("recipe_created", token);
       void queryClient.invalidateQueries({ queryKey: RECIPES_KEY });
       // Atualiza a contagem de limites do plano (receitas) pra o gate bloquear na hora certa.
       void queryClient.invalidateQueries({ queryKey: ["subscription"] });

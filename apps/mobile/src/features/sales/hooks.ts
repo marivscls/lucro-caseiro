@@ -91,6 +91,10 @@ export function useUpdateSaleStatus() {
         queryClient.setQueryData(key, data);
       }
     },
+    onSuccess: (_sale, variables) => {
+      if (variables.status === "paid")
+        void trackAnalyticsAction("sale_payment_received", token);
+    },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: SALES_KEY });
     },

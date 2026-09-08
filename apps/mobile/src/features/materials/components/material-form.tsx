@@ -43,6 +43,7 @@ interface MaterialFormProps {
   readonly existingMaterials?: Material[];
   readonly visible: boolean;
   readonly onClose: () => void;
+  readonly onCreated?: (material: Material) => void;
   readonly onSuccess?: () => void;
 }
 
@@ -281,11 +282,14 @@ export function MaterialForm({
   visible,
   onClose,
   onSuccess,
+  onCreated,
 }: MaterialFormProps) {
   const { theme } = useTheme();
   const isDesktop = useDesktopLayout();
   const experienceCopy = useBusinessCopy();
-  const materialTitle = "Insumo";
+  const materialTitle = experienceCopy.materialNoun.replace(/^./, (letter) =>
+    letter.toUpperCase(),
+  );
   const pal = useFieldPalette();
   const [name, setName] = useState(material?.name ?? "");
   const [unit, setUnit] = useState(material?.unit ?? "kg");
@@ -329,22 +333,21 @@ export function MaterialForm({
   function showContentInfo() {
     showAlert({
       title: "Conteúdo por unidade",
-      message:
-        "Diz quanto vem em 1 unidade do insumo. Assim, o app consegue usar quantidades menores na receita.",
+      message: `Diz quanto vem em uma unidade de ${experienceCopy.materialNoun}. Assim, você pode usar quantidades menores na ${experienceCopy.formulaNoun}.`,
     });
   }
 
   function showUnitInfo() {
     showAlert({
       title: "Unidade",
-      message: "Selecione a unidade padrão deste insumo (ex.: kg, ml, un).",
+      message: `Selecione a unidade padrão deste ${experienceCopy.materialNoun} (ex.: kg, ml, un).`,
     });
   }
 
   async function handleSave() {
     if (!name.trim()) {
       alertValidation(
-        `Dê um nome ao insumo (ex.: ${experienceCopy.materialExample}).`,
+        `Dê um nome ao ${experienceCopy.materialNoun} (ex.: ${experienceCopy.materialExample}).`,
       );
       return;
     }
@@ -374,7 +377,7 @@ export function MaterialForm({
     if (duplicate) {
       showAlert({
         title: `${materialTitle} já cadastrado`,
-        message: "Esse insumo já existe. Abra o cadastro existente para ajustar o estoque.",
+        message: `Esse ${experienceCopy.materialNoun} já existe. Abra o cadastro existente para ajustar o estoque.`,
       });
       return;
     }
@@ -395,7 +398,8 @@ export function MaterialForm({
       if (isEditing && material) {
         await updateMaterial.mutateAsync({ id: material.id, data });
       } else {
-        await createMaterial.mutateAsync(data);
+        const created = await createMaterial.mutateAsync(data);
+        onCreated?.(created);
       }
       onSuccess?.();
     } catch (e: unknown) {
@@ -403,14 +407,16 @@ export function MaterialForm({
         alertError(e.message);
         return;
       }
-      alertError("Não foi possível salvar o insumo. Tente novamente.");
+      alertError(
+        `Não foi possível salvar o ${experienceCopy.materialNoun}. Tente novamente.`,
+      );
     }
   }
 
   function handleDelete() {
     if (!material) return;
     showAlert({
-      title: "Excluir insumo",
+      title: `Excluir ${experienceCopy.materialNoun}`,
       message: "Tem certeza?",
       buttons: [
         { text: "Cancelar", style: "cancel" },
@@ -427,11 +433,7 @@ export function MaterialForm({
 
   return (
     <StandardModal
-      title={
-        isEditing
-          ? "Editar insumo"
-          : "Novo insumo"
-      }
+      title={`${isEditing ? "Editar" : "Novo"} ${experienceCopy.materialNoun}`}
       visible={visible}
       onClose={onClose}
       footer={
@@ -459,7 +461,7 @@ export function MaterialForm({
               ]}
             >
               <Typography variant="bodyBold" color={theme.colors.alert}>
-                Excluir insumo
+                {`Excluir ${experienceCopy.materialNoun}`}
               </Typography>
             </Pressable>
           ) : null}
@@ -497,9 +499,7 @@ export function MaterialForm({
               color={theme.colors.textOnPrimary}
               style={{ fontSize: 16 }}
             >
-              {isEditing
-                ? "Salvar alterações"
-                : "Salvar insumo"}
+              {isEditing ? "Salvar alterações" : `Salvar ${experienceCopy.materialNoun}`}
             </Typography>
           </Pressable>
         </View>
@@ -515,12 +515,13 @@ export function MaterialForm({
               color={theme.colors.textSecondary}
               style={{ marginTop: -spacing.sm }}
             >
-              Cadastre um novo insumo para controlar custos e usar nas receitas.
+              {`Cadastre um ${experienceCopy.materialNoun} para controlar custos e usar na ${experienceCopy.formulaNoun}.`}
             </Typography>
             <View>
-              <FieldLabel label="Nome do insumo" required />
+              <FieldLabel label={`Nome do ${experienceCopy.materialNoun}`} required />
               <TextFieldCard
                 icon="pricetag-outline"
+                accessibilityLabel={`Nome do ${experienceCopy.materialNoun}`}
                 placeholder={`Ex: ${experienceCopy.materialExample}`}
                 value={name}
                 onChangeText={setName}
@@ -612,7 +613,7 @@ export function MaterialForm({
                 color={theme.colors.success}
               />
               <Typography variant="caption" color={theme.colors.textSecondary}>
-                Selecione a unidade padrão deste insumo.
+                {`Selecione a unidade padrão deste ${experienceCopy.materialNoun}.`}
               </Typography>
             </View>
           ) : null}
@@ -658,7 +659,7 @@ export function MaterialForm({
         <View>
           <FieldLabel label="Fornecedor (opcional)" />
           <SupplierSelector value={supplierId} onChange={setSupplierId} />
-          <SubLabel>De quem você compra este insumo.</SubLabel>
+          <SubLabel>{`De quem você compra este ${experienceCopy.materialNoun}.`}</SubLabel>
         </View>
 
         <View>
@@ -736,7 +737,7 @@ export function MaterialForm({
                 {contentUnit.trim() || "ml"}
               </Typography>
               <Typography variant="caption" color={theme.colors.textSecondary}>
-                Permite usar este insumo em quantidades menores nas receitas.
+                {`Permite usar este ${experienceCopy.materialNoun} em quantidades menores na ${experienceCopy.formulaNoun}.`}
               </Typography>
             </View>
           </View>

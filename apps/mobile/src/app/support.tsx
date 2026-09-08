@@ -1,3 +1,4 @@
+import { showAlert } from "../shared/components/alert-store";
 import { Button, Card, Typography, spacing, useBrand, useTheme } from "@lucro-caseiro/ui";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import { AppIcon } from "../shared/components/app-icon";
@@ -25,12 +26,12 @@ const STATIC_FAQ: { question: string; answer: string }[] = [
   {
     question: "Como falo com vocês?",
     answer:
-      "É só tocar no botão abaixo pra abrir seu e-mail já preenchido. Como você é assinante, sua mensagem entra na fila de prioridade e a gente responde rapidinho.",
+      "Use o botão para abrir seu e-mail e contar em qual tela teve dificuldade. As instruções básicas e o envio de dúvidas estão disponíveis em todos os planos.",
   },
   {
     question: "Como cancelo minha assinatura?",
     answer:
-      "A cobrança é feita pela loja (Google Play ou App Store). O cancelamento é nas Assinaturas do seu aparelho — seus dados continuam salvos.",
+      "Confira o recibo da sua assinatura. Se a cobrança é da Google Play, gerencie-a em Assinaturas na loja. Se é da Stripe, solicite o cancelamento pelo e-mail de suporte. Não é necessário apagar sua conta.",
   },
   {
     question: "Achei um erro ou tenho uma ideia",
@@ -44,7 +45,13 @@ function openSupportEmail(brandName: string) {
   const body = encodeURIComponent(
     "Oi! Preciso de ajuda com:\n\n\n---\n(Conte o que aconteceu que a gente resolve.)",
   );
-  void Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`);
+  void Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`).catch(
+    () =>
+      showAlert({
+        title: "Envie sua dúvida por e-mail",
+        message: `Não foi possível abrir o aplicativo de e-mail. Escreva para ${SUPPORT_EMAIL} e informe em qual tela aconteceu.`,
+      }),
+  );
 }
 
 export default function SupportScreen() {
@@ -95,8 +102,8 @@ export default function SupportScreen() {
               </Typography>
             </View>
             <Typography variant="body" color={theme.colors.textSecondary}>
-              Como assinante, você fala direto com a gente e tem prioridade nas respostas.
-              Tô aqui pra te ajudar a vender mais tranquila. 🧡
+              Seu plano inclui prioridade de atendimento. Conte o que tentou fazer e em
+              qual etapa teve dificuldade.
             </Typography>
             <Button
               title="Falar com o suporte"
@@ -120,15 +127,22 @@ export default function SupportScreen() {
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
               <AppIcon name="diamond-outline" size={20} color={theme.colors.premium} />
               <Typography variant="h3" color={theme.colors.premium}>
-                Suporte prioritário
+                Precisa de ajuda?
               </Typography>
             </View>
             <Typography variant="body" color={theme.colors.textSecondary}>
-              O atendimento com prioridade faz parte do plano Profissional. Assine pra
-              falar direto com a gente sempre que precisar.
+              Você pode consultar as instruções e relatar dificuldades no plano gratuito.
+              A prioridade de atendimento continua sendo um benefício do Profissional.
             </Typography>
             <Button
-              title="Desbloquear Profissional"
+              title="Relatar uma dificuldade"
+              size="lg"
+              onPress={() => openSupportEmail(brandName)}
+            />
+            <Typography variant="body">{SUPPORT_EMAIL}</Typography>
+            <Button
+              variant="outline"
+              title="Conhecer atendimento prioritário"
               size="lg"
               onPress={() => showPaywall("prioritySupport")}
               style={desktopAction(isDesktop, 240)}
@@ -161,7 +175,7 @@ export default function SupportScreen() {
               <Typography
                 variant="body"
                 color={theme.colors.textSecondary}
-                style={{ fontSize: 14, lineHeight: 20 }}
+                style={{ fontSize: 16, lineHeight: 24 }}
               >
                 {item.answer}
               </Typography>

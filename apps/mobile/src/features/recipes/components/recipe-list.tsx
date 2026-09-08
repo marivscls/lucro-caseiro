@@ -281,12 +281,15 @@ function RecipesHero({
 }
 
 function RecipesIntro() {
+  const copy = useBusinessCopy();
   const pal = useBrandScreenPalette();
 
   return (
     <View style={{ gap: spacing.xs }}>
       <Typography variant="h3" color={pal.wine}>
-        Suas receitas, seus lucros.
+        {copy.profile === "food"
+          ? "Receitas para entender seus custos."
+          : "Composição e custo do que você produz."}
       </Typography>
       <Typography variant="body" color={pal.muted}>
         Acompanhe custos e rendimentos em um só lugar.

@@ -1,3 +1,5 @@
+import { guidanceEvent } from "../../../shared/guidance/guidance-events";
+import { useAuth } from "../../../shared/hooks/use-auth";
 import type { Order } from "@lucro-caseiro/contracts";
 import {
   Typography,
@@ -390,6 +392,7 @@ export function OrderForm({
   onClose,
   onSuccess,
 }: OrderFormProps) {
+  const guidanceUserId = useAuth((state) => state.userId);
   const { theme } = useTheme();
   const experienceCopy = useBusinessCopy();
   const isDesktop = useDesktopLayout();
@@ -492,6 +495,7 @@ export function OrderForm({
         durationMinutes: duration,
       });
       setServiceId(service.id);
+      if (guidanceUserId) guidanceEvent("agenda", "prerequisite_resumed", guidanceUserId);
       setDurationMinutes(String(service.durationMinutes));
       setTitle((current) => current || service.name);
       setNewServiceName("");

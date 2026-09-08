@@ -469,7 +469,9 @@ function renderHero(
     : "";
   const cover = heroCover(catalog, customization);
   const visualClass = cover ? " has-cover" : " no-visual";
-  const status = `<span class="status-chip"><span class="status-dot" aria-hidden="true"></span>Aceitando encomendas</span>`;
+  const statusLabel =
+    products + services > 0 ? "Consulte disponibilidade" : "Vitrine em preparação";
+  const status = `<span class="status-chip"><span class="status-dot" aria-hidden="true"></span>${statusLabel}</span>`;
   const countsRow = `<div class="store-meta">${counts ? `<p class="counts">${icon("box")} ${escapeHtml(counts)}</p>` : ""}${status}</div>`;
   return `${promo}<section id="topo" class="storefront-hero hero-${hero.style}${visualClass}" data-hero-sentinel aria-labelledby="storefront-title"><div class="hero-cover-wrap">${cover}</div><div class="store-card"><div class="identity-mark">${storeLogo(catalog, customization, 144)}</div><p class="eyebrow">${escapeHtml(offeringEyebrow(identity.offeringMode))}</p><h1 id="storefront-title">${escapeHtml(identity.displayName)}</h1>${intro}${signature}${countsRow}${heroAction(catalog, customization)}${quickInfo(customization)}</div></section>`;
 }

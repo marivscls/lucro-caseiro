@@ -116,3 +116,7 @@ as dez ações do contrato. Metadata arbitrária é rejeitada.
   paywall e assinatura. Ativação agora exige a sequência `pricing_completed` →
   `product_created_from_pricing` → (`catalog_published` ou `sale_completed`); eventos do ciclo
   de assinatura são emitidos no backend apenas quando o plano realmente muda.
+
+## Orientação contextual — 2026-09-07
+
+O contrato compartilhado aceita áreas e ações de orientação em allowlist (apresentação, dispensa, ajuda, início, conclusão e retomada), erros de produto/financeiro por identificadores fixos, cadastros de apoio, resultado de preço e conteúdo de catálogo publicado. `catalog_published` continua registrando apenas ativação de link; `catalog_content_published` exige salvamento confirmado no editor e itens públicos. Nenhum texto de formulário é aceito como metadata adicional. Coleta e permissões mantêm o comportamento anterior. Os novos marcos são definidos em `docs/orientacao-contextual-primeiro-valor.md`; o relatório histórico não ganha inferências causais automaticamente.

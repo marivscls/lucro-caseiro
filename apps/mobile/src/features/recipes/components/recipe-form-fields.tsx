@@ -95,6 +95,7 @@ export function TextBox({
   placeholder,
   keyboardType,
   autoFocus,
+  accessibilityLabel,
   maxLength,
 }: Readonly<{
   value: string;
@@ -102,6 +103,7 @@ export function TextBox({
   placeholder: string;
   keyboardType?: "default" | "decimal-pad";
   autoFocus?: boolean;
+  accessibilityLabel?: string;
   maxLength?: number;
 }>) {
   const { theme } = useTheme();
@@ -126,6 +128,7 @@ export function TextBox({
         placeholderTextColor={pal.placeholder}
         keyboardType={keyboardType}
         autoFocus={autoFocus}
+        accessibilityLabel={accessibilityLabel ?? placeholder}
         maxLength={maxLength}
         style={{
           color: theme.colors.text,
@@ -246,11 +249,7 @@ export function CategoryField({
                   gap: spacing.md,
                 }}
               >
-                <AppIcon
-                  name="create-outline"
-                  size={22}
-                  color={theme.colors.primary}
-                />
+                <AppIcon name="create-outline" size={22} color={theme.colors.primary} />
                 <TextInput
                   value={draft}
                   onChangeText={setDraft}
@@ -265,9 +264,7 @@ export function CategoryField({
                   }}
                 />
               </View>
-              <View
-                style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
-              >
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
                 {experienceCopy.categoryPresets.map((cat) => (
                   <Pressable
                     key={cat}

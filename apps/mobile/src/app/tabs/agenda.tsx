@@ -1,3 +1,4 @@
+import { useBusinessCopy } from "../../features/subscription/business-copy";
 import { formatCurrency as formatMoney } from "../../shared/utils/format";
 import type { Order, OrderStatus } from "@lucro-caseiro/contracts";
 import {
@@ -1419,6 +1420,7 @@ function AgendaContent() {
   const nativeMobile = !isDesktop && Platform.OS !== "web";
   const insets = useSafeAreaInsets();
   const { data: orders, isLoading, error, refetch } = useOrders();
+  const guidanceCopy = useBusinessCopy();
   const [showCreate, setShowCreate] = useState(false);
   const [showDayFilter, setShowDayFilter] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -1466,7 +1468,12 @@ function AgendaContent() {
         <EmptyState
           title="Sua agenda está vazia"
           description="Cadastre uma encomenda com data de entrega para começar a se organizar."
-          action={<Button title="Nova encomenda" onPress={() => setShowCreate(true)} />}
+          action={
+            <Button
+              title={`Novo cadastro: ${guidanceCopy.orderNoun}`}
+              onPress={() => setShowCreate(true)}
+            />
+          }
           style={
             nativeMobile
               ? { paddingBottom: floatingTabBarContentPadding(insets.bottom) }
@@ -1499,6 +1506,13 @@ function AgendaContent() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <ScreenHeader
+        guidance={{
+          area: "agenda",
+          onStart: () => setShowCreate(true),
+          hasRecords: (orders?.length ?? 0) > 0,
+          loading: isLoading || !!error,
+          suspended: showCreate,
+        }}
         title="Agenda"
         fallbackRoute="/tabs"
         hideBack={isDesktop}
@@ -1506,7 +1520,7 @@ function AgendaContent() {
           <FAB
             icon="add"
             header
-            accessibilityLabel="Nova encomenda"
+            accessibilityLabel={`Novo cadastro: ${guidanceCopy.orderNoun}`}
             onPress={() => setShowCreate(true)}
           />
         }
@@ -1515,7 +1529,10 @@ function AgendaContent() {
       <View style={{ flex: 1 }}>{renderContent()}</View>
 
       {!isLoading && !error && (orders?.length ?? 0) > 0 ? (
-        <ScreenCreateBar title="+ Nova encomenda" onPress={() => setShowCreate(true)} />
+        <ScreenCreateBar
+          title={`+ ${guidanceCopy.orderNoun}`}
+          onPress={() => setShowCreate(true)}
+        />
       ) : null}
 
       {/* Criar */}

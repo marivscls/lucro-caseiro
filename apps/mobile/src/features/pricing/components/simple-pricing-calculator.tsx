@@ -1,3 +1,4 @@
+import { ScreenGuidance } from "../../../shared/guidance/screen-guidance";
 import type { Packaging, Product } from "@lucro-caseiro/contracts";
 import {
   Button,
@@ -10,7 +11,7 @@ import {
   spacing,
   useTheme,
 } from "@lucro-caseiro/ui";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Image,
   type ImageSourcePropType,
@@ -18,6 +19,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  TextInput,
   Text,
   View,
 } from "react-native";
@@ -494,6 +496,9 @@ export function SimplePricingCalculator({
   const { data: packagingData, isLoading: loadingPackaging } = usePackagingList();
   const calculatePricing = useCalculatePricing();
   const startedTracked = useRef(false);
+  const costInputRef = useRef<TextInput>(null);
+  const [guidanceStarted, setGuidanceStarted] = useState(false);
+  const [resultSeen, setResultSeen] = useState(false);
 
   const products = allProducts.filter(
     (product) => product.recipeId != null && product.costPrice != null,
@@ -508,6 +513,9 @@ export function SimplePricingCalculator({
   const [packagingInput, setPackagingInput] = useState("");
   const [profitInput, setProfitInput] = useState("");
   const [feesInput, setFeesInput] = useState("");
+  useEffect(() => {
+    setResultSeen(false);
+  }, [ingredientInput, packagingInput, profitInput, feesInput]);
   const [showFees, setShowFees] = useState(false);
   const [productPickerVisible, setProductPickerVisible] = useState(false);
   const [packagingPickerVisible, setPackagingPickerVisible] = useState(false);
@@ -526,7 +534,18 @@ export function SimplePricingCalculator({
     priceBeforeFees,
     feesPercent,
   );
-  const canCalculate = ingredientCost > 0 && desiredProfit > 0;
+  let feeExplanation =
+    "Taxa ainda não informada. Esta simulação usa 0%; confira se há cobrança na sua venda.";
+  if (feesInput.trim())
+    feeExplanation =
+      feesPercent === 0
+        ? "Taxa informada: 0%."
+        : "A taxa informada está incluída no cálculo.";
+  const canCalculate =
+    ingredientCost > 0 &&
+    desiredProfit > 0 &&
+    Number.isFinite(finalPrice) &&
+    markupPercent <= 1000;
 
   const trackStarted = useCallback(() => {
     if (startedTracked.current) return;
@@ -697,6 +716,25 @@ export function SimplePricingCalculator({
         </View>
 
         <View style={{ paddingTop: spacing.xs }}>
+          <View style={{ paddingHorizontal: spacing.lg, gap: spacing.sm }}>
+            {canCalculate && feesPercent <= 95 ? (
+              <Button
+                title={resultSeen ? "Resultado conferido" : "Conferi meu resultado"}
+                variant="secondary"
+                disabled={resultSeen}
+                onPress={() => {
+                  setResultSeen(true);
+                  void trackAnalyticsAction(
+                    "pricing_result_viewed",
+                    useAuth.getState().token,
+                  );
+                }}
+              />
+            ) : null}
+            <Typography variant="body" color={pal.onWine}>
+              {feeExplanation}
+            </Typography>
+          </View>
           <PricingResultRow
             icon="cube-outline"
             label="Materiais"
@@ -760,6 +798,16 @@ export function SimplePricingCalculator({
 
   return (
     <>
+      <ScreenGuidance
+        area="pricing"
+        onStart={() => {
+          setGuidanceStarted(true);
+          trackStarted();
+          requestAnimationFrame(() => costInputRef.current?.focus());
+        }}
+        hasRecords={guidanceStarted || ingredientInput.length > 0}
+        suspended={productPickerVisible || packagingPickerVisible}
+      />
       <KeyboardAwareScrollView
         extraScrollHeight={spacing["4xl"]}
         contentContainerStyle={[
@@ -849,6 +897,8 @@ export function SimplePricingCalculator({
                     icon="basket-outline"
                     iconSurface
                     prefix="R$"
+                    inputRef={costInputRef}
+                    accessibilityLabel="Custo dos materiais por unidade em reais"
                     value={ingredientInput}
                     onChangeText={(text) => {
                       setIngredientInput(maskCurrencyInput(text));

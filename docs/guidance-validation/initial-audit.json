@@ -1,0 +1,230 @@
+{
+  "errors": [],
+  "events": [
+    {
+      "type": "action",
+      "name": "guidance_products_presented"
+    },
+    {
+      "type": "action",
+      "name": "guidance_products_dismissed"
+    },
+    {
+      "type": "action",
+      "name": "guidance_products_help_opened"
+    },
+    {
+      "type": "action",
+      "name": "guidance_products_help_opened"
+    },
+    {
+      "type": "action",
+      "name": "guidance_products_task_started"
+    },
+    {
+      "type": "action",
+      "name": "product_name_required"
+    },
+    {
+      "type": "action",
+      "name": "product_category_required"
+    },
+    {
+      "type": "action",
+      "name": "product_price_invalid"
+    },
+    {
+      "type": "action",
+      "name": "product_created"
+    },
+    {
+      "type": "action",
+      "name": "guidance_products_task_completed"
+    },
+    {
+      "type": "action",
+      "name": "guidance_labels_presented"
+    },
+    {
+      "type": "action",
+      "name": "guidance_labels_task_started"
+    },
+    {
+      "type": "action",
+      "name": "product_created"
+    },
+    {
+      "type": "action",
+      "name": "guidance_labels_prerequisite_resumed"
+    },
+    {
+      "type": "action",
+      "name": "label_created"
+    },
+    {
+      "type": "action",
+      "name": "guidance_labels_task_completed"
+    },
+    {
+      "type": "action",
+      "name": "guidance_services_presented"
+    },
+    {
+      "type": "action",
+      "name": "service_created"
+    },
+    {
+      "type": "action",
+      "name": "guidance_services_task_completed"
+    },
+    {
+      "type": "action",
+      "name": "guidance_finance_presented"
+    },
+    {
+      "type": "action",
+      "name": "guidance_finance_task_started"
+    },
+    {
+      "type": "action",
+      "name": "finance_amount_invalid"
+    },
+    {
+      "type": "action",
+      "name": "finance_entry_created"
+    },
+    {
+      "type": "action",
+      "name": "guidance_finance_task_completed"
+    },
+    {
+      "type": "action",
+      "name": "guidance_pricing_presented"
+    },
+    {
+      "type": "action",
+      "name": "guidance_pricing_task_started"
+    },
+    {
+      "type": "action",
+      "name": "pricing_started"
+    },
+    {
+      "type": "action",
+      "name": "pricing_result_viewed"
+    },
+    {
+      "type": "action",
+      "name": "guidance_pricing_task_completed"
+    },
+    {
+      "type": "action",
+      "name": "guidance_recipes_presented"
+    },
+    {
+      "type": "action",
+      "name": "guidance_recipes_task_started"
+    },
+    {
+      "type": "action",
+      "name": "material_created"
+    },
+    {
+      "type": "action",
+      "name": "guidance_materials_task_completed"
+    },
+    {
+      "type": "action",
+      "name": "guidance_recipes_prerequisite_resumed"
+    },
+    {
+      "type": "action",
+      "name": "guidance_sales_presented"
+    },
+    {
+      "type": "action",
+      "name": "guidance_new_sale_presented"
+    },
+    {
+      "type": "action",
+      "name": "guidance_agenda_presented"
+    },
+    {
+      "type": "action",
+      "name": "guidance_clients_presented"
+    },
+    {
+      "type": "action",
+      "name": "guidance_recurring_expenses_presented"
+    },
+    {
+      "type": "screen_view",
+      "name": "materials",
+      "durationMs": 2468
+    },
+    {
+      "type": "action",
+      "name": "guidance_packaging_presented"
+    },
+    {
+      "type": "action",
+      "name": "guidance_suppliers_presented"
+    },
+    {
+      "type": "action",
+      "name": "guidance_purchases_presented"
+    },
+    {
+      "type": "action",
+      "name": "guidance_fiado_presented"
+    },
+    {
+      "type": "action",
+      "name": "guidance_quotes_presented"
+    },
+    {
+      "type": "action",
+      "name": "guidance_insights_presented"
+    },
+    {
+      "type": "action",
+      "name": "guidance_products_help_opened"
+    },
+    {
+      "type": "action",
+      "name": "guidance_products_task_started"
+    },
+    {
+      "type": "action",
+      "name": "plan_limit_reached"
+    },
+    {
+      "type": "action",
+      "name": "paid_feature_requested"
+    },
+    {
+      "type": "action",
+      "name": "guidance_catalog_presented"
+    },
+    {
+      "type": "action",
+      "name": "guidance_catalog_dismissed"
+    },
+    {
+      "type": "action",
+      "name": "guidance_catalog_help_opened"
+    },
+    {
+      "type": "action",
+      "name": "guidance_finance_help_opened"
+    },
+    {
+      "type": "action",
+      "name": "guidance_finance_task_started"
+    },
+    {
+      "type": "action",
+      "name": "finance_amount_invalid"
+    }
+  ]
+}

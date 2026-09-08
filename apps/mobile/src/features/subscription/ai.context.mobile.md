@@ -146,3 +146,9 @@ do Catálogo abrem checkout Essencial somente para contas Gratuitas.
   aviso temporário “Restauração iOS será disponibilizada depois”.
 
 - 2026-09-04: cache de perfil isolado por conta; atualizações de perfil, restauração Google Play e polling Stripe escrevem na mesma chave com ID do usuário.
+
+## Orientação contextual — 2026-09-07
+
+Ajuda básica e envio de dúvidas disponíveis em qualquer plano em support.tsx. prioritySupport continua derivado do contrato de plano. FAQ distingue recibo Google Play de Stripe sem prometer prazo de atendimento.
+
+Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.

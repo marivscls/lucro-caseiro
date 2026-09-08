@@ -159,3 +159,9 @@ receita ao entregar.
   data passou a encolher, para não colar no título/data.
 - 2026-08-31: lista com itens ganhou `ScreenCreateBar` (`+ Nova encomenda`) no rodapé,
   além do FAB `+`. O CTA tracejado interno saiu.
+
+## Orientação contextual — 2026-09-07
+
+A orientação informa obrigatoriedade de serviço, horário e local em atendimentos. Cadastro rápido de serviço existente conserva rascunho e emite retomada após sucesso. Agenda usa o termo por segmento.
+
+Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.

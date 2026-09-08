@@ -12,6 +12,7 @@ import { EditSupplierForm } from "../features/suppliers/components/edit-supplier
 import { SupplierDetail } from "../features/suppliers/components/supplier-detail";
 import { SupplierList } from "../features/suppliers/components/supplier-list";
 import {
+  useSuppliersOverview,
   useDeleteSupplier,
   useSupplier,
   useUpdateSupplier,
@@ -35,6 +36,7 @@ export default function SuppliersScreen() {
   const { data: profile } = useProfile();
   const purchasesEnabled =
     !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "purchases");
+  const guidanceQuery = useSuppliersOverview();
   const deleteSupplier = useDeleteSupplier();
   const updateSupplier = useUpdateSupplier();
   const [showCreate, setShowCreate] = useState(false);
@@ -140,6 +142,13 @@ export default function SuppliersScreen() {
     >
       <Stack.Screen options={{ headerShown: false }} />
       <ScreenHeader
+        guidance={{
+          area: "suppliers",
+          onStart: () => setShowCreate(true),
+          hasRecords: (guidanceQuery.data?.items.length ?? 0) > 0,
+          loading: guidanceQuery.isLoading || guidanceQuery.isError,
+          suspended: showCreate || !!selectedId || !!editingId || !!reorderSupplier,
+        }}
         title="Fornecedores"
         subtitle="Quem abastece o seu negócio, sempre à mão."
         subtitleNumberOfLines={2}

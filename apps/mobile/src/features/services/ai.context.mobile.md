@@ -145,3 +145,9 @@ const pricing = calculateServicePricing({
 - 2026-08-24: estado vazio da lista deixou de usar ilustração PNG.
 - 2026-08-31: lista com itens ganhou `ScreenCreateBar` (`+ Cadastrar serviço`) no rodapé,
   além do FAB `+`. O CTA interno da lista saiu.
+
+## Orientação contextual — 2026-09-07
+
+Orientação específica inicia ServiceForm existente, respeitando validações/permissões. Lista vazia omite resumos/filtros sem dados. service_created é emitido somente após sucesso.
+
+Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.

@@ -1,5 +1,15 @@
+import { compatibleEntryCategory } from "../entry-guidance";
+import { trackAnalyticsAction } from "../../analytics/tracker";
+import { useAuth } from "../../../shared/hooks/use-auth";
 import type { ExpenseCategory, FinanceEntryType } from "@lucro-caseiro/contracts";
-import { Button, fonts, radii, Typography, useTheme, type Theme } from "@lucro-caseiro/ui";
+import {
+  Button,
+  fonts,
+  radii,
+  Typography,
+  useTheme,
+  type Theme,
+} from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import type { AppIconName } from "../../../shared/components/app-icon";
 import React, { useMemo, useRef, useState } from "react";
@@ -20,7 +30,7 @@ import {
 import { CalendarModal } from "../../../shared/components/calendar-modal";
 import { useCreateFinanceEntry } from "../hooks";
 import { showToast } from "../../../shared/components/toast";
-import { alertValidation, alertError } from "../../../shared/utils/alerts";
+import { alertError } from "../../../shared/utils/alerts";
 import {
   desktopAction,
   desktopCompactField,
@@ -31,6 +41,7 @@ import { StandardModal } from "../../../shared/components/standard-modal";
 
 interface CreateFinanceEntryProps {
   visible: boolean;
+  initialType?: FinanceEntryType;
   onClose: () => void;
   onSuccess?: () => void;
 }
@@ -66,6 +77,7 @@ function capitalize(value: string): string {
 
 export function CreateFinanceEntry({
   visible,
+  initialType = "income",
   onClose,
   onSuccess,
 }: Readonly<CreateFinanceEntryProps>) {
@@ -73,7 +85,7 @@ export function CreateFinanceEntry({
   const isDesktop = useDesktopLayout();
   const compactField = desktopCompactField(isDesktop);
   const experienceCopy = useBusinessCopy();
-  const categories = CATEGORIES.map((item) => {
+  const expenseChoices = CATEGORIES.map((item) => {
     if (item.key === "material") {
       return { ...item, label: capitalize(experienceCopy.materialNoun) };
     }
@@ -82,7 +94,7 @@ export function CreateFinanceEntry({
     }
     return item;
   });
-  const [type, setType] = useState<FinanceEntryType>("income");
+  const [type, setType] = useState<FinanceEntryType>(initialType);
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<ExpenseCategory | "">("");
@@ -91,29 +103,76 @@ export function CreateFinanceEntry({
   const scrollRef = useRef<ScrollView>(null);
 
   const createEntry = useCreateFinanceEntry();
+  const [attempted, setAttempted] = useState(false);
+  const [categoryNotice, setCategoryNotice] = useState(false);
+  const amountRef = useRef<TextInput>(null);
+  const descriptionRef = useRef<TextInput>(null);
+  const dateRef = useRef<TextInput>(null);
+  const categoryOffset = useRef(0);
+  const categories =
+    type === "income"
+      ? [
+          {
+            key: "sale" as const,
+            label: "Venda / atendimento",
+            icon: "cash-outline" as const,
+            color: theme.colors.success,
+          },
+          {
+            key: "other" as const,
+            label: "Outra entrada",
+            icon: "ellipsis-horizontal-circle-outline" as const,
+            color: theme.colors.textSecondary,
+          },
+        ]
+      : expenseChoices;
+  const invalidAmount =
+    !Number.isFinite(parseCurrencyInput(amount)) || parseCurrencyInput(amount) <= 0;
+  function changeType(next: FinanceEntryType) {
+    const compatible = compatibleEntryCategory(next, category);
+    setCategoryNotice(!!category && !compatible);
+    setCategory(compatible);
+    setType(next);
+  }
+  function validation(
+    name:
+      | "amount_invalid"
+      | "description_required"
+      | "category_required"
+      | "date_invalid",
+  ) {
+    void trackAnalyticsAction(`finance_${name}`, useAuth.getState().token);
+  }
 
   async function handleSubmit() {
     const parsedAmount = parseCurrencyInput(amount);
     const normalizedDate = brToIso(date);
-    const selectedCategory = category || (type === "income" ? "sale" : "");
+    setAttempted(true);
+    const selectedCategory = compatibleEntryCategory(type, category);
 
-    if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
-      alertValidation("Informe um valor maior que zero.");
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      validation("amount_invalid");
+      requestAnimationFrame(() => amountRef.current?.focus());
       return;
     }
 
     if (!description.trim()) {
-      alertValidation("Adicione uma descrição.");
+      validation("description_required");
+      requestAnimationFrame(() => descriptionRef.current?.focus());
       return;
     }
 
     if (!selectedCategory) {
-      alertValidation("Escolha uma categoria.");
+      validation("category_required");
+      requestAnimationFrame(() =>
+        scrollRef.current?.scrollTo({ y: categoryOffset.current, animated: true }),
+      );
       return;
     }
 
     if (date.trim() && !normalizedDate) {
-      alertValidation("Informe a data no formato DD/MM/AAAA.");
+      validation("date_invalid");
+      requestAnimationFrame(() => dateRef.current?.focus());
       return;
     }
 
@@ -175,22 +234,29 @@ export function CreateFinanceEntry({
               label="Entrada"
               selected={type === "income"}
               tone="green"
-              onPress={() => setType("income")}
+              onPress={() => changeType("income")}
             />
             <TypeButton
               icon="arrow-up-circle-outline"
               label="Saída"
               selected={type === "expense"}
               tone="muted"
-              onPress={() => setType("expense")}
+              onPress={() => changeType("expense")}
             />
           </View>
 
           <FormCard label="Valor (R$)">
+            {attempted && invalidAmount ? (
+              <Typography variant="body" accessibilityRole="alert">
+                Informe um valor maior que zero.
+              </Typography>
+            ) : null}
             <View style={compactField}>
               <Field
                 icon="cash-outline"
                 placeholder="Ex: 25,00"
+                inputRef={amountRef}
+                accessibilityLabel="Valor em reais"
                 value={amount}
                 onChangeText={(value) => setAmount(maskCurrencyInput(value))}
                 keyboardType="decimal-pad"
@@ -199,9 +265,16 @@ export function CreateFinanceEntry({
           </FormCard>
 
           <FormCard label="Descrição">
+            {attempted && !description.trim() ? (
+              <Typography variant="body" accessibilityRole="alert">
+                Descreva a origem da entrada ou o motivo da despesa.
+              </Typography>
+            ) : null}
             <Field
               icon="document-text-outline"
               placeholder={`Ex: ${experienceCopy.financeEntryExample}`}
+              inputRef={descriptionRef}
+              accessibilityLabel="Descrição do lançamento"
               value={description}
               onChangeText={setDescription}
               multiline
@@ -209,10 +282,25 @@ export function CreateFinanceEntry({
             />
           </FormCard>
 
-          <View style={styles.formCard}>
+          <View
+            style={styles.formCard}
+            onLayout={(event) => {
+              categoryOffset.current = event.nativeEvent.layout.y;
+            }}
+          >
             <Typography variant="bodyBold" style={styles.fieldLabel}>
               Categoria
             </Typography>
+            {categoryNotice ? (
+              <Typography variant="body" accessibilityRole="alert">
+                O tipo mudou. Escolha uma categoria compatível.
+              </Typography>
+            ) : null}
+            {attempted && !category ? (
+              <Typography variant="body" accessibilityRole="alert">
+                Escolha a categoria deste lançamento.
+              </Typography>
+            ) : null}
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -223,7 +311,10 @@ export function CreateFinanceEntry({
                 <Pressable
                   key={item.key}
                   accessibilityRole="button"
-                  onPress={() => setCategory(item.key)}
+                  onPress={() => {
+                    setCategory(item.key);
+                    setCategoryNotice(false);
+                  }}
                   style={[
                     styles.categoryButton,
                     category === item.key && styles.categoryButtonSelected,
@@ -247,9 +338,16 @@ export function CreateFinanceEntry({
           </View>
 
           <FormCard label="Data (opcional)">
+            {attempted && date.trim() && !brToIso(date) ? (
+              <Typography variant="body" accessibilityRole="alert">
+                Use uma data válida no formato DD/MM/AAAA.
+              </Typography>
+            ) : null}
             <Field
               icon="calendar-outline"
               placeholder="DD/MM/AAAA"
+              inputRef={dateRef}
+              accessibilityLabel="Data, dia mês e ano"
               value={date}
               onChangeText={(value) => setDate(maskDateBR(value))}
               onFocus={focusDateField}
@@ -343,12 +441,14 @@ function FormCard({
 function Field({
   icon,
   trailingIcon,
+  inputRef,
   trailingLabel,
   onTrailingPress,
   multiline,
   ...inputProps
 }: Readonly<
   React.ComponentProps<typeof TextInput> & {
+    inputRef?: React.Ref<TextInput>;
     icon: AppIconName;
     trailingIcon?: AppIconName;
     trailingLabel?: string;
@@ -363,6 +463,7 @@ function Field({
         <AppIcon name={icon} size={24} color={theme.colors.success} />
       </View>
       <TextInput
+        ref={inputRef}
         {...inputProps}
         multiline={multiline}
         placeholderTextColor={theme.colors.textSecondary}
@@ -399,7 +500,7 @@ function createStyles(theme: Theme) {
       borderWidth: 1,
       flexDirection: "row",
       gap: 8,
-      height: 46,
+      minHeight: 48,
       paddingHorizontal: 12,
     },
     categoryButtonSelected: {

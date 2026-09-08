@@ -1,3 +1,4 @@
+import { trackAnalyticsAction } from "../analytics/tracker";
 import type { CreateMaterial, Material, UpdateMaterial } from "@lucro-caseiro/contracts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -70,6 +71,7 @@ export function useCreateMaterial() {
   return useMutation({
     mutationFn: (data: CreateMaterial) => createMaterial(token!, data),
     onSuccess: () => {
+      void trackAnalyticsAction("material_created", token);
       void queryClient.invalidateQueries({ queryKey: MATERIALS_KEY });
     },
   });

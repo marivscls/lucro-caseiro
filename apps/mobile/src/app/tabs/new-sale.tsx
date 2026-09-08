@@ -1,3 +1,6 @@
+import { useAuth } from "../../shared/hooks/use-auth";
+import { guidanceEvent } from "../../shared/guidance/guidance-events";
+import { ScreenGuidance } from "../../shared/guidance/screen-guidance";
 import { formatCurrency } from "../../shared/utils/format";
 import type {
   Product,
@@ -356,6 +359,7 @@ function QuickActionCard({
 }
 
 export default function NewSaleScreen() {
+  const guidanceUserId = useAuth((state) => state.userId);
   const { theme } = useTheme();
   const { copy } = useBrand();
   const isDesktop = useDesktopLayout();
@@ -681,17 +685,6 @@ export default function NewSaleScreen() {
     return true;
   }
 
-  function handleHelpPress() {
-    const messages: Record<Step, string> = {
-      1: "Escolha um cliente da lista ou continue como cliente avulso.",
-      2: "Toque no + do produto para adicionar. Use o - para diminuir. O total fica sempre no rodape.",
-      3: "Selecione a forma de pagamento combinada com o cliente.",
-      4: "Revise os itens, cliente, pagamento e total antes de registrar a venda.",
-    };
-
-    showAlert({ title: "Ajuda", message: messages[step] });
-  }
-
   const filteredProducts = products.filter((product) =>
     productMatchesSearch(product, productSearch),
   );
@@ -894,29 +887,23 @@ export default function NewSaleScreen() {
             ) : null}
             <Typography variant="screenTitle">Nova Venda</Typography>
           </View>
-          <Pressable
-            onPress={handleHelpPress}
-            accessibilityRole="button"
-            accessibilityLabel="Ajuda"
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 4,
-              minHeight: 48,
-              paddingHorizontal: spacing.sm,
-            }}
-          >
-            <AppIcon
-              name="help-circle-outline"
-              size={24}
-              color={theme.colors.textSecondary}
-            />
-            <Typography variant="caption" color={theme.colors.textSecondary}>
-              Ajuda
-            </Typography>
-          </Pressable>
         </View>
 
+        <ScreenGuidance
+          area="new_sale"
+          onStart={() => {
+            if (products.length === 0) setShowCreateProduct(true);
+            else setStep(2);
+          }}
+          actionLabel={
+            products.length === 0 ? "Cadastrar produto e continuar" : "Escolher produtos"
+          }
+          hasRecords={(salesData?.total ?? 0) > 0 || step > 1 || cart.length > 0}
+          loading={loadingProducts || productsQuery.isError}
+          suspended={
+            showCreateProduct || showScanner || showBarcodeSearch || guidedFirstSale
+          }
+        />
         <StepIndicator step={step} align={isDesktop ? "flex-start" : "center"} />
 
         <View style={{ paddingBottom: spacing.xl }}>
@@ -2232,6 +2219,9 @@ export default function NewSaleScreen() {
               setShowCreateProduct(false);
               setCreateProductInitial(undefined);
               addToCart(product);
+              setStep(2);
+              if (guidanceUserId)
+                guidanceEvent("new_sale", "prerequisite_resumed", guidanceUserId);
             }}
           />
         </SafeAreaView>

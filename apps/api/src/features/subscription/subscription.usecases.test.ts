@@ -295,7 +295,7 @@ describe("SubscriptionUseCases", () => {
 
     it("notifies activation without using the profile name", async () => {
       const notifyLifecycle = vi.fn(() => Promise.resolve());
-      const expiresAt = new Date("2026-09-06T16:13:15.823Z");
+      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
       const { sut } = makeSut({}, undefined, undefined, notifyLifecycle);
 
       await sut.activatePlan(USER_ID, "professional", expiresAt);

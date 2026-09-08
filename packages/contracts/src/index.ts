@@ -26,3 +26,5 @@ export * from "./schemas/retail";
 export * from "./schemas/operations";
 export * from "./schemas/verticals";
 export * from "./pricing-calculator";
+
+export * from "./schemas/guidance";

@@ -12,7 +12,7 @@ import {
 } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import type { AppIconName } from "../../../shared/components/app-icon";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -69,6 +69,8 @@ import { createInternalProductCode } from "../barcode";
 interface CreateProductFormProps {
   readonly onSuccess?: (product: Product) => void;
   readonly onPriceInvite?: () => void;
+  /** A tarefa de origem apresenta o sucesso ao retomar um cadastro dependente. */
+  readonly successFeedback?: "alert" | "parent";
   readonly initialSalePrice?: number;
   readonly initialValues?: {
     name?: string;
@@ -122,7 +124,12 @@ type TextFieldCardProps = Readonly<{
 }> &
   TextInputProps;
 
-function TextFieldCard({ icon, isDesktop = false, ...inputProps }: TextFieldCardProps) {
+function TextFieldCard({
+  icon,
+  isDesktop = false,
+  inputRef,
+  ...inputProps
+}: TextFieldCardProps & { inputRef?: React.Ref<TextInput> }) {
   const { theme } = useTheme();
   const pal = useFieldPalette();
   return (
@@ -141,6 +148,8 @@ function TextFieldCard({ icon, isDesktop = false, ...inputProps }: TextFieldCard
     >
       <AppIcon name={icon} size={22} color={theme.colors.textSecondary} />
       <TextInput
+        ref={inputRef}
+        accessibilityLabel={inputProps.accessibilityLabel ?? inputProps.placeholder}
         placeholderTextColor={pal.placeholder}
         style={{
           flex: 1,
@@ -159,12 +168,14 @@ function CategoryField({
   value,
   onChange,
   categories,
+  focusRequest = 0,
   placeholder,
   isDesktop = false,
 }: Readonly<{
   value: string;
   onChange: (v: string) => void;
   categories: string[];
+  focusRequest?: number;
   placeholder: string;
   isDesktop?: boolean;
 }>) {
@@ -173,6 +184,12 @@ function CategoryField({
   const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
+  useEffect(() => {
+    if (focusRequest > 0) {
+      setDraft(value);
+      setOpen(true);
+    }
+  }, [focusRequest]);
 
   function openSheet() {
     setDraft(value);
@@ -217,7 +234,7 @@ function CategoryField({
       <ResponsiveOverlayModal
         visible={open}
         transparent
-        animationType="slide"
+        animationType={Platform.OS === "web" ? "none" : "slide"}
         onRequestClose={() => setOpen(false)}
       >
         <KeyboardAvoidingView
@@ -583,6 +600,7 @@ function ExtraPhotosField({
 export function CreateProductForm({
   onSuccess,
   onPriceInvite,
+  successFeedback = "alert",
   initialSalePrice,
   initialValues,
   analyticsSource,
@@ -599,6 +617,10 @@ export function CreateProductForm({
   // larguras fixas foram pensadas para o uso inline em desktop (fluxo new-sale).
   const wideLayout = isDesktop && !modal;
   const split = desktopSplitLayout(wideLayout);
+  const nameInput = useRef<TextInput>(null);
+  const priceInput = useRef<TextInput>(null);
+  const [categoryFocus, setCategoryFocus] = useState(0);
+  const [attempted, setAttempted] = useState(false);
   const [name, setName] = useState(initialValues?.name ?? "");
   const [category, setCategory] = useState(initialValues?.category ?? "");
   const [salePrice, setSalePrice] = useState(
@@ -673,6 +695,7 @@ export function CreateProductForm({
     const price = parseCurrencyInput(salePrice);
     const cost = costPrice ? parseCurrencyInput(costPrice) : undefined;
 
+    setAttempted(true);
     const validationError = validateProductDraft({
       name,
       category,
@@ -681,7 +704,21 @@ export function CreateProductForm({
       components,
     });
     if (validationError) {
-      alertValidation(validationError);
+      let field:
+        | "name_required"
+        | "category_required"
+        | "price_invalid"
+        | "components_required" = "components_required";
+      if (!name.trim()) field = "name_required";
+      else if (!category.trim()) field = "category_required";
+      else if (!Number.isFinite(price) || price <= 0) field = "price_invalid";
+      void trackAnalyticsAction(`product_${field}`, useAuth.getState().token);
+      if (field === "name_required")
+        requestAnimationFrame(() => nameInput.current?.focus());
+      else if (field === "category_required") setCategoryFocus((value) => value + 1);
+      else if (field === "price_invalid")
+        requestAnimationFrame(() => priceInput.current?.focus());
+      else alertValidation(validationError);
       return;
     }
     if (cost !== undefined && (!Number.isFinite(cost) || cost < 0)) {
@@ -792,19 +829,20 @@ export function CreateProductForm({
         components: componentsPayload,
         variations: variationsEnabled ? variations : undefined,
       });
-      showAlert({
-        title: "Produto cadastrado!",
-        message: `${name} foi adicionado à sua lista`,
-        buttons: onPriceInvite
-          ? [
-              { text: "Agora não", style: "cancel" },
-              {
-                text: "Calcular se dá lucro",
-                onPress: onPriceInvite,
-              },
-            ]
-          : undefined,
-      });
+      if (successFeedback === "alert")
+        showAlert({
+          title: "Produto cadastrado!",
+          message: `${name} foi adicionado à sua lista`,
+          buttons: onPriceInvite
+            ? [
+                { text: "Agora não", style: "cancel" },
+                {
+                  text: "Calcular se dá lucro",
+                  onPress: onPriceInvite,
+                },
+              ]
+            : undefined,
+        });
       if (analyticsSource === "pricing") {
         void trackAnalyticsAction(
           "product_created_from_pricing",
@@ -839,6 +877,7 @@ export function CreateProductForm({
   const fields = (
     <>
       <FormSection
+        collapsible={false}
         title="Informações básicas"
         subtitle={`Nome, categoria e tipo do ${experienceCopy.productNoun}`}
         icon="pricetag-outline"
@@ -851,10 +890,17 @@ export function CreateProductForm({
           }}
         >
           <View style={wideLayout ? { flex: 1 } : undefined}>
+            {attempted && !name.trim() ? (
+              <Typography variant="body" accessibilityRole="alert">
+                Informe o nome do que você vende.
+              </Typography>
+            ) : null}
             <FieldLabel label={`Nome do ${experienceCopy.productNoun}`} required />
             <TextFieldCard
               icon="pricetag-outline"
               placeholder={`Ex: ${experienceCopy.productExample}`}
+              inputRef={nameInput}
+              accessibilityLabel={`Nome do ${experienceCopy.productNoun}, obrigatório`}
               value={name}
               onChangeText={setName}
               autoFocus
@@ -863,8 +909,14 @@ export function CreateProductForm({
           </View>
 
           <View style={wideLayout ? { flex: 1 } : undefined}>
+            {attempted && !category.trim() ? (
+              <Typography variant="body" accessibilityRole="alert">
+                Escolha uma categoria para organizar o produto.
+              </Typography>
+            ) : null}
             <FieldLabel label="Categoria" required />
             <CategoryField
+              focusRequest={categoryFocus}
               value={category}
               onChange={setCategory}
               categories={categories}
@@ -873,29 +925,10 @@ export function CreateProductForm({
             />
           </View>
         </View>
-
-        {!simpleOnly ? (
-          <CompositeToggle
-            value={isComposite}
-            onChange={handleCompositeChange}
-            locked={!canUseCompositeProducts}
-          />
-        ) : null}
-
-        {isComposite ? (
-          <ComponentPicker
-            value={components}
-            onChange={setComponents}
-            onCreateSimpleProduct={() => setCreatingComponent(true)}
-          />
-        ) : null}
-
-        {variationsEnabled && !isComposite ? (
-          <VariationEditor value={variations} onChange={setVariations} />
-        ) : null}
       </FormSection>
 
       <FormSection
+        collapsible={false}
         title="Preço e custo"
         subtitle="Veja o ganho estimado enquanto preenche"
         icon="cash-outline"
@@ -908,14 +941,14 @@ export function CreateProductForm({
             gap: spacing.xl,
           }}
         >
-          {/* Venda por peso (kg) so faz sentido para produto simples. */}
-          {!isComposite && weightEnabled && (
-            <View style={wideLayout ? { flex: 1, maxWidth: 640 } : undefined}>
-              <SaleUnitToggle value={saleUnit} onChange={setSaleUnit} />
-            </View>
-          )}
-
           <View style={isDesktop ? desktopCompactField(isDesktop) : undefined}>
+            {attempted &&
+            (!Number.isFinite(parseCurrencyInput(salePrice)) ||
+              parseCurrencyInput(salePrice) <= 0) ? (
+              <Typography variant="body" accessibilityRole="alert">
+                Informe um preço maior que zero. Exemplo: 25,00.
+              </Typography>
+            ) : null}
             <FieldLabel
               label={isKg ? "Preço por kg (R$)" : "Preço de venda (R$)"}
               required
@@ -923,6 +956,8 @@ export function CreateProductForm({
             <TextFieldCard
               icon="cash-outline"
               placeholder={isKg ? "Ex: 80,00" : "Ex: 3,50"}
+              inputRef={priceInput}
+              accessibilityLabel="Preço de venda em reais, obrigatório"
               value={salePrice}
               onChangeText={(value) => setSalePrice(maskCurrencyInput(value))}
               keyboardType="numeric"
@@ -944,6 +979,12 @@ export function CreateProductForm({
             </View>
           ) : null}
         </View>
+        {/* Venda por peso (kg) so faz sentido para produto simples. */}
+        {!isComposite && weightEnabled && (
+          <View style={wideLayout ? { flex: 1, maxWidth: 640 } : undefined}>
+            <SaleUnitToggle value={saleUnit} onChange={setSaleUnit} />
+          </View>
+        )}
         {estimatedGain !== null && marginOnPrice !== null && !wideLayout ? (
           <View
             style={{
@@ -971,6 +1012,34 @@ export function CreateProductForm({
               Margem sobre o preço: {marginOnPrice.toFixed(1).replace(".", ",")}%
             </Typography>
           </View>
+        ) : null}
+      </FormSection>
+
+      <FormSection
+        title="Tipo e variações"
+        subtitle="Kit, componentes e opções do produto"
+        icon="cube-outline"
+        initiallyOpen={isComposite}
+        collapsible={!isComposite}
+      >
+        {!simpleOnly ? (
+          <CompositeToggle
+            value={isComposite}
+            onChange={handleCompositeChange}
+            locked={!canUseCompositeProducts}
+          />
+        ) : null}
+
+        {isComposite ? (
+          <ComponentPicker
+            value={components}
+            onChange={setComponents}
+            onCreateSimpleProduct={() => setCreatingComponent(true)}
+          />
+        ) : null}
+
+        {variationsEnabled && !isComposite ? (
+          <VariationEditor value={variations} onChange={setVariations} />
         ) : null}
       </FormSection>
 

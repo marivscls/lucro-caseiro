@@ -1,0 +1,30 @@
+[
+  {
+    "file": "01-seu-negocio-1080x1920.png",
+    "width": 1080,
+    "height": 1920,
+    "channels": 3,
+    "bytes": 2487757
+  },
+  {
+    "file": "02-precificacao-1080x1920.png",
+    "width": 1080,
+    "height": 1920,
+    "channels": 3,
+    "bytes": 1170489
+  },
+  {
+    "file": "03-catalogo-1080x1920.png",
+    "width": 1080,
+    "height": 1920,
+    "channels": 3,
+    "bytes": 1545771
+  },
+  {
+    "file": "04-financeiro-1080x1920.png",
+    "width": 1080,
+    "height": 1920,
+    "channels": 3,
+    "bytes": 1320643
+  }
+]

@@ -91,3 +91,9 @@ Uma instalação anônima abre o app, recebe UUID local e chama `/open`; após l
 - 2026-07-18: o funil passou a registrar início de precificação, produto criado pelo CTA do
   resultado, publicação do catálogo, limite atingido e intenção de recurso pago. Conclusão e
   cancelamento de assinatura ficam no backend para refletir a transição real do plano.
+
+## Orientação contextual — 2026-09-07
+
+Orientações usam allowlist compartilhada (área + evento, sem payload livre). Sucessos de mutations acionam conclusão local após hidratação, isolada por conta, mesmo se a coleta falhar. Cliques e ajuda não completam tarefas; preço percebido é separado de preço salvo.
+
+Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.

@@ -1,5 +1,5 @@
 import type { Product } from "@lucro-caseiro/contracts";
-import { Input, Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
+import { Button, Input, Typography, radii, spacing, useTheme } from "@lucro-caseiro/ui";
 import React, { useMemo, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
@@ -10,6 +10,7 @@ import { Skeleton } from "../../../shared/components/skeleton";
 interface ProductPickerProps {
   selectedId?: string | null;
   onSelect: (product: Product) => void;
+  onCreate?: () => void;
   title?: string;
   subtitle?: string;
 }
@@ -17,12 +18,13 @@ interface ProductPickerProps {
 export function ProductPicker({
   selectedId,
   onSelect,
+  onCreate,
   title = "Escolha um produto",
   subtitle = "Busque no seu catálogo e toque para selecionar.",
 }: Readonly<ProductPickerProps>) {
   const { theme } = useTheme();
   const [search, setSearch] = useState("");
-  const { data, isLoading } = useProducts({ limit: 100 });
+  const { data, isLoading, error, refetch } = useProducts({ limit: 100 });
   const products = data?.items ?? [];
   const visibleProducts = useMemo(() => {
     const query = search.trim().toLocaleLowerCase("pt-BR");
@@ -118,17 +120,29 @@ export function ProductPicker({
           </ScrollView>
         </View>
       )}
-      {!isLoading && products.length === 0 ? (
-        <Typography variant="caption" color={theme.colors.textSecondary}>
-          Cadastre um produto antes de criar a etiqueta.
-        </Typography>
+      {error ? (
+        <Button
+          title="Tentar carregar produtos novamente"
+          onPress={() => void refetch()}
+        />
+      ) : null}
+      {!isLoading && !error && products.length === 0 ? (
+        <View style={{ gap: spacing.sm }}>
+          <Typography variant="body">
+            A etiqueta usa o nome de um produto. Cadastre-o aqui e continue com os dados
+            que já preencheu.
+          </Typography>
+          {onCreate ? (
+            <Button title="Cadastrar produto e continuar" onPress={onCreate} size="lg" />
+          ) : null}
+        </View>
       ) : null}
     </View>
   );
 }
 
 export function LabelProductPicker(
-  props: Readonly<Pick<ProductPickerProps, "selectedId" | "onSelect">>,
+  props: Readonly<Pick<ProductPickerProps, "selectedId" | "onSelect" | "onCreate">>,
 ) {
   return (
     <ProductPicker

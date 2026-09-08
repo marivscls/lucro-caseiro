@@ -15,7 +15,7 @@ const config: KnipConfig = {
       project: ["**/*.mjs"],
     },
     "apps/mobile": {
-      entry: ["src/app/**/*.{ts,tsx}"],
+      entry: ["src/app/**/*.{ts,tsx}", "scripts/guidance-smoke.cjs"],
       project: ["src/**/*.{ts,tsx}"],
       ignore: [
         "src/**/hooks.ts",

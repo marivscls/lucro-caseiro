@@ -843,6 +843,13 @@ export default function QuotesScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <ScreenHeader
+        guidance={{
+          area: "quotes",
+          onStart: () => setShowCreate(true),
+          hasRecords: (data?.items.length ?? 0) > 0,
+          loading: isLoading || !!error,
+          suspended: showCreate,
+        }}
         title="Orçamentos"
         subtitle="Propostas organizadas, pedidos mais perto."
         subtitleNumberOfLines={2}

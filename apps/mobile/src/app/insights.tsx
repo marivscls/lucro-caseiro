@@ -526,7 +526,17 @@ export default function InsightsScreen() {
     >
       <Stack.Screen options={{ headerShown: false }} />
 
-      <ScreenHeader title="Insights" fallbackRoute="/tabs" hideBack={isDesktop} />
+      <ScreenHeader
+        guidance={{
+          area: "insights",
+          onStart: () => router.push("/tabs/new-sale"),
+          hasRecords: (data?.totalSales ?? 0) > 0,
+          loading: loadingProfile || isLoading || !!error,
+        }}
+        title="Resultados"
+        fallbackRoute="/tabs"
+        hideBack={isDesktop}
+      />
 
       {loadingProfile || isLoading ? (
         <View

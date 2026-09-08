@@ -1,3 +1,4 @@
+import { ScreenGuidance } from "../shared/guidance/screen-guidance";
 import type { ExpenseCategory, RecurringExpense } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import {
@@ -193,6 +194,13 @@ export default function RecurringExpensesScreen() {
           isDesktop={isDesktop}
         />
 
+        <ScreenGuidance
+          area="recurring_expenses"
+          onStart={handleAddPress}
+          hasRecords={recurringItems.length > 0}
+          loading={isLoading || !items}
+          suspended={showForm || !!selectedExpense}
+        />
         <ScrollView
           contentContainerStyle={[
             styles.content,

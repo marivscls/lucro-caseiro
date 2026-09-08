@@ -1,3 +1,4 @@
+import { ScreenGuidance } from "../shared/guidance/screen-guidance";
 import type { CatalogSettings, Product, Service } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import {
@@ -118,20 +119,20 @@ function CatalogHero({
   const nativeArtFrame = catalogHeroNativeArtFrame(viewportWidth);
   const artHeight = nativeArtFrame.width / CATALOG_HERO_ASPECT_RATIO;
   const illustrationUri = Asset.fromModule(illustration).uri;
-  let heroHeight = 350;
+  let heroHeight = 240;
   if (isWideHero) heroHeight = 367;
   // The wrapper includes its left padding in its measured width on web.
-  let textWidth: number | "50%" | "52%" = "50%";
-  if (viewportWidth >= 430) textWidth = "52%";
+  let textWidth: number | "100%" | "52%" = "100%";
+  if (viewportWidth >= 768) textWidth = "52%";
   if (isWideHero) textWidth = 403;
-  const descriptionWidth = isWideHero ? "100%" : "75%";
+  const descriptionWidth = "100%";
   let copyGap: number = spacing.md;
   if (isVeryCompact) copyGap = 7;
   if (isWideHero) copyGap = 22;
   const copyLeft = isWideHero ? 43 : 24;
-  const copyTop = isWideHero ? 50 : 48;
+  const copyTop = isWideHero ? 50 : 24;
   const statusHeight = isWideHero ? 42 : 32;
-  const statusFontSize = isWideHero ? 16 : 13;
+  const statusFontSize = 16;
 
   return (
     <View
@@ -176,9 +177,11 @@ function CatalogHero({
           gap: copyGap,
           paddingLeft: copyLeft,
           paddingTop: copyTop,
+          paddingRight: isWideHero ? 0 : 24,
+          paddingBottom: isWideHero ? 0 : 76,
         }}
       >
-        <Typography variant="h3" numberOfLines={2} color={colors.onWine}>
+        <Typography variant="h3" color={colors.onWine}>
           {"Seu negócio,\nem uma vitrine só."}
         </Typography>
         <Typography variant="body" color="#F7EEF0" style={{ width: descriptionWidth }}>
@@ -213,52 +216,54 @@ function CatalogHero({
               lineHeight: isWideHero ? 22 : 18,
             }}
           >
-            {enabled ? "Catálogo no ar" : "Catálogo desativado"}
+            {enabled ? "Link publicado" : "Link desativado"}
           </Typography>
         </View>
       </View>
 
-      <View
-        testID="catalog-hero-art-anchor"
-        pointerEvents="none"
-        accessible={false}
-        aria-hidden
-        collapsable={false}
-        style={{
-          position: "absolute",
-          width: nativeArtFrame.width,
-          height: artHeight,
-          top: nativeArtFrame.top,
-          right: nativeArtFrame.right,
-          zIndex: 2,
-          elevation: 2,
-        }}
-      >
-        {Platform.OS === "web" ? (
-          <img
-            data-testid="catalog-hero-illustration"
-            src={illustrationUri}
-            alt=""
-            style={{
-              display: "block",
-              width: nativeArtFrame.width,
-              height: artHeight,
-              maxWidth: "none",
-              objectFit: "contain",
-              transform: "none",
-            }}
-          />
-        ) : (
-          <Image
-            testID="catalog-hero-illustration"
-            source={illustration}
-            resizeMode="contain"
-            accessible={false}
-            accessibilityIgnoresInvertColors
-            style={{ width: nativeArtFrame.width, height: artHeight }}
-          />
-        )}
-      </View>
+      {isWideHero ? (
+        <View
+          testID="catalog-hero-art-anchor"
+          pointerEvents="none"
+          accessible={false}
+          aria-hidden
+          collapsable={false}
+          style={{
+            position: "absolute",
+            width: nativeArtFrame.width,
+            height: artHeight,
+            top: nativeArtFrame.top,
+            right: nativeArtFrame.right,
+            zIndex: 2,
+            elevation: 2,
+          }}
+        >
+          {Platform.OS === "web" ? (
+            <img
+              data-testid="catalog-hero-illustration"
+              src={illustrationUri}
+              alt=""
+              style={{
+                display: "block",
+                width: nativeArtFrame.width,
+                height: artHeight,
+                maxWidth: "none",
+                objectFit: "contain",
+                transform: "none",
+              }}
+            />
+          ) : (
+            <Image
+              testID="catalog-hero-illustration"
+              source={illustration}
+              resizeMode="contain"
+              accessible={false}
+              accessibilityIgnoresInvertColors
+              style={{ width: nativeArtFrame.width, height: artHeight }}
+            />
+          )}
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -721,7 +726,23 @@ function CatalogContentManager({
   const catalogUrl = publicCatalogUrl(settings.slug);
   const loadingCounts = productsQuery.isLoading || servicesQuery.isLoading;
   const publishedCount = visibleProducts + visibleServices;
-  const secondaryActionsStacked = viewportWidth < 350;
+  const emptyDestination =
+    products.length + services.length === 0
+      ? "/products?create=getting-started"
+      : "/catalog?editor=1";
+  let primaryActionLabel = settings.enabled ? "Compartilhar catálogo" : "Ativar catálogo";
+  let primaryAction = settings.enabled ? onShare : onActivate;
+  if (publishedCount === 0) {
+    primaryActionLabel = "Adicionar conteúdo à vitrine";
+    primaryAction = () => router.push(emptyDestination);
+  }
+  let readinessMessage =
+    "Conteúdo disponível. Confira contato e condições em Ver como cliente antes de divulgar.";
+  if (loadingCounts) readinessMessage = "Conferindo o conteúdo...";
+  else if (publishedCount === 0)
+    readinessMessage =
+      "Seu link ainda está sem itens publicados. Adicione um produto ou serviço e confira o contato antes de divulgar.";
+  const secondaryActionsStacked = viewportWidth < 600;
   const compactSummary = viewportWidth < 350;
   const identityImages = products
     .map((product) => product.photoUrl)
@@ -735,9 +756,33 @@ function CatalogContentManager({
   if (spaciousLayout) organizeButtonStyle = { minHeight: 52 };
 
   return (
-    <View
-      style={{ gap: spaciousLayout ? spacing["2xl"] : spacing["3xl"], marginTop: -58 }}
-    >
+    <View style={{ gap: spaciousLayout ? spacing["2xl"] : spacing["3xl"], marginTop: 0 }}>
+      <ScreenGuidance
+        area="catalog"
+        hasRecords={visibleProducts + visibleServices > 0}
+        loading={
+          productsQuery.isLoading ||
+          servicesQuery.isLoading ||
+          productsQuery.isError ||
+          servicesQuery.isError
+        }
+        onStart={() =>
+          router.push(
+            products.length + services.length === 0
+              ? "/products?create=getting-started"
+              : "/catalog?editor=1",
+          )
+        }
+        actionLabel={
+          products.length + services.length === 0
+            ? "Cadastrar primeiro produto"
+            : "Escolher conteúdo da vitrine"
+        }
+        secondary={{
+          label: "Ofereço serviços",
+          onPress: () => router.push("/services?create=1"),
+        }}
+      />
       <View
         testID="catalog-link-card"
         style={{ marginHorizontal: 12, position: "relative", zIndex: 5 }}
@@ -847,7 +892,7 @@ function CatalogContentManager({
           </View>
 
           <Button
-            title={settings.enabled ? "Compartilhar catálogo" : "Ativar catálogo"}
+            title={primaryActionLabel}
             size="lg"
             icon={
               <AppIcon
@@ -856,16 +901,22 @@ function CatalogContentManager({
                 color={theme.colors.textOnPrimary}
               />
             }
-            onPress={settings.enabled ? onShare : onActivate}
-            accessibilityLabel={
-              settings.enabled ? "Compartilhar catálogo" : "Ativar catálogo"
-            }
+            onPress={primaryAction}
+            accessibilityLabel={primaryActionLabel}
             style={{
               width: "100%",
               minHeight: spaciousLayout ? 56 : undefined,
               backgroundColor: colors.rose,
             }}
           />
+          <Typography variant="body">{readinessMessage}</Typography>
+          {publishedCount === 0 && settings.enabled ? (
+            <Button
+              title="Compartilhar link mesmo assim"
+              variant="outline"
+              onPress={onShare}
+            />
+          ) : null}
           <View
             style={{
               flexDirection: secondaryActionsStacked ? "column" : "row",
@@ -1309,7 +1360,9 @@ function CatalogForm({
             overflow: "visible",
           }}
         >
-          <CatalogHero enabled={settings.enabled} illustration={catalogStorefront} />
+          {customizerProducts.length + customizerServices.length > 0 ? (
+            <CatalogHero enabled={settings.enabled} illustration={catalogStorefront} />
+          ) : null}
           <CatalogContentManager
             settings={settings}
             businessName={businessName}

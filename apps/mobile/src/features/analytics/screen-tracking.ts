@@ -5,7 +5,7 @@ const STATIC_SCREENS: Record<string, AnalyticsScreenName> = {
   "/login": "login",
   "/register": "register",
   "/auth/callback": "auth_callback",
-  // Chave de evento fixa, não uma credencial.
+  // Chave de evento fixa, nÃ£o uma credencial.
   // eslint-disable-next-line sonarjs/no-hardcoded-passwords
   "/reset-password": "reset_password",
   "/onboarding": "onboarding",
@@ -40,6 +40,8 @@ const ROOT_SCREENS: Record<string, AnalyticsScreenName> = {
   settings: "settings",
   suppliers: "suppliers",
   support: "support",
+  services: "services",
+  "pricing-complete": "pricing",
 };
 
 export function analyticsScreenForPath(pathname: string): AnalyticsScreenName | null {

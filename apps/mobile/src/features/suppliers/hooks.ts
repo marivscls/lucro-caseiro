@@ -1,3 +1,4 @@
+import { trackAnalyticsAction } from "../analytics/tracker";
 import type { CreateSupplier, UpdateSupplier } from "@lucro-caseiro/contracts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -53,6 +54,7 @@ export function useCreateSupplier() {
   return useMutation({
     mutationFn: (data: CreateSupplier) => createSupplier(token!, data),
     onSuccess: () => {
+      void trackAnalyticsAction("supplier_created", token);
       void queryClient.invalidateQueries({ queryKey: SUPPLIERS_KEY });
       void queryClient.invalidateQueries({ queryKey: ["purchases"] });
       // Atualiza a contagem de limites do plano (fornecedores) pra o gate bloquear na hora certa.

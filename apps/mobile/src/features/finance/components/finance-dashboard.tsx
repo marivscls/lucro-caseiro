@@ -150,6 +150,9 @@ export function FinanceDashboard({
   const [filter, setFilter] = useState<FilterType>("all");
   const [period, setPeriod] = useState<FinancePeriod>("month");
   const [searchTerm, setSearchTerm] = useState("");
+  const [initialEntryType, setInitialEntryType] = useState<"income" | "expense">(
+    "income",
+  );
   const [showCreateEntry, setShowCreateEntry] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<FinanceEntry | null>(null);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
@@ -195,6 +198,8 @@ export function FinanceDashboard({
   const profitDeltaPct =
     period === "month" ? computeProfitDeltaPct(profit, prevProfit) : null;
   const hasNoMovements = income === 0 && expenses === 0;
+  let balanceLabel = "Sem movimentações";
+  if (!hasNoMovements) balanceLabel = profit >= 0 ? "Saldo positivo" : "Saldo negativo";
   const filteredEntries = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
@@ -421,6 +426,24 @@ export function FinanceDashboard({
   return (
     <>
       <ScreenHeader
+        guidance={{
+          area: "finance",
+          onStart: () => {
+            setInitialEntryType("income");
+            openCreateEntry();
+          },
+          actionLabel: "Registrar entrada",
+          secondary: {
+            label: "Registrar despesa",
+            onPress: () => {
+              setInitialEntryType("expense");
+              openCreateEntry();
+            },
+          },
+          hasRecords: !hasNoMovements,
+          loading: isLoading || !!error,
+          suspended: showCreateEntry || !!selectedEntry,
+        }}
         title="Financeiro"
         subtitle="Acompanhe seu lucro e fluxo financeiro"
         fallbackRoute="/tabs"
@@ -565,7 +588,9 @@ export function FinanceDashboard({
                 color={colors.onWine}
                 style={narrowLayout && styles.heroLabelNarrow}
               >
-                Lucro do período
+                {hasNoMovements
+                  ? "Sem movimentações no período"
+                  : "Resultado dos registros"}
               </Typography>
               <AppIcon
                 name="information-circle-outline"
@@ -632,6 +657,11 @@ export function FinanceDashboard({
           />
         </View>
 
+        <Typography variant="body">
+          {hasNoMovements
+            ? "Ainda não há movimentos neste período. Registre uma entrada ou despesa para começar."
+            : "Resultado calculado com as entradas e saídas registradas no período. Custos que você não informou ainda não estão incluídos."}
+        </Typography>
         <View style={styles.summaryRow}>
           <SummaryCard
             label="Entradas"
@@ -683,7 +713,7 @@ export function FinanceDashboard({
                 color={profit >= 0 ? colors.wine : colors.rose}
                 style={compactLayout && styles.flowStatusTextCompact}
               >
-                {profit >= 0 ? "Saldo positivo" : "Saldo negativo"}
+                {balanceLabel}
               </Typography>
               <AppIcon
                 name={profit >= 0 ? "trending-up-outline" : "trending-down-outline"}
@@ -1143,6 +1173,8 @@ export function FinanceDashboard({
       ) : null}
 
       <CreateFinanceEntry
+        key={`${showCreateEntry}:${initialEntryType}`}
+        initialType={initialEntryType}
         visible={showCreateEntry}
         onClose={() => setShowCreateEntry(false)}
         onSuccess={() => setShowCreateEntry(false)}

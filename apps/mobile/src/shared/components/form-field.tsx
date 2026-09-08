@@ -61,6 +61,7 @@ export type TextFieldCardProps = Readonly<{
   icon: AppIconName;
   iconSurface?: boolean;
   prefix?: string;
+  inputRef?: React.Ref<TextInput>;
   inputStyle?: StyleProp<TextStyle>;
 }> &
   TextInputProps;
@@ -72,6 +73,7 @@ export function TextFieldCard({
   iconSurface = false,
   prefix,
   inputStyle,
+  inputRef,
   ...inputProps
 }: TextFieldCardProps) {
   const { theme } = useTheme();
@@ -123,6 +125,8 @@ export function TextFieldCard({
           </Typography>
         ) : null}
         <TextInput
+          ref={inputRef}
+          accessibilityLabel={inputProps.accessibilityLabel ?? inputProps.placeholder}
           placeholderTextColor={pal.placeholder}
           style={[
             {

@@ -132,3 +132,11 @@ Dashboard financeiro do usuario: visualizar resumo mensal (entradas, saidas, luc
   espera o `useInsights(1)` (skeleton enquanto `periodLoading && !selectedSales`).
 - 2026-08-31: Financeiro e Gastos fixos ganharam FAB `+` no cabeçalho e `ScreenCreateBar`
   no rodapé (`+ Novo lançamento` / `+ Novo gasto fixo`). O FAB flutuante circular saiu.
+
+## Orientação contextual — 2026-09-07
+
+Novos lançamentos oferecem categorias de entrada (sale/other) e saída (categorias de despesa). Troca de tipo limpa categoria incompatível com explicação; não altera registros anteriores. Entrada e despesa têm CTAs distintos. Estado sem movimentos deixa de ser chamado de saldo positivo. Validação por campo e conclusão após mutation bem-sucedida.
+
+Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
+
+Foco de erro é aplicado após o layout da mensagem; categoria inválida rola até a categoria, não até o fim do formulário. A rolagem automática web mantém o foco do campo.

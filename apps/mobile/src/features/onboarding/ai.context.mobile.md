@@ -68,3 +68,9 @@ Artesanato com prioridade de preço destaca a precificação de uma peça. Servi
 
 - 2026-09-04: prévia convertida em fluxo real com persistência por conta e layout compacto.
 - 2026-09-04: removidos nomes e convite de demonstração; Início só mostra o cartão personalizado após conclusão. A edição continua em Configurações.
+
+## Orientação contextual — 2026-09-07
+
+Home preserva prioridade do BusinessProfileCard e perfil recente. Orientação geral só preenche ausência de prioridade e é suspensa durante guia anterior. Não atribuir abandono histórico à personalização recente.
+
+Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.

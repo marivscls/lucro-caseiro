@@ -191,7 +191,7 @@ function PantrySummary({ items }: Readonly<{ items: Material[] }>) {
           }}
         >
           <Typography variant="h3" color={palette.onWine} numberOfLines={1}>
-            Sua despensa hoje
+            Seu estoque hoje
           </Typography>
           <View
             style={{
@@ -225,7 +225,7 @@ function PantrySummary({ items }: Readonly<{ items: Material[] }>) {
             style={{ fontSize: narrow ? 12 : fontSizes.sm }}
           >
             {items.length}{" "}
-            {items.length === 1 ? "insumo cadastrado" : "insumos cadastrados"}
+            {items.length === 1 ? "material cadastrado" : "materiais cadastrados"}
           </Typography>
           <View
             style={{
@@ -309,7 +309,7 @@ function ReplenishmentAlert({ items }: Readonly<{ items: Material[] }>) {
     <Pressable
       onPress={() => router.push("/buy-materials")}
       accessibilityRole="button"
-      accessibilityLabel="Ver lista de compras de insumos"
+      accessibilityLabel="Ver lista de compras de materiais"
       style={({ pressed }) => ({
         minHeight: 78,
         borderRadius: radii.xl,
@@ -518,7 +518,7 @@ function MaterialsScreenContent() {
     if (error) {
       return (
         <EmptyState
-          title="Não foi possível carregar seus insumos"
+          title="Não foi possível carregar seus materiais"
           description="Verifique sua conexão e tente novamente."
           action={<Button title="Tentar novamente" onPress={() => void refetch()} />}
         />
@@ -528,11 +528,11 @@ function MaterialsScreenContent() {
       return (
         <View style={{ flex: 1, justifyContent: "center" }}>
           <EmptyState
-            title="Sua despensa está vazia"
-            description="Cadastre o primeiro insumo para acompanhar quantidade, custo e reposição."
+            title="Seu estoque está vazia"
+            description="Cadastre o primeiro material para acompanhar quantidade, custo e reposição."
             action={
               <Button
-                title="Adicionar primeiro insumo"
+                title="Adicionar primeiro material"
                 onPress={() => setShowCreate(true)}
               />
             }
@@ -564,10 +564,10 @@ function MaterialsScreenContent() {
             ref={searchRef}
             value={search}
             onChangeText={setSearch}
-            placeholder="Buscar insumo"
+            placeholder="Buscar material"
             placeholderTextColor={palette.muted}
             returnKeyType="search"
-            accessibilityLabel="Buscar insumo por nome, categoria ou unidade"
+            accessibilityLabel="Buscar material por nome, categoria ou unidade"
             style={{
               flex: 1,
               minWidth: 0,
@@ -603,12 +603,12 @@ function MaterialsScreenContent() {
           }}
         >
           <Typography variant="h3" color={palette.ink}>
-            Na despensa
+            Seus materiais
           </Typography>
           <Pressable
             onPress={() => setShowSort(true)}
             accessibilityRole="button"
-            accessibilityLabel="Ordenar insumos"
+            accessibilityLabel="Ordenar materiais"
             style={({ pressed }) => ({
               minHeight: 44,
               paddingHorizontal: spacing.sm,
@@ -641,7 +641,7 @@ function MaterialsScreenContent() {
           >
             <AppIcon name="search-outline" size={34} color={palette.rose} />
             <Typography variant="h3" color={palette.ink} style={{ textAlign: "center" }}>
-              Nenhum insumo encontrado
+              Nenhum material encontrado
             </Typography>
             <Typography
               variant="body"
@@ -687,7 +687,14 @@ function MaterialsScreenContent() {
     >
       <Stack.Screen options={{ headerShown: false }} />
       <ScreenHeader
-        title="Insumos"
+        guidance={{
+          area: "materials",
+          onStart: () => setShowCreate(true),
+          hasRecords: (data?.items.length ?? 0) > 0,
+          loading: isLoading || !!error,
+          suspended: showCreate,
+        }}
+        title="Materiais"
         subtitle={isDesktop ? "Saiba o que tem, o que falta e o que repor." : undefined}
         onBack={() => router.replace("/tabs/more")}
         backLabel="Ir para Mais opções"
@@ -730,7 +737,7 @@ function MaterialsScreenContent() {
             <FAB
               icon="add"
               header
-              accessibilityLabel="Novo insumo"
+              accessibilityLabel="Novo material"
               onPress={() => setShowCreate(true)}
             />
           </View>
@@ -768,7 +775,7 @@ function MaterialsScreenContent() {
       </ScrollView>
 
       {!isLoading && !error && items.length > 0 ? (
-        <ScreenCreateBar title="+ Novo insumo" onPress={() => setShowCreate(true)} />
+        <ScreenCreateBar title="+ Novo material" onPress={() => setShowCreate(true)} />
       ) : null}
 
       <MaterialForm
@@ -790,7 +797,7 @@ function MaterialsScreenContent() {
       <StandardModal
         visible={showSort}
         onClose={() => setShowSort(false)}
-        title="Ordenar insumos"
+        title="Ordenar materiais"
       >
         {SORT_OPTIONS.map((option) => (
           <ModalChoice
@@ -808,7 +815,7 @@ function MaterialsScreenContent() {
       <StandardModal
         visible={showFilters}
         onClose={() => setShowFilters(false)}
-        title="Filtrar despensa"
+        title="Filtrar estoque"
         footer={
           <Button
             title="Limpar filtros"

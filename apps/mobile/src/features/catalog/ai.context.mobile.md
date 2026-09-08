@@ -251,3 +251,9 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
   (`fitTitle={false}`); o texto mais longo não encolhe.
 - 2026-08-31: no mobile a ilustração 3D fica menor e mais baixa (dentro do
   card vinho), para o título respirar e a sacola não subir em cima do texto.
+
+## Orientação contextual — 2026-09-07
+
+Catálogo vazio prioriza conteúdo, mantém cópia do link e compartilhamento voluntário. Link publicado é distinto de itens publicados e revisão das condições. Hero móvel flui sem sobreposição da ilustração. Prévia móvel do editor passa a abertura voluntária. Preview não afirma aceitação de pedidos automaticamente.
+
+Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.

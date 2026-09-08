@@ -1,3 +1,4 @@
+import { GUIDANCE_ACTION_NAMES, GUIDANCE_VALIDATION_ACTIONS } from "./guidance";
 export const ANALYTICS_SCREEN_NAMES = [
   "login",
   "register",
@@ -28,17 +29,30 @@ export const ANALYTICS_SCREEN_NAMES = [
   "settings",
   "suppliers",
   "support",
+  "services",
 ] as const;
 
 export const ANALYTICS_ACTION_NAMES = [
+  "service_created",
+  "client_created",
+  "material_created",
+  "recipe_created",
+  "packaging_created",
+  "supplier_created",
+  "purchase_created",
+  "label_created",
+  "recurring_expense_created",
+  "pricing_result_viewed",
   "signup_completed",
   "pricing_started",
   "pricing_completed",
   "product_created",
   "product_created_from_pricing",
   "sale_completed",
+  "sale_payment_received",
   "order_created",
   "catalog_published",
+  "catalog_content_published",
   "catalog_shared",
   "quote_created",
   "quote_pdf_exported",
@@ -48,6 +62,8 @@ export const ANALYTICS_ACTION_NAMES = [
   "subscription_started",
   "subscription_completed",
   "subscription_cancelled",
+  ...GUIDANCE_ACTION_NAMES,
+  ...GUIDANCE_VALIDATION_ACTIONS,
 ] as const;
 
 export type AnalyticsScreenName = (typeof ANALYTICS_SCREEN_NAMES)[number];

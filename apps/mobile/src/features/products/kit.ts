@@ -56,7 +56,8 @@ export interface ProductDraftInput {
 export function validateProductDraft(input: ProductDraftInput): string | null {
   if (!input.name.trim()) return "Coloque o nome do produto";
   if (!input.category.trim()) return "Escolha uma categoria";
-  if (isNaN(input.price) || input.price <= 0) return "O preço precisa ser maior que zero";
+  if (!Number.isFinite(input.price) || input.price <= 0)
+    return "O preço precisa ser maior que zero";
   if (input.isComposite && draftsToComponents(input.components).length === 0) {
     return "Escolha pelo menos um produto para montar o kit";
   }

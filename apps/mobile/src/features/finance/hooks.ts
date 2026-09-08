@@ -169,6 +169,7 @@ export function useCreateRecurring() {
     scope: { id: "create-recurring-expense" },
     mutationFn: (data: CreateRecurringExpense) => createRecurring(token!, data),
     onSuccess: (created) => {
+      void trackAnalyticsAction("recurring_expense_created", token);
       queryClient.setQueryData<RecurringExpense[]>(RECURRING_KEY, (current = []) => [
         created,
         ...current.filter((item) => item.id !== created.id),

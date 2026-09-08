@@ -1,3 +1,5 @@
+import { trackAnalyticsAction } from "../../analytics/tracker";
+import { useAuth } from "../../../shared/hooks/use-auth";
 /* eslint-disable sonarjs/no-nested-conditional, sonarjs/no-nested-functions */
 import type { Product, Service } from "@lucro-caseiro/contracts";
 import {
@@ -875,6 +877,7 @@ export function CatalogCustomizer({
   onRequireEssential,
   onClose,
 }: CatalogCustomizerProps) {
+  const analyticsToken = useAuth((state) => state.token);
   const { theme } = useTheme();
   const colors = useBrandScreenPalette();
   const router = useRouter();
@@ -929,6 +932,10 @@ export function CatalogCustomizer({
   const slugAvailability = useCatalogSlugAvailability(slugToCheck, shouldCheckSlug);
   const slugAvailable = !slugChanged || slugAvailability.data?.available === true;
   const checklist = buildStorefrontChecklist(draft, counts, slugAvailable);
+  const hasPublishedContent = counts.products + counts.services > 0;
+  const readyMessage = hasPublishedContent
+    ? "Link e conteúdo prontos. Confira a vitrine antes de compartilhar."
+    : "Link pronto para publicar, ainda sem conteúdo. Adicione um produto ou serviço antes de divulgar.";
   const publishingReady =
     checklist.every((item) => item.valid) &&
     !hasStorefrontErrors(errors) &&
@@ -1171,6 +1178,9 @@ export function CatalogCustomizer({
       setSavedCoverUrl(result.coverUrl);
       setRequestStatus("saved");
       if (publishing) {
+        if (result.enabled && hasPublishedContent) {
+          void trackAnalyticsAction("catalog_content_published", analyticsToken);
+        }
         setPublishedVisible(true);
       } else {
         showToast("Alterações salvas!");
@@ -1309,7 +1319,13 @@ export function CatalogCustomizer({
             gap: isDesktop ? 22 : 18,
           }}
         >
-          {splitDesktop ? null : contextualPreview}
+          {splitDesktop ? null : (
+            <Button
+              title="Ver prévia desta edição"
+              variant="outline"
+              onPress={openPreview}
+            />
+          )}
 
           {step === "identity" ? (
             <>
@@ -2310,7 +2326,7 @@ export function CatalogCustomizer({
                     }}
                   >
                     {publishingReady
-                      ? "Tudo pronto para sua vitrine ficar no ar."
+                      ? readyMessage
                       : "Complete os itens pendentes para publicar."}
                   </Typography>
                 </View>

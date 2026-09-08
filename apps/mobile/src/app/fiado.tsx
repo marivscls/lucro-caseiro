@@ -827,6 +827,13 @@ export default function FiadoScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <ScreenHeader
+        guidance={{
+          area: "fiado",
+          onStart: () => router.push("/tabs/new-sale"),
+          hasRecords: (data?.items.length ?? 0) > 0,
+          loading: isLoading || !!error,
+          suspended: false,
+        }}
         title="Fiado"
         titleStyle={{ color: colors.ink }}
         style={styles.navbar}

@@ -1,3 +1,4 @@
+import { ScreenGuidance } from "../../shared/guidance/screen-guidance";
 import type { Order, Sale } from "@lucro-caseiro/contracts";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
@@ -358,60 +359,62 @@ function SalesHeader({
           <AvatarCircle name={name} />
         </View>
 
-        <View
-          accessibilityLabel={`${formattedTotal} recebidos em ${countLabel}`}
-          style={{
-            alignSelf: "flex-start",
-            width: isDesktop ? 320 : "72%",
-            minWidth: isDesktop ? 320 : 236,
-            maxWidth: 340,
-            minHeight: 82,
-            borderRadius: radii.xl,
-            borderWidth: 1,
-            borderColor: "rgba(255,255,255,0.12)",
-            backgroundColor: "rgba(255,255,255,0.06)",
-            flexDirection: "row",
-            alignItems: "center",
-            paddingHorizontal: spacing.lg,
-            paddingVertical: spacing.md,
-            shadowColor: "#160A0F",
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.14,
-            shadowRadius: 10,
-            elevation: 2,
-          }}
-        >
+        {count > 0 ? (
           <View
+            accessibilityLabel={`${formattedTotal} recebidos em ${countLabel}`}
             style={{
-              width: 56,
-              height: 56,
+              alignSelf: "flex-start",
+              width: isDesktop ? 320 : "72%",
+              minWidth: isDesktop ? 320 : 236,
+              maxWidth: 340,
+              minHeight: 82,
+              borderRadius: radii.xl,
+              borderWidth: 1,
+              borderColor: "rgba(255,255,255,0.12)",
+              backgroundColor: "rgba(255,255,255,0.06)",
+              flexDirection: "row",
               alignItems: "center",
-              justifyContent: "center",
+              paddingHorizontal: spacing.lg,
+              paddingVertical: spacing.md,
+              shadowColor: "#160A0F",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.14,
+              shadowRadius: 10,
+              elevation: 2,
             }}
           >
-            <Image
-              source={salesHeaderIcon}
-              resizeMode="contain"
-              style={{ width: 104, height: 104 }}
+            <View
+              style={{
+                width: 56,
+                height: 56,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Image
+                source={salesHeaderIcon}
+                resizeMode="contain"
+                style={{ width: 104, height: 104 }}
+              />
+            </View>
+            <View
+              style={{
+                width: 1,
+                height: 52,
+                marginHorizontal: spacing.lg,
+                backgroundColor: "rgba(255,255,255,0.58)",
+              }}
             />
+            <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+              <Typography variant="moneyLg" color={palette.onWine} numberOfLines={1}>
+                {formattedTotal}
+              </Typography>
+              <Typography variant="body" color={palette.onWine}>
+                {countLabel}
+              </Typography>
+            </View>
           </View>
-          <View
-            style={{
-              width: 1,
-              height: 52,
-              marginHorizontal: spacing.lg,
-              backgroundColor: "rgba(255,255,255,0.58)",
-            }}
-          />
-          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-            <Typography variant="moneyLg" color={palette.onWine} numberOfLines={1}>
-              {formattedTotal}
-            </Typography>
-            <Typography variant="body" color={palette.onWine}>
-              {countLabel}
-            </Typography>
-          </View>
-        </View>
+        ) : null}
       </View>
     </View>
   );
@@ -1410,6 +1413,13 @@ export default function SalesScreen() {
             </View>
           ) : null}
 
+          <ScreenGuidance
+            area="sales"
+            onStart={() => router.push("/tabs/new-sale")}
+            hasRecords={(data?.total ?? 0) > 0}
+            loading={isLoading || !!error}
+            suspended={showFilters || !!selectedSaleId}
+          />
           {isDesktop ? (
             <DesktopOperationKpis sales={filteredItems ?? []} orders={orders} />
           ) : null}

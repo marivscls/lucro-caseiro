@@ -115,3 +115,9 @@ const { data } = useInsights(6);
 - 2026-08-31: tooltip do gráfico saiu da coluna da barra (preço quebrava em "R$" / "2.039"
   e, com 6–12 meses, virava faixa branca). Agora é overlay no corpo do gráfico; mês zerado
   não renderiza barra.
+
+## Orientação contextual — 2026-09-07
+
+Ajuda explica que resultado depende dos registros e custos informados. CTA inicia uma venda, não marca ativação ao apenas abrir gráficos.
+
+Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.

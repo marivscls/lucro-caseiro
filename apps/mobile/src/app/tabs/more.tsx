@@ -598,6 +598,9 @@ export default function MoreScreen() {
     if (item.route === "/recipes") {
       return {
         ...item,
+        title: experienceCopy.formulaNounPlural.replace(/^./, (letter) =>
+          letter.toUpperCase(),
+        ),
         description: `Custos e ${experienceCopy.materialNounPlural}`,
       };
     }

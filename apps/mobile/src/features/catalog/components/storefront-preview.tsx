@@ -527,7 +527,9 @@ export function StorefrontHero({
             }}
           >
             <Typography style={{ color: INK, fontFamily: fonts.bold, fontSize: 11 }}>
-              Aceitando encomendas
+              {(productCount ?? 0) + (serviceCount ?? 0) > 0
+                ? "Consulte disponibilidade"
+                : "Vitrine em preparação"}
             </Typography>
           </View>
         </View>

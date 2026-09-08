@@ -182,3 +182,9 @@ acrescimo`; `precoBase = (custoDireto + lucroAlvo) / (1 - taxa)`.
   preço; a ilustração da calculadora divide a faixa com o valor e não sobrepõe
   o selo. Precificação entrou no Acesso rápido da Home no lugar de Clientes,
   com o rótulo curto `Preço` para manter a mesma fonte e tamanho dos outros atalhos.
+
+## Orientação contextual — 2026-09-07
+
+Etapas completas reposicionam a rolagem no topo sem limpar valores. Venda direta com 0% exige escolha explícita; nenhum canal escolhido mostra taxa não informada. Cálculo manual permanece. Resultado completo válido emite pricing_result_viewed ao abrir; no cálculo simples o reconhecimento é voluntário no resultado, separado de salvar.
+
+Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.

@@ -1,3 +1,4 @@
+import { trackAnalyticsAction } from "../analytics/tracker";
 import type { CreateClient, UpdateClient } from "@lucro-caseiro/contracts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -47,6 +48,7 @@ export function useCreateClient() {
     mutationFn: (data: CreateClient) => createClient(token!, data),
     scope: { id: "create-client" },
     onSuccess: () => {
+      void trackAnalyticsAction("client_created", token);
       void queryClient.invalidateQueries({ queryKey: CLIENTS_KEY });
       // Atualiza a contagem de limites do plano (clientes) pra o gate bloquear na hora certa.
       void queryClient.invalidateQueries({ queryKey: ["subscription"] });

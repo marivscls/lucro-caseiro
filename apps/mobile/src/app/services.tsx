@@ -499,6 +499,7 @@ export default function ServicesScreen() {
   }
 
   function renderListHeader() {
+    if (!servicesQuery.isLoading && services.length === 0) return null;
     return (
       <View style={{ gap: spacing.lg, paddingBottom: spacing.sm }}>
         <HeroCard count={overview.activeCount} compact={compact} />
@@ -667,6 +668,13 @@ export default function ServicesScreen() {
         }}
       >
         <ScreenHeader
+          guidance={{
+            area: "services",
+            onStart: () => setShowCreate(true),
+            hasRecords: (servicesQuery.data?.length ?? 0) > 0,
+            loading: servicesQuery.isLoading || servicesQuery.isError,
+            suspended: showCreate,
+          }}
           title="Serviços"
           subtitle="Organize o que você faz e quanto vale."
           subtitleNumberOfLines={2}

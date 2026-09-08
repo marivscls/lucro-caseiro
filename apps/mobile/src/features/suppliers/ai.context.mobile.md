@@ -90,3 +90,9 @@ A busca local normaliza caixa, espaços e acentos. Contagens e listas usam memoi
 - 2026-08-24: estado vazio da lista deixou de usar ilustração PNG.
 - 2026-08-31: lista com itens ganhou `ScreenCreateBar` (`+ Novo fornecedor`) no rodapé,
   além do FAB `+`.
+
+## Orientação contextual — 2026-09-07
+
+Orientação usa dados do overview para suprimir convite em conta com registros, preserva modais e emite supplier_created após sucesso.
+
+Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.

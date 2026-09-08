@@ -201,3 +201,9 @@ it must not turn the Products registry into Services; services use `/services`.
 - 2026-08-31: o cadastro novo usa o FAB `+` do cabeçalho **e** o `ScreenCreateBar`
   no rodapé (`+ Novo produto`) quando a lista tem itens. O rodapé não soma
   `insets.bottom` — o Stack já reserva a tab bar.
+
+## Orientação contextual — 2026-09-07
+
+Nome, categoria e preço ficam em seções não recolhíveis antes das opções de kit. Validação mostra erros locais e foca nome/preço ou abre categoria. Categoria continua obrigatória. Estado vazio omite filtros e resumos sem dados. O seletor não anima no navegador para não competir com foco da validação.
+
+Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.

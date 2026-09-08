@@ -9,6 +9,7 @@ interface FormSectionProps {
   readonly subtitle?: string;
   readonly icon?: AppIconName;
   readonly titleAccessory?: React.ReactNode;
+  readonly collapsible?: boolean;
   readonly initiallyOpen?: boolean;
   readonly children: React.ReactNode;
 }
@@ -24,10 +25,13 @@ export function FormSection({
   icon,
   titleAccessory,
   initiallyOpen = false,
+  collapsible = true,
   children,
 }: FormSectionProps) {
   const { theme } = useTheme();
   const [open, setOpen] = useState(initiallyOpen);
+  const expanded = !collapsible || open;
+  const toggleLabel = `${open ? "Recolher" : "Expandir"} seção ${title}`;
 
   return (
     <View
@@ -40,9 +44,11 @@ export function FormSection({
       }}
     >
       <Pressable
+        disabled={!collapsible}
         onPress={() => setOpen((v) => !v)}
-        accessibilityRole="button"
-        accessibilityLabel={`${open ? "Recolher" : "Expandir"} seção ${title}`}
+        accessibilityRole={collapsible ? "button" : "header"}
+        accessibilityLabel={collapsible ? toggleLabel : title}
+        accessibilityState={collapsible ? { expanded } : undefined}
         style={({ pressed }) => [
           {
             flexDirection: "row",
@@ -71,13 +77,15 @@ export function FormSection({
           </View>
           {subtitle ? <Typography variant="caption">{subtitle}</Typography> : null}
         </View>
-        <AppIcon
-          name={open ? "chevron-up" : "chevron-down"}
-          size={20}
-          color={theme.colors.textSecondary}
-        />
+        {collapsible ? (
+          <AppIcon
+            name={open ? "chevron-up" : "chevron-down"}
+            size={20}
+            color={theme.colors.textSecondary}
+          />
+        ) : null}
       </Pressable>
-      {open && (
+      {expanded && (
         <View
           style={{
             paddingHorizontal: spacing.lg,

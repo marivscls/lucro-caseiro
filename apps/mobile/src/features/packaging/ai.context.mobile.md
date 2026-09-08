@@ -151,3 +151,9 @@ Gerenciar embalagens utilizadas nos produtos: cadastrar, listar, editar e exclui
 - 2026-08-31: o card Embalagens no Mais deixou de exibir o selo "Organize".
 - 2026-08-31: lista com itens ganhou `ScreenCreateBar` (`+ Nova embalagem`) no rodapé,
   além do FAB `+`. O CTA tracejado interno saiu para não duplicar.
+
+## Orientação contextual — 2026-09-07
+
+Orientação inicia o cadastro de embalagem/acabamento existente e considera carregamento/erro. packaging_created é emitido após sucesso.
+
+Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.

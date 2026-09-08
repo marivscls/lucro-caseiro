@@ -117,3 +117,9 @@ estoque rápido (+/−) e ver alerta de estoque baixo. Separado dos produtos aca
   abaixo do cabeçalho (`flexGrow` no ScrollView).
 - 2026-08-31: lista com itens ganhou `ScreenCreateBar` (`+ Novo insumo`) no rodapé,
   além do FAB `+`. O rodapé não soma inset extra.
+
+## Orientação contextual — 2026-09-07
+
+MaterialForm expõe onCreated(material), somente após persistência, para fichas de custo retomarem a linha em edição. onSuccess continua compatível para edição e exclusão.
+
+Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.

@@ -1,3 +1,4 @@
+import { trackAnalyticsAction } from "../analytics/tracker";
 import type { CreateLabel, UpdateLabel } from "@lucro-caseiro/contracts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -47,6 +48,7 @@ export function useCreateLabel() {
   return useMutation({
     mutationFn: (data: CreateLabel) => createLabel(token!, data),
     onSuccess: () => {
+      void trackAnalyticsAction("label_created", token);
       void queryClient.invalidateQueries({ queryKey: LABELS_KEY });
     },
   });

@@ -12,14 +12,12 @@ import {
 } from "react-native";
 
 type KeyboardAwareScrollViewProps = ScrollViewProps & {
+  scrollRef?: React.RefObject<ScrollView | null>;
   keyboardVerticalOffset?: number;
   extraScrollHeight?: number;
 };
 
-type KeyboardScrollable = Pick<
-  ScrollView,
-  "getNativeScrollRef" | "scrollTo"
->;
+type KeyboardScrollable = Pick<ScrollView, "getNativeScrollRef" | "scrollTo">;
 type FocusedInput = ReturnType<typeof TextInput.State.currentlyFocusedInput>;
 
 function scheduleAfterKeyboardLayout(callback: () => void) {
@@ -48,8 +46,7 @@ export function scrollInputIntoVisibleArea(
   ): MeasureInWindowOnSuccessCallback => {
     return (_x, inputTop, _width, inputHeight) => {
       const visibleTop = scrollViewTop + extraScrollHeight;
-      const visibleBottom =
-        scrollViewTop + scrollViewHeight - extraScrollHeight;
+      const visibleBottom = scrollViewTop + scrollViewHeight - extraScrollHeight;
       const inputBottom = inputTop + inputHeight;
       let delta = 0;
 
@@ -73,9 +70,7 @@ export function scrollInputIntoVisibleArea(
     _width,
     scrollViewHeight,
   ) => {
-    focusedInput.measureInWindow(
-      measureInput(scrollViewTop, scrollViewHeight),
-    );
+    focusedInput.measureInWindow(measureInput(scrollViewTop, scrollViewHeight));
   };
   scrollView.getNativeScrollRef()?.measureInWindow(measureScrollView);
 }
@@ -131,11 +126,15 @@ export function KeyboardAwareScrollView({
   style,
   onFocus,
   onScroll,
+  scrollRef,
   ...props
 }: Readonly<KeyboardAwareScrollViewProps>) {
-  const scrollViewRef = React.useRef<ScrollView>(null);
-  const { scrollFocusedInput, trackScroll } =
-    useScrollFocusedInputIntoView(scrollViewRef, extraScrollHeight);
+  const internalScrollRef = React.useRef<ScrollView>(null);
+  const scrollViewRef = scrollRef ?? internalScrollRef;
+  const { scrollFocusedInput, trackScroll } = useScrollFocusedInputIntoView(
+    scrollViewRef,
+    extraScrollHeight,
+  );
 
   return (
     <KeyboardAvoidingView
@@ -147,7 +146,11 @@ export function KeyboardAwareScrollView({
         ref={scrollViewRef}
         style={{ flex: 1, minHeight: 0 }}
         keyboardShouldPersistTaps={keyboardShouldPersistTaps}
-        keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+        keyboardDismissMode={Platform.select({
+          ios: "interactive",
+          android: "on-drag",
+          default: "none",
+        } as const)}
         showsVerticalScrollIndicator={showsVerticalScrollIndicator}
         scrollEventThrottle={16}
         onFocus={(event) => {

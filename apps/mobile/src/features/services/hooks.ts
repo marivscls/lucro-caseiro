@@ -1,3 +1,4 @@
+import { trackAnalyticsAction } from "../analytics/tracker";
 import type {
   CreateService,
   PurchaseServicePackage,
@@ -36,6 +37,7 @@ export function useCreateService() {
   return useMutation({
     mutationFn: (data: CreateService) => createService(token!, data),
     onSuccess: () => {
+      void trackAnalyticsAction("service_created", token);
       void queryClient.invalidateQueries({ queryKey: SERVICES_KEY });
     },
   });

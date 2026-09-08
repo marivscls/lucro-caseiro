@@ -1,3 +1,6 @@
+import { useAuth } from "../../shared/hooks/use-auth";
+import { useGuidanceStore } from "../../shared/guidance/guidance-store";
+import { completedAreas } from "../../shared/guidance/completion";
 import type {
   AnalyticsActionName,
   ProductAnalyticsEvent,
@@ -26,5 +29,25 @@ export function trackAnalyticsAction(
   name: AnalyticsActionName,
   token: string | null,
 ): Promise<void> {
+  const session = useAuth.getState();
+  if (token && token === session.token && session.userId) {
+    void useGuidanceStore
+      .getState()
+      .load(session.userId)
+      .then(() => {
+        if (useAuth.getState().userId !== session.userId || !session.userId) return;
+        for (const area of completedAreas(name)) {
+          const store = useGuidanceStore.getState();
+          if (!store.accounts[session.userId]?.[area]?.completed) {
+            store.mark(session.userId, area, "completed");
+            void trackAnalyticsEvent(
+              { type: "action", name: `guidance_${area}_task_completed` },
+              token,
+            );
+          }
+        }
+      })
+      .catch(() => undefined);
+  }
   return trackAnalyticsEvent({ type: "action", name }, token);
 }

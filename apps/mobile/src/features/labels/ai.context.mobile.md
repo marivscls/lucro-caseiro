@@ -192,3 +192,9 @@ registros existentes nao quebrem, mas nao aparecem no formulario, preview ou PDF
   usa EmptyState com CTA; o botão `+ Nova etiqueta` do rodapé fica só quando já
   há etiquetas. O rodapé não soma `insets.bottom`: o Stack já reserva a tab bar
   (`stackTabBarReserve`), senão sobra uma faixa vazia entre o CTA e a navegação.
+
+## Orientação contextual — 2026-09-07
+
+Ao faltar produto, CreateLabelForm conserva seu rascunho fora do modal e abre CreateProductForm como pré-requisito. Após salvar, seleciona o produto e preenche o nome da impressão. Cancelar/falhar conserva o rascunho; coletar prerequisite_resumed não completa a etiqueta.
+
+Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
