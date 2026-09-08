@@ -1,10 +1,21 @@
+import type { AppIconName } from "../components/app-icon";
 import type { GuidanceArea } from "./guidance.domain";
+export interface GuidancePreviewRow {
+  icon: AppIconName;
+  label: string;
+  value?: string;
+}
+export interface GuidancePreview {
+  heading: string;
+  rows: readonly GuidancePreviewRow[];
+}
 export interface GuidanceContent {
   title: string;
   description: string;
   action: string;
   steps: readonly string[];
   next: string;
+  preview: GuidancePreview;
 }
 export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
   home: {
@@ -18,6 +29,13 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
       "Quando houver registros, os resumos ajudam a acompanhar seu negócio.",
     ],
     next: "Retome sua prioridade ou confira o próximo compromisso.",
+    preview: {
+      heading: "Assim fica o seu dia",
+      rows: [
+        { icon: "trending-up", label: "Vendas hoje", value: "R$ 120,00" },
+        { icon: "cash-outline", label: "Entradas", value: "R$ 150,00" },
+      ],
+    },
   },
   products: {
     title: "Cadastre o que você vende",
@@ -30,6 +48,14 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
       "Abra os detalhes opcionais somente se precisar de fotos, estoque ou código.",
     ],
     next: "Calcule os custos ou use o produto em uma venda.",
+    preview: {
+      heading: "Assim fica o seu produto",
+      rows: [
+        { icon: "cube-outline", label: "Brigadeiro gourmet" },
+        { icon: "pricetag-outline", label: "Categoria", value: "Doces" },
+        { icon: "cash-outline", label: "Preço", value: "R$ 3,50" },
+      ],
+    },
   },
   services: {
     title: "Prepare seu primeiro atendimento",
@@ -41,6 +67,13 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
       "Configure local, intervalos e divulgação conforme sua forma de atender.",
     ],
     next: "Agende um atendimento para colocar o serviço na sua rotina.",
+    preview: {
+      heading: "Assim fica o seu serviço",
+      rows: [
+        { icon: "briefcase-outline", label: "Corte + escova" },
+        { icon: "time-outline", label: "Duração", value: "45 min" },
+      ],
+    },
   },
   sales: {
     title: "Acompanhe o que você vendeu",
@@ -52,6 +85,14 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
       "Abra uma venda da lista para consultar detalhes e recibo.",
     ],
     next: "Confira o recebimento e o resultado do período.",
+    preview: {
+      heading: "Assim fica uma venda",
+      rows: [
+        { icon: "person-outline", label: "Maria Silva" },
+        { icon: "cart-outline", label: "2 itens", value: "R$ 45,00" },
+        { icon: "card-outline", label: "Pagamento", value: "Pix" },
+      ],
+    },
   },
   new_sale: {
     title: "Registre a venda passo a passo",
@@ -64,6 +105,14 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
       "Confira o pagamento e o total antes de confirmar. Sem internet, acompanhe a sincronização.",
     ],
     next: "Abra Vendas para consultar o registro e preparar o recibo.",
+    preview: {
+      heading: "Assim fica a venda pronta",
+      rows: [
+        { icon: "cart-outline", label: "2 itens", value: "R$ 45,00" },
+        { icon: "card-outline", label: "Pagamento", value: "Pix" },
+        { icon: "checkmark-circle-outline", label: "Situação", value: "Concluída" },
+      ],
+    },
   },
   agenda: {
     title: "Organize seus próximos compromissos",
@@ -76,6 +125,14 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
       "Registre valores e sinal somente quando fizerem parte do combinado.",
     ],
     next: "Consulte a agenda para acompanhar o compromisso.",
+    preview: {
+      heading: "Assim fica o seu compromisso",
+      rows: [
+        { icon: "calendar-outline", label: "Corte de cabelo" },
+        { icon: "time-outline", label: "Horário", value: "14:00" },
+        { icon: "person-outline", label: "Cliente", value: "Ana" },
+      ],
+    },
   },
   clients: {
     title: "Guarde seus contatos de trabalho",
@@ -87,6 +144,13 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
       "Selecione o cliente ao registrar uma venda ou compromisso para relacionar o histórico.",
     ],
     next: "Vincule o contato à próxima venda ou atendimento.",
+    preview: {
+      heading: "Assim fica o seu cliente",
+      rows: [
+        { icon: "person-outline", label: "Ana Souza" },
+        { icon: "call-outline", label: "Telefone", value: "(11) 90000-0000" },
+      ],
+    },
   },
   pricing: {
     title: "Descubra um preço com os custos que conhece",
@@ -99,6 +163,14 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
       "Confira o que ficou fora da estimativa. Mão de obra e gastos mensais exigem atenção; salvar é opcional.",
     ],
     next: "Confira as premissas antes de aplicar o preço ao seu produto ou serviço.",
+    preview: {
+      heading: "Assim fica o seu preço",
+      rows: [
+        { icon: "calculator-outline", label: "Custo", value: "R$ 10,00" },
+        { icon: "trending-up", label: "Ganho desejado", value: "30%" },
+        { icon: "cash-outline", label: "Preço sugerido", value: "R$ 14,30" },
+      ],
+    },
   },
   finance: {
     title: "Comece pelos movimentos do seu negócio",
@@ -110,6 +182,13 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
       "O resumo considera os lançamentos do período. Custos ausentes deixam o resultado incompleto.",
     ],
     next: "Confira os movimentos e acrescente os gastos que ainda faltam.",
+    preview: {
+      heading: "Assim fica o seu lançamento",
+      rows: [
+        { icon: "cash-outline", label: "Entrada", value: "R$ 150,00" },
+        { icon: "pricetag-outline", label: "Categoria", value: "Venda" },
+      ],
+    },
   },
   recurring_expenses: {
     title: "Lembre dos custos que se repetem",
@@ -122,6 +201,13 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
       "Confira os lançamentos gerados no financeiro para o mês corrente.",
     ],
     next: "Considere esses custos ao analisar o resultado e formar preços.",
+    preview: {
+      heading: "Assim fica o seu gasto fixo",
+      rows: [
+        { icon: "wallet-outline", label: "Aluguel do espaço", value: "R$ 300,00" },
+        { icon: "calendar-outline", label: "Vencimento", value: "Dia 10" },
+      ],
+    },
   },
   materials: {
     title: "Organize o que você utiliza no trabalho",
@@ -134,6 +220,13 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
       "Use o cadastro para acompanhar consumo ou compor uma ficha de custo.",
     ],
     next: "Monte a composição de um produto ou serviço com os materiais utilizados.",
+    preview: {
+      heading: "Assim fica o seu material",
+      rows: [
+        { icon: "cube-outline", label: "Farinha de trigo" },
+        { icon: "scale-outline", label: "Unidade", value: "kg" },
+      ],
+    },
   },
   recipes: {
     title: "Entenda o custo de uma produção",
@@ -146,6 +239,13 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
       "Confira unidades e rendimento para obter o custo por unidade.",
     ],
     next: "Leve o custo apurado para a precificação.",
+    preview: {
+      heading: "Assim fica a sua ficha",
+      rows: [
+        { icon: "beaker-outline", label: "Bolo de cenoura" },
+        { icon: "cash-outline", label: "Custo por unidade", value: "R$ 4,20" },
+      ],
+    },
   },
   packaging: {
     title: "Inclua embalagem e acabamento na conta",
@@ -158,6 +258,13 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
       "Selecione esse cadastro na precificação quando ele fizer parte do produto.",
     ],
     next: "Confira o custo total antes de definir seu preço.",
+    preview: {
+      heading: "Assim fica a sua embalagem",
+      rows: [
+        { icon: "cube-outline", label: "Caixa para bolo" },
+        { icon: "cash-outline", label: "Custo unitário", value: "R$ 1,20" },
+      ],
+    },
   },
   suppliers: {
     title: "Tenha seus fornecedores à mão",
@@ -170,6 +277,13 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
       "Vincule o fornecedor às compras para consultar seu histórico.",
     ],
     next: "Registre uma compra e acompanhe se ela já foi paga.",
+    preview: {
+      heading: "Assim fica o seu fornecedor",
+      rows: [
+        { icon: "business-outline", label: "Distribuidora Doce Sabor" },
+        { icon: "call-outline", label: "Telefone", value: "(11) 98888-0000" },
+      ],
+    },
   },
   purchases: {
     title: "Acompanhe suas compras e pagamentos",
@@ -181,6 +295,13 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
       "Confira as compras pendentes e marque o pagamento quando acontecer.",
     ],
     next: "Acompanhe as despesas no financeiro.",
+    preview: {
+      heading: "Assim fica a sua compra",
+      rows: [
+        { icon: "cart-outline", label: "Embalagens", value: "R$ 80,00" },
+        { icon: "checkmark-circle-outline", label: "Situação", value: "A pagar" },
+      ],
+    },
   },
   fiado: {
     title: "Saiba o que ainda falta receber",
@@ -193,6 +314,13 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
       "Confirme um recebimento somente quando ele acontecer; revise qualquer cobrança antes de compartilhar.",
     ],
     next: "Confira se o saldo restante corresponde ao combinado.",
+    preview: {
+      heading: "Assim fica o fiado",
+      rows: [
+        { icon: "person-outline", label: "Ana Souza" },
+        { icon: "wallet-outline", label: "Saldo em aberto", value: "R$ 35,00" },
+      ],
+    },
   },
   quotes: {
     title: "Prepare uma proposta para seu cliente",
@@ -205,6 +333,17 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
       "Revise total, validade e observações antes de salvar e compartilhar.",
     ],
     next: "Acompanhe a resposta e transforme a proposta aprovada em pedido.",
+    preview: {
+      heading: "Assim fica o seu orçamento",
+      rows: [
+        {
+          icon: "document-text-outline",
+          label: "Kit festa 20 docinhos",
+          value: "R$ 180,00",
+        },
+        { icon: "calendar-outline", label: "Validade", value: "7 dias" },
+      ],
+    },
   },
   catalog: {
     title: "Prepare sua vitrine para os clientes",
@@ -217,6 +356,13 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
       "Abra Ver como cliente antes de compartilhar o link.",
     ],
     next: "Compartilhe quando a oferta e o contato estiverem conferidos.",
+    preview: {
+      heading: "Assim fica a sua vitrine",
+      rows: [
+        { icon: "storefront-outline", label: "Loja publicada" },
+        { icon: "logo-whatsapp", label: "Contato", value: "WhatsApp" },
+      ],
+    },
   },
   labels: {
     title: "Identifique seus produtos",
@@ -229,6 +375,13 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
       "Confira a prévia antes de imprimir. A etiqueta de identificação não substitui exigências específicas do produto.",
     ],
     next: "Salve para reutilizar a etiqueta nas próximas impressões.",
+    preview: {
+      heading: "Assim fica a sua etiqueta",
+      rows: [
+        { icon: "pricetags-outline", label: "Brigadeiro gourmet" },
+        { icon: "calendar-outline", label: "Validade", value: "10/09" },
+      ],
+    },
   },
   insights: {
     title: "Entenda seus resultados com registros reais",
@@ -241,5 +394,12 @@ export const guidanceContent: Record<GuidanceArea, GuidanceContent> = {
       "Confira a cobertura dos custos antes de interpretar o lucro. Uma tela vazia não indica prejuízo nem lucro zero.",
     ],
     next: "Use o resultado para decidir o que repor, revisar ou divulgar.",
+    preview: {
+      heading: "Assim fica o seu resultado",
+      rows: [
+        { icon: "trending-up", label: "Lucro do mês", value: "R$ 480,00" },
+        { icon: "bar-chart", label: "Produto mais vendido", value: "Brigadeiro" },
+      ],
+    },
   },
 };

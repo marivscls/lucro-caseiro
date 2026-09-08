@@ -1,4 +1,11 @@
-import { Button, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
+import {
+  Button,
+  Typography,
+  iconSizes,
+  radii,
+  spacing,
+  useTheme,
+} from "@lucro-caseiro/ui";
 import React, { useEffect, useRef, useState } from "react";
 import {
   AccessibilityInfo,
@@ -146,19 +153,44 @@ export function ScreenGuidance({
         ref={trigger}
         accessibilityRole="button"
         accessibilityLabel={`Como usar: ${content.title}`}
+        accessibilityHint="Abre o passo a passo desta tela"
         onPress={() => {
           setHelpFor(identity);
           guidanceEvent(area, "help_opened", userId);
         }}
-        style={{
+        style={({ pressed }) => ({
           minHeight: 48,
           flexDirection: "row",
           alignItems: "center",
           gap: spacing.sm,
           alignSelf: "flex-start",
-        }}
+          paddingVertical: spacing.sm,
+          paddingLeft: spacing.sm,
+          paddingRight: spacing.lg,
+          borderRadius: radii.full,
+          borderWidth: 1,
+          borderColor: theme.colors.border,
+          backgroundColor: pressed
+            ? theme.colors.primaryBg
+            : theme.colors.surfaceElevated,
+        })}
       >
-        <AppIcon name="help-circle-outline" size={22} color={theme.colors.text} />
+        <View
+          style={{
+            width: 30,
+            height: 30,
+            borderRadius: radii.full,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: theme.colors.primaryBg,
+          }}
+        >
+          <AppIcon
+            name="help-circle-outline"
+            size={iconSizes.inline}
+            color={theme.colors.primaryStrong}
+          />
+        </View>
         <Typography variant="bodyBold">Como usar</Typography>
       </Pressable>
       <StandardModal
@@ -176,28 +208,172 @@ export function ScreenGuidance({
           />
         }
       >
-        <Typography variant="h3">{title ?? content.title}</Typography>
+        <View style={{ flexDirection: "row", gap: spacing.md, alignItems: "center" }}>
+          <View
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: radii.full,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: theme.colors.primaryBg,
+            }}
+          >
+            <AppIcon
+              name="bulb-outline"
+              size={iconSizes.md}
+              color={theme.colors.primaryStrong}
+            />
+          </View>
+          <Typography variant="h3" style={{ flex: 1 }}>
+            {title ?? content.title}
+          </Typography>
+        </View>
         <Typography variant="body" style={{ fontSize: 16, lineHeight: 24 }}>
           {description ?? content.description}
         </Typography>
-        {content.steps.map((step, index) => (
-          <Typography key={step} variant="body" style={{ fontSize: 16, lineHeight: 24 }}>
-            {index + 1}. {step}
-          </Typography>
-        ))}
-        <Typography variant="bodyBold">Depois de concluir</Typography>
-        <Typography variant="body" style={{ fontSize: 16, lineHeight: 24 }}>
-          {content.next}
-        </Typography>
-        <Button
-          title="Ainda preciso de ajuda"
-          variant="outline"
+        <View>
+          {content.steps.map((step, index) => {
+            const last = index === content.steps.length - 1;
+            return (
+              <View key={step} style={{ flexDirection: "row", gap: spacing.md }}>
+                <View style={{ alignItems: "center" }}>
+                  <View
+                    style={{
+                      width: 30,
+                      height: 30,
+                      borderRadius: radii.full,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: theme.colors.primaryBg,
+                    }}
+                  >
+                    <Typography variant="captionBold" color={theme.colors.primaryStrong}>
+                      {index + 1}
+                    </Typography>
+                  </View>
+                  {last ? null : (
+                    <View
+                      style={{
+                        flex: 1,
+                        width: 2,
+                        marginVertical: spacing.xs,
+                        borderRadius: radii.full,
+                        backgroundColor: theme.colors.border,
+                      }}
+                    />
+                  )}
+                </View>
+                <Typography
+                  variant="body"
+                  style={{
+                    flex: 1,
+                    fontSize: 16,
+                    lineHeight: 24,
+                    paddingTop: 3,
+                    paddingBottom: last ? 0 : spacing.lg,
+                  }}
+                >
+                  {step}
+                </Typography>
+              </View>
+            );
+          })}
+        </View>
+        <View
+          style={{
+            borderRadius: radii.lg,
+            borderWidth: 1,
+            borderColor: theme.colors.border,
+            backgroundColor: theme.colors.surfaceElevated,
+            overflow: "hidden",
+          }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: spacing.xs,
+              paddingHorizontal: spacing.lg,
+              paddingVertical: spacing.sm,
+              backgroundColor: theme.colors.primaryBg,
+            }}
+          >
+            <AppIcon
+              name="eye-outline"
+              size={iconSizes.xs}
+              color={theme.colors.primaryStrong}
+            />
+            <Typography variant="captionBold" color={theme.colors.primaryStrong}>
+              {content.preview.heading}
+            </Typography>
+          </View>
+          <View style={{ padding: spacing.lg, gap: spacing.md }}>
+            {content.preview.rows.map((row) => (
+              <View
+                key={row.label}
+                style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}
+              >
+                <AppIcon
+                  name={row.icon}
+                  size={iconSizes.sm}
+                  color={theme.colors.textSecondary}
+                />
+                <Typography variant="body" style={{ flex: 1 }} numberOfLines={1}>
+                  {row.label}
+                </Typography>
+                {row.value ? (
+                  <Typography variant="bodyBold">{row.value}</Typography>
+                ) : null}
+              </View>
+            ))}
+          </View>
+        </View>
+        <View
+          style={{
+            flexDirection: "row",
+            gap: spacing.md,
+            padding: spacing.lg,
+            borderRadius: radii.lg,
+            backgroundColor: theme.colors.surface,
+            borderWidth: 1,
+            borderColor: theme.colors.border,
+          }}
+        >
+          <AppIcon
+            name="checkmark-circle-outline"
+            size={iconSizes.sm}
+            color={theme.colors.success}
+          />
+          <View style={{ flex: 1, gap: 2 }}>
+            <Typography variant="bodyBold">Depois de concluir</Typography>
+            <Typography variant="body">{content.next}</Typography>
+          </View>
+        </View>
+        <Pressable
+          accessibilityRole="button"
           onPress={() => {
             setHelpFor(null);
             router.push("/support");
           }}
-          size="lg"
-        />
+          style={({ pressed }) => ({
+            minHeight: 48,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: spacing.sm,
+            alignSelf: "flex-start",
+            opacity: pressed ? 0.65 : 1,
+          })}
+        >
+          <AppIcon
+            name="chatbubble-ellipses-outline"
+            size={iconSizes.sm}
+            color={theme.colors.primaryStrong}
+          />
+          <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+            Ainda preciso de ajuda
+          </Typography>
+        </Pressable>
       </StandardModal>
     </View>
   );
