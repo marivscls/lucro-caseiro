@@ -94,9 +94,9 @@ export function ScreenGuidance({
     <View
       testID={`screen-guidance-${area}`}
       style={{
-        gap: spacing.sm,
+        gap: spacing.md,
         paddingHorizontal: spacing.lg,
-        paddingBottom: spacing.sm,
+        paddingBottom: introduce ? spacing.lg : spacing.sm,
         flexShrink: 1,
         width: "100%",
         maxWidth: 720,
@@ -104,15 +104,13 @@ export function ScreenGuidance({
       }}
     >
       {introduce ? (
-        <ScrollView
-          style={{ maxHeight: 360 }}
-          contentContainerStyle={{
-            padding: spacing.md,
-            gap: spacing.sm,
+        <View
+          style={{
+            padding: spacing.lg,
+            gap: spacing.md,
             backgroundColor: theme.colors.surface,
             borderRadius: 16,
           }}
-          keyboardShouldPersistTaps="handled"
         >
           <Typography variant="h3" accessibilityRole="header">
             {title ?? content.title}
@@ -147,52 +145,53 @@ export function ScreenGuidance({
           >
             <Typography variant="bodyBold">Agora não</Typography>
           </Pressable>
-        </ScrollView>
-      ) : null}
-      <Pressable
-        ref={trigger}
-        accessibilityRole="button"
-        accessibilityLabel={`Como usar: ${content.title}`}
-        accessibilityHint="Abre o passo a passo desta tela"
-        onPress={() => {
-          setHelpFor(identity);
-          guidanceEvent(area, "help_opened", userId);
-        }}
-        style={({ pressed }) => ({
-          minHeight: 48,
-          flexDirection: "row",
-          alignItems: "center",
-          gap: spacing.sm,
-          alignSelf: "flex-start",
-          paddingVertical: spacing.sm,
-          paddingLeft: spacing.sm,
-          paddingRight: spacing.lg,
-          borderRadius: radii.full,
-          borderWidth: 1,
-          borderColor: theme.colors.border,
-          backgroundColor: pressed
-            ? theme.colors.primaryBg
-            : theme.colors.surfaceElevated,
-        })}
-      >
-        <View
-          style={{
-            width: 30,
-            height: 30,
-            borderRadius: radii.full,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: theme.colors.primaryBg,
-          }}
-        >
-          <AppIcon
-            name="help-circle-outline"
-            size={iconSizes.inline}
-            color={theme.colors.primaryStrong}
-          />
         </View>
-        <Typography variant="bodyBold">Como usar</Typography>
-      </Pressable>
+      ) : (
+        <Pressable
+          ref={trigger}
+          accessibilityRole="button"
+          accessibilityLabel={`Como usar: ${content.title}`}
+          accessibilityHint="Abre o passo a passo desta tela"
+          onPress={() => {
+            setHelpFor(identity);
+            guidanceEvent(area, "help_opened", userId);
+          }}
+          style={({ pressed }) => ({
+            minHeight: 48,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: spacing.sm,
+            alignSelf: "flex-start",
+            paddingVertical: spacing.sm,
+            paddingLeft: spacing.sm,
+            paddingRight: spacing.lg,
+            borderRadius: radii.full,
+            borderWidth: 1,
+            borderColor: theme.colors.border,
+            backgroundColor: pressed
+              ? theme.colors.primaryBg
+              : theme.colors.surfaceElevated,
+          })}
+        >
+          <View
+            style={{
+              width: 30,
+              height: 30,
+              borderRadius: radii.full,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: theme.colors.primaryBg,
+            }}
+          >
+            <AppIcon
+              name="help-circle-outline"
+              size={iconSizes.inline}
+              color={theme.colors.primaryStrong}
+            />
+          </View>
+          <Typography variant="bodyBold">Como usar</Typography>
+        </Pressable>
+      )}
       <StandardModal
         visible={helpOpen}
         onClose={closeHelp}
