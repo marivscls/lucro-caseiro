@@ -149,6 +149,6 @@ do Catálogo abrem checkout Essencial somente para contas Gratuitas.
 
 ## Orientação contextual — 2026-09-07
 
-Ajuda básica e envio de dúvidas disponíveis em qualquer plano em support.tsx. prioritySupport continua derivado do contrato de plano. FAQ distingue recibo Google Play de Stripe sem prometer prazo de atendimento.
+Ajuda e envio de dúvidas disponíveis em qualquer plano em support.tsx. Desde 09/09/2026, o cartão “Suporte” em Configurações aparece em qualquer plano e a tela de contato é a mesma, sem chamada de upgrade ou promessa de prioridade. FAQ distingue recibo Google Play de Stripe sem prometer prazo de atendimento.
 
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.

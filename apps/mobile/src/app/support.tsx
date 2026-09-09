@@ -1,13 +1,11 @@
 import { showAlert } from "../shared/components/alert-store";
 import { Button, Card, Typography, spacing, useBrand, useTheme } from "@lucro-caseiro/ui";
-import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import { AppIcon } from "../shared/components/app-icon";
 import { Stack, useRouter } from "expo-router";
 import React from "react";
 import { Linking, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useProfile } from "../features/subscription/hooks";
 import { useBusinessCopy } from "../features/subscription/business-copy";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import {
@@ -18,7 +16,6 @@ import {
 } from "../shared/layout/desktop-density";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { getBrandDisplayName } from "../shared/brand-name";
-import { usePaywall } from "../shared/hooks/use-paywall";
 import { HelpAssistant } from "../features/help-assistant/help-assistant";
 
 const SUPPORT_EMAIL = "contato@orionseven.com.br";
@@ -61,10 +58,6 @@ export default function SupportScreen() {
   const experienceCopy = useBusinessCopy();
   const brandName = getBrandDisplayName(useBrand());
   const isDesktop = useDesktopLayout();
-  const showPaywall = usePaywall((state) => state.show);
-  const { data: profile } = useProfile();
-  const isPremium =
-    !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "prioritySupport");
   const faq = [
     ...STATIC_FAQ.slice(0, 2),
     {
@@ -101,62 +94,30 @@ export default function SupportScreen() {
           onNavigate={(route) => router.push(route)}
           onContactSupport={(question) => openSupportEmail(brandName, question)}
         />
-        {isPremium ? (
-          <Card variant="surface" padding="xl" style={{ gap: spacing.md }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-              <AppIcon name="diamond" size={20} color={theme.colors.premium} />
-              <Typography variant="h3" color={theme.colors.premium}>
-                Atendimento prioritário
-              </Typography>
-            </View>
-            <Typography variant="body" color={theme.colors.textSecondary}>
-              Seu plano inclui prioridade de atendimento. Conte o que tentou fazer e em
-              qual etapa teve dificuldade.
-            </Typography>
-            <Button
-              title="Falar com o suporte"
-              size="lg"
-              icon={
-                <AppIcon
-                  name="mail-outline"
-                  size={20}
-                  color={theme.colors.textOnPrimary}
-                />
-              }
-              onPress={() => openSupportEmail(brandName)}
-              style={desktopAction(isDesktop, 240)}
+        <Card variant="surface" padding="xl" style={{ gap: spacing.md }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+            <AppIcon
+              name="chatbubble-ellipses-outline"
+              size={20}
+              color={theme.colors.textSecondary}
             />
-            <Typography variant="caption" style={{ textAlign: "center" }}>
-              {SUPPORT_EMAIL}
-            </Typography>
-          </Card>
-        ) : (
-          <Card variant="surface" padding="xl" style={{ gap: spacing.md }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-              <AppIcon name="diamond-outline" size={20} color={theme.colors.premium} />
-              <Typography variant="h3" color={theme.colors.premium}>
-                Precisa de ajuda?
-              </Typography>
-            </View>
-            <Typography variant="body" color={theme.colors.textSecondary}>
-              O assistente e o contato por email estão disponíveis em todos os planos.
-              Conte em qual etapa teve dificuldade para a gente ajudar.
-            </Typography>
-            <Button
-              title="Relatar uma dificuldade"
-              size="lg"
-              onPress={() => openSupportEmail(brandName)}
-            />
-            <Typography variant="body">{SUPPORT_EMAIL}</Typography>
-            <Button
-              variant="outline"
-              title="Conhecer atendimento prioritário"
-              size="lg"
-              onPress={() => showPaywall("prioritySupport")}
-              style={desktopAction(isDesktop, 240)}
-            />
-          </Card>
-        )}
+            <Typography variant="h3">Fale com a gente</Typography>
+          </View>
+          <Typography variant="body" color={theme.colors.textSecondary}>
+            O suporte está disponível para todos, em qualquer plano. Conte em qual etapa
+            teve dificuldade para a gente ajudar.
+          </Typography>
+          <Button
+            title="Falar com o suporte"
+            size="lg"
+            icon={
+              <AppIcon name="mail-outline" size={20} color={theme.colors.textOnPrimary} />
+            }
+            onPress={() => openSupportEmail(brandName)}
+            style={desktopAction(isDesktop, 240)}
+          />
+          <Typography variant="caption">{SUPPORT_EMAIL}</Typography>
+        </Card>
 
         <View style={{ gap: spacing.sm }}>
           <Typography variant="bodyBold" color={theme.colors.text}>

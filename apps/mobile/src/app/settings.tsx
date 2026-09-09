@@ -280,8 +280,6 @@ export default function SettingsScreen() {
   const canUsePremiumNotifications =
     !!profile &&
     hasActiveFeature(profile.plan, profile.planExpiresAt, "premiumNotifications");
-  const hasPrioritySupport =
-    !!profile && hasActiveFeature(profile.plan, profile.planExpiresAt, "prioritySupport");
   const appVersion = "v1.0.0";
   const configuredWebAppUrl = process.env.EXPO_PUBLIC_WEB_APP_URL?.trim();
   const webAppUrl =
@@ -960,19 +958,17 @@ export default function SettingsScreen() {
           </View>
         </Card>
 
-        {hasPrioritySupport ? (
-          <Card variant="elevated" shadow="sm" padding="lg">
-            <SettingsRow
-              icon="chatbubble-ellipses-outline"
-              iconColor={theme.colors.premium}
-              iconBackground={theme.colors.premiumBg}
-              title="Suporte prioritário"
-              subtitle="Fale direto com a gente e tenha prioridade"
-              onPress={() => router.push("/support")}
-              showChevron
-            />
-          </Card>
-        ) : null}
+        <Card variant="elevated" shadow="sm" padding="lg">
+          <SettingsRow
+            icon="chatbubble-ellipses-outline"
+            iconColor={theme.colors.textSecondary}
+            iconBackground={theme.colors.surface}
+            title="Suporte"
+            subtitle="Tire suas dúvidas e fale com a gente"
+            onPress={() => router.push("/support")}
+            showChevron
+          />
+        </Card>
 
         {Platform.OS !== "web" && webAppUrl ? (
           <Card variant="elevated" shadow="sm" padding="lg">

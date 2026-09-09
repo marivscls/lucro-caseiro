@@ -53,7 +53,7 @@ None. Automatic answers are local, deterministic and available offline. Screen n
 - Replies are reviewed product instructions, never interpolated instructions from question text.
 - Account incidents, errors and billing disputes lead to human support.
 - No invented account balances, subscription changes, prices or recovery promises.
-- Assistance and human contact remain available to free users. Existing Professional priority benefits remain intact.
+- Assistance and human contact use the same entry and contact card in every plan. Settings labels the entry “Suporte”; neither this entry nor the support screen gates contact or advertises a priority upgrade.
 - The conversation disappears on leaving the screen; it is not shared until the user opens and sends the email draft.
 
 ## Test matrix
