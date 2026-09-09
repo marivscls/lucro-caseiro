@@ -36,6 +36,11 @@ A introdução reaproveita a ilustração original `pricingCostsHero` via `useBr
 em tamanho compacto ao lado do título. A descrição, os campos e o resultado conservam
 a largura disponível; a imagem é decorativa e acompanha a variante da marca.
 
+O histórico usa cartões compactos com nome visível do produto, data, preço sugerido,
+custo e acréscimo. A faixa de filtros neutros não encolhe com a lista; trocar o filtro
+reinicia sua rolagem. Produtos indisponíveis são diferenciados de cálculos avulsos,
+e falhas de carregamento oferecem nova tentativa.
+
 ## Hooks
 
 - `usePricingSources`: produtos, receitas, embalagens e cálculos de todas as páginas. Falhas são visíveis e permitem repetir; valores manuais continuam utilizáveis.
