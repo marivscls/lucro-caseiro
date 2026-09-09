@@ -12,8 +12,9 @@ const BASE = "/api/v1/pricing";
 export async function calculatePricing(
   token: string,
   data: CreatePricing,
+  unified = false,
 ): Promise<Pricing> {
-  return apiClient<Pricing>(`${BASE}/calculate`, {
+  return apiClient<Pricing>(`${BASE}/${unified ? "calculate-v2" : "calculate"}`, {
     method: "POST",
     body: data,
     token,

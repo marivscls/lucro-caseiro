@@ -1,190 +1,86 @@
-# ai.context.mobile.md — Pricing (Mobile Feature)
-
----
+# ai.context.mobile.md — Pricing
 
 ## Purpose
 
-A precificacao tem dois caminhos conectados. A rota `/pricing` abre o modo **Simples** em qualquer plano: usa apenas insumos, embalagem, lucro desejado e taxa de venda opcional; nao pede nem inclui mao de obra ou gastos mensais e declara essa exclusao no resultado. A rota `/pricing-complete` e um recurso Profissional (`advancedPricing`), preserva o wizard de 5 passos, trata mao de obra e rateio como estimativas opcionais e apresenta o resultado como preco sugerido. Nenhum modo presume producao mensal nem inclui gastos fixos silenciosamente. Ambos salvam no mesmo historico.
-
-Os campos monetarios das duas telas exibem o prefixo `R$` antes do valor; campos percentuais e quantidades nao usam esse prefixo.
+Uma única precificação em `/pricing`, com detalhes expansíveis para trabalho, despesas e taxas. `/pricing-complete` preserva links antigos redirecionando para a mesma tela. Custo, embalagem, ganho, trabalho e rateio por produção estão disponíveis em qualquer plano; rateio por faturamento e perfis salvos de canal exigem `advancedPricing`.
 
 ## Non-goals
 
-- Nao cadastra produtos (feature `products`).
-- Nao gerencia receitas/ingredientes (feature `recipes`).
-- Nao registra vendas (feature `sales`).
+- Não consulta preços de concorrentes nem promete lucro líquido.
+- Não altera o preço do produto ao salvar uma simulação.
+- Não cria vínculos presumidos para cálculos antigos ou valores manuais.
 
 ## Boundaries & Ownership
 
-- **Depende de:** `@lucro-caseiro/contracts` (tipos `CreatePricing`, `Pricing` e cálculos puros compartilhados), `@lucro-caseiro/ui`, `shared/hooks/use-auth`, `shared/utils/api-client`.
-- **Dependentes:** nenhum direto (resultados salvos podem ser consultados por historico).
-  Home (`tabs/index.tsx`) convida a precificar quando já há produto e nenhum cálculo.
-  Mais (`tabs/more.tsx`) mostra Precificação no grid visível de Gestão.
+Depende de contracts (cálculos e DTOs), products (cadastro e alteração do preço base), recipes (custo atual), packaging, finance (despesas recorrentes), goals e subscription. O preço é aplicado pela API de products somente após confirmação explícita na interface.
 
 ## Code pointers
 
-| Arquivo                                                                     | Descricao                                                          |
-| --------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `apps/mobile/src/features/pricing/api.ts`                                   | Funcoes HTTP (calculatePricing, fetchPricingHistory, fetchPricing) |
-| `apps/mobile/src/features/pricing/hooks.ts`                                 | React Query hooks                                                  |
-| `apps/mobile/src/features/pricing/components/pricing-calculator.tsx`        | Wizard de 5 passos + resultado                                     |
-| `apps/mobile/src/features/pricing/components/simple-pricing-calculator.tsx` | Calculo rapido com custos objetivos e extras opcionais             |
-| `apps/mobile/src/features/pricing/components/pricing-result.tsx`            | Tela de resultado com breakdown visual                             |
-| `apps/mobile/src/features/pricing/components/pricing-mode-switch.tsx`       | Alterna entre Simples e Completa sem empilhar as rotas             |
-| `apps/mobile/src/features/pricing/components/pricing-history-modal.tsx`     | Historico compartilhado pelas duas telas                           |
-| `apps/mobile/src/app/pricing.tsx`                                           | Modo Simples (rota `/pricing`)                                     |
-| `apps/mobile/src/app/pricing-complete.tsx`                                  | Modo Completo (rota `/pricing-complete`)                           |
-
-As funções de cálculo vivem em `packages/contracts/src/pricing-calculator.ts`; o arquivo local
-`features/pricing/calc.ts` apenas reexporta a fonte compartilhada usada também pela API e pelo site.
+- `components/unified-pricing-calculator.tsx`: fluxo único, importação, revisão e confirmação.
+- `components/pricing-fields.tsx`: campos, seções expansíveis e seleção pesquisável.
+- `components/pricing-cost-details.tsx`: trabalho, despesas e canais.
+- `components/pricing-summary.tsx`: composição, preço alternativo, ganho e margem.
+- `use-pricing-draft.ts`: estado do formulário, restauração e validação.
+- `pricing-model.ts`: simulação por preço e identificação de custos aumentados.
+- `use-pricing-sources.ts`: cadastros e histórico completos, com paginação e atualização ao focar.
+- `hooks.ts`, `api.ts`: integração HTTP e cache.
+- `pricing-improvements.test.ts`, `calc.test.ts`: cenários e regressões de cálculo.
+- `components/pricing-history-modal.tsx`: histórico compartilhado.
+- Os componentes antigos SimplePricingCalculator/PricingCalculator foram preservados, mas não são usados pelas rotas de precificação.
 
 ## Components
 
-### `PricingCalculator`
-
-- **Props:** `{ onSave?: () => void }`
-- Wizard com 5 steps + resultado:
-  1. Custo dos insumos (R$) — com seletor opcional de **produto** que pré-preenche o valor
-     com o `costPrice` real (derivado da receita) e amarra o `productId` no salvamento.
-     Só lista produtos com `costPrice != null`.
-  2. Custo da embalagem (R$), com escolha exata de embalagem cadastrada
-  3. Mao de obra (tempo do lote + rendimento + valor/hora, calculo por unidade)
-  4. Custos indiretos opcionais com duas formas explícitas: rateio por unidades ou custeio por
-     faturamento. Pode selecionar gastos recorrentes ativos, média positiva dos três meses completos
-     anteriores, faturamento necessário da Meta de pró-labore ou bases manuais. Nada é aplicado sem
-     seleção.
-  5. Acrescimo sobre o custo (% presets ou custom) + **um perfil de canal opcional**. Perfis de
-     iFood, cartão ou outros canais são persistidos na conta; combinações viram um perfil próprio.
-- Barra de progresso visual.
-- No rateio por unidades: `totalCost = ingredientes + embalagem + maoDeObra + fixos`;
-  `precoBase = totalCost * (1 + acrescimo/100)`.
-- No custeio por faturamento: `taxa = custosMensais / faturamento`; `lucroAlvo = custoDireto ×
-acrescimo`; `precoBase = (custoDireto + lucroAlvo) / (1 - taxa)`.
-- Com canal, **gross-up**:
-  `precoFinal = precoBase / (1 - feesPercent/100)` (a taxa incide sobre a venda, preservando
-  o lucro desejado).
-- Botoes Voltar/Proximo em cada step.
-
-### `PricingResult`
-
-- **Props:** `{ ingredientCost, packagingCost, laborCost, fixedCostShare, totalCost, marginPercent, suggestedPrice, profitPerUnit, feesPercent?, feesAmount?, finalPrice?, onRecalculate, onSave, isSaving }`
-- Card hero com o **preço final** (com taxas, se houver) ou o preço sugerido; quando há
-  taxas, mostra a quebra "base + X% taxas".
-- Barra empilhada de composicao de custos (ingredientes, embalagem, mao de obra, custos fixos) com legenda colorida.
-- Card de lucro por unidade e margem real sobre o preco.
-- Projecao mensal somente quando a pessoa informa a producao mensal.
-- Botoes "Salvar calculo" e "Recalcular".
+`UnifiedPricingCalculator` aceita custo inicial, productId inicial, metadados de nome/categoria vindos da receita, callbacks de salvamento e criação. `PricingSummary` permite simular outro preço; mostra margem sobre a venda efetiva, despesas e taxas recalculadas. O resultado identifica custos ausentes, inclusive ao restaurar zeros de históricos sem confirmação.
 
 ## Hooks
 
-| Hook                            | Tipo          | Descricao                                                                                                                        |
-| ------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `useCalculatePricing()`         | `useMutation` | Salva calculo no backend.                                                                                                        |
-| `usePricingList(opts?)`         | `useQuery`    | Lista completa dos calculos do usuario (filtro opcional `productId`). Usado no Historico. Query key: `["pricing", "list", opts]` |
-| `usePricingHistory(productId)`  | `useQuery`    | Historico por produto (endpoint dedicado). Query key: `["pricing", "history", productId]`                                        |
-| `usePricing(id)`                | `useQuery`    | Detalhe de um calculo. Query key: `["pricing", id]`                                                                              |
-| `usePricingPreferences()`       | `useQuery`    | Perfis persistidos de taxas por canal.                                                                                           |
-| `useUpdatePricingPreferences()` | `useMutation` | Salva perfis e atualiza o cache imediatamente.                                                                                   |
-| `usePricingRevenueHistory()`    | `useQueries`  | Média dos três meses completos anteriores que têm receita positiva.                                                              |
+- `usePricingSources`: produtos, receitas, embalagens e cálculos de todas as páginas. Falhas são visíveis e permitem repetir; valores manuais continuam utilizáveis.
+- `usePricingDraft`: estado local com origem independente do vínculo ao produto.
+- `useCalculatePricing(true)`: endpoint v2 para impedir gravação silenciosa em um backend antigo.
+- `usePricingPreferences(professional)`: busca perfis somente quando o plano permite.
+- `useUpdatePricingPreferences`, `usePricingRevenueHistory`: preservam os recursos profissionais.
 
 ## API Integration
 
-| Endpoint                                     | Verbo | Funcao                     | Parametros                             |
-| -------------------------------------------- | ----- | -------------------------- | -------------------------------------- |
-| `/api/v1/pricing/calculate`                  | POST  | `calculatePricing`         | body: `CreatePricing`                  |
-| `/api/v1/pricing`                            | GET   | `fetchPricingList`         | `?page&limit&productId?` (lista geral) |
-| `/api/v1/pricing/product/:productId/history` | GET   | `fetchPricingHistory`      | path param `productId`                 |
-| `/api/v1/pricing/:id`                        | GET   | `fetchPricing`             | path param `id`                        |
-| `/api/v1/pricing/preferences`                | GET   | `fetchPricingPreferences`  | -                                      |
-| `/api/v1/pricing/preferences`                | PUT   | `updatePricingPreferences` | `{ channelFees }`                      |
+- POST `/api/v1/pricing/calculate-v2`: salva cálculo sugerido e sourceSnapshot.
+- PATCH `/api/v1/products/:id`: aplica somente salePrice após confirmação; não altera preços de variações.
+- GET `/api/v1/pricing`: histórico paginado.
+- GET/PUT `/api/v1/pricing/preferences`: canais profissionais.
+- As APIs de produtos, receitas, embalagens, despesas recorrentes e metas fornecem as origens.
 
 ## Contracts
 
-- `CreatePricing` — custos, acréscimo, canal e bases opcionais de custeio por faturamento.
-- `Pricing` — resultado salvo inclui forma de rateio, bases, taxa de custeio, canal e preço final.
-- `PricingPreferences` — perfis de canal sincronizados por conta.
+`CreatePricing` e `Pricing` incluem `sourceSnapshot` opcional: origem do material, recipeId, embalagens selecionadas com valores, premissas mensais e confirmação dos campos opcionais. Históricos antigos continuam legíveis sem esse objeto. Os valores monetários usam R$; acréscimo sobre custo é distinguido da margem sobre venda.
+
+No rateio por unidades: `base = (direto + fixoPorUnidade) * (1 + acrescimo)`; `final = base / (1 - taxa)`.
+No rateio por faturamento: `final = (direto + ganhoAlvo) / (1 - indiretos% - taxas%)`. Ambos os percentuais incidem sobre o mesmo preço final. A soma deve ser menor que 100%.
 
 ## Error Handling
 
-- **Erro de salvamento:** tratado pelo estado da mutation (isPending/isError).
-- **Validacao local:** insumos sao obrigatorios; mao de obra e rateio podem ficar zerados, mas, quando iniciados, exigem todas as premissas necessarias.
-- **Sucesso ao salvar:** confirma "Cálculo salvo!" e o botão "Ver histórico" abre o histórico compartilhado com o novo cálculo no topo.
+- Campos incompletos, NaN, percentuais inviáveis e preços acima de MAX_MONEY impedem ações.
+- Cadastros excluídos ou alterados durante a edição exigem revisão ou entrada manual.
+- Cancelar a confirmação não gera requisições de gravação.
+- A falha ao salvar impede a alteração do produto. Se a aplicação falhar depois de salvar, o alerta explica que apenas o histórico foi salvo.
+- A criação só abre após o cálculo ser salvo.
 
 ## Performance
 
-- Calculo inteiramente local (nenhuma chamada API ate salvar).
-- Wizard com renderizacao condicional por step (apenas 1 step visivel por vez).
+Cálculos locais, sem requisição a cada tecla. Cadastros usam cache React Query e são recarregados ao focar a tela. Histórico percorre todas as páginas para não perder produtos antigos; cada produto/canal é comparado somente com seu último cálculo. Não há polling em segundo plano.
 
 ## Test matrix
 
-- [ ] Calculo de custo total soma cada um dos componentes
-- [ ] Calculo de mao de obra por unidade: ((minutos/60) \* valorHora) / rendimento
-- [ ] Preco sugerido: totalCost \* (1 + acrescimo/100)
-- [ ] Preco final com taxas (gross-up): precoBase / (1 - feesPercent/100)
-- [ ] Projecao mensal so aparece com producao confirmada
-- [ ] Navegacao entre steps funciona corretamente
-- [ ] `useCalculatePricing` envia payload correto
+- Fórmulas com trabalho, taxa, rateio por unidade e faturamento.
+- Acréscimo versus margem e simulação de prejuízo.
+- Receita atual diferente do custo armazenado no produto.
+- Embalagem aumentada, origem excluída, registros substituídos e origens manuais.
+- Campos ausentes não são convertidos em zeros confirmados.
+- Navegador com fixtures: confirmação/cancelamento, falhas, plano gratuito, redirecionamento e larguras 320/390/768/1024/1440.
 
 ## Examples
 
-- Acessado via Mais (Gestão do negócio, visível sem "Ver tudo") ou rota `/pricing`.
-  No Início, um card no mesmo slot de "Comece pelo essencial" aparece quando a conta
-  já tem produto e ainda não salvou um cálculo — e o guia de Primeiros Passos não está
-  na tela.
-- Fluxo: step 1 -> 2 -> 3 -> 4 -> 5 -> resultado -> salvar ou recalcular.
+Produto: custo antigo R$ 10, receita atual R$ 12, embalagem antiga R$ 1 e atual R$ 2. O alerta identifica aumento de R$ 3 e Recalcular carrega R$ 12 + R$ 2. Com ganho R$ 6 e taxa 10%, o preço sugerido arredondado é R$ 22,23. Simular R$ 25 mostra ganho de R$ 8,50 e margem de 34% com esses custos.
 
 ## Change log / Decisions
 
-- 2026-07-16: fórmulas puras movidas para `@lucro-caseiro/contracts` para manter aplicativo,
-  backend e calculadora pública do site matematicamente idênticos.
-- ~~Projecao mensal fixa em 200 unidades~~ → agora vem da **Produção mensal estimada** (step 4); o resultado usa esse número na projeção (`monthlyUnits`).
-- Calculo feito no front para feedback instantaneo; POST de save envia ao backend para persistencia.
-- Custo real: o step 1 pode puxar o `costPrice` de um produto (que vem da receita/insumos), em
-  vez de digitar o custo na mao. O `productId` selecionado vai junto no POST de calculo.
-- **Taxas de venda (iFood/cartão) em %** (step 5, opcional): aplicadas via **gross-up** sobre
-  o preço de venda para preservar a margem. Inspirado em reviews do concorrente
-  (`tasks/prd-melhorias-concorrente.md`).
-- 2026-06-15: **redesign do wizard** (`pricing-calculator.tsx`): círculos numerados com check + "Etapa X de 5", título fora do card, cards ricos com ícone, **stepper** no tempo de mão de obra (step 3) e na produção mensal (step 4), cards de valor calculado (mão de obra/unidade, custo fixo/unidade) e caixas de dica (verde/azul). **Step 4 mudou**: agora pede **custos fixos mensais** + **produção mensal** e calcula `fixedCostShare = mensal ÷ produção` (antes era valor/unidade direto). Step 5 ganhou "Margem selecionada" + **Resumo do cálculo** (custo total, margem, preço base, taxas, preço final). Step 1 mostra card "Produto selecionado" + "Valor importado da receita"; step 2 mostra **sugestão = média do custo das embalagens cadastradas** (`usePackagingList`). Campos de dinheiro têm **mini-calculadora** (`shared/components/calculator-modal.tsx`). Top bar (em `pricing.tsx`): voltar + "Precificação" + Histórico. `PricingResult`: badges de % por item na composição, "margem sobre o preço" e projeção usando `monthlyUnits`.
-- 2026-06-15: **Histórico passou a listar o histórico completo** (corrige histórico vazio). Antes exigia selecionar um produto e usava só `usePricingHistory(productId)` — cálculos salvos **sem produto** (custo digitado na mão) nunca apareciam. Agora o modal usa `usePricingList()` (GET `/api/v1/pricing`), lista geral com **filtro por produto** (chip "tudo" + um por produto + "Cálculo avulso") e cada card mostra o nome do produto (ou "Cálculo avulso"), data, preço final, custo e margem.
-- 2026-06-15: **resultado** (`pricing-result.tsx`): valores grandes em 1 linha (`adjustsFontSizeToFit`) e ícones em círculo nos títulos (Composição/Margem/Projeção). Mini-calculadora (`calculator-modal.tsx`): operadores em rosa sólido (visíveis) + prévia da operação pendente ("3 ×") + operador ativo destacado.
-- 2026-07-18: o resultado oferece “Salvar e criar produto”; o cálculo é persistido e a rota de
-  Produtos abre o formulário com o preço preenchido. A criação concluída registra
-  `product_created_from_pricing`, marco explícito do funil de ativação.
-- 2026-07-22: a entrada `/pricing` virou o modo **Simples**, com resultado ao vivo e importação do custo cadastrado do produto. O wizard antigo
-  ficou em `/pricing-complete`; um seletor segmentado alterna entre os modos. Na interface completa,
-  `marginPercent` passou a ser nomeado corretamente como **acréscimo sobre o custo**; a margem real
-  continua sendo calculada e exibida no resultado.
-- 2026-07-22: a Simples passou a deixar mão de obra e gastos fixos em uma seção opcional fechada;
-  removeu a importação silenciosa de gastos e a produção presumida de 100 unidades. A Completa passou
-  a calcular mão de obra pelo lote/rendimento, selecionar embalagens pelo custo exato e validar premissas
-  incompletas. Os resultados agora se identificam como estimativas baseadas nos dados informados.
-- 2026-07-22: a tela Completa passou a exigir a feature `advancedPricing`, exclusiva do plano
-  Profissional. Contas sem a feature veem a apresentação e o CTA antes de qualquer formulário;
-  a Simples continua disponível com toda a matemática básica necessária.
-- 2026-08-08: a etapa 4 integrou Gastos Fixos, faturamento histórico positivo e Meta de pró-labore
-  como referências confirmadas e adicionou custeio por faturamento. A etapa 5 substituiu a soma fixa
-  iFood+cartão por perfis alternativos persistidos; um cálculo aplica um canal por vez. O modo Simples
-  permaneceu inalterado.
-- 2026-08-18: o filtro por produto no histórico de precificação usa o `Chip`
-  compartilhado. Sem badge: a lista já vem do `usePricingList()`.
-- 2026-08-22: a estimativa do modo Simples passou a um card vinho (`wineFill`)
-  com valor branco, selo `Atualiza automaticamente`, PNG 3D de etiqueta +
-  calculadora + moedas (`pricing-result-hero.png`) e faixa verde de
-  `Você ganha por unidade`. O aviso de exclusão de mão de obra/gastos ficou
-  fora do card escuro. A fórmula do cálculo não mudou.
-- 2026-08-27: o histórico de precificação deixou de empilhar os chips de produto
-  e passou a uma faixa horizontal; os cards ganharam mais respiro, divisor e
-  colunas iguais para custo e acréscimo.
-- 2026-08-29: Precificação saiu de "Ver tudo" e passou ao grid visível de Gestão
-  no Mais. O Início convida a calcular o lucro quando já há produto e nenhum
-  cálculo salvo.
-- 2026-08-31: o selo `Atualiza automaticamente` fica em uma linha, abaixo do
-  preço; a ilustração da calculadora divide a faixa com o valor e não sobrepõe
-  o selo. Precificação entrou no Acesso rápido da Home no lugar de Clientes,
-  com o rótulo curto `Preço` para manter a mesma fonte e tamanho dos outros atalhos.
-
-## Orientação contextual — 2026-09-07
-
-Etapas completas reposicionam a rolagem no topo sem limpar valores. Venda direta com 0% exige escolha explícita; nenhum canal escolhido mostra taxa não informada. Cálculo manual permanece. Resultado completo válido emite pricing_result_viewed ao abrir; no cálculo simples o reconhecimento é voluntário no resultado, separado de salvar.
-
-Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
+- 2026-09-09: unificação dos cinco aprimoramentos; snapshot persistido na migration 063; endpoint v2 exige publicação coordenada com a API. Migrações e backend devem preceder o aplicativo atualizado.
+- O histórico preserva a sugestão calculada; o preço comercial escolhido é salvo no produto. Alertas representam revisão dos cálculos, não uma garantia sobre o preço comercial.
