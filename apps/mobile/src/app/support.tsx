@@ -2,7 +2,7 @@ import { showAlert } from "../shared/components/alert-store";
 import { Button, Card, Typography, spacing, useBrand, useTheme } from "@lucro-caseiro/ui";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import { AppIcon } from "../shared/components/app-icon";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import React from "react";
 import { Linking, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,6 +19,7 @@ import {
 import { ScreenHeader } from "../shared/components/screen-header";
 import { getBrandDisplayName } from "../shared/brand-name";
 import { usePaywall } from "../shared/hooks/use-paywall";
+import { HelpAssistant } from "../features/help-assistant/help-assistant";
 
 const SUPPORT_EMAIL = "contato@orionseven.com.br";
 
@@ -40,10 +41,10 @@ const STATIC_FAQ: { question: string; answer: string }[] = [
   },
 ];
 
-function openSupportEmail(brandName: string) {
+function openSupportEmail(brandName: string, question = "") {
   const subject = encodeURIComponent(`Suporte ${brandName}`);
   const body = encodeURIComponent(
-    "Oi! Preciso de ajuda com:\n\n\n---\n(Conte o que aconteceu que a gente resolve.)",
+    `Oi! Preciso de ajuda com:\n\n${question.slice(0, 400)}\n\n---\n(Conte em qual tela aconteceu e o que você tentou fazer.)`,
   );
   void Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`).catch(
     () =>
@@ -55,6 +56,7 @@ function openSupportEmail(brandName: string) {
 }
 
 export default function SupportScreen() {
+  const router = useRouter();
   const { theme } = useTheme();
   const experienceCopy = useBusinessCopy();
   const brandName = getBrandDisplayName(useBrand());
@@ -92,7 +94,13 @@ export default function SupportScreen() {
           desktopStretch(isDesktop, desktopWidths.data),
         ]}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
+        <HelpAssistant
+          profile={experienceCopy.profile}
+          onNavigate={(route) => router.push(route)}
+          onContactSupport={(question) => openSupportEmail(brandName, question)}
+        />
         {isPremium ? (
           <Card variant="surface" padding="xl" style={{ gap: spacing.md }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
@@ -131,8 +139,8 @@ export default function SupportScreen() {
               </Typography>
             </View>
             <Typography variant="body" color={theme.colors.textSecondary}>
-              Você pode consultar as instruções e relatar dificuldades no plano gratuito.
-              A prioridade de atendimento continua sendo um benefício do Profissional.
+              O assistente e o contato por email estão disponíveis em todos os planos.
+              Conte em qual etapa teve dificuldade para a gente ajudar.
             </Typography>
             <Button
               title="Relatar uma dificuldade"
