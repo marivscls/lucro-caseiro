@@ -69,7 +69,7 @@ Deve incluir:
 - Recibo simples.
 - Exportar resumo mensal em PDF simples (feature `exportBasic`, ver ADR-0005).
 - 1 usuario.
-- 1 foto por produto.
+- Ate 3 fotos por produto (foto principal e 2 adicionais), igual ao Profissional.
 
 Regra comercial: depois que a pessoa paga o Essencial, ela nao deve bater em limite de volume basico como venda, cliente ou produto.
 
@@ -81,7 +81,6 @@ Objetivo: ser o plano completo para quem quer operar com mais controle, melhor a
 
 Deve incluir tudo do Essencial, mais:
 
-- Varias fotos por produto.
 - Relatorios avancados.
 - Exportacao em PDF/XLSX.
 - Fornecedores.
@@ -118,7 +117,7 @@ Usar a logica de 2 meses gratis:
 | Receitas                | 5              | Ilimitadas               | Ilimitadas                  |
 | Embalagens              | 3              | Ilimitadas               | Ilimitadas                  |
 | Fornecedores            | 3              | Limitado ou nao incluso  | Ilimitados                  |
-| Fotos por produto       | 1              | 1                        | Varias                      |
+| Fotos por produto       | 1              | Ate 3                    | Ate 3                       |
 | Catalogo online         | Basico         | Completo e personalizado | Completo e personalizado    |
 | Agenda/encomendas       | Basico         | Completo                 | Completo                    |
 | Fiado                   | Basico         | Completo                 | Completo                    |

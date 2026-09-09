@@ -96,3 +96,5 @@ progresso do mês: quanto já faturou, quanto falta e ~quantas vendas faltam par
 - Criação inicial: card na Home + formulário (Home e Configurações).
 - Barra de progresso usa `flex` (evita `width` em %, mais simples de tipar).
 - Feature grátis na v1 (sem paywall), conforme decisão de produto.
+
+- 2026-09-09: GoalCard em app/tabs/index.tsx usa shared/components/feature-motion.tsx (GoalProgress): barra e posição do percentual interpolam juntos em 420 ms. Texto e valor acessível refletem o progresso atual imediatamente; valores são limitados a 0–100 e movimento reduzido aplica o estado final sem animação.

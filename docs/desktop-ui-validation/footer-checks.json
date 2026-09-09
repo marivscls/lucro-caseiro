@@ -1,0 +1,35 @@
+{
+  "checks": [
+    {
+      "route": "products",
+      "width": 1024,
+      "overflow": false
+    },
+    {
+      "route": "purchases",
+      "width": 1024,
+      "overflow": false
+    },
+    {
+      "route": "labels",
+      "width": 1024,
+      "overflow": false
+    },
+    {
+      "route": "products",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "route": "purchases",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "route": "labels",
+      "width": 390,
+      "overflow": false
+    }
+  ],
+  "errors": []
+}

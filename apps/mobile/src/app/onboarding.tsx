@@ -1,6 +1,7 @@
 import { ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../shared/hooks/use-form-validation";
 import { BusinessProfileFlow } from "../features/onboarding/business-profile";
+import { ContentTransition } from "../shared/components/motion-feedback";
 import {
   Button,
   Card,
@@ -707,7 +708,12 @@ function LegacyOnboardingScreen() {
         alignItems: isDesktop ? "center" : undefined,
       }}
     >
-      <View style={[{ flex: 1 }, desktopContained(isDesktop, 720)]}>
+      <ContentTransition
+        transitionKey={currentStep}
+        distance={36}
+        duration={360}
+        style={[{ flex: 1 }, desktopContained(isDesktop, 720)]}
+      >
         {currentStep === 0 && (
           <WelcomeStep
             onNext={() => {
@@ -755,7 +761,7 @@ function LegacyOnboardingScreen() {
             finishing={finishing}
           />
         )}
-      </View>
+      </ContentTransition>
     </SafeAreaView>
   );
 }

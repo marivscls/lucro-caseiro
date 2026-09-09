@@ -89,16 +89,16 @@ export type PlanFeature =
   | "prioritySupport" // atendimento prioritário
   | "compositeProducts"; // produtos compostos / kits
 
-// Essencial libera o operacional diário, o catálogo completo/personalizado e o
+// Essencial libera o operacional diário, o catálogo completo com galeria e o
 // PDF básico do resumo mensal (ADR-0005).
 const ESSENTIAL_FEATURES: readonly PlanFeature[] = [
   "exportBasic",
   "catalogPremium",
   "catalogCustomization",
+  "extraPhotos",
 ];
 
 const PROFESSIONAL_FEATURES: readonly PlanFeature[] = [
-  "extraPhotos",
   "advancedReports",
   "advancedPricing",
   "export",

@@ -1,0 +1,93 @@
+{
+  "checks": [
+    {
+      "route": "packaging",
+      "asset": "packaging-empty",
+      "loaded": true,
+      "overflow": false
+    },
+    {
+      "route": "materials",
+      "asset": "materials-empty",
+      "loaded": true,
+      "overflow": false
+    },
+    {
+      "route": "tabs/agenda",
+      "asset": "agenda-empty-v3",
+      "loaded": true,
+      "overflow": false
+    },
+    {
+      "route": "tabs/clients",
+      "asset": "clients-empty",
+      "loaded": true,
+      "overflow": false
+    },
+    {
+      "route": "tabs/sales",
+      "asset": "sales-empty-v2",
+      "loaded": true,
+      "overflow": false
+    },
+    {
+      "route": "products",
+      "asset": "products-empty",
+      "loaded": true,
+      "overflow": false
+    },
+    {
+      "route": "services",
+      "asset": "services-empty-transparent",
+      "loaded": true,
+      "overflow": false
+    },
+    {
+      "route": "suppliers",
+      "asset": "suppliers-empty",
+      "loaded": true,
+      "overflow": false
+    },
+    {
+      "route": "quotes",
+      "asset": "quotes-empty",
+      "loaded": true,
+      "overflow": false
+    },
+    {
+      "route": "insights",
+      "asset": "insights-empty",
+      "loaded": true,
+      "overflow": false
+    },
+    {
+      "route": "fiado",
+      "asset": "fiado-hero",
+      "loaded": true,
+      "overflow": false
+    },
+    {
+      "route": "finance",
+      "asset": "finance-reference-empty",
+      "loaded": true,
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "createButton": true
+    },
+    {
+      "width": 768,
+      "createButton": true
+    },
+    {
+      "width": 1024,
+      "createButton": true
+    },
+    {
+      "width": 1440,
+      "createButton": true
+    }
+  ],
+  "errors": []
+}

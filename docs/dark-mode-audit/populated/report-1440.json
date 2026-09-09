@@ -1,0 +1,50 @@
+[
+  {
+    "screen": "/settings",
+    "resolvedPath": "/settings",
+    "file": "settings-dark-1440.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Lucro Caseiro\nGestão do seu negócio\nPRINCIPAL\nInício\nVendas\nNova venda\nAgenda\nClientes\nGESTÃO\nProdutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nM\nMariana Vasconcelos\nMeu negócio\nConfigurações\nSeu negócio e o app, do seu jeito\nM\nMariana Vasconcelos\nMeu negócio\nEditar perfil\nPerfil do negócio\nSeu negócio, suas escolhas\nPersonalize o app para o seu jeito de trabalhar.\nEditar perfil do negócio\nSeu plano\nProfissional\nSeus recursos Lucro Caseiro em um só lugar.\nGerenciar assinatura\nMeta de pró-labore\nDefina quanto quer receber por mês\nPREFERÊNCIAS\nTema\nClaro\nEscuro\nNotificações no navegador\nLembretes com o app fechado estarão disponíveis em breve.\nSuporte\nTire suas dúvidas e fale com a gente\nPRIVACIDADE\nPolítica de privacidade\nTermos de uso\nCONTA\nSair da conta\nExcluir conta\nv1.0.0"
+  },
+  {
+    "screen": "/suppliers",
+    "resolvedPath": "/suppliers",
+    "file": "suppliers-dark-1440.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Lucro Caseiro\nGestão do seu negócio\nPRINCIPAL\nInício\nVendas\nNova venda\nAgenda\nClientes\nGESTÃO\nProdutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nM\nMariana Vasconcelos\nMeu negócio\nFornecedores\nQuem abastece o seu negócio, sempre à mão.\nNovo fornecedor\nComo usar\nCompras do mês\nR$ 0,00\nNenhuma compra neste mês\nSem planejamento\nTodos\n2\nInsumos\n0\nEmbalagens\n1\nAlimentos\n1\nOutros\n0\nSeus fornecedores\nMais recentes\nAteliê das Flores\nALIMENTOS\nCaixas e embalagens\n★ Preferido\nFalar com fornecedor\nSem compras recentes\nP&\nPapel & Cia\nEMBALAGENS\nCaixas e embalagens\n★ Preferido\nFalar com fornecedor\nSem compras recentes\n+ Novo fornecedor"
+  },
+  {
+    "screen": "/materials",
+    "resolvedPath": "/tabs/materials",
+    "file": "materials-dark-1440.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Lucro Caseiro\nGestão do seu negócio\nPRINCIPAL\nInício\nVendas\nNova venda\nAgenda\nClientes\nGESTÃO\nProdutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nM\nMariana Vasconcelos\nMeu negócio\nMateriais\nSaiba o que tem, o que falta e o que repor.\nNovo material\nComo usar\nSeu estoque hoje\nR$ 39,60\nem estoque\n2 materiais cadastrados\n1\nem dia\n0\natenção\n1\nbaixo\nPapel kraft chegou ao mínimo\n1 item precisa de reposição\nVer lista\nSeus materiais\nOrdenar\n🎀\nFita de cetim\nm\nR$ 3,20/m\n12 m\nmín. 2 m\nEm dia\n🍽️\nPapel kraft\nUnidades\nR$ 1,20/un\n1 un\nmín. 4 un\nEstoque baixo\n+ Novo material"
+  },
+  {
+    "screen": "/packaging",
+    "resolvedPath": "/packaging",
+    "file": "packaging-dark-1440.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Lucro Caseiro\nGestão do seu negócio\nPRINCIPAL\nInício\nVendas\nNova venda\nAgenda\nClientes\nGESTÃO\nProdutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nM\nMariana Vasconcelos\nMeu negócio\nEmbalagens\nNova embalagem\nComo usar\nESTOQUE DE EMBALAGENS\n1\ncadastrada\nR$ 3,20\ninvestidos\n0 para repor\nFiltros\nTodas\nCaixas\nPotes\nSacolas\nFilmes\nSuas embalagens\n1 item\n📦\nCaixa de presente\nCaixa\nCaixa\nR$ 3,20\n+ Nova embalagem"
+  },
+  {
+    "screen": "/pricing",
+    "resolvedPath": "/pricing",
+    "file": "pricing-dark-1440.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Lucro Caseiro\nGestão do seu negócio\nPRINCIPAL\nInício\nVendas\nNova venda\nAgenda\nClientes\nGESTÃO\nProdutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nM\nMariana Vasconcelos\nMeu negócio\nPrecificação\nHistórico\nQuanto cobrar pelo seu produto?\nComece pelo custo por unidade. Abra os detalhes para incluir trabalho, despesas e taxas.\nAtualizar custos cadastrados\nProduto e custo por unidade\nEscolher produto cadastrado\nIngredientes / material por unidade\nR$\nOrigem: informado por você. Use o custo de uma unidade, não do lote.\nEmbalagem por unidade\nR$\nOrigem: informado por você. Digite 0 se não usa embalagem.\nAdicionar embalagem cadastrada\nSeu trabalho\nNão incluído · informe seu trabalho por unidade\nDespesas do negócio\nNão incluídas · aluguel, energia e outras despesas\nQuanto você quer ganhar?\nValor em reais\nAcréscimo sobre o custo\nGanho desejado por unidade\nR$\nEste ganho depende de incluir todos os custos do negócio.\nTaxas e canal de venda\nTaxa não informada · a estimativa usa 0%\nSeu preço começa pelos custos\nInforme o custo por unidade para calcular.\nConferir campos"
+  },
+  {
+    "screen": "/services",
+    "resolvedPath": "/services",
+    "file": "services-dark-1440.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Lucro Caseiro\nGestão do seu negócio\nPRINCIPAL\nInício\nVendas\nNova venda\nAgenda\nClientes\nGESTÃO\nProdutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nM\nMariana Vasconcelos\nMeu negócio\nServiços\nOrganize o que você faz e quanto vale.\nCadastrar serviço\nPrepare seu primeiro atendimento\nInforme o serviço e sua duração. Você pode definir o preço depois.\nCadastrar serviço\nAgora não\nComo usar\nSEU CATÁLOGO\n0 serviços prontos para vender\nPreços, tempo e custos em um só lugar.\nComece pelo seu primeiro serviço\nCadastre qualquer trabalho que você oferece, defina o tempo e escolha se quer informar um preço.\nCadastrar serviço"
+  }
+]

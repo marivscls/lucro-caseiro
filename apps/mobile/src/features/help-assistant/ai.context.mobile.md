@@ -14,6 +14,7 @@ Offer immediate answers to free-text questions about using the app, plus a revie
 
 - `HelpAssistant` is shown at the top of the existing `/support` screen for all plans.
 - `help-assistant.domain.ts` contains reviewed answers and intent matching. Pricing adapts to service/beauty businesses; unsupported questions offer human support.
+- Subscription questions show all three plans with prices and free limits from the shared contracts, plus navigation to `/plans`. This intent precedes product pricing and feature guides; incident and cancellation guidance keep priority.
 - Users type up to 400 characters or select a suggested question. Keep at most four question/answer pairs in component memory. No analytics or persistence of question text.
 - `onNavigate` accepts only a fixed set of app routes. `onContactSupport` passes the latest question (or unfinished draft) to the support screen's mailto composer. The user reviews and sends it in their email application.
 
@@ -59,6 +60,8 @@ None. Automatic answers are local, deterministic and available offline. Screen n
 ## Test matrix
 
 Domain tests cover common phrasing, unknown questions, service routing, failure handoff and account-data boundaries. Component tests cover free-text conversation, screen navigation, reviewable email handoff and blank input.
+
+Plan regressions cover the reported question with and without accents, subscription pricing versus product pricing, comparison by tier name, and navigation to the plan comparison. Cancellation and support must remain reachable.
 
 ## Examples
 

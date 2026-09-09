@@ -55,6 +55,7 @@ import {
   type NotificationType,
 } from "../shared/hooks/notification-types";
 import { isPrefEnabled, useNotificationPrefs } from "../shared/hooks/notification-prefs";
+import { useBrowserNotifications } from "../shared/hooks/use-browser-notifications";
 import { usePaywall } from "../shared/hooks/use-paywall";
 import {
   desktopAction,
@@ -275,6 +276,7 @@ export default function SettingsScreen() {
   const [savingAvatar, setSavingAvatar] = useState(false);
   const notifPrefs = useNotificationPrefs((state) => state.prefs);
   const setNotifPref = useNotificationPrefs((state) => state.setPref);
+  const browserNotifications = useBrowserNotifications();
 
   const userName = profile?.name ?? "...";
   const businessName = profile?.businessName ?? "Meu negócio";
@@ -873,80 +875,128 @@ export default function SettingsScreen() {
                 />
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <Typography variant="bodyBold">Notificações no navegador</Typography>
-                  <Typography variant="caption">
-                    Lembretes com o app fechado estarão disponíveis em breve.
+                  <Typography variant="caption" accessibilityLiveRegion="polite">
+                    {browserNotifications.message}
                   </Typography>
+                  {browserNotifications.supported ? (
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        flexWrap: "wrap",
+                        gap: spacing.sm,
+                        marginTop: spacing.sm,
+                      }}
+                    >
+                      <Button
+                        title={
+                          browserNotifications.enabled
+                            ? "Desativar"
+                            : "Ativar notificações"
+                        }
+                        loading={browserNotifications.busy}
+                        size="sm"
+                        variant={browserNotifications.enabled ? "outline" : "primary"}
+                        disabled={
+                          browserNotifications.busy || !browserNotifications.publicKey
+                        }
+                        onPress={() => void browserNotifications.toggle()}
+                      />
+                      {browserNotifications.enabled ? (
+                        <Button
+                          title="Enviar teste"
+                          size="sm"
+                          variant="outline"
+                          disabled={browserNotifications.busy}
+                          onPress={() => void browserNotifications.test()}
+                        />
+                      ) : (
+                        <Button
+                          title="Verificar novamente"
+                          size="sm"
+                          variant="outline"
+                          disabled={browserNotifications.busy}
+                          onPress={() => void browserNotifications.refresh()}
+                        />
+                      )}
+                    </View>
+                  ) : null}
                 </View>
               </View>
-            ) : (
-              NOTIFICATIONS.filter((item) => {
-                if (item.type === NOTIFICATION_TYPES.LOW_STOCK) return hasStock;
-                if (item.type === NOTIFICATION_TYPES.DELIVERY) return hasScheduling;
-                return true;
-              }).map((item) => {
-                const locked = !!item.premium && !canUsePremiumNotifications;
-                return (
-                  <View
-                    key={item.type}
-                    style={{
-                      minHeight: 58,
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: spacing.md,
-                      paddingHorizontal: spacing.xs,
-                      borderTopWidth: 1,
-                      borderTopColor: theme.colors.border,
-                    }}
-                  >
-                    <IconSurface
-                      name={item.icon}
-                      color={theme.colors.textSecondary}
-                      backgroundColor={theme.colors.surface}
-                      size={38}
-                      iconSize={18}
-                    />
-                    <View style={{ flex: 1 }}>
-                      <Typography variant="bodyBold">{item.label}</Typography>
-                      {item.premium ? (
-                        <Typography variant="caption" color={theme.colors.premium}>
-                          Profissional
-                        </Typography>
-                      ) : null}
-                    </View>
-                    {locked ? (
-                      <Pressable
-                        onPress={() => showPaywall("notifications")}
-                        accessibilityRole="button"
-                        accessibilityLabel={`${item.label}, recurso Profissional`}
-                        style={{
-                          width: 44,
-                          height: 44,
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <AppIcon
-                          name="lock-closed"
-                          size={18}
-                          color={theme.colors.premium}
-                        />
-                      </Pressable>
-                    ) : (
-                      <Switch
-                        accessibilityLabel={item.label}
-                        trackColor={{
-                          false: theme.colors.surface,
-                          true: theme.colors.primaryInteractive,
-                        }}
-                        thumbColor={theme.colors.textOnPrimary}
-                        value={isPrefEnabled(notifPrefs, item.type)}
-                        onValueChange={(value) => setNotifPref(item.type, value)}
+            ) : null}
+            {Platform.OS !== "web" || browserNotifications.enabled
+              ? NOTIFICATIONS.filter((item) => {
+                  if (item.type === NOTIFICATION_TYPES.LOW_STOCK) return hasStock;
+                  if (item.type === NOTIFICATION_TYPES.DELIVERY) return hasScheduling;
+                  return true;
+                }).map((item) => {
+                  const locked = !!item.premium && !canUsePremiumNotifications;
+                  return (
+                    <View
+                      key={item.type}
+                      style={{
+                        minHeight: 58,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: spacing.md,
+                        paddingHorizontal: spacing.xs,
+                        borderTopWidth: 1,
+                        borderTopColor: theme.colors.border,
+                      }}
+                    >
+                      <IconSurface
+                        name={item.icon}
+                        color={theme.colors.textSecondary}
+                        backgroundColor={theme.colors.surface}
+                        size={38}
+                        iconSize={18}
                       />
-                    )}
-                  </View>
-                );
-              })
-            )}
+                      <View style={{ flex: 1 }}>
+                        <Typography variant="bodyBold">{item.label}</Typography>
+                        {item.premium ? (
+                          <Typography variant="caption" color={theme.colors.premium}>
+                            Profissional
+                          </Typography>
+                        ) : null}
+                      </View>
+                      {locked ? (
+                        <Pressable
+                          onPress={() => showPaywall("notifications")}
+                          accessibilityRole="button"
+                          accessibilityLabel={`${item.label}, recurso Profissional`}
+                          style={{
+                            width: 44,
+                            height: 44,
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <AppIcon
+                            name="lock-closed"
+                            size={18}
+                            color={theme.colors.premium}
+                          />
+                        </Pressable>
+                      ) : (
+                        <Switch
+                          disabled={Platform.OS === "web" && browserNotifications.busy}
+                          accessibilityLabel={item.label}
+                          trackColor={{
+                            false: theme.colors.surface,
+                            true: theme.colors.primaryInteractive,
+                          }}
+                          thumbColor={theme.colors.textOnPrimary}
+                          value={isPrefEnabled(notifPrefs, item.type)}
+                          onValueChange={(value) => {
+                            if (Platform.OS === "web")
+                              void browserNotifications.setPreference(item.type, value);
+                            else setNotifPref(item.type, value);
+                          }}
+                        />
+                      )}
+                    </View>
+                  );
+                })
+              : null}
           </Card>
         </View>
 

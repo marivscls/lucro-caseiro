@@ -259,3 +259,5 @@ Link público: `publicCatalogUrl(slug)` = `EXPO_PUBLIC_API_URL + /c/ + slug`.
 Catálogo vazio prioriza conteúdo, mantém cópia do link e compartilhamento voluntário. Link publicado é distinto de itens publicados e revisão das condições. Hero móvel flui sem sobreposição da ilustração. Prévia móvel do editor passa a abertura voluntária. Preview não afirma aceitação de pedidos automaticamente.
 
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
+
+- 2026-09-09: editor e prévia lateral usam fade, leve escala e deslocamento de 18 px por 320 ms ao trocar de etapa; edições no mesmo passo não repetem a animação nem remontam os campos. Preferência por movimento reduzido respeitada.

@@ -2,7 +2,6 @@ import { hasActiveFeature, type PlanFeature } from "@lucro-caseiro/contracts";
 import { describe, expect, it } from "vitest";
 
 const PROFESSIONAL_ONLY: readonly PlanFeature[] = [
-  "extraPhotos",
   "advancedReports",
   "advancedPricing",
   "export",
@@ -16,6 +15,15 @@ const PROFESSIONAL_ONLY: readonly PlanFeature[] = [
 ];
 
 describe("plan feature matrix", () => {
+  it("allows the product gallery in essential while respecting subscription expiry", () => {
+    expect(hasActiveFeature("free", null, "extraPhotos")).toBe(false);
+    expect(hasActiveFeature("essential", null, "extraPhotos")).toBe(true);
+    expect(hasActiveFeature("professional", null, "extraPhotos")).toBe(true);
+    expect(hasActiveFeature("essential", "2020-01-01T00:00:00Z", "extraPhotos")).toBe(
+      false,
+    );
+  });
+
   it("keeps the basic monthly PDF available in essential", () => {
     expect(hasActiveFeature("free", null, "exportBasic")).toBe(false);
     expect(hasActiveFeature("essential", null, "exportBasic")).toBe(true);

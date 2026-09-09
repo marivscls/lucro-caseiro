@@ -1,0 +1,677 @@
+{
+  "checks": [
+    {
+      "route": "labels",
+      "width": 390,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Etiquetas",
+          "size": "18px"
+        },
+        {
+          "text": "Organize seus rótulos para imprimir quando precisar.",
+          "size": "13px"
+        }
+      ]
+    },
+    {
+      "route": "packaging",
+      "width": 390,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Embalagens",
+          "size": "18px"
+        }
+      ]
+    },
+    {
+      "route": "suppliers",
+      "width": 390,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Fornecedores",
+          "size": "18px"
+        },
+        {
+          "text": "Quem abastece o seu negócio, sempre à mão.",
+          "size": "13px"
+        }
+      ]
+    },
+    {
+      "route": "pricing-complete",
+      "width": 390,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Precificação completa",
+          "size": "18px"
+        },
+        {
+          "text": "Histórico",
+          "size": "14px"
+        }
+      ]
+    },
+    {
+      "route": "tabs/more",
+      "width": 390,
+      "overflow": false,
+      "largeText": [],
+      "header": []
+    },
+    {
+      "route": "buy-materials",
+      "width": 390,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Comprar insumos",
+          "size": "18px"
+        },
+        {
+          "text": "Lista gerada com os insumos abaixo do estoque mínimo",
+          "size": "13px"
+        }
+      ]
+    },
+    {
+      "route": "settings",
+      "width": 390,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Configurações",
+          "size": "18px"
+        }
+      ]
+    },
+    {
+      "route": "plans",
+      "width": 390,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Planos",
+          "size": "18px"
+        }
+      ]
+    },
+    {
+      "route": "lucro-apps",
+      "width": 390,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Conheça também",
+          "size": "18px"
+        },
+        {
+          "text": "Outras soluções da família Lucro",
+          "size": "13px"
+        }
+      ]
+    },
+    {
+      "route": "operations",
+      "width": 390,
+      "overflow": false,
+      "largeText": [],
+      "header": []
+    },
+    {
+      "route": "retail",
+      "width": 390,
+      "overflow": false,
+      "largeText": [],
+      "header": []
+    },
+    {
+      "route": "labels",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Etiquetas",
+          "size": "20px"
+        },
+        {
+          "text": "Organize seus rótulos para imprimir quando precisar.",
+          "size": "13px"
+        },
+        {
+          "text": "Nova etiqueta",
+          "size": "14px"
+        }
+      ]
+    },
+    {
+      "route": "tabs",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Olá, Teste!",
+          "size": "20px"
+        },
+        {
+          "text": "Terça-feira, 8 de setembro",
+          "size": "13px"
+        }
+      ]
+    },
+    {
+      "route": "products",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Produtos",
+          "size": "20px"
+        },
+        {
+          "text": "Seu catálogo, do seu jeito.",
+          "size": "13px"
+        },
+        {
+          "text": "Novo produto",
+          "size": "14px"
+        }
+      ]
+    },
+    {
+      "route": "services",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Serviços",
+          "size": "20px"
+        },
+        {
+          "text": "Organize o que você faz e quanto vale.",
+          "size": "13px"
+        },
+        {
+          "text": "Cadastrar serviço",
+          "size": "14px"
+        }
+      ]
+    },
+    {
+      "route": "tabs/sales",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Vendas",
+          "size": "20px"
+        },
+        {
+          "text": "Acompanhe seus pedidos e recebimentos",
+          "size": "13px"
+        }
+      ]
+    },
+    {
+      "route": "tabs/new-sale",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Nova venda",
+          "size": "20px"
+        },
+        {
+          "text": "Escolha o cliente, os itens e a forma de pagamento.",
+          "size": "13px"
+        }
+      ]
+    },
+    {
+      "route": "tabs/agenda",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Agenda",
+          "size": "20px"
+        },
+        {
+          "text": "Nova encomenda",
+          "size": "14px"
+        }
+      ]
+    },
+    {
+      "route": "tabs/clients",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Clientes",
+          "size": "20px"
+        },
+        {
+          "text": "0 pessoas no seu negócio",
+          "size": "13px"
+        },
+        {
+          "text": "Novo cliente",
+          "size": "14px"
+        }
+      ]
+    },
+    {
+      "route": "pricing",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Precificação",
+          "size": "20px"
+        },
+        {
+          "text": "Histórico",
+          "size": "14px"
+        }
+      ]
+    },
+    {
+      "route": "pricing-complete",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Precificação completa",
+          "size": "20px"
+        },
+        {
+          "text": "Histórico",
+          "size": "14px"
+        }
+      ]
+    },
+    {
+      "route": "finance",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Financeiro",
+          "size": "20px"
+        },
+        {
+          "text": "Acompanhe seu lucro e fluxo financeiro",
+          "size": "13px"
+        },
+        {
+          "text": "Novo lançamento",
+          "size": "14px"
+        }
+      ]
+    },
+    {
+      "route": "recurring-expenses",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Gastos fixos",
+          "size": "20px"
+        },
+        {
+          "text": "Organize o que se repete todo mês.",
+          "size": "13px"
+        },
+        {
+          "text": "Novo gasto fixo",
+          "size": "14px"
+        }
+      ]
+    },
+    {
+      "route": "materials",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Materiais",
+          "size": "20px"
+        },
+        {
+          "text": "Saiba o que tem, o que falta e o que repor.",
+          "size": "13px"
+        },
+        {
+          "text": "Novo material",
+          "size": "14px"
+        }
+      ]
+    },
+    {
+      "route": "recipes",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Fichas técnicas",
+          "size": "20px"
+        },
+        {
+          "text": "Criar ficha técnica",
+          "size": "14px"
+        }
+      ]
+    },
+    {
+      "route": "packaging",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Embalagens",
+          "size": "20px"
+        },
+        {
+          "text": "Nova embalagem",
+          "size": "14px"
+        }
+      ]
+    },
+    {
+      "route": "suppliers",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Fornecedores",
+          "size": "20px"
+        },
+        {
+          "text": "Quem abastece o seu negócio, sempre à mão.",
+          "size": "13px"
+        },
+        {
+          "text": "Novo fornecedor",
+          "size": "14px"
+        }
+      ]
+    },
+    {
+      "route": "purchases",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Compras",
+          "size": "20px"
+        },
+        {
+          "text": "Pedidos e reposições do negócio",
+          "size": "13px"
+        },
+        {
+          "text": "Nova compra",
+          "size": "14px"
+        }
+      ]
+    },
+    {
+      "route": "fiado",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Fiado",
+          "size": "20px"
+        },
+        {
+          "text": "Nova venda",
+          "size": "14px"
+        }
+      ]
+    },
+    {
+      "route": "quotes",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Orçamentos",
+          "size": "20px"
+        },
+        {
+          "text": "Propostas organizadas, pedidos mais perto.",
+          "size": "13px"
+        },
+        {
+          "text": "Novo orçamento",
+          "size": "14px"
+        }
+      ]
+    },
+    {
+      "route": "catalog",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Catálogo",
+          "size": "20px"
+        },
+        {
+          "text": "Sua vitrine pronta para vender.",
+          "size": "13px"
+        }
+      ]
+    },
+    {
+      "route": "insights",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Resultados",
+          "size": "20px"
+        }
+      ]
+    },
+    {
+      "route": "support",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Suporte",
+          "size": "20px"
+        }
+      ]
+    },
+    {
+      "route": "tabs/more",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Mais opções",
+          "size": "20px"
+        },
+        {
+          "text": "Tudo para cuidar do seu negócio.",
+          "size": "13px"
+        }
+      ]
+    },
+    {
+      "route": "buy-materials",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Comprar insumos",
+          "size": "20px"
+        },
+        {
+          "text": "Lista gerada com os insumos abaixo do estoque mínimo",
+          "size": "13px"
+        }
+      ]
+    },
+    {
+      "route": "settings",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Configurações",
+          "size": "20px"
+        }
+      ]
+    },
+    {
+      "route": "plans",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Planos",
+          "size": "20px"
+        }
+      ]
+    },
+    {
+      "route": "lucro-apps",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Conheça também",
+          "size": "20px"
+        },
+        {
+          "text": "Outras soluções da família Lucro",
+          "size": "13px"
+        }
+      ]
+    },
+    {
+      "route": "operations",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Olá, Teste!",
+          "size": "20px"
+        },
+        {
+          "text": "Terça-feira, 8 de setembro",
+          "size": "13px"
+        }
+      ]
+    },
+    {
+      "route": "retail",
+      "width": 1440,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Olá, Teste!",
+          "size": "20px"
+        },
+        {
+          "text": "Terça-feira, 8 de setembro",
+          "size": "13px"
+        }
+      ]
+    },
+    {
+      "route": "labels",
+      "width": 320,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Etiquetas",
+          "size": "18px"
+        },
+        {
+          "text": "Organize seus rótulos para imprimir quando precisar.",
+          "size": "13px"
+        }
+      ]
+    },
+    {
+      "route": "packaging",
+      "width": 320,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Embalagens",
+          "size": "18px"
+        }
+      ]
+    },
+    {
+      "route": "materials",
+      "width": 320,
+      "overflow": false,
+      "largeText": [],
+      "header": [
+        {
+          "text": "Materiais",
+          "size": "18px"
+        }
+      ]
+    },
+    {
+      "route": "tabs/new-sale",
+      "width": 320,
+      "overflow": false,
+      "largeText": [],
+      "header": []
+    }
+  ],
+  "errors": []
+}

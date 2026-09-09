@@ -1,0 +1,242 @@
+[
+  {
+    "screen": "/settings",
+    "resolvedPath": "/settings",
+    "file": "settings-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Configurações\nSeu negócio e o app, do seu jeito\nM\nMariana Vasconcelos\nMeu negócio\nPerfil do negócio\nSeu negócio, suas escolhas\nPersonalize o app para o seu jeito de trabalhar.\nEditar perfil do negócio\nSeu plano\nProfissional\nSeus recursos Lucro Caseiro em um só lugar.\nGerenciar assinatura\nMeta de pró-labore\nDefina quanto quer receber por mês\nPREFERÊNCIAS\nTema\nClaro\nEscuro\nNotificações no navegador\nLembretes com o app fechado estarão disponíveis em breve.\nSuporte\nTire suas dúvidas e fale com a gente\nPRIVACIDADE\nPolítica de privacidade\nTermos de uso\nCONTA\nSair da conta\nExcluir conta\nv1.0.0\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/tabs",
+    "resolvedPath": "/tabs",
+    "file": "tabs-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Olá, Mariana!\nQuarta-feira, 9 de setembro\nM\nComo usar\nSUA PRIORIDADE\nOlhe para o dinheiro desta semana\nComece anotando o que entrou e o que saiu. Um período curto já ajuda a entender sua rotina.\nVer meu financeiro\nEditar perfil do negócio\nVisão geral\nHoje\nMês\nVendas hoje\nRegistrar venda\nR$ 0,00\nNenhuma venda registrada\nEntradas\nR$ 0,00\nDespesas\nR$ 0,00\nMeta de setembro\nDefinir meta\nMeta ainda não definida\n0%\nAcesso rápido\nVer todos\nVenda\nProduto\nPreço\nDespesa\nComece pelo essencial\nCadastre um produto para liberar estoque e lucro.\nCadastrar produto\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/tabs/sales",
+    "resolvedPath": "/tabs/sales",
+    "file": "tabs-sales-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Vendas\nAcompanhe seus pedidos e recebimentos\nM\nR$ 0,00\n0 vendas\nAcompanhe o que você vendeu\nRegistre uma venda para consultar os itens, o pagamento e o recibo.\nRegistrar primeira venda\nAgora não\nComo usar\nTodas\nPendentes\nConcluídas\nCanceladas\nNenhuma venda registrada\nSuas vendas aparecerão aqui depois do primeiro registro.\nRegistrar venda\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/tabs/new-sale",
+    "resolvedPath": "/tabs/new-sale",
+    "file": "tabs-new-sale-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Nova Venda\nRegistre a venda passo a passo\nO cliente é opcional. Depois escolha os produtos, informe o pagamento e revise.\nCadastrar produto e continuar\nAgora não\nComo usar\nPara quem é a venda?\nEscolha um cliente existente ou continue sem cliente.\nSem cliente (avulso)\nContinuar sem selecionar um cliente\nClientes recentes\nVer todos\nNenhum cliente para este filtro\nPróximo\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/tabs/agenda",
+    "resolvedPath": "/tabs/agenda",
+    "file": "tabs-agenda-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Agenda\nOrganize seus próximos compromissos\nInforme título e data. Para atendimentos, escolha também serviço, horário e local. O cliente é opcional.\nAdicionar compromisso\nAgora não\nComo usar\nSua agenda está vazia\nCadastre uma encomenda com data de entrega para começar a se organizar.\nNovo pedido\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/tabs/clients",
+    "resolvedPath": "/tabs/clients",
+    "file": "tabs-clients-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Clientes\n0 pessoas no seu negócio\nGuarde seus contatos de trabalho\nComece pelo nome. Telefone, endereço e observações são opcionais.\nCadastrar cliente\nAgora não\nComo usar\nSua clientela\n0\nclientes\n0\ncompraram\nno mês\n0\ncom fiado\nTodos\n0\nRecentes\n0\nFrequentes\n0\nCom fiado\n0\nSeus clientes\nMais recentes\nNenhum cliente ainda\nCadastre seu primeiro cliente pra acompanhar pedidos e aniversários\nNovo cliente\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/tabs/more",
+    "resolvedPath": "/tabs/more",
+    "file": "tabs-more-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Mais opções\nTudo para cuidar do seu negócio.\nM\nMariana Vasconcelos\nMeu negócio\nVitrine ativa\nEditar perfil\nVisão de hoje\n0\nvendas\nR$ 0,00\nfaturamento\nDO DIA A DIA\nFinanceiro\nEntradas, saídas e lucro\nFiado\nCobranças\nClientes\nContatos e aniversários\nGESTÃO DO NEGÓCIO\nVer tudo\nPrecificação\nCalcule se o preço dá lucro\nCatálogo online\nLink para os clientes\nGastos fixos\nCustos mensais\nProdutos\nO que você vende\nEmbalagens\nCustos e estoque\nConheça também\nAbra suas extensões com a mesma conta\nCONTA E AJUDA\nCentral de ajuda\nDúvidas e suporte\nConfigurações\nConta e preferências\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/products",
+    "resolvedPath": "/products",
+    "file": "products-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Produtos\nSeu catálogo, do seu jeito.\nCadastre o que você vende\nInforme nome, categoria e preço. Fotos, código e estoque podem ficar para depois.\nCadastrar primeiro produto\nAgora não\nComo usar\nSeu catálogo\n0 itens organizados\n0\nprodutos\n0\nkits\n0\nprodutos\n0\nkits\n0\nun. em estoque\nTodos os produtos\n0 itens\nNenhum produto ainda\nCadastre seu primeiro produto para começar a vender\nNovo produto\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/services",
+    "resolvedPath": "/services",
+    "file": "services-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Serviços\nOrganize o que você faz e quanto vale.\nPrepare seu primeiro atendimento\nInforme o serviço e sua duração. Você pode definir o preço depois.\nCadastrar serviço\nAgora não\nComo usar\nSEU CATÁLOGO\n0 serviços prontos para vender\nPreços, tempo e custos em um só lugar.\nComece pelo seu primeiro serviço\nCadastre qualquer trabalho que você oferece, defina o tempo e escolha se quer informar um preço.\nCadastrar serviço\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/materials",
+    "resolvedPath": "/tabs/materials",
+    "file": "materials-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Materiais\nOrganize o que você utiliza no trabalho\nCadastre um material e sua unidade de medida. Estoque e custo podem ser completados depois.\nCadastrar material\nAgora não\nComo usar\nSaiba o que tem, o que falta e o que repor.\nSeu estoque hoje\nR$ 0,00\nem estoque\n0 materiais cadastrados\n0\nem dia\n0\natenção\n0\nbaixo\nSeu estoque está vazio\nCadastre o primeiro material para acompanhar quantidade, custo e reposição.\nAdicionar primeiro material\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/pricing",
+    "resolvedPath": "/pricing",
+    "file": "pricing-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Precificação\nHistórico\nQuanto cobrar pelo seu produto?\nComece pelo custo por unidade. Abra os detalhes para incluir trabalho, despesas e taxas.\nAtualizar custos cadastrados\nProduto e custo por unidade\nEscolher produto cadastrado\nIngredientes / material por unidade\nR$\nOrigem: informado por você. Use o custo de uma unidade, não do lote.\nEmbalagem por unidade\nR$\nOrigem: informado por você. Digite 0 se não usa embalagem.\nAdicionar embalagem cadastrada\nSeu trabalho\nNão incluído · informe seu trabalho por unidade\nDespesas do negócio\nNão incluídas · aluguel, energia e outras despesas\nQuanto você quer ganhar?\nValor em reais\nAcréscimo sobre o custo\nGanho desejado por unidade\nR$\nEste ganho depende de incluir todos os custos do negócio.\nTaxas e canal de venda\nTaxa não informada · a estimativa usa 0%\nSeu preço começa pelos custos\nInforme o custo por unidade para calcular.\nConferir campos\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/pricing-complete",
+    "resolvedPath": "/pricing",
+    "file": "pricing-complete-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Precificação\nHistórico\nQuanto cobrar pelo seu produto?\nComece pelo custo por unidade. Abra os detalhes para incluir trabalho, despesas e taxas.\nAtualizar custos cadastrados\nProduto e custo por unidade\nEscolher produto cadastrado\nIngredientes / material por unidade\nR$\nOrigem: informado por você. Use o custo de uma unidade, não do lote.\nEmbalagem por unidade\nR$\nOrigem: informado por você. Digite 0 se não usa embalagem.\nAdicionar embalagem cadastrada\nSeu trabalho\nNão incluído · informe seu trabalho por unidade\nDespesas do negócio\nNão incluídas · aluguel, energia e outras despesas\nQuanto você quer ganhar?\nValor em reais\nAcréscimo sobre o custo\nGanho desejado por unidade\nR$\nEste ganho depende de incluir todos os custos do negócio.\nTaxas e canal de venda\nTaxa não informada · a estimativa usa 0%\nSeu preço começa pelos custos\nInforme o custo por unidade para calcular.\nConferir campos\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/finance",
+    "resolvedPath": "/finance",
+    "file": "finance-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Financeiro\nAcompanhe seu lucro e fluxo financeiro\nComece pelos movimentos do seu negócio\nRegistre uma entrada ou uma despesa para acompanhar o período.\nRegistrar entrada\nRegistrar despesa\nAgora não\nComo usar\nHoje\n7 dias\nMês\nPersonalizado\nSetembro 2026\nSem movimentações no período\nR$ 0,00\nAinda não há movimentos neste período. Registre uma entrada ou despesa para começar.\nEntradas\nR$ 0,00\nNenhum lançamento\nSaídas\nR$ 0,00\nNenhum lançamento\nEntradas x saídas\nComparação do período selecionado\nSem movimentações\nEntradas\nR$ 0,00\nSaídas\nR$ 0,00\nExportar relatório\nPDF\nExcel\nLançamentos\nNovo\nTudo\n0\nEntradas\n0\nSaídas\n0\nNenhum lançamento por aqui\nRegistre entradas e saídas para acompanhar o lucro do mês.\nRegistrar lançamento\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/recipes",
+    "resolvedPath": "/recipes",
+    "file": "recipes-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Fichas de custo\nEntenda o custo de uma produção\nReúna os materiais consumidos e o rendimento. Se faltar um material, cadastre e continue a ficha.\nCriar ficha de custo\nAgora não\nComo usar\nComposição e custo do que você produz.\nAcompanhe custos e rendimentos em um só lugar.\n0 fichas de custo\nAtivas\nCusto médio\nR$ 0,00\nNenhuma ficha de custo ainda\nCadastre a primeira para acompanhar custos e rendimentos em um só lugar.\nCadastrar ficha de custo\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/packaging",
+    "resolvedPath": "/packaging",
+    "file": "packaging-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Embalagens\nInclua embalagem e acabamento na conta\nCadastre o que acompanha cada unidade vendida para reutilizar esse custo no preço.\nCadastrar embalagem ou acabamento\nAgora não\nComo usar\nESTOQUE DE\nEMBALAGENS\n0\ncadastradas\nR$ 0,00\ninvestidos\n0 para repor\nNenhuma embalagem ainda\nCadastre sua primeira embalagem pra calcular o custo certinho dos seus produtos\nCadastrar embalagem\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/suppliers",
+    "resolvedPath": "/suppliers",
+    "file": "suppliers-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Fornecedores\nQuem abastece o seu negócio, sempre à mão.\nTenha seus fornecedores à mão\nComece pelo nome de quem abastece seu negócio. Contatos e imagem são opcionais.\nCadastrar fornecedor\nAgora não\nComo usar\nCompras do mês\nR$ 0,00\nNenhuma compra neste mês\nSem planejamento\nTodos\n0\nInsumos\n0\nEmbalagens\n0\nAlimentos\n0\nOutros\n0\nSeus fornecedores\nMais recentes\nNenhum fornecedor cadastrado\nCadastre quem abastece o seu negócio para organizar suas compras.\nAdicionar fornecedor\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/purchases",
+    "resolvedPath": "/purchases",
+    "file": "purchases-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Compras\nPedidos e reposições do negócio\nAcompanhe suas compras e pagamentos\nInforme o que comprou e o valor. O fornecedor é opcional.\nRegistrar compra\nAgora não\nComo usar\nTotal a pagar\nR$ 0,00\n0 compras pendentes\nEste mês\nTodas 0\nA pagar 0\nPagas 0\nCompras recentes\nPendentes primeiro\nNenhuma compra por aqui\nRegistre a primeira compra de fornecedor.\nAdicionar compra\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/buy-materials",
+    "resolvedPath": "/buy-materials",
+    "file": "buy-materials-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Comprar insumos\nLista gerada com os insumos abaixo do estoque mínimo\nEstoque em dia\nNenhum insumo precisa ser comprado agora.\nRevisar estoque\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/quotes",
+    "resolvedPath": "/quotes",
+    "file": "quotes-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Orçamentos\nPropostas organizadas, pedidos mais perto.\nPrepare uma proposta para seu cliente\nAdicione itens e preços, mesmo sem produtos cadastrados. O cliente é opcional.\nCriar orçamento\nAgora não\nComo usar\nEm negociação\nR$ 0,00\n0 propostas aguardando\nTodos\n0\nAguardando\n0\nAprovados\n0\nRecusados\n0\nOrçamentos recentes\n0 propostas\nNenhum orçamento ainda\nMonte o orçamento, envie no WhatsApp e, quando aprovar, vire encomenda com um toque.\nNovo orçamento\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/fiado",
+    "resolvedPath": "/fiado",
+    "file": "fiado-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Fiado\nSaiba o que ainda falta receber\nAs vendas com saldo em aberto aparecem aqui. Comece registrando a venda a prazo.\nRegistrar venda\nAgora não\nComo usar\nA receber\nR$ 0,00\n0 clientes · 0 lançamentos\nTodos\n0\nVencidos\n0\nPróximos\n0\nMais antigos\nCobranças\nTotal em aberto\nNinguém te deve\nVendas no fiado em aberto aparecem aqui para você cobrar.\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/recurring-expenses",
+    "resolvedPath": "/recurring-expenses",
+    "file": "recurring-expenses-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Gastos fixos\nOrganize o que se repete todo mês.\nLembre dos custos que se repetem\nCadastre valor e vencimento mensal de um gasto fixo, conforme os recursos do seu plano.\nAdicionar gasto fixo\nAgora não\nComo usar\nCompromissos do mês\nR$ 0,00\n0 gastos cadastrados\nSeus próximos vencimentos aparecerão aqui\nSeus gastos fixos\nOrdenados por vencimento\nData ↑\nNenhum gasto fixo ainda\nCadastre seus custos mensais e deixe o app lançar pra você.\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/insights",
+    "resolvedPath": "/insights",
+    "file": "insights-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Resultados\nEntenda seus resultados com registros reais\nRegistre suas vendas para acompanhar os gráficos. Sem registros, ainda não há um resultado para analisar.\nRegistrar venda\nAgora não\nComo usar\nAinda sem dados pra mostrar\nRegistre algumas vendas e volte aqui para ver seus gráficos e os campeões de venda.\nAdicionar venda\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/labels",
+    "resolvedPath": "/labels",
+    "file": "labels-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Etiquetas\nOrganize seus rótulos para imprimir quando precisar.\nIdentifique seus produtos\nEscolha um produto e um modelo de etiqueta. Se faltar o produto, cadastre e retome aqui.\nCriar etiqueta\nAgora não\nComo usar\nSUA COLEÇÃO\n0 etiquetas\nprontas para imprimir\nNenhuma etiqueta ainda\nEscolha um produto e crie uma etiqueta pronta para imprimir.\nNova etiqueta\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/catalog",
+    "resolvedPath": "/catalog",
+    "file": "catalog-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Catálogo\nSua vitrine pronta para vender.\nSeu negócio,\nem uma vitrine só.\nProdutos e serviços organizados para seus clientes escolherem.\nLink publicado\nPrepare sua vitrine para os clientes\nEscolha produtos ou serviços e confira o contato. Um link publicado pode ainda estar sem conteúdo.\nCadastrar primeiro produto\nOfereço serviços\nAgora não\nComo usar\n0\nprodutos\n0\nserviços\n0\npublicados\nLINK DA VITRINE\ncatalogo.lucrocaseiro.com.br/c/teste-local\nAdicionar conteúdo à vitrine\nSeu link ainda está sem itens publicados. Adicione um produto ou serviço e confira o contato antes de divulgar.\nCompartilhar link mesmo assim\nVer como cliente\nMais opções\nO que aparece na vitrine\nOrganizar\nEscolha e organize o que seus clientes podem encontrar.\nProdutos\n0\nServiços\n0\nCadastre produtos para escolher quais aparecem na vitrine.\nSua identidade\nDeixe a vitrine com a cara do seu negócio.\nMeu negócio\nPersonalizar\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/plans",
+    "resolvedPath": "/plans",
+    "file": "plans-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Planos\nSua assinatura\nVeja seu plano atual, faça upgrade ou gerencie a cobrança.\nProfissional\nPLANO ATUAL\nR$ 69,90\n/mês\nou R$ 699,00/ano (2 meses grátis)\nTudo do Essencial\nInsights completos + exportar PDF/Excel\nFornecedores, compras e gastos fixos ilimitados\nEtiquetas personalizadas e orçamentos em PDF\nAniversários, lembretes avançados e suporte prioritário\nCancelar assinatura\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/support",
+    "resolvedPath": "/support",
+    "file": "support-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Suporte\nPergunte ao assistente\nEscreva o que você quer fazer. As respostas usam as instruções do app e funcionam sem internet.\nComo calculo meu preço?\nComo cadastro um produto?\nComo registro uma venda?\nComo compartilho meu catálogo?\nSua pergunta\nPerguntar\nFalar por email\nO assistente orienta sobre o app. Não consulta nem altera os dados da sua conta.\nFale com a gente\nO suporte está disponível para todos, em qualquer plano. Conte em qual etapa teve dificuldade para a gente ajudar.\nFalar com o suporte\ncontato@orionseven.com.br\nPerguntas frequentes\nComo falo com vocês?\nUse o botão para abrir seu e-mail e contar em qual tela teve dificuldade. As instruções básicas e o envio de dúvidas estão disponíveis em todos os planos.\nComo cancelo minha assinatura?\nConfira o recibo da sua assinatura. Se a cobrança é da Google Play, gerencie-a em Assinaturas na loja. Se é da Stripe, solicite o cancelamento pelo e-mail de suporte. Não é necessário apagar sua conta.\nTroquei de celular. E os meus dados?\nNada se perde: entre com o mesmo e-mail no aparelho novo e suas vendas, clientes e fichas de custo voltam automaticamente.\nAchei um erro ou tenho uma ideia\nManda pra gente! Feedback de quem usa todo dia é o que faz o app melhorar. Use o botão abaixo.\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/lucro-apps",
+    "resolvedPath": "/lucro-apps",
+    "file": "lucro-apps-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Conheça também\nOutras soluções da família Lucro\nUse a mesma Conta Lucro em aplicativos feitos para diferentes tipos de negócio. Seus dados e históricos continuam organizados no app certo.\nAPLICATIVOS EM BREVE\nLucro na Revenda\nCompras, lotes, seriais, atacado e pós-venda\nEm breve\nLucro na Oficina\nCheck-in, diagnóstico, execução, entrega e garantia\nEm breve\nLucro na Obra\nOrçamentos, etapas, diário, medições e aditivos\nEm breve\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/onboarding",
+    "resolvedPath": "/onboarding",
+    "file": "onboarding-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "lucro caseiro\nSEU PERFIL\nSalvo na sua conta ao concluir\n1\nVocê\n2\nNegócio\n3\nFase\n4\nClientes\n5\nFoco\nComo podemos te chamar?\nVamos deixar o Lucro Caseiro com a sua cara. Começando pelo básico.\nSeu nome\nNome do negócio (opcional)\nAinda não tem um nome? Tudo bem. Você pode decidir depois.\nAgora não\nContinuar"
+  },
+  {
+    "screen": "/retail",
+    "resolvedPath": "/tabs",
+    "file": "retail-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Olá, Mariana!\nQuarta-feira, 9 de setembro\nM\nComo usar\nSUA PRIORIDADE\nOlhe para o dinheiro desta semana\nComece anotando o que entrou e o que saiu. Um período curto já ajuda a entender sua rotina.\nVer meu financeiro\nEditar perfil do negócio\nVisão geral\nHoje\nMês\nVendas hoje\nRegistrar venda\nR$ 0,00\nNenhuma venda registrada\nEntradas\nR$ 0,00\nDespesas\nR$ 0,00\nMeta de setembro\nDefinir meta\nMeta ainda não definida\n0%\nAcesso rápido\nVer todos\nVenda\nProduto\nPreço\nDespesa\nComece pelo essencial\nCadastre um produto para liberar estoque e lucro.\nCadastrar produto\nInício\nVendas\nNova venda\nAgenda\nMais"
+  },
+  {
+    "screen": "/operations",
+    "resolvedPath": "/tabs",
+    "file": "operations-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Olá, Mariana!\nQuarta-feira, 9 de setembro\nM\nComo usar\nSUA PRIORIDADE\nOlhe para o dinheiro desta semana\nComece anotando o que entrou e o que saiu. Um período curto já ajuda a entender sua rotina.\nVer meu financeiro\nEditar perfil do negócio\nVisão geral\nHoje\nMês\nVendas hoje\nRegistrar venda\nR$ 0,00\nNenhuma venda registrada\nEntradas\nR$ 0,00\nDespesas\nR$ 0,00\nMeta de setembro\nDefinir meta\nMeta ainda não definida\n0%\nAcesso rápido\nVer todos\nVenda\nProduto\nPreço\nDespesa\nComece pelo essencial\nCadastre um produto para liberar estoque e lucro.\nCadastrar produto\nInício\nVendas\nNova venda\nAgenda\nMais"
+  }
+]

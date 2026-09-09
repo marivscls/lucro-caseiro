@@ -1036,6 +1036,7 @@ function ClientsListScreen({
 interface NewClientFieldProps extends TextInputProps {
   icon: AppIconName;
   label: string;
+  required?: boolean;
   trailingIcon?: AppIconName;
   trailingLabel?: string;
   onTrailingPress?: () => void;
@@ -1046,6 +1047,7 @@ interface NewClientFieldProps extends TextInputProps {
 function NewClientField({
   icon,
   label,
+  required = false,
   trailingIcon,
   trailingLabel,
   onTrailingPress,
@@ -1054,6 +1056,7 @@ function NewClientField({
   style,
   ...inputProps
 }: Readonly<NewClientFieldProps>) {
+  const { theme } = useTheme();
   const pal = useBrandScreenPalette();
 
   return (
@@ -1088,6 +1091,11 @@ function NewClientField({
           style={{ fontSize: fontSizes.md, marginBottom: 0 }}
         >
           {label}
+          {required ? (
+            <Typography variant="bodyBold" color={theme.colors.primary}>
+              {" *"}
+            </Typography>
+          ) : null}
         </Typography>
         <CenteredTextInput
           placeholderTextColor={pal.muted}
@@ -1336,7 +1344,8 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
           <ValidationField {...formValidation.field("name")}>
             <NewClientField
               icon="person-outline"
-              label="Nome do cliente *"
+              label="Nome do cliente"
+              required
               placeholder="Ex: Maria Silva, João Pereira..."
               value={name}
               onChangeText={setName}
@@ -1381,7 +1390,7 @@ function NewClientModal({ visible, onClose }: Readonly<NewClientModalProps>) {
             count={`${notes.length}/200`}
           />
           <Typography variant="body" color={pal.muted} style={{ fontSize: fontSizes.sm }}>
-            <Typography variant="bodyBold" color={pal.ink}>
+            <Typography variant="bodyBold" color={theme.colors.primary}>
               *
             </Typography>{" "}
             Campos obrigatórios

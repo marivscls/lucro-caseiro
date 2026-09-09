@@ -1,0 +1,128 @@
+{
+  "errors": [],
+  "requests": [
+    {
+      "kind": "save",
+      "data": {
+        "productId": "00000000-0000-4000-8000-000000000002",
+        "ingredientCost": 12,
+        "packagingCost": 2,
+        "laborCost": 0,
+        "fixedCostShare": 0,
+        "marginPercent": 42.857142857142854,
+        "feesPercent": 10,
+        "allocationMode": "unit",
+        "sourceSnapshot": {
+          "confirmed": {
+            "packaging": true,
+            "labor": false,
+            "fixed": false,
+            "fees": true
+          },
+          "ingredientSource": "recipe",
+          "recipeId": "00000000-0000-4000-8000-000000000003",
+          "packaging": [
+            {
+              "id": "00000000-0000-4000-8000-000000000004",
+              "unitCost": 2
+            }
+          ],
+          "monthlyProduction": 0,
+          "monthlyFixed": 0
+        }
+      }
+    },
+    {
+      "kind": "apply",
+      "data": {
+        "salePrice": 25
+      }
+    },
+    {
+      "kind": "save",
+      "data": {
+        "productId": "00000000-0000-4000-8000-000000000002",
+        "ingredientCost": 12,
+        "packagingCost": 2,
+        "laborCost": 0,
+        "fixedCostShare": 0,
+        "marginPercent": 42.857142857142854,
+        "feesPercent": 10,
+        "allocationMode": "unit",
+        "sourceSnapshot": {
+          "confirmed": {
+            "packaging": true,
+            "labor": false,
+            "fixed": false,
+            "fees": true
+          },
+          "ingredientSource": "recipe",
+          "recipeId": "00000000-0000-4000-8000-000000000003",
+          "packaging": [
+            {
+              "id": "00000000-0000-4000-8000-000000000004",
+              "unitCost": 2
+            }
+          ],
+          "monthlyProduction": 0,
+          "monthlyFixed": 0
+        }
+      }
+    },
+    {
+      "kind": "save",
+      "data": {
+        "productId": "00000000-0000-4000-8000-000000000002",
+        "ingredientCost": 12,
+        "packagingCost": 2,
+        "laborCost": 0,
+        "fixedCostShare": 0,
+        "marginPercent": 42.857142857142854,
+        "feesPercent": 10,
+        "allocationMode": "unit",
+        "sourceSnapshot": {
+          "confirmed": {
+            "packaging": true,
+            "labor": false,
+            "fixed": false,
+            "fees": true
+          },
+          "ingredientSource": "recipe",
+          "recipeId": "00000000-0000-4000-8000-000000000003",
+          "packaging": [
+            {
+              "id": "00000000-0000-4000-8000-000000000004",
+              "unitCost": 2
+            }
+          ],
+          "monthlyProduction": 0,
+          "monthlyFixed": 0
+        }
+      }
+    },
+    {
+      "kind": "apply",
+      "data": {
+        "salePrice": 25
+      }
+    },
+    {
+      "kind": "apply",
+      "data": {
+        "salePrice": 25
+      }
+    },
+    {
+      "kind": "apply",
+      "data": {
+        "salePrice": 25
+      }
+    },
+    {
+      "kind": "apply",
+      "data": {
+        "salePrice": 25
+      }
+    }
+  ]
+}

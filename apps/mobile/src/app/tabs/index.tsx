@@ -37,6 +37,7 @@ import { useLimits, useProfile } from "../../features/subscription/hooks";
 import { getLimitBannerState } from "../../features/subscription/limits";
 import { AdBanner } from "../../shared/components/ad-banner";
 import { AppIcon, type AppIconName } from "../../shared/components/app-icon";
+import { GoalProgress } from "../../shared/components/feature-motion";
 import { GettingStartedOverlay } from "../../shared/components/getting-started-overlay";
 import { SkeletonHome } from "../../shared/components/skeleton";
 import { useAuth } from "../../shared/hooks/use-auth";
@@ -609,68 +610,13 @@ function GoalCard({
         {valueText}
       </Typography>
 
-      <View
-        accessibilityRole="progressbar"
-        accessibilityValue={{ min: 0, max: 100, now: Math.round(safeProgress) }}
-        style={{
-          height: 24,
-          marginTop: compact ? spacing.md : spacing.lg,
-          position: "relative",
-        }}
-      >
-        <View
-          style={{
-            position: "absolute",
-            top: 6,
-            left: 0,
-            right: 0,
-            height: 12,
-            borderRadius: radii.full,
-            backgroundColor: theme.colors.surface,
-            overflow: "hidden",
-          }}
-        >
-          {safeProgress > 0 ? (
-            <View
-              style={{
-                width: `${safeProgress}%`,
-                minWidth: 12,
-                height: "100%",
-                borderRadius: radii.full,
-                backgroundColor: colors.lime,
-              }}
-            />
-          ) : null}
-        </View>
-
-        <View
-          pointerEvents="none"
-          style={{
-            position: "absolute",
-            inset: 0,
-            flexDirection: "row",
-            alignItems: "center",
-          }}
-        >
-          <View style={{ flex: safeProgress }} />
-          <View
-            style={{
-              minWidth: 44,
-              height: 24,
-              paddingHorizontal: spacing.sm,
-              borderRadius: radii.full,
-              backgroundColor: colors.lime,
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            <Typography variant="homeProgressStrong" color={colors.onLime}>
-              {Math.round(safeProgress)}%
-            </Typography>
-          </View>
-          <View style={{ flex: 100 - safeProgress }} />
-        </View>
+      <View style={{ marginTop: compact ? spacing.md : spacing.lg }}>
+        <GoalProgress
+          value={safeProgress}
+          color={colors.lime}
+          trackColor={theme.colors.surface}
+          textColor={colors.onLime}
+        />
       </View>
     </Card>
   );

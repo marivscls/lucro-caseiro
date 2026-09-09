@@ -24,6 +24,7 @@ import successGrowth from "../../assets/success-growth.png";
 import successModalFrame from "../../assets/success-modal-frame.png";
 import { useBrandIllustration } from "../brand-illustrations";
 import { ResponsiveOverlayModal } from "./responsive-modal-surface";
+import { SaleSuccessMark } from "./motion-feedback";
 
 export { showAlert } from "./alert-store";
 
@@ -58,14 +59,20 @@ export function AlertHost() {
   ];
 
   useEffect(() => {
-    if (!options || reduced) return;
+    if (!options) return;
+    if (reduced || options.variant === "sale-success") {
+      scale.setValue(1);
+      return;
+    }
     scale.setValue(0.92);
-    Animated.spring(scale, {
+    const animation = Animated.spring(scale, {
       toValue: 1,
       useNativeDriver: true,
       speed: 18,
       bounciness: 8,
-    }).start();
+    });
+    animation.start();
+    return () => animation.stop();
   }, [options, reduced, scale]);
 
   if (!options) return null;
@@ -287,6 +294,9 @@ export function AlertHost() {
               ...theme.shadows.lg,
             }}
           >
+            {options.variant === "sale-success" ? (
+              <SaleSuccessMark key={options.message} />
+            ) : null}
             <Typography variant="h3">{options.title}</Typography>
             {options.message ? (
               <Typography variant="body">{options.message}</Typography>

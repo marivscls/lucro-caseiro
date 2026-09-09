@@ -116,6 +116,11 @@ export function getLimitResourceLabel(
 }
 
 const ESSENTIAL_FEATURE_COPY: Record<string, { title: string; message: string }> = {
+  productPhotos: {
+    title: "📸 Mais fotos do produto",
+    message:
+      "Mostre seu produto de vários ângulos com várias fotos. Desbloqueie no Essencial.",
+  },
   catalog: {
     title: "📖 Catálogo completo e personalizado",
     message:
@@ -142,11 +147,6 @@ const FEATURE_COPY: Record<string, { title: string; message: string }> = {
   labels: {
     title: "🏷️ Etiquetas personalizadas",
     message: "Crie etiquetas com a cara do seu negócio no plano Profissional.",
-  },
-  productPhotos: {
-    title: "📸 Mais fotos do produto",
-    message:
-      "Mostre seu produto de vários ângulos com várias fotos. Desbloqueie no Profissional.",
   },
   recurring: {
     title: "🔁 Gastos fixos no automático",

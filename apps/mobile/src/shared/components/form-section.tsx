@@ -4,6 +4,7 @@ import type { AppIconName } from "./app-icon";
 import React, { useState } from "react";
 import { useFieldValidationError } from "@lucro-caseiro/ui";
 import { Pressable, View } from "react-native";
+import { AnimatedDisclosure, DisclosureChevron } from "./motion-feedback";
 
 interface FormSectionProps {
   readonly title: string;
@@ -83,24 +84,19 @@ export function FormSection({
           {subtitle ? <Typography variant="caption">{subtitle}</Typography> : null}
         </View>
         {collapsible ? (
-          <AppIcon
-            name={open ? "chevron-up" : "chevron-down"}
-            size={20}
-            color={theme.colors.textSecondary}
-          />
+          <DisclosureChevron open={expanded} color={theme.colors.textSecondary} />
         ) : null}
       </Pressable>
-      {expanded && (
-        <View
-          style={{
-            paddingHorizontal: spacing.lg,
-            paddingBottom: spacing.lg,
-            gap: spacing.md,
-          }}
-        >
-          {children}
-        </View>
-      )}
+      <AnimatedDisclosure
+        open={expanded}
+        style={{
+          paddingHorizontal: spacing.lg,
+          paddingBottom: spacing.lg,
+          gap: spacing.md,
+        }}
+      >
+        {children}
+      </AnimatedDisclosure>
     </View>
   );
 }

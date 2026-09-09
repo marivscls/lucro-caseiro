@@ -1,3 +1,5 @@
+import { PLAN_LABELS, PLAN_LIMITS, PLAN_PRICING } from "@lucro-caseiro/contracts";
+
 export interface HelpAnswer {
   kind: "guide" | "handoff" | "unknown";
   text: string;
@@ -8,6 +10,7 @@ export interface HelpAnswer {
       | "/products"
       | "/services"
       | "/pricing"
+      | "/plans"
       | "/finance"
       | "/recipes"
       | "/materials"
@@ -21,6 +24,11 @@ export interface HelpAnswer {
 
 function has(question: string, terms: readonly string[]): boolean {
   return terms.some((term) => question.includes(term));
+}
+
+function planPrice(plan: keyof typeof PLAN_PRICING): string {
+  const { monthly, annual } = PLAN_PRICING[plan];
+  return `R$ ${monthly.toFixed(2).replace(".", ",")}/mês ou R$ ${annual.toFixed(2).replace(".", ",")}/ano`;
 }
 
 export const HELP_SUGGESTIONS = [
@@ -71,6 +79,25 @@ export function answerHelpQuestion(question: string, profile: string): HelpAnswe
         "Google Play: abra Assinaturas na loja e gerencie o plano por lá.",
         "Stripe: fale com a equipe por email para solicitar o cancelamento. Apagar a conta não cancela a assinatura.",
       ],
+    };
+  }
+  // Subscription questions take precedence over product pricing and feature guides.
+  // Keep incidents and cancellation above this comparison.
+  if (
+    /\b(planos?|assinaturas?|assinar|essencial|profissional|premium|gratuito|gratis)\b/.test(
+      q,
+    )
+  ) {
+    return {
+      kind: "guide",
+      text: "Temos três planos disponíveis. Os planos pagos têm opções mensal e anual.",
+      steps: [
+        `${PLAN_LABELS.free}: sem mensalidade, com até ${PLAN_LIMITS.free.maxSalesPerMonth} vendas por mês, ${PLAN_LIMITS.free.maxClients} clientes e ${PLAN_LIMITS.free.maxProducts} produtos.`,
+        `${PLAN_LABELS.essential}: ${planPrice("essential")}. Vendas, clientes e produtos ilimitados, catálogo completo e personalizado e resumo do mês em PDF.`,
+        `${PLAN_LABELS.professional}: ${planPrice("professional")}. Tudo do Essencial, mais relatórios avançados, exportação em PDF/Excel, compras e suporte prioritário.`,
+        "Toque em Ver planos para comparar os recursos e conferir o valor antes de assinar.",
+      ],
+      action: { label: "Ver planos", route: "/plans" },
     };
   }
   if (

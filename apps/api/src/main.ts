@@ -119,6 +119,12 @@ import { createExpoPushSender } from "./features/notifications/expo-push";
 import { createNotificationsRouter } from "./features/notifications/notifications.routes";
 import { NotificationsRepoPg } from "./features/notifications/notifications.repo.pg";
 import { NotificationsUseCases } from "./features/notifications/notifications.usecases";
+import { createWebPushRouter } from "./features/notifications/web-push.routes";
+import { WebPushRepoPg } from "./features/notifications/web-push.repo.pg";
+import {
+  createWebPushSender,
+  startWebPushWorker,
+} from "./features/notifications/web-push";
 import {
   createPromotionsRouter,
   createPublicRetailRouter,
@@ -322,6 +328,15 @@ const notificationsUseCases = new NotificationsUseCases(
   new NotificationsRepoPg(db),
   createExpoPushSender(),
 );
+const webPushRepo = new WebPushRepoPg(db);
+const webPushSender =
+  config.webPushPublicKey && config.webPushPrivateKey && config.webPushSubject
+    ? createWebPushSender(
+        config.webPushPublicKey,
+        config.webPushPrivateKey,
+        config.webPushSubject,
+      )
+    : null;
 const catalogUseCases = new CatalogUseCases(new CatalogRepoPg(db), (...args) =>
   notificationsUseCases.notifyServiceBooking(...args),
 );
@@ -463,6 +478,10 @@ app.use(
   "/api/v1/marketing",
   createMarketingRouter(marketingUseCases, videoPromptUseCases, videoEditorUseCases),
 );
+app.use(
+  "/api/v1/notifications/web",
+  createWebPushRouter(webPushRepo, config.webPushPublicKey, webPushSender),
+);
 app.use("/api/v1/notifications", createNotificationsRouter(notificationsUseCases));
 app.use(
   "/api/v1/products",
@@ -543,6 +562,7 @@ app.use("/api/v1/payments/stripe", createStripeCheckoutRouter(stripeUseCases));
 app.use(errorHandler);
 
 app.listen(config.port, () => {
+  if (webPushSender) startWebPushWorker(webPushRepo, webPushSender);
   console.warn(`Lucro Caseiro API running on port ${config.port}`);
   if (config.welcomeEmailEnabled) {
     if (config.resendApiKey && config.emailReplyTo) {

@@ -1,0 +1,367 @@
+{
+  "checks": [
+    {
+      "route": "packaging",
+      "width": 390,
+      "asset": "embalagens-hero",
+      "loaded": true,
+      "imageWidth": 179,
+      "imageHeight": 157,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "materials",
+      "width": 390,
+      "asset": "insumos-despensa",
+      "loaded": true,
+      "imageWidth": 150,
+      "imageHeight": 168.234375,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "labels",
+      "width": 390,
+      "asset": "rolo-etiquetas",
+      "loaded": true,
+      "imageWidth": 172,
+      "imageHeight": 152,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "products",
+      "width": 390,
+      "asset": "catalog-products",
+      "loaded": true,
+      "imageWidth": 147,
+      "imageHeight": 147,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "services",
+      "width": 390,
+      "asset": "services-hero-toolkit",
+      "loaded": true,
+      "imageWidth": 179,
+      "imageHeight": 193.59375,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "tabs/sales",
+      "width": 390,
+      "asset": "sales-header-icon",
+      "loaded": true,
+      "imageWidth": 104,
+      "imageHeight": 104,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "catalog",
+      "width": 390,
+      "asset": "catalog-hero-art-trimmed",
+      "loaded": true,
+      "imageWidth": 200,
+      "imageHeight": 175.234375,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "purchases",
+      "width": 390,
+      "asset": "compras-hero-3d",
+      "loaded": true,
+      "imageWidth": 98,
+      "imageHeight": 98,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "recurring-expenses",
+      "width": 390,
+      "asset": "fixed-expenses-calendar",
+      "loaded": true,
+      "imageWidth": 131.953125,
+      "imageHeight": 131.953125,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "tabs/clients",
+      "width": 390,
+      "asset": "clients-community",
+      "loaded": true,
+      "imageWidth": 88,
+      "imageHeight": 88,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "suppliers",
+      "width": 390,
+      "asset": "fornecedores-caixas",
+      "loaded": true,
+      "imageWidth": 136.03125,
+      "imageHeight": 136.03125,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "fiado",
+      "width": 390,
+      "asset": "fiado-notebook-calendar",
+      "loaded": true,
+      "imageWidth": 110.96875,
+      "imageHeight": 135.359375,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "finance",
+      "width": 390,
+      "asset": "finance-summary-illustration",
+      "loaded": true,
+      "imageWidth": 126,
+      "imageHeight": 97.453125,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "pricing",
+      "width": 390,
+      "asset": "pricing-costs-hero",
+      "loaded": true,
+      "imageWidth": 108,
+      "imageHeight": 96,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "packaging",
+      "width": 320,
+      "asset": "embalagens-hero",
+      "loaded": true,
+      "imageWidth": 138,
+      "imageHeight": 121,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "materials",
+      "width": 320,
+      "asset": "insumos-despensa",
+      "loaded": true,
+      "imageWidth": 150,
+      "imageHeight": 168.234375,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "labels",
+      "width": 320,
+      "asset": "rolo-etiquetas",
+      "loaded": true,
+      "imageWidth": 132,
+      "imageHeight": 132,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "products",
+      "width": 320,
+      "asset": "catalog-products",
+      "loaded": true,
+      "imageWidth": 120.953125,
+      "imageHeight": 120.953125,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "services",
+      "width": 320,
+      "asset": "services-hero-toolkit",
+      "loaded": true,
+      "imageWidth": 123.828125,
+      "imageHeight": 148.3125,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "tabs/sales",
+      "width": 320,
+      "asset": "sales-header-icon",
+      "loaded": true,
+      "imageWidth": 104,
+      "imageHeight": 104,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "catalog",
+      "width": 320,
+      "asset": "catalog-hero-art-trimmed",
+      "loaded": true,
+      "imageWidth": 200,
+      "imageHeight": 175.234375,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "packaging",
+      "width": 768,
+      "asset": "embalagens-hero",
+      "loaded": true,
+      "imageWidth": 374,
+      "imageHeight": 210,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "materials",
+      "width": 768,
+      "asset": "insumos-despensa",
+      "loaded": true,
+      "imageWidth": 196,
+      "imageHeight": 219.828125,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "labels",
+      "width": 768,
+      "asset": "rolo-etiquetas",
+      "loaded": true,
+      "imageWidth": 360,
+      "imageHeight": 152,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "products",
+      "width": 768,
+      "asset": "catalog-products",
+      "loaded": true,
+      "imageWidth": 211.1875,
+      "imageHeight": 211.1875,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "services",
+      "width": 768,
+      "asset": "services-hero-toolkit",
+      "loaded": true,
+      "imageWidth": 368,
+      "imageHeight": 193.59375,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "tabs/sales",
+      "width": 768,
+      "asset": "sales-header-icon",
+      "loaded": true,
+      "imageWidth": 104,
+      "imageHeight": 104,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "catalog",
+      "width": 768,
+      "asset": "catalog-hero-art-trimmed",
+      "loaded": true,
+      "imageWidth": 420,
+      "imageHeight": 368,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "packaging",
+      "width": 1440,
+      "asset": "embalagens-hero",
+      "loaded": true,
+      "imageWidth": 374,
+      "imageHeight": 210,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "materials",
+      "width": 1440,
+      "asset": "insumos-despensa",
+      "loaded": true,
+      "imageWidth": 248,
+      "imageHeight": 278.15625,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "labels",
+      "width": 1440,
+      "asset": "rolo-etiquetas",
+      "loaded": true,
+      "imageWidth": 360,
+      "imageHeight": 152,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "products",
+      "width": 1440,
+      "asset": "catalog-products",
+      "loaded": true,
+      "imageWidth": 211.1875,
+      "imageHeight": 211.1875,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "services",
+      "width": 1440,
+      "asset": "services-hero-toolkit",
+      "loaded": true,
+      "imageWidth": 568,
+      "imageHeight": 193.59375,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "tabs/sales",
+      "width": 1440,
+      "asset": "sales-header-icon",
+      "loaded": true,
+      "imageWidth": 64,
+      "imageHeight": 56,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "catalog",
+      "width": 1440,
+      "asset": "catalog-hero-art-trimmed",
+      "loaded": true,
+      "imageWidth": 340,
+      "imageHeight": 297.90625,
+      "overflow": false,
+      "emptyPngs": []
+    },
+    {
+      "route": "tabs/agenda",
+      "emptyPngs": 0
+    },
+    {
+      "route": "insights",
+      "emptyPngs": 0
+    },
+    {
+      "route": "recipes",
+      "emptyPngs": 0
+    }
+  ],
+  "errors": []
+}

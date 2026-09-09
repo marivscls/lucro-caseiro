@@ -121,7 +121,7 @@ function FieldLabel({
         {label}
       </Typography>
       {required ? (
-        <Typography variant="bodyBold" color={theme.colors.text}>
+        <Typography variant="bodyBold" color={theme.colors.primary}>
           *
         </Typography>
       ) : null}
@@ -564,7 +564,7 @@ function ExtraPhotosField({
       >
         {isPremium
           ? `Mostre mais detalhes deste cadastro (até ${max + 1} fotos no total).`
-          : `Adicione até ${max + 1} fotos por cadastro com o Profissional.`}
+          : `Adicione até ${max + 1} fotos por cadastro com o Essencial.`}
       </Typography>
       <View style={{ flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" }}>
         {uris.map((uri, index) => (

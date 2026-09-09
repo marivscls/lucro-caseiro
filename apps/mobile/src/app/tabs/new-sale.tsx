@@ -64,6 +64,7 @@ import { usePaywall } from "../../shared/hooks/use-paywall";
 import { ApiError } from "../../shared/utils/api-client";
 import { maybeAskForReview } from "../../shared/utils/store-review";
 import { showAlert } from "../../shared/components/alert-store";
+import { QuantityPulse } from "../../shared/components/motion-feedback";
 import { BarcodeScanner } from "../../shared/components/barcode-scanner";
 import { SkeletonList } from "../../shared/components/skeleton";
 import {
@@ -639,6 +640,7 @@ export default function NewSaleScreen() {
       };
       showAlert({
         title: "Venda registrada!",
+        variant: "sale-success",
         message: `Total: ${formatCurrency(result.total)}`,
         buttons: guidedFirstSale
           ? [
@@ -1200,31 +1202,31 @@ export default function NewSaleScreen() {
                                   {stockLabel}
                                 </Typography>
                               ) : null}
-                              {qty > 0 && (
-                                <View
-                                  style={{
-                                    position: "absolute",
-                                    top: spacing.sm,
-                                    right: 44,
-                                    backgroundColor: theme.colors.primaryBg,
-                                    borderRadius: radii.full,
-                                    minWidth: 24,
-                                    height: 24,
-                                    paddingHorizontal:
-                                      cartItem?.saleUnit === "kg" ? spacing.sm : 0,
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                  }}
+                              <QuantityPulse
+                                value={qty}
+                                style={{
+                                  display: qty > 0 ? "flex" : "none",
+                                  position: "absolute",
+                                  top: spacing.sm,
+                                  right: 44,
+                                  backgroundColor: theme.colors.primaryBg,
+                                  borderRadius: radii.full,
+                                  minWidth: 24,
+                                  height: 24,
+                                  paddingHorizontal:
+                                    cartItem?.saleUnit === "kg" ? spacing.sm : 0,
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <Typography
+                                  variant="caption"
+                                  color={theme.colors.primaryStrong}
+                                  style={{ fontFamily: fonts.bold }}
                                 >
-                                  <Typography
-                                    variant="caption"
-                                    color={theme.colors.primaryStrong}
-                                    style={{ fontFamily: fonts.bold }}
-                                  >
-                                    {cartItem ? cartQuantityLabel(cartItem) : qty}
-                                  </Typography>
-                                </View>
-                              )}
+                                  {cartItem ? cartQuantityLabel(cartItem) : qty}
+                                </Typography>
+                              </QuantityPulse>
                               {qty > 0 && (
                                 <Pressable
                                   onPress={(event) => {

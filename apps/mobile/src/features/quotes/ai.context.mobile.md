@@ -113,3 +113,5 @@ aprovado em encomenda na agenda (com sinal opcional).
 Ajuda por tarefa inicia criação existente; produto e cliente não são inventados como dependências. quote_created permanece vinculado ao salvamento real.
 
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
+
+- 2026-09-09: Status nos cards e no detalhe usa ContentTransition de 220 ms ao mudar o status retornado pela API. Abrir um card ou renderizar novamente o mesmo status não dispara o efeito; erros não simulam aprovação.

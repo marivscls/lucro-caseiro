@@ -169,3 +169,5 @@ receita ao entregar.
 A orientação informa obrigatoriedade de serviço, horário e local em atendimentos. Cadastro rápido de serviço existente conserva rascunho e emite retomada após sucesso. Agenda usa o termo por segmento.
 
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
+
+- 2026-09-09: AgendaDateStrip usa SelectionUnderline (180 ms) no dia ativo. Botões anunciam data e seleção; a animação não atrasa a filtragem de encomendas.

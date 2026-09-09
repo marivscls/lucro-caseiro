@@ -1,0 +1,917 @@
+{
+  "checks": [
+    {
+      "route": "tabs",
+      "width": 1440,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 1136,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "odo curto já ajuda a entender sua rotina.\nVer meu financeiro\nEditar perfil do negócio\nVisão geral\nHoje\nMês\nVendas hoje\nRegistrar venda\nR$ 0,00\nNenhuma venda registrada\nEntradas\nR$ 0,00\nDespesas\nR$ 0,00\nMeta de setembro\nDefinir meta\nMeta ainda não definida\n0%\nAcesso rápido\nVer todos\nVenda\nProduto\nPreço\nDespesa\nComece pelo essencial\nCadastre um produto para liberar estoque e lucro.\nCadastrar produto",
+      "errors": []
+    },
+    {
+      "route": "products",
+      "width": 1440,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 1136,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "da\nAgenda\nClientes\nGESTÃO\nProdutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nProdutos\nSeu catálogo, do seu jeito.\nNovo produto\nComo usar\nSeu catálogo\n0 itens organizados\n0 produtos\n0 kits\n0\nprodutos\n0\nkits\n0\nun. em estoque\nTodos os produtos\n0 itens\nNenhum produto ainda\nCadastre seu primeiro produto para começar a vender\nNovo produto",
+      "errors": []
+    },
+    {
+      "route": "services",
+      "width": 1440,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 1136,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "iais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nServiços\nOrganize o que você faz e quanto vale.\nCadastrar serviço\nComo usar\nSEU CATÁLOGO\n0 serviços prontos para vender\nPreços, tempo e custos em um só lugar.\nComece pelo seu primeiro serviço\nCadastre qualquer trabalho que você oferece, defina o tempo e escolha se quer informar um preço.\nCadastrar serviço",
+      "errors": []
+    },
+    {
+      "route": "tabs/sales",
+      "width": 1440,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 1136,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nVendas\nAcompanhe seus pedidos e recebimentos\nVendas\nEncomendas\nComo usar\nVendido no período\nR$ 0,00\nRecebido\nR$ 0,00\nA receber\nR$ 0,00\nEncomendas abertas\n0\nTodas\nPendentes\nConcluídas\nCanceladas\nNenhuma venda registrada\nSuas vendas aparecerão aqui depois do primeiro registro.\nRegistrar venda",
+      "errors": []
+    },
+    {
+      "route": "tabs/new-sale",
+      "width": 1440,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 1136,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "opções\nT\nTeste de orientação\nAteliê de teste\nNova venda\nEscolha o cliente, os itens e a forma de pagamento.\nComo usar\nPara quem é a venda?\nEscolha um cliente existente ou continue sem cliente.\nSem cliente (avulso)\nContinuar sem selecionar um cliente\nClientes recentes\nVer todos\nNenhum cliente para este filtro\nRESUMO DA VENDA\nR$ 0,00\nCliente\nCliente avulso\nItens\nNenhum item ainda\nPagamento\n—\nPróximo",
+      "errors": []
+    },
+    {
+      "route": "tabs/agenda",
+      "width": 1440,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 1136,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "Lucro Caseiro\nGestão do seu negócio\nPRINCIPAL\nInício\nVendas\nNova venda\nAgenda\nClientes\nGESTÃO\nProdutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nAgenda\nNovo cadastro: encomenda\nComo usar\nSua agenda está vazia\nCadastre uma encomenda com data de entrega para começar a se organizar.\nNovo cadastro: encomenda",
+      "errors": []
+    },
+    {
+      "route": "tabs/clients",
+      "width": 1440,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 1136,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "dutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nClientes\n0 pessoas no seu negócio\nNovo cliente\nComo usar\nSua clientela\n0\nclientes\n0\ncompraram\nno mês\n0\ncom fiado\nTodos\n0\nRecentes\n0\nFrequentes\n0\nCom fiado\n0\nSeus clientes\nMais recentes\nNenhum cliente ainda\nCadastre seu primeiro cliente pra acompanhar pedidos e aniversários\nNovo cliente",
+      "errors": []
+    },
+    {
+      "route": "pricing",
+      "width": 1440,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 1136,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "icativo ou marketplace\nSalvar e criar peça\nSalvar cálculo\nESTIMATIVA DE PREÇO\nR$ 0,00\nAtualiza automaticamente\nTaxa ainda não informada. Esta simulação usa 0%; confira se há cobrança na sua venda.\nMateriais\nR$ 0,00\nLucro desejado\nR$ 0,00\nVocê ganha por unidade\nR$ 0,00\nBaseada somente nos custos informados. Mão de obra e gastos mensais não estão incluídos. Confira os dados antes de usar este preço.",
+      "errors": []
+    },
+    {
+      "route": "pricing-complete",
+      "width": 1440,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 1136,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "o\nGestão do seu negócio\nPRINCIPAL\nInício\nVendas\nNova venda\nAgenda\nClientes\nGESTÃO\nProdutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nPrecificação completa\nHistórico\nSimples\nAvançado\nComo usar\n1\n2\n3\n4\n5\nEtapa 1 de 5\nCusto de materiais\nInforme quanto você gasta em materiais para entregar uma unidade.\nValor de materiais (R$)\nR$\nPróximo",
+      "errors": []
+    },
+    {
+      "route": "finance",
+      "width": 1440,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 1136,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "odo. Registre uma entrada ou despesa para começar.\nEntradas\nR$ 0,00\nNenhum lançamento\nSaídas\nR$ 0,00\nNenhum lançamento\nEntradas x saídas\nComparação do período selecionado\nSem movimentações\nEntradas\nR$ 0,00\nSaídas\nR$ 0,00\nExportar relatório\nPDF\nExcel\nLançamentos\nNovo\nTudo\n0\nEntradas\n0\nSaídas\n0\nNenhum lançamento por aqui\nRegistre entradas e saídas para acompanhar o lucro do mês.\nRegistrar lançamento",
+      "errors": []
+    },
+    {
+      "route": "recurring-expenses",
+      "width": 1440,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 1136,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "os\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nGastos fixos\nOrganize o que se repete todo mês.\nNovo gasto fixo\nComo usar\nCompromissos do mês\nR$ 0,00\n0 gastos cadastrados\nSeus próximos vencimentos aparecerão aqui\nSeus gastos fixos\nOrdenados por vencimento\nData ↑\nNenhum gasto fixo ainda\nCadastre seus custos mensais e deixe o app lançar pra você.",
+      "errors": []
+    },
+    {
+      "route": "materials",
+      "width": 1440,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 1136,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nMateriais\nSaiba o que tem, o que falta e o que repor.\nNovo material\nComo usar\nSeu estoque hoje\nR$ 0,00\nem estoque\n0 materiais cadastrados\n0\nem dia\n0\natenção\n0\nbaixo\nSeu estoque está vazio\nCadastre o primeiro material para acompanhar quantidade, custo e reposição.\nAdicionar primeiro material",
+      "errors": []
+    },
+    {
+      "route": "recipes",
+      "width": 1440,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 1136,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "Materiais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nFichas técnicas\nCriar ficha técnica\nComo usar\nComposição e custo do que você produz.\nAcompanhe custos e rendimentos em um só lugar.\n0 fichas técnicas\nAtivas\nCusto médio\nR$ 0,00\nNenhuma ficha técnica ainda\nCadastre a primeira para acompanhar custos e rendimentos em um só lugar.\nCadastrar ficha técnica",
+      "errors": []
+    },
+    {
+      "route": "packaging",
+      "width": 1440,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 1136,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "INCIPAL\nInício\nVendas\nNova venda\nAgenda\nClientes\nGESTÃO\nProdutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nEmbalagens\nNova embalagem\nComo usar\nESTOQUE DE EMBALAGENS\n0\ncadastradas\nR$ 0,00\ninvestidos\n0 para repor\nNenhuma embalagem ainda\nCadastre sua primeira embalagem pra calcular o custo certinho dos seus produtos\nCadastrar embalagem",
+      "errors": []
+    },
+    {
+      "route": "suppliers",
+      "width": 1440,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 1136,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "bém\nMais opções\nT\nTeste de orientação\nAteliê de teste\nFornecedores\nQuem abastece o seu negócio, sempre à mão.\nNovo fornecedor\nComo usar\nCompras do mês\nR$ 0,00\nNenhuma compra neste mês\nSem planejamento\nTodos\n0\nInsumos\n0\nEmbalagens\n0\nAlimentos\n0\nOutros\n0\nSeus fornecedores\nMais recentes\nNenhum fornecedor cadastrado\nCadastre quem abastece o seu negócio para organizar suas compras.\nAdicionar fornecedor",
+      "errors": []
+    },
+    {
+      "route": "purchases",
+      "width": 1440,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 1136,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "a venda\nAgenda\nClientes\nGESTÃO\nProdutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nCompras\nPedidos e reposições do negócio\nNova compra\nComo usar\nTotal a pagar\nR$ 0,00\n0 compras pendentes\nEste mês\nTodas 0\nA pagar 0\nPagas 0\nCompras recentes\nMais recentes\nNenhuma compra por aqui\nRegistre a primeira compra de fornecedor.\nAdicionar compra",
+      "errors": []
+    },
+    {
+      "route": "fiado",
+      "width": 1440,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 1136,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "eu negócio\nPRINCIPAL\nInício\nVendas\nNova venda\nAgenda\nClientes\nGESTÃO\nProdutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nFiado\nNova venda\nComo usar\nA receber\nR$ 0,00\n0 clientes · 0 lançamentos\nTodos\n0\nVencidos\n0\nPróximos\n0\nMais antigos\nCobranças\nTotal em aberto\nNinguém te deve\nVendas no fiado em aberto aparecem aqui para você cobrar.",
+      "errors": []
+    },
+    {
+      "route": "quotes",
+      "width": 1440,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 1136,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nOrçamentos\nPropostas organizadas, pedidos mais perto.\nNovo orçamento\nComo usar\nEm negociação\nR$ 0,00\n0 propostas aguardando\nTodos\n0\nAguardando\n0\nAprovados\n0\nRecusados\n0\nOrçamentos recentes\n0 propostas\nNenhum orçamento ainda\nMonte o orçamento, envie no WhatsApp e, quando aprovar, vire encomenda com um toque.\nNovo orçamento",
+      "errors": []
+    },
+    {
+      "route": "catalog",
+      "width": 1440,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 1136,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": " publicados. Adicione um produto ou serviço e confira o contato antes de divulgar.\nCompartilhar link mesmo assim\nVer como cliente\nMais opções\nO que aparece na vitrine\nOrganizar\nEscolha e organize o que seus clientes podem encontrar.\nProdutos\n0\nServiços\n0\nCadastre produtos para escolher quais aparecem na vitrine.\nSua identidade\nDeixe a vitrine com a cara do seu negócio.\nAteliê de teste\nPersonalizar",
+      "errors": []
+    },
+    {
+      "route": "labels",
+      "width": 1440,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 1136,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "IPAL\nInício\nVendas\nNova venda\nAgenda\nClientes\nGESTÃO\nProdutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nEtiquetas\nOrganize seus rótulos para imprimir quando precisar.\nNova etiqueta\nComo usar\nSUA COLEÇÃO\n0 etiquetas\nprontas para imprimir\nNenhuma etiqueta ainda\nEscolha um produto e crie uma etiqueta pronta para imprimir.\nNova etiqueta",
+      "errors": []
+    },
+    {
+      "route": "insights",
+      "width": 1440,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 1136,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "Lucro Caseiro\nGestão do seu negócio\nPRINCIPAL\nInício\nVendas\nNova venda\nAgenda\nClientes\nGESTÃO\nProdutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nResultados\nComo usar\nAinda sem dados pra mostrar\nRegistre algumas vendas e volte aqui para ver seus gráficos e os campeões de venda.\nAdicionar venda",
+      "errors": []
+    },
+    {
+      "route": "support",
+      "width": 1440,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 1136,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "uras na loja. Se é da Stripe, solicite o cancelamento pelo e-mail de suporte. Não é necessário apagar sua conta.\nTroquei de celular. E os meus dados?\nNada se perde: entre com o mesmo e-mail no aparelho novo e suas vendas, clientes e fichas técnicas voltam automaticamente.\nAchei um erro ou tenho uma ideia\nManda pra gente! Feedback de quem usa todo dia é o que faz o app melhorar. Use o botão abaixo.",
+      "errors": []
+    },
+    {
+      "route": "tabs/more",
+      "width": 1440,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 1136,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "o\nEntradas, saídas e lucro\nFiado\nCobranças\nClientes\nContatos e aniversários\nGESTÃO DO NEGÓCIO\nVer tudo\nPrecificação\nCalcule se o preço dá lucro\nCatálogo online\nLink para os clientes\nGastos fixos\nCustos mensais\nProdutos\nO que você vende\nEmbalagens\nCustos e estoque\nConheça também\nAbra suas extensões com a mesma conta\nCONTA E AJUDA\nCentral de ajuda\nDúvidas e suporte\nConfigurações\nConta e preferências",
+      "errors": []
+    },
+    {
+      "route": "buy-materials",
+      "width": 1440,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 1136,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "Lucro Caseiro\nGestão do seu negócio\nPRINCIPAL\nInício\nVendas\nNova venda\nAgenda\nClientes\nGESTÃO\nProdutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nComprar insumos\nLista gerada com os insumos abaixo do estoque mínimo\nEstoque em dia\nNenhum insumo precisa ser comprado agora.\nRevisar estoque",
+      "errors": []
+    },
+    {
+      "route": "tabs",
+      "width": 1024,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 720,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "odo curto já ajuda a entender sua rotina.\nVer meu financeiro\nEditar perfil do negócio\nVisão geral\nHoje\nMês\nVendas hoje\nRegistrar venda\nR$ 0,00\nNenhuma venda registrada\nEntradas\nR$ 0,00\nDespesas\nR$ 0,00\nMeta de setembro\nDefinir meta\nMeta ainda não definida\n0%\nAcesso rápido\nVer todos\nVenda\nProduto\nPreço\nDespesa\nComece pelo essencial\nCadastre um produto para liberar estoque e lucro.\nCadastrar produto",
+      "errors": []
+    },
+    {
+      "route": "products",
+      "width": 1024,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 720,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "da\nAgenda\nClientes\nGESTÃO\nProdutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nProdutos\nSeu catálogo, do seu jeito.\nNovo produto\nComo usar\nSeu catálogo\n0 itens organizados\n0 produtos\n0 kits\n0\nprodutos\n0\nkits\n0\nun. em estoque\nTodos os produtos\n0 itens\nNenhum produto ainda\nCadastre seu primeiro produto para começar a vender\nNovo produto",
+      "errors": []
+    },
+    {
+      "route": "services",
+      "width": 1024,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 720,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "iais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nServiços\nOrganize o que você faz e quanto vale.\nCadastrar serviço\nComo usar\nSEU CATÁLOGO\n0 serviços prontos para vender\nPreços, tempo e custos em um só lugar.\nComece pelo seu primeiro serviço\nCadastre qualquer trabalho que você oferece, defina o tempo e escolha se quer informar um preço.\nCadastrar serviço",
+      "errors": []
+    },
+    {
+      "route": "tabs/sales",
+      "width": 1024,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 720,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nVendas\nAcompanhe seus pedidos e recebimentos\nVendas\nEncomendas\nComo usar\nVendido no período\nR$ 0,00\nRecebido\nR$ 0,00\nA receber\nR$ 0,00\nEncomendas abertas\n0\nTodas\nPendentes\nConcluídas\nCanceladas\nNenhuma venda registrada\nSuas vendas aparecerão aqui depois do primeiro registro.\nRegistrar venda",
+      "errors": []
+    },
+    {
+      "route": "tabs/new-sale",
+      "width": 1024,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 720,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "opções\nT\nTeste de orientação\nAteliê de teste\nNova venda\nEscolha o cliente, os itens e a forma de pagamento.\nComo usar\nPara quem é a venda?\nEscolha um cliente existente ou continue sem cliente.\nSem cliente (avulso)\nContinuar sem selecionar um cliente\nClientes recentes\nVer todos\nNenhum cliente para este filtro\nRESUMO DA VENDA\nR$ 0,00\nCliente\nCliente avulso\nItens\nNenhum item ainda\nPagamento\n—\nPróximo",
+      "errors": []
+    },
+    {
+      "route": "tabs/agenda",
+      "width": 1024,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 720,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "Lucro Caseiro\nGestão do seu negócio\nPRINCIPAL\nInício\nVendas\nNova venda\nAgenda\nClientes\nGESTÃO\nProdutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nAgenda\nNovo cadastro: encomenda\nComo usar\nSua agenda está vazia\nCadastre uma encomenda com data de entrega para começar a se organizar.\nNovo cadastro: encomenda",
+      "errors": []
+    },
+    {
+      "route": "tabs/clients",
+      "width": 1024,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 720,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "dutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nClientes\n0 pessoas no seu negócio\nNovo cliente\nComo usar\nSua clientela\n0\nclientes\n0\ncompraram\nno mês\n0\ncom fiado\nTodos\n0\nRecentes\n0\nFrequentes\n0\nCom fiado\n0\nSeus clientes\nMais recentes\nNenhum cliente ainda\nCadastre seu primeiro cliente pra acompanhar pedidos e aniversários\nNovo cliente",
+      "errors": []
+    },
+    {
+      "route": "pricing",
+      "width": 1024,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 720,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "icativo ou marketplace\nSalvar e criar peça\nSalvar cálculo\nESTIMATIVA DE PREÇO\nR$ 0,00\nAtualiza automaticamente\nTaxa ainda não informada. Esta simulação usa 0%; confira se há cobrança na sua venda.\nMateriais\nR$ 0,00\nLucro desejado\nR$ 0,00\nVocê ganha por unidade\nR$ 0,00\nBaseada somente nos custos informados. Mão de obra e gastos mensais não estão incluídos. Confira os dados antes de usar este preço.",
+      "errors": []
+    },
+    {
+      "route": "pricing-complete",
+      "width": 1024,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 720,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "o\nGestão do seu negócio\nPRINCIPAL\nInício\nVendas\nNova venda\nAgenda\nClientes\nGESTÃO\nProdutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nPrecificação completa\nHistórico\nSimples\nAvançado\nComo usar\n1\n2\n3\n4\n5\nEtapa 1 de 5\nCusto de materiais\nInforme quanto você gasta em materiais para entregar uma unidade.\nValor de materiais (R$)\nR$\nPróximo",
+      "errors": []
+    },
+    {
+      "route": "finance",
+      "width": 1024,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 720,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "odo. Registre uma entrada ou despesa para começar.\nEntradas\nR$ 0,00\nNenhum lançamento\nSaídas\nR$ 0,00\nNenhum lançamento\nEntradas x saídas\nComparação do período selecionado\nSem movimentações\nEntradas\nR$ 0,00\nSaídas\nR$ 0,00\nExportar relatório\nPDF\nExcel\nLançamentos\nNovo\nTudo\n0\nEntradas\n0\nSaídas\n0\nNenhum lançamento por aqui\nRegistre entradas e saídas para acompanhar o lucro do mês.\nRegistrar lançamento",
+      "errors": []
+    },
+    {
+      "route": "recurring-expenses",
+      "width": 1024,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 720,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "os\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nGastos fixos\nOrganize o que se repete todo mês.\nNovo gasto fixo\nComo usar\nCompromissos do mês\nR$ 0,00\n0 gastos cadastrados\nSeus próximos vencimentos aparecerão aqui\nSeus gastos fixos\nOrdenados por vencimento\nData ↑\nNenhum gasto fixo ainda\nCadastre seus custos mensais e deixe o app lançar pra você.",
+      "errors": []
+    },
+    {
+      "route": "materials",
+      "width": 1024,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 720,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nMateriais\nSaiba o que tem, o que falta e o que repor.\nNovo material\nComo usar\nSeu estoque hoje\nR$ 0,00\nem estoque\n0 materiais cadastrados\n0\nem dia\n0\natenção\n0\nbaixo\nSeu estoque está vazio\nCadastre o primeiro material para acompanhar quantidade, custo e reposição.\nAdicionar primeiro material",
+      "errors": []
+    },
+    {
+      "route": "recipes",
+      "width": 1024,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 720,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "Materiais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nFichas técnicas\nCriar ficha técnica\nComo usar\nComposição e custo do que você produz.\nAcompanhe custos e rendimentos em um só lugar.\n0 fichas técnicas\nAtivas\nCusto médio\nR$ 0,00\nNenhuma ficha técnica ainda\nCadastre a primeira para acompanhar custos e rendimentos em um só lugar.\nCadastrar ficha técnica",
+      "errors": []
+    },
+    {
+      "route": "packaging",
+      "width": 1024,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 720,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "INCIPAL\nInício\nVendas\nNova venda\nAgenda\nClientes\nGESTÃO\nProdutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nEmbalagens\nNova embalagem\nComo usar\nESTOQUE DE EMBALAGENS\n0\ncadastradas\nR$ 0,00\ninvestidos\n0 para repor\nNenhuma embalagem ainda\nCadastre sua primeira embalagem pra calcular o custo certinho dos seus produtos\nCadastrar embalagem",
+      "errors": []
+    },
+    {
+      "route": "suppliers",
+      "width": 1024,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 720,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "bém\nMais opções\nT\nTeste de orientação\nAteliê de teste\nFornecedores\nQuem abastece o seu negócio, sempre à mão.\nNovo fornecedor\nComo usar\nCompras do mês\nR$ 0,00\nNenhuma compra neste mês\nSem planejamento\nTodos\n0\nInsumos\n0\nEmbalagens\n0\nAlimentos\n0\nOutros\n0\nSeus fornecedores\nMais recentes\nNenhum fornecedor cadastrado\nCadastre quem abastece o seu negócio para organizar suas compras.\nAdicionar fornecedor",
+      "errors": []
+    },
+    {
+      "route": "purchases",
+      "width": 1024,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 720,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "a venda\nAgenda\nClientes\nGESTÃO\nProdutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nCompras\nPedidos e reposições do negócio\nNova compra\nComo usar\nTotal a pagar\nR$ 0,00\n0 compras pendentes\nEste mês\nTodas 0\nA pagar 0\nPagas 0\nCompras recentes\nMais recentes\nNenhuma compra por aqui\nRegistre a primeira compra de fornecedor.\nAdicionar compra",
+      "errors": []
+    },
+    {
+      "route": "fiado",
+      "width": 1024,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 720,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "eu negócio\nPRINCIPAL\nInício\nVendas\nNova venda\nAgenda\nClientes\nGESTÃO\nProdutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nFiado\nNova venda\nComo usar\nA receber\nR$ 0,00\n0 clientes · 0 lançamentos\nTodos\n0\nVencidos\n0\nPróximos\n0\nMais antigos\nCobranças\nTotal em aberto\nNinguém te deve\nVendas no fiado em aberto aparecem aqui para você cobrar.",
+      "errors": []
+    },
+    {
+      "route": "quotes",
+      "width": 1024,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 720,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nOrçamentos\nPropostas organizadas, pedidos mais perto.\nNovo orçamento\nComo usar\nEm negociação\nR$ 0,00\n0 propostas aguardando\nTodos\n0\nAguardando\n0\nAprovados\n0\nRecusados\n0\nOrçamentos recentes\n0 propostas\nNenhum orçamento ainda\nMonte o orçamento, envie no WhatsApp e, quando aprovar, vire encomenda com um toque.\nNovo orçamento",
+      "errors": []
+    },
+    {
+      "route": "catalog",
+      "width": 1024,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 720,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": " publicados. Adicione um produto ou serviço e confira o contato antes de divulgar.\nCompartilhar link mesmo assim\nVer como cliente\nMais opções\nO que aparece na vitrine\nOrganizar\nEscolha e organize o que seus clientes podem encontrar.\nProdutos\n0\nServiços\n0\nCadastre produtos para escolher quais aparecem na vitrine.\nSua identidade\nDeixe a vitrine com a cara do seu negócio.\nAteliê de teste\nPersonalizar",
+      "errors": []
+    },
+    {
+      "route": "labels",
+      "width": 1024,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 720,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "IPAL\nInício\nVendas\nNova venda\nAgenda\nClientes\nGESTÃO\nProdutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nEtiquetas\nOrganize seus rótulos para imprimir quando precisar.\nNova etiqueta\nComo usar\nSUA COLEÇÃO\n0 etiquetas\nprontas para imprimir\nNenhuma etiqueta ainda\nEscolha um produto e crie uma etiqueta pronta para imprimir.\nNova etiqueta",
+      "errors": []
+    },
+    {
+      "route": "insights",
+      "width": 1024,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 720,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "Lucro Caseiro\nGestão do seu negócio\nPRINCIPAL\nInício\nVendas\nNova venda\nAgenda\nClientes\nGESTÃO\nProdutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nResultados\nComo usar\nAinda sem dados pra mostrar\nRegistre algumas vendas e volte aqui para ver seus gráficos e os campeões de venda.\nAdicionar venda",
+      "errors": []
+    },
+    {
+      "route": "support",
+      "width": 1024,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 720,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "uras na loja. Se é da Stripe, solicite o cancelamento pelo e-mail de suporte. Não é necessário apagar sua conta.\nTroquei de celular. E os meus dados?\nNada se perde: entre com o mesmo e-mail no aparelho novo e suas vendas, clientes e fichas técnicas voltam automaticamente.\nAchei um erro ou tenho uma ideia\nManda pra gente! Feedback de quem usa todo dia é o que faz o app melhorar. Use o botão abaixo.",
+      "errors": []
+    },
+    {
+      "route": "tabs/more",
+      "width": 1024,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 720,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "o\nEntradas, saídas e lucro\nFiado\nCobranças\nClientes\nContatos e aniversários\nGESTÃO DO NEGÓCIO\nVer tudo\nPrecificação\nCalcule se o preço dá lucro\nCatálogo online\nLink para os clientes\nGastos fixos\nCustos mensais\nProdutos\nO que você vende\nEmbalagens\nCustos e estoque\nConheça também\nAbra suas extensões com a mesma conta\nCONTA E AJUDA\nCentral de ajuda\nDúvidas e suporte\nConfigurações\nConta e preferências",
+      "errors": []
+    },
+    {
+      "route": "buy-materials",
+      "width": 1024,
+      "overflow": false,
+      "header": {
+        "x": 272,
+        "width": 720,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "Lucro Caseiro\nGestão do seu negócio\nPRINCIPAL\nInício\nVendas\nNova venda\nAgenda\nClientes\nGESTÃO\nProdutos\nServiços\nMateriais\nPrecificação\nFinanceiro\nConheça também\nMais opções\nT\nTeste de orientação\nAteliê de teste\nComprar insumos\nLista gerada com os insumos abaixo do estoque mínimo\nEstoque em dia\nNenhum insumo precisa ser comprado agora.\nRevisar estoque",
+      "errors": []
+    },
+    {
+      "route": "tabs",
+      "width": 390,
+      "overflow": false,
+      "header": null,
+      "emptyPngs": 0,
+      "text": "ina.\nVer meu financeiro\nEditar perfil do negócio\nVisão geral\nHoje\nMês\nVendas hoje\nRegistrar venda\nR$ 0,00\nNenhuma venda registrada\nEntradas\nR$ 0,00\nDespesas\nR$ 0,00\nMeta de setembro\nDefinir meta\nMeta ainda não definida\n0%\nAcesso rápido\nVer todos\nVenda\nProduto\nPreço\nDespesa\nComece pelo essencial\nCadastre um produto para liberar estoque e lucro.\nCadastrar produto\nInício\nVendas\nNova venda\nAgenda\nMais",
+      "errors": []
+    },
+    {
+      "route": "products",
+      "width": 390,
+      "overflow": false,
+      "header": {
+        "x": 0,
+        "width": 390,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "Produtos\nSeu catálogo, do seu jeito.\nComo usar\nSeu catálogo\n0 itens organizados\n0\nprodutos\n0\nkits\n0\nprodutos\n0\nkits\n0\nun. em estoque\nTodos os produtos\n0 itens\nNenhum produto ainda\nCadastre seu primeiro produto para começar a vender\nNovo produto\nInício\nVendas\nNova venda\nAgenda\nMais",
+      "errors": []
+    },
+    {
+      "route": "services",
+      "width": 390,
+      "overflow": false,
+      "header": {
+        "x": 0,
+        "width": 390,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "Serviços\nOrganize o que você faz e quanto vale.\nComo usar\nSEU CATÁLOGO\n0 serviços prontos para vender\nPreços, tempo e custos em um só lugar.\nComece pelo seu primeiro serviço\nCadastre qualquer trabalho que você oferece, defina o tempo e escolha se quer informar um preço.\nCadastrar serviço\nInício\nVendas\nNova venda\nAgenda\nMais",
+      "errors": []
+    },
+    {
+      "route": "tabs/sales",
+      "width": 390,
+      "overflow": false,
+      "header": null,
+      "emptyPngs": 0,
+      "text": "Vendas\nAcompanhe seus pedidos e recebimentos\nT\nR$ 0,00\n0 vendas\nComo usar\nTodas\nPendentes\nConcluídas\nCanceladas\nNenhuma venda registrada\nSuas vendas aparecerão aqui depois do primeiro registro.\nRegistrar venda\nInício\nVendas\nNova venda\nAgenda\nMais",
+      "errors": []
+    },
+    {
+      "route": "tabs/new-sale",
+      "width": 390,
+      "overflow": false,
+      "header": null,
+      "emptyPngs": 0,
+      "text": "Nova Venda\nComo usar\nPara quem é a venda?\nEscolha um cliente existente ou continue sem cliente.\nSem cliente (avulso)\nContinuar sem selecionar um cliente\nClientes recentes\nVer todos\nNenhum cliente para este filtro\nPróximo\nInício\nVendas\nNova venda\nAgenda\nMais",
+      "errors": []
+    },
+    {
+      "route": "tabs/agenda",
+      "width": 390,
+      "overflow": false,
+      "header": {
+        "x": 0,
+        "width": 390,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "Agenda\nComo usar\nSua agenda está vazia\nCadastre uma encomenda com data de entrega para começar a se organizar.\nNovo cadastro: encomenda\nInício\nVendas\nNova venda\nAgenda\nMais",
+      "errors": []
+    },
+    {
+      "route": "tabs/clients",
+      "width": 390,
+      "overflow": false,
+      "header": null,
+      "emptyPngs": 0,
+      "text": "Clientes\n0 pessoas no seu negócio\nComo usar\nSua clientela\n0\nclientes\n0\ncompraram\nno mês\n0\ncom fiado\nTodos\n0\nRecentes\n0\nFrequentes\n0\nCom fiado\n0\nSeus clientes\nMais recentes\nNenhum cliente ainda\nCadastre seu primeiro cliente pra acompanhar pedidos e aniversários\nNovo cliente\nInício\nVendas\nNova venda\nAgenda\nMais",
+      "errors": []
+    },
+    {
+      "route": "pricing",
+      "width": 390,
+      "overflow": false,
+      "header": {
+        "x": 0,
+        "width": 390,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "PREÇO\nR$ 0,00\nAtualiza automaticamente\nTaxa ainda não informada. Esta simulação usa 0%; confira se há cobrança na sua venda.\nMateriais\nR$ 0,00\nLucro desejado\nR$ 0,00\nVocê ganha por unidade\nR$ 0,00\nBaseada somente nos custos informados. Mão de obra e gastos mensais não estão incluídos. Confira os dados antes de usar este preço.\nSalvar e criar peça\nSalvar cálculo\nInício\nVendas\nNova venda\nAgenda\nMais",
+      "errors": []
+    },
+    {
+      "route": "pricing-complete",
+      "width": 390,
+      "overflow": false,
+      "header": {
+        "x": 0,
+        "width": 390,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "Precificação completa\nHistórico\nSimples\nAvançado\nComo usar\n1\n2\n3\n4\n5\nEtapa 1 de 5\nCusto de materiais\nInforme quanto você gasta em materiais para entregar uma unidade.\nValor de materiais (R$)\nR$\nPróximo\nInício\nVendas\nNova venda\nAgenda\nMais",
+      "errors": []
+    },
+    {
+      "route": "finance",
+      "width": 390,
+      "overflow": false,
+      "header": {
+        "x": 0,
+        "width": 390,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "para começar.\nEntradas\nR$ 0,00\nNenhum lançamento\nSaídas\nR$ 0,00\nNenhum lançamento\nEntradas x saídas\nComparação do período selecionado\nSem movimentações\nEntradas\nR$ 0,00\nSaídas\nR$ 0,00\nExportar relatório\nPDF\nExcel\nLançamentos\nNovo\nTudo\n0\nEntradas\n0\nSaídas\n0\nNenhum lançamento por aqui\nRegistre entradas e saídas para acompanhar o lucro do mês.\nRegistrar lançamento\nInício\nVendas\nNova venda\nAgenda\nMais",
+      "errors": []
+    },
+    {
+      "route": "recurring-expenses",
+      "width": 390,
+      "overflow": false,
+      "header": null,
+      "emptyPngs": 0,
+      "text": "Gastos fixos\nOrganize o que se repete todo mês.\nComo usar\nCompromissos do mês\nR$ 0,00\n0 gastos cadastrados\nSeus próximos vencimentos aparecerão aqui\nSeus gastos fixos\nOrdenados por vencimento\nData ↑\nNenhum gasto fixo ainda\nCadastre seus custos mensais e deixe o app lançar pra você.\nInício\nVendas\nNova venda\nAgenda\nMais",
+      "errors": []
+    },
+    {
+      "route": "materials",
+      "width": 390,
+      "overflow": false,
+      "header": {
+        "x": 0,
+        "width": 390,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "Materiais\nComo usar\nSaiba o que tem, o que falta e o que repor.\nSeu estoque hoje\nR$ 0,00\nem estoque\n0 materiais cadastrados\n0\nem dia\n0\natenção\n0\nbaixo\nSeu estoque está vazio\nCadastre o primeiro material para acompanhar quantidade, custo e reposição.\nAdicionar primeiro material\nInício\nVendas\nNova venda\nAgenda\nMais",
+      "errors": []
+    },
+    {
+      "route": "recipes",
+      "width": 390,
+      "overflow": false,
+      "header": {
+        "x": 20,
+        "width": 350,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "Fichas técnicas\nComo usar\nComposição e custo do que você produz.\nAcompanhe custos e rendimentos em um só lugar.\n0 fichas técnicas\nAtivas\nCusto médio\nR$ 0,00\nNenhuma ficha técnica ainda\nCadastre a primeira para acompanhar custos e rendimentos em um só lugar.\nCadastrar ficha técnica\nInício\nVendas\nNova venda\nAgenda\nMais",
+      "errors": []
+    },
+    {
+      "route": "packaging",
+      "width": 390,
+      "overflow": false,
+      "header": {
+        "x": 0,
+        "width": 390,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "Embalagens\nComo usar\nESTOQUE DE EMBALAGENS\n0\ncadastradas\nR$ 0,00\ninvestidos\n0 para repor\nNenhuma embalagem ainda\nCadastre sua primeira embalagem pra calcular o custo certinho dos seus produtos\nCadastrar embalagem\nInício\nVendas\nNova venda\nAgenda\nMais",
+      "errors": []
+    },
+    {
+      "route": "suppliers",
+      "width": 390,
+      "overflow": false,
+      "header": {
+        "x": 0,
+        "width": 390,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "Fornecedores\nQuem abastece o seu negócio, sempre à mão.\nComo usar\nCompras do mês\nR$ 0,00\nNenhuma compra neste mês\nSem planejamento\nTodos\n0\nInsumos\n0\nEmbalagens\n0\nAlimentos\n0\nOutros\n0\nSeus fornecedores\nMais recentes\nNenhum fornecedor cadastrado\nCadastre quem abastece o seu negócio para organizar suas compras.\nAdicionar fornecedor\nInício\nVendas\nNova venda\nAgenda\nMais",
+      "errors": []
+    },
+    {
+      "route": "purchases",
+      "width": 390,
+      "overflow": false,
+      "header": {
+        "x": 0,
+        "width": 390,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "Compras\nPedidos e reposições do negócio\nComo usar\nTotal a pagar\nR$ 0,00\n0 compras pendentes\nEste mês\nTodas 0\nA pagar 0\nPagas 0\nCompras recentes\nMais recentes\nNenhuma compra por aqui\nRegistre a primeira compra de fornecedor.\nAdicionar compra\nInício\nVendas\nNova venda\nAgenda\nMais",
+      "errors": []
+    },
+    {
+      "route": "fiado",
+      "width": 390,
+      "overflow": false,
+      "header": {
+        "x": 0,
+        "width": 390,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "Fiado\nComo usar\nA receber\nR$ 0,00\n0 clientes · 0 lançamentos\nTodos\n0\nVencidos\n0\nPróximos\n0\nMais antigos\nCobranças\nTotal em aberto\nNinguém te deve\nVendas no fiado em aberto aparecem aqui para você cobrar.\nInício\nVendas\nNova venda\nAgenda\nMais",
+      "errors": []
+    },
+    {
+      "route": "quotes",
+      "width": 390,
+      "overflow": false,
+      "header": {
+        "x": 0,
+        "width": 390,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "Orçamentos\nPropostas organizadas, pedidos mais perto.\nComo usar\nEm negociação\nR$ 0,00\n0 propostas aguardando\nTodos\n0\nAguardando\n0\nAprovados\n0\nRecusados\n0\nOrçamentos recentes\n0 propostas\nNenhum orçamento ainda\nMonte o orçamento, envie no WhatsApp e, quando aprovar, vire encomenda com um toque.\nNovo orçamento\nInício\nVendas\nNova venda\nAgenda\nMais",
+      "errors": []
+    },
+    {
+      "route": "catalog",
+      "width": 390,
+      "overflow": false,
+      "header": {
+        "x": 0,
+        "width": 390,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "erviço e confira o contato antes de divulgar.\nCompartilhar link mesmo assim\nVer como cliente\nMais opções\nO que aparece na vitrine\nOrganizar\nEscolha e organize o que seus clientes podem encontrar.\nProdutos\n0\nServiços\n0\nCadastre produtos para escolher quais aparecem na vitrine.\nSua identidade\nDeixe a vitrine com a cara do seu negócio.\nAteliê de teste\nPersonalizar\nInício\nVendas\nNova venda\nAgenda\nMais",
+      "errors": []
+    },
+    {
+      "route": "labels",
+      "width": 390,
+      "overflow": false,
+      "header": {
+        "x": 0,
+        "width": 390,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "Etiquetas\nOrganize seus rótulos para imprimir quando precisar.\nComo usar\nSUA COLEÇÃO\n0 etiquetas\nprontas para imprimir\nNenhuma etiqueta ainda\nEscolha um produto e crie uma etiqueta pronta para imprimir.\nNova etiqueta\nInício\nVendas\nNova venda\nAgenda\nMais",
+      "errors": []
+    },
+    {
+      "route": "insights",
+      "width": 390,
+      "overflow": false,
+      "header": {
+        "x": 0,
+        "width": 390,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "Resultados\nComo usar\nAinda sem dados pra mostrar\nRegistre algumas vendas e volte aqui para ver seus gráficos e os campeões de venda.\nAdicionar venda\nInício\nVendas\nNova venda\nAgenda\nMais",
+      "errors": []
+    },
+    {
+      "route": "support",
+      "width": 390,
+      "overflow": false,
+      "header": {
+        "x": 0,
+        "width": 390,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "e o cancelamento pelo e-mail de suporte. Não é necessário apagar sua conta.\nTroquei de celular. E os meus dados?\nNada se perde: entre com o mesmo e-mail no aparelho novo e suas vendas, clientes e fichas técnicas voltam automaticamente.\nAchei um erro ou tenho uma ideia\nManda pra gente! Feedback de quem usa todo dia é o que faz o app melhorar. Use o botão abaixo.\nInício\nVendas\nNova venda\nAgenda\nMais",
+      "errors": []
+    },
+    {
+      "route": "tabs/more",
+      "width": 390,
+      "overflow": false,
+      "header": null,
+      "emptyPngs": 0,
+      "text": "anças\nClientes\nContatos e aniversários\nGESTÃO DO NEGÓCIO\nVer tudo\nPrecificação\nCalcule se o preço dá lucro\nCatálogo online\nLink para os clientes\nGastos fixos\nCustos mensais\nProdutos\nO que você vende\nEmbalagens\nCustos e estoque\nConheça também\nAbra suas extensões com a mesma conta\nCONTA E AJUDA\nCentral de ajuda\nDúvidas e suporte\nConfigurações\nConta e preferências\nInício\nVendas\nNova venda\nAgenda\nMais",
+      "errors": []
+    },
+    {
+      "route": "buy-materials",
+      "width": 390,
+      "overflow": false,
+      "header": {
+        "x": 0,
+        "width": 390,
+        "y": 0
+      },
+      "emptyPngs": 0,
+      "text": "Comprar insumos\nLista gerada com os insumos abaixo do estoque mínimo\nEstoque em dia\nNenhum insumo precisa ser comprado agora.\nRevisar estoque\nInício\nVendas\nNova venda\nAgenda\nMais",
+      "errors": []
+    }
+  ],
+  "errors": []
+}

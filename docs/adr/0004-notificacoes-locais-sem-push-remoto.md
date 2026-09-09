@@ -2,6 +2,11 @@
 
 **Status:** aceito (2026-07-11) · **Contexto:** PRD melhorias pré-lançamento, item 1.2
 
+**Atualização (2026-09-09):** a restrição a notificações locais foi superada pelo
+push nativo de solicitações e pelo [Web Push do PWA](../browser-push-notifications.md).
+Os agendamentos locais no Android/iOS continuam funcionando; o navegador usa
+inscrições e envio no servidor, ativados por configuração do ambiente.
+
 ## Contexto
 
 O mobile registra o token de push e faz `POST /users/push-token`, mas esse endpoint nunca existiu na API — o request falha com 404 silencioso desde sempre. Todas as notificações que funcionam hoje (entrega, estoque baixo, aniversário, fiado, resumo semanal, lembrete diário) são **locais**, agendadas no aparelho via `expo-notifications`.

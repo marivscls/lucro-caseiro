@@ -9,8 +9,16 @@ import {
 import { businessCopyFor } from "./business-copy";
 
 describe("paywall recommended tier", () => {
-  it("routes volume upgrades to essential", () => {
-    const resources = ["sales", "clients", "products", "recipes", "packaging", "catalog"];
+  it("routes volume and catalog upgrades to essential", () => {
+    const resources = [
+      "sales",
+      "clients",
+      "products",
+      "recipes",
+      "packaging",
+      "catalog",
+      "productPhotos",
+    ];
 
     for (const resource of resources) {
       expect(getPaywallRecommendedTier(resource)).toBe("essential");
@@ -23,7 +31,6 @@ describe("paywall recommended tier", () => {
       "advancedPricing",
       "export",
       "labels",
-      "productPhotos",
       "recurring",
       "purchases",
       "compositeProducts",

@@ -1,0 +1,26 @@
+{
+  "data": {
+    "brand": {
+      "approvedExamples": [],
+      "audience": "Profissionais autônomos, MEIs, prestadores de serviços, produtores, comerciantes, equipes e negócios em diferentes estágios de maturidade que precisam formar preços, entender custos e lucro e organizar produtos ou serviços, pedidos, vendas e a operação com simplicidade. Abrange segmentos como alimentação, confeitaria, artesanato, papelaria, beleza, costura, comércio de celulares e acessórios e revenda de importados; mulheres de 25 a 55 anos que vendem alimentos ou produtos artesanais formam apenas o recorte inicial de aquisição.",
+      "competitors": [],
+      "id": "6db9741f-e044-4097-8ceb-0cadf6781af7",
+      "name": "Lucro Caseiro",
+      "offers": [
+        "Solução com planos Gratuito, Essencial e Profissional para calcular o preço correto incluindo custos, tempo, taxas e lucro desejado, visualizar quanto sobra, transformar o cálculo em produto sem novo cadastro, publicar um catálogo, receber pedidos pelo WhatsApp e organizar vendas, fiado, estoque e financeiro — do custo à venda, sem chute e sem retrabalho."
+      ],
+      "restrictions": [],
+      "valueProposition": "Solução com planos Gratuito, Essencial e Profissional para calcular o preço correto incluindo custos, tempo, taxas e lucro desejado, visualizar quanto sobra, transformar o cálculo em produto sem novo cadastro, publicar um catálogo, receber pedidos pelo WhatsApp e organizar vendas, fiado, estoque e financeiro — do custo à venda, sem chute e sem retrabalho.",
+      "voice": "Definida no onboarding; refine na área de marca.",
+      "websiteUrl": "https://lucrocaseiro.com.br"
+    },
+    "documents": [],
+    "resources": [],
+    "workspace": {
+      "id": "dadbf764-b3bb-4fc4-bcc3-28964c814078",
+      "name": "Lucro Caseiro"
+    }
+  },
+  "exportedAt": "2026-09-08T14:24:47.689Z",
+  "format": "ametista-project-v1"
+}

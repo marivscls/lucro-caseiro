@@ -8,6 +8,7 @@ import { supabase } from "../utils/supabase";
 import { withoutAuthParams } from "../utils/auth-url";
 import { getRecoveryLinkError } from "../utils/password-recovery";
 import { useOnboarding } from "./use-onboarding";
+import { stopBrowserPush } from "./browser-push";
 
 export function getAuthRedirectUrl(): string {
   if (Platform.OS === "web" && typeof window !== "undefined") {
@@ -417,6 +418,9 @@ export const useAuth = create<AuthState>((set, get) => ({
         options: {
           redirectTo: authRedirectUrl,
           skipBrowserRedirect: !isWeb,
+          // Sair do app não encerra a sessão do Google no navegador.
+          // Oferece a escolha de conta em cada nova entrada.
+          queryParams: { prompt: "select_account" },
         },
       });
 
@@ -464,6 +468,10 @@ export const useAuth = create<AuthState>((set, get) => ({
   },
 
   signOut: async () => {
+    const pushToken = get().token;
+    if (Platform.OS === "web" && pushToken) {
+      await stopBrowserPush(pushToken).catch(() => {});
+    }
     // `scope: "local"` encerra a sessão neste aparelho sem esperar a API.
     // O logout global pode travar ou falhar na rede; se a UI esperar, a tela
     // privada fica montada com o cache já zerado e parece uma conta vazia.

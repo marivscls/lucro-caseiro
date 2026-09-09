@@ -17,6 +17,7 @@ import type { AppIconName } from "../../shared/components/app-icon";
 import { ScreenHeader } from "../../shared/components/screen-header";
 import { FAB } from "../../shared/components/fab";
 import { ScreenCreateBar } from "../../shared/components/screen-create-bar";
+import { SelectionUnderline } from "../../shared/components/feature-motion";
 import { Redirect, Stack, useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import { Image, Platform, Pressable, ScrollView, View } from "react-native";
@@ -1058,6 +1059,10 @@ function AgendaDateStrip({
     >
       <Pressable
         onPress={() => onSelect(null)}
+        accessibilityRole="button"
+        accessibilityLabel="Todos os dias"
+        accessibilityState={{ selected: selectedDate === null }}
+        aria-selected={selectedDate === null}
         style={{
           minWidth: 66,
           minHeight: 64,
@@ -1072,6 +1077,10 @@ function AgendaDateStrip({
         }}
       >
         <Typography variant="bodyBold">Todos</Typography>
+        <SelectionUnderline
+          selected={selectedDate === null}
+          color={theme.colors.primaryStrong}
+        />
         <Typography variant="caption" color={theme.colors.textSecondary}>
           {options.reduce((total, option) => total + option.count, 0)}
         </Typography>
@@ -1082,6 +1091,10 @@ function AgendaDateStrip({
           <Pressable
             key={item.date}
             onPress={() => onSelect(item.date)}
+            accessibilityRole="button"
+            accessibilityLabel={`${item.label}, ${formatDateBR(item.date)}, ${item.count} encomendas`}
+            accessibilityState={{ selected }}
+            aria-selected={selected}
             style={{
               minWidth: 58,
               minHeight: 64,
@@ -1100,6 +1113,7 @@ function AgendaDateStrip({
               {item.label}
             </Typography>
             <Typography variant="bodyBold">{item.day}</Typography>
+            <SelectionUnderline selected={selected} color={theme.colors.primaryStrong} />
             {item.count > 0 ? (
               <Typography variant="caption" color={theme.colors.primaryStrong}>
                 {item.count}

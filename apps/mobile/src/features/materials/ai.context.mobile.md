@@ -125,3 +125,5 @@ estoque rápido (+/−) e ver alerta de estoque baixo. Separado dos produtos aca
 MaterialForm expõe onCreated(material), somente após persistência, para fichas de custo retomarem a linha em edição. onSuccess continua compatível para edição e exclusão.
 
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
+
+- 2026-09-09: Comprar insumos usa SelectionCheck (preenchimento e check em 150 ms). Seleção e lista compartilhada atualizam imediatamente; preferência de movimento reduzido é respeitada.

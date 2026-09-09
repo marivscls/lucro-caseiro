@@ -1,0 +1,201 @@
+apps/mobile/src/features\sales\receipt-pdf.ts:81:  body { font-family: ${MANROPE_CSS_FONT_FAMILY}; color: #3d2b22; font-size: 13px; }
+apps/mobile/src/features\sales\receipt-pdf.ts:82:  .head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #8c5a45; padding-bottom: 14px; }
+apps/mobile/src/features\sales\receipt-pdf.ts:83:  .brand h1 { font-size: 22px; color: #6e4534; }
+apps/mobile/src/features\sales\receipt-pdf.ts:84:  .contact { margin-top: 4px; color: #7d6354; font-size: 12px; }
+apps/mobile/src/features\sales\receipt-pdf.ts:86:  .doc .kind { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #9b8275; }
+apps/mobile/src/features\sales\receipt-pdf.ts:87:  .doc .num { font-size: 16px; font-weight: 700; color: #6e4534; }
+apps/mobile/src/features\sales\receipt-pdf.ts:88:  .doc .date { margin-top: 2px; font-size: 12px; color: #7d6354; }
+apps/mobile/src/features\sales\receipt-pdf.ts:91:  .meta-row span { color: #9b8275; }
+apps/mobile/src/features\sales\receipt-pdf.ts:93:  th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #9b8275; padding: 8px 6px; border-bottom: 1px solid #e7d9cf; }
+apps/mobile/src/features\sales\receipt-pdf.ts:94:  td { padding: 9px 6px; border-bottom: 1px solid #f3eae3; font-size: 13px; }
+apps/mobile/src/features\sales\receipt-pdf.ts:97:  .total { margin-top: 14px; background: #f7efe9; border-radius: 10px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; }
+apps/mobile/src/features\sales\receipt-pdf.ts:98:  .total .label { font-size: 13px; color: #7d6354; }
+apps/mobile/src/features\sales\receipt-pdf.ts:99:  .total .value { font-size: 24px; font-weight: 700; color: #2e7d32; }
+apps/mobile/src/features\sales\receipt-pdf.ts:101:    paid ? "background: #e7f4ec; color: #2e7d32;" : "background: #fdf3e0; color: #9c6f26;"
+apps/mobile/src/features\sales\receipt-pdf.ts:103:  footer { margin-top: 26px; text-align: center; font-size: 11px; color: #9b8275; border-top: 1px solid #e7d9cf; padding-top: 12px; }
+apps/mobile/src/features\sales\receipt-pdf.ts:104:  footer strong { color: #8c5a45; }
+apps/mobile/src/features\sales\receipt-pdf.ts:105:  .brand-footer { margin-top: 6px; font-size: 10px; color: #b8a89d; }
+apps/mobile/src/features\sales\receipt-pdf.ts:106:  .brand-footer a { color: #b8a89d; text-decoration: none; }
+apps/mobile/src/features\recipes\components\recipe-card.tsx:21:  ["Doces", { emoji: "🍬", color: "#C4566B" }],
+apps/mobile/src/features\recipes\components\recipe-card.tsx:22:  ["Bolos", { emoji: "🎂", color: "#C4707E" }],
+apps/mobile/src/features\recipes\components\recipe-card.tsx:23:  ["Salgados", { emoji: "🥟", color: "#C9A36A" }],
+apps/mobile/src/features\recipes\components\recipe-card.tsx:24:  ["Bebidas", { emoji: "🥤", color: "#6E93B5" }],
+apps/mobile/src/features\recipes\components\recipe-card.tsx:35:    color: "#9A8F87",
+apps/mobile/src/shared/components\color-picker-modal.tsx:81:      const start = HEX_REGEX.test(initialColor) ? initialColor : "#8c5a45";
+apps/mobile/src/shared/components\color-picker-modal.tsx:167:                    <Stop offset="0" stopColor="#ffffff" />
+apps/mobile/src/shared/components\color-picker-modal.tsx:171:                    <Stop offset="0" stopColor="#000000" stopOpacity="0" />
+apps/mobile/src/shared/components\color-picker-modal.tsx:172:                    <Stop offset="1" stopColor="#000000" stopOpacity="1" />
+apps/mobile/src/shared/components\color-picker-modal.tsx:189:                    borderColor: "#ffffff",
+apps/mobile/src/shared/components\color-picker-modal.tsx:191:                    shadowColor: "#000",
+apps/mobile/src/shared/components\color-picker-modal.tsx:215:                    <Stop offset="0" stopColor="#ff0000" />
+apps/mobile/src/shared/components\color-picker-modal.tsx:216:                    <Stop offset="0.17" stopColor="#ffff00" />
+apps/mobile/src/shared/components\color-picker-modal.tsx:217:                    <Stop offset="0.33" stopColor="#00ff00" />
+apps/mobile/src/shared/components\color-picker-modal.tsx:218:                    <Stop offset="0.5" stopColor="#00ffff" />
+apps/mobile/src/shared/components\color-picker-modal.tsx:219:                    <Stop offset="0.67" stopColor="#0000ff" />
+apps/mobile/src/shared/components\color-picker-modal.tsx:220:                    <Stop offset="0.83" stopColor="#ff00ff" />
+apps/mobile/src/shared/components\color-picker-modal.tsx:221:                    <Stop offset="1" stopColor="#ff0000" />
+apps/mobile/src/shared/components\color-picker-modal.tsx:237:                    borderColor: "#ffffff",
+apps/mobile/src/shared/components\color-picker-modal.tsx:264:                placeholder="#FF66AA"
+apps/mobile/src/shared/components\barcode-scanner.tsx:109:      <View style={{ flex: 1, backgroundColor: "#000" }}>
+apps/mobile/src/shared/components\barcode-scanner.tsx:137:            <AppIcon name="camera-outline" size={64} color="#FFFFFF" />
+apps/mobile/src/shared/components\barcode-scanner.tsx:138:            <Typography variant="h3" color="#FFFFFF" style={{ textAlign: "center" }}>
+apps/mobile/src/shared/components\barcode-scanner.tsx:173:          <Typography variant="bodyBold" color="#FFFFFF">
+apps/mobile/src/shared/components\barcode-scanner.tsx:190:            <AppIcon name="close" size={24} color="#FFFFFF" />
+apps/mobile/src/shared/components\barcode-scanner.tsx:228:          backgroundColor: "#000",
+apps/mobile/src/shared/components\barcode-scanner.tsx:235:        <AppIcon name="camera-outline" size={64} color="#FFFFFF" />
+apps/mobile/src/shared/components\barcode-scanner.tsx:236:        <Typography variant="h3" color="#FFFFFF" style={{ textAlign: "center" }}>
+apps/mobile/src/shared/components\barcode-scanner.tsx:272:            <AppIcon name="close" size={24} color="#FFFFFF" />
+apps/mobile/src/shared/components\app-icon.tsx:159:        fill="#4285F4"
+apps/mobile/src/shared/components\app-icon.tsx:163:        fill="#34A853"
+apps/mobile/src/shared/components\app-icon.tsx:167:        fill="#FBBC05"
+apps/mobile/src/shared/components\app-icon.tsx:171:        fill="#EA4335"
+apps/mobile/src/shared/components\app-icon.tsx:179:export function WhatsappIcon({ size = 24, color = "#FFFFFF" }: BrandIconProps) {
+apps/mobile/src/shared/components\app-icon.tsx:385:export function AppIcon({ name, size = 24, color = "#000000", ...rest }: AppIconProps) {
+apps/mobile/src/shared/components\alert-host.tsx:152:                      color: "#FFF2EB",
+apps/mobile/src/shared/components\alert-host.tsx:163:                      color: "#E8CABB",
+apps/mobile/src/shared/components\alert-host.tsx:211:                          color: "#FFF2EB",
+apps/mobile/src/shared/components\alert-host.tsx:243:                      color: "#FFFFFF",
+apps/mobile/src/shared/components\alert-host.tsx:250:                  <AppIcon name="arrow-forward" size={22} color="#FFFFFF" />
+apps/mobile/src/features\suppliers\components\supplier-illustration.tsx:259:  color = "#6E2F3B",
+apps/mobile/src/features\suppliers\components\supplier-card.tsx:26:  supplies: "#B65F72",
+apps/mobile/src/features\suppliers\components\supplier-card.tsx:27:  packaging: "#79539A",
+apps/mobile/src/features\suppliers\components\supplier-card.tsx:28:  food: "#5F7D22",
+apps/mobile/src/features\suppliers\components\supplier-card.tsx:29:  other: "#A85A20",
+apps/mobile/src/features\suppliers\components\supplier-card.tsx:44:  let colors = { background: "#F5F3F1", foreground: "#5F5559" };
+apps/mobile/src/features\suppliers\components\supplier-card.tsx:45:  if (tone === "lime") colors = { background: "#F2F5CD", foreground: "#5A620B" };
+apps/mobile/src/features\suppliers\components\supplier-card.tsx:46:  if (tone === "rose") colors = { background: "#F5E5E8", foreground: "#9B4055" };
+apps/mobile/src/features\suppliers\components\supplier-avatar.tsx:53:          color="#7A3641"
+apps/mobile/src/features\suppliers\domain.ts:111:  "#F5E5E8",
+apps/mobile/src/features\suppliers\domain.ts:112:  "#F0ECF7",
+apps/mobile/src/features\suppliers\domain.ts:113:  "#F2F5CD",
+apps/mobile/src/features\suppliers\domain.ts:114:  "#FFF3CE",
+apps/mobile/src/features\suppliers\domain.ts:115:  "#F5F3F1",
+apps/mobile/src/features\recipes\recipe-pdf.ts:81:      color: #1f2937;
+apps/mobile/src/features\recipes\recipe-pdf.ts:82:      background: #ffffff;
+apps/mobile/src/features\recipes\recipe-pdf.ts:84:    .header { border-bottom: 3px solid #16a34a; padding-bottom: 12px; margin-bottom: 16px; }
+apps/mobile/src/features\recipes\recipe-pdf.ts:86:    .category { font-size: 14px; color: #6b7280; margin-top: 4px; }
+apps/mobile/src/features\recipes\recipe-pdf.ts:87:    .yield { font-size: 14px; color: #374151; margin-top: 6px; }
+apps/mobile/src/features\recipes\recipe-pdf.ts:91:    th, td { text-align: left; padding: 8px 6px; font-size: 13px; border-bottom: 1px solid #e5e7eb; }
+apps/mobile/src/features\recipes\recipe-pdf.ts:92:    th { font-size: 12px; color: #6b7280; text-transform: uppercase; }
+apps/mobile/src/features\recipes\recipe-pdf.ts:95:    .total-box { flex: 1; background: #f3f4f6; border-radius: 12px; padding: 12px 16px; }
+apps/mobile/src/features\recipes\recipe-pdf.ts:96:    .total-label { font-size: 12px; color: #6b7280; }
+apps/mobile/src/features\recipes\recipe-pdf.ts:98:    .total-value.cost { color: #dc2626; }
+apps/mobile/src/features\recipes\recipe-pdf.ts:99:    .total-value.unit { color: #16a34a; }
+apps/mobile/src/features\recipes\recipe-pdf.ts:101:    .brand-footer { margin-top: 28px; text-align: center; font-size: 10px; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 10px; }
+apps/mobile/src/features\recipes\recipe-pdf.ts:102:    .brand-footer a { color: #9ca3af; text-decoration: none; }
+apps/mobile/src/features\quotes\quote-pdf.ts:82:  body { font-family: ${MANROPE_CSS_FONT_FAMILY}; color: #3d2b22; font-size: 13px; }
+apps/mobile/src/features\quotes\quote-pdf.ts:84:  .head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #8c5a45; padding-bottom: 14px; }
+apps/mobile/src/features\quotes\quote-pdf.ts:86:  .brand h1 { font-size: 22px; color: #6e4534; }
+apps/mobile/src/features\quotes\quote-pdf.ts:87:  .contact { margin-top: 4px; color: #7d6354; font-size: 12px; }
+apps/mobile/src/features\quotes\quote-pdf.ts:89:  .doc .kind { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #9b8275; }
+apps/mobile/src/features\quotes\quote-pdf.ts:90:  .doc .num { font-size: 16px; font-weight: 700; color: #6e4534; }
+apps/mobile/src/features\quotes\quote-pdf.ts:91:  .doc .date { margin-top: 2px; font-size: 12px; color: #7d6354; }
+apps/mobile/src/features\quotes\quote-pdf.ts:92:  h2 { font-size: 17px; color: #4a3228; margin: 14px 0 4px; }
+apps/mobile/src/features\quotes\quote-pdf.ts:95:  .meta-row span { color: #9b8275; }
+apps/mobile/src/features\quotes\quote-pdf.ts:97:  th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #9b8275; padding: 8px 6px; border-bottom: 1px solid #e7d9cf; }
+apps/mobile/src/features\quotes\quote-pdf.ts:98:  td { padding: 9px 6px; border-bottom: 1px solid #f3eae3; font-size: 13px; }
+apps/mobile/src/features\quotes\quote-pdf.ts:101:  .total { margin-top: 14px; background: #f7efe9; border-radius: 10px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; }
+apps/mobile/src/features\quotes\quote-pdf.ts:102:  .total .label { font-size: 13px; color: #7d6354; }
+apps/mobile/src/features\quotes\quote-pdf.ts:103:  .total .value { font-size: 24px; font-weight: 700; color: #6e4534; }
+apps/mobile/src/features\quotes\quote-pdf.ts:104:  .notes { margin-top: 12px; font-size: 12px; color: #7d6354; background: #faf5f0; border-radius: 8px; padding: 10px 12px; }
+apps/mobile/src/features\quotes\quote-pdf.ts:105:  footer { margin-top: 26px; text-align: center; font-size: 11px; color: #9b8275; border-top: 1px solid #e7d9cf; padding-top: 12px; }
+apps/mobile/src/features\quotes\quote-pdf.ts:106:  footer strong { color: #8c5a45; }
+apps/mobile/src/features\quotes\quote-pdf.ts:107:  .brand-footer { margin-top: 6px; font-size: 10px; color: #b8a89d; }
+apps/mobile/src/features\quotes\quote-pdf.ts:108:  .brand-footer a { color: #b8a89d; text-decoration: none; }
+apps/mobile/src/features\quotes\quote-pdf.ts:111:    html, body { min-height: 100%; background: #f5efeb; }
+apps/mobile/src/features\quotes\quote-pdf.ts:117:      background: #fff;
+apps/mobile/src/features\quotes\quote-pdf.ts:118:      border: 1px solid #eadfd7;
+apps/mobile/src/features\quotes\quote-pdf.ts:139:    html, body { background: #fff; }
+apps/mobile/src/features\quotes\quote-pdf.ts:165:    html, body { background: #fff; }
+apps/mobile/src/features\clients\components\avatar-colors.ts:10:    { bg: "#FDE8E8", fg: "#B64545" },
+apps/mobile/src/features\clients\components\avatar-colors.ts:11:    { bg: "#FDEFE3", fg: "#B06A33" },
+apps/mobile/src/features\clients\components\avatar-colors.ts:12:    { bg: "#FDF6DC", fg: "#9C7E26" },
+apps/mobile/src/features\clients\components\avatar-colors.ts:13:    { bg: "#E8F6E4", fg: "#4E8A44" },
+apps/mobile/src/features\clients\components\avatar-colors.ts:14:    { bg: "#E2F4EF", fg: "#3B8A77" },
+apps/mobile/src/features\clients\components\avatar-colors.ts:15:    { bg: "#E3EFFB", fg: "#3E6FA8" },
+apps/mobile/src/features\clients\components\avatar-colors.ts:16:    { bg: "#EBE6FA", fg: "#6B53A8" },
+apps/mobile/src/features\clients\components\avatar-colors.ts:17:    { bg: "#F9E6F3", fg: "#A8488C" },
+apps/mobile/src/features\clients\components\avatar-colors.ts:18:    { bg: "#F0EAE0", fg: "#8A7350" },
+apps/mobile/src/features\clients\components\avatar-colors.ts:19:    { bg: "#E6F2F8", fg: "#3F7C99" },
+apps/mobile/src/features\clients\components\avatar-colors.ts:22:    { bg: "#4A2A2C", fg: "#F0AFAF" },
+apps/mobile/src/features\clients\components\avatar-colors.ts:23:    { bg: "#463322", fg: "#EBBE93" },
+apps/mobile/src/features\clients\components\avatar-colors.ts:24:    { bg: "#453F22", fg: "#E3D28A" },
+apps/mobile/src/features\clients\components\avatar-colors.ts:25:    { bg: "#27392A", fg: "#A8D8A0" },
+apps/mobile/src/features\clients\components\avatar-colors.ts:26:    { bg: "#1F3A34", fg: "#96D4C5" },
+apps/mobile/src/features\clients\components\avatar-colors.ts:27:    { bg: "#22334A", fg: "#9FC2EC" },
+apps/mobile/src/features\clients\components\avatar-colors.ts:28:    { bg: "#32294A", fg: "#C0AEEC" },
+apps/mobile/src/features\clients\components\avatar-colors.ts:29:    { bg: "#43263C", fg: "#E8A8D4" },
+apps/mobile/src/features\clients\components\avatar-colors.ts:30:    { bg: "#3B332A", fg: "#D4C09E" },
+apps/mobile/src/features\clients\components\avatar-colors.ts:31:    { bg: "#233B46", fg: "#9CC9DE" },
+apps/mobile/src/features\orders\components\order-form.tsx:165:  { name: "Rosa", hex: "#E8A0BF" },
+apps/mobile/src/features\orders\components\order-form.tsx:166:  { name: "Azul", hex: "#7FA9D1" },
+apps/mobile/src/features\orders\components\order-form.tsx:167:  { name: "Dourado", hex: "#D4A054" },
+apps/mobile/src/features\orders\components\order-form.tsx:168:  { name: "Verde", hex: "#7FC29B" },
+apps/mobile/src/features\orders\components\order-form.tsx:169:  { name: "Lilás", hex: "#B79BD1" },
+apps/mobile/src/features\orders\components\order-form.tsx:170:  { name: "Vermelho", hex: "#D96B6B" },
+apps/mobile/src/features\orders\components\order-form.tsx:171:  { name: "Amarelo", hex: "#EBC55C" },
+apps/mobile/src/features\orders\components\order-form.tsx:172:  { name: "Branco", hex: "#F2EDE7" },
+apps/mobile/src/features\orders\components\order-form.tsx:364:                    <AppIcon name="checkmark" size={20} color="#4A3228" />
+apps/mobile/src/features\packaging\domain.ts:40:  box: "#8FA0AE",
+apps/mobile/src/features\packaging\domain.ts:41:  pot: "#C4B4D4",
+apps/mobile/src/features\packaging\domain.ts:42:  bag: "#D2B48C",
+apps/mobile/src/features\packaging\domain.ts:43:  film: "#9BB89A",
+apps/mobile/src/features\packaging\domain.ts:44:  label: "#C4A8B0",
+apps/mobile/src/features\packaging\domain.ts:45:  other: "#B0A8A4",
+apps/mobile/src/features\packaging\domain.ts:50:  box: "#D9E1E6",
+apps/mobile/src/features\packaging\domain.ts:51:  pot: "#E8DFF0",
+apps/mobile/src/features\packaging\domain.ts:52:  bag: "#F0E4CC",
+apps/mobile/src/features\packaging\domain.ts:53:  film: "#DCE8DA",
+apps/mobile/src/features\packaging\domain.ts:54:  label: "#EBDDE1",
+apps/mobile/src/features\packaging\domain.ts:55:  other: "#E6E2DE",
+apps/mobile/src/features\packaging\components\packaging-form.tsx:202:const COMPOSITION_BAR = ["#E0A84E", "#7FB3D5", "#B8A9D4", "#C4707E"];
+apps/mobile/src/features\pricing\components\simple-pricing-calculator.tsx:330:const ESTIMATE_LIME = "#DCE86A";
+apps/mobile/src/features\pricing\components\simple-pricing-calculator.tsx:331:const ESTIMATE_LIME_SOFT = "#F1F4C3";
+apps/mobile/src/features\pricing\components\simple-pricing-calculator.tsx:332:const ESTIMATE_INK = "#24181E";
+apps/mobile/src/features\pricing\components\simple-pricing-calculator.tsx:333:const ESTIMATE_POSITIVE = "#2F855A";
+apps/mobile/src/features\labels\components\template-picker.tsx:14:  classico: { bg: "#FFFBEB", accent: "#92400E" },
+apps/mobile/src/features\labels\components\template-picker.tsx:15:  moderno: { bg: "#EFF6FF", accent: "#1E40AF" },
+apps/mobile/src/features\labels\components\template-picker.tsx:16:  minimalista: { bg: "#F9FAFB", accent: "#374151" },
+apps/mobile/src/features\labels\components\template-picker.tsx:17:  artesanal: { bg: "#FDF2F8", accent: "#9D174D" },
+apps/mobile/src/features\labels\components\template-picker.tsx:18:  gourmet: { bg: "#F5F3FF", accent: "#5B21B6" },
+apps/mobile/src/features\labels\components\template-picker.tsx:58:          const colors = TEMPLATE_COLORS[item.id] ?? { bg: "#F3F4F6", accent: "#4B5563" };
+apps/mobile/src/features\labels\components\template-picker.tsx:76:                  borderColor: isSelected ? theme.colors.primary : "#E5E7EB",
+apps/mobile/src/features\labels\components\label-style-editor.tsx:10:const ACCENT_PRESETS = ["#92400E", "#9D174D", "#5B21B6", "#1E40AF", "#166534", "#111827"];
+apps/mobile/src/features\labels\components\label-style-editor.tsx:136:                {selected && <AppIcon name="checkmark" size={20} color="#fff" />}
+apps/mobile/src/features\labels\components\label-style-editor.tsx:162:              color={isCustomAccent ? "#fff" : theme.colors.primaryLight}
+apps/mobile/src/features\labels\components\label-style-editor.tsx:206:        initialColor={style.accentColor ?? "#92400E"}
+apps/mobile/src/features\labels\components\label-preview.tsx:40:  classico: { bg: "#FFFBEB", accent: "#92400E", border: "#D97706" },
+apps/mobile/src/features\labels\components\label-preview.tsx:41:  moderno: { bg: "#FFFFFF", accent: "#1E40AF", border: "#3B82F6" },
+apps/mobile/src/features\labels\components\label-preview.tsx:43:    bg: "#FFFFFF",
+apps/mobile/src/features\labels\components\label-preview.tsx:44:    accent: "#111827",
+apps/mobile/src/features\labels\components\label-preview.tsx:45:    border: "#E5E7EB",
+apps/mobile/src/features\labels\components\label-preview.tsx:47:  artesanal: { bg: "#FDF2F8", accent: "#9D174D", border: "#EC4899" },
+apps/mobile/src/features\labels\components\label-preview.tsx:48:  gourmet: { bg: "#F5F3FF", accent: "#5B21B6", border: "#8B5CF6" },
+apps/mobile/src/features\suppliers\illustration-presets.ts:13:const rose = "#F5E5E8";
+apps/mobile/src/features\suppliers\illustration-presets.ts:14:const lilac = "#F0ECF7";
+apps/mobile/src/features\suppliers\illustration-presets.ts:15:const lime = "#F2F5CD";
+apps/mobile/src/features\suppliers\illustration-presets.ts:16:const yellow = "#FFF3CE";
+apps/mobile/src/features\suppliers\illustration-presets.ts:17:const warmNeutral = "#F5F3F1";
+apps/mobile/src/features\onboarding\profile-visuals.tsx:379:    borderTopColor: "#916b7b",
+apps/mobile/src/features\catalog\catalog-customizer.ts:49:  brown: "#4A2332",
+apps/mobile/src/features\catalog\catalog-customizer.ts:50:  rose: "#B65F72",
+apps/mobile/src/features\catalog\catalog-customizer.ts:51:  green: "#3E8156",
+apps/mobile/src/features\catalog\catalog-customizer.ts:52:  lavender: "#7558AD",
+apps/mobile/src/features\catalog\catalog-customizer.ts:53:  blue: "#3479A8",
+apps/mobile/src/features\catalog\catalog-customizer.ts:54:  amber: "#B98924",
+apps/mobile/src/features\catalog\catalog-customizer.ts:58:  primary: "#4A2332",
+apps/mobile/src/features\catalog\catalog-customizer.ts:59:  action: "#B65F72",
+apps/mobile/src/features\catalog\catalog-customizer.ts:60:  background: "#FAF8F6",
+apps/mobile/src/features\catalog\catalog-customizer.ts:61:  text: "#6D6266",
+apps/mobile/src/features\catalog\components\storefront-preview.tsx:17:const INK = "#24181E";
+apps/mobile/src/features\catalog\components\storefront-preview.tsx:18:const WHITE = "#FFFFFF";
+apps/mobile/src/features\catalog\components\storefront-preview.tsx:19:const WARM_GRAY = "#6D6266";
+apps/mobile/src/features\catalog\components\storefront-preview.tsx:20:const SOFT_ROSE = "#F5E5E8";
+apps/mobile/src/features\catalog\components\storefront-preview.tsx:523:              backgroundColor: "#DCE86A",
+apps/mobile/src/features\catalog\components\storefront-preview.tsx:616:            borderColor: "#F5E5E8",
+apps/mobile/src/features\catalog\components\storefront-preview.tsx:774:        backgroundColor: "#F5F3F1",
+apps/mobile/src/features\catalog\components\storefront-preview.tsx:1352:          borderColor: "#F5E5E8",
+apps/mobile/src/features\catalog\components\hero-preview.tsx:54:        <Typography variant="h3" color="#ffffff" numberOfLines={1}>
+apps/mobile/src/features\labels\label-export.ts:123:      background: #ffffff;
+apps/mobile/src/features\labels\qr.ts:9:export function buildQrSvg(text: string, color = "#000000"): string {
+apps/mobile/src/features\labels\qr.ts:30:    `<rect width="${size}" height="${size}" fill="#ffffff"/>` +

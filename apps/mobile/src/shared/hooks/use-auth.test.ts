@@ -53,6 +53,7 @@ describe("getAuthRedirectUrl", () => {
       options: {
         redirectTo: `${window.location.origin}/`,
         skipBrowserRedirect: false,
+        queryParams: { prompt: "select_account" },
       },
     });
     expect(openAuthSession).not.toHaveBeenCalled();

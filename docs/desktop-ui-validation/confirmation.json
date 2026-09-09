@@ -1,0 +1,845 @@
+{
+  "checks": [
+    {
+      "name": "tabs",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "products",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "services",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "tabs-sales",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 104
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "tabs-new-sale",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "tabs-agenda",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 92
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "tabs-clients",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "pricing",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 92
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "pricing-complete",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 92
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "finance",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "recurring-expenses",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "materials",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "recipes",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 92
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "packaging",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 92
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "suppliers",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "purchases",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "fiado",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 92
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "quotes",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "catalog",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "labels",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "insights",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 88
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "support",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 88
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "tabs-more",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "buy-materials",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "settings",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 88
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "plans",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 88
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "lucro-apps",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "operations",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "retail",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "catalog",
+      "width": 1024,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 720,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "suppliers",
+      "width": 1024,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 720,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "lucro-apps",
+      "width": 1024,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 720,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "tabs-clients",
+      "width": 1024,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 720,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "tabs-sales",
+      "width": 1024,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 720,
+          "height": 104
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "tabs-new-sale",
+      "width": 1024,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 720,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "pricing",
+      "width": 1024,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 720,
+          "height": 92
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "catalog",
+      "width": 390,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 68
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "suppliers",
+      "width": 390,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 78
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "tabs-clients",
+      "width": 390,
+      "overflow": false,
+      "headers": [],
+      "emptyPngs": 0
+    },
+    {
+      "name": "tabs-new-sale",
+      "width": 390,
+      "overflow": false,
+      "headers": [],
+      "emptyPngs": 0
+    },
+    {
+      "name": "products-form",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "services-form",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "suppliers-form",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "packaging-form",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 92
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "materials-form",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "purchases-form",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "tabs-clients-form",
+      "width": 1440,
+      "overflow": false,
+      "headers": [],
+      "emptyPngs": 0
+    },
+    {
+      "name": "labels-form",
+      "width": 1440,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 1136,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "products-form",
+      "width": 1024,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 720,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "services-form",
+      "width": 1024,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 720,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "suppliers-form",
+      "width": 1024,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 720,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "packaging-form",
+      "width": 1024,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 720,
+          "height": 92
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "materials-form",
+      "width": 1024,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 720,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "purchases-form",
+      "width": 1024,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 720,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "tabs-clients-form",
+      "width": 1024,
+      "overflow": false,
+      "headers": [],
+      "emptyPngs": 0
+    },
+    {
+      "name": "labels-form",
+      "width": 1024,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 720,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "new-sale-items",
+      "width": 1840,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 400,
+          "y": 0,
+          "width": 1280,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "new-sale-payment",
+      "width": 1840,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 400,
+          "y": 0,
+          "width": 1280,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "new-sale-review",
+      "width": 1840,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 400,
+          "y": 0,
+          "width": 1280,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "new-sale-items",
+      "width": 1024,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 720,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "new-sale-payment",
+      "width": 1024,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 720,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    },
+    {
+      "name": "new-sale-review",
+      "width": 1024,
+      "overflow": false,
+      "headers": [
+        {
+          "x": 272,
+          "y": 0,
+          "width": 720,
+          "height": 102
+        }
+      ],
+      "emptyPngs": 0
+    }
+  ],
+  "errors": []
+}

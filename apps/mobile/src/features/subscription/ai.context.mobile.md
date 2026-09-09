@@ -41,7 +41,7 @@ Mobile ownership for profile, freemium limits, paywall display, and platform-bas
 
 - `Paywall`: shows tier selection (Essencial/Profissional), monthly/annual period, tier benefits, subscribe CTA, restore action, and close action. `onSubscribe(tier, period)` is platform-routed in `app/_layout.tsx`. Accepts `recommendedTier` to preselect (passed via `usePaywall.show(resource, tier)` or derived from the triggering resource).
 - `LimitBanner`: shows free-plan usage and prompts upgrade near/at limits.
-- Plans screen: displays current plan, usage, comparison table, and opens the paywall.
+- Plans screen: compares Essential/Professional and monthly/annual pricing in one page, displays the full billing amount, and routes the CTA directly through the existing platform checkout hooks. Current paid tiers cannot be repurchased; upgrades remain available. Free usage appears below the offer.
 - Settings screen: displays current plan and restore action.
 
 ## Hooks
@@ -92,7 +92,8 @@ Mobile ownership for profile, freemium limits, paywall display, and platform-bas
 
 ## Test matrix
 
-- Paywall opens from limits/plans.
+- Paywall opens from feature limits; Plans goes directly to platform checkout.
+- Plans: all four tier/period combinations route to Google Play on Android and Stripe on Web/iOS; choices lock during loading and recover afterward.
 - Paywall routes subscribe to Google Play Billing on Android and to Stripe Checkout on iOS/Web.
 - Stripe checkout sends selected plan and opens returned URL.
 - Subscription query invalidates after browser closes, then polls until the plan flips to premium (covers webhook delay) and revalidates on app foreground.
@@ -159,3 +160,9 @@ Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição:
 - Benefícios do checkout usam exclusivamente `TIER_BENEFITS` / `tierBenefitsFor`, como a tela Planos, incluindo o PDF mensal e o teto de fornecedores do Essencial. Nenhuma regra comercial foi alterada.
 - Planos mostra skeleton durante o carregamento inicial do perfil e, para contas gratuitas, do uso. Contas pagas não aguardam uma consulta de uso gratuito. O Profissional mantém badge e contorno; o fundo é neutro e só seu CTA recebe preenchimento principal.
 - Banner de limite usa `premiumBg` e borda sem sombra. Os tokens atendem ambos os temas.
+
+## Catálogo completo no Essencial — 2026-09-09
+
+O Essencial inclui catálogo completo, personalização e galeria com até 3 fotos por produto (principal + 2 extras). A feature extraPhotos pertence ao Essencial e ao Profissional; o Gratuito mantém 1 foto. Paywall de productPhotos recomenda Essencial. Os demais recursos exclusivos do Profissional permanecem inalterados.
+
+- 2026-09-09: Plans combines tier and billing-period selection with the complete charge amount. The primary action skips the intermediate paywall and calls `useSubscription().subscribe` on Android or `useStripeCheckout().checkout` elsewhere. Existing provider verification, errors, profile refresh and Android restore are preserved. Monthly is the initial period; annual prices show the full yearly charge with a monthly equivalent and savings underneath.

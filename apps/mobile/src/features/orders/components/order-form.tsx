@@ -886,7 +886,7 @@ export function OrderForm({
                   <Typography variant="h3" color={theme.colors.text}>
                     Serviço{isAppointment ? "" : " (opcional)"}
                     {isAppointment ? (
-                      <Typography variant="bodyBold" color={theme.colors.primaryLight}>
+                      <Typography variant="bodyBold" color={theme.colors.primary}>
                         {" "}
                         *
                       </Typography>
@@ -1167,7 +1167,7 @@ export function OrderForm({
                     <Typography variant="caption" color={pal.muted}>
                       Local do atendimento
                       {isAppointment ? (
-                        <Typography variant="bodyBold" color={theme.colors.primaryLight}>
+                        <Typography variant="bodyBold" color={theme.colors.primary}>
                           {" "}
                           *
                         </Typography>
@@ -1321,7 +1321,7 @@ export function OrderForm({
               <View style={{ flex: isCompactPwa ? undefined : 1, gap: spacing.sm }}>
                 <Typography variant="h3" color={theme.colors.text}>
                   O que é? ({experienceCopy.orderNoun}){" "}
-                  <Typography variant="bodyBold" color={theme.colors.primaryLight}>
+                  <Typography variant="bodyBold" color={theme.colors.primary}>
                     *
                   </Typography>
                 </Typography>
@@ -1375,7 +1375,7 @@ export function OrderForm({
             <View style={{ flex: isCompactPwa ? undefined : 1, gap: spacing.sm }}>
               <Typography variant="h3" color={theme.colors.text}>
                 {isAppointment ? "Data do atendimento" : "Data de entrega"}{" "}
-                <Typography variant="bodyBold" color={theme.colors.primaryLight}>
+                <Typography variant="bodyBold" color={theme.colors.primary}>
                   *
                 </Typography>
               </Typography>
@@ -1447,7 +1447,7 @@ export function OrderForm({
               <Typography variant="h3" color={theme.colors.text}>
                 Horário{isAppointment ? "" : " (opcional)"}
                 {isAppointment ? (
-                  <Typography variant="bodyBold" color={theme.colors.primaryLight}>
+                  <Typography variant="bodyBold" color={theme.colors.primary}>
                     {" "}
                     *
                   </Typography>

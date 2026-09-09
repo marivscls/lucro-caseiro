@@ -1,0 +1,26 @@
+[
+  {
+    "screen": "/login",
+    "resolvedPath": "/login",
+    "file": "login-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "LUCRO CASEIRO\nQue bom te ver!\nEntrar com Google\nou\nE-mail\nSenha\nEsqueci minha senha\nEntrar\nPrimeira vez?\nCriar conta"
+  },
+  {
+    "screen": "/register",
+    "resolvedPath": "/register",
+    "file": "register-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "LUCRO CASEIRO\nCrie sua conta\nLeva menos de um minuto, e é grátis.\nCriar com Google\nou com e-mail\nSeu nome\nE-mail\nSenha\nMostrar\nNome do negócio (opcional)\nCriar minha conta\nJá tem conta?\nEntrar"
+  },
+  {
+    "screen": "/reset-password",
+    "resolvedPath": "/reset-password",
+    "file": "reset-password-dark.png",
+    "errors": [],
+    "overflow": false,
+    "text": "Criar nova senha\nEscolha uma nova senha para a sua conta.\nNova senha\nUse pelo menos 8 caracteres, com letra maiúscula, minúscula e número.\nConfirmar nova senha\nMostrar senha\nSalvar nova senha"
+  }
+]

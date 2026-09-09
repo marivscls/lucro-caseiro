@@ -1,0 +1,30 @@
+[
+  {
+    "width": 390,
+    "passed": true,
+    "checks": [
+      "explicit permission",
+      "activation",
+      "test push",
+      "preferences",
+      "disable",
+      "permission denied",
+      "no overflow",
+      "no page errors"
+    ]
+  },
+  {
+    "width": 1440,
+    "passed": true,
+    "checks": [
+      "explicit permission",
+      "activation",
+      "test push",
+      "preferences",
+      "disable",
+      "permission denied",
+      "no overflow",
+      "no page errors"
+    ]
+  }
+]

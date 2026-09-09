@@ -22,6 +22,7 @@ import { useLowStockMaterials } from "../features/materials/hooks";
 import { AppIcon } from "../shared/components/app-icon";
 import { showAlert } from "../shared/components/alert-store";
 import { FeatureRouteGuard } from "../shared/components/feature-route-guard";
+import { SelectionCheck } from "../shared/components/feature-motion";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { SkeletonList } from "../shared/components/skeleton";
 import { showToast } from "../shared/components/toast";
@@ -51,6 +52,7 @@ function ShoppingListItem({
       onPress={onToggle}
       accessibilityRole="checkbox"
       accessibilityState={{ checked: selected }}
+      aria-checked={selected}
       accessibilityLabel={`${material.name}, estoque atual ${formatQty(material.stockQuantity)} ${material.unit}`}
       style={({ pressed }) => ({
         minHeight: 76,
@@ -65,10 +67,11 @@ function ShoppingListItem({
         opacity: pressed ? 0.76 : idleOpacity,
       })}
     >
-      <AppIcon
-        name={selected ? "checkbox" : "square-outline"}
-        size={24}
-        color={selected ? theme.colors.primary : theme.colors.textSecondary}
+      <SelectionCheck
+        selected={selected}
+        color={theme.colors.primary}
+        checkColor={theme.colors.textOnPrimary}
+        borderColor={theme.colors.textSecondary}
       />
       <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
         <Typography variant="bodyBold" numberOfLines={1}>
@@ -289,6 +292,7 @@ function BuyMaterialsContent() {
             onPress={toggleAll}
             accessibilityRole="checkbox"
             accessibilityState={{ checked: allSelected }}
+            aria-checked={allSelected}
             accessibilityLabel={allSelected ? "Desmarcar todos" : "Selecionar todos"}
             style={{ minHeight: 44, justifyContent: "center" }}
           >

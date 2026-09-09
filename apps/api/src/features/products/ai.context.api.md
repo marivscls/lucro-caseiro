@@ -305,3 +305,7 @@ POST /api/v1/products  (produto composto / kit / caixinha)
   (kit)" mostra um cadeado quando o plano não é Profissional e, ao tentar marcar, chama
   `showPaywall("compositeProducts")` em vez de habilitar o formulário de componentes (não é tela
   cheia — kit é uma sub-seção do formulário de produto, não uma tela dedicada).
+
+## Catálogo completo no Essencial — 2026-09-09
+
+O Essencial inclui catálogo completo, personalização e galeria com até 3 fotos por produto (principal + 2 extras). A feature extraPhotos pertence ao Essencial e ao Profissional; o Gratuito mantém 1 foto. Paywall de productPhotos recomenda Essencial. Os demais recursos exclusivos do Profissional permanecem inalterados.

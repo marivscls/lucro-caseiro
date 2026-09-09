@@ -1,0 +1,513 @@
+{
+  "checks": [
+    {
+      "route": "settings",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "route": "plans",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "route": "lucro-apps",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "route": "operations",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "route": "retail",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "route": "products",
+      "form": true,
+      "width": 1440,
+      "overflow": false,
+      "fields": [
+        {
+          "name": "Nome do produto, obrigatório",
+          "x": 525,
+          "right": 949
+        },
+        {
+          "name": "Preço de venda em reais, obrigatório",
+          "x": 525,
+          "right": 825
+        },
+        {
+          "name": "Ex: 789...",
+          "x": 525,
+          "right": 893
+        },
+        {
+          "name": "Ex: 50",
+          "x": 525,
+          "right": 949
+        },
+        {
+          "name": "Ex: 10",
+          "x": 525,
+          "right": 949
+        }
+      ]
+    },
+    {
+      "route": "services",
+      "form": true,
+      "width": 1440,
+      "overflow": false,
+      "fields": [
+        {
+          "name": "Nome do serviço",
+          "x": 255,
+          "right": 1185
+        },
+        {
+          "name": "Duração em minutos",
+          "x": 255,
+          "right": 697
+        },
+        {
+          "name": "Preço cobrado (opcional)",
+          "x": 743,
+          "right": 1185
+        },
+        {
+          "name": "Intervalo após cada atendimento",
+          "x": 255,
+          "right": 541
+        },
+        {
+          "name": "Exibir serviço no catálogo",
+          "x": 1162,
+          "right": 1202
+        }
+      ]
+    },
+    {
+      "route": "suppliers",
+      "form": true,
+      "width": 1440,
+      "overflow": false,
+      "fields": [
+        {
+          "name": "Buscar fornecedor, produto ou categoria",
+          "x": 523,
+          "right": 1127
+        },
+        {
+          "name": "Nome do fornecedor",
+          "x": 478,
+          "right": 962
+        },
+        {
+          "name": "Telefone / WhatsApp (opcional)",
+          "x": 478,
+          "right": 962
+        },
+        {
+          "name": "Alternar WhatsApp",
+          "x": 939,
+          "right": 979
+        },
+        {
+          "name": "Email (opcional)",
+          "x": 478,
+          "right": 962
+        },
+        {
+          "name": "Endereço (opcional)",
+          "x": 478,
+          "right": 962
+        }
+      ]
+    },
+    {
+      "route": "packaging",
+      "form": true,
+      "width": 1440,
+      "overflow": false,
+      "fields": [
+        {
+          "name": "Ex: Caixa para envio, sacola, acabamento...",
+          "x": 506,
+          "right": 966
+        },
+        {
+          "name": null,
+          "x": 522,
+          "right": 808
+        }
+      ]
+    },
+    {
+      "route": "materials",
+      "form": true,
+      "width": 1440,
+      "overflow": false,
+      "fields": [
+        {
+          "name": "Nome do material",
+          "x": 506,
+          "right": 966
+        },
+        {
+          "name": "Ex: 10",
+          "x": 506,
+          "right": 701
+        },
+        {
+          "name": "Ex: 3",
+          "x": 771,
+          "right": 966
+        },
+        {
+          "name": "Ex: 4,50",
+          "x": 506,
+          "right": 808
+        },
+        {
+          "name": "Ex: 350",
+          "x": 506,
+          "right": 701
+        }
+      ]
+    },
+    {
+      "route": "purchases",
+      "form": true,
+      "width": 1440,
+      "overflow": false,
+      "fields": [
+        {
+          "name": "Descrição",
+          "x": 478,
+          "right": 962
+        },
+        {
+          "name": "Valor (R$)",
+          "x": 478,
+          "right": 804
+        },
+        {
+          "name": "Data da compra",
+          "x": 478,
+          "right": 804
+        }
+      ]
+    },
+    {
+      "route": "tabs/clients",
+      "form": true,
+      "width": 1440,
+      "overflow": false,
+      "fields": [
+        {
+          "name": null,
+          "x": 528,
+          "right": 966
+        },
+        {
+          "name": null,
+          "x": 528,
+          "right": 966
+        },
+        {
+          "name": null,
+          "x": 528,
+          "right": 966
+        },
+        {
+          "name": null,
+          "x": 528,
+          "right": 931
+        }
+      ]
+    },
+    {
+      "route": "labels",
+      "form": true,
+      "width": 1440,
+      "overflow": false,
+      "fields": [
+        {
+          "name": "Nome da etiqueta",
+          "x": 238,
+          "right": 878.609375
+        },
+        {
+          "name": null,
+          "x": 266,
+          "right": 878.609375
+        },
+        {
+          "name": "Nome que será impresso",
+          "x": 238,
+          "right": 878.609375
+        }
+      ]
+    },
+    {
+      "route": "settings",
+      "width": 1024,
+      "overflow": false
+    },
+    {
+      "route": "plans",
+      "width": 1024,
+      "overflow": false
+    },
+    {
+      "route": "lucro-apps",
+      "width": 1024,
+      "overflow": false
+    },
+    {
+      "route": "operations",
+      "width": 1024,
+      "overflow": false
+    },
+    {
+      "route": "retail",
+      "width": 1024,
+      "overflow": false
+    },
+    {
+      "route": "products",
+      "form": true,
+      "width": 1024,
+      "overflow": false,
+      "fields": [
+        {
+          "name": "Nome do produto, obrigatório",
+          "x": 317,
+          "right": 741
+        },
+        {
+          "name": "Preço de venda em reais, obrigatório",
+          "x": 317,
+          "right": 617
+        },
+        {
+          "name": "Ex: 789...",
+          "x": 317,
+          "right": 685
+        },
+        {
+          "name": "Ex: 50",
+          "x": 317,
+          "right": 741
+        },
+        {
+          "name": "Ex: 10",
+          "x": 317,
+          "right": 741
+        }
+      ]
+    },
+    {
+      "route": "services",
+      "form": true,
+      "width": 1024,
+      "overflow": false,
+      "fields": [
+        {
+          "name": "Nome do serviço",
+          "x": 79,
+          "right": 945
+        },
+        {
+          "name": "Duração em minutos",
+          "x": 79,
+          "right": 489
+        },
+        {
+          "name": "Preço cobrado (opcional)",
+          "x": 535,
+          "right": 945
+        },
+        {
+          "name": "Intervalo após cada atendimento",
+          "x": 79,
+          "right": 365
+        },
+        {
+          "name": "Exibir serviço no catálogo",
+          "x": 922,
+          "right": 962
+        }
+      ]
+    },
+    {
+      "route": "suppliers",
+      "form": true,
+      "width": 1024,
+      "overflow": false,
+      "fields": [
+        {
+          "name": "Buscar fornecedor, produto ou categoria",
+          "x": 335,
+          "right": 899
+        },
+        {
+          "name": "Nome do fornecedor",
+          "x": 270,
+          "right": 754
+        },
+        {
+          "name": "Telefone / WhatsApp (opcional)",
+          "x": 270,
+          "right": 754
+        },
+        {
+          "name": "Alternar WhatsApp",
+          "x": 731,
+          "right": 771
+        },
+        {
+          "name": "Email (opcional)",
+          "x": 270,
+          "right": 754
+        },
+        {
+          "name": "Endereço (opcional)",
+          "x": 270,
+          "right": 754
+        }
+      ]
+    },
+    {
+      "route": "packaging",
+      "form": true,
+      "width": 1024,
+      "overflow": false,
+      "fields": [
+        {
+          "name": "Ex: Caixa para envio, sacola, acabamento...",
+          "x": 298,
+          "right": 758
+        },
+        {
+          "name": null,
+          "x": 314,
+          "right": 600
+        }
+      ]
+    },
+    {
+      "route": "materials",
+      "form": true,
+      "width": 1024,
+      "overflow": false,
+      "fields": [
+        {
+          "name": "Nome do material",
+          "x": 298,
+          "right": 758
+        },
+        {
+          "name": "Ex: 10",
+          "x": 298,
+          "right": 493
+        },
+        {
+          "name": "Ex: 3",
+          "x": 563,
+          "right": 758
+        },
+        {
+          "name": "Ex: 4,50",
+          "x": 298,
+          "right": 600
+        },
+        {
+          "name": "Ex: 350",
+          "x": 298,
+          "right": 493
+        }
+      ]
+    },
+    {
+      "route": "purchases",
+      "form": true,
+      "width": 1024,
+      "overflow": false,
+      "fields": [
+        {
+          "name": "Descrição",
+          "x": 270,
+          "right": 754
+        },
+        {
+          "name": "Valor (R$)",
+          "x": 270,
+          "right": 596
+        },
+        {
+          "name": "Data da compra",
+          "x": 270,
+          "right": 596
+        }
+      ]
+    },
+    {
+      "route": "tabs/clients",
+      "form": true,
+      "width": 1024,
+      "overflow": false,
+      "fields": [
+        {
+          "name": null,
+          "x": 320,
+          "right": 758
+        },
+        {
+          "name": null,
+          "x": 320,
+          "right": 758
+        },
+        {
+          "name": null,
+          "x": 320,
+          "right": 758
+        },
+        {
+          "name": null,
+          "x": 320,
+          "right": 723
+        }
+      ]
+    },
+    {
+      "route": "labels",
+      "form": true,
+      "width": 1024,
+      "overflow": false,
+      "fields": [
+        {
+          "name": "Nome da etiqueta",
+          "x": 62,
+          "right": 657.8125
+        },
+        {
+          "name": null,
+          "x": 90,
+          "right": 657.8125
+        },
+        {
+          "name": "Nome que será impresso",
+          "x": 62,
+          "right": 657.8125
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

@@ -35,6 +35,10 @@ import { FieldLabel, TextFieldCard } from "../../../shared/components/form-field
 import { KeyboardAwareScrollView } from "../../../shared/components/keyboard-aware-scroll-view";
 import { ResponsiveOverlayModal } from "../../../shared/components/responsive-modal-surface";
 import { Skeleton } from "../../../shared/components/skeleton";
+import {
+  AnimatedDisclosure,
+  DisclosureChevron,
+} from "../../../shared/components/motion-feedback";
 import { useAuth } from "../../../shared/hooks/use-auth";
 import {
   desktopCompactField,
@@ -1078,37 +1082,31 @@ export function SimplePricingCalculator({
                     width: 42,
                   }}
                 >
-                  <AppIcon
-                    name={showFees ? "chevron-up" : "chevron-down"}
-                    size={20}
-                    color={theme.colors.textSecondary}
-                  />
+                  <DisclosureChevron open={showFees} color={theme.colors.textSecondary} />
                 </View>
               </Pressable>
 
-              {showFees ? (
-                <View style={{ gap: spacing.sm }}>
-                  <FieldLabel label="Taxa total sobre a venda (%)" />
-                  <View style={compactField}>
-                    <TextFieldCard
-                      icon="card-outline"
-                      iconSurface
-                      value={feesInput}
-                      onChangeText={(text) => {
-                        setFeesInput(percentageInput(text));
-                        trackStarted();
-                      }}
-                      keyboardType="decimal-pad"
-                      placeholder="Ex: 12"
-                    />
-                  </View>
-                  {feesPercent > 95 ? (
-                    <Typography variant="caption" color={theme.colors.alert}>
-                      A taxa precisa ser de no máximo 95%.
-                    </Typography>
-                  ) : null}
+              <AnimatedDisclosure open={showFees} style={{ gap: spacing.sm }}>
+                <FieldLabel label="Taxa total sobre a venda (%)" />
+                <View style={compactField}>
+                  <TextFieldCard
+                    icon="card-outline"
+                    iconSurface
+                    value={feesInput}
+                    onChangeText={(text) => {
+                      setFeesInput(percentageInput(text));
+                      trackStarted();
+                    }}
+                    keyboardType="decimal-pad"
+                    placeholder="Ex: 12"
+                  />
                 </View>
-              ) : null}
+                {feesPercent > 95 ? (
+                  <Typography variant="caption" color={theme.colors.alert}>
+                    A taxa precisa ser de no máximo 95%.
+                  </Typography>
+                ) : null}
+              </AnimatedDisclosure>
             </View>
 
             {!isDesktop ? estimatePanel : null}

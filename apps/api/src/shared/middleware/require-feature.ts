@@ -12,7 +12,7 @@ const FEATURE_MESSAGE: Partial<Record<PlanFeature, string>> = {
   export:
     "A exportação em Excel e os relatórios avançados fazem parte do plano Profissional.",
   advancedReports: "Os relatórios completos fazem parte do plano Profissional.",
-  extraPhotos: "Fotos adicionais do produto fazem parte do plano Profissional.",
+  extraPhotos: "Fotos adicionais do produto fazem parte do plano Essencial.",
   catalogCustomization: "A personalização do catálogo faz parte do plano Essencial.",
   purchases: "Registrar compras de fornecedores faz parte do plano Profissional.",
   compositeProducts: "Produtos compostos (kits) fazem parte do plano Profissional.",
@@ -47,7 +47,7 @@ export function requireFeature(repo: ISubscriptionRepo, feature: PlanFeature) {
 }
 
 /**
- * Fotos extras do produto (galeria) só no Profissional. Diferente do
+ * Fotos extras do produto (galeria) a partir do Essencial. Diferente do
  * `requireFeature`, só barra quando o request traz `extraPhotos` não-vazio — os
  * demais planos seguem criando/editando produtos normalmente.
  */

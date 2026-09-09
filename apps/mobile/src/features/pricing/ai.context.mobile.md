@@ -84,3 +84,5 @@ Produto: custo antigo R$ 10, receita atual R$ 12, embalagem antiga R$ 1 e atual 
 
 - 2026-09-09: unificação dos cinco aprimoramentos; snapshot persistido na migration 063; endpoint v2 exige publicação coordenada com a API. Migrações e backend devem preceder o aplicativo atualizado.
 - O histórico preserva a sugestão calculada; o preço comercial escolhido é salvo no produto. Alertas representam revisão dos cálculos, não uma garantia sobre o preço comercial.
+
+- 2026-09-09: campos de taxa e seções expansíveis compartilham fade/deslocamento de 16 px por 280 ms e seta animada. Ao recolher, campos saem imediatamente da navegação assistiva e do teclado; reabrir durante a saída cancela a remoção. Movimento reduzido torna a mudança imediata.

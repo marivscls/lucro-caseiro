@@ -6,6 +6,7 @@ import { Platform } from "react-native";
 import { useAuth } from "./use-auth";
 import { handleNotificationResponse } from "./notification-types";
 import { registerPushToken, unregisterPushToken } from "./push-token-api";
+import { useBrowserNotifications } from "./use-browser-notifications";
 
 // ---------------------------------------------------------------------------
 // Global notification handler — shows alerts even when app is in foreground
@@ -45,7 +46,21 @@ async function ensureNotificationPermissionsAsync(): Promise<boolean> {
 // Hook
 // ---------------------------------------------------------------------------
 export function useNotifications() {
-  const { isAuthenticated, userId } = useAuth();
+  const { isAuthenticated, userId, token } = useAuth();
+
+  useEffect(() => {
+    if (Platform.OS !== "web" || !isAuthenticated) return;
+    const refresh = () => {
+      void useBrowserNotifications.getState().refresh();
+    };
+    refresh();
+    window.addEventListener("focus", refresh);
+    window.addEventListener("online", refresh);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener("online", refresh);
+    };
+  }, [isAuthenticated, userId, token]);
 
   const notificationListener = useRef<{ remove(): void } | null>(null);
   const responseListener = useRef<{ remove(): void } | null>(null);

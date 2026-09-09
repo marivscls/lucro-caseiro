@@ -26,6 +26,7 @@ import { trackAnalyticsAction } from "../features/analytics/tracker";
 import { useClient } from "../features/clients/hooks";
 import { QuoteForm } from "../features/quotes/components/quote-form";
 import { showAlert } from "../shared/components/alert-store";
+import { ContentTransition } from "../shared/components/motion-feedback";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { useBrandScreenPalette } from "../shared/brand-palette";
 import { FAB } from "../shared/components/fab";
@@ -135,7 +136,9 @@ function QuoteStatusChip({ status }: Readonly<{ status: string }>) {
   }
 
   return (
-    <View
+    <ContentTransition
+      transitionKey={status}
+      duration={220}
       style={{
         minHeight: 30,
         paddingHorizontal: spacing.md,
@@ -157,7 +160,7 @@ function QuoteStatusChip({ status }: Readonly<{ status: string }>) {
       <Typography variant="caption" color={textColor} numberOfLines={1}>
         {meta.label}
       </Typography>
-    </View>
+    </ContentTransition>
   );
 }
 
@@ -593,7 +596,9 @@ function QuoteDetail({
   return (
     <View style={{ flexShrink: 1, gap: spacing.lg }}>
       <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
-        <Badge label={meta.label} variant={meta.variant} />
+        <ContentTransition transitionKey={quote.status} duration={220}>
+          <Badge label={meta.label} variant={meta.variant} />
+        </ContentTransition>
       </View>
       {quote.clientName && (
         <Typography variant="body" color={theme.colors.textSecondary}>

@@ -36,6 +36,9 @@ const baseEnvSchema = z.object({
   EMAIL_FROM: z.string().default("Lucro Caseiro <notificacoes@lucrocaseiro.com.br>"),
   EMAIL_REPLY_TO: z.string().default(""),
   WELCOME_EMAIL_ENABLED: z.enum(["true", "false"]).default("false"),
+  WEB_PUSH_PUBLIC_KEY: z.string().default(""),
+  WEB_PUSH_PRIVATE_KEY: z.string().default(""),
+  WEB_PUSH_SUBJECT: z.string().default(""),
 });
 
 const envSchema = baseEnvSchema.superRefine((env, ctx) => {
@@ -116,4 +119,7 @@ export const config = {
   emailFrom: parsed.data.EMAIL_FROM,
   emailReplyTo: parsed.data.EMAIL_REPLY_TO,
   welcomeEmailEnabled: parsed.data.WELCOME_EMAIL_ENABLED === "true",
+  webPushPublicKey: parsed.data.WEB_PUSH_PUBLIC_KEY,
+  webPushPrivateKey: parsed.data.WEB_PUSH_PRIVATE_KEY,
+  webPushSubject: parsed.data.WEB_PUSH_SUBJECT,
 };

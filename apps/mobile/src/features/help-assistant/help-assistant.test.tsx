@@ -44,6 +44,20 @@ vi.mock("@lucro-caseiro/ui", async (importOriginal) => ({
 }));
 afterEach(cleanup);
 describe("HelpAssistant", () => {
+  it("answers the reported plan question and opens the plan comparison", () => {
+    const navigate = vi.fn();
+    render(
+      <HelpAssistant profile="food" onNavigate={navigate} onContactSupport={() => {}} />,
+    );
+    fireEvent.change(screen.getByLabelText("Sua pergunta"), {
+      target: { value: "quais planos temos disponiveis?" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Perguntar" }));
+    expect(screen.getByText(/Essencial.*29,90\/mês/)).toBeTruthy();
+    expect(screen.getByText(/Profissional.*69,90\/mês/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Ver planos" }));
+    expect(navigate).toHaveBeenCalledWith("/plans");
+  });
   it("answers typed questions and opens the relevant screen", () => {
     const navigate = vi.fn();
     render(

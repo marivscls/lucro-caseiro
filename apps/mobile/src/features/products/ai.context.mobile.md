@@ -213,3 +213,7 @@ Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição:
 ## Pré-preenchimento da precificação — 2026-09-09
 
 `CreateProductForm.initialValues` aceita `salePrice` e `costPrice`, além de nome/categoria. A rota `/products?create=from-pricing` converte apenas valores monetários finitos e não negativos e entrega os campos em `initialValues`. Cadastro manual ignora esses parâmetros. Props legadas `initialSalePrice` e `initialCostPrice` continuam aceitas para outros consumidores. O custo continua sujeito à feature `custoDireto` existente.
+
+## Catálogo completo no Essencial — 2026-09-09
+
+O Essencial inclui catálogo completo, personalização e galeria com até 3 fotos por produto (principal + 2 extras). A feature extraPhotos pertence ao Essencial e ao Profissional; o Gratuito mantém 1 foto. Paywall de productPhotos recomenda Essencial. Os demais recursos exclusivos do Profissional permanecem inalterados.

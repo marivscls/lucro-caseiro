@@ -74,3 +74,5 @@ Artesanato com prioridade de preço destaca a precificação de uma peça. Servi
 Home preserva prioridade do BusinessProfileCard e perfil recente. Orientação geral só preenche ausência de prioridade e é suspensa durante guia anterior. Não atribuir abandono histórico à personalização recente.
 
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
+
+- 2026-09-09: transições do perfil usam 360 ms e deslocamento horizontal de 36 px, invertido ao voltar. O onboarding das outras marcas compartilha o mesmo padrão; dados e salvamento permanecem imediatos, com movimento reduzido respeitado.

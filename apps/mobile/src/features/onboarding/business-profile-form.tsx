@@ -147,7 +147,7 @@ export function BusinessProfileForm({
     progress.setValue(0);
     const animation = Animated.timing(progress, {
       toValue: 1,
-      duration: 520,
+      duration: 360,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     });
@@ -267,7 +267,7 @@ export function BusinessProfileForm({
                     {
                       translateX: progress.interpolate({
                         inputRange: [0, 1],
-                        outputRange: [28 * direction.current, 0],
+                        outputRange: [36 * direction.current, 0],
                       }),
                     },
                   ],

@@ -106,7 +106,9 @@ const shortcuts = [
     name: activeBrand.features.operacaoVertical
       ? activeBrand.vertical.primaryActionLabel
       : activeBrand.copy.saleLabel,
-    short_name: activeBrand.features.operacaoVertical ? "Operação" : activeBrand.copy.saleLabel.replace(/^Registrar\s+/i, ""),
+    short_name: activeBrand.features.operacaoVertical
+      ? "Operação"
+      : activeBrand.copy.saleLabel.replace(/^Registrar\s+/i, ""),
     description: activeBrand.features.operacaoVertical
       ? activeBrand.vertical.operationDescription
       : `${activeBrand.copy.saleLabel} no ${activeBrand.appName}`,
@@ -143,8 +145,7 @@ const shortName =
   activeBrandId === DEFAULT_BRAND_ID
     ? "Lucro Caseiro"
     : activeBrand.appName.replace(/^Lucro (?:na|no)\s+/i, "");
-const pwaName =
-  activeBrandId === DEFAULT_BRAND_ID ? "Lucro Caseiro: Gest\u00e3o" : activeBrand.appName;
+const pwaName = activeBrand.appName;
 const description = `Organize seu neg\u00f3cio, vendas e finan\u00e7as com o ${pwaName}.`;
 const manifest = {
   id: "/",
@@ -265,9 +266,7 @@ for (const bundleName of bundleNames.filter((name) => name.endsWith(".js"))) {
   const bundlePath = join(webBundleDirectory, bundleName);
   const bundle = await readFile(bundlePath, "utf8");
   buildFingerprint.update(bundle);
-  bundleHasActiveBrand ||= bundle.includes(
-    `\\\"brand\\\":\\\"${activeBrand.id}\\\"`,
-  );
+  bundleHasActiveBrand ||= bundle.includes(`\\\"brand\\\":\\\"${activeBrand.id}\\\"`);
 }
 
 if (!bundleHasActiveBrand) {
@@ -279,12 +278,9 @@ const shellUrls = files
   .map(normalizePath)
   .filter(
     (filePath) =>
-      [
-        "/index.html",
-        "/manifest.json",
-        "/icon-192.png",
-        "/icon-512.png",
-      ].includes(filePath) ||
+      ["/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png"].includes(
+        filePath,
+      ) ||
       filePath.startsWith("/_expo/static/js/") ||
       essentialFontNames.some((font) => filePath.includes(`/${font}.`)),
   )
@@ -365,7 +361,8 @@ self.addEventListener("fetch", (event) => {
 });
 `;
 
-await writeFile(join(distRoot, "sw.js"), serviceWorker, "utf8");
+const pushWorker = await readFile(join(appRoot, "public/push-worker.js"), "utf8");
+await writeFile(join(distRoot, "sw.js"), serviceWorker + "\n" + pushWorker, "utf8");
 console.log(
   `PWA ${pwaName} gerado em ${distRoot} com ${shellUrls.length} recursos essenciais.`,
 );
