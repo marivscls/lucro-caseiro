@@ -132,7 +132,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ...config,
     name: activeBrand.appName,
     slug: activeBrand.slug,
-    version: "1.2.0",
+    version: "1.2.1",
     orientation: "portrait",
     icon: brandAsset("icon.png"),
     userInterfaceStyle: "automatic",
@@ -160,7 +160,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
               process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
           }
         : {}),
-      versionCode: 29,
+      versionCode: 30,
       softwareKeyboardLayoutMode: "resize",
       permissions: [],
     },
