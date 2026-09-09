@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dois modelos de boas-vindas · Lucro Caseiro</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:#FAF8F6;color:#2C2A29;font-family:'Segoe UI',Arial,sans-serif}
+    header{background:#FFF;border-bottom:1px solid #E8E3DE;padding:20px 24px}
+    .toolbar{max-width:1000px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:20px}
+    h1{font-size:17px;line-height:24px;margin:0;font-weight:650;letter-spacing:-.2px}
+    p{font-size:12px;color:#6B6660;margin:3px 0 0}
+    nav{display:flex;gap:6px;padding:4px;border:1px solid #E8E3DE;border-radius:11px}
+    a{font-size:13px;line-height:20px;padding:9px 15px;min-height:38px;text-decoration:none;color:#6B6660;border-radius:7px;white-space:nowrap}
+    a[aria-current=true]{background:#FAF1F3;color:#7A3641;font-weight:650}
+    a:focus-visible{outline:2px solid #A85A67;outline-offset:3px}
+    iframe{display:block;width:100%;height:1500px;border:0;background:#FAF8F6}
+    @media(max-width:620px){header{padding:16px}.toolbar{align-items:flex-start;flex-direction:column;gap:12px}nav{width:100%}a{flex:1;text-align:center;font-size:12px;padding:9px 8px}}
+  </style>
+</head>
+<body>
+  <header><div class="toolbar"><div><h1>Email de boas-vindas</h1><p>Lucro Caseiro · Modelos para revisão</p></div><nav aria-label="Escolher modelo"><a href="email.html" data-model="1" aria-current="false">1 · Guia de custos</a><a href="email-2.html" data-model="2" aria-current="true">2 · Passo a passo</a></nav></div></header>
+  <iframe src="email-2.html" title="Modelo 2: Passo a passo"></iframe>
+  <script>
+    const frame = document.querySelector('iframe');
+    const links = [...document.querySelectorAll('nav a')];
+    let resizeObserver;
+    function fitFrame(){if(frame.contentDocument?.body) frame.style.height=frame.contentDocument.body.scrollHeight+'px';}
+    frame.addEventListener('load',()=>{resizeObserver?.disconnect();fitFrame();resizeObserver=new ResizeObserver(fitFrame);resizeObserver.observe(frame.contentDocument.body);});
+    links.forEach(link=>link.addEventListener('click',event=>{
+      event.preventDefault();
+      links.forEach(item=>item.setAttribute('aria-current',String(item===link)));
+      frame.src=link.getAttribute('href');
+      frame.title=link.dataset.model==='1'?'Modelo 1: Guia de custos':'Modelo 2: Passo a passo';
+    }));
+  </script>
+</body>
+</html>
