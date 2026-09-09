@@ -32,6 +32,10 @@ Depende de contracts (cálculos e DTOs), products (cadastro e alteração do pre
 
 `UnifiedPricingCalculator` aceita custo inicial, productId inicial, metadados de nome/categoria vindos da receita, callbacks de salvamento e criação. `PricingSummary` permite simular outro preço; mostra margem sobre a venda efetiva, despesas e taxas recalculadas. O resultado identifica custos ausentes, inclusive ao restaurar zeros de históricos sem confirmação.
 
+A introdução reaproveita a ilustração original `pricingCostsHero` via `useBrandIllustration`,
+em tamanho compacto ao lado do título. A descrição, os campos e o resultado conservam
+a largura disponível; a imagem é decorativa e acompanha a variante da marca.
+
 ## Hooks
 
 - `usePricingSources`: produtos, receitas, embalagens e cálculos de todas as páginas. Falhas são visíveis e permitem repetir; valores manuais continuam utilizáveis.

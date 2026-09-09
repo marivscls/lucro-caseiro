@@ -1,7 +1,7 @@
 import { ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import React, { useEffect, useRef, useState } from "react";
-import { View } from "react-native";
+import { Image, View } from "react-native";
 import { hasActiveFeature, type Pricing } from "@lucro-caseiro/contracts";
 import { Button, Card, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import { useQueryClient } from "@tanstack/react-query";
@@ -32,6 +32,7 @@ import {
 } from "./pricing-fields";
 import { PricingFees, PricingLabor, PricingOverhead } from "./pricing-cost-details";
 import { PricingSummary } from "./pricing-summary";
+import { useBrandIllustration } from "../../../shared/brand-illustrations";
 
 export function UnifiedPricingCalculator({
   initialIngredientCost,
@@ -52,6 +53,7 @@ export function UnifiedPricingCalculator({
 }>) {
   const { theme } = useTheme();
   const desktop = useDesktopLayout();
+  const pricingIllustration = useBrandIllustration("pricingCostsHero");
   const split = desktopSplitLayout(desktop);
   const sources = usePricingSources();
   const { data: profile } = useProfile();
@@ -268,7 +270,17 @@ export function UnifiedPricingCalculator({
       }}
     >
       <View style={{ gap: spacing.sm }}>
-        <Typography variant="h3">Quanto cobrar pelo seu produto?</Typography>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+          <Typography variant="h3" style={{ flex: 1, minWidth: 0 }}>
+            Quanto cobrar pelo seu produto?
+          </Typography>
+          <Image
+            source={pricingIllustration}
+            resizeMode="contain"
+            accessible={false}
+            style={{ width: desktop ? 104 : 88, height: desktop ? 96 : 80 }}
+          />
+        </View>
         <Typography variant="body" color={theme.colors.textSecondary}>
           Comece pelo custo por unidade. Abra os detalhes para incluir trabalho, despesas
           e taxas.
