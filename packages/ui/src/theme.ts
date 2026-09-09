@@ -119,10 +119,10 @@ export const fontSizes = {
   xs: 13,
   sm: 14,
   md: 16,
-  lg: 18,
-  xl: 22,
-  "2xl": 28,
-  "3xl": 36,
+  lg: 16,
+  xl: 20,
+  "2xl": 24,
+  "3xl": 28,
   "4xl": 48,
   hero: 64,
 } as const;
@@ -151,16 +151,16 @@ export const fonts = {
 
 /** Escala semantica da Home. Mantem os ajustes locais sem reduzir o app inteiro. */
 export const homeTypography = {
-  title: { fontSize: 20, fontFamily: fonts.bold, lineHeight: 26 },
+  title: { fontSize: 18, fontFamily: fonts.bold, lineHeight: 24 },
   body: { fontSize: 14, fontFamily: fonts.regular, lineHeight: 20 },
   avatar: { fontSize: 17, fontFamily: fonts.semiBold, lineHeight: 22 },
   eyebrow: { fontSize: 11, fontFamily: fonts.bold, lineHeight: 15 },
-  cardLead: { fontSize: 17, fontFamily: fonts.bold, lineHeight: 22 },
+  cardLead: { fontSize: 16, fontFamily: fonts.bold, lineHeight: 22 },
   description: { fontSize: 14, fontFamily: fonts.regular, lineHeight: 19 },
   action: { fontSize: 14, fontFamily: fonts.bold, lineHeight: 20 },
   link: { fontSize: 14, fontFamily: fonts.semiBold, lineHeight: 20 },
   financialLabel: { fontSize: 14, fontFamily: fonts.medium, lineHeight: 20 },
-  financialValue: { fontSize: fontSizes.xl, fontFamily: fonts.bold, lineHeight: 28 },
+  financialValue: { fontSize: fontSizes.xl, fontFamily: fonts.bold, lineHeight: 26 },
   metricLabel: { fontSize: 12, fontFamily: fonts.medium, lineHeight: 16 },
   metricValue: { fontSize: 16, fontFamily: fonts.bold, lineHeight: 22 },
   goalTitle: { fontSize: 16, fontFamily: fonts.bold, lineHeight: 22 },
@@ -178,8 +178,8 @@ export const homeTypography = {
  */
 export const moneyTypography = {
   money: { fontSize: fontSizes.md, fontFamily: fonts.extraBold, lineHeight: 22 },
-  moneyLg: { fontSize: fontSizes.xl, fontFamily: fonts.extraBold, lineHeight: 28 },
-  moneyHero: { fontSize: fontSizes["2xl"], fontFamily: fonts.extraBold, lineHeight: 34 },
+  moneyLg: { fontSize: fontSizes.xl, fontFamily: fonts.bold, lineHeight: 26 },
+  moneyHero: { fontSize: fontSizes["2xl"], fontFamily: fonts.bold, lineHeight: 30 },
 } as const;
 
 /**

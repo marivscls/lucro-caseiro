@@ -1,6 +1,16 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import { formatCurrency } from "../../../shared/utils/format";
 import type { Packaging } from "@lucro-caseiro/contracts";
-import { Button, Typography, useTheme, spacing, radii, fonts } from "@lucro-caseiro/ui";
+import {
+  CenteredTextInput,
+  Button,
+  Typography,
+  useTheme,
+  spacing,
+  radii,
+  fonts,
+} from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import type { AppIconName } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
@@ -174,11 +184,11 @@ function IconInputCard({
         >
           {label}
         </Typography>
-        <TextInput
+        <CenteredTextInput
           placeholderTextColor={pal.placeholder}
           style={{
             color: theme.colors.text,
-            fontSize: 18,
+            fontSize: 16,
             fontFamily: fonts.bold,
             padding: 0,
           }}
@@ -231,7 +241,19 @@ export function PackagingForm({
   const costPreview = unitCost.trim() ? parseCurrencyInput(unitCost) : NaN;
   const hasCost = !isNaN(costPreview) && costPreview > 0;
 
+  const formValidation = useFormValidation(
+    {
+      name: !name.trim() && "Informe o nome da embalagem.",
+      unitCost:
+        (!Number.isFinite(parseCurrencyInput(unitCost)) ||
+          parseCurrencyInput(unitCost) <= 0) &&
+        "Informe um custo maior que zero.",
+    },
+    visible,
+  );
+
   async function handleSave() {
+    if (!formValidation.validate()) return;
     if (!isEditing && checkPackagingLimit()) return;
     if (!name.trim()) {
       alertValidation("Coloque o nome da embalagem");
@@ -283,11 +305,7 @@ export function PackagingForm({
 
   return (
     <StandardModal
-      title={
-        isEditing
-          ? "Editar embalagem"
-          : "Nova embalagem"
-      }
+      title={isEditing ? "Editar embalagem" : "Nova embalagem"}
       visible={visible}
       onClose={onClose}
       right={headerRight}
@@ -357,23 +375,22 @@ export function PackagingForm({
 
         {/* Dados da embalagem */}
         <View style={{ gap: spacing.md }}>
-          <SectionHeader
-            icon="document-text-outline"
-            title="Dados da embalagem"
-          />
+          <SectionHeader icon="document-text-outline" title="Dados da embalagem" />
           <View>
             <FieldLabel label="Nome" required />
-            <TextFieldCard
-              icon="pricetag-outline"
-              placeholder={
-                experienceCopy.profile === "food"
-                  ? "Ex: Caixa kraft P, Sacola transparente..."
-                  : "Ex: Caixa para envio, sacola, acabamento..."
-              }
-              value={name}
-              onChangeText={setName}
-              autoFocus={!isEditing}
-            />
+            <ValidationField {...formValidation.field("name")}>
+              <TextFieldCard
+                icon="pricetag-outline"
+                placeholder={
+                  experienceCopy.profile === "food"
+                    ? "Ex: Caixa kraft P, Sacola transparente..."
+                    : "Ex: Caixa para envio, sacola, acabamento..."
+                }
+                value={name}
+                onChangeText={setName}
+                autoFocus={!isEditing}
+              />
+            </ValidationField>
           </View>
         </View>
 
@@ -436,15 +453,17 @@ export function PackagingForm({
         {/* Custo */}
         <View style={{ flexDirection: "row", gap: spacing.md }}>
           <View style={isDesktop ? desktopCompactField(isDesktop) : { flex: 1 }}>
-            <IconInputCard
-              icon="cash-outline"
-              iconColor={theme.colors.success}
-              label="Custo unitário (R$)"
-              placeholder="0,00"
-              value={unitCost}
-              onChangeText={(v: string) => setUnitCost(maskCurrencyInput(v))}
-              keyboardType="numeric"
-            />
+            <ValidationField {...formValidation.field("unitCost")}>
+              <IconInputCard
+                icon="cash-outline"
+                iconColor={theme.colors.success}
+                label="Custo unitário (R$)"
+                placeholder="0,00"
+                value={unitCost}
+                onChangeText={(v: string) => setUnitCost(maskCurrencyInput(v))}
+                keyboardType="numeric"
+              />
+            </ValidationField>
           </View>
         </View>
 

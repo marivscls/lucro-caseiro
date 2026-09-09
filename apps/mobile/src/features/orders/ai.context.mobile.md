@@ -52,7 +52,7 @@ receita ao entregar.
 - Cria ou edita. Campos: o que é (título), cliente (opcional — `ClientField` abre `ClientPickerModal` com busca via `useClients`), data (chips Hoje/Amanhã + DD/MM/AAAA), horário, valor, sinal, personalização (tema/homenageado/cores) e observações (opcional, multiline, até 500 chars).
 - `clientId` e `notes` são opcionais e enviados como `undefined` quando vazios (nunca string vazia), casando com `CreateOrderDto`/`UpdateOrderDto` (`clientId: z.string().uuid().optional()`, `notes: z.string().max(500).optional()`).
 
-### `OrderDetail` / `ModernOrderDetail` (definido na tela `tabs/agenda.tsx`)
+### `ModernOrderDetail` (definido na tela `tabs/agenda.tsx`)
 
 - Detalhe com troca rápida de status (a fazer/produzindo/pronto), "Marcar como entregue"
   (pergunta se registra receita), Editar e Excluir.
@@ -161,6 +161,10 @@ receita ao entregar.
   além do FAB `+`. O CTA tracejado interno saiu.
 
 ## Orientação contextual — 2026-09-07
+
+- 2026-09-09: dispensar a “Dica do dia” persiste no AsyncStorage por conta/aparelho
+  (`agenda-tip:v1:<userId>`), inclusive após sair e voltar à Agenda. A leitura evita
+  reapresentar a dica enquanto carrega; o adaptador mantém fallback em memória.
 
 A orientação informa obrigatoriedade de serviço, horário e local em atendimentos. Cadastro rápido de serviço existente conserva rascunho e emite retomada após sucesso. Agenda usa o termo por segmento.
 

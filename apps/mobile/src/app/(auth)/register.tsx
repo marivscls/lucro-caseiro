@@ -1,3 +1,5 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../../shared/hooks/use-form-validation";
 import {
   Button,
   Input,
@@ -168,7 +170,14 @@ export default function RegisterScreen() {
     return valid;
   }
 
+  const formValidation = useFormValidation({
+    name: !name.trim() && "Informe seu nome.",
+    email: !email.trim() && "Informe seu e-mail.",
+    password: !password.trim() && "Crie uma senha.",
+  });
+
   async function handleRegister() {
+    if (!formValidation.validate()) return;
     if (!validateForm()) return;
 
     setRegisterLoading(true);
@@ -287,33 +296,37 @@ export default function RegisterScreen() {
             <View style={{ flex: 1, height: 1, backgroundColor: cardBorder }} />
           </View>
 
-          <Input
-            label="Seu nome"
-            placeholder="Como podemos te chamar?"
-            autoComplete="name"
-            value={name}
-            onChangeText={(text) => {
-              setName(text);
-              if (nameError) setNameError(undefined);
-            }}
-            error={nameError}
-          />
+          <ValidationField {...formValidation.field("name")}>
+            <Input
+              label="Seu nome"
+              placeholder="Como podemos te chamar?"
+              autoComplete="name"
+              value={name}
+              onChangeText={(text) => {
+                setName(text);
+                if (nameError) setNameError(undefined);
+              }}
+              error={nameError}
+            />
+          </ValidationField>
 
-          <Input
-            label="E-mail"
-            placeholder="seu@email.com"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoComplete="email"
-            value={email}
-            onChangeText={(text) => {
-              setEmail(text);
-              if (emailError) setEmailError(undefined);
-              if (emailSuggestion) setEmailSuggestion(undefined);
-            }}
-            onBlur={() => setEmailSuggestion(suggestEmailFix(email) ?? undefined)}
-            error={emailError}
-          />
+          <ValidationField {...formValidation.field("email")}>
+            <Input
+              label="E-mail"
+              placeholder="seu@email.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+              value={email}
+              onChangeText={(text) => {
+                setEmail(text);
+                if (emailError) setEmailError(undefined);
+                if (emailSuggestion) setEmailSuggestion(undefined);
+              }}
+              onBlur={() => setEmailSuggestion(suggestEmailFix(email) ?? undefined)}
+              error={emailError}
+            />
+          </ValidationField>
           <EmailTypoHint
             suggestion={emailSuggestion}
             onAccept={() => {
@@ -325,18 +338,20 @@ export default function RegisterScreen() {
           />
 
           <View style={{ gap: spacing.sm }}>
-            <Input
-              label="Senha"
-              placeholder="Crie uma senha forte"
-              secureTextEntry={!showPassword}
-              autoComplete="new-password"
-              value={password}
-              onChangeText={(text) => {
-                setPassword(text);
-                if (passwordError) setPasswordError(undefined);
-              }}
-              error={passwordError}
-            />
+            <ValidationField {...formValidation.field("password")}>
+              <Input
+                label="Senha"
+                placeholder="Crie uma senha forte"
+                secureTextEntry={!showPassword}
+                autoComplete="new-password"
+                value={password}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  if (passwordError) setPasswordError(undefined);
+                }}
+                error={passwordError}
+              />
+            </ValidationField>
             <Pressable
               onPress={() => setShowPassword(!showPassword)}
               accessibilityRole="button"

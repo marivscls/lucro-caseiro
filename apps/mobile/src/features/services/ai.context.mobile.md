@@ -129,6 +129,8 @@ const pricing = calculateServicePricing({
 
 ## Change log / Decisions
 
+- 2026-09-08: o painel ilustrado do topo permanece visível também sem cadastros, com contadores zerados. O estado vazio abaixo mantém apenas texto e CTA, sem PNG.
+
 - 2026-07-28: serviços passam a coexistir com produtos e ganham rota de gestão,
   formação opcional de preço e integração com a Agenda.
 - 2026-07-28: a gestão passa a representar prestadores em geral, com visão

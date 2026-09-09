@@ -1,15 +1,17 @@
-import { Typography, fonts, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../../../shared/hooks/use-form-validation";
+import {
+  CenteredTextInput,
+  Typography,
+  fonts,
+  useTheme,
+  spacing,
+  radii,
+} from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import type { AppIconName } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
-import {
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  TextInput,
-  View,
-} from "react-native";
+import { Image, KeyboardAvoidingView, Platform, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { formatCurrency } from "../../../shared/utils/format";
@@ -121,7 +123,7 @@ export function TextBox({
         justifyContent: "center",
       }}
     >
-      <TextInput
+      <CenteredTextInput
         value={value}
         onChangeText={(t) => onChangeText(maxLength ? t.slice(0, maxLength) : t)}
         placeholder={placeholder}
@@ -161,7 +163,15 @@ export function CategoryField({
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
 
+  const categoryValidation = useFormValidation({
+    draft: !draft.trim() && "Digite uma categoria ou escolha uma das opções.",
+  });
+
   function confirm(cat: string) {
+    if (!cat.trim()) {
+      categoryValidation.validate();
+      return;
+    }
     onChange(cat.trim());
     setOpen(false);
   }
@@ -236,34 +246,36 @@ export function CategoryField({
               <Typography variant="h3" color={theme.colors.text}>
                 Categoria
               </Typography>
-              <View
-                style={{
-                  minHeight: 56,
-                  borderRadius: radii.lg,
-                  borderWidth: 1,
-                  borderColor: pal.border,
-                  backgroundColor: pal.fieldBg,
-                  flexDirection: "row",
-                  alignItems: "center",
-                  paddingHorizontal: spacing.md,
-                  gap: spacing.md,
-                }}
-              >
-                <AppIcon name="create-outline" size={22} color={theme.colors.primary} />
-                <TextInput
-                  value={draft}
-                  onChangeText={setDraft}
-                  placeholder="Digite uma categoria nova"
-                  placeholderTextColor={pal.placeholder}
-                  autoFocus
+              <ValidationField {...categoryValidation.field("draft")}>
+                <View
                   style={{
-                    flex: 1,
-                    color: theme.colors.text,
-                    fontSize: 16,
-                    paddingVertical: spacing.md,
+                    minHeight: 56,
+                    borderRadius: radii.lg,
+                    borderWidth: 1,
+                    borderColor: pal.border,
+                    backgroundColor: pal.fieldBg,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingHorizontal: spacing.md,
+                    gap: spacing.md,
                   }}
-                />
-              </View>
+                >
+                  <AppIcon name="create-outline" size={22} color={theme.colors.primary} />
+                  <CenteredTextInput
+                    value={draft}
+                    onChangeText={setDraft}
+                    placeholder="Digite uma categoria nova"
+                    placeholderTextColor={pal.placeholder}
+                    autoFocus
+                    style={{
+                      flex: 1,
+                      color: theme.colors.text,
+                      fontSize: 16,
+                      paddingVertical: spacing.md,
+                    }}
+                  />
+                </View>
+              </ValidationField>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
                 {experienceCopy.categoryPresets.map((cat) => (
                   <Pressable
@@ -288,12 +300,10 @@ export function CategoryField({
               </View>
               <Pressable
                 onPress={() => confirm(draft)}
-                disabled={!draft.trim()}
                 accessibilityRole="button"
                 style={({ pressed }) => {
                   let opacity = 1;
-                  if (!draft.trim()) opacity = 0.5;
-                  else if (pressed) opacity = 0.85;
+                  if (pressed) opacity = 0.85;
                   return {
                     minHeight: 52,
                     borderRadius: radii.lg,
@@ -334,7 +344,7 @@ export function InstructionsField({
         padding: spacing.md,
       }}
     >
-      <TextInput
+      <CenteredTextInput
         value={value}
         onChangeText={(t) => onChange(t.slice(0, MAX))}
         placeholder="Descreva etapas, observações ou modo de preparo..."
@@ -345,7 +355,7 @@ export function InstructionsField({
           flex: 1,
           color: theme.colors.text,
           fontSize: 16,
-          textAlignVertical: "top",
+          textAlignVertical: "center",
           padding: 0,
           minHeight: 96,
         }}

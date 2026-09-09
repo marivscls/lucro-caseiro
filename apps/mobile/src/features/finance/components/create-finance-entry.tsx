@@ -1,8 +1,11 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import { compatibleEntryCategory } from "../entry-guidance";
 import { trackAnalyticsAction } from "../../analytics/tracker";
 import { useAuth } from "../../../shared/hooks/use-auth";
 import type { ExpenseCategory, FinanceEntryType } from "@lucro-caseiro/contracts";
 import {
+  CenteredTextInput,
   Button,
   fonts,
   radii,
@@ -46,22 +49,24 @@ interface CreateFinanceEntryProps {
   onSuccess?: () => void;
 }
 
+// Cor definida em runtime a partir de theme.colors (ver CATEGORIES_WITH_TOKENS),
+// nunca hex solto — o valor abaixo é só um placeholder de tipo.
 const CATEGORIES: {
   key: ExpenseCategory;
   label: string;
   icon: AppIconName;
   color: string;
 }[] = [
-  { key: "material", label: "Material", icon: "cube-outline", color: "#D86BD9" },
-  { key: "packaging", label: "Embalagem", icon: "file-tray-outline", color: "#7CB7FF" },
-  { key: "transport", label: "Transporte", icon: "car-outline", color: "#F5A33D" },
-  { key: "fee", label: "Taxa", icon: "pricetag-outline", color: "#EF6E88" },
-  { key: "utility", label: "Utilidade", icon: "flash-outline", color: "#F0C04B" },
+  { key: "material", label: "Material", icon: "cube-outline", color: "" },
+  { key: "packaging", label: "Embalagem", icon: "file-tray-outline", color: "" },
+  { key: "transport", label: "Transporte", icon: "car-outline", color: "" },
+  { key: "fee", label: "Taxa", icon: "pricetag-outline", color: "" },
+  { key: "utility", label: "Utilidade", icon: "flash-outline", color: "" },
   {
     key: "other",
     label: "Outro",
     icon: "ellipsis-horizontal-circle-outline",
-    color: "#B8B0AE",
+    color: "",
   },
 ];
 
@@ -85,7 +90,22 @@ export function CreateFinanceEntry({
   const isDesktop = useDesktopLayout();
   const compactField = desktopCompactField(isDesktop);
   const experienceCopy = useBusinessCopy();
-  const expenseChoices = CATEGORIES.map((item) => {
+  const CATEGORIES_WITH_TOKENS = useMemo(
+    () =>
+      CATEGORIES.map((item, index) => ({
+        ...item,
+        color: [
+          theme.colors.lavender,
+          theme.colors.blue,
+          theme.colors.yellow,
+          theme.colors.lavender,
+          theme.colors.blue,
+          theme.colors.textSecondary,
+        ][index % 6],
+      })),
+    [theme],
+  );
+  const expenseChoices = CATEGORIES_WITH_TOKENS.map((item) => {
     if (item.key === "material") {
       return { ...item, label: capitalize(experienceCopy.materialNoun) };
     }
@@ -144,7 +164,27 @@ export function CreateFinanceEntry({
     void trackAnalyticsAction(`finance_${name}`, useAuth.getState().token);
   }
 
+  const formValidation = useFormValidation(
+    {
+      amount: invalidAmount && "Informe um valor maior que zero.",
+      description: !description.trim() && "Informe uma descrição.",
+      category: !compatibleEntryCategory(type, category) && "Escolha uma categoria.",
+    },
+    visible,
+  );
+
   async function handleSubmit() {
+    if (
+      !formValidation.validate((field) => {
+        const events = {
+          amount: "amount_invalid",
+          description: "description_required",
+          category: "category_required",
+        } as const;
+        validation(events[field]);
+      })
+    )
+      return;
     const parsedAmount = parseCurrencyInput(amount);
     const normalizedDate = brToIso(date);
     setAttempted(true);
@@ -252,15 +292,20 @@ export function CreateFinanceEntry({
               </Typography>
             ) : null}
             <View style={compactField}>
-              <Field
-                icon="cash-outline"
-                placeholder="Ex: 25,00"
-                inputRef={amountRef}
-                accessibilityLabel="Valor em reais"
-                value={amount}
-                onChangeText={(value) => setAmount(maskCurrencyInput(value))}
-                keyboardType="decimal-pad"
-              />
+              <ValidationField {...formValidation.field("amount")}>
+                <Field
+                  icon="cash-outline"
+                  iconColor={
+                    type === "income" ? theme.colors.success : theme.colors.alert
+                  }
+                  placeholder="Ex: 25,00"
+                  inputRef={amountRef}
+                  accessibilityLabel="Valor em reais"
+                  value={amount}
+                  onChangeText={(value) => setAmount(maskCurrencyInput(value))}
+                  keyboardType="decimal-pad"
+                />
+              </ValidationField>
             </View>
           </FormCard>
 
@@ -270,72 +315,76 @@ export function CreateFinanceEntry({
                 Descreva a origem da entrada ou o motivo da despesa.
               </Typography>
             ) : null}
-            <Field
-              icon="document-text-outline"
-              placeholder={`Ex: ${experienceCopy.financeEntryExample}`}
-              inputRef={descriptionRef}
-              accessibilityLabel="Descrição do lançamento"
-              value={description}
-              onChangeText={setDescription}
-              multiline
-              numberOfLines={2}
-            />
+            <ValidationField {...formValidation.field("description")}>
+              <Field
+                icon="document-text-outline"
+                placeholder={`Ex: ${experienceCopy.financeEntryExample}`}
+                inputRef={descriptionRef}
+                accessibilityLabel="Descrição do lançamento"
+                value={description}
+                onChangeText={setDescription}
+                multiline
+                numberOfLines={2}
+              />
+            </ValidationField>
           </FormCard>
 
-          <View
-            style={styles.formCard}
-            onLayout={(event) => {
-              categoryOffset.current = event.nativeEvent.layout.y;
-            }}
-          >
-            <Typography variant="bodyBold" style={styles.fieldLabel}>
-              Categoria
-            </Typography>
-            {categoryNotice ? (
-              <Typography variant="body" accessibilityRole="alert">
-                O tipo mudou. Escolha uma categoria compatível.
-              </Typography>
-            ) : null}
-            {attempted && !category ? (
-              <Typography variant="body" accessibilityRole="alert">
-                Escolha a categoria deste lançamento.
-              </Typography>
-            ) : null}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.categoryScroller}
-              contentContainerStyle={styles.categoryGrid}
+          <ValidationField {...formValidation.field("category")}>
+            <View
+              style={styles.formCard}
+              onLayout={(event) => {
+                categoryOffset.current = event.nativeEvent.layout.y;
+              }}
             >
-              {categories.map((item) => (
-                <Pressable
-                  key={item.key}
-                  accessibilityRole="button"
-                  onPress={() => {
-                    setCategory(item.key);
-                    setCategoryNotice(false);
-                  }}
-                  style={[
-                    styles.categoryButton,
-                    category === item.key && styles.categoryButtonSelected,
-                  ]}
-                >
-                  <AppIcon name={item.icon} size={25} color={item.color} />
-                  <Typography
-                    variant="captionBold"
-                    color={
-                      category === item.key
-                        ? theme.colors.text
-                        : theme.colors.textSecondary
-                    }
-                    numberOfLines={1}
+              <Typography variant="bodyBold" style={styles.fieldLabel}>
+                Categoria
+              </Typography>
+              {categoryNotice ? (
+                <Typography variant="body" accessibilityRole="alert">
+                  O tipo mudou. Escolha uma categoria compatível.
+                </Typography>
+              ) : null}
+              {attempted && !category ? (
+                <Typography variant="body" accessibilityRole="alert">
+                  Escolha a categoria deste lançamento.
+                </Typography>
+              ) : null}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.categoryScroller}
+                contentContainerStyle={styles.categoryGrid}
+              >
+                {categories.map((item) => (
+                  <Pressable
+                    key={item.key}
+                    accessibilityRole="button"
+                    onPress={() => {
+                      setCategory(item.key);
+                      setCategoryNotice(false);
+                    }}
+                    style={[
+                      styles.categoryButton,
+                      category === item.key && styles.categoryButtonSelected,
+                    ]}
                   >
-                    {item.label}
-                  </Typography>
-                </Pressable>
-              ))}
-            </ScrollView>
-          </View>
+                    <AppIcon name={item.icon} size={25} color={item.color} />
+                    <Typography
+                      variant="captionBold"
+                      color={
+                        category === item.key
+                          ? theme.colors.text
+                          : theme.colors.textSecondary
+                      }
+                      numberOfLines={1}
+                    >
+                      {item.label}
+                    </Typography>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </View>
+          </ValidationField>
 
           <FormCard label="Data (opcional)">
             {attempted && date.trim() && !brToIso(date) ? (
@@ -440,6 +489,7 @@ function FormCard({
 
 function Field({
   icon,
+  iconColor,
   trailingIcon,
   inputRef,
   trailingLabel,
@@ -450,6 +500,10 @@ function Field({
   React.ComponentProps<typeof TextInput> & {
     inputRef?: React.Ref<TextInput>;
     icon: AppIconName;
+    /** Cor do ícone principal; padrão neutro — só use uma cor semântica (ex.
+     * verde de sucesso) quando o campo realmente representa esse significado
+     * (ex. valor em dinheiro), nunca em campos neutros como texto/data. */
+    iconColor?: string;
     trailingIcon?: AppIconName;
     trailingLabel?: string;
     onTrailingPress?: () => void;
@@ -460,9 +514,9 @@ function Field({
   return (
     <View style={styles.inputWrap}>
       <View style={styles.inputIcon}>
-        <AppIcon name={icon} size={24} color={theme.colors.success} />
+        <AppIcon name={icon} size={24} color={iconColor ?? theme.colors.textSecondary} />
       </View>
-      <TextInput
+      <CenteredTextInput
         ref={inputRef}
         {...inputProps}
         multiline={multiline}
@@ -546,7 +600,7 @@ function createStyles(theme: Theme) {
     },
     inputIcon: {
       alignItems: "center",
-      backgroundColor: theme.colors.successBg,
+      backgroundColor: theme.colors.surfaceElevated,
       borderRadius: radii.md,
       height: 44,
       justifyContent: "center",

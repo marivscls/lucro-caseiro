@@ -1,3 +1,5 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type { Order, PaymentMethod } from "@lucro-caseiro/contracts";
 import {
   Button,
@@ -58,7 +60,15 @@ export function CompleteServiceModal({
     initialReceived > 0 ? "pix" : "credit",
   );
 
+  const formValidation = useFormValidation(
+    {
+      amount: !amount.trim() && "Informe o valor total do atendimento.",
+    },
+    visible,
+  );
+
   async function submit() {
+    if (!formValidation.validate()) return;
     const total = parseCurrencyInput(amount) || 0;
     const received = packageSession ? 0 : parseCurrencyInput(amountReceived) || 0;
     const cost = parseCurrencyInput(actualCost) || 0;
@@ -128,12 +138,14 @@ export function CompleteServiceModal({
         </Card>
       ) : null}
 
-      <Input
-        label="Valor total do atendimento"
-        value={amount}
-        onChangeText={(value) => setAmount(maskCurrencyInput(value))}
-        keyboardType="numeric"
-      />
+      <ValidationField {...formValidation.field("amount")}>
+        <Input
+          label="Valor total do atendimento"
+          value={amount}
+          onChangeText={(value) => setAmount(maskCurrencyInput(value))}
+          keyboardType="numeric"
+        />
+      </ValidationField>
       {!packageSession ? (
         <>
           <Input

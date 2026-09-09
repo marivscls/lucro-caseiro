@@ -1,7 +1,14 @@
-import { Button, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
+import {
+  Button,
+  Typography,
+  spacing,
+  useReducedMotion,
+  useTheme,
+} from "@lucro-caseiro/ui";
 import React, { useEffect, useRef, useState } from "react";
 import {
   AccessibilityInfo,
+  Animated,
   findNodeHandle,
   Platform,
   Pressable,
@@ -20,6 +27,8 @@ import {
 } from "./guidance.domain";
 import { useGuidanceStore } from "./guidance-store";
 import { guidanceEvent } from "./guidance-events";
+import { useDesktopLayout } from "../layout/use-desktop-layout";
+import { desktopWidths } from "../layout/desktop-density";
 export interface ScreenGuidanceProps {
   area: GuidanceArea;
   onStart: () => void;
@@ -44,6 +53,7 @@ export function ScreenGuidance({
   description,
 }: Readonly<ScreenGuidanceProps>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const router = useRouter();
   const userId = useAuth((state) => state.userId);
   const progress = useGuidanceStore((state) =>
@@ -51,10 +61,14 @@ export function ScreenGuidance({
   );
   const ready = useGuidanceStore((state) => !!userId && !!state.ready[userId]);
   const [helpFor, setHelpFor] = useState<string | null>(null);
+  const [dismissFor, setDismissFor] = useState<string | null>(null);
+  const reducedMotion = useReducedMotion();
+  const opacity = useRef(new Animated.Value(reducedMotion ? 1 : 0)).current;
   const trigger = useRef<View>(null);
   const helpScroll = useRef<ScrollView>(null);
   const content = guidanceContent[area];
   const identity = `${userId}:${area}`;
+  const dismissing = dismissFor === identity;
   const helpOpen = helpFor === identity && !suspended;
   const introduce =
     ready && !loading && !suspended && shouldIntroduce(progress, hasRecords);
@@ -66,6 +80,31 @@ export function ScreenGuidance({
     useGuidanceStore.getState().mark(userId, area, "presented");
     guidanceEvent(area, "presented", userId);
   }, [area, introduce, progress, userId]);
+  useEffect(() => {
+    if (!introduce) {
+      opacity.setValue(reducedMotion ? 1 : 0);
+      return;
+    }
+    const finish = () => {
+      if (!dismissing || !userId) return;
+      useGuidanceStore.getState().mark(userId, area, "dismissed");
+      guidanceEvent(area, "dismissed", userId);
+    };
+    if (reducedMotion) {
+      opacity.setValue(dismissing ? 0 : 1);
+      finish();
+      return;
+    }
+    const animation = Animated.timing(opacity, {
+      toValue: dismissing ? 0 : 1,
+      duration: 180,
+      useNativeDriver: true,
+    });
+    animation.start(({ finished }) => {
+      if (finished) finish();
+    });
+    return () => animation.stop();
+  }, [area, dismissing, introduce, opacity, reducedMotion, userId]);
   function closeHelp() {
     setHelpFor(null);
     requestAnimationFrame(() => {
@@ -88,59 +127,83 @@ export function ScreenGuidance({
       testID={`screen-guidance-${area}`}
       style={{
         gap: spacing.sm,
-        paddingHorizontal: spacing.lg,
+        paddingHorizontal: isDesktop ? 0 : spacing.lg,
         paddingBottom: spacing.sm,
         flexShrink: 1,
         width: "100%",
-        maxWidth: 720,
-        alignSelf: "center",
+        maxWidth: isDesktop ? desktopWidths.data : 720,
+        alignSelf: isDesktop ? "stretch" : "center",
       }}
     >
       {introduce ? (
-        <ScrollView
-          style={{ maxHeight: 360 }}
-          contentContainerStyle={{
-            padding: spacing.md,
-            gap: spacing.sm,
-            backgroundColor: theme.colors.surface,
-            borderRadius: 16,
-          }}
-          keyboardShouldPersistTaps="handled"
-        >
-          <Typography variant="h3" accessibilityRole="header">
-            {title ?? content.title}
-          </Typography>
-          <Typography variant="body" style={{ fontSize: 16, lineHeight: 24 }}>
-            {description ?? content.description}
-          </Typography>
-          <Button
-            title={actionLabel ?? content.action}
-            onPress={() => start()}
-            size="lg"
-            fitTitle={false}
-            titleLines={2}
-          />
-          {secondary ? (
-            <Button
-              title={secondary.label}
-              onPress={() => start(secondary.onPress)}
-              variant="outline"
-              size="lg"
-              fitTitle={false}
-              titleLines={2}
-            />
-          ) : null}
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => {
-              useGuidanceStore.getState().mark(userId, area, "dismissed");
-              guidanceEvent(area, "dismissed", userId);
+        <Animated.View style={{ opacity }} pointerEvents={dismissing ? "none" : "auto"}>
+          <ScrollView
+            style={{ maxHeight: 360 }}
+            contentContainerStyle={{
+              padding: isDesktop ? spacing.lg : spacing.md,
+              gap: isDesktop ? spacing.xl : spacing.sm,
+              flexDirection: isDesktop ? "row" : "column",
+              flexWrap: isDesktop ? "wrap" : "nowrap",
+              alignItems: isDesktop ? "center" : "stretch",
+              backgroundColor: theme.colors.surface,
+              borderRadius: 16,
             }}
-            style={{ minHeight: 48, justifyContent: "center", alignItems: "center" }}
+            keyboardShouldPersistTaps="handled"
           >
-            <Typography variant="bodyBold">Agora não</Typography>
-          </Pressable>
-        </ScrollView>
+            <View
+              style={
+                isDesktop
+                  ? { flex: 1, minWidth: 280, gap: spacing.xs }
+                  : { gap: spacing.sm }
+              }
+            >
+              <Typography variant="h3" accessibilityRole="header">
+                {title ?? content.title}
+              </Typography>
+              <Typography variant="body">{description ?? content.description}</Typography>
+            </View>
+            <View
+              style={
+                isDesktop
+                  ? { width: 260, maxWidth: "100%", gap: spacing.xs }
+                  : { gap: spacing.sm }
+              }
+            >
+              <Button
+                title={actionLabel ?? content.action}
+                onPress={() => start()}
+                disabled={dismissing}
+                size="lg"
+                fitTitle={false}
+                titleLines={2}
+              />
+              {secondary ? (
+                <Pressable
+                  onPress={() => start(secondary.onPress)}
+                  accessibilityRole="button"
+                  disabled={dismissing}
+                  style={{
+                    minHeight: 48,
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+                    {secondary.label}
+                  </Typography>
+                </Pressable>
+              ) : null}
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setDismissFor(identity)}
+                disabled={dismissing}
+                style={{ minHeight: 48, justifyContent: "center", alignItems: "center" }}
+              >
+                <Typography variant="bodyBold">Agora não</Typography>
+              </Pressable>
+            </View>
+          </ScrollView>
+        </Animated.View>
       ) : null}
       <Pressable
         ref={trigger}
@@ -151,7 +214,7 @@ export function ScreenGuidance({
           guidanceEvent(area, "help_opened", userId);
         }}
         style={{
-          minHeight: 48,
+          minHeight: isDesktop ? 36 : 48,
           flexDirection: "row",
           alignItems: "center",
           gap: spacing.sm,
@@ -167,37 +230,43 @@ export function ScreenGuidance({
         title="Como usar esta tela"
         scrollRef={helpScroll}
         footer={
-          <Button
-            title={actionLabel ?? content.action}
-            onPress={() => start()}
-            size="lg"
-            fitTitle={false}
-            titleLines={2}
-          />
+          <View
+            style={{
+              flex: 1,
+              alignItems: isDesktop ? "flex-end" : "center",
+            }}
+          >
+            <Button
+              title={actionLabel ?? content.action}
+              onPress={() => start()}
+              size="lg"
+              fitTitle={false}
+              titleLines={2}
+            />
+          </View>
         }
       >
         <Typography variant="h3">{title ?? content.title}</Typography>
-        <Typography variant="body" style={{ fontSize: 16, lineHeight: 24 }}>
-          {description ?? content.description}
-        </Typography>
+        <Typography variant="body">{description ?? content.description}</Typography>
         {content.steps.map((step, index) => (
-          <Typography key={step} variant="body" style={{ fontSize: 16, lineHeight: 24 }}>
+          <Typography key={step} variant="body">
             {index + 1}. {step}
           </Typography>
         ))}
         <Typography variant="bodyBold">Depois de concluir</Typography>
-        <Typography variant="body" style={{ fontSize: 16, lineHeight: 24 }}>
-          {content.next}
-        </Typography>
-        <Button
-          title="Ainda preciso de ajuda"
-          variant="outline"
+        <Typography variant="body">{content.next}</Typography>
+        <Pressable
+          accessibilityRole="button"
           onPress={() => {
             setHelpFor(null);
             router.push("/support");
           }}
-          size="lg"
-        />
+          style={{ minHeight: 48, justifyContent: "center" }}
+        >
+          <Typography variant="bodyBold" color={theme.colors.primaryStrong}>
+            Ainda preciso de ajuda
+          </Typography>
+        </Pressable>
       </StandardModal>
     </View>
   );

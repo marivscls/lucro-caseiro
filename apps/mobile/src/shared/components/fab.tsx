@@ -1,6 +1,7 @@
 import { AppIcon } from "./app-icon";
 import type { AppIconName } from "./app-icon";
 import React from "react";
+import { useDesktopLayout } from "../layout/use-desktop-layout";
 import {
   Pressable,
   type PressableProps,
@@ -33,8 +34,10 @@ export const FAB = React.forwardRef<View, FABProps>(function FAB(
   ref,
 ) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
+  const displayLabel = label ?? (isDesktop ? accessibilityLabel : undefined);
   let horizontalPadding = 0;
-  if (label) horizontalPadding = header ? spacing.md : spacing.xl;
+  if (displayLabel) horizontalPadding = header ? spacing.md : spacing.xl;
 
   return (
     <Pressable
@@ -56,13 +59,25 @@ export const FAB = React.forwardRef<View, FABProps>(function FAB(
         },
         theme.shadows.md,
         style,
+        isDesktop
+          ? {
+              height: 44,
+              width: "auto",
+              minWidth: 44,
+              paddingHorizontal: spacing.lg,
+              borderRadius: radii.md,
+              shadowOpacity: 0,
+              elevation: 0,
+              flexShrink: 0,
+            }
+          : undefined,
       ]}
       {...props}
     >
       <AppIcon name={icon} size={iconSizes.md} color={theme.colors.textOnPrimary} />
-      {label ? (
+      {displayLabel ? (
         <Typography variant="bodyBold" color={theme.colors.textOnPrimary}>
-          {label}
+          {displayLabel}
         </Typography>
       ) : null}
     </Pressable>

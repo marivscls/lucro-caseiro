@@ -1,3 +1,5 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type {
   CreateService,
   Service,
@@ -201,7 +203,19 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
       : undefined;
   }
 
+  const formValidation = useFormValidation(
+    {
+      name: !name.trim() && "Informe o nome do serviço.",
+      durationMinutes:
+        (!durationMinutes.trim() ||
+          !(Number(durationMinutes) >= 5 && Number(durationMinutes) <= 1440)) &&
+        "Informe uma duração entre 5 minutos e 24 horas.",
+    },
+    visible,
+  );
+
   async function submit() {
+    if (!formValidation.validate()) return;
     const normalizedName = name.trim();
     const duration = Number.parseInt(durationMinutes, 10);
     if (!normalizedName) {
@@ -340,13 +354,15 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
         icon="briefcase-outline"
         initiallyOpen
       >
-        <Input
-          label="Nome do serviço"
-          placeholder="Ex.: Consulta, corte, instalação ou aula"
-          value={name}
-          onChangeText={setName}
-          maxLength={120}
-        />
+        <ValidationField {...formValidation.field("name")}>
+          <Input
+            label="Nome do serviço"
+            placeholder="Ex.: Consulta, corte, instalação ou aula"
+            value={name}
+            onChangeText={setName}
+            maxLength={120}
+          />
+        </ValidationField>
         <Input
           label="Descrição (opcional)"
           placeholder="Explique o que está incluído, o formato e onde acontece"
@@ -354,20 +370,24 @@ export function ServiceForm({ visible, service, onClose, onSuccess }: ServiceFor
           onChangeText={setDescription}
           maxLength={500}
           multiline
-          textAlignVertical="top"
+          textAlignVertical="center"
           style={{ height: 88, paddingVertical: spacing.md }}
         />
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
-          <Input
-            label="Duração em minutos"
-            placeholder="60"
-            value={durationMinutes}
-            onChangeText={(value) =>
-              setDurationMinutes(value.replace(/\D/g, "").slice(0, 4))
-            }
-            keyboardType="number-pad"
-            containerStyle={{ flex: 1, minWidth: 180 }}
-          />
+          <ValidationField
+            {...formValidation.field("durationMinutes")}
+            style={{ flex: 1, minWidth: 180 }}
+          >
+            <Input
+              label="Duração em minutos"
+              placeholder="60"
+              value={durationMinutes}
+              onChangeText={(value) =>
+                setDurationMinutes(value.replace(/\D/g, "").slice(0, 4))
+              }
+              keyboardType="number-pad"
+            />
+          </ValidationField>
           <Input
             label="Preço cobrado (opcional)"
             placeholder="R$ 0,00"

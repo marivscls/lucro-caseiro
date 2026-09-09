@@ -151,6 +151,9 @@ Importados de `@lucro-caseiro/contracts`.
 
 ## Orientação contextual — 2026-09-07
 
+- 2026-09-09: o detalhe mantém “Editar cliente” disponível mesmo sem telefone;
+  somente as ações de WhatsApp dependem do contato cadastrado.
+
 Orientação da lista inicia cadastro existente e distingue lista carregada de falha. client_created registra sucesso real do cadastro.
 
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.

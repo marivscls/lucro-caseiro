@@ -125,6 +125,8 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 
 ## Change log / Decisions
 
+- 2026-09-08: o painel ilustrado do topo permanece visível também sem cadastros, com contadores zerados. O estado vazio abaixo mantém apenas texto e CTA, sem PNG.
+
 - 2026-07-28: o Fiado considera `paidAmount` e mostra somente o saldo restante
   de serviços ou produtos pagos parcialmente.
 
@@ -179,3 +181,9 @@ Registrar e gerenciar vendas: criar vendas via wizard de 4 passos (selecionar pr
 Nova venda mantém o cadastro inline com carrinho preservado; sucesso adiciona produto, retorna à seleção e emite retomada. Orientação integrada substitui alerta de ajuda redundante e é suspensa durante modais/guias existentes.
 
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
+
+## Venda rápida e semântica visual — 2026-09-09
+
+Na etapa de produtos, mobile e desktop oferecem “Venda rápida no dinheiro” para um carrinho com exatamente uma linha e sem cliente. Quantidades inteiras ou por peso dessa linha são preservadas. O CTA envia `cash` explicitamente ao mesmo `handleSubmit` do fluxo completo, sem depender de atualização assíncrona de estado. O limite do plano, descontos, notas, variações, persistência, erros e fila offline seguem o fluxo existente. O CTA fica bloqueado durante a gravação; “Próximo” continua disponível para escolher outra forma de pagamento e revisar. No mobile, a rolagem reserva a altura medida do rodapé, incluindo a linha do atalho e fontes ampliadas.
+
+Totais individuais de vendas usam tinta neutra; verde fica reservado a sucesso, entradas financeiras e lucro identificado. “Cancelar venda” usa a variante de alerta.

@@ -1,3 +1,5 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import { Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useState } from "react";
@@ -61,7 +63,30 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
   const showPaywall = usePaywall((s) => s.show);
   const loading = createRecipe.isPending || uploading;
 
+  const formValidation = useFormValidation(
+    {
+      name: !name.trim() && "Informe o nome da receita.",
+      category: !category.trim() && "Selecione ou informe uma categoria.",
+      yieldQuantity:
+        (!Number.isFinite(Number(yieldQuantity.replace(",", "."))) ||
+          Number(yieldQuantity.replace(",", ".")) <= 0) &&
+        "Informe uma quantidade final maior que zero.",
+      yieldUnit: !yieldUnit.trim() && "Informe a unidade da quantidade final.",
+      lines:
+        (!lines.some((line) => line.materialId) ||
+          lines.some(
+            (line) =>
+              line.materialId &&
+              (!Number.isFinite(Number(line.quantity.replace(",", "."))) ||
+                Number(line.quantity.replace(",", ".")) <= 0),
+          )) &&
+        "Adicione um material e preencha uma quantidade maior que zero em cada item.",
+    },
+    visible,
+  );
+
   async function handleSubmit() {
+    if (!formValidation.validate()) return;
     if (checkRecipeLimit()) return;
     if (!name.trim()) {
       alertValidation(`Informe o nome da ${experienceCopy.formulaNoun}`);
@@ -207,17 +232,21 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
           icon="document-text-outline"
           label={`Nome da ${experienceCopy.formulaNoun}`}
         >
-          <TextBox
-            accessibilityLabel={`Nome da ${experienceCopy.formulaNoun}`}
-            value={name}
-            onChangeText={setName}
-            placeholder={`Ex: ${experienceCopy.productExample}`}
-            autoFocus
-          />
+          <ValidationField {...formValidation.field("name")}>
+            <TextBox
+              accessibilityLabel={`Nome da ${experienceCopy.formulaNoun}`}
+              value={name}
+              onChangeText={setName}
+              placeholder={`Ex: ${experienceCopy.productExample}`}
+              autoFocus
+            />
+          </ValidationField>
         </FieldRow>
 
         <FieldRow icon="grid-outline" label="Categoria">
-          <CategoryField value={category} onChange={setCategory} />
+          <ValidationField {...formValidation.field("category")}>
+            <CategoryField value={category} onChange={setCategory} />
+          </ValidationField>
         </FieldRow>
 
         <View style={{ gap: spacing.sm }}>
@@ -245,24 +274,28 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
               <Typography variant="bodyBold" color={theme.colors.text}>
                 {experienceCopy.quantityLabel}
               </Typography>
-              <TextBox
-                accessibilityLabel={experienceCopy.quantityLabel}
-                value={yieldQuantity}
-                onChangeText={setYieldQuantity}
-                placeholder="Ex: 30 ou 1,5"
-                keyboardType="decimal-pad"
-              />
+              <ValidationField {...formValidation.field("yieldQuantity")}>
+                <TextBox
+                  accessibilityLabel={experienceCopy.quantityLabel}
+                  value={yieldQuantity}
+                  onChangeText={setYieldQuantity}
+                  placeholder="Ex: 30 ou 1,5"
+                  keyboardType="decimal-pad"
+                />
+              </ValidationField>
             </View>
             <View style={{ flex: 1, gap: spacing.sm }}>
               <Typography variant="bodyBold" color={theme.colors.text}>
                 Unidade
               </Typography>
-              <TextBox
-                accessibilityLabel="Unidade da quantidade final"
-                value={yieldUnit}
-                onChangeText={setYieldUnit}
-                placeholder="Ex: unidades"
-              />
+              <ValidationField {...formValidation.field("yieldUnit")}>
+                <TextBox
+                  accessibilityLabel="Unidade da quantidade final"
+                  value={yieldUnit}
+                  onChangeText={setYieldUnit}
+                  placeholder="Ex: unidades"
+                />
+              </ValidationField>
             </View>
           </View>
           <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -271,7 +304,9 @@ export function CreateRecipeForm({ visible, onClose, onSuccess }: CreateRecipeFo
           <YieldUnitChips value={yieldUnit} onChange={setYieldUnit} />
         </View>
 
-        <RecipeMaterialsEditor lines={lines} onChange={setLines} />
+        <ValidationField {...formValidation.field("lines")}>
+          <RecipeMaterialsEditor lines={lines} onChange={setLines} />
+        </ValidationField>
       </View>
     </StandardModal>
   );

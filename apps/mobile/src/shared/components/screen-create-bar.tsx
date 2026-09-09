@@ -43,7 +43,10 @@ export function ScreenCreateBar({
         paddingTop: spacing.sm,
         paddingBottom,
         backgroundColor: palette.background,
-        alignSelf: "center",
+        alignSelf: isDesktop ? "stretch" : "center",
+        alignItems: isDesktop ? "flex-end" : "stretch",
+        borderTopWidth: isDesktop ? 1 : 0,
+        borderTopColor: theme.colors.border,
       }}
     >
       <Pressable
@@ -57,9 +60,11 @@ export function ScreenCreateBar({
           if (disabled) opacity = 0.5;
           else if (pressed) opacity = 0.88;
           return {
-            minHeight: CREATE_CTA_HEIGHT,
-            height: CREATE_CTA_HEIGHT,
-            borderRadius: 16,
+            minHeight: isDesktop ? 44 : CREATE_CTA_HEIGHT,
+            height: isDesktop ? 44 : CREATE_CTA_HEIGHT,
+            minWidth: isDesktop ? 220 : undefined,
+            paddingHorizontal: isDesktop ? spacing.xl : undefined,
+            borderRadius: isDesktop ? 12 : 16,
             backgroundColor: palette.rose,
             alignItems: "center",
             justifyContent: "center",
@@ -68,8 +73,8 @@ export function ScreenCreateBar({
         }}
       >
         <Typography
-          color={palette.onWine}
-          style={{ fontFamily: fonts.bold, fontSize: fontSizes.md }}
+          color={palette.onRose}
+          style={{ fontFamily: fonts.bold, fontSize: fontSizes.sm }}
         >
           {title}
         </Typography>

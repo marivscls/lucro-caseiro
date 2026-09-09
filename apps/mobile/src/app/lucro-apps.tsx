@@ -22,6 +22,7 @@ import { brandLogoByMode } from "../shared/brand-logo";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { showToast } from "../shared/components/toast";
 import {
+  desktopContentWidth,
   desktopStretch,
   desktopWidths,
   pageGutter,
@@ -88,7 +89,9 @@ export default function LucroAppsScreen() {
   const isDesktop = useDesktopLayout();
   const { width } = useWindowDimensions();
   const usesGrid = width >= 700;
-  const contentWidth = Math.min(width - spacing.xl * 2, desktopWidths.data);
+  const contentWidth = isDesktop
+    ? desktopContentWidth(width)
+    : Math.min(width - spacing.xl * 2, desktopWidths.data);
   const columns = usesGrid
     ? Math.max(
         1,

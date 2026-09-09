@@ -1,3 +1,5 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type { Client } from "@lucro-caseiro/contracts";
 import { Button, Input, spacing } from "@lucro-caseiro/ui";
 import React, { useRef, useState } from "react";
@@ -36,15 +38,11 @@ export function EditClientForm({
   const [address, setAddress] = useState(client.address ?? "");
   const [birthday, setBirthday] = useState(isoToBR(client.birthday));
   const [notes, setNotes] = useState(client.notes ?? "");
-  const [nextContactAt, setNextContactAt] = useState(
-    isoToBR(client.nextContactAt),
-  );
+  const [nextContactAt, setNextContactAt] = useState(isoToBR(client.nextContactAt));
   const [nextContactReason, setNextContactReason] = useState(
     client.nextContactReason ?? "",
   );
-  const [nextContactNotes, setNextContactNotes] = useState(
-    client.nextContactNotes ?? "",
-  );
+  const [nextContactNotes, setNextContactNotes] = useState(client.nextContactNotes ?? "");
   const submittingRef = useRef(false);
 
   const updateClient = useUpdateClient();
@@ -52,7 +50,15 @@ export function EditClientForm({
     search: phone.trim() || "__sem_telefone__",
   });
 
+  const formValidation = useFormValidation(
+    {
+      name: !name.trim() && "Informe o nome do cliente.",
+    },
+    visible,
+  );
+
   async function handleSubmit() {
+    if (!formValidation.validate()) return;
     if (submittingRef.current || updateClient.isPending) return;
     submittingRef.current = true;
 
@@ -159,13 +165,15 @@ export function EditClientForm({
       <View style={{ flexShrink: 1, gap: spacing.md }}>
         <View style={{ flexDirection: isDesktop ? "row" : "column", gap: spacing.md }}>
           <View style={isDesktop ? { flex: 1 } : undefined}>
-            <Input
-              label="Nome do cliente"
-              placeholder="Ex: Maria Silva, João Pereira..."
-              value={name}
-              onChangeText={setName}
-              autoFocus
-            />
+            <ValidationField {...formValidation.field("name")}>
+              <Input
+                label="Nome do cliente"
+                placeholder="Ex: Maria Silva, João Pereira..."
+                value={name}
+                onChangeText={setName}
+                autoFocus
+              />
+            </ValidationField>
           </View>
 
           <View style={isDesktop ? { flex: 1 } : undefined}>
@@ -207,7 +215,7 @@ export function EditClientForm({
           onChangeText={(value) => setNotes(value.slice(0, 200))}
           multiline
           numberOfLines={2}
-          style={{ height: 78, textAlignVertical: "top", paddingTop: 12 }}
+          style={{ height: 78, textAlignVertical: "center" }}
         />
 
         <View style={{ flexDirection: isDesktop ? "row" : "column", gap: spacing.md }}>
@@ -240,7 +248,7 @@ export function EditClientForm({
           maxLength={500}
           multiline
           numberOfLines={2}
-          style={{ height: 78, textAlignVertical: "top", paddingTop: 12 }}
+          style={{ height: 78, textAlignVertical: "center" }}
         />
       </View>
     </StandardModal>

@@ -1,4 +1,4 @@
-import { fonts } from "@lucro-caseiro/ui";
+import { fonts, Typography } from "@lucro-caseiro/ui";
 import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -129,75 +129,108 @@ export function BusinessProfileCard({
   if (!settings && (state.loading || state.loadError || !complete)) return null;
   return (
     <>
-      <View
-        style={[
-          styles.card,
-          { backgroundColor: colors.white, borderColor: colors.border },
-        ]}
-      >
-        <Text style={[styles.label, { color: colors.muted }]}>{label}</Text>
-        <Text style={[styles.title, { color: colors.wine }]}>
-          {settings
-            ? "Seu negócio, suas escolhas"
-            : (next?.title ?? "Vamos conhecer seu negócio?")}
-        </Text>
-        <Text style={[styles.body, { color: colors.muted }]}>
-          {settings
-            ? "Atualize seu segmento, momento, canais e objetivo. Suas respostas personalizam o app."
-            : (next?.text ??
-              "Responda cinco perguntas para encontrar seu próximo passo.")}
-        </Text>
-        {next && !settings && (
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => router.push(next.route)}
-            style={[styles.action, { backgroundColor: colors.wineFill }]}
-          >
-            <Text style={[styles.actionText, { color: colors.onWine }]}>
-              {next.action}
-            </Text>
-            <AppIcon name="arrow-forward" size={18} color={colors.onWine} />
-          </Pressable>
-        )}
+      {settings ? (
         <Pressable
           accessibilityRole="button"
+          accessibilityLabel={complete ? "Editar perfil do negócio" : "Montar meu perfil"}
           onPress={() => setVisible(true)}
-          style={styles.edit}
+          style={({ pressed }) => [
+            styles.settingsCard,
+            { backgroundColor: colors.softRose, opacity: pressed ? 0.8 : 1 },
+          ]}
         >
-          <Text style={[styles.actionText, { color: colors.wine }]}>
-            {complete ? "Editar perfil do negócio" : "Montar meu perfil"}
-          </Text>
-          <AppIcon name="chevron-forward" size={18} color={colors.wine} />
+          <View style={styles.settingsHeading}>
+            <AppIcon name="storefront-outline" size={20} color={colors.wine} />
+            <Typography variant="captionBold" color={colors.wine}>
+              Perfil do negócio
+            </Typography>
+          </View>
+          <Typography variant="h2" color={colors.wine}>
+            Seu negócio, suas escolhas
+          </Typography>
+          <Typography variant="body" color={colors.muted}>
+            Personalize o app para o seu jeito de trabalhar.
+          </Typography>
+          <View style={styles.settingsAction}>
+            <Typography variant="bodyBold" color={colors.wine} style={{ flex: 1 }}>
+              {complete ? "Editar perfil do negócio" : "Montar meu perfil"}
+            </Typography>
+            <AppIcon name="arrow-forward" size={20} color={colors.wine} />
+          </View>
         </Pressable>
-        {!settings && ideas.length > 0 && (
-          <>
+      ) : (
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.white, borderColor: colors.border },
+          ]}
+        >
+          <Text style={[styles.label, { color: colors.muted }]}>{label}</Text>
+          <Text style={[styles.title, { color: colors.wine }]}>
+            {settings
+              ? "Seu negócio, suas escolhas"
+              : (next?.title ?? "Vamos conhecer seu negócio?")}
+          </Text>
+          <Text style={[styles.body, { color: colors.muted }]}>
+            {settings
+              ? "Atualize seu segmento, momento, canais e objetivo. Suas respostas personalizam o app."
+              : (next?.text ??
+                "Responda cinco perguntas para encontrar seu próximo passo.")}
+          </Text>
+          {next && !settings && (
             <Pressable
               accessibilityRole="button"
-              accessibilityState={{ expanded: ideasVisible }}
-              onPress={() => setIdeasVisible(!ideasVisible)}
-              style={[styles.edit, { borderTopWidth: 1, borderColor: colors.border }]}
+              onPress={() => router.push(next.route)}
+              style={[styles.action, { backgroundColor: colors.wineFill }]}
             >
-              <Text style={[styles.actionText, { color: colors.wine }]}>
-                Ideias para divulgar
+              <Text style={[styles.actionText, { color: colors.onWine }]}>
+                {next.action}
               </Text>
-              <AppIcon
-                name={ideasVisible ? "chevron-up" : "chevron-down"}
-                size={18}
-                color={colors.wine}
-              />
+              <AppIcon name="arrow-forward" size={18} color={colors.onWine} />
             </Pressable>
-            {ideasVisible &&
-              ideas.map((idea) => (
-                <View key={idea.value} style={{ gap: 4 }}>
-                  <Text style={[styles.actionText, { color: colors.wine }]}>
-                    {idea.label}
-                  </Text>
-                  <Text style={[styles.body, { color: colors.muted }]}>{idea.idea}</Text>
-                </View>
-              ))}
-          </>
-        )}
-      </View>
+          )}
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setVisible(true)}
+            style={styles.edit}
+          >
+            <Text style={[styles.actionText, { color: colors.wine }]}>
+              {complete ? "Editar perfil do negócio" : "Montar meu perfil"}
+            </Text>
+            <AppIcon name="chevron-forward" size={18} color={colors.wine} />
+          </Pressable>
+          {!settings && ideas.length > 0 && (
+            <>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ expanded: ideasVisible }}
+                onPress={() => setIdeasVisible(!ideasVisible)}
+                style={[styles.edit, { borderTopWidth: 1, borderColor: colors.border }]}
+              >
+                <Text style={[styles.actionText, { color: colors.wine }]}>
+                  Ideias para divulgar
+                </Text>
+                <AppIcon
+                  name={ideasVisible ? "chevron-up" : "chevron-down"}
+                  size={18}
+                  color={colors.wine}
+                />
+              </Pressable>
+              {ideasVisible &&
+                ideas.map((idea) => (
+                  <View key={idea.value} style={{ gap: 4 }}>
+                    <Text style={[styles.actionText, { color: colors.wine }]}>
+                      {idea.label}
+                    </Text>
+                    <Text style={[styles.body, { color: colors.muted }]}>
+                      {idea.idea}
+                    </Text>
+                  </View>
+                ))}
+            </>
+          )}
+        </View>
+      )}
       <ResponsiveModal
         visible={visible}
         onRequestClose={() => {
@@ -218,6 +251,20 @@ export function BusinessProfileCard({
 }
 
 const styles = StyleSheet.create({
+  settingsCard: { padding: 18, borderRadius: 16, gap: 8 },
+  settingsHeading: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 4,
+  },
+  settingsAction: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginTop: 8,
+    minHeight: 32,
+  },
   loading: {
     flex: 1,
     padding: 24,
@@ -229,9 +276,9 @@ const styles = StyleSheet.create({
   label: { fontFamily: fonts.medium, fontSize: 12, lineHeight: 18 },
   title: {
     fontFamily: fonts.semiBold,
-    fontSize: 22,
-    lineHeight: 28,
-    letterSpacing: -0.6,
+    fontSize: 16,
+    lineHeight: 22,
+    letterSpacing: -0.2,
   },
   body: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 21 },
   action: {

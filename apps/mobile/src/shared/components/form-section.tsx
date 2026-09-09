@@ -2,6 +2,7 @@ import { Typography, useTheme, radii, spacing } from "@lucro-caseiro/ui";
 import { AppIcon } from "./app-icon";
 import type { AppIconName } from "./app-icon";
 import React, { useState } from "react";
+import { useFieldValidationError } from "@lucro-caseiro/ui";
 import { Pressable, View } from "react-native";
 
 interface FormSectionProps {
@@ -30,6 +31,10 @@ export function FormSection({
 }: FormSectionProps) {
   const { theme } = useTheme();
   const [open, setOpen] = useState(initiallyOpen);
+  const validationError = useFieldValidationError();
+  React.useEffect(() => {
+    if (validationError) setOpen(true);
+  }, [validationError]);
   const expanded = !collapsible || open;
   const toggleLabel = `${open ? "Recolher" : "Expandir"} seção ${title}`;
 

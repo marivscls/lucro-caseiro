@@ -73,14 +73,7 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
         padding: spacing.md,
         backgroundColor: palette.white,
         borderWidth: 1,
-        borderColor: palette.border,
-        borderLeftWidth: 4,
-        borderLeftColor: palette.rose,
-        shadowColor: theme.shadows.sm.shadowColor,
-        shadowOffset: theme.shadows.sm.shadowOffset,
-        shadowOpacity: theme.shadows.sm.shadowOpacity,
-        shadowRadius: theme.shadows.sm.shadowRadius,
-        elevation: 2,
+        borderColor: theme.colors.border,
       }}
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
@@ -123,7 +116,7 @@ export function SaleCard({ sale, onPress }: SaleCardProps) {
             >
               {sale.clientName ?? itemsSummary ?? "Cliente avulso"}
             </Typography>
-            <Typography variant="money" color={palette.wine} numberOfLines={1}>
+            <Typography variant="money" color={theme.colors.text} numberOfLines={1}>
               {formatCurrency(sale.total)}
             </Typography>
           </View>

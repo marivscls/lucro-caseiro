@@ -1,3 +1,5 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../shared/hooks/use-form-validation";
 import { BusinessProfileFlow } from "../features/onboarding/business-profile";
 import {
   Button,
@@ -298,6 +300,14 @@ function NicheStep({
   const mutedText = theme.colors.textSecondary;
   const selectedProfile = normalizeBusinessProfile(selected);
 
+  const nicheValidation = useFormValidation({
+    selected: !selected && "Escolha a opção que representa seu negócio.",
+  });
+
+  function handleNicheNext() {
+    if (!nicheValidation.validate()) return;
+    onNext();
+  }
   return (
     <View style={{ flex: 1, backgroundColor: background }}>
       <StepHeader onBack={onBack} />
@@ -333,93 +343,97 @@ function NicheStep({
           </Typography>
         </View>
 
-        <View
-          style={{
-            gap: cardGap,
-          }}
-        >
-          {BUSINESS_PROFILE_OPTIONS.map((profile) => {
-            const isSelected = selectedProfile === profile.value;
-            return (
-              <Pressable
-                key={profile.value}
-                onPress={() => onSelect(profile.value)}
-                accessibilityRole="button"
-                accessibilityState={{ selected: isSelected }}
-                style={{ width: "100%" }}
-              >
-                <Card
-                  padding="md"
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    minHeight: 96,
-                    gap: spacing.md,
-                    borderWidth: 1.25,
-                    borderColor: isSelected ? theme.colors.primary : "transparent",
-                    backgroundColor: isSelected ? selectedBg : cardBackground,
-                  }}
+        <ValidationField {...nicheValidation.field("selected")}>
+          <View
+            style={{
+              gap: cardGap,
+            }}
+          >
+            {BUSINESS_PROFILE_OPTIONS.map((profile) => {
+              const isSelected = selectedProfile === profile.value;
+              return (
+                <Pressable
+                  key={profile.value}
+                  onPress={() => onSelect(profile.value)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
+                  style={{ width: "100%" }}
                 >
-                  <View
+                  <Card
+                    padding="md"
                     style={{
-                      width: 54,
-                      height: 54,
-                      borderRadius: radii.md,
-                      backgroundColor: theme.colors.surface,
+                      flexDirection: "row",
                       alignItems: "center",
-                      justifyContent: "center",
-                      overflow: "hidden",
+                      minHeight: 96,
+                      gap: spacing.md,
+                      borderWidth: 1.25,
+                      borderColor: isSelected ? theme.colors.primary : "transparent",
+                      backgroundColor: isSelected ? selectedBg : cardBackground,
                     }}
                   >
-                    <Image
-                      source={PROFILE_IMAGES[profile.value]}
-                      resizeMode="contain"
-                      style={{ width: 48, height: 48 }}
-                    />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Typography
-                      variant="bodyBold"
-                      color={theme.colors.text}
-                      numberOfLines={2}
-                      style={{ fontSize: 15, lineHeight: 19 }}
+                    <View
+                      style={{
+                        width: 54,
+                        height: 54,
+                        borderRadius: radii.md,
+                        backgroundColor: theme.colors.surface,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        overflow: "hidden",
+                      }}
                     >
-                      {profile.label}
-                    </Typography>
-                    <Typography
-                      variant="body"
-                      color={mutedText}
-                      numberOfLines={3}
-                      style={{ fontSize: 13, lineHeight: 18, marginTop: 3 }}
-                    >
-                      {profile.description}
-                    </Typography>
-                  </View>
-                  <View
-                    style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: 12,
-                      borderWidth: isSelected ? 0 : 2,
-                      borderColor: theme.colors.textSecondary,
-                      backgroundColor: isSelected ? theme.colors.primary : "transparent",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {isSelected && (
-                      <AppIcon
-                        name="checkmark"
-                        size={18}
-                        color={theme.colors.textOnPrimary}
+                      <Image
+                        source={PROFILE_IMAGES[profile.value]}
+                        resizeMode="contain"
+                        style={{ width: 48, height: 48 }}
                       />
-                    )}
-                  </View>
-                </Card>
-              </Pressable>
-            );
-          })}
-        </View>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Typography
+                        variant="bodyBold"
+                        color={theme.colors.text}
+                        numberOfLines={2}
+                        style={{ fontSize: 15, lineHeight: 19 }}
+                      >
+                        {profile.label}
+                      </Typography>
+                      <Typography
+                        variant="body"
+                        color={mutedText}
+                        numberOfLines={3}
+                        style={{ fontSize: 13, lineHeight: 18, marginTop: 3 }}
+                      >
+                        {profile.description}
+                      </Typography>
+                    </View>
+                    <View
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: 12,
+                        borderWidth: isSelected ? 0 : 2,
+                        borderColor: theme.colors.textSecondary,
+                        backgroundColor: isSelected
+                          ? theme.colors.primary
+                          : "transparent",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {isSelected && (
+                        <AppIcon
+                          name="checkmark"
+                          size={18}
+                          color={theme.colors.textOnPrimary}
+                        />
+                      )}
+                    </View>
+                  </Card>
+                </Pressable>
+              );
+            })}
+          </View>
+        </ValidationField>
       </ScrollView>
 
       <View
@@ -434,8 +448,7 @@ function NicheStep({
         <Button
           title="Próximo"
           size="lg"
-          onPress={onNext}
-          disabled={!selected}
+          onPress={handleNicheNext}
           icon={
             <AppIcon name="arrow-forward" size={22} color={theme.colors.textOnPrimary} />
           }
@@ -478,6 +491,14 @@ function BusinessNameStep({
   const { theme } = useTheme();
   const [name, setName] = useState("");
 
+  const nameValidation = useFormValidation({
+    name: !name.trim() && "Informe o nome do negócio ou use Pular por enquanto.",
+  });
+
+  function handleBusinessNext() {
+    if (!nameValidation.validate()) return;
+    onNext(name.trim());
+  }
   return (
     <View style={{ flex: 1 }}>
       <StepHeader onBack={onBack} />
@@ -508,13 +529,15 @@ function BusinessNameStep({
         >
           Ele aparece no seu catálogo, nos recibos e nos orçamentos.
         </Typography>
-        <Input
-          label="Nome do negócio"
-          placeholder={`Ex.: ${example}`}
-          value={name}
-          onChangeText={setName}
-          autoFocus
-        />
+        <ValidationField {...nameValidation.field("name")}>
+          <Input
+            label="Nome do negócio"
+            placeholder={`Ex.: ${example}`}
+            value={name}
+            onChangeText={setName}
+            autoFocus
+          />
+        </ValidationField>
       </KeyboardAwareScrollView>
 
       <View
@@ -525,12 +548,7 @@ function BusinessNameStep({
           backgroundColor: theme.colors.background,
         }}
       >
-        <Button
-          title="Próximo"
-          size="lg"
-          onPress={() => onNext(name.trim())}
-          disabled={!name.trim()}
-        />
+        <Button title="Próximo" size="lg" onPress={handleBusinessNext} />
         <Pressable
           onPress={() => onNext("")}
           style={{ alignItems: "center", minHeight: 44, justifyContent: "center" }}

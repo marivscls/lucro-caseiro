@@ -4,6 +4,7 @@ import { AppIcon } from "./app-icon";
 import type { AppIconName } from "./app-icon";
 import { type Href, usePathname, useRouter } from "expo-router";
 import React, { type ReactNode } from "react";
+import { desktopLayout, desktopWidths } from "../layout/desktop-density";
 import { Image, Pressable, ScrollView, View } from "react-native";
 
 import { useProfile } from "../../features/subscription/hooks";
@@ -171,7 +172,7 @@ export function DesktopShell({
     >
       <View
         style={{
-          width: 264,
+          width: desktopLayout.sidebarWidth,
           flexShrink: 0,
           borderRightWidth: 1,
           borderRightColor: theme.colors.border,
@@ -265,6 +266,7 @@ export function DesktopShell({
       </View>
 
       <View
+        testID="desktop-main"
         style={{
           flex: 1,
           minWidth: 0,
@@ -276,8 +278,8 @@ export function DesktopShell({
           style={{
             flex: 1,
             width: "100%",
-            maxWidth: 1440,
-            paddingHorizontal: spacing["3xl"],
+            maxWidth: desktopWidths.data + desktopLayout.pageGutter * 2,
+            paddingHorizontal: desktopLayout.pageGutter,
             minWidth: 0,
           }}
         >

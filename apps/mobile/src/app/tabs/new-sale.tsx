@@ -1,3 +1,6 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../../shared/hooks/use-form-validation";
+import { ScreenHeader } from "../../shared/components/screen-header";
 import { useAuth } from "../../shared/hooks/use-auth";
 import { guidanceEvent } from "../../shared/guidance/guidance-events";
 import { ScreenGuidance } from "../../shared/guidance/screen-guidance";
@@ -11,6 +14,7 @@ import type {
 } from "@lucro-caseiro/contracts";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
+  CenteredTextInput,
   Button,
   Card,
   colors,
@@ -34,7 +38,6 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  TextInput,
   View,
   type ViewStyle,
 } from "react-native";
@@ -52,6 +55,7 @@ import {
   salePricing,
 } from "../../features/sales/cart";
 import { useCreateSale, useSales } from "../../features/sales/hooks";
+import { QuickSaleButton } from "../../features/sales/components/quick-sale-button";
 import { PAYMENT_LABELS } from "../../features/sales/payment";
 import { useInterstitial } from "../../shared/hooks/use-interstitial";
 import { useLimitCheck } from "../../shared/hooks/use-limit-check";
@@ -230,7 +234,7 @@ function SearchBox({
       }}
     >
       <AppIcon name="search-outline" size={24} color={theme.colors.textSecondary} />
-      <TextInput
+      <CenteredTextInput
         placeholder={placeholder}
         placeholderTextColor={theme.colors.textSecondary + "90"}
         value={value}
@@ -368,12 +372,14 @@ export default function NewSaleScreen() {
   const guidedFirstSale = from === "getting-started";
   const insets = useSafeAreaInsets();
   const fixedActionBottomOffset = floatingTabBarContentPadding(insets.bottom);
+  const [fixedActionHeight, setFixedActionHeight] = useState(FIXED_ACTION_MIN_HEIGHT);
   const fixedActionScrollPadding =
-    fixedActionBottomOffset + FIXED_ACTION_MIN_HEIGHT + spacing["2xl"];
+    fixedActionBottomOffset + fixedActionHeight + spacing["2xl"];
   const { show: showInterstitial } = useInterstitial();
   const { checkAndBlock: checkSalesLimit } = useLimitCheck("sales");
   const showPaywall = usePaywall((s) => s.show);
   const [step, setStep] = useState<Step>(1);
+  const [mainWidth, setMainWidth] = useState(720);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedClient, setSelectedClient] = useState<{
     id: string;
@@ -591,8 +597,12 @@ export default function NewSaleScreen() {
     void handleProductCode(query);
   }
 
-  async function handleSubmit() {
-    if (!paymentMethod || cart.length === 0) return;
+  async function handleSubmit(paymentOverride?: PaymentOption["value"]) {
+    const effectivePayment = paymentOverride ?? paymentMethod;
+    if (cart.length === 0 || !effectivePayment) {
+      formValidation.validate(() => setStep(cart.length === 0 ? 2 : 3));
+      return;
+    }
     if (pricing.total <= 0) {
       alertValidation("O desconto precisa deixar um total maior que zero.");
       return;
@@ -601,7 +611,7 @@ export default function NewSaleScreen() {
 
     const payload = {
       clientId: selectedClient?.id,
-      paymentMethod,
+      paymentMethod: effectivePayment,
       ...(discountType && parsedDiscount > 0
         ? { discountType, discountValue: parsedDiscount }
         : {}),
@@ -678,7 +688,13 @@ export default function NewSaleScreen() {
     }
   }
 
+  const formValidation = useFormValidation({
+    cart: step >= 2 && cart.length === 0 && "Adicione pelo menos um produto à venda.",
+    paymentMethod: step >= 3 && !paymentMethod && "Escolha uma forma de pagamento.",
+  });
+
   function canAdvance(): boolean {
+    if (!formValidation.validate()) return false;
     if (step === 1) return true;
     if (step === 2) return cart.length > 0;
     if (step === 3) return paymentMethod !== null;
@@ -702,6 +718,15 @@ export default function NewSaleScreen() {
   }
 
   const split = desktopSplitLayout(isDesktop);
+  const productColumns = Math.max(
+    1,
+    Math.min(3, Math.floor((mainWidth + spacing.md) / (200 + spacing.md))),
+  );
+  const productCardWidth =
+    (mainWidth - spacing.md * (productColumns - 1)) / productColumns;
+  const paymentColumns = mainWidth >= 572 ? 2 : 1;
+  const paymentCardWidth =
+    (mainWidth - spacing.md * (paymentColumns - 1)) / paymentColumns;
   const pageZone = desktopStretch(isDesktop, desktopWidths.data);
   const searchFieldStyle = isDesktop
     ? { maxWidth: 480, width: "100%" as const }
@@ -730,9 +755,7 @@ export default function NewSaleScreen() {
           <Typography variant="label">RESUMO DA VENDA</Typography>
           <Typography
             variant="moneyHero"
-            color={
-              summaryTotal > 0 ? theme.colors.primaryStrong : theme.colors.textSecondary
-            }
+            color={theme.colors.text}
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.55}
@@ -773,7 +796,7 @@ export default function NewSaleScreen() {
               <Typography variant="caption" color={theme.colors.textSecondary}>
                 Desconto
               </Typography>
-              <Typography variant="bodyBold" color={theme.colors.success}>
+              <Typography variant="bodyBold" color={theme.colors.text}>
                 − {formatCurrency(pricing.discount)}
               </Typography>
             </View>
@@ -794,8 +817,8 @@ export default function NewSaleScreen() {
         {step < 4 ? (
           <Button
             title="Próximo"
-            disabled={!canAdvance()}
             onPress={() => {
+              if (!canAdvance()) return;
               if (step === 1) {
                 setStep(2);
                 return;
@@ -833,6 +856,16 @@ export default function NewSaleScreen() {
             style={{ borderRadius: radii.md, width: "100%" }}
           />
         )}
+        {step === 2 ? (
+          <QuickSaleButton
+            itemCount={cart.length}
+            hasClient={Boolean(selectedClient)}
+            pending={createSale.isPending}
+            onConfirm={(payment) => {
+              void handleSubmit(payment);
+            }}
+          />
+        ) : null}
       </View>
     </View>
   ) : null;
@@ -846,48 +879,58 @@ export default function NewSaleScreen() {
           ...pageZone,
         }}
       >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            paddingTop: spacing.lg,
-            justifyContent: "space-between",
-          }}
-        >
+        {isDesktop ? (
+          <ScreenHeader
+            title="Nova venda"
+            subtitle="Escolha o cliente, os itens e a forma de pagamento."
+            hideBack
+          />
+        ) : (
           <View
             style={{
-              flex: 1,
               flexDirection: "row",
               alignItems: "center",
-              gap: spacing.md,
+              paddingTop: spacing.lg,
+              justifyContent: "space-between",
             }}
           >
-            {!isDesktop ? (
-              <Pressable
-                onPress={() =>
-                  step > 1 ? setStep((s) => (s - 1) as Step) : router.push("/tabs/sales")
-                }
-                accessibilityRole="button"
-                accessibilityLabel="Voltar"
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: radii.full,
-                  backgroundColor: theme.colors.surface,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <AppIcon
-                  name="chevron-back"
-                  size={25}
-                  color={theme.colors.textSecondary}
-                />
-              </Pressable>
-            ) : null}
-            <Typography variant="screenTitle">Nova Venda</Typography>
+            <View
+              style={{
+                flex: 1,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: spacing.md,
+              }}
+            >
+              {!isDesktop ? (
+                <Pressable
+                  onPress={() =>
+                    step > 1
+                      ? setStep((s) => (s - 1) as Step)
+                      : router.push("/tabs/sales")
+                  }
+                  accessibilityRole="button"
+                  accessibilityLabel="Voltar"
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: radii.full,
+                    backgroundColor: theme.colors.surface,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <AppIcon
+                    name="chevron-back"
+                    size={25}
+                    color={theme.colors.textSecondary}
+                  />
+                </Pressable>
+              ) : null}
+              <Typography variant="screenTitle">Nova Venda</Typography>
+            </View>
           </View>
-        </View>
+        )}
 
         <ScreenGuidance
           area="new_sale"
@@ -914,7 +957,14 @@ export default function NewSaleScreen() {
         </View>
 
         <View style={[{ flex: 1 }, isDesktop ? split.row : undefined]}>
-          <View style={[{ flex: 1, minWidth: 0 }, isDesktop ? split.main : undefined]}>
+          <View
+            onLayout={
+              isDesktop
+                ? (event) => setMainWidth(event.nativeEvent.layout.width)
+                : undefined
+            }
+            style={[{ flex: 1, minWidth: 0 }, isDesktop ? split.main : undefined]}
+          >
             {/* Step 2: Select Products */}
             {step === 2 && (
               <View style={{ flex: 1 }}>
@@ -924,21 +974,16 @@ export default function NewSaleScreen() {
                     paddingBottom: spacing.lg,
                   }}
                 >
-                  <View style={searchFieldStyle}>
-                    <SearchBox
-                      placeholder="Buscar produto..."
-                      value={productSearch}
-                      onChangeText={setProductSearch}
-                      onTrailingPress={() => setShowScanner(true)}
-                    />
-                  </View>
-                  <Typography
-                    variant="caption"
-                    color={theme.colors.textSecondary}
-                    style={{ height: 0, overflow: "hidden" }}
-                  >
-                    Toque pra adicionar. Use o - pra tirar uma unidade.
-                  </Typography>
+                  <ValidationField {...formValidation.field("cart")}>
+                    <View style={searchFieldStyle}>
+                      <SearchBox
+                        placeholder="Buscar produto..."
+                        value={productSearch}
+                        onChangeText={setProductSearch}
+                        onTrailingPress={() => setShowScanner(true)}
+                      />
+                    </View>
+                  </ValidationField>
                 </View>
 
                 <View
@@ -952,7 +997,6 @@ export default function NewSaleScreen() {
                       flexDirection: "row",
                       flexWrap: "wrap",
                       gap: spacing.md,
-                      maxWidth: isDesktop ? 720 : undefined,
                     }}
                   >
                     <QuickActionCard
@@ -1047,6 +1091,7 @@ export default function NewSaleScreen() {
                       >
                         {productGridItems.map((item, index) => {
                           if (!item) {
+                            if (isDesktop) return null;
                             return (
                               <View
                                 key={`product-spacer-${index}`}
@@ -1063,9 +1108,8 @@ export default function NewSaleScreen() {
                               onPress={() => addToCart(item)}
                               onLongPress={() => removeFromCart(item.id)}
                               style={{
-                                width: isDesktop ? "31%" : "48%",
-                                maxWidth: isDesktop ? "31%" : "48%",
-                                minWidth: isDesktop ? 220 : undefined,
+                                width: isDesktop ? productCardWidth : "48%",
+                                maxWidth: isDesktop ? productCardWidth : "48%",
                                 flexGrow: 0,
                                 flexShrink: 0,
                                 alignSelf: "flex-start",
@@ -1137,7 +1181,7 @@ export default function NewSaleScreen() {
                               >
                                 {displayProductName(item.name)}
                               </Typography>
-                              <Typography variant="bodyBold" color={theme.colors.success}>
+                              <Typography variant="bodyBold" color={theme.colors.text}>
                                 {item.saleUnit === "kg"
                                   ? `${formatCurrency(item.salePrice)}/kg`
                                   : formatCurrency(item.salePrice)}
@@ -1276,7 +1320,6 @@ export default function NewSaleScreen() {
                     alignItems: "center",
                     gap: spacing.md,
                     opacity: pressed ? 0.86 : 1,
-                    maxWidth: isDesktop ? 560 : undefined,
                     width: isDesktop ? "100%" : undefined,
                     ...getSurfaceStyle(theme),
                   })}
@@ -1334,7 +1377,6 @@ export default function NewSaleScreen() {
                     flexDirection: "row",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    maxWidth: isDesktop ? 720 : undefined,
                   }}
                 >
                   <View
@@ -1458,67 +1500,82 @@ export default function NewSaleScreen() {
                   paddingBottom: isDesktop ? spacing.lg : fixedActionScrollPadding,
                 }}
               >
-                <View
-                  style={{
-                    flexDirection: isDesktop ? "row" : "column",
-                    flexWrap: "wrap",
-                    gap: spacing.sm,
-                  }}
-                >
-                  {PAYMENT_OPTIONS.map((option) => {
-                    const isSelected = paymentMethod === option.value;
-                    // Selecionado: fundo OPACO (nunca translúcido) — bg translúcido + a
-                    // elevation do surface faz o Android pintar uma "caixa branca" atrás.
-                    // Selecao = fundo rosado suave (primaryBg); demais = neutro.
-                    const cardBackgroundColor = isSelected
-                      ? theme.colors.primaryBg
-                      : theme.colors.surfaceElevated;
-                    const subtitles: Record<PaymentMethod, string> = {
-                      pix: "Pagamento instantâneo",
-                      cash: "Pagamento em espécie",
-                      card: "Débito ou crédito",
-                      credit: "Pagamento para depois",
-                      transfer: "TED, DOC ou outro banco",
-                    };
-                    return (
-                      <Pressable
-                        key={option.value}
-                        onPress={() => setPaymentMethod(option.value)}
-                        accessibilityRole="button"
-                        accessibilityState={{ selected: isSelected }}
-                        style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          gap: spacing.md,
-                          minHeight: 78,
-                          paddingVertical: spacing.md,
-                          paddingHorizontal: spacing.lg,
-                          borderRadius: radii.xl,
-                          ...getSurfaceStyle(theme),
-                          borderWidth: isSelected ? 2 : 1,
-                          borderColor: isSelected
-                            ? theme.colors.primary
-                            : theme.colors.surface,
-                          backgroundColor: cardBackgroundColor,
-                          width: isDesktop ? "48%" : "100%",
-                          maxWidth: isDesktop ? "48%" : undefined,
-                          minWidth: isDesktop ? 280 : undefined,
-                        }}
-                      >
-                        <View
+                <ValidationField {...formValidation.field("paymentMethod")}>
+                  <View
+                    style={{
+                      flexDirection: isDesktop ? "row" : "column",
+                      flexWrap: "wrap",
+                      gap: spacing.sm,
+                    }}
+                  >
+                    {PAYMENT_OPTIONS.map((option) => {
+                      const isSelected = paymentMethod === option.value;
+                      // Selecionado: fundo OPACO (nunca translúcido) — bg translúcido + a
+                      // elevation do surface faz o Android pintar uma "caixa branca" atrás.
+                      // Selecao = fundo rosado suave (primaryBg); demais = neutro.
+                      const cardBackgroundColor = isSelected
+                        ? theme.colors.primaryBg
+                        : theme.colors.surfaceElevated;
+                      const subtitles: Record<PaymentMethod, string> = {
+                        pix: "Pagamento instantâneo",
+                        cash: "Pagamento em espécie",
+                        card: "Débito ou crédito",
+                        credit: "Pagamento para depois",
+                        transfer: "TED, DOC ou outro banco",
+                      };
+                      return (
+                        <Pressable
+                          key={option.value}
+                          onPress={() => setPaymentMethod(option.value)}
+                          accessibilityRole="button"
+                          accessibilityState={{ selected: isSelected }}
                           style={{
-                            width: 48,
-                            height: 48,
-                            borderRadius: radii.lg,
-                            backgroundColor: isSelected
-                              ? theme.colors.primaryBg
-                              : theme.colors.surface,
+                            flexDirection: "row",
                             alignItems: "center",
-                            justifyContent: "center",
+                            gap: spacing.md,
+                            minHeight: 78,
+                            paddingVertical: spacing.md,
+                            paddingHorizontal: spacing.lg,
+                            borderRadius: radii.xl,
+                            ...getSurfaceStyle(theme),
+                            borderWidth: isSelected ? 2 : 1,
+                            borderColor: isSelected
+                              ? theme.colors.primary
+                              : theme.colors.surface,
+                            backgroundColor: cardBackgroundColor,
+                            width: isDesktop ? paymentCardWidth : "100%",
                           }}
                         >
+                          <View
+                            style={{
+                              width: 48,
+                              height: 48,
+                              borderRadius: radii.lg,
+                              backgroundColor: isSelected
+                                ? theme.colors.primaryBg
+                                : theme.colors.surface,
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <AppIcon
+                              name={option.icon as AppIconName}
+                              size={24}
+                              color={
+                                isSelected
+                                  ? theme.colors.primaryStrong
+                                  : theme.colors.textSecondary
+                              }
+                            />
+                          </View>
+                          <View style={{ flex: 1 }}>
+                            <Typography variant="bodyBold">{option.label}</Typography>
+                            <Typography variant="caption">
+                              {subtitles[option.value]}
+                            </Typography>
+                          </View>
                           <AppIcon
-                            name={option.icon as AppIconName}
+                            name={isSelected ? "checkmark-circle" : "chevron-forward"}
                             size={24}
                             color={
                               isSelected
@@ -1526,30 +1583,15 @@ export default function NewSaleScreen() {
                                 : theme.colors.textSecondary
                             }
                           />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                          <Typography variant="bodyBold">{option.label}</Typography>
-                          <Typography variant="caption">
-                            {subtitles[option.value]}
-                          </Typography>
-                        </View>
-                        <AppIcon
-                          name={isSelected ? "checkmark-circle" : "chevron-forward"}
-                          size={24}
-                          color={
-                            isSelected
-                              ? theme.colors.primaryStrong
-                              : theme.colors.textSecondary
-                          }
-                        />
-                      </Pressable>
-                    );
-                  })}
-                </View>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </ValidationField>
                 <Card
                   style={{
                     ...getSurfaceStyle(theme),
-                    ...(isDesktop ? { maxWidth: 720, width: "100%" } : null),
+                    ...(isDesktop ? { width: "100%" } : null),
                   }}
                 >
                   <Typography variant="h3">Ajustes da venda</Typography>
@@ -1642,8 +1684,7 @@ export default function NewSaleScreen() {
                     numberOfLines={3}
                     style={{
                       height: 80,
-                      textAlignVertical: "top",
-                      paddingTop: spacing.md,
+                      textAlignVertical: "center",
                     }}
                   />
                 </Card>
@@ -1691,7 +1732,6 @@ export default function NewSaleScreen() {
                 contentContainerStyle={{
                   gap: spacing.lg,
                   paddingBottom: isDesktop ? spacing.lg : fixedActionScrollPadding,
-                  maxWidth: isDesktop ? 720 : undefined,
                   width: "100%",
                 }}
               >
@@ -1818,7 +1858,7 @@ export default function NewSaleScreen() {
                         </View>
                         <Typography
                           variant="bodyBold"
-                          color={theme.colors.success}
+                          color={theme.colors.text}
                           style={{ marginLeft: spacing.sm }}
                         >
                           {formatCurrency(item.unitPrice * item.quantity)}
@@ -1834,7 +1874,7 @@ export default function NewSaleScreen() {
                     }}
                   >
                     <Typography variant="body">{cart.length} itens</Typography>
-                    <Typography variant="money">
+                    <Typography variant="money" color={theme.colors.text}>
                       {formatCurrency(pricing.subtotal)}
                     </Typography>
                   </View>
@@ -1916,10 +1956,10 @@ export default function NewSaleScreen() {
                             marginBottom: notes.trim() ? spacing.lg : 0,
                           }}
                         >
-                          <Typography variant="body" color={theme.colors.success}>
+                          <Typography variant="body" color={theme.colors.text}>
                             Desconto
                           </Typography>
-                          <Typography variant="bodyBold" color={theme.colors.success}>
+                          <Typography variant="bodyBold" color={theme.colors.text}>
                             − {formatCurrency(pricing.discount)}
                           </Typography>
                         </View>
@@ -1970,7 +2010,11 @@ export default function NewSaleScreen() {
                       </View>
                       <Typography variant="h3">Total da venda</Typography>
                     </View>
-                    <Typography variant="money" style={{ flexShrink: 0 }}>
+                    <Typography
+                      variant="money"
+                      color={theme.colors.text}
+                      style={{ flexShrink: 0 }}
+                    >
                       {formatCurrency(pricing.total)}
                     </Typography>
                   </View>
@@ -2018,41 +2062,60 @@ export default function NewSaleScreen() {
         </View>
       </View>
 
-      {!isDesktop && step === 2 && cart.length > 0 && (
+      {!isDesktop && step === 2 && (
         <View
+          onLayout={(event) => setFixedActionHeight(event.nativeEvent.layout.height)}
           style={{
             position: "absolute",
             left: spacing.xl,
             right: spacing.xl,
             bottom: fixedActionBottomOffset,
             minHeight: FIXED_ACTION_MIN_HEIGHT,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
             borderRadius: radii.xl,
             padding: spacing.md,
-            gap: spacing.md,
+            gap: spacing.sm,
             ...getSurfaceStyle(theme),
           }}
         >
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="label">TOTAL SELECIONADO</Typography>
-            <Typography variant="moneyLg">{formatCurrency(cartTotal)}</Typography>
-          </View>
-          <Button
-            title="Próximo"
-            onPress={() => setStep(3)}
+          <View
             style={{
-              borderRadius: radii.md,
-              minWidth: 138,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: spacing.md,
             }}
-            icon={
-              <AppIcon
-                name="arrow-forward"
-                size={16}
-                color={theme.colors.textOnPrimary}
-              />
-            }
+          >
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Typography variant="label">TOTAL SELECIONADO</Typography>
+              <Typography variant="moneyLg" color={theme.colors.text}>
+                {formatCurrency(cartTotal)}
+              </Typography>
+            </View>
+            <Button
+              title="Próximo"
+              onPress={() => {
+                if (canAdvance()) setStep(3);
+              }}
+              style={{
+                borderRadius: radii.md,
+                minWidth: 138,
+              }}
+              icon={
+                <AppIcon
+                  name="arrow-forward"
+                  size={16}
+                  color={theme.colors.textOnPrimary}
+                />
+              }
+            />
+          </View>
+          <QuickSaleButton
+            itemCount={cart.length}
+            hasClient={Boolean(selectedClient)}
+            pending={createSale.isPending}
+            onConfirm={(payment) => {
+              void handleSubmit(payment);
+            }}
           />
         </View>
       )}
@@ -2060,6 +2123,7 @@ export default function NewSaleScreen() {
       {/* Navigation Buttons (client and payment steps) — mobile only */}
       {!isDesktop && (step === 1 || step === 3) && (
         <View
+          onLayout={(event) => setFixedActionHeight(event.nativeEvent.layout.height)}
           style={{
             position: "absolute",
             left: spacing.xl,
@@ -2093,8 +2157,9 @@ export default function NewSaleScreen() {
               flex: 1,
               borderRadius: radii.md,
             }}
-            disabled={!canAdvance()}
-            onPress={() => setStep((s) => (s + 1) as Step)}
+            onPress={() => {
+              if (canAdvance()) setStep((s) => (s + 1) as Step);
+            }}
             icon={
               <AppIcon
                 name="arrow-forward"
@@ -2429,7 +2494,7 @@ export default function NewSaleScreen() {
                 autoFocus
               />
               {weightProduct && !isNaN(parseFloat(weightInput.replace(",", "."))) && (
-                <Typography variant="bodyBold" color={theme.colors.success}>
+                <Typography variant="bodyBold" color={theme.colors.text}>
                   Subtotal:{" "}
                   {formatCurrency(
                     parseFloat(weightInput.replace(",", ".")) * weightProduct.salePrice,

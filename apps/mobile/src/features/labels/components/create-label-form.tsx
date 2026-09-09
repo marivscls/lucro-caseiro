@@ -1,3 +1,5 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import { CreateProductForm } from "../../products/components/create-product-form";
 import { guidanceEvent } from "../../../shared/guidance/guidance-events";
 import { useAuth } from "../../../shared/hooks/use-auth";
@@ -136,7 +138,14 @@ export function CreateLabelForm({
     }
   }
 
+  const formValidation = useFormValidation({
+    name: !name.trim() && "Dê um nome para a etiqueta.",
+    selectedProductId: !selectedProductId && "Escolha o produto da etiqueta.",
+    productName: !labelData.productName.trim() && "Informe o nome que será impresso.",
+  });
+
   async function handleSubmit() {
+    if (!formValidation.validate()) return;
     if (!name.trim()) {
       alertValidation("Dê um nome para a etiqueta");
       return;
@@ -325,28 +334,32 @@ export function CreateLabelForm({
                 </Typography>
               </View>
 
-              <Input
-                label="Nome da etiqueta"
-                placeholder={`Ex: ${experienceCopy.productExample}`}
-                value={name}
-                onChangeText={setName}
-              />
+              <ValidationField {...formValidation.field("name")}>
+                <Input
+                  label="Nome da etiqueta"
+                  placeholder={`Ex: ${experienceCopy.productExample}`}
+                  value={name}
+                  onChangeText={setName}
+                />
+              </ValidationField>
 
               {productCreated ? (
                 <Typography variant="body" accessibilityLiveRegion="polite">
                   Produto cadastrado e selecionado. Continue sua etiqueta abaixo.
                 </Typography>
               ) : null}
-              <LabelProductPicker
-                onCreate={() => setCreatingProduct(true)}
-                selectedId={selectedProductId}
-                onSelect={(product) => {
-                  setProductCreated(true);
-                  setSelectedProductId(product.id);
-                  updateField("productName", product.name);
-                  if (!name.trim()) setName(`Etiqueta ${product.name}`);
-                }}
-              />
+              <ValidationField {...formValidation.field("selectedProductId")}>
+                <LabelProductPicker
+                  onCreate={() => setCreatingProduct(true)}
+                  selectedId={selectedProductId}
+                  onSelect={(product) => {
+                    setProductCreated(true);
+                    setSelectedProductId(product.id);
+                    updateField("productName", product.name);
+                    if (!name.trim()) setName(`Etiqueta ${product.name}`);
+                  }}
+                />
+              </ValidationField>
 
               <TemplatePicker selected={templateId} onSelect={setTemplateId} />
               <FormSection
@@ -365,12 +378,14 @@ export function CreateLabelForm({
               </FormSection>
               {!isDesktop ? previewBlock : null}
 
-              <Input
-                label="Nome que será impresso"
-                placeholder={`Ex: ${experienceCopy.productExample}`}
-                value={labelData.productName}
-                onChangeText={(value) => updateField("productName", value)}
-              />
+              <ValidationField {...formValidation.field("productName")}>
+                <Input
+                  label="Nome que será impresso"
+                  placeholder={`Ex: ${experienceCopy.productExample}`}
+                  value={labelData.productName}
+                  onChangeText={(value) => updateField("productName", value)}
+                />
+              </ValidationField>
               <Input
                 label="Observação (opcional)"
                 placeholder="Ex: Manter refrigerado"

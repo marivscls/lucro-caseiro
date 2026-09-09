@@ -1,5 +1,11 @@
 // Stub for @lucro-caseiro/ui — avoids pulling in expo dependencies during tests
 import { vi } from "vitest";
+export { ValidationField } from "../../../../../packages/ui/src/components/validation-field";
+export {
+  ValidationScrollContext,
+  useFieldValidationError,
+} from "../../../../../packages/ui/src/components/validation-context";
+export const CenteredTextInput = () => null;
 
 export const Button = ({ children }: { children?: React.ReactNode }) => children;
 export const Card = ({ children }: { children?: React.ReactNode }) => children;

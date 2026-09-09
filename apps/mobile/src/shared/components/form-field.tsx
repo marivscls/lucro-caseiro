@@ -1,4 +1,5 @@
 import {
+  CenteredTextInput,
   Typography,
   useTheme,
   fontSizes,
@@ -11,11 +12,11 @@ import { AppIcon } from "./app-icon";
 import type { AppIconName } from "./app-icon";
 import React from "react";
 import {
-  TextInput,
   View,
   type StyleProp,
   type TextInputProps,
   type TextStyle,
+  TextInput,
 } from "react-native";
 
 /** Cores derivadas do tema para os campos de formulário (claro e escuro). */
@@ -124,7 +125,7 @@ export function TextFieldCard({
             {prefix}
           </Typography>
         ) : null}
-        <TextInput
+        <CenteredTextInput
           ref={inputRef}
           accessibilityLabel={inputProps.accessibilityLabel ?? inputProps.placeholder}
           placeholderTextColor={pal.placeholder}

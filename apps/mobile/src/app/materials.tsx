@@ -1,5 +1,6 @@
 import type { Material } from "@lucro-caseiro/contracts";
 import {
+  CenteredTextInput,
   Button,
   EmptyState,
   fontSizes,
@@ -15,11 +16,11 @@ import {
   Image,
   Pressable,
   ScrollView,
-  TextInput,
   View,
   type ImageStyle,
   type ViewStyle,
   useWindowDimensions,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -202,12 +203,11 @@ function PantrySummary({ items }: Readonly<{ items: Material[] }>) {
             }}
           >
             <Typography
-              variant="h1"
+              variant="moneyHero"
               color={palette.onWine}
               numberOfLines={1}
               adjustsFontSizeToFit
               minimumFontScale={0.72}
-              style={{ fontSize: narrow ? 27 : 32, lineHeight: narrow ? 34 : 40 }}
             >
               {moneyFormatter.format(totalValue)}
             </Typography>
@@ -334,7 +334,7 @@ function ReplenishmentAlert({ items }: Readonly<{ items: Material[] }>) {
           justifyContent: "center",
         }}
       >
-        <AppIcon name="warning-outline" size={23} color={palette.onWine} />
+        <AppIcon name="warning-outline" size={23} color={palette.onRose} />
       </View>
       <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
         <Typography
@@ -506,12 +506,12 @@ function MaterialsScreenContent() {
 
   const contentStyle = {
     ...pageGutter(isDesktop),
-    ...desktopStretch(isDesktop, desktopWidths.wide),
+    ...desktopStretch(isDesktop, desktopWidths.data),
   };
   const compactHeader = !isDesktop && width < 360;
   const headerStyle = {
     ...pageGutter(isDesktop, compactHeader ? spacing.md : spacing.xl),
-    ...desktopStretch(isDesktop, desktopWidths.wide),
+    ...desktopStretch(isDesktop, desktopWidths.data),
   };
   function renderBody() {
     if (isLoading) return <PantrySkeleton />;
@@ -526,9 +526,10 @@ function MaterialsScreenContent() {
     }
     if (items.length === 0) {
       return (
-        <View style={{ flex: 1, justifyContent: "center" }}>
+        <>
+          <PantrySummary items={items} />
           <EmptyState
-            title="Seu estoque está vazia"
+            title="Seu estoque está vazio"
             description="Cadastre o primeiro material para acompanhar quantidade, custo e reposição."
             action={
               <Button
@@ -537,7 +538,7 @@ function MaterialsScreenContent() {
               />
             }
           />
-        </View>
+        </>
       );
     }
 
@@ -560,7 +561,7 @@ function MaterialsScreenContent() {
           }}
         >
           <AppIcon name="search-outline" size={23} color={palette.muted} />
-          <TextInput
+          <CenteredTextInput
             ref={searchRef}
             value={search}
             onChangeText={setSearch}

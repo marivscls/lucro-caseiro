@@ -1,3 +1,4 @@
+import { ScreenHeader } from "../../shared/components/screen-header";
 import { ScreenGuidance } from "../../shared/guidance/screen-guidance";
 import { useBusinessOnboarding } from "../../features/onboarding/use-business-onboarding";
 import { onboardingDestination } from "../../shared/utils/new-account";
@@ -1016,7 +1017,7 @@ export default function HomeScreen() {
     >
       <ScrollView
         contentContainerStyle={{
-          paddingTop: spacing.lg,
+          paddingTop: isDesktop ? 0 : spacing.lg,
           paddingBottom: isDesktop
             ? spacing["3xl"]
             : floatingTabBarContentPadding(insets.bottom),
@@ -1026,31 +1027,39 @@ export default function HomeScreen() {
         }}
         showsVerticalScrollIndicator={false}
       >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.lg }}>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Typography
-              variant="homeTitle"
-              color={brand.id === "lucro-caseiro" ? colors.wine : theme.colors.text}
+        {isDesktop ? (
+          <ScreenHeader
+            title={`Olá, ${firstName}!`}
+            subtitle={formattedDate()}
+            hideBack
+          />
+        ) : (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.lg }}>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Typography
+                variant="homeTitle"
+                color={brand.id === "lucro-caseiro" ? colors.wine : theme.colors.text}
+              >
+                Olá, {firstName}!
+              </Typography>
+              <Typography variant="homeBody" style={{ marginTop: 2 }}>
+                {formattedDate()}
+              </Typography>
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Minha conta"
+              hitSlop={8}
+              onPress={() => router.push("/settings")}
+              style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
             >
-              Olá, {firstName}!
-            </Typography>
-            <Typography variant="homeBody" style={{ marginTop: 2 }}>
-              {formattedDate()}
-            </Typography>
+              <AvatarCircle
+                name={profile?.name ?? firstName}
+                avatarUrl={profile?.avatarUrl}
+              />
+            </Pressable>
           </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Minha conta"
-            hitSlop={8}
-            onPress={() => router.push("/settings")}
-            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-          >
-            <AvatarCircle
-              name={profile?.name ?? firstName}
-              avatarUrl={profile?.avatarUrl}
-            />
-          </Pressable>
-        </View>
+        )}
 
         <ScreenGuidance
           area="home"

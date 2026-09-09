@@ -242,7 +242,6 @@ function QuoteCard({
       <Card
         onPress={onPress}
         variant="elevated"
-        shadow="sm"
         padding="lg"
         style={{ minHeight: 154, backgroundColor: pal.white }}
       >
@@ -320,7 +319,6 @@ function QuoteCard({
     <Card
       onPress={onPress}
       variant="elevated"
-      shadow="sm"
       padding="lg"
       style={{ minHeight: 136, backgroundColor: pal.white }}
     >
@@ -874,7 +872,7 @@ export default function QuotesScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           ...pageGutter(isDesktop),
-          ...desktopStretch(isDesktop, desktopWidths.wide),
+          ...desktopStretch(isDesktop, desktopWidths.data),
           paddingBottom: spacing.lg,
         }}
       >
@@ -905,7 +903,7 @@ export default function QuotesScreen() {
                 icon={
                   <AppIcon name="search-outline" size={iconSizes.md} color={pal.muted} />
                 }
-                containerStyle={{ width: "100%" }}
+                containerStyle={{ width: "100%", maxWidth: isDesktop ? 480 : undefined }}
                 style={{ height: 50 }}
               />
 

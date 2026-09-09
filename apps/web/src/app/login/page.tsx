@@ -46,7 +46,7 @@ export default function LoginPage() {
         >
           <LockKeyhole size={28} />
           <div>
-            <p className="eyebrow">Acesso privado</p>
+            <p className="eyebrow">Central de Marketing — equipe</p>
             <h2>Entre na central</h2>
           </div>
           <label>

@@ -1,7 +1,9 @@
+import { ScreenHeader } from "../../shared/components/screen-header";
 import { ScreenGuidance } from "../../shared/guidance/screen-guidance";
 import type { Order, Sale } from "@lucro-caseiro/contracts";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
+  CenteredTextInput,
   Button,
   Chip,
   EmptyState,
@@ -23,7 +25,6 @@ import {
   Image,
   Pressable,
   ScrollView,
-  TextInput,
   View,
   type ViewStyle,
 } from "react-native";
@@ -213,7 +214,7 @@ function SearchBar({
         }}
       >
         <AppIcon name="search-outline" size={24} color={theme.colors.textSecondary} />
-        <TextInput
+        <CenteredTextInput
           placeholder="Buscar por produto ou cliente"
           placeholderTextColor={theme.colors.textSecondary}
           value={value}
@@ -301,7 +302,7 @@ function AvatarCircle({ name }: Readonly<{ name: string }>) {
         justifyContent: "center",
       }}
     >
-      <Typography variant="h3" color={palette.onWine}>
+      <Typography variant="h3" color={palette.onRose}>
         {(name || "M").charAt(0).toUpperCase()}
       </Typography>
     </View>
@@ -326,6 +327,23 @@ function SalesHeader({
     currency: "BRL",
   }).format(receivedTotal);
   const countLabel = count === 1 ? "1 venda" : `${count} vendas`;
+
+  if (isDesktop)
+    return (
+      <ScreenHeader
+        title="Vendas"
+        subtitle="Acompanhe seus pedidos e recebimentos"
+        hideBack
+        right={
+          <Image
+            source={salesHeaderIcon}
+            resizeMode="contain"
+            accessible={false}
+            style={{ width: 64, height: 56 }}
+          />
+        }
+      />
+    );
 
   return (
     <View style={{ backgroundColor: palette.wineFill }}>
@@ -359,62 +377,55 @@ function SalesHeader({
           <AvatarCircle name={name} />
         </View>
 
-        {count > 0 ? (
+        <View
+          accessibilityLabel={`${formattedTotal} recebidos em ${countLabel}`}
+          style={{
+            alignSelf: "flex-start",
+            width: isDesktop ? 320 : "72%",
+            minWidth: isDesktop ? 320 : 236,
+            maxWidth: 340,
+            minHeight: 82,
+            borderRadius: radii.xl,
+            borderWidth: 1,
+            borderColor: theme.colors.border,
+            backgroundColor: theme.colors.surfaceElevated,
+            flexDirection: "row",
+            alignItems: "center",
+            paddingHorizontal: spacing.lg,
+            paddingVertical: spacing.md,
+          }}
+        >
           <View
-            accessibilityLabel={`${formattedTotal} recebidos em ${countLabel}`}
             style={{
-              alignSelf: "flex-start",
-              width: isDesktop ? 320 : "72%",
-              minWidth: isDesktop ? 320 : 236,
-              maxWidth: 340,
-              minHeight: 82,
-              borderRadius: radii.xl,
-              borderWidth: 1,
-              borderColor: "rgba(255,255,255,0.12)",
-              backgroundColor: "rgba(255,255,255,0.06)",
-              flexDirection: "row",
+              width: 56,
+              height: 56,
               alignItems: "center",
-              paddingHorizontal: spacing.lg,
-              paddingVertical: spacing.md,
-              shadowColor: "#160A0F",
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.14,
-              shadowRadius: 10,
-              elevation: 2,
+              justifyContent: "center",
             }}
           >
-            <View
-              style={{
-                width: 56,
-                height: 56,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Image
-                source={salesHeaderIcon}
-                resizeMode="contain"
-                style={{ width: 104, height: 104 }}
-              />
-            </View>
-            <View
-              style={{
-                width: 1,
-                height: 52,
-                marginHorizontal: spacing.lg,
-                backgroundColor: "rgba(255,255,255,0.58)",
-              }}
+            <Image
+              source={salesHeaderIcon}
+              resizeMode="contain"
+              style={{ width: 104, height: 104 }}
             />
-            <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-              <Typography variant="moneyLg" color={palette.onWine} numberOfLines={1}>
-                {formattedTotal}
-              </Typography>
-              <Typography variant="body" color={palette.onWine}>
-                {countLabel}
-              </Typography>
-            </View>
           </View>
-        ) : null}
+          <View
+            style={{
+              width: 1,
+              height: 52,
+              marginHorizontal: spacing.lg,
+              backgroundColor: theme.colors.border,
+            }}
+          />
+          <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+            <Typography variant="moneyLg" color={theme.colors.text} numberOfLines={1}>
+              {formattedTotal}
+            </Typography>
+            <Typography variant="body" color={theme.colors.textSecondary}>
+              {countLabel}
+            </Typography>
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -697,7 +708,7 @@ function DesktopSalesTable({
                   </Typography>
                   <Typography
                     variant="bodyBold"
-                    color={theme.colors.success}
+                    color={theme.colors.text}
                     style={{ flex: 1, textAlign: "right" }}
                   >
                     {new Intl.NumberFormat("pt-BR", {
@@ -832,7 +843,9 @@ function DesktopOrdersTable({
             <Typography variant="caption" color={theme.colors.textSecondary}>
               {label}
             </Typography>
-            <Typography variant="moneyLg">{String(value)}</Typography>
+            <Typography variant="moneyLg" color={theme.colors.text}>
+              {String(value)}
+            </Typography>
           </View>
         ))}
       </View>
@@ -852,7 +865,7 @@ function DesktopOrdersTable({
           }}
         >
           <AppIcon name="search-outline" size={20} color={theme.colors.textSecondary} />
-          <TextInput
+          <CenteredTextInput
             value={search}
             onChangeText={setSearch}
             placeholder="Buscar cliente ou encomenda"
@@ -953,7 +966,7 @@ function DesktopOrdersTable({
               </Typography>
               <Typography
                 variant="bodyBold"
-                color={theme.colors.success}
+                color={theme.colors.text}
                 style={{ flex: 1, textAlign: "right" }}
               >
                 {new Intl.NumberFormat("pt-BR", {
@@ -1367,7 +1380,7 @@ export default function SalesScreen() {
         height: "100%",
         width: "100%",
         overflow: "hidden",
-        backgroundColor: palette.wineFill,
+        backgroundColor: isDesktop ? palette.background : palette.wineFill,
       }}
     >
       <SalesHeader
@@ -1655,7 +1668,7 @@ export default function SalesScreen() {
             onChangeText={setEditNotes}
             multiline
             numberOfLines={3}
-            style={{ height: 80, textAlignVertical: "top", paddingTop: 12 }}
+            style={{ height: 80, textAlignVertical: "center" }}
           />
         </View>
       </StandardModal>

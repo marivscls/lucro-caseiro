@@ -1,4 +1,10 @@
-import { Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
+import {
+  CenteredTextInput,
+  Typography,
+  useTheme,
+  spacing,
+  radii,
+} from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
 import React, { useMemo, useState } from "react";
 import {
@@ -6,7 +12,6 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -156,7 +161,7 @@ export function SupplierSelector({ value, onChange }: SupplierSelectorProps) {
                   size={20}
                   color={theme.colors.textSecondary}
                 />
-                <TextInput
+                <CenteredTextInput
                   value={search}
                   onChangeText={setSearch}
                   placeholder="Buscar..."

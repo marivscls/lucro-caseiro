@@ -1,3 +1,4 @@
+import { ScreenHeader } from "../../shared/components/screen-header";
 import {
   iconSizes,
   radii,
@@ -485,7 +486,7 @@ function ExtensionsBanner({ onPress }: Readonly<{ onPress: () => void }>) {
     >
       <View style={[styles.editorialCurve, { backgroundColor: palette.white }]} />
       <View style={[styles.extensionsIcon, { backgroundColor: palette.rose }]}>
-        <AppIcon name="apps-outline" size={iconSizes.md} color={palette.onWine} />
+        <AppIcon name="apps-outline" size={iconSizes.md} color={palette.onRose} />
       </View>
       <View style={styles.bannerCopy}>
         <Typography variant="h3" color={palette.wine}>
@@ -496,7 +497,7 @@ function ExtensionsBanner({ onPress }: Readonly<{ onPress: () => void }>) {
         </Typography>
       </View>
       <View style={[styles.bannerAction, { backgroundColor: palette.rose }]}>
-        <AppIcon name="chevron-forward" size={iconSizes.md} color={palette.onWine} />
+        <AppIcon name="chevron-forward" size={iconSizes.md} color={palette.onRose} />
       </View>
     </InteractiveSurface>
   );
@@ -635,24 +636,33 @@ export default function MoreScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.content,
+          isDesktop ? { paddingTop: 0 } : undefined,
           {
             paddingBottom: isDesktop
               ? spacing["3xl"]
               : floatingTabBarContentPadding(insets.bottom),
           },
           pageGutter(isDesktop, spacing.xl),
-          desktopStretch(isDesktop, desktopWidths.wide),
+          desktopStretch(isDesktop, desktopWidths.data),
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.heading}>
-          <Typography variant="screenTitle" color={palette.wine}>
-            Mais opções
-          </Typography>
-          <Typography variant="body" color={palette.muted}>
-            Tudo para cuidar do seu negócio.
-          </Typography>
-        </View>
+        {isDesktop ? (
+          <ScreenHeader
+            title="Mais opções"
+            subtitle="Tudo para cuidar do seu negócio."
+            hideBack
+          />
+        ) : (
+          <View style={styles.heading}>
+            <Typography variant="screenTitle" color={palette.wine}>
+              Mais opções
+            </Typography>
+            <Typography variant="body" color={palette.muted}>
+              Tudo para cuidar do seu negócio.
+            </Typography>
+          </View>
+        )}
 
         <ProfileCard
           avatarUrl={profile?.avatarUrl}

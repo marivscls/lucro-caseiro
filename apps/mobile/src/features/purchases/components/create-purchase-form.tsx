@@ -1,3 +1,5 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type { Product, Purchase } from "@lucro-caseiro/contracts";
 import {
   Button,
@@ -167,7 +169,33 @@ export function CreatePurchaseForm({
     );
   }
 
+  const formValidation = useFormValidation<string>({
+    description: !description.trim() && "Descreva a compra.",
+    amount:
+      !receiveStock &&
+      (!Number.isFinite(parseCurrencyInput(amount)) || parseCurrencyInput(amount) <= 0) &&
+      "Informe um valor maior que zero.",
+    date: !date.trim() && "Informe a data da compra.",
+
+    ...Object.fromEntries(
+      items.flatMap((item, index) => [
+        [
+          `item-${index}-quantity`,
+          receiveStock &&
+            (!Number.isFinite(Number(item.quantity.replace(",", "."))) ||
+              Number(item.quantity.replace(",", ".")) <= 0) &&
+            "Informe a quantidade recebida.",
+        ],
+        [
+          `item-${index}-cost`,
+          receiveStock && !item.unitCost.trim() && "Informe o custo unitário.",
+        ],
+      ]),
+    ),
+  });
+
   async function handleSubmit() {
+    if (!formValidation.validate()) return;
     if (!description.trim()) {
       alertValidation("Descreva a compra (ex.: Farinha 25kg).");
       return;
@@ -270,13 +298,15 @@ export function CreatePurchaseForm({
           <SupplierSelector value={supplierId} onChange={setSupplierId} />
         </View>
 
-        <Input
-          label="Descrição"
-          placeholder={receiveStock ? "Ex: Reposição semanal" : "Ex: Energia, frete..."}
-          value={description}
-          onChangeText={setDescription}
-          autoFocus
-        />
+        <ValidationField {...formValidation.field("description")}>
+          <Input
+            label="Descrição"
+            placeholder={receiveStock ? "Ex: Reposição semanal" : "Ex: Energia, frete..."}
+            value={description}
+            onChangeText={setDescription}
+            autoFocus
+          />
+        </ValidationField>
 
         {stockPurchaseEnabled ? (
           <View style={{ gap: spacing.sm }}>
@@ -366,22 +396,26 @@ export function CreatePurchaseForm({
                 ) : null}
                 <View style={{ flexDirection: "row", gap: spacing.sm }}>
                   <View style={[{ flex: 1 }, compactField]}>
-                    <Input
-                      label="Quantidade"
-                      value={item.quantity}
-                      keyboardType="number-pad"
-                      onChangeText={(quantity) => updateItem(index, { quantity })}
-                    />
+                    <ValidationField {...formValidation.field(`item-${index}-quantity`)}>
+                      <Input
+                        label="Quantidade"
+                        value={item.quantity}
+                        keyboardType="number-pad"
+                        onChangeText={(quantity) => updateItem(index, { quantity })}
+                      />
+                    </ValidationField>
                   </View>
                   <View style={[{ flex: 1 }, compactField]}>
-                    <Input
-                      label="Custo unitário"
-                      value={item.unitCost}
-                      keyboardType="numeric"
-                      onChangeText={(unitCost) =>
-                        updateItem(index, { unitCost: maskCurrencyInput(unitCost) })
-                      }
-                    />
+                    <ValidationField {...formValidation.field(`item-${index}-cost`)}>
+                      <Input
+                        label="Custo unitário"
+                        value={item.unitCost}
+                        keyboardType="numeric"
+                        onChangeText={(unitCost) =>
+                          updateItem(index, { unitCost: maskCurrencyInput(unitCost) })
+                        }
+                      />
+                    </ValidationField>
                   </View>
                 </View>
               </View>
@@ -404,13 +438,15 @@ export function CreatePurchaseForm({
           </View>
         ) : (
           <View style={compactField}>
-            <Input
-              label="Valor (R$)"
-              placeholder="0,00"
-              value={amount}
-              onChangeText={(v) => setAmount(maskCurrencyInput(v))}
-              keyboardType="numeric"
-            />
+            <ValidationField {...formValidation.field("amount")}>
+              <Input
+                label="Valor (R$)"
+                placeholder="0,00"
+                value={amount}
+                onChangeText={(v) => setAmount(maskCurrencyInput(v))}
+                keyboardType="numeric"
+              />
+            </ValidationField>
           </View>
         )}
 
@@ -431,13 +467,15 @@ export function CreatePurchaseForm({
         </View>
 
         <View style={compactField}>
-          <Input
-            label="Data da compra"
-            placeholder="DD/MM/AAAA"
-            value={date}
-            onChangeText={(v) => setDate(maskDateBR(v))}
-            keyboardType="number-pad"
-          />
+          <ValidationField {...formValidation.field("date")}>
+            <Input
+              label="Data da compra"
+              placeholder="DD/MM/AAAA"
+              value={date}
+              onChangeText={(v) => setDate(maskDateBR(v))}
+              keyboardType="number-pad"
+            />
+          </ValidationField>
         </View>
 
         {isEditing ? (

@@ -1,3 +1,5 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type {
   CreateSupplier,
   Supplier,
@@ -166,7 +168,14 @@ export const SupplierForm = React.forwardRef<SupplierFormHandle, SupplierFormPro
       setAvatarPresetId(null);
     }
 
+    const formValidation = useFormValidation({
+      name: validateSupplierForm({ name, category, phone, hasWhatsApp, email }).name,
+      phone: validateSupplierForm({ name, category, phone, hasWhatsApp, email }).phone,
+      email: validateSupplierForm({ name, category, phone, hasWhatsApp, email }).email,
+    });
+
     async function handleSubmit() {
+      if (!formValidation.validate()) return;
       const nextErrors = validateSupplierForm({
         name,
         category,
@@ -229,20 +238,22 @@ export const SupplierForm = React.forwardRef<SupplierFormHandle, SupplierFormPro
 
     return (
       <View style={{ gap: spacing.xl }}>
-        <Input
-          label="Nome do fornecedor"
-          placeholder="Ex.: Distribuidora Central"
-          value={name}
-          onChangeText={(value) => {
-            setName(value);
-            setErrors((current) => ({ ...current, name: undefined }));
-          }}
-          error={errors.name}
-          maxLength={200}
-          autoFocus={Platform.OS === "web"}
-          editable={!controlsDisabled}
-          accessibilityLabel="Nome do fornecedor"
-        />
+        <ValidationField {...formValidation.field("name")}>
+          <Input
+            label="Nome do fornecedor"
+            placeholder="Ex.: Distribuidora Central"
+            value={name}
+            onChangeText={(value) => {
+              setName(value);
+              setErrors((current) => ({ ...current, name: undefined }));
+            }}
+            error={errors.name}
+            maxLength={200}
+            autoFocus={Platform.OS === "web"}
+            editable={!controlsDisabled}
+            accessibilityLabel="Nome do fornecedor"
+          />
+        </ValidationField>
 
         <View style={{ gap: spacing.sm }}>
           <Typography variant="caption" style={{ fontFamily: fonts.semiBold }}>
@@ -350,7 +361,7 @@ export const SupplierForm = React.forwardRef<SupplierFormHandle, SupplierFormPro
                       <AppIcon
                         name="checkmark"
                         size={12}
-                        color={colors.onWine}
+                        color={colors.onRose}
                         strokeWidth={3}
                       />
                     </View>
@@ -460,20 +471,22 @@ export const SupplierForm = React.forwardRef<SupplierFormHandle, SupplierFormPro
           </Typography>
         </View>
 
-        <Input
-          label="Telefone / WhatsApp (opcional)"
-          placeholder="Ex.: (11) 99999-9999"
-          value={phone}
-          onChangeText={(value) => {
-            const masked = maskPhoneBR(value);
-            setPhone(masked);
-            if (!digitsOnly(masked)) setHasWhatsApp(false);
-            setErrors((current) => ({ ...current, phone: undefined }));
-          }}
-          keyboardType="phone-pad"
-          editable={!controlsDisabled}
-          error={errors.phone}
-        />
+        <ValidationField {...formValidation.field("phone")}>
+          <Input
+            label="Telefone / WhatsApp (opcional)"
+            placeholder="Ex.: (11) 99999-9999"
+            value={phone}
+            onChangeText={(value) => {
+              const masked = maskPhoneBR(value);
+              setPhone(masked);
+              if (!digitsOnly(masked)) setHasWhatsApp(false);
+              setErrors((current) => ({ ...current, phone: undefined }));
+            }}
+            keyboardType="phone-pad"
+            editable={!controlsDisabled}
+            error={errors.phone}
+          />
+        </ValidationField>
         <View
           style={{
             minHeight: 44,
@@ -507,21 +520,23 @@ export const SupplierForm = React.forwardRef<SupplierFormHandle, SupplierFormPro
           />
         </View>
 
-        <Input
-          label="Email (opcional)"
-          placeholder="Ex.: contato@fornecedor.com"
-          value={email}
-          onChangeText={(value) => {
-            setEmail(value);
-            setErrors((current) => ({ ...current, email: undefined }));
-          }}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoCorrect={false}
-          maxLength={200}
-          editable={!controlsDisabled}
-          error={errors.email}
-        />
+        <ValidationField {...formValidation.field("email")}>
+          <Input
+            label="Email (opcional)"
+            placeholder="Ex.: contato@fornecedor.com"
+            value={email}
+            onChangeText={(value) => {
+              setEmail(value);
+              setErrors((current) => ({ ...current, email: undefined }));
+            }}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            maxLength={200}
+            editable={!controlsDisabled}
+            error={errors.email}
+          />
+        </ValidationField>
         <Input
           label="Endereço (opcional)"
           placeholder="Ex.: Rua das Flores, 123"
@@ -539,7 +554,7 @@ export const SupplierForm = React.forwardRef<SupplierFormHandle, SupplierFormPro
           editable={!controlsDisabled}
           multiline
           numberOfLines={3}
-          style={{ height: 88, paddingTop: spacing.md, textAlignVertical: "top" }}
+          style={{ height: 88, textAlignVertical: "center" }}
         />
 
         <Pressable

@@ -5,6 +5,8 @@ import { Platform, Pressable, ScrollView, View } from "react-native";
 
 import { useScrollFocusedInputIntoView } from "./keyboard-aware-scroll-view";
 import { ResponsiveModal } from "./responsive-modal-surface";
+import { ValidationScrollContext } from "@lucro-caseiro/ui";
+import { useDesktopLayout } from "../layout/use-desktop-layout";
 
 interface StandardModalProps {
   readonly visible: boolean;
@@ -39,14 +41,12 @@ export function StandardModal({
   children,
 }: Readonly<StandardModalProps>) {
   const { theme } = useTheme();
+  const isDesktop = useDesktopLayout();
   const reducedMotion = useReducedMotion();
   const modalContentRef = React.useRef<View>(null);
   const internalScrollRef = React.useRef<ScrollView>(null);
-  const { scrollFocusedInput, trackScroll } = useScrollFocusedInputIntoView(
-    internalScrollRef,
-    spacing.xl,
-    visible,
-  );
+  const { scrollFocusedInput, trackScroll, scrollValidationField } =
+    useScrollFocusedInputIntoView(internalScrollRef, spacing.xl, visible);
 
   const requestClose = React.useCallback(() => {
     if (!dismissDisabled) onClose();
@@ -173,7 +173,9 @@ export function StandardModal({
           onFocus={() => scrollFocusedInput()}
           onScroll={trackScroll}
         >
-          {children}
+          <ValidationScrollContext.Provider value={scrollValidationField}>
+            {children}
+          </ValidationScrollContext.Provider>
         </ScrollView>
 
         {/* Footer */}
@@ -182,6 +184,7 @@ export function StandardModal({
             style={{
               flexDirection: "row",
               gap: spacing.md,
+              justifyContent: isDesktop ? "flex-end" : undefined,
               padding: spacing.xl,
               borderTopWidth: 1,
               borderTopColor: theme.colors.border,

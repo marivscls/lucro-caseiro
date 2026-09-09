@@ -173,6 +173,8 @@ registros existentes nao quebrem, mas nao aparecem no formulario, preview ou PDF
 
 ## Change log / Decisions
 
+- 2026-09-08: o painel ilustrado do topo permanece visível também sem cadastros, com contadores zerados. O estado vazio abaixo mantém apenas texto e CTA, sem PNG.
+
 - 2026-05-30: PDF, logo, QR, datas e varias copias por folha.
 - 2026-06-09: personalizacao visual exclusiva do plano Profissional.
 - 2026-07-19: a feature chegou a receber campos de rotulagem nutricional/regulatoria.

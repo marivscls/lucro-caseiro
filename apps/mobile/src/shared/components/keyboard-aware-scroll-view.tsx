@@ -1,4 +1,5 @@
 import React from "react";
+import { ValidationScrollContext } from "@lucro-caseiro/ui";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -9,6 +10,7 @@ import {
   type NativeSyntheticEvent,
   type MeasureInWindowOnSuccessCallback,
   type ScrollViewProps,
+  type View,
 } from "react-native";
 
 type KeyboardAwareScrollViewProps = ScrollViewProps & {
@@ -114,7 +116,22 @@ export function useScrollFocusedInputIntoView(
     };
   }, [enabled, scrollFocusedInput]);
 
-  return { scrollFocusedInput, trackScroll };
+  const scrollValidationField = React.useCallback(
+    (target: View) => {
+      if (Platform.OS === "web") return;
+      const scroll = scrollViewRef.current;
+      scroll?.getNativeScrollRef()?.measureInWindow((_x, top) => {
+        target.measureInWindow((_fieldX, fieldTop) => {
+          scroll.scrollTo({
+            y: Math.max(0, scrollOffsetRef.current + fieldTop - top - extraScrollHeight),
+            animated: true,
+          });
+        });
+      });
+    },
+    [scrollViewRef, extraScrollHeight],
+  );
+  return { scrollFocusedInput, trackScroll, scrollValidationField };
 }
 
 export function KeyboardAwareScrollView({
@@ -131,10 +148,8 @@ export function KeyboardAwareScrollView({
 }: Readonly<KeyboardAwareScrollViewProps>) {
   const internalScrollRef = React.useRef<ScrollView>(null);
   const scrollViewRef = scrollRef ?? internalScrollRef;
-  const { scrollFocusedInput, trackScroll } = useScrollFocusedInputIntoView(
-    scrollViewRef,
-    extraScrollHeight,
-  );
+  const { scrollFocusedInput, trackScroll, scrollValidationField } =
+    useScrollFocusedInputIntoView(scrollViewRef, extraScrollHeight);
 
   return (
     <KeyboardAvoidingView
@@ -163,7 +178,9 @@ export function KeyboardAwareScrollView({
         }}
         {...props}
       >
-        {children}
+        <ValidationScrollContext.Provider value={scrollValidationField}>
+          {children}
+        </ValidationScrollContext.Provider>
       </ScrollView>
     </KeyboardAvoidingView>
   );

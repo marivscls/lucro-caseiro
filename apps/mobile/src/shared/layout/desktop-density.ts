@@ -8,6 +8,37 @@ export const desktopWidths = {
   data: 1280,
 } as const;
 
+/** One desktop frame for navigation, page headings, content and actions. */
+export const desktopLayout = {
+  sidebarWidth: 240,
+  pageGutter: 32,
+  sectionGap: 24,
+  headerHeight: 88,
+  controlHeight: 44,
+  asideMinWidth: 280,
+  asideMaxWidth: 360,
+} as const;
+
+export const desktopHeaderStyle: ViewStyle = {
+  width: "100%",
+  minHeight: desktopLayout.headerHeight,
+  paddingHorizontal: 0,
+  paddingTop: 24,
+  paddingBottom: 24,
+  flexShrink: 0,
+};
+
+/** Usable page width after the desktop navigation and shell gutters. */
+export function desktopContentWidth(viewportWidth: number): number {
+  return Math.max(
+    0,
+    Math.min(
+      desktopWidths.data,
+      viewportWidth - desktopLayout.sidebarWidth - desktopLayout.pageGutter * 2,
+    ),
+  );
+}
+
 /** Mobile page gutter token (`spacing.xl` = 20). Kept local to avoid UI import cycles. */
 const MOBILE_PAGE_GUTTER = 20;
 
@@ -75,20 +106,22 @@ export function desktopSplitLayout(isDesktop: boolean): {
     row: {
       flexDirection: "row",
       alignItems: "flex-start",
-      gap: 32,
+      gap: desktopLayout.sectionGap,
       width: "100%",
     },
     main: {
       flex: 1,
       minWidth: 0,
-      gap: 24,
+      gap: desktopLayout.sectionGap,
     },
     aside: {
-      width: 400,
+      width: "30%",
+      minWidth: desktopLayout.asideMinWidth,
+      maxWidth: desktopLayout.asideMaxWidth,
       flexShrink: 0,
       // RN Web supports sticky for preview/estimate rails.
       position: "sticky" as ViewStyle["position"],
-      top: 0,
+      top: desktopLayout.sectionGap,
       gap: 16,
     },
   };

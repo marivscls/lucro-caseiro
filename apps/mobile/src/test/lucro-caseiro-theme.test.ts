@@ -40,11 +40,11 @@ describe("tipografia do app", () => {
 
   it("mantem a escala semantica compacta da Home", () => {
     expect(homeTypography).toMatchObject({
-      title: { fontSize: 20, fontFamily: fonts.bold, lineHeight: 26 },
+      title: { fontSize: 18, fontFamily: fonts.bold, lineHeight: 24 },
       body: { fontSize: 14, fontFamily: fonts.regular, lineHeight: 20 },
       avatar: { fontSize: 17, fontFamily: fonts.semiBold },
       eyebrow: { fontSize: 11, fontFamily: fonts.bold, lineHeight: 15 },
-      cardLead: { fontSize: 17, fontFamily: fonts.bold, lineHeight: 22 },
+      cardLead: { fontSize: 16, fontFamily: fonts.bold, lineHeight: 22 },
       description: {
         fontSize: 14,
         fontFamily: fonts.regular,
@@ -58,9 +58,9 @@ describe("tipografia do app", () => {
         lineHeight: 20,
       },
       financialValue: {
-        fontSize: 22,
+        fontSize: 20,
         fontFamily: fonts.bold,
-        lineHeight: 28,
+        lineHeight: 26,
       },
       metricLabel: { fontSize: 12, fontFamily: fonts.medium, lineHeight: 16 },
       metricValue: { fontSize: 16, fontFamily: fonts.bold, lineHeight: 22 },
@@ -81,8 +81,8 @@ describe("tipografia do app", () => {
   it("mantem a escala compacta de valores monetarios", () => {
     expect(moneyTypography).toMatchObject({
       money: { fontSize: 16, fontFamily: fonts.extraBold, lineHeight: 22 },
-      moneyLg: { fontSize: 22, fontFamily: fonts.extraBold, lineHeight: 28 },
-      moneyHero: { fontSize: 28, fontFamily: fonts.extraBold, lineHeight: 34 },
+      moneyLg: { fontSize: 20, fontFamily: fonts.bold, lineHeight: 26 },
+      moneyHero: { fontSize: 24, fontFamily: fonts.bold, lineHeight: 30 },
     });
   });
 });

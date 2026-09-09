@@ -100,6 +100,8 @@ estoque rápido (+/−) e ver alerta de estoque baixo. Separado dos produtos aca
 
 ## Change log / Decisions
 
+- 2026-09-08: o painel ilustrado do topo permanece visível também sem cadastros, com contadores zerados. O estado vazio abaixo mantém apenas texto e CTA, sem PNG.
+
 - Criação inicial: catálogo + estoque de insumos com ajuste rápido e alerta de baixo.
 - v1 standalone (sem baixa automática por receita — futuro).
 - **#14 Conteúdo por unidade (LIGHT)**: form ganhou seção opcional (quantidade + unidade) para

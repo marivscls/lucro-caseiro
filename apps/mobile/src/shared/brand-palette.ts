@@ -23,10 +23,12 @@ export function brandScreenPalette(theme: Theme) {
   const light = theme.mode === "light";
   return {
     /** Texto/ícone vinho sobre superfícies da tela. */
-    wine: light ? LIGHT.wine : theme.colors.primaryLight,
+    wine: light ? LIGHT.wine : theme.colors.primaryStrong,
     /** Preenchimento vinho (hero, chip ativo, FAB). */
     wineFill: LIGHT.wine,
     rose: light ? LIGHT.rose : theme.colors.primaryInteractive,
+    /** Texto/ícone sobre o preenchimento rosa, que fica mais claro no escuro. */
+    onRose: light ? LIGHT.white : theme.colors.textOnPrimary,
     lime: LIGHT.lime,
     limeText: light ? LIGHT.limeText : LIGHT.lime,
     /** Texto sobre lima (sempre escuro — lima não muda). */

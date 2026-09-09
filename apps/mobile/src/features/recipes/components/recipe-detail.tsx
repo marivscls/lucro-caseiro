@@ -1,6 +1,7 @@
 import { formatCurrency } from "../../../shared/utils/format";
 import { Button, Card, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Image, View } from "react-native";
 
@@ -33,6 +34,7 @@ export function RecipeDetail({
   onDeleted,
 }: RecipeDetailProps) {
   const { theme } = useTheme();
+  const router = useRouter();
   const experienceCopy = useBusinessCopy();
   const formulaLabel = experienceCopy.formulaNoun.replace(/^./, (letter) =>
     letter.toUpperCase(),
@@ -267,6 +269,29 @@ export function RecipeDetail({
       </View>
 
       {onEdit && <Button title="Editar receita" size="lg" onPress={onEdit} />}
+
+      <Button
+        title="Precificar com esta receita"
+        variant="secondary"
+        size="lg"
+        icon={
+          <AppIcon
+            name="calculator-outline"
+            size={20}
+            color={theme.colors.primaryStrong}
+          />
+        }
+        onPress={() => {
+          router.push({
+            pathname: "/pricing",
+            params: {
+              recipeCost: String(costPerUnit),
+              name: displayIngredientName(recipe.name),
+              category: recipe.category,
+            },
+          });
+        }}
+      />
 
       <Button
         title="Imprimir / Compartilhar"

@@ -50,7 +50,7 @@ import { alertError } from "../shared/utils/alerts";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 import { useBrandIllustration } from "../shared/brand-illustrations";
 import { useBrandScreenPalette } from "../shared/brand-palette";
-import { pageGutter } from "../shared/layout/desktop-density";
+import { desktopContentWidth, pageGutter } from "../shared/layout/desktop-density";
 import { ScreenHeader } from "../shared/components/screen-header";
 import { useAllProducts, useUpdateProduct } from "../features/products/hooks";
 import { useServices, useUpdateService } from "../features/services/hooks";
@@ -59,7 +59,7 @@ import { formatCurrency } from "../shared/utils/format";
 type CatalogContentTab = "products" | "services";
 
 const CATALOG_HERO_ASPECT_RATIO = 1139 / 998;
-const CATALOG_CONTENT_MAX_WIDTH = 960;
+const CATALOG_CONTENT_MAX_WIDTH = 1280;
 const CATALOG_HERO_STYLE_ID = "catalog-hero-layout";
 const CATALOG_HERO_WEB_CSS = `
 [data-testid="catalog-page"] {
@@ -112,19 +112,30 @@ function CatalogHero({
   illustration: ReturnType<typeof useBrandIllustration>;
 }>) {
   const { width: viewportWidth } = useWindowDimensions();
+  const isDesktop = useDesktopLayout();
+  const heroWidth = isDesktop ? desktopContentWidth(viewportWidth) : viewportWidth;
   const colors = useBrandScreenPalette();
   useCatalogHeroWebStyles();
   const isWideHero = viewportWidth >= 768;
   const isVeryCompact = viewportWidth < 360;
-  const nativeArtFrame = catalogHeroNativeArtFrame(viewportWidth);
+  const desktopArtWidth = Math.min(340, heroWidth * 0.42);
+  const nativeArtFrame = isDesktop
+    ? {
+        width: desktopArtWidth,
+        top: (300 - desktopArtWidth / CATALOG_HERO_ASPECT_RATIO) / 2,
+        right: 24,
+      }
+    : catalogHeroNativeArtFrame(viewportWidth);
   const artHeight = nativeArtFrame.width / CATALOG_HERO_ASPECT_RATIO;
   const illustrationUri = Asset.fromModule(illustration).uri;
   let heroHeight = 240;
   if (isWideHero) heroHeight = 367;
+  if (isDesktop) heroHeight = 300;
   // The wrapper includes its left padding in its measured width on web.
   let textWidth: number | "100%" | "52%" = "100%";
   if (viewportWidth >= 768) textWidth = "52%";
   if (isWideHero) textWidth = 403;
+  if (isDesktop) textWidth = Math.min(403, heroWidth * 0.52);
   const descriptionWidth = "100%";
   let copyGap: number = spacing.md;
   if (isVeryCompact) copyGap = 7;
@@ -132,7 +143,7 @@ function CatalogHero({
   const copyLeft = isWideHero ? 43 : 24;
   const copyTop = isWideHero ? 50 : 24;
   const statusHeight = isWideHero ? 42 : 32;
-  const statusFontSize = 16;
+  const statusFontSize = 14;
 
   return (
     <View
@@ -178,7 +189,7 @@ function CatalogHero({
           paddingLeft: copyLeft,
           paddingTop: copyTop,
           paddingRight: isWideHero ? 0 : 24,
-          paddingBottom: isWideHero ? 0 : 76,
+          paddingBottom: isWideHero ? 0 : spacing.md,
         }}
       >
         <Typography variant="h3" color={colors.onWine}>
@@ -263,7 +274,22 @@ function CatalogHero({
             />
           )}
         </View>
-      ) : null}
+      ) : (
+        <Image
+          testID="catalog-hero-illustration"
+          source={illustration}
+          resizeMode="contain"
+          accessible={false}
+          accessibilityIgnoresInvertColors
+          style={{
+            alignSelf: "center",
+            width: 200,
+            maxWidth: "100%",
+            height: 200 / CATALOG_HERO_ASPECT_RATIO,
+            marginBottom: spacing.lg,
+          }}
+        />
+      )}
     </View>
   );
 }
@@ -297,7 +323,7 @@ function SummaryMetric({
   if (spacious) {
     metricGap = 10;
     metricIconSize = 46;
-    valueFontSize = 22;
+    valueFontSize = 20;
     labelFontSize = 14;
     labelLineHeight = 19;
     metricGlyphSize = iconSizes.sm;
@@ -499,7 +525,7 @@ function CatalogItemVisibility({
           <Typography
             variant="bodyBold"
             numberOfLines={2}
-            style={spacious ? { fontSize: 18, lineHeight: 24 } : undefined}
+            style={spacious ? { fontSize: 16, lineHeight: 22 } : undefined}
           >
             {title}
           </Typography>
@@ -507,7 +533,7 @@ function CatalogItemVisibility({
             variant="caption"
             color={theme.colors.textSecondary}
             numberOfLines={2}
-            style={spacious ? { fontSize: 15, lineHeight: 21 } : undefined}
+            style={spacious ? { fontSize: 14, lineHeight: 20 } : undefined}
           >
             {description}
           </Typography>
@@ -1143,8 +1169,8 @@ function CatalogContentManager({
               numberOfLines={2}
               style={{
                 flex: 1,
-                fontSize: spaciousLayout ? 22 : undefined,
-                lineHeight: spaciousLayout ? 28 : undefined,
+                fontSize: spaciousLayout ? 16 : undefined,
+                lineHeight: spaciousLayout ? 22 : undefined,
               }}
             >
               {businessName}
@@ -1210,7 +1236,7 @@ function CatalogContentManager({
             <Typography
               variant="bodyBold"
               color={theme.colors.primaryStrong}
-              style={spaciousLayout ? { fontSize: 20, lineHeight: 26 } : undefined}
+              style={spaciousLayout ? { fontSize: 14, lineHeight: 20 } : undefined}
             >
               Personalizar
             </Typography>
@@ -1335,7 +1361,7 @@ function CatalogForm({
   const mobileBottomPadding = spacing["2xl"];
   let contentPaddingTop = 58;
   if (referencePwaLayout) contentPaddingTop = 0;
-  if (isDesktop) contentPaddingTop = 64;
+  if (isDesktop) contentPaddingTop = spacing.sm;
   let catalogContentWidth: number | "100%" = Math.max(0, viewportWidth - 32);
   if (referencePwaLayout) catalogContentWidth = Math.max(0, viewportWidth - 52);
   if (isDesktop) catalogContentWidth = "100%";
@@ -1356,13 +1382,11 @@ function CatalogForm({
           style={{
             width: catalogContentWidth,
             maxWidth: isDesktop ? CATALOG_CONTENT_MAX_WIDTH : undefined,
-            alignSelf: "center",
+            alignSelf: isDesktop ? "stretch" : "center",
             overflow: "visible",
           }}
         >
-          {customizerProducts.length + customizerServices.length > 0 ? (
-            <CatalogHero enabled={settings.enabled} illustration={catalogStorefront} />
-          ) : null}
+          <CatalogHero enabled={settings.enabled} illustration={catalogStorefront} />
           <CatalogContentManager
             settings={settings}
             businessName={businessName}

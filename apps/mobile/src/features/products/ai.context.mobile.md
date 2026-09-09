@@ -166,6 +166,8 @@ it must not turn the Products registry into Services; services use `/services`.
 
 ## Change log / Decisions
 
+- 2026-09-08: o painel ilustrado do topo permanece visível também sem cadastros, com contadores zerados. O estado vazio abaixo mantém apenas texto e CTA, sem PNG.
+
 - 2026-07-24: criação e edição foram organizadas em blocos canônicos (`FormSection`) para
   informações básicas, preço/custo, apresentação e estoque. O resultado ao vivo diferencia
   ganho bruto em reais de margem sobre o preço, sempre descrito como estimativa baseada nos
@@ -207,3 +209,7 @@ it must not turn the Products registry into Services; services use `/services`.
 Nome, categoria e preço ficam em seções não recolhíveis antes das opções de kit. Validação mostra erros locais e foca nome/preço ou abre categoria. Categoria continua obrigatória. Estado vazio omite filtros e resumos sem dados. O seletor não anima no navegador para não competir com foco da validação.
 
 Contrato e matriz: `docs/orientacao-contextual-primeiro-valor.md`; composição: `shared/guidance`.
+
+## Pré-preenchimento da precificação — 2026-09-09
+
+`CreateProductForm.initialValues` aceita `salePrice` e `costPrice`, além de nome/categoria. A rota `/products?create=from-pricing` converte apenas valores monetários finitos e não negativos e entrega os campos em `initialValues`. Cadastro manual ignora esses parâmetros. Props legadas `initialSalePrice` e `initialCostPrice` continuam aceitas para outros consumidores. O custo continua sujeito à feature `custoDireto` existente.

@@ -1,3 +1,5 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../shared/hooks/use-form-validation";
 import type {
   PaymentMethod,
   Product,
@@ -51,7 +53,11 @@ import { showToast } from "../shared/components/toast";
 import { alertError, alertValidation } from "../shared/utils/alerts";
 import { exportHtmlPdf } from "../shared/utils/export-html";
 import { BarcodeScanner } from "../shared/components/barcode-scanner";
-import { desktopStretch, desktopWidths, pageGutter } from "../shared/layout/desktop-density";
+import {
+  desktopStretch,
+  desktopWidths,
+  pageGutter,
+} from "../shared/layout/desktop-density";
 import { useDesktopLayout } from "../shared/layout/use-desktop-layout";
 
 type OperationMode =
@@ -507,7 +513,25 @@ export default function RetailScreen() {
     );
   }
 
+  const formValidation = useFormValidation(
+    {
+      title:
+        (mode === "school_list" || mode === "service_order" || mode === "promotion") &&
+        !title.trim() &&
+        "Informe um nome para este cadastro.",
+      amount:
+        (mode === "service_order" ||
+          mode === "promotion" ||
+          mode === "prices" ||
+          mode === "business_account") &&
+        !amount.trim() &&
+        "Informe o valor antes de continuar.",
+    },
+    mode,
+  );
+
   function submitMode() {
+    if (!formValidation.validate()) return;
     const actions: Record<OperationMode, () => Promise<void>> = {
       checkout: submitCheckout,
       school_list: submitSchoolList,
@@ -745,7 +769,9 @@ export default function RetailScreen() {
     if (mode === "inventory_count") {
       return (
         <View style={{ gap: spacing.lg }}>
-          <Input label="Nome da contagem" value={title} onChangeText={setTitle} />
+          <ValidationField {...formValidation.field("title")}>
+            <Input label="Nome da contagem" value={title} onChangeText={setTitle} />
+          </ValidationField>
           {renderProductPicker()}
           {selectedStockItems.map(({ product, variation }) => {
             const key = stockItemKey(product.id, variation?.id);
@@ -766,7 +792,9 @@ export default function RetailScreen() {
     if (mode === "school_list") {
       return (
         <View style={{ gap: spacing.lg }}>
-          <Input label="Nome da lista" value={title} onChangeText={setTitle} />
+          <ValidationField {...formValidation.field("title")}>
+            <Input label="Nome da lista" value={title} onChangeText={setTitle} />
+          </ValidationField>
           <Input label="Escola / série" value={detail} onChangeText={setDetail} />
           {renderProductPicker()}
           {renderQuantityInputs()}
@@ -776,13 +804,17 @@ export default function RetailScreen() {
     if (mode === "service_order") {
       return (
         <View style={{ gap: spacing.lg }}>
-          <Input label="Serviço" value={title} onChangeText={setTitle} />
-          <Input
-            label="Valor"
-            value={amount}
-            onChangeText={setAmount}
-            keyboardType="numeric"
-          />
+          <ValidationField {...formValidation.field("title")}>
+            <Input label="Serviço" value={title} onChangeText={setTitle} />
+          </ValidationField>
+          <ValidationField {...formValidation.field("amount")}>
+            <Input
+              label="Valor"
+              value={amount}
+              onChangeText={setAmount}
+              keyboardType="numeric"
+            />
+          </ValidationField>
           <Input label="Especificações" value={detail} onChangeText={setDetail} />
           {renderClientPicker()}
         </View>
@@ -791,13 +823,17 @@ export default function RetailScreen() {
     if (mode === "promotion") {
       return (
         <View style={{ gap: spacing.lg }}>
-          <Input label="Nome da promoção" value={title} onChangeText={setTitle} />
-          <Input
-            label="Desconto (%)"
-            value={amount}
-            onChangeText={setAmount}
-            keyboardType="numeric"
-          />
+          <ValidationField {...formValidation.field("title")}>
+            <Input label="Nome da promoção" value={title} onChangeText={setTitle} />
+          </ValidationField>
+          <ValidationField {...formValidation.field("amount")}>
+            <Input
+              label="Desconto (%)"
+              value={amount}
+              onChangeText={setAmount}
+              keyboardType="numeric"
+            />
+          </ValidationField>
           {renderProductPicker()}
         </View>
       );
@@ -805,12 +841,14 @@ export default function RetailScreen() {
     if (mode === "prices") {
       return (
         <View style={{ gap: spacing.lg }}>
-          <Input
-            label="Reajuste (%)"
-            value={amount}
-            onChangeText={setAmount}
-            keyboardType="numeric"
-          />
+          <ValidationField {...formValidation.field("amount")}>
+            <Input
+              label="Reajuste (%)"
+              value={amount}
+              onChangeText={setAmount}
+              keyboardType="numeric"
+            />
+          </ValidationField>
           {renderProductPicker()}
         </View>
       );
@@ -836,13 +874,17 @@ export default function RetailScreen() {
     }
     return (
       <View style={{ gap: spacing.lg }}>
-        <Input label="Razão social" value={title} onChangeText={setTitle} />
-        <Input
-          label="Limite de crédito"
-          value={amount}
-          onChangeText={setAmount}
-          keyboardType="numeric"
-        />
+        <ValidationField {...formValidation.field("title")}>
+          <Input label="Razão social" value={title} onChangeText={setTitle} />
+        </ValidationField>
+        <ValidationField {...formValidation.field("amount")}>
+          <Input
+            label="Limite de crédito"
+            value={amount}
+            onChangeText={setAmount}
+            keyboardType="numeric"
+          />
+        </ValidationField>
         <Input
           label="Desconto padrão (%)"
           value={detail}
@@ -875,12 +917,14 @@ export default function RetailScreen() {
                   Esperado em dinheiro: R${" "}
                   {cash.data.expectedCash.toFixed(2).replace(".", ",")}
                 </Typography>
-                <Input
-                  label="Valor"
-                  value={amount}
-                  onChangeText={setAmount}
-                  keyboardType="numeric"
-                />
+                <ValidationField {...formValidation.field("amount")}>
+                  <Input
+                    label="Valor"
+                    value={amount}
+                    onChangeText={setAmount}
+                    keyboardType="numeric"
+                  />
+                </ValidationField>
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
                   <Button
                     title="Suprimento"
@@ -925,12 +969,14 @@ export default function RetailScreen() {
               </>
             ) : (
               <>
-                <Input
-                  label="Fundo inicial"
-                  value={amount}
-                  onChangeText={setAmount}
-                  keyboardType="numeric"
-                />
+                <ValidationField {...formValidation.field("amount")}>
+                  <Input
+                    label="Fundo inicial"
+                    value={amount}
+                    onChangeText={setAmount}
+                    keyboardType="numeric"
+                  />
+                </ValidationField>
                 <Button
                   title="Abrir caixa"
                   onPress={() =>

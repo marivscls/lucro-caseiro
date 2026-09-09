@@ -1,7 +1,10 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../shared/hooks/use-form-validation";
 import { formatCurrency } from "../shared/utils/format";
 import type { Product, ProductVariationInput, SaleUnit } from "@lucro-caseiro/contracts";
 import { hasActiveFeature } from "@lucro-caseiro/contracts";
 import {
+  CenteredTextInput,
   Badge,
   Button,
   Card,
@@ -17,7 +20,7 @@ import {
 import { AppIcon } from "../shared/components/app-icon";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
-import { Image, Pressable, TextInput, useWindowDimensions, View } from "react-native";
+import { Image, Pressable, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
@@ -27,6 +30,7 @@ import {
 } from "../features/products/components/component-picker";
 import { CompositeToggle } from "../features/products/components/composite-toggle";
 import { CreateProductForm } from "../features/products/components/create-product-form";
+import { pricingProductInitialValues } from "../features/products/pricing-initial-values";
 import { ProductList } from "../features/products/components/product-list";
 import {
   displayProductName,
@@ -194,7 +198,14 @@ function ProductDetailModal({
   const [stockReason, setStockReason] = useState("");
   const [stockVariationId, setStockVariationId] = useState<string | null>(null);
 
+  const stockValidation = useFormValidation({
+    stockDelta:
+      (!Number.isFinite(Number(stockDelta)) || Number(stockDelta) <= 0) &&
+      "Informe a quantidade recebida em estoque.",
+  });
+
   function handleAddStock() {
+    if (!stockValidation.validate()) return;
     const delta = Number.parseInt(stockDelta, 10);
     if (!Number.isInteger(delta) || delta <= 0) {
       alertValidation("Informe uma quantidade inteira maior que zero.");
@@ -245,7 +256,29 @@ function ProductDetailModal({
     setEditing(true);
   }
 
+  const formValidation = useFormValidation(
+    {
+      name: !name.trim() && "Informe o nome do produto.",
+      category: !category.trim() && "Informe uma categoria.",
+      salePrice:
+        (!Number.isFinite(parseCurrencyInput(salePrice)) ||
+          parseCurrencyInput(salePrice) <= 0) &&
+        "Informe um preço maior que zero.",
+      components:
+        isComposite &&
+        (components.length === 0 ||
+          components.some(
+            (item) =>
+              !Number.isFinite(Number(item.quantity.replace(",", "."))) ||
+              Number(item.quantity.replace(",", ".")) <= 0,
+          )) &&
+        "Adicione produtos ao kit e informe uma quantidade maior que zero para cada um.",
+    },
+    editing,
+  );
+
   async function handleSave() {
+    if (!formValidation.validate()) return;
     const price = parseCurrencyInput(salePrice);
     const cost = costPrice ? parseCurrencyInput(costPrice) : undefined;
     if (!name.trim()) {
@@ -616,13 +649,15 @@ function ProductDetailModal({
                       ))}
                     </View>
                   ) : null}
-                  <Input
-                    label="Quantidade recebida"
-                    value={stockDelta}
-                    onChangeText={setStockDelta}
-                    keyboardType="number-pad"
-                    placeholder="Ex.: 12"
-                  />
+                  <ValidationField {...stockValidation.field("stockDelta")}>
+                    <Input
+                      label="Quantidade recebida"
+                      value={stockDelta}
+                      onChangeText={setStockDelta}
+                      keyboardType="number-pad"
+                      placeholder="Ex.: 12"
+                    />
+                  </ValidationField>
                   <Input
                     label="Motivo (opcional)"
                     value={stockReason}
@@ -722,8 +757,12 @@ function ProductDetailModal({
             icon="pricetag-outline"
             initiallyOpen
           >
-            <Input label="Nome do produto" value={name} onChangeText={setName} />
-            <Input label="Categoria" value={category} onChangeText={setCategory} />
+            <ValidationField {...formValidation.field("name")}>
+              <Input label="Nome do produto" value={name} onChangeText={setName} />
+            </ValidationField>
+            <ValidationField {...formValidation.field("category")}>
+              <Input label="Categoria" value={category} onChangeText={setCategory} />
+            </ValidationField>
             {variationsEnabled && !isComposite ? (
               <VariationEditor value={variations} onChange={setVariations} />
             ) : null}
@@ -739,11 +778,13 @@ function ProductDetailModal({
               locked={!isPremium}
             />
             {isComposite && (
-              <ComponentPicker
-                value={components}
-                onChange={setComponents}
-                excludeProductId={productId}
-              />
+              <ValidationField {...formValidation.field("components")}>
+                <ComponentPicker
+                  value={components}
+                  onChange={setComponents}
+                  excludeProductId={productId}
+                />
+              </ValidationField>
             )}
           </FormSection>
           <FormSection
@@ -755,16 +796,18 @@ function ProductDetailModal({
             {!isComposite && weightEnabled ? (
               <SaleUnitToggle value={saleUnit} onChange={setSaleUnit} />
             ) : null}
-            <Input
-              label={
-                saleUnit === "kg" && !isComposite
-                  ? "Preço por kg (R$)"
-                  : "Preço de venda (R$)"
-              }
-              value={salePrice}
-              onChangeText={(value) => setSalePrice(maskCurrencyInput(value))}
-              keyboardType="numeric"
-            />
+            <ValidationField {...formValidation.field("salePrice")}>
+              <Input
+                label={
+                  saleUnit === "kg" && !isComposite
+                    ? "Preço por kg (R$)"
+                    : "Preço de venda (R$)"
+                }
+                value={salePrice}
+                onChangeText={(value) => setSalePrice(maskCurrencyInput(value))}
+                keyboardType="numeric"
+              />
+            </ValidationField>
             {directCostEnabled && !isComposite ? (
               <Input
                 label="Custo unitário (R$)"
@@ -841,7 +884,7 @@ function ProductDetailModal({
               onChangeText={setDescription}
               multiline
               numberOfLines={3}
-              style={{ height: 100, textAlignVertical: "top", paddingTop: 12 }}
+              style={{ height: 100, textAlignVertical: "center" }}
             />
           </FormSection>
           <FormSection
@@ -1111,7 +1154,13 @@ function CatalogOverview({
     : `${productCount} produtos, ${kitCount} kits, ${stockUnits} unidades em estoque`;
 
   return (
-    <View style={{ width: "100%", maxWidth: 720, alignSelf: "center" }}>
+    <View
+      style={{
+        width: "100%",
+        maxWidth: isDesktop ? desktopWidths.data : 720,
+        alignSelf: isDesktop ? "stretch" : "center",
+      }}
+    >
       <View
         style={{
           height: heroHeight,
@@ -1389,14 +1438,18 @@ export default function ProductsScreen() {
   const { width: viewportWidth } = useWindowDimensions();
   const compactLayout = viewportWidth < 375;
   const contentGutter = compactLayout ? spacing.lg : spacing.xl;
-  const listContentMaxWidth = isDesktop ? desktopWidths.wide : desktopWidths.standard;
+  const listContentMaxWidth = isDesktop ? desktopWidths.data : desktopWidths.standard;
   const router = useRouter();
-  const { from, create, salePrice, stock } = useLocalSearchParams<{
-    from?: string;
-    create?: string;
-    salePrice?: string;
-    stock?: string;
-  }>();
+  const { from, create, salePrice, costPrice, name, category, stock } =
+    useLocalSearchParams<{
+      from?: string;
+      create?: string;
+      salePrice?: string;
+      costPrice?: string;
+      name?: string;
+      category?: string;
+      stock?: string;
+    }>();
   const guidedCreate = create === "getting-started";
   const [showCreate, setShowCreate] = useState(create === "from-pricing" || guidedCreate);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
@@ -1488,8 +1541,23 @@ export default function ProductsScreen() {
     router.back();
   }
 
+  const catalogOverview = (
+    <CatalogOverview
+      totalItems={products.length}
+      productCount={catalogMetrics.products}
+      kitCount={catalogMetrics.kits}
+      stockUnits={catalogMetrics.stockUnits}
+      productLabel={productTypeFilters[1]?.label ?? "Produtos"}
+      kitLabel={productTypeFilters[2]?.label ?? "Kits"}
+      isDesktop={isDesktop}
+      isLoading={productsQuery.isLoading}
+    />
+  );
+
   const catalogListHeader =
-    products.length === 0 && !productsQuery.isLoading ? null : (
+    products.length === 0 && !productsQuery.isLoading ? (
+      catalogOverview
+    ) : (
       <View style={{ width: "100%", gap: compactLayout ? spacing.md : spacing.lg }}>
         <View
           style={{
@@ -1507,7 +1575,7 @@ export default function ProductsScreen() {
           }}
         >
           <AppIcon name="search-outline" size={24} color={palette.ink} />
-          <TextInput
+          <CenteredTextInput
             value={search}
             onChangeText={setSearch}
             placeholder={`Buscar ${brand.copy.productNoun}`}
@@ -1558,7 +1626,7 @@ export default function ProductsScreen() {
               >
                 <Typography
                   variant="bodyBold"
-                  color={selected ? palette.onWine : palette.rose}
+                  color={selected ? palette.onRose : palette.rose}
                   numberOfLines={1}
                 >
                   {filter.label}
@@ -1597,16 +1665,7 @@ export default function ProductsScreen() {
           </Typography>
         </Pressable>
 
-        <CatalogOverview
-          totalItems={products.length}
-          productCount={catalogMetrics.products}
-          kitCount={catalogMetrics.kits}
-          stockUnits={catalogMetrics.stockUnits}
-          productLabel={productTypeFilters[1]?.label ?? "Produtos"}
-          kitLabel={productTypeFilters[2]?.label ?? "Kits"}
-          isDesktop={isDesktop}
-          isLoading={productsQuery.isLoading}
-        />
+        {catalogOverview}
 
         <LimitBanner resource="products" onUpgrade={() => showPaywall("products")} />
         <LowStockBanner onPress={() => setStatusFilter("stock")} />
@@ -1642,7 +1701,7 @@ export default function ProductsScreen() {
           style={{
             width: "100%",
             maxWidth: listContentMaxWidth,
-            alignSelf: "center",
+            alignSelf: isDesktop ? "stretch" : "center",
             paddingHorizontal: isDesktop ? 0 : contentGutter,
             paddingTop: spacing.xs,
             paddingBottom: spacing.md,
@@ -1779,15 +1838,19 @@ export default function ProductsScreen() {
 
       {/* Modal - criar item da marca */}
       <CreateProductForm
-        key={`${create ?? "manual"}:${salePrice ?? ""}`}
+        key={JSON.stringify([create, salePrice, costPrice, name, category])}
         modal={{
           visible: showCreate,
           onClose: () => setShowCreate(false),
           title: `Novo ${brand.copy.productNoun}`,
         }}
-        initialSalePrice={
-          create === "from-pricing" && salePrice ? Number(salePrice) : undefined
-        }
+        initialValues={pricingProductInitialValues({
+          create,
+          salePrice,
+          costPrice,
+          name,
+          category,
+        })}
         analyticsSource={create === "from-pricing" ? "pricing" : undefined}
         onPriceInvite={
           guidedCreate || create === "from-pricing"

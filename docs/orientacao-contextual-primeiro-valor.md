@@ -41,6 +41,11 @@ Allowlist de áreas, eventos e identificadores de validação. Nenhum valor digi
 
 ## Aceite
 
+Revisão UX de 2026-09-09: o convite e a ajuda mantêm no máximo um CTA grande.
+Ações secundárias e “Agora não” usam texto tocável com área mínima de 48 dp.
+O convite entra e sai com fade curto; a dispensa conclui ao terminar a animação.
+Com movimento reduzido, a transição e a dispensa são imediatas.
+
 Verificar conta nova e recorrente, dispensa/reabertura, isolamento de conta, falha de persistência, sucesso versus erro de operação, retomada de formulário e regras de plano. Revisão visual móvel 390×844, largura menor e desktop, temas claro/escuro. Testes de navegador não equivalem à homologação física Android/iOS.
 
 ## Métricas para acompanhamento

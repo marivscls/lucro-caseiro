@@ -2,7 +2,6 @@ import React from "react";
 import {
   Platform,
   Text,
-  TextInput,
   View,
   type TextInputProps,
   type TextStyle,
@@ -11,6 +10,7 @@ import {
 
 import { useTheme } from "../theme-context";
 import { fonts, fontSizes, radii, spacing } from "../theme";
+import { CenteredTextInput } from "./centered-text-input";
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -27,17 +27,16 @@ export function Input({
   style,
   multiline,
   ...props
-}: InputProps) {
+}: Readonly<InputProps>) {
   const { theme } = useTheme();
   const errorId = React.useId();
   const [focused, setFocused] = React.useState(false);
+  let borderColor = theme.colors.border;
+  if (error) borderColor = theme.colors.alert;
+  else if (focused) borderColor = theme.colors.primaryInteractive;
   const webAutofillSurface: TextStyle | undefined =
     Platform.OS === "web"
       ? { boxShadow: `inset 0 0 0 1000px ${theme.colors.surfaceElevated}` }
-      : undefined;
-  const multilineWebCenter: TextStyle | undefined =
-    multiline && Platform.OS === "web"
-      ? { paddingTop: 13, paddingBottom: 13, lineHeight: 22 }
       : undefined;
 
   return (
@@ -60,20 +59,19 @@ export function Input({
           backgroundColor: theme.colors.surfaceElevated,
           borderRadius: radii.lg,
           borderWidth: 1,
-          borderColor: error
-            ? theme.colors.alert
-            : focused
-              ? theme.colors.primaryInteractive
-              : theme.colors.border,
+          borderColor,
           paddingHorizontal: spacing.lg,
           gap: spacing.sm,
         }}
       >
         {icon}
-        <TextInput
-          placeholderTextColor={theme.colors.textSecondary + "80"}
+        <CenteredTextInput
+          placeholderTextColor={
+            theme.mode === "dark"
+              ? theme.colors.textSecondary
+              : theme.colors.textSecondary + "80"
+          }
           multiline={multiline}
-          textAlignVertical={multiline ? "center" : "auto"}
           style={[
             {
               flex: 1,
@@ -84,7 +82,6 @@ export function Input({
               color: theme.colors.text,
             },
             webAutofillSurface,
-            multilineWebCenter,
             style,
           ]}
           {...props}

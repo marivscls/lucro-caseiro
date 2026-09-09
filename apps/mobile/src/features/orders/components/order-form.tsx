@@ -1,7 +1,10 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import { guidanceEvent } from "../../../shared/guidance/guidance-events";
 import { useAuth } from "../../../shared/hooks/use-auth";
 import type { Order } from "@lucro-caseiro/contracts";
 import {
+  CenteredTextInput,
   Typography,
   fontSizes,
   fonts,
@@ -17,7 +20,6 @@ import {
   Image,
   Platform,
   Pressable,
-  TextInput,
   View,
   type TextInputProps,
 } from "react-native";
@@ -111,19 +113,14 @@ function Field({
         borderWidth: 1,
         borderColor: pal.border,
         flexDirection: "row",
-        alignItems: isMultiline ? "flex-start" : "center",
+        alignItems: "center",
         paddingHorizontal: spacing.md,
         paddingVertical: isMultiline ? spacing.md : 0,
         gap: spacing.md,
       }}
     >
-      <AppIcon
-        name={icon}
-        size={24}
-        color={theme.colors.primaryLight}
-        style={isMultiline ? { marginTop: 2 } : undefined}
-      />
-      <TextInput
+      <AppIcon name={icon} size={24} color={theme.colors.primaryLight} />
+      <CenteredTextInput
         {...props}
         placeholderTextColor={theme.colors.textSecondary}
         style={[
@@ -133,7 +130,7 @@ function Field({
             fontSize: 18,
             paddingVertical: 0,
             minHeight: isMultiline ? 78 : 48,
-            textAlignVertical: isMultiline ? "top" : "center",
+            textAlignVertical: "center",
           },
           props.style,
         ]}
@@ -483,7 +480,19 @@ export function OrderForm({
     setShowDatePicker(true);
   }
 
+  const serviceValidation = useFormValidation(
+    {
+      newServiceName: !newServiceName.trim() && "Informe o nome do serviço.",
+      newServiceDuration:
+        (!Number.isFinite(Number(newServiceDuration)) ||
+          Number(newServiceDuration) < 5) &&
+        "Informe uma duração de pelo menos 5 minutos.",
+    },
+    visible,
+  );
+
   async function handleCreateService() {
+    if (!serviceValidation.validate()) return;
     const duration = Number.parseInt(newServiceDuration, 10);
     if (!newServiceName.trim() || !Number.isInteger(duration) || duration < 5) {
       alertValidation("Informe o nome e uma duração de pelo menos 5 minutos.");
@@ -507,7 +516,23 @@ export function OrderForm({
     }
   }
 
+  const formValidation = useFormValidation(
+    {
+      serviceId: isAppointment && !serviceId && "Selecione o serviço deste atendimento.",
+      title: !isAppointment && !title.trim() && "Dê um nome para este cadastro.",
+      locationMode:
+        isAppointment &&
+        !!serviceId &&
+        !locationMode &&
+        "Escolha o local do atendimento.",
+      dateText: !brToIso(dateText) && "Informe uma data válida no formato DD/MM/AAAA.",
+      time: isAppointment && !time.trim() && "Informe o horário do atendimento.",
+    },
+    visible,
+  );
+
   async function saveOrder() {
+    if (!formValidation.validate()) return;
     if (isAppointment && !serviceId) {
       alertValidation("Selecione o serviço deste atendimento.");
       return;
@@ -850,292 +875,16 @@ export function OrderForm({
               />
             ) : null}
 
-            <View
-              style={[
-                { gap: spacing.md },
-                isDesktop ? { flex: 1, minWidth: 0 } : undefined,
-              ]}
-            >
-              <View>
-                <Typography variant="h3" color={theme.colors.text}>
-                  Serviço{isAppointment ? "" : " (opcional)"}
-                  {isAppointment ? (
-                    <Typography variant="bodyBold" color={theme.colors.primaryLight}>
-                      {" "}
-                      *
-                    </Typography>
-                  ) : null}
-                </Typography>
-                <Typography variant="caption" color={pal.muted}>
-                  {isAppointment
-                    ? "Confirme a opção, os adicionais e a duração."
-                    : "Use para bloquear o horário correto na agenda."}
-                </Typography>
-              </View>
-              {services.length > 0 ? (
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
-                  {!isAppointment ? (
-                    <Pressable
-                      onPress={() => {
-                        setServiceId(null);
-                        setServiceVariationId(null);
-                        setServiceAddOnIds([]);
-                        setServicePackagePurchaseId(null);
-                        setLocationMode(null);
-                        setLocationDetails("");
-                      }}
-                      style={{
-                        minHeight: 44,
-                        justifyContent: "center",
-                        paddingHorizontal: spacing.md,
-                        borderRadius: radii.full,
-                        borderWidth: 1,
-                        borderColor:
-                          serviceId === null ? theme.colors.primary : pal.border,
-                        backgroundColor:
-                          serviceId === null ? theme.colors.primaryBg : pal.surface,
-                      }}
-                    >
-                      <Typography variant="caption">Sem serviço</Typography>
-                    </Pressable>
-                  ) : null}
-                  {services
-                    .filter(
-                      (service) =>
-                        service.active &&
-                        (!isAppointment ||
-                          !initialServiceId ||
-                          service.id === initialServiceId),
-                    )
-                    .map((service) => (
-                      <Pressable
-                        key={service.id}
-                        onPress={() => {
-                          setServiceId(service.id);
-                          setServiceVariationId(null);
-                          setServiceAddOnIds([]);
-                          setServicePackagePurchaseId(null);
-                          setDurationMinutes(String(service.durationMinutes));
-                          setLocationMode(
-                            service.locationMode === "flexible"
-                              ? "business"
-                              : service.locationMode,
-                          );
-                          setTitle((current) => current || service.name);
-                          if (service.defaultPrice !== null) {
-                            setAmount(currencyInput(service.defaultPrice));
-                          }
-                        }}
-                        style={{
-                          minHeight: 44,
-                          justifyContent: "center",
-                          paddingHorizontal: spacing.md,
-                          borderRadius: radii.full,
-                          borderWidth: 1,
-                          borderColor:
-                            serviceId === service.id ? theme.colors.primary : pal.border,
-                          backgroundColor:
-                            serviceId === service.id
-                              ? theme.colors.primaryBg
-                              : pal.surface,
-                        }}
-                      >
-                        <Typography variant="caption">{service.name}</Typography>
-                      </Pressable>
-                    ))}
-                </View>
-              ) : null}
-              {selectedService?.variations.some((item) => item.active) ? (
-                <View style={{ gap: spacing.sm }}>
-                  <Typography variant="caption" color={pal.muted}>
-                    Opção do serviço
-                  </Typography>
-                  <View
-                    style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
-                  >
-                    {selectedService.variations
-                      .filter((item) => item.active)
-                      .map((variation) => (
-                        <Pressable
-                          key={variation.id}
-                          onPress={() => {
-                            setServiceVariationId(variation.id);
-                            setDurationMinutes(String(variation.durationMinutes));
-                            setAmount(currencyInput(variation.price));
-                          }}
-                          style={{
-                            minHeight: 44,
-                            justifyContent: "center",
-                            paddingHorizontal: spacing.md,
-                            borderRadius: radii.full,
-                            borderWidth: 1,
-                            borderColor:
-                              serviceVariationId === variation.id
-                                ? theme.colors.primary
-                                : pal.border,
-                            backgroundColor:
-                              serviceVariationId === variation.id
-                                ? theme.colors.primaryBg
-                                : pal.surface,
-                          }}
-                        >
-                          <Typography variant="caption">
-                            {variation.name} · {variation.durationMinutes} min
-                          </Typography>
-                        </Pressable>
-                      ))}
-                  </View>
-                </View>
-              ) : null}
-              {selectedService?.addOns.some((item) => item.active) ? (
-                <View style={{ gap: spacing.sm }}>
-                  <Typography variant="caption" color={pal.muted}>
-                    Adicionais
-                  </Typography>
-                  <View
-                    style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
-                  >
-                    {selectedService.addOns
-                      .filter((item) => item.active)
-                      .map((addOn) => {
-                        const selected = serviceAddOnIds.includes(addOn.id);
-                        return (
-                          <Pressable
-                            key={addOn.id}
-                            onPress={() => {
-                              setServiceAddOnIds(
-                                selected
-                                  ? withoutValue(serviceAddOnIds, addOn.id)
-                                  : [...serviceAddOnIds, addOn.id],
-                              );
-                              const currentAmount = parseCurrencyInput(amount) || 0;
-                              setAmount(
-                                currencyInput(
-                                  Math.max(
-                                    0,
-                                    currentAmount +
-                                      (selected ? -addOn.price : addOn.price),
-                                  ),
-                                ),
-                              );
-                              setDurationMinutes((current) =>
-                                String(
-                                  Math.max(
-                                    5,
-                                    (Number.parseInt(current, 10) || 0) +
-                                      (selected
-                                        ? -addOn.durationMinutes
-                                        : addOn.durationMinutes),
-                                  ),
-                                ),
-                              );
-                            }}
-                            style={{
-                              minHeight: 44,
-                              justifyContent: "center",
-                              paddingHorizontal: spacing.md,
-                              borderRadius: radii.full,
-                              borderWidth: 1,
-                              borderColor: selected ? theme.colors.primary : pal.border,
-                              backgroundColor: selected
-                                ? theme.colors.primaryBg
-                                : pal.surface,
-                            }}
-                          >
-                            <Typography variant="caption">
-                              {addOn.name} · +{currencyInput(addOn.price)}
-                            </Typography>
-                          </Pressable>
-                        );
-                      })}
-                  </View>
-                </View>
-              ) : null}
-              {packagePurchases.length > 0 ? (
-                <View style={{ gap: spacing.sm }}>
-                  <Typography variant="caption" color={pal.muted}>
-                    Usar sessão de pacote
-                  </Typography>
-                  <View
-                    style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
-                  >
-                    <Pressable
-                      onPress={() => setServicePackagePurchaseId(null)}
-                      style={{
-                        minHeight: 44,
-                        justifyContent: "center",
-                        paddingHorizontal: spacing.md,
-                        borderRadius: radii.full,
-                        borderWidth: 1,
-                        borderColor:
-                          servicePackagePurchaseId === null
-                            ? theme.colors.primary
-                            : pal.border,
-                        backgroundColor:
-                          servicePackagePurchaseId === null
-                            ? theme.colors.primaryBg
-                            : pal.surface,
-                      }}
-                    >
-                      <Typography variant="caption">Cobrança avulsa</Typography>
-                    </Pressable>
-                    {packagePurchases
-                      .filter(
-                        (purchase) =>
-                          purchase.status === "active" &&
-                          (!clientId || purchase.clientId === clientId),
-                      )
-                      .map((purchase) => (
-                        <Pressable
-                          key={purchase.id}
-                          onPress={() => {
-                            setServicePackagePurchaseId(purchase.id);
-                            setClientId(purchase.clientId);
-                            setClientName(purchase.clientName);
-                          }}
-                          style={{
-                            minHeight: 44,
-                            justifyContent: "center",
-                            paddingHorizontal: spacing.md,
-                            borderRadius: radii.full,
-                            borderWidth: 1,
-                            borderColor:
-                              servicePackagePurchaseId === purchase.id
-                                ? theme.colors.primary
-                                : pal.border,
-                            backgroundColor:
-                              servicePackagePurchaseId === purchase.id
-                                ? theme.colors.primaryBg
-                                : pal.surface,
-                          }}
-                        >
-                          <Typography variant="caption">
-                            {purchase.clientName} ·{" "}
-                            {purchase.sessionsTotal - purchase.sessionsUsed} sessões
-                          </Typography>
-                        </Pressable>
-                      ))}
-                  </View>
-                </View>
-              ) : null}
-              {serviceId ? (
-                <View style={{ gap: spacing.sm }}>
-                  <Typography variant="caption" color={pal.muted}>
-                    Duração do atendimento
-                  </Typography>
-                  <View style={compactField}>
-                    <Field
-                      icon="time-outline"
-                      placeholder="Duração em minutos"
-                      value={durationMinutes}
-                      onChangeText={(value) =>
-                        setDurationMinutes(value.replace(/\D/g, "").slice(0, 4))
-                      }
-                      keyboardType="number-pad"
-                    />
-                  </View>
-                  <Typography variant="caption" color={pal.muted}>
-                    Local do atendimento
+            <ValidationField {...formValidation.field("serviceId")}>
+              <View
+                style={[
+                  { gap: spacing.md },
+                  isDesktop ? { flex: 1, minWidth: 0 } : undefined,
+                ]}
+              >
+                <View>
+                  <Typography variant="h3" color={theme.colors.text}>
+                    Serviço{isAppointment ? "" : " (opcional)"}
                     {isAppointment ? (
                       <Typography variant="bodyBold" color={theme.colors.primaryLight}>
                         {" "}
@@ -1143,17 +892,26 @@ export function OrderForm({
                       </Typography>
                     ) : null}
                   </Typography>
+                  <Typography variant="caption" color={pal.muted}>
+                    {isAppointment
+                      ? "Confirme a opção, os adicionais e a duração."
+                      : "Use para bloquear o horário correto na agenda."}
+                  </Typography>
+                </View>
+                {services.length > 0 ? (
                   <View
                     style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
                   >
-                    {[
-                      { label: "Meu espaço", value: "business" as const },
-                      { label: "Cliente", value: "client" as const },
-                      { label: "Online", value: "online" as const },
-                    ].map((option) => (
+                    {!isAppointment ? (
                       <Pressable
-                        key={option.value}
-                        onPress={() => setLocationMode(option.value)}
+                        onPress={() => {
+                          setServiceId(null);
+                          setServiceVariationId(null);
+                          setServiceAddOnIds([]);
+                          setServicePackagePurchaseId(null);
+                          setLocationMode(null);
+                          setLocationDetails("");
+                        }}
                         style={{
                           minHeight: 44,
                           justifyContent: "center",
@@ -1161,109 +919,394 @@ export function OrderForm({
                           borderRadius: radii.full,
                           borderWidth: 1,
                           borderColor:
-                            locationMode === option.value
+                            serviceId === null ? theme.colors.primary : pal.border,
+                          backgroundColor:
+                            serviceId === null ? theme.colors.primaryBg : pal.surface,
+                        }}
+                      >
+                        <Typography variant="caption">Sem serviço</Typography>
+                      </Pressable>
+                    ) : null}
+                    {services
+                      .filter(
+                        (service) =>
+                          service.active &&
+                          (!isAppointment ||
+                            !initialServiceId ||
+                            service.id === initialServiceId),
+                      )
+                      .map((service) => (
+                        <Pressable
+                          key={service.id}
+                          onPress={() => {
+                            setServiceId(service.id);
+                            setServiceVariationId(null);
+                            setServiceAddOnIds([]);
+                            setServicePackagePurchaseId(null);
+                            setDurationMinutes(String(service.durationMinutes));
+                            setLocationMode(
+                              service.locationMode === "flexible"
+                                ? "business"
+                                : service.locationMode,
+                            );
+                            setTitle((current) => current || service.name);
+                            if (service.defaultPrice !== null) {
+                              setAmount(currencyInput(service.defaultPrice));
+                            }
+                          }}
+                          style={{
+                            minHeight: 44,
+                            justifyContent: "center",
+                            paddingHorizontal: spacing.md,
+                            borderRadius: radii.full,
+                            borderWidth: 1,
+                            borderColor:
+                              serviceId === service.id
+                                ? theme.colors.primary
+                                : pal.border,
+                            backgroundColor:
+                              serviceId === service.id
+                                ? theme.colors.primaryBg
+                                : pal.surface,
+                          }}
+                        >
+                          <Typography variant="caption">{service.name}</Typography>
+                        </Pressable>
+                      ))}
+                  </View>
+                ) : null}
+                {selectedService?.variations.some((item) => item.active) ? (
+                  <View style={{ gap: spacing.sm }}>
+                    <Typography variant="caption" color={pal.muted}>
+                      Opção do serviço
+                    </Typography>
+                    <View
+                      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
+                    >
+                      {selectedService.variations
+                        .filter((item) => item.active)
+                        .map((variation) => (
+                          <Pressable
+                            key={variation.id}
+                            onPress={() => {
+                              setServiceVariationId(variation.id);
+                              setDurationMinutes(String(variation.durationMinutes));
+                              setAmount(currencyInput(variation.price));
+                            }}
+                            style={{
+                              minHeight: 44,
+                              justifyContent: "center",
+                              paddingHorizontal: spacing.md,
+                              borderRadius: radii.full,
+                              borderWidth: 1,
+                              borderColor:
+                                serviceVariationId === variation.id
+                                  ? theme.colors.primary
+                                  : pal.border,
+                              backgroundColor:
+                                serviceVariationId === variation.id
+                                  ? theme.colors.primaryBg
+                                  : pal.surface,
+                            }}
+                          >
+                            <Typography variant="caption">
+                              {variation.name} · {variation.durationMinutes} min
+                            </Typography>
+                          </Pressable>
+                        ))}
+                    </View>
+                  </View>
+                ) : null}
+                {selectedService?.addOns.some((item) => item.active) ? (
+                  <View style={{ gap: spacing.sm }}>
+                    <Typography variant="caption" color={pal.muted}>
+                      Adicionais
+                    </Typography>
+                    <View
+                      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
+                    >
+                      {selectedService.addOns
+                        .filter((item) => item.active)
+                        .map((addOn) => {
+                          const selected = serviceAddOnIds.includes(addOn.id);
+                          return (
+                            <Pressable
+                              key={addOn.id}
+                              onPress={() => {
+                                setServiceAddOnIds(
+                                  selected
+                                    ? withoutValue(serviceAddOnIds, addOn.id)
+                                    : [...serviceAddOnIds, addOn.id],
+                                );
+                                const currentAmount = parseCurrencyInput(amount) || 0;
+                                setAmount(
+                                  currencyInput(
+                                    Math.max(
+                                      0,
+                                      currentAmount +
+                                        (selected ? -addOn.price : addOn.price),
+                                    ),
+                                  ),
+                                );
+                                setDurationMinutes((current) =>
+                                  String(
+                                    Math.max(
+                                      5,
+                                      (Number.parseInt(current, 10) || 0) +
+                                        (selected
+                                          ? -addOn.durationMinutes
+                                          : addOn.durationMinutes),
+                                    ),
+                                  ),
+                                );
+                              }}
+                              style={{
+                                minHeight: 44,
+                                justifyContent: "center",
+                                paddingHorizontal: spacing.md,
+                                borderRadius: radii.full,
+                                borderWidth: 1,
+                                borderColor: selected ? theme.colors.primary : pal.border,
+                                backgroundColor: selected
+                                  ? theme.colors.primaryBg
+                                  : pal.surface,
+                              }}
+                            >
+                              <Typography variant="caption">
+                                {addOn.name} · +{currencyInput(addOn.price)}
+                              </Typography>
+                            </Pressable>
+                          );
+                        })}
+                    </View>
+                  </View>
+                ) : null}
+                {packagePurchases.length > 0 ? (
+                  <View style={{ gap: spacing.sm }}>
+                    <Typography variant="caption" color={pal.muted}>
+                      Usar sessão de pacote
+                    </Typography>
+                    <View
+                      style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}
+                    >
+                      <Pressable
+                        onPress={() => setServicePackagePurchaseId(null)}
+                        style={{
+                          minHeight: 44,
+                          justifyContent: "center",
+                          paddingHorizontal: spacing.md,
+                          borderRadius: radii.full,
+                          borderWidth: 1,
+                          borderColor:
+                            servicePackagePurchaseId === null
                               ? theme.colors.primary
                               : pal.border,
                           backgroundColor:
-                            locationMode === option.value
+                            servicePackagePurchaseId === null
                               ? theme.colors.primaryBg
                               : pal.surface,
                         }}
                       >
-                        <Typography variant="caption">{option.label}</Typography>
+                        <Typography variant="caption">Cobrança avulsa</Typography>
                       </Pressable>
-                    ))}
-                  </View>
-                  <Field
-                    icon="location-outline"
-                    placeholder={
-                      locationMode === "online"
-                        ? "Link da chamada (opcional)"
-                        : "Detalhes do local (opcional)"
-                    }
-                    value={locationDetails}
-                    onChangeText={setLocationDetails}
-                  />
-                </View>
-              ) : null}
-              {!isAppointment ? (
-                <View
-                  style={{
-                    gap: spacing.md,
-                    padding: spacing.md,
-                    borderRadius: radii.lg,
-                    backgroundColor: pal.subtleFill,
-                    borderWidth: 1,
-                    borderColor: pal.border,
-                  }}
-                >
-                  <View>
-                    <Typography variant="bodyBold" color={theme.colors.text}>
-                      Cadastrar serviço rápido
-                    </Typography>
-                    <Typography variant="caption" color={pal.muted}>
-                      Se a opção ainda não estiver na lista, informe nome e duração.
-                    </Typography>
-                  </View>
-                  <View
-                    style={{
-                      flexDirection: isDesktop ? "row" : "column",
-                      alignItems: "stretch",
-                      gap: spacing.sm,
-                    }}
-                  >
-                    <View style={isDesktop ? { flex: 1, minWidth: 0 } : undefined}>
-                      <Field
-                        icon="add-circle-outline"
-                        placeholder="Nome do serviço"
-                        value={newServiceName}
-                        onChangeText={setNewServiceName}
-                      />
+                      {packagePurchases
+                        .filter(
+                          (purchase) =>
+                            purchase.status === "active" &&
+                            (!clientId || purchase.clientId === clientId),
+                        )
+                        .map((purchase) => (
+                          <Pressable
+                            key={purchase.id}
+                            onPress={() => {
+                              setServicePackagePurchaseId(purchase.id);
+                              setClientId(purchase.clientId);
+                              setClientName(purchase.clientName);
+                            }}
+                            style={{
+                              minHeight: 44,
+                              justifyContent: "center",
+                              paddingHorizontal: spacing.md,
+                              borderRadius: radii.full,
+                              borderWidth: 1,
+                              borderColor:
+                                servicePackagePurchaseId === purchase.id
+                                  ? theme.colors.primary
+                                  : pal.border,
+                              backgroundColor:
+                                servicePackagePurchaseId === purchase.id
+                                  ? theme.colors.primaryBg
+                                  : pal.surface,
+                            }}
+                          >
+                            <Typography variant="caption">
+                              {purchase.clientName} ·{" "}
+                              {purchase.sessionsTotal - purchase.sessionsUsed} sessões
+                            </Typography>
+                          </Pressable>
+                        ))}
                     </View>
-                    <View style={isDesktop ? { width: 152, flexShrink: 0 } : undefined}>
+                  </View>
+                ) : null}
+                {serviceId ? (
+                  <View style={{ gap: spacing.sm }}>
+                    <Typography variant="caption" color={pal.muted}>
+                      Duração do atendimento
+                    </Typography>
+                    <View style={compactField}>
                       <Field
                         icon="time-outline"
-                        placeholder="Minutos"
-                        value={newServiceDuration}
+                        placeholder="Duração em minutos"
+                        value={durationMinutes}
                         onChangeText={(value) =>
-                          setNewServiceDuration(value.replace(/\D/g, "").slice(0, 4))
+                          setDurationMinutes(value.replace(/\D/g, "").slice(0, 4))
                         }
                         keyboardType="number-pad"
                       />
                     </View>
-                    <Pressable
-                      onPress={() => void handleCreateService()}
-                      disabled={createService.isPending}
-                      accessibilityRole="button"
-                      style={({ pressed }) => ({
-                        minHeight: 58,
-                        minWidth: isDesktop ? 176 : undefined,
-                        justifyContent: "center",
-                        alignItems: "center",
-                        paddingHorizontal: spacing.lg,
-                        borderRadius: radii.lg,
-                        borderWidth: 1,
-                        borderColor: theme.colors.primary,
-                        backgroundColor: theme.colors.surfaceElevated,
-                        opacity: pressed || createService.isPending ? 0.72 : 1,
-                      })}
-                    >
-                      {createService.isPending ? (
-                        <ActivityIndicator color={theme.colors.primaryStrong} />
-                      ) : (
-                        <Typography
-                          variant="bodyBold"
-                          color={theme.colors.primaryStrong}
-                          numberOfLines={1}
-                        >
-                          Cadastrar serviço
+                    <Typography variant="caption" color={pal.muted}>
+                      Local do atendimento
+                      {isAppointment ? (
+                        <Typography variant="bodyBold" color={theme.colors.primaryLight}>
+                          {" "}
+                          *
                         </Typography>
-                      )}
-                    </Pressable>
+                      ) : null}
+                    </Typography>
+                    <ValidationField {...formValidation.field("locationMode")}>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          flexWrap: "wrap",
+                          gap: spacing.sm,
+                        }}
+                      >
+                        {[
+                          { label: "Meu espaço", value: "business" as const },
+                          { label: "Cliente", value: "client" as const },
+                          { label: "Online", value: "online" as const },
+                        ].map((option) => (
+                          <Pressable
+                            key={option.value}
+                            onPress={() => setLocationMode(option.value)}
+                            style={{
+                              minHeight: 44,
+                              justifyContent: "center",
+                              paddingHorizontal: spacing.md,
+                              borderRadius: radii.full,
+                              borderWidth: 1,
+                              borderColor:
+                                locationMode === option.value
+                                  ? theme.colors.primary
+                                  : pal.border,
+                              backgroundColor:
+                                locationMode === option.value
+                                  ? theme.colors.primaryBg
+                                  : pal.surface,
+                            }}
+                          >
+                            <Typography variant="caption">{option.label}</Typography>
+                          </Pressable>
+                        ))}
+                      </View>
+                    </ValidationField>
+                    <Field
+                      icon="location-outline"
+                      placeholder={
+                        locationMode === "online"
+                          ? "Link da chamada (opcional)"
+                          : "Detalhes do local (opcional)"
+                      }
+                      value={locationDetails}
+                      onChangeText={setLocationDetails}
+                    />
                   </View>
-                </View>
-              ) : null}
-            </View>
+                ) : null}
+                {!isAppointment ? (
+                  <View
+                    style={{
+                      gap: spacing.md,
+                      padding: spacing.md,
+                      borderRadius: radii.lg,
+                      backgroundColor: pal.subtleFill,
+                      borderWidth: 1,
+                      borderColor: pal.border,
+                    }}
+                  >
+                    <View>
+                      <Typography variant="bodyBold" color={theme.colors.text}>
+                        Cadastrar serviço rápido
+                      </Typography>
+                      <Typography variant="caption" color={pal.muted}>
+                        Se a opção ainda não estiver na lista, informe nome e duração.
+                      </Typography>
+                    </View>
+                    <View
+                      style={{
+                        flexDirection: isDesktop ? "row" : "column",
+                        alignItems: "stretch",
+                        gap: spacing.sm,
+                      }}
+                    >
+                      <View style={isDesktop ? { flex: 1, minWidth: 0 } : undefined}>
+                        <ValidationField {...serviceValidation.field("newServiceName")}>
+                          <Field
+                            icon="add-circle-outline"
+                            placeholder="Nome do serviço"
+                            value={newServiceName}
+                            onChangeText={setNewServiceName}
+                          />
+                        </ValidationField>
+                      </View>
+                      <View style={isDesktop ? { width: 152, flexShrink: 0 } : undefined}>
+                        <ValidationField
+                          {...serviceValidation.field("newServiceDuration")}
+                        >
+                          <Field
+                            icon="time-outline"
+                            placeholder="Minutos"
+                            value={newServiceDuration}
+                            onChangeText={(value) =>
+                              setNewServiceDuration(value.replace(/\D/g, "").slice(0, 4))
+                            }
+                            keyboardType="number-pad"
+                          />
+                        </ValidationField>
+                      </View>
+                      <Pressable
+                        onPress={() => void handleCreateService()}
+                        disabled={createService.isPending}
+                        accessibilityRole="button"
+                        style={({ pressed }) => ({
+                          minHeight: 58,
+                          minWidth: isDesktop ? 176 : undefined,
+                          justifyContent: "center",
+                          alignItems: "center",
+                          paddingHorizontal: spacing.lg,
+                          borderRadius: radii.lg,
+                          borderWidth: 1,
+                          borderColor: theme.colors.primary,
+                          backgroundColor: theme.colors.surfaceElevated,
+                          opacity: pressed || createService.isPending ? 0.72 : 1,
+                        })}
+                      >
+                        {createService.isPending ? (
+                          <ActivityIndicator color={theme.colors.primaryStrong} />
+                        ) : (
+                          <Typography
+                            variant="bodyBold"
+                            color={theme.colors.primaryStrong}
+                            numberOfLines={1}
+                          >
+                            Cadastrar serviço
+                          </Typography>
+                        )}
+                      </Pressable>
+                    </View>
+                  </View>
+                ) : null}
+              </View>
+            </ValidationField>
           </View>
 
           <View style={{ height: 1, backgroundColor: pal.border }} />
@@ -1282,13 +1325,15 @@ export function OrderForm({
                     *
                   </Typography>
                 </Typography>
-                <Field
-                  icon="cube-outline"
-                  placeholder={`Ex: ${experienceCopy.productExample}`}
-                  value={title}
-                  onChangeText={setTitle}
-                  autoFocus={!isEditing}
-                />
+                <ValidationField {...formValidation.field("title")}>
+                  <Field
+                    icon="cube-outline"
+                    placeholder={`Ex: ${experienceCopy.productExample}`}
+                    value={title}
+                    onChangeText={setTitle}
+                    autoFocus={!isEditing}
+                  />
+                </ValidationField>
               </View>
             ) : null}
 
@@ -1378,16 +1423,18 @@ export function OrderForm({
                   );
                 })}
               </View>
-              <Field
-                icon="calendar-outline"
-                trailingIcon="calendar-outline"
-                trailingLabel="Abrir calendário"
-                onTrailingPress={openDatePicker}
-                value={dateText}
-                onChangeText={(v) => setDateText(maskDateBR(v))}
-                keyboardType="number-pad"
-                placeholder="DD/MM/AAAA"
-              />
+              <ValidationField {...formValidation.field("dateText")}>
+                <Field
+                  icon="calendar-outline"
+                  trailingIcon="calendar-outline"
+                  trailingLabel="Abrir calendário"
+                  onTrailingPress={openDatePicker}
+                  value={dateText}
+                  onChangeText={(v) => setDateText(maskDateBR(v))}
+                  keyboardType="number-pad"
+                  placeholder="DD/MM/AAAA"
+                />
+              </ValidationField>
               <CalendarModal
                 visible={showDatePicker}
                 value={dateText}
@@ -1406,14 +1453,16 @@ export function OrderForm({
                   </Typography>
                 ) : null}
               </Typography>
-              <Field
-                icon="time-outline"
-                placeholder="Ex: 14:30"
-                value={time}
-                onChangeText={(v) => setTime(maskTimeBR(v))}
-                keyboardType="number-pad"
-                maxLength={5}
-              />
+              <ValidationField {...formValidation.field("time")}>
+                <Field
+                  icon="time-outline"
+                  placeholder="Ex: 14:30"
+                  value={time}
+                  onChangeText={(v) => setTime(maskTimeBR(v))}
+                  keyboardType="number-pad"
+                  maxLength={5}
+                />
+              </ValidationField>
             </View>
           </View>
 

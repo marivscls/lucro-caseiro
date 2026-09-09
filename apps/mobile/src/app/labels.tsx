@@ -1,5 +1,8 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../shared/hooks/use-form-validation";
 import { hasActiveFeature, type Label, type LabelData } from "@lucro-caseiro/contracts";
 import {
+  CenteredTextInput,
   Badge,
   Button,
   EmptyState,
@@ -19,7 +22,6 @@ import {
   Pressable,
   ScrollView,
   Switch,
-  TextInput,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -188,7 +190,17 @@ function LabelDetailModal({
     }
   }
 
+  const formValidation = useFormValidation(
+    {
+      name: !name.trim() && "Dê um nome para a etiqueta.",
+      selectedProductId: !selectedProductId && "Escolha o produto da etiqueta.",
+      productName: !labelData.productName.trim() && "Informe o nome que será impresso.",
+    },
+    editing,
+  );
+
   async function handleSave() {
+    if (!formValidation.validate()) return;
     if (!name.trim()) {
       alertValidation("Dê um nome para a etiqueta");
       return;
@@ -373,14 +385,18 @@ function LabelDetailModal({
               quando aplicável.
             </Typography>
           </View>
-          <Input label="Nome da etiqueta" value={name} onChangeText={setName} />
-          <LabelProductPicker
-            selectedId={selectedProductId}
-            onSelect={(product) => {
-              setSelectedProductId(product.id);
-              updateField("productName", product.name);
-            }}
-          />
+          <ValidationField {...formValidation.field("name")}>
+            <Input label="Nome da etiqueta" value={name} onChangeText={setName} />
+          </ValidationField>
+          <ValidationField {...formValidation.field("selectedProductId")}>
+            <LabelProductPicker
+              selectedId={selectedProductId}
+              onSelect={(product) => {
+                setSelectedProductId(product.id);
+                updateField("productName", product.name);
+              }}
+            />
+          </ValidationField>
           <TemplatePicker selected={templateId} onSelect={setTemplateId} />
           <FormSection
             title="Formato de impressão"
@@ -396,11 +412,13 @@ function LabelDetailModal({
               onLockedPress={() => showPaywall("labels")}
             />
           </FormSection>
-          <Input
-            label="Nome que será impresso"
-            value={labelData.productName}
-            onChangeText={(value) => updateField("productName", value)}
-          />
+          <ValidationField {...formValidation.field("productName")}>
+            <Input
+              label="Nome que será impresso"
+              value={labelData.productName}
+              onChangeText={(value) => updateField("productName", value)}
+            />
+          </ValidationField>
           <Input
             label="Observação (opcional)"
             placeholder="Ex: Manter refrigerado"
@@ -587,15 +605,7 @@ function LabelsSummary({ totalCount }: Readonly<{ totalCount: number }>) {
         >
           SUA COLEÇÃO
         </Typography>
-        <Typography
-          color={palette.onWine}
-          numberOfLines={2}
-          style={{
-            fontFamily: fonts.extraBold,
-            fontSize: compact ? 26 : 32,
-            lineHeight: compact ? 30 : 36,
-          }}
-        >
+        <Typography variant="h1" color={palette.onWine} numberOfLines={2}>
           {totalCount} {countLabel}
         </Typography>
         <Typography
@@ -820,7 +830,7 @@ export default function LabelsScreen() {
           gap: spacing.md,
         }}
       >
-        {totalCount > 0 ? <LabelsSummary totalCount={totalCount} /> : null}
+        <LabelsSummary totalCount={totalCount} />
 
         {items.length > 0 ? (
           <>
@@ -839,7 +849,7 @@ export default function LabelsScreen() {
               }}
             >
               <AppIcon name="search-outline" size={20} color={palette.muted} />
-              <TextInput
+              <CenteredTextInput
                 value={search}
                 onChangeText={setSearch}
                 placeholder="Buscar etiqueta"

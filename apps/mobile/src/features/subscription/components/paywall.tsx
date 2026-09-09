@@ -16,13 +16,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import checkoutProfessionalHero from "../../../assets/checkout-professional-hero.png";
 import { getBrandDisplayName } from "../../../shared/brand-name";
-import { AppIcon, type AppIconName } from "../../../shared/components/app-icon";
+import { AppIcon } from "../../../shared/components/app-icon";
 import { showAlert } from "../../../shared/components/alert-store";
+import { getPaywallCopy } from "../limit-copy";
+import { TIER_BENEFITS, tierBenefitsFor } from "../plan-benefits";
+import type { BusinessExperienceCopy } from "../business-copy";
 
 interface PaywallProps {
   readonly title?: string;
   readonly message?: string;
   readonly currentUsage?: string;
+  readonly experienceCopy?: BusinessExperienceCopy;
   readonly recommendedTier?: PaidPlan;
   readonly onSubscribe?: (tier: PaidPlan, period: BillingPeriod) => void;
   readonly onRestore?: () => void;
@@ -30,68 +34,11 @@ interface PaywallProps {
   readonly onClose?: () => void;
 }
 
-interface Benefit {
-  readonly icon: AppIconName;
-  readonly title: string;
-  readonly description: string;
-}
-
-const PROFESSIONAL_BENEFITS: readonly Benefit[] = [
-  {
-    icon: "bar-chart-outline",
-    title: "Decida com insights completos",
-    description: "Acompanhe resultados e exporte insights em PDF e Excel.",
-  },
-  {
-    icon: "bag-handle-outline",
-    title: "Controle compras e fornecedores",
-    description: "Registre compras e acompanhe fornecedores sem limite.",
-  },
-  {
-    icon: "document-text-outline",
-    title: "Crie materiais mais profissionais",
-    description: "Faça etiquetas, orçamentos em PDF e use mais fotos nos produtos.",
-  },
-  {
-    icon: "calendar-outline",
-    title: "Controle uma operação mais completa",
-    description: "Organize compras, fornecedores, gastos recorrentes e kits.",
-  },
-];
-
-const ESSENTIAL_BENEFITS: readonly Benefit[] = [
-  {
-    icon: "bar-chart-outline",
-    title: "Venda sem limites mensais",
-    description: "Registre todas as suas vendas e acompanhe o faturamento do negócio.",
-  },
-  {
-    icon: "bag-handle-outline",
-    title: "Cadastre tudo que você precisa",
-    description: "Tenha clientes, produtos, receitas e embalagens sem limite.",
-  },
-  {
-    icon: "document-text-outline",
-    title: "Tenha um catálogo completo e personalizado",
-    description: "Apresente todos os produtos com capa, cores e identidade da sua marca.",
-  },
-  {
-    icon: "calendar-outline",
-    title: "Cuide da rotina sem anúncios",
-    description:
-      "Use agenda, fiado, financeiro básico e resumo mensal com tranquilidade.",
-  },
-];
-
 function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-}
-
-function planBenefits(tier: PaidPlan): readonly Benefit[] {
-  return tier === "professional" ? PROFESSIONAL_BENEFITS : ESSENTIAL_BENEFITS;
 }
 
 function periodSurface(theme: Theme, selected: boolean, highlighted: boolean) {
@@ -116,7 +63,7 @@ function BenefitRow({
   compact,
   theme,
 }: Readonly<{
-  benefit: Benefit;
+  benefit: string;
   last: boolean;
   compact: boolean;
   theme: Theme;
@@ -148,7 +95,7 @@ function BenefitRow({
         }}
       >
         <AppIcon
-          name={benefit.icon}
+          name="checkmark-outline"
           size={compact ? 28 : 34}
           color={theme.colors.primary}
         />
@@ -173,17 +120,7 @@ function BenefitRow({
             letterSpacing: -0.1,
           }}
         >
-          {benefit.title}
-        </Typography>
-        <Typography
-          variant="body"
-          color={theme.colors.textSecondary}
-          style={{
-            fontSize: compact ? fontSizes.sm : fontSizes.md,
-            lineHeight: compact ? 20 : 22,
-          }}
-        >
-          {benefit.description}
+          {benefit}
         </Typography>
       </View>
     </View>
@@ -252,6 +189,10 @@ function SubscribeButton({
 }
 
 export function Paywall({
+  title,
+  message,
+  currentUsage,
+  experienceCopy,
   recommendedTier = "professional",
   onSubscribe,
   onRestore,
@@ -274,7 +215,10 @@ export function Paywall({
   const displayedMonthlyPrice =
     period === "annual" ? pricing.annual / 12 : pricing.monthly;
   const annualSavings = pricing.monthly * 12 - pricing.annual;
-  const benefits = planBenefits(tier);
+  const benefits = experienceCopy
+    ? tierBenefitsFor(tier, experienceCopy)
+    : TIER_BENEFITS[tier];
+  const defaultCopy = getPaywallCopy(null, experienceCopy);
 
   function handleSubscribe() {
     if (onSubscribe) {
@@ -387,10 +331,9 @@ export function Paywall({
             <Typography
               variant="screenTitle"
               color={theme.colors.text}
-              numberOfLines={2}
               style={styles.title}
             >
-              Mais controle para o seu negócio
+              {title ?? defaultCopy.title}
             </Typography>
             <Typography
               variant="body"
@@ -403,8 +346,13 @@ export function Paywall({
                 },
               ]}
             >
-              Organize vendas, acompanhe resultados e trabalhe com mais profissionalismo.
+              {message ?? defaultCopy.message}
             </Typography>
+            {currentUsage ? (
+              <Typography variant="bodyBold" color={theme.colors.textSecondary}>
+                {currentUsage}
+              </Typography>
+            ) : null}
           </View>
 
           <View
@@ -415,7 +363,7 @@ export function Paywall({
           >
             {benefits.map((benefit, index) => (
               <BenefitRow
-                key={benefit.title}
+                key={benefit}
                 benefit={benefit}
                 last={index === benefits.length - 1}
                 compact={compact}

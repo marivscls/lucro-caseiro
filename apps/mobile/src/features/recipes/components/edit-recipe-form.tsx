@@ -1,3 +1,5 @@
+import { ValidationField } from "@lucro-caseiro/ui";
+import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import type { Recipe } from "@lucro-caseiro/contracts";
 import { Typography, useTheme, spacing, radii } from "@lucro-caseiro/ui";
 import { AppIcon } from "../../../shared/components/app-icon";
@@ -78,7 +80,29 @@ export function EditRecipeForm({
   const parsedYield = parseFloat(yieldQuantity.replace(",", ".")) || 0;
   const costPerUnit = parsedYield > 0 ? totalCost / parsedYield : 0;
 
+  const formValidation = useFormValidation(
+    {
+      name: !name.trim() && "Informe o nome da receita.",
+      yieldQuantity:
+        (!Number.isFinite(Number(yieldQuantity.replace(",", "."))) ||
+          Number(yieldQuantity.replace(",", ".")) <= 0) &&
+        "Informe uma quantidade final maior que zero.",
+      yieldUnit: !yieldUnit.trim() && "Informe a unidade da quantidade final.",
+      lines:
+        (!lines.some((line) => line.materialId) ||
+          lines.some(
+            (line) =>
+              line.materialId &&
+              (!Number.isFinite(Number(line.quantity.replace(",", "."))) ||
+                Number(line.quantity.replace(",", ".")) <= 0),
+          )) &&
+        "Adicione um material e preencha uma quantidade maior que zero em cada item.",
+    },
+    visible,
+  );
+
   async function handleSubmit() {
+    if (!formValidation.validate()) return;
     if (!name.trim()) {
       alertValidation("Informe o nome da receita");
       return;
@@ -141,7 +165,10 @@ export function EditRecipeForm({
           })),
         },
       });
-      showAlert({ title: `${formulaLabel} atualizada!`, message: `${name} foi atualizada` });
+      showAlert({
+        title: `${formulaLabel} atualizada!`,
+        message: `${name} foi atualizada`,
+      });
       onSuccess?.();
     } catch {
       alertError("Não foi possível atualizar a receita. Tente novamente.");
@@ -244,13 +271,15 @@ export function EditRecipeForm({
     >
       <View style={{ flexShrink: 1, gap: spacing.xl }}>
         <FieldRow icon="document-text-outline" label="Nome da receita">
-          <TextBox
-            value={name}
-            onChangeText={setName}
-            placeholder={`Ex: ${experienceCopy.productExample}`}
-            maxLength={80}
-            autoFocus
-          />
+          <ValidationField {...formValidation.field("name")}>
+            <TextBox
+              value={name}
+              onChangeText={setName}
+              placeholder={`Ex: ${experienceCopy.productExample}`}
+              maxLength={80}
+              autoFocus
+            />
+          </ValidationField>
         </FieldRow>
 
         <FieldRow icon="grid-outline" label="Categoria">
@@ -282,22 +311,26 @@ export function EditRecipeForm({
               <Typography variant="bodyBold" color={theme.colors.text}>
                 {experienceCopy.quantityLabel}
               </Typography>
-              <TextBox
-                value={yieldQuantity}
-                onChangeText={setYieldQuantity}
-                placeholder="Ex: 30 ou 1,5"
-                keyboardType="decimal-pad"
-              />
+              <ValidationField {...formValidation.field("yieldQuantity")}>
+                <TextBox
+                  value={yieldQuantity}
+                  onChangeText={setYieldQuantity}
+                  placeholder="Ex: 30 ou 1,5"
+                  keyboardType="decimal-pad"
+                />
+              </ValidationField>
             </View>
             <View style={{ flex: 1, gap: spacing.sm }}>
               <Typography variant="bodyBold" color={theme.colors.text}>
                 Unidade
               </Typography>
-              <TextBox
-                value={yieldUnit}
-                onChangeText={setYieldUnit}
-                placeholder="Ex: unidades"
-              />
+              <ValidationField {...formValidation.field("yieldUnit")}>
+                <TextBox
+                  value={yieldUnit}
+                  onChangeText={setYieldUnit}
+                  placeholder="Ex: unidades"
+                />
+              </ValidationField>
             </View>
           </View>
           <Typography variant="caption" color={theme.colors.textSecondary}>
@@ -308,11 +341,13 @@ export function EditRecipeForm({
 
         <RecipeCostCard totalCost={totalCost} costPerUnit={costPerUnit} />
 
-        <RecipeMaterialsEditor
-          lines={lines}
-          onChange={setLines}
-          onTotalCost={setTotalCost}
-        />
+        <ValidationField {...formValidation.field("lines")}>
+          <RecipeMaterialsEditor
+            lines={lines}
+            onChange={setLines}
+            onTotalCost={setTotalCost}
+          />
+        </ValidationField>
       </View>
     </StandardModal>
   );
