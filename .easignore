@@ -13,6 +13,8 @@ web-build
 coverage
 **/coverage
 .codex-logs
+.claude
+**/.claude
 .idea
 *.log
 .env
