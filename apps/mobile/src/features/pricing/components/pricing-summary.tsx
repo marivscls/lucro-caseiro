@@ -1,7 +1,7 @@
 import { ValidationField } from "@lucro-caseiro/ui";
 import { useFormValidation } from "../../../shared/hooks/use-form-validation";
 import React from "react";
-import { View } from "react-native";
+import { Image, View } from "react-native";
 import type { CreatePricing, Product } from "@lucro-caseiro/contracts";
 import { MAX_MONEY } from "@lucro-caseiro/contracts";
 import { Button, Card, Typography, spacing, useTheme } from "@lucro-caseiro/ui";
@@ -10,6 +10,7 @@ import { formatCurrency } from "../../../shared/utils/format";
 import { evaluateSalePrice, pricingQuote } from "../calc";
 import { PricingField } from "./pricing-fields";
 import { moneyValue, type PricingDraft } from "../use-pricing-draft";
+import { useBrandIllustration } from "../../../shared/brand-illustrations";
 
 export function PricingSummary({
   input,
@@ -31,6 +32,7 @@ export function PricingSummary({
   onAlternativeChange: (value: string) => void;
 }>) {
   const { theme } = useTheme();
+  const resultIllustration = useBrandIllustration("pricingResultHero");
   const alternative = draft.alternative;
   const setAlternative = onAlternativeChange;
   const quote = pricingQuote(input);
@@ -63,9 +65,21 @@ export function PricingSummary({
   return (
     <Card style={{ gap: spacing.lg }}>
       <View style={{ gap: spacing.sm }}>
-        <Typography variant="captionBold" color={theme.colors.primaryStrong}>
-          PREÇO SUGERIDO POR UNIDADE
-        </Typography>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+          <Typography
+            variant="captionBold"
+            color={theme.colors.primaryStrong}
+            style={{ flex: 1, minWidth: 0 }}
+          >
+            PREÇO SUGERIDO POR UNIDADE
+          </Typography>
+          <Image
+            source={resultIllustration}
+            resizeMode="contain"
+            accessible={false}
+            style={{ width: 96, height: 64 }}
+          />
+        </View>
         <Typography variant="moneyHero" numberOfLines={1} adjustsFontSizeToFit>
           {formatCurrency(suggested)}
         </Typography>

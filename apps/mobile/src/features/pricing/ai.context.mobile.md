@@ -35,6 +35,8 @@ Depende de contracts (cálculos e DTOs), products (cadastro e alteração do pre
 A introdução reaproveita a ilustração original `pricingCostsHero` via `useBrandIllustration`,
 em tamanho compacto ao lado do título. A descrição, os campos e o resultado conservam
 a largura disponível; a imagem é decorativa e acompanha a variante da marca.
+O resultado também reaproveita `pricingResultHero`, ao lado do rótulo do preço sugerido,
+em 96 × 64 px. O valor fica abaixo, com toda a largura do cartão disponível.
 
 O histórico usa cartões compactos com nome visível do produto, data, preço sugerido,
 custo e acréscimo. A faixa de filtros neutros não encolhe com a lista; trocar o filtro
