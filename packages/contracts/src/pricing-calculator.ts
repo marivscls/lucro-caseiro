@@ -34,6 +34,7 @@ export function revenueCosting(
   directCost: number,
   markupPercent: number,
   costingPercent: number,
+  feesPercent = 0,
 ): {
   suggestedPrice: number;
   overheadAmount: number;
@@ -44,8 +45,17 @@ export function revenueCosting(
   const safeMarkup = Math.max(0, markupPercent);
   const safeCosting = costingPercent > 0 && costingPercent < 100 ? costingPercent : 0;
   const profitAmount = safeDirectCost * (safeMarkup / 100);
-  const suggestedPrice = (safeDirectCost + profitAmount) / (1 - safeCosting / 100);
-  const overheadAmount = suggestedPrice * (safeCosting / 100);
+  if (
+    !Number.isFinite(feesPercent) ||
+    feesPercent < 0 ||
+    safeCosting + feesPercent >= 100
+  ) {
+    throw new RangeError("Custos indiretos e taxas precisam somar menos de 100%");
+  }
+  const finalPrice =
+    (safeDirectCost + profitAmount) / (1 - (safeCosting + feesPercent) / 100);
+  const suggestedPrice = finalPrice * (1 - feesPercent / 100);
+  const overheadAmount = finalPrice * (safeCosting / 100);
   return {
     suggestedPrice,
     overheadAmount,

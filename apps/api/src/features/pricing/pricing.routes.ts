@@ -31,16 +31,20 @@ export function createPricingRouter(
     return requireAdvancedPricing(req, res, next);
   };
 
-  router.post("/calculate", requireAdvancedRevenuePricing, async (req, res, next) => {
-    try {
-      const userId = getUserId(req);
-      const data = CreatePricingDto.parse(req.body);
-      const result = await useCases.calculate(userId, data);
-      res.status(201).json(result);
-    } catch (err) {
-      next(err);
-    }
-  });
+  router.post(
+    ["/calculate", "/calculate-v2"],
+    requireAdvancedRevenuePricing,
+    async (req, res, next) => {
+      try {
+        const userId = getUserId(req);
+        const data = CreatePricingDto.parse(req.body);
+        const result = await useCases.calculate(userId, data);
+        res.status(201).json(result);
+      } catch (err) {
+        next(err);
+      }
+    },
+  );
 
   router.get("/preferences", requireAdvancedPricing, async (req, res, next) => {
     try {

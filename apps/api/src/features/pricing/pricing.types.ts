@@ -1,5 +1,6 @@
 import type {
   Pricing,
+  PricingSourceSnapshot,
   PricingAllocationMode,
   PricingPreferences,
   UpsertPricingPreferences,
@@ -21,6 +22,7 @@ export interface IPricingRepo {
 }
 
 export interface CreatePricingData {
+  sourceSnapshot?: PricingSourceSnapshot;
   productId?: string;
   ingredientCost: number;
   packagingCost: number;

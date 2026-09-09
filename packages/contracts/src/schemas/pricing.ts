@@ -22,9 +22,34 @@ export const PricingPreferencesDto = UpsertPricingPreferencesDto.extend({
 });
 export type PricingPreferences = z.infer<typeof PricingPreferencesDto>;
 
+export const PricingSourceSnapshotDto = z.object({
+  confirmed: z
+    .object({
+      packaging: z.boolean(),
+      labor: z.boolean(),
+      fixed: z.boolean(),
+      fees: z.boolean(),
+    })
+    .optional(),
+  ingredientSource: z.enum(["manual", "product", "recipe"]),
+  recipeId: z.string().uuid().optional(),
+  packaging: z
+    .array(
+      z.object({
+        id: z.string().uuid(),
+        unitCost: z.number().nonnegative().max(MAX_MONEY),
+      }),
+    )
+    .max(50),
+  monthlyProduction: z.number().nonnegative().max(1_000_000).optional(),
+  monthlyFixed: z.number().nonnegative().max(MAX_MONEY).optional(),
+});
+export type PricingSourceSnapshot = z.infer<typeof PricingSourceSnapshotDto>;
+
 export const CreatePricingDto = z
   .object({
     productId: z.string().uuid().optional(),
+    sourceSnapshot: PricingSourceSnapshotDto.optional(),
     ingredientCost: z.number().min(0).max(MAX_MONEY),
     packagingCost: z.number().min(0).max(MAX_MONEY),
     laborCost: z.number().min(0).max(MAX_MONEY),
@@ -39,6 +64,28 @@ export const CreatePricingDto = z
   })
   .superRefine((data, ctx) => {
     if (data.allocationMode !== "revenue") return;
+    if (
+      data.revenueBasis &&
+      ((data.monthlyFixedCosts ?? 0) / data.revenueBasis) * 100 >= 95
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["monthlyFixedCosts"],
+        message: "As despesas por faturamento precisam ficar abaixo de 95%.",
+      });
+    }
+    if (
+      data.revenueBasis &&
+      ((data.monthlyFixedCosts ?? 0) / data.revenueBasis) * 100 +
+        (data.feesPercent ?? 0) >=
+        100
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["feesPercent"],
+        message: "Custos indiretos e taxas precisam somar menos de 100%",
+      });
+    }
     if (!(data.monthlyFixedCosts && data.monthlyFixedCosts > 0)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -61,6 +108,7 @@ export const PricingDto = z.object({
   id: z.string().uuid(),
   userId: z.string().uuid(),
   productId: z.string().uuid().nullable(),
+  sourceSnapshot: PricingSourceSnapshotDto.nullish(),
   ingredientCost: z.number(),
   packagingCost: z.number(),
   laborCost: z.number(),

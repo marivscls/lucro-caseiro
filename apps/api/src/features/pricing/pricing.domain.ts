@@ -78,6 +78,13 @@ export function validatePricingData(data: PricingInput): string[] {
   }
 
   if (data.allocationMode === "revenue") {
+    if (
+      calculateOverheadPercent(data.monthlyFixedCosts ?? 0, data.revenueBasis ?? 0) +
+        (data.feesPercent ?? 0) >=
+      100
+    ) {
+      errors.push("Custos indiretos e taxas precisam somar menos de 100%");
+    }
     if (!(data.monthlyFixedCosts && data.monthlyFixedCosts > 0)) {
       errors.push("Custos mensais confirmados são obrigatórios");
     }

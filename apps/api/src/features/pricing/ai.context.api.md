@@ -4,6 +4,10 @@
 
 ## Purpose
 
+Atualização 2026-09-09: `/calculate-v2` atende a tela única e persiste `sourceSnapshot` opcional para revisão de custos. A migration 063 adiciona essa coluna JSONB nullable e amplia o acréscimo para numeric(6,2), coerente com o limite 1000%. Publicar a API e a migração antes do aplicativo atualizado. Os registros antigos mantêm suas origens desconhecidas.
+
+No custeio por faturamento com taxa de venda, usar `final = (direto + ganhoAlvo) / (1 - custeio% - taxa%)`; ambos os percentuais têm a mesma base. `suggestedPrice` guarda o valor líquido das taxas e `totalCost` inclui os indiretos reservados sobre o preço final. Soma de custeio e taxas >= 100% é rejeitada no DTO e no domínio.
+
 Calcular e armazenar precificacao de produtos do negocio, somando custos de ingredientes, embalagem, mao de obra e rateio de custos fixos, aplicando margem de lucro para sugerir preco de venda. Mantem historico de calculos por produto.
 
 ## Non-goals
@@ -68,16 +72,15 @@ Calcular e armazenar precificacao de produtos do negocio, somando custos de ingr
 ## Invariants
 
 - Nenhum custo pode ser negativo (ingredientCost, packagingCost, laborCost, fixedCostShare >= 0)
-- Margem de lucro nao pode ser negativa
-- Margem de lucro nao pode exceder 1000%
+- Acréscimo sobre o custo não pode ser negativo nem exceder 1000%
 - totalCost = ingredientCost + packagingCost + laborCost + fixedCostShare
-- suggestedPrice = totalCost \* (1 + marginPercent / 100)
+- No modo por unidades, suggestedPrice = totalCost \* (1 + marginPercent / 100)
 - feesPercent >= 0 e < 100 (taxas % sobre o preço de venda)
 - finalPrice = suggestedPrice / (1 - feesPercent / 100) — **gross-up**: a taxa incide
   sobre a venda, não sobre o custo; preserva a margem (vendedor recebe `suggestedPrice`)
 - feesAmount = finalPrice - suggestedPrice
 - No modo `revenue`: `overheadPercent = monthlyFixedCosts / revenueBasis × 100`, menor que 95%;
-  `precoBase = (custoDireto + lucroAlvo) / (1 - overheadPercent/100)`; o custo indireto é reservado
+  `precoFinal = (custoDireto + lucroAlvo) / (1 - (overheadPercent + feesPercent)/100)`; o custo indireto é reservado
   sem consumir o lucro alvo.
 - Toda query escopada por `userId`
 
@@ -90,6 +93,10 @@ mobile_counterpart: pricing
 api:
   base: /api/v1/pricing
   endpoints:
+    - method: POST
+      path: /calculate-v2
+      dto: CreatePricingDto
+      response: Pricing (201), incluindo sourceSnapshot
     - method: POST
       path: /calculate
       dto: CreatePricingDto
