@@ -114,7 +114,8 @@ export function BusinessProfileFlow({
 
 export function BusinessProfileCard({
   settings = false,
-}: Readonly<{ settings?: boolean }>) {
+  hasSale = false,
+}: Readonly<{ settings?: boolean; hasSale?: boolean }>) {
   const state = useBusinessOnboarding();
   const colors = useBrandScreenPalette();
   const router = useRouter();
@@ -124,7 +125,7 @@ export function BusinessProfileCard({
   const complete = state.record?.status === "completed";
   let label = complete ? "SUA PRIORIDADE" : "UM COMEÇO DO SEU JEITO";
   if (settings) label = "PERFIL DO NEGÓCIO";
-  const next = complete ? profileRecommendation(state.answers) : undefined;
+  const next = complete ? profileRecommendation(state.answers, { hasSale }) : undefined;
   const ideas = complete ? marketingIdeas(state.answers) : [];
   if (!settings && (state.loading || state.loadError || !complete)) return null;
   return (

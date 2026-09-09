@@ -49,6 +49,20 @@ describe("recomendações do perfil", () => {
     ).toBe("/tabs/new-sale");
   });
 
+  it("recomenda a próxima venda quando a conta já possui vendas", () => {
+    expect(
+      profileRecommendation(
+        {
+          ...emptyBusinessProfile,
+          segment: "retail",
+          stage: "starting",
+          goal: "orders",
+        },
+        { hasSale: true },
+      )?.title,
+    ).toBe("Organize a próxima venda");
+  });
+
   it("inclui o canal escolhido na orientação do catálogo", () => {
     const base = { ...emptyBusinessProfile, goal: "catalog", segment: "craft" };
     expect(profileRecommendation({ ...base, channels: ["whatsapp"] })?.text).toContain(

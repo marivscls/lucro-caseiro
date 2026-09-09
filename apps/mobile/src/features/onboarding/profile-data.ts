@@ -202,7 +202,10 @@ export function toggleProfileChannel(channels: string[], channel: string): strin
     : [...channels, channel];
 }
 
-export function profileRecommendation(profile: BusinessProfileAnswers) {
+export function profileRecommendation(
+  profile: BusinessProfileAnswers,
+  activity: { hasSale?: boolean } = {},
+) {
   const nouns: Record<string, string> = {
     services: "serviço",
     food: "prato",
@@ -235,7 +238,7 @@ export function profileRecommendation(profile: BusinessProfileAnswers) {
     },
     orders: {
       title:
-        profile.stage === "starting"
+        profile.stage === "starting" && !activity.hasSale
           ? "Prepare sua primeira venda"
           : "Organize a próxima venda",
       text: "Reúna o que foi combinado: cliente, valor e prazo. Assim, cada pedido fica mais fácil de acompanhar.",

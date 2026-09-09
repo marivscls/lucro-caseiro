@@ -1025,7 +1025,7 @@ export default function HomeScreen() {
             onPress: () => router.push("/finance"),
           }}
         />
-        {brand.id === "lucro-caseiro" ? <BusinessProfileCard /> : null}
+        {brand.id === "lucro-caseiro" ? <BusinessProfileCard hasSale={hasSale} /> : null}
 
         <LimitBanner resource="sales" onUpgrade={() => showPaywall("sales")} />
 
